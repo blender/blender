@@ -1492,11 +1492,11 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
 
         if brush is not None:
             # XXX: Items in "sub" currently show up beside the brush selector in a separate column
-            if gp_settings.tool == 'ERASE':
+            if brush.gpencil_tool == 'ERASE':
                 sub.prop(gp_settings, "use_default_eraser", text="")
 
             # Brush details
-            if gp_settings.tool == 'ERASE':
+            if brush.gpencil_tool == 'ERASE':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
                 row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
@@ -1509,7 +1509,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
                     row.prop(gp_settings, "eraser_strength_factor")
                     row = layout.row(align=True)
                     row.prop(gp_settings, "eraser_thickness_factor")
-            elif gp_settings.tool == 'FILL':
+            elif brush.gpencil_tool == 'FILL':
                 col = layout.column(align=True)
                 col.prop(gp_settings, "fill_leak", text="Leak Size")
                 col.separator()
@@ -1550,9 +1550,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
-        gp_settings = brush.gpencil_settings
-
-        return brush is not None and gp_settings.tool != 'ERASE'
+        return brush is not None and brush.gpencil_tool != 'ERASE'
 
     def draw_header_preset(self, context):
         VIEW3D_PT_gpencil_brush_presets.draw_panel_header(self.layout)
@@ -1588,9 +1586,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
-        gp_settings = brush.gpencil_settings
-
-        return brush is not None and gp_settings.tool == 'DRAW'
+        return brush is not None and brush.gpencil_tool == 'DRAW'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1620,9 +1616,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
-        gp_settings = brush.gpencil_settings
-
-        return brush is not None and gp_settings.tool != 'ERASE'
+        return brush is not None and brush.gpencil_tool != 'ERASE'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1661,9 +1655,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
-        gp_settings = brush.gpencil_settings
-
-        return brush is not None and gp_settings.tool != 'ERASE'
+        return brush is not None and brush.gpencil_tool != 'ERASE'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1698,9 +1690,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
-        gp_settings = brush.gpencil_settings
-
-        return brush is not None and gp_settings.tool != 'ERASE'
+        return brush is not None and brush.gpencil_tool != 'ERASE'
 
     @staticmethod
     def draw(self, context):

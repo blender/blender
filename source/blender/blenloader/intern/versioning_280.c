@@ -909,6 +909,15 @@ void do_versions_after_linking_280(Main *bmain)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 30)) {
+		for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+			if (brush->gpencil_settings != NULL) {
+				brush->gpencil_tool = brush->gpencil_settings->brush_type;
+			}
+		}
+		BKE_paint_toolslots_init_from_main(bmain);
+	}
 }
 
 /* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already.
@@ -2030,7 +2039,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
 				if (brush->gpencil_settings != NULL) {
 					BrushGpencilSettings *gp = brush->gpencil_settings;
-					if (gp->brush_type == GP_BRUSH_TYPE_ERASE) {
+					if (gp->brush_type == GPAINT_TOOL_ERASE) {
 						gp->era_strength_f = 100.0f;
 						gp->era_thickness_f = 10.0f;
 					}

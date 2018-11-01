@@ -549,6 +549,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
 void BKE_paint_free(Paint *paint)
 {
 	curvemapping_free(paint->cavity_curve);
+	MEM_SAFE_FREE(paint->tool_slots);
 }
 
 /* called when copying scene settings, so even if 'src' and 'tar' are the same
@@ -559,10 +560,16 @@ void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
 {
 	tar->brush = src->brush;
 	tar->cavity_curve = curvemapping_copy(src->cavity_curve);
+	tar->tool_slots = MEM_dupallocN(src->tool_slots);
 
 	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
 		id_us_plus((ID *)tar->brush);
 		id_us_plus((ID *)tar->palette);
+		if (src->tool_slots != NULL) {
+			for (int i = 0; i < tar->tool_slots_len; i++) {
+				id_us_plus((ID *)tar->tool_slots[i].brush);
+			}
+		}
 	}
 }
 

@@ -5910,6 +5910,11 @@ static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
 	if (p) {
 		p->brush = newlibadr_us(fd, sce->id.lib, p->brush);
+		for (int i = 0; i < p->tool_slots_len; i++) {
+			if (p->tool_slots[i].brush != NULL) {
+				p->tool_slots[i].brush = newlibadr_us(fd, sce->id.lib, p->tool_slots[i].brush);
+			}
+		}
 		p->palette = newlibadr_us(fd, sce->id.lib, p->palette);
 		p->paint_cursor = NULL;
 	}
@@ -6205,6 +6210,8 @@ static void direct_link_paint(FileData *fd, Paint *p)
 		direct_link_curvemapping(fd, p->cavity_curve);
 	else
 		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
+
+	p->tool_slots = newdataadr(fd, p->tool_slots);
 }
 
 static void direct_link_paint_helper(FileData *fd, Paint **paint)

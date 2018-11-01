@@ -797,9 +797,21 @@ typedef struct TimeMarker {
 
 #define PAINT_MAX_INPUT_SAMPLES 64
 
+/* We might want to store other things here. */
+typedef struct PaintToolSlot {
+	struct Brush *brush;
+} PaintToolSlot;
+
 /* Paint Tool Base */
 typedef struct Paint {
 	struct Brush *brush;
+
+	/* Each tool has it's own active brush,
+	 * The currently active tool is defined by the current 'brush'. */
+	struct PaintToolSlot *tool_slots;
+	int                   tool_slots_len;
+	char _pad1[4];
+
 	struct Palette *palette;
 	struct CurveMapping *cavity_curve; /* cavity curve */
 

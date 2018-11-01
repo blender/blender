@@ -280,6 +280,9 @@ static void library_foreach_mtex(LibraryForeachIDData *data, MTex *mtex)
 static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
 {
 	FOREACH_CALLBACK_INVOKE(data, paint->brush, IDWALK_CB_USER);
+	for (int i = 0; i < paint->tool_slots_len; i++) {
+		FOREACH_CALLBACK_INVOKE(data, paint->tool_slots[i].brush, IDWALK_CB_USER);
+	}
 	FOREACH_CALLBACK_INVOKE(data, paint->palette, IDWALK_CB_USER);
 
 	FOREACH_FINALIZE_VOID;

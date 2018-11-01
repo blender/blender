@@ -134,7 +134,7 @@ static bool gp_stroke_paintmode_draw_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_DRAW));
+	        (brush->gpencil_tool == GPAINT_TOOL_DRAW));
 }
 
 /* Poll callback for stroke painting (erase brush) */
@@ -146,7 +146,7 @@ static bool gp_stroke_paintmode_erase_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE));
+	        (brush->gpencil_tool == GPAINT_TOOL_ERASE));
 }
 
 /* Poll callback for stroke painting (fill) */
@@ -158,7 +158,7 @@ static bool gp_stroke_paintmode_fill_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_FILL));
+	        (brush->gpencil_tool == GPAINT_TOOL_FILL));
 }
 
 /* Poll callback for stroke sculpting mode */

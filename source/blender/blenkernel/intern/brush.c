@@ -304,7 +304,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_subdivide = 1;
 	brush->gpencil_settings->draw_random_sub = 0.0f;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_DRAW;
+	brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
 	brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
 	brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -336,7 +336,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->thick_smoothlvl = 3;
 	brush->gpencil_settings->draw_random_sub = 0.0f;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_DRAW;
+	brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
 	brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
 	brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -365,7 +365,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_subdivide = 1;
 	brush->gpencil_settings->draw_random_sub = 0.0f;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_INK;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_DRAW;
+	brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
 	brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
 	brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -402,7 +402,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_subdivide = 1;
 	brush->gpencil_settings->draw_random_sub = 0.0f;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_INKNOISE;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_DRAW;
+	brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
 	brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
 	brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -438,7 +438,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_subdivide = 0;
 	brush->gpencil_settings->draw_random_sub = 0;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_BLOCK;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_DRAW;
+	brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
 	brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
 	brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -469,7 +469,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_subdivide = 1;
 	brush->gpencil_settings->draw_random_sub = 0.0f;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_MARKER;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_DRAW;
+	brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
 	brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
 	brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -483,7 +483,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->fill_threshold = 0.1f;
 	brush->gpencil_settings->fill_simplylvl = 1;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_FILL;
+	brush->gpencil_tool = GPAINT_TOOL_FILL;
 
 	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 1;
@@ -501,7 +501,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->size = 30.0f;
 	brush->gpencil_settings->flag |= (GP_BRUSH_ENABLE_CURSOR | GP_BRUSH_DEFAULT_ERASER);
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_ERASE;
+	brush->gpencil_tool = GPAINT_TOOL_ERASE;
 	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
 	brush->gpencil_settings->era_strength_f = 100.0f;
 	brush->gpencil_settings->era_thickness_f = 0.10f;
@@ -511,7 +511,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->size = 30.0f;
 	brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_ERASE;
+	brush->gpencil_tool = GPAINT_TOOL_ERASE;
 	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_HARD;
 
 	/* Stroke Eraser brush */
@@ -519,7 +519,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->size = 30.0f;
 	brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_STROKE;
-	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_ERASE;
+	brush->gpencil_tool = GPAINT_TOOL_ERASE;
 	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_STROKE;
 
 	/* set default brush */

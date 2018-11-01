@@ -469,6 +469,7 @@ extern StructRNA RNA_OutflowFluidSettings;
 extern StructRNA RNA_PackedFile;
 extern StructRNA RNA_Paint;
 extern StructRNA RNA_PaintCurve;
+extern StructRNA RNA_PaintToolSlot;
 extern StructRNA RNA_Palette;
 extern StructRNA RNA_PaletteColor;
 extern StructRNA RNA_Panel;
