@@ -2380,7 +2380,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C, struct ARegion 
 	/* Allow reload if we have a saved file. */
 	if (G.relbase_valid) {
 		but = uiDefIconTextBut(
-		        block, UI_BTYPE_BUT, 0, ICON_NONE, IFACE_("Allow Executon"), 0, 0, 50, UI_UNIT_Y,
+		        block, UI_BTYPE_BUT, 0, ICON_NONE, IFACE_("Allow Execution"), 0, 0, 50, UI_UNIT_Y,
 		        NULL, 0, 0, 0, 0, TIP_("Reload file with execution of Python scripts enabled"));
 		UI_but_func_set(but, wm_block_autorun_warning_allow, block, NULL);
 	}
