@@ -80,6 +80,7 @@ static struct GPUGlobal {
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
+	float line_width_range[2];
 	/* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
 	 * calculate dfdy in shader differently when drawing to an offscreen buffer. First
 	 * number is factor on screen and second is off-screen */
@@ -190,6 +191,11 @@ int GPU_max_ubo_size(void)
 	return GG.maxubosize;
 }
 
+float GPU_max_line_width(void)
+{
+	return GG.line_width_range[1];
+}
+
 void GPU_get_dfdy_factors(float fac[2])
 {
 	copy_v2_v2(fac, GG.dfdyfactors);
@@ -229,6 +235,8 @@ void gpu_extensions_init(void)
 
 	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GG.maxubobinds);
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GG.maxubosize);
+
+	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, GG.line_width_range);
 
 #ifndef NDEBUG
 	GLint ret;
