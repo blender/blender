@@ -193,14 +193,14 @@ void drw_state_set(DRWState state)
 	{
 		if (CHANGED_ANY(DRW_STATE_WIRE | DRW_STATE_WIRE_SMOOTH)) {
 			if ((state & DRW_STATE_WIRE_SMOOTH) != 0) {
-				glLineWidth(2.0f);
-				glEnable(GL_LINE_SMOOTH);
+				GPU_line_width(2.0f);
+				GPU_line_smooth(true);
 			}
 			else if ((state & DRW_STATE_WIRE) != 0) {
-				glLineWidth(1.0f);
+				GPU_line_width(1.0f);
 			}
 			else {
-				glDisable(GL_LINE_SMOOTH);
+				GPU_line_smooth(false);
 			}
 		}
 	}
