@@ -390,7 +390,6 @@ class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
 
 class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
     bl_label = "Sampling"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
