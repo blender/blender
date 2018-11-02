@@ -1371,8 +1371,8 @@ static int separate_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (status.error_vertex_keys || status.error_generic) {
-		const int tot_errors = status.error_vertex_keys + status.error_generic;
+	const int tot_errors = status.error_vertex_keys + status.error_generic;
+	if (tot_errors > 0) {
 
 		/* Some curves changed, but some curves failed: don't explain why it failed. */
 		if (status.changed) {
