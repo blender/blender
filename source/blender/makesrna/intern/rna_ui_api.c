@@ -763,7 +763,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "separator", "uiItemS_ex");
 	RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items");
 	RNA_def_float(
-		func, "factor", 0.0f, 0.0f, FLT_MAX, "Percentage",
+		func, "factor", 1.0f, 0.0f, FLT_MAX, "Percentage",
 		"Percentage of width to space (leave unset for default space)",
 		0.0f, FLT_MAX);
 
