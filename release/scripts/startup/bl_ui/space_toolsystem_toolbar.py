@@ -1343,6 +1343,11 @@ class _defs_gpencil_paint:
                 return
             gp_settings = brush.gpencil_settings
 
+            row = layout.row(align=True)
+            ts = context.scene.tool_settings
+            settings = ts.gpencil_paint
+            row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
+
             if brush.gpencil_tool == 'ERASE':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
