@@ -478,25 +478,34 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 /* Delete all selected MetaElems (not MetaBall) */
 static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall *)obedit->data;
-	MetaElem *ml, *next;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		MetaElem *ml, *next;
 
-	ml = mb->editelems->first;
-	if (ml) {
-		while (ml) {
-			next = ml->next;
-			if (ml->flag & SELECT) {
-				if (mb->lastelem == ml) mb->lastelem = NULL;
-				BLI_remlink(mb->editelems, ml);
-				MEM_freeN(ml);
-			}
-			ml = next;
+		if (!BKE_mball_is_any_selected(mb)) {
+			continue;
 		}
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
-		DEG_id_tag_update(obedit->data, 0);
-	}
 
+		ml = mb->editelems->first;
+		if (ml) {
+			while (ml) {
+				next = ml->next;
+				if (ml->flag & SELECT) {
+					if (mb->lastelem == ml) mb->lastelem = NULL;
+					BLI_remlink(mb->editelems, ml);
+					MEM_freeN(ml);
+				}
+				ml = next;
+			}
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
+			DEG_id_tag_update(obedit->data, 0);
+		}
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
