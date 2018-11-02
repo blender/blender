@@ -1042,7 +1042,8 @@ void uiTemplateIDBrowse(
         const char *newop, const char *openop, const char *unlinkop, int filter);
 void uiTemplateIDPreview(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-        const char *newop, const char *openop, const char *unlinkop, int rows, int cols, int filter);
+        const char *newop, const char *openop, const char *unlinkop, int rows, int cols,
+		int filter, const bool hide_buttons);
 void uiTemplateIDTabs(
         uiLayout *layout, struct bContext *C,
         PointerRNA *ptr, const char *propname,
