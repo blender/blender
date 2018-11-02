@@ -3739,14 +3739,27 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	const int handle_type = RNA_enum_get(op->ptr, "type");
 
-	BKE_nurbList_handles_set(editnurb, RNA_enum_get(op->ptr, "type"));
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
 
+		ListBase *editnurb = object_editcurve_get(obedit);
+		BKE_nurbList_handles_set(editnurb, handle_type);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, 0);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
