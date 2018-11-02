@@ -2340,6 +2340,12 @@ static void wm_block_autorun_warning_allow(bContext *C, void *arg_block, void *U
 
 	UI_popup_block_close(C, win, arg_block);
 
+	/* Save user preferences for permanent execution. */
+	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
+		WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
+	}
+
+	/* Load file again with scripts enabled. */
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_revert_mainfile", false);
 
 	WM_operator_properties_create_ptr(&props_ptr, ot);
@@ -2370,6 +2376,11 @@ static uiBlock *block_create_autorun_warning(struct bContext *C, struct ARegion 
 	uiItemL(col, IFACE_("This may lead to unexpected behavior."), ICON_BLANK1);
 
 	uiItemS(layout);
+
+	PointerRNA userpref_ptr;
+	RNA_pointer_create(NULL, &RNA_UserPreferencesSystem, &U, &userpref_ptr);
+	uiItemR(layout, &userpref_ptr, "use_scripts_auto_execute", 0, IFACE_("Permanently allow execution of scripts"), ICON_NONE);
+
 	uiItemS(layout);
 
 	/* Buttons */
