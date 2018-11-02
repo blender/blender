@@ -2125,9 +2125,46 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
 	}
 }
 
-static void multires_apply_smat(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float smat[3][3])
+static void multires_apply_uniform_scale(Object *object, const float scale)
 {
-	UNUSED_VARS(depsgraph, scene, ob, smat);
+	Mesh *mesh = (Mesh *)object->data;
+	MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
+	for (int i = 0; i < mesh->totloop; ++i) {
+		MDisps *grid = &mdisps[i];
+		for (int j = 0; j < grid->totdisp; ++j) {
+			mul_v3_fl(grid->disps[j], scale);
+		}
+	}
+}
+
+static void multires_apply_smat(
+        struct Depsgraph *UNUSED(depsgraph),
+        Scene *scene,
+        Object *object,
+        float smat[3][3])
+{
+	const MultiresModifierData *mmd = get_multires_modifier(scene, object, true);
+	if (mmd == NULL || mmd->totlvl == 0) {
+		return;
+	}
+	/* Make sure layer present. */
+	Mesh *mesh = (Mesh *)object->data;
+	CustomData_external_read(
+	        &mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+	if (!CustomData_get_layer(&mesh->ldata, CD_MDISPS)) {
+		return;
+	}
+	if (is_uniform_scaled_m3(smat)) {
+		const float scale = mat3_to_scale(smat);
+		multires_apply_uniform_scale(object, scale);
+	}
+	else {
+		/* TODO(sergey): This branch of code actually requires more work to
+		 * preserve all the details.
+		 */
+		const float scale = mat3_to_scale(smat);
+		multires_apply_uniform_scale(object, scale);
+	}
 }
 
 int multires_mdisp_corners(MDisps *s)
