@@ -60,6 +60,7 @@ _modules = [
     "properties_physics_smoke",
     "properties_physics_softbody",
     "properties_render",
+    "properties_output",
     "properties_view_layer",
     "properties_scene",
     "properties_texture",

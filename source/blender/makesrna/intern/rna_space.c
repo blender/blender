@@ -278,6 +278,7 @@ static const EnumPropertyItem buttons_context_items[] = {
 	{BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Tool settings"},
 	{BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene"},
 	{BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render"},
+	{BCONTEXT_OUTPUT, "OUTPUT", ICON_IMAGE_DATA, "Output", "Render output"},
 	{BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "View layer"},
 	{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
 	{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
@@ -1315,6 +1316,10 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 
 	if (sbuts->pathflag & (1 << BCONTEXT_RENDER)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_RENDER);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_OUTPUT)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_OUTPUT);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_VIEW_LAYER)) {

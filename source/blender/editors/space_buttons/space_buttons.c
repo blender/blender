@@ -154,6 +154,9 @@ static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *
 		case BCONTEXT_RENDER:
 			contexts[0] = "render";
 			break;
+		case BCONTEXT_OUTPUT:
+			contexts[0] = "output";
+			break;
 		case BCONTEXT_VIEW_LAYER:
 			contexts[0] = "view_layer";
 			break;
@@ -401,7 +404,7 @@ static void buttons_header_region_message_subscribe(
 	 * where one has no active object, so that available contexts changes. */
 	WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
 
-	if (!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_WORLD)) {
+	if (!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_OUTPUT, BCONTEXT_SCENE, BCONTEXT_WORLD)) {
 		WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 	}
 

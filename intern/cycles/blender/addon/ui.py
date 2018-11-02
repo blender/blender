@@ -990,6 +990,7 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
 class CYCLES_PT_post_processing(CyclesButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_context = "output"
 
     def draw(self, context):
         layout = self.layout
