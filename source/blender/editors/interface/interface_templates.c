@@ -722,7 +722,7 @@ static void template_ID(
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OVERRIDE));
 		}
 
-		if (id->us > 1) {
+		if (ID_REAL_USERS(id) > 1) {
 			char numstr[32];
 			short numstr_len;
 
