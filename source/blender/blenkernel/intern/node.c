@@ -1234,12 +1234,14 @@ void nodePositionRelative(bNode *from_node, bNode *to_node, bNodeSocket *from_so
 	float offset_y = U.widget_unit * tot_sock_idx;
 
 	/* Output socket. */
-	if (SOCK_IN == from_sock->in_out) {
-		tot_sock_idx = BLI_listbase_count(&from_node->outputs);
-		tot_sock_idx += BLI_findindex(&from_node->inputs, from_sock);
-	}
-	else {
-		tot_sock_idx = BLI_findindex(&from_node->outputs, from_sock);
+	if (from_sock) {
+		if (SOCK_IN == from_sock->in_out) {
+			tot_sock_idx = BLI_listbase_count(&from_node->outputs);
+			tot_sock_idx += BLI_findindex(&from_node->inputs, from_sock);
+		}
+		else {
+			tot_sock_idx = BLI_findindex(&from_node->outputs, from_sock);
+		}
 	}
 
 	BLI_assert(tot_sock_idx != -1);
