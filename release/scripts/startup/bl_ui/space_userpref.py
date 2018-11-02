@@ -39,25 +39,25 @@ class USERPREF_HT_header(Header):
 
         userpref = context.user_preferences
 
-        layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.save_userpref")
-
-        layout.operator_context = 'INVOKE_DEFAULT'
-
         if userpref.active_section == 'INPUT':
-            layout.operator("wm.keyconfig_import")
-            layout.operator("wm.keyconfig_export")
+            layout.operator("wm.keyconfig_import", icon='IMPORT')
+            layout.operator("wm.keyconfig_export", icon='EXPORT')
         elif userpref.active_section == 'ADDONS':
             layout.operator("wm.addon_install", icon='FILEBROWSER')
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif userpref.active_section == 'LIGHTS':
-            layout.operator('wm.studiolight_install', text="Install MatCap").orientation = 'MATCAP'
-            layout.operator('wm.studiolight_install', text="Install World HDRI").orientation = 'WORLD'
-            layout.operator('wm.studiolight_install', text="Install Camera HDRI").orientation = 'CAMERA'
+            layout.operator('wm.studiolight_install', text="Add MatCap").orientation = 'MATCAP'
+            layout.operator('wm.studiolight_install', text="Add World HDRI").orientation = 'WORLD'
+            layout.operator('wm.studiolight_install', text="Add Camera HDRI").orientation = 'CAMERA'
         elif userpref.active_section == 'THEMES':
-            layout.operator("ui.reset_default_theme")
-            layout.operator("wm.theme_install")
+            layout.operator("wm.theme_install", icon='FILEBROWSER')
+            layout.operator("ui.reset_default_theme", icon='LOOP_BACK')
+
+        layout.separator_spacer()
+
+        layout.operator_context = 'EXEC_AREA'
+        layout.operator("wm.save_userpref")
 
 
 class USERPREF_PT_tabs(Panel):
