@@ -1294,60 +1294,114 @@ static int separate_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Object *oldob, *newob;
-	Base *oldbase, *newbase;
-	Curve *oldcu, *newcu;
-	EditNurb *newedit;
-	ListBase newnurb = {NULL, NULL};
 
-	oldbase = CTX_data_active_base(C);
-	oldob = oldbase->object;
-	oldcu = oldob->data;
-
-	if (oldcu->key) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot separate a curve with vertex keys");
-		return OPERATOR_CANCELLED;
-	}
+	struct {
+		int changed;
+		int unselected;
+		int error_vertex_keys;
+		int error_generic;
+	} status = {0};
 
 	WM_cursor_wait(1);
 
-	/* 1. duplicate geometry and check for valid selection for separate */
-	adduplicateflagNurb(oldob, v3d, &newnurb, SELECT, true);
+	uint bases_len = 0;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, &bases_len);
+	for (uint b_index = 0; b_index < bases_len; b_index++) {
+		Base *oldbase = bases[b_index];
+		Base *newbase;
+		Object *oldob, *newob;
+		Curve *oldcu, *newcu;
+		EditNurb *newedit;
+		ListBase newnurb = {NULL, NULL};
 
-	if (BLI_listbase_is_empty(&newnurb)) {
-		WM_cursor_wait(0);
-		BKE_report(op->reports, RPT_ERROR, "Cannot separate current selection");
+		oldob = oldbase->object;
+		oldcu = oldob->data;
+
+		if (oldcu->key) {
+			status.error_vertex_keys++;
+			continue;
+		}
+
+		if (!ED_curve_select_check(v3d, oldcu->editnurb)) {
+			status.unselected++;
+			continue;
+		}
+
+		/* 1. Duplicate geometry and check for valid selection for separate. */
+		adduplicateflagNurb(oldob, v3d, &newnurb, SELECT, true);
+
+		if (BLI_listbase_is_empty(&newnurb)) {
+			status.error_generic++;
+			continue;
+		}
+
+		/* 2. Duplicate the object and data. */
+		newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, 0); /* 0 = fully linked. */
+		DEG_relations_tag_update(bmain);
+
+		newob = newbase->object;
+		newcu = newob->data = BKE_curve_copy(bmain, oldcu);
+		newcu->editnurb = NULL;
+		id_us_min(&oldcu->id); /* Because new curve is a copy: reduce user count. */
+
+		/* 3. Put new object in editmode, clear it and set separated nurbs. */
+		ED_curve_editnurb_make(newob);
+		newedit = newcu->editnurb;
+		BKE_nurbList_free(&newedit->nurbs);
+		BKE_curve_editNurb_keyIndex_free(&newedit->keyindex);
+		BLI_movelisttolist(&newedit->nurbs, &newnurb);
+
+		/* 4. Put old object out of editmode and delete separated geometry. */
+		ED_curve_editnurb_load(bmain, newob);
+		ED_curve_editnurb_free(newob);
+		curve_delete_segments(oldob, v3d, true);
+
+		DEG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* This is the original one. */
+		DEG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* This is the separated one. */
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, oldob->data);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, newob);
+		status.changed++;
+	}
+	MEM_freeN(bases);
+	WM_cursor_wait(0);
+
+	if (status.unselected == bases_len) {
+		BKE_report(op->reports, RPT_ERROR, "No point was selected");
 		return OPERATOR_CANCELLED;
 	}
 
-	/* 2. duplicate the object and data */
-	newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, 0); /* 0 = fully linked */
-	DEG_relations_tag_update(bmain);
+	if (status.error_vertex_keys || status.error_generic) {
+		const int tot_errors = status.error_vertex_keys + status.error_generic;
 
-	newob = newbase->object;
-	newcu = newob->data = BKE_curve_copy(bmain, oldcu);
-	newcu->editnurb = NULL;
-	id_us_min(&oldcu->id); /* because new curve is a copy: reduce user count */
+		/* Some curves changed, but some curves failed: don't explain why it failed. */
+		if (status.changed) {
+			BKE_reportf(op->reports,
+			            RPT_INFO,
+			            tot_errors == 1 ? "%d curve could not be separated" :
+			                              "%d curves could not be separated",
+			                              tot_errors);
+			return OPERATOR_FINISHED;
+		}
 
-	/* 3. put new object in editmode, clear it and set separated nurbs */
-	ED_curve_editnurb_make(newob);
-	newedit = newcu->editnurb;
-	BKE_nurbList_free(&newedit->nurbs);
-	BKE_curve_editNurb_keyIndex_free(&newedit->keyindex);
-	BLI_movelisttolist(&newedit->nurbs, &newnurb);
+		/* All curves failed: If there is more than one error give a generic error report. */
+		if (((status.error_vertex_keys ? 1 : 0) + (status.error_generic ? 1 : 0)) > 1) {
+			BKE_report(op->reports,
+			           RPT_ERROR,
+			           tot_errors == 1 ? "Could not separate selected curves" :
+			                             "Could not separate selected curve");
+		}
 
-	/* 4. put old object out of editmode and delete separated geometry */
-	ED_curve_editnurb_load(bmain, newob);
-	ED_curve_editnurb_free(newob);
-	curve_delete_segments(oldob, v3d, true);
-
-	DEG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
-	DEG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */
-
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, oldob->data);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, newob);
-
-	WM_cursor_wait(0);
+		/* All curves failed due to the same error. */
+		if (status.error_vertex_keys) {
+			BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with vertex keys");
+		}
+		else {
+			BLI_assert(status.error_generic);
+			BKE_report(op->reports, RPT_ERROR, "Cannot separate current selection");
+		}
+		return OPERATOR_CANCELLED;
+	}
 
 	return OPERATOR_FINISHED;
 }
