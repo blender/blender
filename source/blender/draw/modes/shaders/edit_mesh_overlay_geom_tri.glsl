@@ -36,7 +36,7 @@ out float facing;
 #endif
 
 #ifdef ANTI_ALIASING
-#define Z_OFFSET 0.008
+#define Z_OFFSET -0.0013
 #else
 #define Z_OFFSET 0.0
 #endif
@@ -175,6 +175,7 @@ void main()
 		doVertexOfs(0, fixvec);
 		doVertexOfs(1, fixvec);
 	}
+
 	doVertex(0);
 	doVertex(1);
 
