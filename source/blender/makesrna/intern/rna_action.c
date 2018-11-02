@@ -301,7 +301,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYSEL);
 	RNA_def_property_ui_text(prop, "Only Selected", "Only include channels relating to selected objects and data");
-	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_ON, 0);
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_hidden", PROP_BOOLEAN, PROP_NONE);

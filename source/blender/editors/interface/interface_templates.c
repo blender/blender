@@ -2044,7 +2044,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		/* enabled */
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		uiItemR(row, &ptr, "mute", 0, "",
-		        (con->flag & CONSTRAINT_OFF) ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF);
+		        (con->flag & CONSTRAINT_OFF) ? ICON_HIDE_ON : ICON_HIDE_OFF);
 		UI_block_emboss_set(block, UI_EMBOSS);
 
 		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);

@@ -390,6 +390,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		bt = uiDefIconButBitI(block, UI_BTYPE_TOGGLE_N, MARKER_DISABLED, 0, ICON_HIDE_OFF, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                      &cb->marker_flag, 0, 0, 1, 0, tip);
 		UI_but_funcN_set(bt, marker_update_cb, cb, NULL);
+		UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 	}
 	else {
 		int width, height, step, digits;

@@ -508,7 +508,7 @@ static void outliner_draw_restrictbuts(
 				ViewLayer *layer = te->directdata;
 
 				bt = uiDefIconButBitS(
-				        block, UI_BTYPE_ICON_TOGGLE_N, VIEW_LAYER_RENDER, 0, ICON_RESTRICT_RENDER_ON,
+				        block, UI_BTYPE_ICON_TOGGLE_N, VIEW_LAYER_RENDER, 0, ICON_RESTRICT_RENDER_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &layer->flag, 0, 0, 0, 0, TIP_("Use view layer for rendering"));
 				UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
@@ -521,7 +521,7 @@ static void outliner_draw_restrictbuts(
 
 				if (base) {
 					bt = uiDefIconButBitS(
-					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDDEN, 0, ICON_HIDE_ON,
+					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDDEN, 0, ICON_HIDE_OFF,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
 					        UI_UNIT_Y, &base->flag, 0, 0, 0, 0,
 					        TIP_("Hide object in viewport (Ctrl to isolate)"));
@@ -573,7 +573,7 @@ static void outliner_draw_restrictbuts(
 				Object *ob = (Object *)tselem->id;
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_HIDE_ON,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_HIDE_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
@@ -582,7 +582,7 @@ static void outliner_draw_restrictbuts(
 				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_ON,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow selection in the 3D View"));
@@ -594,7 +594,7 @@ static void outliner_draw_restrictbuts(
 				EditBone *ebone = (EditBone *)te->directdata;
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_ON,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
@@ -603,7 +603,7 @@ static void outliner_draw_restrictbuts(
 				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_ON,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow selection in the 3D View"));
@@ -615,7 +615,7 @@ static void outliner_draw_restrictbuts(
 				bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
 				bt = uiDefIconButBitS(
-				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_HIDE_ON,
+				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_HIDE_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &gpl->flag, 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
@@ -642,7 +642,7 @@ static void outliner_draw_restrictbuts(
 				{
 					if (lc && (lc->runtime_flag & LAYER_COLLECTION_HAS_ENABLED_OBJECTS)) {
 						bt = uiDefIconButBitS(
-						        block, UI_BTYPE_ICON_TOGGLE_N, LAYER_COLLECTION_HAS_VISIBLE_OBJECTS, 0, ICON_HIDE_ON,
+						        block, UI_BTYPE_ICON_TOGGLE_N, LAYER_COLLECTION_HAS_VISIBLE_OBJECTS, 0, ICON_HIDE_OFF,
 						        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
 						        UI_UNIT_Y, &lc->runtime_flag, 0, 0, 0, 0,
 						        TIP_("Hide collection in viewport (Ctrl to isolate)"));
