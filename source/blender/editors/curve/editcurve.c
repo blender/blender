@@ -6431,36 +6431,48 @@ int join_curve_exec(bContext *C, wmOperator *op)
 
 static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	int a;
 
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->bezt) {
-			bezt = nu->bezt;
-			a = nu->pntsu;
-			while (a--) {
-				if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) bezt->alfa = 0.0;
-				bezt++;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
+		ListBase *editnurb = object_editcurve_get(obedit);
+		Nurb *nu;
+		BezTriple *bezt;
+		BPoint *bp;
+		int a;
+
+		for (nu = editnurb->first; nu; nu = nu->next) {
+			if (nu->bezt) {
+				bezt = nu->bezt;
+				a = nu->pntsu;
+				while (a--) {
+					if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) bezt->alfa = 0.0;
+					bezt++;
+				}
+			}
+			else if (nu->bp) {
+				bp = nu->bp;
+				a = nu->pntsu * nu->pntsv;
+				while (a--) {
+					if (bp->f1 & SELECT) bp->alfa = 0.0f;
+					bp++;
+				}
 			}
 		}
-		else if (nu->bp) {
-			bp = nu->bp;
-			a = nu->pntsu * nu->pntsv;
-			while (a--) {
-				if (bp->f1 & SELECT) bp->alfa = 0.0f;
-				bp++;
-			}
-		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, 0);
 	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
