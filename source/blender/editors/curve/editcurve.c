@@ -2946,58 +2946,71 @@ void CURVE_OT_smooth_tilt(wmOperatorType *ot)
 
 static int hide_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	int a, sel;
+
 	const bool invert = RNA_boolean_get(op->ptr, "unselected");
 
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			bezt = nu->bezt;
-			a = nu->pntsu;
-			sel = 0;
-			while (a--) {
-				if (invert == 0 && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-					select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
-					bezt->hide = 1;
-				}
-				else if (invert && !BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-					select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
-					bezt->hide = 1;
-				}
-				if (bezt->hide) sel++;
-				bezt++;
-			}
-			if (sel == nu->pntsu) nu->hide = 1;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+
+		if (!(invert || ED_curve_select_check(v3d, cu->editnurb))) {
+			continue;
 		}
-		else {
-			bp = nu->bp;
-			a = nu->pntsu * nu->pntsv;
-			sel = 0;
-			while (a--) {
-				if (invert == 0 && (bp->f1 & SELECT)) {
-					select_bpoint(bp, DESELECT, SELECT, HIDDEN);
-					bp->hide = 1;
+
+		ListBase *editnurb = object_editcurve_get(obedit);
+		Nurb *nu;
+		BPoint *bp;
+		BezTriple *bezt;
+		int a, sel;
+
+		for (nu = editnurb->first; nu; nu = nu->next) {
+			if (nu->type == CU_BEZIER) {
+				bezt = nu->bezt;
+				a = nu->pntsu;
+				sel = 0;
+				while (a--) {
+					if (invert == 0 && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
+						select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+						bezt->hide = 1;
+					}
+					else if (invert && !BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
+						select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+						bezt->hide = 1;
+					}
+					if (bezt->hide) sel++;
+					bezt++;
 				}
-				else if (invert && (bp->f1 & SELECT) == 0) {
-					select_bpoint(bp, DESELECT, SELECT, HIDDEN);
-					bp->hide = 1;
-				}
-				if (bp->hide) sel++;
-				bp++;
+				if (sel == nu->pntsu) nu->hide = 1;
 			}
-			if (sel == nu->pntsu * nu->pntsv) nu->hide = 1;
+			else {
+				bp = nu->bp;
+				a = nu->pntsu * nu->pntsv;
+				sel = 0;
+				while (a--) {
+					if (invert == 0 && (bp->f1 & SELECT)) {
+						select_bpoint(bp, DESELECT, SELECT, HIDDEN);
+						bp->hide = 1;
+					}
+					else if (invert && (bp->f1 & SELECT) == 0) {
+						select_bpoint(bp, DESELECT, SELECT, HIDDEN);
+						bp->hide = 1;
+					}
+					if (bp->hide) sel++;
+					bp++;
+				}
+				if (sel == nu->pntsu * nu->pntsv) nu->hide = 1;
+			}
 		}
+
+		DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		BKE_curve_nurb_vert_active_validate(obedit->data);
 	}
-
-	DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-	BKE_curve_nurb_vert_active_validate(obedit->data);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
