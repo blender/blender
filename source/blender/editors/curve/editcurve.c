@@ -4041,7 +4041,14 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb)
 	}
 }
 
-static void merge_2_nurb(wmOperator *op, Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
+enum {
+	CURVE_MERGE_OK = 0,
+	CURVE_MERGE_ERR_FEW_SELECTION,
+	CURVE_MERGE_ERR_RESOLUTION_ALL,
+	CURVE_MERGE_ERR_RESOLUTION_SOME,
+};
+
+static bool merge_2_nurb(Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
 {
 	BPoint *bp, *bp1, *bp2, *temp;
 	float len1, len2;
@@ -4077,7 +4084,7 @@ static void merge_2_nurb(wmOperator *op, Curve *cu, ListBase *editnurb, Nurb *nu
 				else {
 					/* rotate again, now its OK! */
 					if (nu1->pntsv != 1) rotate_direction_nurb(nu1);
-					return;
+					return true;
 				}
 			}
 		}
@@ -4107,15 +4114,14 @@ static void merge_2_nurb(wmOperator *op, Curve *cu, ListBase *editnurb, Nurb *nu
 					/* rotate again, now its OK! */
 					if (nu1->pntsu == 1) rotate_direction_nurb(nu1);
 					if (nu2->pntsv != 1) rotate_direction_nurb(nu2);
-					return;
+					return true;
 				}
 			}
 		}
 	}
 
 	if (nu1->pntsv != nu2->pntsv) {
-		BKE_report(op->reports, RPT_ERROR, "Resolution does not match");
-		return;
+		return false;
 	}
 
 	/* ok, now nu1 has the rightmost column and nu2 the leftmost column selected */
@@ -4178,12 +4184,11 @@ static void merge_2_nurb(wmOperator *op, Curve *cu, ListBase *editnurb, Nurb *nu
 	MEM_freeN(temp);
 	BLI_remlink(editnurb, nu2);
 	BKE_nurb_free(nu2);
+	return true;
 }
 
-static int merge_nurb(bContext *C, wmOperator *op)
+static int merge_nurb(View3D *v3d, Object *obedit)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	Curve *cu = obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
 	NurbSort *nus1, *nus2;
@@ -4193,8 +4198,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 
 	if (nsortbase.first == nsortbase.last) {
 		BLI_freelistN(&nsortbase);
-		BKE_report(op->reports, RPT_ERROR, "Too few selections to merge");
-		return OPERATOR_CANCELLED;
+		return CURVE_MERGE_ERR_FEW_SELECTION;
 	}
 
 	nus1 = nsortbase.first;
@@ -4206,7 +4210,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 			/* pass */
 		}
 		else {
-			ok = 0;
+			ok = false;
 		}
 	}
 	else if (nus2->nu->pntsv == 1) {
@@ -4214,7 +4218,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 			/* pass */
 		}
 		else {
-			ok = 0;
+			ok = false;
 		}
 	}
 	else if (nus1->nu->pntsu == nus2->nu->pntsu || nus1->nu->pntsv == nus2->nu->pntsv) {
@@ -4224,234 +4228,309 @@ static int merge_nurb(bContext *C, wmOperator *op)
 		/* pass */
 	}
 	else {
-		ok = 0;
+		ok = false;
 	}
 
-	if (ok == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Resolution does not match");
+	if (ok == false) {
 		BLI_freelistN(&nsortbase);
-		return OPERATOR_CANCELLED;
+		return CURVE_MERGE_ERR_RESOLUTION_ALL;
 	}
 
 	while (nus2) {
-		merge_2_nurb(op, cu, editnurb, nus1->nu, nus2->nu);
+		/* There is a change a few curves merged properly, but not all.
+		 * In this case we still update the curve, yet report the error. */
+		ok &= merge_2_nurb(cu, editnurb, nus1->nu, nus2->nu);
 		nus2 = nus2->next;
 	}
 
 	BLI_freelistN(&nsortbase);
-
 	BKE_curve_nurb_active_set(obedit->data, NULL);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
-
-	return OPERATOR_FINISHED;
+	return ok ? CURVE_MERGE_OK : CURVE_MERGE_ERR_RESOLUTION_SOME;
 }
 
 static int make_segment_exec(bContext *C, wmOperator *op)
 {
-	/* joins 2 curves */
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Curve *cu = obedit->data;
-	ListBase *nubase = object_editcurve_get(obedit);
-	Nurb *nu, *nu1 = NULL, *nu2 = NULL;
-	BPoint *bp;
-	bool ok = false;
-	/* int a; */ /* UNUSED */
 
-	/* first decide if this is a surface merge! */
-	if (obedit->type == OB_SURF) nu = nubase->first;
-	else nu = NULL;
+	struct {
+		int changed;
+		int unselected;
+		int error_selected_few;
+		int error_resolution;
+		int error_generic;
+	} status = {0};
 
-	while (nu) {
-		const int nu_select_num = ED_curve_nurb_select_count(v3d, nu);
-		if (nu_select_num) {
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
 
-			if (nu->pntsu > 1 && nu->pntsv > 1) {
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			status.unselected++;
+			continue;
+		}
+
+		ListBase *nubase = object_editcurve_get(obedit);
+		Nurb *nu, *nu1 = NULL, *nu2 = NULL;
+		BPoint *bp;
+		bool ok = false;
+
+		/* first decide if this is a surface merge! */
+		if (obedit->type == OB_SURF) nu = nubase->first;
+		else nu = NULL;
+
+		while (nu) {
+			const int nu_select_num = ED_curve_nurb_select_count(v3d, nu);
+			if (nu_select_num) {
+
+				if (nu->pntsu > 1 && nu->pntsv > 1) {
+					break;
+				}
+
+				if (nu_select_num > 1) {
+					break;
+				}
+				else {
+					/* only 1 selected, not first or last, a little complex, but intuitive */
+					if (nu->pntsv == 1) {
+						if ((nu->bp->f1 & SELECT) || (nu->bp[nu->pntsu - 1].f1 & SELECT)) {
+							/* pass */
+						}
+						else {
+							break;
+						}
+					}
+				}
+			}
+			nu = nu->next;
+		}
+
+		if (nu) {
+			int merge_result = merge_nurb(v3d, obedit);
+			switch (merge_result) {
+				case CURVE_MERGE_OK:
+					status.changed++;
+					goto curve_merge_tag_object;
+				case CURVE_MERGE_ERR_RESOLUTION_SOME:
+					status.error_resolution++;
+					goto curve_merge_tag_object;
+				case CURVE_MERGE_ERR_FEW_SELECTION:
+					status.error_selected_few++;
+					break;
+				case CURVE_MERGE_ERR_RESOLUTION_ALL:
+					status.error_resolution++;
+					break;
+			}
+			continue;
+		}
+
+		/* find both nurbs and points, nu1 will be put behind nu2 */
+		for (nu = nubase->first; nu; nu = nu->next) {
+			if (nu->pntsu == 1)
+				nu->flagu &= ~CU_NURB_CYCLIC;
+
+			if ((nu->flagu & CU_NURB_CYCLIC) == 0) {    /* not cyclic */
+				if (nu->type == CU_BEZIER) {
+					if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &(nu->bezt[nu->pntsu - 1]))) {
+						/* Last point is selected, preferred for nu2 */
+						if (nu2 == NULL) {
+							nu2 = nu;
+						}
+						else if (nu1 == NULL) {
+							nu1 = nu;
+
+							/* Just in case both of first/last CV are selected check
+							* whether we really need to switch the direction.
+							*/
+							if (!BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt)) {
+								BKE_nurb_direction_switch(nu1);
+								keyData_switchDirectionNurb(cu, nu1);
+							}
+						}
+					}
+					else if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu->bezt)) {
+						/* First point is selected, preferred for nu1 */
+						if (nu1 == NULL) {
+							nu1 = nu;
+						}
+						else if (nu2 == NULL) {
+							nu2 = nu;
+
+							/* Just in case both of first/last CV are selected check
+							* whether we really need to switch the direction.
+							*/
+							if (!BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &(nu->bezt[nu2->pntsu - 1]))) {
+								BKE_nurb_direction_switch(nu2);
+								keyData_switchDirectionNurb(cu, nu2);
+							}
+						}
+					}
+				}
+				else if (nu->pntsv == 1) {
+					/* Same logic as above: if first point is selected spline is
+					* preferred for nu1, if last point is selected spline is
+					* preferred for u2u.
+					*/
+
+					bp = nu->bp;
+					if (bp[nu->pntsu - 1].f1 & SELECT) {
+						if (nu2 == NULL) {
+							nu2 = nu;
+						}
+						else if (nu1 == NULL) {
+							nu1 = nu;
+
+							if ((bp->f1 & SELECT) == 0) {
+								BKE_nurb_direction_switch(nu);
+								keyData_switchDirectionNurb(cu, nu);
+							}
+						}
+					}
+					else if (bp->f1 & SELECT) {
+						if (nu1 == NULL) {
+							nu1 = nu;
+						}
+						else if (nu2 == NULL) {
+							nu2 = nu;
+
+							if ((bp[nu->pntsu - 1].f1 & SELECT) == 0) {
+								BKE_nurb_direction_switch(nu);
+								keyData_switchDirectionNurb(cu, nu);
+							}
+						}
+					}
+				}
+			}
+
+			if (nu1 && nu2) {
+				/* Got second spline, no need to loop over rest of the splines. */
 				break;
 			}
-
-			if (nu_select_num > 1) {
-				break;
-			}
-			else {
-				/* only 1 selected, not first or last, a little complex, but intuitive */
-				if (nu->pntsv == 1) {
-					if ((nu->bp->f1 & SELECT) || (nu->bp[nu->pntsu - 1].f1 & SELECT)) {
-						/* pass */
-					}
-					else {
-						break;
-					}
-				}
-			}
-		}
-		nu = nu->next;
-	}
-
-	if (nu)
-		return merge_nurb(C, op);
-
-	/* find both nurbs and points, nu1 will be put behind nu2 */
-	for (nu = nubase->first; nu; nu = nu->next) {
-		if (nu->pntsu == 1)
-			nu->flagu &= ~CU_NURB_CYCLIC;
-
-		if ((nu->flagu & CU_NURB_CYCLIC) == 0) {    /* not cyclic */
-			if (nu->type == CU_BEZIER) {
-				if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &(nu->bezt[nu->pntsu - 1]))) {
-					/* Last point is selected, preferred for nu2 */
-					if (nu2 == NULL) {
-						nu2 = nu;
-					}
-					else if (nu1 == NULL) {
-						nu1 = nu;
-
-						/* Just in case both of first/last CV are selected check
-						 * whether we really need to switch the direction.
-						 */
-						if (!BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt)) {
-							BKE_nurb_direction_switch(nu1);
-							keyData_switchDirectionNurb(cu, nu1);
-						}
-					}
-				}
-				else if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu->bezt)) {
-					/* First point is selected, preferred for nu1 */
-					if (nu1 == NULL) {
-						nu1 = nu;
-					}
-					else if (nu2 == NULL) {
-						nu2 = nu;
-
-						/* Just in case both of first/last CV are selected check
-						 * whether we really need to switch the direction.
-						 */
-						if (!BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &(nu->bezt[nu2->pntsu - 1]))) {
-							BKE_nurb_direction_switch(nu2);
-							keyData_switchDirectionNurb(cu, nu2);
-						}
-					}
-				}
-			}
-			else if (nu->pntsv == 1) {
-				/* Same logic as above: if first point is selected spline is
-				 * preferred for nu1, if last point is selected spline is
-				 * preferred for u2u.
-				 */
-
-				bp = nu->bp;
-				if (bp[nu->pntsu - 1].f1 & SELECT) {
-					if (nu2 == NULL) {
-						nu2 = nu;
-					}
-					else if (nu1 == NULL) {
-						nu1 = nu;
-
-						if ((bp->f1 & SELECT) == 0) {
-							BKE_nurb_direction_switch(nu);
-							keyData_switchDirectionNurb(cu, nu);
-						}
-					}
-				}
-				else if (bp->f1 & SELECT) {
-					if (nu1 == NULL) {
-						nu1 = nu;
-					}
-					else if (nu2 == NULL) {
-						nu2 = nu;
-
-						if ((bp[nu->pntsu - 1].f1 & SELECT) == 0) {
-							BKE_nurb_direction_switch(nu);
-							keyData_switchDirectionNurb(cu, nu);
-						}
-					}
-				}
-			}
 		}
 
-		if (nu1 && nu2) {
-			/* Got second spline, no need to loop over rest of the splines. */
-			break;
-		}
-	}
+		if ((nu1 && nu2) && (nu1 != nu2)) {
+			if (nu1->type == nu2->type) {
+				if (nu1->type == CU_BEZIER) {
+					BezTriple *bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + nu2->pntsu) * sizeof(BezTriple), "addsegmentN");
+					ED_curve_beztcpy(cu->editnurb, bezt, nu2->bezt, nu2->pntsu);
+					ED_curve_beztcpy(cu->editnurb, bezt + nu2->pntsu, nu1->bezt, nu1->pntsu);
 
-	if ((nu1 && nu2) && (nu1 != nu2)) {
-		if (nu1->type == nu2->type) {
-			if (nu1->type == CU_BEZIER) {
-				BezTriple *bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + nu2->pntsu) * sizeof(BezTriple), "addsegmentN");
-				ED_curve_beztcpy(cu->editnurb, bezt, nu2->bezt, nu2->pntsu);
-				ED_curve_beztcpy(cu->editnurb, bezt + nu2->pntsu, nu1->bezt, nu1->pntsu);
+					MEM_freeN(nu1->bezt);
+					nu1->bezt = bezt;
+					nu1->pntsu += nu2->pntsu;
+					BLI_remlink(nubase, nu2);
+					keyIndex_delNurb(cu->editnurb, nu2);
+					BKE_nurb_free(nu2); nu2 = NULL;
+					BKE_nurb_handles_calc(nu1);
+				}
+				else {
+					bp = (BPoint *)MEM_mallocN((nu1->pntsu + nu2->pntsu) * sizeof(BPoint), "addsegmentN2");
+					ED_curve_bpcpy(cu->editnurb, bp, nu2->bp, nu2->pntsu);
+					ED_curve_bpcpy(cu->editnurb, bp + nu2->pntsu, nu1->bp, nu1->pntsu);
+					MEM_freeN(nu1->bp);
+					nu1->bp = bp;
 
-				MEM_freeN(nu1->bezt);
-				nu1->bezt = bezt;
-				nu1->pntsu += nu2->pntsu;
-				BLI_remlink(nubase, nu2);
-				keyIndex_delNurb(cu->editnurb, nu2);
-				BKE_nurb_free(nu2); nu2 = NULL;
-				BKE_nurb_handles_calc(nu1);
-			}
-			else {
-				bp = (BPoint *)MEM_mallocN((nu1->pntsu + nu2->pntsu) * sizeof(BPoint), "addsegmentN2");
-				ED_curve_bpcpy(cu->editnurb, bp, nu2->bp, nu2->pntsu);
-				ED_curve_bpcpy(cu->editnurb, bp + nu2->pntsu, nu1->bp, nu1->pntsu);
-				MEM_freeN(nu1->bp);
-				nu1->bp = bp;
+					/* a = nu1->pntsu + nu1->orderu; */ /* UNUSED */
 
-				/* a = nu1->pntsu + nu1->orderu; */ /* UNUSED */
+					nu1->pntsu += nu2->pntsu;
+					BLI_remlink(nubase, nu2);
 
-				nu1->pntsu += nu2->pntsu;
-				BLI_remlink(nubase, nu2);
+					/* now join the knots */
+					if (nu1->type == CU_NURBS) {
+						if (nu1->knotsu != NULL) {
+							MEM_freeN(nu1->knotsu);
+							nu1->knotsu = NULL;
+						}
 
-				/* now join the knots */
-				if (nu1->type == CU_NURBS) {
-					if (nu1->knotsu != NULL) {
-						MEM_freeN(nu1->knotsu);
-						nu1->knotsu = NULL;
+						BKE_nurb_knot_calc_u(nu1);
 					}
+					keyIndex_delNurb(cu->editnurb, nu2);
+					BKE_nurb_free(nu2); nu2 = NULL;
+				}
 
+				BKE_curve_nurb_active_set(cu, nu1);   /* for selected */
+				ok = true;
+			}
+		}
+		else if ((nu1 && !nu2) || (!nu1 && nu2)) {
+			if (nu2) {
+				SWAP(Nurb *, nu1, nu2);
+			}
+
+			if (!(nu1->flagu & CU_NURB_CYCLIC) && nu1->pntsu > 1) {
+				if (nu1->type == CU_BEZIER && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt) &&
+					BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu1->bezt[nu1->pntsu - 1]))
+				{
+					nu1->flagu |= CU_NURB_CYCLIC;
+					BKE_nurb_handles_calc(nu1);
+					ok = true;
+				}
+				else if (nu1->type == CU_NURBS && nu1->bp->f1 & SELECT && (nu1->bp[nu1->pntsu - 1].f1 & SELECT)) {
+					nu1->flagu |= CU_NURB_CYCLIC;
 					BKE_nurb_knot_calc_u(nu1);
+					ok = true;
 				}
-				keyIndex_delNurb(cu->editnurb, nu2);
-				BKE_nurb_free(nu2); nu2 = NULL;
 			}
-
-			BKE_curve_nurb_active_set(cu, nu1);   /* for selected */
-			ok = 1;
 		}
+
+		if (!ok) {
+			status.error_generic++;
+			continue;
+		}
+
+		if (ED_curve_updateAnimPaths(obedit->data)) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
+
+		status.changed++;
+
+curve_merge_tag_object:
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, 0);
 	}
-	else if ((nu1 && !nu2) || (!nu1 && nu2)) {
-		if (nu2) {
-			SWAP(Nurb *, nu1, nu2);
-		}
+	MEM_freeN(objects);
 
-		if (!(nu1->flagu & CU_NURB_CYCLIC) && nu1->pntsu > 1) {
-			if (nu1->type == CU_BEZIER && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt) &&
-			    BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu1->bezt[nu1->pntsu - 1]))
-			{
-				nu1->flagu |= CU_NURB_CYCLIC;
-				BKE_nurb_handles_calc(nu1);
-				ok = 1;
-			}
-			else if (nu1->type == CU_NURBS && nu1->bp->f1 & SELECT && (nu1->bp[nu1->pntsu - 1].f1 & SELECT)) {
-				nu1->flagu |= CU_NURB_CYCLIC;
-				BKE_nurb_knot_calc_u(nu1);
-				ok = 1;
-			}
-		}
-	}
-
-	if (!ok) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot make segment");
+	if (status.unselected == objects_len) {
+		BKE_report(op->reports, RPT_ERROR, "No points were selected");
 		return OPERATOR_CANCELLED;
 	}
 
-	if (ED_curve_updateAnimPaths(obedit->data))
-		WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+	const int tot_errors = status.error_selected_few + status.error_resolution + status.error_generic;
+	if (tot_errors > 0) {
+		/* Some curves changed, but some curves failed: don't explain why it failed. */
+		if (status.changed) {
+			BKE_reportf(op->reports,
+			            RPT_INFO,
+			            tot_errors == 1 ? "%d curve could not make segments" :
+			                              "%d curves could not make segments",
+			                              tot_errors);
+			return OPERATOR_FINISHED;
+		}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
+		/* All curves failed: If there is more than one error give a generic error report. */
+		if (((status.error_selected_few ? 1 : 0) +
+		     (status.error_resolution ? 1 : 0) +
+		     (status.error_generic ? 1 : 0)) > 1)
+		{
+			BKE_report(op->reports, RPT_ERROR, "Could not make new segments");
+		}
+
+		/* All curves failed due to the same error. */
+		if (status.error_selected_few) {
+			BKE_report(op->reports, RPT_ERROR, "Too few selections to merge");
+		}
+		else if (status.error_resolution) {
+			BKE_report(op->reports, RPT_ERROR, "Resolution does not match");
+		}
+		else {
+			BLI_assert(status.error_generic);
+			BKE_report(op->reports, RPT_ERROR, "Cannot make segment");
+		}
+		return OPERATOR_CANCELLED;
+	}
 
 	return OPERATOR_FINISHED;
 }
