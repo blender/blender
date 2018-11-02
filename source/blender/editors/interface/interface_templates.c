@@ -726,7 +726,7 @@ static void template_ID(
 			char numstr[32];
 			short numstr_len;
 
-			numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", id->us);
+			numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", ID_REAL_USERS(id));
 
 			but = uiDefBut(
 			        block, UI_BTYPE_BUT, 0, numstr, 0, 0,
