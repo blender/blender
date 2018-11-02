@@ -90,7 +90,7 @@ int multires_get_level(const struct Scene *scene, const struct Object *ob, const
                        bool render, bool ignore_simplify);
 struct DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                                     struct Object *ob);
-struct Mesh *get_multires_mesh(
+struct Mesh *BKE_multires_create_mesh(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct MultiresModifierData *mmd, struct Object *ob);
 void multiresModifier_del_levels(struct MultiresModifierData *mmd, struct Scene *scene, struct Object *object, int direction);

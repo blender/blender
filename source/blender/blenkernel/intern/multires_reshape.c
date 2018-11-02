@@ -858,7 +858,7 @@ bool multiresModifier_reshapeFromDeformModifier(
 	/* Create mesh for the multires, ignoring any further modifiers (leading
 	 * deformation modifiers will be applied though).
 	 */
-	Mesh *multires_mesh = get_multires_mesh(
+	Mesh *multires_mesh = BKE_multires_create_mesh(
 	        depsgraph, scene_eval, &highest_mmd, object);
 	int num_deformed_verts;
 	float (*deformed_verts)[3] = BKE_mesh_vertexCos_get(

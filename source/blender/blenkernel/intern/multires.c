@@ -297,7 +297,7 @@ DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, Scene *scene, Multires
 	return dm;
 }
 
-Mesh *get_multires_mesh(
+Mesh *BKE_multires_create_mesh(
         struct Depsgraph *depsgraph,
         Scene *scene,
         MultiresModifierData *mmd,
