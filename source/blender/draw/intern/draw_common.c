@@ -783,6 +783,7 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 	        pass, DRW_cache_bone_stick_get(),
 	        g_formats.instance_bone_stick);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_float_copy(grp, "stickSize", 5.0f * U.pixelsize);
 
 	return grp;
 }
