@@ -778,7 +778,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 				BKE_animdata_copy_id_action(bmain, id, false);
 				/* us is 1 by convention, but RNA_property_pointer_set
 				 * will also increment it, so set it to zero */
-				newid->us = 0;
+				newid->us = ID_FAKE_USERS(newid);
 
 				/* assign copy */
 				RNA_id_pointer_create(newid, &idptr);
