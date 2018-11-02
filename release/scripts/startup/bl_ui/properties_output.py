@@ -504,7 +504,6 @@ classes = (
     RENDER_MT_framerate_presets,
     RENDER_PT_dimensions,
     RENDER_PT_frame_remapping,
-    RENDER_PT_post_processing,
     RENDER_PT_output,
     RENDER_PT_output_views,
     RENDER_PT_encoding,
@@ -515,6 +514,7 @@ classes = (
     RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
+    RENDER_PT_post_processing,
 )
 
 if __name__ == "__main__":  # only for live edit.
