@@ -3036,44 +3036,57 @@ void CURVE_OT_hide(wmOperatorType *ot)
 
 static int reveal_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	int a;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool select = RNA_boolean_get(op->ptr, "select");
+	bool changed_multi = false;
 
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		nu->hide = 0;
-		if (nu->type == CU_BEZIER) {
-			bezt = nu->bezt;
-			a = nu->pntsu;
-			while (a--) {
-				if (bezt->hide) {
-					select_beztriple(bezt, select, SELECT, HIDDEN);
-					bezt->hide = 0;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		ListBase *editnurb = object_editcurve_get(obedit);
+		Nurb *nu;
+		BPoint *bp;
+		BezTriple *bezt;
+		int a;
+		bool changed = false;
+
+		for (nu = editnurb->first; nu; nu = nu->next) {
+			nu->hide = 0;
+			if (nu->type == CU_BEZIER) {
+				bezt = nu->bezt;
+				a = nu->pntsu;
+				while (a--) {
+					if (bezt->hide) {
+						select_beztriple(bezt, select, SELECT, HIDDEN);
+						bezt->hide = 0;
+						changed = true;
+					}
+					bezt++;
 				}
-				bezt++;
+			}
+			else {
+				bp = nu->bp;
+				a = nu->pntsu * nu->pntsv;
+				while (a--) {
+					if (bp->hide) {
+						select_bpoint(bp, select, SELECT, HIDDEN);
+						bp->hide = 0;
+						changed = true;
+					}
+					bp++;
+				}
 			}
 		}
-		else {
-			bp = nu->bp;
-			a = nu->pntsu * nu->pntsv;
-			while (a--) {
-				if (bp->hide) {
-					select_bpoint(bp, select, SELECT, HIDDEN);
-					bp->hide = 0;
-				}
-				bp++;
-			}
+
+		if (changed) {
+			DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			changed_multi = true;
 		}
 	}
-
-	DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-	return OPERATOR_FINISHED;
+	MEM_freeN(objects);
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void CURVE_OT_reveal(wmOperatorType *ot)
