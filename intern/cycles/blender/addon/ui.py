@@ -143,7 +143,6 @@ def draw_samples_info(layout, context):
 
 class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
     bl_label = "Sampling"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header_preset(self, context):
         CYCLES_PT_sampling_presets.draw_panel_header(self.layout)
