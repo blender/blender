@@ -66,9 +66,12 @@ class VIEW3D_HT_header(Header):
 
             if gpd.is_stroke_paint_mode:
                 row = layout.row()
-                row.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='MOD_OPACITY')
-                row.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
-                row.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
+                sub = row.row(align=True)
+                sub.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='MOD_OPACITY')
+                sub.separator(factor=0.4)
+                sub.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
+                sub.separator(factor=0.4)
+                sub.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
 
                 row.popover(
                     panel="VIEW3D_PT_tools_grease_pencil_shapes",
