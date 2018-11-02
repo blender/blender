@@ -38,6 +38,7 @@ class MotionPathButtonsPanel:
 
         # Display Range
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         layout.prop(mps, "type")
 
