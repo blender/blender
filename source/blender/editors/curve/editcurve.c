@@ -3783,15 +3783,28 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 
 static int curve_normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
+
 	const bool calc_length = RNA_boolean_get(op->ptr, "calc_length");
 
-	BKE_nurbList_handles_recalculate(editnurb, calc_length, SELECT);
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
 
+		ListBase *editnurb = object_editcurve_get(obedit);
+		BKE_nurbList_handles_recalculate(editnurb, calc_length, SELECT);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, 0);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
