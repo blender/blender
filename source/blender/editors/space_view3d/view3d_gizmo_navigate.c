@@ -156,8 +156,10 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 			gz->color_hi[3] = 0.1f;
 		}
 		else {
-			gz->color[3] = 0.2f;
-			gz->color_hi[3] = 0.4f;
+			UI_GetThemeColorShade3fv(TH_HEADER, -40, gz->color);
+			UI_GetThemeColorShade3fv(TH_HEADER, 160, gz->color_hi);
+			gz->color[3] = 0.4f;
+			gz->color_hi[3] = 0.2f;
 		}
 
 
