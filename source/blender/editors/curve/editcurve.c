@@ -2390,29 +2390,41 @@ static void adduplicateflagNurb(Object *obedit, View3D *v3d, ListBase *newnurb,
 
 static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Curve *cu = (Curve *)obedit->data;
-	EditNurb *editnurb = cu->editnurb;
-	Nurb *nu;
-	int i;
 
-	for (nu = editnurb->nurbs.first, i = 0; nu; nu = nu->next, i++) {
-		if (ED_curve_nurb_select_check(v3d, nu)) {
-			BKE_nurb_direction_switch(nu);
-			keyData_switchDirectionNurb(cu, nu);
-			if ((i == cu->actnu) && (cu->actvert != CU_ACT_NONE)) {
-				cu->actvert = (nu->pntsu - 1) - cu->actvert;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+				continue;
+		}
+
+		EditNurb *editnurb = cu->editnurb;
+		Nurb *nu;
+		int i;
+
+		for (nu = editnurb->nurbs.first, i = 0; nu; nu = nu->next, i++) {
+			if (ED_curve_nurb_select_check(v3d, nu)) {
+				BKE_nurb_direction_switch(nu);
+				keyData_switchDirectionNurb(cu, nu);
+				if ((i == cu->actnu) && (cu->actvert != CU_ACT_NONE)) {
+					cu->actvert = (nu->pntsu - 1) - cu->actvert;
+				}
 			}
 		}
+
+		if (ED_curve_updateAnimPaths(obedit->data)) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
+
+		DEG_id_tag_update(obedit->data, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
-
-	if (ED_curve_updateAnimPaths(obedit->data))
-		WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
-
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
