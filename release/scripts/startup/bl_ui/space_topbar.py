@@ -227,7 +227,11 @@ class _draw_left_context_mode:
         def SCULPT(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
-            brush = context.tool_settings.sculpt.brush
+
+            paint = context.tool_settings.sculpt
+            layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+            brush = paint.brush
             if brush is None:
                 return
 
@@ -240,7 +244,11 @@ class _draw_left_context_mode:
         def PAINT_TEXTURE(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
-            brush = context.tool_settings.image_paint.brush
+
+            paint = context.tool_settings.image_paint
+            layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+            brush = paint.brush
             if brush is None:
                 return
 
@@ -253,7 +261,11 @@ class _draw_left_context_mode:
         def PAINT_VERTEX(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
-            brush = context.tool_settings.vertex_paint.brush
+
+            paint = context.tool_settings.vertex_paint
+            layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+            brush = paint.brush
             if brush is None:
                 return
 
@@ -266,7 +278,10 @@ class _draw_left_context_mode:
         def PAINT_WEIGHT(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
-            brush = context.tool_settings.weight_paint.brush
+
+            paint = context.tool_settings.weight_paint
+            layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+            brush = paint.brush
             if brush is None:
                 return
 
@@ -328,7 +343,11 @@ class _draw_left_context_mode:
         def PAINT(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
-            brush = context.tool_settings.image_paint.brush
+
+            paint = context.tool_settings.image_paint
+            layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+            brush = paint.brush
             if brush is None:
                 return
 
