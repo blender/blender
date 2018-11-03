@@ -974,15 +974,18 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 					        gpd, lthick);
 				}
 
-				DRW_shgroup_call_add(
-				        stl->g_data->shgrps_drawing_stroke,
-				        e_data->batch_buffer_stroke,
-				        stl->storage->unit_matrix);
+				if (gp_style->flag & GP_STYLE_STROKE_SHOW) {
+					DRW_shgroup_call_add(
+						stl->g_data->shgrps_drawing_stroke,
+						e_data->batch_buffer_stroke,
+						stl->storage->unit_matrix);
+				}
 
 				if ((gpd->runtime.sbuffer_size >= 3) &&
 				    (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
 				    ((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0) &&
-				    ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0))
+				    ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0) &&
+					(gp_style->flag & GP_STYLE_FILL_SHOW))
 				{
 					/* if not solid, fill is simulated with solid color */
 					if (gpd->runtime.bfill_style > 0) {
