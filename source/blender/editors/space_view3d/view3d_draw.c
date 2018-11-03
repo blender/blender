@@ -1081,12 +1081,18 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
+	const int font_id = BLF_default();
+
 	/* increase size for unicode languages (Chinese in utf-8...) */
 #ifdef WITH_INTERNATIONAL
 	char tmpstr[96];
 #else
 	char tmpstr[32];
 #endif
+
+	BLF_enable(font_id, BLF_SHADOW);
+	BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+	BLF_shadow_offset(font_id, 1, -1);
 
 	if (v3d->localvd) {
 		BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
@@ -1099,6 +1105,8 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
 #else
 	BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 #endif
+
+	BLF_disable(font_id, BLF_SHADOW);
 }
 
 /**
@@ -1206,7 +1214,13 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		s += sprintf(s, " <%s>", markern);
 	}
 
+	BLF_enable(font_id, BLF_SHADOW);
+	BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+	BLF_shadow_offset(font_id, 1, -1);
+
 	BLF_draw_default(rect->xmin + UI_UNIT_X, rect->ymax - (2 * U.widget_unit), 0.0f, info, sizeof(info));
+
+	BLF_disable(font_id, BLF_SHADOW);
 }
 
 /* ******************** view loop ***************** */
