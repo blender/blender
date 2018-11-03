@@ -72,10 +72,12 @@ static int remapTime(
 {
 	TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
 	const bool custom = mmd->flag &	GP_TIME_CUSTOM_RANGE;
-	const int sfra = custom ? mmd->sfra : scene->r.sfra;
-	const int efra = custom ? mmd->efra : scene->r.efra;
 	const bool invgpl = mmd->flag & GP_TIME_INVERT_LAYER;
 	const bool invpass = mmd->flag & GP_TIME_INVERT_LAYERPASS;
+	int sfra = custom ? mmd->sfra : scene->r.sfra;
+	int efra = custom ? mmd->efra : scene->r.efra;
+	CLAMP_MIN(sfra, 1);
+	CLAMP_MIN(efra, 1);
 
 	/* omit if filter by layer */
 	if (mmd->layername[0] != '\0') {
