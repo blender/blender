@@ -837,7 +837,7 @@ static void gpencil_draw_strokes(
 				if ((gps->totpoints > 2) && (!stl->storage->simplify_fill) &&
 				    ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)) &&
 				    ((gps->flag & GP_STROKE_NOFILL) == 0) &&
-					(gp_style->flag & GP_STYLE_FILL_SHOW))
+				    (gp_style->flag & GP_STYLE_FILL_SHOW))
 				{
 					stl->shgroups[id].shgrps_fill = DRW_gpencil_shgroup_fill_create(
 					        e_data, vedata, psl->stroke_pass, e_data->gpencil_fill_sh, gpd, gp_style, id);
@@ -985,7 +985,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				    (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
 				    ((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0) &&
 				    ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0) &&
-					(gp_style->flag & GP_STYLE_FILL_SHOW))
+				    (gp_style->flag & GP_STYLE_FILL_SHOW))
 				{
 					/* if not solid, fill is simulated with solid color */
 					if (gpd->runtime.bfill_style > 0) {

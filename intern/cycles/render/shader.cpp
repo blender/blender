@@ -526,7 +526,7 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_HAS_CONSTANT_EMISSION;
 
 		uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
-		
+
 		/* regular shader */
 		kshader->flags = flag;
 		kshader->pass_id = shader->pass_id;

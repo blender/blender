@@ -1795,7 +1795,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* curve */
 	for (int a = 0; a <= CM_TABLE; a++) {
 		fx = rect->xmin + zoomx * (cmp[a].x - offsx);
-		fy = rect->ymin + zoomy * (cmp[a].y - offsy);		
+		fy = rect->ymin + zoomy * (cmp[a].y - offsy);
 		immVertex2f(pos, fx, rect->ymin);
 		immVertex2f(pos, fx, fy);
 	}
@@ -1831,8 +1831,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			UI_GetThemeColor4fv(TH_TEXT_HI, color);
 		else
 			UI_GetThemeColor4fv(TH_TEXT, color);
-		float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
-		float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
+		fx = rect->xmin + zoomx * (cmp[a].x - offsx);
+		fy = rect->ymin + zoomy * (cmp[a].y - offsy);
 		immAttr4fv(col, color);
 		immVertex2f(pos, fx, fy);
 	}

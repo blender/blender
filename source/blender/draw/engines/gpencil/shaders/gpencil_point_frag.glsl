@@ -46,6 +46,6 @@ void main()
 		/* mult both alpha factor to use strength factor with color alpha limit */
 		fragColor.a = min(text_color.a * mColor.a, mColor.a);
 	}
-	if(fragColor.a < 0.0035) 
+	if(fragColor.a < 0.0035)
 		discard;
 }

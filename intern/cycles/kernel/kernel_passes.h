@@ -200,7 +200,7 @@ ccl_device_inline size_t kernel_write_id_pass_cpu(float *buffer, size_t depth, f
 		return 0;
 	}
 #else /* __KERNEL_CPU__ */
-#define WRITE_ID_SLOT(buffer, depth, id, matte_weight, name) kernel_write_id_slots_gpu(buffer, depth * 2, id, matte_weight) 
+#define WRITE_ID_SLOT(buffer, depth, id, matte_weight, name) kernel_write_id_slots_gpu(buffer, depth * 2, id, matte_weight)
 ccl_device_inline size_t kernel_write_id_slots_gpu(ccl_global float *buffer, size_t depth, float id, float matte_weight)
 {
 #endif /* __KERNEL_CPU__ */

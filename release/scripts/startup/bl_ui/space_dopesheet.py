@@ -150,7 +150,7 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_shapekeys", text="Shape Keys")
 
         layout.separator()
-        
+
         # Object Data Filters
 
         # TODO: Add per-channel/axis convenience toggles?
@@ -158,10 +158,10 @@ class DopesheetFilterPopoverBase:
 
         col = split.column()
         col.prop(dopesheet, "show_transforms", text="Transforms")
-        
+
         col = split.column()
         col.prop(dopesheet, "show_modifiers", text="Modifiers")
-        
+
         layout.separator()
 
         # performance-related options (users will mostly have these enabled)

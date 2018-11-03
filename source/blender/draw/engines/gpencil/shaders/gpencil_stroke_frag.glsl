@@ -44,6 +44,6 @@ void main()
 		fragColor.a = min(text_color.a * tColor.a, tColor.a);
 	}
 
-	if(fragColor.a < 0.0035) 
+	if(fragColor.a < 0.0035)
 		discard;
 }

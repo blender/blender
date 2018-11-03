@@ -2235,7 +2235,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{GP_PROJECT_DEPTH_STROKE_FIRST, "FIRST", 0, "First point", "Snap to first point" },
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
 	static const EnumPropertyItem gpencil_selectmode_items[] = {
 		{GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
 		{GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points" },

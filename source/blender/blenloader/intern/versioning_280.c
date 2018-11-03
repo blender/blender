@@ -2244,7 +2244,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
 			if (mat->gp_style) {
 				if (((mat->gp_style->flag & GP_STYLE_STROKE_SHOW) == 0) &&
-					((mat->gp_style->flag & GP_STYLE_FILL_SHOW) == 0)) {
+				    ((mat->gp_style->flag & GP_STYLE_FILL_SHOW) == 0))
+				{
 					mat->gp_style->flag |= GP_STYLE_STROKE_SHOW;
 					mat->gp_style->flag |= GP_STYLE_FILL_SHOW;
 				}
