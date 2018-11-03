@@ -2400,7 +2400,7 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 		Curve *cu = obedit->data;
 
 		if (!ED_curve_select_check(v3d, cu->editnurb)) {
-				continue;
+			continue;
 		}
 
 		EditNurb *editnurb = cu->editnurb;
@@ -4462,7 +4462,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
 			if (!(nu1->flagu & CU_NURB_CYCLIC) && nu1->pntsu > 1) {
 				if (nu1->type == CU_BEZIER && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt) &&
-					BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu1->bezt[nu1->pntsu - 1]))
+				    BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu1->bezt[nu1->pntsu - 1]))
 				{
 					nu1->flagu |= CU_NURB_CYCLIC;
 					BKE_nurb_handles_calc(nu1);

@@ -746,12 +746,16 @@ static void template_ID(
 			}
 		}
 
-		if (user_alert) UI_but_flag_enable(but, UI_BUT_REDALERT);
+		if (user_alert) {
+			UI_but_flag_enable(but, UI_BUT_REDALERT);
+		}
 
 		if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS)) &&
-			(hide_buttons == false))
+		    (hide_buttons == false))
 		{
-			uiDefIconButR(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_FAKE_USER_OFF, 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
+			uiDefIconButR(
+			        block, UI_BTYPE_ICON_TOGGLE, 0, ICON_FAKE_USER_OFF, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			        &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
 
@@ -945,8 +949,8 @@ static void ui_template_id(
 		else {
 			uiLayoutRow(layout, true);
 			template_ID(
-					C, layout, template_ui, type, flag, newop, openop,
-					unlinkop, live_icon, hide_buttons);
+			        C, layout, template_ui, type, flag, newop, openop,
+			        unlinkop, live_icon, hide_buttons);
 		}
 	}
 
@@ -979,7 +983,7 @@ void uiTemplateIDBrowse(
 void uiTemplateIDPreview(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
         const char *openop, const char *unlinkop, int rows, int cols, int filter,
-		const bool hide_buttons)
+        const bool hide_buttons)
 {
 	ui_template_id(
 	        layout, C, ptr, propname,
