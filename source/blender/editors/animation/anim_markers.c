@@ -437,7 +437,7 @@ static void draw_marker(
 #ifdef DURIAN_CAMERA_SWITCH
 	else if (marker->camera) {
 		icon_id = (marker->flag & SELECT) ? ICON_OUTLINER_OB_CAMERA :
-		          ICON_OUTLINER_DATA_CAMERA;
+		          ICON_CAMERA_DATA;
 	}
 #endif
 	else {
