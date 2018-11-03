@@ -1300,33 +1300,6 @@ class _defs_image_uv_sculpt:
 
 
 class _defs_gpencil_paint:
-    @staticmethod
-    def draw_color_selector(context, layout):
-        brush = context.active_gpencil_brush
-        gp_settings = brush.gpencil_settings
-        ma = gp_settings.material
-        row = layout.row(align=True)
-
-        icon_id = 0
-        if ma:
-            icon_id = ma.id_data.preview.icon_id
-            txt_ma = ma.name
-            maxw = 25
-            if len(txt_ma) > maxw:
-                txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
-        else:
-            txt_ma = ""
-
-        row.label(text="Material:")
-        sub = row.row()
-        sub.ui_units_x = 8
-        sub.popover(
-            panel="TOPBAR_PT_gpencil_materials",
-            text=txt_ma,
-            icon_value=icon_id,
-        )
-
-        row.prop(gp_settings, "use_material_pin", text="")
 
     @staticmethod
     def generate_from_brushes(context):
