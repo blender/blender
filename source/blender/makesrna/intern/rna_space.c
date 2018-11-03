@@ -71,7 +71,7 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 
 	/* General */
 	{0, "", ICON_NONE, "General", ""},
-	{SPACE_VIEW3D, "VIEW_3D", ICON_VIEW3D, "3D View", "3D viewport"},
+	{SPACE_VIEW3D, "VIEW_3D", ICON_VIEW3D, "3D Viewport", "Manipulate objects in a 3D environment"},
 	{SPACE_IMAGE, "IMAGE_EDITOR", ICON_IMAGE, "UV/Image Editor", "View and edit images and UV Maps"},
 	{SPACE_NODE, "NODE_EDITOR", ICON_NODETREE, "Node Editor", "Editor for node-based shading and compositing tools"},
 	{SPACE_SEQ, "SEQUENCE_EDITOR", ICON_SEQUENCE, "Video Sequencer", "Video editing tools"},
