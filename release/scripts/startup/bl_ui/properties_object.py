@@ -400,9 +400,9 @@ classes = (
     COLLECTION_MT_specials,
     OBJECT_PT_collections,
     OBJECT_PT_duplication,
-    OBJECT_PT_display,
     OBJECT_PT_motion_paths,
     OBJECT_PT_motion_paths_display,
+    OBJECT_PT_display,
     OBJECT_PT_custom_props,
 )
 
