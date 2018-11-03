@@ -605,16 +605,9 @@ set(ICON_NAMES
 # This section is maintained by the updating script, keep BEGIN/END comments.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	# BEGIN ICON_GEOM_NAMES
-	brush.gpencil.draw.eraser_hard
-	brush.gpencil.draw.eraser_soft
-	brush.gpencil.draw.eraser_stroke
-	brush.gpencil.draw_block
-	brush.gpencil.draw_fill
-	brush.gpencil.draw_ink
-	brush.gpencil.draw_marker
-	brush.gpencil.draw_noise
-	brush.gpencil.draw_pen
-	brush.gpencil.draw_pencil
+	brush.gpencil_draw.draw
+	brush.gpencil_draw.erase
+	brush.gpencil_draw.fill
 	brush.paint_texture.airbrush
 	brush.paint_texture.clone
 	brush.paint_texture.draw

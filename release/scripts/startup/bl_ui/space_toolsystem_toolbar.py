@@ -45,7 +45,6 @@ def generate_from_brushes_tool_slots_ex(
         brush_category_attr,
         brush_category_layout,
         # Optional
-        icon_fn=None,
         tooldef_keywords={},
 ):
     # Categories
@@ -55,18 +54,12 @@ def generate_from_brushes_tool_slots_ex(
         if brush is None:
             continue
         category = getattr(brush, brush_category_attr)
-
-        if icon_fn is not None:
-            icon_id = icon_fn(brush)
-        else:
-            icon_id = category.lower()
-
         name = brush.name
         brush_categories.setdefault(category, []).append(
             ToolDef.from_dict(
                 dict(
                     text=name,
-                    icon=icon_prefix + icon_id,
+                    icon=icon_prefix + category.lower(),
                     data_block=name,
                     **tooldef_keywords,
                 )
@@ -1385,23 +1378,9 @@ class _defs_gpencil_paint:
         def draw_settings(context, layout, tool):
             _defs_gpencil_paint.draw_settings_common(context, layout, tool)
 
-        def icon_fn(brush):
-            return {
-                'PENCIL': 'draw_pencil',
-                'PEN': 'draw_pen',
-                'INK': 'draw_ink',
-                'INKNOISE': 'draw_noise',
-                'BLOCK': 'draw_block',
-                'MARKER': 'draw_marker',
-                'FILL': 'draw_fill',
-                'SOFT': 'draw.eraser_soft',
-                'HARD': 'draw.eraser_hard',
-                'STROKE': 'draw.eraser_stroke',
-            }[brush.gpencil_settings.gp_icon]
-
         return generate_from_brushes_tool_slots_ex(
             context, context.tool_settings.gpencil_paint,
-            icon_prefix="brush.gpencil.",
+            icon_prefix="brush.gpencil_draw.",
             brush_category_attr="gpencil_tool",
             brush_category_layout=(
                 ('DRAW',),
@@ -1412,9 +1391,7 @@ class _defs_gpencil_paint:
                 operator="gpencil.draw",
                 draw_settings=draw_settings,
             ),
-            icon_fn=icon_fn,
         )
-
 
 
 class _defs_gpencil_edit:
