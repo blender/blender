@@ -302,6 +302,58 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 	}
 }
 
+bool BKE_paint_brush_tool_info(
+        const Scene *scene, const struct Paint *paint,
+        uint *r_tool_offset, eObjectMode *r_ob_mode)
+{
+	ToolSettings *ts = scene->toolsettings;
+	if (paint == &ts->imapaint.paint) {
+		if (r_tool_offset != NULL) {
+			*r_tool_offset = offsetof(Brush, imagepaint_tool);
+		}
+		if (r_ob_mode != NULL) {
+			*r_ob_mode = OB_MODE_TEXTURE_PAINT;
+		}
+	}
+	else if (paint == &ts->sculpt->paint) {
+		if (r_tool_offset != NULL) {
+			*r_tool_offset = offsetof(Brush, sculpt_tool);
+		}
+		if (r_ob_mode != NULL) {
+			*r_ob_mode = OB_MODE_SCULPT;
+		}
+	}
+	else if (paint == &ts->vpaint->paint) {
+		if (r_tool_offset != NULL) {
+			*r_tool_offset = offsetof(Brush, vertexpaint_tool);
+		}
+		if (r_ob_mode != NULL) {
+			*r_ob_mode = OB_MODE_VERTEX_PAINT;
+		}
+	}
+	else if (paint == &ts->wpaint->paint) {
+		if (r_tool_offset != NULL) {
+			*r_tool_offset = offsetof(Brush, vertexpaint_tool);
+		}
+		if (r_ob_mode != NULL) {
+			*r_ob_mode = OB_MODE_WEIGHT_PAINT;
+		}
+	}
+	else if (paint == &ts->gp_paint->paint) {
+		if (r_tool_offset != NULL) {
+			*r_tool_offset = offsetof(Brush, gpencil_tool);
+		}
+		if (r_ob_mode != NULL) {
+			*r_ob_mode = OB_MODE_GPENCIL_PAINT;
+		}
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+
 /** Free (or release) any data used by this paint curve (does not free the pcurve itself). */
 void BKE_paint_curve_free(PaintCurve *pc)
 {

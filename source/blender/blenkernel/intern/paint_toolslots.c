@@ -93,23 +93,10 @@ void BKE_paint_toolslots_init_from_main(struct Main *bmain)
 
 void BKE_paint_toolslots_brush_update_ex(Scene *scene, Paint *paint, Brush *brush)
 {
-	ToolSettings *ts = scene->toolsettings;
-	int slot_index;
-	if (paint == &ts->imapaint.paint) {
-		slot_index = brush->imagepaint_tool;
-	}
-	else if (paint == &ts->sculpt->paint) {
-		slot_index = brush->sculpt_tool;
-	}
-	else if (paint == &ts->vpaint->paint) {
-		slot_index = brush->vertexpaint_tool;
-	}
-	else if (paint == &ts->wpaint->paint) {
-		slot_index = brush->vertexpaint_tool;
-	}
-	else if (paint == &ts->gp_paint->paint) {
-		slot_index = brush->gpencil_tool;
-	}
+	uint tool_offset = 0;
+	bool ok = BKE_paint_brush_tool_info(scene, paint, &tool_offset, NULL);
+	BLI_assert(ok);
+	int slot_index = *(char *)POINTER_OFFSET(brush, tool_offset);
 	BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
 	PaintToolSlot *tslot = &paint->tool_slots[slot_index];
 	id_us_plus(&brush->id);
