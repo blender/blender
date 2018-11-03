@@ -28,3 +28,5 @@ gpcolor.texture_opacity = 1.0
 gpcolor.texture_clamp = False
 gpcolor.texture_mix = False
 gpcolor.mix_factor = 0.0
+gpcolor.show_stroke = True
+gpcolor.show_fill = False
