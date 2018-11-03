@@ -579,7 +579,7 @@ static void ui_draw_panel_dragwidget(unsigned int pos, unsigned int col, const r
 
 	const int x_min = rect->xmin;
 	const int y_min = rect->ymin;
-	const int y_ofs = max_ii(round_fl_to_int(BLI_rctf_size_y(rect) / 3.0f), px);
+	const int y_ofs = max_ii(round_fl_to_int(BLI_rctf_size_y(rect) / 2.5f), px);
 	const int x_ofs = y_ofs;
 	int i_x, i_y;
 
