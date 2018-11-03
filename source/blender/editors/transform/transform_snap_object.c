@@ -173,25 +173,39 @@ static void min_max_from_bmesh(
 	}
 }
 
-static SnapObjectData_Mesh *snap_object_data_mesh_create(SnapObjectContext *sctx)
+static SnapObjectData_Mesh *snap_object_data_mesh_get(SnapObjectContext *sctx, Object *ob)
 {
-	SnapObjectData_Mesh *sod = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
-	sod->sd.type = SNAP_MESH;
-	/* start assuming that it has each of these element types */
-	sod->has_looptris = true;
-	sod->has_loose_edge = true;
-	sod->has_loose_vert = true;
+	void **sod_p;
+	if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
+		BLI_assert(((SnapObjectData *)*sod_p)->type == SNAP_MESH);
+	}
+	else {
+		SnapObjectData_Mesh *sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+		sod->sd.type = SNAP_MESH;
+		/* start assuming that it has each of these element types */
+		sod->has_looptris = true;
+		sod->has_loose_edge = true;
+		sod->has_loose_vert = true;
+	}
 
-	return sod;
+	return *sod_p;
 }
 
-static SnapObjectData_EditMesh *snap_object_data_editmesh_create(SnapObjectContext *sctx, BMesh *bm)
+/* Use `em->ob` as the key in ghash since the editmesh is used
+ * to create bvhtree and is the same for each linked object. */
+static SnapObjectData_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx, BMEditMesh *em)
 {
-	SnapObjectData_EditMesh *sod = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
-	sod->sd.type = SNAP_EDIT_MESH;
-	min_max_from_bmesh(bm, sod->min, sod->max);
+	void **sod_p;
+	if (BLI_ghash_ensure_p(sctx->cache.object_map, em->ob, &sod_p)) {
+		BLI_assert(((SnapObjectData *)*sod_p)->type == SNAP_EDIT_MESH);
+	}
+	else {
+		SnapObjectData_EditMesh *sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+		sod->sd.type = SNAP_EDIT_MESH;
+		min_max_from_bmesh(em->bm, sod->min, sod->max);
+	}
 
-	return sod;
+	return *sod_p;
 }
 
 /**
@@ -400,15 +414,7 @@ static bool raycastMesh(
 		}
 	}
 
-	SnapObjectData_Mesh *sod = NULL;
-
-	void **sod_p;
-	if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
-		sod = *sod_p;
-	}
-	else {
-		sod = *sod_p = snap_object_data_mesh_create(sctx);
-	}
+	SnapObjectData_Mesh *sod = snap_object_data_mesh_get(sctx, ob);
 
 	BVHTreeFromMesh *treedata = &sod->treedata;
 
@@ -541,22 +547,9 @@ static bool raycastEditMesh(
 		return retval;
 	}
 
-	SnapObjectData_EditMesh *sod = NULL;
-	BVHTreeFromEditMesh *treedata = NULL;
-	Object *em_ob = em->ob;
+	BLI_assert(em->ob->data == BKE_object_get_pre_modified_mesh(ob));
 
-	BLI_assert(em_ob->data == BKE_object_get_pre_modified_mesh(ob));
-
-	void **sod_p;
-	/* Use `em->ob` as the key in ghash since the editmesh is used
-	 * to create bvhtree and is the same for each linked object. */
-	if (BLI_ghash_ensure_p(sctx->cache.object_map, em_ob, &sod_p)) {
-		sod = *sod_p;
-	}
-	else {
-		sod = *sod_p = snap_object_data_editmesh_create(sctx, em->bm);
-	}
-
+	SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
 	{
 		float min[3], max[3];
 		mul_v3_m4v3(min, obmat, sod->min);
@@ -570,11 +563,12 @@ static bool raycastEditMesh(
 	}
 
 	if (sod->bvh_trees[2] == NULL) {
-		sod->bvh_trees[2] = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*treedata));
+		sod->bvh_trees[2] = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(BVHTreeFromEditMesh));
 	}
-	treedata = sod->bvh_trees[2];
 
-	BVHCache *em_bvh_cache = ((Mesh *)em_ob->data)->runtime.bvh_cache;
+	BVHTreeFromEditMesh *treedata = sod->bvh_trees[2];
+
+	BVHCache *em_bvh_cache = ((Mesh *)em->ob->data)->runtime.bvh_cache;
 
 	if (sctx->callbacks.edit_mesh.test_face_fn == NULL) {
 		/* The tree is owned by the Mesh and may have been freed since we last used! */
@@ -1863,15 +1857,7 @@ static short snapMesh(
 		}
 	}
 
-	SnapObjectData_Mesh *sod = NULL;
-
-	void **sod_p;
-	if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
-		sod = *sod_p;
-	}
-	else {
-		sod = *sod_p = snap_object_data_mesh_create(sctx);
-	}
+	SnapObjectData_Mesh *sod = snap_object_data_mesh_get(sctx, ob);
 
 	BVHTreeFromMesh *treedata, dummy_treedata;
 	BVHTree **bvhtree;
@@ -2066,22 +2052,12 @@ static short snapEditMesh(
 		}
 	}
 
-	SnapObjectData_EditMesh *sod = NULL;
 	BVHTreeFromEditMesh *treedata_vert = NULL, *treedata_edge = NULL;
-	Object *em_ob = em->ob;
 
-	BLI_assert(em_ob->data == BKE_object_get_pre_modified_mesh(ob));
+	BLI_assert(em->ob->data == BKE_object_get_pre_modified_mesh(ob));
 	UNUSED_VARS_NDEBUG(ob);
 
-	void **sod_p;
-	/* Use `em->ob` as the key in ghash since the editmesh is used
-	 * to create bvhtree and is the same for each linked object. */
-	if (BLI_ghash_ensure_p(sctx->cache.object_map, em_ob, &sod_p)) {
-		sod = *sod_p;
-	}
-	else {
-		sod = *sod_p = snap_object_data_editmesh_create(sctx, em->bm);
-	}
+	SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
 
 	float dist_px_sq = SQUARE(*dist_px);
 
@@ -2104,7 +2080,7 @@ static short snapEditMesh(
 		}
 	}
 
-	BVHCache *em_bvh_cache = ((Mesh *)em_ob->data)->runtime.bvh_cache;
+	BVHCache *em_bvh_cache = ((Mesh *)em->ob->data)->runtime.bvh_cache;
 
 	if (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) {
 		if (sod->bvh_trees[0] == NULL) {
