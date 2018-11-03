@@ -2410,7 +2410,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
-		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->wpaint->paint);
+		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->vpaint->paint);
 	}
 
 	BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
