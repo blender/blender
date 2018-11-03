@@ -2234,6 +2234,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE |
 			        OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC);
 		}
+
+
+	}
+
+	/* TODO: add to next version bump */
+	{
+		/* grease pencil main material show switches */
+		for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
+			if (mat->gp_style) {
+				if (((mat->gp_style->flag & GP_STYLE_STROKE_SHOW) == 0) &&
+					((mat->gp_style->flag & GP_STYLE_FILL_SHOW) == 0)) {
+					mat->gp_style->flag |= GP_STYLE_STROKE_SHOW;
+					mat->gp_style->flag |= GP_STYLE_FILL_SHOW;
+				}
+			}
+		}
 	}
 
 	{
@@ -2243,4 +2259,5 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
+
 }

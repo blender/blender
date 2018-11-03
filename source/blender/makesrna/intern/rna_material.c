@@ -581,6 +581,16 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pattern", "Use Fill Texture as a pattern to apply color");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
+	prop = RNA_def_property(srna, "show_stroke", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STYLE_STROKE_SHOW);
+	RNA_def_property_ui_text(prop, "Show Stroke", "Show stroke lines of this material");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
+	prop = RNA_def_property(srna, "show_fill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_STYLE_FILL_SHOW);
+	RNA_def_property_ui_text(prop, "Show Fill", "Show stroke fills of this material");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
 	/* pass index for future compositing and editing tools */
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "index");

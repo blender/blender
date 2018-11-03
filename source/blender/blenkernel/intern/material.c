@@ -127,6 +127,9 @@ void BKE_material_init_gpencil_settings(Material *ma)
 		ARRAY_SET_ITEMS(gp_style->texture_scale, 1.0f, 1.0f);
 		gp_style->texture_opacity = 1.0f;
 		gp_style->texture_pixsize = 100.0f;
+
+		gp_style->flag |= GP_STYLE_STROKE_SHOW;
+		gp_style->flag |= GP_STYLE_FILL_SHOW;
 	}
 }
 

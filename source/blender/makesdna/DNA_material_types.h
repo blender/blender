@@ -98,7 +98,11 @@ typedef enum eMaterialGPencilStyle_Flag {
 	/* Flip fill colors */
 	GP_STYLE_COLOR_FLIP_FILL = (1 << 6),
 	/* Stroke Texture is a pattern */
-	GP_STYLE_STROKE_PATTERN = (1 << 7)
+	GP_STYLE_STROKE_PATTERN = (1 << 7),
+	/* Stroke show main switch */
+	GP_STYLE_STROKE_SHOW = (1 << 8),
+	/* Fill  show main switch */
+	GP_STYLE_FILL_SHOW = (1 << 9)
 } eMaterialGPencilStyle_Flag;
 
 typedef enum eMaterialGPencilStyle_Mode {

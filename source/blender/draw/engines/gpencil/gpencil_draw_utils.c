@@ -836,7 +836,8 @@ static void gpencil_draw_strokes(
 			if (gps->totpoints > 0) {
 				if ((gps->totpoints > 2) && (!stl->storage->simplify_fill) &&
 				    ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)) &&
-				    ((gps->flag & GP_STROKE_NOFILL) == 0))
+				    ((gps->flag & GP_STROKE_NOFILL) == 0) &&
+					(gp_style->flag & GP_STYLE_FILL_SHOW))
 				{
 					stl->shgroups[id].shgrps_fill = DRW_gpencil_shgroup_fill_create(
 					        e_data, vedata, psl->stroke_pass, e_data->gpencil_fill_sh, gpd, gp_style, id);
@@ -881,9 +882,10 @@ static void gpencil_draw_strokes(
 			}
 			/* stroke */
 			if (strokegrp) {
+				const float nop = ((gp_style->flag & GP_STYLE_STROKE_SHOW) == 0) || (gp_style->stroke_rgba[3] < GPENCIL_ALPHA_OPACITY_THRESH) ? 0.0f : opacity;
 				gpencil_add_stroke_shgroup(
 				        cache, strokegrp, ob, gpl, derived_gpf, gps,
-				        opacity, tintcolor, false, custonion);
+				        nop, tintcolor, false, custonion);
 			}
 		}
 
