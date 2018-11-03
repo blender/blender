@@ -273,6 +273,28 @@ static void rna_HookGpencilModifier_object_set(PointerRNA *ptr, PointerRNA value
 	BKE_object_modifier_gpencil_hook_reset(ob, hmd);
 }
 
+static void rna_TimeModifier_start_frame_set(PointerRNA *ptr, int value)
+{
+	TimeGpencilModifierData *tmd = ptr->data;
+	CLAMP(value, MINFRAME, MAXFRAME);
+	tmd->sfra = value;
+
+	if (tmd->sfra >= tmd->efra) {
+		tmd->efra = MIN2(tmd->sfra, MAXFRAME);
+	}
+}
+
+static void rna_TimeModifier_end_frame_set(PointerRNA *ptr, int value)
+{
+	TimeGpencilModifierData *tmd = ptr->data;
+	CLAMP(value, MINFRAME, MAXFRAME);
+	tmd->efra = value;
+
+	if (tmd->sfra >= tmd->efra) {
+		tmd->sfra = MAX2(tmd->efra, MINFRAME);
+	}
+}
+
 #else
 
 static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
@@ -849,10 +871,34 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Scale", "Evaluation time in seconds");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "sfra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_TimeModifier_start_frame_set", NULL);
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
+	RNA_def_property_int_default(prop, 1);
+	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the range");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "efra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_TimeModifier_end_frame_set", NULL);
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
+	RNA_def_property_int_default(prop, 250);
+	RNA_def_property_ui_text(prop, "End Frame", "Final frame of the range");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
 	prop = RNA_def_property(srna, "use_keep_loop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TIME_KEEP_LOOP);
 	RNA_def_property_ui_text(prop, "Keep Loop",
 	                         "Retiming end frames and move to start of animation to keep loop");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+	prop = RNA_def_property(srna, "use_custom_frame_range", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TIME_CUSTOM_RANGE);
+	RNA_def_property_ui_text(prop, "Custom Range",
+		"Define a custom range of frames to use in modifier");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 

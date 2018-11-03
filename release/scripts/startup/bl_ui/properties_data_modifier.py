@@ -1848,6 +1848,18 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "frame_scale")
 
         row = layout.row()
+        row.separator()
+
+        row = layout.row()
+        row.enabled = md.mode != 'FIX'
+        row.prop(md, "use_custom_frame_range")
+
+        row = layout.row(align=True)
+        row.enabled = md.mode != 'FIX' and md.use_custom_frame_range is True
+        row.prop(md, "frame_start")
+        row.prop(md, "frame_end")
+
+        row = layout.row()
         row.enabled = md.mode != 'FIX'
         row.prop(md, "use_keep_loop")
 

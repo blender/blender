@@ -153,6 +153,7 @@ typedef struct TimeGpencilModifierData {
 	int offset;
 	float frame_scale;           /* animation scale */
 	int mode;
+	int sfra, efra;             /* start and end frame for custom range */
 	char pad_[4];
 } TimeGpencilModifierData;
 
@@ -160,6 +161,7 @@ typedef enum eTimeGpencil_Flag {
 	GP_TIME_INVERT_LAYER      = (1 << 0),
 	GP_TIME_KEEP_LOOP         = (1 << 1),
 	GP_TIME_INVERT_LAYERPASS  = (1 << 2),
+	GP_TIME_CUSTOM_RANGE      = (1 << 3),
 } eTimeGpencil_Flag;
 
 typedef enum eTimeGpencil_Mode {
