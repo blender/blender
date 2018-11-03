@@ -1025,28 +1025,28 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 
 	switch (rv3d->view) {
 		case RV3D_VIEW_FRONT:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Front Ortho");
-			else name = IFACE_("Front Persp");
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Front Orthographic");
+			else name = IFACE_("Front Perspective");
 			break;
 		case RV3D_VIEW_BACK:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Back Ortho");
-			else name = IFACE_("Back Persp");
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Back Orthographic");
+			else name = IFACE_("Back Perspective");
 			break;
 		case RV3D_VIEW_TOP:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Top Ortho");
-			else name = IFACE_("Top Persp");
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Top Orthographic");
+			else name = IFACE_("Top Perspective");
 			break;
 		case RV3D_VIEW_BOTTOM:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Bottom Ortho");
-			else name = IFACE_("Bottom Persp");
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Bottom Orthographic");
+			else name = IFACE_("Bottom Perspective");
 			break;
 		case RV3D_VIEW_RIGHT:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Right Ortho");
-			else name = IFACE_("Right Persp");
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Right Orthographic");
+			else name = IFACE_("Right Perspective");
 			break;
 		case RV3D_VIEW_LEFT:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Left Ortho");
-			else name = IFACE_("Left Persp");
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Left Orthographic");
+			else name = IFACE_("Left Perspective");
 			break;
 
 		default:
@@ -1055,14 +1055,14 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 					Camera *cam;
 					cam = v3d->camera->data;
 					if (cam->type == CAM_PERSP) {
-						name = IFACE_("Camera Persp");
+						name = IFACE_("Camera Perspective");
 					}
 					else if (cam->type == CAM_ORTHO) {
-						name = IFACE_("Camera Ortho");
+						name = IFACE_("Camera Orthographic");
 					}
 					else {
 						BLI_assert(cam->type == CAM_PANO);
-						name = IFACE_("Camera Pano");
+						name = IFACE_("Camera Panoramic");
 					}
 				}
 				else {
@@ -1070,7 +1070,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 				}
 			}
 			else {
-				name = (rv3d->persp == RV3D_ORTHO) ? IFACE_("User Ortho") : IFACE_("User Persp");
+				name = (rv3d->persp == RV3D_ORTHO) ? IFACE_("User Orthographic") : IFACE_("User Perspective");
 			}
 	}
 
