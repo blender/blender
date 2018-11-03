@@ -451,93 +451,6 @@ class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
         effector_weights_ui(self, context, rbw.effector_weights, 'RIGID_BODY')
 
 
-class SCENE_PT_simplify(SceneButtonsPanel, Panel):
-    bl_label = "Simplify"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-        self.layout.prop(rd, "use_simplify", text="")
-
-    def draw(self, context):
-        pass
-
-
-class SCENE_PT_simplify_viewport(SceneButtonsPanel, Panel):
-    bl_label = "Viewport"
-    bl_parent_id = "SCENE_PT_simplify"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        rd = context.scene.render
-
-        layout.active = rd.use_simplify
-
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
-
-        col = flow.column()
-        col.prop(rd, "simplify_subdivision", text="Max Subdivision")
-
-        col = flow.column()
-        col.prop(rd, "simplify_child_particles", text="Max Child Particles")
-
-
-class SCENE_PT_simplify_render(SceneButtonsPanel, Panel):
-    bl_label = "Render"
-    bl_parent_id = "SCENE_PT_simplify"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        rd = context.scene.render
-
-        layout.active = rd.use_simplify
-
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
-
-        col = flow.column()
-        col.prop(rd, "simplify_subdivision_render", text="Max Subdivision")
-
-        col = flow.column()
-        col.prop(rd, "simplify_child_particles_render", text="Max Child Particles")
-
-
-class SCENE_PT_simplify_greasepencil(SceneButtonsPanel, Panel):
-    bl_label = "Grease Pencil"
-    bl_parent_id = "SCENE_PT_simplify"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-        self.layout.prop(rd, "simplify_gpencil", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        rd = context.scene.render
-
-        layout.active = rd.simplify_gpencil
-
-        col = layout.column()
-        col.prop(rd, "simplify_gpencil_onplay", text="Playback Only")
-        col.prop(rd, "simplify_gpencil_view_modifier", text="Modifiers")
-        col.prop(rd, "simplify_gpencil_shader_fx", text="ShaderFX")
-
-        col = layout.column(align=True)
-        col.prop(rd, "simplify_gpencil_view_fill")
-        sub = col.column()
-        sub.active = rd.simplify_gpencil_view_fill
-        sub.prop(rd, "simplify_gpencil_remove_lines", text="Lines")
-
-
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
     _context_path = "scene"
@@ -548,10 +461,6 @@ classes = (
     SCENE_UL_keying_set_paths,
     SCENE_PT_scene,
     SCENE_PT_unit,
-    SCENE_PT_simplify,
-    SCENE_PT_simplify_viewport,
-    SCENE_PT_simplify_render,
-    SCENE_PT_simplify_greasepencil,
     SCENE_PT_physics,
     SCENE_PT_keying_sets,
     SCENE_PT_keying_set_paths,

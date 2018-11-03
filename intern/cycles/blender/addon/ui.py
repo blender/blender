@@ -1909,9 +1909,9 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_bvh_type")
 
 
-class CYCLES_SCENE_PT_simplify(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_simplify(CyclesButtonsPanel, Panel):
     bl_label = "Simplify"
-    bl_context = "scene"
+    bl_context = "render"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES'}
 
@@ -1923,10 +1923,10 @@ class CYCLES_SCENE_PT_simplify(CyclesButtonsPanel, Panel):
         pass
 
 
-class CYCLES_SCENE_PT_simplify_viewport(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_simplify_viewport(CyclesButtonsPanel, Panel):
     bl_label = "Viewport"
-    bl_context = "scene"
-    bl_parent_id = "CYCLES_SCENE_PT_simplify"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_simplify"
     COMPAT_ENGINES = {'CYCLES'}
 
     def draw(self, context):
@@ -1947,10 +1947,10 @@ class CYCLES_SCENE_PT_simplify_viewport(CyclesButtonsPanel, Panel):
         col.prop(cscene, "ao_bounces", text="AO Bounces")
 
 
-class CYCLES_SCENE_PT_simplify_render(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_simplify_render(CyclesButtonsPanel, Panel):
     bl_label = "Render"
-    bl_context = "scene"
-    bl_parent_id = "CYCLES_SCENE_PT_simplify"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_simplify"
     COMPAT_ENGINES = {'CYCLES'}
 
     def draw(self, context):
@@ -1972,10 +1972,10 @@ class CYCLES_SCENE_PT_simplify_render(CyclesButtonsPanel, Panel):
         col.prop(cscene, "ao_bounces_render", text="AO Bounces")
 
 
-class CYCLES_SCENE_PT_simplify_culling(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_simplify_culling(CyclesButtonsPanel, Panel):
     bl_label = "Culling"
-    bl_context = "scene"
-    bl_parent_id = "CYCLES_SCENE_PT_simplify"
+    bl_context = "render"
+    bl_parent_id = "CYCLES_RENDER_PT_simplify"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES'}
 
@@ -2042,7 +2042,7 @@ def get_panels():
         'VIEWLAYER_PT_filter',
         'VIEWLAYER_PT_layer_passes',
         'RENDER_PT_post_processing',
-        'SCENE_PT_simplify',
+        'RENDER_PT_simplify',
     }
 
     panels = []
@@ -2118,10 +2118,10 @@ classes = (
     CYCLES_MATERIAL_PT_settings_volume,
     CYCLES_RENDER_PT_bake,
     CYCLES_RENDER_PT_debug,
-    CYCLES_SCENE_PT_simplify,
-    CYCLES_SCENE_PT_simplify_viewport,
-    CYCLES_SCENE_PT_simplify_render,
-    CYCLES_SCENE_PT_simplify_culling,
+    CYCLES_RENDER_PT_simplify,
+    CYCLES_RENDER_PT_simplify_viewport,
+    CYCLES_RENDER_PT_simplify_render,
+    CYCLES_RENDER_PT_simplify_culling,
 )
 
 
