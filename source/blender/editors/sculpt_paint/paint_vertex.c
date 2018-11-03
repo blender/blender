@@ -1247,6 +1247,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	const int mode_flag = OB_MODE_WEIGHT_PAINT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
@@ -1263,6 +1264,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
+		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->wpaint->paint);
 	}
 
 	/* Weightpaint works by overriding colors in mesh,
@@ -2390,6 +2392,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	const int mode_flag = OB_MODE_VERTEX_PAINT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
@@ -2407,6 +2410,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ED_object_vpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
+		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->wpaint->paint);
 	}
 
 	BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);

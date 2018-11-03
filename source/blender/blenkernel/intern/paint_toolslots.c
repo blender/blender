@@ -42,17 +42,15 @@ void BKE_paint_toolslots_len_ensure(Paint *paint, int len)
 	}
 }
 
-typedef bool (*BrushCompatFn)(const Brush *brush);
-typedef char (*BrushToolFn)(const Brush *brush);
-
-static void paint_toolslots_init_paint(
-        Main *bmain,
-        Paint *paint,
-        BrushCompatFn brush_compat_fn, BrushToolFn brush_tool_fn)
+static void paint_toolslots_init(Main *bmain, Scene *scene, Paint *paint)
 {
+	uint tool_offset = 0;
+	eObjectMode ob_mode = 0;
+	bool ok = BKE_paint_brush_tool_info(scene, paint, &tool_offset, &ob_mode);
+	BLI_assert(ok);
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
-		if (brush_compat_fn(brush)) {
-			uint slot_index = brush_tool_fn(brush);
+		if (brush->ob_mode & ob_mode) {
+			const int slot_index = *(char *)POINTER_OFFSET(brush, tool_offset);
 			BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
 			if (paint->tool_slots[slot_index].brush == NULL) {
 				paint->tool_slots[slot_index].brush = brush;
@@ -62,31 +60,15 @@ static void paint_toolslots_init_paint(
 	}
 }
 
-/* Image paint. */
-static bool brush_compat_from_imagepaint(const Brush *brush) { return brush->ob_mode & OB_MODE_TEXTURE_PAINT; }
-static char brush_tool_from_imagepaint(const Brush *brush) { return brush->imagepaint_tool; }
-/* Sculpt. */
-static bool brush_compat_from_sculpt(const Brush *brush) { return brush->ob_mode & OB_MODE_SCULPT; }
-static char brush_tool_from_sculpt(const Brush *brush) { return brush->sculpt_tool; }
-/* Vertex Paint. */
-static bool brush_compat_from_vertexpaint(const Brush *brush) { return brush->ob_mode & OB_MODE_VERTEX_PAINT; }
-static char brush_tool_from_vertexpaint(const Brush *brush) { return brush->vertexpaint_tool; }
-/* Weight Paint. */
-static bool brush_compat_from_weightpaint(const Brush *brush) { return brush->ob_mode & OB_MODE_WEIGHT_PAINT; }
-static char brush_tool_from_weightpaint(const Brush *brush) { return brush->vertexpaint_tool; }
-/* Grease Pencil. */
-static bool brush_compat_from_gpencil(const Brush *brush) { return brush->ob_mode & OB_MODE_GPENCIL_PAINT; }
-static char brush_tool_from_gpencil(const Brush *brush) { return brush->gpencil_tool; }
-
 void BKE_paint_toolslots_init_from_main(struct Main *bmain)
 {
 	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 		ToolSettings *ts = scene->toolsettings;
-		paint_toolslots_init_paint(bmain, &ts->imapaint.paint, brush_compat_from_imagepaint, brush_tool_from_imagepaint);
-		paint_toolslots_init_paint(bmain, &ts->sculpt->paint, brush_compat_from_sculpt, brush_tool_from_sculpt);
-		paint_toolslots_init_paint(bmain, &ts->vpaint->paint, brush_compat_from_vertexpaint, brush_tool_from_vertexpaint);
-		paint_toolslots_init_paint(bmain, &ts->wpaint->paint, brush_compat_from_weightpaint, brush_tool_from_weightpaint);
-		paint_toolslots_init_paint(bmain, &ts->gp_paint->paint, brush_compat_from_gpencil, brush_tool_from_gpencil);
+		paint_toolslots_init(bmain, scene, &ts->imapaint.paint);
+		paint_toolslots_init(bmain, scene, &ts->sculpt->paint);
+		paint_toolslots_init(bmain, scene, &ts->vpaint->paint);
+		paint_toolslots_init(bmain, scene, &ts->wpaint->paint);
+		paint_toolslots_init(bmain, scene, &ts->gp_paint->paint);
 	}
 }
 
@@ -110,4 +92,33 @@ void BKE_paint_toolslots_brush_update(Scene *scene, Paint *paint)
 		return;
 	}
 	BKE_paint_toolslots_brush_update_ex(scene, paint, paint->brush);
+}
+
+/**
+ * Run this to ensure brush types are set for each slot on entering modes
+ * (for new scenes for example).
+ */
+void BKE_paint_toolslots_brush_validate(Main *bmain, Scene *scene, Paint *paint)
+{
+	/* Clear slots with invalid slots or mode (unlikely but possible). */
+	uint tool_offset = 0;
+	eObjectMode ob_mode = 0;
+	bool ok = BKE_paint_brush_tool_info(scene, paint, &tool_offset, &ob_mode);
+	BLI_assert(ok);
+	for (int i = 0; i < paint->tool_slots_len; i++) {
+		PaintToolSlot *tslot = &paint->tool_slots[i];
+		if (tslot->brush) {
+			int slot_index = *(char *)POINTER_OFFSET(tslot->brush, tool_offset);
+			if ((slot_index != i) || (tslot->brush->ob_mode & ob_mode) == 0) {
+				id_us_min(&tslot->brush->id);
+				tslot->brush = NULL;
+			}
+		}
+	}
+
+	/* Unlikely but possible the active brush is not currently using a slot. */
+	BKE_paint_toolslots_brush_update(scene, paint);
+
+	/* Fill slots from brushes. */
+	paint_toolslots_init(bmain, scene, paint);
 }

@@ -5819,6 +5819,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
@@ -5834,6 +5835,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, op->reports);
+		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->sculpt->paint);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);

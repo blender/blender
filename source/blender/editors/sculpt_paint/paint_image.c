@@ -1132,6 +1132,8 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 		BKE_paint_init(bmain, scene, ePaintTextureProjective, PAINT_CURSOR_TEXTURE_PAINT);
 
+		BKE_paint_toolslots_brush_validate(bmain, scene, &imapaint->paint);
+
 		if (U.glreslimit != 0)
 			GPU_free_images(bmain);
 		GPU_paint_set_mipmap(bmain, 0);

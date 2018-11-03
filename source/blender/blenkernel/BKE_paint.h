@@ -177,6 +177,7 @@ void BKE_paint_toolslots_init_from_main(struct Main *bmain);
 void BKE_paint_toolslots_len_ensure(struct Paint *paint, int len);
 void BKE_paint_toolslots_brush_update_ex(struct Scene *scene, struct Paint *paint, struct Brush *brush);
 void BKE_paint_toolslots_brush_update(struct Scene *scene, struct Paint *paint);
+void BKE_paint_toolslots_brush_validate(struct Main *bmain, struct Scene *scene, struct Paint *paint);
 
 /* Used for both vertex color and weight paint */
 struct SculptVertexPaintGeomMap {

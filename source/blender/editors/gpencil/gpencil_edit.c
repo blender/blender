@@ -281,6 +281,8 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 	const bool back = RNA_boolean_get(op->ptr, "back");
 
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -315,11 +317,14 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 		ob->mode = mode;
 	}
 
-	/* be sure we have brushes */
-	Paint *paint = BKE_brush_get_gpencil_paint(ts);
-	/* if not exist, create a new one */
-	if (paint->brush == NULL) {
-		BKE_brush_gpencil_presets(C);
+	if (mode == OB_MODE_GPENCIL_PAINT) {
+		/* be sure we have brushes */
+		Paint *paint = BKE_brush_get_gpencil_paint(ts);
+		/* if not exist, create a new one */
+		if (paint->brush == NULL) {
+			BKE_brush_gpencil_presets(C);
+		}
+		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->gp_paint->paint);
 	}
 
 	/* setup other modes */
