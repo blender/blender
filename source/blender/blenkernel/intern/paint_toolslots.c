@@ -44,6 +44,9 @@ void BKE_paint_toolslots_len_ensure(Paint *paint, int len)
 
 static void paint_toolslots_init(Main *bmain, Scene *scene, Paint *paint)
 {
+	if (paint == NULL) {
+		return;
+	}
 	uint tool_offset = 0;
 	eObjectMode ob_mode = 0;
 	bool ok = BKE_paint_brush_tool_info(scene, paint, &tool_offset, &ob_mode);
