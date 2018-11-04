@@ -2866,7 +2866,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 	int lock_axis = ts->gp_sculpt.lock_axis;
 	float origin[3];
 
-	if ((mode == GP_REPROJECT_AXIS) && (lock_axis == GP_LOCKAXIS_NONE)) {
+	if ((mode == GP_REPROJECT_AXIS) && (lock_axis == GP_LOCKAXIS_VIEW)) {
 		BKE_report(op->reports, RPT_ERROR, "To reproject by axis, a lock axis must be set before");
 		return OPERATOR_CANCELLED;
 	}
@@ -2909,7 +2909,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 
 				/* Project stroke in the axis locked */
 				if (mode == GP_REPROJECT_AXIS) {
-					if (lock_axis > GP_LOCKAXIS_NONE) {
+					if (lock_axis > GP_LOCKAXIS_VIEW) {
 						ED_gp_get_drawing_reference(v3d, scene, ob, gpl,
 							ts->gpencil_v3d_align, origin);
 						ED_gp_project_point_to_plane(ob, rv3d, origin,

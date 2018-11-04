@@ -598,10 +598,22 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			MEM_SAFE_FREE(e_data.batch_grid);
 
 			e_data.batch_grid = DRW_gpencil_get_grid(ob);
+
+			/* define grid orientation */
+			if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_VIEW) {
+				copy_m4_m4(stl->storage->grid_matrix, ob->obmat);
+			}
+			else {
+				/* align always to view */
+				invert_m4_m4(stl->storage->grid_matrix, draw_ctx->rv3d->viewmat);
+				/* copy ob location */
+				copy_v3_v3(stl->storage->grid_matrix[3], ob->obmat[3]);
+			}
+
 			DRW_shgroup_call_add(
-			        stl->g_data->shgrps_grid,
-			        e_data.batch_grid,
-			        ob->obmat);
+				stl->g_data->shgrps_grid,
+				e_data.batch_grid,
+				stl->storage->grid_matrix);
 		}
 	}
 }

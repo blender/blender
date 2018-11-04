@@ -457,7 +457,6 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 	ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); // Color
 	ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f); // Scale
 	gpd->grid.lines = GP_DEFAULT_GRID_LINES; // Number of lines
-	gpd->grid.axis = GP_GRID_AXIS_Y;
 
 	/* onion-skinning settings (datablock level) */
 	gpd->onion_flag |= (GP_ONION_GHOST_PREVCOL | GP_ONION_GHOST_NEXTCOL);

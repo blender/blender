@@ -72,13 +72,6 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 	{ 0, NULL, 0, NULL, NULL }
 };
 
-static const EnumPropertyItem rna_enum_gpencil_grid_axis_items[] = {
-	{GP_GRID_AXIS_LOCK, "LOCK", 0, "Drawing Plane", "Use current drawing locked axis" },
-	{GP_GRID_AXIS_X, "X", 0, "Y-Z", ""},
-	{GP_GRID_AXIS_Y, "Y", 0, "X-Z", ""},
-	{GP_GRID_AXIS_Z, "Z", 0, "X-Y", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 #endif
 
 #ifdef RNA_RUNTIME
@@ -1331,12 +1324,6 @@ static void rna_def_gpencil_grid(BlenderRNA *brna)
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Offset of the canvas");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
-
-	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "axis");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
-	RNA_def_property_ui_text(prop, "Canvas Plane", "Axis to display grid");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }
 

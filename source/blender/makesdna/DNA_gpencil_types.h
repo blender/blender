@@ -335,7 +335,7 @@ typedef struct bGPgrid {
 	char _pad1[4];
 
 	int   lines;
-	int   axis;
+	char pad_[4];
 } bGPgrid;
 
 /* Grease-Pencil Annotations - 'DataBlock' */
@@ -479,14 +479,6 @@ typedef enum eGP_DepthOrdering {
 	GP_XRAY_3DSPACE = 1,
 	GP_XRAY_BACK  = 2
 } eGP_DepthOrdering;
-
-/* gpencil_grid_axis */
-enum {
-	GP_GRID_AXIS_LOCK = (1 << 0),
-	GP_GRID_AXIS_X    = (1 << 1),
-	GP_GRID_AXIS_Y    = (1 << 2),
-	GP_GRID_AXIS_Z    = (1 << 3),
-};
 
 /* ***************************************** */
 /* Mode Checking Macros */

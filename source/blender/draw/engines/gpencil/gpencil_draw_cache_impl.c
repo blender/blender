@@ -615,29 +615,45 @@ GPUBatch *DRW_gpencil_get_edlin_geom(bGPDstroke *gps, float alpha, short UNUSED(
 static void set_grid_point(
         GPUVertBuf *vbo, int idx, float col_grid[4],
         uint pos_id, uint color_id,
-        float v1, float v2, int axis)
+        float v1, float v2, const int axis)
 {
 	GPU_vertbuf_attr_set(vbo, color_id, idx, col_grid);
 
 	float pos[3];
-	/* Set the grid in the selected axis (default is always Y axis) */
-	if (axis & GP_GRID_AXIS_X) {
-		pos[0] = 0.0f;
-		pos[1] = v1;
-		pos[2] = v2;
-	}
-	else if (axis & GP_GRID_AXIS_Z) {
-		pos[0] = v1;
-		pos[1] = v2;
-		pos[2] = 0.0f;
-	}
-	else {
-		pos[0] = v1;
-		pos[1] = 0.0f;
-		pos[2] = v2;
-	}
+	/* Set the grid in the selected axis */
+	switch (axis)
+	{
+		case GP_LOCKAXIS_X:
+		{
+			pos[0] = 0.0f;
+			pos[1] = v1;
+			pos[2] = v2;
+			break;
+		}
+		case GP_LOCKAXIS_Y:
+		{
+			pos[0] = v1;
+			pos[1] = 0.0f;
+			pos[2] = v2;
+			break;
+		}
+		case GP_LOCKAXIS_Z:
+		{
+			pos[0] = v1;
+			pos[1] = v2;
+			pos[2] = 0.0f;
+			break;
+		}
+		default:
+		{
+			/* aligned to view */
+			pos[0] = v1;
+			pos[1] = v2;
+			pos[2] = 0.0f;
+			break;
+		}
 
-
+	}
 
 	GPU_vertbuf_attr_set(vbo, pos_id, idx, pos);
 }
@@ -670,32 +686,7 @@ GPUBatch *DRW_gpencil_get_grid(Object *ob)
 	copy_v3_v3(col_grid, gpd->grid.color);
 	col_grid[3] = v3d->overlay.gpencil_grid_opacity;
 
-	/* if use locked axis, copy value */
-	int axis = gpd->grid.axis;
-	if ((gpd->grid.axis & GP_GRID_AXIS_LOCK) == 0) {
-
-		axis = gpd->grid.axis;
-	}
-	else {
-		switch (ts->gp_sculpt.lock_axis) {
-			case GP_LOCKAXIS_X:
-			{
-				axis = GP_GRID_AXIS_X;
-				break;
-			}
-			case GP_LOCKAXIS_NONE:
-			case GP_LOCKAXIS_Y:
-			{
-				axis = GP_GRID_AXIS_Y;
-				break;
-			}
-			case GP_LOCKAXIS_Z:
-			{
-				axis = GP_GRID_AXIS_Z;
-				break;
-			}
-		}
-	}
+	const int axis = ts->gp_sculpt.lock_axis;
 
 	const char *grid_unit = NULL;
 	const int gridlines = (gpd->grid.lines <= 0) ? 1 : gpd->grid.lines;

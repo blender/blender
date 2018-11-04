@@ -134,6 +134,8 @@ typedef struct GPENCIL_Storage {
 	float winmat[4][4], wininv[4][4];
 	float view_vecs[2][4]; /* vec4[2] */
 
+	float grid_matrix[4][4];
+
 	Object *camera; /* camera pointer for render mode */
 } GPENCIL_Storage;
 

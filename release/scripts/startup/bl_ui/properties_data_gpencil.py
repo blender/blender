@@ -379,7 +379,6 @@ class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
         row = layout.row(align=True)
         col = row.column()
         col.prop(grid, "lines", text="Subdivisions")
-        col.prop(grid, "axis", text="Plane")
 
 
 class DATA_PT_custom_props_gpencil(DataButtonsPanel, PropertyPanel, Panel):

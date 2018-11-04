@@ -918,7 +918,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	}
 
 	/* if axis locked, reproject to plane locked */
-	if ((tgpf->lock_axis > GP_LOCKAXIS_NONE) && ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
+	if ((tgpf->lock_axis > GP_LOCKAXIS_VIEW) && ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
 		float origin[3];
 		ED_gp_get_drawing_reference(
 		        tgpf->v3d, tgpf->scene, tgpf->ob, tgpf->gpl,
