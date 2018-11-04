@@ -669,6 +669,10 @@ static int layer_collection_sync(
 
 		/* Sync objects, except if collection was excluded. */
 		for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+			if (cob->ob == NULL) {
+				continue;
+			}
+
 			Base *base = BLI_ghash_lookup(view_layer->object_bases_hash, cob->ob);
 
 			if (base) {

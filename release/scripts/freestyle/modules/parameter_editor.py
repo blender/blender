@@ -391,7 +391,7 @@ class ColorDistanceFromObjectShader(ColorRampModifier):
         # construct a model-view matrix
         matrix = getCurrentScene().camera.matrix_world.inverted()
         # get the object location in the camera coordinate
-        self.loc = matrix * target.location
+        self.loc = matrix @ target.location
 
     def shade(self, stroke):
         it = iter_distance_from_object(stroke, self.loc, *self.range)
@@ -411,7 +411,7 @@ class AlphaDistanceFromObjectShader(CurveMappingModifier):
         # construct a model-view matrix
         matrix = getCurrentScene().camera.matrix_world.inverted()
         # get the object location in the camera coordinate
-        self.loc = matrix * target.location
+        self.loc = matrix @ target.location
 
     def shade(self, stroke):
         it = iter_distance_from_object(stroke, self.loc, *self.range)
@@ -434,7 +434,7 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
         # construct a model-view matrix
         matrix = getCurrentScene().camera.matrix_world.inverted()
         # get the object location in the camera coordinate
-        self.loc = matrix * target.location
+        self.loc = matrix @ target.location
 
     def shade(self, stroke):
         it = iter_distance_from_object(stroke, self.loc, *self.range)
@@ -520,7 +520,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
             dir = self.func(it)
             if dir.length != 0.0:
                 dir.normalize()
-                fac = abs(dir.orthogonal() * self.orientation)
+                fac = abs(dir.orthogonal() @ self.orientation)
                 b = self.thickness.min + fac * self.thickness.delta
             else:
                 b = self.thickness.min
