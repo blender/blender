@@ -72,6 +72,12 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 	{ 0, NULL, 0, NULL, NULL }
 };
 
+const EnumPropertyItem rna_enum_gplayer_move_type_items[] = {
+   { -1, "UP", 0, "Up", ""},
+   {  1, "DOWN", 0, "Down", ""},
+   {  0, NULL, 0, NULL, NULL}
+};
+
 #endif
 
 #ifdef RNA_RUNTIME
@@ -670,6 +676,25 @@ static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, PointerR
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
+static void rna_GPencil_layer_move(bGPdata *gpd, ReportList *reports, PointerRNA *layer_ptr, int type)
+{
+	bGPDlayer *gpl = layer_ptr->data;
+	if (BLI_findindex(&gpd->layers, gpl) == -1) {
+		BKE_report(reports, RPT_ERROR, "Layer not found in grease pencil data");
+		return;
+	}
+
+	BLI_assert(ELEM(type, -1, 0, 1)); /* we use value below */
+
+	const int direction = type * -1;
+
+	if (BLI_listbase_link_move(&gpd->layers, gpl, direction)) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	}
+
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
 static void rna_GPencil_frame_clear(bGPDframe *frame)
 {
 	BKE_gpencil_free_strokes(frame);
@@ -1253,6 +1278,15 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The layer to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+	func = RNA_def_function(srna, "move", "rna_GPencil_layer_move");
+	RNA_def_function_ui_description(func, "Move a grease pencil layer in the layer stack");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The layer to move");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+	parm = RNA_def_enum(func, "type", rna_enum_gplayer_move_type_items, 1, "", "Direction of movement");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "GPencilLayer");
