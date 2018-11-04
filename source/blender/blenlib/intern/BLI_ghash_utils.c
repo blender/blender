@@ -47,17 +47,25 @@
 /** \name Generic Key Hash & Comparison Functions
  * \{ */
 
-
-/* based python3.3's pointer hashing function */
+#if 0
+/* works but slower */
+uint BLI_ghashutil_ptrhash(const void *key)
+{
+	return (uint)(intptr_t)key;
+}
+#else
+/* Based Python3.7's pointer hashing function. */
 uint BLI_ghashutil_ptrhash(const void *key)
 {
 	size_t y = (size_t)key;
 	/* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
 	 * excessive hash collisions for dicts and sets */
-	y = (y >> 4) | (y << (8 * sizeof(void *) - 4));
-	return (uint)y;
-}
 
+	/* Note: Unlike Python 'sizeof(uint)' is used instead of 'sizeof(void *)',
+	 * Otherwise casting to 'uint' ignores the upper bits on 64bit platforms. */
+	return (uint)(y >> 4) | ((uint)y << (8 * sizeof(uint) - 4));
+}
+#endif
 bool BLI_ghashutil_ptrcmp(const void *a, const void *b)
 {
 	return (a != b);
