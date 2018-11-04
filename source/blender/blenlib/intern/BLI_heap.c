@@ -38,9 +38,9 @@
 /***/
 
 struct HeapNode {
-	void *ptr;
 	float value;
 	uint  index;
+	void *ptr;
 };
 
 struct HeapNode_Chunk {
@@ -87,8 +87,14 @@ struct Heap {
 
 BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 {
-
-#if 0
+#if 1
+	HeapNode **tree = heap->tree;
+	HeapNode *pi = tree[i], *pj = tree[j];
+	pi->index = j;
+	tree[j] = pi;
+	pj->index = i;
+	tree[i] = pj;
+#elif 0
 	SWAP(uint,  heap->tree[i]->index, heap->tree[j]->index);
 	SWAP(HeapNode *,    heap->tree[i],        heap->tree[j]);
 #else
@@ -105,6 +111,7 @@ BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 static void heap_down(Heap *heap, uint i)
 {
 	/* size won't change in the loop */
+	HeapNode **const tree = heap->tree;
 	const uint size = heap->size;
 
 	while (1) {
@@ -112,14 +119,14 @@ static void heap_down(Heap *heap, uint i)
 		const uint r = HEAP_RIGHT(i);
 		uint smallest = i;
 
-		if ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[smallest])) {
+		if (LIKELY(l < size) && HEAP_COMPARE(tree[l], tree[smallest])) {
 			smallest = l;
 		}
-		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest])) {
+		if (LIKELY(r < size) && HEAP_COMPARE(tree[r], tree[smallest])) {
 			smallest = r;
 		}
 
-		if (smallest == i) {
+		if (UNLIKELY(smallest == i)) {
 			break;
 		}
 
@@ -130,10 +137,12 @@ static void heap_down(Heap *heap, uint i)
 
 static void heap_up(Heap *heap, uint i)
 {
-	while (i > 0) {
+	HeapNode **const tree = heap->tree;
+
+	while (LIKELY(i > 0)) {
 		const uint p = HEAP_PARENT(i);
 
-		if (HEAP_COMPARE(heap->tree[p], heap->tree[i])) {
+		if (HEAP_COMPARE(tree[p], tree[i])) {
 			break;
 		}
 		heap_swap(heap, p, i);
@@ -405,6 +414,9 @@ void *BLI_heap_node_ptr(const HeapNode *node)
 static bool heap_is_minheap(const Heap *heap, uint root)
 {
 	if (root < heap->size) {
+		if (heap->tree[root]->index != root) {
+			return false;
+		}
 		const uint l = HEAP_LEFT(root);
 		if (l < heap->size) {
 			if (HEAP_COMPARE(heap->tree[l], heap->tree[root]) || !heap_is_minheap(heap, l)) {
