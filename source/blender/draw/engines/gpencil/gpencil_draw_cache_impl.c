@@ -621,38 +621,23 @@ static void set_grid_point(
 
 	float pos[3];
 	/* Set the grid in the selected axis */
-	switch (axis)
-	{
+	switch (axis) {
 		case GP_LOCKAXIS_X:
 		{
-			pos[0] = 0.0f;
-			pos[1] = v1;
-			pos[2] = v2;
+			ARRAY_SET_ITEMS(pos, 0.0f, v1, v2);
 			break;
 		}
 		case GP_LOCKAXIS_Y:
 		{
-			pos[0] = v1;
-			pos[1] = 0.0f;
-			pos[2] = v2;
+			ARRAY_SET_ITEMS(pos, v1, 0.0f, v2);
 			break;
 		}
 		case GP_LOCKAXIS_Z:
+		default:  /* view aligned */
 		{
-			pos[0] = v1;
-			pos[1] = v2;
-			pos[2] = 0.0f;
+			ARRAY_SET_ITEMS(pos, v1, v2, 0.0f);
 			break;
 		}
-		default:
-		{
-			/* aligned to view */
-			pos[0] = v1;
-			pos[1] = v2;
-			pos[2] = 0.0f;
-			break;
-		}
-
 	}
 
 	GPU_vertbuf_attr_set(vbo, pos_id, idx, pos);
