@@ -143,10 +143,16 @@ def from_fn(fn):
     return ToolDef.from_dict(fn())
 
 
+def with_args(*args):
+    def from_fn(fn):
+        return ToolDef.from_dict(fn(*args))
+    return from_fn
+
+
+from_fn.with_args = with_args
 ToolDef.from_dict = from_dict
 ToolDef.from_fn = from_fn
-del from_dict
-del from_fn
+del from_dict, from_fn, with_args
 
 
 class ToolSelectPanelHelper:
