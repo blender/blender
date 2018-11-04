@@ -107,7 +107,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "influence_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "attenuation_type");
 	RNA_def_property_enum_items(prop, parallax_type_items);
-	RNA_def_property_ui_text(prop, "Type", "Type of parallax volume");
+	RNA_def_property_ui_text(prop, "Type", "Type of influence volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "show_influence", PROP_BOOLEAN, PROP_NONE);
