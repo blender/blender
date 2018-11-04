@@ -62,7 +62,12 @@
 
 #define DIAL_RESOLUTION 32
 
-#define HANDLE_SIZE 0.33
+/* Sizes of axis spheres containing XYZ characters. */
+#define AXIS_HANDLE_SIZE_FG 0.19f
+/* When pointing away from the view. */
+#define AXIS_HANDLE_SIZE_BG 0.15f
+/* How far axis handles are away from the center. */
+#define AXIS_HANDLE_OFFSET (1.0f - AXIS_HANDLE_SIZE_FG)
 
 /**
  * \param viewmat_local_unit is typically the 'rv3d->viewmatob'
@@ -191,7 +196,6 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 	};
 	qsort(&axis_order, ARRAY_SIZE(axis_order), sizeof(axis_order[0]), BLI_sortutil_cmp_float);
 
-	const float scale_axis = 0.25f;
 	static const float axis_highlight[4] = {1, 1, 1, 1};
 	static const float axis_black[4] = {0, 0, 0, 1};
 	static float axis_color[3][4];
@@ -244,12 +248,8 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 			/* Check aligned, since the front axis won't display in this case,
 			 * and we want to make sure all 3 axes have a character at all times. */
 			const bool show_axis_char = (is_pos || (axis == axis_align));
-			const float v[3] = {0, 0, 3 * (is_pos ? 1 : -1)};
-			const float v_final[3] = {
-				v[index_x] * scale_axis,
-				v[index_y] * scale_axis,
-				v[index_z] * scale_axis,
-			};
+			const float v[3] = {0, 0, AXIS_HANDLE_OFFSET * (is_pos ? 1 : -1)};
+			const float v_final[3] = {v[index_x], v[index_y], v[index_z]};
 			const float *color_current = is_highlight ? axis_highlight : axis_color[axis];
 			float color_current_fade[4];
 			copy_v4_v4(color_current_fade, color_current);
@@ -281,7 +281,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 			{
 				GPU_matrix_push();
 				GPU_matrix_translate_3fv(v_final);
-				GPU_matrix_scale_1f(show_axis_char ? 0.22f : 0.18f);
+				GPU_matrix_scale_1f(show_axis_char ? AXIS_HANDLE_SIZE_FG : AXIS_HANDLE_SIZE_BG);
 
 				GPUBatch *sphere = GPU_batch_preset_sphere(0);
 				GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
