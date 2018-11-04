@@ -296,7 +296,7 @@ ccl_device float3 bsdf_principled_hair_eval(KernelGlobals *kg,
 	float3 Y = float4_to_float3(bsdf->extra->geom);
 
 	float3 X = safe_normalize(sd->dPdu);
-	kernel_assert(fabsf(dot(X, Y)) < 1e-4f);
+	kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
 	float3 Z = safe_normalize(cross(X, Y));
 
 	float3 wo = make_float3(dot(sd->I, X), dot(sd->I, Y), dot(sd->I, Z));
@@ -378,7 +378,7 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals *kg,
 	float3 Y = float4_to_float3(bsdf->extra->geom);
 
 	float3 X = safe_normalize(sd->dPdu);
-	kernel_assert(fabsf(dot(X, Y)) < 1e-4f);
+	kernel_assert(fabsf(dot(X, Y)) < 1e-3f);
 	float3 Z = safe_normalize(cross(X, Y));
 
 	float3 wo = make_float3(dot(sd->I, X), dot(sd->I, Y), dot(sd->I, Z));

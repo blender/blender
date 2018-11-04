@@ -147,7 +147,7 @@ bool RenderBuffers::copy_from_device()
 	return true;
 }
 
-bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int sample, int components, float *pixels)
+bool RenderBuffers::get_denoising_pass_rect(int type, float exposure, int sample, int components, float *pixels)
 {
 	if(buffer.data() == NULL) {
 		return false;
@@ -155,20 +155,20 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 
 	float invsample = 1.0f/sample;
 	float scale = invsample;
-	bool variance = (offset == DENOISING_PASS_NORMAL_VAR) ||
-	                (offset == DENOISING_PASS_ALBEDO_VAR) ||
-	                (offset == DENOISING_PASS_DEPTH_VAR) ||
-	                (offset == DENOISING_PASS_COLOR_VAR);
+	bool variance = (type == DENOISING_PASS_NORMAL_VAR) ||
+	                (type == DENOISING_PASS_ALBEDO_VAR) ||
+	                (type == DENOISING_PASS_DEPTH_VAR) ||
+	                (type == DENOISING_PASS_COLOR_VAR);
 
 	float scale_exposure = scale;
-	if(offset == DENOISING_PASS_COLOR || offset == DENOISING_PASS_CLEAN) {
+	if(type == DENOISING_PASS_COLOR || type == DENOISING_PASS_CLEAN) {
 		scale_exposure *= exposure;
 	}
-	else if(offset == DENOISING_PASS_COLOR_VAR) {
+	else if(type == DENOISING_PASS_COLOR_VAR) {
 		scale_exposure *= exposure*exposure;
 	}
 
-	offset += params.get_denoising_offset();
+	int offset = type + params.get_denoising_offset();
 	int pass_stride = params.get_passes_size();
 	int size = params.width*params.height;
 
@@ -212,7 +212,7 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 			}
 		}
 		else if(components == 4) {
-			assert(offset == DENOISING_PASS_COLOR);
+			assert(type == DENOISING_PASS_COLOR);
 
 			/* Since the alpha channel is not involved in denoising, output the Combined alpha channel. */
 			assert(params.passes[0].type == PASS_COMBINED);
