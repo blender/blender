@@ -96,7 +96,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	//freestyle_scene->r.maximsize = old_scene->r.maximsize; /* DEPRECATED */
 	freestyle_scene->r.ocres = old_scene->r.ocres;
 	freestyle_scene->r.color_mgt_flag = 0; // old_scene->r.color_mgt_flag;
-	freestyle_scene->r.scemode = old_scene->r.scemode & ~(R_SINGLE_LAYER | R_NO_FRAME_UPDATE | R_MULTIVIEW);
+	freestyle_scene->r.scemode = (old_scene->r.scemode & ~(R_SINGLE_LAYER | R_NO_FRAME_UPDATE | R_MULTIVIEW)) &
+	                             (re->r.scemode | ~R_FULL_SAMPLE);
 	freestyle_scene->r.flag = old_scene->r.flag;
 	freestyle_scene->r.threads = old_scene->r.threads;
 	freestyle_scene->r.border.xmin = old_scene->r.border.xmin;
