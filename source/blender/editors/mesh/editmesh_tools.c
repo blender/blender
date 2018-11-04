@@ -7868,10 +7868,10 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 
 					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
 					float wnor[3], avg_normal[3] = { 0.0f }, count = 0;
-					float val = BLI_heap_node_value(BLI_heap_top(loop_weight));
+					float val = BLI_heap_top_value(loop_weight);
 
 					while (!BLI_heap_is_empty(loop_weight)) {
-						const float cur_val = BLI_heap_node_value(BLI_heap_top(loop_weight));
+						const float cur_val = BLI_heap_top_value(loop_weight);
 						if (!compare_ff(val, cur_val, threshold)) {
 							count++;
 							val = cur_val;

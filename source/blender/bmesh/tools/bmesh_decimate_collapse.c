@@ -1354,7 +1354,7 @@ void BM_mesh_decimate_collapse(
 		/* simple non-mirror case */
 		while ((bm->totface > face_tot_target) &&
 		       (BLI_heap_is_empty(eheap) == false) &&
-		       (BLI_heap_node_value(BLI_heap_top(eheap)) != COST_INVALID))
+		       (BLI_heap_top_value(eheap) != COST_INVALID))
 		{
 			// const float value = BLI_heap_node_value(BLI_heap_top(eheap));
 			BMEdge *e = BLI_heap_pop_min(eheap);
@@ -1379,7 +1379,7 @@ void BM_mesh_decimate_collapse(
 	else {
 		while ((bm->totface > face_tot_target) &&
 		       (BLI_heap_is_empty(eheap) == false) &&
-		       (BLI_heap_node_value(BLI_heap_top(eheap)) != COST_INVALID))
+		       (BLI_heap_top_value(eheap) != COST_INVALID))
 		{
 			/**
 			 * \note

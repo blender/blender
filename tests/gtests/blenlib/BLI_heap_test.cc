@@ -176,6 +176,7 @@ static void random_heap_reinsert_helper(
 	for (int out_test = 0; out_test < items_total; out_test++) {
 		HeapNode *node_top = BLI_heap_top(heap);
 		float out = BLI_heap_node_value(node_top);
+		EXPECT_EQ(out, BLI_heap_top_value(heap));
 		EXPECT_EQ((float)out_test, out);
 		BLI_heap_pop_min(heap);
 	}

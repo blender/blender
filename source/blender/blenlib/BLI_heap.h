@@ -43,6 +43,7 @@ void            BLI_heap_remove(Heap *heap, HeapNode *node) ATTR_NONNULL(1, 2);
 bool            BLI_heap_is_empty(const Heap *heap) ATTR_NONNULL(1);
 unsigned int    BLI_heap_len(const Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 HeapNode       *BLI_heap_top(const Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+float           BLI_heap_top_value(const Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void           *BLI_heap_pop_min(Heap *heap) ATTR_NONNULL(1);
 void            BLI_heap_node_value_update(Heap *heap, HeapNode *node, float value) ATTR_NONNULL(1, 2);
 void            BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float value, void *ptr) ATTR_NONNULL(1, 2);

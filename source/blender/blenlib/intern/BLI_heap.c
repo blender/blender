@@ -318,6 +318,17 @@ HeapNode *BLI_heap_top(const Heap *heap)
 }
 
 /**
+ * Return the value of top node of the heap.
+ * This is the node with the lowest value.
+ */
+float BLI_heap_top_value(const Heap *heap)
+{
+	BLI_assert(heap->size != 0);
+
+	return heap->tree[0]->value;
+}
+
+/**
  * Pop the top node off the heap and return it's pointer.
  */
 void *BLI_heap_pop_min(Heap *heap)
