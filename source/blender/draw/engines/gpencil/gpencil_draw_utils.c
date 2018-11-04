@@ -891,19 +891,23 @@ static void gpencil_draw_strokes(
 
 		/* edit points (only in edit mode and not play animation not render) */
 		if ((draw_ctx->obact == ob) && (src_gps) &&
-		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob) &&
-		    ((gpl->flag & GP_LAYER_LOCKED) == 0))
+		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob))
 		{
-			if (!stl->g_data->shgrps_edit_line) {
-				stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh, psl->edit_pass);
-			}
-			if (!stl->g_data->shgrps_edit_point) {
-				stl->g_data->shgrps_edit_point = DRW_shgroup_create(e_data->gpencil_edit_point_sh, psl->edit_pass);
-				const float *viewport_size = DRW_viewport_size_get();
-				DRW_shgroup_uniform_vec2(stl->g_data->shgrps_edit_point, "Viewport", viewport_size, 1);
-			}
+			if ((gpl->flag & GP_LAYER_LOCKED) == 0) {
+				if (!stl->g_data->shgrps_edit_line) {
+					stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh, psl->edit_pass);
+				}
+				if (!stl->g_data->shgrps_edit_point) {
+					stl->g_data->shgrps_edit_point = DRW_shgroup_create(e_data->gpencil_edit_point_sh, psl->edit_pass);
+					const float *viewport_size = DRW_viewport_size_get();
+					DRW_shgroup_uniform_vec2(stl->g_data->shgrps_edit_point, "Viewport", viewport_size, 1);
+				}
 
-			gpencil_add_editpoints_shgroup(stl, cache, ts, ob, gpd, gpl, derived_gpf, src_gps);
+				gpencil_add_editpoints_shgroup(stl, cache, ts, ob, gpd, gpl, derived_gpf, src_gps);
+			}
+			else {
+				gpencil_batch_cache_check_free_slots(ob);
+			}
 		}
 
 		GP_SET_SRC_GPS(src_gps);
