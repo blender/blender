@@ -4,6 +4,7 @@
 
 uniform float faceAlphaMod;
 uniform float edgeScale;
+uniform bool isXray = false;
 
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
@@ -31,9 +32,7 @@ out vec4 FragColor;
 #define LARGE_EDGE_SIZE 2.15
 
 /* Enough to visually fill gaps and not enough to mess the AA gradient too much. */
-#define EDGE_FIX_ALPHA 0.6
-
-/* Style Parameters in pixel */
+#define EDGE_FIX_ALPHA 0.67
 
 void distToEdgesAndPoints(out vec3 edges, out vec3 points)
 {
@@ -107,7 +106,7 @@ void main()
 
 			vec4 large_edge_color = EDIT_MESH_edge_color_outer(flag[v], (flag[0] & FACE_ACTIVE_) != 0, edgesCrease[v], edgesBweight[v]);
 #ifdef EDGE_FIX
-			large_edge_color *= EDGE_FIX_ALPHA;
+			large_edge_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
 #endif
 			if (large_edge_color.a != 0.0) {
 				colorDistEdge(large_edge_color, largeEdge);
@@ -122,13 +121,13 @@ void main()
 #ifdef VERTEX_SELECTION
 			vec4 inner_edge_color = vec4(vertexColor, 1.0);
 #  ifdef EDGE_FIX
-			inner_edge_color *= EDGE_FIX_ALPHA;
+			inner_edge_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
 #  endif
 			colorDistEdge(vec4(vertexColor, 1.0), innerEdge);
 #else
 			vec4 inner_edge_color = EDIT_MESH_edge_color_inner(flag[v], (flag[0] & FACE_ACTIVE_) != 0);
 #  ifdef EDGE_FIX
-			inner_edge_color *= EDGE_FIX_ALPHA;
+			inner_edge_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
 #  endif
 			colorDistEdge(inner_edge_color, innerEdge);
 #endif
@@ -148,7 +147,7 @@ void main()
 			point_color = ((flag[v] & EDGE_VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
 			point_color = ((flag[v] & EDGE_VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
 #  ifdef EDGE_FIX
-			point_color.a *= EDGE_FIX_ALPHA;
+			point_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
 #  endif
 			colorDist(point_color, size);
 		}

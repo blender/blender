@@ -13,6 +13,7 @@ layout(triangle_strip, max_vertices=12) out;
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
+uniform bool isXray = false;
 
 in vec4 pPos[];
 in ivec4 vData[];
@@ -181,7 +182,7 @@ void main()
 
 	/* Do face triangle */
 	faceColor = fcol;
-	flag = eflag;
+	flag = (isXray) ? ivec3(0) : eflag;
 	doVertex(2);
 	faceColor.a = 0.0; /* to not let face color bleed */
 
