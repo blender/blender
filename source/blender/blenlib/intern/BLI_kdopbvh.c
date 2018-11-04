@@ -1266,12 +1266,12 @@ static float calc_nearest_point_squared(const float proj[3], BVHNode *node, floa
 
 	/* nearest on AABB hull */
 	for (i = 0; i != 3; i++, bv += 2) {
-		if (bv[0] > proj[i])
-			nearest[i] = bv[0];
-		else if (bv[1] < proj[i])
-			nearest[i] = bv[1];
-		else
-			nearest[i] = proj[i];
+		float val = proj[i];
+		if (bv[0] > val)
+			val = bv[0];
+		if (bv[1] < val)
+			val = bv[1];
+		nearest[i] = val;
 	}
 
 	return len_squared_v3v3(proj, nearest);
