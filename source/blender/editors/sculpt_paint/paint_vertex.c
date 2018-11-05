@@ -274,15 +274,6 @@ bool weight_paint_poll_ignore_tool(bContext *C)
 	return weight_paint_poll_ex(C, false);
 }
 
-static VPaint *new_vpaint(void)
-{
-	VPaint *vp = MEM_callocN(sizeof(VPaint), "VPaint");
-
-	vp->paint.flags |= PAINT_SHOW_BRUSH;
-
-	return vp;
-}
-
 uint vpaint_get_current_col(Scene *scene, VPaint *vp, bool secondary)
 {
 	Brush *brush = BKE_paint_brush(&vp->paint);
@@ -1082,10 +1073,7 @@ static void ed_vwpaintmode_enter_generic(
 		const ePaintMode paint_mode = ePaintVertex;
 		ED_mesh_color_ensure(me, NULL);
 
-		if (scene->toolsettings->vpaint == NULL) {
-			scene->toolsettings->vpaint = new_vpaint();
-		}
-
+		BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->vpaint);
 		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
 		paint_cursor_start_explicit(paint, wm, vertex_paint_poll);
 		BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
@@ -1093,10 +1081,7 @@ static void ed_vwpaintmode_enter_generic(
 	else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
 		const  ePaintMode paint_mode = ePaintWeight;
 
-		if (scene->toolsettings->wpaint == NULL) {
-			scene->toolsettings->wpaint = new_vpaint();
-		}
-
+		BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->wpaint);
 		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
 		paint_cursor_start_explicit(paint, wm, weight_paint_poll);
 		BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
