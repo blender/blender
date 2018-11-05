@@ -4920,11 +4920,11 @@ class VIEW3D_PT_gpencil_origin(Panel):
 class VIEW3D_PT_gpencil_lock(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Lock Axis"
+    bl_label = "Drawing Plane"
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Drawing Plane Lock")
+        layout.label(text="Drawing Plane")
 
         row = layout.row()
         col = row.column()
