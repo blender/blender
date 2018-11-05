@@ -143,9 +143,9 @@ def from_fn(fn):
     return ToolDef.from_dict(fn())
 
 
-def with_args(*args):
+def with_args(**kw):
     def from_fn(fn):
-        return ToolDef.from_dict(fn(*args))
+        return ToolDef.from_dict(fn(**kw))
     return from_fn
 
 

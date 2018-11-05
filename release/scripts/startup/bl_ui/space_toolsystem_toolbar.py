@@ -211,8 +211,8 @@ def _defs_annotate_factory():
                 elif tool_settings.gpencil_stroke_placement_view3d in {'SURFACE', 'STROKE'}:
                     row.prop(tool_settings, "use_gpencil_stroke_endpoints")
 
-        @ToolDef.from_fn.with_args(draw_settings_common)
-        def scribble(draw_settings_common):
+        @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+        def scribble(*, draw_settings):
             return dict(
                 text="Annotate",
                 icon="ops.gpencil.draw",
@@ -222,11 +222,11 @@ def _defs_annotate_factory():
                      dict(mode='DRAW', wait_for_input=False),
                      dict(type='ACTIONMOUSE', value='PRESS')),
                 ),
-                draw_settings=draw_settings_common,
+                draw_settings=draw_settings,
             )
 
-        @ToolDef.from_fn.with_args(draw_settings_common)
-        def line(draw_settings_common):
+        @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+        def line(*, draw_settings):
             return dict(
                 text="Annotate Line",
                 icon="ops.gpencil.draw.line",
@@ -236,11 +236,11 @@ def _defs_annotate_factory():
                      dict(mode='DRAW_STRAIGHT', wait_for_input=False),
                      dict(type='EVT_TWEAK_A', value='ANY')),
                 ),
-                draw_settings=draw_settings_common,
+                draw_settings=draw_settings,
             )
 
-        @ToolDef.from_fn.with_args(draw_settings_common)
-        def poly(draw_settings_common):
+        @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+        def poly(*, draw_settings):
             return dict(
                 text="Annotate Polygon",
                 icon="ops.gpencil.draw.poly",
@@ -250,7 +250,7 @@ def _defs_annotate_factory():
                      dict(mode='DRAW_POLY', wait_for_input=False),
                      dict(type='ACTIONMOUSE', value='PRESS')),
                 ),
-                draw_settings=draw_settings_common,
+                draw_settings=draw_settings,
             )
 
         @ToolDef.from_fn
@@ -1415,8 +1415,8 @@ class _defs_gpencil_sculpt:
                 row.separator()
                 row.prop(brush, "direction", expand=True, text="")
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def smooth(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def smooth(*, draw_settings):
         return dict(
             text="Smooth",
             icon="ops.gpencil.sculpt_smooth",
@@ -1426,11 +1426,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='SMOOTH', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def thickness(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def thickness(*, draw_settings):
         return dict(
             text="Thickness",
             icon="ops.gpencil.sculpt_thickness",
@@ -1440,11 +1440,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='THICKNESS', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def strength(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def strength(*, draw_settings):
         return dict(
             text="Strength",
             icon="ops.gpencil.sculpt_strength",
@@ -1454,11 +1454,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='STRENGTH', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def grab(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def grab(*, draw_settings):
         return dict(
             text="Grab",
             icon="ops.gpencil.sculpt_grab",
@@ -1468,11 +1468,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='GRAB', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def push(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def push(*, draw_settings):
         return dict(
             text="Push",
             icon="ops.gpencil.sculpt_push",
@@ -1482,11 +1482,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='PUSH', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def twist(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def twist(*, draw_settings):
         return dict(
             text="Twist",
             icon="ops.gpencil.sculpt_twist",
@@ -1496,11 +1496,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='TWIST', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def pinch(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def pinch(*, draw_settings):
         return dict(
             text="Pinch",
             icon="ops.gpencil.sculpt_pinch",
@@ -1510,11 +1510,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='PINCH', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def randomize(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def randomize(*, draw_settings):
         return dict(
             text="Randomize",
             icon="ops.gpencil.sculpt_randomize",
@@ -1524,11 +1524,11 @@ class _defs_gpencil_sculpt:
                  dict(mode='RANDOMIZE', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def clone(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def clone(*, draw_settings):
         return dict(
             text="Clone",
             icon="ops.gpencil.sculpt_clone",
@@ -1538,7 +1538,7 @@ class _defs_gpencil_sculpt:
                  dict(mode='CLONE', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
 
@@ -1556,8 +1556,8 @@ class _defs_gpencil_weight:
             row.prop(brush, "strength", slider=True)
             row.prop(brush, "use_pressure_strength", text="")
 
-    @ToolDef.from_fn.with_args(draw_settings_common)
-    def paint(draw_settings_common):
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def paint(*, draw_settings):
         return dict(
             text="Draw",
             icon="ops.gpencil.sculpt_weight",
@@ -1567,7 +1567,7 @@ class _defs_gpencil_weight:
                  dict(mode='WEIGHT', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
-            draw_settings=draw_settings_common,
+            draw_settings=draw_settings,
         )
 
 
