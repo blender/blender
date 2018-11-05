@@ -95,11 +95,11 @@ def generate_from_brushes_tool_slots_ex(
 def generate_from_enum_ex(
         context, *,
         icon_prefix,
-        data,
+        type,
         attr,
 ):
     tool_defs = []
-    for enum in data.rna_type.properties[attr].enum_items_static:
+    for enum in type.bl_rna.properties[attr].enum_items_static:
         name = enum.name
         identifier = enum.identifier
         tool_defs.append(
@@ -1006,7 +1006,7 @@ class _defs_particle:
         return generate_from_enum_ex(
             context,
             icon_prefix="brush.particle.",
-            data=context.tool_settings.particle_edit,
+            type=bpy.types.ParticleEdit,
             attr="tool",
         )
 
