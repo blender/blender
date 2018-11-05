@@ -386,7 +386,8 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 /* add a new gp-layer and make it the active layer */
 bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
 {
-	bGPDlayer *gpl;
+	bGPDlayer *gpl = NULL;
+	bGPDlayer *gpl_active = NULL;
 
 	/* check that list is ok */
 	if (gpd == NULL)
@@ -395,8 +396,16 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 	/* allocate memory for frame and add to end of list */
 	gpl = MEM_callocN(sizeof(bGPDlayer), "bGPDlayer");
 
+	gpl_active = BKE_gpencil_layer_getactive(gpd);
+
 	/* add to datablock */
-	BLI_addtail(&gpd->layers, gpl);
+	if (gpl_active == NULL) {
+		BLI_addtail(&gpd->layers, gpl);
+	}
+	else {
+		/* if active layer, add after that layer */
+		BLI_insertlinkafter(&gpd->layers,gpl_active, gpl);
+	}
 
 	/* annotation vs GP Object behaviour is slightly different */
 	if (gpd->flag & GP_DATA_ANNOTATIONS) {
