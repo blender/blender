@@ -194,6 +194,7 @@ GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
+struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void);
 
 void GPU_material_vertex_attributes(
         GPUMaterial *material,

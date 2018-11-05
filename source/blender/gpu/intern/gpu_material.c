@@ -568,6 +568,11 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 	return material->sss_profile;
 }
 
+struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void)
+{
+	return GPU_uniformbuffer_create(sizeof(GPUSssKernelData), NULL, NULL);
+}
+
 #undef SSS_EXPONENT
 #undef SSS_SAMPLES
 
