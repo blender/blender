@@ -464,17 +464,11 @@ class RENDER_PT_eevee_indirect_lighting_display(RenderButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.prop(props, "gi_cubemap_display_size", text="Cubemap Size")
-        if props.gi_show_cubemaps:
-            row.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_OFF')
-        else:
-            row.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_ON')
+        row.prop(props, "gi_show_cubemaps", text="", toggle=True)
 
         row = layout.row(align=True)
         row.prop(props, "gi_irradiance_display_size", text="Irradiance Size")
-        if props.gi_show_irradiance:
-            row.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_OFF')
-        else:
-            row.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_ON')
+        row.prop(props, "gi_show_irradiance", text="", toggle=True)
 
 
 class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
