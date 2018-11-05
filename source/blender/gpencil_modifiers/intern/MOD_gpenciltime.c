@@ -78,6 +78,8 @@ static int remapTime(
 	int efra = custom ? mmd->efra : scene->r.efra;
 	CLAMP_MIN(sfra, 1);
 	CLAMP_MIN(efra, 1);
+	const int time = efra - sfra + 1;
+	int offset = mmd->offset;
 
 	/* omit if filter by layer */
 	if (mmd->layername[0] != '\0') {
@@ -108,7 +110,7 @@ static int remapTime(
 
 	/* if fix mode, return predefined frame number */
 	if (mmd->mode == GP_TIME_MODE_FIX) {
-		return mmd->offset;
+		return offset;
 	}
 
 	/* invert current frame number */
@@ -119,35 +121,39 @@ static int remapTime(
 	/* apply frame scale */
 	cfra *= mmd->frame_scale;
 
+	/* verify offset never is greater than farme range */
+	if (abs(offset) > time) {
+		offset = offset - ((offset / time) * time);
+	}
+
 	/* verify not outside range if loop is disabled */
 	if ((mmd->flag & GP_TIME_KEEP_LOOP) == 0) {
-		if (cfra + mmd->offset < sfra) {
+		if (cfra + offset < sfra) {
 			return sfra;
 		}
-		if (cfra + mmd->offset > efra) {
+		if (cfra + offset > efra) {
 			return efra;
 		}
 	}
 
 	if (cfra >= efra) {
-		int delta = efra - sfra + 1;
-		cfra = sfra + (cfra - ((cfra / delta) * delta)) - 1;
+		cfra = sfra + (cfra - ((cfra / time) * time)) - 1;
 	}
 
 	if (mmd->flag & GP_TIME_KEEP_LOOP) {
-		const int nfra = cfra + mmd->offset;
+		const int nfra = cfra + offset;
 
 		/* if the sum of the cfra is out scene frame range, recalc */
-		if (cfra + mmd->offset < sfra) {
+		if (cfra + offset < sfra) {
 			const int delta = abs(sfra - nfra);
 			return efra - delta + 1;
 		}
-		else if (cfra + mmd->offset > efra) {
+		else if (cfra + offset > efra) {
 			return nfra - efra + sfra - 1;
 		}
 	}
 
-	return cfra + mmd->offset;
+	return cfra + offset;
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Time = {
