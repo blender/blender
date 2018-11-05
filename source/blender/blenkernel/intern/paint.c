@@ -570,6 +570,53 @@ eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 	}
 }
 
+/**
+ * Call when entering each respective paint mode.
+ */
+bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
+{
+	Paint *paint = NULL;
+	if (*r_paint) {
+		/* Note: 'ts->imapaint' is ignored, it's not allocated. */
+		BLI_assert(
+		        ELEM(*r_paint,
+		             &ts->gp_paint->paint,
+		             &ts->sculpt->paint,
+		             &ts->vpaint->paint,
+		             &ts->wpaint->paint,
+		             &ts->uvsculpt->paint));
+		return true;
+	}
+
+	if (ELEM(*r_paint, &ts->vpaint->paint, &ts->wpaint->paint)) {
+		VPaint *data = MEM_callocN(sizeof(*data), __func__);
+		paint = &data->paint;
+	}
+	else if (*r_paint == &ts->sculpt->paint) {
+		Sculpt *data = MEM_callocN(sizeof(*data), __func__);
+		paint = &data->paint;
+
+		/* Turn on X plane mirror symmetry by default */
+		paint->symmetry_flags |= PAINT_SYMM_X;
+
+		/* Make sure at least dyntopo subdivision is enabled */
+		data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
+	}
+	else if (*r_paint == &ts->gp_paint->paint) {
+		GpPaint *data = MEM_callocN(sizeof(*data), __func__);
+		paint = &data->paint;
+	}
+	else if (*r_paint == &ts->uvsculpt->paint) {
+		UvSculpt *data = MEM_callocN(sizeof(*data), __func__);
+		paint = &data->paint;
+	}
+
+	paint->flags |= PAINT_SHOW_BRUSH;
+
+	*r_paint = paint;
+	return false;
+}
+
 void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
 {
 	UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
@@ -1144,18 +1191,9 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
 {
+	BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
+
 	Sculpt *sd = scene->toolsettings->sculpt;
-	if (sd == NULL) {
-		sd = scene->toolsettings->sculpt = MEM_callocN(sizeof(Sculpt), __func__);
-
-		/* Turn on X plane mirror symmetry by default */
-		sd->paint.symmetry_flags |= PAINT_SYMM_X;
-		sd->paint.flags |= PAINT_SHOW_BRUSH;
-
-		/* Make sure at least dyntopo subdivision is enabled */
-		sd->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
-	}
-
 	if (!sd->detail_size) {
 		sd->detail_size = 12;
 	}

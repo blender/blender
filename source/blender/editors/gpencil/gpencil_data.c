@@ -1561,7 +1561,7 @@ static int gp_brush_select_exec(bContext *C, wmOperator *op)
 
 	const int index = RNA_int_get(op->ptr, "index");
 
-	Paint *paint = BKE_brush_get_gpencil_paint(ts);
+	Paint *paint = &ts->gp_paint->paint;
 	int i = 0;
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
 		if (brush->ob_mode == OB_MODE_GPENCIL_PAINT) {

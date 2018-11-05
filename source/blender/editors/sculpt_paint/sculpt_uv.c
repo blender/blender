@@ -236,15 +236,12 @@ void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *sc
 {
 	ToolSettings *settings = scene->toolsettings;
 	if (settings->use_uv_sculpt) {
-		if (!settings->uvsculpt) {
-			settings->uvsculpt = MEM_callocN(sizeof(*settings->uvsculpt), "UV Smooth paint");
+		if (settings->uvsculpt == NULL) {
 			settings->uv_sculpt_tool = UV_SCULPT_TOOL_GRAB;
 			settings->uv_sculpt_settings = UV_SCULPT_LOCK_BORDERS | UV_SCULPT_ALL_ISLANDS;
 			settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
-			/* Uv sculpting does not include explicit brush view control yet, always enable */
-			settings->uvsculpt->paint.flags |= PAINT_SHOW_BRUSH;
 		}
-
+		BKE_paint_ensure(settings, (Paint **)&settings->uvsculpt);
 		BKE_paint_init(bmain, scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
 
 		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(

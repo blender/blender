@@ -688,9 +688,6 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->imapaint.normal_angle = 80;
 	sce->toolsettings->imapaint.seam_bleed = 2;
 
-	/* alloc grease pencil drawing brushes */
-	sce->toolsettings->gp_paint = MEM_callocN(sizeof(GpPaint), "GpPaint");
-
 	/* grease pencil multiframe falloff curve */
 	sce->toolsettings->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	CurveMapping *gp_falloff_curve = sce->toolsettings->gp_sculpt.cur_falloff;

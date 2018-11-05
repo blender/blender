@@ -1201,7 +1201,8 @@ void ED_gpencil_add_defaults(bContext *C)
 	/* ensure color exist */
 	BKE_gpencil_material_ensure(bmain, ob);
 
-	Paint *paint = BKE_brush_get_gpencil_paint(ts);
+	BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
+	Paint *paint = &ts->gp_paint->paint;
 	/* if not exist, create a new one */
 	if (paint->brush == NULL) {
 		/* create new brushes */

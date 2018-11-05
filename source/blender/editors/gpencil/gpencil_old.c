@@ -105,7 +105,6 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	/* Convert grease pencil scene datablock to GP object */
@@ -113,13 +112,6 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 		Object *ob;
 		ob = BKE_object_add_for_data(bmain, view_layer, OB_GPENCIL, "GP_Scene", &scene->gpd->id, false);
 		zero_v3(ob->loc);
-
-		Paint *paint = BKE_brush_get_gpencil_paint(ts);
-		/* if not exist, create a new one */
-		if (paint->brush == NULL) {
-			/* create new brushes */
-			BKE_brush_gpencil_presets(C);
-		}
 
 		/* convert grease pencil palettes (version >= 2.78)  to materials and weights */
 		bGPdata *gpd = scene->gpd;
