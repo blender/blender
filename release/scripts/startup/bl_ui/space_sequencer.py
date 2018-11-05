@@ -225,10 +225,12 @@ class SEQUENCER_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("render.opengl", text="OpenGL Render", icon='RENDER_STILL').sequencer = True
-        props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
+        layout.operator("render.opengl", text="Sequence Render", icon='RENDER_STILL').sequencer = True
+        props = layout.operator("render.opengl", text="Sequence Render Animation", icon='RENDER_ANIMATION')
         props.animation = True
         props.sequencer = True
+
+        layout.separator()
 
         layout.menu("INFO_MT_area")
 
