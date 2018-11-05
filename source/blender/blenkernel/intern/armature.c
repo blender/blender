@@ -462,7 +462,7 @@ void BKE_pchan_get_bbone_handles(bPoseChannel *pchan, bPoseChannel **r_prev, bPo
 
 /* Fills the array with the desired amount of bone->segments elements.
  * This calculation is done within unit bone space. */
-void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV])
+void b_bone_spline_setup(bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
 	bPoseChannel *next, *prev;
 	Bone *bone = pchan->bone;
@@ -821,8 +821,8 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info
 	DualQuat *b_bone_dual_quats = NULL;
 	int a;
 
-	b_bone_spline_setup(pchan, 0, b_bone);
-	b_bone_spline_setup(pchan, 1, b_bone_rest);
+	b_bone_spline_setup(pchan, false, b_bone);
+	b_bone_spline_setup(pchan, true, b_bone_rest);
 
 	/* allocate b_bone matrices and dual quats */
 	b_bone_mats = MEM_mallocN((1 + bone->segments) * sizeof(Mat4), "BBone defmats");

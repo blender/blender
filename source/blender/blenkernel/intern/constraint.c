@@ -595,7 +595,7 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 				float loc[3], fac;
 
 				/* get bbone segments */
-				b_bone_spline_setup(pchan, 0, bbone);
+				b_bone_spline_setup(pchan, false, bbone);
 
 				/* figure out which segment(s) the headtail value falls in */
 				fac = (float)pchan->bone->segments * headtail;

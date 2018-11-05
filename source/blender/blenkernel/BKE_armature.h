@@ -166,7 +166,7 @@ typedef struct BBoneSplineParameters {
 
 void BKE_pchan_get_bbone_handles(struct bPoseChannel *pchan, struct bPoseChannel **r_prev, struct bPoseChannel **r_next);
 
-void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
+void b_bone_spline_setup(struct bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
 int BKE_compute_b_bone_spline(struct BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
