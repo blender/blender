@@ -172,9 +172,10 @@ void main()
 		float gridB = get_grid(grid_pos, grid_fwidth, scaleB);
 		float gridC = get_grid(grid_pos, grid_fwidth, scaleC);
 
-		FragColor = vec4(colorGrid.rgb, gridA * blend);
-		FragColor = mix(FragColor, vec4(mix(colorGrid.rgb, colorGridEmphasise.rgb, blend), 1.0), gridB);
-		FragColor = mix(FragColor, vec4(colorGridEmphasise.rgb, 1.0), gridC);
+		FragColor = colorGrid;
+		FragColor.a *= gridA * blend;
+		FragColor = mix(FragColor, mix(colorGrid, colorGridEmphasise, blend), gridB);
+		FragColor = mix(FragColor, colorGridEmphasise, gridC);
 	}
 	else {
 		FragColor = vec4(colorGrid.rgb, 0.0);
