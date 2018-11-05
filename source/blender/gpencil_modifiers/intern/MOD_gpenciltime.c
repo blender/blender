@@ -130,7 +130,7 @@ static int remapTime(
 	}
 
 	if (cfra > efra) {
-		cfra = sfra + (cfra - ((cfra / efra) * efra));
+		cfra = sfra + (cfra - ((cfra / efra) * efra)) - 1;
 	}
 
 	if (mmd->flag & GP_TIME_KEEP_LOOP) {
