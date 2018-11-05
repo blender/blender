@@ -225,10 +225,6 @@ class SEQUENCER_MT_view(Menu):
 
         layout.separator()
 
-        if is_sequencer_view:
-            layout.prop(st, "use_marker_sync")
-            layout.separator()
-
         layout.operator("render.opengl", text="OpenGL Render", icon='RENDER_STILL').sequencer = True
         props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
         props.animation = True
@@ -275,9 +271,14 @@ class SEQUENCER_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
+        st = context.space_data
+        is_sequencer_view = st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
+
         from .space_time import marker_menu_generic
         marker_menu_generic(layout)
 
+        if is_sequencer_view:
+            layout.prop(st, "use_marker_sync")
 
 class SEQUENCER_MT_frame(Menu):
     bl_label = "Frame"
