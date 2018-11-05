@@ -214,12 +214,14 @@ static void axis_geom_draw(
 #ifdef USE_AXIS_FONT
 	struct {
 		float matrix[4][4];
+		int id;
 	} font;
 
 	{
-		BLF_disable(blf_mono_font, BLF_ROTATION | BLF_SHADOW | BLF_MATRIX | BLF_ASPECT | BLF_WORD_WRAP);
-		BLF_color4fv(blf_mono_font, axis_black);
-		BLF_size(blf_mono_font, 11 * U.dpi_fac, 72);
+		font.id = blf_mono_font;
+		BLF_disable(font.id, BLF_ROTATION | BLF_SHADOW | BLF_MATRIX | BLF_ASPECT | BLF_WORD_WRAP);
+		BLF_color4fv(font.id, axis_black);
+		BLF_size(font.id, 11 * U.dpi_fac, 72);
 
 		/* Calculate the inverse of the (matrix_final * matrix_offset).
 		 * This allows us to use the final location, while reversing the rotation so fonts
@@ -338,9 +340,9 @@ static void axis_geom_draw(
 
 				const char axis_str[2] = {'X' + axis, 0};
 				float offset[2] = {0};
-				BLF_width_and_height(blf_mono_font, axis_str, 2, &offset[0], &offset[1]);
-				BLF_position(blf_mono_font, roundf(offset[0] * -0.5f), roundf(offset[1] * -0.5f), 0);
-				BLF_draw_ascii(blf_mono_font, axis_str, 2);
+				BLF_width_and_height(font.id, axis_str, 2, &offset[0], &offset[1]);
+				BLF_position(font.id, roundf(offset[0] * -0.5f), roundf(offset[1] * -0.5f), 0);
+				BLF_draw_ascii(font.id, axis_str, 2);
 				GPU_blend(true);  /* XXX, blf disables */
 				GPU_matrix_pop();
 
@@ -355,10 +357,6 @@ static void axis_geom_draw(
 			}
 		}
 	}
-
-#ifdef USE_AXIS_FONT
-	BLF_disable(blf_mono_font, BLF_MATRIX);
-#endif
 
 	GPU_matrix_pop();
 	immUnbindProgram();
