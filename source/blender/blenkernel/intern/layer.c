@@ -305,14 +305,16 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
 {
 	static ThreadMutex hash_lock = BLI_MUTEX_INITIALIZER;
 
-	if (!view_layer->object_bases_hash) {
+	if (view_layer->object_bases_hash == NULL) {
 		BLI_mutex_lock(&hash_lock);
 
-		view_layer->object_bases_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+		if (view_layer->object_bases_hash == NULL) {
+			view_layer->object_bases_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
-		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (base->object) {
-				BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
+			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+				if (base->object) {
+					BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
+				}
 			}
 		}
 
