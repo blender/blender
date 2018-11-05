@@ -299,6 +299,8 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 		id_us_min((ID *)p->brush);
 		id_us_plus((ID *)br);
 		p->brush = br;
+
+		BKE_paint_toolslots_brush_update(p);
 	}
 }
 
