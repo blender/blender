@@ -7818,7 +7818,7 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 
 	BM_normals_loops_edges_tag(bm, true);
 
-	Heap *loop_weight = BLI_heap_new();
+	FastHeap *loop_weight = BLI_fastheap_new();
 
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
 		l_curr = l_first = BM_FACE_FIRST_LOOP(f);
@@ -7858,7 +7858,7 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 							val = 1.0f / BM_loop_calc_face_angle(lfan_pivot);
 						}
 
-						BLI_heap_insert(loop_weight, val, lfan_pivot);
+						BLI_fastheap_insert(loop_weight, val, lfan_pivot);
 
 						if (!BM_elem_flag_test(e_next, BM_ELEM_TAG) || (e_next == e_org)) {
 							break;
@@ -7868,15 +7868,15 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 
 					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
 					float wnor[3], avg_normal[3] = { 0.0f }, count = 0;
-					float val = BLI_heap_top_value(loop_weight);
+					float val = BLI_fastheap_top_value(loop_weight);
 
-					while (!BLI_heap_is_empty(loop_weight)) {
-						const float cur_val = BLI_heap_top_value(loop_weight);
+					while (!BLI_fastheap_is_empty(loop_weight)) {
+						const float cur_val = BLI_fastheap_top_value(loop_weight);
 						if (!compare_ff(val, cur_val, threshold)) {
 							count++;
 							val = cur_val;
 						}
-						l = BLI_heap_pop_min(loop_weight);
+						l = BLI_fastheap_pop_min(loop_weight);
 						BLI_SMALLSTACK_PUSH(loops, l);
 
 						const float n_weight = pow(weight, count);
@@ -7907,7 +7907,7 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 		} while ((l_curr = l_curr->next) != l_first);
 	}
 
-	BLI_heap_free(loop_weight, NULL);
+	BLI_fastheap_free(loop_weight, NULL);
 	EDBM_update_generic(em, true, false);
 
 	return OPERATOR_FINISHED;

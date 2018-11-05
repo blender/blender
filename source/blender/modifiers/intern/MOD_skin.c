@@ -1431,10 +1431,10 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 {
 	BMIter iter;
 	BMEdge *e;
-	Heap *heap;
+	FastHeap *heap;
 	float score;
 
-	heap = BLI_heap_new();
+	heap = BLI_fastheap_new();
 
 	BM_mesh_elem_hflag_disable_all(so->bm, BM_FACE, BM_ELEM_TAG, false);
 
@@ -1477,15 +1477,15 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 					continue;
 				}
 
-				BLI_heap_insert(heap, -score, e);
+				BLI_fastheap_insert(heap, -score, e);
 			}
 		}
 	}
 
-	while (!BLI_heap_is_empty(heap)) {
+	while (!BLI_fastheap_is_empty(heap)) {
 		BMFace *adj[2];
 
-		e = BLI_heap_pop_min(heap);
+		e = BLI_fastheap_pop_min(heap);
 
 		if (BM_edge_face_pair(e, &adj[0], &adj[1])) {
 			/* If both triangles still free, and if they don't already
@@ -1502,7 +1502,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 		}
 	}
 
-	BLI_heap_free(heap, NULL);
+	BLI_fastheap_free(heap, NULL);
 
 	BM_mesh_delete_hflag_tagged(so->bm, BM_ELEM_TAG, BM_EDGE | BM_FACE);
 
