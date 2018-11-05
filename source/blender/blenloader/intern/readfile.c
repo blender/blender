@@ -5917,6 +5917,8 @@ static void link_paint(FileData *fd, Scene *sce, Paint *p)
 		}
 		p->palette = newlibadr_us(fd, sce->id.lib, p->palette);
 		p->paint_cursor = NULL;
+
+		BKE_paint_runtime_init(sce->toolsettings, p);
 	}
 }
 
@@ -6200,7 +6202,7 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 	}
 }
 
-static void direct_link_paint(FileData *fd, Paint *p)
+static void direct_link_paint(FileData *fd, const Scene *scene, Paint *p)
 {
 	if (p->num_input_samples < 1)
 		p->num_input_samples = 1;
@@ -6212,15 +6214,17 @@ static void direct_link_paint(FileData *fd, Paint *p)
 		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
 
 	p->tool_slots = newdataadr(fd, p->tool_slots);
+
+	BKE_paint_runtime_init(scene->toolsettings, p);
 }
 
-static void direct_link_paint_helper(FileData *fd, Paint **paint)
+static void direct_link_paint_helper(FileData *fd, const Scene *scene, Paint **paint)
 {
 	/* TODO. is this needed */
 	(*paint) = newdataadr(fd, (*paint));
 
 	if (*paint) {
-		direct_link_paint(fd, *paint);
+		direct_link_paint(fd, scene, *paint);
 	}
 }
 
@@ -6277,13 +6281,13 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
 	if (sce->toolsettings) {
-		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->sculpt);
-		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->vpaint);
-		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->wpaint);
-		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->uvsculpt);
-		direct_link_paint_helper(fd, (Paint**)&sce->toolsettings->gp_paint);
+		direct_link_paint_helper(fd, sce, (Paint**)&sce->toolsettings->sculpt);
+		direct_link_paint_helper(fd, sce, (Paint**)&sce->toolsettings->vpaint);
+		direct_link_paint_helper(fd, sce, (Paint**)&sce->toolsettings->wpaint);
+		direct_link_paint_helper(fd, sce, (Paint**)&sce->toolsettings->uvsculpt);
+		direct_link_paint_helper(fd, sce, (Paint**)&sce->toolsettings->gp_paint);
 
-		direct_link_paint(fd, &sce->toolsettings->imapaint.paint);
+		direct_link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
 
 		sce->toolsettings->imapaint.paintcursor = NULL;
 		sce->toolsettings->particle.paintcursor = NULL;

@@ -302,55 +302,36 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 	}
 }
 
-bool BKE_paint_brush_tool_info(
-        const Scene *scene, const struct Paint *paint,
-        uint *r_tool_offset, eObjectMode *r_ob_mode)
+void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
 {
-	ToolSettings *ts = scene->toolsettings;
 	if (paint == &ts->imapaint.paint) {
-		if (r_tool_offset != NULL) {
-			*r_tool_offset = offsetof(Brush, imagepaint_tool);
-		}
-		if (r_ob_mode != NULL) {
-			*r_ob_mode = OB_MODE_TEXTURE_PAINT;
-		}
+		paint->runtime.tool_offset = offsetof(Brush, imagepaint_tool);
+		paint->runtime.ob_mode = OB_MODE_TEXTURE_PAINT;
 	}
 	else if (paint == &ts->sculpt->paint) {
-		if (r_tool_offset != NULL) {
-			*r_tool_offset = offsetof(Brush, sculpt_tool);
-		}
-		if (r_ob_mode != NULL) {
-			*r_ob_mode = OB_MODE_SCULPT;
-		}
+		paint->runtime.tool_offset = offsetof(Brush, sculpt_tool);
+		paint->runtime.ob_mode = OB_MODE_SCULPT;
 	}
 	else if (paint == &ts->vpaint->paint) {
-		if (r_tool_offset != NULL) {
-			*r_tool_offset = offsetof(Brush, vertexpaint_tool);
-		}
-		if (r_ob_mode != NULL) {
-			*r_ob_mode = OB_MODE_VERTEX_PAINT;
-		}
+		paint->runtime.tool_offset = offsetof(Brush, vertexpaint_tool);
+		paint->runtime.ob_mode = OB_MODE_VERTEX_PAINT;
 	}
 	else if (paint == &ts->wpaint->paint) {
-		if (r_tool_offset != NULL) {
-			*r_tool_offset = offsetof(Brush, vertexpaint_tool);
-		}
-		if (r_ob_mode != NULL) {
-			*r_ob_mode = OB_MODE_WEIGHT_PAINT;
-		}
+		paint->runtime.tool_offset = offsetof(Brush, vertexpaint_tool);
+		paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
 	}
 	else if (paint == &ts->gp_paint->paint) {
-		if (r_tool_offset != NULL) {
-			*r_tool_offset = offsetof(Brush, gpencil_tool);
-		}
-		if (r_ob_mode != NULL) {
-			*r_ob_mode = OB_MODE_GPENCIL_PAINT;
-		}
+		paint->runtime.tool_offset = offsetof(Brush, gpencil_tool);
+		paint->runtime.ob_mode = OB_MODE_GPENCIL_PAINT;
+	}
+	else if (paint == &ts->uvsculpt->paint) {
+		/* We don't use these yet. */
+		paint->runtime.tool_offset = 0;
+		paint->runtime.ob_mode = 0;
 	}
 	else {
-		return false;
+		BLI_assert(0);
 	}
-	return true;
 }
 
 
@@ -585,6 +566,15 @@ bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
 		             &ts->vpaint->paint,
 		             &ts->wpaint->paint,
 		             &ts->uvsculpt->paint));
+
+#ifdef DEBUG
+		struct Paint paint_test = **r_paint;
+		BKE_paint_runtime_init(ts, *r_paint);
+		/* Swap so debug doesn't hide errors when release fails. */
+		SWAP(Paint, **r_paint, paint_test);
+		BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
+		BLI_assert(paint_test.runtime.tool_offset == (*r_paint)->runtime.tool_offset);
+#endif
 		return true;
 	}
 
@@ -612,6 +602,8 @@ bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
 	}
 
 	paint->flags |= PAINT_SHOW_BRUSH;
+
+	BKE_paint_runtime_init(ts, paint);
 
 	*r_paint = paint;
 	return false;

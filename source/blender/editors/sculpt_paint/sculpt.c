@@ -5835,7 +5835,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, op->reports);
-		BKE_paint_toolslots_brush_validate(bmain, scene, &ts->sculpt->paint);
+		BKE_paint_toolslots_brush_validate(bmain, &ts->sculpt->paint);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
