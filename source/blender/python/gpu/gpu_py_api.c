@@ -41,7 +41,8 @@
 #include "gpu_py_api.h" /* own include */
 
 PyDoc_STRVAR(GPU_doc,
-"This module to provide functions concerning the GPU implementation in Blender."
+"This module provides Python wrappers for the GPU implementation in Blender. "
+"Some higher level functions can be found in the `gpu_extras` module. "
 "\n\n"
 "Submodules:\n"
 "\n"
