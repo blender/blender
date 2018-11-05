@@ -372,7 +372,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		}
 
 		if (wpd->shading.flag & XRAY_FLAG(wpd)) {
-			blend_threshold = 0.75f - XRAY_ALPHA(wpd) * 0.5f;
+			blend_threshold = 1.0f - XRAY_ALPHA(wpd) * 0.9f;
 		}
 
 		if (wpd->shading.type == OB_WIRE) {
