@@ -654,21 +654,14 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 	switch (tkey->space_type) {
 		case SPACE_VIEW3D:
 			switch (tkey->mode) {
-				/* XXX(campbell): hard coded paint-brush names.
-				 * Eventyally we plan to move away from using brush names as tools,
-				 * in favor of having tool types in the toolbar, which can each select their own brush.
-				 * so keep this as a temporary hack.
-				 */
+				/* Use the names of the enums for each brush tool. */
 				case CTX_MODE_SCULPT:
-					return "SculptDraw";
 				case CTX_MODE_PAINT_VERTEX:
 				case CTX_MODE_PAINT_WEIGHT:
 				case CTX_MODE_GPENCIL_WEIGHT:
-					return "Draw";
 				case CTX_MODE_PAINT_TEXTURE:
-					return "TexDraw";
 				case CTX_MODE_GPENCIL_PAINT:
-					return "Draw Pencil";
+					return "Draw";
 				case CTX_MODE_GPENCIL_SCULPT:
 					return "Push";
 				/* end temporary hack. */
