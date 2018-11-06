@@ -2107,8 +2107,10 @@ class VIEW3D_MT_brush(Menu):
             layout.prop_menu_enum(brush, "sculpt_tool")
         elif context.image_paint_object:
             layout.prop_menu_enum(brush, "image_tool")
-        elif context.vertex_paint_object or context.weight_paint_object:
+        elif context.vertex_paint_object:
             layout.prop_menu_enum(brush, "vertex_tool")
+        elif context.weight_paint_object:
+            layout.prop_menu_enum(brush, "weight_tool")
 
         # TODO: still missing a lot of brush options here
 

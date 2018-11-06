@@ -399,9 +399,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             col.separator()
-            col.prop(brush, "vertex_tool", text="Blend")
+            col.prop(brush, "blend", text="Blend")
 
-            if brush.vertex_tool != 'SMEAR':
+            if brush.weight_tool != 'SMEAR':
                 col.prop(brush, "use_accumulate")
                 col.separator()
 
@@ -440,7 +440,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
             col.separator()
-            col.prop(brush, "vertex_tool", text="Blend")
+            col.prop(brush, "blend", text="Blend")
             col.prop(brush, "use_alpha")
 
             if brush.vertex_tool != 'SMEAR':

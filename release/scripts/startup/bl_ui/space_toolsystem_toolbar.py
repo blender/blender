@@ -1040,7 +1040,7 @@ class _defs_weight_paint:
             context,
             icon_prefix="brush.paint_weight.",
             type=bpy.types.Brush,
-            attr="vertex_tool",
+            attr="weight_tool",
         )
 
     @ToolDef.from_fn

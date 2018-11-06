@@ -591,7 +591,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
 		MDeformVert *dv = &me->dvert[index];
 		MDeformWeight *dw = defvert_verify_index(dv, grad_data->def_nr);
 		// dw->weight = alpha; // testing
-		int tool = grad_data->brush->vertexpaint_tool;
+		int tool = grad_data->brush->blend;
 		float testw;
 
 		/* init if we just added */

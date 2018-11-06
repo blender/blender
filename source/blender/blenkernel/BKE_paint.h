@@ -81,8 +81,9 @@ typedef enum ePaintMode {
 	ePaintTextureProjective = 3,
 	ePaintTexture2D = 4,
 	ePaintSculptUV = 5,
-	ePaintInvalid = 6,
-	ePaintGpencil = 7
+	ePaintGpencil = 6,
+
+	ePaintInvalid = 7,
 } ePaintMode;
 
 /* overlay invalidation */
@@ -139,6 +140,7 @@ void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
 const struct EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
+uint BKE_paint_get_brush_tool_offset_from_paint_mode(const ePaintMode mode);
 struct Paint *BKE_paint_get_active(struct Scene *sce, struct ViewLayer *view_layer);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);

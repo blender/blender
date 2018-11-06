@@ -483,10 +483,9 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_WEIGHT_PAINT:
-			/* vertexpaint_tool is used for weight paint mode */
-			tool_offset = offsetof(Brush, vertexpaint_tool);
+			tool_offset = offsetof(Brush, weightpaint_tool);
 			tool = RNA_enum_get(op->ptr, "weight_paint_tool");
-			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
+			RNA_enum_name_from_value(rna_enum_brush_weight_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_TEXTURE_PAINT:
 			tool_offset = offsetof(Brush, imagepaint_tool);
@@ -567,7 +566,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop = RNA_def_enum(ot->srna, "vertex_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	prop = RNA_def_enum(ot->srna, "weight_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Weight Paint Tool", "");
+	prop = RNA_def_enum(ot->srna, "weight_paint_tool", rna_enum_brush_weight_tool_items, 0, "Weight Paint Tool", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop = RNA_def_enum(ot->srna, "texture_paint_tool", rna_enum_brush_image_tool_items, 0, "Texture Paint Tool", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);

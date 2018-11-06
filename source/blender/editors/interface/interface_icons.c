@@ -58,6 +58,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_icons.h"
 #include "BKE_appdir.h"
 #include "BKE_studiolight.h"
@@ -1679,7 +1680,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		WorkSpace *workspace = CTX_wm_workspace(C);
 		Object *ob = CTX_data_active_object(C);
 		const EnumPropertyItem *items = NULL;
-		int tool = PAINT_TOOL_DRAW, mode = 0;
+		ePaintMode paint_mode = ePaintInvalid;
 		ScrArea *sa = CTX_wm_area(C);
 		char space_type = sa->spacetype;
 		/* When in an unsupported space. */
@@ -1692,12 +1693,18 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		 * checking various context stuff here */
 
 		if ((space_type == SPACE_VIEW3D) && ob) {
-			if (ob->mode & OB_MODE_SCULPT)
-				mode = OB_MODE_SCULPT;
-			else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
-				mode = OB_MODE_VERTEX_PAINT;
-			else if (ob->mode & OB_MODE_TEXTURE_PAINT)
-				mode = OB_MODE_TEXTURE_PAINT;
+			if (ob->mode & OB_MODE_SCULPT) {
+				paint_mode = ePaintSculpt;
+			}
+			else if (ob->mode & OB_MODE_VERTEX_PAINT) {
+				paint_mode = ePaintVertex;
+			}
+			else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+				paint_mode = ePaintWeight;
+			}
+			else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+				paint_mode = ePaintTextureProjective;
+			}
 		}
 		else if (space_type == SPACE_IMAGE) {
 			int sima_mode;
@@ -1710,7 +1717,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 			}
 
 			if (sima_mode == SI_MODE_PAINT) {
-				mode = OB_MODE_TEXTURE_PAINT;
+				paint_mode = ePaintTexture2D;
 			}
 		}
 
@@ -1756,21 +1763,17 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 			}
 			return id->icon_id;
 		}
-		else if (mode == OB_MODE_SCULPT) {
-			items = rna_enum_brush_sculpt_tool_items;
-			tool = br->sculpt_tool;
+		else if (paint_mode != ePaintInvalid) {
+			items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+			const uint tool_offset = BKE_paint_get_brush_tool_offset_from_paint_mode(paint_mode);
+			const int tool_type = *(char *)POINTER_OFFSET(br, tool_offset);
+			if (!items || !RNA_enum_icon_from_value(items, tool_type, &id->icon_id)) {
+				id->icon_id = 0;
+			}
 		}
-		else if (mode == OB_MODE_VERTEX_PAINT) {
-			items = rna_enum_brush_vertex_tool_items;
-			tool = br->vertexpaint_tool;
-		}
-		else if (mode == OB_MODE_TEXTURE_PAINT) {
-			items = rna_enum_brush_image_tool_items;
-			tool = br->imagepaint_tool;
-		}
-
-		if (!items || !RNA_enum_icon_from_value(items, tool, &id->icon_id))
+		else {
 			id->icon_id = 0;
+		}
 	}
 
 	return id->icon_id;

@@ -182,9 +182,9 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
 		case ePaintVertex:
 			return rna_enum_brush_vertex_tool_items;
 		case ePaintWeight:
-			return rna_enum_brush_vertex_tool_items;
-		case ePaintTextureProjective:
+			return rna_enum_brush_weight_tool_items;
 		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			return rna_enum_brush_image_tool_items;
 		case ePaintSculptUV:
 			return NULL;
@@ -369,7 +369,7 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
 		paint->runtime.ob_mode = OB_MODE_VERTEX_PAINT;
 	}
 	else if (paint == &ts->wpaint->paint) {
-		paint->runtime.tool_offset = offsetof(Brush, vertexpaint_tool);
+		paint->runtime.tool_offset = offsetof(Brush, weightpaint_tool);
 		paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
 	}
 	else if (paint == &ts->gp_paint->paint) {
@@ -386,6 +386,26 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
 	}
 }
 
+uint BKE_paint_get_brush_tool_offset_from_paint_mode(const ePaintMode mode)
+{
+	switch (mode) {
+		case ePaintTexture2D:
+		case ePaintTextureProjective:
+			return offsetof(Brush, imagepaint_tool);
+		case ePaintSculpt:
+			return offsetof(Brush, sculpt_tool);
+		case ePaintVertex:
+			return offsetof(Brush, vertexpaint_tool);
+		case ePaintWeight:
+			return offsetof(Brush, weightpaint_tool);
+		case ePaintGpencil:
+			return offsetof(Brush, gpencil_tool);
+		case ePaintSculptUV:
+		case ePaintInvalid:
+			break; /* We don't use these yet. */
+	}
+	return 0;
+}
 
 /** Free (or release) any data used by this paint curve (does not free the pcurve itself). */
 void BKE_paint_curve_free(PaintCurve *pc)
@@ -591,9 +611,8 @@ eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 			return OB_MODE_VERTEX_PAINT;
 		case ePaintWeight:
 			return OB_MODE_WEIGHT_PAINT;
-		case ePaintTextureProjective:
-			return OB_MODE_TEXTURE_PAINT;
 		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			return OB_MODE_TEXTURE_PAINT;
 		case ePaintSculptUV:
 			return OB_MODE_EDIT;

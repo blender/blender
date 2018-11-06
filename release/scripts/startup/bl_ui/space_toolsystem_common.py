@@ -816,7 +816,7 @@ def keymap_from_context(context, space_type):
                             mode = context.active_object.mode
                             attr_op, attr_brush = {
                                 'SCULPT': ("sculpt_tool", "sculpt_tool"),
-                                'WEIGHT_PAINT': ("weight_paint_tool", "vertex_tool"),
+                                'WEIGHT_PAINT': ("weight_paint_tool", "weight_tool"),
                                 'VERTEX_PAINT': ("vertex_paint_tool", "vertex_tool"),
                                 'TEXTURE_PAINT': ("texture_paint_tool", "image_tool"),
                             }.get(mode, (None, None))

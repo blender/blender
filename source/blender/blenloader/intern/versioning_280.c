@@ -89,6 +89,9 @@
 #include "BKE_key.h"
 #include "BKE_unit.h"
 
+/* Only for IMB_BlendMode */
+#include "IMB_imbuf.h"
+
 #include "DEG_depsgraph.h"
 
 #include "BLT_translation.h"
@@ -2252,6 +2255,106 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->eevee.overscan = 3.0f;
 			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "Brush", "char", "weightpaint_tool")) {
+			/* Magic defines from old files (2.7x) */
+
+#define PAINT_BLEND_MIX 0
+#define PAINT_BLEND_ADD 1
+#define PAINT_BLEND_SUB 2
+#define PAINT_BLEND_MUL 3
+#define PAINT_BLEND_BLUR 4
+#define PAINT_BLEND_LIGHTEN 5
+#define PAINT_BLEND_DARKEN 6
+#define PAINT_BLEND_AVERAGE 7
+#define PAINT_BLEND_SMEAR 8
+#define PAINT_BLEND_COLORDODGE 9
+#define PAINT_BLEND_DIFFERENCE 10
+#define PAINT_BLEND_SCREEN 11
+#define PAINT_BLEND_HARDLIGHT 12
+#define PAINT_BLEND_OVERLAY 13
+#define PAINT_BLEND_SOFTLIGHT 14
+#define PAINT_BLEND_EXCLUSION 15
+#define PAINT_BLEND_LUMINOSITY 16
+#define PAINT_BLEND_SATURATION 17
+#define PAINT_BLEND_HUE 18
+#define PAINT_BLEND_ALPHA_SUB 19
+#define PAINT_BLEND_ALPHA_ADD 20
+
+			for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+				if (brush->ob_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+					const char tool_init = brush->vertexpaint_tool;
+					bool is_blend = false;
+
+					{
+						char tool = tool_init;
+						switch (tool_init) {
+							case PAINT_BLEND_MIX: tool = VPAINT_TOOL_DRAW; break;
+							case PAINT_BLEND_BLUR: tool = VPAINT_TOOL_BLUR; break;
+							case PAINT_BLEND_AVERAGE: tool = VPAINT_TOOL_AVERAGE; break;
+							case PAINT_BLEND_SMEAR: tool = VPAINT_TOOL_SMEAR; break;
+							default:
+								tool = VPAINT_TOOL_DRAW;
+								is_blend = true;
+								break;
+						}
+						brush->vertexpaint_tool = tool;
+					}
+
+					if (is_blend == false) {
+						brush->blend = IMB_BLEND_MIX;
+					}
+					else {
+						short blend = IMB_BLEND_MIX;
+						switch (tool_init) {
+							case PAINT_BLEND_ADD: blend = IMB_BLEND_ADD; break;
+							case PAINT_BLEND_SUB: blend = IMB_BLEND_SUB; break;
+							case PAINT_BLEND_MUL: blend = IMB_BLEND_MUL; break;
+							case PAINT_BLEND_LIGHTEN: blend = IMB_BLEND_LIGHTEN; break;
+							case PAINT_BLEND_DARKEN: blend = IMB_BLEND_DARKEN; break;
+							case PAINT_BLEND_COLORDODGE: blend = IMB_BLEND_COLORDODGE; break;
+							case PAINT_BLEND_DIFFERENCE: blend = IMB_BLEND_DIFFERENCE; break;
+							case PAINT_BLEND_SCREEN: blend = IMB_BLEND_SCREEN; break;
+							case PAINT_BLEND_HARDLIGHT: blend = IMB_BLEND_HARDLIGHT; break;
+							case PAINT_BLEND_OVERLAY: blend = IMB_BLEND_OVERLAY; break;
+							case PAINT_BLEND_SOFTLIGHT: blend = IMB_BLEND_SOFTLIGHT; break;
+							case PAINT_BLEND_EXCLUSION: blend = IMB_BLEND_EXCLUSION; break;
+							case PAINT_BLEND_LUMINOSITY: blend = IMB_BLEND_LUMINOSITY; break;
+							case PAINT_BLEND_SATURATION: blend = IMB_BLEND_SATURATION; break;
+							case PAINT_BLEND_HUE: blend = IMB_BLEND_HUE; break;
+							case PAINT_BLEND_ALPHA_SUB: blend = IMB_BLEND_ERASE_ALPHA; break;
+							case PAINT_BLEND_ALPHA_ADD: blend = IMB_BLEND_ADD_ALPHA; break;
+						}
+						brush->blend = blend;
+					}
+				}
+				/* For now these match, in the future new items may not. */
+				brush->weightpaint_tool = brush->vertexpaint_tool;
+			}
+
+#undef PAINT_BLEND_MIX
+#undef PAINT_BLEND_ADD
+#undef PAINT_BLEND_SUB
+#undef PAINT_BLEND_MUL
+#undef PAINT_BLEND_BLUR
+#undef PAINT_BLEND_LIGHTEN
+#undef PAINT_BLEND_DARKEN
+#undef PAINT_BLEND_AVERAGE
+#undef PAINT_BLEND_SMEAR
+#undef PAINT_BLEND_COLORDODGE
+#undef PAINT_BLEND_DIFFERENCE
+#undef PAINT_BLEND_SCREEN
+#undef PAINT_BLEND_HARDLIGHT
+#undef PAINT_BLEND_OVERLAY
+#undef PAINT_BLEND_SOFTLIGHT
+#undef PAINT_BLEND_EXCLUSION
+#undef PAINT_BLEND_LUMINOSITY
+#undef PAINT_BLEND_SATURATION
+#undef PAINT_BLEND_HUE
+#undef PAINT_BLEND_ALPHA_SUB
+#undef PAINT_BLEND_ALPHA_ADD
+
 		}
 	}
 

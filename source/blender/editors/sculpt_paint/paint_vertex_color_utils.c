@@ -36,6 +36,7 @@
 #include "BLI_math_color.h"
 
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
 
 #include "BKE_context.h"
 #include "BKE_mesh.h"
@@ -617,29 +618,26 @@ uint ED_vpaint_blend_tool(
         const int tool, const uint col,
         const uint paintcol, const int alpha_i)
 {
-	switch (tool) {
-		case PAINT_BLEND_MIX:
-		case PAINT_BLEND_BLUR:       return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_AVERAGE:    return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_SMEAR:      return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_ADD:        return mcol_add(col, paintcol, alpha_i);
-		case PAINT_BLEND_SUB:        return mcol_sub(col, paintcol, alpha_i);
-		case PAINT_BLEND_MUL:        return mcol_mul(col, paintcol, alpha_i);
-		case PAINT_BLEND_LIGHTEN:    return mcol_lighten(col, paintcol, alpha_i);
-		case PAINT_BLEND_DARKEN:     return mcol_darken(col, paintcol, alpha_i);
-		case PAINT_BLEND_COLORDODGE: return mcol_colordodge(col, paintcol, alpha_i);
-		case PAINT_BLEND_DIFFERENCE: return mcol_difference(col, paintcol, alpha_i);
-		case PAINT_BLEND_SCREEN:     return mcol_screen(col, paintcol, alpha_i);
-		case PAINT_BLEND_HARDLIGHT:  return mcol_hardlight(col, paintcol, alpha_i);
-		case PAINT_BLEND_OVERLAY:    return mcol_overlay(col, paintcol, alpha_i);
-		case PAINT_BLEND_SOFTLIGHT:  return mcol_softlight(col, paintcol, alpha_i);
-		case PAINT_BLEND_EXCLUSION:  return mcol_exclusion(col, paintcol, alpha_i);
-		case PAINT_BLEND_LUMINOCITY: return mcol_luminosity(col, paintcol, alpha_i);
-		case PAINT_BLEND_SATURATION: return mcol_saturation(col, paintcol, alpha_i);
-		case PAINT_BLEND_HUE:        return mcol_hue(col, paintcol, alpha_i);
+	switch ((IMB_BlendMode)tool) {
+		case IMB_BLEND_MIX:        return mcol_blend(col, paintcol, alpha_i);
+		case IMB_BLEND_ADD:        return mcol_add(col, paintcol, alpha_i);
+		case IMB_BLEND_SUB:        return mcol_sub(col, paintcol, alpha_i);
+		case IMB_BLEND_MUL:        return mcol_mul(col, paintcol, alpha_i);
+		case IMB_BLEND_LIGHTEN:    return mcol_lighten(col, paintcol, alpha_i);
+		case IMB_BLEND_DARKEN:     return mcol_darken(col, paintcol, alpha_i);
+		case IMB_BLEND_COLORDODGE: return mcol_colordodge(col, paintcol, alpha_i);
+		case IMB_BLEND_DIFFERENCE: return mcol_difference(col, paintcol, alpha_i);
+		case IMB_BLEND_SCREEN:     return mcol_screen(col, paintcol, alpha_i);
+		case IMB_BLEND_HARDLIGHT:  return mcol_hardlight(col, paintcol, alpha_i);
+		case IMB_BLEND_OVERLAY:    return mcol_overlay(col, paintcol, alpha_i);
+		case IMB_BLEND_SOFTLIGHT:  return mcol_softlight(col, paintcol, alpha_i);
+		case IMB_BLEND_EXCLUSION:  return mcol_exclusion(col, paintcol, alpha_i);
+		case IMB_BLEND_LUMINOSITY: return mcol_luminosity(col, paintcol, alpha_i);
+		case IMB_BLEND_SATURATION: return mcol_saturation(col, paintcol, alpha_i);
+		case IMB_BLEND_HUE:        return mcol_hue(col, paintcol, alpha_i);
 		/* non-color */
-		case PAINT_BLEND_ALPHA_SUB:  return mcol_alpha_sub(col, alpha_i);
-		case PAINT_BLEND_ALPHA_ADD:  return mcol_alpha_add(col, alpha_i);
+		case IMB_BLEND_ERASE_ALPHA: return mcol_alpha_sub(col, alpha_i);
+		case IMB_BLEND_ADD_ALPHA:   return mcol_alpha_add(col, alpha_i);
 		default:
 			BLI_assert(0);
 			return 0;

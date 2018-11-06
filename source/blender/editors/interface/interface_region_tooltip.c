@@ -472,7 +472,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 					break;
 				case CTX_MODE_PAINT_WEIGHT:
 					tool_attr = "weight_paint_tool";
-					tool_offset = offsetof(Brush, vertexpaint_tool);
+					tool_offset = offsetof(Brush, weightpaint_tool);
 					break;
 				case CTX_MODE_PAINT_TEXTURE:
 					tool_attr = "texture_paint_tool";

@@ -333,7 +333,7 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
 		mode = OB_MODE_VERTEX_PAINT;
 	}
 	else if (paint_contains_brush_slot(&ts->wpaint->paint, tslot, &slot_index)) {
-		if (slot_index != brush->vertexpaint_tool) {
+		if (slot_index != brush->weightpaint_tool) {
 			return false;
 		}
 		mode = OB_MODE_WEIGHT_PAINT;
@@ -453,7 +453,7 @@ static void rna_ImaPaint_viewport_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 
 static void rna_ImaPaint_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
-	Scene *scene = CTX_data_scene(C);\
+	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 
