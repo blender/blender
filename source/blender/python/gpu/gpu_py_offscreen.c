@@ -232,8 +232,6 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
-	GPUFrameBuffer *active = GPU_framebuffer_active_get();
-
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
 	ED_view3d_draw_offscreen(depsgraph,
@@ -253,7 +251,6 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 	                         NULL);
 
 	GPU_offscreen_unbind(self->ofs, true); /* unbind */
-	GPU_framebuffer_bind(active);
 
 	ED_view3d_mats_rv3d_restore(ar->regiondata, rv3d_mats);
 	MEM_freeN(rv3d_mats);
