@@ -29,7 +29,7 @@
 
 #include "BLI_math.h"
 #include "BLI_linklist.h"
-#include "BLI_heap.h"
+#include "BLI_heap_simple.h"
 
 #include "bmesh.h"
 #include "bmesh_path.h"  /* own include */

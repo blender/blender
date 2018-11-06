@@ -42,7 +42,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_heap.h"
+#include "BLI_heap_simple.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"

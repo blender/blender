@@ -66,7 +66,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_array.h"
-#include "BLI_heap.h"
+#include "BLI_heap_simple.h"
 #include "BLI_math.h"
 #include "BLI_stack.h"
 #include "BLI_bitmap.h"

@@ -52,7 +52,7 @@
 #include "BLI_compiler_attrs.h"
 
 #include "BLI_alloca.h"
-#include "BLI_heap.h"
+#include "BLI_heap_simple.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"

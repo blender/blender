@@ -54,19 +54,4 @@ void           *BLI_heap_node_ptr(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT 
 /* only for gtest */
 bool            BLI_heap_is_valid(const Heap *heap);
 
-/* Simplified version of the heap that only supports insertion and removal from top. */
-
-struct FastHeap;
-typedef struct FastHeap FastHeap;
-
-FastHeap       *BLI_fastheap_new_ex(unsigned int tot_reserve) ATTR_WARN_UNUSED_RESULT;
-FastHeap       *BLI_fastheap_new(void) ATTR_WARN_UNUSED_RESULT;
-void            BLI_fastheap_clear(FastHeap *heap, HeapFreeFP ptrfreefp) ATTR_NONNULL(1);
-void            BLI_fastheap_free(FastHeap *heap, HeapFreeFP ptrfreefp) ATTR_NONNULL(1);
-void            BLI_fastheap_insert(FastHeap *heap, float value, void *ptr) ATTR_NONNULL(1);
-bool            BLI_fastheap_is_empty(const FastHeap *heap) ATTR_NONNULL(1);
-unsigned int    BLI_fastheap_len(const FastHeap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-float           BLI_fastheap_top_value(const FastHeap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void           *BLI_fastheap_pop_min(FastHeap *heap) ATTR_NONNULL(1);
-
 #endif  /* __BLI_HEAP_H__ */

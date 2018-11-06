@@ -47,6 +47,7 @@ set(SRC
 	intern/BLI_ghash.c
 	intern/BLI_ghash_utils.c
 	intern/BLI_heap.c
+	intern/BLI_heap_simple.c
 	intern/BLI_kdopbvh.c
 	intern/BLI_kdtree.c
 	intern/BLI_linklist.c
@@ -163,6 +164,7 @@ set(SRC
 	BLI_hash_mm2a.h
 	BLI_hash_mm3.h
 	BLI_heap.h
+	BLI_heap_simple.h
 	BLI_iterator.h
 	BLI_jitter_2d.h
 	BLI_kdopbvh.h

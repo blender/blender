@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_heap.h"
+#include "BLI_heap_simple.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
