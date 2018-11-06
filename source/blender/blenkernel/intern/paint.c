@@ -386,7 +386,7 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
 	}
 }
 
-uint BKE_paint_get_brush_tool_offset_from_paint_mode(const ePaintMode mode)
+uint BKE_paint_get_brush_tool_offset_from_paintmode(const ePaintMode mode)
 {
 	switch (mode) {
 		case ePaintTexture2D:
@@ -602,7 +602,7 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 	curvemapping_changed(p->cavity_curve, false);
 }
 
-eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
+eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
 {
 	switch (mode) {
 		case ePaintSculpt:
@@ -689,7 +689,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
 	/* If there's no brush, create one */
 	brush = BKE_paint_brush(paint);
 	if (brush == NULL) {
-		eObjectMode ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
+		eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
 		brush = BKE_brush_first_search(bmain, ob_mode);
 
 		if (!brush) {

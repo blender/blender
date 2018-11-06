@@ -82,7 +82,7 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 		br = BKE_brush_copy(bmain, br);
 	}
 	else {
-		br = BKE_brush_add(bmain, "Brush", BKE_paint_object_mode_from_paint_mode(mode));
+		br = BKE_brush_add(bmain, "Brush", BKE_paint_object_mode_from_paintmode(mode));
 		id_us_min(&br->id);  /* fake user only */
 	}
 

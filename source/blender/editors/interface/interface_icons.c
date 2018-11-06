@@ -1759,7 +1759,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		}
 		else if (paint_mode != ePaintInvalid) {
 			items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-			const uint tool_offset = BKE_paint_get_brush_tool_offset_from_paint_mode(paint_mode);
+			const uint tool_offset = BKE_paint_get_brush_tool_offset_from_paintmode(paint_mode);
 			const int tool_type = *(char *)POINTER_OFFSET(br, tool_offset);
 			if (!items || !RNA_enum_icon_from_value(items, tool_type, &id->icon_id)) {
 				id->icon_id = 0;
