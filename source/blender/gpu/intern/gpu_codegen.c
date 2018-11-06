@@ -1430,7 +1430,7 @@ static GPUNodeLink *gpu_uniformbuffer_link(
 			}
 			case SOCK_VECTOR:
 			{
-				bNodeSocketValueRGBA *socket_data = socket->default_value;
+				bNodeSocketValueVector *socket_data = socket->default_value;
 				link = GPU_uniform(socket_data->value);
 				break;
 			}
