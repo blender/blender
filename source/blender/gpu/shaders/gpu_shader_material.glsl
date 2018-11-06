@@ -1445,7 +1445,10 @@ void node_wireframe_screenspace(float size, vec2 barycentric, out float fac)
 	barys.z = 1.0 - barycentric.x - barycentric.y;
 
 	size *= (1.0 / 3.0);
-	vec3 deltas = fwidth(barys);
+	vec3 dx = dFdx(barys);
+	vec3 dy = dFdy(barys);
+	vec3 deltas = sqrt(dx * dx + dy * dy);
+
 	vec3 s = step(-deltas * size, -barys);
 
 	fac = max(s.x, max(s.y, s.z));
