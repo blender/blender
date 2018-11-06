@@ -19,7 +19,7 @@ light_object = bpy.data.objects.new(name="New Light", object_data=light_data)
 
 # Link light object to the active collection of current view layer,
 # so that it'll appear in the current scene.
-view_layer.collections.active.collection.objects.link(light_object)
+view_layer.active_layer_collection.collection.objects.link(light_object)
 
 # Place light to a specified location.
 light_object.location = (5.0, 5.0, 5.0)

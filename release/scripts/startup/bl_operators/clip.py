@@ -673,13 +673,13 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         # rendersettings
         setup_collection_recursively(
-            vlayers["Foreground"].collections[0].children,
+            vlayers["Foreground"].layer_collection.children,
             "background",
             "holdout",
         )
 
         setup_collection_recursively(
-            vlayers["Background"].collections[0].children,
+            vlayers["Background"].layer_collection.children,
             "foreground",
             "indirect_only",
         )
