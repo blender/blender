@@ -1351,7 +1351,7 @@ void node_bsdf_transparent(vec4 color, out Closure result)
 	/* this isn't right */
 	result = CLOSURE_DEFAULT;
 	result.radiance = vec3(0.0);
-	result.opacity = 0.0;
+	result.opacity = clamp(1.0 - dot(color.rgb, vec3(0.3333334)), 0.0, 1.0);
 	result.ssr_id = TRANSPARENT_CLOSURE_FLAG;
 }
 

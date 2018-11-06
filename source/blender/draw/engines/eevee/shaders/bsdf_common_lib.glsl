@@ -719,7 +719,6 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 	Closure cl;
 
 	if (cl1.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
-		cl1.radiance = cl2.radiance;
 		cl1.ssr_normal = cl2.ssr_normal;
 		cl1.ssr_data = cl2.ssr_data;
 		cl1.ssr_id = cl2.ssr_id;
@@ -731,7 +730,6 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 #  endif
 	}
 	if (cl2.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
-		cl2.radiance = cl1.radiance;
 		cl2.ssr_normal = cl1.ssr_normal;
 		cl2.ssr_data = cl1.ssr_data;
 		cl2.ssr_id = cl1.ssr_id;
@@ -752,8 +750,9 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 		cl.ssr_normal = cl2.ssr_normal;
 		cl.ssr_id = cl2.ssr_id;
 	}
-	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
 	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
+	cl.radiance = mix(cl1.radiance * cl1.opacity, cl2.radiance * cl2.opacity, fac);
+	cl.radiance /= max(1e-8, cl.opacity);
 
 #  ifdef USE_SSS
 	cl.sss_data.rgb = mix(cl1.sss_data.rgb, cl2.sss_data.rgb, fac);
