@@ -1665,6 +1665,21 @@ int RNA_enum_from_identifier(const EnumPropertyItem *item, const char *identifie
 	return -1;
 }
 
+/**
+ * Take care using this with translated enums,
+ * prefer #RNA_enum_from_identifier where possible.
+ */
+int RNA_enum_from_name(const EnumPropertyItem *item, const char *name)
+{
+	int i = 0;
+	for (; item->identifier; item++, i++) {
+		if (item->identifier[0] && STREQ(item->name, name)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 int RNA_enum_from_value(const EnumPropertyItem *item, const int value)
 {
 	int i = 0;

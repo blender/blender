@@ -811,30 +811,28 @@ def keymap_from_context(context, space_type):
                 if kmi_found is None:
                     if item.data_block:
                         # PAINT_OT_brush_select
-                        brush = bpy.data.brushes.get(item.data_block)
-                        if brush is not None:
-                            mode = context.active_object.mode
-                            attr_op, attr_brush = {
-                                'SCULPT': ("sculpt_tool", "sculpt_tool"),
-                                'WEIGHT_PAINT': ("weight_paint_tool", "weight_tool"),
-                                'VERTEX_PAINT': ("vertex_paint_tool", "vertex_tool"),
-                                'TEXTURE_PAINT': ("texture_paint_tool", "image_tool"),
-                            }.get(mode, (None, None))
-                            if attr_op is not None:
-                                kmi_hack_brush_select_properties.paint_mode = mode
-                                setattr(kmi_hack_brush_select_properties, attr_op, getattr(brush, attr_brush))
-                                kmi_found = wm.keyconfigs.find_item_from_operator(
-                                    idname="paint.brush_select",
-                                    context='INVOKE_REGION_WIN',
-                                    properties=kmi_hack_brush_select_properties,
-                                )[1]
-                            elif mode == 'GPENCIL_PAINT':
-                                # TODO: gpencil.brush_select
-                                # By default no keys are mapped to this, pass.
-                                pass
-                            else:
-                                print("Unsupported mode:", mode)
-                            del mode, attr_op, attr_brush
+                        mode = context.active_object.mode
+                        attr = {
+                            'SCULPT': "sculpt_tool",
+                            'WEIGHT_PAINT': "weight_paint_tool",
+                            'VERTEX_PAINT': "vertex_paint_tool",
+                            'TEXTURE_PAINT': "texture_paint_tool",
+                        }.get(mode, (None, None))
+                        if attr is not None:
+                            kmi_hack_brush_select_properties.paint_mode = mode
+                            setattr(kmi_hack_brush_select_properties, attr, item.data_block)
+                            kmi_found = wm.keyconfigs.find_item_from_operator(
+                                idname="paint.brush_select",
+                                context='INVOKE_REGION_WIN',
+                                properties=kmi_hack_brush_select_properties,
+                            )[1]
+                        elif mode == 'GPENCIL_PAINT':
+                            # TODO: gpencil.brush_select
+                            # By default no keys are mapped to this, pass.
+                            pass
+                        else:
+                            print("Unsupported mode:", mode)
+                        del mode, attr
 
             else:
                 kmi_found = None

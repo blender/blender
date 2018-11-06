@@ -877,6 +877,7 @@ bool RNA_enum_name(const EnumPropertyItem *item, const int value, const char **r
 bool RNA_enum_description(const EnumPropertyItem *item, const int value, const char **description);
 int  RNA_enum_from_value(const EnumPropertyItem *item, const int value);
 int  RNA_enum_from_identifier(const EnumPropertyItem *item, const char *identifier);
+int  RNA_enum_from_name(const EnumPropertyItem *item, const char *name);
 unsigned int RNA_enum_items_count(const EnumPropertyItem *item);
 
 void RNA_property_enum_items_ex(
