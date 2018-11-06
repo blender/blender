@@ -828,7 +828,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Mode:")
         col.prop(md, "wrap_method", text="")
 
-        if md.wrap_method in {'PROJECT', 'NEAREST_SURFACEPOINT'}:
+        if md.wrap_method in {'PROJECT', 'NEAREST_SURFACEPOINT', 'TARGET_PROJECT'}:
             col.prop(md, "wrap_mode", text="")
 
         if md.wrap_method == 'PROJECT':

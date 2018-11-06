@@ -1019,6 +1019,9 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 						if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
 							add_customdata_mask(target_key, CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL);
 						}
+						if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+							add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
+						}
 					}
 
 					/* NOTE: obdata eval now doesn't necessarily depend on the

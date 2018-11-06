@@ -75,6 +75,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+#include "BKE_shrinkwrap.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "DNA_userdef_types.h"
@@ -1980,6 +1981,15 @@ static void mesh_finalize_eval(Object *object)
 	}
 }
 
+static void mesh_build_extra_data(struct Depsgraph *depsgraph, Object *ob)
+{
+	uint32_t eval_flags = DEG_get_eval_flags_for_id(depsgraph, &ob->id);
+
+	if (eval_flags & DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY) {
+		BKE_shrinkwrap_compute_boundary_data(ob->runtime.mesh_eval);
+	}
+}
+
 static void mesh_build_data(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask,
         const bool build_shapekey_layers, const bool need_mapping)
@@ -2016,6 +2026,8 @@ static void mesh_build_data(
 	}
 
 	BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS));
+
+	mesh_build_extra_data(depsgraph, ob);
 }
 
 static void editbmesh_build_data(

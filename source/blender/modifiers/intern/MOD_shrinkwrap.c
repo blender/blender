@@ -150,10 +150,16 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if (smd->target != NULL) {
 		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
 		DEG_add_object_relation_with_customdata(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, mask, "Shrinkwrap Modifier");
+		if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+			DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
+		}
 	}
 	if (smd->auxTarget != NULL) {
 		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
 		DEG_add_object_relation_with_customdata(ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, mask, "Shrinkwrap Modifier");
+		if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+			DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
+		}
 	}
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
 }

@@ -100,6 +100,9 @@ typedef struct Mesh_Runtime {
 	/** 'BVHCache', for 'BKE_bvhutil.c' */
 	struct LinkNode *bvh_cache;
 
+	/** Non-manifold boundary data for Shrinkwrap Target Project. */
+	struct ShrinkwrapBoundaryData *shrinkwrap_data;
+
 	/** Set by modifier stack if only deformed from original. */
 	char deformed_only;
 	/**

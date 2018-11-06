@@ -179,3 +179,98 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
 
 	return success;
 }
+
+/**
+ * \brief Solve a generic f(x) = 0 equation using Newton's method.
+ *
+ * \param func_delta Callback computing the value of f(x).
+ * \param func_jacobian Callback computing the Jacobian matrix of the function at x.
+ * \param func_correction Callback for forcing the search into an arbitrary custom domain. May be NULL.
+ * \param userdata Data for the callbacks.
+ * \param epsilon Desired precision.
+ * \param max_iterations Limit on the iterations.
+ * \param max_corrections Limit on the number of times the correction callback can fire before giving up.
+ * \param trace Enables logging to console.
+ * \param x_init Initial solution vector.
+ * \param result Final result.
+ * \return true if success
+ */
+bool BLI_newton3d_solve(
+        Newton3D_DeltaFunc func_delta, Newton3D_JacobianFunc func_jacobian, Newton3D_CorrectionFunc func_correction, void *userdata,
+        float epsilon, int max_iterations, bool trace, const float x_init[3], float result[3])
+{
+	float fdelta[3], fdeltav, next_fdeltav;
+	float jacobian[3][3], step[3], x[3], x_next[3];
+
+	epsilon *= epsilon;
+
+	copy_v3_v3(x, x_init);
+
+	func_delta(userdata, x, fdelta);
+	fdeltav = len_squared_v3(fdelta);
+
+	if (trace) {
+		printf("START (%g, %g, %g) %g\n", x[0], x[1], x[2], fdeltav);
+	}
+
+	for (int i = 0; i < max_iterations && fdeltav > epsilon; i++) {
+		/* Newton's method step. */
+		func_jacobian(userdata, x, jacobian);
+
+		if (!invert_m3(jacobian)) {
+			return false;
+		}
+
+		mul_v3_m3v3(step, jacobian, fdelta);
+		sub_v3_v3v3(x_next, x, step);
+
+		/* Custom out-of-bounds value correction. */
+		if (func_correction) {
+			if (trace) {
+				printf("%3d * (%g, %g, %g)\n", i, x_next[0], x_next[1], x_next[2]);
+			}
+
+			if (!func_correction(userdata, x, step, x_next)) {
+				return false;
+			}
+		}
+
+		func_delta(userdata, x_next, fdelta);
+		next_fdeltav = len_squared_v3(fdelta);
+
+		if (trace) {
+			printf("%3d ? (%g, %g, %g) %g\n", i, x_next[0], x_next[1], x_next[2], next_fdeltav);
+		}
+
+		/* Line search correction. */
+		while (next_fdeltav > fdeltav) {
+			float g0 = sqrtf(fdeltav), g1 = sqrtf(next_fdeltav);
+			float g01 = -g0 / len_v3(step);
+			float det = 2.0f * (g1 - g0 - g01);
+			float l = (det == 0.0f) ? 0.1f : -g01 / det;
+			CLAMP_MIN(l, 0.1f);
+
+			mul_v3_fl(step, l);
+			sub_v3_v3v3(x_next, x, step);
+
+			func_delta(userdata, x_next, fdelta);
+			next_fdeltav = len_squared_v3(fdelta);
+
+			if (trace) {
+				printf("%3d . (%g, %g, %g) %g\n", i, x_next[0], x_next[1], x_next[2], next_fdeltav);
+			}
+		}
+
+		copy_v3_v3(x, x_next);
+		fdeltav = next_fdeltav;
+	}
+
+	bool success = (fdeltav <= epsilon);
+
+	if (trace) {
+		printf("%s  (%g, %g, %g) %g\n", success ? "OK  " : "FAIL", x[0], x[1], x[2], fdeltav);
+	}
+
+	copy_v3_v3(result, x);
+	return success;
+}

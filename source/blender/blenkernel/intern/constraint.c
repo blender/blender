@@ -3636,6 +3636,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstrai
 			switch (scon->shrinkType) {
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
+				case MOD_SHRINKWRAP_TARGET_PROJECT:
 				{
 					BVHTreeNearest nearest;
 
@@ -3644,15 +3645,14 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstrai
 
 					BLI_space_transform_apply(&transform, co);
 
-					BVHTreeFromMesh *treeData = &tree.treeData;
-					BLI_bvhtree_find_nearest(treeData->tree, co, &nearest, treeData->nearest_callback, treeData);
+					BKE_shrinkwrap_find_nearest_surface(&tree, &nearest, co, scon->shrinkType);
 
 					if (nearest.index < 0) {
 						fail = true;
 						break;
 					}
 
-					if (scon->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE) {
+					if (scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
 						if (do_track_normal) {
 							track_normal = true;
 							BKE_shrinkwrap_compute_smooth_normal(&tree, NULL, nearest.index, nearest.co, nearest.no, track_no);

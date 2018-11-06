@@ -748,7 +748,7 @@ class ConstraintButtonsPanel:
         layout.prop(con, "distance")
         layout.prop(con, "shrinkwrap_type")
 
-        if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE'}:
+        if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE', 'TARGET_PROJECT'}:
             layout.prop(con, 'wrap_mode', text="Snap Mode")
 
         if con.shrinkwrap_type == 'PROJECT':
@@ -769,7 +769,7 @@ class ConstraintButtonsPanel:
             rowsub.prop(con, "use_invert_cull")
             layout.prop(con, "project_limit")
 
-        if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE'}:
+        if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE', 'TARGET_PROJECT'}:
             layout.prop(con, "use_track_normal")
 
             row = layout.row(align=True)

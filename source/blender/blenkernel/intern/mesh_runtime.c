@@ -44,6 +44,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_subdiv_ccg.h"
+#include "BKE_shrinkwrap.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils
@@ -202,6 +203,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 		BKE_subdiv_ccg_destroy(mesh->runtime.subdiv_ccg);
 		mesh->runtime.subdiv_ccg = NULL;
 	}
+	BKE_shrinkwrap_discard_boundary_data(mesh);
 }
 
 /** \} */
