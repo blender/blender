@@ -259,9 +259,15 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 						struct Brush *brush = BKE_paint_toolslots_brush_get(paint, slot_index);
 						if (brush == NULL) {
 							/* Could make into a function. */
-							brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
-							char *tool_type = (char *)POINTER_OFFSET(brush, paint->runtime.tool_offset);
-							*tool_type = slot_index;
+							brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, items[i].name);
+							if (brush && slot_index == *(char *)POINTER_OFFSET(brush, paint->runtime.tool_offset)) {
+								/* pass */
+							}
+							else {
+								brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
+								char *tool_type = (char *)POINTER_OFFSET(brush, paint->runtime.tool_offset);
+								*tool_type = slot_index;
+							}
 							BKE_paint_brush_set(paint, brush);
 						}
 						BKE_paint_brush_set(paint, brush);
