@@ -1013,13 +1013,6 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	row = uiLayoutRow(layout, true);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
-	block = uiLayoutGetBlock(row);
-	UI_block_emboss_set(block, UI_EMBOSS_NONE);
-	but = uiDefIconButBitC(block, UI_BTYPE_ICON_TOGGLE, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag,
-	                       0, 0, 0, 0, TIP_("Follow context or keep fixed data-block displayed"));
-	UI_but_flag_disable(but, UI_BUT_UNDO); /* skip undo on screen buttons */
-	UI_but_func_set(but, pin_cb, NULL, NULL);
-
 	for (a = 0; a < path->len; a++) {
 		ptr = &path->ptr[a];
 
@@ -1048,6 +1041,15 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 				uiItemL(row, "", icon);
 		}
 	}
+
+	uiItemSpacer(row);
+
+	block = uiLayoutGetBlock(row);
+	UI_block_emboss_set(block, UI_EMBOSS_NONE);
+	but = uiDefIconButBitC(block, UI_BTYPE_ICON_TOGGLE, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag,
+	                       0, 0, 0, 0, TIP_("Follow context or keep fixed data-block displayed"));
+	UI_but_flag_disable(but, UI_BUT_UNDO); /* skip undo on screen buttons */
+	UI_but_func_set(but, pin_cb, NULL, NULL);
 }
 
 #ifdef USE_HEADER_CONTEXT_PATH
