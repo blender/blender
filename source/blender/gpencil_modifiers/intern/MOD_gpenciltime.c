@@ -80,6 +80,7 @@ static int remapTime(
 	CLAMP_MIN(efra, 1);
 	const int time_range = efra - sfra + 1;
 	int offset = mmd->offset;
+	int segments = 0;
 
 	/* omit if filter by layer */
 	if (mmd->layername[0] != '\0') {
@@ -136,8 +137,16 @@ static int remapTime(
 		}
 	}
 
-	if (cfra >= efra) {
-		cfra = sfra + (cfra - ((cfra / time_range) * time_range)) - 1;
+	/* check frames before start */
+	if (cfra < sfra) {
+		segments = ((cfra + sfra) / time_range);
+		cfra = cfra + (segments * time_range);
+	}
+
+	/* check frames after end */
+	if (cfra > efra) {
+		segments = ((cfra - sfra) / time_range);
+		cfra = cfra - (segments * time_range);
 	}
 
 	if (mmd->flag & GP_TIME_KEEP_LOOP) {
