@@ -14,6 +14,7 @@ uniform sampler1D flameColorTexture;
 uniform sampler1D transferTexture;
 
 uniform int samplesLen = 256;
+uniform float noiseOfs = 0.0f;
 uniform float stepLength; /* Step length in local space. */
 uniform float densityScale; /* Simple Opacity multiplicator. */
 uniform vec4 viewvecs[3];
@@ -115,7 +116,7 @@ vec4 volume_integration(
 	float final_transmittance = 1.0;
 
 	ivec2 tx = ivec2(gl_FragCoord.xy) % 4;
-	float noise = dither_mat[tx.x][tx.y];
+	float noise = fract(dither_mat[tx.x][tx.y] + noiseOfs);
 
 	float ray_len = noise * ray_inc;
 	for (int i = 0; i < samplesLen && ray_len < ray_max; ++i, ray_len += ray_inc) {

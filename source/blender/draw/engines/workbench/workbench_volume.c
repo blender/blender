@@ -27,6 +27,8 @@
 
 #include "BKE_modifier.h"
 
+#include "BLI_rand.h"
+
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_smoke_types.h"
@@ -91,6 +93,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 	SmokeModifierData *smd = (SmokeModifierData *)md;
 	SmokeDomainSettings *sds = smd->domain;
 	WORKBENCH_PrivateData *wpd = vedata->stl->g_data;
+	WORKBENCH_EffectInfo *effect_info = vedata->stl->effects;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DRWShadingGroup *grp = NULL;
 
@@ -133,6 +136,8 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
 	}
 	else {
+		double noise_ofs;
+		BLI_halton_1D(3, 0.0, effect_info->jitter_index, &noise_ofs);
 		int max_slices = max_iii(sds->res[0], sds->res[1], sds->res[2]) * sds->slice_per_voxel;
 
 		GPUShader *sh = (sds->use_coba) ? e_data.volume_coba_sh : e_data.volume_sh;
@@ -143,6 +148,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		 * is NOT unit length in object space so the required number of subdivisions
 		 * is tricky to get. */
 		DRW_shgroup_uniform_float_copy(grp, "stepLength", 8.0f / max_slices);
+		DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);
 	}
 
 	if (sds->use_coba) {
