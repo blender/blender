@@ -1840,7 +1840,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	cmp = cuma->curve;
-	GPU_point_size(4.0f);
+	GPU_point_size(max(1.0f, min(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
 	immBegin(GPU_PRIM_POINTS, cuma->totpoint);
 	for (int a = 0; a < cuma->totpoint; a++) {
 		float color[4];
