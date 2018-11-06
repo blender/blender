@@ -78,7 +78,7 @@ static int remapTime(
 	int efra = custom ? mmd->efra : scene->r.efra;
 	CLAMP_MIN(sfra, 1);
 	CLAMP_MIN(efra, 1);
-	const int time = efra - sfra + 1;
+	const int time_range = efra - sfra + 1;
 	int offset = mmd->offset;
 
 	/* omit if filter by layer */
@@ -121,9 +121,9 @@ static int remapTime(
 	/* apply frame scale */
 	cfra *= mmd->frame_scale;
 
-	/* verify offset never is greater than farme range */
-	if (abs(offset) > time) {
-		offset = offset - ((offset / time) * time);
+	/* verify offset never is greater than frame range */
+	if (abs(offset) > time_range) {
+		offset = offset - ((offset / time_range) * time_range);
 	}
 
 	/* verify not outside range if loop is disabled */
@@ -137,7 +137,7 @@ static int remapTime(
 	}
 
 	if (cfra >= efra) {
-		cfra = sfra + (cfra - ((cfra / time) * time)) - 1;
+		cfra = sfra + (cfra - ((cfra / time_range) * time_range)) - 1;
 	}
 
 	if (mmd->flag & GP_TIME_KEEP_LOOP) {
