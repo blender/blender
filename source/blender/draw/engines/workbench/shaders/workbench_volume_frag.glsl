@@ -200,4 +200,7 @@ void main()
 	                               length(ls_vol_isect) / length(ls_ray_dir),
 	                               length(vs_ray_dir) * stepLength);
 #endif
+
+	/* Convert transmitance to alpha so we can use premul blending. */
+	fragColor.a = 1.0 - fragColor.a;
 }

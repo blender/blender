@@ -224,7 +224,7 @@ void drw_state_set(DRWState state)
 		int test;
 		if (CHANGED_ANY_STORE_VAR(
 		        DRW_STATE_BLEND | DRW_STATE_BLEND_PREMUL | DRW_STATE_ADDITIVE |
-		        DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION | DRW_STATE_ADDITIVE_FULL |
+		        DRW_STATE_MULTIPLY | DRW_STATE_ADDITIVE_FULL |
 		        DRW_STATE_BLEND_OIT,
 		        test))
 		{
@@ -240,9 +240,6 @@ void drw_state_set(DRWState state)
 				}
 				else if ((state & DRW_STATE_MULTIPLY) != 0) {
 					glBlendFunc(GL_DST_COLOR, GL_ZERO);
-				}
-				else if ((state & DRW_STATE_TRANSMISSION) != 0) {
-					glBlendFunc(GL_ONE, GL_SRC_ALPHA);
 				}
 				else if ((state & DRW_STATE_BLEND_OIT) != 0) {
 					glBlendFuncSeparate(GL_ONE, GL_ONE, /* RGB */
