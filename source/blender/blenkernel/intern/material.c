@@ -798,7 +798,7 @@ void BKE_material_remap_object(Object *ob, const unsigned int *remap)
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		BKE_curve_material_remap(ob->data, remap, ob->totcol);
 	}
-	if (ob->type == OB_GPENCIL) {
+	else if (ob->type == OB_GPENCIL) {
 		BKE_gpencil_material_remap(ob->data, remap, ob->totcol);
 	}
 	else {
