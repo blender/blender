@@ -339,10 +339,12 @@ static void BRUSH_OT_reset(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+#if 0
 static int brush_tool(const Brush *brush, size_t tool_offset)
 {
 	return *(((char *)brush) + tool_offset);
 }
+#endif
 
 static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
 {
@@ -454,48 +456,38 @@ static int brush_generic_tool_set(
 static int brush_select_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	int tool, paint_mode = RNA_enum_get(op->ptr, "paint_mode");
+	Scene *scene = CTX_data_scene(C);
+	ePaintMode paint_mode = RNA_enum_get(op->ptr, "paint_mode");
 	const bool create_missing = RNA_boolean_get(op->ptr, "create_missing");
 	/* const bool toggle = RNA_boolean_get(op->ptr, "toggle"); */
 	const char *tool_name = "Brush";
-	size_t tool_offset;
 
-	if (paint_mode == OB_MODE_ACTIVE) {
-		Object *ob = CTX_data_active_object(C);
-		if (ob) {
-			/* select current paint mode */
-			paint_mode = ob->mode & OB_MODE_ALL_PAINT;
-		}
-		else {
+	if (paint_mode == ePaintInvalid) {
+		paint_mode = BKE_paintmode_get_active_from_context(C);
+		if (paint_mode == ePaintInvalid) {
 			return OPERATOR_CANCELLED;
 		}
 	}
+
+	Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+	const uint tool_offset = paint->runtime.tool_offset;
+	const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+	const char *op_prop_id = NULL;
 
 	switch (paint_mode) {
-		case OB_MODE_SCULPT:
-			tool_offset = offsetof(Brush, sculpt_tool);
-			tool = RNA_enum_get(op->ptr, "sculpt_tool");
-			RNA_enum_name_from_value(rna_enum_brush_sculpt_tool_items, tool, &tool_name);
-			break;
-		case OB_MODE_VERTEX_PAINT:
-			tool_offset = offsetof(Brush, vertexpaint_tool);
-			tool = RNA_enum_get(op->ptr, "vertex_paint_tool");
-			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
-			break;
-		case OB_MODE_WEIGHT_PAINT:
-			tool_offset = offsetof(Brush, weightpaint_tool);
-			tool = RNA_enum_get(op->ptr, "weight_paint_tool");
-			RNA_enum_name_from_value(rna_enum_brush_weight_tool_items, tool, &tool_name);
-			break;
-		case OB_MODE_TEXTURE_PAINT:
-			tool_offset = offsetof(Brush, imagepaint_tool);
-			tool = RNA_enum_get(op->ptr, "texture_paint_tool");
-			RNA_enum_name_from_value(rna_enum_brush_image_tool_items, tool, &tool_name);
-			break;
+		case ePaintSculpt: op_prop_id = "sculpt_tool"; break;
+		case ePaintVertex: op_prop_id = "vertex_paint_tool"; break;
+		case ePaintWeight: op_prop_id = "weight_paint_tool"; break;
+		case ePaintTexture2D:
+		case ePaintTextureProjective: op_prop_id = "texture_paint_tool"; break;
 		default:
 			/* invalid paint mode */
+			BLI_assert(0);
 			return OPERATOR_CANCELLED;
 	}
+
+	const int tool = RNA_enum_get(op->ptr, op_prop_id);
+	RNA_enum_name_from_value(items, tool, &tool_name);
 
 	/* TODO: old brush setting code disabled, replaced by tool system. */
 #if 0
@@ -506,14 +498,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	        toggle);
 #else
 	/* Find matching brush. */
-	Brush *brush;
-	for (brush = bmain->brush.first; brush; brush = brush->id.next) {
-		if ((brush->ob_mode & paint_mode) &&
-		    (brush_tool(brush, tool_offset) == tool))
-		{
-			break;
-		}
-	}
+	Brush *brush = BKE_paint_toolslots_brush_get(paint, tool);
 
 	/* Create missing brush if needed. */
 	if (!brush) {
@@ -529,8 +514,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 	/* Let tool system cycle through brushes. */
 	WorkSpace *workspace = CTX_wm_workspace(C);
-	WM_toolsystem_ref_set_by_name(C, workspace, NULL, brush->id.name + 2, true);
-
+	WM_toolsystem_ref_set_by_name(C, workspace, NULL, tool_name, true);
 	return OPERATOR_FINISHED;
 #endif
 }
@@ -538,11 +522,11 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 static void PAINT_OT_brush_select(wmOperatorType *ot)
 {
 	static const EnumPropertyItem paint_mode_items[] = {
-		{OB_MODE_ACTIVE, "ACTIVE", 0, "Current", "Set brush for active paint mode"},
-		{OB_MODE_SCULPT, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
-		{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
-		{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
-		{OB_MODE_TEXTURE_PAINT, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+		{ePaintInvalid, "ACTIVE", 0, "Current", "Set brush for active paint mode"},
+		{ePaintSculpt, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
+		{ePaintVertex, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
+		{ePaintWeight, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
+		{ePaintTextureProjective, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	PropertyRNA *prop;
@@ -560,7 +544,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 
 	/* props */
 	/* All properties are hidden, so as not to show the redo panel. */
-	prop = RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, OB_MODE_ACTIVE, "Paint Mode", "");
+	prop = RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, ePaintInvalid, "Paint Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop = RNA_def_enum(ot->srna, "sculpt_tool", rna_enum_brush_sculpt_tool_items, 0, "Sculpt Tool", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -578,7 +562,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 }
 
 static wmKeyMapItem *keymap_brush_select(
-        wmKeyMap *keymap, int paint_mode,
+        wmKeyMap *keymap, ePaintMode paint_mode,
         int tool, int keymap_type,
         int keymap_modifier)
 {
@@ -590,18 +574,21 @@ static wmKeyMapItem *keymap_brush_select(
 	RNA_enum_set(kmi->ptr, "paint_mode", paint_mode);
 
 	switch (paint_mode) {
-		case OB_MODE_SCULPT:
+		case ePaintSculpt:
 			RNA_enum_set(kmi->ptr, "sculpt_tool", tool);
 			break;
-		case OB_MODE_VERTEX_PAINT:
+		case ePaintVertex:
 			RNA_enum_set(kmi->ptr, "vertex_paint_tool", tool);
 			break;
-		case OB_MODE_WEIGHT_PAINT:
+		case ePaintWeight:
 			RNA_enum_set(kmi->ptr, "weight_paint_tool", tool);
 			break;
-		case OB_MODE_TEXTURE_PAINT:
+		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			RNA_enum_set(kmi->ptr, "texture_paint_tool", tool);
 			break;
+		default:
+			BLI_assert(0);
 	}
 
 	return kmi;
@@ -1380,17 +1367,17 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_stencil(keymap);
 
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_DRAW, XKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_SMOOTH, SKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_PINCH, PKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_INFLATE, IKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_GRAB, GKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_LAYER, LKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_FLATTEN, TKEY, KM_SHIFT);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CLAY, CKEY, 0);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CREASE, CKEY, KM_SHIFT);
-	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_SNAKE_HOOK, KKEY, 0);
-	kmi = keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_MASK, MKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_DRAW, XKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_SMOOTH, SKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_PINCH, PKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_INFLATE, IKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_GRAB, GKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_LAYER, LKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_FLATTEN, TKEY, KM_SHIFT);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_CLAY, CKEY, 0);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_CREASE, CKEY, KM_SHIFT);
+	keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_SNAKE_HOOK, KKEY, 0);
+	kmi = keymap_brush_select(keymap, ePaintSculpt, SCULPT_TOOL_MASK, MKEY, 0);
 	RNA_boolean_set(kmi->ptr, "toggle", 1);
 	RNA_boolean_set(kmi->ptr, "create_missing", 1);
 

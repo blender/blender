@@ -166,10 +166,10 @@ void BKE_shrinkwrap_discard_boundary_data(struct Mesh *mesh)
 	struct ShrinkwrapBoundaryData *data = mesh->runtime.shrinkwrap_data;
 
 	if (data != NULL) {
-		MEM_freeN((void*)data->edge_is_boundary);
-		MEM_freeN((void*)data->looptri_has_boundary);
-		MEM_freeN((void*)data->vert_boundary_id);
-		MEM_freeN((void*)data->boundary_verts);
+		MEM_freeN((void *)data->edge_is_boundary);
+		MEM_freeN((void *)data->looptri_has_boundary);
+		MEM_freeN((void *)data->vert_boundary_id);
+		MEM_freeN((void *)data->boundary_verts);
 
 		MEM_freeN(data);
 	}

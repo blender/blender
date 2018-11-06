@@ -5041,10 +5041,10 @@ static bConstraint *constraint_list_find_from_target(ListBase *constraints, bCon
 		ListBase *targets = NULL;
 
 		if (con->type == CONSTRAINT_TYPE_PYTHON) {
-			targets = &((bPythonConstraint*)con->data)->targets;
+			targets = &((bPythonConstraint *)con->data)->targets;
 		}
 		else if (con->type == CONSTRAINT_TYPE_ARMATURE) {
-			targets = &((bArmatureConstraint*)con->data)->targets;
+			targets = &((bArmatureConstraint *)con->data)->targets;
 		}
 
 		if (targets && BLI_findindex(targets, tgt) != -1) {

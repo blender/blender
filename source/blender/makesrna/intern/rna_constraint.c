@@ -309,7 +309,7 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 	return rna_Constraint_do_compute_path(ob, con);
 }
 
-static bConstraint* rna_constraint_from_target(PointerRNA *ptr)
+static bConstraint *rna_constraint_from_target(PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 	bConstraintTarget *tgt = ptr->data;
@@ -326,11 +326,11 @@ static char *rna_ConstraintTarget_path(PointerRNA *ptr)
 
 	if (con != NULL) {
 		if (con->type == CONSTRAINT_TYPE_ARMATURE) {
-			bArmatureConstraint *acon = (bArmatureConstraint*)con->data;
+			bArmatureConstraint *acon = con->data;
 			index = BLI_findindex(&acon->targets, tgt);
 		}
 		else if (con->type == CONSTRAINT_TYPE_PYTHON) {
-			bPythonConstraint *pcon = (bPythonConstraint*)con->data;
+			bPythonConstraint *pcon = con->data;
 			index = BLI_findindex(&pcon->targets, tgt);
 		}
 	}
@@ -398,8 +398,9 @@ static void rna_Constraint_ik_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static const EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                          PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Constraint_owner_space_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Object *ob = (Object *)ptr->id.data;
 	bConstraint *con = (bConstraint *)ptr->data;
@@ -410,8 +411,9 @@ static const EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *UNUSED
 		return space_object_items;
 }
 
-static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                           PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Constraint_target_space_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	bConstraint *con = (bConstraint *)ptr->data;
 	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
@@ -437,19 +439,20 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSE
 
 static bConstraintTarget *rna_ArmatureConstraint_target_new(ID *id, bConstraint *con, Main *bmain)
 {
-	bArmatureConstraint *acon = (bArmatureConstraint*)con->data;
+	bArmatureConstraint *acon = con->data;
 	bConstraintTarget *tgt = MEM_callocN(sizeof(bConstraintTarget), "Constraint Target");
 
 	tgt->weight = 1.0f;
 	BLI_addtail(&acon->targets, tgt);
 
-	ED_object_constraint_dependency_tag_update(bmain, (Object*)id, con);
+	ED_object_constraint_dependency_tag_update(bmain, (Object *)id, con);
 	return tgt;
 }
 
-static void rna_ArmatureConstraint_target_remove(ID *id, bConstraint *con, Main *bmain, ReportList *reports, PointerRNA *target_ptr)
+static void rna_ArmatureConstraint_target_remove(
+        ID *id, bConstraint *con, Main *bmain, ReportList *reports, PointerRNA *target_ptr)
 {
-	bArmatureConstraint *acon = (bArmatureConstraint*)con->data;
+	bArmatureConstraint *acon = con->data;
 	bConstraintTarget *tgt = target_ptr->data;
 
 	if (BLI_findindex(&acon->targets, tgt) < 0) {
@@ -459,16 +462,16 @@ static void rna_ArmatureConstraint_target_remove(ID *id, bConstraint *con, Main 
 
 	BLI_freelinkN(&acon->targets, tgt);
 
-	ED_object_constraint_dependency_tag_update(bmain, (Object*)id, con);
+	ED_object_constraint_dependency_tag_update(bmain, (Object *)id, con);
 }
 
 static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *bmain)
 {
-	bArmatureConstraint *acon = (bArmatureConstraint*)con->data;
+	bArmatureConstraint *acon = con->data;
 
 	BLI_freelistN(&acon->targets);
 
-	ED_object_constraint_dependency_tag_update(bmain, (Object*)id, con);
+	ED_object_constraint_dependency_tag_update(bmain, (Object *)id, con);
 }
 
 static void rna_ActionConstraint_minmax_range(PointerRNA *ptr, float *min, float *max,
