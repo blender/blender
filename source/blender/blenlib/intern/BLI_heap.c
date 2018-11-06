@@ -461,7 +461,7 @@ static void fastheap_down(FastHeap *heap, uint start_i, const FastHeapNode *init
 #if 1
 	/* The compiler isn't smart enough to realize that all computations
 	 * using index here can be modified to work with byte offset. */
-	uint8_t *const tree_buf = (uint8_t*)heap->tree;
+	uint8_t * const tree_buf = (uint8_t *)heap->tree;
 
 #define OFFSET(i) (i * (uint)sizeof(FastHeapNode))
 #define NODE(offset) (*(FastHeapNode*)(tree_buf + (offset)))

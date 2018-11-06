@@ -404,7 +404,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 	}
 	else {
 		/* if active layer, add after that layer */
-		BLI_insertlinkafter(&gpd->layers,gpl_active, gpl);
+		BLI_insertlinkafter(&gpd->layers, gpl_active, gpl);
 	}
 
 	/* annotation vs GP Object behaviour is slightly different */
