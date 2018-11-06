@@ -44,7 +44,7 @@ class CONSTRAINT_OT_remove_target(Operator):
     bl_label = "Remove Target"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    index = IntProperty()
+    index: IntProperty()
 
     def execute(self, context):
         tgts = context.constraint.targets
