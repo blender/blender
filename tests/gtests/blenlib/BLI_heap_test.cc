@@ -34,16 +34,6 @@ TEST(heap, Empty)
 	BLI_heap_free(heap, NULL);
 }
 
-TEST(heap, FastEmpty)
-{
-	FastHeap *heap;
-
-	heap = BLI_fastheap_new();
-	EXPECT_TRUE(BLI_fastheap_is_empty(heap));
-	EXPECT_EQ(BLI_fastheap_len(heap), 0);
-	BLI_fastheap_free(heap, NULL);
-}
-
 TEST(heap, One)
 {
 	Heap *heap;
@@ -58,22 +48,6 @@ TEST(heap, One)
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	EXPECT_EQ(BLI_heap_len(heap), 0);
 	BLI_heap_free(heap, NULL);
-}
-
-TEST(heap, FastOne)
-{
-	FastHeap *heap;
-	const char *in = "test";
-
-	heap = BLI_fastheap_new();
-
-	BLI_fastheap_insert(heap, 0.0f, (void *)in);
-	EXPECT_FALSE(BLI_fastheap_is_empty(heap));
-	EXPECT_EQ(BLI_fastheap_len(heap), 1);
-	EXPECT_EQ(in, BLI_fastheap_pop_min(heap));
-	EXPECT_TRUE(BLI_fastheap_is_empty(heap));
-	EXPECT_EQ(BLI_fastheap_len(heap), 0);
-	BLI_fastheap_free(heap, NULL);
 }
 
 TEST(heap, Range)
@@ -91,21 +65,6 @@ TEST(heap, Range)
 	BLI_heap_free(heap, NULL);
 }
 
-TEST(heap, FastRange)
-{
-	const int items_total = SIZE;
-	FastHeap *heap = BLI_fastheap_new();
-	for (int in = 0; in < items_total; in++) {
-		BLI_fastheap_insert(heap, (float)in, POINTER_FROM_INT(in));
-	}
-	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(out_test, POINTER_AS_INT(BLI_fastheap_pop_min(heap)));
-
-	}
-	EXPECT_TRUE(BLI_fastheap_is_empty(heap));
-	BLI_fastheap_free(heap, NULL);
-}
-
 TEST(heap, RangeReverse)
 {
 	const int items_total = SIZE;
@@ -118,20 +77,6 @@ TEST(heap, RangeReverse)
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	BLI_heap_free(heap, NULL);
-}
-
-TEST(heap, FastRangeReverse)
-{
-	const int items_total = SIZE;
-	FastHeap *heap = BLI_fastheap_new();
-	for (int in = 0; in < items_total; in++) {
-		BLI_fastheap_insert(heap, (float)-in, POINTER_FROM_INT(-in));
-	}
-	for (int out_test = items_total - 1; out_test >= 0; out_test--) {
-		EXPECT_EQ(-out_test, POINTER_AS_INT(BLI_fastheap_pop_min(heap)));
-	}
-	EXPECT_TRUE(BLI_fastheap_is_empty(heap));
-	BLI_fastheap_free(heap, NULL);
 }
 
 TEST(heap, RangeRemove)
@@ -168,20 +113,6 @@ TEST(heap, Duplicates)
 	BLI_heap_free(heap, NULL);
 }
 
-TEST(heap, FastDuplicates)
-{
-	const int items_total = SIZE;
-	FastHeap *heap = BLI_fastheap_new();
-	for (int in = 0; in < items_total; in++) {
-		BLI_fastheap_insert(heap, 1.0f, 0);
-	}
-	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(0, POINTER_AS_INT(BLI_fastheap_pop_min(heap)));
-	}
-	EXPECT_TRUE(BLI_fastheap_is_empty(heap));
-	BLI_fastheap_free(heap, NULL);
-}
-
 static void random_heap_helper(
         const int items_total,
         const int random_seed)
@@ -205,28 +136,6 @@ TEST(heap, Rand1)       { random_heap_helper(1, 1234); }
 TEST(heap, Rand2)       { random_heap_helper(2, 1234); }
 TEST(heap, Rand100)     { random_heap_helper(100, 4321); }
 
-static void random_fastheap_helper(
-        const int items_total,
-        const int random_seed)
-{
-	FastHeap *heap = BLI_fastheap_new();
-	float *values = (float *)MEM_mallocN(sizeof(float) * items_total, __func__);
-	range_fl(values, items_total);
-	BLI_array_randomize(values, sizeof(float), items_total, random_seed);
-	for (int i = 0; i < items_total; i++) {
-		BLI_fastheap_insert(heap, values[i], POINTER_FROM_INT((int)values[i]));
-	}
-	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(out_test, POINTER_AS_INT(BLI_fastheap_pop_min(heap)));
-	}
-	EXPECT_TRUE(BLI_fastheap_is_empty(heap));
-	BLI_fastheap_free(heap, NULL);
-	MEM_freeN(values);
-}
-
-TEST(heap, FastRand1)       { random_fastheap_helper(1, 1234); }
-TEST(heap, FastRand2)       { random_fastheap_helper(2, 1234); }
-TEST(heap, FastRand100)     { random_fastheap_helper(100, 4321); }
 
 TEST(heap, ReInsertSimple)
 {
