@@ -206,7 +206,7 @@ bool BLI_astar_graph_solve(
         BLI_AStarGraph *as_graph, const int node_index_src, const int node_index_dst, astar_f_cost f_cost_cb,
         BLI_AStarSolution *r_solution, const int max_steps)
 {
-	FastHeap *todo_nodes;
+	HeapSimple *todo_nodes;
 
 	BLI_bitmap *done_nodes = r_solution->done_nodes;
 	int *prev_nodes = r_solution->prev_nodes;
@@ -225,13 +225,14 @@ bool BLI_astar_graph_solve(
 		return true;
 	}
 
-	todo_nodes = BLI_fastheap_new();
-	BLI_fastheap_insert(todo_nodes,
-	                    f_cost_cb(as_graph, r_solution, NULL, -1, node_index_src, node_index_dst),
-	                    POINTER_FROM_INT(node_index_src));
+	todo_nodes = BLI_heapsimple_new();
+	BLI_heapsimple_insert(
+	        todo_nodes,
+	        f_cost_cb(as_graph, r_solution, NULL, -1, node_index_src, node_index_dst),
+	        POINTER_FROM_INT(node_index_src));
 
-	while (!BLI_fastheap_is_empty(todo_nodes)) {
-		const int node_curr_idx = POINTER_AS_INT(BLI_fastheap_pop_min(todo_nodes));
+	while (!BLI_heapsimple_is_empty(todo_nodes)) {
+		const int node_curr_idx = POINTER_AS_INT(BLI_heapsimple_pop_min(todo_nodes));
 		BLI_AStarGNode *node_curr = &as_graph->nodes[node_curr_idx];
 		LinkData *ld;
 
@@ -249,7 +250,7 @@ bool BLI_astar_graph_solve(
 			/* Success! Path found... */
 			r_solution->steps = g_steps[node_curr_idx] + 1;
 
-			BLI_fastheap_free(todo_nodes, NULL);
+			BLI_heapsimple_free(todo_nodes, NULL);
 			return true;
 		}
 
@@ -269,14 +270,15 @@ bool BLI_astar_graph_solve(
 					g_steps[node_next_idx] = g_steps[node_curr_idx] + 1;
 					/* We might have this node already in heap, but since this 'instance' will be evaluated first,
 					 * no problem. */
-					BLI_fastheap_insert(todo_nodes,
-					                    f_cost_cb(as_graph, r_solution, link, node_curr_idx, node_next_idx, node_index_dst),
-					                    POINTER_FROM_INT(node_next_idx));
+					BLI_heapsimple_insert(
+					        todo_nodes,
+					        f_cost_cb(as_graph, r_solution, link, node_curr_idx, node_next_idx, node_index_dst),
+					        POINTER_FROM_INT(node_next_idx));
 				}
 			}
 		}
 	}
 
-	BLI_fastheap_free(todo_nodes, NULL);
+	BLI_heapsimple_free(todo_nodes, NULL);
 	return false;
 }

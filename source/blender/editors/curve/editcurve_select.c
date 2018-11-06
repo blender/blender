@@ -1705,7 +1705,7 @@ static void curve_select_shortest_path_curve(Nurb *nu, int vert_src, int vert_ds
 
 static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst)
 {
-	FastHeap *heap;
+	HeapSimple *heap;
 
 	int i, vert_curr;
 
@@ -1728,18 +1728,18 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 	}
 
 	/* init heap */
-	heap = BLI_fastheap_new();
+	heap = BLI_heapsimple_new();
 
 	vert_curr = data[vert_src].vert;
-	BLI_fastheap_insert(heap, 0.0f, &data[vert_src].vert);
+	BLI_heapsimple_insert(heap, 0.0f, &data[vert_src].vert);
 	data[vert_src].cost = 0.0f;
 	data[vert_src].vert_prev = vert_src;  /* nop */
 
-	while (!BLI_fastheap_is_empty(heap)) {
+	while (!BLI_heapsimple_is_empty(heap)) {
 		int axis, sign;
 		int u, v;
 
-		vert_curr = *((int *)BLI_fastheap_pop_min(heap));
+		vert_curr = *((int *)BLI_heapsimple_pop_min(heap));
 		if (vert_curr == vert_dst) {
 			break;
 		}
@@ -1761,7 +1761,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 					if (data[vert_other].cost > dist) {
 						data[vert_other].cost = dist;
 						if (data[vert_other].vert_prev == -1) {
-							BLI_fastheap_insert(heap, data[vert_other].cost, &data[vert_other].vert);
+							BLI_heapsimple_insert(heap, data[vert_other].cost, &data[vert_other].vert);
 						}
 						data[vert_other].vert_prev = vert_curr;
 					}
@@ -1772,7 +1772,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 
 	}
 
-	BLI_fastheap_free(heap, NULL);
+	BLI_heapsimple_free(heap, NULL);
 
 	if (vert_curr == vert_dst) {
 		i = 0;

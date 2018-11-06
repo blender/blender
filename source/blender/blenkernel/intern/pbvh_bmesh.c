@@ -721,7 +721,7 @@ static void pbvh_bmesh_node_drop_orig(PBVHNode *node)
 struct EdgeQueue;
 
 typedef struct EdgeQueue {
-	FastHeap *heap;
+	HeapSimple *heap;
 	const float *center;
 	float  center_proj[3];  /* for when we use projected coords. */
 	float radius_squared;
@@ -840,7 +840,7 @@ static void edge_queue_insert(
 		BMVert **pair = BLI_mempool_alloc(eq_ctx->pool);
 		pair[0] = e->v1;
 		pair[1] = e->v2;
-		BLI_fastheap_insert(eq_ctx->q->heap, priority, pair);
+		BLI_heapsimple_insert(eq_ctx->q->heap, priority, pair);
 #ifdef USE_EDGEQUEUE_TAG
 		BLI_assert(EDGE_QUEUE_TEST(e) == false);
 		EDGE_QUEUE_ENABLE(e);
@@ -1008,7 +1008,7 @@ static void long_edge_queue_create(
         PBVH *bvh, const float center[3], const float view_normal[3],
         float radius, const bool use_frontface, const bool use_projected)
 {
-	eq_ctx->q->heap = BLI_fastheap_new();
+	eq_ctx->q->heap = BLI_heapsimple_new();
 	eq_ctx->q->center = center;
 	eq_ctx->q->radius_squared = radius * radius;
 	eq_ctx->q->limit_len_squared = bvh->bm_max_edge_len * bvh->bm_max_edge_len;
@@ -1070,7 +1070,7 @@ static void short_edge_queue_create(
         PBVH *bvh, const float center[3], const float view_normal[3],
         float radius, const bool use_frontface, const bool use_projected)
 {
-	eq_ctx->q->heap = BLI_fastheap_new();
+	eq_ctx->q->heap = BLI_heapsimple_new();
 	eq_ctx->q->center = center;
 	eq_ctx->q->radius_squared = radius * radius;
 	eq_ctx->q->limit_len_squared = bvh->bm_min_edge_len * bvh->bm_min_edge_len;
@@ -1237,8 +1237,8 @@ static bool pbvh_bmesh_subdivide_long_edges(
 {
 	bool any_subdivided = false;
 
-	while (!BLI_fastheap_is_empty(eq_ctx->q->heap)) {
-		BMVert **pair = BLI_fastheap_pop_min(eq_ctx->q->heap);
+	while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
+		BMVert **pair = BLI_heapsimple_pop_min(eq_ctx->q->heap);
 		BMVert *v1 = pair[0], *v2 = pair[1];
 		BMEdge *e;
 
@@ -1454,8 +1454,8 @@ static bool pbvh_bmesh_collapse_short_edges(
 	/* deleted verts point to vertices they were merged into, or NULL when removed. */
 	GHash *deleted_verts = BLI_ghash_ptr_new("deleted_verts");
 
-	while (!BLI_fastheap_is_empty(eq_ctx->q->heap)) {
-		BMVert **pair = BLI_fastheap_pop_min(eq_ctx->q->heap);
+	while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
+		BMVert **pair = BLI_heapsimple_pop_min(eq_ctx->q->heap);
 		BMVert *v1  = pair[0], *v2  = pair[1];
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
@@ -1961,7 +1961,7 @@ bool BKE_pbvh_bmesh_update_topology(
 		short_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius, use_frontface, use_projected);
 		modified |= pbvh_bmesh_collapse_short_edges(
 		        &eq_ctx, bvh, &deleted_faces);
-		BLI_fastheap_free(q.heap, NULL);
+		BLI_heapsimple_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
 	}
 
@@ -1976,7 +1976,7 @@ bool BKE_pbvh_bmesh_update_topology(
 		long_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius, use_frontface, use_projected);
 		modified |= pbvh_bmesh_subdivide_long_edges(
 		        &eq_ctx, bvh, &edge_loops);
-		BLI_fastheap_free(q.heap, NULL);
+		BLI_heapsimple_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
 	}
 

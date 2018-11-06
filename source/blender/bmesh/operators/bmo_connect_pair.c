@@ -94,7 +94,7 @@
 // #define DEBUG_PRINT
 
 typedef struct PathContext {
-	FastHeap *states;
+	HeapSimple *states;
 	float matrix[3][3];
 	float axis_sep;
 
@@ -331,7 +331,7 @@ static PathLinkState *state_link_add_test(
 
 	/* after adding a link so we use the updated 'state->dist' */
 	if (is_new) {
-		BLI_fastheap_insert(pc->states, state->dist, state);
+		BLI_heapsimple_insert(pc->states, state->dist, state);
 	}
 
 	return state;
@@ -640,7 +640,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
 	/* setup context */
 	{
-		pc.states = BLI_fastheap_new();
+		pc.states = BLI_heapsimple_new();
 		pc.link_pool = BLI_mempool_create(sizeof(PathLink), 0, 512, BLI_MEMPOOL_NOP);
 	}
 
@@ -655,18 +655,18 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		PathLinkState *state;
 		state = MEM_callocN(sizeof(*state), __func__);
 		state_link_add(&pc, state, (BMElem *)pc.v_a, NULL);
-		BLI_fastheap_insert(pc.states, state->dist, state);
+		BLI_heapsimple_insert(pc.states, state->dist, state);
 	}
 
 
-	while (!BLI_fastheap_is_empty(pc.states)) {
+	while (!BLI_heapsimple_is_empty(pc.states)) {
 
 #ifdef DEBUG_PRINT
-		printf("\n%s: stepping %u\n", __func__, BLI_fastheap_len(pc.states));
+		printf("\n%s: stepping %u\n", __func__, BLI_heapsimple_len(pc.states));
 #endif
 
-		while (!BLI_fastheap_is_empty(pc.states)) {
-			PathLinkState *state = BLI_fastheap_pop_min(pc.states);
+		while (!BLI_heapsimple_is_empty(pc.states)) {
+			PathLinkState *state = BLI_heapsimple_pop_min(pc.states);
 
 			/* either we insert this into 'pc.states' or its freed */
 			bool continue_search;
@@ -679,7 +679,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 				state_best = *state;
 
 				/* we're done, exit all loops */
-				BLI_fastheap_clear(pc.states, MEM_freeN);
+				BLI_heapsimple_clear(pc.states, MEM_freeN);
 				continue_search = false;
 			}
 			else if (state_step(&pc, state)) {
@@ -696,7 +696,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 			}
 
 			if (continue_search) {
-				BLI_fastheap_insert(pc.states, state->dist, state);
+				BLI_heapsimple_insert(pc.states, state->dist, state);
 			}
 			else {
 				MEM_freeN(state);
@@ -732,7 +732,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
 	BLI_mempool_destroy(pc.link_pool);
 
-	BLI_fastheap_free(pc.states, MEM_freeN);
+	BLI_heapsimple_free(pc.states, MEM_freeN);
 
 #if 1
 	if (state_best.link_last) {

@@ -24,6 +24,8 @@
  * A min-heap / priority queue ADT.
  *
  * Simplified version of the heap that only supports insertion and removal from top.
+ *
+ * See BLI_heap.c for a more full featured heap implementation.
  */
 
 #include <stdlib.h>
@@ -38,37 +40,37 @@
 #define HEAP_PARENT(i) (((i) - 1) >> 1)
 
 /* -------------------------------------------------------------------- */
-/** \name FastHeap Internal Structs
+/** \name HeapSimple Internal Structs
  * \{ */
 
-typedef struct FastHeapNode {
+typedef struct HeapSimpleNode {
 	float value;
 	void *ptr;
-} FastHeapNode;
+} HeapSimpleNode;
 
-struct FastHeap {
+struct HeapSimple {
 	uint size;
 	uint bufsize;
-	FastHeapNode *tree;
+	HeapSimpleNode *tree;
 };
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name FastHeap Internal Functions
+/** \name HeapSimple Internal Functions
  * \{ */
 
-static void fastheap_down(FastHeap *heap, uint start_i, const FastHeapNode *init)
+static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode *init)
 {
 #if 1
 	/* The compiler isn't smart enough to realize that all computations
 	 * using index here can be modified to work with byte offset. */
 	uint8_t * const tree_buf = (uint8_t *)heap->tree;
 
-#define OFFSET(i) (i * (uint)sizeof(FastHeapNode))
-#define NODE(offset) (*(FastHeapNode*)(tree_buf + (offset)))
+#define OFFSET(i) (i * (uint)sizeof(HeapSimpleNode))
+#define NODE(offset) (*(HeapSimpleNode*)(tree_buf + (offset)))
 #else
-	FastHeapNode *const tree = heap->tree;
+	HeapSimpleNode *const tree = heap->tree;
 
 #define OFFSET(i) (i)
 #define NODE(i) tree[i]
@@ -124,9 +126,9 @@ static void fastheap_down(FastHeap *heap, uint start_i, const FastHeapNode *init
 #undef HEAP_LEFT_OFFSET
 }
 
-static void fastheap_up(FastHeap *heap, uint i, float active_val, void *active_ptr)
+static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *active_ptr)
 {
-	FastHeapNode *const tree = heap->tree;
+	HeapSimpleNode *const tree = heap->tree;
 
 	while (LIKELY(i > 0)) {
 		const uint p = HEAP_PARENT(i);
@@ -146,30 +148,30 @@ static void fastheap_up(FastHeap *heap, uint i, float active_val, void *active_p
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Public FastHeap API
+/** \name Public HeapSimple API
  * \{ */
 
 /**
- * Creates a new fast heap, which only supports insertion and removal from top.
+ * Creates a new simple heap, which only supports insertion and removal from top.
  *
  * \note Use when the size of the heap is known in advance.
  */
-FastHeap *BLI_fastheap_new_ex(uint tot_reserve)
+HeapSimple *BLI_heapsimple_new_ex(uint tot_reserve)
 {
-	FastHeap *heap = MEM_mallocN(sizeof(FastHeap), __func__);
+	HeapSimple *heap = MEM_mallocN(sizeof(HeapSimple), __func__);
 	/* ensure we have at least one so we can keep doubling it */
 	heap->size = 0;
 	heap->bufsize = MAX2(1u, tot_reserve);
-	heap->tree = MEM_mallocN(heap->bufsize * sizeof(FastHeapNode), "BLIFastHeapTree");
+	heap->tree = MEM_mallocN(heap->bufsize * sizeof(HeapSimpleNode), "BLIHeapSimpleTree");
 	return heap;
 }
 
-FastHeap *BLI_fastheap_new(void)
+HeapSimple *BLI_heapsimple_new(void)
 {
-	return BLI_fastheap_new_ex(1);
+	return BLI_heapsimple_new_ex(1);
 }
 
-void BLI_fastheap_free(FastHeap *heap, HeapSimpleFreeFP ptrfreefp)
+void BLI_heapsimple_free(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
 {
 	if (ptrfreefp) {
 		for (uint i = 0; i < heap->size; i++) {
@@ -181,7 +183,7 @@ void BLI_fastheap_free(FastHeap *heap, HeapSimpleFreeFP ptrfreefp)
 	MEM_freeN(heap);
 }
 
-void BLI_fastheap_clear(FastHeap *heap, HeapSimpleFreeFP ptrfreefp)
+void BLI_heapsimple_clear(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
 {
 	if (ptrfreefp) {
 		for (uint i = 0; i < heap->size; i++) {
@@ -196,22 +198,22 @@ void BLI_fastheap_clear(FastHeap *heap, HeapSimpleFreeFP ptrfreefp)
  * Insert heap node with a value (often a 'cost') and pointer into the heap,
  * duplicate values are allowed.
  */
-void BLI_fastheap_insert(FastHeap *heap, float value, void *ptr)
+void BLI_heapsimple_insert(HeapSimple *heap, float value, void *ptr)
 {
 	if (UNLIKELY(heap->size >= heap->bufsize)) {
 		heap->bufsize *= 2;
 		heap->tree = MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree));
 	}
 
-	fastheap_up(heap, heap->size++, value, ptr);
+	heapsimple_up(heap, heap->size++, value, ptr);
 }
 
-bool BLI_fastheap_is_empty(const FastHeap *heap)
+bool BLI_heapsimple_is_empty(const HeapSimple *heap)
 {
 	return (heap->size == 0);
 }
 
-uint BLI_fastheap_len(const FastHeap *heap)
+uint BLI_heapsimple_len(const HeapSimple *heap)
 {
 	return heap->size;
 }
@@ -219,7 +221,7 @@ uint BLI_fastheap_len(const FastHeap *heap)
 /**
  * Return the lowest value of the heap.
  */
-float BLI_fastheap_top_value(const FastHeap *heap)
+float BLI_heapsimple_top_value(const HeapSimple *heap)
 {
 	BLI_assert(heap->size != 0);
 
@@ -229,14 +231,14 @@ float BLI_fastheap_top_value(const FastHeap *heap)
 /**
  * Pop the top node off the heap and return it's pointer.
  */
-void *BLI_fastheap_pop_min(FastHeap *heap)
+void *BLI_heapsimple_pop_min(HeapSimple *heap)
 {
 	BLI_assert(heap->size != 0);
 
 	void *ptr = heap->tree[0].ptr;
 
 	if (--heap->size) {
-		fastheap_down(heap, 0, &heap->tree[heap->size]);
+		heapsimple_down(heap, 0, &heap->tree[heap->size]);
 	}
 
 	return ptr;

@@ -72,7 +72,7 @@ static float step_cost_3_v3(
 /* BM_mesh_calc_path_vert */
 
 static void verttag_add_adjacent(
-        FastHeap *heap, BMVert *v_a, BMVert **verts_prev, float *cost,
+        HeapSimple *heap, BMVert *v_a, BMVert **verts_prev, float *cost,
         const struct BMCalcPathParams *params)
 {
 	const int v_a_index = BM_elem_index_get(v_a);
@@ -93,7 +93,7 @@ static void verttag_add_adjacent(
 				if (cost[v_b_index] > cost_new) {
 					cost[v_b_index] = cost_new;
 					verts_prev[v_b_index] = v_a;
-					BLI_fastheap_insert(heap, cost_new, v_b);
+					BLI_heapsimple_insert(heap, cost_new, v_b);
 				}
 			}
 		}
@@ -119,7 +119,7 @@ static void verttag_add_adjacent(
 						if (cost[v_b_index] > cost_new) {
 							cost[v_b_index] = cost_new;
 							verts_prev[v_b_index] = v_a;
-							BLI_fastheap_insert(heap, cost_new, v_b);
+							BLI_heapsimple_insert(heap, cost_new, v_b);
 						}
 					}
 				} while ((l_iter = l_iter->next) != l->prev);
@@ -136,7 +136,7 @@ LinkNode *BM_mesh_calc_path_vert(
 	/* BM_ELEM_TAG flag is used to store visited edges */
 	BMVert *v;
 	BMIter viter;
-	FastHeap *heap;
+	HeapSimple *heap;
 	float *cost;
 	BMVert **verts_prev;
 	int i, totvert;
@@ -169,12 +169,12 @@ LinkNode *BM_mesh_calc_path_vert(
 	 */
 
 	/* regular dijkstra shortest path, but over faces instead of vertices */
-	heap = BLI_fastheap_new();
-	BLI_fastheap_insert(heap, 0.0f, v_src);
+	heap = BLI_heapsimple_new();
+	BLI_heapsimple_insert(heap, 0.0f, v_src);
 	cost[BM_elem_index_get(v_src)] = 0.0f;
 
-	while (!BLI_fastheap_is_empty(heap)) {
-		v = BLI_fastheap_pop_min(heap);
+	while (!BLI_heapsimple_is_empty(heap)) {
+		v = BLI_heapsimple_pop_min(heap);
 
 		if (v == v_dst)
 			break;
@@ -193,7 +193,7 @@ LinkNode *BM_mesh_calc_path_vert(
 
 	MEM_freeN(verts_prev);
 	MEM_freeN(cost);
-	BLI_fastheap_free(heap, NULL);
+	BLI_heapsimple_free(heap, NULL);
 
 	return path;
 }
@@ -221,7 +221,7 @@ static float edgetag_cut_cost_face(BMEdge *e_a, BMEdge *e_b, BMFace *f)
 }
 
 static void edgetag_add_adjacent(
-        FastHeap *heap, BMEdge *e_a, BMEdge **edges_prev, float *cost,
+        HeapSimple *heap, BMEdge *e_a, BMEdge **edges_prev, float *cost,
         const struct BMCalcPathParams *params)
 {
 	const int e_a_index = BM_elem_index_get(e_a);
@@ -255,7 +255,7 @@ static void edgetag_add_adjacent(
 					if (cost[e_b_index] > cost_new) {
 						cost[e_b_index] = cost_new;
 						edges_prev[e_b_index] = e_a;
-						BLI_fastheap_insert(heap, cost_new, e_b);
+						BLI_heapsimple_insert(heap, cost_new, e_b);
 					}
 				}
 			}
@@ -291,7 +291,7 @@ static void edgetag_add_adjacent(
 					if (cost[e_b_index] > cost_new) {
 						cost[e_b_index] = cost_new;
 						edges_prev[e_b_index] = e_a;
-						BLI_fastheap_insert(heap, cost_new, e_b);
+						BLI_heapsimple_insert(heap, cost_new, e_b);
 					}
 				}
 			} while ((l_cycle_iter = l_cycle_iter->next) != l_cycle_end);
@@ -308,7 +308,7 @@ LinkNode *BM_mesh_calc_path_edge(
 	/* BM_ELEM_TAG flag is used to store visited edges */
 	BMEdge *e;
 	BMIter eiter;
-	FastHeap *heap;
+	HeapSimple *heap;
 	float *cost;
 	BMEdge **edges_prev;
 	int i, totedge;
@@ -341,12 +341,12 @@ LinkNode *BM_mesh_calc_path_edge(
 	 */
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
-	heap = BLI_fastheap_new();
-	BLI_fastheap_insert(heap, 0.0f, e_src);
+	heap = BLI_heapsimple_new();
+	BLI_heapsimple_insert(heap, 0.0f, e_src);
 	cost[BM_elem_index_get(e_src)] = 0.0f;
 
-	while (!BLI_fastheap_is_empty(heap)) {
-		e = BLI_fastheap_pop_min(heap);
+	while (!BLI_heapsimple_is_empty(heap)) {
+		e = BLI_heapsimple_pop_min(heap);
 
 		if (e == e_dst)
 			break;
@@ -365,7 +365,7 @@ LinkNode *BM_mesh_calc_path_edge(
 
 	MEM_freeN(edges_prev);
 	MEM_freeN(cost);
-	BLI_fastheap_free(heap, NULL);
+	BLI_heapsimple_free(heap, NULL);
 
 	return path;
 }
@@ -421,7 +421,7 @@ static float facetag_cut_cost_vert(BMFace *f_a, BMFace *f_b, BMVert *v, const vo
 }
 
 static void facetag_add_adjacent(
-        FastHeap *heap, BMFace *f_a, BMFace **faces_prev, float *cost,
+        HeapSimple *heap, BMFace *f_a, BMFace **faces_prev, float *cost,
         const void * const f_endpoints[2], const struct BMCalcPathParams *params)
 {
 	const int f_a_index = BM_elem_index_get(f_a);
@@ -447,7 +447,7 @@ static void facetag_add_adjacent(
 					if (cost[f_b_index] > cost_new) {
 						cost[f_b_index] = cost_new;
 						faces_prev[f_b_index] = f_a;
-						BLI_fastheap_insert(heap, cost_new, f_b);
+						BLI_heapsimple_insert(heap, cost_new, f_b);
 					}
 				}
 			} while ((l_iter = l_iter->radial_next) != l_first);
@@ -474,7 +474,7 @@ static void facetag_add_adjacent(
 						if (cost[f_b_index] > cost_new) {
 							cost[f_b_index] = cost_new;
 							faces_prev[f_b_index] = f_a;
-							BLI_fastheap_insert(heap, cost_new, f_b);
+							BLI_heapsimple_insert(heap, cost_new, f_b);
 						}
 					}
 				}
@@ -491,7 +491,7 @@ LinkNode *BM_mesh_calc_path_face(
 	/* BM_ELEM_TAG flag is used to store visited edges */
 	BMFace *f;
 	BMIter fiter;
-	FastHeap *heap;
+	HeapSimple *heap;
 	float *cost;
 	BMFace **faces_prev;
 	int i, totface;
@@ -527,12 +527,12 @@ LinkNode *BM_mesh_calc_path_face(
 	 */
 
 	/* regular dijkstra shortest path, but over faces instead of vertices */
-	heap = BLI_fastheap_new();
-	BLI_fastheap_insert(heap, 0.0f, f_src);
+	heap = BLI_heapsimple_new();
+	BLI_heapsimple_insert(heap, 0.0f, f_src);
 	cost[BM_elem_index_get(f_src)] = 0.0f;
 
-	while (!BLI_fastheap_is_empty(heap)) {
-		f = BLI_fastheap_pop_min(heap);
+	while (!BLI_heapsimple_is_empty(heap)) {
+		f = BLI_heapsimple_pop_min(heap);
 
 		if (f == f_dst)
 			break;
@@ -551,7 +551,7 @@ LinkNode *BM_mesh_calc_path_face(
 
 	MEM_freeN(faces_prev);
 	MEM_freeN(cost);
-	BLI_fastheap_free(heap, NULL);
+	BLI_heapsimple_free(heap, NULL);
 
 	return path;
 }
