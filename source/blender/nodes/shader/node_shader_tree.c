@@ -323,6 +323,9 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
 		if (group_node->type != NODE_GROUP || group_node->id == NULL)
 			continue;
 
+		/* Do it recursively. */
+		ntree_shader_groups_expand_inputs((bNodeTree *)group_node->id);
+
 		bNodeSocket *group_socket = group_node->inputs.first;
 		for (; group_socket; group_socket = group_socket->next) {
 			if (group_socket->link != NULL)
