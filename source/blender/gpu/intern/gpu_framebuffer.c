@@ -416,6 +416,31 @@ static void gpu_framebuffer_update_attachments(GPUFrameBuffer *fb)
 		glDrawBuffer(GL_NONE);
 }
 
+
+#define FRAMEBUFFER_STACK_DEPTH 16
+
+static struct {
+	GPUFrameBuffer *framebuffers[FRAMEBUFFER_STACK_DEPTH];
+	uint top;
+} FrameBufferStack = { 0 };
+
+static void gpuPushFrameBuffer(GPUFrameBuffer *fbo)
+{
+	BLI_assert(FrameBufferStack.top < FRAMEBUFFER_STACK_DEPTH);
+	FrameBufferStack.framebuffers[FrameBufferStack.top] = fbo;
+	FrameBufferStack.top++;
+}
+
+static GPUFrameBuffer *gpuPopFrameBuffer(void)
+{
+	BLI_assert(FrameBufferStack.top > 0);
+	FrameBufferStack.top--;
+	return FrameBufferStack.framebuffers[FrameBufferStack.top];
+}
+
+#undef FRAMEBUFFER_STACK_DEPTH
+
+
 void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 {
 	if (fb->object == 0)
@@ -753,6 +778,8 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
 	if (save) {
 		gpuPushAttrib(GPU_SCISSOR_BIT | GPU_VIEWPORT_BIT);
+		GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+		gpuPushFrameBuffer(fb);
 	}
 	glDisable(GL_SCISSOR_TEST);
 	GPU_framebuffer_bind(ofs->fb);
@@ -760,9 +787,18 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 
 void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
 {
-	GPU_framebuffer_restore();
+	GPUFrameBuffer *fb = NULL;
+
 	if (restore) {
 		gpuPopAttrib();
+		fb = gpuPopFrameBuffer();
+	}
+
+	if (fb) {
+		GPU_framebuffer_bind(fb);
+	}
+	else {
+		GPU_framebuffer_restore();
 	}
 }
 
