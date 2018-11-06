@@ -468,16 +468,10 @@ void invert_z(vec3 v, out vec3 outv)
 	outv = v;
 }
 
-void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
+void normal_new_shading(vec3 nor, vec3 dir, out vec3 outnor, out float outdot)
 {
-	outnor = nor;
-	outdot = -dot(dir, nor);
-}
-
-void normal_new_shading(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
-{
-	outnor = normalize(nor);
-	outdot = dot(normalize(dir), nor);
+	outnor = dir;
+	outdot = dot(normalize(nor), dir);
 }
 
 void curves_vec(float fac, vec3 vec, sampler1DArray curvemap, float layer, out vec3 outvec)
