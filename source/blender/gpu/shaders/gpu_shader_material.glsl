@@ -1097,7 +1097,8 @@ vec3 principled_sheen(float NV, vec3 basecol_tint, float sheen_tint)
 #ifndef VOLUMETRICS
 void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 {
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	N = normalize(N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	eevee_closure_diffuse(N, color.rgb, 1.0, result.radiance);
@@ -1106,9 +1107,10 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 
 void node_bsdf_glossy(vec4 color, float roughness, vec3 N, float ssr_id, out Closure result)
 {
+	N = normalize(N);
 	vec3 out_spec, ssr_spec;
 	eevee_closure_glossy(N, vec3(1.0), int(ssr_id), roughness, 1.0, out_spec, ssr_spec);
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec * color.rgb;
 	result.ssr_data = vec4(ssr_spec * color.rgb, roughness);
@@ -1125,13 +1127,14 @@ void node_bsdf_anisotropic(
 
 void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, float ssr_id, out Closure result)
 {
+	N = normalize(N);
 	vec3 out_spec, out_refr, ssr_spec;
 	vec3 refr_color = (refractionDepth > 0.0) ? color.rgb * color.rgb : color.rgb; /* Simulate 2 transmission event */
 	eevee_closure_glass(N, vec3(1.0), int(ssr_id), roughness, 1.0, ior, out_spec, out_refr, ssr_spec);
 	out_refr *= refr_color;
 	out_spec *= color.rgb;
 	float fresnel = F_eta(ior, dot(N, cameraVec));
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = mix(out_refr, out_spec, fresnel);
 	result.ssr_data = vec4(ssr_spec * color.rgb * fresnel, roughness);
@@ -1150,6 +1153,7 @@ void node_bsdf_principled(
         float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id,
         float sss_id, vec3 sss_scale, out Closure result)
 {
+	N = normalize(N);
 	ior = max(ior, 1e-5);
 	metallic = saturate(metallic);
 	transmission = saturate(transmission);
@@ -1184,7 +1188,7 @@ void node_bsdf_principled(
 	refr_color *= (refractionDepth > 0.0) ? refr_color : vec3(1.0); /* Simulate 2 transmission event */
 	out_refr *= refr_color * (1.0 - fresnel) * transmission;
 
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec + out_refr;
 	result.radiance += out_diff * out_sheen; /* Coarse approx. */
@@ -1212,6 +1216,7 @@ void node_bsdf_principled_dielectric(
         float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id,
         float sss_id, vec3 sss_scale, out Closure result)
 {
+	N = normalize(N);
 	metallic = saturate(metallic);
 	float dielectric = 1.0 - metallic;
 
@@ -1224,7 +1229,7 @@ void node_bsdf_principled_dielectric(
 
 	eevee_closure_default(N, diffuse, f0, int(ssr_id), roughness, 1.0, out_diff, out_spec, ssr_spec);
 
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec + out_diff * (diffuse + out_sheen);
 	result.ssr_data = vec4(ssr_spec, roughness);
@@ -1238,11 +1243,12 @@ void node_bsdf_principled_metallic(
         float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id,
         float sss_id, vec3 sss_scale, out Closure result)
 {
+	N = normalize(N);
 	vec3 out_spec, ssr_spec;
 
 	eevee_closure_glossy(N, base_color.rgb, int(ssr_id), roughness, 1.0, out_spec, ssr_spec);
 
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec;
 	result.ssr_data = vec4(ssr_spec, roughness);
@@ -1257,11 +1263,12 @@ void node_bsdf_principled_clearcoat(
         float sss_id, vec3 sss_scale, out Closure result)
 {
 	vec3 out_spec, ssr_spec;
+	N = normalize(N);
 
 	eevee_closure_clearcoat(N, base_color.rgb, int(ssr_id), roughness, CN, clearcoat * 0.25, clearcoat_roughness,
 	                        1.0, out_spec, ssr_spec);
 
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec;
 	result.ssr_data = vec4(ssr_spec, roughness);
@@ -1276,6 +1283,7 @@ void node_bsdf_principled_subsurface(
         float sss_id, vec3 sss_scale, out Closure result)
 {
 	metallic = saturate(metallic);
+	N = normalize(N);
 
 	vec3 diffuse, f0, out_diff, out_spec, out_trans, ssr_spec;
 	vec3 ctint = tint_from_color(base_color.rgb);
@@ -1291,7 +1299,7 @@ void node_bsdf_principled_subsurface(
 	eevee_closure_skin(N, mixed_ss_base_color, f0, int(ssr_id), roughness, 1.0, sss_scalef,
 	                   out_diff, out_trans, out_spec, ssr_spec);
 
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec;
 	result.ssr_data = vec4(ssr_spec, roughness);
@@ -1318,6 +1326,7 @@ void node_bsdf_principled_glass(
         float sss_id, vec3 sss_scale, out Closure result)
 {
 	ior = max(ior, 1e-5);
+	N = normalize(N);
 
 	vec3 f0, out_spec, out_refr, ssr_spec;
 	f0 = mix(vec3(1.0), base_color.rgb, specular_tint);
@@ -1333,7 +1342,7 @@ void node_bsdf_principled_glass(
 	out_spec *= spec_col;
 	ssr_spec *= spec_col * fresnel;
 
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.radiance = mix(out_refr, out_spec, fresnel);
 	result.ssr_data = vec4(ssr_spec, roughness);
@@ -1365,8 +1374,9 @@ void node_subsurface_scattering(
         out Closure result)
 {
 #if defined(USE_SSS)
+	N = normalize(N);
 	vec3 out_diff, out_trans;
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.ssr_data = vec4(0.0);
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
@@ -1388,10 +1398,11 @@ void node_subsurface_scattering(
 
 void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Closure result)
 {
+	N = normalize(N);
 	vec3 out_refr;
 	color.rgb *= (refractionDepth > 0.0) ? color.rgb : vec3(1.0); /* Simulate 2 absorption event. */
 	eevee_closure_refraction(N, roughness, ior, out_refr);
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	vec3 vN = mat3(ViewMatrix) * N;
 	result = CLOSURE_DEFAULT;
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	result.radiance = out_refr * color.rgb;
@@ -1590,6 +1601,7 @@ void node_add_shader(Closure shader1, Closure shader2, out Closure shader)
 
 void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 {
+	N = normalize(N);
 	/* handle perspective/orthographic */
 	vec3 I_view = (ProjectionMatrix[3][3] == 0.0) ? normalize(I) : vec3(0.0, 0.0, -1.0);
 
@@ -1601,6 +1613,8 @@ void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 
 void node_layer_weight(float blend, vec3 N, vec3 I, out float fresnel, out float facing)
 {
+	N = normalize(N);
+
 	/* fresnel */
 	float eta = max(1.0 - blend, 0.00001);
 	vec3 I_view = (ProjectionMatrix[3][3] == 0.0) ? normalize(I) : vec3(0.0, 0.0, -1.0);
@@ -1723,7 +1737,7 @@ void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
 
 void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
 {
-	N = (toworld * vec4(N, 0.0)).xyz;
+	N = normalize(worldNormal);
 	T = (objmat * vec4(orco, 0.0)).xyz;
 	T = cross(N, normalize(cross(T, N)));
 }
@@ -1735,7 +1749,7 @@ void node_geometry(
         out float backfacing, out float pointiness)
 {
 	position = worldPosition;
-	normal = (toworld * vec4(N, 0.0)).xyz;
+	normal = normalize(worldNormal);
 	tangent_orco_z(orco, orco);
 	node_tangent(N, orco, objmat, toworld, tangent);
 	true_normal = normal;
