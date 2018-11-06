@@ -339,24 +339,17 @@ static void BRUSH_OT_reset(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-#if 0
 static int brush_tool(const Brush *brush, size_t tool_offset)
 {
 	return *(((char *)brush) + tool_offset);
 }
-#endif
 
 static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
 {
 	*(((char *)brush) + tool_offset) = tool;
 }
 
-/* Generic functions for setting the active brush based on the tool.
- * Replaced by tool system currently, but may come back once active
- * tools and brushes are decoupled and brush cycling without changing
- * the tool is needed again.. */
-#if 0
-static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
+static Brush *brush_tool_cycle(Main *bmain, Paint *paint, Brush *brush_orig, const int tool)
 {
 	Brush *brush, *first_brush;
 
@@ -364,13 +357,18 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 		return NULL;
 	}
 
-	if (brush_tool(brush_orig, tool_offset) != tool) {
+	if (brush_tool(brush_orig, paint->runtime.tool_offset) != tool) {
 		/* If current brush's tool is different from what we need,
 		 * start cycling from the beginning of the list.
 		 * Such logic will activate the same exact brush not relating from
 		 * which tool user requests other tool.
 		 */
-		first_brush = bmain->brush.first;
+
+		/* Try to tool-slot first. */
+		first_brush = BKE_paint_toolslots_brush_get(paint, tool);
+		if (first_brush == NULL) {
+			first_brush = bmain->brush.first;
+		}
 	}
 	else {
 		/* If user wants to switch to brush with the same  tool as
@@ -383,8 +381,8 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 	/* get the next brush with the active tool */
 	brush = first_brush;
 	do {
-		if ((brush->ob_mode & ob_mode) &&
-		    (brush_tool(brush, tool_offset) == tool))
+		if ((brush->ob_mode & paint->runtime.ob_mode) &&
+		    (brush_tool(brush, paint->runtime.tool_offset) == tool))
 		{
 			return brush;
 		}
@@ -395,13 +393,13 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 	return NULL;
 }
 
-static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
+static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, const int tool)
 {
-	if (!brush_orig || brush_tool(brush_orig, tool_offset) != tool) {
+	if (!brush_orig || brush_tool(brush_orig, paint->runtime.tool_offset) != tool) {
 		Brush *br;
 		/* if the current brush is not using the desired tool, look
 		 * for one that is */
-		br = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
+		br = brush_tool_cycle(bmain, paint, brush_orig, tool);
 		/* store the previously-selected brush */
 		if (br)
 			br->toggle_brush = brush_orig;
@@ -419,21 +417,22 @@ static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, 
 
 static int brush_generic_tool_set(
         Main *bmain, Paint *paint, const int tool,
-        const size_t tool_offset, const int ob_mode,
         const char *tool_name, const bool create_missing,
         const bool toggle)
 {
 	Brush *brush, *brush_orig = BKE_paint_brush(paint);
 
-	if (toggle)
-		brush = brush_tool_toggle(bmain, brush_orig, tool, tool_offset, ob_mode);
-	else
-		brush = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
+	if (toggle) {
+		brush = brush_tool_toggle(bmain, paint, brush_orig, tool);
+	}
+	else {
+		brush = brush_tool_cycle(bmain, paint, brush_orig, tool);
+	}
 
-	if (!brush && brush_tool(brush_orig, tool_offset) != tool && create_missing) {
-		brush = BKE_brush_add(bmain, tool_name, ob_mode);
+	if (!brush && brush_tool(brush_orig, paint->runtime.tool_offset) != tool && create_missing) {
+		brush = BKE_brush_add(bmain, tool_name, paint->runtime.ob_mode);
 		id_us_min(&brush->id);  /* fake user only */
-		brush_tool_set(brush, tool_offset, tool);
+		brush_tool_set(brush, paint->runtime.tool_offset, tool);
 		brush->toggle_brush = brush_orig;
 	}
 
@@ -448,10 +447,6 @@ static int brush_generic_tool_set(
 		return OPERATOR_CANCELLED;
 	}
 }
-#endif
-
-/* used in the PAINT_OT_brush_select operator */
-#define OB_MODE_ACTIVE 0
 
 static int brush_select_exec(bContext *C, wmOperator *op)
 {
@@ -459,7 +454,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ePaintMode paint_mode = RNA_enum_get(op->ptr, "paint_mode");
 	const bool create_missing = RNA_boolean_get(op->ptr, "create_missing");
-	/* const bool toggle = RNA_boolean_get(op->ptr, "toggle"); */
+	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	const char *tool_name = "Brush";
 
 	if (paint_mode == ePaintInvalid) {
@@ -470,7 +465,6 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	}
 
 	Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-	const uint tool_offset = paint->runtime.tool_offset;
 	const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
 	const char *op_prop_id = NULL;
 
@@ -488,35 +482,10 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 	const int tool = RNA_enum_get(op->ptr, op_prop_id);
 	RNA_enum_name_from_value(items, tool, &tool_name);
-
-	/* TODO: old brush setting code disabled, replaced by tool system. */
-#if 0
-	Paint *paint = BKE_paint_get_active_from_context(C);
 	return brush_generic_tool_set(
-	        bmain, paint, tool, tool_offset,
-	        paint_mode, tool_name, create_missing,
+	        bmain, paint, tool,
+	        tool_name, create_missing,
 	        toggle);
-#else
-	/* Find matching brush. */
-	Brush *brush = BKE_paint_toolslots_brush_get(paint, tool);
-
-	/* Create missing brush if needed. */
-	if (!brush) {
-		if (create_missing) {
-			brush = BKE_brush_add(bmain, tool_name, paint_mode);
-			id_us_min(&brush->id);  /* fake user only */
-			brush_tool_set(brush, tool_offset, tool);
-		}
-		else {
-			return OPERATOR_CANCELLED;
-		}
-	}
-
-	/* Let tool system cycle through brushes. */
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	WM_toolsystem_ref_set_by_name(C, workspace, NULL, tool_name, true);
-	return OPERATOR_FINISHED;
-#endif
 }
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
