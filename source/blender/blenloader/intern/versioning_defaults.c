@@ -207,6 +207,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			scene->r.cfra = 1.0f;
 			scene->r.displaymode = R_OUTPUT_WINDOW;
 
+			/* AV Sync break physics sim caching, disable until that is fixed. */
+			if (!(app_template && STREQ(app_template, "Video_Editing"))) {
+				scene->audio.flag &= ~AUDIO_SYNC;
+				scene->flag &= ~SCE_FRAME_DROP;
+			}
+
 			/* Don't enable compositing nodes. */
 			if (scene->nodetree) {
 				ntreeFreeTree(scene->nodetree);
