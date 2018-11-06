@@ -775,7 +775,7 @@ class TOPBAR_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("wm.search_menu", text="Operator Search...")
+        layout.operator("wm.search_menu", text="Operator Search...", icon='VIEWZOOM')
 
         layout.separator()
 
@@ -925,14 +925,16 @@ class TOPBAR_MT_window_specials(Menu):
 
         layout.operator_context = 'INVOKE_AREA'
 
-        layout.operator("screen.area_dupli")
-
-        layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
+        layout.operator("screen.area_dupli", icon='DUPLICATE')
 
         layout.separator()
 
         layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
         layout.operator("screen.area_split", text="Vertical Split").direction = 'VERTICAL'
+
+        layout.separator()
+
+        layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
 
         layout.separator()
 
@@ -945,14 +947,14 @@ class TOPBAR_MT_workspace_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("workspace.duplicate", text="Duplicate")
+        layout.operator("workspace.duplicate", text="Duplicate", icon='DUPLICATE')
         if len(bpy.data.workspaces) > 1:
-            layout.operator("workspace.delete", text="Delete")
+            layout.operator("workspace.delete", text="Delete", icon='REMOVE')
 
         layout.separator()
 
-        layout.operator("workspace.reorder_to_front", text="Reorder to Front")
-        layout.operator("workspace.reorder_to_back", text="Reorder to Back")
+        layout.operator("workspace.reorder_to_front", text="Reorder to Front", icon='TRIA_LEFT_BAR')
+        layout.operator("workspace.reorder_to_back", text="Reorder to Back", icon='TRIA_RIGHT_BAR')
 
 
 class TOPBAR_PT_active_tool(Panel):

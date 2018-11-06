@@ -502,7 +502,7 @@ static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
 
 static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_ADD);
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
 	uiItemMenuF(layout, IFACE_("General"), ICON_NONE, workspace_add_menu, NULL);
@@ -523,7 +523,7 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	BLI_freelistN(&templates);
 
 	uiItemS(layout);
-	uiItemO(layout, "Duplicate Current", ICON_NONE, "WORKSPACE_OT_duplicate");
+	uiItemO(layout, "Duplicate Current", ICON_DUPLICATE, "WORKSPACE_OT_duplicate");
 
 	UI_popup_menu_end(C, pup);
 
