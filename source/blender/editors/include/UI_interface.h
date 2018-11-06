@@ -235,7 +235,8 @@ enum {
 	UI_BUT_ACTIVE_LEFT       = (1 << 21), /* Active left part of number button */
 	UI_BUT_ACTIVE_RIGHT      = (1 << 22), /* Active right part of number button */
 
-	UI_BUT_HAS_SHORTCUT      = (1 << 23), /* Button has shortcut text */
+	/* (also used by search buttons to enforce shortcut display for their items). */
+	UI_BUT_HAS_SHORTCUT      = (1 << 23), /* Button has shortcut text. */
 
 	UI_BUT_ICON_REVERSE      = (1 << 24), /* Reverse order of consecutive off/on icons */
 };
