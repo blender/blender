@@ -124,14 +124,14 @@ const EnumPropertyItem rna_enum_brush_image_tool_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-#ifndef RNA_RUNTIME
-static EnumPropertyItem rna_enum_gpencil_brush_types_items[] = {
+const EnumPropertyItem rna_enum_brush_gpencil_types_items[] = {
 	{GPAINT_TOOL_DRAW, "DRAW", ICON_GP_STROKE, "Draw", "The brush is of type used for drawing strokes"},
 	{GPAINT_TOOL_FILL, "FILL", ICON_COLOR, "Fill", "The brush is of type used for filling areas"},
 	{GPAINT_TOOL_ERASE, "ERASE", ICON_PANEL_CLOSE, "Erase", "The brush is used for erasing strokes"},
 	{0, NULL, 0, NULL, NULL}
 };
 
+#ifndef RNA_RUNTIME
 static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {
 	{ GP_BRUSH_ERASER_SOFT, "SOFT", 0, "Soft", "Use soft eraser" },
 	{ GP_BRUSH_ERASER_HARD, "HARD", 0, "Hard", "Use hard eraser" },
@@ -1360,7 +1360,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "gpencil_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gpencil_tool");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_types_items);
+	RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_types_items);
 	RNA_def_property_ui_text(prop, "Type", "Category of the brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 

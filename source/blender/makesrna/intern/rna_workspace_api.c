@@ -116,13 +116,20 @@ static void rna_WorkspaceTool_refresh_from_context(
 				}
 			}
 			else {
-				Paint *paint = BKE_paint_get_active(scene, view_layer);
-				if (paint) {
+				const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+				Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+				const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+				if (paint && paint->brush && items) {
 					const ID *brush = (ID *)paint->brush;
-					if (brush) {
-						if (!STREQ(tref_rt->data_block, brush->name + 2)) {
-							STRNCPY(tref_rt->data_block, brush->name + 2);
-							STRNCPY(tref->idname, brush->name + 2);
+					const char tool_type = *(char *)POINTER_OFFSET(brush, paint->runtime.tool_offset);
+					const int i = RNA_enum_from_value(items, tool_type);
+					/* Possible when loading files from the future. */
+					if (i != -1) {
+						const char *name = items[i].name;
+						const char *identifier = items[i].identifier;
+						if (!STREQ(tref_rt->data_block, identifier)) {
+							STRNCPY(tref_rt->data_block, identifier);
+							STRNCPY(tref->idname, name);
 						}
 					}
 				}

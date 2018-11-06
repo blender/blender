@@ -39,64 +39,12 @@ from .properties_grease_pencil_common import (
 )
 
 
-def generate_from_brushes_tool_slots_ex(
-        context, paint, *,
-        icon_prefix,
-        brush_category_attr,
-        brush_category_layout,
-        # Optional
-        tooldef_keywords={},
-):
-    # Categories
-    brush_categories = {}
-    for paint_slot in paint.tool_slots:
-        brush = paint_slot.brush
-        if brush is None:
-            continue
-        category = getattr(brush, brush_category_attr)
-        name = brush.name
-        brush_categories.setdefault(category, []).append(
-            ToolDef.from_dict(
-                dict(
-                    text=name,
-                    icon=icon_prefix + category.lower(),
-                    data_block=name,
-                    **tooldef_keywords,
-                )
-            )
-        )
-
-    def tools_from_brush_group(groups):
-        assert(type(groups) is tuple)
-        if len(groups) == 1:
-            tool_defs = tuple(brush_categories.pop(groups[0], ()))
-        else:
-            tool_defs = tuple(item for g in groups for item in brush_categories.pop(g, ()))
-
-        if len(tool_defs) > 1:
-            return (tool_defs,)
-        else:
-            return tool_defs
-
-    # Each item below is a single toolbar entry:
-    # Grouped for multiple or none if no brushes are found.
-    tool_defs = tuple(
-        tool_def
-        for category in brush_category_layout
-        for tool_def in tools_from_brush_group(category)
-    )
-    # Ensure we use all types.
-    if brush_categories:
-        print(brush_categories)
-    assert(len(brush_categories) == 0)
-    return tool_defs
-
-
 def generate_from_enum_ex(
         context, *,
         icon_prefix,
         type,
         attr,
+        tooldef_keywords={},
 ):
     tool_defs = []
     for enum in type.bl_rna.properties[attr].enum_items_static:
@@ -108,6 +56,7 @@ def generate_from_enum_ex(
                     text=name,
                     icon=icon_prefix + identifier.lower(),
                     data_block=identifier,
+                    **tooldef_keywords,
                 )
             )
         )
@@ -1015,26 +964,11 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_brushes_tool_slots_ex(
-            context, context.tool_settings.sculpt,
+        return generate_from_enum_ex(
+            context,
             icon_prefix="brush.sculpt.",
-            brush_category_attr="sculpt_tool",
-            brush_category_layout=(
-                ('DRAW',),
-                ('GRAB', 'THUMB'),
-                ('SNAKE_HOOK',),
-                ('BLOB', 'INFLATE'),
-                ('SMOOTH',),
-                ('SCRAPE',),
-                ('FLATTEN',),
-                ('CREASE', 'PINCH'),
-                ('CLAY', 'CLAY_STRIPS'),
-                ('LAYER',),
-                ('NUDGE', 'ROTATE'),
-                ('FILL',),
-                ('SIMPLIFY',),
-                ('MASK',),
-            ),
+            type=bpy.types.Brush,
+            attr="sculpt_tool",
         )
 
     @ToolDef.from_fn
@@ -1072,40 +1006,22 @@ class _defs_vertex_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_brushes_tool_slots_ex(
-            context, context.tool_settings.vertex_paint,
+        return generate_from_enum_ex(
+            context,
             icon_prefix="brush.paint_vertex.",
-            brush_category_attr="vertex_tool",
-            brush_category_layout=(
-                ('MIX',),
-                ('BLUR', 'AVERAGE'),
-                ('SMEAR',),
-                (
-                    'ADD', 'SUB', 'MUL', 'LIGHTEN', 'DARKEN',
-                    'COLORDODGE', 'DIFFERENCE', 'SCREEN', 'HARDLIGHT',
-                    'OVERLAY', 'SOFTLIGHT', 'EXCLUSION', 'LUMINOCITY',
-                    'SATURATION', 'HUE', 'ERASE_ALPHA', 'ADD_ALPHA',
-                ),
-            ),
+            type=bpy.types.Brush,
+            attr="vertex_tool",
         )
-
 
 class _defs_texture_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_brushes_tool_slots_ex(
-            context, context.tool_settings.image_paint,
+        return generate_from_enum_ex(
+            context,
             icon_prefix="brush.paint_texture.",
-            brush_category_attr="image_tool",
-            brush_category_layout=(
-                ('DRAW',),
-                ('SOFTEN',),
-                ('SMEAR',),
-                ('CLONE',),
-                ('FILL',),
-                ('MASK',),
-            ),
+            type=bpy.types.Brush,
+            attr="image_tool",
         )
 
 
@@ -1120,21 +1036,11 @@ class _defs_weight_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_brushes_tool_slots_ex(
-            context, context.tool_settings.weight_paint,
+        return generate_from_enum_ex(
+            context,
             icon_prefix="brush.paint_weight.",
-            brush_category_attr="vertex_tool",
-            brush_category_layout=(
-                ('MIX',),
-                ('BLUR', 'AVERAGE'),
-                ('SMEAR',),
-                (
-                    'ADD', 'SUB', 'MUL', 'LIGHTEN', 'DARKEN',
-                    'COLORDODGE', 'DIFFERENCE', 'SCREEN', 'HARDLIGHT',
-                    'OVERLAY', 'SOFTLIGHT', 'EXCLUSION', 'LUMINOCITY',
-                    'SATURATION', 'HUE',
-                ),
-            ),
+            type=bpy.types.Brush,
+            attr="vertex_tool",
         )
 
     @ToolDef.from_fn
@@ -1299,16 +1205,11 @@ class _defs_gpencil_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-
-        return generate_from_brushes_tool_slots_ex(
-            context, context.tool_settings.gpencil_paint,
+        return generate_from_enum_ex(
+            context,
             icon_prefix="brush.gpencil_draw.",
-            brush_category_attr="gpencil_tool",
-            brush_category_layout=(
-                ('DRAW',),
-                ('FILL',),
-                ('ERASE',),
-            ),
+            type=bpy.types.Brush,
+            attr="gpencil_tool",
             tooldef_keywords=dict(
                 operator="gpencil.draw",
             ),

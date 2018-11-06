@@ -79,6 +79,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "RNA_enum_types.h"
+
 #include "bmesh.h"
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
@@ -169,6 +171,28 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 		}
 	}
 
+	return NULL;
+}
+
+const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
+{
+	switch (mode) {
+		case ePaintSculpt:
+			return rna_enum_brush_sculpt_tool_items;
+		case ePaintVertex:
+			return rna_enum_brush_vertex_tool_items;
+		case ePaintWeight:
+			return rna_enum_brush_vertex_tool_items;
+		case ePaintTextureProjective:
+		case ePaintTexture2D:
+			return rna_enum_brush_image_tool_items;
+		case ePaintSculptUV:
+			return NULL;
+		case ePaintGpencil:
+			return rna_enum_brush_gpencil_types_items;
+		case ePaintInvalid:
+			break;
+	}
 	return NULL;
 }
 
@@ -282,6 +306,32 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 		else {
 			/* default to image paint */
 			return ePaintTexture2D;
+		}
+	}
+
+	return ePaintInvalid;
+}
+
+ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
+{
+	if (tref->space_type == SPACE_VIEW3D) {
+		switch (tref->mode) {
+			case CTX_MODE_SCULPT:
+				return ePaintSculpt;
+			case CTX_MODE_PAINT_VERTEX:
+				return ePaintVertex;
+			case CTX_MODE_PAINT_WEIGHT:
+				return ePaintWeight;
+			case CTX_MODE_GPENCIL_PAINT:
+				return ePaintGpencil;
+			case CTX_MODE_PAINT_TEXTURE:
+				return ePaintTextureProjective;
+		}
+	}
+	else if (tref->space_type == SPACE_IMAGE) {
+		switch (tref->mode) {
+			case SI_MODE_PAINT:
+				return ePaintTexture2D;
 		}
 	}
 

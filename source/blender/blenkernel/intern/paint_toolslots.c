@@ -22,6 +22,8 @@
  *  \ingroup bke
  */
 
+#include <limits.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_modifier_types.h"
@@ -36,6 +38,8 @@
 
 void BKE_paint_toolslots_len_ensure(Paint *paint, int len)
 {
+	/* Tool slots are 'uchar'. */
+	BLI_assert(len <= UCHAR_MAX);
 	if (paint->tool_slots_len < len) {
 		paint->tool_slots = MEM_recallocN(paint->tool_slots, sizeof(*paint->tool_slots) * len);
 		paint->tool_slots_len = len;
@@ -121,4 +125,13 @@ void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
 
 	/* Fill slots from brushes. */
 	paint_toolslots_init(bmain, paint);
+}
+
+Brush *BKE_paint_toolslots_brush_get(Paint *paint, int slot_index)
+{
+	if (slot_index < paint->tool_slots_len) {
+		PaintToolSlot *tslot = &paint->tool_slots[slot_index];
+		return tslot->brush;
+	}
+	return NULL;
 }

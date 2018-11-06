@@ -41,6 +41,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -242,19 +243,28 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 			}
 		}
 		else {
-			struct Brush *brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, tref_rt->data_block);
-			if (brush) {
+			const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+			BLI_assert(paint_mode != ePaintInvalid);
+			const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+			BLI_assert(items != NULL);
+
+			const int i = items ? RNA_enum_from_identifier(items, tref_rt->data_block) : -1;
+			if (i != -1) {
+				const int slot_index = items[i].value;
 				wmWindowManager *wm = bmain->wm.first;
 				for (wmWindow *win = wm->windows.first; win; win = win->next) {
 					if (workspace == WM_window_get_active_workspace(win)) {
 						Scene *scene = WM_window_get_active_scene(win);
-						ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-						Paint *paint = BKE_paint_get_active(scene, view_layer);
-						if (paint) {
-							if (brush) {
-								BKE_paint_brush_set(paint, brush);
-							}
+						Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+						struct Brush *brush = BKE_paint_toolslots_brush_get(paint, slot_index);
+						if (brush == NULL) {
+							/* Could make into a function. */
+							brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
+							char *tool_type = (char *)POINTER_OFFSET(brush, paint->runtime.tool_offset);
+							*tool_type = slot_index;
+							BKE_paint_brush_set(paint, brush);
 						}
+						BKE_paint_brush_set(paint, brush);
 					}
 				}
 			}
