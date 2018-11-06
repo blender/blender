@@ -77,6 +77,9 @@ void WM_toolsystem_ref_set_from_runtime(
         struct bContext *C, struct WorkSpace *workspace, struct bToolRef *tref,
         const struct bToolRef_Runtime *tool, const char *idname);
 
+void WM_toolsystem_ref_sync_from_context(
+        struct Main *bmain, struct WorkSpace *workspace, struct bToolRef *tref);
+
 void WM_toolsystem_init(struct bContext *C);
 
 int WM_toolsystem_mode_from_spacetype(

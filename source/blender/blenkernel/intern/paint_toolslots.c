@@ -34,6 +34,7 @@
 
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_brush.h"
 #include "BKE_paint.h"
 
 void BKE_paint_toolslots_len_ensure(Paint *paint, int len)
@@ -51,12 +52,11 @@ static void paint_toolslots_init(Main *bmain, Paint *paint)
 	if (paint == NULL) {
 		return;
 	}
-	const uint tool_offset = paint->runtime.tool_offset;
 	const eObjectMode ob_mode = paint->runtime.ob_mode;
-	BLI_assert(tool_offset && ob_mode);
+	BLI_assert(paint->runtime.tool_offset && ob_mode);
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
 		if (brush->ob_mode & ob_mode) {
-			const int slot_index = *(char *)POINTER_OFFSET(brush, tool_offset);
+			const int slot_index = BKE_brush_tool_get(brush, paint);
 			BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
 			if (paint->tool_slots[slot_index].brush == NULL) {
 				paint->tool_slots[slot_index].brush = brush;
@@ -83,7 +83,7 @@ void BKE_paint_toolslots_brush_update_ex(Paint *paint, Brush *brush)
 {
 	const uint tool_offset = paint->runtime.tool_offset;
 	BLI_assert(tool_offset != 0);
-	int slot_index = *(char *)POINTER_OFFSET(brush, tool_offset);
+	const int slot_index = BKE_brush_tool_get(brush, paint);
 	BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
 	PaintToolSlot *tslot = &paint->tool_slots[slot_index];
 	id_us_plus(&brush->id);
@@ -112,8 +112,9 @@ void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
 	for (int i = 0; i < paint->tool_slots_len; i++) {
 		PaintToolSlot *tslot = &paint->tool_slots[i];
 		if (tslot->brush) {
-			int slot_index = *(char *)POINTER_OFFSET(tslot->brush, tool_offset);
-			if ((slot_index != i) || (tslot->brush->ob_mode & ob_mode) == 0) {
+			if ((i != BKE_brush_tool_get(tslot->brush, paint)) ||
+			    (tslot->brush->ob_mode & ob_mode) == 0)
+			{
 				id_us_min(&tslot->brush->id);
 				tslot->brush = NULL;
 			}

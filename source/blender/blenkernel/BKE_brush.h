@@ -126,6 +126,14 @@ void BKE_brush_scale_size(
         float new_unprojected_radius,
         float old_unprojected_radius);
 
+/* Accessors */
+#define BKE_brush_tool_get(brush, p) \
+	(CHECK_TYPE_ANY(brush, struct Brush *, const struct Brush *), \
+	 *(const char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset))
+#define BKE_brush_tool_set(brush, p, tool) { \
+	CHECK_TYPE_ANY(brush, struct Brush *); \
+	*(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset) = tool; } ((void)0)
+
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);
 

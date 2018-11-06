@@ -75,67 +75,7 @@ static void rna_WorkspaceTool_refresh_from_context(
         bToolRef *tref,
         Main *bmain)
 {
-	bToolRef_Runtime *tref_rt = tref->runtime;
-	if ((tref_rt == NULL) || (tref_rt->data_block[0] == '\0')) {
-		return;
-	}
-	wmWindowManager *wm = bmain->wm.first;
-	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		WorkSpace *workspace = WM_window_get_active_workspace(win);
-		if (&workspace->id == id) {
-			Scene *scene = WM_window_get_active_scene(win);
-			ToolSettings *ts = scene->toolsettings;
-			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-			Object *ob = OBACT(view_layer);
-			if (ob == NULL) {
-				/* pass */
-			}
-			else if ((tref->space_type == SPACE_VIEW3D) &&
-			         (tref->mode == CTX_MODE_PARTICLE) &&
-			         (ob->mode & OB_MODE_PARTICLE_EDIT))
-			{
-				const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
-				const int i = RNA_enum_from_value(items, ts->particle.brushtype);
-				const EnumPropertyItem *item = &items[i];
-				if (!STREQ(tref_rt->data_block, item->identifier)) {
-					STRNCPY(tref_rt->data_block, item->identifier);
-					STRNCPY(tref->idname, item->name);
-				}
-			}
-			else if ((tref->space_type == SPACE_IMAGE) &&
-			         (tref->mode == SI_MODE_UV) &&
-			         (ob->mode &
-			          OB_MODE_EDIT))
-			{
-				const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
-				const int i = RNA_enum_from_value(items, ts->uv_sculpt_tool);
-				const EnumPropertyItem *item = &items[i];
-				if (!STREQ(tref_rt->data_block, item->identifier)) {
-					STRNCPY(tref_rt->data_block, item->identifier);
-					STRNCPY(tref->idname, item->name);
-				}
-			}
-			else {
-				const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
-				Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-				const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-				if (paint && paint->brush && items) {
-					const ID *brush = (ID *)paint->brush;
-					const char tool_type = *(char *)POINTER_OFFSET(brush, paint->runtime.tool_offset);
-					const int i = RNA_enum_from_value(items, tool_type);
-					/* Possible when loading files from the future. */
-					if (i != -1) {
-						const char *name = items[i].name;
-						const char *identifier = items[i].identifier;
-						if (!STREQ(tref_rt->data_block, identifier)) {
-							STRNCPY(tref_rt->data_block, identifier);
-							STRNCPY(tref->idname, name);
-						}
-					}
-				}
-			}
-		}
-	}
+	WM_toolsystem_ref_sync_from_context(bmain, (WorkSpace *)id, tref);
 }
 
 static PointerRNA rna_WorkspaceTool_operator_properties(

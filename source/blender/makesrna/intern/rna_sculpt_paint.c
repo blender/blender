@@ -44,6 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
+#include "BKE_brush.h"
 
 #include "ED_image.h"
 
@@ -280,9 +281,7 @@ static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 
 	if (brush->ob_mode & ob_mode) {
 		if (paint->brush) {
-			const char *tool_a = (const char *)POINTER_OFFSET(paint->brush, tool_offset);
-			const char *tool_b = (const char *)POINTER_OFFSET(brush,        tool_offset);
-			if (*tool_a == *tool_b) {
+			if (BKE_brush_tool_get(paint->brush, paint) == BKE_brush_tool_get(brush, paint)) {
 				return true;
 			}
 		}

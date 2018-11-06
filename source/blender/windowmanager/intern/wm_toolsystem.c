@@ -260,13 +260,12 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 						if (brush == NULL) {
 							/* Could make into a function. */
 							brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, items[i].name);
-							if (brush && slot_index == *(char *)POINTER_OFFSET(brush, paint->runtime.tool_offset)) {
+							if (brush && slot_index == BKE_brush_tool_get(brush, paint)) {
 								/* pass */
 							}
 							else {
 								brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
-								char *tool_type = (char *)POINTER_OFFSET(brush, paint->runtime.tool_offset);
-								*tool_type = slot_index;
+								BKE_brush_tool_set(brush, paint, slot_index);
 							}
 							BKE_paint_brush_set(paint, brush);
 						}
@@ -405,6 +404,77 @@ void WM_toolsystem_ref_set_from_runtime(
 		struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 		WM_msg_publish_rna_prop(
 		        mbus, &workspace->id, workspace, WorkSpace, tools);
+	}
+}
+
+/**
+ * Sync the internal active state of a tool back into the tool system,
+ * this is needed for active brushes where the real active state is not stored in the tool system.
+ */
+void WM_toolsystem_ref_sync_from_context(
+        Main *bmain, WorkSpace *workspace, bToolRef *tref)
+{
+	bToolRef_Runtime *tref_rt = tref->runtime;
+	if ((tref_rt == NULL) || (tref_rt->data_block[0] == '\0')) {
+		return;
+	}
+	wmWindowManager *wm = bmain->wm.first;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (workspace != WM_window_get_active_workspace(win)) {
+			continue;
+		}
+
+		Scene *scene = WM_window_get_active_scene(win);
+		ToolSettings *ts = scene->toolsettings;
+		ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+		Object *ob = OBACT(view_layer);
+		if (ob == NULL) {
+			/* pass */
+		}
+		else if ((tref->space_type == SPACE_VIEW3D) &&
+				 (tref->mode == CTX_MODE_PARTICLE) &&
+				 (ob->mode & OB_MODE_PARTICLE_EDIT))
+		{
+			const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
+			const int i = RNA_enum_from_value(items, ts->particle.brushtype);
+			const EnumPropertyItem *item = &items[i];
+			if (!STREQ(tref_rt->data_block, item->identifier)) {
+				STRNCPY(tref_rt->data_block, item->identifier);
+				STRNCPY(tref->idname, item->name);
+			}
+		}
+		else if ((tref->space_type == SPACE_IMAGE) &&
+				 (tref->mode == SI_MODE_UV) &&
+				 (ob->mode &
+				  OB_MODE_EDIT))
+		{
+			const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
+			const int i = RNA_enum_from_value(items, ts->uv_sculpt_tool);
+			const EnumPropertyItem *item = &items[i];
+			if (!STREQ(tref_rt->data_block, item->identifier)) {
+				STRNCPY(tref_rt->data_block, item->identifier);
+				STRNCPY(tref->idname, item->name);
+			}
+		}
+		else {
+			const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+			Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+			const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
+			if (paint && paint->brush && items) {
+				const ID *brush = (ID *)paint->brush;
+				const char tool_type = BKE_brush_tool_get((struct Brush *)brush, paint);
+				const int i = RNA_enum_from_value(items, tool_type);
+				/* Possible when loading files from the future. */
+				if (i != -1) {
+					const char *name = items[i].name;
+					const char *identifier = items[i].identifier;
+					if (!STREQ(tref_rt->data_block, identifier)) {
+						STRNCPY(tref_rt->data_block, identifier);
+						STRNCPY(tref->idname, name);
+					}
+				}
+			}
+		}
 	}
 }
 
