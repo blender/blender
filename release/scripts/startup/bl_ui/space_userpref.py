@@ -22,7 +22,6 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
-    Operator,
 )
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
@@ -1284,8 +1283,13 @@ class USERPREF_PT_addons(Panel):
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
 
-        userpref_addons_folder = os.path.join(userpref.filepaths.script_directory, "addons")
-        scripts_addons_folder = bpy.utils.user_resource('SCRIPTS', "addons")
+        addon_user_dirs = tuple(
+            p for p in (
+                os.path.join(userpref.filepaths.script_directory, "addons"),
+                bpy.utils.user_resource('SCRIPTS', "addons"),
+            )
+            if p
+        )
 
         # collect the categories that can be filtered on
         addons = [
@@ -1347,7 +1351,7 @@ class USERPREF_PT_addons(Panel):
                     (filter == info["category"]) or
                     (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
-                    (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
+                    (filter == "User" and (mod.__file__.startswith(addon_user_dirs)))
             ):
                 if search and search not in info["name"].lower():
                     if info["author"]:
