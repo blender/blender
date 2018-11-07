@@ -36,7 +36,7 @@ class UnitTesting(ViewLayerTesting):
                 master_collection.collections[0])
 
         view_layer.collections.link(master_collection)
-        ob.select_set('SELECT')
+        ob.select_set(True)
 
         # update depsgraph
         scene.update()

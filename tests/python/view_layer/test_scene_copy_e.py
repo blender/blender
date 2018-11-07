@@ -26,7 +26,7 @@ class UnitTesting(ViewLayerTesting):
         layer = bpy.context.view_layer
 
         original_cube = layer.objects.get('Cube')
-        original_cube.select_set('SELECT')
+        original_cube.select_set(True)
         self.assertTrue(original_cube.select_get())
 
         bpy.ops.scene.new(type='FULL_COPY')

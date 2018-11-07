@@ -92,9 +92,13 @@ static const EnumPropertyItem space_items[] = {
 
 #include "MEM_guardedalloc.h"
 
-static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, int action)
+static void rna_Object_select_set(
+        Object *ob, bContext *C, ReportList *reports,
+        bool select, ViewLayer *view_layer)
 {
-	ViewLayer *view_layer = CTX_data_view_layer(C);
+	if (view_layer == NULL) {
+		view_layer = CTX_data_view_layer(C);
+	}
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
@@ -102,29 +106,16 @@ static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, 
 		return;
 	}
 
-	if (action == 2) { /* TOGGLE */
-		if ((base->flag & BASE_SELECTED) != 0) {
-			action = 1; /* DESELECT */
-		}
-		else {
-			action = 0; /* SELECT */
-		}
+	if (select) {
+		BKE_view_layer_base_select(base);
 	}
-
-	switch (action) {
-		case 1: /* DESELECT */
-			base->flag &= ~BASE_SELECTED;
-			break;
-		case 0: /* SELECT */
-		default:
-			BKE_view_layer_base_select_and_set_active(view_layer, base);
-			break;
+	else {
+		base->flag &= ~BASE_SELECTED;
 	}
 
 	Scene *scene = CTX_data_scene(C);
 	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
-	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 }
 
 static bool rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
@@ -497,19 +488,13 @@ void RNA_api_object(StructRNA *srna)
 	};
 #endif
 
-	static EnumPropertyItem object_select_items[] = {
-	    {0, "SELECT", 0, "Select", "Select object from the active view layer"},
-	    {1, "DESELECT", 0, "Deselect", "Deselect object from the active view layer"},
-	    {2, "TOGGLE", 0, "Toggle", "Toggle object selection from the active view layer"},
-	    {0, NULL, 0, NULL, NULL}
-	};
-
 	/* Special wrapper to access the base selection value */
 	func = RNA_def_function(srna, "select_set", "rna_Object_select_set");
 	RNA_def_function_ui_description(func, "Select the object (for the active view layer)");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-	parm = RNA_def_enum(func, "action", object_select_items, 0, "Action", "Select mode");
+	parm = RNA_def_boolean(func, "state", 0, "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Operate on this view layer instead of the context");
 
 	func = RNA_def_function(srna, "select_get", "rna_Object_select_get");
 	RNA_def_function_ui_description(func, "Get the object selection for the active view layer");

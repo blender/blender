@@ -25,5 +25,5 @@ view_layer.active_layer_collection.collection.objects.link(light_object)
 light_object.location = (5.0, 5.0, 5.0)
 
 # And finally select it and make it active.
-light_object.select_set('SELECT')
+light_object.select_set(True)
 view_layer.objects.active = light_object

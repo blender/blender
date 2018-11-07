@@ -18,7 +18,7 @@ bpy.ops.object.select_all(action='DESELECT')
 
 for obj in selection:
 
-    obj.select_set(action='SELECT')
+    obj.select_set(True)
 
     # some exporters only use the active object
     view_layer.objects.active = obj
@@ -31,7 +31,7 @@ for obj in selection:
     # Can be used for multiple formats
     # bpy.ops.export_scene.x3d(filepath=fn + ".x3d", use_selection=True)
 
-    obj.select_set(action='DESELECT')
+    obj.select_set(False)
 
     print("written:", fn)
 
@@ -39,4 +39,4 @@ for obj in selection:
 view_layer.objects.active = obj_active
 
 for obj in selection:
-    obj.select_set(action='SELECT')
+    obj.select_set(True)

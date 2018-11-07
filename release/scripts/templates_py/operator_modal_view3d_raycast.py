@@ -67,7 +67,7 @@ def main(context, event):
     # now we have the object under the mouse cursor,
     # we could do lots of stuff but for the example just select.
     if best_obj is not None:
-        best_obj.select_set(action='SELECT')
+        best_obj.select_set(True)
         context.view_layer.objects.active = best_obj
 
 
