@@ -1683,7 +1683,8 @@ bool BKE_animsys_execute_fcurve(PointerRNA *ptr, AnimMapper *remap, FCurve *fcu,
 static void animsys_write_orig_anim_rna(
         PointerRNA *ptr,
         AnimMapper *remap,
-        FCurve *fcu,
+        const char *rna_path,
+        int array_index,
         float value)
 {
 	/* Pointer is expected to be an ID pointer, if it's not -- we are doomed.
@@ -1699,7 +1700,7 @@ static void animsys_write_orig_anim_rna(
 	orig_ptr.data = orig_ptr.id.data;
 	PathResolvedRNA orig_anim_rna;
 	/* TODO(sergey): Is there a faster way to get anim_rna of original ID? */
-	if (animsys_store_rna_setting(&orig_ptr, remap, fcu->rna_path, fcu->array_index, &orig_anim_rna)) {
+	if (animsys_store_rna_setting(&orig_ptr, remap, rna_path, array_index, &orig_anim_rna)) {
 		animsys_write_rna_setting(&orig_anim_rna, value);
 	}
 }
@@ -1726,7 +1727,7 @@ static void animsys_evaluate_fcurves(
 			const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
 			animsys_write_rna_setting(&anim_rna, curval);
 			if (is_active_depsgraph) {
-				animsys_write_orig_anim_rna(ptr, remap, fcu, curval);
+				animsys_write_orig_anim_rna(ptr, remap, fcu->rna_path, fcu->array_index, curval);
 			}
 		}
 	}
@@ -2034,7 +2035,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(Depsgraph *depsgraph, ListBase *list, Li
 /* find an NlaEvalChannel that matches the given criteria
  *	- ptr and prop are the RNA data to find a match for
  */
-static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, PointerRNA *ptr, PropertyRNA *prop, int array_index)
+static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, const PathResolvedRNA *prna)
 {
 	NlaEvalChannel *nec;
 
@@ -2049,7 +2050,7 @@ static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, PointerRNA *pt
 		 *   other data stored in PointerRNA cannot allow us to definitively
 		 *	identify the data
 		 */
-		if ((nec->ptr.data == ptr->data) && (nec->prop == prop) && (nec->index == array_index))
+		if ((nec->rna.ptr.data == prna->ptr.data) && (nec->rna.prop == prna->prop) && ELEM(nec->rna.prop_index, -1, prna->prop_index))
 			return nec;
 	}
 
@@ -2058,11 +2059,11 @@ static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, PointerRNA *pt
 }
 
 /* initialise default value for NlaEvalChannel, so that it doesn't blend things wrong */
-static void nlaevalchan_value_init(NlaEvalChannel *nec)
+static float nlaevalchan_init_value(PathResolvedRNA *rna)
 {
-	PointerRNA *ptr = &nec->ptr;
-	PropertyRNA *prop = nec->prop;
-	int index = nec->index;
+	PointerRNA *ptr = &rna->ptr;
+	PropertyRNA *prop = rna->prop;
+	int index = rna->prop_index;
 
 	/* NOTE: while this doesn't work for all RNA properties as default values aren't in fact
 	 * set properly for most of them, at least the common ones (which also happen to get used
@@ -2071,27 +2072,23 @@ static void nlaevalchan_value_init(NlaEvalChannel *nec)
 	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
 			if (RNA_property_array_check(prop))
-				nec->value = (float)RNA_property_boolean_get_default_index(ptr, prop, index);
+				return (float)RNA_property_boolean_get_default_index(ptr, prop, index);
 			else
-				nec->value = (float)RNA_property_boolean_get_default(ptr, prop);
-			break;
+				return (float)RNA_property_boolean_get_default(ptr, prop);
 		case PROP_INT:
 			if (RNA_property_array_check(prop))
-				nec->value = (float)RNA_property_int_get_default_index(ptr, prop, index);
+				return (float)RNA_property_int_get_default_index(ptr, prop, index);
 			else
-				nec->value = (float)RNA_property_int_get_default(ptr, prop);
-			break;
+				return (float)RNA_property_int_get_default(ptr, prop);
 		case PROP_FLOAT:
 			if (RNA_property_array_check(prop))
-				nec->value = RNA_property_float_get_default_index(ptr, prop, index);
+				return RNA_property_float_get_default_index(ptr, prop, index);
 			else
-				nec->value = RNA_property_float_get_default(ptr, prop);
-			break;
+				return RNA_property_float_get_default(ptr, prop);
 		case PROP_ENUM:
-			nec->value = (float)RNA_property_enum_get_default(ptr, prop);
-			break;
+			return (float)RNA_property_enum_get_default(ptr, prop);
 		default:
-			break;
+			return 0.0f;
 	}
 }
 
@@ -2100,32 +2097,19 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 {
 	NlaEvalChannel *nec;
 	NlaStrip *strip = nes->strip;
-	PropertyRNA *prop;
-	PointerRNA new_ptr;
-	char *path = NULL;
-	/* short free_path = 0; */
+	PathResolvedRNA rna;
 
 	/* sanity checks */
 	if (channels == NULL)
 		return NULL;
 
 	/* get RNA pointer+property info from F-Curve for more convenient handling */
-	/* get path, remapped as appropriate to work in its new environment */
-	/* free_path = */ /* UNUSED */ animsys_remap_path(strip->remap, fcu->rna_path, &path);
-
-	/* a valid property must be available, and it must be animatable */
-	if (RNA_path_resolve_property(ptr, path, &new_ptr, &prop) == false) {
-		if (G.debug & G_DEBUG) printf("NLA Strip Eval: Cannot resolve path\n");
-		return NULL;
-	}
-	/* only ok if animatable */
-	else if (RNA_property_animateable(&new_ptr, prop) == 0) {
-		if (G.debug & G_DEBUG) printf("NLA Strip Eval: Property not animatable\n");
+	if (!animsys_store_rna_setting(ptr, strip->remap, fcu->rna_path, fcu->array_index, &rna)) {
 		return NULL;
 	}
 
 	/* try to find a match */
-	nec = nlaevalchan_find_match(channels, &new_ptr, prop, fcu->array_index);
+	nec = nlaevalchan_find_match(channels, &rna);
 
 	/* allocate a new struct for this if none found */
 	if (nec == NULL) {
@@ -2133,12 +2117,14 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 		BLI_addtail(channels, nec);
 
 		/* store property links for writing to the property later */
-		nec->ptr = new_ptr;
-		nec->prop = prop;
-		nec->index = fcu->array_index;
+		nec->rna = rna;
+
+		/* store parameters for use with write_orig_anim_rna */
+		nec->remap = strip->remap;
+		nec->rna_path = fcu->rna_path;
 
 		/* initialise value using default value of property [#35856] */
-		nlaevalchan_value_init(nec);
+		nec->value = nlaevalchan_init_value(&rna);
 		*newChan = true;
 	}
 	else
@@ -2217,7 +2203,7 @@ static void nlaevalchan_buffers_accumulate(ListBase *channels, ListBase *tmp_buf
 		necn = nec->next;
 
 		/* try to find an existing matching channel for this setting in the accumulation buffer */
-		necd = nlaevalchan_find_match(channels, &nec->ptr, nec->prop, nec->index);
+		necd = nlaevalchan_find_match(channels, &nec->rna);
 
 		/* if there was a matching channel already in the buffer, accumulate to it,
 		 * otherwise, add the current channel to the buffer for efficiency
@@ -2485,7 +2471,7 @@ void nlastrip_evaluate(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels
 }
 
 /* write the accumulated settings to */
-void nladata_flush_channels(ListBase *channels)
+void nladata_flush_channels(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels)
 {
 	NlaEvalChannel *nec;
 
@@ -2493,39 +2479,13 @@ void nladata_flush_channels(ListBase *channels)
 	if (channels == NULL)
 		return;
 
+	const bool is_active_depsgraph = DEG_is_active(depsgraph);
+
 	/* for each channel with accumulated values, write its value on the property it affects */
 	for (nec = channels->first; nec; nec = nec->next) {
-		PointerRNA *ptr = &nec->ptr;
-		PropertyRNA *prop = nec->prop;
-		int array_index = nec->index;
-		float value = nec->value;
-
-		/* write values - see animsys_write_rna_setting() to sync the code */
-		switch (RNA_property_type(prop)) {
-			case PROP_BOOLEAN:
-				if (RNA_property_array_check(prop))
-					RNA_property_boolean_set_index(ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
-				else
-					RNA_property_boolean_set(ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
-				break;
-			case PROP_INT:
-				if (RNA_property_array_check(prop))
-					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
-				else
-					RNA_property_int_set(ptr, prop, (int)value);
-				break;
-			case PROP_FLOAT:
-				if (RNA_property_array_check(prop))
-					RNA_property_float_set_index(ptr, prop, array_index, value);
-				else
-					RNA_property_float_set(ptr, prop, value);
-				break;
-			case PROP_ENUM:
-				RNA_property_enum_set(ptr, prop, (int)value);
-				break;
-			default:
-				/* can't do anything with other types of property.... */
-				break;
+		animsys_write_rna_setting(&nec->rna, nec->value);
+		if (is_active_depsgraph) {
+			animsys_write_orig_anim_rna(ptr, nec->remap, nec->rna_path, nec->rna.prop_index, nec->value);
 		}
 	}
 }
@@ -2659,7 +2619,7 @@ static void animsys_calculate_nla(Depsgraph *depsgraph, PointerRNA *ptr, AnimDat
 	animsys_evaluate_nla(depsgraph, &echannels, ptr, adt, ctime);
 
 	/* flush effects of accumulating channels in NLA to the actual data they affect */
-	nladata_flush_channels(&echannels);
+	nladata_flush_channels(depsgraph, ptr, &echannels);
 
 	/* free temp data */
 	BLI_freelistN(&echannels);
@@ -2995,7 +2955,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 				const float curval = evaluate_fcurve_driver(&anim_rna, fcu, driver_orig, ctime);
 				ok = animsys_write_rna_setting(&anim_rna, curval);
 				if (ok && DEG_is_active(depsgraph)) {
-					animsys_write_orig_anim_rna(&id_ptr, NULL, fcu, curval);
+					animsys_write_orig_anim_rna(&id_ptr, NULL, fcu->rna_path, fcu->array_index, curval);
 				}
 			}
 
