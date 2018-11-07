@@ -2429,16 +2429,20 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
  * Check if mouse is within scrollers
  *
  * \param x, y: Mouse coordinates in screen (not region) space.
+ * \param r_scroll: Mapped view2d scroll flag.
  *
  * \return appropriate code for match.
  * - 'h' = in horizontal scroller.
  * - 'v' = in vertical scroller.
  * - 0 = not in scroller.
  */
-short UI_view2d_mouse_in_scrollers(const ARegion *ar, View2D *v2d, int x, int y)
+char UI_view2d_mouse_in_scrollers_ex(
+        const ARegion *ar, View2D *v2d, int x, int y,
+        int *r_scroll)
 {
 	int co[2];
 	int scroll = view2d_scroll_mapped(v2d->scroll);
+	*r_scroll = scroll;
 
 	/* clamp x,y to region-coordinates first */
 	co[0] = x - ar->winrct.xmin;
@@ -2454,6 +2458,13 @@ short UI_view2d_mouse_in_scrollers(const ARegion *ar, View2D *v2d, int x, int y)
 
 	/* not found */
 	return 0;
+}
+
+char UI_view2d_mouse_in_scrollers(
+        const ARegion *ar, View2D *v2d, int x, int y)
+{
+	int scroll_dummy = 0;
+	return UI_view2d_mouse_in_scrollers_ex(ar, v2d, x, y, &scroll_dummy);
 }
 
 /* ******************* view2d text drawing cache ******************** */

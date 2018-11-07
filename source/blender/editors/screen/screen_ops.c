@@ -740,8 +740,16 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 			else if (az->type == AZONE_REGION_SCROLL) {
 				ARegion *ar = az->ar;
 				View2D *v2d = &ar->v2d;
-				const short isect_value = UI_view2d_mouse_in_scrollers(ar, v2d, xy[0], xy[1]);
-				if (test_only) {
+				int scroll_flag = 0;
+				const int isect_value = UI_view2d_mouse_in_scrollers_ex(ar, v2d, xy[0], xy[1], &scroll_flag);
+
+				/* Check if we even have scroll bars. */
+				if (((az->direction == AZ_SCROLL_HOR)  && !(scroll_flag & V2D_SCROLL_HORIZONTAL)) ||
+				    ((az->direction == AZ_SCROLL_VERT) && !(scroll_flag & V2D_SCROLL_VERTICAL)))
+				{
+					/* no scrollbars, do nothing. */
+				}
+				else if (test_only) {
 					if (isect_value != 0) {
 						break;
 					}

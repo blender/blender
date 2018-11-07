@@ -1587,7 +1587,7 @@ typedef struct v2dScrollerMove {
 	View2D *v2d;            /* View2D data that this operation affects */
 	ARegion *ar;            /* region that the scroller is in */
 
-	short scroller;         /* scroller that mouse is in ('h' or 'v') */
+	char scroller;          /* scroller that mouse is in ('h' or 'v') */
 	short zone; /* -1 is min zoomer, 0 is bar, 1 is max zoomer */             // XXX find some way to provide visual feedback of this (active color?)
 
 	float fac;              /* view adjustment factor, based on size of region */
@@ -1694,7 +1694,7 @@ static bool scroller_activate_poll(bContext *C)
 }
 
 /* initialize customdata for scroller manipulation operator */
-static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *event, short in_scroller)
+static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *event, const char in_scroller)
 {
 	v2dScrollerMove *vsm;
 	View2DScrollers *scrollers;
@@ -1928,10 +1928,9 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
-	short in_scroller = 0;
 
 	/* check if mouse in scrollbars, if they're enabled */
-	in_scroller = UI_view2d_mouse_in_scrollers(ar, v2d, event->x, event->y);
+	const char in_scroller = UI_view2d_mouse_in_scrollers(ar, v2d, event->x, event->y);
 
 	/* if in a scroller, init customdata then set modal handler which will catch mousedown to start doing useful stuff */
 	if (in_scroller) {
