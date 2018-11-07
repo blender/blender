@@ -420,22 +420,32 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 		        tool_name);
 
 		char *expr_result = NULL;
+		bool is_error = false;
 		if (BPY_execute_string_as_string(C, expr_imports, expr, true, &expr_result)) {
-			if (!STREQ(expr_result, ".")) {
-				uiTooltipField *field = text_field_add(
-				        data, &(uiTooltipFormat){
-				            .style = UI_TIP_STYLE_NORMAL,
-				            .color_id = UI_TIP_LC_MAIN,
-				            .is_pad = true,
-				        });
-				field->text = expr_result;
-			}
-			else {
+			if (STREQ(expr_result, ".")) {
 				MEM_freeN(expr_result);
+				expr_result = NULL;
 			}
 		}
 		else {
-			BLI_assert(0);
+			/* Note, this is an exceptional case, we could even remove it
+			 * however there have been reports of tooltips failing, so keep it for now. */
+			expr_result = BLI_strdup("Internal error!");
+			is_error = true;
+		}
+
+		if (expr_result != NULL) {
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_NORMAL,
+			            .color_id = UI_TIP_LC_MAIN,
+			            .is_pad = true,
+			        });
+			field->text = expr_result;
+
+			if (UNLIKELY(is_error)) {
+				field->format.color_id = UI_TIP_LC_ALERT;
+			}
 		}
 	}
 
