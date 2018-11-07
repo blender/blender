@@ -245,15 +245,10 @@ static void nupdate_ak_bezt(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and GPencil frame */
 static short compare_ak_gpframe(void *node, void *data)
 {
-	ActKeyColumn *ak = (ActKeyColumn *)node;
 	bGPDframe *gpf = (bGPDframe *)data;
 
-	if (gpf->framenum < ak->cfra)
-		return -1;
-	else if (gpf->framenum > ak->cfra)
-		return 1;
-	else
-		return 0;
+	float frame = gpf->framenum;
+	return compare_ak_cfraPtr(node, &frame);
 }
 
 /* New node callback used for building ActKeyColumns from GPencil frames */
@@ -295,15 +290,10 @@ static void nupdate_ak_gpframe(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and GPencil frame */
 static short compare_ak_masklayshape(void *node, void *data)
 {
-	ActKeyColumn *ak = (ActKeyColumn *)node;
 	MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
 
-	if (masklay_shape->frame < ak->cfra)
-		return -1;
-	else if (masklay_shape->frame > ak->cfra)
-		return 1;
-	else
-		return 0;
+	float frame = masklay_shape->frame;
+	return compare_ak_cfraPtr(node, &frame);
 }
 
 /* New node callback used for building ActKeyColumns from GPencil frames */
