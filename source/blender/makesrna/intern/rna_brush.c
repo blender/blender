@@ -568,7 +568,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA
 			}
 
 		case ePaintTexture2D:
-		case ePaintTextureProjective:
+		case ePaintTexture3D:
 			switch (me->imagepaint_tool) {
 				case PAINT_TOOL_SOFTEN:
 					return prop_soften_sharpen_items;
@@ -599,7 +599,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *U
 	switch (mode) {
 		case ePaintSculpt:
 		case ePaintTexture2D:
-		case ePaintTextureProjective:
+		case ePaintTexture3D:
 			return sculpt_stroke_method_items;
 
 		default:

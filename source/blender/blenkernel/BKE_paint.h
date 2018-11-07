@@ -69,9 +69,12 @@ extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
 typedef enum ePaintMode {
 	ePaintSculpt = 0,
+	/** Vertex color. */
 	ePaintVertex = 1,
 	ePaintWeight = 2,
-	ePaintTextureProjective = 3,
+	/** 3D view (projection painting). */
+	ePaintTexture3D = 3,
+	/** Image space (2D painting). */
 	ePaintTexture2D = 4,
 	ePaintSculptUV = 5,
 	ePaintInvalid = 6

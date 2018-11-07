@@ -205,7 +205,7 @@ static int palette_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	color = BKE_palette_color_add(palette);
 	palette->active_color = BLI_listbase_count(&palette->colors) - 1;
 
-	if (ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex)) {
+	if (ELEM(mode, ePaintTexture3D, ePaintTexture2D, ePaintVertex)) {
 		copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
 		color->value = 0.0;
 	}

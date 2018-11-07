@@ -142,7 +142,7 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 			case ePaintWeight:
 				return &ts->wpaint->paint;
 			case ePaintTexture2D:
-			case ePaintTextureProjective:
+			case ePaintTexture3D:
 				return &ts->imapaint.paint;
 			case ePaintSculptUV:
 				return &ts->uvsculpt->paint;
@@ -248,7 +248,7 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 				case OB_MODE_WEIGHT_PAINT:
 					return ePaintWeight;
 				case OB_MODE_TEXTURE_PAINT:
-					return ePaintTextureProjective;
+					return ePaintTexture3D;
 				case OB_MODE_EDIT:
 					if (ts->use_uv_sculpt)
 						return ePaintSculptUV;
@@ -486,7 +486,7 @@ eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 			return OB_MODE_VERTEX_PAINT;
 		case ePaintWeight:
 			return OB_MODE_WEIGHT_PAINT;
-		case ePaintTextureProjective:
+		case ePaintTexture3D:
 			return OB_MODE_TEXTURE_PAINT;
 		case ePaintTexture2D:
 			return OB_MODE_TEXTURE_PAINT;

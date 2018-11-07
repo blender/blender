@@ -788,7 +788,7 @@ static void paint_draw_alpha_overlay(
         ViewContext *vc, int x, int y, float zoom, ePaintMode mode)
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
-	bool col = ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex) ? true : false;
+	bool col = ELEM(mode, ePaintTexture3D, ePaintTexture2D, ePaintVertex) ? true : false;
 	eOverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
@@ -990,7 +990,7 @@ static void paint_cursor_on_hit(
 static bool ommit_cursor_drawing(Paint *paint, ePaintMode mode, Brush *brush)
 {
 	if (paint->flags & PAINT_SHOW_BRUSH) {
-		if (ELEM(mode, ePaintTexture2D, ePaintTextureProjective) && brush->imagepaint_tool == PAINT_TOOL_FILL) {
+		if (ELEM(mode, ePaintTexture2D, ePaintTexture3D) && brush->imagepaint_tool == PAINT_TOOL_FILL) {
 			return true;
 		}
 		return false;
