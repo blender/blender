@@ -51,9 +51,9 @@ void BKE_nlastrip_free(ListBase *strips, struct NlaStrip *strip, bool do_id_user
 void BKE_nlatrack_free(ListBase *tracks, struct NlaTrack *nlt, bool do_id_user);
 void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user);
 
-struct NlaStrip *BKE_nlastrip_copy(struct Main *bmain, struct NlaStrip *strip, const bool use_same_action);
-struct NlaTrack *BKE_nlatrack_copy(struct Main *bmain, struct NlaTrack *nlt, const bool use_same_actions);
-void BKE_nla_tracks_copy(struct Main *bmain, ListBase *dst, ListBase *src);
+struct NlaStrip *BKE_nlastrip_copy(struct Main *bmain, struct NlaStrip *strip, const bool use_same_action, const int flag);
+struct NlaTrack *BKE_nlatrack_copy(struct Main *bmain, struct NlaTrack *nlt, const bool use_same_actions, const int flag);
+void BKE_nla_tracks_copy(struct Main *bmain, ListBase *dst, ListBase *src, const int flag);
 
 struct NlaTrack *BKE_nlatrack_add(struct AnimData *adt, struct NlaTrack *prev);
 struct NlaStrip *BKE_nlastrip_new(struct bAction *act);

@@ -712,7 +712,7 @@ static void deg_update_copy_on_write_animation(const Depsgraph *depsgraph,
 	                     __func__,
 	                     id_node->id_orig->name,
 	                     id_node->id_cow);
-	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false, false);
+	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, LIB_ID_CREATE_NO_USER_REFCOUNT);
 	RemapCallbackUserData user_data = {NULL};
 	user_data.depsgraph = depsgraph;
 	BKE_library_foreach_ID_link(NULL,

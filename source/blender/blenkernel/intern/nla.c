@@ -163,11 +163,14 @@ void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user)
  * Copy NLA strip
  *
  * \param use_same_action When true, the existing action is used (instead of being duplicated)
+ * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  */
-NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_action)
+NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_action, const int flag)
 {
 	NlaStrip *strip_d;
 	NlaStrip *cs, *cs_d;
+
+	const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
 
 	/* sanity check */
 	if (strip == NULL)
@@ -180,12 +183,14 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_ac
 	/* handle action */
 	if (strip_d->act) {
 		if (use_same_action) {
-			/* increase user-count of action */
-			id_us_plus(&strip_d->act->id);
+			if (do_id_user) {
+				/* increase user-count of action */
+				id_us_plus(&strip_d->act->id);
+			}
 		}
 		else {
 			/* use a copy of the action instead (user count shouldn't have changed yet) */
-			strip_d->act = BKE_action_copy(bmain, strip_d->act);
+			BKE_id_copy_ex(bmain, &strip_d->act->id, (ID **)&strip_d->act, flag, false);
 		}
 	}
 
@@ -197,7 +202,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_ac
 	BLI_listbase_clear(&strip_d->strips);
 
 	for (cs = strip->strips.first; cs; cs = cs->next) {
-		cs_d = BKE_nlastrip_copy(bmain, cs, use_same_action);
+		cs_d = BKE_nlastrip_copy(bmain, cs, use_same_action, flag);
 		BLI_addtail(&strip_d->strips, cs_d);
 	}
 
@@ -205,8 +210,11 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_ac
 	return strip_d;
 }
 
-/* Copy NLA Track */
-NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_actions)
+/**
+ * Copy a single NLA Track.
+ * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ */
+NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_actions, const int flag)
 {
 	NlaStrip *strip, *strip_d;
 	NlaTrack *nlt_d;
@@ -223,7 +231,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_acti
 	BLI_listbase_clear(&nlt_d->strips);
 
 	for (strip = nlt->strips.first; strip; strip = strip->next) {
-		strip_d = BKE_nlastrip_copy(bmain, strip, use_same_actions);
+		strip_d = BKE_nlastrip_copy(bmain, strip, use_same_actions, flag);
 		BLI_addtail(&nlt_d->strips, strip_d);
 	}
 
@@ -231,8 +239,11 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_acti
 	return nlt_d;
 }
 
-/* Copy all NLA data */
-void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src)
+/**
+ * Copy all NLA data.
+ * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ */
+void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src, const int flag)
 {
 	NlaTrack *nlt, *nlt_d;
 
@@ -247,7 +258,7 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src)
 	for (nlt = src->first; nlt; nlt = nlt->next) {
 		/* make a copy, and add the copy to the destination list */
 		// XXX: we need to fix this sometime
-		nlt_d = BKE_nlatrack_copy(bmain, nlt, true);
+		nlt_d = BKE_nlatrack_copy(bmain, nlt, true, flag);
 		BLI_addtail(dst, nlt_d);
 	}
 }

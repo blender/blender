@@ -70,10 +70,10 @@ bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct b
 void BKE_animdata_free(struct ID *id, const bool do_id_user);
 
 /* Copy AnimData */
-struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, const bool do_action, const bool do_id_user);
+struct AnimData *BKE_animdata_copy(struct Main *bmain, struct AnimData *adt, const int flag);
 
 /* Copy AnimData */
-bool BKE_animdata_copy_id(struct Main *bmain, struct ID *id_to, struct ID *id_from, const bool do_action, const bool do_id_user);
+bool BKE_animdata_copy_id(struct Main *bmain, struct ID *id_to, struct ID *id_from, const int flag);
 
 /* Copy AnimData Actions */
 void BKE_animdata_copy_id_action(struct Main *bmain, struct ID *id, const bool set_newid);

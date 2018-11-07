@@ -603,7 +603,7 @@ bool rna_AnimaData_override_apply(
 
 	if (adt_dst == NULL && adt_src != NULL) {
 		/* Copy anim data from reference into final local ID. */
-		BKE_animdata_copy_id(NULL, ptr_dst->id.data, ptr_src->id.data, false, true);
+		BKE_animdata_copy_id(NULL, ptr_dst->id.data, ptr_src->id.data, 0);
 		return true;
 	}
 	else if (adt_dst != NULL && adt_src == NULL) {

@@ -1416,18 +1416,6 @@ void *BKE_id_new_nomain(const short type, const char *name)
 	return id;
 }
 
-/* by spec, animdata is first item after ID */
-/* and, trust that BKE_animdata_from_id() will only find AnimData for valid ID-types */
-static void id_copy_animdata(Main *bmain, ID *id, const bool do_action, const bool do_id_user)
-{
-	AnimData *adt = BKE_animdata_from_id(id);
-
-	if (adt) {
-		IdAdtTemplate *iat = (IdAdtTemplate *)id;
-		iat->adt = BKE_animdata_copy(bmain, iat->adt, do_action, do_id_user);
-	}
-}
-
 void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
 {
 	ID *new_id = *r_newid;
@@ -1478,16 +1466,17 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
 	}
 #endif
 
-	/* the duplicate should get a copy of the animdata */
-	if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
-		BLI_assert((flag & LIB_ID_COPY_ACTIONS) == 0 || (flag & LIB_ID_CREATE_NO_MAIN) == 0);
-		id_copy_animdata(bmain, new_id,
-		                 (flag & LIB_ID_COPY_ACTIONS) != 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0,
-		                 (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
-	}
-	else if (id_can_have_animdata(new_id)) {
+	if (id_can_have_animdata(new_id)) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)new_id;
-		iat->adt = NULL;
+
+		/* the duplicate should get a copy of the animdata */
+		if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
+			BLI_assert((flag & LIB_ID_COPY_ACTIONS) == 0 || (flag & LIB_ID_CREATE_NO_MAIN) == 0);
+			iat->adt = BKE_animdata_copy(bmain, iat->adt, flag);
+		}
+		else {
+			iat->adt = NULL;
+		}
 	}
 
 	if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0) {

@@ -266,10 +266,17 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 
 /* Copying -------------------------------------------- */
 
-/* Make a copy of the given AnimData - to be used when copying datablocks */
-AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action, const bool do_id_user)
+/**
+ * Make a copy of the given AnimData - to be used when copying datablocks.
+ * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \return The copied animdata.
+ */
+AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 {
 	AnimData *dadt;
+
+	const bool do_action = (flag & LIB_ID_COPY_ACTIONS) != 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0;
+	const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
 
 	/* sanity check before duplicating struct */
 	if (adt == NULL)
@@ -288,7 +295,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action, co
 	}
 
 	/* duplicate NLA data */
-	BKE_nla_tracks_copy(bmain, &dadt->nla_tracks, &adt->nla_tracks);
+	BKE_nla_tracks_copy(bmain, &dadt->nla_tracks, &adt->nla_tracks, flag);
 
 	/* duplicate drivers (F-Curves) */
 	copy_fcurves(&dadt->drivers, &adt->drivers);
@@ -301,19 +308,23 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action, co
 	return dadt;
 }
 
-bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const bool do_action, const bool do_id_user)
+/**
+ * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \return true is succesfully copied.
+ */
+bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 {
 	AnimData *adt;
 
 	if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
 		return false;
 
-	BKE_animdata_free(id_to, do_id_user);
+	BKE_animdata_free(id_to, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 
 	adt = BKE_animdata_from_id(id_from);
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
-		iat->adt = BKE_animdata_copy(bmain, adt, do_action, do_id_user);
+		iat->adt = BKE_animdata_copy(bmain, adt, flag);
 	}
 
 	return true;
@@ -373,7 +384,7 @@ void BKE_animdata_merge_copy(
 	if (src->nla_tracks.first) {
 		ListBase tracks = {NULL, NULL};
 
-		BKE_nla_tracks_copy(bmain, &tracks, &src->nla_tracks);
+		BKE_nla_tracks_copy(bmain, &tracks, &src->nla_tracks, 0);
 		BLI_movelisttolist(&dst->nla_tracks, &tracks);
 	}
 
