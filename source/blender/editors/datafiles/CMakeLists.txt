@@ -622,7 +622,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	brush.paint_vertex.draw
 	brush.paint_vertex.smear
 	brush.paint_weight.blur
-	brush.paint_weight.darken
 	brush.paint_weight.draw
 	brush.paint_weight.lighten
 	brush.paint_weight.mix
