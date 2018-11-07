@@ -708,6 +708,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.paint.vertex_color_fill
 	ops.paint.weight_fill
 	ops.paint.weight_gradient
+	ops.paint.weight_sample
 	ops.pose.breakdowner
 	ops.pose.push
 	ops.pose.relax
