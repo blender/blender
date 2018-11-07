@@ -816,7 +816,7 @@ static void task_pool_push(
 			return;
 		}
 	}
-	/* Do push to a global execution ppol, slowest possible method,
+	/* Do push to a global execution pool, slowest possible method,
 	 * causes quite reasonable amount of threading overhead.
 	 */
 	task_scheduler_push(pool->scheduler, task, priority);
