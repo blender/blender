@@ -34,7 +34,8 @@
  */
 
 #include "DNA_vec_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_sys_types.h"  /* bool */
+#include "BLI_compiler_compat.h"
 
 struct rctf;
 struct rcti;

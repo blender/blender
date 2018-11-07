@@ -32,7 +32,7 @@
  */
 
 /* defines BLI_INLINE */
-#include "BLI_utildefines.h"
+#include "BLI_compiler_compat.h"
 
 /* defines CustomDataMask */
 #include "BKE_customdata.h"

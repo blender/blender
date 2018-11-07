@@ -33,7 +33,7 @@
  */
 
 /* defines BLI_INLINE */
-#include "BLI_utildefines.h"
+#include "BLI_compiler_compat.h"
 
 /* declares fprintf() and abort(), needed for BLI_assert */
 #include <stdio.h>

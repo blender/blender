@@ -32,7 +32,7 @@
  *  \ingroup bke
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 
 #include "DNA_listBase.h"
