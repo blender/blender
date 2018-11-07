@@ -38,6 +38,7 @@ extern "C" {
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
 
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"

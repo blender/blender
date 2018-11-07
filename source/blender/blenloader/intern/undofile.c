@@ -53,6 +53,7 @@
 #include "BLO_undofile.h"
 #include "BLO_readfile.h"
 
+#include "BKE_library.h"
 #include "BKE_main.h"
 
 /* keep last */

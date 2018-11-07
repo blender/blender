@@ -49,11 +49,12 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_scene.h"
-#include "BKE_main.h"
 
 #include "ED_armature.h"
 

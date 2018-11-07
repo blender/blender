@@ -47,11 +47,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_fluidsim.h" /* ensure definitions here match */
-#include "BKE_main.h"
-#include "BKE_mesh.h"
 #ifdef WITH_MOD_FLUID
 #  include "BKE_global.h"
 #endif
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

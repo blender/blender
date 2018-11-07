@@ -45,11 +45,12 @@
 #include "BLI_threads.h"
 
 #include "BKE_appdir.h"
-#include "BKE_image.h"
+#include "BKE_camera.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_camera.h"
 #include "BKE_scene.h"
 
 #include "IMB_imbuf.h"

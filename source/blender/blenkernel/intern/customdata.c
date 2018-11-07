@@ -53,6 +53,7 @@
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"

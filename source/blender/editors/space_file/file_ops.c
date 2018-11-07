@@ -40,6 +40,7 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 
 #ifdef WIN32

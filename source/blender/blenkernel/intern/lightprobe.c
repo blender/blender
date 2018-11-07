@@ -37,8 +37,9 @@
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_library.h"
 #include "BKE_lightprobe.h"
+#include "BKE_main.h"
 
 void BKE_lightprobe_init(LightProbe *probe)
 {

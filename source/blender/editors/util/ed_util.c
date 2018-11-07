@@ -53,15 +53,16 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
-#include "BKE_workspace.h"
-#include "BKE_layer.h"
 #include "BKE_undo_system.h"
+#include "BKE_workspace.h"
 
 #include "ED_armature.h"
 #include "ED_buttons.h"

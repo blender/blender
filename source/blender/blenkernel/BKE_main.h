@@ -42,8 +42,6 @@
  */
 #include "DNA_listBase.h"
 
-#include "BKE_library.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

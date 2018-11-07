@@ -31,6 +31,7 @@ extern "C" {
 
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
