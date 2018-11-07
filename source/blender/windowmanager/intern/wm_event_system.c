@@ -324,11 +324,11 @@ void wm_event_do_depsgraph(bContext *C)
 		scene->customdata_mask |= scene->customdata_mask_modal;
 
 		/* TODO(sergey): For now all dependency graphs which are evaluated from
-			* workspace are considered active. This will work all fine with "locked"
-			* view layer and time across windows. This is to be granted separately,
-			* and for until then we have to accept ambiguities when object is shared
-			* across visible view layers and has overrides on it.
-			*/
+		 * workspace are considered active. This will work all fine with "locked"
+		 * view layer and time across windows. This is to be granted separately,
+		 * and for until then we have to accept ambiguities when object is shared
+		 * across visible view layers and has overrides on it.
+		 */
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 		DEG_make_active(depsgraph);
 		BKE_scene_graph_update_tagged(depsgraph, bmain);
