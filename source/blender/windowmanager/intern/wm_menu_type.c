@@ -35,7 +35,6 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_library.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 

@@ -37,12 +37,13 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+
 #include "IMB_imbuf_types.h"
 }
 

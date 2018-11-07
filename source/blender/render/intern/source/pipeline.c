@@ -70,16 +70,15 @@
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
-#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
 #include "BKE_writeavi.h"  /* <------ should be replaced once with generic movie module */
-#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

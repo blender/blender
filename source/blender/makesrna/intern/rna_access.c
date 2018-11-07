@@ -56,7 +56,6 @@
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_fcurve.h"
-#include "BKE_library.h"
 #include "BKE_library_override.h"
 #include "BKE_main.h"
 #include "BKE_report.h"

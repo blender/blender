@@ -42,15 +42,15 @@
 #include "BLT_lang.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_screen.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_library_override.h"
 #include "BKE_node.h"
-#include "BKE_text.h" /* for UI_OT_reports_to_text */
 #include "BKE_report.h"
+#include "BKE_screen.h"
+#include "BKE_text.h" /* for UI_OT_reports_to_text */
 
 #include "DEG_depsgraph.h"
 

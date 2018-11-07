@@ -65,7 +65,6 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
 #include "BKE_icons.h"
 #include "BKE_idcode.h"
 #include "BKE_main.h"

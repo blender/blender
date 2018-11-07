@@ -80,8 +80,6 @@ extern "C" {
 #include "BKE_collision.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"

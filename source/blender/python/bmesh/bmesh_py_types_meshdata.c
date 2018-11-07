@@ -42,7 +42,6 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
-#include "BKE_library.h"
 
 #include "bmesh_py_types_meshdata.h"
 

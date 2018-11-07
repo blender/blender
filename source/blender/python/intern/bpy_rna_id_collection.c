@@ -35,9 +35,8 @@
 #include "BLI_bitmap.h"
 
 #include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_main.h"
 
 #include "DNA_ID.h"
 /* Those folowing are only to support hack of not listing some internal 'backward' pointers in generated user_map... */

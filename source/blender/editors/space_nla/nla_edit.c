@@ -46,11 +46,11 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_fcurve.h"
-#include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_nla.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 

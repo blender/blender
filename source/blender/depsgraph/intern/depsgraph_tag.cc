@@ -52,8 +52,6 @@ extern "C" {
 
 #include "BKE_animsys.h"
 #include "BKE_idcode.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"

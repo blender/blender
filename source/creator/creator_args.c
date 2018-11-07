@@ -53,13 +53,13 @@
 #include "BKE_context.h"
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_library_override.h"
 #include "BKE_main.h"
-#include "BKE_scene.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
-#include "BKE_image.h"
 
 #ifdef WITH_FFMPEG
 #include "IMB_imbuf.h"

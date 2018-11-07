@@ -34,12 +34,11 @@
 #include "BLI_ghash.h"
 #include "BLI_array_utils.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
-#include "BKE_animsys.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"

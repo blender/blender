@@ -38,11 +38,10 @@
 #include "BKE_armature.h"
 
 extern "C" {
-#include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
 #include "BKE_idprop.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
 }
 
 #include "ED_armature.h"

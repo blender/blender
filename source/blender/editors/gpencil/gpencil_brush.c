@@ -56,15 +56,14 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
-#include "BKE_library.h"
+#include "BKE_material.h"
+#include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
-#include "BKE_object_deform.h"
-#include "BKE_colortools.h"
-#include "BKE_material.h"
 
 #include "UI_interface.h"
 

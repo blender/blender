@@ -37,7 +37,6 @@ extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
-#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"

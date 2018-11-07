@@ -54,9 +54,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
-#include "BKE_library.h"
 #include "BKE_paint.h"
+#include "BKE_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

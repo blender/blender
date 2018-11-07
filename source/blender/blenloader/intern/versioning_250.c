@@ -72,8 +72,8 @@
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h" // for G
-#include "BKE_library.h" // for which_libbase
-#include "BKE_main.h" // for Main
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
 #include "BKE_multires.h"

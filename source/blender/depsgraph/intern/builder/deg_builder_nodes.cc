@@ -82,8 +82,6 @@ extern "C" {
 #include "BKE_idcode.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"

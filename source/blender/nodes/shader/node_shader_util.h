@@ -64,8 +64,6 @@
 #include "BKE_node.h"
 #include "BKE_texture.h"
 
-#include "BKE_library.h"
-
 #include "NOD_shader.h"
 #include "node_util.h"
 

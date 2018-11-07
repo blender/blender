@@ -34,7 +34,6 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 
-#include "BKE_library.h"
 #include "BKE_blendfile.h"
 #include "BKE_global.h"
 #include "BKE_main.h"

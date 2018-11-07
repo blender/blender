@@ -52,19 +52,18 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_bvhutils.h"
-#include "BKE_pointcache.h"
 
 #include "DEG_depsgraph.h"
 

@@ -48,10 +48,11 @@
 
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
-#include "BKE_material.h"
+
 #include "BKE_global.h"  /* only to check G.debug */
-#include "BKE_mesh.h"
 #include "BKE_library.h"
+#include "BKE_material.h"
+#include "BKE_mesh.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

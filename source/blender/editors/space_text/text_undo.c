@@ -37,7 +37,6 @@
 #include "PIL_time.h"
 
 #include "BKE_context.h"
-#include "BKE_library.h"
 #include "BKE_report.h"
 #include "BKE_text.h"
 #include "BKE_undo_system.h"

@@ -47,7 +47,6 @@
 #include "BKE_collection.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
 
 #include "WM_api.h"
 

@@ -43,6 +43,8 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
@@ -52,10 +54,8 @@
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_report.h"
-#include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_modifier.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

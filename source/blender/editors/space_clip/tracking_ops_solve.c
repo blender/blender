@@ -40,11 +40,11 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
 #include "BKE_global.h"
-#include "BKE_report.h"
 #include "BKE_library.h"
+#include "BKE_movieclip.h"
+#include "BKE_report.h"
+#include "BKE_tracking.h"
 
 #include "DEG_depsgraph.h"
 

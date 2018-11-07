@@ -26,12 +26,13 @@
 #include "COM_OutputFileMultiViewOperation.h"
 
 #include <string.h>
+
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BKE_image.h"
+
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 

@@ -59,10 +59,10 @@
 #include "BLO_readfile.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"

@@ -63,13 +63,13 @@
 #include "BLT_translation.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_main.h"
+#include "BKE_idcode.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_sequencer.h"
-#include "BKE_idcode.h"
 #include "BKE_outliner_treehash.h"
+#include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

@@ -64,7 +64,6 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"

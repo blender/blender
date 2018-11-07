@@ -38,9 +38,9 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_editmesh.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 

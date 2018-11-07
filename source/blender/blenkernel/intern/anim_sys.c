@@ -57,15 +57,15 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
-#include "BKE_nla.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_library.h"
+#include "BKE_nla.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
 

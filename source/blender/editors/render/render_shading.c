@@ -51,6 +51,7 @@
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_editmesh.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -65,7 +66,6 @@
 #include "BKE_texture.h"
 #include "BKE_workspace.h"
 #include "BKE_world.h"
-#include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

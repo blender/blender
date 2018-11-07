@@ -50,13 +50,13 @@
 #include "BLI_rect.h"
 #include "BLI_task.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
-#include "BKE_context.h"
 #include "BKE_tracking.h"
-#include "BKE_library.h"
 
 
 #include "IMB_colormanagement.h"

@@ -120,7 +120,6 @@ static const EnumPropertyItem rna_enum_time_mode_items[] = {
 
 #include "BKE_cachefile.h"
 #include "BKE_context.h"
-#include "BKE_library.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_object.h"
 #include "BKE_gpencil.h"

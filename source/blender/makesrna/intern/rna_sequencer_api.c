@@ -48,9 +48,8 @@
 #include "BLI_path_util.h" /* BLI_split_dirfile */
 
 #include "BKE_image.h"
-#include "BKE_library.h" /* id_us_plus */
-#include "BKE_movieclip.h"
 #include "BKE_mask.h"
+#include "BKE_movieclip.h"
 
 #include "BKE_report.h"
 #include "BKE_sequencer.h"

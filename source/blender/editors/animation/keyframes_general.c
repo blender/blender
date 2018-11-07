@@ -47,7 +47,6 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_deform.h"

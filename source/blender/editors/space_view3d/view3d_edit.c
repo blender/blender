@@ -48,6 +48,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
@@ -61,7 +62,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_action.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

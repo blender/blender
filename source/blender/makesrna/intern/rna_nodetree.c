@@ -43,7 +43,6 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
@@ -190,7 +189,6 @@ static const EnumPropertyItem prop_shader_output_target_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
 
 #include "BKE_global.h"
 

@@ -126,6 +126,7 @@
 #include "BKE_cachefile.h"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -134,15 +135,15 @@
 #include "BKE_global.h" // for G
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_idcode.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_library.h" // for which_libbase
+#include "BKE_library.h"
 #include "BKE_library_idmap.h"
 #include "BKE_library_override.h"
 #include "BKE_library_query.h"
-#include "BKE_idcode.h"
-#include "BKE_idprop.h"
-#include "BKE_material.h"
 #include "BKE_main.h" // for Main
+#include "BKE_material.h"
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -150,6 +151,7 @@
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_ocean.h"
+#include "BKE_outliner_treehash.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -158,9 +160,7 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
-#include "BKE_outliner_treehash.h"
 #include "BKE_sound.h"
-#include "BKE_colortools.h"
 #include "BKE_workspace.h"
 
 #include "DRW_engine.h"

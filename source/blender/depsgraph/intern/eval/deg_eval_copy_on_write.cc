@@ -54,7 +54,6 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"

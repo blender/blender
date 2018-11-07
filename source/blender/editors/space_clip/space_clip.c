@@ -44,10 +44,10 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_library.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+#include "BKE_screen.h"
 
 #include "IMB_imbuf_types.h"
 

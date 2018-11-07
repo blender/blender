@@ -38,8 +38,8 @@
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
 #include "BKE_blender_copybuffer.h"
@@ -47,10 +47,9 @@
 #include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_layer.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"

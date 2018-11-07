@@ -54,14 +54,12 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_action.h"
+#include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_nla.h"
-#include "BKE_context.h"
 #include "BKE_report.h"
 
 #include "UI_view2d.h"

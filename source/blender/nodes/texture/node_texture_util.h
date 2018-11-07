@@ -61,7 +61,6 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
-#include "BKE_library.h"
 
 #include "node_util.h"
 #include "NOD_texture.h"

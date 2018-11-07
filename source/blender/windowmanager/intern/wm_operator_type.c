@@ -42,7 +42,6 @@
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

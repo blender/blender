@@ -69,6 +69,7 @@
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
+#include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
@@ -92,7 +93,6 @@
 #include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_texture.h"
-#include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

@@ -38,7 +38,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_library.h"
 #include "BKE_editmesh.h"
 
 #include "RNA_define.h"

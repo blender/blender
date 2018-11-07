@@ -59,7 +59,6 @@
 #include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_global.h" /* only for script checking */
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
 

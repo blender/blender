@@ -46,13 +46,12 @@ extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_text_types.h"
 
+#include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
-#include "BKE_main.h"
 #include "BKE_text.h"
-#include "BKE_context.h"
 
 #include "BLT_translation.h"
 

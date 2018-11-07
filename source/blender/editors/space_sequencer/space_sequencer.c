@@ -42,10 +42,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
-#include "BKE_global.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
