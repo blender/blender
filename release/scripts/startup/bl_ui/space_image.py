@@ -194,7 +194,7 @@ class IMAGE_MT_image(Menu):
         show_render = sima.show_render
 
         layout.operator("image.new", text="New")
-        layout.operator("image.open", text="Open...")
+        layout.operator("image.open", text="Open...", icon='FILE_FOLDER')
 
         layout.operator("image.read_viewlayers")
 
@@ -210,7 +210,7 @@ class IMAGE_MT_image(Menu):
         layout.separator()
 
         if ima:
-            layout.operator("image.save", text="Save")
+            layout.operator("image.save", text="Save", icon='FILE_TICK')
             layout.operator("image.save_as", text="Save As...")
             layout.operator("image.save_as", text="Save a Copy...").copy = True
 
@@ -244,17 +244,17 @@ class IMAGE_MT_image_invert(Menu):
     def draw(self, context):
         layout = self.layout
 
-        props = layout.operator("image.invert", text="Invert Image Colors")
+        props = layout.operator("image.invert", text="Invert Image Colors", icon='IMAGE_RGB')
         props.invert_r = True
         props.invert_g = True
         props.invert_b = True
 
         layout.separator()
 
-        layout.operator("image.invert", text="Invert Red Channel").invert_r = True
-        layout.operator("image.invert", text="Invert Green Channel").invert_g = True
-        layout.operator("image.invert", text="Invert Blue Channel").invert_b = True
-        layout.operator("image.invert", text="Invert Alpha Channel").invert_a = True
+        layout.operator("image.invert", text="Invert Red Channel", icon='COLOR_RED').invert_r = True
+        layout.operator("image.invert", text="Invert Green Channel", icon='COLOR_GREEN').invert_g = True
+        layout.operator("image.invert", text="Invert Blue Channel", icon='COLOR_BLUE').invert_b = True
+        layout.operator("image.invert", text="Invert Alpha Channel", icon='IMAGE_ALPHA').invert_a = True
 
 
 class IMAGE_MT_uvs_showhide(Menu):
