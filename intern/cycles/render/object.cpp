@@ -27,6 +27,7 @@
 #include "util/util_logging.h"
 #include "util/util_map.h"
 #include "util/util_progress.h"
+#include "util/util_set.h"
 #include "util/util_vector.h"
 #include "util/util_murmurhash.h"
 
@@ -842,6 +843,39 @@ void ObjectManager::tag_update(Scene *scene)
 	scene->curve_system_manager->need_update = true;
 	scene->mesh_manager->need_update = true;
 	scene->light_manager->need_update = true;
+}
+
+string ObjectManager::get_cryptomatte_objects(Scene *scene)
+{
+	string manifest = "{";
+
+	unordered_set<ustring, ustringHash> objects;
+	foreach(Object *object, scene->objects) {
+		if(objects.count(object->name)) {
+			continue;
+		}
+		objects.insert(object->name);
+		uint32_t hash_name = util_murmur_hash3(object->name.c_str(), object->name.length(), 0);
+		manifest += string_printf("\"%s\":\"%08x\",", object->name.c_str(), hash_name);
+	}
+	manifest[manifest.size()-1] = '}';
+	return manifest;
+}
+
+string ObjectManager::get_cryptomatte_assets(Scene *scene)
+{
+	string manifest = "{";
+	unordered_set<ustring, ustringHash> assets;
+	foreach(Object *ob, scene->objects) {
+		if(assets.count(ob->asset_name)) {
+			continue;
+		}
+		assets.insert(ob->asset_name);
+		uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
+		manifest += string_printf("\"%s\":\"%08x\",", ob->asset_name.c_str(), hash_asset);
+	}
+	manifest[manifest.size()-1] = '}';
+	return manifest;
 }
 
 CCL_NAMESPACE_END

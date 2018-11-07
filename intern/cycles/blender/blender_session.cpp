@@ -35,6 +35,7 @@
 #include "util/util_function.h"
 #include "util/util_hash.h"
 #include "util/util_logging.h"
+#include "util/util_murmurhash.h"
 #include "util/util_progress.h"
 #include "util/util_time.h"
 
@@ -370,6 +371,17 @@ void BlenderSession::update_render_tile(RenderTile& rtile, bool highlight)
 		do_write_update_render_tile(rtile, false, false);
 }
 
+static void add_cryptomatte_layer(BL::RenderResult& b_rr, string name, string manifest)
+{
+	string identifier = string_printf("%08x", util_murmur_hash3(name.c_str(), name.length(), 0));
+	string prefix = "cryptomatte/" + identifier.substr(0, 7) + "/";
+
+	render_add_metadata(b_rr, prefix+"name", name);
+	render_add_metadata(b_rr, prefix+"hash", "MurmurHash3_32");
+	render_add_metadata(b_rr, prefix+"conversion", "uint32_to_float32");
+	render_add_metadata(b_rr, prefix+"manifest", manifest);
+}
+
 void BlenderSession::render()
 {
 	/* set callback to write out render results */
@@ -477,13 +489,26 @@ void BlenderSession::render()
 				break;
 		}
 
+		BL::RenderResult b_full_rr = b_engine.get_result();
 		if(is_single_layer) {
-			BL::RenderResult b_rr = b_engine.get_result();
 			string num_aa_samples = string_printf("%d", session->params.samples);
-			b_rr.stamp_data_add_field("Cycles Samples", num_aa_samples.c_str());
+			render_add_metadata(b_full_rr, "Cycles Samples", num_aa_samples);
 			/* TODO(sergey): Report whether we're doing resumable render
 			 * and also start/end sample if so.
 			 */
+		}
+
+		if(scene->film->cryptomatte_passes & CRYPT_OBJECT) {
+			add_cryptomatte_layer(b_full_rr, b_rlay_name+".CryptoObject",
+			                      scene->object_manager->get_cryptomatte_objects(scene));
+		}
+		if(scene->film->cryptomatte_passes & CRYPT_MATERIAL) {
+			add_cryptomatte_layer(b_full_rr, b_rlay_name+".CryptoMaterial",
+			                      scene->shader_manager->get_cryptomatte_materials(scene));
+		}
+		if(scene->film->cryptomatte_passes & CRYPT_ASSET) {
+			add_cryptomatte_layer(b_full_rr, b_rlay_name+".CryptoAsset",
+			                      scene->object_manager->get_cryptomatte_assets(scene));
 		}
 
 		/* free result without merging */
