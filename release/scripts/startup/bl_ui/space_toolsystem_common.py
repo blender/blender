@@ -812,11 +812,13 @@ def keymap_from_context(context, space_type):
                     if item.data_block:
                         # PAINT_OT_brush_select
                         mode = context.active_object.mode
+                        # See: BKE_paint_get_tool_prop_id_from_paintmode
                         attr = {
                             'SCULPT': "sculpt_tool",
-                            'WEIGHT_PAINT': "weight_paint_tool",
-                            'VERTEX_PAINT': "vertex_paint_tool",
-                            'TEXTURE_PAINT': "texture_paint_tool",
+                            'VERTEX_PAINT': "vertex_tool",
+                            'WEIGHT_PAINT': "weight_tool",
+                            'TEXTURE_PAINT': "image_tool",
+                            'GPENCIL_PAINT': "gpencil_tool",
                         }.get(mode, (None, None))
                         if attr is not None:
                             kmi_hack_brush_select_properties.paint_mode = mode
@@ -826,10 +828,6 @@ def keymap_from_context(context, space_type):
                                 context='INVOKE_REGION_WIN',
                                 properties=kmi_hack_brush_select_properties,
                             )[1]
-                        elif mode == 'GPENCIL_PAINT':
-                            # TODO: gpencil.brush_select
-                            # By default no keys are mapped to this, pass.
-                            pass
                         else:
                             print("Unsupported mode:", mode)
                         del mode, attr

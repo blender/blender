@@ -1316,6 +1316,12 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+
+	/**
+	 * Begin per-mode tool properties.
+	 *
+	 * keep in sync with #BKE_paint_get_tool_prop_id_from_paintmode
+	 */
 	prop = RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
@@ -1344,6 +1350,8 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_types_items);
 	RNA_def_property_ui_text(prop, "Type", "Category of the brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	/** End per mode tool properties. */
+
 
 	prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");

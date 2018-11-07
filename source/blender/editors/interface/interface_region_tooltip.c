@@ -459,27 +459,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
 		if (shortcut == NULL) {
 			ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
-			const char *tool_attr = NULL;
-
-			switch (paint_mode) {
-				case ePaintSculpt:
-					tool_attr = "sculpt_tool";
-					break;
-				case ePaintVertex:
-					tool_attr = "vertex_paint_tool";
-					break;
-				case ePaintWeight:
-					tool_attr = "weight_paint_tool";
-					break;
-				case ePaintTexture2D:
-				case ePaintTextureProjective:
-					tool_attr = "texture_paint_tool";
-					paint_mode = ePaintTextureProjective;
-					break;
-				default:
-					break;
-			}
-
+			const char *tool_attr = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
 			if (tool_attr != NULL) {
 				const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
 				const int i = RNA_enum_from_name(items, tool_name);

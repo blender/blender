@@ -466,18 +466,10 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 	Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
 	const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-	const char *op_prop_id = NULL;
+	const char *op_prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
 
-	switch (paint_mode) {
-		case ePaintSculpt: op_prop_id = "sculpt_tool"; break;
-		case ePaintVertex: op_prop_id = "vertex_paint_tool"; break;
-		case ePaintWeight: op_prop_id = "weight_paint_tool"; break;
-		case ePaintTexture2D:
-		case ePaintTextureProjective: op_prop_id = "texture_paint_tool"; break;
-		default:
-			/* invalid paint mode */
-			BLI_assert(0);
-			return OPERATOR_CANCELLED;
+	if (op_prop_id == NULL) {
+		return OPERATOR_CANCELLED;
 	}
 
 	const int tool = RNA_enum_get(op->ptr, op_prop_id);
@@ -490,12 +482,14 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
 {
+	/* Keep names matching 'rna_enum_object_mode_items' (besides active). */
 	static const EnumPropertyItem paint_mode_items[] = {
 		{ePaintInvalid, "ACTIVE", 0, "Current", "Set brush for active paint mode"},
 		{ePaintSculpt, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
 		{ePaintVertex, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
 		{ePaintWeight, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
 		{ePaintTextureProjective, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+		{ePaintGpencil, "GPENCIL_PAINT", ICON_GREASEPENCIL, "Grease Pencil Paint", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	PropertyRNA *prop;
@@ -515,14 +509,13 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	/* All properties are hidden, so as not to show the redo panel. */
 	prop = RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, ePaintInvalid, "Paint Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
-	prop = RNA_def_enum(ot->srna, "sculpt_tool", rna_enum_brush_sculpt_tool_items, 0, "Sculpt Tool", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-	prop = RNA_def_enum(ot->srna, "vertex_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-	prop = RNA_def_enum(ot->srna, "weight_paint_tool", rna_enum_brush_weight_tool_items, 0, "Weight Paint Tool", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-	prop = RNA_def_enum(ot->srna, "texture_paint_tool", rna_enum_brush_image_tool_items, 0, "Texture Paint Tool", "");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	for (const EnumPropertyItem *item = paint_mode_items + 1; item->identifier; item++) {
+		const ePaintMode paint_mode = item->value;
+		const char *prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
+		prop = RNA_def_enum(ot->srna, prop_id, BKE_paint_get_tool_enum_from_paintmode(paint_mode), 0, prop_id, "");
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
 
 	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
@@ -536,30 +529,10 @@ static wmKeyMapItem *keymap_brush_select(
         int keymap_modifier)
 {
 	wmKeyMapItem *kmi;
-	kmi = WM_keymap_add_item(
-	        keymap, "PAINT_OT_brush_select",
-	        keymap_type, KM_PRESS, keymap_modifier, 0);
-
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_brush_select", keymap_type, KM_PRESS, keymap_modifier, 0);
 	RNA_enum_set(kmi->ptr, "paint_mode", paint_mode);
-
-	switch (paint_mode) {
-		case ePaintSculpt:
-			RNA_enum_set(kmi->ptr, "sculpt_tool", tool);
-			break;
-		case ePaintVertex:
-			RNA_enum_set(kmi->ptr, "vertex_paint_tool", tool);
-			break;
-		case ePaintWeight:
-			RNA_enum_set(kmi->ptr, "weight_paint_tool", tool);
-			break;
-		case ePaintTexture2D:
-		case ePaintTextureProjective:
-			RNA_enum_set(kmi->ptr, "texture_paint_tool", tool);
-			break;
-		default:
-			BLI_assert(0);
-	}
-
+	const char *prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
+	RNA_enum_set(kmi->ptr, prop_id, tool);
 	return kmi;
 }
 

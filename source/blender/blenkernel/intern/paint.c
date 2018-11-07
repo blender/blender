@@ -196,6 +196,21 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
 	return NULL;
 }
 
+const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
+{
+	switch (mode) {
+		case ePaintSculpt: return "sculpt_tool";
+		case ePaintVertex: return "vertex_tool";
+		case ePaintWeight: return "weight_tool";
+		case ePaintTexture2D:
+		case ePaintTextureProjective: return "image_tool";
+		case ePaintGpencil: return "gpencil_tool";
+		default:
+			/* invalid paint mode */
+			return NULL;
+	}
+}
+
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 {
 	if (sce && view_layer) {

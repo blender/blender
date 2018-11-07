@@ -1546,57 +1546,6 @@ void GPENCIL_OT_brush_presets_create(wmOperatorType *ot)
 
 }
 
-/* ***************** Select Brush ************************ */
-
-static int gp_brush_select_exec(bContext *C, wmOperator *op)
-{
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	Main *bmain = CTX_data_main(C);
-
-	/* if there's no existing container */
-	if (ts == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere to go");
-		return OPERATOR_CANCELLED;
-	}
-
-	const int index = RNA_int_get(op->ptr, "index");
-
-	Paint *paint = &ts->gp_paint->paint;
-	int i = 0;
-	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
-		if (brush->ob_mode == OB_MODE_GPENCIL_PAINT) {
-			if (i == index) {
-				BKE_paint_brush_set(paint, brush);
-
-				/* notifiers */
-				WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-				return OPERATOR_FINISHED;
-			}
-			i++;
-		}
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
-void GPENCIL_OT_brush_select(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Brush";
-	ot->idname = "GPENCIL_OT_brush_select";
-	ot->description = "Select a Grease Pencil drawing brush";
-
-	/* callbacks */
-	ot->exec = gp_brush_select_exec;
-	ot->poll = gp_active_brush_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Index of Drawing Brush", 0, INT_MAX);
-}
-
 /* ***************** Select Sculpt Brush ************************ */
 
 static int gp_sculpt_select_exec(bContext *C, wmOperator *op)

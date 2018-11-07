@@ -386,7 +386,6 @@ void GPENCIL_OT_stroke_separate(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_split(struct wmOperatorType *ot);
 
 void GPENCIL_OT_brush_presets_create(struct wmOperatorType *ot);
-void GPENCIL_OT_brush_select(struct wmOperatorType *ot);
 
 void GPENCIL_OT_sculpt_select(struct wmOperatorType *ot);
 
