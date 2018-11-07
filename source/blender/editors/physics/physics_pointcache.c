@@ -69,6 +69,7 @@ static bool ptcache_poll(bContext *C)
 }
 
 typedef struct PointCacheJob {
+	wmWindowManager *wm;
 	void *owner;
 	short *stop, *do_update;
 	float *progress;
@@ -123,8 +124,7 @@ static void ptcache_job_startjob(void *customdata, short *stop, short *do_update
 	/* XXX annoying hack: needed to prevent data corruption when changing
 	 * scene frame in separate threads
 	 */
-	G.is_rendering = true;
-	BKE_spacedata_draw_locks(true);
+	WM_set_locked_interface(job->wm, true);
 
 	BKE_ptcache_bake(job->baker);
 
@@ -137,10 +137,7 @@ static void ptcache_job_endjob(void *customdata)
 	PointCacheJob *job = customdata;
 	Scene *scene = job->baker->scene;
 
-	G.is_rendering = false;
-	BKE_spacedata_draw_locks(false);
-
-	WM_set_locked_interface(G_MAIN->wm.first, false);
+	WM_set_locked_interface(job->wm, false);
 
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 	WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, job->baker->pid.ob);
@@ -199,6 +196,7 @@ static int ptcache_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	bool all = STREQ(op->type->idname, "PTCACHE_OT_bake_all");
 
 	PointCacheJob *job = MEM_mallocN(sizeof(PointCacheJob), "PointCacheJob");
+	job->wm = CTX_wm_manager(C);
 	job->baker = ptcache_baker_create(C, op, all);
 	job->baker->bake_job = job;
 	job->baker->update_progress = ptcache_job_update;
