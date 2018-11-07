@@ -135,10 +135,12 @@ void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
 	float shadows = sample_volume_texture(shadowTexture, co).r;
 	vec4 density = sample_volume_texture(densityTexture, co); /* rgb: color, a: density */
 
-	scattering = density.rgb * density.a * densityScale;
+	scattering = density.rgb * (density.a * densityScale);
 	extinction = max(1e-4, dot(scattering, vec3(0.33333)));
 
-	scattering *= shadows * M_PI;
+	/* Scale shadows in log space and clamp them to avoid completely black shadows. */
+	scattering *= exp(clamp(log(shadows) * densityScale * 0.1, -2.5, 0.0)) * M_PI;
+
 	/* 800 is arbitrary and here to mimic old viewport. TODO make it a parameter */
 	scattering += pow(emission.rgb, vec3(2.2)) * emission.a * 800.0;
 #endif
