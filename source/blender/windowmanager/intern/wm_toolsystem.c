@@ -432,8 +432,8 @@ void WM_toolsystem_ref_sync_from_context(
 			/* pass */
 		}
 		else if ((tref->space_type == SPACE_VIEW3D) &&
-				 (tref->mode == CTX_MODE_PARTICLE) &&
-				 (ob->mode & OB_MODE_PARTICLE_EDIT))
+		         (tref->mode == CTX_MODE_PARTICLE) &&
+		         (ob->mode & OB_MODE_PARTICLE_EDIT))
 		{
 			const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
 			const int i = RNA_enum_from_value(items, ts->particle.brushtype);
@@ -444,9 +444,9 @@ void WM_toolsystem_ref_sync_from_context(
 			}
 		}
 		else if ((tref->space_type == SPACE_IMAGE) &&
-				 (tref->mode == SI_MODE_UV) &&
-				 (ob->mode &
-				  OB_MODE_EDIT))
+		         (tref->mode == SI_MODE_UV) &&
+		         (ob->mode &
+		          OB_MODE_EDIT))
 		{
 			const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
 			const int i = RNA_enum_from_value(items, ts->uv_sculpt_tool);

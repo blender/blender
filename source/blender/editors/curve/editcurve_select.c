@@ -1409,7 +1409,7 @@ static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, K
 	else {
 		BPoint *bp;
 		int i;
-		int tree_index=0;
+		int tree_index = 0;
 
 		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
 			if (!bp->hide && bp->f1 & SELECT) {
