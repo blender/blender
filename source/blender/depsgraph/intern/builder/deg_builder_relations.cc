@@ -1192,6 +1192,11 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(
 {
 	LISTBASE_FOREACH(NlaStrip *, strip, strips) {
 		if (strip->act != NULL) {
+			build_action(strip->act);
+
+			ComponentKey action_key(&strip->act->id, DEG_NODE_TYPE_ANIMATION);
+			add_relation(action_key, adt_key, "Action -> Animation");
+
 			build_animdata_curves_targets(id, adt_key,
 			                              operation_from,
 			                              &strip->act->curves);

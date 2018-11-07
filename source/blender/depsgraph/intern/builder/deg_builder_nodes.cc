@@ -859,11 +859,28 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 			 */
 		}
 
+		/* NLA strips contain actions */
+		LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+			build_animdata_nlastrip_targets(&nlt->strips);
+		}
+
 		/* drivers */
 		int driver_index = 0;
 		LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
 			/* create driver */
 			build_driver(id, fcu, driver_index++);
+		}
+	}
+}
+
+void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
+{
+	LISTBASE_FOREACH (NlaStrip *, strip, strips) {
+		if (strip->act != NULL) {
+			build_action(strip->act);
+		}
+		else if (strip->strips.first != NULL) {
+			build_animdata_nlastrip_targets(&strip->strips);
 		}
 	}
 }
