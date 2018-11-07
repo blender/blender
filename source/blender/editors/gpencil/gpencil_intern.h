@@ -387,8 +387,6 @@ void GPENCIL_OT_stroke_split(struct wmOperatorType *ot);
 
 void GPENCIL_OT_brush_presets_create(struct wmOperatorType *ot);
 
-void GPENCIL_OT_sculpt_select(struct wmOperatorType *ot);
-
 /* undo stack ---------- */
 
 void gpencil_undo_init(struct bGPdata *gpd);

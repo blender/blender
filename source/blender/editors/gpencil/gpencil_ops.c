@@ -764,8 +764,6 @@ void ED_operatortypes_gpencil(void)
 
 	WM_operatortype_append(GPENCIL_OT_brush_presets_create);
 
-	WM_operatortype_append(GPENCIL_OT_sculpt_select);
-
 	/* vertex groups */
 	WM_operatortype_append(GPENCIL_OT_vertex_group_assign);
 	WM_operatortype_append(GPENCIL_OT_vertex_group_remove_from);
