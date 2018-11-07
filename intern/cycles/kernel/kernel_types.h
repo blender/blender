@@ -17,17 +17,18 @@
 #ifndef __KERNEL_TYPES_H__
 #define __KERNEL_TYPES_H__
 
+#if !defined(__KERNEL_GPU__) && defined(WITH_EMBREE)
+#  include <embree3/rtcore.h>
+#  include <embree3/rtcore_scene.h>
+#  define __EMBREE__
+#endif
+
 #include "kernel/kernel_math.h"
 #include "kernel/svm/svm_types.h"
 #include "util/util_static_assert.h"
 
 #ifndef __KERNEL_GPU__
 #  define __KERNEL_CPU__
-#endif
-
-#if defined(__KERNEL_CPU__) && defined(WITH_EMBREE)
-#include <embree3/rtcore.h>
-#include <embree3/rtcore_scene.h>
 #endif
 
 /* TODO(sergey): This is only to make it possible to include this header
@@ -102,9 +103,6 @@ CCL_NAMESPACE_BEGIN
 #  define __SHADOW_RECORD_ALL__
 #  define __VOLUME_DECOUPLED__
 #  define __VOLUME_RECORD_ALL__
-#  ifdef WITH_EMBREE
-#    define __EMBREE__
-#  endif
 #endif  /* __KERNEL_CPU__ */
 
 #ifdef __KERNEL_CUDA__
