@@ -223,7 +223,9 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_POSE_INIT,
 	/* Initialize IK solver related pose stuff. */
 	DEG_OPCODE_POSE_INIT_IK,
-	/* Free IK Trees + Compute Deform Matrices */
+	/* Pose is evaluated, and runtime data can be freed. */
+	DEG_OPCODE_POSE_CLEANUP,
+	/* Pose has been fully evaluated and ready to be used by others. */
 	DEG_OPCODE_POSE_DONE,
 	/* IK/Spline Solvers */
 	DEG_OPCODE_POSE_IK_SOLVER,

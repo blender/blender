@@ -253,16 +253,15 @@ void BKE_pose_splineik_evaluate(
         struct Object *ob,
         int rootchan_index);
 
-void BKE_pose_eval_flush(
+void BKE_pose_eval_cleanup(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
 
-void BKE_pose_eval_proxy_pose_init(struct Depsgraph *depsgraph,
-                                   struct Object *object);
-
-void BKE_pose_eval_proxy_pose_done(struct Depsgraph *depsgraph,
-                                   struct Object *object);
+void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph,
+                              struct Object *object);
+void BKE_pose_eval_proxy_cleanup(struct Depsgraph *depsgraph,
+                                 struct Object *object);
 
 void BKE_pose_eval_proxy_copy_bone(
         struct Depsgraph *depsgraph,

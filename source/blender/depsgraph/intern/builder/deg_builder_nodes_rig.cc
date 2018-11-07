@@ -220,12 +220,17 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT_IK);
 
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_EVAL_POSE,
+	                   function_bind(BKE_pose_eval_cleanup,
+	                                 _1,
+	                                 scene_cow,
+	                                 object_cow),
+	                   DEG_OPCODE_POSE_CLEANUP);
+
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_flush,
-	                                           _1,
-	                                           scene_cow,
-	                                           object_cow),
+	                             NULL,
 	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
 	/* Bones. */
@@ -323,7 +328,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	}
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_proxy_pose_init,
+	                             function_bind(BKE_pose_eval_proxy_init,
 	                                           _1,
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT);
@@ -368,9 +373,13 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	}
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_proxy_pose_done,
+	                             function_bind(BKE_pose_eval_proxy_cleanup,
 	                                           _1,
 	                                           object_cow),
+	                             DEG_OPCODE_POSE_CLEANUP);
+	op_node = add_operation_node(&object->id,
+	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             NULL,
 	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
 }
