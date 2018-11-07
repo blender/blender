@@ -459,7 +459,7 @@ static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
 	/* jitter-ed brush gives weird and unpredictable result for this
 	 * kinds of stroke, so manually disable jitter usage (sergey) */
 	use_jitter &= (brush->flag & (BRUSH_DRAG_DOT | BRUSH_ANCHORED)) == 0;
-	use_jitter &= (!ELEM(mode, ePaintTexture2D, ePaintTextureProjective) ||
+	use_jitter &= (!ELEM(mode, ePaintTexture2D, ePaintTexture3D) ||
 	               !(invert && brush->imagepaint_tool == PAINT_TOOL_CLONE));
 
 
@@ -862,7 +862,7 @@ bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
 			break;
 
 		case ePaintTexture2D: /* fall through */
-		case ePaintTextureProjective:
+		case ePaintTexture3D:
 			if ((br->imagepaint_tool == PAINT_TOOL_FILL) &&
 			    (br->flag & BRUSH_USE_GRADIENT))
 			{
@@ -898,7 +898,7 @@ bool paint_supports_smooth_stroke(Brush *br, ePaintMode mode)
 bool paint_supports_texture(ePaintMode mode)
 {
 	/* omit: PAINT_WEIGHT, PAINT_SCULPT_UV, PAINT_INVALID */
-	return ELEM(mode, ePaintSculpt, ePaintVertex, ePaintTextureProjective, ePaintTexture2D);
+	return ELEM(mode, ePaintSculpt, ePaintVertex, ePaintTexture3D, ePaintTexture2D);
 }
 
 /* return true if the brush size can change during paint (normally used for pressure) */

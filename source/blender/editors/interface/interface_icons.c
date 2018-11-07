@@ -1697,7 +1697,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 				paint_mode = ePaintWeight;
 			}
 			else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-				paint_mode = ePaintTextureProjective;
+				paint_mode = ePaintTexture3D;
 			}
 		}
 		else if (space_type == SPACE_IMAGE) {

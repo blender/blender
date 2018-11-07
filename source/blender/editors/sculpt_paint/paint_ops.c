@@ -252,7 +252,7 @@ static int palette_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	color = BKE_palette_color_add(palette);
 	palette->active_color = BLI_listbase_count(&palette->colors) - 1;
 
-	if (ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex)) {
+	if (ELEM(mode, ePaintTexture3D, ePaintTexture2D, ePaintVertex)) {
 		copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
 		color->value = 0.0;
 	}
@@ -488,7 +488,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 		{ePaintSculpt, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
 		{ePaintVertex, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
 		{ePaintWeight, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
-		{ePaintTextureProjective, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+		{ePaintTexture3D, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
 		{ePaintGpencil, "GPENCIL_PAINT", ICON_GREASEPENCIL, "Grease Pencil Paint", ""},
 		{0, NULL, 0, NULL, NULL}
 	};

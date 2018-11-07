@@ -661,7 +661,7 @@ static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
 
 	switch (mode) {
 		case ePaintTexture2D:
-		case ePaintTextureProjective:
+		case ePaintTexture3D:
 			name = "PAINT_OT_image_paint";
 			break;
 		case ePaintWeight:
