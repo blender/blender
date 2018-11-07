@@ -57,27 +57,44 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, bNodeE
 {
 	Image *ima = (Image *)node->id;
 	ImageUser *iuser = NULL;
-	NodeTexImage *tex = node->storage;
+	NodeTexEnvironment *tex = node->storage;
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
+	GPUNodeLink *outalpha;
 
 	if (!ima)
 		return GPU_stack_link(mat, node, "node_tex_environment_empty", in, out);
 
 	if (!in[0].link) {
-		GPUMatType type = GPU_Material_get_type(mat);
-
-		if (type == GPU_MATERIAL_TYPE_MESH)
-			in[0].link = GPU_builtin(GPU_VIEW_POSITION);
-		else
-			GPU_link(mat, "background_transform_to_world", GPU_builtin(GPU_VIEW_POSITION), &in[0].link);
+		GPU_link(mat, "node_tex_environment_texco", GPU_builtin(GPU_VIEW_POSITION), &in[0].link);
 	}
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	if (tex->projection == SHD_PROJ_EQUIRECTANGULAR)
-		GPU_stack_link(mat, node, "node_tex_environment_equirectangular", in, out, GPU_image(ima, iuser, isdata));
-	else
-		GPU_stack_link(mat, node, "node_tex_environment_mirror_ball", in, out, GPU_image(ima, iuser, isdata));
+	/* Compute texture coordinate. */
+	if (tex->projection == SHD_PROJ_EQUIRECTANGULAR) {
+		/* To fix pole issue we clamp the v coordinate. The clamp value depends on the filter size. */
+		float clamp_size = (ELEM(tex->interpolation, SHD_INTERP_CUBIC, SHD_INTERP_SMART)) ? 1.5 : 0.5;
+		GPU_link(mat, "node_tex_environment_equirectangular", in[0].link, GPU_constant(&clamp_size),
+		                                                      GPU_image(ima, iuser, isdata), &in[0].link);
+	}
+	else {
+		GPU_link(mat, "node_tex_environment_mirror_ball", in[0].link, &in[0].link);
+	}
+
+	/* Sample texture with correct interpolation. */
+	switch (tex->interpolation) {
+		case SHD_INTERP_LINEAR:
+			/* Force the highest mipmap and don't do anisotropic filtering.
+			 * This is to fix the artifact caused by derivatives discontinuity. */
+			GPU_link(mat, "node_tex_image_linear_no_mip", in[0].link, GPU_image(ima, iuser, isdata), &out[0].link, &outalpha);
+			break;
+		case SHD_INTERP_CLOSEST:
+			GPU_link(mat, "node_tex_image_nearest", in[0].link, GPU_image(ima, iuser, isdata), &out[0].link, &outalpha);
+			break;
+		default:
+			GPU_link(mat, "node_tex_image_cubic", in[0].link, GPU_image(ima, iuser, isdata), &out[0].link, &outalpha);
+			break;
+	}
 
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 	if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&

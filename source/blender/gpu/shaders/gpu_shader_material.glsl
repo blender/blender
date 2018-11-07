@@ -1975,37 +1975,27 @@ void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
 	fac = 1.0;
 }
 
-void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color)
+void node_tex_environment_equirectangular(vec3 co, float clamp_size, sampler2D ima, out vec3 uv)
 {
 	vec3 nco = normalize(co);
-	float u = -atan(nco.y, nco.x) / (2.0 * M_PI) + 0.5;
-	float v = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
+	uv.x = -atan(nco.y, nco.x) / (2.0 * M_PI) + 0.5;
+	uv.y = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5;
 
 	/* Fix pole bleeding */
-	float half_width = 0.5 / float(textureSize(ima, 0).x);
-	v = clamp(v, half_width, 1.0 - half_width);
-
-	/* Fix u = 0 seam */
-	/* This is caused by texture filtering, since uv don't have smooth derivatives
-	 * at u = 0 or 2PI, hardware filtering is using the smallest mipmap for certain
-	 * texels. So we force the highest mipmap and don't do anisotropic filtering. */
-	color = textureLod(ima, vec2(u, v), 0.0);
+	float half_height = clamp_size / float(textureSize(ima, 0).y);
+	uv.y = clamp(uv.y, half_height, 1.0 - half_height);
+	uv.z = 0.0;
 }
 
-void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
+void node_tex_environment_mirror_ball(vec3 co, out vec3 uv)
 {
 	vec3 nco = normalize(co);
-
 	nco.y -= 1.0;
 
 	float div = 2.0 * sqrt(max(-0.5 * nco.y, 0.0));
-	if (div > 0.0)
-		nco /= div;
+	nco /= max(1e-8, div);
 
-	float u = 0.5 * (nco.x + 1.0);
-	float v = 0.5 * (nco.z + 1.0);
-
-	color = texture(ima, vec2(u, v));
+	uv = 0.5 * nco.xzz + 0.5;
 }
 
 void node_tex_environment_empty(vec3 co, out vec4 color)
@@ -2016,6 +2006,12 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture(ima, co.xy);
+	alpha = color.a;
+}
+
+void node_tex_image_linear_no_mip(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	color = textureLod(ima, co.xy, 0.0);
 	alpha = color.a;
 }
 
