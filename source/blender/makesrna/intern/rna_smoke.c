@@ -514,6 +514,12 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem interp_method_item[] = {
+	    {VOLUME_INTERP_LINEAR, "LINEAR", 0, "Linear", "Good smoothness and speed"},
+	    {VOLUME_INTERP_CUBIC, "CUBIC", 0, "Cubic", "Smoothed high quality interpolation, but slower"},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	static const EnumPropertyItem axis_slice_position_items[] = {
 	    {SLICE_AXIS_AUTO, "AUTO", 0, "Auto", "Adjust slice direction according to the view direction"},
 	    {SLICE_AXIS_X, "X", 0, "X", "Slice along the X axis"},
@@ -855,6 +861,12 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.1, 100.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of smoke drawing in the viewport");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+
+	prop = RNA_def_property(srna, "display_interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "interp_method");
+	RNA_def_property_enum_items(prop, interp_method_item);
+	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method to use for smoke/fire volumes in solid mode");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "display_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw_velocity", 0);

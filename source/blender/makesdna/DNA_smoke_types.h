@@ -72,6 +72,12 @@ enum {
 	SLICE_AXIS_Z    = 3,
 };
 
+/* axis aligned method */
+enum {
+	VOLUME_INTERP_LINEAR   = 0,
+	VOLUME_INTERP_CUBIC    = 1,
+};
+
 enum {
 	VECTOR_DRAW_NEEDLE     = 0,
 	VECTOR_DRAW_STREAMLINE = 1,
@@ -222,7 +228,7 @@ typedef struct SmokeDomainSettings {
 	char vector_draw_type;
 	char use_coba;
 	char coba_field;  /* simulation field used for the color mapping */
-	char pad2;
+	char interp_method;
 
 	float clipping;
 	float pad3;

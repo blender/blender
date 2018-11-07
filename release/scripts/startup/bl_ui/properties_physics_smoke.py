@@ -596,9 +596,11 @@ class PHYSICS_PT_smoke_viewport_display(PhysicButtonsPanel, Panel):
         sub.prop(domain, "slice_axis")
         sub.prop(domain, "slice_depth")
 
-        col = col.row()
-        col.enabled = do_full_slicing or not do_axis_slicing
-        col.prop(domain, "slice_per_voxel")
+        row = col.row()
+        row.enabled = do_full_slicing or not do_axis_slicing
+        row.prop(domain, "slice_per_voxel")
+
+        col.prop(domain, "display_interpolation")
 
 
 class PHYSICS_PT_smoke_viewport_display_color(PhysicButtonsPanel, Panel):

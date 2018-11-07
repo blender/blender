@@ -28,6 +28,7 @@
 #include "BKE_modifier.h"
 
 #include "BLI_rand.h"
+#include "BLI_dynstr.h"
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
@@ -35,8 +36,16 @@
 
 #include "GPU_draw.h"
 
+enum {
+	VOLUME_SH_SLICE = 0,
+	VOLUME_SH_COBA,
+	VOLUME_SH_CUBIC,
+};
+
+#define VOLUME_SH_MAX (1 << (VOLUME_SH_CUBIC + 1))
+
 static struct {
-	struct GPUShader *volume_sh;
+	struct GPUShader *volume_sh[VOLUME_SH_MAX];
 	struct GPUShader *volume_coba_sh;
 	struct GPUShader *volume_slice_sh;
 	struct GPUShader *volume_slice_coba_sh;
@@ -47,26 +56,43 @@ static struct {
 extern char datatoc_workbench_volume_vert_glsl[];
 extern char datatoc_workbench_volume_frag_glsl[];
 
+static GPUShader *volume_shader_get(bool slice, bool coba, bool cubic)
+{
+	int id = 0;
+	id += (slice) ? (1 << VOLUME_SH_SLICE) : 0;
+	id += (coba) ? (1 << VOLUME_SH_COBA) : 0;
+	id += (cubic) ? (1 << VOLUME_SH_CUBIC) : 0;
+
+	if (!e_data.volume_sh[id]) {
+		DynStr *ds = BLI_dynstr_new();
+
+		if (slice) {
+			BLI_dynstr_append(ds, "#define VOLUME_SLICE\n");
+		}
+		if (coba) {
+			BLI_dynstr_append(ds, "#define USE_COBA\n");
+		}
+		if (cubic) {
+			BLI_dynstr_append(ds, "#define USE_TRICUBIC\n");
+		}
+
+		char *defines = BLI_dynstr_get_cstring(ds);
+		BLI_dynstr_free(ds);
+
+		e_data.volume_sh[id] = DRW_shader_create(
+		        datatoc_workbench_volume_vert_glsl, NULL,
+		        datatoc_workbench_volume_frag_glsl,
+		        defines);
+
+		MEM_freeN(defines);
+	}
+
+	return e_data.volume_sh[id];
+}
+
 void workbench_volume_engine_init(void)
 {
-	if (!e_data.volume_sh) {
-		e_data.volume_sh = DRW_shader_create(
-		        datatoc_workbench_volume_vert_glsl, NULL,
-		        datatoc_workbench_volume_frag_glsl, NULL);
-		e_data.volume_coba_sh = DRW_shader_create(
-		        datatoc_workbench_volume_vert_glsl, NULL,
-		        datatoc_workbench_volume_frag_glsl,
-		        "#define USE_COBA\n");
-		e_data.volume_slice_sh = DRW_shader_create(
-		        datatoc_workbench_volume_vert_glsl, NULL,
-		        datatoc_workbench_volume_frag_glsl,
-		        "#define VOLUME_SLICE\n");
-		e_data.volume_slice_coba_sh = DRW_shader_create(
-		        datatoc_workbench_volume_vert_glsl, NULL,
-		        datatoc_workbench_volume_frag_glsl,
-		        "#define VOLUME_SLICE\n"
-		        "#define USE_COBA\n");
-
+	if (!e_data.dummy_tex) {
 		float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		e_data.dummy_tex = GPU_texture_create_3D(1, 1, 1, GPU_RGBA8, pixel, NULL);
 		e_data.dummy_coba_tex = GPU_texture_create_1D(1, GPU_RGBA8, pixel, NULL);
@@ -75,10 +101,9 @@ void workbench_volume_engine_init(void)
 
 void workbench_volume_engine_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.volume_sh);
-	DRW_SHADER_FREE_SAFE(e_data.volume_coba_sh);
-	DRW_SHADER_FREE_SAFE(e_data.volume_slice_sh);
-	DRW_SHADER_FREE_SAFE(e_data.volume_slice_coba_sh);
+	for (int i = 0; i < VOLUME_SH_MAX; ++i) {
+		DRW_SHADER_FREE_SAFE(e_data.volume_sh[i]);
+	}
 	DRW_TEXTURE_FREE_SAFE(e_data.dummy_tex);
 	DRW_TEXTURE_FREE_SAFE(e_data.dummy_coba_tex);
 }
@@ -121,6 +146,8 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 
 	const bool use_slice = (sds->slice_method == MOD_SMOKE_SLICE_AXIS_ALIGNED &&
 	                        sds->axis_slice_method == AXIS_SLICE_SINGLE);
+	const bool cubic_interp = (sds->interp_method == VOLUME_INTERP_CUBIC);
+	GPUShader *sh = volume_shader_get(use_slice, sds->use_coba, cubic_interp);
 
 	if (use_slice) {
 		float invviewmat[4][4];
@@ -130,7 +157,6 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		                  ? axis_dominant_v3_single(invviewmat[2])
 		                  : sds->slice_axis - 1;
 
-		GPUShader *sh = (sds->use_coba) ? e_data.volume_slice_coba_sh : e_data.volume_slice_sh;
 		grp = DRW_shgroup_create(sh, vedata->psl->volume_pass);
 		DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
 		DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
@@ -140,7 +166,6 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		BLI_halton_1D(3, 0.0, effect_info->jitter_index, &noise_ofs);
 		int max_slices = max_iii(sds->res[0], sds->res[1], sds->res[2]) * sds->slice_per_voxel;
 
-		GPUShader *sh = (sds->use_coba) ? e_data.volume_coba_sh : e_data.volume_sh;
 		grp = DRW_shgroup_create(sh, vedata->psl->volume_pass);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 		DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slices);

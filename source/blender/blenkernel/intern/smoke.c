@@ -670,6 +670,7 @@ void smokeModifier_copy(const struct SmokeModifierData *smd, struct SmokeModifie
 		tsds->slice_per_voxel = sds->slice_per_voxel;
 		tsds->slice_depth = sds->slice_depth;
 		tsds->slice_axis = sds->slice_axis;
+		tsds->interp_method = sds->interp_method;
 		tsds->draw_velocity = sds->draw_velocity;
 		tsds->vector_draw_type = sds->vector_draw_type;
 		tsds->vector_scale = sds->vector_scale;
