@@ -17,7 +17,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 __all__ = (
-    "batch_for_shader"
+    "batch_for_shader",
 )
 
 

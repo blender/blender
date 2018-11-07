@@ -1721,7 +1721,7 @@ def write_rst_contents(basepath):
 
     standalone_modules = (
         # submodules are added in parent page
-        "mathutils", "freestyle", "bgl", "blf", "gpu",
+        "mathutils", "freestyle", "bgl", "blf", "gpu", "gpu_extras",
         "aud", "bpy_extras", "idprop.types", "bmesh",
     )
 
@@ -1823,6 +1823,7 @@ def write_rst_importable_modules(basepath):
         "bpy.path": "Path Utilities",
         "bpy.utils": "Utilities",
         "bpy_extras": "Extra Utilities",
+        "gpu_extras": "GPU Utilities",
 
         # C_modules
         "aud": "Audio System",
