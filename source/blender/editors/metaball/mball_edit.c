@@ -125,38 +125,38 @@ MetaElem *ED_mball_add_primitive(bContext *UNUSED(C), Object *obedit, float mat[
 /* Select or deselect all MetaElements */
 static int mball_select_all_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall *)obedit->data;
-	MetaElem *ml;
 	int action = RNA_enum_get(op->ptr, "action");
 
-	if (BLI_listbase_is_empty(mb->editelems))
-		return OPERATOR_CANCELLED;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-		for (ml = mb->editelems->first; ml; ml = ml->next) {
-			if (ml->flag & SELECT) {
-				action = SEL_DESELECT;
-				break;
-			}
-		}
+		action = BKE_mball_is_any_selected_multi(objects, objects_len) ?
+		        SEL_DESELECT :
+		        SEL_SELECT;
 	}
 
 	switch (action) {
 		case SEL_SELECT:
-			BKE_mball_select_all(mb);
+			BKE_mball_select_all_multi(objects, objects_len);
 			break;
 		case SEL_DESELECT:
-			BKE_mball_deselect_all(mb);
+			BKE_mball_deselect_all_multi(objects, objects_len);
 			break;
 		case SEL_INVERT:
-			BKE_mball_select_swap(mb);
+			BKE_mball_select_swap_multi(objects, objects_len);
 			break;
 	}
 
-	DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
+	}
+
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }

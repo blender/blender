@@ -338,6 +338,19 @@ bool BKE_mball_is_any_selected(const MetaBall *mb)
 	return false;
 }
 
+
+bool BKE_mball_is_any_selected_multi(Object **objects, int objects_len)
+{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		if (BKE_mball_is_any_selected(mb)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool BKE_mball_is_any_unselected(const MetaBall *mb)
 {
 	for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
@@ -557,6 +570,15 @@ void BKE_mball_select_all(struct MetaBall *mb)
 	}
 }
 
+void BKE_mball_select_all_multi(Object **objects, int objects_len)
+{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		BKE_mball_select_all(mb);
+	}
+}
+
 void BKE_mball_deselect_all(MetaBall *mb)
 {
 	MetaElem *ml;
@@ -566,12 +588,31 @@ void BKE_mball_deselect_all(MetaBall *mb)
 	}
 }
 
+void BKE_mball_deselect_all_multi(Object **objects, int objects_len)
+{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+
+		BKE_mball_deselect_all(mb);
+	}
+}
+
 void BKE_mball_select_swap(struct MetaBall *mb)
 {
 	MetaElem *ml;
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		ml->flag ^= SELECT;
+	}
+}
+
+void BKE_mball_select_swap_multi(Object **objects, int objects_len)
+{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		BKE_mball_select_swap(mb);
 	}
 }
 
