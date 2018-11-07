@@ -117,11 +117,6 @@ typedef enum GPUBuiltin {
 	GPU_BARYCENTRIC_DIST =      (1 << 20),
 } GPUBuiltin;
 
-typedef enum GPUMatType {
-	GPU_MATERIAL_TYPE_MESH  = 1,
-	GPU_MATERIAL_TYPE_WORLD = 2,
-} GPUMatType;
-
 typedef enum GPUMatFlag {
 	GPU_MATFLAG_DIFFUSE       = (1 << 0),
 	GPU_MATFLAG_GLOSSY        = (1 << 1),
@@ -187,7 +182,6 @@ void GPU_material_free(struct ListBase *gpumaterial);
 void GPU_materials_free(struct Main *bmain);
 
 struct Scene *GPU_material_scene(GPUMaterial *material);
-GPUMatType GPU_Material_get_type(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct ListBase *GPU_material_get_inputs(GPUMaterial *material);
 GPUMaterialStatus GPU_material_status(GPUMaterial *mat);

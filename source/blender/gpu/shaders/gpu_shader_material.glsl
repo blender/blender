@@ -204,7 +204,7 @@ void point_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
 
 void point_texco_remap_square(vec3 vin, out vec3 vout)
 {
-	vout = vec3(vin - vec3(0.5, 0.5, 0.5)) * 2.0;
+	vout = vin * 2.0 - 1.0;
 }
 
 void point_texco_clamp(vec3 vin, sampler2D ima, out vec3 vout)
@@ -1462,16 +1462,20 @@ void node_wireframe_screenspace(float size, vec2 barycentric, out float fac)
 
 /* background */
 
-void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
+void node_tex_environment_texco(vec3 viewvec, out vec3 worldvec)
 {
+#ifdef MESH_SHADER
+	worldvec = worldPosition;
+#else
 	vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewvec, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
 	vec4 co_homogenous = (ProjectionMatrixInverse * v);
 
 	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
-#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
+#  if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
 	worldvec = (ViewMatrixInverse * co).xyz;
-#else
+#  else
 	worldvec = (ModelViewMatrixInverse * co).xyz;
+#  endif
 #endif
 }
 
@@ -2229,9 +2233,7 @@ void node_tex_image_box(vec3 texco,
 	float limit = 0.5 + 0.5 * blend;
 
 	vec3 weight;
-	weight.x = N.x / (N.x + N.y);
-	weight.y = N.y / (N.y + N.z);
-	weight.z = N.z / (N.x + N.z);
+	weight = N.xyz / (N.xyx + N.yzz);
 	weight = clamp((weight - 0.5 * (1.0 - blend)) / max(1e-8, blend), 0.0, 1.0);
 
 	/* test for mixes between two textures */

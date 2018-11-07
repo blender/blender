@@ -103,8 +103,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 		sss_scale = in[2].link;
 	}
 	else {
-		float one[3] = {1.0f, 1.0f, 1.0f};
-		GPU_link(mat, "set_rgb", GPU_constant((float *)one), &sss_scale);
+		GPU_link(mat, "set_rgb_one", &sss_scale);
 	}
 
 	bool use_diffuse = socket_not_one(4) && socket_not_one(15);
