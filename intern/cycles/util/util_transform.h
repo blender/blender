@@ -422,6 +422,7 @@ ccl_device void transform_motion_array_interpolate(Transform *tfm,
 	transform_compose(tfm, &decomp);
 }
 
+#ifdef __EMBREE__
 ccl_device void transform_motion_array_interpolate_straight(Transform *tfm, const ccl_global DecomposedTransform *motion, uint numsteps, float time)
 {
 	/* Figure out which steps we need to interpolate. */
@@ -441,6 +442,7 @@ ccl_device void transform_motion_array_interpolate_straight(Transform *tfm, cons
 	tfm->y = (1.0f - t) * step1.y + t * step2.y;
 	tfm->z = (1.0f - t) * step1.z + t * step2.z;
 }
+#endif
 
 #ifndef __KERNEL_GPU__
 
