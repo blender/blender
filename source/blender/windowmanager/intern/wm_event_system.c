@@ -299,9 +299,17 @@ static void wm_notifier_clear(wmNotifier *note)
 void wm_event_do_depsgraph(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	uint64_t win_combine_v3d_datamask = 0;
+
+	/* The whole idea of locked interface is to prevent viewport and whatever
+	 * thread to modify the same data. Because of this, we can not perform
+	 * dependency graph update.
+	 */
+	if (wm->is_interface_locked) {
+		return;
+	}
 
 	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
+	uint64_t win_combine_v3d_datamask = 0;
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		const Scene *scene = WM_window_get_active_scene(win);
 		const bScreen *screen = WM_window_get_active_screen(win);
