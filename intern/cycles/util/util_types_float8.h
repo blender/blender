@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
 
-struct ccl_try_align(16) float8 {
+struct ccl_try_align(32) float8 {
 #ifdef __KERNEL_AVX2__
 	union {
 		__m256 m256;
