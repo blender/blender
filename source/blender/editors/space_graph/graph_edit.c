@@ -589,17 +589,8 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 	}
 	else {
 		for (ale = anim_data.first; ale; ale = ale->next) {
-			AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu = (FCurve *)ale->key_data;
-			float cfra;
-
-			/* adjust current frame for NLA-mapping */
-			if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS))
-				cfra = sipo->cursorTime;
-			else if (adt)
-				cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
-			else
-				cfra = (float)CFRA;
+			float cfra = (float)CFRA;
 
 			/* read value from property the F-Curve represents, or from the curve only?
 			 * - ale->id != NULL:    Typically, this means that we have enough info to try resolving the path
@@ -614,6 +605,14 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 				                fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
 			}
 			else {
+				AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+				/* adjust current frame for NLA-mapping */
+				if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS))
+					cfra = sipo->cursorTime;
+				else if (adt)
+					cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+
 				const float curval = evaluate_fcurve(fcu, cfra);
 				insert_vert_fcurve(fcu, cfra, curval, ts->keyframe_type, 0);
 			}
