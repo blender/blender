@@ -563,8 +563,8 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			stl->storage->reset_cache = false;
 		}
 
-		/* is edit mode only current object, not instances */
-		if ((draw_ctx->obact != ob) && GPENCIL_ANY_EDIT_MODE(gpd)) {
+		/* is edit mode only current object, not particle instances */
+		if ((ob->base_flag & BASE_FROMDUPLI) && GPENCIL_ANY_EDIT_MODE(gpd)) {
 			return;
 		}
 
