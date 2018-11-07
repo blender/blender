@@ -623,9 +623,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	brush.paint_vertex.smear
 	brush.paint_weight.blur
 	brush.paint_weight.draw
-	brush.paint_weight.lighten
 	brush.paint_weight.mix
-	brush.paint_weight.multiply
 	brush.particle.add
 	brush.particle.comb
 	brush.particle.cut
@@ -651,8 +649,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	brush.sculpt.smooth
 	brush.sculpt.snake_hook
 	brush.sculpt.thumb
-	brush.weight.add
-	brush.weight.subtract
 	none
 	ops.armature.bone.roll
 	ops.armature.extrude_cursor
