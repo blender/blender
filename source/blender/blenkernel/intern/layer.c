@@ -340,12 +340,17 @@ void BKE_view_layer_base_deselect_all(ViewLayer *view_layer)
 	}
 }
 
-void BKE_view_layer_base_select(struct ViewLayer *view_layer, Base *selbase)
+void BKE_view_layer_base_select(Base *selbase)
 {
-	view_layer->basact = selbase;
 	if ((selbase->flag & BASE_SELECTABLE) != 0) {
 		selbase->flag |= BASE_SELECTED;
 	}
+}
+
+void BKE_view_layer_base_select_and_set_active(struct ViewLayer *view_layer, Base *selbase)
+{
+	view_layer->basact = selbase;
+	BKE_view_layer_base_select(selbase);
 }
 
 /**************************** Copy View Layer and Layer Collections ***********************/

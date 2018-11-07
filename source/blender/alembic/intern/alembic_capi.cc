@@ -815,7 +815,8 @@ static void import_endjob(void *user_data)
 			BKE_collection_object_add(data->bmain, lc->collection, ob);
 
 			base = BKE_view_layer_base_find(view_layer, ob);
-			BKE_view_layer_base_select(view_layer, base);
+			/* TODO: is setting active needed? */
+			BKE_view_layer_base_select_and_set_active(view_layer, base);
 
 			DEG_id_tag_update(&lc->collection->id, DEG_TAG_COPY_ON_WRITE);
 			DEG_id_tag_update_ex(data->bmain, &ob->id,

@@ -2347,7 +2347,8 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 					new_ob->parent = obcollection;
 				}
 				if (new_ob == (Object *)obact->id.newid) {
-					BKE_view_layer_base_select(view_layer, base);
+					/* TODO: is setting active needed? */
+					BKE_view_layer_base_select_and_set_active(view_layer, base);
 				}
 				else {
 					/* Disable auto-override tags for non-active objects, will help with performaces... */

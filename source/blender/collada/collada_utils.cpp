@@ -154,7 +154,8 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
 	BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
-	BKE_view_layer_base_select(view_layer, base);
+	/* TODO: is setting active needed? */
+	BKE_view_layer_base_select_and_set_active(view_layer, base);
 
 	return ob;
 }

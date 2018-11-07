@@ -924,7 +924,7 @@ Object *BKE_object_add(
 	BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
 	base = BKE_view_layer_base_find(view_layer, ob);
-	BKE_view_layer_base_select(view_layer, base);
+	BKE_view_layer_base_select_and_set_active(view_layer, base);
 
 	return ob;
 }
@@ -945,7 +945,7 @@ Object *BKE_object_add_from(
 	BKE_collection_object_add_from(bmain, scene, ob_src, ob);
 
 	base = BKE_view_layer_base_find(view_layer, ob);
-	BKE_view_layer_base_select(view_layer, base);
+	BKE_view_layer_base_select_and_set_active(view_layer, base);
 
 	return ob;
 }
@@ -979,7 +979,7 @@ Object *BKE_object_add_for_data(
 	BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
 	base = BKE_view_layer_base_find(view_layer, ob);
-	BKE_view_layer_base_select(view_layer, base);
+	BKE_view_layer_base_select_and_set_active(view_layer, base);
 
 	return ob;
 }
