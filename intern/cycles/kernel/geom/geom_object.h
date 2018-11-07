@@ -78,6 +78,12 @@ ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int
 	const uint num_steps = kernel_tex_fetch(__objects, object).numsteps * 2 + 1;
 
 	Transform tfm;
+#ifdef __EMBREE__
+	if(kernel_data.bvh.scene) {
+		transform_motion_array_interpolate_straight(&tfm, motion, num_steps, time);
+	}
+	else
+#endif
 	transform_motion_array_interpolate(&tfm, motion, num_steps, time);
 
 	return tfm;

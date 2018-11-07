@@ -97,6 +97,10 @@ if(WITH_WEBP)
 	include(cmake/webp.cmake)
 endif()
 
+if(WITH_EMBREE)
+	include(cmake/embree.cmake)
+endif()
+
 if(WIN32)
 	# HMD branch deps
 	include(cmake/hidapi.cmake)

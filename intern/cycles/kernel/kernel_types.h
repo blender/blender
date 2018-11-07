@@ -25,6 +25,11 @@
 #  define __KERNEL_CPU__
 #endif
 
+#if defined(__KERNEL_CPU__) && defined(WITH_EMBREE)
+#include <embree3/rtcore.h>
+#include <embree3/rtcore_scene.h>
+#endif
+
 /* TODO(sergey): This is only to make it possible to include this header
  * from outside of the kernel. but this could be done somewhat cleaner?
  */
@@ -97,6 +102,9 @@ CCL_NAMESPACE_BEGIN
 #  define __SHADOW_RECORD_ALL__
 #  define __VOLUME_DECOUPLED__
 #  define __VOLUME_RECORD_ALL__
+#  ifdef WITH_EMBREE
+#    define __EMBREE__
+#  endif
 #endif  /* __KERNEL_CPU__ */
 
 #ifdef __KERNEL_CUDA__
@@ -722,6 +730,9 @@ typedef struct Ray {
 /* Intersection */
 
 typedef struct Intersection {
+#ifdef __EMBREE__
+	float3 Ng;
+#endif
 	float t, u, v;
 	int prim;
 	int object;
@@ -1396,7 +1407,7 @@ typedef enum KernelBVHLayout {
 	BVH_LAYOUT_BVH2 = (1 << 0),
 	BVH_LAYOUT_BVH4 = (1 << 1),
 	BVH_LAYOUT_BVH8 = (1 << 2),
-
+	BVH_LAYOUT_EMBREE = (1 << 3),
 	BVH_LAYOUT_DEFAULT = BVH_LAYOUT_BVH8,
 	BVH_LAYOUT_ALL = (unsigned int)(-1),
 } KernelBVHLayout;
@@ -1409,7 +1420,13 @@ typedef struct KernelBVH {
 	int have_instancing;
 	int bvh_layout;
 	int use_bvh_steps;
-	int pad1, pad2;
+	int pad1;
+#ifdef __EMBREE__
+	RTCScene scene;
+#else
+	void *unused;
+#endif
+	int pad2, pad3;
 } KernelBVH;
 static_assert_align(KernelBVH, 16);
 

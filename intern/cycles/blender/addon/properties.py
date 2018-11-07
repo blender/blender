@@ -529,6 +529,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         items=enum_bvh_types,
         default='DYNAMIC_BVH',
     )
+    use_bvh_embree: BoolProperty(
+        name="Use Embree",
+        description="Use Embree as ray accelerator",
+        default=False,
+    )
     debug_use_spatial_splits: BoolProperty(
         name="Use Spatial Splits",
         description="Use BVH spatial splits: longer builder time, faster render",

@@ -39,6 +39,10 @@
 #include "util/util_progress.h"
 #include "util/util_set.h"
 
+#ifdef WITH_EMBREE
+#  include "bvh/bvh_embree.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Triangle */
@@ -1073,6 +1077,9 @@ void Mesh::compute_bvh(Device *device,
 			                              params->use_bvh_unaligned_nodes;
 			bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
 			bparams.num_motion_curve_steps = params->num_bvh_time_steps;
+			bparams.bvh_type = params->bvh_type;
+			bparams.curve_flags = dscene->data.curve.curveflags;
+			bparams.curve_subdivisions = dscene->data.curve.subdivisions;
 
 			delete bvh;
 			bvh = BVH::create(bparams, objects);
@@ -1861,14 +1868,32 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	                              scene->params.use_bvh_unaligned_nodes;
 	bparams.num_motion_triangle_steps = scene->params.num_bvh_time_steps;
 	bparams.num_motion_curve_steps = scene->params.num_bvh_time_steps;
+	bparams.bvh_type = scene->params.bvh_type;
+	bparams.curve_flags = dscene->data.curve.curveflags;
+	bparams.curve_subdivisions = dscene->data.curve.subdivisions;
 
 	VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout)
 	        << " layout.";
 
+#ifdef WITH_EMBREE
+	if(bparams.bvh_layout == BVH_LAYOUT_EMBREE) {
+		if(dscene->data.bvh.scene) {
+			BVHEmbree::destroy(dscene->data.bvh.scene);
+		}
+	}
+#endif
+
 	BVH *bvh = BVH::create(bparams, scene->objects);
-	bvh->build(progress);
+	bvh->build(progress, &device->stats);
 
 	if(progress.get_cancel()) {
+#ifdef WITH_EMBREE
+		if(bparams.bvh_layout == BVH_LAYOUT_EMBREE) {
+			if(dscene->data.bvh.scene) {
+				BVHEmbree::destroy(dscene->data.bvh.scene);
+			}
+		}
+#endif
 		delete bvh;
 		return;
 	}
@@ -1922,6 +1947,16 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	dscene->data.bvh.root = pack.root_index;
 	dscene->data.bvh.bvh_layout = bparams.bvh_layout;
 	dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
+
+
+#ifdef WITH_EMBREE
+	if(bparams.bvh_layout == BVH_LAYOUT_EMBREE) {
+		dscene->data.bvh.scene = ((BVHEmbree*)bvh)->scene;
+	}
+	else {
+		dscene->data.bvh.scene = NULL;
+	}
+#endif
 
 	delete bvh;
 }

@@ -90,6 +90,13 @@ public:
 	/* Same as above, but for triangle primitives. */
 	int num_motion_triangle_steps;
 
+	/* Same as in SceneParams. */
+	int bvh_type;
+
+	/* These are needed for Embree. */
+	int curve_flags;
+	int curve_subdivisions;
+
 	/* fixed parameters */
 	enum {
 		MAX_DEPTH = 64,
@@ -123,6 +130,11 @@ public:
 
 		num_motion_curve_steps = 0;
 		num_motion_triangle_steps = 0;
+
+		bvh_type = 0;
+
+		curve_flags = 0;
+		curve_subdivisions = 4;
 	}
 
 	/* SAH costs */

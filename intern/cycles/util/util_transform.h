@@ -422,6 +422,28 @@ ccl_device void transform_motion_array_interpolate(Transform *tfm,
 	transform_compose(tfm, &decomp);
 }
 
+#ifdef __EMBREE__
+ccl_device void transform_motion_array_interpolate_straight(Transform *tfm, const ccl_global DecomposedTransform *motion, uint numsteps, float time)
+{
+	/* Figure out which steps we need to interpolate. */
+	int maxstep = numsteps - 1;
+	int step = min((int)(time*maxstep), maxstep - 1);
+	float t = time * maxstep - step;
+
+	const ccl_global DecomposedTransform *a = motion + step;
+	const ccl_global DecomposedTransform *b = motion + step + 1;
+	Transform step1, step2;
+
+	transform_compose(&step1, a);
+	transform_compose(&step2, b);
+
+	/* matrix lerp */
+	tfm->x = (1.0f - t) * step1.x + t * step2.x;
+	tfm->y = (1.0f - t) * step1.y + t * step2.y;
+	tfm->z = (1.0f - t) * step1.z + t * step2.z;
+}
+#endif
+
 #ifndef __KERNEL_GPU__
 
 class BoundBox2D;
