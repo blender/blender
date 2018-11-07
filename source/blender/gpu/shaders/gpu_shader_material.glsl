@@ -1734,7 +1734,11 @@ void node_tangentmap(vec4 attr_tangent, mat4 toworld, out vec3 tangent)
 
 void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
 {
+#ifndef VOLUMETRICS
 	N = normalize(worldNormal);
+#else
+	N = (toworld * vec4(N, 0.0)).xyz;
+#endif
 	T = (objmat * vec4(orco, 0.0)).xyz;
 	T = cross(N, normalize(cross(T, N)));
 }
@@ -1746,7 +1750,11 @@ void node_geometry(
         out float backfacing, out float pointiness)
 {
 	position = worldPosition;
+#ifndef VOLUMETRICS
 	normal = normalize(worldNormal);
+#else
+	normal = (toworld * vec4(N, 0.0)).xyz;
+#endif
 	tangent_orco_z(orco, orco);
 	node_tangent(N, orco, objmat, toworld, tangent);
 	true_normal = normal;
