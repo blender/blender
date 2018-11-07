@@ -266,7 +266,6 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 		/* Get the Embree scene for this intersection. */
 		RTCGeometry geom = rtcGetGeometry(kernel_data.bvh.scene, local_object * 2);
 		if(geom) {
-			Transform ob_itfm;
 			float3 P = ray.P;
 			float3 dir = ray.D;
 			float3 idir = ray.D;
