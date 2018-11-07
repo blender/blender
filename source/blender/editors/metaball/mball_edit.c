@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
+#include "BLI_kdtree.h"
 
 #include "DNA_defs.h"
 #include "DNA_meta_types.h"
@@ -50,6 +51,7 @@
 #include "BKE_context.h"
 #include "BKE_mball.h"
 #include "BKE_layer.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 
@@ -197,150 +199,199 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static bool mball_select_similar_type(MetaBall *mb)
+static void mball_select_similar_type_get(Object *obedit, MetaBall *mb, int  type, KDTree *r_tree)
 {
+	float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 	MetaElem *ml;
-	bool changed = false;
-
+	int tree_index = 0;
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (ml->flag & SELECT) {
-			MetaElem *ml_iter;
-
-			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
-				if ((ml_iter->flag & SELECT) == 0) {
-					if (ml->type == ml_iter->type) {
-						ml_iter->flag |= SELECT;
-						changed = true;
-					}
+			switch (type) {
+				case SIMMBALL_RADIUS:
+				{
+					float radius = ml->rad;
+					/* Radius in world space. */
+					float smat[3][3];
+					float radius_vec[3] = {radius, radius, radius};
+					BKE_object_scale_to_mat3(obedit, smat);
+					mul_m3_v3(smat, radius_vec);
+					radius = (radius_vec[0] + radius_vec[1] + radius_vec[2]) / 3;
+					tree_entry[0] = radius;
+					break;
+				}
+				case SIMMBALL_STIFFNESS:
+				{
+					tree_entry[0] = ml->s;
+					break;
+				}
+					break;
+				case SIMMBALL_ROTATION:
+				{
+					float dir[3] = {1.0f, 0.0f, 0.0f};
+					float rmat[3][3];
+					mul_qt_v3(ml->quat, dir);
+					BKE_object_rot_to_mat3(obedit, rmat, true);
+					mul_m3_v3(rmat, dir);
+					copy_v3_v3(tree_entry, dir);
+					break;
 				}
 			}
+			BLI_kdtree_insert(r_tree, tree_index++, tree_entry);
 		}
 	}
-
-	return changed;
 }
 
-static bool mball_select_similar_radius(MetaBall *mb, const float thresh)
+static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, const KDTree *tree, const float thresh)
 {
 	MetaElem *ml;
 	bool changed = false;
-
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (ml->flag & SELECT) {
-			MetaElem *ml_iter;
+		bool select = false;
+		switch (type) {
+			case SIMMBALL_RADIUS:
+			{
+				float radius = ml->rad;
+				/* Radius in world space is the average of the
+				 * scaled radius in x, y and z directions. */
+				float smat[3][3];
+				float radius_vec[3] = {radius, radius, radius};
+				BKE_object_scale_to_mat3(obedit, smat);
+				mul_m3_v3(smat, radius_vec);
+				radius = (radius_vec[0] + radius_vec[1] + radius_vec[2]) / 3;
 
-			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
-				if ((ml_iter->flag & SELECT) == 0) {
-					if (fabsf(ml_iter->rad - ml->rad) <= (thresh * ml->rad)) {
-						ml_iter->flag |= SELECT;
-						changed = true;
+				if(ED_select_similar_compare_float_tree(tree, radius, thresh, SIM_CMP_EQ)) {
+					select = true;
+				}
+				break;
+			}
+			case SIMMBALL_STIFFNESS:
+			{
+				float s = ml->s;
+				if(ED_select_similar_compare_float_tree(tree, s, thresh, SIM_CMP_EQ)) {
+					select = true;
+				}
+				break;
+			}
+			case SIMMBALL_ROTATION:
+			{
+				float dir[3] = {1.0f, 0.0f, 0.0f};
+				float rmat[3][3];
+				mul_qt_v3(ml->quat, dir);
+				BKE_object_rot_to_mat3(obedit, rmat, true);
+				mul_m3_v3(rmat, dir);
+
+				float thresh_cos = cosf(thresh * (float)M_PI_2);
+
+				KDTreeNearest nearest;
+				if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+					float orient = angle_normalized_v3v3(dir, nearest.co);
+					/* Map to 0-1 to compare orientation. */
+					float delta = thresh_cos - fabsf(cosf(orient));
+					if (ED_select_similar_compare_float(delta, thresh, SIM_CMP_EQ)) {
+						select = true;
 					}
 				}
+				break;
 			}
 		}
-	}
 
-	return changed;
-}
-
-static bool mball_select_similar_stiffness(MetaBall *mb, const float thresh)
-{
-	MetaElem *ml;
-	bool changed = false;
-
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (ml->flag & SELECT) {
-			MetaElem *ml_iter;
-
-			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
-				if ((ml_iter->flag & SELECT) == 0) {
-					if (fabsf(ml_iter->s - ml->s) <= thresh) {
-						ml_iter->flag |= SELECT;
-						changed = true;
-					}
-				}
-			}
+		if (select) {
+			changed = true;
+			ml->flag |= SELECT;
 		}
 	}
-
-	return changed;
-}
-
-static bool mball_select_similar_rotation(MetaBall *mb, const float thresh)
-{
-	const float thresh_rad = thresh * (float)M_PI_2;
-	MetaElem *ml;
-	bool changed = false;
-
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (ml->flag & SELECT) {
-			MetaElem *ml_iter;
-
-			float ml_mat[3][3];
-
-			unit_m3(ml_mat);
-			mul_qt_v3(ml->quat, ml_mat[0]);
-			mul_qt_v3(ml->quat, ml_mat[1]);
-			mul_qt_v3(ml->quat, ml_mat[2]);
-			normalize_m3(ml_mat);
-
-			for (ml_iter = mb->editelems->first; ml_iter; ml_iter = ml_iter->next) {
-				if ((ml_iter->flag & SELECT) == 0) {
-					float ml_iter_mat[3][3];
-
-					unit_m3(ml_iter_mat);
-					mul_qt_v3(ml_iter->quat, ml_iter_mat[0]);
-					mul_qt_v3(ml_iter->quat, ml_iter_mat[1]);
-					mul_qt_v3(ml_iter->quat, ml_iter_mat[2]);
-					normalize_m3(ml_iter_mat);
-
-					if ((angle_normalized_v3v3(ml_mat[0], ml_iter_mat[0]) +
-					     angle_normalized_v3v3(ml_mat[1], ml_iter_mat[1]) +
-					     angle_normalized_v3v3(ml_mat[2], ml_iter_mat[2])) < thresh_rad)
-					{
-						ml_iter->flag |= SELECT;
-						changed = true;
-					}
-				}
-			}
-		}
-	}
-
 	return changed;
 }
 
 static int mball_select_similar_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall *)obedit->data;
+	const int type = RNA_enum_get(op->ptr, "type");
+	const float thresh = RNA_float_get(op->ptr, "threshold");
+	int tot_mball_selected_all = 0;
 
-	int type = RNA_enum_get(op->ptr, "type");
-	float thresh = RNA_float_get(op->ptr, "threshold");
-	bool changed = false;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	switch (type) {
-		case SIMMBALL_TYPE:
-			changed = mball_select_similar_type(mb);
-			break;
-		case SIMMBALL_RADIUS:
-			changed = mball_select_similar_radius(mb, thresh);
-			break;
-		case SIMMBALL_STIFFNESS:
-			changed = mball_select_similar_stiffness(mb, thresh);
-			break;
-		case SIMMBALL_ROTATION:
-			changed = mball_select_similar_rotation(mb, thresh);
-			break;
-		default:
-			BLI_assert(0);
-			break;
+	tot_mball_selected_all = BKE_mball_select_count_multi(objects, objects_len);
+
+	short type_ref = 0;
+	KDTree *tree = NULL;
+
+	if (type != SIMMBALL_TYPE) {
+		tree = BLI_kdtree_new(tot_mball_selected_all);
 	}
 
-	if (changed) {
-		DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
+	/* Get type of selected MetaBall */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+
+		switch (type) {
+			case SIMMBALL_TYPE:
+			{
+				MetaElem *ml;
+				for (ml = mb->editelems->first; ml; ml = ml->next) {
+					if (ml->flag & SELECT) {
+						short mball_type = 1 << (ml->type + 1);
+						type_ref |= mball_type;
+					}
+				}
+				break;
+			}
+			case SIMMBALL_RADIUS:
+			case SIMMBALL_STIFFNESS:
+			case SIMMBALL_ROTATION:
+				mball_select_similar_type_get(obedit, mb, type, tree);
+				break;
+			default:
+				BLI_assert(0);
+				break;
+		}
 	}
 
+	if (tree != NULL) {
+		BLI_kdtree_balance(tree);
+	}
+	/* Select MetaBalls with desired type. */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		bool changed = false;
+
+		switch(type) {
+			case SIMMBALL_TYPE:
+			{
+				MetaElem *ml;
+				for (ml = mb->editelems->first; ml; ml = ml->next) {
+					short mball_type = 1 << (ml->type + 1);
+					if (mball_type & type_ref) {
+						ml->flag |= SELECT;
+						changed = true;
+					}
+				}
+				break;
+			}
+			case SIMMBALL_RADIUS:
+			case SIMMBALL_STIFFNESS:
+			case SIMMBALL_ROTATION:
+				changed = mball_select_similar_type(obedit, mb, type, tree, thresh);
+				break;
+			default:
+				BLI_assert(0);
+				break;
+		}
+
+		if (changed) {
+			DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
+		}
+	}
+
+	MEM_freeN(objects);
+	if (tree != NULL) {
+		BLI_kdtree_free(tree);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -362,7 +413,7 @@ void MBALL_OT_select_similar(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, 0, "Type", "");
 
-	RNA_def_float(ot->srna, "threshold", 0.1, 0.0, 1.0, "Threshold", "", 0.01, 1.0);
+	RNA_def_float(ot->srna, "threshold", 0.1, 0.0, FLT_MAX, "Threshold", "", 0.01, 1.0);
 }
 
 

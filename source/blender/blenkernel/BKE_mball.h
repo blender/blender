@@ -71,6 +71,8 @@ void BKE_mball_translate(struct MetaBall *mb, const float offset[3]);
 
 struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, const int type);
 
+int BKE_mball_select_count(struct MetaBall *mb);
+int BKE_mball_select_count_multi(struct Object **objects, int objects_len);
 void BKE_mball_select_all(struct MetaBall *mb);
 void BKE_mball_select_all_multi(struct Object **objects, int objects_len);
 void BKE_mball_deselect_all(struct MetaBall *mb);

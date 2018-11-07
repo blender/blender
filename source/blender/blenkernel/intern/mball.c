@@ -561,6 +561,29 @@ void BKE_mball_translate(MetaBall *mb, const float offset[3])
 }
 
 /* *** select funcs *** */
+int BKE_mball_select_count(struct MetaBall *mb) {
+	int sel = 0;
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		if (ml->flag & SELECT) {
+			sel++;
+		}
+	}
+	return sel;
+}
+
+int BKE_mball_select_count_multi(Object **objects, int objects_len) {
+
+	int sel = 0;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		sel += BKE_mball_select_count(mb);
+	}
+	return sel;
+}
+
 void BKE_mball_select_all(struct MetaBall *mb)
 {
 	MetaElem *ml;
