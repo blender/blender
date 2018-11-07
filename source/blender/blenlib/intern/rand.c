@@ -42,7 +42,7 @@
 #include "BLI_math.h"
 
 /* defines BLI_INLINE */
-#include "BLI_utildefines.h"
+#include "BLI_compiler_compat.h"
 
 #include "BLI_sys_types.h"
 #include "BLI_strict_flags.h"

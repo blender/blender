@@ -39,8 +39,10 @@
 #include <limits.h>
 #include <float.h>
 
-#include "DNA_vec_types.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
+
+#include "DNA_vec_types.h"
 
 /* avoid including BLI_math */
 static void unit_m4(float m[4][4]);
