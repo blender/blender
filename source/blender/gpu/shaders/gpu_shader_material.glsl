@@ -207,6 +207,12 @@ void point_texco_remap_square(vec3 vin, out vec3 vout)
 	vout = vec3(vin - vec3(0.5, 0.5, 0.5)) * 2.0;
 }
 
+void point_texco_clamp(vec3 vin, sampler2D ima, out vec3 vout)
+{
+	vec2 half_texel_size = 0.5 / vec2(textureSize(ima, 0).xy);
+	vout = clamp(vin, half_texel_size.xyy, 1.0 - half_texel_size.xyy);
+}
+
 void point_map_to_sphere(vec3 vin, out vec3 vout)
 {
 	float len = length(vin);
@@ -2020,21 +2026,27 @@ void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float al
 	alpha = color.a;
 }
 
-void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+/* @arg f: signed distance to texel center. */
+void cubic_bspline_coefs(vec2 f, out vec2 w0, out vec2 w1, out vec2 w2, out vec2 w3)
+{
+	vec2 f2 = f * f;
+	vec2 f3 = f2 * f;
+	/* Bspline coefs (optimized) */
+	w3 =  f3 / 6.0;
+	w0 = -w3       + f2 * 0.5 - f * 0.5 + 1.0 / 6.0;
+	w1 =  f3 * 0.5 - f2 * 1.0           + 2.0 / 3.0;
+	w2 = 1.0 - w0 - w1 - w3;
+}
+
+void node_tex_image_cubic_ex(vec3 co, sampler2D ima, float do_extend, out vec4 color, out float alpha)
 {
 	vec2 tex_size = vec2(textureSize(ima, 0).xy);
 
 	co.xy *= tex_size;
 	/* texel center */
 	vec2 tc = floor(co.xy - 0.5) + 0.5;
-	vec2 f = co.xy - tc;
-	vec2 f2 = f * f;
-	vec2 f3 = f2 * f;
-	/* Bspline coefs (optimized) */
-	vec2 w3 =  f3 / 6.0;
-	vec2 w0 = -w3       + f2 * 0.5 - f * 0.5 + 1.0 / 6.0;
-	vec2 w1 =  f3 * 0.5 - f2 * 1.0           + 2.0 / 3.0;
-	vec2 w2 = 1.0 - w0 - w1 - w3;
+	vec2 w0, w1, w2, w3;
+	cubic_bspline_coefs(co.xy - tc, w0, w1, w2, w3);
 
 #if 1 /* Optimized version using 4 filtered tap. */
 	vec2 s0 = w0 + w1;
@@ -2047,12 +2059,15 @@ void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alph
 	final_co.xy = tc - 1.0 + f0;
 	final_co.zw = tc + 1.0 + f1;
 
+	if (do_extend == 1.0) {
+		final_co = clamp(final_co, vec4(0.5), tex_size.xyxy - 0.5);
+	}
 	final_co /= tex_size.xyxy;
 
-	color  = texture(ima, final_co.xy) * s0.x * s0.y;
-	color += texture(ima, final_co.zy) * s1.x * s0.y;
-	color += texture(ima, final_co.xw) * s0.x * s1.y;
-	color += texture(ima, final_co.zw) * s1.x * s1.y;
+	color  = textureLod(ima, final_co.xy, 0.0) * s0.x * s0.y;
+	color += textureLod(ima, final_co.zy, 0.0) * s1.x * s0.y;
+	color += textureLod(ima, final_co.xw, 0.0) * s0.x * s1.y;
+	color += textureLod(ima, final_co.zw, 0.0) * s1.x * s1.y;
 
 #else /* Reference bruteforce 16 tap. */
 	color  = texelFetch(ima, ivec2(tc + vec2(-1.0, -1.0)), 0) * w0.x * w0.y;
@@ -2079,10 +2094,20 @@ void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alph
 	alpha = color.a;
 }
 
+void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	node_tex_image_cubic_ex(co, ima, 0.0, color, alpha);
+}
+
+void node_tex_image_cubic_extend(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	node_tex_image_cubic_ex(co, ima, 1.0, color, alpha);
+}
+
 void node_tex_image_smart(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	/* use cubic for now */
-	node_tex_image_cubic(co, ima, color, alpha);
+	node_tex_image_cubic_ex(co, ima, 0.0, color, alpha);
 }
 
 void tex_box_sample_linear(vec3 texco,
@@ -2155,19 +2180,19 @@ void tex_box_sample_cubic(vec3 texco,
 	if (N.x < 0.0) {
 		uv.x = 1.0 - uv.x;
 	}
-	node_tex_image_cubic(uv.xyy, ima, color1, alpha);
+	node_tex_image_cubic_ex(uv.xyy, ima, 0.0, color1, alpha);
 	/* Y projection */
 	uv = texco.xz;
 	if (N.y > 0.0) {
 		uv.x = 1.0 - uv.x;
 	}
-	node_tex_image_cubic(uv.xyy, ima, color2, alpha);
+	node_tex_image_cubic_ex(uv.xyy, ima, 0.0, color2, alpha);
 	/* Z projection */
 	uv = texco.yx;
 	if (N.z > 0.0) {
 		uv.x = 1.0 - uv.x;
 	}
-	node_tex_image_cubic(uv.xyy, ima, color3, alpha);
+	node_tex_image_cubic_ex(uv.xyy, ima, 0.0, color3, alpha);
 }
 
 void tex_box_sample_smart(vec3 texco,
@@ -2233,6 +2258,69 @@ void node_tex_image_box(vec3 texco,
 
 	color = weight.x * color1 + weight.y * color2 + weight.z * color3;
 	alpha = color.a;
+}
+
+void tex_clip_linear(vec3 co, sampler2D ima, vec4 icolor, out vec4 color, out float alpha)
+{
+	vec2 tex_size = vec2(textureSize(ima, 0).xy);
+	vec2 minco = min(co.xy, 1.0 - co.xy);
+	minco = clamp(minco * tex_size + 0.5, 0.0, 1.0);
+	float fac = minco.x * minco.y;
+
+	color = mix(vec4(0.0), icolor, fac);
+	alpha = color.a;
+}
+
+void tex_clip_nearest(vec3 co, sampler2D ima, vec4 icolor, out vec4 color, out float alpha)
+{
+	vec4 minco = vec4(co.xy, 1.0 - co.xy);
+	color = (any(lessThan(minco, vec4(0.0)))) ? vec4(0.0) : icolor;
+	alpha = color.a;
+}
+
+void tex_clip_cubic(vec3 co, sampler2D ima, vec4 icolor, out vec4 color, out float alpha)
+{
+	vec2 tex_size = vec2(textureSize(ima, 0).xy);
+
+	co.xy *= tex_size;
+	/* texel center */
+	vec2 tc = floor(co.xy - 0.5) + 0.5;
+	vec2 w0, w1, w2, w3;
+	cubic_bspline_coefs(co.xy - tc, w0, w1, w2, w3);
+
+	/* TODO Optimize this part. I'm sure there is a smarter way to do that.
+	 * Could do that when sampling? */
+#define CLIP_CUBIC_SAMPLE(samp, size) (float(all(greaterThan(samp, vec2(-0.5)))) * float(all(lessThan(ivec2(samp), itex_size))))
+	ivec2 itex_size = textureSize(ima, 0).xy;
+	float fac;
+	fac  = CLIP_CUBIC_SAMPLE(tc + vec2(-1.0, -1.0), itex_size) * w0.x * w0.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 0.0, -1.0), itex_size) * w1.x * w0.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 1.0, -1.0), itex_size) * w2.x * w0.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 2.0, -1.0), itex_size) * w3.x * w0.y;
+
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2(-1.0,  0.0), itex_size) * w0.x * w1.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 0.0,  0.0), itex_size) * w1.x * w1.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 1.0,  0.0), itex_size) * w2.x * w1.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 2.0,  0.0), itex_size) * w3.x * w1.y;
+
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2(-1.0,  1.0), itex_size) * w0.x * w2.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 0.0,  1.0), itex_size) * w1.x * w2.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 1.0,  1.0), itex_size) * w2.x * w2.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 2.0,  1.0), itex_size) * w3.x * w2.y;
+
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2(-1.0,  2.0), itex_size) * w0.x * w3.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 0.0,  2.0), itex_size) * w1.x * w3.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 1.0,  2.0), itex_size) * w2.x * w3.y;
+	fac += CLIP_CUBIC_SAMPLE(tc + vec2( 2.0,  2.0), itex_size) * w3.x * w3.y;
+#undef CLIP_CUBIC_SAMPLE
+
+	color = mix(vec4(0.0), icolor, fac);
+	alpha = color.a;
+}
+
+void tex_clip_smart(vec3 co, sampler2D ima, vec4 icolor, out vec4 color, out float alpha)
+{
+	tex_clip_cubic(co, ima, icolor, color, alpha);
 }
 
 void node_tex_image_empty(vec3 co, out vec4 color, out float alpha)
