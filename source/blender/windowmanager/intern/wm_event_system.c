@@ -299,7 +299,6 @@ static void wm_notifier_clear(wmNotifier *note)
 void wm_event_do_depsgraph(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-
 	/* The whole idea of locked interface is to prevent viewport and whatever
 	 * thread to modify the same data. Because of this, we can not perform
 	 * dependency graph update.
@@ -307,8 +306,7 @@ void wm_event_do_depsgraph(bContext *C)
 	if (wm->is_interface_locked) {
 		return;
 	}
-
-	/* combine datamasks so 1 win doesn't disable UV's in another [#26448] */
+	/* Combine datamasks so 1 win doesn't disable UV's in another [#26448]. */
 	uint64_t win_combine_v3d_datamask = 0;
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		const Scene *scene = WM_window_get_active_scene(win);
@@ -316,21 +314,15 @@ void wm_event_do_depsgraph(bContext *C)
 
 		win_combine_v3d_datamask |= ED_view3d_screen_datamask(scene, screen);
 	}
-
-	/* cached: editor refresh callbacks now, they get context */
+	/* Update all the dependency graphs of visible vew layers. */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		Scene *scene = WM_window_get_active_scene(win);
 		ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-
-		/* depsgraph & animation: update tagged datablocks */
 		Main *bmain = CTX_data_main(C);
-
-		/* copied to set's in scene_update_tagged_recursive() */
+		/* Copied to set's in scene_update_tagged_recursive() */
 		scene->customdata_mask = win_combine_v3d_datamask;
-
 		/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 		scene->customdata_mask |= scene->customdata_mask_modal;
-
 		/* TODO(sergey): For now all dependency graphs which are evaluated from
 		 * workspace are considered active. This will work all fine with "locked"
 		 * view layer and time across windows. This is to be granted separately,
