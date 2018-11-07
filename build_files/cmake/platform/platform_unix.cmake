@@ -359,6 +359,10 @@ if(WITH_OPENCOLORIO)
 	endif()
 endif()
 
+if(WITH_CYCLES_EMBREE)
+	find_package(Embree 3.2.4 REQUIRED)
+endif()
+
 if(WITH_LLVM)
 	if(EXISTS ${LIBDIR})
 		set(LLVM_STATIC ON)

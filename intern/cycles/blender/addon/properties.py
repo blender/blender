@@ -547,6 +547,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             description="Use special type BVH optimized for hair (uses more ram but renders faster)",
             default=True,
         )
+        cls.use_bvh_embree = BoolProperty(
+            name="Use Embree",
+            description="Use Embree as ray accelerator",
+            default=False,
+        )
         cls.debug_bvh_time_steps = IntProperty(
             name="BVH Time Steps",
             description="Split BVH primitives by this number of time steps to speed up render time in cost of memory",

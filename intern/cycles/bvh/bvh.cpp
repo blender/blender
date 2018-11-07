@@ -26,6 +26,10 @@
 #include "bvh/bvh_build.h"
 #include "bvh/bvh_node.h"
 
+#ifdef WITH_EMBREE
+#include "bvh/bvh_embree.h"
+#endif
+
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_progress.h"
@@ -41,6 +45,7 @@ const char *bvh_layout_name(BVHLayout layout)
 		case BVH_LAYOUT_BVH4: return "BVH4";
 		case BVH_LAYOUT_BVH8: return "BVH8";
 		case BVH_LAYOUT_NONE: return "NONE";
+		case BVH_LAYOUT_EMBREE: return "EMBREE";
 		case BVH_LAYOUT_ALL:  return "ALL";
 	}
 	LOG(DFATAL) << "Unsupported BVH layout was passed.";
@@ -96,6 +101,10 @@ BVH *BVH::create(const BVHParams& params, const vector<Object*>& objects)
 			return new BVH4(params, objects);
 		case BVH_LAYOUT_BVH8:
 			return new BVH8(params, objects);
+		case BVH_LAYOUT_EMBREE:
+#ifdef WITH_EMBREE
+			return new BVHEmbree(params, objects);
+#endif
 		case BVH_LAYOUT_NONE:
 		case BVH_LAYOUT_ALL:
 			break;
@@ -106,7 +115,7 @@ BVH *BVH::create(const BVHParams& params, const vector<Object*>& objects)
 
 /* Building */
 
-void BVH::build(Progress& progress)
+void BVH::build(Progress& progress, Stats*)
 {
 	progress.set_substatus("Building BVH");
 

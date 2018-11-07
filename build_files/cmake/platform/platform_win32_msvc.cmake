@@ -21,43 +21,20 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# Libraries configuration for Windows.
-
-add_definitions(-DWIN32)
-
-if(NOT MSVC)
-	message(FATAL_ERROR "Compiler is unsupported")
-endif()
-
-if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-	set(MSVC_CLANG On)
-	set(VC_TOOLS_DIR $ENV{VCToolsRedistDir} CACHE STRING "Location of the msvc redistributables")
-	set(MSVC_REDIST_DIR ${VC_TOOLS_DIR})
-	if (DEFINED MSVC_REDIST_DIR)
-		file(TO_CMAKE_PATH ${MSVC_REDIST_DIR} MSVC_REDIST_DIR)
-	else()
-		message("Unable to detect the Visual Studio redist directory, copying of the runtime dlls will not work, try running from the visual studio developer prompt.")
-	endif()
-endif()
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ${WINDOWS_USE_VISUAL_STUDIO_FOLDERS})
-
-if(NOT WITH_PYTHON_MODULE)
-	set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
-endif()
+# Libraries configuration for Windows when compiling with MSVC.
 
 macro(warn_hardcoded_paths package_name
 	)
 	if(WITH_WINDOWS_FIND_MODULES)
 		message(WARNING "Using HARDCODED ${package_name} locations")
-	endif()
+	endif(WITH_WINDOWS_FIND_MODULES)
 endmacro()
 
 macro(windows_find_package package_name
 	)
 	if(WITH_WINDOWS_FIND_MODULES)
 		find_package(${package_name})
-	endif()
+	endif(WITH_WINDOWS_FIND_MODULES)
 endmacro()
 
 macro(find_package_wrapper)
@@ -67,11 +44,6 @@ macro(find_package_wrapper)
 endmacro()
 
 add_definitions(-DWIN32)
-
-# Needed, otherwise system encoding causes utf-8 encoding to fail in some cases (C4819)
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-
 # Minimum MSVC Version
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 	if(MSVC_VERSION EQUAL 1800)
@@ -122,21 +94,11 @@ add_definitions(-D_ALLOW_KEYWORD_MACROS)
 add_definitions(-D_WIN32_WINNT=0x600)
 
 # Make cmake find the msvc redistributables
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP FALSE)
-set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION .)
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include(InstallRequiredSystemLibraries)
 
-remove_cc_flag("/MDd" "/MD")
-
-if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference ")
-	set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference")
-else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /nologo /J /Gd /MP /EHsc")
-	set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP")
-endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /nologo /J /Gd /MP /EHsc")
+set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
@@ -147,7 +109,7 @@ set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} /MT")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /MT")
 
-set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO ")
+set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO ")
 set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib ")
 
 # Ignore meaningless for us linker warnings.
@@ -160,7 +122,7 @@ else()
 	set(PLATFORM_LINKFLAGS "/MACHINE:IX86 /LARGEADDRESSAWARE ${PLATFORM_LINKFLAGS}")
 endif()
 
-set(PLATFORM_LINKFLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG} /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
+set(PLATFORM_LINKFLAGS_DEBUG "/IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
 if(NOT DEFINED LIBDIR)
 
@@ -172,8 +134,7 @@ if(NOT DEFINED LIBDIR)
 		message(STATUS "32 bit compiler detected.")
 		set(LIBDIR_BASE "windows")
 	endif()
-	# Can be 1910..1912
-	if(MSVC_VERSION GREATER 1909)
+	if(MSVC_VERSION EQUAL 1910)
 		message(STATUS "Visual Studio 2017 detected.")
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc14)
 	elseif(MSVC_VERSION EQUAL 1900)
@@ -210,7 +171,7 @@ windows_find_package(png)
 if(NOT PNG_FOUND)
 	warn_hardcoded_paths(libpng)
 	set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
-	set(PNG_LIBRARIES ${LIBDIR}/png/lib/libpng.lib)
+	set(PNG_LIBRARIES libpng)
 	set(PNG "${LIBDIR}/png")
 	set(PNG_INCLUDE_DIRS "${PNG}/include")
 	set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
@@ -237,7 +198,7 @@ windows_find_package(freetype REQUIRED)
 
 if(WITH_FFTW3)
 	set(FFTW3 ${LIBDIR}/fftw3)
-	set(FFTW3_LIBRARIES ${FFTW3}/lib/libfftw.lib)
+	set(FFTW3_LIBRARIES libfftw)
 	set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
 	set(FFTW3_LIBPATH ${FFTW3}/lib)
 endif()
@@ -265,7 +226,9 @@ if(WITH_OPENCOLLADA)
 		${OPENCOLLADA}/lib/opencollada/ftoa.lib
 	)
 
-	list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
+	if(NOT WITH_LLVM)
+		list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
+	endif()
 
 	set(PCRE_LIBRARIES
 		${OPENCOLLADA}/lib/opencollada/pcre.lib
@@ -280,6 +243,8 @@ if(WITH_CODEC_FFMPEG)
 	windows_find_package(FFMPEG)
 	if(NOT FFMPEG_FOUND)
 		warn_hardcoded_paths(ffmpeg)
+		set(FFMPEG_LIBRARY_VERSION 57)
+		set(FFMPEG_LIBRARY_VERSION_AVU 55)
 		set(FFMPEG_LIBRARIES
 			${LIBDIR}/ffmpeg/lib/avcodec.lib
 			${LIBDIR}/ffmpeg/lib/avformat.lib
@@ -301,16 +266,16 @@ if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		set(OPENEXR_LIBRARIES
-			optimized ${OPENEXR_LIBPATH}/Iex_s.lib
-			optimized ${OPENEXR_LIBPATH}/Half_s.lib
-			optimized ${OPENEXR_LIBPATH}/IlmImf_s.lib
-			optimized ${OPENEXR_LIBPATH}/Imath_s.lib
-			optimized ${OPENEXR_LIBPATH}/IlmThread_s.lib
-			debug ${OPENEXR_LIBPATH}/Iex_s_d.lib
-			debug ${OPENEXR_LIBPATH}/Half_s_d.lib
-			debug ${OPENEXR_LIBPATH}/IlmImf_s_d.lib
-			debug ${OPENEXR_LIBPATH}/Imath_s_d.lib
-			debug ${OPENEXR_LIBPATH}/IlmThread_s_d.lib
+			optimized ${OPENEXR_LIBPATH}/Iex-2_2.lib
+			optimized ${OPENEXR_LIBPATH}/Half.lib
+			optimized ${OPENEXR_LIBPATH}/IlmImf-2_2.lib
+			optimized ${OPENEXR_LIBPATH}/Imath-2_2.lib
+			optimized ${OPENEXR_LIBPATH}/IlmThread-2_2.lib
+			debug ${OPENEXR_LIBPATH}/Iex-2_2_d.lib
+			debug ${OPENEXR_LIBPATH}/Half_d.lib
+			debug ${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
+			debug ${OPENEXR_LIBPATH}/Imath-2_2_d.lib
+			debug ${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
 		)
 	endif()
 endif()
@@ -334,7 +299,7 @@ if(WITH_JACK)
 endif()
 
 if(WITH_PYTHON)
-	set(PYTHON_VERSION 3.7) # CACHE STRING)
+	set(PYTHON_VERSION 3.5) # CACHE STRING)
 
 	string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 	# Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs
@@ -362,44 +327,43 @@ if(WITH_BOOST)
 	set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
 	set(Boost_USE_MULTITHREADED ON) # suffix -mt
 	set(Boost_USE_STATIC_LIBS ON) # suffix -s
-	if(WITH_WINDOWS_FIND_MODULES)
+	if (WITH_WINDOWS_FIND_MODULES)
 		find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
-	endif()
+	endif (WITH_WINDOWS_FIND_MODULES)
 	if(NOT Boost_FOUND)
 		warn_hardcoded_paths(BOOST)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
-		set(BOOST_LIBPATH ${BOOST}/lib)
-		if(CMAKE_CL_64)
-			set(BOOST_POSTFIX "vc140-mt-s-x64-1_68.lib")
-			set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-x64-1_68.lib")
+		if(MSVC12)
+			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_POSTFIX "vc120-mt-s-1_60.lib")
+			set(BOOST_DEBUG_POSTFIX "vc120-mt-sgd-1_60.lib")
 		else()
-			set(BOOST_POSTFIX "vc140-mt-s-x32-1_68.lib")
-			set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-x32-1_68.lib")
+			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_POSTFIX "vc140-mt-s-1_60.lib")
+			set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-1_60.lib")
 		endif()
 		set(BOOST_LIBRARIES
-			optimized ${BOOST_LIBPATH}/libboost_date_time-${BOOST_POSTFIX}
-			optimized ${BOOST_LIBPATH}/libboost_filesystem-${BOOST_POSTFIX}
-			optimized ${BOOST_LIBPATH}/libboost_regex-${BOOST_POSTFIX}
-			optimized ${BOOST_LIBPATH}/libboost_system-${BOOST_POSTFIX}
-			optimized ${BOOST_LIBPATH}/libboost_thread-${BOOST_POSTFIX}
-			optimized ${BOOST_LIBPATH}/libboost_chrono-${BOOST_POSTFIX}
-			debug ${BOOST_LIBPATH}/libboost_date_time-${BOOST_DEBUG_POSTFIX}
-			debug ${BOOST_LIBPATH}/libboost_filesystem-${BOOST_DEBUG_POSTFIX}
-			debug ${BOOST_LIBPATH}/libboost_regex-${BOOST_DEBUG_POSTFIX}
-			debug ${BOOST_LIBPATH}/libboost_system-${BOOST_DEBUG_POSTFIX}
-			debug ${BOOST_LIBPATH}/libboost_thread-${BOOST_DEBUG_POSTFIX}
-			debug ${BOOST_LIBPATH}/libboost_chrono-${BOOST_DEBUG_POSTFIX}
+			optimized libboost_date_time-${BOOST_POSTFIX}
+			optimized libboost_filesystem-${BOOST_POSTFIX}
+			optimized libboost_regex-${BOOST_POSTFIX}
+			optimized libboost_system-${BOOST_POSTFIX}
+			optimized libboost_thread-${BOOST_POSTFIX}
+			debug libboost_date_time-${BOOST_DEBUG_POSTFIX}
+			debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+			debug libboost_regex-${BOOST_DEBUG_POSTFIX}
+			debug libboost_system-${BOOST_DEBUG_POSTFIX}
+			debug libboost_thread-${BOOST_DEBUG_POSTFIX}
 		)
 		if(WITH_CYCLES_OSL)
 			set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-				optimized ${BOOST_LIBPATH}/libboost_wave-${BOOST_POSTFIX}
-				debug ${BOOST_LIBPATH}/libboost_wave-${BOOST_DEBUG_POSTFIX})
+				optimized libboost_wave-${BOOST_POSTFIX}
+				debug libboost_wave-${BOOST_DEBUG_POSTFIX})
 		endif()
 		if(WITH_INTERNATIONAL)
 			set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-				optimized ${BOOST_LIBPATH}/libboost_locale-${BOOST_POSTFIX}
-				debug ${BOOST_LIBPATH}/libboost_locale-${BOOST_DEBUG_POSTFIX})
+				optimized libboost_locale-${BOOST_POSTFIX}
+				debug libboost_locale-${BOOST_DEBUG_POSTFIX})
 		endif()
 	else() # we found boost using find_package
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
@@ -412,12 +376,11 @@ endif()
 if(WITH_OPENIMAGEIO)
 	windows_find_package(OpenImageIO)
 	set(OPENIMAGEIO ${LIBDIR}/openimageio)
-	set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 	set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-	set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
-	set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
+	set(OIIO_OPTIMIZED optimized OpenImageIO optimized OpenImageIO_Util)
+	set(OIIO_DEBUG debug OpenImageIO_d debug OpenImageIO_Util_d)
 	set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
-
+	set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 	set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
 	set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
 	set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
@@ -453,16 +416,13 @@ endif()
 if(WITH_OPENCOLORIO)
 	set(OPENCOLORIO ${LIBDIR}/opencolorio)
 	set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
+	set(OPENCOLORIO_LIBRARIES OpenColorIO)
 	set(OPENCOLORIO_LIBPATH ${LIBDIR}/opencolorio/lib)
-	set(OPENCOLORIO_LIBRARIES
-		optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
-		optimized ${OPENCOLORIO_LIBPATH}/tinyxml.lib
-		optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
-		debug ${OPENCOLORIO_LIBPATH}/OpenColorIO_d.lib
-		debug ${OPENCOLORIO_LIBPATH}/tinyxml_d.lib
-		debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
-	)
 	set(OPENCOLORIO_DEFINITIONS)
+endif()
+
+if(WITH_CYCLES_EMBREE)
+	find_package(Embree 3.2.4 REQUIRED)
 endif()
 
 if(WITH_OPENVDB)
@@ -470,10 +430,9 @@ if(WITH_OPENVDB)
 	set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
 	set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
 	set(OPENVDB ${LIBDIR}/openvdb)
-	set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 	set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
-	set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
-	set(OPENVDB_DEFINITIONS -DNOMINMAX)
+	set(OPENVDB_LIBRARIES optimized openvdb debug openvdb_d ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
+	set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 endif()
 
 if(WITH_ALEMBIC)
@@ -481,7 +440,7 @@ if(WITH_ALEMBIC)
 	set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
 	set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
 	set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
-	set(ALEMBIC_LIBRARIES optimized ${ALEMBIC}/lib/alembic.lib debug ${ALEMBIC}/lib/alembic_d.lib)
+	set(ALEMBIC_LIBRARIES optimized alembic debug alembic_d)
 	set(ALEMBIC_FOUND 1)
 endif()
 
@@ -494,12 +453,6 @@ if(WITH_MOD_CLOTH_ELTOPO)
 		${LIBDIR}/lapack/lib/clapack_nowrap.lib
 		${LIBDIR}/lapack/lib/BLAS_nowrap.lib
 	)
-endif()
-
-if(WITH_IMAGE_OPENJPEG)
-	set(OPENJPEG ${LIBDIR}/openjpeg)
-	set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.3)
-	set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/openjp2.lib)
 endif()
 
 if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
@@ -524,7 +477,7 @@ if(WITH_SDL)
 	set(SDL ${LIBDIR}/sdl)
 	set(SDL_INCLUDE_DIR ${SDL}/include)
 	set(SDL_LIBPATH ${SDL}/lib)
-	set(SDL_LIBRARY ${SDL_LIBPATH}/SDL2.lib)
+	set(SDL_LIBRARY SDL2)
 endif()
 
 # Audio IO
@@ -551,100 +504,3 @@ find_program(SIGNTOOL_EXE signtool
 		"$ENV{${ProgramFilesX86_NAME}}/Windows Kits/8.0/bin/x86/"
 		"$ENV{ProgramFiles}/Windows Kits/8.0/bin/x86/"
 )
-set(WINTAB_INC ${LIBDIR}/wintab/include)
-
-if(WITH_OPENAL)
-	set(OPENAL ${LIBDIR}/openal)
-	set(OPENALDIR ${LIBDIR}/openal)
-	set(OPENAL_INCLUDE_DIR ${OPENAL}/include/AL)
-	set(OPENAL_LIBPATH ${OPENAL}/lib)
-	if(MSVC)
-		set(OPENAL_LIBRARY ${OPENAL_LIBPATH}/openal32.lib)
-	else()
-		set(OPENAL_LIBRARY ${OPENAL_LIBPATH}/wrap_oal.lib)
-	endif()
-
-endif()
-
-if(WITH_CODEC_SNDFILE)
-	set(SNDFILE ${LIBDIR}/sndfile)
-	set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
-	set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
-	set(SNDFILE_LIBRARIES ${SNDFILE_LIBPATH}/libsndfile-1.lib)
-
-endif()
-
-if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-	add_definitions(-D__SSE__ -D__MMX__)
-endif()
-
-if(WITH_CYCLES_OSL)
-	set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-
-	find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
-	find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
-	find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-	find_library(OSL_LIB_EXEC_DEBUG NAMES oslexec_d PATHS ${CYCLES_OSL}/lib)
-	find_library(OSL_LIB_COMP_DEBUG NAMES oslcomp_d PATHS ${CYCLES_OSL}/lib)
-	find_library(OSL_LIB_QUERY_DEBUG NAMES oslquery_d PATHS ${CYCLES_OSL}/lib)
-	list(APPEND OSL_LIBRARIES
-		optimized ${OSL_LIB_COMP}
-		optimized ${OSL_LIB_EXEC}
-		optimized ${OSL_LIB_QUERY}
-		optimized ${CYCLES_OSL}/lib/pugixml.lib
-		debug ${OSL_LIB_EXEC_DEBUG}
-		debug ${OSL_LIB_COMP_DEBUG}
-		debug ${OSL_LIB_QUERY_DEBUG}
-		debug ${CYCLES_OSL}/lib/pugixml_d.lib
-	)
-	find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
-	find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
-
-	if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER)
-		set(OSL_FOUND TRUE)
-	else()
-		message(STATUS "OSL not found")
-		set(WITH_CYCLES_OSL OFF)
-	endif()
-endif()
-
-if(WITH_CYCLES_EMBREE)
-	find_package(Embree 3.2.4 REQUIRED)
-endif()
-
-if (WINDOWS_PYTHON_DEBUG)
-	# Include the system scripts in the blender_python_system_scripts project.
-	FILE(GLOB_RECURSE inFiles "${CMAKE_SOURCE_DIR}/release/scripts/*.*" )
-	ADD_CUSTOM_TARGET(blender_python_system_scripts SOURCES ${inFiles})
-	foreach(_source IN ITEMS ${inFiles})
-		get_filename_component(_source_path "${_source}" PATH)
-		string(REPLACE "${CMAKE_SOURCE_DIR}/release/scripts/" "" _source_path "${_source_path}")
-		string(REPLACE "/" "\\" _group_path "${_source_path}")
-		source_group("${_group_path}" FILES "${_source}")
-	endforeach()
-	# Include the user scripts from the profile folder in the blender_python_user_scripts project.
-	set(USER_SCRIPTS_ROOT "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}")
-	file(TO_CMAKE_PATH ${USER_SCRIPTS_ROOT} USER_SCRIPTS_ROOT)
-	FILE(GLOB_RECURSE inFiles "${USER_SCRIPTS_ROOT}/scripts/*.*" )
-	ADD_CUSTOM_TARGET(blender_python_user_scripts SOURCES ${inFiles})
-	foreach(_source IN ITEMS ${inFiles})
-		get_filename_component(_source_path "${_source}" PATH)
-		string(REPLACE "${USER_SCRIPTS_ROOT}/scripts" "" _source_path "${_source_path}")
-		string(REPLACE "/" "\\" _group_path "${_source_path}")
-		source_group("${_group_path}" FILES "${_source}")
-	endforeach()
-	set_target_properties(blender_python_system_scripts PROPERTIES FOLDER "scripts")
-	set_target_properties(blender_python_user_scripts PROPERTIES FOLDER "scripts")
-	# Set the default debugging options for the project, only write this file once so the user
-	# is free to override them at their own perril.
-	set(USER_PROPS_FILE "${CMAKE_CURRENT_BINARY_DIR}/source/creator/blender.Cpp.user.props")
-	if(NOT EXISTS ${USER_PROPS_FILE})
-		# Layout below is messy, because otherwise the generated file will look messy.
-		file(WRITE ${USER_PROPS_FILE} "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
-	<PropertyGroup>
-		<LocalDebuggerCommandArguments>-con --env-system-scripts \"${CMAKE_SOURCE_DIR}/release/scripts\" </LocalDebuggerCommandArguments>
-	</PropertyGroup>
-</Project>")
-	endif()
-endif()

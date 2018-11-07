@@ -17,6 +17,7 @@
 # <pep8 compliant>
 
 import bpy
+import _cycles
 
 from bpy.types import (
     Panel,
@@ -430,11 +431,18 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
         col.separator()
 
         col.label(text="Acceleration structure:")
+        if _cycles.with_embree:
+            row = col.row()
+            row.active = use_cpu(context)
+            row.prop(cscene, "use_bvh_embree")
+        row = col.row()
         col.prop(cscene, "debug_use_spatial_splits")
-        col.prop(cscene, "debug_use_hair_bvh")
+        row = col.row()
+        row.active = not cscene.use_bvh_embree or not _cycles.with_embree
+        row.prop(cscene, "debug_use_hair_bvh")
 
         row = col.row()
-        row.active = not cscene.debug_use_spatial_splits
+        row.active = not cscene.debug_use_spatial_splits and not cscene.use_bvh_embree
         row.prop(cscene, "debug_bvh_time_steps")
 
         col = layout.column()
@@ -491,8 +499,6 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        import _cycles
-
         layout = self.layout
 
         scene = context.scene

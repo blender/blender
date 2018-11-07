@@ -217,6 +217,15 @@ if(WITH_CYCLES_OSL)
 	)
 endif()
 
+if(WITH_CYCLES_EMBREE)
+	add_definitions(-DWITH_EMBREE)
+	add_definitions(-DEMBREE_STATIC_LIB)
+	include_directories(
+		SYSTEM
+		${EMBREE_INCLUDE_DIRS}
+	)
+endif()
+
 if(WITH_CYCLES_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
 	include_directories(

@@ -82,6 +82,7 @@ set(SRC_BVH_HEADERS
 	bvh/obvh_traversal.h
 	bvh/obvh_volume.h
 	bvh/obvh_volume_all.h
+	bvh/bvh_embree.h
 )
 
 set(SRC_HEADERS

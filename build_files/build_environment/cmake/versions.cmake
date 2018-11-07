@@ -298,3 +298,7 @@ set(SSL_HASH ebbfc844a8c8cc0ea5dc10b86c9ce97f401837f3fa08c17b2cdadc118253cf99)
 set(SQLITE_VERSION 3.24.0)
 set(SQLITE_URI https://www.sqlite.org/2018/sqlite-src-3240000.zip)
 set(SQLITE_HASH fb558c49ee21a837713c4f1e7e413309aabdd9c7)
+
+set(EMBREE_VERSION 3.2.4)
+set(EMBREE_URI https://github.com/embree/embree/archive/v${EMBREE_VERSION}.zip)
+set(EMBREE_HASH 3d4a1147002ff43939d45140aa9d6fb8)
