@@ -74,6 +74,7 @@ void ED_curve_deselect_all(struct EditNurb *editnurb);
 void ED_curve_deselect_all_multi(struct Object **objects, int objects_len);
 void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
+int ED_curve_select_count(struct View3D *v3d, struct EditNurb *editnurb);
 
 /* editcurve_undo.c */
 void ED_curve_undosys_type(struct UndoType *ut);

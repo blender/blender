@@ -39,12 +39,14 @@
 #include "BLI_rand.h"
 #include "BLI_heap.h"
 #include "BLI_heap_simple.h"
+#include "BLI_kdtree.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
+#include "BKE_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -216,6 +218,18 @@ void ED_curve_nurb_deselect_all(Nurb *nu)
 			bp->f1 &= ~SELECT;
 		}
 	}
+}
+
+int ED_curve_select_count(View3D *v3d, struct EditNurb *editnurb)
+{
+	int sel = 0;
+	Nurb *nu;
+
+	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+		sel += ED_curve_nurb_select_count(v3d, nu);
+	}
+
+	return sel;
 }
 
 bool ED_curve_select_check(View3D *v3d, struct EditNurb *editnurb)
@@ -1316,12 +1330,6 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 /** \name Select Similar
  * \{ */
 
-enum {
-	SIM_CMP_EQ = 0,
-	SIM_CMP_GT,
-	SIM_CMP_LT,
-};
-
 static const EnumPropertyItem curve_prop_similar_compare_types[] = {
 	{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
 	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
@@ -1345,261 +1353,301 @@ static const EnumPropertyItem curve_prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int curve_select_similar_cmp_fl(const float delta, const float thresh, const int compare)
+/** Note: This function should actually take scaling into consideration. */
+static void nurb_bezt_direction_worldspace_get(Object *ob, Nurb *nu, BezTriple *bezt, float r_dir[3])
 {
-	switch (compare) {
-		case SIM_CMP_EQ:
-			return (fabsf(delta) <= thresh);
-		case SIM_CMP_GT:
-			return ((delta + thresh) >= 0.0f);
-		case SIM_CMP_LT:
-			return ((delta - thresh) <= 0.0f);
-		default:
-			BLI_assert(0);
-			return 0;
-	}
+	float rmat[3][3];
+	BKE_nurb_bezt_calc_normal(nu, bezt, r_dir);
+	BKE_object_rot_to_mat3(ob, rmat, true);
+	mul_m3_v3(rmat, r_dir);
 }
 
-
-static void curve_select_similar_direction__bezt(Nurb *nu, const float dir_ref[3], float angle_cos)
+/** Note: This function should actually take scaling into consideration. */
+static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *bp, float r_dir[3])
 {
-	BezTriple *bezt;
-	int i;
+	float rmat[3][3];
+	BKE_nurb_bpoint_calc_normal(nu, bp, r_dir);
+	BKE_object_rot_to_mat3(ob, rmat, true);
+	mul_m3_v3(rmat, r_dir);
+}
 
-	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
-		if (!bezt->hide) {
-			float dir[3];
-			BKE_nurb_bezt_calc_normal(nu, bezt, dir);
-			if (fabsf(dot_v3v3(dir_ref, dir)) >= angle_cos) {
-				select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, KDTree *r_tree)
+{
+	float tree_entry[3] = {0.0f, 0.0f, 0.0f};
+
+	if (nu->type == CU_BEZIER) {
+		BezTriple *bezt;
+		int i;
+		int tree_index = 0;
+
+		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+			if ((!bezt->hide) && (bezt->f1 & SELECT)) {
+
+				switch (type) {
+					case SIMCURHAND_RADIUS:
+					{
+						float radius_ref = bezt->radius;
+						tree_entry[0] = radius_ref;
+						break;
+					}
+					case SIMCURHAND_WEIGHT:
+					{
+						float weight_ref = bezt->weight;
+						tree_entry[0] = weight_ref;
+						break;
+					}
+					case SIMCURHAND_DIRECTION:
+					{
+						nurb_bezt_direction_worldspace_get(ob, nu, bezt, tree_entry);
+						break;
+					}
+				}
+				BLI_kdtree_insert(r_tree, tree_index++, tree_entry);
 			}
 		}
-	}
-}
-
-static void curve_select_similar_direction__bp(Nurb *nu, const float dir_ref[3], float angle_cos)
-{
-	BPoint *bp;
-	int i;
-
-	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
-		if (!bp->hide) {
-			float dir[3];
-			BKE_nurb_bpoint_calc_normal(nu, bp, dir);
-			if (fabsf(dot_v3v3(dir_ref, dir)) >= angle_cos) {
-				select_bpoint(bp, SELECT, SELECT, VISIBLE);
-			}
-		}
-	}
-}
-
-static bool curve_select_similar_direction(ListBase *editnurb, Curve *cu, float thresh)
-{
-	Nurb *nu, *act_nu;
-	void *act_vert;
-	float dir[3];
-	float angle_cos;
-
-	if (!BKE_curve_nurb_vert_active_get(cu, &act_nu, &act_vert)) {
-		return false;
-	}
-
-	if (act_nu->type == CU_BEZIER) {
-		BKE_nurb_bezt_calc_normal(act_nu, act_vert, dir);
 	}
 	else {
-		BKE_nurb_bpoint_calc_normal(act_nu, act_vert, dir);
-	}
+		BPoint *bp;
+		int i;
+		int tree_index=0;
 
-	/* map 0-1 to radians, 'cos' for comparison */
-	angle_cos = cosf(thresh * (float)M_PI_2);
-
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			curve_select_similar_direction__bezt(nu, dir, angle_cos);
-		}
-		else {
-			curve_select_similar_direction__bp(nu, dir, angle_cos);
-		}
-	}
-
-	return true;
-}
-
-static void curve_select_similar_radius__bezt(Nurb *nu, float radius_ref, int compare, float thresh)
-{
-	BezTriple *bezt;
-	int i;
-
-	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
-		if (!bezt->hide) {
-			if (curve_select_similar_cmp_fl(bezt->radius - radius_ref, thresh, compare)) {
-				select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+			if (!bp->hide && bp->f1 & SELECT) {
+				switch (type) {
+					case SIMCURHAND_RADIUS:
+					{
+						float radius_ref = bp->radius;
+						tree_entry[0] = radius_ref;
+						break;
+					}
+					case SIMCURHAND_WEIGHT:
+					{
+						float weight_ref = bp->weight;
+						tree_entry[0] = weight_ref;
+						break;
+					}
+					case SIMCURHAND_DIRECTION:
+					{
+						nurb_bpoint_direction_worldspace_get(ob, nu, bp, tree_entry);
+						break;
+					}
+				}
+				BLI_kdtree_insert(r_tree, tree_index++, tree_entry);
 			}
 		}
 	}
 }
 
-static void curve_select_similar_radius__bp(Nurb *nu, float radius_ref, int compare, float thresh)
+static bool curve_nurb_select_similar_type(
+        Object *ob, Nurb *nu, const int type,
+        const KDTree *tree, const float thresh, const int compare)
 {
-	BPoint *bp;
-	int i;
+	const float thresh_cos = cosf(thresh * (float)M_PI_2);
+	bool changed = false;
 
-	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
-		if (!bp->hide) {
-			if (curve_select_similar_cmp_fl(bp->radius - radius_ref, thresh, compare)) {
-				select_bpoint(bp, SELECT, SELECT, VISIBLE);
+	if (nu->type == CU_BEZIER) {
+		BezTriple *bezt;
+		int i;
+
+		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+			if (!bezt->hide) {
+				bool select = false;
+
+				switch (type) {
+					case SIMCURHAND_RADIUS:
+					{
+						float radius_ref = bezt->radius;
+						if (ED_select_similar_compare_float_tree(tree, radius_ref, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
+					case SIMCURHAND_WEIGHT:
+					{
+						float weight_ref = bezt->weight;
+						if (ED_select_similar_compare_float_tree(tree, weight_ref, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
+					case SIMCURHAND_DIRECTION:
+					{
+						float dir[3];
+						nurb_bezt_direction_worldspace_get(ob, nu, bezt, dir);
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+							float orient = angle_normalized_v3v3(dir, nearest.co);
+							float delta = thresh_cos - fabsf(cosf(orient));
+							if (ED_select_similar_compare_float(delta, thresh, compare)) {
+								select = true;
+							}
+						}
+						break;
+					}
+				}
+
+				if (select) {
+					select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+					changed = true;
+				}
 			}
 		}
-	}
-}
-
-static bool curve_select_similar_radius(ListBase *editnurb, Curve *cu, float compare, float thresh)
-{
-	Nurb *nu, *act_nu;
-	void *act_vert;
-	float radius_ref;
-
-	if (!BKE_curve_nurb_vert_active_get(cu, &act_nu, &act_vert)) {
-		return false;
-	}
-
-	if (act_nu->type == CU_BEZIER) {
-		radius_ref = ((BezTriple *)act_vert)->radius;
 	}
 	else {
-		radius_ref = ((BPoint *)act_vert)->radius;
-	}
+		BPoint *bp;
+		int i;
 
-	/* make relative */
-	thresh *= radius_ref;
+		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+			if (!bp->hide) {
+				bool select = false;
 
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			curve_select_similar_radius__bezt(nu, radius_ref, compare, thresh);
-		}
-		else {
-			curve_select_similar_radius__bp(nu, radius_ref, compare, thresh);
-		}
-	}
+				switch (type) {
+					case SIMCURHAND_RADIUS:
+					{
+						float radius_ref = bp->radius;
+						if (ED_select_similar_compare_float_tree(tree, radius_ref, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
+					case SIMCURHAND_WEIGHT:
+					{
+						float weight_ref = bp->weight;
+						if (ED_select_similar_compare_float_tree(tree, weight_ref, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
+					case SIMCURHAND_DIRECTION:
+					{
+						float dir[3];
+						nurb_bpoint_direction_worldspace_get(ob, nu, bp, dir);
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+							float orient = angle_normalized_v3v3(dir, nearest.co);
+							float delta = fabsf(cosf(orient)) - thresh_cos;
+							if (ED_select_similar_compare_float(delta, thresh, compare)) {
+								select = true;
+							}
+						}
+						break;
+					}
+				}
 
-	return true;
-}
-
-static void curve_select_similar_weight__bezt(Nurb *nu, float weight_ref, int compare, float thresh)
-{
-	BezTriple *bezt;
-	int i;
-
-	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
-		if (!bezt->hide) {
-			if (curve_select_similar_cmp_fl(bezt->weight - weight_ref, thresh, compare)) {
-				select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+				if (select) {
+					select_bpoint(bp, SELECT, SELECT, VISIBLE);
+					changed = true;
+				}
 			}
 		}
 	}
-}
-
-static void curve_select_similar_weight__bp(Nurb *nu, float weight_ref, int compare, float thresh)
-{
-	BPoint *bp;
-	int i;
-
-	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
-		if (!bp->hide) {
-			if (curve_select_similar_cmp_fl(bp->weight - weight_ref, thresh, compare)) {
-				select_bpoint(bp, SELECT, SELECT, VISIBLE);
-			}
-		}
-	}
-}
-
-static bool curve_select_similar_weight(ListBase *editnurb, Curve *cu, float compare, float thresh)
-{
-	Nurb *nu, *act_nu;
-	void *act_vert;
-	float weight_ref;
-
-	if (!BKE_curve_nurb_vert_active_get(cu, &act_nu, &act_vert))
-		return false;
-
-	if (act_nu->type == CU_BEZIER) {
-		weight_ref = ((BezTriple *)act_vert)->weight;
-	}
-	else {
-		weight_ref = ((BPoint *)act_vert)->weight;
-	}
-
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			curve_select_similar_weight__bezt(nu, weight_ref, compare, thresh);
-		}
-		else {
-			curve_select_similar_weight__bp(nu, weight_ref, compare, thresh);
-		}
-	}
-
-	return true;
-}
-
-static bool curve_select_similar_type(ListBase *editnurb, Curve *cu)
-{
-	Nurb *nu, *act_nu;
-	int type_ref;
-
-	/* Get active nurb type */
-	act_nu = BKE_curve_nurb_active_get(cu);
-
-	if (!act_nu)
-		return false;
-
-	/* Get the active nurb type */
-	type_ref = act_nu->type;
-
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == type_ref) {
-			ED_curve_nurb_select_all(nu);
-		}
-	}
-
-	return true;
+	return changed;
 }
 
 static int curve_select_similar_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = obedit->data;
-	ListBase *editnurb = object_editcurve_get(obedit);
-	bool changed = false;
-
-	/* Get props */
-	const int type = RNA_enum_get(op->ptr, "type");
+	/* Get props. */
+	const int optype = RNA_enum_get(op->ptr, "type");
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
-	switch (type) {
-		case SIMCURHAND_TYPE:
-			changed = curve_select_similar_type(editnurb, cu);
-			break;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	int tot_nurbs_selected_all = 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+		tot_nurbs_selected_all += ED_curve_select_count(v3d, cu->editnurb);
+	}
+
+	if (tot_nurbs_selected_all == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No control point selected");
+		MEM_freeN(objects);
+		return OPERATOR_CANCELLED;
+	}
+
+	KDTree *tree = NULL;
+	short type_ref = 0;
+
+	switch (optype) {
 		case SIMCURHAND_RADIUS:
-			changed = curve_select_similar_radius(editnurb, cu, compare, thresh);
-			break;
 		case SIMCURHAND_WEIGHT:
-			changed = curve_select_similar_weight(editnurb, cu, compare, thresh);
-			break;
 		case SIMCURHAND_DIRECTION:
-			changed = curve_select_similar_direction(editnurb, cu, thresh);
+			tree = BLI_kdtree_new(tot_nurbs_selected_all);
 			break;
 	}
 
-	if (changed) {
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-		return OPERATOR_FINISHED;
+	/* Get type of selected control points. */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+		EditNurb *editnurb = cu->editnurb;
+
+		Nurb *nu;
+		for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+			if (!ED_curve_nurb_select_check(v3d, nu)) {
+				continue;
+			}
+			switch (optype) {
+				case SIMCURHAND_TYPE:
+				{
+					type_ref |= nu->type;
+					break;
+				}
+				case SIMCURHAND_RADIUS:
+				case SIMCURHAND_WEIGHT:
+				case SIMCURHAND_DIRECTION:
+					curve_nurb_selected_type_get(obedit, nu, optype, tree);
+					break;
+			}
+		}
 	}
-	else {
-		return OPERATOR_CANCELLED;
+
+	if (tree != NULL) {
+		BLI_kdtree_balance(tree);
 	}
+
+	/* Select control points with desired type. */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+		EditNurb *editnurb = cu->editnurb;
+		bool changed = false;
+		Nurb *nu;
+
+		for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+			switch (optype) {
+				case SIMCURHAND_TYPE:
+				{
+					if (nu->type & type_ref) {
+						ED_curve_nurb_select_all(nu);
+						changed = true;
+					}
+					break;
+				}
+				case SIMCURHAND_RADIUS:
+				case SIMCURHAND_WEIGHT:
+				case SIMCURHAND_DIRECTION:
+					changed = curve_nurb_select_similar_type(obedit, nu, optype, tree, thresh, compare);
+					break;
+			}
+		}
+
+		if (changed) {
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
+	}
+
+	MEM_freeN(objects);
+	if (tree != NULL) {
+		BLI_kdtree_free(tree);
+	}
+	return OPERATOR_FINISHED;
+
 }
 
 void CURVE_OT_select_similar(wmOperatorType *ot)
