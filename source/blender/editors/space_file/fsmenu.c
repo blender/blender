@@ -596,15 +596,22 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 
 			fp = setmntent(MOUNTED, "r");
 			if (fp == NULL) {
-				fprintf(stderr, "could not get a list of mounted filesystemts\n");
+				fprintf(stderr, "could not get a list of mounted filesystems\n");
 			}
 			else {
 				while ((mnt = getmntent(fp))) {
-					/* not sure if this is right, but seems to give the relevant mnts */
-					if (!STREQLEN(mnt->mnt_fsname, "/dev", 4))
+					if (STRPREFIX(mnt->mnt_dir, "/boot")) {
+						/* Hide share not usable to the user. */
 						continue;
-					if (STREQLEN(mnt->mnt_fsname, "/dev/loop", 9))
+					}
+					else if (!STRPREFIX(mnt->mnt_fsname, "/dev")) {
 						continue;
+					}
+					else if (STRPREFIX(mnt->mnt_fsname, "/dev/loop")) {
+						/* The dev/loop* entries are SNAPS used by desktop environment
+						 * (Gnome) no need for them to show up in the list. */
+						continue;
+					}
 
 					len = strlen(mnt->mnt_dir);
 					if (len && mnt->mnt_dir[len - 1] != '/') {
@@ -618,7 +625,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 					found = 1;
 				}
 				if (endmntent(fp) == 0) {
-					fprintf(stderr, "could not close the list of mounted filesystemts\n");
+					fprintf(stderr, "could not close the list of mounted filesystems\n");
 				}
 			}
 #endif
