@@ -1291,6 +1291,11 @@ class USERPREF_PT_addons(Panel):
             if p
         )
 
+        # Development option for 2.8x, don't show users bundled addons
+        # unless they have been updated for 2.8x.
+        # Developers can turn them on with '--debug'
+        show_official_27x_addons = bpy.app.debug
+
         # collect the categories that can be filtered on
         addons = [
             (mod, addon_utils.module_bl_info(mod))
@@ -1360,6 +1365,15 @@ class USERPREF_PT_addons(Panel):
                     else:
                         continue
 
+                # Skip 2.7x add-ons included with Blender, unless in debug mode.
+                is_addon_27x = info.get("blender", (0,)) < (2, 80)
+                if (
+                        is_addon_27x and
+                        (not show_official_27x_addons) and
+                        (not mod.__file__.startswith(addon_user_dirs))
+                ):
+                    continue
+
                 # Addon UI Code
                 col_box = col.column()
                 box = col_box.box()
@@ -1384,7 +1398,7 @@ class USERPREF_PT_addons(Panel):
 
                 # WARNING: 2.8x exception, may be removed
                 # use disabled state for old add-ons, chances are they are broken.
-                if info.get("blender", (0,)) < (2, 80):
+                if is_addon_27x:
                     sub.label(text="upgrade to 2.8x required")
                     sub.label(icon='ERROR')
                 # Remove code above after 2.8x migration is complete.
