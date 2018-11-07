@@ -32,6 +32,7 @@
 #include "BKE_idcode.h"
 #include "BKE_library.h"
 #include "BKE_library_idmap.h"  /* own include */
+#include "BKE_main.h"
 
 /** \file blender/blenkernel/intern/library_idmap.c
  *  \ingroup bke

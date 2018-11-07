@@ -40,7 +40,7 @@
 
 #include "DNA_ID.h" /* for ID_Type */
 
-#include "BKE_library.h" /* for MAX_LIBARRAY */
+#include "BKE_main.h" /* for MAX_LIBARRAY */
 
 #include "BLI_threads.h"  /* for SpinLock */
 

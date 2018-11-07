@@ -39,7 +39,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_idcode.h"
 
 typedef struct {

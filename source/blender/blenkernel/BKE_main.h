@@ -42,15 +42,20 @@
  */
 #include "DNA_listBase.h"
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct BlendThumbnail;
+struct BLI_mempool;
 struct Depsgraph;
+struct GHash;
+struct ImBuf;
 struct Library;
 struct MainLock;
-struct GHash;
-struct BLI_mempool;
 
 /* Blender thumbnail, as written on file (width, height, and data as char RGBA). */
 /* We pack pixel data after that struct. */
@@ -133,6 +138,27 @@ typedef struct Main {
 
 	struct MainLock *lock;
 } Main;
+
+struct Main *BKE_main_new(void);
+void BKE_main_free(struct Main *mainvar);
+
+void BKE_main_lock(struct Main *bmain);
+void BKE_main_unlock(struct Main *bmain);
+
+void BKE_main_relations_create(struct Main *bmain);
+void BKE_main_relations_free(struct Main *bmain);
+
+struct BlendThumbnail *BKE_main_thumbnail_from_imbuf(struct Main *bmain, struct ImBuf *img);
+struct ImBuf *BKE_main_thumbnail_to_imbuf(struct Main *bmain, struct BlendThumbnail *data);
+void BKE_main_thumbnail_create(struct Main *bmain);
+
+const char *BKE_main_blendfile_path(const struct Main *bmain) ATTR_NONNULL();
+const char *BKE_main_blendfile_path_from_global(void);
+
+struct ListBase *which_libbase(struct Main *mainlib, short type);
+
+#define MAX_LIBARRAY    37
+int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
 
 #define MAIN_VERSION_ATLEAST(main, ver, subver) \
 	((main)->versionfile > (ver) || (main->versionfile == (ver) && (main)->subversionfile >= (subver)))

@@ -6,7 +6,7 @@
 
 extern "C" {
 #include "BLI_utildefines.h"
-#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BLI_math.h"
 #include "DNA_scene_types.h"
 }

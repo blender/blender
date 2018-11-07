@@ -165,28 +165,7 @@ bool new_id(struct ListBase *lb, struct ID *id, const char *name) ATTR_NONNULL(1
 void id_clear_lib_data(struct Main *bmain, struct ID *id);
 void id_clear_lib_data_ex(struct Main *bmain, struct ID *id, const bool id_in_mainlist);
 
-struct ListBase *which_libbase(struct Main *mainlib, short type);
-
-#define MAX_LIBARRAY    37
-int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
-
-/* Main API */
-struct Main *BKE_main_new(void);
-void BKE_main_free(struct Main *mainvar);
-
-void BKE_main_lock(struct Main *bmain);
-void BKE_main_unlock(struct Main *bmain);
-
-void BKE_main_relations_create(struct Main *bmain);
-void BKE_main_relations_free(struct Main *bmain);
-
-struct BlendThumbnail *BKE_main_thumbnail_from_imbuf(struct Main *bmain, struct ImBuf *img);
-struct ImBuf *BKE_main_thumbnail_to_imbuf(struct Main *bmain, struct BlendThumbnail *data);
-void BKE_main_thumbnail_create(struct Main *bmain);
-
-const char *BKE_main_blendfile_path(const struct Main *bmain) ATTR_NONNULL();
-const char *BKE_main_blendfile_path_from_global(void);
-
+/* Affect whole Main database. */
 void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const int tag, const bool value);
 void BKE_main_id_tag_listbase(struct ListBase *lb, const int tag, const bool value);
 void BKE_main_id_tag_all(struct Main *mainvar, const int tag, const bool value);
