@@ -259,7 +259,7 @@ static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, co
 				mul_m3_v3(smat, radius_vec);
 				radius = (radius_vec[0] + radius_vec[1] + radius_vec[2]) / 3;
 
-				if(ED_select_similar_compare_float_tree(tree, radius, thresh, SIM_CMP_EQ)) {
+				if (ED_select_similar_compare_float_tree(tree, radius, thresh, SIM_CMP_EQ)) {
 					select = true;
 				}
 				break;
@@ -267,7 +267,7 @@ static bool mball_select_similar_type(Object *obedit, MetaBall *mb, int type, co
 			case SIMMBALL_STIFFNESS:
 			{
 				float s = ml->s;
-				if(ED_select_similar_compare_float_tree(tree, s, thresh, SIM_CMP_EQ)) {
+				if (ED_select_similar_compare_float_tree(tree, s, thresh, SIM_CMP_EQ)) {
 					select = true;
 				}
 				break;
@@ -359,7 +359,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 		MetaBall *mb = (MetaBall *)obedit->data;
 		bool changed = false;
 
-		switch(type) {
+		switch (type) {
 			case SIMMBALL_TYPE:
 			{
 				MetaElem *ml;
