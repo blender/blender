@@ -203,7 +203,7 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph,
 	}
 	/* TODO(sergey): This is not strictly speaking safe to read
 	 * num_links_pending.
-  */
+	 */
 	if (dec_parents) {
 		BLI_assert(node->num_links_pending > 0);
 		atomic_sub_and_fetch_uint32(&node->num_links_pending, 1);
