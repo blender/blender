@@ -33,6 +33,7 @@
  *  \author nzc
  */
 
+struct Depsgraph;
 struct Main;
 struct World;
 
@@ -43,5 +44,6 @@ void BKE_world_copy_data(struct Main *bmain, struct World *wrld_dst, const struc
 struct World *BKE_world_copy(struct Main *bmain, const struct World *wrld);
 struct World *BKE_world_localize(struct World *wrld);
 void BKE_world_make_local(struct Main *bmain, struct World *wrld, const bool lib_local);
+void BKE_world_eval(struct Depsgraph *depsgraph, struct World *world);
 
 #endif

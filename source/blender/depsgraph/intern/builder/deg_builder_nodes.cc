@@ -975,17 +975,20 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	if (built_map_.checkIsBuiltAndTag(world)) {
 		return;
 	}
-	/* Animation. */
-	build_animdata(&world->id);
-	/* world itself */
+	/* World itself. */
+	add_id_node(&world->id);
+	World *world_cow = get_cow_datablock(world);
+	/* Shading update. */
 	add_operation_node(&world->id,
 	                   DEG_NODE_TYPE_SHADING,
-	                   NULL,
+	                   function_bind(BKE_world_eval,
+	                                 _1,
+	                                 world_cow),
 	                   DEG_OPCODE_WORLD_UPDATE);
-	/* world's nodetree */
-	if (world->nodetree != NULL) {
-		build_nodetree(world->nodetree);
-	}
+	/* Animation. */
+	build_animdata(&world->id);
+	/* World's nodetree. */
+	build_nodetree(world->nodetree);
 }
 
 /* Rigidbody Simulation - Scene Level */

@@ -84,8 +84,6 @@
 #  include "smoke_API.h"
 #endif
 
-extern Material defmaterial; /* from material.c */
-
 //* Checking powers of two for images since OpenGL ES requires it */
 #ifdef WITH_DDS
 static bool is_power_of_2_resolution(int w, int h)

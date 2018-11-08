@@ -270,7 +270,9 @@ void flush_editors_id_update(Main *bmain,
 		 * TODO: image datablocks do not use COW, so might not be detected
 		 * correctly. */
 		if (deg_copy_on_write_is_expanded(id_cow)) {
-			deg_editors_id_update(update_ctx, id_orig);
+			if (graph->is_active) {
+				deg_editors_id_update(update_ctx, id_orig);
+			}
 			/* ID may need to get its auto-override operations refreshed. */
 			if (ID_IS_STATIC_OVERRIDE_AUTO(id_orig)) {
 				id_orig->tag |= LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;

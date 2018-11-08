@@ -1510,14 +1510,18 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	if (built_map_.checkIsBuiltAndTag(world)) {
 		return;
 	}
+	/* animation */
 	build_animdata(&world->id);
-	/* TODO: other settings? */
 	/* world's nodetree */
 	if (world->nodetree != NULL) {
 		build_nodetree(world->nodetree);
-		ComponentKey ntree_key(&world->nodetree->id, DEG_NODE_TYPE_SHADING);
-		ComponentKey world_key(&world->id, DEG_NODE_TYPE_SHADING);
-		add_relation(ntree_key, world_key, "NTree->World Shading Update");
+		OperationKey ntree_key(&world->nodetree->id,
+		                       DEG_NODE_TYPE_SHADING,
+		                       DEG_OPCODE_MATERIAL_UPDATE);
+		OperationKey world_key(&world->id,
+		                          DEG_NODE_TYPE_SHADING,
+		                          DEG_OPCODE_MATERIAL_UPDATE);
+		add_relation(ntree_key, world_key, "World's NTree");
 		build_nested_nodetree(&world->id, world->nodetree);
 	}
 }

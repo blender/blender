@@ -58,8 +58,6 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
-#include "GPU_material.h"
-
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
@@ -72,8 +70,6 @@
 #include "WM_api.h"
 
 #include "render_intern.h"  // own include
-
-extern Material defmaterial;
 
 /***************************** Render Engines ********************************/
 
@@ -244,22 +240,12 @@ static void material_changed(Main *UNUSED(bmain), Material *ma)
 {
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
-
-	/* glsl */
-	if (ma->id.recalc & ID_RECALC) {
-		if (!BLI_listbase_is_empty(&ma->gpumaterial)) {
-			GPU_material_free(&ma->gpumaterial);
-		}
-	}
 }
 
 static void lamp_changed(Main *UNUSED(bmain), Lamp *la)
 {
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&la->id));
-
-	if (defmaterial.gpumaterial.first)
-		GPU_material_free(&defmaterial.gpumaterial);
 }
 
 static void texture_changed(Main *bmain, Tex *tex)
@@ -271,15 +257,12 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
 
-	/* paint overlays */
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		/* paint overlays */
 		for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 			BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
 		}
-	}
-
-	/* find compositing nodes */
-	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		/* find compositing nodes */
 		if (scene->use_nodes && scene->nodetree) {
 			for (node = scene->nodetree->nodes.first; node; node = node->next) {
 				if (node->id == &tex->id)
@@ -293,16 +276,6 @@ static void world_changed(Main *UNUSED(bmain), World *wo)
 {
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
-
-	/* glsl */
-	if (wo->id.recalc & ID_RECALC) {
-		if (!BLI_listbase_is_empty(&defmaterial.gpumaterial)) {
-			GPU_material_free(&defmaterial.gpumaterial);
-		}
-		if (!BLI_listbase_is_empty(&wo->gpumaterial)) {
-			GPU_material_free(&wo->gpumaterial);
-		}
-	}
 }
 
 static void image_changed(Main *bmain, Image *ima)

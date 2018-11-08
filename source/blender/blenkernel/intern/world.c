@@ -168,3 +168,9 @@ void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
 }
+
+void BKE_world_eval(struct Depsgraph *depsgraph, World *world)
+{
+	DEG_debug_print_eval(depsgraph, __func__, world->id.name, world);
+	GPU_material_free(&world->gpumaterial);
+}
