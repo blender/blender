@@ -58,8 +58,6 @@ if(BUILD_MODE STREQUAL Release)
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hidapi/ ${HARVEST_TARGET}/hidapi/ &&
 				# webp, straight up copy
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/webp ${HARVEST_TARGET}/webp &&
-				# embree
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree ${HARVEST_TARGET}/embree
 		DEPENDS
 	)
 endif()

@@ -44,3 +44,26 @@ ExternalProject_Add(external_embree
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/embree
 )
+if(WIN32)
+
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_embree after_install
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree ${HARVEST_TARGET}/embree
+			DEPENDEES install
+		)
+	else()
+	ExternalProject_Add_Step(external_embree after_install
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree3.lib ${HARVEST_TARGET}/embree/lib/embree3_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree_avx.lib ${HARVEST_TARGET}/embree/lib/embree_avx_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree_avx2.lib ${HARVEST_TARGET}/embree/lib/embree_avx2_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree_sse42.lib ${HARVEST_TARGET}/embree/lib/embree_sse42_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/lexers.lib ${HARVEST_TARGET}/embree/lib/lexers_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/math.lib ${HARVEST_TARGET}/embree/lib/math_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/simd.lib ${HARVEST_TARGET}/embree/lib/simd_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/sys.lib ${HARVEST_TARGET}/embree/lib/sys_d.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/tasking.lib ${HARVEST_TARGET}/embree/lib/tasking_d.lib
+			DEPENDEES install
+		)
+	endif()
+
+endif()
