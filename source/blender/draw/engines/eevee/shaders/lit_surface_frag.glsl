@@ -330,37 +330,55 @@ void CLOSURE_NAME(
 	/* ---------------------------- */
 #if defined(CLOSURE_GLOSSY) || defined(CLOSURE_REFRACTION)
 
-	#ifdef CLOSURE_REFRACTION
-		#define ACCUM refr_accum
+	#if defined(CLOSURE_GLOSSY) && defined(CLOSURE_REFRACTION)
+		#define GLASS_ACCUM 1
+		#define ACCUM min(refr_accum.a, spec_accum.a)
+	#elif defined(CLOSURE_REFRACTION)
+		#define GLASS_ACCUM 0
+		#define ACCUM refr_accum.a
 	#else
-		#define ACCUM spec_accum
+		#define GLASS_ACCUM 0
+		#define ACCUM spec_accum.a
 	#endif
 
 	/* Starts at 1 because 0 is world probe */
-	for (int i = 1; ACCUM.a < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; ++i) {
+	for (int i = 1; ACCUM < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; ++i) {
 		float fade = probe_attenuation_cube(i, worldPosition);
 
 		if (fade > 0.0) {
 
-	#ifdef CLOSURE_GLOSSY
-			if (!(ssrToggle && ssr_id == outputSsrId)) {
-				vec3 spec = probe_evaluate_cube(i, worldPosition, spec_dir, roughness);
-				accumulate_light(spec, fade, spec_accum);
+	#if GLASS_ACCUM
+			if (spec_accum.a < 0.999) {
+	#endif
+		#ifdef CLOSURE_GLOSSY
+				if (!(ssrToggle && ssr_id == outputSsrId)) {
+					vec3 spec = probe_evaluate_cube(i, worldPosition, spec_dir, roughness);
+					accumulate_light(spec, fade, spec_accum);
+				}
+		#endif
+
+		#ifdef CLOSURE_CLEARCOAT
+				vec3 C_spec = probe_evaluate_cube(i, worldPosition, C_spec_dir, C_roughness);
+				accumulate_light(C_spec, fade, C_spec_accum);
+		#endif
+	#if GLASS_ACCUM
 			}
 	#endif
 
-	#ifdef CLOSURE_CLEARCOAT
-			vec3 C_spec = probe_evaluate_cube(i, worldPosition, C_spec_dir, C_roughness);
-			accumulate_light(C_spec, fade, C_spec_accum);
+	#if GLASS_ACCUM
+			if (refr_accum.a < 0.999) {
 	#endif
-
-	#ifdef CLOSURE_REFRACTION
-			vec3 trans = probe_evaluate_cube(i, refr_pos, refr_dir, roughnessSquared);
-			accumulate_light(trans, fade, refr_accum);
+		#ifdef CLOSURE_REFRACTION
+				vec3 trans = probe_evaluate_cube(i, refr_pos, refr_dir, roughnessSquared);
+				accumulate_light(trans, fade, refr_accum);
+		#endif
+	#if GLASS_ACCUM
+			}
 	#endif
 		}
 	}
 
+	#undef GLASS_ACCUM
 	#undef ACCUM
 
 	/* ---------------------------- */

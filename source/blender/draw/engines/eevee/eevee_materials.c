@@ -407,10 +407,11 @@ static void add_standard_uniforms(
 		DRW_shgroup_uniform_texture_ref(shgrp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_int(shgrp, "outputSsrId", ssr_id, 1);
 	}
-	if (use_refract && use_ssrefraction) {
-		BLI_assert(refract_depth != NULL);
-		DRW_shgroup_uniform_float(shgrp, "refractionDepth", refract_depth, 1);
-		DRW_shgroup_uniform_texture_ref(shgrp, "colorBuffer", &vedata->txl->refract_color);
+	if (use_refract) {
+		DRW_shgroup_uniform_float_copy(shgrp, "refractionDepth", (refract_depth) ? *refract_depth : 0.0 );
+		if (use_ssrefraction) {
+			DRW_shgroup_uniform_texture_ref(shgrp, "colorBuffer", &vedata->txl->refract_color);
+		}
 	}
 
 	if ((vedata->stl->effects->enabled_effects & EFFECT_VOLUMETRIC) != 0 &&
