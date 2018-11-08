@@ -865,6 +865,8 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
 	common_data->spec_toggle = false;
 	common_data->prb_num_planar = 0;
 	common_data->prb_num_render_cube = 0;
+	common_data->ray_type = EEVEE_RAY_DIFFUSE;
+	common_data->ray_depth = lbake->bounce_curr + 1;
 	if (lbake->bounce_curr == 0) {
 		common_data->prb_num_render_grid = 0;
 	}
@@ -924,6 +926,8 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
 	common_data->spec_toggle = false;
 	common_data->prb_num_planar = 0;
 	common_data->prb_num_render_cube = 0;
+	common_data->ray_type = EEVEE_RAY_GLOSSY;
+	common_data->ray_depth = 1;
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 	EEVEE_lightbake_render_scene(sldata, vedata, lbake->rt_fb, eprobe->position, prb->clipsta, prb->clipend);
@@ -1172,8 +1176,16 @@ void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata, EEVEE_Data 
 
 	EEVEE_lightbake_cache_init(sldata, vedata, lbake.rt_color, lbake.rt_depth);
 
+	sldata->common_data.ray_type = EEVEE_RAY_GLOSSY;
+	sldata->common_data.ray_depth = 1;
+	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 	EEVEE_lightbake_render_world(sldata, vedata, lbake.rt_fb);
 	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake.rt_color, lbake.store_fb, 0, 1.0f, lcache->mips_len);
+
+	sldata->common_data.ray_type = EEVEE_RAY_DIFFUSE;
+	sldata->common_data.ray_depth = 1;
+	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+	EEVEE_lightbake_render_world(sldata, vedata, lbake.rt_fb);
 	EEVEE_lightbake_filter_diffuse(sldata, vedata, lbake.rt_color, lbake.store_fb, 0, 1.0f);
 
 	/* Don't hide grids if they are already rendered. */

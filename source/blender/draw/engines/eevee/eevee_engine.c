@@ -244,13 +244,15 @@ static void eevee_draw_background(void *vedata)
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_stats_group_end();
 
-		/* Update common buffer after probe rendering. */
-		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
-
 		/* Refresh shadows */
 		DRW_stats_group_start("Shadows");
 		EEVEE_draw_shadows(sldata, vedata);
 		DRW_stats_group_end();
+
+		/* Set ray type. */
+		sldata->common_data.ray_type = EEVEE_RAY_CAMERA;
+		sldata->common_data.ray_depth = 0.0f;
+		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 		GPU_framebuffer_bind(fbl->main_fb);
 		GPUFrameBufferBits clear_bits = GPU_DEPTH_BIT;

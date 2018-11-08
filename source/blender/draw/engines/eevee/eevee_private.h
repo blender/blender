@@ -656,7 +656,15 @@ typedef struct EEVEE_CommonUniformBuffer {
 	float prb_lod_planar_max; /* float */
 	/* Misc */
 	int hiz_mip_offset; /* int */
+	int ray_type; /* int */
+	float ray_depth; /* float */
 } EEVEE_CommonUniformBuffer;
+
+/* ray_type (keep in sync with rayType) */
+#define EEVEE_RAY_CAMERA    0
+#define EEVEE_RAY_SHADOW    1
+#define EEVEE_RAY_DIFFUSE   2
+#define EEVEE_RAY_GLOSSY    3
 
 /* ***************** CLIP PLANES DATA **************** */
 

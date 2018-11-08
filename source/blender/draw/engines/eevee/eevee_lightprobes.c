@@ -1316,6 +1316,8 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	common_data->ssr_toggle = false;
 	common_data->sss_toggle = false;
 
+	common_data->ray_type = EEVEE_RAY_GLOSSY;
+	common_data->ray_depth = 1.0f;
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 	/* Rendering happens here! */

@@ -527,7 +527,6 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		RE_engine_update_stats(engine, NULL, "Updating Probes");
 		EEVEE_lightprobes_refresh(sldata, vedata);
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
-		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 		char info[42];
 		BLI_snprintf(info, sizeof(info), "Rendering %u / %u samples", render_samples + 1, tot_sample);
@@ -536,6 +535,11 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		/* Refresh Shadows */
 		EEVEE_lights_update(sldata, vedata);
 		EEVEE_draw_shadows(sldata, vedata);
+
+		/* Set ray type. */
+		sldata->common_data.ray_type = EEVEE_RAY_CAMERA;
+		sldata->common_data.ray_depth = 0.0f;
+		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 		GPU_framebuffer_bind(fbl->main_fb);
 		GPU_framebuffer_clear_color_depth_stencil(fbl->main_fb, clear_col, clear_depth, clear_stencil);
