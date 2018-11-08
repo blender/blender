@@ -399,12 +399,12 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(
 		/* separator */
 		RNA_enum_item_add_separator(&item, &totitem);
 	}
-
+	const int tot = BLI_listbase_count(&gpd->layers);
 	/* Existing layers */
-	for (gpl = gpd->layers.first, i = 0; gpl; gpl = gpl->next, i++) {
+	for (gpl = gpd->layers.last, i = 0; gpl; gpl = gpl->prev, i++) {
 		item_tmp.identifier = gpl->info;
 		item_tmp.name = gpl->info;
-		item_tmp.value = i;
+		item_tmp.value = tot - i - 1;
 
 		if (gpl->flag & GP_LAYER_ACTIVE)
 			item_tmp.icon = ICON_GREASEPENCIL;
