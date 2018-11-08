@@ -85,11 +85,13 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
 static void rna_AnimData_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
+	AnimData *adt = ptr->data;
 
 	/* tag for refresh so that scheduled updates (e.g. action changed) will
 	 * get computed and reflected in the scene [#34869]
 	 */
-	DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
+	adt->recalc |= ADT_RECALC_ANIM;
+	DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 }
 
 static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -106,17 +108,9 @@ static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_i
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 {
 	ID *ownerId = (ID *)ptr->id.data;
-	AnimData *adt;
 
 	/* set action */
 	BKE_animdata_set_action(NULL, ownerId, value.data);
-
-	/* force action to get evaluated [#34869] */
-	adt = BKE_animdata_from_id(ownerId);
-	if (adt) {
-		adt->recalc |= ADT_RECALC_ANIM;
-		DEG_id_tag_update(ownerId, OB_RECALC_TIME);
-	}
 }
 
 static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
@@ -1067,14 +1061,14 @@ static void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rna_enum_nla_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Action Extrapolation",
 	                         "Action to take for gaps past the Active Action's range (when evaluating with NLA)");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update");
 
 	prop = RNA_def_property(srna, "action_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_blendmode");
 	RNA_def_property_enum_items(prop, rna_enum_nla_mode_blend_items);
 	RNA_def_property_ui_text(prop, "Action Blending",
 	                         "Method used for combining Active Action's result with result of NLA stack");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update"); /* this will do? */
 
 	prop = RNA_def_property(srna, "action_influence", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "act_influence");
@@ -1082,7 +1076,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Action Influence",
 	                         "Amount the Active Action contributes to the result of the NLA stack");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, "rna_AnimData_update"); /* this will do? */
 
 	/* Drivers */
 	prop = RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
