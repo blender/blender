@@ -715,6 +715,10 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_append(ds, "viewmat");
 				else if (input->builtin == GPU_CAMERA_TEXCO_FACTORS)
 					BLI_dynstr_append(ds, "camtexfac");
+				else if (input->builtin == GPU_LOC_TO_VIEW_MATRIX)
+					BLI_dynstr_append(ds, "localtoviewmat");
+				else if (input->builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+					BLI_dynstr_append(ds, "invlocaltoviewmat");
 				else if (input->builtin == GPU_BARYCENTRIC_DIST)
 					BLI_dynstr_append(ds, "barycentricDist");
 				else if (input->builtin == GPU_BARYCENTRIC_TEXCO)
@@ -792,19 +796,23 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 	}
 	/* TODO(fclem) get rid of that. */
 	if (builtins & GPU_VIEW_MATRIX)
-		BLI_dynstr_append(ds, "\tmat4 viewmat = ViewMatrix;\n");
+		BLI_dynstr_append(ds, "\t#define viewmat ViewMatrix\n");
 	if (builtins & GPU_CAMERA_TEXCO_FACTORS)
-		BLI_dynstr_append(ds, "\tvec4 camtexfac = CameraTexCoFactors;\n");
+		BLI_dynstr_append(ds, "\t#define camtexfac CameraTexCoFactors\n");
 	if (builtins & GPU_OBJECT_MATRIX)
-		BLI_dynstr_append(ds, "\tmat4 objmat = ModelMatrix;\n");
+		BLI_dynstr_append(ds, "\t#define objmat ModelMatrix\n");
 	if (builtins & GPU_INVERSE_OBJECT_MATRIX)
-		BLI_dynstr_append(ds, "\tmat4 objinv = ModelMatrixInverse;\n");
+		BLI_dynstr_append(ds, "\t#define objinv ModelMatrixInverse\n");
 	if (builtins & GPU_INVERSE_VIEW_MATRIX)
-		BLI_dynstr_append(ds, "\tmat4 viewinv = ViewMatrixInverse;\n");
+		BLI_dynstr_append(ds, "\t#define viewinv ViewMatrixInverse\n");
+	if (builtins & GPU_LOC_TO_VIEW_MATRIX)
+		BLI_dynstr_append(ds, "\t#define localtoviewmat ModelViewMatrix\n");
+	if (builtins & GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+		BLI_dynstr_append(ds, "\t#define invlocaltoviewmat ModelViewMatrixInverse\n");
 	if (builtins & GPU_VIEW_NORMAL)
 		BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
 	if (builtins & GPU_VIEW_POSITION)
-		BLI_dynstr_append(ds, "\tvec3 viewposition = viewPosition;\n");
+		BLI_dynstr_append(ds, "\t#define viewposition viewPosition\n");
 
 	codegen_declare_tmps(ds, nodes);
 	codegen_call_functions(ds, nodes, output);
