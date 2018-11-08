@@ -4158,14 +4158,17 @@ class VIEW3D_PT_shading_options(Panel):
     bl_label = "Options"
     bl_parent_id = 'VIEW3D_PT_shading'
 
+    @classmethod
+    def poll(cls, context):
+        shading = VIEW3D_PT_shading.get_shading(context)
+        return shading.type in {'WIREFRAME', 'SOLID'}
+
     def draw(self, context):
         layout = self.layout
 
         shading = VIEW3D_PT_shading.get_shading(context)
 
         col = layout.column()
-
-        is_shadows = shading.show_shadows
 
         row = col.row()
 
@@ -4174,18 +4177,17 @@ class VIEW3D_PT_shading_options(Panel):
             sub = row.row()
             sub.active = shading.show_xray_wireframe
             sub.prop(shading, "xray_alpha_wireframe", text="X-Ray")
-        else:
+        elif shading.type == 'SOLID':
             row.prop(shading, "show_xray", text="")
             sub = row.row()
             sub.active = shading.show_xray
             sub.prop(shading, "xray_alpha", text="X-Ray")
 
-        if shading.type == 'SOLID':
             row = col.row()
             row.prop(shading, "show_shadows", text="")
             row.active = not shading.show_xray
             sub = row.row(align=True)
-            sub.active = is_shadows
+            sub.active = shading.show_shadows
             sub.prop(shading, "shadow_intensity", text="Shadow")
             sub.popover(
                 panel="VIEW3D_PT_shading_options_shadow",
@@ -4209,16 +4211,15 @@ class VIEW3D_PT_shading_options(Panel):
                     text=""
                 )
 
-        if shading.type in {'SOLID', 'WIREFRAME'}:
-            row = layout.split()
-            row.prop(shading, "show_object_outline")
-            sub = row.row()
-            sub.active = shading.show_object_outline
-            sub.prop(shading, "object_outline_color", text="")
+        row = layout.split()
+        row.prop(shading, "show_object_outline")
+        sub = row.row()
+        sub.active = shading.show_object_outline
+        sub.prop(shading, "object_outline_color", text="")
 
-            col = layout.column()
-            if (shading.light is not 'MATCAP') and (shading.type is not 'WIREFRAME'):
-                col.prop(shading, "show_specular_highlight")
+        col = layout.column()
+        if (shading.light is not 'MATCAP') and (shading.type is not 'WIREFRAME'):
+            col.prop(shading, "show_specular_highlight")
 
 
 class VIEW3D_PT_shading_options_shadow(Panel):
