@@ -41,6 +41,7 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
         ob = context.object
 
         layout.prop(ob, "empty_display_type", text="Display As")
+        layout.prop(ob, "empty_display_size", text="Size")
 
         if ob.empty_display_type == 'IMAGE':
             layout.template_ID(ob, "data", open="image.open", unlink="object.unlink_data")
@@ -53,13 +54,9 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
             col.prop(ob, "empty_image_offset", text="Offset X", index=0)
             col.prop(ob, "empty_image_offset", text="Y", index=1)
 
-        layout.separator()
-
-        layout.prop(ob, "empty_display_size", text="Size")
-        layout.prop(ob, "empty_image_depth", text="Depth", expand=True)
-
-        layout.prop(ob, "show_empty_image_orthographic", text="Display Orthographic")
-        layout.prop(ob, "show_empty_image_perspective", text="Display Perspective")
+            layout.prop(ob, "empty_image_depth", text="Depth", expand=True)
+            layout.prop(ob, "show_empty_image_orthographic", text="Display Orthographic")
+            layout.prop(ob, "show_empty_image_perspective", text="Display Perspective")
 
 
 classes = (
