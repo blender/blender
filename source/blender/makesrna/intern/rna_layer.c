@@ -192,6 +192,18 @@ static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 	ED_object_base_select(base, mode);
 }
 
+static void rna_LayerCollection_name_get(struct PointerRNA *ptr, char *value)
+{
+	ID *id = (ID *)((LayerCollection *)ptr->data)->collection;
+	BLI_strncpy(value, id->name + 2, sizeof(id->name) - 2);
+}
+
+int rna_LayerCollection_name_length(PointerRNA *ptr)
+{
+	ID *id = (ID *)((LayerCollection *)ptr->data)->collection;
+	return strlen(id->name + 2);
+}
+
 static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
@@ -221,6 +233,13 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
 	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_ui_text(prop, "Collection", "Collection this layer collection is wrapping");
+
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "collection->id.name");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Name", "Name of this view layer (same as its collection one)");
+	RNA_def_property_string_funcs(prop, "rna_LayerCollection_name_get", "rna_LayerCollection_name_length", NULL);
+	RNA_def_struct_name_property(srna, prop);
 
 	prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "layer_collections", NULL);
