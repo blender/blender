@@ -277,6 +277,7 @@ static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	Brush *brush = value.id.data;
 	const uint tool_offset = paint->runtime.tool_offset;
 	const eObjectMode ob_mode = paint->runtime.ob_mode;
+	UNUSED_VARS_NDEBUG(tool_offset);
 	BLI_assert(tool_offset && ob_mode);
 
 	if (brush->ob_mode & ob_mode) {

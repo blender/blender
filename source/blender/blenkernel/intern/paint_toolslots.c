@@ -82,6 +82,7 @@ void BKE_paint_toolslots_init_from_main(struct Main *bmain)
 void BKE_paint_toolslots_brush_update_ex(Paint *paint, Brush *brush)
 {
 	const uint tool_offset = paint->runtime.tool_offset;
+	UNUSED_VARS_NDEBUG(tool_offset);
 	BLI_assert(tool_offset != 0);
 	const int slot_index = BKE_brush_tool_get(brush, paint);
 	BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
@@ -107,6 +108,7 @@ void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
 {
 	/* Clear slots with invalid slots or mode (unlikely but possible). */
 	const uint tool_offset = paint->runtime.tool_offset;
+	UNUSED_VARS_NDEBUG(tool_offset);
 	const eObjectMode ob_mode = paint->runtime.ob_mode;
 	BLI_assert(tool_offset && ob_mode);
 	for (int i = 0; i < paint->tool_slots_len; i++) {
