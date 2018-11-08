@@ -7139,27 +7139,6 @@ wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf)
 
 	keymap = WM_modalkeymap_add(keyconf, keymap_name, modal_items);
 
-	/* Generic items for modal map. */
-	WM_modalkeymap_add_item(keymap, ESCKEY,     KM_PRESS, KM_ANY,     0, EDBM_CLNOR_MODAL_CANCEL);
-	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_CANCEL);
-
-	WM_modalkeymap_add_item(keymap, RETKEY,     KM_PRESS, KM_ANY,     0, EDBM_CLNOR_MODAL_CONFIRM);
-	WM_modalkeymap_add_item(keymap, PADENTER,   KM_PRESS, KM_ANY,     0, EDBM_CLNOR_MODAL_CONFIRM);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE,  KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_CONFIRM);
-
-	/* Point To items for modal map */
-	WM_modalkeymap_add_item(keymap, RKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_RESET);
-	WM_modalkeymap_add_item(keymap, IKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_INVERT);
-	WM_modalkeymap_add_item(keymap, SKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_SPHERIZE);
-	WM_modalkeymap_add_item(keymap, AKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_ALIGN);
-
-	WM_modalkeymap_add_item(keymap, MKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE);
-	WM_modalkeymap_add_item(keymap, LKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT);
-	WM_modalkeymap_add_item(keymap, OKEY,       KM_PRESS, KM_NOTHING, 0, EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT);
-
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE,  KM_CLICK, KM_CTRL,    0, EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR);
-	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_CLICK, KM_CTRL,    0, EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED);
-
 	WM_modalkeymap_assign(keymap, "MESH_OT_point_normals");
 
 	return keymap;

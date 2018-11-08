@@ -72,9 +72,6 @@ void ED_operatortypes_marker(void);
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_keymap_marker(struct wmKeyConfig *keyconf);
 
-/* called in animation editors - keymap defines */
-void ED_marker_keymap_animedit_conflictfree(struct wmKeyMap *keymap);
-
 /* debugging only */
 void debug_markers_print_list(struct ListBase *markers);
 

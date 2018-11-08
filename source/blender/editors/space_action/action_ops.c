@@ -41,7 +41,6 @@
 #include "ED_transform.h"
 #include "ED_object.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 
 #include "action_intern.h"
 
@@ -120,168 +119,12 @@ void ED_operatormacros_action(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
-{
-	wmKeyMapItem *kmi;
-
-	/* action_select.c - selection tools */
-	/* click-select: keyframe (replace) */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_boolean_set(kmi->ptr, "column", false);
-	RNA_boolean_set(kmi->ptr, "channel", false);
-	/* click-select: all on same frame (replace) */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_boolean_set(kmi->ptr, "column", true);
-	RNA_boolean_set(kmi->ptr, "channel", false);
-	/* click-select: keyframe (add) */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-	RNA_boolean_set(kmi->ptr, "column", false);
-	RNA_boolean_set(kmi->ptr, "channel", false);
-	/* click-select: all on same frame (add) */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-	RNA_boolean_set(kmi->ptr, "column", true);
-	RNA_boolean_set(kmi->ptr, "channel", false);
-	/* click-select: all on same channel (replace) */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_boolean_set(kmi->ptr, "column", false);
-	RNA_boolean_set(kmi->ptr, "channel", true);
-	/* click-select: all on same channel (add) */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-	RNA_boolean_set(kmi->ptr, "column", false);
-	RNA_boolean_set(kmi->ptr, "channel", true);
-
-	/* click-select: left/right */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_TEST);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_TEST);
-
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", LEFTBRACKETKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_LEFT);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
-
-	/* deselect all */
-	ED_keymap_template_select_all(keymap, "ACTION_OT_select_all");
-
-	/* box_select */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_box", BKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "axis_range", false);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_box", BKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "axis_range", true);
-
-	/* region select */
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
-
-	WM_keymap_add_item(keymap, "ACTION_OT_select_circle", CKEY, KM_PRESS, 0, 0);
-
-	/* column select */
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, 0, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_KEYS);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
-
-	/* select more/less */
-	WM_keymap_add_item(keymap, "ACTION_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-
-	/* select linked */
-	WM_keymap_add_item(keymap, "ACTION_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-
-
-	/* action_edit.c */
-	/* jump to selected keyframes */
-	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", GKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* menu + single-step transform */
-	WM_keymap_add_menu_pie(keymap, "DOPESHEET_MT_snap_pie", SKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* menu + set setting */
-	WM_keymap_add_item(keymap, "ACTION_OT_handle_type", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_interpolation_type", TKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_type", RKEY, KM_PRESS, 0, 0);
-
-	/* specials */
-	WM_keymap_add_menu(keymap, "DOPESHEET_MT_specials", WKEY, KM_PRESS, 0, 0);
-
-	/* destructive */
-	WM_keymap_add_item(keymap, "ACTION_OT_sample", OKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
-
-	WM_keymap_add_menu(keymap, "DOPESHEET_MT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_menu(keymap, "DOPESHEET_MT_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "ACTION_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
-
-	/* copy/paste */
-	WM_keymap_add_item(keymap, "ACTION_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "flipped", true);
-#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "ACTION_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_OSKEY | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "flipped", true);
-#endif
-
-	/* auto-set range */
-	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
-#ifdef WITH_INPUT_NDOF
-	WM_keymap_add_item(keymap, "ACTION_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
-#endif
-	WM_keymap_add_item(keymap, "ACTION_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ACTION_OT_view_frame", PAD0, KM_PRESS, 0, 0);
-
-
-	/* animation module */
-	/* channels list
-	 * NOTE: these operators were originally for the channels list, but are added here too for convenience...
-	 */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
-
-	/* find (i.e. a shortcut for setting the name filter) */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_find", FKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* transform system */
-	transform_keymap_for_space(keyconf, keymap, SPACE_ACTION);
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_action");
-	ED_keymap_proportional_cycle(keyconf, keymap);
-
-	/* special markers hotkeys for anim editors: see note in definition of this function */
-	ED_marker_keymap_animedit_conflictfree(keymap);
-}
-
 /* --------------- */
 
 void action_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap;
-
 	/* keymap for all regions */
-	keymap = WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
-
-	/* region management... */
-	WM_keymap_add_item(keymap, "ACTION_OT_properties", NKEY, KM_PRESS, 0, 0);
-
+	WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
 
 	/* channels */
 	/* Channels are not directly handled by the Action Editor module, but are inherited from the Animation module.
@@ -290,6 +133,5 @@ void action_keymap(wmKeyConfig *keyconf)
 	 */
 
 	/* keyframes */
-	keymap = WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, 0);
-	action_keymap_keyframes(keyconf, keymap);
+	WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, 0);
 }

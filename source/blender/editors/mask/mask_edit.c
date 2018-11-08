@@ -43,7 +43,6 @@
 
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 #include "ED_mask.h"  /* own include */
 #include "ED_image.h"
 #include "ED_object.h" /* ED_keymap_proportional_maskmode only */
@@ -524,106 +523,8 @@ void ED_operatortypes_mask(void)
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
-
-	keymap = WM_keymap_ensure(keyconf, "Mask Editing", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mask Editing", 0, 0);
 	keymap->poll = ED_maskedit_poll;
-
-	WM_keymap_add_item(keymap, "MASK_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
-
-	/* add menu */
-	WM_keymap_add_menu(keymap, "MASK_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* mask mode supports PET now */
-	ED_keymap_proportional_cycle(keyconf, keymap);
-	ED_keymap_proportional_maskmode(keyconf, keymap);
-
-	/* geometry */
-	WM_keymap_add_item(keymap, "MASK_OT_add_vertex_slide", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_add_feather_vertex_slide", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "MASK_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_delete", DELKEY, KM_PRESS, 0, 0);
-
-	/* selection */
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	RNA_boolean_set(kmi->ptr, "toggle", false);
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	RNA_boolean_set(kmi->ptr, "toggle", true);
-
-	ED_keymap_template_select_all(keymap, "MASK_OT_select_all");
-
-	WM_keymap_add_item(keymap, "MASK_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
-
-	WM_keymap_add_item(keymap, "MASK_OT_select_box", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_select_circle", CKEY, KM_PRESS, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
-
-	WM_keymap_add_item(keymap, "MASK_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-
-	/* hide/reveal */
-	WM_keymap_add_item(keymap, "MASK_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-
-	kmi = WM_keymap_add_item(keymap, "MASK_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	/* select clip while in maker view,
-	 * this matches View3D functionality where you can select an
-	 * object while in editmode to allow vertex parenting */
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-
-	/* shape */
-	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_slide_point", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_slide_spline_curvature", ACTIONMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_handle_type_set", VKEY, KM_PRESS, 0, 0);
-#ifdef USE_WM_KEYMAP_27X
-	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
-#else
-	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT, 0);
-#endif
-	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
-	/* ... matches curve editmode */
-
-	/* relationships */
-	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
-
-	WM_keymap_add_item(keymap, "MASK_OT_shape_key_insert", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_shape_key_clear", IKEY, KM_PRESS, KM_ALT, 0);
-
-	/* duplicate */
-	WM_keymap_add_item(keymap, "MASK_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_copy_splines", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_paste_splines", VKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* for image editor only */
-	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_CLICK, 0, 0);
-
-	/* Transform (don't use transform_keymap_for_space() since this maps to different spaces) */
-	WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", TFM_MASK_SHRINKFATTEN);
 }
 
 void ED_operatormacros_mask(void)

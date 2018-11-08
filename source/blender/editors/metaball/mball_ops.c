@@ -38,7 +38,6 @@
 #include "ED_mball.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 #include "ED_object.h"
 
 #include "mball_intern.h"
@@ -71,29 +70,6 @@ void ED_operatormacros_metaball(void)
 
 void ED_keymap_metaball(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
-
-	keymap = WM_keymap_ensure(keyconf, "Metaball", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Metaball", 0, 0);
 	keymap->poll = ED_operator_editmball;
-
-	WM_keymap_add_item(keymap, "OBJECT_OT_metaball_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "MBALL_OT_reveal_metaelems", HKEY, KM_PRESS, KM_ALT, 0);
-	kmi = WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-	kmi = WM_keymap_add_item(keymap, "MBALL_OT_hide_metaelems", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MBALL_OT_delete_metaelems", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "MBALL_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-
-	ED_keymap_template_select_all(keymap, "MBALL_OT_select_all");
-
-	WM_keymap_add_item(keymap, "MBALL_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
-
-	ED_keymap_proportional_cycle(keyconf, keymap);
-	ED_keymap_proportional_editmode(keyconf, keymap, true);
 }

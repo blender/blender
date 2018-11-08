@@ -108,13 +108,6 @@ bool ED_object_parent_set(struct ReportList *reports, const struct bContext *C, 
                           const int vert_par[3]);
 void ED_object_parent_clear(struct Object *ob, const int type);
 
-void ED_keymap_proportional_cycle(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
-void ED_keymap_proportional_obmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
-void ED_keymap_proportional_maskmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
-void ED_keymap_proportional_editmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap,
-                                     const bool do_connected);
-void ED_keymap_editmesh_elem_mode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
-
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
 void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);

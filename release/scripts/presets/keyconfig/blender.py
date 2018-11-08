@@ -1,3 +1,4 @@
+
 import os
 from bpy_extras.keyconfig_utils import (
     keyconfig_import_from_data,
@@ -5,7 +6,7 @@ from bpy_extras.keyconfig_utils import (
 )
 
 _mod = keyconfig_module_from_preset(os.path.join("keymap_data", "blender_default"), __file__)
-keyconfig_data = _mod.generate_keymaps(_mod.KeymapParams(legacy=True))
+keyconfig_data = _mod.generate_keymaps()
 
 if __name__ == "__main__":
-    keyconfig_import_from_data("Blender 27X", keyconfig_data)
+    keyconfig_import_from_data("Blender", keyconfig_data)

@@ -214,13 +214,5 @@ void time_operatortypes(void)
 
 void time_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Timeline", SPACE_TIME, 0);
-
-	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TIME_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
-#ifdef WITH_INPUT_NDOF
-	WM_keymap_add_item(keymap, "TIME_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
-#endif
-	WM_keymap_add_item(keymap, "TIME_OT_view_frame", PAD0, KM_PRESS, 0, 0);
+	WM_keymap_ensure(keyconf, "Timeline", SPACE_TIME, 0);
 }

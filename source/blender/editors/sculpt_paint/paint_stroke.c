@@ -938,10 +938,6 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if (!keymap) {
 		keymap = WM_modalkeymap_add(keyconf, name, modal_items);
-
-		/* items for modal map */
-		WM_modalkeymap_add_item(
-			keymap, ESCKEY, KM_PRESS, KM_ANY, 0, PAINT_STROKE_MODAL_CANCEL);
 	}
 
 	return keymap;

@@ -261,6 +261,11 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         _addon_utils.reset_all(reload_scripts=reload_scripts)
     del _initialize
 
+    # Load the default key configuration.
+    filepath = preset_find("blender", "keyconfig")
+    if filepath:
+        keyconfig_set(filepath)
+
     # run the active integration preset
     filepath = preset_find(_user_preferences.inputs.active_keyconfig,
                            "keyconfig")

@@ -477,4 +477,5 @@ def keyconfig_test(kc):
 from .keyconfig_utils_experimental import (
     keyconfig_export_as_data,
     keyconfig_import_from_data,
+    keyconfig_module_from_preset,
 )

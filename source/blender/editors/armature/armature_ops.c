@@ -36,7 +36,6 @@
 #include "ED_armature.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 #include "ED_transform.h"
 
 #include "armature_intern.h"
@@ -191,212 +190,15 @@ void ED_operatormacros_armature(void)
 void ED_keymap_armature(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
 
 	/* Armature ------------------------ */
+	/* only set in editmode armature, by space_view3d listener */
 	keymap = WM_keymap_ensure(keyconf, "Armature", 0, 0);
 	keymap->poll = ED_operator_editarmature;
-
-	/* only set in editmode armature, by space_view3d listener */
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_align", AKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-#ifdef USE_WM_KEYMAP_27X
-	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
-#else
-	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_SHIFT, 0);
-#endif
-	WM_keymap_add_item(keymap, "ARMATURE_OT_roll_clear", RKEY, KM_PRESS, KM_ALT, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
-
-	ED_keymap_template_select_all(keymap, "ARMATURE_OT_select_all");
-
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_mirror", MKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_shortest_path_pick", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_armature_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_armature_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_dissolve", XKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_dissolve", DELKEY, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_forked", EKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_fill", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_split", YKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, 0, 0);
-
-	/* set flags */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
-
-	/* armature/bone layers */
-	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
-
-	/* special transforms: */
-	/*  1) envelope/b-bone size */
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
-	/*  2) envelope radius */
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ENVELOPE);
-	/*  3) set roll */
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ROLL);
-
-	/* menus */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_armature_specials", WKEY, KM_PRESS, 0, 0);
 
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
 	keymap = WM_keymap_ensure(keyconf, "Pose", 0, 0);
 	keymap->poll = ED_operator_posemode;
 
-	/* set parent and add object are object-based operators, but we make them
-	 * available here because it's useful to do in pose mode too */
-	WM_keymap_add_item(keymap, "OBJECT_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	WM_keymap_add_item(keymap, "POSE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_apply", AKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* TODO: clear pose */
-	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
-
-	WM_keymap_add_item(keymap, "POSE_OT_quaternions_flip", FKEY, KM_PRESS, KM_ALT, 0);
-
-	WM_keymap_add_item(keymap, "POSE_OT_rotation_mode_set", RKEY, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "flipped", false);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "flipped", true);
-
-#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
-	RNA_boolean_set(kmi->ptr, "flipped", false);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_OSKEY | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "flipped", true);
-#endif
-
-	ED_keymap_template_select_all(keymap, "POSE_OT_select_all");
-
-	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
-
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	kmi = WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-
-	WM_keymap_add_item(keymap, "POSE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_select_mirror", MKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "POSE_OT_constraint_add_with_targets", CKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_constraints_clear", CKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_ik_add", IKEY, KM_PRESS, /*KM_CTRL|*/ KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_ik_clear", IKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_group", GKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* set flags */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
-
-	/* armature/bone layers */
-	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ZKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.show_bone_select");
-
-	/* special transforms: */
-	/*  1) envelope/b-bone size */
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
-
-	/* keyframes management */
-	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_keying_set_active_set", IKEY, KM_PRESS, KM_CTRL | KM_SHIFT | KM_ALT, 0);
-
-	/* Pose -> PoseLib ------------- */
-	/* only set in posemode, by space_view3d listener */
-	WM_keymap_add_item(keymap, "POSELIB_OT_browse_interactive", LKEY, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "POSELIB_OT_pose_add", LKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "POSELIB_OT_pose_remove", LKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "POSELIB_OT_pose_rename", LKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-
-	/* Pose -> Pose Sliding ------------- */
-	/* only set in posemode, by space_view3d listener */
-	WM_keymap_add_item(keymap, "POSE_OT_push", EKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_relax", EKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_breakdown", EKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* menus */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_specials", WKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_propagate", PKEY, KM_PRESS, KM_ALT, 0);
 }

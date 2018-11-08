@@ -51,7 +51,6 @@
 
 #include "ED_gpencil.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 #include "ED_object.h"
 #include "ED_transform.h"
 
@@ -63,49 +62,7 @@
 /* Generic Drawing Keymap - Annotations */
 static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil", 0, 0);
-	wmKeyMapItem *kmi;
-
-	/* Draw  --------------------------------------- */
-	/* draw */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_annotate", LEFTMOUSE, KM_PRESS, 0, DKEY);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* draw - straight lines */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_annotate", LEFTMOUSE, KM_PRESS, KM_ALT, DKEY);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_STRAIGHT);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* draw - poly lines */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_annotate", LEFTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, DKEY);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_POLY);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* erase */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_annotate", RIGHTMOUSE, KM_PRESS, 0, DKEY);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* Viewport Tools ------------------------------- */
-
-	/* Enter EditMode */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_editmode_toggle", TABKEY, KM_PRESS, 0, DKEY);
-
-	/* Pie Menu - For standard tools */
-#if 0 /* disable while we decide what to do here, maybe an add-on */
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_MT_pie_tool_palette", QKEY, KM_PRESS, 0, DKEY);
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_MT_pie_settings_palette", WKEY, KM_PRESS, 0, DKEY);
-#endif
-
-	/* Add Blank Frame */
-	/* XXX: BKEY or NKEY? BKEY is easier to reach from DKEY, so we'll use that for now */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_blank_frame_add", BKEY, KM_PRESS, 0, DKEY);
-
-	/* Delete Active Frame - For easier video tutorials/review sessions */
-	/* NOTE: This works even when not in EditMode */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", XKEY, KM_PRESS, 0, DKEY);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", DELKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_ensure(keyconf, "Grease Pencil", 0, 0);
 }
 
 /* ==================== */
@@ -195,464 +152,58 @@ static bool gp_stroke_weightmode_poll(bContext *C)
 	return 0;
 }
 
-static void ed_keymap_gpencil_selection(wmKeyMap *keymap)
-{
-	wmKeyMapItem *kmi;
-
-	/* select all */
-	ED_keymap_template_select_all(keymap, "GPENCIL_OT_select_all");
-
-	/* circle select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_circle", CKEY, KM_PRESS, 0, 0);
-
-	/* box select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_box", BKEY, KM_PRESS, 0, 0);
-
-	/* lasso select */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
-
-	/* In the Node Editor, lasso select needs ALT modifier too
-	 * (as somehow CTRL+LMB drag gets taken for "cut" quite early)
-	 * There probably isn't too much harm adding this for other editors too as part of standard GP editing keymap.
-	 * This hotkey combo doesn't seem to see much use under standard scenarios?
-	 */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-	RNA_boolean_set(kmi->ptr, "toggle", true);
-
-	/* whole stroke select */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "entire_strokes", true);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT | KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "entire_strokes", true);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-
-	/* select linked */
-	/* NOTE: While LKEY is redundant, not having it breaks the mode illusion too much */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* select alternate */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_alternate", LKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* select grouped */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* select more/less */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-}
-
-static void ed_keymap_gpencil_display(wmKeyMap *keymap)
-{
-	wmKeyMapItem *kmi;
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_edit_lines");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_multiedit_line_only");
-}
-
-static void ed_keymap_gpencil_sculpt(wmKeyMap *keymap)
-{
-	wmKeyMapItem *kmi;
-
-	/* Pie Menu - For settings/tools easy access */
-#if 0 /* disable while we decide what to do here, maybe an add-on */
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_sculpt", EKEY, KM_PRESS, 0, DKEY);
-#endif
-
-	/* Sculpting ------------------------------------- */
-
-	/* Brush-Based Editing:
-	 *   EKEY + LMB                          = Single stroke, draw immediately
-	 *        + Other Modifiers (Ctrl/Shift) = Invert, Smooth, etc.
-	 *
-	 * For the modal version, use D+E -> Sculpt
-	 */
-	/* GPXX: disabled to make toolsystem works */
-	//kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, 0, 0);
-	//RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	RNA_boolean_set(kmi->ptr, "keep_brush", true);
-	/*RNA_boolean_set(kmi->ptr, "use_invert", true);*/
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	RNA_boolean_set(kmi->ptr, "keep_brush", true);
-	/*RNA_boolean_set(kmi->ptr, "use_smooth", true);*/
-
-	/* Shift-FKEY = Sculpt Strength */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.strength");
-
-	/* FKEY = Sculpt Brush Size */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.size");
-
-	/* menu sculpt specials */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_gpencil_sculpt_specials", WKEY, KM_PRESS, 0, 0);
-}
-
-static void ed_keymap_gpencil_weight(wmKeyMap *keymap)
-{
-	wmKeyMapItem *kmi;
-
-
-	/* Brush-Based Editing:
-	 *   EKEY + LMB                          = Single stroke, draw immediately
-	 *        + Other Modifiers (Ctrl/Shift) = Invert, Smooth, etc.
-	 *
-	 * For the modal version, use D+E -> Sculpt
-	 */
-	/* GPXX: disabled to make toolsystem works */
-	//kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, 0, 0);
-	//RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	RNA_boolean_set(kmi->ptr, "keep_brush", true);
-	/*RNA_boolean_set(kmi->ptr, "use_invert", true);*/
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	RNA_boolean_set(kmi->ptr, "keep_brush", true);
-	/*RNA_boolean_set(kmi->ptr, "use_smooth", true);*/
-}
-
 /* Stroke Editing Keymap - Only when editmode is enabled */
 static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Edit Mode", 0, 0);
-	wmKeyMapItem *kmi;
 
 	/* set poll callback - so that this keymap only gets enabled when stroke editmode is enabled */
 	keymap->poll = gp_stroke_editmode_poll;
-
-	/* ----------------------------------------------- */
-
-	/* Brush Settings */
-	/* NOTE: We cannot expose these in the standard keymap, as they will interfere with regular hotkeys
-	 *       in other modes. However, when we are dealing with Stroke Edit Mode, we know for certain
-	 *       that the only data being edited is that of the Grease Pencil strokes
-	 */
-
-	/* Interpolation */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_interpolate", EKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_interpolate_sequence", EKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-
-	/* normal select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-
-	/* Selection */
-	ed_keymap_gpencil_selection(keymap);
-
-	/* Editing ----------------------------------------- */
-
-	/* duplicate and move selected points */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* delete */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_gpencil_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_gpencil_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", XKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", DELKEY, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", XKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", DELKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* menu edit specials */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_gpencil_edit_specials", WKEY, KM_PRESS, 0, 0);
-
-	/* menu separate */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_separate", PKEY, KM_PRESS, 0, 0);
-
-	/* split strokes */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_stroke_split", VKEY, KM_PRESS, 0, 0);
-
-	/* join strokes */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_stroke_join", JKEY, KM_PRESS, KM_CTRL, 0);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_stroke_join", JKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", GP_STROKE_JOINCOPY);
-
-	/* copy + paste */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
-
-#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "GPENCIL_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
-#endif
-
-	/* snap */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* convert to geometry */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
-
-
-	/* Show/Hide */
-	/* NOTE: These are available only in EditMode now, since they clash with general-purpose hotkeys */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	WM_keymap_add_item(keymap, "GPENCIL_OT_selection_opacity_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* Display. */
-	ed_keymap_gpencil_display(keymap);
-
-	/* Isolate Layer */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_layer_isolate", PADASTERKEY, KM_PRESS, 0, 0);
-
-	/* Move to Layer */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
-
-	/* Transform Tools */
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", EVT_TWEAK_S, KM_ANY, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_rotate", RKEY, KM_PRESS, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_resize", SKEY, KM_PRESS, 0, 0);
-
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
-
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_bend", WKEY, KM_PRESS, KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "TRANSFORM_OT_tosphere", SKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
-
-	WM_keymap_add_item(keymap, "TRANSFORM_OT_shear", SKEY, KM_PRESS, KM_ALT | KM_CTRL | KM_SHIFT, 0);
-
-	kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", TFM_GPENCIL_SHRINKFATTEN);
-
-	/* Proportional Editing */
-	ED_keymap_proportional_cycle(keyconf, keymap);
-	ED_keymap_proportional_editmode(keyconf, keymap, true);
-
-	/* menu - add GP object (3d view only) */
-	WM_keymap_add_item(keymap, "OBJECT_OT_gpencil_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* menu vertex group */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* toggle edit mode */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
-
-	/* select mode */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_selectmode_toggle", ONEKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "mode", 0);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_selectmode_toggle", TWOKEY, KM_PRESS, 0, 0);
-	RNA_int_set(kmi->ptr, "mode", 1);
 }
 
 /* keys for draw with a drawing brush (no fill) */
 static void ed_keymap_gpencil_painting_draw(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
-	wmKeyMapItem *kmi;
-
-	/* set poll callback */
 	keymap->poll = gp_stroke_paintmode_draw_poll;
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* draw - straight lines */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_STRAIGHT);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* draw - poly lines */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_POLY);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* erase */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* Tablet Mappings for Drawing ------------------ */
-	/* For now, only support direct drawing using the eraser, as most users using a tablet
-	 * may still want to use that as their primary pointing device!
-	 */
-#if 0
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", TABLET_STYLUS, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-#endif
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", TABLET_ERASER, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* Selection (used by eraser) */
-	/* box select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_box", BKEY, KM_PRESS, 0, 0);
-
-	/* lasso select */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
 }
 
 /* keys for draw with a eraser brush (erase) */
 static void ed_keymap_gpencil_painting_erase(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
-	wmKeyMapItem *kmi;
-
-	/* set poll callback */
 	keymap->poll = gp_stroke_paintmode_erase_poll;
-
-	/* erase */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", TABLET_ERASER, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-
-	/* Selection (used by eraser) */
-	/* box select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_box", BKEY, KM_PRESS, 0, 0);
-
-	/* lasso select */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
 }
 
 /* keys for draw with a fill brush */
 static void ed_keymap_gpencil_painting_fill(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
-	wmKeyMapItem *kmi;
-
-	/* set poll callback */
 	keymap->poll = gp_stroke_paintmode_fill_poll;
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_fill", LEFTMOUSE, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "on_back", false);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_fill", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "on_back", true);
-
-	/* if press alternative key, the brush now it's for drawing areas */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	/* disable straight lines */
-	RNA_boolean_set(kmi->ptr, "disable_straight", true);
-
-	/* if press alternative key, the brush now it's for drawing lines */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	/* disable straight lines */
-	RNA_boolean_set(kmi->ptr, "disable_straight", true);
-	/* enable special stroke with no fill flag */
-	RNA_boolean_set(kmi->ptr, "disable_fill", true);
 }
 
 /* Stroke Painting Keymap - Only when paintmode is enabled */
 static void ed_keymap_gpencil_painting(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint Mode", 0, 0);
-	wmKeyMapItem *kmi;
-
 	/* set poll callback - so that this keymap only gets enabled when stroke paintmode is enabled */
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint Mode", 0, 0);
 	keymap->poll = gp_stroke_paintmode_poll;
-
-	/* Shift-FKEY = Brush Strength */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength");
-
-	/* FKEY = Brush Size */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_paint.brush.size");
-
-	/* CTRL + FKEY = Eraser Radius */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "user_preferences.edit.grease_pencil_eraser_radius");
-
-	/* menu draw specials */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_draw_specials", WKEY, KM_PRESS, 0, 0);
-
-	/* menu draw delete */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_draw_delete", XKEY, KM_PRESS, 0, 0);
-
 }
 
 /* Stroke Sculpting Keymap - Only when sculptmode is enabled */
 static void ed_keymap_gpencil_sculpting(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
-
 	/* set poll callback - so that this keymap only gets enabled when stroke sculptmode is enabled */
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
 	keymap->poll = gp_stroke_sculptmode_poll;
-
-	/* Selection */
-	ed_keymap_gpencil_selection(keymap);
-
-	/* sculpt */
-	ed_keymap_gpencil_sculpt(keymap);
-
-	/* Display. */
-	ed_keymap_gpencil_display(keymap);
 }
 
 /* Stroke Weight Paint Keymap - Only when weight is enabled */
 static void ed_keymap_gpencil_weightpainting(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight Mode", 0, 0);
-	wmKeyMapItem *kmi;
-
 	/* set poll callback - so that this keymap only gets enabled when stroke sculptmode is enabled */
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight Mode", 0, 0);
 	keymap->poll = gp_stroke_weightmode_poll;
-
-	/* Selection */
-	ed_keymap_gpencil_selection(keymap);
-
-	/* sculpt */
-	ed_keymap_gpencil_weight(keymap);
-
-	/* Shift-FKEY = Sculpt Strength */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.weight_brush.strength");
-
-	/* FKEY = Sculpt Brush Size */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.weight_brush.size");
-
-	/* Display. */
-	ed_keymap_gpencil_display(keymap);
 }
 /* ==================== */
 

@@ -100,6 +100,8 @@ void WM_keymap_add_context_enum_set_items(
 
 wmKeyMap *WM_keymap_guess_opname(const struct bContext *C, const char *opname);
 
+void WM_keymap_fix_linking(void);
+
 /* Modal Keymap */
 
 int WM_modalkeymap_items_to_string(

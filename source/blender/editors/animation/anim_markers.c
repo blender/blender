@@ -72,7 +72,6 @@
 #include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 #include "ED_util.h"
 #include "ED_numinput.h"
 #include "ED_object.h"
@@ -1649,50 +1648,5 @@ void ED_operatortypes_marker(void)
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_keymap_marker(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Markers", 0, 0);
-	wmKeyMapItem *kmi;
-
-	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	kmi = WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-
-#ifdef DURIAN_CAMERA_SWITCH
-	kmi = WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", false);
-	RNA_boolean_set(kmi->ptr, "camera", true);
-
-	kmi = WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", true);
-	RNA_boolean_set(kmi->ptr, "camera", true);
-#else
-	(void)kmi;
-#endif
-
-	WM_keymap_verify_item(keymap, "MARKER_OT_select_box", BKEY, KM_PRESS, 0, 0);
-
-	ED_keymap_template_select_all(keymap, "MARKER_OT_select_all");
-
-	WM_keymap_add_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_verify_item(keymap, "MARKER_OT_rename", MKEY, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
-#ifdef DURIAN_CAMERA_SWITCH
-	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", BKEY, KM_PRESS, KM_CTRL, 0);
-#endif
-}
-
-/* to be called from animation editor keymaps, see note below */
-void ED_marker_keymap_animedit_conflictfree(wmKeyMap *keymap)
-{
-	/* duplicate of some marker-hotkeys but without the bounds checking
-	 * since these are handy to be able to do unrestricted and won't conflict
-	 * with primary function hotkeys (Usability tweak [#27469])
-	 */
-	WM_keymap_add_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MARKER_OT_rename", MKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_ensure(keyconf, "Markers", 0, 0);
 }

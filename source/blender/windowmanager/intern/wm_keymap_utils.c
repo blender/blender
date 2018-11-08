@@ -357,4 +357,8 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	return km;
 }
 
+void WM_keymap_fix_linking(void)
+{
+}
+
 /** \} */

@@ -48,7 +48,7 @@ struct Main;
 struct SnapObjectContext;
 struct SnapObjectParams;
 
-void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid);
+void ED_keymap_transform(struct wmKeyConfig *keyconf);
 void transform_operatortypes(void);
 
 /* ******************** Macros & Prototypes *********************** */

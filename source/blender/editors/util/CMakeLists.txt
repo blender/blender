@@ -43,7 +43,6 @@ set(SRC
 	ed_transverts.c
 	ed_util.c
 	gizmo_utils.c
-	keymap_templates.c
 	numinput.c
 	select_utils.c
 
@@ -65,7 +64,6 @@ set(SRC
 	../include/ED_keyframes_draw.h
 	../include/ED_keyframes_edit.h
 	../include/ED_keyframing.h
-	../include/ED_keymap_templates.h
 	../include/ED_lattice.h
 	../include/ED_logic.h
 	../include/ED_markers.h

@@ -1055,11 +1055,6 @@ class USERPREF_MT_keyconfigs(Menu):
     preset_operator = "wm.keyconfig_activate"
 
     def draw(self, context):
-        props = self.layout.operator("wm.context_set_value", text="Blender (default)")
-        props.data_path = "window_manager.keyconfigs.active"
-        props.value = "context.window_manager.keyconfigs.default"
-
-        # now draw the presets
         Menu.draw_preset(self, context)
 
 

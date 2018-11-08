@@ -207,28 +207,8 @@ static void info_operatortypes(void)
 
 static void info_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Window", 0, 0);
-
-	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMERREPORT, KM_ANY, KM_ANY, 0);
-
-	/* info space */
-	keymap = WM_keymap_ensure(keyconf, "Info", SPACE_INFO, 0);
-
-
-	/* report selection */
-	WM_keymap_add_item(keymap, "INFO_OT_select_pick", SELECTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "INFO_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "INFO_OT_select_box", BKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "INFO_OT_report_replay", RKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "INFO_OT_report_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "INFO_OT_report_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "INFO_OT_report_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-#ifdef __APPLE__
-	WM_keymap_add_item(keymap, "INFO_OT_report_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
-#endif
+	WM_keymap_ensure(keyconf, "Window", 0, 0);
+	WM_keymap_ensure(keyconf, "Info", SPACE_INFO, 0);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
