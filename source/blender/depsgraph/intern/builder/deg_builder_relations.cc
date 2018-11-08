@@ -1520,7 +1520,7 @@ void DepsgraphRelationBuilder::build_world(World *world)
 		                       DEG_OPCODE_MATERIAL_UPDATE);
 		OperationKey world_key(&world->id,
 		                          DEG_NODE_TYPE_SHADING,
-		                          DEG_OPCODE_MATERIAL_UPDATE);
+		                          DEG_OPCODE_WORLD_UPDATE);
 		add_relation(ntree_key, world_key, "World's NTree");
 		build_nested_nodetree(&world->id, world->nodetree);
 	}
