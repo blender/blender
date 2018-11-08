@@ -608,7 +608,30 @@ if(WITH_CYCLES_OSL)
 endif()
 
 if(WITH_CYCLES_EMBREE)
-	find_package(Embree 3.2.4 REQUIRED)
+	windows_find_package(Embree)
+	if(NOT EMBREE_FOUND)
+		set(EMBREE_INCLUDE_DIRS ${LIBDIR}/embree/include)
+		set(EMBREE_LIBRARIES
+			optimized ${LIBDIR}/embree/lib/embree3.lib
+			optimized ${LIBDIR}/embree/lib/embree_avx2.lib
+			optimized ${LIBDIR}/embree/lib/embree_avx.lib
+			optimized ${LIBDIR}/embree/lib/embree_sse42.lib
+			optimized ${LIBDIR}/embree/lib/lexers.lib
+			optimized ${LIBDIR}/embree/lib/math.lib
+			optimized ${LIBDIR}/embree/lib/simd.lib
+			optimized ${LIBDIR}/embree/lib/sys.lib
+			optimized ${LIBDIR}/embree/lib/tasking.lib
+
+			debug ${LIBDIR}/embree/lib/embree3_d.lib
+			debug ${LIBDIR}/embree/lib/embree_avx2_d.lib
+			debug ${LIBDIR}/embree/lib/embree_avx_d.lib
+			debug ${LIBDIR}/embree/lib/embree_sse42_d.lib
+			debug ${LIBDIR}/embree/lib/lexers_d.lib
+			debug ${LIBDIR}/embree/lib/math_d.lib
+			debug ${LIBDIR}/embree/lib/simd_d.lib
+			debug ${LIBDIR}/embree/lib/sys_d.lib
+			debug ${LIBDIR}/embree/lib/tasking_d.lib)
+	endif()
 endif()
 
 if (WINDOWS_PYTHON_DEBUG)

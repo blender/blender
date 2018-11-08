@@ -116,6 +116,9 @@ public:
 
 	void apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress& progress);
 
+	string get_cryptomatte_objects(Scene *scene);
+	string get_cryptomatte_assets(Scene *scene);
+
 protected:
 	void device_update_object_transform(UpdateObjectTransformState *state,
 	                                    Object *ob,

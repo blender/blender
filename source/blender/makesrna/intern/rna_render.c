@@ -807,7 +807,7 @@ static void rna_def_render_result(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Add engine-specific stamp data to the result");
 	parm = RNA_def_string(func, "field", NULL, 1024, "Field", "Name of the stamp field to add");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_string(func, "value", NULL, 1024, "Value", "Value of the stamp data");
+	parm = RNA_def_string(func, "value", NULL, 0, "Value", "Value of the stamp data");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	RNA_define_verify_sdna(0);

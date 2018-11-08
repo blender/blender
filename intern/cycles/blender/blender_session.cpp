@@ -35,6 +35,7 @@
 #include "util/util_function.h"
 #include "util/util_hash.h"
 #include "util/util_logging.h"
+#include "util/util_murmurhash.h"
 #include "util/util_progress.h"
 #include "util/util_time.h"
 
@@ -382,6 +383,17 @@ void BlenderSession::update_render_tile(RenderTile& rtile, bool highlight)
 		do_write_update_render_tile(rtile, false, false);
 }
 
+static void add_cryptomatte_layer(BL::RenderResult& b_rr, string name, string manifest)
+{
+	string identifier = string_printf("%08x", util_murmur_hash3(name.c_str(), name.length(), 0));
+	string prefix = "cryptomatte/" + identifier.substr(0, 7) + "/";
+
+	render_add_metadata(b_rr, prefix+"name", name);
+	render_add_metadata(b_rr, prefix+"hash", "MurmurHash3_32");
+	render_add_metadata(b_rr, prefix+"conversion", "uint32_to_float32");
+	render_add_metadata(b_rr, prefix+"manifest", manifest);
+}
+
 void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 {
 	b_depsgraph = b_depsgraph_;
@@ -405,6 +417,7 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 	BL::RenderResult::layers_iterator b_single_rlay;
 	b_rr.layers.begin(b_single_rlay);
 	BL::RenderLayer b_rlay = *b_single_rlay;
+	b_rlay_name = b_view_layer.name();
 
 	/* add passes */
 	vector<Pass> passes = sync->sync_render_passes(b_rlay, b_view_layer, session_params);
@@ -440,7 +453,6 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 	BL::RenderResult::views_iterator b_view_iter;
 	int view_index = 0;
 	for(b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end(); ++b_view_iter, ++view_index) {
-		b_rlay_name = b_view_layer.name();
 		b_rview_name = b_view_iter->name();
 
 		/* set the current view */
@@ -498,6 +510,20 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 		/* TODO(sergey): Report whether we're doing resumable render
 		 * and also start/end sample if so.
 		 */
+	}
+
+	/* Write cryptomatte metadata. */
+	if(scene->film->cryptomatte_passes & CRYPT_OBJECT) {
+		add_cryptomatte_layer(b_rr, b_rlay_name+".CryptoObject",
+							  scene->object_manager->get_cryptomatte_objects(scene));
+	}
+	if(scene->film->cryptomatte_passes & CRYPT_MATERIAL) {
+		add_cryptomatte_layer(b_rr, b_rlay_name+".CryptoMaterial",
+							  scene->shader_manager->get_cryptomatte_materials(scene));
+	}
+	if(scene->film->cryptomatte_passes & CRYPT_ASSET) {
+		add_cryptomatte_layer(b_rr, b_rlay_name+".CryptoAsset",
+							  scene->object_manager->get_cryptomatte_assets(scene));
 	}
 
 	/* free result without merging */

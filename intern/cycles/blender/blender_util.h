@@ -243,6 +243,12 @@ static inline float *image_get_float_pixels_for_frame(BL::Image& image,
 	return BKE_image_get_float_pixels_for_frame(image.ptr.data, frame);
 }
 
+static inline void render_add_metadata(BL::RenderResult& b_rr, string name, string value)
+{
+	b_rr.stamp_data_add_field(name.c_str(), value.c_str());
+}
+
+
 /* Utilities */
 
 static inline Transform get_transform(const BL::Array<float, 16>& array)

@@ -1411,20 +1411,23 @@ typedef enum KernelBVHLayout {
 } KernelBVHLayout;
 
 typedef struct KernelBVH {
-	/* root node */
+	/* Own BVH */
 	int root;
 	int have_motion;
 	int have_curves;
 	int have_instancing;
 	int bvh_layout;
 	int use_bvh_steps;
-	int pad1;
+
+	/* Embree */
 #ifdef __EMBREE__
 	RTCScene scene;
+#  ifndef __KERNEL_64_BIT__
+	int pad1;
+#  endif
 #else
-	void *unused;
+	int pad1, pad2;
 #endif
-	int pad2, pad3;
 } KernelBVH;
 static_assert_align(KernelBVH, 16);
 

@@ -172,6 +172,9 @@ protected:
 
 	/* Update tile manager to reflect resumable render settings. */
 	void update_resumable_tile_manager(int num_samples);
+
+	/* Add metadata for cryptomatte layers to the render result. */
+	void add_cryptomatte_metadata(string layer_prefix);
 };
 
 CCL_NAMESPACE_END

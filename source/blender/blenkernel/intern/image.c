@@ -1526,7 +1526,7 @@ typedef struct StampDataCustomField {
 	struct StampDataCustomField *next, *prev;
 	/* TODO(sergey): Think of better size here, maybe dynamically allocated even. */
 	char key[512];
-	char value[512];
+	char *value;
 	/* TODO(sergey): Support non-string values. */
 } StampDataCustomField;
 
@@ -2091,12 +2091,9 @@ void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCall
 	CALL(rendertime, "RenderTime");
 	CALL(memory, "Memory");
 
-	for (StampDataCustomField *custom_field = stamp_data->custom_fields.first;
-	     custom_field != NULL;
-	     custom_field = custom_field->next)
-	{
+	LISTBASE_FOREACH(StampDataCustomField *, custom_field, &stamp_data->custom_fields) {
 		if (noskip || custom_field->value[0]) {
-			callback(data, custom_field->key, custom_field->value, sizeof(custom_field->value));
+			callback(data, custom_field->key, custom_field->value, strlen(custom_field->value) + 1);
 		}
 	}
 
@@ -2113,7 +2110,7 @@ void BKE_render_result_stamp_data(RenderResult *rr, const char *key, const char 
 	StampDataCustomField *field = MEM_mallocN(sizeof(StampDataCustomField),
 	                                          "StampData Custom Field");
 	STRNCPY(field->key, key);
-	STRNCPY(field->value, value);
+	field->value = BLI_strdup(value);
 	BLI_addtail(&stamp_data->custom_fields, field);
 }
 
@@ -2121,6 +2118,9 @@ void BKE_stamp_data_free(struct StampData *stamp_data)
 {
 	if (stamp_data == NULL) {
 		return;
+	}
+	LISTBASE_FOREACH(StampDataCustomField *, custom_field, &stamp_data->custom_fields) {
+		MEM_freeN(custom_field->value);
 	}
 	BLI_freelistN(&stamp_data->custom_fields);
 	MEM_freeN(stamp_data);
