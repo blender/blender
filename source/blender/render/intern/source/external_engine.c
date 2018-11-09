@@ -738,8 +738,13 @@ int RE_engine_render(Render *re, int do_all)
 
 			type->render(engine, engine->depsgraph);
 
-			/* grease pencil render over previous render result */
-			if (!RE_engine_test_break(engine)) {
+			/* Grease pencil render over previous render result.
+			 *
+			 * NOTE: External engine might have been requested to free its
+			 * dependency graph, which is only allowed if there is no grease
+			 * pencil (pipeline is taking care of that).
+			 */
+			if (!RE_engine_test_break(engine) && engine->depsgraph != NULL) {
 				DRW_render_gpencil(engine, engine->depsgraph);
 			}
 
@@ -812,4 +817,19 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 			ntreeCompositRegisterPass(sce->nodetree, scene, view_layer, name, type);
 		}
 	}
+}
+
+void RE_engine_free_blender_memory(RenderEngine *engine)
+{
+	/* Weak way to save memory, but not crash grease pencil.
+	 *
+	 * TODO(sergey): Find better solution for this.
+	 * TODO(sergey): Try to find solution which does not involve looping over
+	 * all the objects.
+	 */
+	if (DRW_render_check_grease_pencil(engine->depsgraph)) {
+		return;
+	}
+	DEG_graph_free(engine->depsgraph);
+	engine->depsgraph = NULL;
 }

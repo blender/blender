@@ -470,6 +470,11 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 		                &python_thread_state);
 		builtin_images_load();
 
+		/* Attempt to free all data which is held by Blender side, since at this
+		 * point we knwo that we've got everything to render current view layer.
+		 */
+		free_blender_memory_if_possible();
+
 		/* Make sure all views have different noise patterns. - hardcoded value just to make it random */
 		if(view_index != 0) {
 			scene->integrator->seed += hash_int_2d(scene->integrator->seed, hash_int(view_index * 0xdeadbeef));
@@ -1404,6 +1409,18 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 
 	session->tile_manager.range_start_sample = range_start_sample;
 	session->tile_manager.range_num_samples = range_num_samples;
+}
+
+void BlenderSession::free_blender_memory_if_possible()
+{
+	if (!background) {
+		/* During interactive render we can not free anything: attempts to save
+		 * memory would cause things to be allocated and evaluated for every
+		 * updated sample.
+		 */
+		return;
+	}
+	b_engine.free_blender_memory();
 }
 
 CCL_NAMESPACE_END

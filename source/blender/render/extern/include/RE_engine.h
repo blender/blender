@@ -193,4 +193,6 @@ struct RenderData *RE_engine_get_render_data(struct Render *re);
 void RE_bake_engine_set_engine_parameters(
         struct Render *re, struct Main *bmain, struct Scene *scene);
 
+void RE_engine_free_blender_memory(struct RenderEngine *engine);
+
 #endif /* __RE_ENGINE_H__ */
