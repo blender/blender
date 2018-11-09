@@ -46,6 +46,7 @@ public:
 	/* Inherit all constructors from base class. */
 	using BaseClass::vector;
 
+	/* Try as hard as possible to use zero memory. */
 	void free_memory(void)
 	{
 		BaseClass::resize(0);
