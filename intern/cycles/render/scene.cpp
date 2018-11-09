@@ -83,7 +83,10 @@ DeviceScene::DeviceScene(Device *device)
 }
 
 Scene::Scene(const SceneParams& params_, Device *device)
-: device(device), dscene(device), params(params_)
+        : name("Scene"),
+          device(device),
+          dscene(device),
+          params(params_)
 {
 	memset((void *)&dscene.data, 0, sizeof(dscene.data));
 

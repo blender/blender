@@ -140,6 +140,7 @@ void BlenderSession::create_session()
 
 	/* create scene */
 	scene = new Scene(scene_params, session->device);
+	scene->name = b_scene.name();
 
 	/* setup callbacks for builtin image support */
 	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3);
@@ -950,7 +951,7 @@ void BlenderSession::update_bake_progress()
 void BlenderSession::update_status_progress()
 {
 	string timestatus, status, substatus;
-	string scene = "";
+	string scene_status = "";
 	float progress;
 	double total_time, remaining_time = 0, render_time;
 	char time_str[128];
@@ -964,12 +965,12 @@ void BlenderSession::update_status_progress()
 		remaining_time = (1.0 - (double)progress) * (render_time / (double)progress);
 
 	if(background) {
-		scene += " | " + b_scene.name();
+		scene_status += " | " + scene->name;
 		if(b_rlay_name != "")
-			scene += ", "  + b_rlay_name;
+			scene_status += ", "  + b_rlay_name;
 
 		if(b_rview_name != "")
-			scene += ", " + b_rview_name;
+			scene_status += ", " + b_rview_name;
 
 		if(remaining_time > 0) {
 			BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), remaining_time);
@@ -988,7 +989,7 @@ void BlenderSession::update_status_progress()
 	/* When rendering in a window, redraw the status at least once per second to keep the elapsed and remaining time up-to-date.
 	 * For headless rendering, only report when something significant changes to keep the console output readable. */
 	if(status != last_status || (!headless && (current_time - last_status_time) > 1.0)) {
-		b_engine.update_stats("", (timestatus + scene + status).c_str());
+		b_engine.update_stats("", (timestatus + scene_status + status).c_str());
 		b_engine.update_memory_stats(mem_used, mem_peak);
 		last_status = status;
 		last_status_time = current_time;
