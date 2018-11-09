@@ -26,7 +26,7 @@
  * with CPU/CUDA/OpenCL. */
 
 #ifdef __EMBREE__
-#include "kernel/bvh/bvh_embree.h"
+#  include "kernel/bvh/bvh_embree.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -36,9 +36,9 @@ CCL_NAMESPACE_BEGIN
 /* Common QBVH functions. */
 #ifdef __QBVH__
 #  include "kernel/bvh/qbvh_nodes.h"
-#ifdef __KERNEL_AVX2__
-#  include "kernel/bvh/obvh_nodes.h"
-#endif
+#  ifdef __KERNEL_AVX2__
+#    include "kernel/bvh/obvh_nodes.h"
+#  endif
 #endif
 
 /* Regular BVH traversal */
