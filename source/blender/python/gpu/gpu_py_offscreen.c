@@ -226,7 +226,7 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 		return NULL;
 	}
 
-	BLI_assert(BKE_id_is_in_gobal_main(&scene->id));
+	BLI_assert(BKE_id_is_in_global_main(&scene->id));
 
 	depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 

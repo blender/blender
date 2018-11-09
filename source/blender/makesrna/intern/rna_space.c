@@ -1060,7 +1060,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 
-	BLI_assert(BKE_id_is_in_gobal_main(value.data));
+	BLI_assert(BKE_id_is_in_global_main(value.data));
 	ED_space_image_set(G_MAIN, sima, scene, obedit, (Image *)value.data);
 }
 

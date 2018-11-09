@@ -275,7 +275,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		BLI_assert(BKE_id_is_in_gobal_main(id));
+		BLI_assert(BKE_id_is_in_global_main(id));
 		result = insert_keyframe(G_MAIN, depsgraph, &reports, id, NULL, group_name, path_full, index, cfra, keytype, options);
 		MEM_freeN((void *)path_full);
 

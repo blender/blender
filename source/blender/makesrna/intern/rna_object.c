@@ -380,8 +380,8 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		return;
 	}
 
-	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
-	BLI_assert(BKE_id_is_in_gobal_main(id));
+	BLI_assert(BKE_id_is_in_global_main(&ob->id));
+	BLI_assert(BKE_id_is_in_global_main(id));
 
 	if (ob->type == OB_EMPTY) {
 		if (ob->data) {
@@ -810,8 +810,8 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->id.data;
 
 	DEG_id_tag_update(value.data, 0);
-	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
-	BLI_assert(BKE_id_is_in_gobal_main(value.data));
+	BLI_assert(BKE_id_is_in_global_main(&ob->id));
+	BLI_assert(BKE_id_is_in_global_main(value.data));
 	assign_material(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 }
 
@@ -1004,8 +1004,8 @@ static void rna_MaterialSlot_material_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object *)ptr->id.data;
 	int index = (Material **)ptr->data - ob->mat;
 
-	BLI_assert(BKE_id_is_in_gobal_main(&ob->id));
-	BLI_assert(BKE_id_is_in_gobal_main(value.data));
+	BLI_assert(BKE_id_is_in_global_main(&ob->id));
+	BLI_assert(BKE_id_is_in_global_main(value.data));
 	assign_material(G_MAIN, ob, value.data, index + 1, BKE_MAT_ASSIGN_EXISTING);
 }
 

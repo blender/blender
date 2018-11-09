@@ -93,7 +93,7 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 
 	if (value != ima->source) {
 		ima->source = value;
-		BLI_assert(BKE_id_is_in_gobal_main(&ima->id));
+		BLI_assert(BKE_id_is_in_global_main(&ima->id));
 		BKE_image_signal(G_MAIN, ima, NULL, IMA_SIGNAL_SRC_CHANGE);
 		DEG_id_tag_update(&ima->id, 0);
 	}

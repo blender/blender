@@ -352,7 +352,7 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(newname, value, sizeof(ebone->name));
 	BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
 
-	BLI_assert(BKE_id_is_in_gobal_main(&arm->id));
+	BLI_assert(BKE_id_is_in_global_main(&arm->id));
 	ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
 }
 
@@ -366,7 +366,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(newname, value, sizeof(bone->name));
 	BLI_strncpy(oldname, bone->name, sizeof(bone->name));
 
-	BLI_assert(BKE_id_is_in_gobal_main(&arm->id));
+	BLI_assert(BKE_id_is_in_global_main(&arm->id));
 	ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
 }
 

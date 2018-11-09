@@ -903,7 +903,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
 	bm = self->bm;
 
-	BLI_assert(BKE_id_is_in_gobal_main(&me->id));
+	BLI_assert(BKE_id_is_in_global_main(&me->id));
 	BM_mesh_bm_to_me(
 	        G_MAIN,  /* XXX UGLY! */
 	        bm, me,

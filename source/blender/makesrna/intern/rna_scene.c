@@ -1412,7 +1412,7 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	BLI_assert(BKE_id_is_in_gobal_main(&scene->id));
+	BLI_assert(BKE_id_is_in_global_main(&scene->id));
 	BKE_view_layer_rename(G_MAIN, scene, view_layer, value);
 }
 
