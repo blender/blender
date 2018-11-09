@@ -2363,7 +2363,8 @@ static void gpencil_draw_cursor_set(tGPsdata *p)
 		WM_cursor_modal_set(p->win, BC_CROSSCURSOR);  /* XXX need a better cursor */
 	}
 	else {
-		WM_cursor_modal_set(p->win, CURSOR_STD);
+		WM_cursor_modal_set(p->win,	CURSOR_NONE);
+
 	}
 }
 
