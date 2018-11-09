@@ -112,21 +112,21 @@ class Object(bpy_types.ID):
 
     @property
     def children(self):
-        """All the children of this object"""
+        """All the children of this object. Warning: takes O(len(bpy.data.objects)) time."""
         import bpy
         return tuple(child for child in bpy.data.objects
                      if child.parent == self)
 
     @property
     def users_collection(self):
-        """The collections this object is in"""
+        """The collections this object is in. Warning: takes O(len(bpy.data.collections)) time."""
         import bpy
         return tuple(collection for collection in bpy.data.collections
                      if self in collection.objects[:])
 
     @property
     def users_scene(self):
-        """The scenes this object is in"""
+        """The scenes this object is in. Warning: takes O(len(bpy.data.scenes) * len(bpy.data.objects)) time."""
         import bpy
         return tuple(scene for scene in bpy.data.scenes
                      if self in scene.objects[:])
@@ -268,12 +268,12 @@ class _GenericBone:
 
     @property
     def children(self):
-        """A list of all the bones children."""
+        """A list of all the bones children. Warning: takes O(len(bones)) time."""
         return [child for child in self._other_bones if child.parent == self]
 
     @property
     def children_recursive(self):
-        """A list of all children from this bone."""
+        """A list of all children from this bone. Warning: takes O(len(bones)**2) time."""
         bones_children = []
         for bone in self._other_bones:
             index = bone.parent_index(self)
@@ -290,7 +290,7 @@ class _GenericBone:
         Returns a chain of children with the same base name as this bone.
         Only direct chains are supported, forks caused by multiple children
         with matching base names will terminate the function
-        and not be returned.
+        and not be returned. Warning: takes O(len(bones)**2) time.
         """
         basename = self.basename
         chain = []
@@ -946,7 +946,7 @@ class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
 
     @property
     def links(self):
-        """List of node links from or to this socket"""
+        """List of node links from or to this socket. Warning: takes O(len(nodetree.links)) time."""
         return tuple(link for link in self.id_data.links
                      if (link.from_socket == self or
                          link.to_socket == self))
