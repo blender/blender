@@ -64,7 +64,7 @@ public:
 	function<void(long, int)> update_progress_sample;
 	function<void(RenderTile&)> update_tile_sample;
 	function<void(RenderTile&)> release_tile;
-	function<bool(void)> get_cancel;
+	function<bool()> get_cancel;
 	function<void(RenderTile*, Device*)> map_neighbor_tiles;
 	function<void(RenderTile*, Device*)> unmap_neighbor_tiles;
 

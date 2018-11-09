@@ -1065,7 +1065,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	devices.insert(devices.begin(), info);
 }
 
-string device_cpu_capabilities(void)
+string device_cpu_capabilities()
 {
 	string capabilities = "";
 	capabilities += system_cpu_support_sse2() ? "SSE2 " : "";

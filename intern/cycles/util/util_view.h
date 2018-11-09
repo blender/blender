@@ -22,10 +22,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef void (*ViewInitFunc)(void);
-typedef void (*ViewExitFunc)(void);
+typedef void (*ViewInitFunc)();
+typedef void (*ViewExitFunc)();
 typedef void (*ViewResizeFunc)(int width, int height);
-typedef void (*ViewDisplayFunc)(void);
+typedef void (*ViewDisplayFunc)();
 typedef void (*ViewKeyboardFunc)(unsigned char key);
 typedef void (*ViewMotionFunc)(int x, int y, int button);
 

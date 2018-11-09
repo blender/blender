@@ -52,7 +52,7 @@ struct int2;
 struct float3;
 
 void util_logging_init(const char *argv0);
-void util_logging_start(void);
+void util_logging_start();
 void util_logging_verbosity_set(int verbosity);
 
 std::ostream& operator <<(std::ostream &os,

@@ -22,7 +22,7 @@ void CCL_init_logging(const char *argv0)
 	ccl::util_logging_init(argv0);
 }
 
-void CCL_start_debug_logging(void)
+void CCL_start_debug_logging()
 {
 	ccl::util_logging_start();
 }

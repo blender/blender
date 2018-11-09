@@ -43,7 +43,7 @@ public:
 	using BaseClass::vector;
 
 	/* Try as hard as possible to use zero memory. */
-	void free_memory(void)
+	void free_memory()
 	{
 		BaseClass::resize(0);
 		BaseClass::shrink_to_fit();

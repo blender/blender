@@ -43,12 +43,12 @@ __forceinline int4::int4(const __m128i& a)
 {
 }
 
-__forceinline int4::operator const __m128i&(void) const
+__forceinline int4::operator const __m128i&() const
 {
 	return m128;
 }
 
-__forceinline int4::operator __m128i&(void)
+__forceinline int4::operator __m128i&()
 {
 	return m128;
 }

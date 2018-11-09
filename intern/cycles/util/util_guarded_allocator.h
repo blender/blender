@@ -158,8 +158,8 @@ public:
 };
 
 /* Get memory usage and peak from the guarded STL allocator. */
-size_t util_guarded_get_mem_used(void);
-size_t util_guarded_get_mem_peak(void);
+size_t util_guarded_get_mem_used();
+size_t util_guarded_get_mem_peak();
 
 /* Call given function and keep track if it runs out of memory.
  *

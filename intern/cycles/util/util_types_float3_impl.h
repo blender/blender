@@ -43,12 +43,12 @@ __forceinline float3::float3(const __m128& a)
 {
 }
 
-__forceinline float3::operator const __m128&(void) const
+__forceinline float3::operator const __m128&() const
 {
 	return m128;
 }
 
-__forceinline float3::operator __m128&(void)
+__forceinline float3::operator __m128&()
 {
 	return m128;
 }

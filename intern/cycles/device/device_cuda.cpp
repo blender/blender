@@ -73,12 +73,12 @@ const char *cuewErrorString(CUresult result)
 	return error.c_str();
 }
 
-const char *cuewCompilerPath(void)
+const char *cuewCompilerPath()
 {
 	return CYCLES_CUDA_NVCC_EXECUTABLE;
 }
 
-int cuewCompilerVersion(void)
+int cuewCompilerVersion()
 {
 	return (CUDA_VERSION / 100) + (CUDA_VERSION % 100 / 10);
 }
@@ -2355,7 +2355,7 @@ int2 CUDASplitKernel::split_kernel_global_size(device_memory& kg, device_memory&
 	return global_size;
 }
 
-bool device_cuda_init(void)
+bool device_cuda_init()
 {
 #ifdef WITH_CUDA_DYNLOAD
 	static bool initialized = false;
@@ -2497,7 +2497,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		devices.insert(devices.end(), display_devices.begin(), display_devices.end());
 }
 
-string device_cuda_capabilities(void)
+string device_cuda_capabilities()
 {
 	CUresult result = device_cuda_safe_init();
 	if(result != CUDA_SUCCESS) {
