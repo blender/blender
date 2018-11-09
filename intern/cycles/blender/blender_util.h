@@ -20,6 +20,7 @@
 #include "render/mesh.h"
 
 #include "util/util_algorithm.h"
+#include "util/util_array.h"
 #include "util/util_map.h"
 #include "util/util_path.h"
 #include "util/util_set.h"

@@ -20,6 +20,7 @@
 #include "render/graph.h"
 #include "render/scene.h"
 #include "render/nodes.h"
+#include "util/util_array.h"
 #include "util/util_logging.h"
 #include "util/util_string.h"
 #include "util/util_vector.h"

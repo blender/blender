@@ -23,6 +23,7 @@
 #include "bvh/bvh_params.h"
 #include "bvh/bvh_unaligned.h"
 
+#include "util/util_array.h"
 #include "util/util_task.h"
 #include "util/util_vector.h"
 

@@ -19,7 +19,7 @@
 #define __BVH_H__
 
 #include "bvh/bvh_params.h"
-
+#include "util/util_array.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
 

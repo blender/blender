@@ -21,6 +21,7 @@
 
 #include "graph/node.h"
 
+#include "util/util_array.h"
 #include "util/util_boundbox.h"
 #include "util/util_projection.h"
 #include "util/util_transform.h"

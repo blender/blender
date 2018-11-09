@@ -22,6 +22,7 @@
 #include "render/attribute.h"
 #include "render/shader.h"
 
+#include "util/util_array.h"
 #include "util/util_boundbox.h"
 #include "util/util_list.h"
 #include "util/util_map.h"

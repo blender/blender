@@ -20,6 +20,7 @@
 #include "render/graph.h"
 #include "graph/node.h"
 
+#include "util/util_array.h"
 #include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
