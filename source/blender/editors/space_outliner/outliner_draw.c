@@ -335,6 +335,14 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					WM_event_add_notifier(C, NC_IMAGE, NULL); break;
 				case ID_SCE:
 					WM_event_add_notifier(C, NC_SCENE, NULL); break;
+				case ID_OB:
+				{
+					Object *ob = (Object *)tselem->id;
+					if (ob->type == OB_MBALL) {
+						DEG_id_tag_update(&ob->id, DEG_TAG_GEOMETRY);
+					}
+					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL); break;
+				}
 				default:
 					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL); break;
 			}

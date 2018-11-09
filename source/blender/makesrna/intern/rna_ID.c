@@ -153,6 +153,13 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
 	BLI_assert(BKE_id_is_in_global_main(id));
 	BLI_libblock_ensure_unique_name(G_MAIN, id->name);
+
+	if (GS(id->name) == ID_OB) {
+		Object *ob = (Object *)id;
+		if (ob->type == OB_MBALL) {
+			DEG_id_tag_update(&ob->id, DEG_TAG_GEOMETRY);
+		}
+	}
 }
 
 static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
