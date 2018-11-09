@@ -4511,8 +4511,8 @@ typedef struct RegionAlphaInfo {
 	int hidden;
 } RegionAlphaInfo;
 
-#define TIMEOUT		0.2f
-#define TIMESTEP	0.04f
+#define TIMEOUT		0.1f
+#define TIMESTEP	0.05f
 
 float ED_region_blend_alpha(ARegion *ar)
 {
