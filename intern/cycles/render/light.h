@@ -139,4 +139,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __LIGHT_H__ */
+#endif  /* __LIGHT_H__ */

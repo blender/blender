@@ -76,7 +76,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 		eval *= -lambda_r / (shadowing_lambda - lambda_r);
 	else
 		eval *= -lambda_r * beta(-lambda_r, shadowing_lambda+1.0f);
-#else /* MF_MULTI_GLOSSY */
+#else  /* MF_MULTI_GLOSSY */
 	const float G2 = 1.0f / (1.0f - (lambda_r + 1.0f) + shadowing_lambda);
 	float val = G2 * 0.25f / wi.z;
 	if(alpha.x == alpha.y)
@@ -129,7 +129,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 				phase = mf_eval_phase_glass(wr, lambda_r,  wo,  wo_outside, alpha, eta);
 			else
 				phase = mf_eval_phase_glass(wr, lambda_r, -wo, !wo_outside, alpha, 1.0f/eta);
-#else /* MF_MULTI_GLOSSY */
+#else  /* MF_MULTI_GLOSSY */
 			phase = mf_eval_phase_glossy(wr, lambda_r, wo, alpha) * throughput;
 #endif
 			eval += throughput * phase * mf_G1(wo_outside? wo: -wo, mf_C1((outside == wo_outside)? hr: -hr), shadowing_lambda);
@@ -153,7 +153,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 			else if(use_fresnel && order > 0) {
 				throughput *= interpolate_fresnel_color(wi_prev, wm, eta, F0, cspec0);
 			}
-#else /* MF_MULTI_GLOSSY */
+#else  /* MF_MULTI_GLOSSY */
 			if(use_fresnel && order > 0) {
 				throughput *= interpolate_fresnel_color(-wr, wm, eta, F0, cspec0);
 			}
@@ -248,7 +248,7 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(
 					throughput *= t_color;
 			}
 		}
-#else /* MF_MULTI_GLOSSY */
+#else  /* MF_MULTI_GLOSSY */
 		if(use_fresnel) {
 			float3 t_color = interpolate_fresnel_color(-wr, wm, eta, F0, cspec0);
 

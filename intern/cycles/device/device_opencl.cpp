@@ -245,4 +245,4 @@ string device_opencl_capabilities(void)
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_OPENCL */
+#endif  /* WITH_OPENCL */

@@ -615,7 +615,7 @@ typedef ccl_addr_space struct PathRadiance {
 
 #ifdef __KERNEL_DEBUG__
 	DebugData debug_data;
-#endif /* __KERNEL_DEBUG__ */
+#endif  /* __KERNEL_DEBUG__ */
 } PathRadiance;
 
 typedef struct BsdfEval {
@@ -1705,4 +1705,4 @@ typedef struct WorkTile {
 
 CCL_NAMESPACE_END
 
-#endif /*  __KERNEL_TYPES_H__ */
+#endif  /*  __KERNEL_TYPES_H__ */

@@ -360,4 +360,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __DEVICE_H__ */
+#endif  /* __DEVICE_H__ */

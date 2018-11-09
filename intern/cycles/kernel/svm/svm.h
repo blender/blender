@@ -313,7 +313,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 			case NODE_LEAVE_BUMP_EVAL:
 				svm_node_leave_bump_eval(kg, sd, stack, node.y);
 				break;
-#      endif /* NODES_FEATURE(NODE_FEATURE_BUMP_STATE) */
+#      endif  /* NODES_FEATURE(NODE_FEATURE_BUMP_STATE) */
 #    endif  /* NODES_FEATURE(NODE_FEATURE_BUMP) */
 			case NODE_HSV:
 				svm_node_hsv(kg, sd, stack, node, &offset);
@@ -497,4 +497,4 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 
 CCL_NAMESPACE_END
 
-#endif /* __SVM_H__ */
+#endif  /* __SVM_H__ */

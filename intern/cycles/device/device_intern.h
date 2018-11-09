@@ -40,4 +40,4 @@ string device_cuda_capabilities(void);
 
 CCL_NAMESPACE_END
 
-#endif /* __DEVICE_INTERN_H__ */
+#endif  /* __DEVICE_INTERN_H__ */

@@ -108,4 +108,4 @@ ccl_device int bsdf_principled_sheen_sample(const ShaderClosure *sc,
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_PRINCIPLED_SHEEN_H__ */
+#endif  /* __BSDF_PRINCIPLED_SHEEN_H__ */

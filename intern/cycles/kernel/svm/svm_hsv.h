@@ -59,4 +59,4 @@ ccl_device void svm_node_hsv(KernelGlobals *kg, ShaderData *sd, float *stack, ui
 
 CCL_NAMESPACE_END
 
-#endif /* __SVM_HSV_H__ */
+#endif  /* __SVM_HSV_H__ */

@@ -336,4 +336,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_VECTOR_H__ */
+#endif  /* __UTIL_VECTOR_H__ */

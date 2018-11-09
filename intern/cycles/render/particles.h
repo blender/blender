@@ -68,4 +68,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __PARTICLES_H__ */
+#endif  /* __PARTICLES_H__ */

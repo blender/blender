@@ -224,4 +224,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __SHADER_H__ */
+#endif  /* __SHADER_H__ */

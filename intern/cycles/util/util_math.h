@@ -157,7 +157,7 @@ ccl_device_inline T max4(const T& a, const T& b, const T& c, const T& d)
 {
 	return max(max(a,b),max(c,d));
 }
-#endif /* __KERNEL_GPU__ */
+#endif  /* __KERNEL_GPU__ */
 
 ccl_device_inline float min4(float a, float b, float c, float d)
 {
@@ -244,7 +244,7 @@ ccl_device_inline float4 __int4_as_float4(int4 i)
 	                   __int_as_float(i.w));
 #endif
 }
-#endif /* __KERNEL_OPENCL__ */
+#endif  /* __KERNEL_OPENCL__ */
 
 /* Versions of functions which are safe for fast math. */
 ccl_device_inline bool isnan_safe(float f)
@@ -639,4 +639,4 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_H__ */
+#endif  /* __UTIL_MATH_H__ */

@@ -36,4 +36,4 @@ using std::placeholders::_9;
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_FUNCTION_H__ */
+#endif  /* __UTIL_FUNCTION_H__ */

@@ -219,9 +219,9 @@ __forceinline size_t __bscf(size_t& v)
   return i;
 }
 
-#endif /* __KERNEL_64_BIT__ */
+#endif  /* __KERNEL_64_BIT__ */
 
-#else /* _WIN32 */
+#else  /* _WIN32 */
 
 __forceinline unsigned int __popcnt(unsigned int in) {
   int r = 0; asm ("popcnt %1,%0" : "=r"(r) : "r"(in)); return r;
@@ -344,7 +344,7 @@ __forceinline size_t __bscf(size_t& v)
 }
 #endif
 
-#endif /* _WIN32 */
+#endif  /* _WIN32 */
 
 /* Test __KERNEL_SSE41__ for MSVC which does not define __SSE4_1__, and test
  * __SSE4_1__ to avoid OpenImageIO conflicts with our emulation macros on other
@@ -442,7 +442,7 @@ __forceinline __m128 _mm_round_ps_emu( __m128 value, const int flags)
   return value;
 }
 
-#endif /* !(defined(__KERNEL_SSE41__) || defined(__SSE4_1__) || defined(__SSE4_2__)) */
+#endif  /* !(defined(__KERNEL_SSE41__) || defined(__SSE4_1__) || defined(__SSE4_2__)) */
 
 #else  /* __KERNEL_SSE2__ */
 
@@ -470,7 +470,7 @@ ccl_device_inline int __bsr(int value)
 	return bit;
 }
 
-#endif /* __KERNEL_SSE2__ */
+#endif  /* __KERNEL_SSE2__ */
 
 /* quiet unused define warnings */
 #if defined(__KERNEL_SSE2__)  || \
@@ -484,6 +484,6 @@ ccl_device_inline int __bsr(int value)
 
 CCL_NAMESPACE_END
 
-#endif /* __KERNEL_GPU__ */
+#endif  /* __KERNEL_GPU__ */
 
-#endif /* __UTIL_SIMD_TYPES_H__ */
+#endif  /* __UTIL_SIMD_TYPES_H__ */

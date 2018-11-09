@@ -84,4 +84,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH2_H__ */
+#endif  /* __BVH2_H__ */

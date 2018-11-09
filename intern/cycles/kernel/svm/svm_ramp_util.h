@@ -95,4 +95,4 @@ ccl_device float float_ramp_lookup(const float *ramp,
 
 CCL_NAMESPACE_END
 
-#endif /* __SVM_RAMP_UTIL_H__ */
+#endif  /* __SVM_RAMP_UTIL_H__ */

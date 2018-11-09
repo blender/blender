@@ -282,4 +282,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_BOUNDBOX_H__ */
+#endif  /* __UTIL_BOUNDBOX_H__ */

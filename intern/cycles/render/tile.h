@@ -154,4 +154,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __TILE_H__ */
+#endif  /* __TILE_H__ */

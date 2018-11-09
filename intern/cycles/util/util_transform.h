@@ -495,4 +495,4 @@ OPENCL_TRANSFORM_ADDRSPACE_DECLARE(transform_direction_transposed)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_TRANSFORM_H__ */
+#endif  /* __UTIL_TRANSFORM_H__ */

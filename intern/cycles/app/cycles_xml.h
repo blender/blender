@@ -29,4 +29,4 @@ void xml_read_file(Scene *scene, const char *filepath);
 
 CCL_NAMESPACE_END
 
-#endif /* __CYCLES_XML_H__ */
+#endif  /* __CYCLES_XML_H__ */

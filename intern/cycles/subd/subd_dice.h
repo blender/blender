@@ -134,4 +134,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __SUBD_DICE_H__ */
+#endif  /* __SUBD_DICE_H__ */

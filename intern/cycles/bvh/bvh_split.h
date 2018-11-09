@@ -259,4 +259,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_SPLIT_H__ */
+#endif  /* __BVH_SPLIT_H__ */

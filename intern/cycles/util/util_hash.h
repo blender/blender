@@ -68,4 +68,4 @@ ccl_device_inline float hash_int_01(uint k)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_HASH_H__ */
+#endif  /* __UTIL_HASH_H__ */

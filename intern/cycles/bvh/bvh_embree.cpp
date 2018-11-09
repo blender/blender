@@ -881,4 +881,4 @@ void BVHEmbree::refit_nodes()
 }
 CCL_NAMESPACE_END
 
-#endif /* WITH_EMBREE */
+#endif  /* WITH_EMBREE */

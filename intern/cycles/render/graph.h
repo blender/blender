@@ -293,4 +293,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __GRAPH_H__ */
+#endif  /* __GRAPH_H__ */

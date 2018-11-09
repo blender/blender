@@ -158,4 +158,4 @@ ccl_device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc, float3 Ng, 
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_ASHIKHMIN_VELVET_H__ */
+#endif  /* __BSDF_ASHIKHMIN_VELVET_H__ */

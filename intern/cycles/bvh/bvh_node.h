@@ -169,4 +169,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_NODE_H__ */
+#endif  /* __BVH_NODE_H__ */

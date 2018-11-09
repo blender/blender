@@ -142,4 +142,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_BUILD_H__ */
+#endif  /* __BVH_BUILD_H__ */

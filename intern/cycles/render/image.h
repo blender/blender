@@ -164,4 +164,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __IMAGE_H__ */
+#endif  /* __IMAGE_H__ */

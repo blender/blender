@@ -145,4 +145,4 @@ ccl_device int dequeue_ray_index(
 
 CCL_NAMESPACE_END
 
-#endif // __KERNEL_QUEUE_H__
+#endif  // __KERNEL_QUEUE_H__

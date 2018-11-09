@@ -838,4 +838,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __BLENDER_UTIL_H__ */
+#endif  /* __BLENDER_UTIL_H__ */

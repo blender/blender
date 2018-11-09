@@ -379,7 +379,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(
 					float inv_mw_extension = 1.0f/mw_extension;
 					if(d0 >= 0)
 						coverage = (min(d1 * inv_mw_extension, 1.0f) - min(d0 * inv_mw_extension, 1.0f)) * 0.5f;
-					else // inside
+					else  // inside
 						coverage = (min(d1 * inv_mw_extension, 1.0f) + min(-d0 * inv_mw_extension, 1.0f)) * 0.5f;
 				}
 

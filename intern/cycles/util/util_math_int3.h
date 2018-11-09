@@ -113,4 +113,4 @@ ccl_device_inline int3 operator-(const int3 &a, const int3 &b)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_INT3_H__ */
+#endif  /* __UTIL_MATH_INT3_H__ */

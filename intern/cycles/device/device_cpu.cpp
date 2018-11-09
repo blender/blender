@@ -288,7 +288,7 @@ public:
 		}
 #ifdef WITH_EMBREE
 		bvh_layout_mask |= BVH_LAYOUT_EMBREE;
-#endif /* WITH_EMBREE */
+#endif  /* WITH_EMBREE */
 		return bvh_layout_mask;
 	}
 

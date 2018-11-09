@@ -43,7 +43,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer, int num_s
 			atomic_add_and_fetch_float(buffer+slot*2+1, weight);
 			break;
 		}
-#else /* __ATOMIC_PASS_WRITE__ */
+#else  /* __ATOMIC_PASS_WRITE__ */
 		/* If the loop reaches an empty slot, the ID isn't in any slot yet - so add it! */
 		if(id_buffer[slot].x == ID_NONE) {
 			id_buffer[slot].x = id;
@@ -56,7 +56,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer, int num_s
 			id_buffer[slot].y += weight;
 			break;
 		}
-#endif /* __ATOMIC_PASS_WRITE__ */
+#endif  /* __ATOMIC_PASS_WRITE__ */
 	}
 }
 

@@ -50,7 +50,7 @@ ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 	return result;
 }
 
-#endif /* __SOBOL__ */
+#endif  /* __SOBOL__ */
 
 
 ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,

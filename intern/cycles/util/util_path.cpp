@@ -614,7 +614,7 @@ bool path_exists(const string& path)
 		return 0;
 	}
 	return st.st_mode != 0;
-#endif /* _WIN32 */
+#endif  /* _WIN32 */
 }
 
 bool path_is_directory(const string& path)

@@ -68,4 +68,4 @@ typedef struct TileInfo {
 #  define ccl_get_tile_buffer(id) (tile_info->buffers[id])
 #endif
 
-#endif /* __FILTER_DEFINES_H__*/
+#endif  /* __FILTER_DEFINES_H__*/

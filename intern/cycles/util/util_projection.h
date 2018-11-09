@@ -169,8 +169,8 @@ ccl_device_inline ProjectionTransform projection_orthographic(float znear, float
 	return ProjectionTransform(t);
 }
 
-#endif /* __KERNEL_GPU__ */
+#endif  /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_PROJECTION_H__ */
+#endif  /* __UTIL_PROJECTION_H__ */

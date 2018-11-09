@@ -215,4 +215,4 @@ ccl_device int bsdf_glossy_toon_sample(const ShaderClosure *sc, float3 Ng, float
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_TOON_H__ */
+#endif  /* __BSDF_TOON_H__ */

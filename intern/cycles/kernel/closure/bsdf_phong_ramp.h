@@ -135,8 +135,8 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, float3 Ng, float3
 	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
-#endif /* __OSL__ */
+#endif  /* __OSL__ */
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_PHONG_RAMP_H__ */
+#endif  /* __BSDF_PHONG_RAMP_H__ */

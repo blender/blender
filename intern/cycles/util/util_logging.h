@@ -62,4 +62,4 @@ std::ostream& operator <<(std::ostream &os,
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_LOGGING_H__ */
+#endif  /* __UTIL_LOGGING_H__ */

@@ -2393,7 +2393,7 @@ bool device_cuda_init(void)
 	return result;
 #else  /* WITH_CUDA_DYNLOAD */
 	return true;
-#endif /* WITH_CUDA_DYNLOAD */
+#endif  /* WITH_CUDA_DYNLOAD */
 }
 
 Device *device_cuda_create(DeviceInfo& info, Stats &stats, bool background)

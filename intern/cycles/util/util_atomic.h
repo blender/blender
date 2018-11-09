@@ -110,4 +110,4 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile float *dest,
 
 #endif  /* __KERNEL_GPU__ */
 
-#endif /* __UTIL_ATOMIC_H__ */
+#endif  /* __UTIL_ATOMIC_H__ */

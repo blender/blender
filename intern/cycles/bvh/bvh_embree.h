@@ -74,6 +74,6 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_EMBREE */
+#endif  /* WITH_EMBREE */
 
-#endif /* __BVH_EMBREE_H__ */
+#endif  /* __BVH_EMBREE_H__ */

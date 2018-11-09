@@ -58,4 +58,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_IES_H__ */
+#endif  /* __UTIL_IES_H__ */

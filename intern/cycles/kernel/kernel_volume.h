@@ -87,7 +87,7 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
 	return true;
 }
 
-#endif /* __VOLUME__ */
+#endif  /* __VOLUME__ */
 
 ccl_device float3 volume_color_transmittance(float3 sigma, float t)
 {
@@ -270,7 +270,7 @@ ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg,
 		kernel_volume_shadow_homogeneous(kg, state, ray, shadow_sd, throughput);
 }
 
-#endif /* __VOLUME__ */
+#endif  /* __VOLUME__ */
 
 /* Equi-angular sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media" */
@@ -1075,7 +1075,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 
 	return VOLUME_PATH_SCATTERED;
 }
-#endif /* __SPLIT_KERNEL */
+#endif  /* __SPLIT_KERNEL */
 
 /* decide if we need to use decoupled or not */
 ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneous, bool direct, int sampling_method)
@@ -1377,6 +1377,6 @@ ccl_device_inline void kernel_volume_clean_stack(KernelGlobals *kg,
 	}
 }
 
-#endif /* __VOLUME__ */
+#endif  /* __VOLUME__ */
 
 CCL_NAMESPACE_END

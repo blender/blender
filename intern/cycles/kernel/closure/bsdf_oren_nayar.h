@@ -108,4 +108,4 @@ ccl_device int bsdf_oren_nayar_sample(const ShaderClosure *sc, float3 Ng, float3
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_OREN_NAYAR_H__ */
+#endif  /* __BSDF_OREN_NAYAR_H__ */

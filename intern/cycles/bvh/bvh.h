@@ -126,4 +126,4 @@ struct BVHStackEntry
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_H__ */
+#endif  /* __BVH_H__ */

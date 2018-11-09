@@ -74,4 +74,4 @@ ccl_device_inline int2 operator/(const int2 &a, const int2 &b)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_INT2_H__ */
+#endif  /* __UTIL_MATH_INT2_H__ */

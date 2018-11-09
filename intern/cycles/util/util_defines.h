@@ -128,4 +128,4 @@ template<typename T> static inline T decltype_helper(T x) { return x; }
 #  define util_assert(statement)
 #endif
 
-#endif /* __UTIL_DEFINES_H__ */
+#endif  /* __UTIL_DEFINES_H__ */

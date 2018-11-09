@@ -158,4 +158,4 @@ ccl_device_forceinline float3 interpolate_fresnel_color(float3 L, float3 H, floa
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_UTIL_H__ */
+#endif  /* __BSDF_UTIL_H__ */

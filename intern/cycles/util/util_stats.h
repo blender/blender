@@ -44,4 +44,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_STATS_H__ */
+#endif  /* __UTIL_STATS_H__ */

@@ -29,4 +29,4 @@ using std::remove;
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_ALGORITHM_H__ */
+#endif  /* __UTIL_ALGORITHM_H__ */

@@ -119,4 +119,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __CURVES_H__ */
+#endif  /* __CURVES_H__ */

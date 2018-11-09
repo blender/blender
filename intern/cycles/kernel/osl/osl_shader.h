@@ -66,4 +66,4 @@ CCL_NAMESPACE_END
 
 #endif
 
-#endif /* __OSL_SHADER_H__ */
+#endif  /* __OSL_SHADER_H__ */

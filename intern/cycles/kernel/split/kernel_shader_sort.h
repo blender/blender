@@ -78,7 +78,7 @@ ccl_device void kernel_shader_sort(KernelGlobals *kg,
 			}
 		}
 	}
-#  endif /* __KERNEL_OPENCL__ */
+#  endif  /* __KERNEL_OPENCL__ */
 
 	/* copy to destination */
 	for(uint i = 0; i < SHADER_SORT_BLOCK_SIZE; i += SHADER_SORT_LOCAL_SIZE) {
@@ -91,7 +91,7 @@ ccl_device void kernel_shader_sort(KernelGlobals *kg,
 			kernel_split_state.queue_data[outi] = (value == (~0)) ? QUEUE_EMPTY_SLOT : kernel_split_state.queue_data[ini];
 		}
 	}
-#endif /* __KERNEL_CUDA__ */
+#endif  /* __KERNEL_CUDA__ */
 }
 
 CCL_NAMESPACE_END

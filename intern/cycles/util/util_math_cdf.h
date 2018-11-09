@@ -75,4 +75,4 @@ void util_cdf_inverted(const int resolution,
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_H_CDF__ */
+#endif  /* __UTIL_MATH_H_CDF__ */

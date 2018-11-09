@@ -365,4 +365,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_PROGRESS_H__ */
+#endif  /* __UTIL_PROGRESS_H__ */

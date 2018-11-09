@@ -40,4 +40,4 @@ void view_redraw();
 
 CCL_NAMESPACE_END
 
-#endif /*__UTIL_VIEW_H__*/
+#endif  /*__UTIL_VIEW_H__*/

@@ -540,4 +540,4 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 
 CCL_NAMESPACE_END
 
-#endif // __KERNEL_CPU_IMAGE_H__
+#endif  // __KERNEL_CPU_IMAGE_H__

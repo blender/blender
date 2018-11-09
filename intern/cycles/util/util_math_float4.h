@@ -457,4 +457,4 @@ ccl_device_inline float4 load_float4(const float *v)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_FLOAT4_H__ */
+#endif  /* __UTIL_MATH_FLOAT4_H__ */

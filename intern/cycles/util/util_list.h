@@ -25,4 +25,4 @@ using std::list;
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_LIST_H__ */
+#endif  /* __UTIL_LIST_H__ */

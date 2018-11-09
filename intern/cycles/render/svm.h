@@ -223,4 +223,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __SVM_H__ */
+#endif  /* __SVM_H__ */

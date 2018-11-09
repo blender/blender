@@ -103,8 +103,8 @@ ccl_device int bsdf_diffuse_ramp_sample(const ShaderClosure *sc, float3 Ng, floa
 	return LABEL_REFLECT|LABEL_DIFFUSE;
 }
 
-#endif /* __OSL__ */
+#endif  /* __OSL__ */
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_DIFFUSE_RAMP_H__ */
+#endif  /* __BSDF_DIFFUSE_RAMP_H__ */

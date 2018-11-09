@@ -56,4 +56,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __SUBD_SPLIT_H__ */
+#endif  /* __SUBD_SPLIT_H__ */

@@ -419,4 +419,4 @@ ccl_device_inline float3 ensure_finite3(float3 v)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_FLOAT3_H__ */
+#endif  /* __UTIL_MATH_FLOAT3_H__ */

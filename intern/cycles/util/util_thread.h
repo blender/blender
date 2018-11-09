@@ -138,4 +138,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_THREAD_H__ */
+#endif  /* __UTIL_THREAD_H__ */
