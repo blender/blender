@@ -117,6 +117,18 @@ def _template_items_editmode_mesh_select_mode():
     ]
 
 
+def _template_items_proportional_editing(*, connected=False):
+    return [
+        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
+        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
+         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
+        *(() if not connected else (
+            ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS', "alt": True},
+             {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'CONNECTED')]}),
+        ))
+    ]
+
+
 # ------------------------------------------------------------------------------
 # Window, Screen, Areas, Regions
 
@@ -597,9 +609,7 @@ def km_uv_editor(params):
         ("uv.cursor_set", {"type": params.action_mouse, "value": 'PRESS'}, None),
         op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True}),
         op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
+        *_template_items_proportional_editing(connected=False),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("transform.translate", {"type": 'EVT_TWEAK_S', "value": 'ANY'}, None),
         ("transform.rotate", {"type": 'R', "value": 'PRESS'}, None),
@@ -2811,11 +2821,7 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("transform.transform", {"type": 'S', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'GPENCIL_SHRINKFATTEN')]}),
         # Proportonal editing
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS', "alt": True},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'CONNECTED')]}),
+        *_template_items_proportional_editing(connected=True),
         # Add menu
         ("object.gpencil_add", {"type": 'A', "value": 'PRESS', "shift": True}, None),
         # Vertex group menu
@@ -3318,11 +3324,7 @@ def km_curve(params):
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         op_menu("VIEW3D_MT_edit_curve_specials", {"type": 'W', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_hook", {"type": 'H', "value": 'PRESS', "ctrl": True}),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS', "alt": True},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'CONNECTED')]}),
+        *_template_items_proportional_editing(connected=True),
     ])
 
     return keymap
@@ -3697,11 +3699,7 @@ def km_mesh(params):
         op_menu("VIEW3D_MT_uv_map", {"type": 'U', "value": 'PRESS'}),
         op_menu("VIEW3D_MT_vertex_group", {"type": 'G', "value": 'PRESS', "ctrl": True}),
         ("object.vertex_group_remove_from", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-        op_menu("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS', "alt": True},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'CONNECTED')]}),
+        *_template_items_proportional_editing(connected=True),
     ])
 
     if params.legacy:
@@ -3818,11 +3816,7 @@ def km_metaball(_params):
         ("mball.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         *_template_items_select_actions("mball.select_all"),
         ("mball.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS', "alt": True},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'CONNECTED')]}),
+        *_template_items_proportional_editing(connected=True),
     ])
 
     return keymap
@@ -3844,9 +3838,7 @@ def km_lattice(_params):
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         ("lattice.flip", {"type": 'F', "value": 'PRESS', "alt": True}, None),
         op_menu("VIEW3D_MT_hook", {"type": 'H', "value": 'PRESS', "ctrl": True}),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
+        *_template_items_proportional_editing(connected=False),
     ])
 
     return keymap
@@ -3884,9 +3876,7 @@ def km_particle(_params):
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.strength')]}),
         op_menu("VIEW3D_MT_particle_specials", {"type": 'W', "value": 'PRESS'}),
         ("particle.weight_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
-        op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
-        ("wm.context_toggle_enum", {"type": 'O', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.proportional_edit'), ("value_1", 'DISABLED'), ("value_2", 'ENABLED')]}),
+        *_template_items_proportional_editing(connected=False),
     ])
 
     return keymap
