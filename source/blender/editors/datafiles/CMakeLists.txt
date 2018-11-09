@@ -607,7 +607,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	# BEGIN ICON_GEOM_NAMES
 	brush.gpencil_draw.draw
 	brush.gpencil_draw.erase
-	brush.gpencil_draw.rectangle
+	brush.gpencil_draw.fill
 	brush.paint_texture.airbrush
 	brush.paint_texture.clone
 	brush.paint_texture.draw
