@@ -2310,7 +2310,6 @@ static void rna_def_transform(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotIni");
-	RNA_def_property_range(prop, -360.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation", "Degrees to rotate the input");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
