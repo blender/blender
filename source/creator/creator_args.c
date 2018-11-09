@@ -1815,7 +1815,7 @@ static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 		bool ok;
-		BPY_CTX_SETUP(ok = BPY_execute_string_ex(C, argv[1], false));
+		BPY_CTX_SETUP(ok = BPY_execute_string_ex(C, NULL, argv[1], false));
 		if (!ok && app_state.exit_code_on_error.python) {
 			printf("\nError: script failed, expr: '%s', exiting.\n", argv[1]);
 			exit(app_state.exit_code_on_error.python);
@@ -1841,7 +1841,7 @@ static int arg_handle_python_console_run(int UNUSED(argc), const char **argv, vo
 #ifdef WITH_PYTHON
 	bContext *C = data;
 
-	BPY_CTX_SETUP(BPY_execute_string(C, "__import__('code').interact()"));
+	BPY_CTX_SETUP(BPY_execute_string(C, (const char *[]){"code", NULL}, "code.interact()"));
 
 	return 0;
 #else
@@ -1897,7 +1897,7 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
 		BLI_snprintf(str, slen, script_str, argv[1]);
 
 		BLI_assert(strlen(str) + 1 == slen);
-		BPY_CTX_SETUP(BPY_execute_string_ex(C, str, false));
+		BPY_CTX_SETUP(BPY_execute_string_ex(C, NULL, str, false));
 		free(str);
 #else
 		UNUSED_VARS(argv, data);
