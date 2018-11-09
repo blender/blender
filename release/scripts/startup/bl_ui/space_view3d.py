@@ -3993,28 +3993,30 @@ class VIEW3D_PT_object_type_visibility(Panel):
 
         view = context.space_data
 
+        layout.label(text="Object Types Visibility")
         col = layout.column()
 
-        attr_object_types = (
+        attr_object_types = {
             # Geometry
-            "mesh",
-            "curve",
-            "surf",
-            "meta",
-            "font",
-            None,
+            "mesh" : "Mesh",
+            "curve" : "Curve",
+            "surf" : "Surface",
+            "meta" : "Meta",
+            "font" : "Font",
+            None : None,
             # Other
-            "armature",
-            "lattice",
-            "empty",
-            "grease_pencil",
-            "camera",
-            "light",
-            "light_probe",
-            "speaker",
-        )
+            "armature" : "Armature",
+            "lattice" : "Lattice",
+            "empty" : "Empty",
+            "grease_pencil" : "Grease Pencil",
+            "camera" : "Camera",
+            "light" : "Light",
+            "light_probe" : "Light Probe",
+            "speaker" : "Speaker",
+        }
 
-        for attr in attr_object_types:
+
+        for attr, attr_name in attr_object_types.items():
             if attr is None:
                 col.separator()
                 continue
@@ -4022,10 +4024,14 @@ class VIEW3D_PT_object_type_visibility(Panel):
             attr_v = "show_object_viewport_" f"{attr:s}"
             attr_s = "show_object_select_" f"{attr:s}"
 
+            icon_v = 'VISIBLE_IPO_ON' if getattr(view, attr_v) else 'VISIBLE_IPO_OFF'
             icon_s = 'RESTRICT_SELECT_OFF' if getattr(view, attr_s) else 'RESTRICT_SELECT_ON'
 
             row = col.row(align=True)
-            row.prop(view, attr_v)
+            row.alignment = 'RIGHT'
+
+            row.label(text=attr_name)
+            row.prop(view, attr_v, text="", icon=icon_v, emboss=False)
             row.active = getattr(view, attr_v)
             row.prop(view, attr_s, text="", icon=icon_s, emboss=False)
 
