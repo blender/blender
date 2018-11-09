@@ -1853,9 +1853,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'GPENCIL_EDIT': [
             _defs_view3d_generic.cursor,
-            _defs_gpencil_edit.box_select,
-            _defs_gpencil_edit.circle_select,
-            _defs_gpencil_edit.lasso_select,
+            *_tools_gpencil_select,
             None,
             *_tools_transform,
             None,
@@ -1864,6 +1862,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_edit.tosphere,
         ],
         'GPENCIL_SCULPT': [
+            *_tools_gpencil_select,
+            None,
             _defs_gpencil_sculpt.smooth,
             _defs_gpencil_sculpt.thickness,
             _defs_gpencil_sculpt.strength,
@@ -1873,8 +1873,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_sculpt.pinch,
             _defs_gpencil_sculpt.randomize,
             _defs_gpencil_sculpt.clone,
-            None,
-            *_tools_gpencil_select,
         ],
         'GPENCIL_WEIGHT': [
             _defs_gpencil_weight.paint,
