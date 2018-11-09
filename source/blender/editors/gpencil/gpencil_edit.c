@@ -2079,10 +2079,10 @@ static int gp_dissolve_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_dissolve(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_gpencil_dissolve_types[] = {
-		{ GP_DISSOLVE_POINTS, "POINTS", 0, "Dissolve", "Dissolve selected points" },
-		{ GP_DISSOLVE_BETWEEN, "BETWEEN", 0, "Dissolve Between", "Dissolve points between selected points" },
-		{ GP_DISSOLVE_UNSELECT, "UNSELECT", 0, "Dissolve Unselect", "Dissolve all unselected points" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_DISSOLVE_POINTS, "POINTS", 0, "Dissolve", "Dissolve selected points"},
+		{GP_DISSOLVE_BETWEEN, "BETWEEN", 0, "Dissolve Between", "Dissolve points between selected points"},
+		{GP_DISSOLVE_UNSELECT, "UNSELECT", 0, "Dissolve Unselect", "Dissolve all unselected points"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -2963,9 +2963,9 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_reproject(wmOperatorType *ot)
 {
 	static const EnumPropertyItem reproject_type[] = {
-		{ GP_REPROJECT_AXIS, "AXIS", 0, "Axis",
+		{GP_REPROJECT_AXIS, "AXIS", 0, "Axis",
 		"Reproject the strokes using the current lock axis configuration. This is the same projection using while"
-		"drawing new strokes" },
+		"drawing new strokes"},
 		{GP_REPROJECT_PLANAR, "PLANAR", 0, "Planar",
 		 "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint "
 		 "using 'Cursor' Stroke Placement"},

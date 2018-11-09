@@ -724,10 +724,10 @@ static void gpencil_primitive_cancel(bContext *C, wmOperator *op)
 void GPENCIL_OT_primitive(wmOperatorType *ot)
 {
 	static EnumPropertyItem primitive_type[] = {
-		{ GP_STROKE_BOX, "BOX", 0, "Box", "" },
-		{ GP_STROKE_LINE, "LINE", 0, "Line", "" },
-		{ GP_STROKE_CIRCLE, "CIRCLE", 0, "Circle", "" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_STROKE_BOX, "BOX", 0, "Box", ""},
+		{GP_STROKE_LINE, "LINE", 0, "Line", ""},
+		{GP_STROKE_CIRCLE, "CIRCLE", 0, "Circle", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */

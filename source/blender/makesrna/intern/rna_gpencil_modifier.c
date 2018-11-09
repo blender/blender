@@ -84,30 +84,30 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem modifier_modify_color_items[] = {
-	{ GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Both", "Modify fill and stroke colors" },
-	{ GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only" },
-	{ GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only" },
-	{ 0, NULL, 0, NULL, NULL }
+	{GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Both", "Modify fill and stroke colors"},
+	{GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
+	{GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static const EnumPropertyItem modifier_gphook_falloff_items[] = {
-	{ eGPHook_Falloff_None,    "NONE", 0, "No Falloff", "" },
-	{ eGPHook_Falloff_Curve,   "CURVE", 0, "Curve", "" },
-	{ eGPHook_Falloff_Smooth,  "SMOOTH", ICON_SMOOTHCURVE, "Smooth", "" },
-	{ eGPHook_Falloff_Sphere,  "SPHERE", ICON_SPHERECURVE, "Sphere", "" },
-	{ eGPHook_Falloff_Root,    "ROOT", ICON_ROOTCURVE, "Root", "" },
-	{ eGPHook_Falloff_InvSquare, "INVERSE_SQUARE", ICON_ROOTCURVE, "Inverse Square", "" },
-	{ eGPHook_Falloff_Sharp,   "SHARP", ICON_SHARPCURVE, "Sharp", "" },
-	{ eGPHook_Falloff_Linear,  "LINEAR", ICON_LINCURVE, "Linear", "" },
-	{ eGPHook_Falloff_Const,   "CONSTANT", ICON_NOCURVE, "Constant", "" },
-	{ 0, NULL, 0, NULL, NULL }
+	{eGPHook_Falloff_None,    "NONE", 0, "No Falloff", ""},
+	{eGPHook_Falloff_Curve,   "CURVE", 0, "Curve", ""},
+	{eGPHook_Falloff_Smooth,  "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+	{eGPHook_Falloff_Sphere,  "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
+	{eGPHook_Falloff_Root,    "ROOT", ICON_ROOTCURVE, "Root", ""},
+	{eGPHook_Falloff_InvSquare, "INVERSE_SQUARE", ICON_ROOTCURVE, "Inverse Square", ""},
+	{eGPHook_Falloff_Sharp,   "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+	{eGPHook_Falloff_Linear,  "LINEAR", ICON_LINCURVE, "Linear", ""},
+	{eGPHook_Falloff_Const,   "CONSTANT", ICON_NOCURVE, "Constant", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static const EnumPropertyItem rna_enum_time_mode_items[] = {
-	{ GP_TIME_MODE_NORMAL, "NORMAL", 0, "Normal", "Apply offset in normal animation direction" },
-	{ GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction" },
-	{ GP_TIME_MODE_FIX, "FIX", 0, "Fixed Frame", "Keep frame and do not change with time" },
-	{ 0, NULL, 0, NULL, NULL }
+	{GP_TIME_MODE_NORMAL, "NORMAL", 0, "Normal", "Apply offset in normal animation direction"},
+	{GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction"},
+	{GP_TIME_MODE_FIX, "FIX", 0, "Fixed Frame", "Keep frame and do not change with time"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 #endif
@@ -543,11 +543,11 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_gpencil_simplify_mode_items[] = {
-		{ GP_SIMPLIFY_FIXED, "FIXED", ICON_IPO_CONSTANT, "Fixed",
-		"Delete alternative vertices in the stroke, except extrems" },
-		{ GP_SIMPLIFY_ADAPTATIVE, "ADAPTATIVE", ICON_IPO_EASE_IN_OUT, "Adaptative",
+		{GP_SIMPLIFY_FIXED, "FIXED", ICON_IPO_CONSTANT, "Fixed",
+		"Delete alternative vertices in the stroke, except extrems"},
+		{GP_SIMPLIFY_ADAPTATIVE, "ADAPTATIVE", ICON_IPO_EASE_IN_OUT, "Adaptative",
 		"Use a RDP algorithm to simplify" },
-		{ 0, NULL, 0, NULL, NULL }
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "SimplifyGpencilModifier", "GpencilModifier");

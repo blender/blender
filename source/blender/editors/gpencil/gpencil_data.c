@@ -597,9 +597,9 @@ static int gp_frame_duplicate_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_frame_duplicate(wmOperatorType *ot)
 {
 	static const EnumPropertyItem duplicate_mode[] = {
-		{ GP_FRAME_DUP_ACTIVE, "ACTIVE", 0, "Active", "Duplicate frame in active layer only" },
-		{ GP_FRAME_DUP_ALL, "ALL", 0, "All", "Duplicate active frames in all layers" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_FRAME_DUP_ACTIVE, "ACTIVE", 0, "Active", "Duplicate frame in active layer only"},
+		{GP_FRAME_DUP_ALL, "ALL", 0, "All", "Duplicate active frames in all layers"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */

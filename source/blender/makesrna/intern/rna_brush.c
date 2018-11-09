@@ -122,31 +122,31 @@ const EnumPropertyItem rna_enum_brush_gpencil_types_items[] = {
 
 #ifndef RNA_RUNTIME
 static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {
-	{ GP_BRUSH_ERASER_SOFT, "SOFT", 0, "Soft", "Use soft eraser" },
-	{ GP_BRUSH_ERASER_HARD, "HARD", 0, "Hard", "Use hard eraser" },
-	{ GP_BRUSH_ERASER_STROKE, "STROKE", 0, "Stroke", "Use stroke eraser" },
-	{ 0, NULL, 0, NULL, NULL }
+	{GP_BRUSH_ERASER_SOFT, "SOFT", 0, "Soft", "Use soft eraser"},
+	{GP_BRUSH_ERASER_HARD, "HARD", 0, "Hard", "Use hard eraser"},
+	{GP_BRUSH_ERASER_STROKE, "STROKE", 0, "Stroke", "Use stroke eraser"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem rna_enum_gpencil_fill_draw_modes_items[] = {
-	{ GP_FILL_DMODE_STROKE, "STROKE", 0, "Strokes", "Use visible strokes as fill boundary limits" },
-	{ GP_FILL_DMODE_CONTROL, "CONTROL", 0, "Control", "Use internal control lines as fill boundary limits" },
-	{ GP_FILL_DMODE_BOTH, "BOTH", 0, "Both", "Use visible strokes and control lines as fill boundary limits" },
-	{ 0, NULL, 0, NULL, NULL }
+	{GP_FILL_DMODE_STROKE, "STROKE", 0, "Strokes", "Use visible strokes as fill boundary limits"},
+	{GP_FILL_DMODE_CONTROL, "CONTROL", 0, "Control", "Use internal control lines as fill boundary limits"},
+	{GP_FILL_DMODE_BOTH, "BOTH", 0, "Both", "Use visible strokes and control lines as fill boundary limits"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem rna_enum_gpencil_brush_icons_items[] = {
-	{ GP_BRUSH_ICON_PENCIL, "PENCIL", ICON_GPBRUSH_PENCIL, "Pencil", "" },
-	{ GP_BRUSH_ICON_PEN, "PEN", ICON_GPBRUSH_PEN, "Pen", "" },
-	{ GP_BRUSH_ICON_INK, "INK", ICON_GPBRUSH_INK, "Ink", "" },
-	{ GP_BRUSH_ICON_INKNOISE, "INKNOISE", ICON_GPBRUSH_INKNOISE, "Ink Noise", "" },
-	{ GP_BRUSH_ICON_BLOCK, "BLOCK", ICON_GPBRUSH_BLOCK, "Block", "" },
-	{ GP_BRUSH_ICON_MARKER, "MARKER", ICON_GPBRUSH_MARKER, "Marker", "" },
-	{ GP_BRUSH_ICON_FILL, "FILL", ICON_GPBRUSH_FILL, "Fill", "" },
-	{ GP_BRUSH_ICON_ERASE_SOFT, "SOFT", ICON_GPBRUSH_ERASE_SOFT, "Eraser Soft", "" },
-	{ GP_BRUSH_ICON_ERASE_HARD, "HARD", ICON_GPBRUSH_ERASE_HARD, "Eraser Hard", "" },
-	{ GP_BRUSH_ICON_ERASE_STROKE, "STROKE", ICON_GPBRUSH_ERASE_STROKE, "Eraser Stroke", "" },
-	{ 0, NULL, 0, NULL, NULL }
+	{GP_BRUSH_ICON_PENCIL, "PENCIL", ICON_GPBRUSH_PENCIL, "Pencil", ""},
+	{GP_BRUSH_ICON_PEN, "PEN", ICON_GPBRUSH_PEN, "Pen", ""},
+	{GP_BRUSH_ICON_INK, "INK", ICON_GPBRUSH_INK, "Ink", ""},
+	{GP_BRUSH_ICON_INKNOISE, "INKNOISE", ICON_GPBRUSH_INKNOISE, "Ink Noise", ""},
+	{GP_BRUSH_ICON_BLOCK, "BLOCK", ICON_GPBRUSH_BLOCK, "Block", ""},
+	{GP_BRUSH_ICON_MARKER, "MARKER", ICON_GPBRUSH_MARKER, "Marker", ""},
+	{GP_BRUSH_ICON_FILL, "FILL", ICON_GPBRUSH_FILL, "Fill", ""},
+	{GP_BRUSH_ICON_ERASE_SOFT, "SOFT", ICON_GPBRUSH_ERASE_SOFT, "Eraser Soft", ""},
+	{GP_BRUSH_ICON_ERASE_HARD, "HARD", ICON_GPBRUSH_ERASE_HARD, "Eraser Hard", ""},
+	{GP_BRUSH_ICON_ERASE_STROKE, "STROKE", ICON_GPBRUSH_ERASE_STROKE, "Eraser Stroke", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 #endif
 

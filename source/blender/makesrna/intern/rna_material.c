@@ -406,32 +406,32 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
 
 	/* mode type styles */
 	static EnumPropertyItem gpcolordata_mode_types_items[] = {
-		{ GP_STYLE_MODE_LINE, "LINE", 0, "Line", "Draw strokes using a continuous line" },
-		{ GP_STYLE_MODE_DOTS, "DOTS", 0, "Dots", "Draw strokes using separated dots" },
-		{ GP_STYLE_MODE_BOX, "BOX", 0, "Boxes", "Draw strokes using separated rectangle boxes" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_STYLE_MODE_LINE, "LINE", 0, "Line", "Draw strokes using a continuous line"},
+		{GP_STYLE_MODE_DOTS, "DOTS", 0, "Dots", "Draw strokes using separated dots"},
+		{GP_STYLE_MODE_BOX, "BOX", 0, "Boxes", "Draw strokes using separated rectangle boxes"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* stroke styles */
 	static EnumPropertyItem stroke_style_items[] = {
-		{ GP_STYLE_STROKE_STYLE_SOLID, "SOLID", 0, "Solid", "Draw strokes with solid color" },
-		{ GP_STYLE_STROKE_STYLE_TEXTURE, "TEXTURE", 0, "Texture", "Draw strokes using texture" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_STYLE_STROKE_STYLE_SOLID, "SOLID", 0, "Solid", "Draw strokes with solid color"},
+		{GP_STYLE_STROKE_STYLE_TEXTURE, "TEXTURE", 0, "Texture", "Draw strokes using texture"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* fill styles */
 	static EnumPropertyItem fill_style_items[] = {
-		{ GP_STYLE_FILL_STYLE_SOLID, "SOLID", 0, "Solid", "Fill area with solid color" },
-		{ GP_STYLE_FILL_STYLE_GRADIENT, "GRADIENT", 0, "Gradient", "Fill area with gradient color" },
-		{ GP_STYLE_FILL_STYLE_CHESSBOARD, "CHESSBOARD", 0, "Checker Board", "Fill area with chessboard pattern" },
-		{ GP_STYLE_FILL_STYLE_TEXTURE, "TEXTURE", 0, "Texture", "Fill area with image texture" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_STYLE_FILL_STYLE_SOLID, "SOLID", 0, "Solid", "Fill area with solid color"},
+		{GP_STYLE_FILL_STYLE_GRADIENT, "GRADIENT", 0, "Gradient", "Fill area with gradient color"},
+		{GP_STYLE_FILL_STYLE_CHESSBOARD, "CHESSBOARD", 0, "Checker Board", "Fill area with chessboard pattern"},
+		{GP_STYLE_FILL_STYLE_TEXTURE, "TEXTURE", 0, "Texture", "Fill area with image texture"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem fill_gradient_items[] = {
-		{ GP_STYLE_GRADIENT_LINEAR, "LINEAR", 0, "Linear", "Fill area with gradient color" },
-		{ GP_STYLE_GRADIENT_RADIAL, "RADIAL", 0, "Radial", "Fill area with radial gradient" },
-		{ 0, NULL, 0, NULL, NULL }
+		{GP_STYLE_GRADIENT_LINEAR, "LINEAR", 0, "Linear", "Fill area with gradient color"},
+		{GP_STYLE_GRADIENT_RADIAL, "RADIAL", 0, "Radial", "Fill area with radial gradient"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "MaterialGPencilStyle", NULL);

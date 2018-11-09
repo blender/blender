@@ -85,7 +85,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 	const bool do_texco_clip = (tex->extension == SHD_IMAGE_EXTENSION_CLIP);
 
 	if (do_texco_extend && (tex->projection != SHD_PROJ_BOX) &&
-		ELEM(tex->interpolation, SHD_INTERP_CUBIC, SHD_INTERP_SMART))
+	    ELEM(tex->interpolation, SHD_INTERP_CUBIC, SHD_INTERP_SMART))
 	{
 		gpu_node_name = "node_tex_image_cubic_extend";
 		/* We do it inside the sampling function */
