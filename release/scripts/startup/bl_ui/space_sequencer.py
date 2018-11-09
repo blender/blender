@@ -34,6 +34,13 @@ def act_strip(context):
         return None
 
 
+def sel_sequences(context):
+    try:
+        return context.selected_sequences
+    except AttributeError:
+        return 0
+
+
 def draw_color_balance(layout, color_balance):
     box = layout.box()
     split = box.split(factor=0.35)
@@ -121,8 +128,6 @@ class SEQUENCER_HT_header(Header):
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-
-
 
 
 class SEQUENCER_MT_editor_menus(Menu):
@@ -311,7 +316,6 @@ class SEQUENCER_MT_add(Menu):
     bl_label = "Add"
 
     def draw(self, context):
-        selected_seq = len(bpy.context.selected_sequences)
 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -361,7 +365,7 @@ class SEQUENCER_MT_add(Menu):
 
         col = layout.column()
         col.menu("SEQUENCER_MT_add_transitions")
-        col.enabled = selected_seq >= 2
+        col.enabled = sel_sequences(context) >= 2
 
 
 class SEQUENCER_MT_add_empty(Menu):
@@ -377,7 +381,6 @@ class SEQUENCER_MT_add_transitions(Menu):
     bl_label = "Transitions"
 
     def draw(self, context):
-        selected_seq = len(bpy.context.selected_sequences)
 
         layout = self.layout
 
@@ -388,15 +391,13 @@ class SEQUENCER_MT_add_transitions(Menu):
         col.separator()
 
         col.operator("sequencer.effect_strip_add", text="Wipe").type = 'WIPE'
-        col.enabled = selected_seq >= 2
+        col.enabled = sel_sequences(context) >= 2
 
 
 class SEQUENCER_MT_add_effect(Menu):
     bl_label = "Effect Strip"
 
     def draw(self, context):
-
-        selected_seq = len(bpy.context.selected_sequences)
 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -409,7 +410,7 @@ class SEQUENCER_MT_add_effect(Menu):
         col.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
         col.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
         col.operator("sequencer.effect_strip_add", text="Color Mix").type = 'COLORMIX'
-        col.enabled = selected_seq >=2
+        col.enabled = sel_sequences(context) >=2
 
         layout.separator()
 
@@ -425,7 +426,7 @@ class SEQUENCER_MT_add_effect(Menu):
 
         col.operator("sequencer.effect_strip_add", text="Glow").type = 'GLOW'
         col.operator("sequencer.effect_strip_add", text="Gaussian Blur").type = 'GAUSSIAN_BLUR'
-        col.enabled = selected_seq != 0
+        col.enabled = sel_sequences(context) != 0
 
 
 class SEQUENCER_MT_strip_transform(Menu):
