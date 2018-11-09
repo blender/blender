@@ -128,6 +128,7 @@ void DRW_draw_depth_loop(
         struct ARegion *ar, struct View3D *v3d);
 
 /* grease pencil render */
+bool DRW_render_check_grease_pencil(struct Depsgraph *depsgraph);
 void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph);
 void DRW_gpencil_freecache(struct Object *ob);
 

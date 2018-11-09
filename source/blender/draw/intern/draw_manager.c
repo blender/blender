@@ -1611,8 +1611,8 @@ void DRW_draw_render_loop_offscreen(
 	GPU_offscreen_bind(ofs, false);
 }
 
-/* helper to check if exit object type to render */
-static bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
+/* Helper to check if exit object type to render. */
+bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
 {
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 	{
