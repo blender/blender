@@ -4031,8 +4031,9 @@ class VIEW3D_PT_object_type_visibility(Panel):
 
             row.label(text=attr_name)
             row.prop(view, attr_v, text="", icon=icon_v, emboss=False)
-            row.active = getattr(view, attr_v)
-            row.prop(view, attr_s, text="", icon=icon_s, emboss=False)
+            rowsub = row.row(align=True)
+            rowsub.active = getattr(view, attr_v)
+            rowsub.prop(view, attr_s, text="", icon=icon_s, emboss=False)
 
 
 class VIEW3D_PT_shading(Panel):
