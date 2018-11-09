@@ -56,6 +56,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_mball.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
@@ -676,10 +677,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	static MetaElem *startelem = NULL;
-	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;
-	MetaBall *mb = (MetaBall *)obedit->data;
-	MetaElem *ml, *ml_act = NULL;
 	int a, hits;
 	unsigned int buffer[MAXPICKBUF];
 	rcti rect;
@@ -692,66 +690,116 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 	        &vc, buffer, MAXPICKBUF, &rect,
 	        VIEW3D_SELECT_PICK_NEAREST, VIEW3D_SELECT_FILTER_NOP);
 
-	/* does startelem exist? */
-	ml = mb->editelems->first;
-	while (ml) {
-		if (ml == startelem) break;
-		ml = ml->next;
-	}
+	FOREACH_BASE_IN_EDIT_MODE_BEGIN (vc.view_layer, base) {
+		ED_view3d_viewcontext_init_object(&vc, base->object);
+		MetaBall *mb = (MetaBall *)base->object->data;
+		MetaElem *ml, *ml_act = NULL;
 
-	if (ml == NULL) startelem = mb->editelems->first;
-
-	if (hits > 0) {
-		ml = startelem;
+		/* does startelem exist? */
+		ml = mb->editelems->first;
 		while (ml) {
-			for (a = 0; a < hits; a++) {
-				/* index converted for gl stuff */
-				if (ml->selcol1 == buffer[4 * a + 3]) {
-					ml->flag |= MB_SCALE_RAD;
-					ml_act = ml;
-				}
-				if (ml->selcol2 == buffer[4 * a + 3]) {
-					ml->flag &= ~MB_SCALE_RAD;
-					ml_act = ml;
-				}
-			}
-			if (ml_act) break;
-			ml = ml->next;
-			if (ml == NULL) ml = mb->editelems->first;
 			if (ml == startelem) break;
+			ml = ml->next;
 		}
 
-		/* When some metaelem was found, then it is necessary to select or
-		 * deselect it. */
-		if (ml_act) {
-			if (extend) {
-				ml_act->flag |= SELECT;
+		if (ml == NULL) startelem = mb->editelems->first;
+
+		if (hits > 0) {
+			int metaelem_id = 0;
+			ml = startelem;
+			while (ml) {
+				for (a = 0; a < hits; a++) {
+					int hitresult = buffer[(4 * a) + 3];
+					if (hitresult == -1) {
+						continue;
+					}
+					else if (hitresult & MBALL_NOSEL) {
+						continue;
+					}
+
+					const uint hit_object = hitresult & 0xFFFF;
+					if (vc.obedit->select_color != hit_object) {
+						continue;
+					}
+
+					if (metaelem_id != (hitresult & 0xFFFF0000 & ~(MBALLSEL_ANY))) {
+						continue;
+					}
+
+					if (hitresult & MBALLSEL_RADIUS) {
+						ml->flag |= MB_SCALE_RAD;
+						ml_act = ml;
+						break;
+					}
+
+					if (hitresult & MBALLSEL_STIFF) {
+						ml->flag &= ~MB_SCALE_RAD;
+						ml_act = ml;
+						break;
+					}
+				}
+
+				if (ml_act) break;
+				ml = ml->next;
+				if (ml == NULL) ml = mb->editelems->first;
+				if (ml == startelem) break;
+
+				metaelem_id += 0x10000;
 			}
-			else if (deselect) {
-				ml_act->flag &= ~SELECT;
-			}
-			else if (toggle) {
-				if (ml_act->flag & SELECT)
-					ml_act->flag &= ~SELECT;
-				else
+
+			/* When some metaelem was found, then it is necessary to select or
+			* deselect it. */
+			if (ml_act) {
+				if (!extend && !deselect && !toggle) {
+					uint objects_len;
+					Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
+					for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+						Object *ob_iter = objects[ob_index];
+
+						if (ob_iter == base->object) {
+							continue;
+						}
+
+						BKE_mball_deselect_all((MetaBall *)ob_iter->data);
+						DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
+					}
+					MEM_freeN(objects);
+				}
+
+				if (extend) {
 					ml_act->flag |= SELECT;
+				}
+				else if (deselect) {
+					ml_act->flag &= ~SELECT;
+				}
+				else if (toggle) {
+					if (ml_act->flag & SELECT)
+						ml_act->flag &= ~SELECT;
+					else
+						ml_act->flag |= SELECT;
+				}
+				else {
+					/* Deselect all existing metaelems */
+					BKE_mball_deselect_all(mb);
+
+					/* Select only metaelem clicked on */
+					ml_act->flag |= SELECT;
+				}
+
+				mb->lastelem = ml_act;
+
+				DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
+
+				if (vc.view_layer->basact != base) {
+					ED_object_base_activate(C, base);
+				}
+
+				return true;
 			}
-			else {
-				/* Deselect all existing metaelems */
-				BKE_mball_deselect_all(mb);
-
-				/* Select only metaelem clicked on */
-				ml_act->flag |= SELECT;
-			}
-
-			mb->lastelem = ml_act;
-
-			DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
-
-			return true;
 		}
-	}
+	} FOREACH_BASE_IN_EDIT_MODE_END;
 
 	return false;
 }

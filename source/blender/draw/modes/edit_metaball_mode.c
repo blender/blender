@@ -31,6 +31,8 @@
 #include "BKE_object.h"
 #include "BKE_mball.h"
 
+#include "ED_mball.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 #include "GPU_select.h"
@@ -147,8 +149,6 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 
 			const bool is_select = DRW_state_is_select();
 
-			int selection_id = 0;
-
 			float draw_scale_xform[3][4]; /* Matrix of Scale and Translation */
 			{
 				float scamat[3][3];
@@ -165,7 +165,8 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 				copy_v3_v3(draw_scale_xform[2], scamat[2]);
 			}
 
-			for (MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
+			int selection_id = ob->select_color;
+			for (MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next, selection_id += 0x10000) {
 				float world_pos[3];
 				mul_v3_m4v3(world_pos, ob->obmat, &ml->x);
 				draw_scale_xform[0][3] = world_pos[0];
@@ -178,8 +179,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 				else color = col_radius;
 
 				if (is_select) {
-					ml->selcol1 = ++selection_id;
-					DRW_select_load_id(selection_id);
+					DRW_select_load_id(selection_id | MBALLSEL_RADIUS);
 				}
 
 				DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &ml->rad, color);
@@ -188,8 +188,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 				else color = col_stiffness;
 
 				if (is_select) {
-					ml->selcol2 = ++selection_id;
-					DRW_select_load_id(selection_id);
+					DRW_select_load_id(selection_id | MBALLSEL_STIFF);
 				}
 
 				DRW_shgroup_call_dynamic_add(group, draw_scale_xform, &draw_stiffness_radius, color);

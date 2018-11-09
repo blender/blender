@@ -51,4 +51,11 @@ void ED_mball_editmball_load(struct Object *obedit);
 /* editmball_undo.c */
 void ED_mball_undosys_type(struct UndoType *ut);
 
+
+#define MBALLSEL_STIFF    (1 << 29)
+#define MBALLSEL_RADIUS   (1 << 30)
+#define MBALLSEL_ANY      (MBALLSEL_STIFF | MBALLSEL_RADIUS)
+
+#define MBALL_NOSEL   (1u << 31u)
+
 #endif  /* __ED_MBALL_H__ */

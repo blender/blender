@@ -47,7 +47,8 @@ typedef struct MetaElem {
 
 	struct BoundBox *bb;        /* Bound Box of MetaElem */
 
-	short type, flag, selcol1, selcol2;
+	short type, flag;
+	short pad[2];
 	float x, y, z;          /* Position of center of MetaElem */
 	float quat[4];          /* Rotation of MetaElem (MUST be kept normalized) */
 	float expx; /* dimension parameters, used for some types like cubes */
