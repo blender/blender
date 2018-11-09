@@ -330,7 +330,7 @@ static bool ui_tooltip_data_append_from_keymap(
 				            .color_id = UI_TIP_LC_MAIN,
 				            .is_pad = true,
 				        });
-				field->text = BLI_strdup(ot->description[0] ? ot->description : ot->name);
+				field->text = BLI_strdup(ot->description ? ot->description : ot->name);
 			}
 			/* Shortcut */
 			{
