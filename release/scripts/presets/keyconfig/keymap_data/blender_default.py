@@ -37,6 +37,15 @@ class KeymapParams:
 
 
 # ------------------------------------------------------------------------------
+# Constants
+
+# Physical layout.
+NUMBERS_1 = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
+# Numeric order.
+NUMBERS_0 = ('ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE')
+
+
+# ------------------------------------------------------------------------------
 # Keymap Item Wrappers
 
 def op_menu(menu, kmi_args):
@@ -63,6 +72,15 @@ def _template_items_select_actions(operator):
     ]
 
 
+def _template_items_object_subdivision_set():
+    return [
+        ("object.subdivision_set",
+         {"type": NUMBERS_0[i], "value": 'PRESS', "ctrl": True},
+         {"properties": [("level", i)]})
+        for i in range(6)
+    ]
+
+
 def _template_items_gizmo_tweak_value():
     return [
         ("gizmogroup.gizmo_tweak", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
@@ -83,6 +101,19 @@ def _template_items_gizmo_tweak_modal():
         ("SNAP_OFF", {"type": 'RIGHT_CTRL', "value": 'RELEASE', "any": True}, None),
         ("SNAP_ON", {"type": 'LEFT_CTRL', "value": 'PRESS', "any": True}, None),
         ("SNAP_OFF", {"type": 'LEFT_CTRL', "value": 'RELEASE', "any": True}, None),
+    ]
+
+
+def _template_items_editmode_mesh_select_mode():
+    return [
+        (
+            "mesh.select_mode",
+            {"type": k, "value": 'PRESS', **key_expand, **key_extend},
+            {"properties": [*prop_extend, *prop_expand, ("type", e)]}
+        )
+        for key_expand, prop_expand in (({}, ()), ({"ctrl": True}, (("use_expand", True),)))
+        for key_extend, prop_extend in (({}, ()), ({"shift": True}, (("use_extend", True),)))
+        for k, e in (('ONE', 'VERT'), ('TWO', 'EDGE'), ('THREE', 'FACE'))
     ]
 
 
@@ -123,24 +154,22 @@ def km_window(params):
         ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS'}, None),
 
         # Fast editor switching
-        ("wm.context_set_enum", {"type": 'F4', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'CONSOLE')]}),
-        ("wm.context_set_enum", {"type": 'F5', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'VIEW_3D')]}),
-        ("wm.context_set_enum", {"type": 'F6', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]}),
-        ("wm.context_set_enum", {"type": 'F7', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'PROPERTIES')]}),
-        ("wm.context_set_enum", {"type": 'F8', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'SEQUENCE_EDITOR')]}),
-        ("wm.context_set_enum", {"type": 'F9', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'OUTLINER')]}),
-        ("wm.context_set_enum", {"type": 'F10', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'IMAGE_EDITOR')]}),
-        ("wm.context_set_enum", {"type": 'F11', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'TEXT_EDITOR')]}),
-        ("wm.context_set_enum", {"type": 'F12', "value": 'PRESS', "shift": True},
-         {"properties": [("data_path", 'area.type'), ("value", 'DOPESHEET_EDITOR')]}),
+        *(
+            ("wm.context_set_enum",
+             {"type": k, "value": 'PRESS', "shift": True},
+             {"properties": [("data_path", 'area.type'), ("value", t)]})
+            for k, t in (
+                ('F4', 'CONSOLE'),
+                ('F5', 'VIEW_3D'),
+                ('F6', 'GRAPH_EDITOR'),
+                ('F7', 'PROPERTIES'),
+                ('F8', 'SEQUENCE_EDITOR'),
+                ('F9', 'OUTLINER'),
+                ('F10', 'IMAGE_EDITOR'),
+                ('F11', 'TEXT_EDITOR'),
+                ('F12', 'DOPESHEET_EDITOR'),
+            )
+        ),
 
         # NDOF settings
         op_menu("USERPREF_MT_ndof_settings", {"type": 'NDOF_BUTTON_MENU', "value": 'PRESS'}),
@@ -511,31 +540,8 @@ def km_uv_editor(params):
     )
 
     items.extend([
-        # TODO: expand into loop.
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("type", 'FACE')]}),
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS', "shift": True},
-         {"properties": [("use_extend", True), ("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS', "shift": True},
-         {"properties": [("use_extend", True), ("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS', "shift": True},
-         {"properties": [("use_extend", True), ("type", 'FACE')]}),
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("use_expand", True), ("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS', "ctrl": True},
-         {"properties": [("use_expand", True), ("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("use_expand", True), ("type", 'FACE')]}),
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("use_extend", True), ("use_expand", True), ("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("use_extend", True), ("use_expand", True), ("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("use_extend", True), ("use_expand", True), ("type", 'FACE')]}),
+        # Selection modes.
+        *_template_items_editmode_mesh_select_mode(),
         ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
         ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
@@ -1313,25 +1319,13 @@ def km_image(params):
          {"properties": [("point", 'WHITE_POINT')]}),
         ("object.mode_set", {"type": 'TAB', "value": 'PRESS'},
          {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
-        # TODO: expand into loop.
-        ("wm.context_set_int", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 0)]}),
-        ("wm.context_set_int", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 1)]}),
-        ("wm.context_set_int", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 2)]}),
-        ("wm.context_set_int", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 3)]}),
-        ("wm.context_set_int", {"type": 'FIVE', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 4)]}),
-        ("wm.context_set_int", {"type": 'SIX', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 5)]}),
-        ("wm.context_set_int", {"type": 'SEVEN', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 6)]}),
-        ("wm.context_set_int", {"type": 'EIGHT', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 7)]}),
-        ("wm.context_set_int", {"type": 'NINE', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", 8)]}),
+        *(
+            (("wm.context_set_int",
+              {"type": NUMBERS_1[i], "value": 'PRESS'},
+              {"properties": [("data_path", 'space_data.image.render_slots.active_index'), ("value", i)]})
+             for i in range(9)
+             )
+        ),
         op_menu_pie("IMAGE_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         ("image.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("image.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
@@ -2157,27 +2151,13 @@ def km_sequencer(params):
         ("sequencer.gap_insert", {"type": 'EQUAL', "value": 'PRESS', "shift": True}, None),
         ("sequencer.snap", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("sequencer.swap_inputs", {"type": 'S', "value": 'PRESS', "alt": True}, None),
-        # TODO: expand into loop.
-        ("sequencer.cut_multicam", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("camera", 1)]}),
-        ("sequencer.cut_multicam", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("camera", 2)]}),
-        ("sequencer.cut_multicam", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("camera", 3)]}),
-        ("sequencer.cut_multicam", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("camera", 4)]}),
-        ("sequencer.cut_multicam", {"type": 'FIVE', "value": 'PRESS'},
-         {"properties": [("camera", 5)]}),
-        ("sequencer.cut_multicam", {"type": 'SIX', "value": 'PRESS'},
-         {"properties": [("camera", 6)]}),
-        ("sequencer.cut_multicam", {"type": 'SEVEN', "value": 'PRESS'},
-         {"properties": [("camera", 7)]}),
-        ("sequencer.cut_multicam", {"type": 'EIGHT', "value": 'PRESS'},
-         {"properties": [("camera", 8)]}),
-        ("sequencer.cut_multicam", {"type": 'NINE', "value": 'PRESS'},
-         {"properties": [("camera", 9)]}),
-        ("sequencer.cut_multicam", {"type": 'ZERO', "value": 'PRESS'},
-         {"properties": [("camera", 10)]}),
+        *(
+            (("sequencer.cut_multicam",
+              {"type": NUMBERS_1[i], "value": 'PRESS'},
+              {"properties": [("camera", i + 1)]})
+             for i in range(10)
+             )
+        ),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS'},
          {"properties": [("extend", False), ("linked_handle", False), ("left_right", 'NONE'), ("linked_time", False)]}),
         ("sequencer.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
@@ -3218,19 +3198,7 @@ def km_object_mode(params):
         ("collection.objects_add_active", {"type": 'G', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("collection.objects_remove_active", {"type": 'G', "value": 'PRESS', "shift": True, "alt": True}, None),
         op_menu("VIEW3D_MT_object_specials", {"type": 'W', "value": 'PRESS'}),
-        # TODO: expand into loop.
-        ("object.subdivision_set", {"type": 'ZERO', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 0)]}),
-        ("object.subdivision_set", {"type": 'ONE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 1)]}),
-        ("object.subdivision_set", {"type": 'TWO', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 2)]}),
-        ("object.subdivision_set", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 3)]}),
-        ("object.subdivision_set", {"type": 'FOUR', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 4)]}),
-        ("object.subdivision_set", {"type": 'FIVE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 5)]}),
+        *_template_items_object_subdivision_set(),
         ("object.move_to_collection", {"type": 'M', "value": 'PRESS'}, None),
         ("object.link_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("object.hide_view_clear", {"type": 'H', "value": 'PRESS', "alt": True}, None),
@@ -3239,27 +3207,13 @@ def km_object_mode(params):
         ("object.hide_view_set", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         ("object.hide_collection", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
-        # TODO: expand into loop.
-        ("object.hide_collection", {"type": 'ZERO', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 10)]}),
-        ("object.hide_collection", {"type": 'ONE', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 1)]}),
-        ("object.hide_collection", {"type": 'TWO', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 2)]}),
-        ("object.hide_collection", {"type": 'THREE', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 3)]}),
-        ("object.hide_collection", {"type": 'FOUR', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 4)]}),
-        ("object.hide_collection", {"type": 'FIVE', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 5)]}),
-        ("object.hide_collection", {"type": 'SIX', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 6)]}),
-        ("object.hide_collection", {"type": 'SEVEN', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 7)]}),
-        ("object.hide_collection", {"type": 'EIGHT', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 8)]}),
-        ("object.hide_collection", {"type": 'NINE', "value": 'PRESS', "any": True},
-         {"properties": [("collection_index", 9)]}),
+        *(
+            (("object.hide_collection",
+              {"type": NUMBERS_1[i], "value": 'PRESS', "any": True},
+              {"properties": [("collection_index", i + 1)]})
+             for i in range(10)
+             )
+        ),
     ])
 
     if params.legacy:
@@ -3572,19 +3526,7 @@ def km_sculpt(_params):
         ("paint.hide_show", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("action", 'SHOW'), ("area", 'ALL')]}),
         # Subdivision levels
-        # TODO: expand into loop.
-        ("object.subdivision_set", {"type": 'ZERO', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 0)]}),
-        ("object.subdivision_set", {"type": 'ONE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 1)]}),
-        ("object.subdivision_set", {"type": 'TWO', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 2)]}),
-        ("object.subdivision_set", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 3)]}),
-        ("object.subdivision_set", {"type": 'FOUR', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 4)]}),
-        ("object.subdivision_set", {"type": 'FIVE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("level", 5)]}),
+        *_template_items_object_subdivision_set(),
         ("object.subdivision_set", {"type": 'PAGE_UP', "value": 'PRESS'},
          {"properties": [("level", 1), ("relative", True)]}),
         ("object.subdivision_set", {"type": 'PAGE_DOWN', "value": 'PRESS'},
@@ -3674,31 +3616,7 @@ def km_mesh(params):
         ("mesh.bevel", {"type": 'B', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("vertex_only", True)]}),
         # Selection modes.
-        # TODO: expand into loop.
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("type", 'FACE')]}),
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS', "shift": True},
-         {"properties": [("use_extend", True), ("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS', "shift": True},
-         {"properties": [("use_extend", True), ("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS', "shift": True},
-         {"properties": [("use_extend", True), ("type", 'FACE')]}),
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("use_expand", True), ("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS', "ctrl": True},
-         {"properties": [("use_expand", True), ("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("use_expand", True), ("type", 'FACE')]}),
-        ("mesh.select_mode", {"type": 'ONE', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("use_extend", True), ("use_expand", True), ("type", 'VERT')]}),
-        ("mesh.select_mode", {"type": 'TWO', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("use_extend", True), ("use_expand", True), ("type", 'EDGE')]}),
-        ("mesh.select_mode", {"type": 'THREE', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("use_extend", True), ("use_expand", True), ("type", 'FACE')]}),
+        *_template_items_editmode_mesh_select_mode(),
         # Selection.
         ("mesh.loop_select", {"type": params.select_mouse, "value": 'PRESS', "alt": True},
          {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
@@ -3795,19 +3713,7 @@ def km_mesh(params):
             ("mesh.beautify_fill", {"type": 'F', "value": 'PRESS', "shift": True, "alt": True}, None),
             ("mesh.knife_tool", {"type": 'K', "value": 'PRESS', "shift": True},
              {"properties": [("use_occlude_geometry", False), ("only_selected", True)]}),
-            # TODO: expand into loop.
-            ("object.subdivision_set", {"type": 'ZERO', "value": 'PRESS', "ctrl": True},
-             {"properties": [("level", 0)]}),
-            ("object.subdivision_set", {"type": 'ONE', "value": 'PRESS', "ctrl": True},
-             {"properties": [("level", 1)]}),
-            ("object.subdivision_set", {"type": 'TWO', "value": 'PRESS', "ctrl": True},
-             {"properties": [("level", 2)]}),
-            ("object.subdivision_set", {"type": 'THREE', "value": 'PRESS', "ctrl": True},
-             {"properties": [("level", 3)]}),
-            ("object.subdivision_set", {"type": 'FOUR', "value": 'PRESS', "ctrl": True},
-             {"properties": [("level", 4)]}),
-            ("object.subdivision_set", {"type": 'FIVE', "value": 'PRESS', "ctrl": True},
-             {"properties": [("level", 5)]}),
+            *_template_items_object_subdivision_set(),
         ])
 
     return keymap
@@ -5002,8 +4908,8 @@ def generate_keymaps(params=None):
 # To compare:
 #
 #    python3 release/scripts/presets/keyconfig/keymap_data/blender_default.py && \
-#      diff -u keymap_default.py keymap_default.py.orig && \
-#      diff -u keymap_legacy.py  keymap_legacy.py.orig
+#      diff -u keymap_default.py.orig keymap_default.py && \
+#      diff -u keymap_legacy.py.orig  keymap_legacy.py
 #
 # # begin code:
 # import pprint
