@@ -605,11 +605,8 @@ set(ICON_NAMES
 # This section is maintained by the updating script, keep BEGIN/END comments.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	# BEGIN ICON_GEOM_NAMES
-	brush.gpencil_draw.circle
 	brush.gpencil_draw.draw
 	brush.gpencil_draw.erase
-	brush.gpencil_draw.fill
-	brush.gpencil_draw.line
 	brush.gpencil_draw.rectangle
 	brush.paint_texture.airbrush
 	brush.paint_texture.clone
@@ -675,6 +672,9 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.gpencil.edit_mirror
 	ops.gpencil.edit_shear
 	ops.gpencil.edit_to_sphere
+	ops.gpencil.primitive_box
+	ops.gpencil.primitive_circle
+	ops.gpencil.primitive_line
 	ops.gpencil.sculpt_clone
 	ops.gpencil.sculpt_grab
 	ops.gpencil.sculpt_pinch
