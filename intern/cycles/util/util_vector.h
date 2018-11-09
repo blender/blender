@@ -43,20 +43,8 @@ class vector : public std::vector<value_type, allocator_type>
 public:
 	typedef std::vector<value_type, allocator_type> BaseClass;
 
-	/* Default constructor. */
-	explicit vector() : std::vector<value_type, allocator_type>() {  }
-
-	/* Fill constructor. */
-	explicit vector(size_t n, const value_type& val = value_type())
-		: std::vector<value_type, allocator_type>(n, val) {  }
-
-	/* Range constructor. */
-	template <class InputIterator>
-	vector(InputIterator first, InputIterator last)
-		: std::vector<value_type, allocator_type>(first, last) {  }
-
-	/* Copy constructor. */
-	vector(const vector &x) : std::vector<value_type, allocator_type>(x) {  }
+	/* Inherit all constructors from base class. */
+	using BaseClass::vector;
 
 	void free_memory(void)
 	{
