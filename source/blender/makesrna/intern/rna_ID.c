@@ -169,7 +169,10 @@ static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 	if (GS(id->name) == ID_VF) {
 		VFont *vfont = (VFont *)id;
 		if (BKE_vfont_is_builtin(vfont))
-			return false;
+			return 0;
+	}
+	else if (!BKE_id_is_in_global_main(id)) {
+		return 0;
 	}
 
 	return PROP_EDITABLE;
