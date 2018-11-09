@@ -32,8 +32,18 @@ uniform int gridFlag;
 #define PLANE_YZ  (1 << 6)
 #define GRID_BACK (1 << 9) /* grid is behind objects */
 
-#define GRID_LINE_SMOOTH_START -0.1
-#define GRID_LINE_SMOOTH_END 1.05
+#define M_1_SQRTPI   0.5641895835477563    /* 1/sqrt(pi) */
+
+/**
+ * We want to know how much a pixel is covered by a line.
+ * We replace the square pixel with acircle of the same area and try to find the intersection area.
+ * The area we search is the circular segment. https://en.wikipedia.org/wiki/Circular_segment
+ * The formula for the area uses inverse trig function and is quite complexe.
+ * Instead, we approximate it by using the smoothstep function and a 1.05 factor to the disc radius.
+ **/
+#define DISC_RADIUS (M_1_SQRTPI * 1.05)
+#define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
+#define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
 float get_grid(vec2 co, vec2 fwidthCos, float grid_size)
 {
