@@ -1745,30 +1745,6 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
         layout.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
 
 
-# Grease Pencil create shapes
-class VIEW3D_PT_tools_grease_pencil_shapes(View3DPanel, Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'HEADER'
-    bl_label = "Shapes"
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.active_object
-        return ob and ob.type == 'GPENCIL'
-
-    @staticmethod
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        col = layout.column(align=True)
-        col.operator("gpencil.primitive", text="Line", icon='IPO_CONSTANT').type = 'LINE'
-        col.operator("gpencil.primitive", text="Rectangle", icon='UV_FACESEL').type = 'BOX'
-        col.operator("gpencil.primitive", text="Circle", icon='ANTIALIASED').type = 'CIRCLE'
-
-        layout.operator("object.gpencil_add", text="Monkey", icon='MONKEY').type = 'MONKEY'
-
-
 # Grease Pencil stroke editing tools
 class VIEW3D_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
     bl_space_type = 'VIEW_3D'
@@ -1931,7 +1907,6 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity,
     VIEW3D_PT_tools_grease_pencil_brushcurves_strength,
     VIEW3D_PT_tools_grease_pencil_brushcurves_jitter,
-    VIEW3D_PT_tools_grease_pencil_shapes,
     VIEW3D_PT_tools_grease_pencil_sculpt,
     VIEW3D_PT_tools_grease_pencil_weight_paint,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,

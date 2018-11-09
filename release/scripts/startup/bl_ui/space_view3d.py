@@ -73,11 +73,6 @@ class VIEW3D_HT_header(Header):
                 sub.separator(factor=0.4)
                 sub.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
 
-                row.popover(
-                    panel="VIEW3D_PT_tools_grease_pencil_shapes",
-                    text="Shapes"
-                )
-
             if gpd.use_stroke_edit_mode:
                 row = layout.row(align=True)
                 row.prop(tool_settings, "gpencil_selectmode", text="", expand=True)
