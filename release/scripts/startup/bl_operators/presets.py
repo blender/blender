@@ -733,6 +733,8 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
         "gpcolor.texture_clamp",
         "gpcolor.texture_mix",
         "gpcolor.mix_factor",
+        "gpcolor.show_stroke",
+        "gpcolor.show_fill",
     ]
 
     preset_subdir = "gpencil_material"
