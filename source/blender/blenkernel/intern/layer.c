@@ -607,10 +607,10 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * in at least one layer collection. That list is also synchronized here, and
  * stores state like selection. */
 
-static int layer_collection_sync(
+static short layer_collection_sync(
         ViewLayer *view_layer, const ListBase *lb_scene,
         ListBase *lb_layer, ListBase *new_object_bases,
-        int parent_exclude, int parent_restrict)
+        short parent_exclude, short parent_restrict)
 {
 	/* TODO: support recovery after removal of intermediate collections, reordering, ..
 	 * For local edits we can make editing operating do the appropriate thing, but for
@@ -638,7 +638,7 @@ static int layer_collection_sync(
 
 	/* Add layer collections for any new scene collections, and ensure order is the same. */
 	ListBase new_lb_layer = {NULL, NULL};
-	int runtime_flag = 0;
+	short runtime_flag = 0;
 
 	for (const CollectionChild *child = lb_scene->first; child; child = child->next) {
 		Collection *collection = child->collection;
@@ -654,13 +654,13 @@ static int layer_collection_sync(
 		}
 
 		/* Collection restrict is inherited. */
-		int child_restrict = parent_restrict;
+		short child_restrict = parent_restrict;
 		if (!(collection->flag & COLLECTION_IS_MASTER)) {
 			child_restrict |= collection->flag;
 		}
 
 		/* Sync child collections. */
-		int child_runtime_flag = layer_collection_sync(
+		short child_runtime_flag = layer_collection_sync(
 		        view_layer, &collection->children,
 		        &lc->layer_collections, new_object_bases,
 		        lc->flag, child_restrict);
@@ -790,7 +790,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 	const ListBase collections = {&child, &child};
 	ListBase new_object_bases = {NULL, NULL};
 
-	const int parent_exclude = 0, parent_restrict = 0;
+	const short parent_exclude = 0, parent_restrict = 0;
 	layer_collection_sync(
 	        view_layer, &collections,
 	        &view_layer->layer_collections, &new_object_bases,
