@@ -626,7 +626,7 @@ class TOPBAR_MT_file_new(Menu):
             if show_more:
                 paths = paths[:splash_limit - 2]
         elif use_more:
-            icon = 'FILE'
+            icon = 'FILE_NEW'
             paths = paths[splash_limit - 2:]
             show_more = False
         else:
