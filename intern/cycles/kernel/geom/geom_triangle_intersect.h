@@ -544,7 +544,7 @@ int triangle_intersect8(KernelGlobals *kg,
 	return result;
 }
 
-#endif /* __KERNEL_AVX2__ */
+#endif  /* __KERNEL_AVX2__ */
 
 /* Special ray intersection routines for subsurface scattering. In that case we
  * only want to intersect with primitives in the same object, and if case of

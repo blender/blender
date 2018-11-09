@@ -101,4 +101,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __RENDER_STATS_H__ */
+#endif  /* __RENDER_STATS_H__ */

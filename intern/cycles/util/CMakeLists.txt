@@ -37,6 +37,7 @@ set(SRC_HEADERS
 	util_algorithm.h
 	util_aligned_malloc.h
 	util_args.h
+	util_array.h
 	util_atomic.h
 	util_boundbox.h
 	util_debug.h

@@ -229,7 +229,7 @@ ccl_device int bsdf_principled_hair_setup(ShaderData *sd, PrincipledHairBSDF *bs
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_NEEDS_LCG;
 }
 
-#endif /* __HAIR__ */
+#endif  /* __HAIR__ */
 
 /* Given the Fresnel term and transmittance, generate the attenuation terms for each bounce. */
 ccl_device_inline void hair_attenuation(KernelGlobals *kg,
@@ -499,4 +499,4 @@ ccl_device void bsdf_principled_hair_blur(ShaderClosure *sc, float roughness)
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_HAIR_PRINCIPLED_H__ */
+#endif  /* __BSDF_HAIR_PRINCIPLED_H__ */

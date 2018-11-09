@@ -266,7 +266,7 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 }
 #endif  /* __VOLUME__ */
 
-#endif /* __SPLIT_KERNEL__ */
+#endif  /* __SPLIT_KERNEL__ */
 
 ccl_device_forceinline bool kernel_path_shader_apply(
 	KernelGlobals *kg,
@@ -434,7 +434,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		else if(result == VOLUME_PATH_MISSED) {
 			break;
 		}
-#endif /* __VOLUME__*/
+#endif  /* __VOLUME__*/
 
 		/* Shade background. */
 		if(!hit) {
@@ -557,7 +557,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 #endif  /* __SUBSURFACE__ */
 }
 
-#endif /* defined(__BRANCHED_PATH__) || defined(__BAKING__) */
+#endif  /* defined(__BRANCHED_PATH__) || defined(__BAKING__) */
 
 ccl_device_forceinline void kernel_path_integrate(
 	KernelGlobals *kg,
@@ -605,7 +605,7 @@ ccl_device_forceinline void kernel_path_integrate(
 		else if(result == VOLUME_PATH_MISSED) {
 			break;
 		}
-#endif /* __VOLUME__*/
+#endif  /* __VOLUME__*/
 
 		/* Shade background. */
 		if(!hit) {

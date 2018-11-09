@@ -77,4 +77,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_UNALIGNED_H__ */
+#endif  /* __BVH_UNALIGNED_H__ */

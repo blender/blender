@@ -19,7 +19,7 @@
 #define __BVH_H__
 
 #include "bvh/bvh_params.h"
-
+#include "util/util_array.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
 
@@ -126,4 +126,4 @@ struct BVHStackEntry
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_H__ */
+#endif  /* __BVH_H__ */

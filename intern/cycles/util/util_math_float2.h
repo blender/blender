@@ -224,4 +224,4 @@ ccl_device_inline float2 interp(const float2& a, const float2& b, float t)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_FLOAT2_H__ */
+#endif  /* __UTIL_MATH_FLOAT2_H__ */

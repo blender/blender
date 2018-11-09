@@ -17,8 +17,8 @@
 #ifndef __CURVES_H__
 #define __CURVES_H__
 
+#include "util/util_array.h"
 #include "util/util_types.h"
-#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -119,4 +119,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __CURVES_H__ */
+#endif  /* __CURVES_H__ */

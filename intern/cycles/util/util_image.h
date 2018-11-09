@@ -102,6 +102,6 @@ inline half util_image_cast_from_float(float value)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_IMAGE_H__ */
+#endif  /* __UTIL_IMAGE_H__ */
 
 #include "util/util_image_impl.h"

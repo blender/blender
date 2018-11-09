@@ -282,4 +282,4 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
 
 CCL_NAMESPACE_END
 
-#endif /* __KERNEL_MONTECARLO_CL__ */
+#endif  /* __KERNEL_MONTECARLO_CL__ */

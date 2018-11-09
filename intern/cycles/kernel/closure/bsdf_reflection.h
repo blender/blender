@@ -77,4 +77,4 @@ ccl_device int bsdf_reflection_sample(const ShaderClosure *sc, float3 Ng, float3
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_REFLECTION_H__ */
+#endif  /* __BSDF_REFLECTION_H__ */

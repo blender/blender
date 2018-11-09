@@ -46,4 +46,4 @@ size_t system_physical_ram();
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_SYSTEM_H__ */
+#endif  /* __UTIL_SYSTEM_H__ */

@@ -1053,7 +1053,7 @@ bool OSLRenderServices::texture(ustring filename,
 		 * other nasty stuff happening.
 		 */
 		string err = ts->geterror();
-		(void)err;
+		(void) err;
 	}
 
 	return status;
@@ -1132,7 +1132,7 @@ bool OSLRenderServices::texture3d(ustring filename,
 		 * other nasty stuff happening.
 		 */
 		string err = ts->geterror();
-		(void)err;
+		(void) err;
 	}
 
 	return status;

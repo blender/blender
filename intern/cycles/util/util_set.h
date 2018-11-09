@@ -31,4 +31,4 @@ using std::unordered_set;
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_SET_H__ */
+#endif  /* __UTIL_SET_H__ */

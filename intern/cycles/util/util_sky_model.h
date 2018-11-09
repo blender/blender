@@ -437,6 +437,6 @@ double arhosekskymodel_solar_radiance(ArHosekSkyModelState* state,
                                       double wavelength);
 
 
-#endif // _SKY_MODEL_H_
+#endif  // _SKY_MODEL_H_
 
 CCL_NAMESPACE_END

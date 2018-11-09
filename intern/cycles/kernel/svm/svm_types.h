@@ -531,4 +531,4 @@ typedef enum ClosureType {
 
 CCL_NAMESPACE_END
 
-#endif /*  __SVM_TYPES_H__ */
+#endif  /*  __SVM_TYPES_H__ */

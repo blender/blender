@@ -55,12 +55,12 @@ __forceinline float8::float8(const __m256& f)
 {
 }
 
-__forceinline float8::operator const __m256&(void) const
+__forceinline float8::operator const __m256&() const
 {
 	return m256;
 }
 
-__forceinline float8::operator __m256&(void)
+__forceinline float8::operator __m256&()
 {
 	return m256;
 }

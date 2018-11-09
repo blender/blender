@@ -47,7 +47,7 @@ public:
 
 	T *allocate(size_t n, const void *hint = 0)
 	{
-		(void)hint;
+		(void) hint;
 		size_t size = n * sizeof(T);
 		util_guarded_mem_alloc(size);
 		if(n == 0) {
@@ -158,8 +158,8 @@ public:
 };
 
 /* Get memory usage and peak from the guarded STL allocator. */
-size_t util_guarded_get_mem_used(void);
-size_t util_guarded_get_mem_peak(void);
+size_t util_guarded_get_mem_used();
+size_t util_guarded_get_mem_peak();
 
 /* Call given function and keep track if it runs out of memory.
  *

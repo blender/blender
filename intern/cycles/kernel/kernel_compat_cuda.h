@@ -150,4 +150,4 @@ ccl_device_inline uint ccl_num_groups(uint d)
 #define logf(x) __logf(((float)(x)))
 #define expf(x) __expf(((float)(x)))
 
-#endif /* __KERNEL_COMPAT_CUDA_H__ */
+#endif  /* __KERNEL_COMPAT_CUDA_H__ */

@@ -44,8 +44,8 @@ struct ssef
 	__forceinline ssef& operator=(const ssef& other) { m128 = other.m128; return *this; }
 
 	__forceinline ssef(const __m128 a) : m128(a) {}
-	__forceinline operator const __m128&(void) const { return m128; }
-	__forceinline operator       __m128&(void)       { return m128; }
+	__forceinline operator const __m128&() const { return m128; }
+	__forceinline operator       __m128&()       { return m128; }
 
 	__forceinline ssef          (float a) : m128(_mm_set1_ps(a)) {}
 	__forceinline ssef          (float a, float b, float c, float d) : m128(_mm_setr_ps(a, b, c, d)) {}
@@ -517,12 +517,12 @@ ccl_device_inline float len3(const ssef& a)
 /* faster version for SSSE3 */
 typedef ssei shuffle_swap_t;
 
-ccl_device_inline shuffle_swap_t shuffle_swap_identity(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_identity()
 {
 	return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-ccl_device_inline shuffle_swap_t shuffle_swap_swap(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_swap()
 {
 	return _mm_set_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
 }
@@ -537,12 +537,12 @@ ccl_device_inline const ssef shuffle_swap(const ssef& a, const shuffle_swap_t& s
 /* somewhat slower version for SSE2 */
 typedef int shuffle_swap_t;
 
-ccl_device_inline shuffle_swap_t shuffle_swap_identity(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_identity()
 {
 	return 0;
 }
 
-ccl_device_inline shuffle_swap_t shuffle_swap_swap(void)
+ccl_device_inline shuffle_swap_t shuffle_swap_swap()
 {
 	return 1;
 }

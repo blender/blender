@@ -33,4 +33,4 @@ void CCL_logging_verbosity_set(int verbosity);
 }
 #endif
 
-#endif /* __CCL_API_H__ */
+#endif  /* __CCL_API_H__ */

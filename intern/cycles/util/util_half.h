@@ -148,4 +148,4 @@ ccl_device_inline half float_to_half(float f)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_HALF_H__ */
+#endif  /* __UTIL_HALF_H__ */

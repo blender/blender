@@ -35,12 +35,12 @@ void util_guarded_mem_free(size_t n)
 
 /* Public API. */
 
-size_t util_guarded_get_mem_used(void)
+size_t util_guarded_get_mem_used()
 {
 	return global_stats.mem_used;
 }
 
-size_t util_guarded_get_mem_peak(void)
+size_t util_guarded_get_mem_peak()
 {
 	return global_stats.mem_peak;
 }

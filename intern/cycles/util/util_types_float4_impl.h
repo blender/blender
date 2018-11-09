@@ -38,12 +38,12 @@ __forceinline float4::float4(const __m128& a)
 {
 }
 
-__forceinline float4::operator const __m128&(void) const
+__forceinline float4::operator const __m128&() const
 {
 	return m128;
 }
 
-__forceinline float4::operator __m128&(void)
+__forceinline float4::operator __m128&()
 {
 	return m128;
 }

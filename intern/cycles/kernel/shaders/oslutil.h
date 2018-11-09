@@ -92,4 +92,4 @@ float wireframe(string edge_type, float line_width) { return wireframe(edge_type
 float wireframe(string edge_type) { return wireframe(edge_type, 1.0, 1); }
 float wireframe() { return wireframe("polygons", 1.0, 1); }
 
-#endif /* CCL_OSLUTIL_H */
+#endif  /* CCL_OSLUTIL_H */

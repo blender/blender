@@ -23,6 +23,7 @@
 #include "bvh/bvh_params.h"
 #include "bvh/bvh_unaligned.h"
 
+#include "util/util_array.h"
 #include "util/util_task.h"
 #include "util/util_vector.h"
 
@@ -142,4 +143,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_BUILD_H__ */
+#endif  /* __BVH_BUILD_H__ */

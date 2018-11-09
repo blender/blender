@@ -48,8 +48,8 @@ struct ccl_try_align(32) float8 {
 	__forceinline float8(const float8& a);
 	__forceinline explicit float8(const __m256& a);
 
-	__forceinline operator const __m256&(void) const;
-	__forceinline operator __m256&(void);
+	__forceinline operator const __m256&() const;
+	__forceinline operator __m256&();
 
 	__forceinline float8& operator =(const float8& a);
 

@@ -628,8 +628,8 @@ static ShaderNode *add_node(Scene *scene,
 			}
 		}
 #else
-		(void)b_data;
-		(void)b_ntree;
+		(void) b_data;
+		(void) b_ntree;
 #endif
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeTexImage)) {

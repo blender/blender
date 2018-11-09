@@ -182,4 +182,4 @@ std::ostream& operator <<(std::ostream &os,
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_DEBUG_H__ */
+#endif  /* __UTIL_DEBUG_H__ */

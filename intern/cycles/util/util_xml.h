@@ -38,4 +38,4 @@ using PUGIXML_NAMESPACE::xml_parse_result;
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_XML_H__ */
+#endif  /* __UTIL_XML_H__ */

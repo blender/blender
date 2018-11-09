@@ -108,4 +108,4 @@ ccl_device void svm_node_curves(KernelGlobals *kg, ShaderData *sd, float *stack,
 
 CCL_NAMESPACE_END
 
-#endif /* __SVM_RAMP_H__ */
+#endif  /* __SVM_RAMP_H__ */

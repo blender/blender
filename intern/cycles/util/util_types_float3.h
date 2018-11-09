@@ -35,8 +35,8 @@ struct ccl_try_align(16) float3 {
 	__forceinline float3(const float3& a);
 	__forceinline explicit float3(const __m128& a);
 
-	__forceinline operator const __m128&(void) const;
-	__forceinline operator __m128&(void);
+	__forceinline operator const __m128&() const;
+	__forceinline operator __m128&();
 
 	__forceinline float3& operator =(const float3& a);
 #else  /* __KERNEL_SSE__ */

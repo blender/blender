@@ -166,4 +166,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __DEVICE_DENOISING_H__ */
+#endif  /* __DEVICE_DENOISING_H__ */

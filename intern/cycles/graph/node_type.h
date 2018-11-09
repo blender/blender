@@ -17,7 +17,7 @@
 #pragma once
 
 #include "graph/node_enum.h"
-
+#include "util/util_array.h"
 #include "util/util_map.h"
 #include "util/util_param.h"
 #include "util/util_string.h"

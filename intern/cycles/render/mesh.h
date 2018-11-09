@@ -22,6 +22,7 @@
 #include "render/attribute.h"
 #include "render/shader.h"
 
+#include "util/util_array.h"
 #include "util/util_boundbox.h"
 #include "util/util_list.h"
 #include "util/util_map.h"
@@ -390,4 +391,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __MESH_H__ */
+#endif  /* __MESH_H__ */

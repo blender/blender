@@ -24,7 +24,7 @@ ccl_device_noinline float svm_wave(NodeWaveType type, NodeWaveProfile profile, f
 
 	if(type == NODE_WAVE_BANDS)
 		n = (p.x + p.y + p.z) * 10.0f;
-	else /* NODE_WAVE_RINGS */
+	else  /* NODE_WAVE_RINGS */
 		n = len(p) * 20.0f;
 
 	if(distortion != 0.0f)

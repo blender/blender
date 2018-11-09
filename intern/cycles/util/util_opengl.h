@@ -22,4 +22,4 @@
 
 #include <GL/glew.h>
 
-#endif /* __UTIL_OPENGL_H__ */
+#endif  /* __UTIL_OPENGL_H__ */

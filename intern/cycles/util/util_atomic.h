@@ -29,7 +29,7 @@
 #define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_add_uint32((p), -1)
 
 #define CCL_LOCAL_MEM_FENCE 0
-#define ccl_barrier(flags) (void)0
+#define ccl_barrier(flags) ((void) 0)
 
 #else  /* __KERNEL_GPU__ */
 
@@ -110,4 +110,4 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile float *dest,
 
 #endif  /* __KERNEL_GPU__ */
 
-#endif /* __UTIL_ATOMIC_H__ */
+#endif  /* __UTIL_ATOMIC_H__ */

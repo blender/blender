@@ -114,7 +114,7 @@ public:
 		return cancel_message;
 	}
 
-	void set_cancel_callback(function<void(void)> function)
+	void set_cancel_callback(function<void()> function)
 	{
 		cancel_cb = function;
 	}
@@ -323,7 +323,7 @@ public:
 		}
 	}
 
-	void set_update_callback(function<void(void)> function)
+	void set_update_callback(function<void()> function)
 	{
 		update_cb = function;
 	}
@@ -331,8 +331,8 @@ public:
 protected:
 	thread_mutex progress_mutex;
 	thread_mutex update_mutex;
-	function<void(void)> update_cb;
-	function<void(void)> cancel_cb;
+	function<void()> update_cb;
+	function<void()> cancel_cb;
 
 	/* pixel_samples counts how many samples have been rendered over all pixel, not just per pixel.
 	 * This makes the progress estimate more accurate when tiles with different sizes are used.
@@ -365,4 +365,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_PROGRESS_H__ */
+#endif  /* __UTIL_PROGRESS_H__ */

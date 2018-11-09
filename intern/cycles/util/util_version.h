@@ -34,4 +34,4 @@ CCL_NAMESPACE_BEGIN
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_VERSION_H__ */
+#endif  /* __UTIL_VERSION_H__ */

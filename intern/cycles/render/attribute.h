@@ -172,4 +172,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __ATTRIBUTE_H__ */
+#endif  /* __ATTRIBUTE_H__ */

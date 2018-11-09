@@ -35,4 +35,4 @@ ccl_device float linear_rgb_to_gray(KernelGlobals *kg, float3 c)
 
 CCL_NAMESPACE_END
 
-#endif /* __KERNEL_COLOR_H__ */
+#endif  /* __KERNEL_COLOR_H__ */

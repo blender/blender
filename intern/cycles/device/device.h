@@ -181,7 +181,7 @@ public:
 	/* Convert the requested features structure to a build options,
 	 * which could then be passed to compilers.
 	 */
-	string get_build_options(void) const
+	string get_build_options() const
 	{
 		string build_options = "";
 		if(experimental) {
@@ -240,8 +240,8 @@ std::ostream& operator <<(std::ostream &os,
 /* Device */
 
 struct DeviceDrawParams {
-	function<void(void)> bind_display_space_shader_cb;
-	function<void(void)> unbind_display_space_shader_cb;
+	function<void()> bind_display_space_shader_cb;
+	function<void()> unbind_display_space_shader_cb;
 };
 
 class Device {
@@ -374,4 +374,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __DEVICE_H__ */
+#endif  /* __DEVICE_H__ */

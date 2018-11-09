@@ -515,7 +515,7 @@ float smooth_linearstep (float edge0, float edge1, float x_, float eps_) {
         else if (x >= eps && x <= 1.0-eps) result = x;
         else if (x >= 1.0+eps)             result = 1;
         else if (x < eps)                  result = rampup (x+eps, 2.0*eps);
-        else /* if (x < 1.0+eps) */        result = 1.0 - rampup (1.0+eps - x, 2.0*eps);
+        else  /* if (x < 1.0+eps) */        result = 1.0 - rampup (1.0+eps - x, 2.0*eps);
     } else {
         result = step (edge0, x_);
     }
@@ -686,4 +686,4 @@ int getmatrix (string fromspace, output matrix M) {
 #undef PERCOMP2
 #undef PERCOMP2F
 
-#endif /* CCL_STDOSL_H */
+#endif  /* CCL_STDOSL_H */

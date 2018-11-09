@@ -44,7 +44,7 @@ Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 	}
 }
 
-bool device_opencl_init(void)
+bool device_opencl_init()
 {
 	static bool initialized = false;
 	static bool result = false;
@@ -146,7 +146,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	}
 }
 
-string device_opencl_capabilities(void)
+string device_opencl_capabilities()
 {
 	if(OpenCLInfo::device_type() == 0) {
 		return "All OpenCL devices are forced to be OFF";
@@ -245,4 +245,4 @@ string device_opencl_capabilities(void)
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_OPENCL */
+#endif  /* WITH_OPENCL */

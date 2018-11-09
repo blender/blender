@@ -153,4 +153,4 @@ typedef vector3<avxf> avx3f;
 
 CCL_NAMESPACE_END
 
-#endif /* __KERNEL_COMPAT_CPU_H__ */
+#endif  /* __KERNEL_COMPAT_CPU_H__ */

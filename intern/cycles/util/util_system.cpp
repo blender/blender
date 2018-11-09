@@ -52,14 +52,14 @@ int system_cpu_group_thread_count(int group)
 	util_windows_init_numa_groups();
 	return GetActiveProcessorCount(group);
 #elif defined(__APPLE__)
-	(void)group;
+	(void) group;
 	int count;
 	size_t len = sizeof(count);
 	int mib[2] = { CTL_HW, HW_NCPU };
 	sysctl(mib, 2, &count, &len, NULL, 0);
 	return count;
 #else
-	(void)group;
+	(void) group;
 	return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 }

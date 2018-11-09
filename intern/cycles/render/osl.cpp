@@ -1255,6 +1255,6 @@ void OSLCompiler::parameter_color_array(const char * /*name*/, const array<float
 {
 }
 
-#endif /* WITH_OSL */
+#endif  /* WITH_OSL */
 
 CCL_NAMESPACE_END

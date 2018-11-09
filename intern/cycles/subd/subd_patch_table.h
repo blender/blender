@@ -17,8 +17,8 @@
 #ifndef __SUBD_PATCH_TABLE_H__
 #define __SUBD_PATCH_TABLE_H__
 
+#include "util/util_array.h"
 #include "util/util_types.h"
-#include "util/util_vector.h"
 
 #ifdef WITH_OPENSUBDIV
 #ifdef _MSC_VER
@@ -59,4 +59,4 @@ struct PackedPatchTable {
 
 CCL_NAMESPACE_END
 
-#endif /* __SUBD_PATCH_TABLE_H__ */
+#endif  /* __SUBD_PATCH_TABLE_H__ */

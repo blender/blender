@@ -159,4 +159,4 @@
 #include "util/util_half.h"
 #include "util/util_types.h"
 
-#endif /* __KERNEL_COMPAT_OPENCL_H__ */
+#endif  /* __KERNEL_COMPAT_OPENCL_H__ */

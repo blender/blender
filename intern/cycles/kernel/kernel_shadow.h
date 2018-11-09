@@ -446,7 +446,7 @@ ccl_device bool shadow_blocked_transparent_stepped(
 }
 
 #  endif  /* __KERNEL_GPU__ || !__SHADOW_RECORD_ALL__ */
-#endif /* __TRANSPARENT_SHADOWS__ */
+#endif  /* __TRANSPARENT_SHADOWS__ */
 
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
                                       ShaderData *sd,

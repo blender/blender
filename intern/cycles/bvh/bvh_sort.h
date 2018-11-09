@@ -35,4 +35,4 @@ void bvh_reference_sort(int start,
 
 CCL_NAMESPACE_END
 
-#endif /* __BVH_SORT_H__ */
+#endif  /* __BVH_SORT_H__ */

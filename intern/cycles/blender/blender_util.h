@@ -20,6 +20,7 @@
 #include "render/mesh.h"
 
 #include "util/util_algorithm.h"
+#include "util/util_array.h"
 #include "util/util_map.h"
 #include "util/util_path.h"
 #include "util/util_set.h"
@@ -838,4 +839,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __BLENDER_UTIL_H__ */
+#endif  /* __BLENDER_UTIL_H__ */

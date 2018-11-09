@@ -285,7 +285,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						/* setup bsdf */
 						if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID || roughness <= 0.075f) /* use single-scatter GGX */
 							sd->flag |= bsdf_microfacet_ggx_aniso_fresnel_setup(bsdf, sd);
-						else /* use multi-scatter GGX */
+						else  /* use multi-scatter GGX */
 							sd->flag |= bsdf_microfacet_multi_ggx_aniso_fresnel_setup(bsdf, sd);
 					}
 				}

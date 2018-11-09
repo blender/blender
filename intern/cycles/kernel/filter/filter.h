@@ -49,4 +49,4 @@ CCL_NAMESPACE_BEGIN
 
 CCL_NAMESPACE_END
 
-#endif /* __FILTER_H__ */
+#endif  /* __FILTER_H__ */

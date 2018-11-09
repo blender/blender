@@ -17,6 +17,7 @@
 #ifndef __OSL_H__
 #define __OSL_H__
 
+#include "util/util_array.h"
 #include "util/util_set.h"
 #include "util/util_string.h"
 #include "util/util_thread.h"
@@ -171,4 +172,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __OSL_H__  */
+#endif  /* __OSL_H__  */

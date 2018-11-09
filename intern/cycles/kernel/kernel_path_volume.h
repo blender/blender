@@ -55,7 +55,7 @@ ccl_device_inline void kernel_path_volume_connect_light(
 			}
 		}
 	}
-#endif /* __EMISSION__ */
+#endif  /* __EMISSION__ */
 }
 
 #ifdef __KERNEL_GPU__
@@ -277,10 +277,10 @@ ccl_device void kernel_branched_path_volume_connect_light(
 			}
 		}
 	}
-#endif /* __EMISSION__ */
+#endif  /* __EMISSION__ */
 }
-#endif /* __SPLIT_KERNEL__ */
+#endif  /* __SPLIT_KERNEL__ */
 
-#endif /* __VOLUME_SCATTER__ */
+#endif  /* __VOLUME_SCATTER__ */
 
 CCL_NAMESPACE_END

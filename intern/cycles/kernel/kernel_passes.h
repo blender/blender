@@ -110,7 +110,7 @@ ccl_device_inline void kernel_write_denoising_shadow(KernelGlobals *kg, ccl_glob
 	float value = path_total_shaded / max(path_total, 1e-7f);
 	kernel_write_pass_float(buffer+2, value*value);
 }
-#endif /* __DENOISING_FEATURES__ */
+#endif  /* __DENOISING_FEATURES__ */
 
 ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
                                                         ShaderData *sd,
@@ -189,7 +189,7 @@ ccl_device_inline void kernel_write_debug_passes(KernelGlobals *kg,
 		                        L->debug_data.num_ray_bounces);
 	}
 }
-#endif /* __KERNEL_DEBUG__ */
+#endif  /* __KERNEL_DEBUG__ */
 
 #ifdef __KERNEL_CPU__
 #define WRITE_ID_SLOT(buffer, depth, id, matte_weight, name) kernel_write_id_pass_cpu(buffer, depth * 2, id, matte_weight, kg->coverage_##name)
@@ -199,11 +199,11 @@ ccl_device_inline size_t kernel_write_id_pass_cpu(float *buffer, size_t depth, f
 		(*map)[id] += matte_weight;
 		return 0;
 	}
-#else /* __KERNEL_CPU__ */
+#else  /* __KERNEL_CPU__ */
 #define WRITE_ID_SLOT(buffer, depth, id, matte_weight, name) kernel_write_id_slots_gpu(buffer, depth * 2, id, matte_weight)
 ccl_device_inline size_t kernel_write_id_slots_gpu(ccl_global float *buffer, size_t depth, float id, float matte_weight)
 {
-#endif /* __KERNEL_CPU__ */
+#endif  /* __KERNEL_CPU__ */
 	kernel_write_id_slots(buffer, depth, id, matte_weight);
 	return depth * 2;
 }

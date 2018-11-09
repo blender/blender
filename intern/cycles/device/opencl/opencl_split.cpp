@@ -463,4 +463,4 @@ Device *opencl_create_split_device(DeviceInfo& info, Stats& stats, bool backgrou
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_OPENCL */
+#endif  /* WITH_OPENCL */

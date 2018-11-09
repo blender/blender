@@ -41,7 +41,7 @@ public:
 	void operator&(StubStream&) { }
 };
 
-#  define LOG_SUPPRESS() (true) ? (void) 0 : LogMessageVoidify() & StubStream()
+#  define LOG_SUPPRESS() (true) ? ((void) 0) : LogMessageVoidify() & StubStream()
 #  define LOG(severity) LOG_SUPPRESS()
 #  define VLOG(severity) LOG_SUPPRESS()
 #endif
@@ -52,7 +52,7 @@ struct int2;
 struct float3;
 
 void util_logging_init(const char *argv0);
-void util_logging_start(void);
+void util_logging_start();
 void util_logging_verbosity_set(int verbosity);
 
 std::ostream& operator <<(std::ostream &os,
@@ -62,4 +62,4 @@ std::ostream& operator <<(std::ostream &os,
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_LOGGING_H__ */
+#endif  /* __UTIL_LOGGING_H__ */

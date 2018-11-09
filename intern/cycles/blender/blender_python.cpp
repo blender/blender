@@ -843,18 +843,18 @@ void *CCL_python_module_init()
 #ifdef WITH_NETWORK
 	PyModule_AddObject(mod, "with_network", Py_True);
 	Py_INCREF(Py_True);
-#else /* WITH_NETWORK */
+#else  /* WITH_NETWORK */
 	PyModule_AddObject(mod, "with_network", Py_False);
 	Py_INCREF(Py_False);
-#endif /* WITH_NETWORK */
+#endif  /* WITH_NETWORK */
 
 #ifdef WITH_EMBREE
 	PyModule_AddObject(mod, "with_embree", Py_True);
 	Py_INCREF(Py_True);
-#else /* WITH_EMBREE */
+#else  /* WITH_EMBREE */
 	PyModule_AddObject(mod, "with_embree", Py_False);
 	Py_INCREF(Py_False);
-#endif /* WITH_EMBREE */
+#endif  /* WITH_EMBREE */
 
 	return (void*)mod;
 }

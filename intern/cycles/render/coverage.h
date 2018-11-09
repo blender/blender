@@ -46,4 +46,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __COVERAGE_H__ */
+#endif  /* __COVERAGE_H__ */

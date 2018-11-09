@@ -40,8 +40,8 @@ struct avxf
 	__forceinline avxf(const __m256 a) : m256(a) {}
 	__forceinline avxf(const __m256i a) : m256(_mm256_castsi256_ps (a)) {}
 
-	__forceinline operator const __m256&(void) const { return m256; }
-	__forceinline operator       __m256&(void)       { return m256; }
+	__forceinline operator const __m256&() const { return m256; }
+	__forceinline operator       __m256&()       { return m256; }
 
 	__forceinline avxf          (float a) : m256(_mm256_set1_ps(a)) {}
 

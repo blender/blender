@@ -21,6 +21,7 @@
  *
  * Data types for allocating, copying and freeing device memory. */
 
+#include "util/util_array.h"
 #include "util/util_half.h"
 #include "util/util_texture.h"
 #include "util/util_types.h"
@@ -496,4 +497,4 @@ protected:
 
 CCL_NAMESPACE_END
 
-#endif /* __DEVICE_MEMORY_H__ */
+#endif  /* __DEVICE_MEMORY_H__ */

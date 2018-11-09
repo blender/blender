@@ -156,4 +156,4 @@ ccl_device_inline int4 load_int4(const int *v)
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_INT4_H__ */
+#endif  /* __UTIL_MATH_INT4_H__ */

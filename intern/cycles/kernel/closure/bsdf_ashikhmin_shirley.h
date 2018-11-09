@@ -232,4 +232,4 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_ASHIKHMIN_SHIRLEY_H__ */
+#endif  /* __BSDF_ASHIKHMIN_SHIRLEY_H__ */

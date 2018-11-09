@@ -81,11 +81,11 @@ public:
 
 		/* Silence potential warnings about unused variables
 		 * when compiling without some architectures. */
-		(void)kernel_sse2;
-		(void)kernel_sse3;
-		(void)kernel_sse41;
-		(void)kernel_avx;
-		(void)kernel_avx2;
+		(void) kernel_sse2;
+		(void) kernel_sse3;
+		(void) kernel_sse41;
+		(void) kernel_avx;
+		(void) kernel_avx2;
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
 		if(DebugFlags().cpu.has_avx2() && system_cpu_support_avx2()) {
 			architecture_name = "AVX2";
@@ -288,7 +288,7 @@ public:
 		}
 #ifdef WITH_EMBREE
 		bvh_layout_mask |= BVH_LAYOUT_EMBREE;
-#endif /* WITH_EMBREE */
+#endif  /* WITH_EMBREE */
 		return bvh_layout_mask;
 	}
 
@@ -1065,7 +1065,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	devices.insert(devices.begin(), info);
 }
 
-string device_cpu_capabilities(void)
+string device_cpu_capabilities()
 {
 	string capabilities = "";
 	capabilities += system_cpu_support_sse2() ? "SSE2 " : "";

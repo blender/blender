@@ -26,7 +26,7 @@ template<typename T> struct TextureInterpolator  {
 		u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
 		u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
 		u[3] = (1.0f / 6.0f) * t * t * t; \
-	} (void)0
+	} (void) 0
 
 	static ccl_always_inline float4 read(float4 r)
 	{
@@ -540,4 +540,4 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 
 CCL_NAMESPACE_END
 
-#endif // __KERNEL_CPU_IMAGE_H__
+#endif  // __KERNEL_CPU_IMAGE_H__

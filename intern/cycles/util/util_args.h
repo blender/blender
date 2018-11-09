@@ -28,4 +28,4 @@ OIIO_NAMESPACE_USING
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_ARGS_H__ */
+#endif  /* __UTIL_ARGS_H__ */

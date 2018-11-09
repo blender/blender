@@ -1124,4 +1124,4 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderCl
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_MICROFACET_H__ */
+#endif  /* __BSDF_MICROFACET_H__ */

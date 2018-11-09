@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-thread::thread(function<void(void)> run_cb, int group)
+thread::thread(function<void()> run_cb, int group)
   : run_cb_(run_cb),
     joined_(false),
 	group_(group)

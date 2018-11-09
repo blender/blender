@@ -21,4 +21,4 @@
 
 #define foreach(x, y) for(x : y)
 
-#endif /* __UTIL_FOREACH_H__ */
+#endif  /* __UTIL_FOREACH_H__ */

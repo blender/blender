@@ -73,12 +73,12 @@ const char *cuewErrorString(CUresult result)
 	return error.c_str();
 }
 
-const char *cuewCompilerPath(void)
+const char *cuewCompilerPath()
 {
 	return CYCLES_CUDA_NVCC_EXECUTABLE;
 }
 
-int cuewCompilerVersion(void)
+int cuewCompilerVersion()
 {
 	return (CUDA_VERSION / 100) + (CUDA_VERSION % 100 / 10);
 }
@@ -211,7 +211,7 @@ public:
 			/*cuda_abort();*/ \
 			cuda_error_documentation(); \
 		} \
-	} (void)0
+	} (void) 0
 
 	bool cuda_error_(CUresult result, const string& stmt)
 	{
@@ -2164,7 +2164,7 @@ public:
 			/*cuda_abort();*/ \
 			device->cuda_error_documentation(); \
 		} \
-	} (void)0
+	} (void) 0
 
 
 /* CUDA context scope. */
@@ -2373,7 +2373,7 @@ int2 CUDASplitKernel::split_kernel_global_size(device_memory& kg, device_memory&
 	return global_size;
 }
 
-bool device_cuda_init(void)
+bool device_cuda_init()
 {
 #ifdef WITH_CUDA_DYNLOAD
 	static bool initialized = false;
@@ -2411,7 +2411,7 @@ bool device_cuda_init(void)
 	return result;
 #else  /* WITH_CUDA_DYNLOAD */
 	return true;
-#endif /* WITH_CUDA_DYNLOAD */
+#endif  /* WITH_CUDA_DYNLOAD */
 }
 
 Device *device_cuda_create(DeviceInfo& info, Stats &stats, bool background)
@@ -2515,7 +2515,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		devices.insert(devices.end(), display_devices.begin(), display_devices.end());
 }
 
-string device_cuda_capabilities(void)
+string device_cuda_capabilities()
 {
 	CUresult result = device_cuda_safe_init();
 	if(result != CUDA_SUCCESS) {
@@ -2548,7 +2548,7 @@ string device_cuda_capabilities(void)
 				capabilities += string_printf("\t\tCU_DEVICE_ATTRIBUTE_" #attr "\t\t\t%d\n", \
 				                              value); \
 			} \
-		} (void)0
+		} (void) 0
 		/* TODO(sergey): Strip all attributes which are not useful for us
 		 * or does not depend on the driver.
 		 */

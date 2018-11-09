@@ -227,4 +227,4 @@ ccl_device bool ray_quad_intersect(float3 ray_P, float3 ray_D,
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_MATH_INTERSECT_H__ */
+#endif  /* __UTIL_MATH_INTERSECT_H__ */

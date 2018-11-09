@@ -56,4 +56,4 @@ CCL_NAMESPACE_END
 
 #endif  /* WIN32 */
 
-#endif /* __UTIL_WINDOWS_H__ */
+#endif  /* __UTIL_WINDOWS_H__ */

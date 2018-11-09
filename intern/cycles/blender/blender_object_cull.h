@@ -46,4 +46,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __BLENDER_OBJECT_CULL_H__ */
+#endif  /* __BLENDER_OBJECT_CULL_H__ */

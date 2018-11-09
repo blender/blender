@@ -97,7 +97,7 @@ void KERNEL_FUNCTION_FULL_NAME(path_trace)(KernelGlobals *kg,
 	{
 		kernel_path_trace(kg, buffer, sample, x, y, offset, stride);
 	}
-#endif /* KERNEL_STUB */
+#endif  /* KERNEL_STUB */
 }
 
 /* Film */
@@ -120,7 +120,7 @@ void KERNEL_FUNCTION_FULL_NAME(convert_to_byte)(KernelGlobals *kg,
 	                            x, y,
 	                            offset,
 	                            stride);
-#endif /* KERNEL_STUB */
+#endif  /* KERNEL_STUB */
 }
 
 void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
@@ -141,7 +141,7 @@ void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
 	                                  x, y,
 	                                  offset,
 	                                  stride);
-#endif /* KERNEL_STUB */
+#endif  /* KERNEL_STUB */
 }
 
 /* Shader Evaluate */
@@ -176,7 +176,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 	else {
 		kernel_background_evaluate(kg, input, output, i);
 	}
-#endif /* KERNEL_STUB */
+#endif  /* KERNEL_STUB */
 }
 
 #else  /* __SPLIT_KERNEL__ */
@@ -208,7 +208,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 		ccl_local type locals; \
 		kernel_##name(kg, &locals); \
 	}
-#endif /* KERNEL_STUB */
+#endif  /* KERNEL_STUB */
 
 DEFINE_SPLIT_KERNEL_FUNCTION(path_init)
 DEFINE_SPLIT_KERNEL_FUNCTION(scene_intersect)

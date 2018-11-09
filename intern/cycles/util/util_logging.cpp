@@ -45,7 +45,7 @@ void util_logging_init(const char *argv0)
 #endif
 }
 
-void util_logging_start(void)
+void util_logging_start()
 {
 #ifdef WITH_CYCLES_LOGGING
 	using CYCLES_GFLAGS_NAMESPACE::SetCommandLineOption;

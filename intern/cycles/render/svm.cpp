@@ -266,7 +266,7 @@ int SVMCompiler::stack_assign(ShaderInput *input)
 				add_node(NODE_VALUE_V, input->stack_offset);
 				add_node(NODE_VALUE_V, node->get_float3(input->socket_type));
 			}
-			else /* should not get called for closure */
+			else  /* should not get called for closure */
 				assert(0);
 		}
 	}

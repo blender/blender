@@ -83,4 +83,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif /* __BAKE_H__ */
+#endif  /* __BAKE_H__ */

@@ -30,4 +30,4 @@ OIIO_NAMESPACE_USING
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_PARAM_H__ */
+#endif  /* __UTIL_PARAM_H__ */

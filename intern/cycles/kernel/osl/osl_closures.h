@@ -146,4 +146,4 @@ CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 
-#endif /* __OSL_CLOSURES_H__ */
+#endif  /* __OSL_CLOSURES_H__ */

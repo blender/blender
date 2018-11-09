@@ -488,4 +488,4 @@ CCL_NAMESPACE_END
 
 #endif
 
-#endif /* __DEVICE_NETWORK_H__ */
+#endif  /* __DEVICE_NETWORK_H__ */

@@ -370,7 +370,7 @@ TEST(util_path_is_relative, relative_windir_on_unix)
 	bool is_relative = path_is_relative("tmp\\foo.txt");
 	EXPECT_TRUE(is_relative);
 }
-#endif /* !_WIN32 */
+#endif  /* !_WIN32 */
 
 #ifdef _WIN32
 TEST(util_path_is_relative, absolute_windows)
@@ -396,6 +396,6 @@ TEST(util_path_is_relative, relative_unixdir_on_windows)
 	bool is_relative = path_is_relative("tmp/foo.txt");
 	EXPECT_TRUE(is_relative);
 }
-#endif /* _WIN32 */
+#endif  /* _WIN32 */
 
 CCL_NAMESPACE_END

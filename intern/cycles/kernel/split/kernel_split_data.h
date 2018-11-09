@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline uint64_t split_data_buffer_size(KernelGlobals *kg, size_t num_elements)
 {
-	(void)kg;  /* Unused on CPU. */
+	(void) kg;  /* Unused on CPU. */
 
 	uint64_t size = 0;
 #define SPLIT_DATA_ENTRY(type, name, num) + align_up(num_elements * num * sizeof(type), 16)
@@ -48,7 +48,7 @@ ccl_device_inline void split_data_init(KernelGlobals *kg,
                                        ccl_global void *data,
                                        ccl_global char *ray_state)
 {
-	(void)kg;  /* Unused on CPU. */
+	(void) kg;  /* Unused on CPU. */
 
 	ccl_global char *p = (ccl_global char*)data;
 

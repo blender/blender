@@ -89,4 +89,4 @@ typedef struct TextureInfo {
 
 CCL_NAMESPACE_END
 
-#endif /* __UTIL_TEXTURE_H__ */
+#endif  /* __UTIL_TEXTURE_H__ */

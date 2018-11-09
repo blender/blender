@@ -17,8 +17,8 @@
 #ifndef __PARTICLES_H__
 #define __PARTICLES_H__
 
+#include "util/util_array.h"
 #include "util/util_types.h"
-#include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -68,4 +68,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __PARTICLES_H__ */
+#endif  /* __PARTICLES_H__ */

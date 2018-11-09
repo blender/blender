@@ -59,4 +59,4 @@ public:
 
 CCL_NAMESPACE_END
 
-#endif /* __BACKGROUND_H__ */
+#endif  /* __BACKGROUND_H__ */
