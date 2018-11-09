@@ -36,7 +36,7 @@ def act_strip(context):
 
 def sel_sequences(context):
     try:
-        return context.selected_sequences
+        return len(context.selected_sequences) if context.selected_sequences else 0
     except AttributeError:
         return 0
 
