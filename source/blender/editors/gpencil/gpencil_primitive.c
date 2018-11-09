@@ -411,6 +411,15 @@ static void gpencil_primitive_update(bContext *C, wmOperator *op, tGPDprimitive 
 
 /* ----------------------- */
 
+static void gpencil_primitive_interaction_begin(tGPDprimitive *tgpi, const wmEvent *event)
+{
+	tgpi->top[0] = event->mval[0];
+	tgpi->top[1] = event->mval[1];
+
+	tgpi->bottom[0] = event->mval[0];
+	tgpi->bottom[1] = event->mval[1];
+}
+
 /* Exit and free memory */
 static void gpencil_primitive_exit(bContext *C, wmOperator *op)
 {
@@ -498,7 +507,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 /* ----------------------- */
 
 /* Invoke handler: Initialize the operator */
-static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
@@ -507,6 +516,12 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
 	/* initialize operator runtime data */
 	gpencil_primitive_init(C, op);
 	tgpi = op->customdata;
+
+	const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
+	if (!is_modal) {
+		tgpi->flag = IN_PROGRESS;
+		gpencil_primitive_interaction_begin(tgpi, event);
+	}
 
 	/* if in tools region, wait till we get to the main (3d-space)
 	 * region before allowing drawing to take place.
@@ -531,7 +546,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
 }
 
 /* Helper to complete a primitive */
-static void gpencil_primitive_done(bContext *C, wmOperator *op, wmWindow *win, tGPDprimitive *tgpi)
+static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWindow *win, tGPDprimitive *tgpi)
 {
 	bGPDframe *gpf;
 	bGPDstroke *gps;
@@ -589,17 +604,12 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 				/* start drawing primitive */
 				/* TODO: Ignore if not in main region yet */
 				tgpi->flag = IN_PROGRESS;
-
-				tgpi->top[0] = event->mval[0];
-				tgpi->top[1] = event->mval[1];
-
-				tgpi->bottom[0] = event->mval[0];
-				tgpi->bottom[1] = event->mval[1];
+				gpencil_primitive_interaction_begin(tgpi, event);
 			}
 			else if ((event->val == KM_RELEASE) && (tgpi->flag == IN_PROGRESS)) {
 				/* stop drawing primitive */
 				tgpi->flag = IDLE;
-				gpencil_primitive_done(C, op, win, tgpi);
+				gpencil_primitive_interaction_end(C, op, win, tgpi);
 				/* done! */
 				return OPERATOR_FINISHED;
 			}
@@ -612,7 +622,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 		case RETKEY:  /* confirm */
 		{
 			tgpi->flag = IDLE;
-			gpencil_primitive_done(C, op, win, tgpi);
+			gpencil_primitive_interaction_end(C, op, win, tgpi);
 			/* done! */
 			return OPERATOR_FINISHED;
 		}
@@ -735,8 +745,13 @@ void GPENCIL_OT_primitive(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	/* properties */
+	PropertyRNA *prop;
+
 	RNA_def_int(ot->srna, "edges", 4, MIN_EDGES, MAX_EDGES, "Edges", "Number of polygon edges", MIN_EDGES, MAX_EDGES);
 	RNA_def_enum(ot->srna, "type", primitive_type, GP_STROKE_BOX, "Type", "Type of shape");
+
+	prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* *************************************************************** */

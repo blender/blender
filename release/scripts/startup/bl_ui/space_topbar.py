@@ -146,7 +146,8 @@ class TOPBAR_HT_lower_bar(Header):
                 #     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
                 pass
             elif tool_mode == 'GPENCIL_PAINT':
-                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
+                if (tool is not None) and tool.has_datablock:
+                    layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
             elif tool_mode == 'GPENCIL_SCULPT':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_sculpt", category="")
             elif tool_mode == 'GPENCIL_WEIGHT':

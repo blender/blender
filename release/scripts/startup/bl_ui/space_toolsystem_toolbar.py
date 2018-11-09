@@ -1215,6 +1215,45 @@ class _defs_gpencil_paint:
             ),
         )
 
+    @ToolDef.from_fn
+    def line():
+        return dict(
+            text="Line",
+            icon="ops.gpencil.primitive_line",
+            widget=None,
+            keymap=(
+                ("gpencil.primitive",
+                 dict(type='LINE', wait_for_input=False),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def box():
+        return dict(
+            text="Box",
+            icon="ops.gpencil.primitive_box",
+            widget=None,
+            keymap=(
+                ("gpencil.primitive",
+                 dict(type='BOX', wait_for_input=False),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def circle():
+        return dict(
+            text="Circle",
+            icon="ops.gpencil.primitive_circle",
+            widget=None,
+            keymap=(
+                ("gpencil.primitive",
+                 dict(type='CIRCLE', wait_for_input=False),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
 
 class _defs_gpencil_edit:
     @ToolDef.from_fn
@@ -1804,7 +1843,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_weight_paint.gradient,
         ],
         'GPENCIL_PAINT': [
+            _defs_view3d_generic.cursor,
+            None,
             _defs_gpencil_paint.generate_from_brushes,
+            None,
+            _defs_gpencil_paint.line,
+            _defs_gpencil_paint.box,
+            _defs_gpencil_paint.circle,
         ],
         'GPENCIL_EDIT': [
             _defs_view3d_generic.cursor,

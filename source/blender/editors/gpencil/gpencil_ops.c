@@ -46,6 +46,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_toolsystem.h"
 
 #include "RNA_access.h"
 
@@ -91,7 +92,8 @@ static bool gp_stroke_paintmode_draw_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_tool == GPAINT_TOOL_DRAW));
+	        (brush->gpencil_tool == GPAINT_TOOL_DRAW) &&
+	        WM_toolsystem_active_tool_is_brush(C));
 }
 
 /* Poll callback for stroke painting (erase brush) */
@@ -103,7 +105,8 @@ static bool gp_stroke_paintmode_erase_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_tool == GPAINT_TOOL_ERASE));
+	        (brush->gpencil_tool == GPAINT_TOOL_ERASE) &&
+	        WM_toolsystem_active_tool_is_brush(C));
 }
 
 /* Poll callback for stroke painting (fill) */
@@ -115,7 +118,8 @@ static bool gp_stroke_paintmode_fill_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_tool == GPAINT_TOOL_FILL));
+	        (brush->gpencil_tool == GPAINT_TOOL_FILL) &&
+	        WM_toolsystem_active_tool_is_brush(C));
 }
 
 /* Poll callback for stroke sculpting mode */
