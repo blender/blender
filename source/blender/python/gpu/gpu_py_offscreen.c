@@ -185,18 +185,20 @@ PyDoc_STRVAR(bpygpu_offscreen_draw_view3d_doc,
 "\n"
 "   :param scene: Scene to draw.\n"
 "   :type scene: :class:`bpy.types.Scene`\n"
+"   :param view_layer: View layer to draw.\n"
+"   :type view_layer: :class:`bpy.types.ViewLayer`\n"
 "   :param view3d: 3D View to get the drawing settings from.\n"
 "   :type view3d: :class:`bpy.types.SpaceView3D`\n"
 "   :param region: Region of the 3D View.\n"
 "   :type region: :class:`bpy.types.Region`\n"
-"   :param modelview_matrix: ModelView Matrix.\n"
-"   :type modelview_matrix: :class:`mathutils.Matrix`\n"
+"   :param view_matrix: View Matrix.\n"
+"   :type view_matrix: :class:`mathutils.Matrix`\n"
 "   :param projection_matrix: Projection Matrix.\n"
 "   :type projection_matrix: :class:`mathutils.Matrix`\n"
 );
 static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
-	MatrixObject *py_mat_modelview, *py_mat_projection;
+	MatrixObject *py_mat_view, *py_mat_projection;
 	PyObject *py_scene, *py_view_layer, *py_region, *py_view3d;
 
 	struct Depsgraph *depsgraph;
@@ -210,14 +212,14 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 
 	static const char *_keywords[] = {
 	        "scene", "view_layer", "view3d", "region",
-	        "projection_matrix", "modelview_matrix", NULL};
+	        "projection_matrix", "view_matrix", NULL};
 
 	static _PyArg_Parser _parser = {"OOOOO&O&:draw_view3d", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &py_scene, &py_view_layer, &py_view3d, &py_region,
 	        Matrix_Parse4x4, &py_mat_projection,
-	        Matrix_Parse4x4, &py_mat_modelview) ||
+	        Matrix_Parse4x4, &py_mat_view) ||
 	    (!(scene       = PyC_RNA_AsPointer(py_scene, "Scene")) ||
 	     !(view_layer = PyC_RNA_AsPointer(py_view_layer, "ViewLayer")) ||
 	     !(v3d         = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
@@ -241,7 +243,7 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 	                         ar,
 	                         GPU_offscreen_width(self->ofs),
 	                         GPU_offscreen_height(self->ofs),
-	                         (float(*)[4])py_mat_modelview->matrix,
+	                         (float(*)[4])py_mat_view->matrix,
 	                         (float(*)[4])py_mat_projection->matrix,
 	                         false,
 	                         true,

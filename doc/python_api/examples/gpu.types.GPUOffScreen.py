@@ -97,7 +97,7 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
         render = scene.render
         camera = scene.camera
 
-        modelview_matrix = camera.matrix_world.inverted()
+        view_matrix = camera.matrix_world.inverted()
         projection_matrix = camera.calc_matrix_camera(
             context.depsgraph,
             x=render.resolution_x,
@@ -112,7 +112,7 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
             context.space_data,
             context.region,
             projection_matrix,
-            modelview_matrix,
+            view_matrix,
         )
 
     def _opengl_draw(self, context, texture, aspect_ratio, scale):
