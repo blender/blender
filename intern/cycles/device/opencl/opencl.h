@@ -245,7 +245,7 @@ public:
 				(device)->set_error(message); \
 			fprintf(stderr, "%s\n", message.c_str()); \
 		} \
-	} (void)0
+	} (void) 0
 
 #define opencl_assert(stmt) \
 	{ \
@@ -257,7 +257,7 @@ public:
 				error_msg = message; \
 			fprintf(stderr, "%s\n", message.c_str()); \
 		} \
-	} (void)0
+	} (void) 0
 
 class OpenCLDeviceBase : public Device
 {

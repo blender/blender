@@ -1291,9 +1291,9 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 		}
 	}
 #else
-	(void)device;
-	(void)scene;
-	(void)mesh_attributes;
+	(void) device;
+	(void) scene;
+	(void) mesh_attributes;
 #endif
 }
 
@@ -2301,7 +2301,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 		og->object_names.clear();
 	}
 #else
-	(void)device;
+	(void) device;
 #endif
 }
 

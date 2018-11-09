@@ -53,7 +53,7 @@ public:
 
 	T *allocate(size_t n, const void *hint = 0)
 	{
-		(void)hint;
+		(void) hint;
 		if(n == 0) {
 			return NULL;
 		}

@@ -281,7 +281,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals *kg,
 												   ray.t,
 												   &ob_itfm);
 				/* bvh_instance_motion_push() returns the inverse transform but it's not needed here. */
-				(void)ob_itfm;
+				(void) ob_itfm;
 
 				rtc_ray.org_x = P.x;
 				rtc_ray.org_y = P.y;

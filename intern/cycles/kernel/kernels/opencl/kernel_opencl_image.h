@@ -142,7 +142,7 @@ ccl_device_inline float svm_image_texture_frac(float x, int *ix)
 		u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
 		u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
 		u[3] = (1.0f / 6.0f) * t * t * t; \
-	} (void)0
+	} (void) 0
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, float y)
 {

@@ -211,7 +211,7 @@ public:
 			/*cuda_abort();*/ \
 			cuda_error_documentation(); \
 		} \
-	} (void)0
+	} (void) 0
 
 	bool cuda_error_(CUresult result, const string& stmt)
 	{
@@ -2146,7 +2146,7 @@ public:
 			/*cuda_abort();*/ \
 			device->cuda_error_documentation(); \
 		} \
-	} (void)0
+	} (void) 0
 
 
 /* CUDA context scope. */
@@ -2530,7 +2530,7 @@ string device_cuda_capabilities()
 				capabilities += string_printf("\t\tCU_DEVICE_ATTRIBUTE_" #attr "\t\t\t%d\n", \
 				                              value); \
 			} \
-		} (void)0
+		} (void) 0
 		/* TODO(sergey): Strip all attributes which are not useful for us
 		 * or does not depend on the driver.
 		 */

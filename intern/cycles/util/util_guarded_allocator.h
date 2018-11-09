@@ -47,7 +47,7 @@ public:
 
 	T *allocate(size_t n, const void *hint = 0)
 	{
-		(void)hint;
+		(void) hint;
 		size_t size = n * sizeof(T);
 		util_guarded_mem_alloc(size);
 		if(n == 0) {

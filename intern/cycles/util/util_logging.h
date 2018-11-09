@@ -41,7 +41,7 @@ public:
 	void operator&(StubStream&) { }
 };
 
-#  define LOG_SUPPRESS() (true) ? (void) 0 : LogMessageVoidify() & StubStream()
+#  define LOG_SUPPRESS() (true) ? ((void) 0) : LogMessageVoidify() & StubStream()
 #  define LOG(severity) LOG_SUPPRESS()
 #  define VLOG(severity) LOG_SUPPRESS()
 #endif

@@ -106,7 +106,7 @@ cl_context OpenCLCache::get_context(cl_platform_id platform,
 
 	cl_int ciErr = clRetainContext(slot.context);
 	assert(ciErr == CL_SUCCESS);
-	(void)ciErr;
+	(void) ciErr;
 
 	return slot.context;
 }
@@ -153,7 +153,7 @@ cl_program OpenCLCache::get_program(cl_platform_id platform,
 
 	cl_int ciErr = clRetainProgram(entry.program);
 	assert(ciErr == CL_SUCCESS);
-	(void)ciErr;
+	(void) ciErr;
 
 	return entry.program;
 }
@@ -188,7 +188,7 @@ void OpenCLCache::store_context(cl_platform_id platform,
 	 * The caller is going to release the object when done with it. */
 	cl_int ciErr = clRetainContext(context);
 	assert(ciErr == CL_SUCCESS);
-	(void)ciErr;
+	(void) ciErr;
 }
 
 void OpenCLCache::store_program(cl_platform_id platform,
@@ -227,7 +227,7 @@ void OpenCLCache::store_program(cl_platform_id platform,
 	 */
 	cl_int ciErr = clRetainProgram(program);
 	assert(ciErr == CL_SUCCESS);
-	(void)ciErr;
+	(void) ciErr;
 }
 
 string OpenCLCache::get_kernel_md5()

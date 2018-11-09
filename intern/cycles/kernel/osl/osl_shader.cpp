@@ -193,7 +193,7 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state
 			float data[9];
 			bool found = kg->osl->services->get_attribute(sd, true, OSLRenderServices::u_empty, TypeDesc::TypeVector,
 			                                              OSLRenderServices::u_geom_undisplaced, data);
-			(void)found;
+			(void) found;
 			assert(found);
 
 			memcpy(&sd->P, data, sizeof(float)*3);

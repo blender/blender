@@ -29,7 +29,7 @@
 #define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_add_uint32((p), -1)
 
 #define CCL_LOCAL_MEM_FENCE 0
-#define ccl_barrier(flags) (void)0
+#define ccl_barrier(flags) ((void) 0)
 
 #else  /* __KERNEL_GPU__ */
 
