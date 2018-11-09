@@ -83,8 +83,7 @@ static bool gp_stroke_paintmode_poll(bContext *C)
 	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE));
 }
 
-/* Poll callback for stroke painting (draw brush) */
-static bool gp_stroke_paintmode_draw_poll(bContext *C)
+static bool gp_stroke_paintmode_poll_with_tool(bContext *C, const char gpencil_tool)
 {
 	/* TODO: limit this to mode, but review 2D editors */
 	bGPdata *gpd = CTX_data_gpencil_data(C);
@@ -92,34 +91,26 @@ static bool gp_stroke_paintmode_draw_poll(bContext *C)
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_tool == GPAINT_TOOL_DRAW) &&
-	        WM_toolsystem_active_tool_is_brush(C));
+	        WM_toolsystem_active_tool_is_brush(C) &&
+	        (brush->gpencil_tool == gpencil_tool));
+}
+
+/* Poll callback for stroke painting (draw brush) */
+static bool gp_stroke_paintmode_draw_poll(bContext *C)
+{
+	return gp_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_DRAW);
 }
 
 /* Poll callback for stroke painting (erase brush) */
 static bool gp_stroke_paintmode_erase_poll(bContext *C)
 {
-	/* TODO: limit this to mode, but review 2D editors */
-	bGPdata *gpd = CTX_data_gpencil_data(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	Brush *brush = BKE_brush_getactive_gpencil(ts);
-	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
-	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_tool == GPAINT_TOOL_ERASE) &&
-	        WM_toolsystem_active_tool_is_brush(C));
+	return gp_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_ERASE);
 }
 
 /* Poll callback for stroke painting (fill) */
 static bool gp_stroke_paintmode_fill_poll(bContext *C)
 {
-	/* TODO: limit this to mode, but review 2D editors */
-	bGPdata *gpd = CTX_data_gpencil_data(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	Brush *brush = BKE_brush_getactive_gpencil(ts);
-	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
-	        (brush && brush->gpencil_settings) &&
-	        (brush->gpencil_tool == GPAINT_TOOL_FILL) &&
-	        WM_toolsystem_active_tool_is_brush(C));
+	return gp_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_FILL);
 }
 
 /* Poll callback for stroke sculpting mode */
