@@ -1813,14 +1813,14 @@ void ED_gpencil_calc_stroke_uv(Object *ob, bGPDstroke *gps)
 	}
 	else {
 		/* use this value by default */
-		pixsize = 0.000100f;
+		pixsize = 0.0001f;
 	}
 	pixsize = MAX2(pixsize, 0.0000001f);
 
 	bGPDspoint *pt = NULL;
 	bGPDspoint *ptb = NULL;
 	int i;
-	float totlen = 0;
+	float totlen = 0.0f;
 
 	/* first read all points and calc distance */
 	for (i = 0; i < gps->totpoints; i++) {
