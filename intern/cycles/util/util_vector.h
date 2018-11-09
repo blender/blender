@@ -34,7 +34,6 @@ CCL_NAMESPACE_BEGIN
  * Own subclass-ed vestion of std::vector. Subclass is needed because:
  *
  * - Use own allocator which keeps track of used/peak memory.
- *
  * - Have method to ensure capacity is re-set to 0.
  */
 template<typename value_type,
@@ -42,6 +41,8 @@ template<typename value_type,
 class vector : public std::vector<value_type, allocator_type>
 {
 public:
+	typedef std::vector<value_type, allocator_type> BaseClass;
+
 	/* Default constructor. */
 	explicit vector() : std::vector<value_type, allocator_type>() {  }
 
@@ -57,15 +58,10 @@ public:
 	/* Copy constructor. */
 	vector(const vector &x) : std::vector<value_type, allocator_type>(x) {  }
 
-	void shrink_to_fit(void)
-	{
-		std::vector<value_type, allocator_type>::shrink_to_fit();
-	}
-
 	void free_memory(void)
 	{
-		std::vector<value_type, allocator_type>::resize(0);
-		shrink_to_fit();
+		BaseClass::resize(0);
+		BaseClass::shrink_to_fit();
 	}
 
 	/* Some external API might demand working with std::vector. */
