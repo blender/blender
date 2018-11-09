@@ -1695,19 +1695,53 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
     @staticmethod
     def draw(self, context):
         layout = self.layout
+
+
+class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_label = "Sensitivity"
+    bl_parent_id ="VIEW3D_PT_tools_grease_pencil_brushcurves"
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
         layout.use_property_split = True
 
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
 
-        # Brush
-        layout.label(text="Sensitivity")
         layout.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True)
 
-        layout.label(text="Strength")
+
+class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_label = "Strength"
+    bl_parent_id ="VIEW3D_PT_tools_grease_pencil_brushcurves"
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        brush = context.active_gpencil_brush
+        gp_settings = brush.gpencil_settings
+
         layout.template_curve_mapping(gp_settings, "curve_strength", brush=True)
 
-        layout.label(text="Jitter")
+
+class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
+    bl_context = ".greasepencil_paint"
+    bl_label = "Jitter"
+    bl_parent_id ="VIEW3D_PT_tools_grease_pencil_brushcurves"
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        brush = context.active_gpencil_brush
+        gp_settings = brush.gpencil_settings
+
         layout.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
 
 
@@ -1894,6 +1928,9 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_stabilizer,
     VIEW3D_PT_tools_grease_pencil_brush_random,
     VIEW3D_PT_tools_grease_pencil_brushcurves,
+    VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity,
+    VIEW3D_PT_tools_grease_pencil_brushcurves_strength,
+    VIEW3D_PT_tools_grease_pencil_brushcurves_jitter,
     VIEW3D_PT_tools_grease_pencil_shapes,
     VIEW3D_PT_tools_grease_pencil_sculpt,
     VIEW3D_PT_tools_grease_pencil_weight_paint,
