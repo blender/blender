@@ -3996,27 +3996,26 @@ class VIEW3D_PT_object_type_visibility(Panel):
         layout.label(text="Object Types Visibility")
         col = layout.column()
 
-        attr_object_types = {
+        attr_object_types = (
             # Geometry
-            "mesh" : "Mesh",
-            "curve" : "Curve",
-            "surf" : "Surface",
-            "meta" : "Meta",
-            "font" : "Font",
-            None : None,
+            ("mesh", "Mesh"),
+            ("curve", "Curve"),
+            ("surf", "Surface"),
+            ("meta", "Meta"),
+            ("font", "Font"),
+            (None, None),
             # Other
-            "armature" : "Armature",
-            "lattice" : "Lattice",
-            "empty" : "Empty",
-            "grease_pencil" : "Grease Pencil",
-            "camera" : "Camera",
-            "light" : "Light",
-            "light_probe" : "Light Probe",
-            "speaker" : "Speaker",
-        }
+            ("armature", "Armature"),
+            ("lattice", "Lattice"),
+            ("empty", "Empty"),
+            ("grease_pencil", "Grease Pencil"),
+            ("camera", "Camera"),
+            ("light", "Light"),
+            ("light_probe", "Light Probe"),
+            ("speaker", "Speaker"),
+        )
 
-
-        for attr, attr_name in attr_object_types.items():
+        for attr, attr_name in attr_object_types:
             if attr is None:
                 col.separator()
                 continue
