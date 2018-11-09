@@ -467,6 +467,17 @@ void OBJECT_OT_add(wmOperatorType *ot)
 /********************** Add Probe Operator **********************/
 
 /* for object add operator */
+static const char *get_lightprobe_defname(int type)
+{
+	switch (type) {
+		case LIGHTPROBE_TYPE_GRID: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "IrradianceVolume");
+		case LIGHTPROBE_TYPE_PLANAR: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "ReflectionPlane");
+		case LIGHTPROBE_TYPE_CUBE: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "ReflectionCubemap");
+		default:
+			return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "LightProbe");
+	}
+}
+
 static int lightprobe_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob;
@@ -483,8 +494,7 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 	type = RNA_enum_get(op->ptr, "type");
 	radius = RNA_float_get(op->ptr, "radius");
 
-	const char *name = CTX_DATA_(BLT_I18NCONTEXT_ID_OBJECT, "Light Probe");
-	ob = ED_object_add_type(C, OB_LIGHTPROBE, name, loc, rot, false);
+	ob = ED_object_add_type(C, OB_LIGHTPROBE, get_lightprobe_defname(type), loc, rot, false);
 	BKE_object_obdata_size_init(ob, radius);
 
 	probe = (LightProbe *)ob->data;
@@ -506,7 +516,7 @@ static int lightprobe_add_exec(bContext *C, wmOperator *op)
 			probe->attenuation_type = LIGHTPROBE_SHAPE_ELIPSOID;
 			break;
 		default:
-			BLI_assert(!"Lightprobe type not configured.");
+			BLI_assert(!"LightProbe type not configured.");
 			break;
 	}
 
