@@ -293,14 +293,14 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					}
 					case SIMFACE_AREA:
 					{
-						float area = BM_face_calc_area(face);
+						float area = BM_face_calc_area_worldspace(ob, face);
 						float dummy[3] = {area, 0.0f, 0.0f};
 						BLI_kdtree_insert(tree, tree_index++, dummy);
 						break;
 					}
 					case SIMFACE_PERIMETER:
 					{
-						float perimeter = BM_face_calc_perimeter(face);
+						float perimeter = BM_face_calc_perimeter_worldspace(ob, face);
 						float dummy[3] = {perimeter, 0.0f, 0.0f};
 						BLI_kdtree_insert(tree, tree_index++, dummy);
 						break;
@@ -440,7 +440,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					}
 					case SIMFACE_AREA:
 					{
-						float area = BM_face_calc_area(face);
+						float area = BM_face_calc_area_worldspace(ob, face);
 						if (ED_select_similar_compare_float_tree(tree, area, thresh, compare)) {
 							select = true;
 						}
@@ -448,7 +448,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					}
 					case SIMFACE_PERIMETER:
 					{
-						float perimeter = BM_face_calc_perimeter(face);
+						float perimeter = BM_face_calc_perimeter_worldspace(ob, face);
 						if (ED_select_similar_compare_float_tree(tree, perimeter, thresh, compare)) {
 							select = true;
 						}
@@ -774,7 +774,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_FACE_ANGLE:
 					{
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
-							float angle = BM_edge_calc_face_angle(edge);
+							float angle = BM_edge_calc_face_angle_worldspace(ob, edge);
 							float dummy[3] = {angle, 0.0f, 0.0f};
 							BLI_kdtree_insert(tree, tree_index++, dummy);
 						}
@@ -904,7 +904,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_FACE_ANGLE:
 					{
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
-							float angle = BM_edge_calc_face_angle(edge);
+							float angle = BM_edge_calc_face_angle_worldspace(ob, edge);
 							if (ED_select_similar_compare_float_tree(tree, angle, thresh, SIM_CMP_EQ)) {
 								select = true;
 							}

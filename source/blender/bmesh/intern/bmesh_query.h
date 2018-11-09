@@ -27,6 +27,8 @@
  *  \ingroup bmesh
  */
 
+struct Object;
+
 bool    BM_vert_in_face(BMVert *v, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int     BM_verts_in_face_count(BMVert **varr, int len, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool    BM_verts_in_face(BMVert **varr, int len, BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -123,6 +125,8 @@ void    BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3]);
 float   BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle_signed_ex(const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_edge_calc_face_angle_worldspace_ex(struct Object *ob, const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_edge_calc_face_angle_worldspace(struct Object *ob, const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle_signed(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void    BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3]) ATTR_NONNULL();
 
