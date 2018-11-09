@@ -1835,15 +1835,21 @@ void ED_gpencil_calc_stroke_uv(Object *ob, bGPDstroke *gps)
 		totlen += len_v3v3(&pt->x, &ptb->x) / pixsize;
 		pt->uv_fac = totlen;
 	}
+
 	/* normalize the distance using a factor */
 	float factor;
+
 	/* if image, use texture width */
 	if ((gp_style) && (gp_style->sima)) {
 		factor = gp_style->sima->gen_x;
 	}
+	else if (totlen == 0) {
+		return;
+	}
 	else {
 		factor = totlen;
 	}
+
 	for (i = 0; i < gps->totpoints; i++) {
 		pt = &gps->points[i];
 		pt->uv_fac /= factor;
