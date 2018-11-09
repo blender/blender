@@ -1353,22 +1353,22 @@ static const EnumPropertyItem curve_prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/** Note: This function should actually take scaling into consideration. */
 static void nurb_bezt_direction_worldspace_get(Object *ob, Nurb *nu, BezTriple *bezt, float r_dir[3])
 {
-	float rmat[3][3];
+	float rsmat[3][3];
 	BKE_nurb_bezt_calc_normal(nu, bezt, r_dir);
-	BKE_object_rot_to_mat3(ob, rmat, true);
-	mul_m3_v3(rmat, r_dir);
+	copy_m3_m4(rsmat, ob->obmat);
+	mul_m3_v3(rsmat, r_dir);
+	normalize_v3(r_dir);
 }
 
-/** Note: This function should actually take scaling into consideration. */
 static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *bp, float r_dir[3])
 {
-	float rmat[3][3];
+	float rsmat[3][3];
 	BKE_nurb_bpoint_calc_normal(nu, bp, r_dir);
-	BKE_object_rot_to_mat3(ob, rmat, true);
-	mul_m3_v3(rmat, r_dir);
+	copy_m3_m4(rsmat, ob->obmat);
+	mul_m3_v3(rsmat, r_dir);
+	normalize_v3(r_dir);
 }
 
 static void curve_nurb_selected_type_get(Object *ob, Nurb *nu, const int type, KDTree *r_tree)
