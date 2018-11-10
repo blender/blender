@@ -1452,11 +1452,7 @@ static bool gp_check_cursor_region(bContext *C, int mval[2])
 		return false;
 	}
 	else if (ar) {
-		rcti region_rect;
-
-		/* Perform bounds check using  */
-		ED_region_visible_rect(ar, &region_rect);
-		return BLI_rcti_isect_pt_v(&region_rect, mval);
+		return BLI_rcti_isect_pt_v(&ar->winrct, mval);
 	}
 	else {
 		return false;
