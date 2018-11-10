@@ -1771,7 +1771,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         row = col.row(align=True)
-        row.prop(md, "thickness")
+        row.prop(md, "thickness", text="Thickness Factor")
 
         col.prop(md, "normalize_thickness")
 
