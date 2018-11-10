@@ -123,6 +123,8 @@ void    BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3]);
 float   BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle_signed_ex(const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_edge_calc_face_angle_with_imat3_ex(const BMEdge *e, float imat3[3][3], const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_edge_calc_face_angle_with_imat3(const BMEdge *e, float imat3[3][3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_edge_calc_face_angle_signed(const BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void    BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3]) ATTR_NONNULL();
 

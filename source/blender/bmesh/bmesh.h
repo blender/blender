@@ -84,7 +84,7 @@
  * Edges and Vertices in BMesh are primitive structures.
  *
  * \note There can be more than one edge between two vertices in BMesh,
- * though the rest of Blender (e.g. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
+ * though the rest of Blender (i.e. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
  * So it should only occur temporarily during editing operations.
  *
  *

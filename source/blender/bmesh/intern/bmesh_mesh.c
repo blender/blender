@@ -894,7 +894,10 @@ static void bm_mesh_loops_calc_normals(
 								clnors_avg[0] /= clnors_nbr;
 								clnors_avg[1] /= clnors_nbr;
 								/* Fix/update all clnors of this fan with computed average value. */
-								printf("Invalid clnors in this fan!\n");
+
+								/* Prints continuously when merge custom normals, so commenting. */
+								/* printf("Invalid clnors in this fan!\n"); */
+
 								while ((clnor = BLI_SMALLSTACK_POP(clnors))) {
 									//print_v2("org clnor", clnor);
 									clnor[0] = (short)clnors_avg[0];
@@ -1009,7 +1012,8 @@ void BM_mesh_loop_normals_update(
 void BM_loops_calc_normal_vcos(
         BMesh *bm, const float (*vcos)[3], const float (*vnos)[3], const float (*fnos)[3],
         const bool use_split_normals, const float split_angle, float (*r_lnos)[3],
-        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], const int cd_loop_clnors_offset)
+        MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2],
+        const int cd_loop_clnors_offset)
 {
 	const bool has_clnors = clnors_data || (cd_loop_clnors_offset != -1);
 
@@ -1019,7 +1023,8 @@ void BM_loops_calc_normal_vcos(
 		bm_mesh_edges_sharp_tag(bm, vnos, fnos, r_lnos, has_clnors ? (float)M_PI : split_angle, false);
 
 		/* Finish computing lnos by accumulating face normals in each fan of faces defined by sharp edges. */
-		bm_mesh_loops_calc_normals(bm, vcos, fnos, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
+		bm_mesh_loops_calc_normals(
+		        bm, vcos, fnos, r_lnos, r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
 	}
 	else {
 		BLI_assert(!r_lnors_spacearr);
