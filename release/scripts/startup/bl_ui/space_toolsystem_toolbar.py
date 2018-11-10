@@ -1215,8 +1215,50 @@ class _defs_gpencil_paint:
             ),
         )
 
-    @ToolDef.from_fn
-    def line():
+    @staticmethod
+    def draw_color_selector(context, layout, gp_settings):
+        ma = gp_settings.material
+        row = layout.row(align=True)
+
+        icon_id = 0
+        if ma:
+            icon_id = ma.id_data.preview.icon_id
+            txt_ma = ma.name
+            maxw = 25
+            if len(txt_ma) > maxw:
+                txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
+        else:
+            txt_ma = ""
+
+        row.label(text="Material:")
+        sub = row.row()
+        sub.ui_units_x = 8
+        sub.popover(
+            panel="TOPBAR_PT_gpencil_materials",
+            text=txt_ma,
+            icon_value=icon_id,
+        )
+
+        row.prop(gp_settings, "use_material_pin", text="")
+
+    def draw_settings_common(context, layout, tool):
+        row = layout.row(align=True)
+        ts = context.scene.tool_settings
+        gp_settings = ts.gpencil_paint
+        brush = gp_settings.brush
+        gp_brush = brush.gpencil_settings
+        row.template_ID_preview(gp_settings, "brush", rows=3, cols=8, hide_buttons=True)
+
+        if brush and brush.gpencil_tool == 'DRAW':
+            row = layout.row(align=True)
+            row.prop(brush, "size", text="Radius")
+            row = layout.row(align=True)
+            row.prop(gp_brush, "pen_strength", slider=True)
+
+            _defs_gpencil_paint.draw_color_selector(context, layout, gp_brush)
+
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def line(*, draw_settings):
         return dict(
             text="Line",
             icon="ops.gpencil.primitive_line",
@@ -1226,10 +1268,11 @@ class _defs_gpencil_paint:
                  dict(type='LINE', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn
-    def box():
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def box(*, draw_settings):
         return dict(
             text="Box",
             icon="ops.gpencil.primitive_box",
@@ -1239,10 +1282,11 @@ class _defs_gpencil_paint:
                  dict(type='BOX', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
-    @ToolDef.from_fn
-    def circle():
+    @ToolDef.from_fn.with_args(draw_settings=draw_settings_common)
+    def circle(*, draw_settings):
         return dict(
             text="Circle",
             icon="ops.gpencil.primitive_circle",
@@ -1252,6 +1296,7 @@ class _defs_gpencil_paint:
                  dict(type='CIRCLE', wait_for_input=False),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
 
