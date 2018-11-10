@@ -425,7 +425,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 	 */
 	static const char *kwlist[] = {
 		/* "False", "None", "True", */
-		"and", "as", "assert", "break",
+		"and", "as", "assert", "async", "await", "break",
 		"class", "continue", "def", "del", "elif", "else", "except",
 		"finally", "for", "from", "global", "if", "import", "in",
 		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
