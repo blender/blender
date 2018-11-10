@@ -652,30 +652,33 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 			GPU_blend(false);
 		}
 
+		/* text */
+		char numstr[256];
+		float numstr_size[2];
+		float posit[2];
+		const int prec = 2;  /* XXX, todo, make optional */
+
+		ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+
+		BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
+
+		posit[0] = co_ss[1][0] + (cap_size * 2.0f);
+		posit[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
+
+		/* draw text (bg) */
+		{
+			immUniformColor4fv(color_back);
+			GPU_blend(true);
+			immRectf(shdr_pos,
+			         posit[0] - bg_margin,                  posit[1] - bg_margin,
+			         posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1]);
+			GPU_blend(false);
+		}
+
 		immUnbindProgram();
 
-		/* text */
+		/* draw text */
 		{
-			char numstr[256];
-			float numstr_size[2];
-			float posit[2];
-			const int prec = 2;  /* XXX, todo, make optional */
-
-			ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
-
-			BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
-
-			posit[0] = co_ss[1][0] + (cap_size * 2.0f);
-			posit[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
-
-			/* draw text (bg) */
-			UI_draw_roundbox_corner_set(UI_CNR_ALL);
-			UI_draw_roundbox_aa(
-			        true,
-			        posit[0] - bg_margin,                  posit[1] - bg_margin,
-			        posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1],
-			        bg_radius, color_back);
-			/* draw text */
 			BLF_color3ubv(blf_mono_font, color_text);
 			BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
 			BLF_rotation(blf_mono_font, 0.0f);
@@ -735,33 +738,36 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 			GPU_blend(false);
 		}
 
+		/* text */
+		char numstr[256];
+		float numstr_size[2];
+		const int prec = 6;  /* XXX, todo, make optional */
+		float posit[2];
+
+		ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+
+		BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
+
+		mid_v2_v2v2(posit, co_ss[0], co_ss[2]);
+
+		/* center text */
+		posit[0] -= numstr_size[0] / 2.0f;
+		posit[1] -= numstr_size[1] / 2.0f;
+
+		/* draw text (bg) */
+		{
+			immUniformColor4fv(color_back);
+			GPU_blend(true);
+			immRectf(shdr_pos,
+			         posit[0] - bg_margin,                  posit[1] - bg_margin,
+			         posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1]);
+			GPU_blend(false);
+		}
+
 		immUnbindProgram();
 
-		/* text */
+		/* draw text */
 		{
-			char numstr[256];
-			float numstr_size[2];
-			const int prec = 6;  /* XXX, todo, make optional */
-			float posit[2];
-
-			ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
-
-			BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
-
-			mid_v2_v2v2(posit, co_ss[0], co_ss[2]);
-
-			/* center text */
-			posit[0] -= numstr_size[0] / 2.0f;
-			posit[1] -= numstr_size[1] / 2.0f;
-
-			/* draw text (bg) */
-			UI_draw_roundbox_corner_set(UI_CNR_ALL);
-			UI_draw_roundbox_aa(
-			        true,
-			        posit[0] - bg_margin,                  posit[1] - bg_margin,
-			        posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1],
-			        bg_radius, color_back);
-			/* draw text */
 			BLF_color3ubv(blf_mono_font, color_text);
 			BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
 			BLF_draw(blf_mono_font, numstr, sizeof(numstr));
