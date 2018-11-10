@@ -2919,6 +2919,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 		}
 		case ANIMTYPE_GPLAYER:
 		{
+			bGPdata *gpd = (bGPdata *)ale->id;
 			bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
 			/* select/deselect */
@@ -2935,10 +2936,12 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 			/* change active layer, if this is selected (since we must always have an active layer) */
 			if (gpl->flag & GP_LAYER_SELECT) {
 				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, gpl, ANIMTYPE_GPLAYER);
+				/* update other layer status */
+				BKE_gpencil_layer_setactive(gpd, gpl);
 			}
 
-			WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL); /* Grease Pencil updates */
-			notifierFlags |= (ND_ANIMCHAN | NA_EDITED); /* Animation Ediotrs updates */
+			WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL); /* Grease Pencil updates */
+			notifierFlags |= (ND_ANIMCHAN | NA_EDITED); /* Animation Editors updates */
 			break;
 		}
 		case ANIMTYPE_MASKDATABLOCK:
