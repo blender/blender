@@ -419,7 +419,6 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 //	ARegion *ar = ruler_info->ar;
 	const float cap_size = 4.0f;
 	const float bg_margin = 4.0f * U.pixelsize;
-	const float bg_radius = 4.0f * U.pixelsize;
 	const float arc_size = 64.0f * U.pixelsize;
 #define ARC_STEPS 24
 	const int arc_steps = ARC_STEPS;
@@ -440,6 +439,11 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 	UI_GetThemeColor3ubv(TH_TEXT, color_text);
 	UI_GetThemeColor3ubv(TH_WIRE, color_wire);
+
+	/* Avoid white on white text. (TODO Fix by using theme) */
+	if ((int)color_text[0] + (int)color_text[1] + (int)color_text[2] > 127 * 3 * 0.6f) {
+		copy_v3_fl(color_back, 0.0f);
+	}
 
 	for (ruler_item = ruler_info->items.first, i = 0; ruler_item; ruler_item = ruler_item->next, i++) {
 		const bool is_act = (i == ruler_info->item_active);
