@@ -28,7 +28,6 @@
  */
 
 struct Heap;
-struct Object;
 
 #include "BLI_compiler_attrs.h"
 
@@ -45,9 +44,9 @@ float BM_face_calc_normal_vcos(
         float const (*vertexCos)[3]) ATTR_NONNULL();
 float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, float r_no[3]) ATTR_NONNULL();
 float BM_face_calc_area(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float BM_face_calc_area_worldspace(struct Object *ob, const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float BM_face_calc_perimeter(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float BM_face_calc_perimeter_worldspace(struct Object *ob, const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float BM_face_calc_perimeter_with_mat3(const BMFace *f, const float mat3[3][3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BM_face_calc_tangent_edge(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
 void  BM_face_calc_tangent_edge_pair(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
 void  BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_plane[3]) ATTR_NONNULL();

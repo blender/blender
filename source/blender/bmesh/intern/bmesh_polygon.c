@@ -30,7 +30,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -243,23 +242,21 @@ float BM_face_calc_area(const BMFace *f)
 /**
  * Get the area of the face in world space.
  */
-float BM_face_calc_area_worldspace(Object *ob, const BMFace *f)
+float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3])
 {
 	/* inline 'area_poly_v3' logic, avoid creating a temp array */
 	const BMLoop *l_iter, *l_first;
+	float co[3];
 	float n[3];
 
 	zero_v3(n);
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	float rsmat[3][3];
-	copy_m3_m4(rsmat, ob->obmat);
+	mul_v3_m3v3(co, mat3, l_iter->v->co);
 	do {
-		float co[3], co_next[3];
-		copy_v3_v3(co, l_iter->v->co);
-		copy_v3_v3(co_next, l_iter->next->v->co);
-		mul_m3_v3(rsmat, co);
-		mul_m3_v3(rsmat, co_next);
+		float co_next[3];
+		mul_v3_m3v3(co_next, mat3, l_iter->next->v->co);
 		add_newell_cross_v3_v3v3(n, co, co_next);
+		copy_v3_v3(co, co_next);
 	} while ((l_iter = l_iter->next) != l_first);
 	return len_v3(n) * 0.5f;
 }
@@ -283,21 +280,19 @@ float BM_face_calc_perimeter(const BMFace *f)
 /**
  * Calculate the perimeter of a ngon in world space.
  */
-float BM_face_calc_perimeter_worldspace(Object *ob, const BMFace *f)
+float BM_face_calc_perimeter_with_mat3(const BMFace *f, const float mat3[3][3])
 {
 	const BMLoop *l_iter, *l_first;
+	float co[3];
 	float perimeter = 0.0f;
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	float rsmat[3][3];
-	copy_m3_m4(rsmat, ob->obmat);
+	mul_v3_m3v3(co, mat3, l_iter->v->co);
 	do {
-		float co[3], co_next[3];
-		copy_v3_v3(co, l_iter->v->co);
-		copy_v3_v3(co_next, l_iter->next->v->co);
-		mul_m3_v3(rsmat, co);
-		mul_m3_v3(rsmat, co_next);
+		float co_next[3];
+		mul_v3_m3v3(co_next, mat3, l_iter->next->v->co);
 		perimeter += len_v3v3(co, co_next);
+		copy_v3_v3(co, co_next);
 	} while ((l_iter = l_iter->next) != l_first);
 
 	return perimeter;

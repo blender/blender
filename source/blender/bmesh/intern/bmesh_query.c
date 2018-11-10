@@ -31,8 +31,6 @@
  * of inspecting the mesh structure directly.
  */
 
-#include "DNA_object_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -41,7 +39,6 @@
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_customdata.h"
-#include "BKE_object.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -1688,7 +1685,7 @@ float BM_edge_calc_face_angle(const BMEdge *e)
 *
 * \return angle in radians
 */
-float BM_edge_calc_face_angle_worldspace_ex(Object *ob, const BMEdge *e, const float fallback)
+float BM_edge_calc_face_angle_with_imat3_ex(const BMEdge *e, const float imat3[3][3], const float fallback)
 {
 	if (BM_edge_is_manifold(e)) {
 		const BMLoop *l1 = e->l;
@@ -1697,12 +1694,9 @@ float BM_edge_calc_face_angle_worldspace_ex(Object *ob, const BMEdge *e, const f
 		copy_v3_v3(no1, l1->f->no);
 		copy_v3_v3(no2, l2->f->no);
 
-		float smat[3][3];
-		BKE_object_scale_to_mat3(ob, smat);
-		invert_m3(smat);
+		mul_transposed_m3_v3(imat3, no1);
+		mul_transposed_m3_v3(imat3, no2);
 
-		mul_m3_v3(smat, no1);
-		mul_m3_v3(smat, no2);
 		normalize_v3(no1);
 		normalize_v3(no2);
 
@@ -1712,9 +1706,9 @@ float BM_edge_calc_face_angle_worldspace_ex(Object *ob, const BMEdge *e, const f
 		return fallback;
 	}
 }
-float BM_edge_calc_face_angle_worldspace(Object *ob, const BMEdge *e)
+float BM_edge_calc_face_angle_with_imat3(const BMEdge *e, const float imat3[3][3])
 {
-	return BM_edge_calc_face_angle_worldspace_ex(ob, e, DEG2RADF(90.0f));
+	return BM_edge_calc_face_angle_with_imat3_ex(e, imat3, DEG2RADF(90.0f));
 }
 
 /**
