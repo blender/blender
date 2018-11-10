@@ -374,7 +374,7 @@ static void rna_GPencil_active_layer_index_set(PointerRNA *ptr, int value)
 
 	/* Now do standard updates... */
 	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 }
 
 static void rna_GPencil_active_layer_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
