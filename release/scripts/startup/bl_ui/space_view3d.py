@@ -71,7 +71,7 @@ class VIEW3D_HT_header(Header):
                 sub.separator(factor=0.4)
                 sub.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
                 sub.separator(factor=0.4)
-                sub.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
+                sub.prop(tool_settings, "use_gpencil_draw_additive", text="", icon='FREEZE')
 
             if gpd.use_stroke_edit_mode:
                 row = layout.row(align=True)

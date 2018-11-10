@@ -112,7 +112,7 @@ class AnnotationDrawingToolsPanel:
         sub.operator("gpencil.active_frames_delete_all", icon='X', text="Delete Frame(s)")
 
         #sub = col.column(align=True)
-        #sub.prop(context.tool_settings, "use_gpencil_additive_drawing", text="Additive Drawing")
+        #sub.prop(context.tool_settings, "use_gpencil_draw_additive", text="Additive Drawing")
         #sub.prop(context.tool_settings, "use_gpencil_continuous_drawing", text="Continuous Drawing")
         #sub.prop(context.tool_settings, "use_gpencil_draw_onback", text="Draw on Back")
 
