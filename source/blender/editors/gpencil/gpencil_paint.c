@@ -1681,7 +1681,6 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 /* initialize a drawing brush */
 static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 {
-	Brush *brush;
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -1691,24 +1690,19 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 	if (paint->brush == NULL) {
 		/* create new brushes */
 		BKE_brush_gpencil_presets(C);
-		brush = BKE_brush_getactive_gpencil(ts);
-	}
-	else {
-		/* Use the current */
-		brush = BKE_brush_getactive_gpencil(ts);
 	}
 	/* be sure curves are initializated */
-	curvemapping_initialize(brush->gpencil_settings->curve_sensitivity);
-	curvemapping_initialize(brush->gpencil_settings->curve_strength);
-	curvemapping_initialize(brush->gpencil_settings->curve_jitter);
+	curvemapping_initialize(paint->brush->gpencil_settings->curve_sensitivity);
+	curvemapping_initialize(paint->brush->gpencil_settings->curve_strength);
+	curvemapping_initialize(paint->brush->gpencil_settings->curve_jitter);
 
 	/* assign to temp tGPsdata */
-	p->brush = brush;
-	if (brush->gpencil_tool != GPAINT_TOOL_ERASE) {
+	p->brush = paint->brush;
+	if (paint->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
 		p->eraser = gp_get_default_eraser(p->bmain, ts);
 	}
 	else {
-		p->eraser = brush;
+		p->eraser = paint->brush;
 	}
 	/* use radius of eraser */
 	p->radius = (short)p->eraser->size;
@@ -2313,7 +2307,7 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 	tGPsdata *p;
 	eGPencil_PaintModes paintmode = RNA_enum_get(op->ptr, "mode");
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	Brush *brush = BKE_brush_getactive_gpencil(ts);
+	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 
 	/* if mode is draw and the brush is eraser, cancel */
 	if (paintmode != GP_PAINTMODE_ERASER) {

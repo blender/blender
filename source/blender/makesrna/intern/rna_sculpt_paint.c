@@ -522,7 +522,7 @@ static PointerRNA rna_GPencilSculptSettings_brush_get(PointerRNA *ptr)
 	GP_EditBrush_Data *brush = NULL;
 
 	if ((gset) && (gset->flag & GP_BRUSHEDIT_FLAG_WEIGHT_MODE)) {
-		if ((gset->weighttype >= GP_EDITBRUSH_TYPE_WEIGHT) && (gset->weighttype < TOT_GP_EDITBRUSH_TYPES))
+		if ((gset->weighttype >= GP_EDITBRUSH_TYPE_WEIGHT) && (gset->weighttype < GP_EDITBRUSH_TYPE_MAX))
 			brush = &gset->brush[gset->weighttype];
 	}
 	else {

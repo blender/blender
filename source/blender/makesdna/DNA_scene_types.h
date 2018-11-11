@@ -977,7 +977,7 @@ typedef enum eGP_EditBrush_Types {
 	/* add any weight paint brush below this value. Do no mix brushes */
 
 	/* !!! Update GP_EditBrush_Data brush[###]; below !!! */
-	TOT_GP_EDITBRUSH_TYPES
+	GP_EDITBRUSH_TYPE_MAX,
 } eGP_EditBrush_Types;
 
 /* GP_BrushEdit_Settings.lock_axis */
@@ -1022,7 +1022,7 @@ typedef enum eGP_EditBrush_Flag {
 
 /* GPencil Stroke Sculpting Settings */
 typedef struct GP_BrushEdit_Settings {
-	GP_EditBrush_Data brush[12];  /* TOT_GP_EDITBRUSH_TYPES */
+	GP_EditBrush_Data brush[12];  /* GP_EDITBRUSH_TYPE_MAX */
 	void *paintcursor;            /* runtime */
 
 	int brushtype;                /* eGP_EditBrush_Types (sculpt) */

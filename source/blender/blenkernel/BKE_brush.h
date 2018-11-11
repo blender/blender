@@ -61,7 +61,6 @@ void BKE_brush_free(struct Brush *brush);
 void BKE_brush_sculpt_reset(struct Brush *brush);
 void BKE_brush_gpencil_presets(struct bContext *C);
 void BKE_brush_update_material(struct Main *bmain, struct Material *ma, struct Brush *exclude_brush);
-struct Brush *BKE_brush_getactive_gpencil(struct ToolSettings *ts);
 
 /* image icon function */
 struct ImBuf *get_brush_icon(struct Brush *brush);

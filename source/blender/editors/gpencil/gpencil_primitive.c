@@ -140,7 +140,6 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-	Brush *brush;
 
 	/* if brush doesn't exist, create a new one */
 	Paint *paint = &ts->gp_paint->paint;
@@ -148,13 +147,8 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	if (paint->brush == NULL) {
 		/* create new brushes */
 		BKE_brush_gpencil_presets(C);
-		brush = BKE_brush_getactive_gpencil(ts);
 	}
-	else {
-		/* Use the current */
-		brush = BKE_brush_getactive_gpencil(ts);
-	}
-	tgpi->brush = brush;
+	tgpi->brush = paint->brush;
 
 	/* if layer doesn't exist, create a new one */
 	if (gpl == NULL) {

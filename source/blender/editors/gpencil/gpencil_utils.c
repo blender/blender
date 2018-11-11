@@ -1510,17 +1510,17 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 
 	GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	GP_EditBrush_Data *brush = NULL;
-	Brush *paintbrush = NULL;
+	GP_EditBrush_Data *gp_brush = NULL;
+	Brush *brush = NULL;
 	Material *ma = NULL;
 	MaterialGPencilStyle *gp_style = NULL;
 	int *last_mouse_position = customdata;
 
 	if ((gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE)) {
-		brush = &gset->brush[gset->weighttype];
+		gp_brush = &gset->brush[gset->weighttype];
 	}
 	else {
-		brush = &gset->brush[gset->brushtype];
+		gp_brush = &gset->brush[gset->brushtype];
 	}
 
 	/* default radius and color */
@@ -1536,51 +1536,51 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 
 	/* for paint use paint brush size and color */
 	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
-		paintbrush = BKE_brush_getactive_gpencil(scene->toolsettings);
+		brush = scene->toolsettings->gp_paint->paint.brush;
 		/* while drawing hide */
 		if ((gpd->runtime.sbuffer_size > 0) &&
-		    (paintbrush) && ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-		    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
+		    (brush) && ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+		    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0))
 		{
 			return;
 		}
 
-		if (paintbrush) {
-			if ((paintbrush->gpencil_settings->flag & GP_BRUSH_ENABLE_CURSOR) == 0) {
+		if (brush) {
+			if ((brush->gpencil_settings->flag & GP_BRUSH_ENABLE_CURSOR) == 0) {
 				return;
 			}
 
 			/* eraser has special shape and use a different shader program */
-			if (paintbrush->gpencil_tool == GPAINT_TOOL_ERASE) {
-				ED_gpencil_brush_draw_eraser(paintbrush, x, y);
+			if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+				ED_gpencil_brush_draw_eraser(brush, x, y);
 				return;
 			}
 
 			/* get current drawing color */
-			ma = BKE_gpencil_get_material_from_brush(paintbrush);
+			ma = BKE_gpencil_get_material_from_brush(brush);
 			if (ma == NULL) {
 				BKE_gpencil_material_ensure(bmain, ob);
 				/* assign the first material to the brush */
 				ma = give_current_material(ob, 1);
-				paintbrush->gpencil_settings->material = ma;
+				brush->gpencil_settings->material = ma;
 			}
 			gp_style = ma->gp_style;
 
 			/* after some testing, display the size of the brush is not practical because
 			 * is too disruptive and the size of cursor does not change with zoom factor.
-			 * The decision was to use a fix size, instead of paintbrush->thickness value.
+			 * The decision was to use a fix size, instead of brush->thickness value.
 			 */
 			if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
-			    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-			    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-			    (paintbrush->gpencil_tool == GPAINT_TOOL_DRAW))
+			    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+			    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
+			    (brush->gpencil_tool == GPAINT_TOOL_DRAW))
 			{
 				radius = 2.0f;
 				copy_v3_v3(color, gp_style->stroke_rgba);
 			}
 			else {
 				radius = 5.0f;
-				copy_v3_v3(color, paintbrush->add_col);
+				copy_v3_v3(color, brush->add_col);
 			}
 		}
 		else {
@@ -1590,17 +1590,17 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 
 	/* for sculpt use sculpt brush size */
 	if (GPENCIL_SCULPT_OR_WEIGHT_MODE(gpd)) {
-		if (brush) {
-			if ((brush->flag & GP_EDITBRUSH_FLAG_ENABLE_CURSOR) == 0) {
+		if (gp_brush) {
+			if ((gp_brush->flag & GP_EDITBRUSH_FLAG_ENABLE_CURSOR) == 0) {
 				return;
 			}
 
-			radius = brush->size;
-			if (brush->flag & (GP_EDITBRUSH_FLAG_INVERT | GP_EDITBRUSH_FLAG_TMP_INVERT)) {
-				copy_v3_v3(color, brush->curcolor_sub);
+			radius = gp_brush->size;
+			if (gp_brush->flag & (GP_EDITBRUSH_FLAG_INVERT | GP_EDITBRUSH_FLAG_TMP_INVERT)) {
+				copy_v3_v3(color, gp_brush->curcolor_sub);
 			}
 			else {
-				copy_v3_v3(color, brush->curcolor_add);
+				copy_v3_v3(color, gp_brush->curcolor_add);
 			}
 		}
 	}
@@ -1616,9 +1616,9 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 	/* Inner Ring: Color from UI panel */
 	immUniformColor4f(color[0], color[1], color[2], 0.8f);
 	if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
-	    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-	    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-	    (paintbrush->gpencil_tool == GPAINT_TOOL_DRAW))
+	    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+	    ((brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
+	    (brush->gpencil_tool == GPAINT_TOOL_DRAW))
 	{
 		imm_draw_circle_fill_2d(pos, x, y, radius, 40);
 	}
@@ -1636,12 +1636,12 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 
 	/* Draw line for lazy mouse */
 	if ((last_mouse_position) &&
-	    (paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
+	    (brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
 	{
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
-		copy_v3_v3(color, paintbrush->add_col);
+		copy_v3_v3(color, brush->add_col);
 		immUniformColor4f(color[0], color[1], color[2], 0.8f);
 
 		immBegin(GPU_PRIM_LINES, 2);
@@ -1703,7 +1703,7 @@ static void gpencil_verify_brush_type(bContext *C, int newmode)
 			break;
 		case OB_MODE_GPENCIL_WEIGHT:
 			gset->flag |= GP_BRUSHEDIT_FLAG_WEIGHT_MODE;
-			if ((gset->weighttype < GP_EDITBRUSH_TYPE_WEIGHT) || (gset->weighttype >= TOT_GP_EDITBRUSH_TYPES)) {
+			if ((gset->weighttype < GP_EDITBRUSH_TYPE_WEIGHT) || (gset->weighttype >= GP_EDITBRUSH_TYPE_MAX)) {
 				gset->weighttype = GP_EDITBRUSH_TYPE_WEIGHT;
 			}
 			break;

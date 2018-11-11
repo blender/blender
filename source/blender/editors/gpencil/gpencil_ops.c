@@ -37,6 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_brush.h"
 #include "BKE_gpencil.h"
+#include "BKE_paint.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_types.h"
@@ -88,7 +89,7 @@ static bool gp_stroke_paintmode_poll_with_tool(bContext *C, const char gpencil_t
 	/* TODO: limit this to mode, but review 2D editors */
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	Brush *brush = BKE_brush_getactive_gpencil(ts);
+	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	return ((gpd) && (gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
 	        (brush && brush->gpencil_settings) &&
 	        WM_toolsystem_active_tool_is_brush(C) &&

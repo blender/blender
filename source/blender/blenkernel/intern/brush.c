@@ -535,18 +535,6 @@ void BKE_brush_update_material(Main *bmain, Material *ma, Brush *exclude_brush)
 	}
 }
 
-/* get the active gp-brush for editing */
-Brush *BKE_brush_getactive_gpencil(ToolSettings *ts)
-{
-	/* error checking */
-	if (ELEM(NULL, ts, ts->gp_paint)) {
-		return NULL;
-	}
-	Paint *paint = &ts->gp_paint->paint;
-
-	return paint->brush;
-}
-
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)
 {
 	Brush *brush;

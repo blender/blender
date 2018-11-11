@@ -813,11 +813,10 @@ static void gpencil_points_from_stack(tGPDfill *tgpf)
 /* create a grease pencil stroke using points in buffer */
 static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 {
-	ToolSettings *ts = tgpf->scene->toolsettings;
-	int cfra_eval = (int)DEG_get_ctime(tgpf->depsgraph);
+	const int cfra_eval = (int)DEG_get_ctime(tgpf->depsgraph);
 
-	Brush *brush;
-	brush = BKE_brush_getactive_gpencil(ts);
+	ToolSettings *ts = tgpf->scene->toolsettings;
+	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	if (brush == NULL) {
 		return;
 	}
@@ -1026,7 +1025,7 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
 	tgpf->depth_arr = NULL;
 
 	/* save filling parameters */
-	Brush *brush = BKE_brush_getactive_gpencil(ts);
+	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	tgpf->flag = brush->gpencil_settings->flag;
 	tgpf->fill_leak = brush->gpencil_settings->fill_leak;
 	tgpf->fill_threshold = brush->gpencil_settings->fill_threshold;

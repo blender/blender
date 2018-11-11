@@ -542,7 +542,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if (CTX_data_equals(member, "active_gpencil_brush")) {
-		Brush *brush = BKE_brush_getactive_gpencil(scene->toolsettings);
+		Brush *brush = BKE_paint_brush(&scene->toolsettings->gp_paint->paint);
 
 		if (brush) {
 			CTX_data_pointer_set(result, &scene->id, &RNA_Brush, brush);

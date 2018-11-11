@@ -1679,12 +1679,11 @@ static void gp_draw_data_all(
         int cfra, int dflag, const char UNUSED(spacetype))
 {
 	bGPdata *gpd_source = NULL;
-	ToolSettings *ts = NULL;
 	Brush *brush = NULL;
 	Object *ob = OBACT(view_layer);
 	if (scene) {
-		ts = scene->toolsettings;
-		brush = BKE_brush_getactive_gpencil(ts);
+		ToolSettings *ts = scene->toolsettings;
+		brush = BKE_paint_brush(&ts->gp_paint->paint);
 
 		if (gpd_source) {
 			if (brush != NULL) {
@@ -1827,7 +1826,7 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 
 	/* draw it! */
 	ToolSettings *ts = scene->toolsettings;
-	Brush *brush = BKE_brush_getactive_gpencil(ts);
+	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	if (brush != NULL) {
 		gp_draw_data(rv3d, brush, 1.0f, ob, gpd,
 			offsx, offsy, winx, winy, CFRA, dflag);

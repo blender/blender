@@ -1098,7 +1098,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					ToolSettings *ts = scene->toolsettings;
 					/* sculpt brushes */
 					GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
-					for (int i = 0; i < TOT_GP_EDITBRUSH_TYPES; ++i) {
+					for (int i = 0; i < GP_EDITBRUSH_TYPE_MAX; ++i) {
 						gp_brush = &gset->brush[i];
 						gp_brush->flag |= GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
 						copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
