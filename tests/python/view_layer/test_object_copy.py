@@ -46,7 +46,7 @@ class UnitTesting(ViewLayerTesting):
             if mode == 'DUPLICATE':
                 # assuming the latest layer is the active layer
                 bpy.ops.object.select_all(action='DESELECT')
-                three_c.select_set(action='SELECT')
+                three_c.select_set(True)
                 bpy.ops.object.duplicate()
 
             elif mode == 'NAMED':

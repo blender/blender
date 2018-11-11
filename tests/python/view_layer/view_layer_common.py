@@ -416,7 +416,7 @@ class ViewLayerTesting(unittest.TestCase):
             elif del_mode == 'OPERATOR':
                 bpy.context.scene.update()  # update depsgraph
                 bpy.ops.object.select_all(action='DESELECT')
-                ob.select_set(action='SELECT')
+                ob.select_set(True)
                 self.assertTrue(ob.select_get())
                 bpy.ops.object.delete()
 

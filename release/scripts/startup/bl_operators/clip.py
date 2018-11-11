@@ -237,7 +237,7 @@ class CLIP_OT_track_to_empty(Operator):
 
         ob = bpy.data.objects.new(name=track.name, object_data=None)
         context.collection.objects.link(ob)
-        ob.select_set(action='SELECT')
+        ob.select_set(True)
         context.view_layer.objects.active = ob
 
         for con in ob.constraints:
@@ -516,7 +516,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
         # XXX, should probably use context.selected_editable_objects
         # since selected objects can be from a lib or in hidden layer!
         for ob in scene.objects:
-            if ob.select_set(action='SELECT'):
+            if ob.select_set(True):
                 self._bake_object(scene, ob)
 
         return {'FINISHED'}
