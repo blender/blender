@@ -2309,6 +2309,20 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 	}
 }
 
+static void rna_property_boolean_get_default_array_values(BoolPropertyRNA *bprop, bool *values)
+{
+	unsigned int length = bprop->property.totarraylength;
+
+	if (bprop->defaultarray) {
+		memcpy(values, bprop->defaultarray, sizeof(bool) * length);
+	}
+	else {
+		for (unsigned int i = 0; i < length; i++) {
+			values[i] = bprop->defaultvalue;
+		}
+	}
+}
+
 void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *values)
 {
 	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
@@ -2334,10 +2348,8 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, bool *va
 		bprop->getarray(ptr, values);
 	else if (bprop->getarray_ex)
 		bprop->getarray_ex(ptr, prop, values);
-	else if (bprop->defaultarray)
-		memcpy(values, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(bool) * prop->totarraylength);
+		rna_property_boolean_get_default_array_values(bprop, values);
 }
 
 bool RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
@@ -2461,10 +2473,8 @@ void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA
 
 	if (prop->arraydimension == 0)
 		values[0] = bprop->defaultvalue;
-	else if (bprop->defaultarray)
-		memcpy(values, bprop->defaultarray, sizeof(bool) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(bool) * prop->totarraylength);
+		rna_property_boolean_get_default_array_values(bprop, values);
 }
 
 bool RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
@@ -2544,6 +2554,20 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 }
 
+static void rna_property_int_get_default_array_values(IntPropertyRNA *iprop, int *values)
+{
+	unsigned int length = iprop->property.totarraylength;
+
+	if (iprop->defaultarray) {
+		memcpy(values, iprop->defaultarray, sizeof(int) * length);
+	}
+	else {
+		for (unsigned int i = 0; i < length; i++) {
+			values[i] = iprop->defaultvalue;
+		}
+	}
+}
+
 void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 {
 	IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
@@ -2565,10 +2589,8 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 		iprop->getarray(ptr, values);
 	else if (iprop->getarray_ex)
 		iprop->getarray_ex(ptr, prop, values);
-	else if (iprop->defaultarray)
-		memcpy(values, iprop->defaultarray, sizeof(int) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(int) * prop->totarraylength);
+		rna_property_int_get_default_array_values(iprop, values);
 }
 
 void RNA_property_int_get_array_range(PointerRNA *ptr, PropertyRNA *prop, int values[2])
@@ -2716,10 +2738,8 @@ void RNA_property_int_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *pr
 
 	if (prop->arraydimension == 0)
 		values[0] = iprop->defaultvalue;
-	else if (iprop->defaultarray)
-		memcpy(values, iprop->defaultarray, sizeof(int) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(int) * prop->totarraylength);
+		rna_property_int_get_default_array_values(iprop, values);
 }
 
 int RNA_property_int_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
@@ -2809,6 +2829,20 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	}
 }
 
+static void rna_property_float_get_default_array_values(FloatPropertyRNA *fprop, float *values)
+{
+	unsigned int length = fprop->property.totarraylength;
+
+	if (fprop->defaultarray) {
+		memcpy(values, fprop->defaultarray, sizeof(float) * length);
+	}
+	else {
+		for (unsigned int i = 0; i < length; i++) {
+			values[i] = fprop->defaultvalue;
+		}
+	}
+}
+
 void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *values)
 {
 	FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
@@ -2836,10 +2870,8 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 		fprop->getarray(ptr, values);
 	else if (fprop->getarray_ex)
 		fprop->getarray_ex(ptr, prop, values);
-	else if (fprop->defaultarray)
-		memcpy(values, fprop->defaultarray, sizeof(float) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(float) * prop->totarraylength);
+		rna_property_float_get_default_array_values(fprop, values);
 }
 
 void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2])
@@ -3003,10 +3035,8 @@ void RNA_property_float_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *
 
 	if (prop->arraydimension == 0)
 		values[0] = fprop->defaultvalue;
-	else if (fprop->defaultarray)
-		memcpy(values, fprop->defaultarray, sizeof(float) * prop->totarraylength);
 	else
-		memset(values, 0, sizeof(float) * prop->totarraylength);
+		rna_property_float_get_default_array_values(fprop, values);
 }
 
 float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index)
@@ -6438,15 +6468,15 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 		if (!(parm->flag_parameter & PARM_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
 			switch (parm->type) {
 				case PROP_BOOLEAN:
-					if (parm->arraydimension) memcpy(data, ((BoolPropertyRNA *)parm)->defaultarray, size);
+					if (parm->arraydimension) rna_property_boolean_get_default_array_values((BoolPropertyRNA *)parm, data);
 					else memcpy(data, &((BoolPropertyRNA *)parm)->defaultvalue, size);
 					break;
 				case PROP_INT:
-					if (parm->arraydimension) memcpy(data, ((IntPropertyRNA *)parm)->defaultarray, size);
+					if (parm->arraydimension) rna_property_int_get_default_array_values((IntPropertyRNA *)parm, data);
 					else memcpy(data, &((IntPropertyRNA *)parm)->defaultvalue, size);
 					break;
 				case PROP_FLOAT:
-					if (parm->arraydimension) memcpy(data, ((FloatPropertyRNA *)parm)->defaultarray, size);
+					if (parm->arraydimension) rna_property_float_get_default_array_values((FloatPropertyRNA *)parm, data);
 					else memcpy(data, &((FloatPropertyRNA *)parm)->defaultvalue, size);
 					break;
 				case PROP_ENUM:

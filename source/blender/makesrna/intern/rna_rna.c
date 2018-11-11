@@ -751,46 +751,27 @@ static bool rna_NumberProperty_is_array_get(PointerRNA *ptr)
 static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	IntPropertyRNA *nprop = (IntPropertyRNA *)prop;
 	rna_idproperty_check(&prop, ptr);
-
-	if (nprop->defaultarray) {
-		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(int));
-	}
-	else {
-		int i;
-		for (i = 0; i < prop->totarraylength; i++)
-			values[i] = nprop->defaultvalue;
+	if (prop->totarraylength > 0) {
+		RNA_property_int_get_default_array(ptr, prop, values);
 	}
 }
+
 static void rna_BoolProperty_default_array_get(PointerRNA *ptr, bool *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	BoolPropertyRNA *nprop = (BoolPropertyRNA *)prop;
 	rna_idproperty_check(&prop, ptr);
-
-	if (nprop->defaultarray) {
-		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(bool));
-	}
-	else {
-		int i;
-		for (i = 0; i < prop->totarraylength; i++)
-			values[i] = nprop->defaultvalue;
+	if (prop->totarraylength > 0) {
+		RNA_property_boolean_get_default_array(ptr, prop, values);
 	}
 }
+
 static void rna_FloatProperty_default_array_get(PointerRNA *ptr, float *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	FloatPropertyRNA *nprop = (FloatPropertyRNA *)prop;
 	rna_idproperty_check(&prop, ptr);
-
-	if (nprop->defaultarray) {
-		memcpy(values, nprop->defaultarray, prop->totarraylength * sizeof(float));
-	}
-	else {
-		int i;
-		for (i = 0; i < prop->totarraylength; i++)
-			values[i] = nprop->defaultvalue;
+	if (prop->totarraylength > 0) {
+		RNA_property_float_get_default_array(ptr, prop, values);
 	}
 }
 
