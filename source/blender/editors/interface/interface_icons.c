@@ -162,6 +162,8 @@ typedef struct IconType {
 static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
+#ifndef WITH_HEADLESS
+
 static const IconType icontypes[] = {
 #define DEF_ICON(name) {ICON_TYPE_MONO_TEXTURE, 0},
 #define DEF_ICON_COLLECTION(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_COLLECTION},
@@ -176,8 +178,6 @@ static const IconType icontypes[] = {
 };
 
 /* **************************************************** */
-
-#ifndef WITH_HEADLESS
 
 static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type, int theme_color)
 {
@@ -1616,7 +1616,9 @@ static void icon_draw_size(
 		UI_widgetbase_draw_cache_flush();
 
 		/* Just draw a colored rect - Like for vicon_colorset_draw() */
+#ifndef WITH_HEADLESS
 		vicon_gplayer_color_draw(icon, (int)x, (int)y,  w, h);
+#endif
 	}
 }
 
