@@ -3301,7 +3301,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 
 	/* create new grease pencil datablock */
 	// XXX: check usercounts
-	gpd_dst = BKE_gpencil_data_addnew(bmain, "GPencil");
+	gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
 	ob_dst->data = (bGPdata *)gpd_dst;
 
 	int totslots = ob_dst->totcol;
