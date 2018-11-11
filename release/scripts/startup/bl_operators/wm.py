@@ -2427,10 +2427,6 @@ class WM_OT_toolbar(Operator):
 
         def draw_menu(popover, context):
             layout = popover.layout
-
-            layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("wm.search_menu", text="Search Commands...", icon='VIEWZOOM')
-
             cls.draw_cls(layout, context, detect_layout=False, scale_y=1.0)
 
         wm.popover(draw_menu, ui_units_x=8, keymap=keymap)
