@@ -31,7 +31,7 @@ class UnitTesting(ViewLayerTesting):
         self.assertTrue(layer_collection.selectable)
 
         bpy.context.scene.update()  # update depsgraph
-        cube.select_set(action='SELECT')
+        cube.select_set(True)
         self.assertTrue(cube.select_get())
 
 
