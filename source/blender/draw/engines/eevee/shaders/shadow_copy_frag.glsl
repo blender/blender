@@ -9,6 +9,7 @@ layout(std140) uniform shadow_render_block {
 	float farClip;
 	int shadowSampleCount;
 	float shadowInvSampleCount;
+	float exponent;
 };
 
 #ifdef CSM
@@ -22,40 +23,28 @@ uniform float shadowFilterSize;
 
 out vec4 FragColor;
 
-float linear_depth(float z)
-{
-	return (nearClip  * farClip) / (z * (nearClip - farClip) + farClip);
-}
+#define linear_depth(z) ((nearClip  * farClip) / (clamp(z, 0.0, 0.999999) * (nearClip - farClip) + farClip))
 
-vec4 linear_depth(vec4 z)
-{
-	return (nearClip  * farClip) / (z * (nearClip - farClip) + farClip);
-}
+/* add bias so background filtering does not bleed into shadow map */
+#define BACKGROUND_BIAS 0.05
 
 #ifdef CSM
 vec4 get_world_distance(vec4 depths, vec3 cos[4])
 {
-	/* Background case */
-	vec4 is_background = step(vec4(0.99999), depths);
-	depths *= abs(farClip - nearClip); /* Same factor as in shadow_cascade(). */
-	depths += 1e1 * is_background;
-	return depths;
+	depths += step(vec4(0.9999), depths) * BACKGROUND_BIAS;
+	return clamp(depths * abs(farClip - nearClip), 0.0, 1e10); /* Same factor as in shadow_cascade(). */
 }
 
 float get_world_distance(float depth, vec3 cos)
 {
-	/* Background case */
-	float is_background = step(0.9999, depth);
-	depth *= abs(farClip - nearClip); /* Same factor as in shadow_cascade(). */
-	depth += 1e1 * is_background;
-	return depth;
+	depth += step(0.9999, depth) * BACKGROUND_BIAS;
+	return clamp(depth * abs(farClip - nearClip), 0.0, 1e10); /* Same factor as in shadow_cascade(). */
 }
+
 #else /* CUBEMAP */
 vec4 get_world_distance(vec4 depths, vec3 cos[4])
 {
-	vec4 is_background = step(vec4(1.0), depths);
 	depths = linear_depth(depths);
-	depths += vec4(1e1) * is_background;
 	cos[0] = normalize(abs(cos[0]));
 	cos[1] = normalize(abs(cos[1]));
 	cos[2] = normalize(abs(cos[2]));
@@ -70,9 +59,7 @@ vec4 get_world_distance(vec4 depths, vec3 cos[4])
 
 float get_world_distance(float depth, vec3 cos)
 {
-	float is_background = step(1.0, depth);
 	depth = linear_depth(depth);
-	depth += 1e1 * is_background;
 	cos = normalize(abs(cos));
 	float cos_vec = max(cos.x, max(cos.y, cos.z));
 	return depth / cos_vec;
@@ -80,23 +67,18 @@ float get_world_distance(float depth, vec3 cos)
 #endif
 
 /* Marco Salvi's GDC 2008 presentation about shadow maps pre-filtering techniques slide 24 */
-float ln_space_prefilter(float w0, float x, float w1, float y)
-{
-    return x + log(w0 + w1 * exp(y - x));
-}
+#define ln_space_prefilter_step(ref, sample) exp(sample - ref)
+#define ln_space_prefilter_finalize(ref, sum) (ref + log(SAMPLE_WEIGHT * sum))
 
 #define SAMPLE_WEIGHT 0.11111
 
 #ifdef ESM
-void prefilter(vec4 depths, inout float accum)
+void prefilter(vec4 depths, float ref, inout float accum)
 {
-	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.x);
-	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.y);
-	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.z);
-	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.w);
+	accum += dot(ln_space_prefilter_step(ref, depths), vec4(1.0));
 }
 #else /* VSM */
-void prefilter(vec4 depths, inout vec2 accum)
+void prefilter(vec4 depths, float ref, inout vec2 accum)
 {
 	vec4 depths_sqr = depths * depths;
 	accum += vec2(dot(vec4(1.0), depths), dot(vec4(1.0), depths_sqr)) * SAMPLE_WEIGHT;
@@ -168,8 +150,10 @@ void main() {
 	}
 
 #ifdef ESM
-	float accum = ln_space_prefilter(0.0, 0.0, SAMPLE_WEIGHT, depth);
+	float accum = 1.0;
+	float ref = depth;
 #else /* VSM */
+	float ref = 0.0; /* UNUSED */
 	vec2 accum = vec2(depth, depth * depth) * SAMPLE_WEIGHT;
 #endif
 
@@ -191,7 +175,7 @@ void main() {
 	depths.z = texture(shadowTexture, cos[2]).r;
 	depths.w = texture(shadowTexture, cos[3]).r;
 	depths = get_world_distance(depths, cos);
-	prefilter(depths, accum);
+	prefilter(depths, ref, accum);
 
 	cos[0] = get_texco(uvs, ofs.xy);
 	cos[1] = get_texco(uvs, ofs.zx);
@@ -202,7 +186,11 @@ void main() {
 	depths.z = texture(shadowTexture, cos[2]).r;
 	depths.w = texture(shadowTexture, cos[3]).r;
 	depths = get_world_distance(depths, cos);
-	prefilter(depths, accum);
+	prefilter(depths, ref, accum);
+
+#ifdef ESM
+	accum = ln_space_prefilter_finalize(ref, accum);
+#endif
 
 	FragColor = vec2(accum).xyxy;
 }

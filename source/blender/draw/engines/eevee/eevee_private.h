@@ -384,6 +384,7 @@ typedef struct EEVEE_ShadowRender {
 	float clip_far;
 	int shadow_samples_len;
 	float shadow_samples_len_inv;
+	float exponent;
 } EEVEE_ShadowRender;
 
 /* This is just a really long bitflag with special function to access it. */

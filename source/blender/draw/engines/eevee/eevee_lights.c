@@ -1241,6 +1241,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		copy_v3_v3(srd->position, cube_data->position);
 
 		srd->stored_texel_size = 1.0 / (float)linfo->shadow_cube_store_size;
+		srd->exponent = la->bleedexp;
 
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
 
