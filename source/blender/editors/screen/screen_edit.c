@@ -649,9 +649,6 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 		if (sa) {
 			/* make overlap active when mouse over */
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-					continue;
-				}
 				if (BLI_rcti_isect_pt_v(&ar->winrct, xy)) {
 					scr->active_region = ar;
 					break;
