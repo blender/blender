@@ -970,20 +970,6 @@ def keymap_from_context(context, space_type):
     if use_hack_properties:
         keymap.keymap_items.remove(kmi_hack)
 
-    if True:
-        # The shortcut will show, so we better support running it.
-        kmi_search = wm.keyconfigs.find_item_from_operator(
-            idname="wm.search_menu",
-            context='INVOKE_REGION_WIN',
-        )[1]
-        if kmi_search:
-            keymap.keymap_items.new(
-                "wm.search_menu",
-                type=kmi_search.type,
-                value='PRESS',
-                **modifier_keywords_from_item(kmi_search),
-            )
-
     if use_release_confirm:
         kmi = keymap.keymap_items.new(
             "ui.button_execute",
