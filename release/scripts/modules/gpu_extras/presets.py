@@ -16,7 +16,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-def draw_circle_2d(position, color, radius, segments = 32):
+def draw_circle_2d(position, color, radius, segments=32):
     from math import sin, cos, pi
     import gpu
     from gpu.types import (
