@@ -23,6 +23,7 @@ offscreen.bind()
 try:
     bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
     with gpu.matrix.push_pop():
+        # reset matrices -> use normalized device coordinates [-1, 1]
         gpu.matrix.load_matrix(Matrix.Identity(4))
         gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
