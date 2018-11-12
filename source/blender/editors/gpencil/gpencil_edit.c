@@ -3298,7 +3298,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 	/* create a new object */
 	base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, 0);
 	ob_dst = base_new->object;
-
+	ob_dst->mode = OB_MODE_OBJECT;
 	/* create new grease pencil datablock */
 	// XXX: check usercounts
 	gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
