@@ -20,20 +20,33 @@
 # ------------------------------------------------------------------------------
 # Configurable Parameters
 
-class KeymapParams:
-    __slots__ = (
-        "apple",
-        "legacy",
-        "select_mouse",
-        "action_mouse",
-    )
+from collections import namedtuple
 
-    def __init__(self, legacy=False):
-        import platform
-        self.apple = platform.system() == 'Darwin'
-        self.legacy = legacy
-        self.select_mouse = 'SELECTMOUSE'
-        self.action_mouse = 'ACTIONMOUSE'
+# TODO: remove when we drop Python 3.6
+import sys
+if sys.version_info >= (3, 7):
+    KeymapParams = namedtuple(
+        "KeymapParams",
+        ("apple", "legacy", "select_mouse", "action_mouse"),
+        defaults=(
+            sys.platform == "darwin",
+            False,
+            'SELECTMOUSE',
+            'ACTIONMOUSE',
+        ),
+    )
+else:
+    KeymapParams = namedtuple(
+        "KeymapParams",
+        ("apple", "legacy", "select_mouse", "action_mouse"),
+    )
+    KeymapParams.__new__.__defaults__ = (
+        sys.platform == "darwin",
+        False,
+        'SELECTMOUSE',
+        'ACTIONMOUSE',
+    )
+del namedtuple, sys
 
 
 # ------------------------------------------------------------------------------
@@ -4921,5 +4934,5 @@ def generate_keymaps(params=None):
 
 if __name__ == "__main__":
     from bpy_extras.keyconfig_utils import keyconfig_import_from_data
-    keyconfig_import_from_data("Blender", generate_keymaps(KeymapParams()))
+    keyconfig_import_from_data("Blender", generate_keymaps())
     keyconfig_import_from_data("Blender 27X", generate_keymaps(KeymapParams(legacy=True)))
