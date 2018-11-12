@@ -576,16 +576,6 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 	// image space manages own v2d
 	// UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
-	/* gizmos */
-	if (ar->gizmo_map == NULL) {
-		const struct wmGizmoMapType_Params wmap_params = {
-			.spaceid = SPACE_IMAGE,
-			.regionid = RGN_TYPE_WINDOW,
-		};
-		ar->gizmo_map = WM_gizmomap_new_from_type(&wmap_params);
-	}
-	WM_gizmomap_add_handlers(ar, ar->gizmo_map);
-
 	/* mask polls mode */
 	keymap = WM_keymap_ensure(wm->defaultconf, "Mask Editing", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
@@ -991,7 +981,7 @@ void ED_spacetype_image(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
+	art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
 	art->init = image_main_region_init;
 	art->draw = image_main_region_draw;
 	art->listener = image_main_region_listener;

@@ -1461,6 +1461,18 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 		/* user interface widgets */
 		UI_region_handlers_add(handlers);
 	}
+	if (flag & ED_KEYMAP_GIZMO) {
+		ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+		if (ar) {
+			/* Anything else is confusing, only allow this. */
+			BLI_assert(&ar->handlers == handlers);
+			if (ar->gizmo_map == NULL) {
+				ar->gizmo_map = WM_gizmomap_new_from_type(
+				        &(const struct wmGizmoMapType_Params){sa->spacetype, RGN_TYPE_WINDOW});
+			}
+			WM_gizmomap_add_handlers(ar, ar->gizmo_map);
+		}
+	}
 	if (flag & ED_KEYMAP_VIEW2D) {
 		/* 2d-viewport handling+manipulation */
 		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "View2D", 0, 0);
@@ -1490,6 +1502,13 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
+	if (flag & ED_KEYMAP_HEADER) {
+		/* standard keymap for headers regions */
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Header", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+
+	/* Keep last because of LMB/RMB handling, see: T57527. */
 	if (flag & ED_KEYMAP_GPENCIL) {
 		/* grease pencil */
 		/* NOTE: This is now 4 keymaps - One for basic functionality,
@@ -1518,11 +1537,6 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 
 		wmKeyMap *keymap_sculpt = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_sculpt);
-	}
-	if (flag & ED_KEYMAP_HEADER) {
-		/* standard keymap for headers regions */
-		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Header", 0, 0);
-		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
 

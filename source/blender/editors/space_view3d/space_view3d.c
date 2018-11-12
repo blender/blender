@@ -458,13 +458,6 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *lb;
 	wmKeyMap *keymap;
 
-	if (ar->gizmo_map == NULL) {
-		ar->gizmo_map = WM_gizmomap_new_from_type(
-		        &(const struct wmGizmoMapType_Params) {SPACE_VIEW3D, RGN_TYPE_WINDOW});
-	}
-
-	WM_gizmomap_add_handlers(ar, ar->gizmo_map);
-
 	/* object ops. */
 
 	/* important to be before Pose keymap since they can both be enabled at once */
@@ -1479,7 +1472,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d main region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag = ED_KEYMAP_GPENCIL;
+	art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_GPENCIL;
 	art->draw = view3d_main_region_draw;
 	art->init = view3d_main_region_init;
 	art->exit = view3d_main_region_exit;

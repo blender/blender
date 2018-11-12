@@ -356,14 +356,17 @@ struct ARegionType *ED_area_type_hud(int space_type);
 void ED_area_type_hud_clear(struct wmWindowManager *wm, ScrArea *sa_keep);
 void ED_area_type_hud_ensure(struct bContext *C, struct ScrArea *sa);
 
-/* default keymaps, bitflags */
-#define ED_KEYMAP_UI        1
-#define ED_KEYMAP_VIEW2D    2
-#define ED_KEYMAP_MARKERS   4
-#define ED_KEYMAP_ANIMATION 8
-#define ED_KEYMAP_FRAMES    16
-#define ED_KEYMAP_GPENCIL   32
-#define ED_KEYMAP_HEADER    64
+/* default keymaps, bitflags (matches order of evaluation). */
+enum {
+	ED_KEYMAP_UI        = (1 << 1),
+	ED_KEYMAP_GIZMO     = (1 << 2),
+	ED_KEYMAP_VIEW2D    = (1 << 3),
+	ED_KEYMAP_MARKERS   = (1 << 4),
+	ED_KEYMAP_ANIMATION = (1 << 5),
+	ED_KEYMAP_FRAMES    = (1 << 6),
+	ED_KEYMAP_HEADER    = (1 << 7),
+	ED_KEYMAP_GPENCIL   = (1 << 8),
+};
 
 /* SCREEN_OT_space_context_cycle direction */
 enum {
