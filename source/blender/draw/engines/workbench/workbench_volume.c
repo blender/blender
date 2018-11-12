@@ -26,6 +26,7 @@
 #include "workbench_private.h"
 
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "BLI_rand.h"
 #include "BLI_dynstr.h"
@@ -164,15 +165,19 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 	else {
 		double noise_ofs;
 		BLI_halton_1D(3, 0.0, effect_info->jitter_index, &noise_ofs);
-		int max_slices = max_iii(sds->res[0], sds->res[1], sds->res[2]) * sds->slice_per_voxel;
+		float dim[3], step_length, max_slice;
+		float slice_ct[3] = {sds->res[0], sds->res[1], sds->res[2]};
+		mul_v3_fl(slice_ct, sds->slice_per_voxel);
+		max_slice = max_fff(slice_ct[0], slice_ct[1], slice_ct[2]);
+		BKE_object_dimensions_get(ob, dim);
+		invert_v3(slice_ct);
+		mul_v3_v3(dim, slice_ct);
+		step_length = len_v3(dim);
 
 		grp = DRW_shgroup_create(sh, vedata->psl->volume_pass);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
-		DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slices);
-		/* TODO FIXME : This step size is in object space but the ray itself
-		 * is NOT unit length in object space so the required number of subdivisions
-		 * is tricky to get. */
-		DRW_shgroup_uniform_float_copy(grp, "stepLength", 8.0f / max_slices);
+		DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slice);
+		DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
 		DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);
 	}
 
