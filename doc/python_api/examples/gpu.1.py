@@ -4,7 +4,7 @@ Geometry Batches
 
 Geometry is drawn in batches.
 A batch contains the necessary data to perform the drawing.
-That includes a obligatory *Vertex Buffer* and an optional *Index Buffer*, each of which is described in more detail in the following sections.
+That includes an obligatory *Vertex Buffer* and an optional *Index Buffer*, each of which is described in more detail in the following sections.
 A batch also defines a draw type.
 Typical draw types are `POINTS`, `LINES` and `TRIS`.
 The draw type determines how the data will be interpreted and drawn.
@@ -15,10 +15,10 @@ Vertex Buffers
 A *Vertex Buffer Object* (VBO) (:class:`gpu.types.GPUVertBuf`) is an array that contains the vertex attributes needed for drawing using a specific shader.
 Typical vertex attributes are *location*, *normal*, *color*, and *uv*.
 Every vertex buffer has a *Vertex Format* (:class:`gpu.types.GPUVertFormat`) and a length corresponding to the number of vertices in the buffer.
-A vertex format describes which attributes are stored per vertex and their types.
+A vertex format describes the attributes stored per vertex and their types.
 
 The following code demonstrates the creation of a vertex buffer that contains 6 vertices.
-For each each vertex 2 attributes will be stored: The position and the normal::
+For each vertex 2 attributes will be stored: The position and the normal::
 
     import gpu
     vertex_positions = [(0, 0, 0), ...]
@@ -54,7 +54,7 @@ For instance, to draw a rectangle composed of two triangles, one could use an in
 
     ibo = gpu.types.GPUIndexBuf(type='TRIS', seq=indices)
 
-Here the first tuple in `indices` describes which vertices should be used for the first vertex (same for the second tuple).
+Here the first tuple in `indices` describes which vertices should be used for the first triangle (same for the second tuple).
 Note how the diagonal vertices 1 and 2 are shared between both triangles.
 
 Shaders
