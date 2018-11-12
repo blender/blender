@@ -744,6 +744,18 @@ def keymap_from_context(context, space_type):
 
     use_simple_keymap = False
 
+    # Press the toolbar popup key again to set the default tool,
+    # this is useful because the cursor tool is useful as a way
+    # to 'drop' currently active tools (it's basically a 'none' tool).
+    # so this allows us to quickly go back to a state that allows
+    # a shortcut based workflow (before the tool system was added).
+    use_tap_reset = True
+    # TODO: support other tools for modes which don't use the cursor.
+    tap_reset_tool = "Cursor"
+    # Check the tool is available in the current context.
+    if ToolSelectPanelHelper._tool_get_by_name(context, space_type, tap_reset_tool)[1] is None:
+        use_tap_reset = False
+
     # Pie-menu style release to activate.
     use_release_confirm = True
 
@@ -782,10 +794,44 @@ def keymap_from_context(context, space_type):
         kmi_hack_brush_select = keymap.keymap_items.new("paint.brush_select", 'A', 'PRESS')
         kmi_hack_brush_select_properties = kmi_hack_brush_select.properties
 
-    if use_release_confirm:
+    if use_release_confirm or use_tap_reset:
         kmi_toolbar = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
         kmi_toolbar_type = None if not kmi_toolbar else kmi_toolbar.type
+        if use_tap_reset and kmi_toolbar_type is not None:
+            kmi_toolbar_args = {
+                "type": kmi_toolbar_type,
+                **modifier_keywords_from_item(kmi_toolbar),
+            }
+        else:
+            use_tap_reset = False
         del kmi_toolbar
+
+    if use_tap_reset:
+        kmi_found = None
+        if use_hack_properties:
+            # First check for direct assignment, if this tool already has a key, no need to add a new one.
+            kmi_hack_properties.name = tap_reset_tool
+            kmi_found = wm.keyconfigs.find_item_from_operator(
+                idname="wm.tool_set_by_name",
+                context='INVOKE_REGION_WIN',
+                # properties={"name": item.text},
+                properties=kmi_hack_properties,
+            )[1]
+            if kmi_found:
+                use_tap_reset = False
+        del kmi_found
+
+    if use_tap_reset:
+        kmi_toolbar_tuple = dict_as_tuple(kmi_toolbar_args)
+        if kmi_toolbar_tuple not in kmi_unique_args:
+            kmi = keymap.keymap_items.new(
+                "wm.tool_set_by_name",
+                value='DOUBLE_CLICK',
+                **kmi_toolbar_args,
+            )
+            kmi.properties.name = tap_reset_tool
+        kmi_unique_args.add(kmi_toolbar_tuple)
+        del kmi_toolbar_tuple
 
     if use_simple_keymap:
         # Simply assign a key from A-Z.
