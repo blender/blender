@@ -83,6 +83,14 @@ static bool last_redo_poll(const bContext *C)
 	return success;
 }
 
+static void hud_region_hide(ARegion *ar)
+{
+	ar->flag |= RGN_FLAG_HIDDEN;
+	/* Avoids setting 'AREA_FLAG_REGION_SIZE_UPDATE'
+	 * since other regions don't depend on this. */
+	BLI_rcti_init(&ar->winrct, 0, 0, 0, 0);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -169,7 +177,7 @@ static void hud_region_layout(const bContext *C, ARegion *ar)
 
 	if (!ok) {
 		ED_region_tag_redraw(ar);
-		ar->flag |= RGN_FLAG_HIDDEN;
+		hud_region_hide(ar);
 		return;
 	}
 
@@ -265,7 +273,7 @@ void ED_area_type_hud_clear(wmWindowManager *wm, ScrArea *sa_keep)
 				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 					if (ar->regiontype == RGN_TYPE_HUD) {
 						if ((ar->flag & RGN_FLAG_HIDDEN) == 0) {
-							ar->flag |= RGN_FLAG_HIDDEN;
+							hud_region_hide(ar);
 							ED_region_tag_redraw(ar);
 							ED_area_tag_redraw(sa);
 						}
@@ -291,7 +299,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	if (!last_redo_poll(C)) {
 		if (ar) {
 			ED_region_tag_redraw(ar);
-			ar->flag |= RGN_FLAG_HIDDEN;
+			hud_region_hide(ar);
 		}
 		return;
 	}
