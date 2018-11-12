@@ -4303,10 +4303,6 @@ uiLayout *UI_block_layout(uiBlock *block, int dir, int type, int x, int y, int s
 	if (type == UI_LAYOUT_MENU || type == UI_LAYOUT_PIEMENU)
 		layout->space = 0;
 
-	if (type == UI_LAYOUT_TOOLBAR) {
-		block->flag |= UI_BLOCK_SHOW_SHORTCUT_ALWAYS;
-	}
-
 	if (dir == UI_LAYOUT_HORIZONTAL) {
 		layout->h = size;
 		layout->root->emh = em * UI_UNIT_Y;
