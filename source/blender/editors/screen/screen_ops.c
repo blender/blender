@@ -685,13 +685,6 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 	AZone *az = NULL;
 
 	for (az = sa->actionzones.first; az; az = az->next) {
-		if (az->ar) {
-			if (az->ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-				continue;
-			}
-			BLI_assert(az->ar->visible);
-		}
-
 		if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
 			if (az->type == AZONE_AREA) {
 				/* no triangle intersect but a hotspot circle based on corner */
