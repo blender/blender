@@ -188,7 +188,6 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 	}
 	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 	DRW_shgroup_uniform_float_copy(grp, "densityScale", 10.0f * sds->display_thickness);
-	DRW_shgroup_state_disable(grp, DRW_STATE_CULL_FRONT);
 
 	if (use_slice) {
 		DRW_shgroup_call_object_add(grp, DRW_cache_quad_get(), ob);
