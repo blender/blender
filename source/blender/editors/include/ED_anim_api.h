@@ -688,7 +688,7 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 
 /* --------- anim_deps.c, animation updates -------- */
 
-void ANIM_id_update(struct Scene *scene, struct ID *id);
+void ANIM_id_update(struct Main *bmain, struct ID *id);
 void ANIM_list_elem_update(struct Main *bmain, struct Scene *scene, bAnimListElem *ale);
 
 /* data -> channels syncing */

@@ -84,6 +84,12 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 		}
 	}
 
+	/* Tag copy on the main object if updating anything directly inside AnimData */
+	if (ELEM(ale->type, ANIMTYPE_ANIMDATA, ANIMTYPE_NLAACTION, ANIMTYPE_NLATRACK, ANIMTYPE_NLACURVE)) {
+		DEG_id_tag_update(id, DEG_TAG_TIME | DEG_TAG_COPY_ON_WRITE);
+		return;
+	}
+
 	/* update data */
 	fcu = (ale->datatype == ALE_FCURVE) ? ale->key_data : NULL;
 
@@ -108,7 +114,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 
 /* tags the given ID block for refreshes (if applicable) due to
  * Animation Editor editing */
-void ANIM_id_update(Scene *UNUSED(scene), ID *id)
+void ANIM_id_update(Main *bmain, ID *id)
 {
 	if (id) {
 		AnimData *adt = BKE_animdata_from_id(id);
@@ -118,7 +124,7 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 
 		/* set recalc flags */
-		DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
+		DEG_id_tag_update_ex(bmain, id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -433,7 +439,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 				ANIM_list_elem_update(ac->bmain, ac->scene, ale);
 			}
 		}
-		else if (ale->datatype == ALE_NLASTRIP) {
+		else if (ELEM(ale->type, ANIMTYPE_ANIMDATA, ANIMTYPE_NLAACTION, ANIMTYPE_NLATRACK, ANIMTYPE_NLACURVE)) {
 			if (ale->update & ANIM_UPDATE_DEPS) {
 				ale->update &= ~ANIM_UPDATE_DEPS;
 				ANIM_list_elem_update(ac->bmain, ac->scene, ale);
