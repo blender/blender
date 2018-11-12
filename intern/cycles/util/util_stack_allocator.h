@@ -164,4 +164,4 @@ private:
 
 CCL_NAMESPACE_END
 
-#endif  /* __UTIL_GUARDED_ALLOCATOR_H__ */
+#endif  /* __UTIL_STACK_ALLOCATOR_H__ */
