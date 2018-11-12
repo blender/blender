@@ -16,7 +16,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-def draw_circle_2d(position, color, radius, segments):
+def draw_circle_2d(position, color, radius, segments = 32):
     from math import sin, cos, pi
     import gpu
     from gpu.types import (
@@ -25,12 +25,14 @@ def draw_circle_2d(position, color, radius, segments):
         GPUVertFormat,
     )
 
+    if segments <= 0:
+        raise ValueError("Amount of segments must be greater than 0.")
+
     with gpu.matrix.push_pop():
         gpu.matrix.translate(position)
         gpu.matrix.scale_uniform(radius)
-        seg = 32
-        mul = (1.0 / (seg - 1)) * (pi * 2)
-        verts = [(sin(i * mul), cos(i * mul)) for i in range(seg)]
+        mul = (1.0 / (segments - 1)) * (pi * 2)
+        verts = [(sin(i * mul), cos(i * mul)) for i in range(segments)]
         fmt = GPUVertFormat()
         pos_id = fmt.attr_add(id="pos", comp_type='F32', len=2, fetch_mode='FLOAT')
         vbo = GPUVertBuf(len=len(verts), format=fmt)
