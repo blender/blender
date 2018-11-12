@@ -511,13 +511,6 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 			}
 			BPY_python_reset(C);
 			addons_loaded = true;
-
-			if (!G.background) {
-				/* Load the keymap from Python, otherwise we get an empty keymap. */
-				BPY_execute_string(
-				        C, (const char *[]){"bpy", NULL},
-				        "bpy.utils.keyconfig_set(bpy.utils.preset_find('blender', 'keyconfig'))");
-			}
 		}
 	}
 	else {

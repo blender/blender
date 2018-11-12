@@ -231,11 +231,11 @@ void WM_keymap_init(bContext *C)
 
 	/* create standard key configs */
 	if (!wm->defaultconf)
-		wm->defaultconf = WM_keyconfig_new(wm, "Blender");
+		wm->defaultconf = WM_keyconfig_new(wm, "Blender", false);
 	if (!wm->addonconf)
-		wm->addonconf = WM_keyconfig_new(wm, "Blender Addon");
+		wm->addonconf = WM_keyconfig_new(wm, "Blender Addon", false);
 	if (!wm->userconf)
-		wm->userconf = WM_keyconfig_new(wm, "Blender User");
+		wm->userconf = WM_keyconfig_new(wm, "Blender User", false);
 
 	/* initialize only after python init is done, for keymaps that
 	 * use python operators */
@@ -245,6 +245,10 @@ void WM_keymap_init(bContext *C)
 		if (!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
 			wm_window_keymap(wm->defaultconf);
 			ED_spacetypes_keymap(wm->defaultconf);
+
+			BPY_execute_string(
+			        C, (const char *[]){"bpy", NULL},
+			        "bpy.utils.keyconfig_init()");
 
 			wm->defaultconf->flag |= KEYCONF_INIT_DEFAULT;
 		}
