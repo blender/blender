@@ -84,8 +84,6 @@ class QuickFur(Operator):
             return {'CANCELLED'}
 
         mat = bpy.data.materials.new("Fur Material")
-        mat.strand.tip_size = 0.25
-        mat.strand.blend_distance = 0.5
 
         for obj in mesh_objects:
             fake_context["object"] = obj
@@ -106,6 +104,7 @@ class QuickFur(Operator):
             psys.settings.use_strand_primitive = True
             psys.settings.use_hair_bspline = True
             psys.settings.child_type = 'INTERPOLATED'
+            psys.settings.tip_radius = 0.25
 
             obj.data.materials.append(mat)
             psys.settings.material = len(obj.data.materials)
