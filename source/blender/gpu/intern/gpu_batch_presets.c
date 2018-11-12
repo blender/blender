@@ -57,6 +57,8 @@ static struct {
 	struct {
 		uint pos, nor;
 	} attr_id;
+
+	ThreadMutex mutex;
 } g_presets_3d = {{0}};
 
 static ListBase presets_list = {NULL, NULL};
@@ -214,33 +216,42 @@ void gpu_batch_presets_init(void)
 
 	g_presets_3d.batch.sphere_wire_med = batch_sphere_wire(8, 16);
 	gpu_batch_presets_register(g_presets_3d.batch.sphere_wire_med);
+
+	BLI_mutex_init(&g_presets_3d.mutex);
 }
 
 void gpu_batch_presets_register(GPUBatch *preset_batch)
 {
+	BLI_mutex_lock(&g_presets_3d.mutex);
 	BLI_addtail(&presets_list, BLI_genericNodeN(preset_batch));
+	BLI_mutex_unlock(&g_presets_3d.mutex);
 }
 
 bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
 {
+	BLI_mutex_lock(&g_presets_3d.mutex);
 	for (LinkData *link = presets_list.last; link; link = link->prev) {
 		if (preset_batch == link->data) {
 			BLI_remlink(&presets_list, link);
+			BLI_mutex_unlock(&g_presets_3d.mutex);
 			MEM_freeN(link);
 			return true;
 		}
 	}
+	BLI_mutex_unlock(&g_presets_3d.mutex);
 	return false;
 }
 
 void gpu_batch_presets_reset(void)
 {
+	BLI_mutex_lock(&g_presets_3d.mutex);
 	/* Reset vao caches for these every time we switch opengl context.
 	 * This way they will draw correctly for each window. */
 	for (LinkData *link = presets_list.first; link; link = link->next) {
 		GPUBatch *preset = link->data;
 		GPU_batch_vao_cache_clear(preset);
 	}
+	BLI_mutex_unlock(&g_presets_3d.mutex);
 }
 
 void gpu_batch_presets_exit(void)
@@ -251,4 +262,6 @@ void gpu_batch_presets_exit(void)
 		GPU_batch_discard(preset);
 		MEM_freeN(link);
 	}
+
+	BLI_mutex_end(&g_presets_3d.mutex);
 }

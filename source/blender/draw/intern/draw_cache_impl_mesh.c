@@ -2195,12 +2195,24 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edituv_visible_faces);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edituv_visible_edges);
 
-	gpu_batch_presets_unregister(cache->edituv_faces_strech_area);
-	gpu_batch_presets_unregister(cache->edituv_faces_strech_angle);
-	gpu_batch_presets_unregister(cache->edituv_faces);
-	gpu_batch_presets_unregister(cache->edituv_edges);
-	gpu_batch_presets_unregister(cache->edituv_verts);
-	gpu_batch_presets_unregister(cache->edituv_facedots);
+	if (cache->edituv_faces_strech_area) {
+		gpu_batch_presets_unregister(cache->edituv_faces_strech_area);
+	}
+	if (cache->edituv_faces_strech_angle) {
+		gpu_batch_presets_unregister(cache->edituv_faces_strech_angle);
+	}
+	if (cache->edituv_faces) {
+		gpu_batch_presets_unregister(cache->edituv_faces);
+	}
+	if (cache->edituv_edges) {
+		gpu_batch_presets_unregister(cache->edituv_edges);
+	}
+	if (cache->edituv_verts) {
+		gpu_batch_presets_unregister(cache->edituv_verts);
+	}
+	if (cache->edituv_facedots) {
+		gpu_batch_presets_unregister(cache->edituv_facedots);
+	}
 
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_faces_strech_area);
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_faces_strech_angle);
