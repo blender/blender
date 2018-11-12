@@ -4125,20 +4125,24 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	ReportList *reports = CTX_wm_reports(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
+	ListBase nla_cache = {NULL, NULL};
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	short flag = 0;
 	bool done = false;
 	float cfra;
 
+	/* Get RNA pointer */
+	RNA_id_pointer_create(id, &id_ptr);
+
+	/* Get NLA context for value remapping */
+	NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(&nla_cache, depsgraph, &id_ptr, adt, (float)CFRA);
+
 	/* get current frame and apply NLA-mapping to it (if applicable) */
 	cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 
 	/* get flags for keyframing */
 	flag = ANIM_get_keyframing_flags(scene, 1);
-
-	/* get RNA pointer, and resolve the path */
-	RNA_id_pointer_create(id, &id_ptr);
 
 	/* try to resolve the path stored in the F-Curve */
 	if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
@@ -4147,11 +4151,13 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 			flag |= INSERTKEY_REPLACE;
 
 		/* insert a keyframe for this F-Curve */
-		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, flag);
+		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
 
 		if (done)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	}
+
+	BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 }
 
 /* callback for shapekey widget sliders - insert keyframes */
@@ -4166,20 +4172,24 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	ReportList *reports = CTX_wm_reports(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
+	ListBase nla_cache = {NULL, NULL};
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	short flag = 0;
 	bool done = false;
 	float cfra;
 
+	/* Get RNA pointer */
+	RNA_id_pointer_create((ID *)key, &id_ptr);
+
+	/* Get NLA context for value remapping */
+	NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(&nla_cache, depsgraph, &id_ptr, key->adt, (float)CFRA);
+
 	/* get current frame and apply NLA-mapping to it (if applicable) */
 	cfra = BKE_nla_tweakedit_remap(key->adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 
 	/* get flags for keyframing */
 	flag = ANIM_get_keyframing_flags(scene, 1);
-
-	/* get RNA pointer, and resolve the path */
-	RNA_id_pointer_create((ID *)key, &id_ptr);
 
 	/* try to resolve the path stored in the F-Curve */
 	if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
@@ -4193,7 +4203,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 			flag |= INSERTKEY_REPLACE;
 
 		/* insert a keyframe for this F-Curve */
-		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, flag);
+		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, nla_context, flag);
 
 		if (done)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -4202,6 +4212,8 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	/* free the path */
 	if (rna_path)
 		MEM_freeN(rna_path);
+
+	BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 }
 
 /* callback for NLA Control Curve widget sliders - insert keyframes */
@@ -4237,7 +4249,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void *UNUSED(id_po
 			flag |= INSERTKEY_REPLACE;
 
 		/* insert a keyframe for this F-Curve */
-		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, flag);
+		done = insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, flag);
 
 		if (done)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);

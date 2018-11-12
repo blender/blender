@@ -274,7 +274,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
 
-			insert_keyframe_direct(depsgraph, reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, 0);
+			insert_keyframe_direct(depsgraph, reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, NULL, 0);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
@@ -287,7 +287,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
 
-			insert_keyframe_direct(depsgraph, reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
+			insert_keyframe_direct(depsgraph, reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, NULL, INSERTKEY_DRIVER);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
@@ -309,7 +309,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
 			insert_keyframe(bmain, depsgraph, reports, id, action,
 			                ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-			                fcu->rna_path, but->rnaindex, cfra, ts->keyframe_type, flag);
+			                fcu->rna_path, but->rnaindex, cfra, ts->keyframe_type, NULL, flag);
 
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}

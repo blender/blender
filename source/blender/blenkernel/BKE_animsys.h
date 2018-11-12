@@ -48,6 +48,7 @@ struct Scene;
 struct bAction;
 struct bActionGroup;
 struct bContext;
+struct NlaKeyframingContext;
 
 /* ************************************* */
 /* AnimData API */
@@ -170,6 +171,14 @@ void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void 
 
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's
+
+/* ------------ NLA Keyframing --------------- */
+
+typedef struct NlaKeyframingContext NlaKeyframingContext;
+
+struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(struct ListBase *cache, struct Depsgraph *depsgraph, struct PointerRNA *ptr, struct AnimData *adt, float ctime);
+bool BKE_animsys_nla_remap_keyframe_value(struct NlaKeyframingContext *context, struct PointerRNA *prop_ptr, struct PropertyRNA *prop, int index, float *r_value);
+void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache);
 
 /* ************************************* */
 /* Evaluation API */

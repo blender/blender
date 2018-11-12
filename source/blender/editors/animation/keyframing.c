@@ -965,7 +965,7 @@ static float visualkey_get_value(Depsgraph *depsgraph, PointerRNA *ptr, Property
  * the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  * and extra keyframe filtering.
  */
-bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
+bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, struct NlaKeyframingContext *nla_context, eInsertKeyFlags flag)
 {
 	float curval = 0.0f;
 
@@ -1038,6 +1038,12 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
 		curval = setting_get_rna_value(depsgraph, &ptr, prop, fcu->array_index, false);
 	}
 
+	/* adjust the value for NLA factors */
+	if (!BKE_animsys_nla_remap_keyframe_value(nla_context, &ptr, prop, fcu->array_index, &curval)) {
+		BKE_report(reports, RPT_ERROR, "Could not insert keyframe due to zero NLA influence or base value");
+		return false;
+	}
+
 	/* adjust coordinates for cycle aware insertion */
 	if (flag & INSERTKEY_CYCLE_AWARE) {
 		if (remap_cyclic_keyframe_location(fcu, &cfra, &curval) != FCU_CYCLE_PERFECT) {
@@ -1094,12 +1100,14 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
  */
 short insert_keyframe(
         Main *bmain, Depsgraph *depsgraph, ReportList *reports, ID *id, bAction *act,
-        const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
+        const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, ListBase *nla_cache, eInsertKeyFlags flag)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
 	AnimData *adt;
 	FCurve *fcu;
+	ListBase tmp_nla_cache = {NULL, NULL};
+	NlaKeyframingContext *nla_context = NULL;
 	int array_index_max = array_index + 1;
 	int ret = 0;
 
@@ -1132,7 +1140,14 @@ short insert_keyframe(
 
 	/* apply NLA-mapping to frame to use (if applicable) */
 	adt = BKE_animdata_from_id(id);
-	cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
+
+	if (adt && adt->action == act) {
+		/* Get NLA context for value remapping. */
+		nla_context = BKE_animsys_get_nla_keyframing_context(nla_cache ? nla_cache : &tmp_nla_cache, depsgraph, &id_ptr, adt, cfra);
+
+		/* Apply NLA-mapping to frame. */
+		cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
+	}
 
 	/* key entire array convenience method */
 	if (array_index == -1) {
@@ -1172,9 +1187,11 @@ short insert_keyframe(
 			}
 
 			/* insert keyframe */
-			ret += insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, keytype, flag);
+			ret += insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, keytype, nla_context, flag);
 		}
 	}
+
+	BKE_animsys_free_nla_keyframing_context_cache(&tmp_nla_cache);
 
 	if (ret) {
 		if (act != NULL) {
@@ -1904,7 +1921,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
 			if (fcu) {
-				success = insert_keyframe_direct(depsgraph, op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, 0);
+				success = insert_keyframe_direct(depsgraph, op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, 0);
 			}
 			else {
 				BKE_report(op->reports, RPT_ERROR,
@@ -1919,7 +1936,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
 
 			if (fcu && driven) {
-				success = insert_keyframe_direct(depsgraph, op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
+				success = insert_keyframe_direct(depsgraph, op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, NULL, INSERTKEY_DRIVER);
 			}
 		}
 		else {
@@ -1955,7 +1972,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 					index = -1;
 				}
 
-				success = insert_keyframe(bmain, depsgraph, op->reports, ptr.id.data, NULL, group, path, index, cfra, ts->keyframe_type, flag);
+				success = insert_keyframe(bmain, depsgraph, op->reports, ptr.id.data, NULL, group, path, index, cfra, ts->keyframe_type, NULL, flag);
 
 				MEM_freeN(path);
 			}

@@ -54,6 +54,7 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
@@ -679,6 +680,7 @@ static const EnumPropertyItem prop_actkeys_insertkey_types[] = {
 static void insert_action_keys(bAnimContext *ac, short mode)
 {
 	ListBase anim_data = {NULL, NULL};
+	ListBase nla_cache = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
 
@@ -711,7 +713,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 		 */
 		if (ale->id && !ale->owner) {
 			insert_keyframe(ac->bmain, depsgraph, reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-			                fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
+			                fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, &nla_cache, flag);
 		}
 		else {
 			AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -726,6 +728,8 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 
 		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
+
+	BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
 	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);

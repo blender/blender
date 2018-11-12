@@ -62,6 +62,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
@@ -6019,13 +6020,17 @@ void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Objec
 
 			/* only key on available channels */
 			if (adt && adt->action) {
+				ListBase nla_cache = {NULL, NULL};
+
 				for (fcu = adt->action->curves.first; fcu; fcu = fcu->next) {
 					fcu->flag &= ~FCURVE_SELECTED;
 					insert_keyframe(bmain, depsgraph, reports, id, adt->action,
 					                (fcu->grp ? fcu->grp->name : NULL),
 					                fcu->rna_path, fcu->array_index, cfra,
-					                ts->keyframe_type, flag);
+					                ts->keyframe_type, &nla_cache, flag);
 				}
+
+				BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
@@ -6124,6 +6129,7 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
 		ReportList *reports = CTX_wm_reports(C);
 		ToolSettings *ts = scene->toolsettings;
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
+		ListBase nla_cache = {NULL, NULL};
 		float cfra = (float)CFRA;
 		short flag = 0;
 
@@ -6167,7 +6173,7 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
 									insert_keyframe(bmain, depsgraph, reports, id, act,
 									                ((fcu->grp) ? (fcu->grp->name) : (NULL)),
 									                fcu->rna_path, fcu->array_index, cfra,
-									                ts->keyframe_type, flag);
+									                ts->keyframe_type, &nla_cache, flag);
 								}
 
 								if (pchanName) MEM_freeN(pchanName);
@@ -6228,6 +6234,8 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
 				BLI_freelistN(&dsources);
 			}
 		}
+
+		BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 	}
 	else {
 		/* tag channels that should have unkeyed data */

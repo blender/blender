@@ -79,6 +79,21 @@ typedef struct NlaEvalChannel {
 	float value;            /* value of this channel */
 } NlaEvalChannel;
 
+/* Information about the currently edited strip and ones below it for keyframing. */
+typedef struct NlaKeyframingContext {
+	struct NlaKeyframingContext *next, *prev;
+
+	/* AnimData for which this context was built. */
+	struct AnimData *adt;
+
+	/* Data of the currently edited strip (copy, or fake strip for the main action). */
+	NlaStrip strip;
+	NlaEvalStrip *eval_strip;
+
+	/* Evaluated NLA stack below the current strip. */
+	ListBase nla_channels;
+} NlaKeyframingContext;
+
 /* --------------- NLA Functions (not to be used as a proper API) ----------------------- */
 
 /* convert from strip time <-> global time */

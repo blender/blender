@@ -2120,6 +2120,8 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, F
 	return nec;
 }
 
+static float nla_blend_value(int blendmode, float old_value, float value, float inf);
+
 /* accumulate (i.e. blend) the given value on to the channel it affects */
 static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float value, bool newChan)
 {
@@ -2140,28 +2142,33 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float
 	if (nes->strip_mode == NES_TIME_TRANSITION_END)
 		inf *= nes->strip_time;
 
+	nec->value = nla_blend_value(blendmode, nec->value, value, inf);
+}
+
+/* accumulate the old and new values of a channel according to mode and influence */
+static float nla_blend_value(int blendmode, float old_value, float value, float inf)
+{
 	/* optimisation: no need to try applying if there is no influence */
-	if (IS_EQF(inf, 0.0f)) return;
+	if (IS_EQF(inf, 0.0f)) {
+		return old_value;
+	}
 
 	/* perform blending */
 	switch (blendmode) {
 		case NLASTRIP_MODE_ADD:
 			/* simply add the scaled value on to the stack */
-			nec->value += (value * inf);
-			break;
+			return old_value + (value * inf);
 
 		case NLASTRIP_MODE_SUBTRACT:
 			/* simply subtract the scaled value from the stack */
-			nec->value -= (value * inf);
-			break;
+			return old_value - (value * inf);
 
 		case NLASTRIP_MODE_MULTIPLY:
 			/* multiply the scaled value with the stack */
 			/* Formula Used:
 			 *     result = fac * (a * b) + (1 - fac) * a
 			 */
-			nec->value = inf * (nec->value * value)  +   (1 - inf) * nec->value;
-			break;
+			return inf * (old_value * value)  +   (1 - inf) * old_value;
 
 		case NLASTRIP_MODE_REPLACE:
 		default: /* TODO: do we really want to blend by default? it seems more uses might prefer add... */
@@ -2169,8 +2176,41 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float
 			 * - the influence of the accumulated data (elsewhere, that is called dstweight)
 			 *   is 1 - influence, since the strip's influence is srcweight
 			 */
-			nec->value = nec->value * (1.0f - inf)   +   (value * inf);
-			break;
+			return old_value * (1.0f - inf)   +   (value * inf);
+	}
+}
+
+/* compute the value that would blend to the desired target value using nla_blend_value */
+static bool nla_invert_blend_value(int blend_mode, float old_value, float target_value, float influence, float *r_value)
+{
+	switch (blend_mode) {
+		case NLASTRIP_MODE_ADD:
+			*r_value = (target_value - old_value) / influence;
+			return true;
+
+		case NLASTRIP_MODE_SUBTRACT:
+			*r_value = (old_value - target_value) / influence;
+			return true;
+
+		case NLASTRIP_MODE_MULTIPLY:
+			if (old_value == 0.0f) {
+				/* Resolve 0/0 to 1. */
+				if (target_value == 0.0f) {
+					*r_value = 1.0f;
+					return true;
+				}
+				/* Division by zero. */
+				return false;
+			}
+			else {
+				*r_value = (target_value - old_value) / influence / old_value + 1.0f;
+				return true;
+			}
+
+		case NLASTRIP_MODE_REPLACE:
+		default:
+			*r_value = (target_value - old_value) / influence + old_value;
+			return true;
 	}
 }
 
@@ -2481,11 +2521,10 @@ void nladata_flush_channels(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *cha
 /**
  * NLA Evaluation function - values are calculated and stored in temporary "NlaEvalChannels"
  *
- * \note This is exported so that keyframing code can use this for make use of it for anim layers support
- *
  * \param[out] echannels Evaluation channels with calculated values
+ * \param[out] r_context If not NULL, data about the currently edited strip is stored here and excluded from value calculation.
  */
-static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime)
+static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime, NlaKeyframingContext *r_context)
 {
 	NlaTrack *nlt;
 	short track_index = 0;
@@ -2493,9 +2532,12 @@ static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, Poin
 
 	ListBase estrips = {NULL, NULL};
 	NlaEvalStrip *nes;
+	NlaStrip dummy_strip_buf;
 
-	NlaStrip dummy_strip = {NULL}; /* dummy strip for active action */
+	/* dummy strip for active action */
+	NlaStrip *dummy_strip = r_context ? &r_context->strip : &dummy_strip_buf;
 
+	memset(dummy_strip, 0, sizeof(*dummy_strip));
 
 	/* 1. get the stack of strips to evaluate at current time (influence calculated here) */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next, track_index++) {
@@ -2538,39 +2580,69 @@ static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, Poin
 			/* make dummy NLA strip, and add that to the stack */
 			ListBase dummy_trackslist;
 
-			dummy_trackslist.first = dummy_trackslist.last = &dummy_strip;
+			dummy_trackslist.first = dummy_trackslist.last = dummy_strip;
 
-			if ((nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP)) {
+			/* Strips with a user-defined time curve don't get properly remapped for editing
+			 * at the moment, so mapping them just for display may be confusing. */
+			bool is_inplace_tweak = (nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP) && !(adt->actstrip->flag & NLASTRIP_FLAG_USR_TIME);
+
+			if (is_inplace_tweak) {
 				/* edit active action in-place according to its active strip, so copy the data  */
-				memcpy(&dummy_strip, adt->actstrip, sizeof(NlaStrip));
-				dummy_strip.next = dummy_strip.prev = NULL;
+				memcpy(dummy_strip, adt->actstrip, sizeof(NlaStrip));
+				dummy_strip->next = dummy_strip->prev = NULL;
 			}
 			else {
 				/* set settings of dummy NLA strip from AnimData settings */
-				dummy_strip.act = adt->action;
+				dummy_strip->act = adt->action;
 
 				/* action range is calculated taking F-Modifiers into account (which making new strips doesn't do due to the troublesome nature of that) */
-				calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
-				dummy_strip.start = dummy_strip.actstart;
-				dummy_strip.end = (IS_EQF(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f) : (dummy_strip.actend);
+				calc_action_range(dummy_strip->act, &dummy_strip->actstart, &dummy_strip->actend, 1);
+				dummy_strip->start = dummy_strip->actstart;
+				dummy_strip->end = (IS_EQF(dummy_strip->actstart, dummy_strip->actend)) ?  (dummy_strip->actstart + 1.0f) : (dummy_strip->actend);
 
-				dummy_strip.blendmode = adt->act_blendmode;
-				dummy_strip.extendmode = adt->act_extendmode;
-				dummy_strip.influence = adt->act_influence;
+				/* Always use the blend mode of the strip in tweak mode, even if not in-place. */
+				if (nlt && adt->actstrip) {
+					dummy_strip->blendmode = adt->actstrip->blendmode;
+					dummy_strip->extendmode = adt->actstrip->extendmode;
+				}
+				else {
+					dummy_strip->blendmode = adt->act_blendmode;
+					dummy_strip->extendmode = adt->act_extendmode;
+				}
+
+				dummy_strip->influence = adt->act_influence;
 
 				/* NOTE: must set this, or else the default setting overrides, and this setting doesn't work */
-				dummy_strip.flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+				dummy_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
 			}
 
 			/* add this to our list of evaluation strips */
-			nlastrips_ctime_get_strip(depsgraph, &estrips, &dummy_trackslist, -1, ctime);
+			if (r_context == NULL) {
+				nlastrips_ctime_get_strip(depsgraph, &estrips, &dummy_trackslist, -1, ctime);
+			}
+			/* If computing the context for keyframing, store data there instead of the list. */
+			else {
+				/* The extend mode here effectively controls whether it is possible to keyframe beyond the ends. */
+				dummy_strip->extendmode = is_inplace_tweak ? NLASTRIP_EXTEND_NOTHING : NLASTRIP_EXTEND_HOLD;
+
+				r_context->eval_strip = nes = nlastrips_ctime_get_strip(depsgraph, NULL, &dummy_trackslist, -1, ctime);
+
+				/* These setting combinations require no data from strips below, so exit immediately. */
+				if ((nes == NULL) || (dummy_strip->blendmode == NLASTRIP_MODE_REPLACE && dummy_strip->influence == 1.0f)) {
+					BLI_freelistN(&estrips);
+					return;
+				}
+			}
 		}
 		else {
 			/* special case - evaluate as if there isn't any NLA data */
 			/* TODO: this is really just a stop-gap measure... */
 			if (G.debug & G_DEBUG) printf("NLA Eval: Stopgap for active action on NLA Stack - no strips case\n");
 
-			animsys_evaluate_action(depsgraph, ptr, adt->action, ctime);
+			if (r_context == NULL) {
+				animsys_evaluate_action(depsgraph, ptr, adt->action, ctime);
+			}
+
 			BLI_freelistN(&estrips);
 			return;
 		}
@@ -2601,13 +2673,115 @@ static void animsys_calculate_nla(Depsgraph *depsgraph, PointerRNA *ptr, AnimDat
 	 * and also when the user jumps between different times instead of moving sequentially... */
 
 	/* evaluate the NLA stack, obtaining a set of values to flush */
-	animsys_evaluate_nla(depsgraph, &echannels, ptr, adt, ctime);
+	animsys_evaluate_nla(depsgraph, &echannels, ptr, adt, ctime, NULL);
 
 	/* flush effects of accumulating channels in NLA to the actual data they affect */
 	nladata_flush_channels(depsgraph, ptr, &echannels);
 
 	/* free temp data */
 	BLI_freelistN(&echannels);
+}
+
+/* ---------------------- */
+
+/**
+ * Prepare data necessary to compute correct keyframe values for NLA strips
+ * with non-Replace mode or influence different from 1.
+ *
+ * @param cache List used to cache contexts for reuse when keying multiple channels in one operation.
+ * @param ptr RNA pointer to the Object with the animation.
+ * @return Keyframing context, or NULL if not necessary.
+ */
+NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
+        struct ListBase *cache, struct Depsgraph *depsgraph, struct PointerRNA *ptr, struct AnimData *adt, float ctime)
+{
+	/* No remapping needed if NLA is off or no action. */
+	if ((adt == NULL) || (adt->action == NULL) || (adt->nla_tracks.first == NULL) || (adt->flag & ADT_NLA_EVAL_OFF)) {
+		return NULL;
+	}
+
+	/* No remapping if editing an ordinary Replace action with full influence. */
+	if (!(adt->flag & ADT_NLA_EDIT_ON) && (adt->act_blendmode == NLASTRIP_MODE_REPLACE && adt->act_influence == 1.0f)) {
+		return NULL;
+	}
+
+	/* Try to find a cached context. */
+	NlaKeyframingContext *ctx = BLI_findptr(cache, adt, offsetof(NlaKeyframingContext, adt));
+
+	if (ctx == NULL) {
+		/* Allocate and evaluate a new context. */
+		ctx = MEM_callocN(sizeof(*ctx), "NlaKeyframingContext");
+		ctx->adt = adt;
+
+		animsys_evaluate_nla(depsgraph, &ctx->nla_channels, ptr, adt, ctime, ctx);
+
+		BLI_assert(ELEM(ctx->strip.act, NULL, adt->action));
+		BLI_addtail(cache, ctx);
+	}
+
+	return ctx;
+}
+
+/**
+ * Apply correction from the NLA context to the value about to be keyframed.
+ *
+ * @param context Context to use (may be NULL).
+ * @param prop_ptr Property about to be keyframed.
+ * @param index Array index within the property.
+ * @param[in,out] r_value Value to correct.
+ * @return False if correction fails due to a division by zero.
+ */
+bool BKE_animsys_nla_remap_keyframe_value(struct NlaKeyframingContext *context, struct PointerRNA *prop_ptr, struct PropertyRNA *prop, int index, float *r_value)
+{
+	/* No context means no correction. */
+	if (context == NULL || context->strip.act == NULL) {
+		return true;
+	}
+
+	/* If the strip is not evaluated, it is the same as zero influence. */
+	if (context->eval_strip == NULL) {
+		return false;
+	}
+
+	/* Full influence Replace strips also require no correction. */
+	int blend_mode = context->strip.blendmode;
+	float influence = context->strip.influence;
+
+	if (blend_mode == NLASTRIP_MODE_REPLACE && influence == 1.0f) {
+		return true;
+	}
+
+	/* Zero influence is division by zero. */
+	if (influence <= 0.0f) {
+		return false;
+	}
+
+	/* Find the evaluation channel for the NLA stack below current strip. */
+	PathResolvedRNA rna = { .ptr = *prop_ptr, .prop = prop, .prop_index = index };
+	NlaEvalChannel *nec = nlaevalchan_find_match(&context->nla_channels, &rna);
+
+	/* Replace strips ignore influence when they are the first to modify this channel. */
+	if (nec == NULL && blend_mode == NLASTRIP_MODE_REPLACE) {
+		return true;
+	}
+
+	/* Invert the effect of blending modes. */
+	float old_value = nec ? nec->value : nlaevalchan_init_value(&rna);
+
+	return nla_invert_blend_value(blend_mode, old_value, *r_value, influence, r_value);
+}
+
+/**
+ * Free all cached contexts from the list.
+ */
+void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
+{
+	for (NlaKeyframingContext *ctx = cache->first; ctx; ctx = ctx->next) {
+		MEM_SAFE_FREE(ctx->eval_strip);
+		BLI_freelistN(&ctx->nla_channels);
+	}
+
+	BLI_freelistN(cache);
 }
 
 /* ***************************************** */

@@ -255,7 +255,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 			NlaStrip *strip = (NlaStrip *)ptr.data;
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 
-			result = insert_keyframe_direct(depsgraph, &reports, ptr, prop, fcu, cfra, keytype, options);
+			result = insert_keyframe_direct(depsgraph, &reports, ptr, prop, fcu, cfra, keytype, NULL, options);
 		}
 		else {
 			BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
@@ -276,7 +276,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 		BKE_reports_init(&reports, RPT_STORE);
 
 		BLI_assert(BKE_id_is_in_global_main(id));
-		result = insert_keyframe(G_MAIN, depsgraph, &reports, id, NULL, group_name, path_full, index, cfra, keytype, options);
+		result = insert_keyframe(G_MAIN, depsgraph, &reports, id, NULL, group_name, path_full, index, cfra, keytype, NULL, options);
 		MEM_freeN((void *)path_full);
 
 		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)

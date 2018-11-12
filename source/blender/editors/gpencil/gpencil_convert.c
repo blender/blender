@@ -423,7 +423,7 @@ static void gp_stroke_path_animation_add_keyframes(
 				if ((cfra - last_valid_time) < MIN_TIME_DELTA) {
 					cfra = last_valid_time + MIN_TIME_DELTA;
 				}
-				insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+				insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
 				last_valid_time = cfra;
 			}
 			else if (G.debug & G_DEBUG) {
@@ -435,7 +435,7 @@ static void gp_stroke_path_animation_add_keyframes(
 			if ((cfra - last_valid_time) < MIN_TIME_DELTA) {
 				cfra = last_valid_time + MIN_TIME_DELTA;
 			}
-			insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+			insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
 			last_valid_time = cfra;
 		}
 		else {
@@ -443,7 +443,7 @@ static void gp_stroke_path_animation_add_keyframes(
 			 * and also far enough from (not yet added!) end_stroke keyframe!
 			 */
 			if ((cfra - last_valid_time) > MIN_TIME_DELTA && (end_stroke_time - cfra) > MIN_TIME_DELTA) {
-				insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_BREAKDOWN, INSERTKEY_FAST);
+				insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_BREAKDOWN, NULL, INSERTKEY_FAST);
 				last_valid_time = cfra;
 			}
 			else if (G.debug & G_DEBUG) {
@@ -499,7 +499,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 
 		cu->ctime = 0.0f;
 		cfra = (float)gtd->start_frame;
-		insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+		insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
 
 		cu->ctime = cu->pathlen;
 		if (gtd->realtime) {
@@ -508,7 +508,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 		else {
 			cfra = (float)gtd->end_frame;
 		}
-		insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+		insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, NULL, INSERTKEY_FAST);
 	}
 	else {
 		/* Use actual recorded timing! */
