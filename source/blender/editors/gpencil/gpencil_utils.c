@@ -1444,6 +1444,14 @@ static bool gp_check_cursor_region(bContext *C, int mval[2])
 {
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
+	Object *ob = CTX_data_active_object(C);
+
+	if ((ob == NULL) ||
+		(!ELEM(ob->mode, OB_MODE_GPENCIL_PAINT, OB_MODE_GPENCIL_SCULPT, OB_MODE_GPENCIL_WEIGHT)))
+	{
+		return false;
+	}
+
 	/* TODO: add more spacetypes */
 	if (!ELEM(sa->spacetype, SPACE_VIEW3D)) {
 		return false;
