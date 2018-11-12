@@ -32,7 +32,6 @@
  */
 
 struct AnimData;
-struct AnimMapper;
 struct ChannelDriver;
 struct Depsgraph;
 struct FCurve;
@@ -184,7 +183,7 @@ void BKE_animsys_evaluate_animdata(struct Depsgraph *depsgraph, struct Scene *sc
 void BKE_animsys_evaluate_all_animation(struct Main *main, struct Depsgraph *depsgraph, struct Scene *scene, float ctime);
 
 /* TODO(sergey): This is mainly a temp public function. */
-bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap, struct FCurve *fcu, float curval);
+bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct FCurve *fcu, float curval);
 
 /* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
@@ -195,10 +194,10 @@ bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap
  */
 
 /* Evaluate Action (F-Curve Bag) */
-void animsys_evaluate_action(struct Depsgraph *depsgraph, struct PointerRNA *ptr, struct bAction *act, struct AnimMapper *remap, float ctime);
+void animsys_evaluate_action(struct Depsgraph *depsgraph, struct PointerRNA *ptr, struct bAction *act, float ctime);
 
 /* Evaluate Action Group */
-void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, struct bActionGroup *agrp, struct AnimMapper *remap, float ctime);
+void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, struct bActionGroup *agrp, float ctime);
 
 /* ************************************* */
 

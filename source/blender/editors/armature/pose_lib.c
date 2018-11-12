@@ -1026,7 +1026,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 				}
 
 				if (ok)
-					animsys_evaluate_action_group(ptr, act, agrp, NULL, (float)frame);
+					animsys_evaluate_action_group(ptr, act, agrp, (float)frame);
 			}
 		}
 	}

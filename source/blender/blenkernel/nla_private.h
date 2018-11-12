@@ -34,7 +34,6 @@
 #define __NLA_PRIVATE_H__
 
 struct Depsgraph;
-struct AnimMapper;
 
 #include "RNA_types.h"
 
@@ -75,7 +74,6 @@ typedef struct NlaEvalChannel {
 	PathResolvedRNA rna;
 
 	/* Original parameters used to look up the reference for write_orig_anim_rna */
-	struct AnimMapper *remap;
 	const char *rna_path;
 
 	float value;            /* value of this channel */

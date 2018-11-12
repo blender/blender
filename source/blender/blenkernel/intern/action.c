@@ -1447,7 +1447,7 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 		RNA_id_pointer_create(&workob->id, &id_ptr);
 
 		/* execute action for this group only */
-		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
+		animsys_evaluate_action_group(&id_ptr, act, agrp, cframe);
 	}
 	else {
 		AnimData adt = {NULL};
