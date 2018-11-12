@@ -1065,7 +1065,14 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
 	BLI_listbase_clear(&psysn->pathcachebufs);
 	BLI_listbase_clear(&psysn->childcachebufs);
 
-	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
+	if (flag & LIB_ID_CREATE_NO_MAIN) {
+		BLI_assert((psys->flag & PSYS_SHARED_CACHES) == 0);
+		psysn->flag |= PSYS_SHARED_CACHES;
+		BLI_assert(psysn->pointcache != NULL);
+	}
+	else {
+		psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, flag);
+	}
 
 	/* XXX - from reading existing code this seems correct but intended usage of
 	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */

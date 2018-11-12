@@ -453,7 +453,7 @@ void BKE_particlesettings_free(ParticleSettings *part)
 	fluid_free_settings(part->fluid);
 }
 
-void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)
+void free_hair(Object *object, ParticleSystem *psys, int dynamics)
 {
 	PARTICLE_P;
 
@@ -468,13 +468,10 @@ void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)
 
 	if (psys->clmd) {
 		if (dynamics) {
-			BKE_ptcache_free_list(&psys->ptcaches);
-			psys->pointcache = NULL;
-
 			modifier_free((ModifierData *)psys->clmd);
-
-			psys->clmd = NULL;
-			psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
+			PTCacheID pid;
+			BKE_ptcache_id_from_particles(&pid, object, psys);
+			BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
 		}
 		else {
 			cloth_free_modifier(psys->clmd);
@@ -596,7 +593,21 @@ void psys_free(Object *ob, ParticleSystem *psys)
 
 		psys_free_path_cache(psys, NULL);
 
-		free_hair(ob, psys, 1);
+		/* NOTE: We pass dynamics=0 to free_hair() to prevent it from doing an
+		 * unneeded clear of the cache. But for historical reason that code path
+		 * was only clearing cloth part of modifier data.
+		 *
+		 * Part of the story there is that particle evaluation is trying to not
+		 * re-allocate thew ModifierData itself, and limits all allocations to
+		 * the cloth part of it.
+		 *
+		 * Why evaluation is relying on hair_free() and in some specific code
+		 * paths there is beyond me.
+		 */
+		free_hair(ob, psys, 0);
+		if (psys->clmd != NULL) {
+			modifier_free((ModifierData *)psys->clmd);
+		}
 
 		psys_free_particles(psys);
 
@@ -624,7 +635,9 @@ void psys_free(Object *ob, ParticleSystem *psys)
 
 		psys->part = NULL;
 
-		BKE_ptcache_free_list(&psys->ptcaches);
+		if ((psys->flag & PSYS_SHARED_CACHES) == 0) {
+			BKE_ptcache_free_list(&psys->ptcaches);
+		}
 		psys->pointcache = NULL;
 
 		BLI_freelistN(&psys->targets);

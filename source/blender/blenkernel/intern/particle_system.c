@@ -4386,7 +4386,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 				psys_orig->edit->psys_eval = psys;
 				psys_orig->edit->psmd_eval = psmd;
 			}
-			psys_orig->flag = psys->flag;
+			psys_orig->flag = (psys->flag & ~PSYS_SHARED_CACHES);
 		}
 	}
 
