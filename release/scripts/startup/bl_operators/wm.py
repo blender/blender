@@ -1445,10 +1445,10 @@ class WM_OT_appconfig_activate(Operator):
 
     def execute(self, context):
         import os
-        bpy.utils.keyconfig_set(self.filepath)
-
-        filepath = self.filepath.replace("keyconfig", "interaction")
-
+        filepath = self.filepath
+        bpy.utils.keyconfig_set(filepath)
+        dirname, filename = os.path.split(filepath)
+        filepath = os.path.normpath(os.path.join(dirname, os.pardir, "interaction", filename))
         if os.path.exists(filepath):
             bpy.ops.script.execute_preset(
                 filepath=filepath,
