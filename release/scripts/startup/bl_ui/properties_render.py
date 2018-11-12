@@ -197,7 +197,8 @@ class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
         layout.active = props.use_dof
         col = layout.column()
         col.prop(props, "bokeh_max_size")
-        col.prop(props, "bokeh_threshold")
+        # Not supported yet
+        # col.prop(props, "bokeh_threshold")
 
 
 class RENDER_PT_eevee_bloom(RenderButtonsPanel, Panel):
