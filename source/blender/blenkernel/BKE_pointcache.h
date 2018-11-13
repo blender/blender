@@ -293,6 +293,11 @@ PTCacheID BKE_ptcache_id_find(struct Object *ob, struct Scene *scene, struct Poi
 void BKE_ptcache_ids_from_object(
         struct ListBase *lb, struct Object *ob, struct Scene *scene, int duplis);
 
+/****************** Query funcs ****************************/
+
+/* Check whether object has a point cache. */
+bool BKE_ptcache_object_has(struct Scene *scene, struct Object *ob, int duplis);
+
 /***************** Global funcs ****************************/
 void BKE_ptcache_remove(void);
 

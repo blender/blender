@@ -1829,6 +1829,18 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	        scene, ob, duplis, ptcache_ids_from_object_cb, &data);
 }
 
+static bool ptcache_object_has_cb(PTCacheID *UNUSED(pid),
+                                  void *UNUSED(userdata))
+{
+	return false;
+}
+
+bool BKE_ptcache_object_has(struct Scene *scene, struct Object *ob, int duplis)
+{
+	return !foreach_object_ptcache(
+	        scene, ob, duplis, ptcache_object_has_cb, NULL);
+}
+
 /* File handling */
 
 static const char *ptcache_file_extension(const PTCacheID *pid)
