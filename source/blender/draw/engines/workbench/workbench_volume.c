@@ -157,17 +157,23 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		const int axis = (sds->slice_axis == SLICE_AXIS_AUTO)
 		                  ? axis_dominant_v3_single(invviewmat[2])
 		                  : sds->slice_axis - 1;
+		float dim[3];
+		BKE_object_dimensions_get(ob, dim);
+		/* 0.05f to acheive somewhat the same opacity as the full view.  */
+		float step_length = max_ff(1e-16f, dim[axis] * 0.05f);
 
 		grp = DRW_shgroup_create(sh, vedata->psl->volume_pass);
 		DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
 		DRW_shgroup_uniform_int_copy(grp, "sliceAxis", axis);
+		DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
+		DRW_shgroup_state_disable(grp, DRW_STATE_CULL_FRONT);
 	}
 	else {
 		double noise_ofs;
 		BLI_halton_1D(3, 0.0, effect_info->jitter_index, &noise_ofs);
 		float dim[3], step_length, max_slice;
 		float slice_ct[3] = {sds->res[0], sds->res[1], sds->res[2]};
-		mul_v3_fl(slice_ct, sds->slice_per_voxel);
+		mul_v3_fl(slice_ct, max_ff(0.001f, sds->slice_per_voxel));
 		max_slice = max_fff(slice_ct[0], slice_ct[1], slice_ct[2]);
 		BKE_object_dimensions_get(ob, dim);
 		invert_v3(slice_ct);
@@ -179,6 +185,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slice);
 		DRW_shgroup_uniform_float_copy(grp, "stepLength", step_length);
 		DRW_shgroup_uniform_float_copy(grp, "noiseOfs", noise_ofs);
+		DRW_shgroup_state_enable(grp, DRW_STATE_CULL_FRONT);
 	}
 
 	if (sds->use_coba) {

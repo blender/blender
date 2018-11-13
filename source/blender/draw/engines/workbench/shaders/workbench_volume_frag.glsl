@@ -198,24 +198,10 @@ void main()
 		discard;
 	}
 
-	ivec3 volume_size = textureSize(densityTexture, 0);
-	float step_len;
-	if (sliceAxis == 0) {
-		step_len = float(volume_size.x);
-	}
-	else if (sliceAxis == 1) {
-		step_len = float(volume_size.y);
-	}
-	else {
-		step_len = float(volume_size.z);
-	}
-	/* FIXME Should be in world space but is in local space. */
-	step_len = 1.0 / step_len;
-
 	vec3 Lscat;
 	float s_extinction, Tr;
 	volume_properties(localPos, Lscat, s_extinction);
-	eval_volume_step(Lscat, s_extinction, step_len, Tr);
+	eval_volume_step(Lscat, s_extinction, stepLength, Tr);
 
 	fragColor = vec4(Lscat, Tr);
 #else
