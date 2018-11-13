@@ -222,10 +222,10 @@ static PyObject *bpygpu_Batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sh
 PyDoc_STRVAR(bpygpu_Batch_draw_doc,
 ".. method:: draw(program=None)\n"
 "\n"
-"   Run the drawing program with the parameters assigned to the batch.\n"
+"   Run the drawing program with the parameters assigned to the batch. \n"
 "\n"
-"   :param program: program that performs the drawing operations. \n"
-"      If ``None`` is passed, the last program setted to this batch will run.\n"
+"   :param program: Program that performs the drawing operations. \n"
+"      If ``None`` is passed, the last program setted to this batch will run. \n"
 "   :type program: :class:`gpu.types.GPUShader`\n"
 );
 static PyObject *bpygpu_Batch_draw(BPyGPUBatch *self, PyObject *args)
@@ -318,11 +318,11 @@ static void bpygpu_Batch_dealloc(BPyGPUBatch *self)
 }
 
 PyDoc_STRVAR(py_gpu_batch_doc,
-"GPUBatch(type, buf, elem=None)\n"
+".. class:: GPUBatch(type, buf, elem=None)\n"
 "\n"
-"Contains VAOs + VBOs + Shader representing a drawable entity."
+"   Reusable container for drawable geometry. \n"
 "\n"
-"   :param type: One of these primitive types: {\n"
+"   :arg type: One of these primitive types: {\n"
 "       `POINTS`,\n"
 "       `LINES`,\n"
 "       `TRIS`,\n"
@@ -333,10 +333,10 @@ PyDoc_STRVAR(py_gpu_batch_doc,
 "       `LINES_ADJ`,\n"
 "       `TRIS_ADJ`,\n"
 "       `LINE_STRIP_ADJ` }\n"
-"   :type type: :class:`str`\n"
-"   :param buf: Vertex buffer containing all or some of the attributes required for drawing.\n"
+"   :type type: `str`\n"
+"   :arg buf: Vertex buffer containing all or some of the attributes required for drawing.\n"
 "   :type buf: :class:`gpu.types.GPUVertBuf`\n"
-"   :param elem: Optional index buffer.\n"
+"   :arg elem: An optional index buffer.\n"
 "   :type elem: :class:`gpu.types.GPUIndexBuf`\n"
 );
 PyTypeObject BPyGPUBatch_Type = {

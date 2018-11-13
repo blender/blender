@@ -196,20 +196,20 @@ static void bpygpu_IndexBuf_dealloc(BPyGPUIndexBuf *self)
 }
 
 PyDoc_STRVAR(py_gpu_element_doc,
-"GPUIndexBuf(type, seq)\n"
+".. class:: GPUIndexBuf(type, seq)\n"
 "\n"
-"Contains an index buffer."
+"   Contains an index buffer. \n"
 "\n"
-"   :param type:\n"
-"      One of these primitive types: {\n"
+"   :param type: One of these primitive types: {\n"
 "      `POINTS`,\n"
 "      `LINES`,\n"
 "      `TRIS`,\n"
 "      `LINE_STRIP_ADJ` }\n"
-"   :type type: :class:`str`\n"
-"   :param seq: Indices this index buffer will contain.\n"
-"   :type buf: 1D or 2D sequence, depending on the type. \n"
-"              Optionally the sequence can support the buffer protocol. \n"
+"   :type type: `str`\n"
+"   :param seq: Indices this index buffer will contain. \n"
+"       Whether a 1D or 2D sequence is required depends on the type. \n"
+"       Optionally the sequence can support the buffer protocol. \n"
+"   :type seq: 1D or 2D sequence \n"
 );
 PyTypeObject BPyGPUIndexBuf_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
