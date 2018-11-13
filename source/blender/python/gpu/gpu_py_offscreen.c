@@ -179,7 +179,7 @@ static PyObject *bpygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, 
 }
 
 PyDoc_STRVAR(bpygpu_offscreen_draw_view3d_doc,
-".. method:: draw_view3d(scene, view3d, region, modelview_matrix, projection_matrix)\n"
+".. method:: draw_view3d(scene, view3d, region, view_matrix, projection_matrix)\n"
 "\n"
 "   Draw the 3d viewport in the offscreen object.\n"
 "\n"
@@ -212,18 +212,18 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 
 	static const char *_keywords[] = {
 	        "scene", "view_layer", "view3d", "region",
-	        "projection_matrix", "view_matrix", NULL};
+	        "view_matrix", "projection_matrix", NULL};
 
 	static _PyArg_Parser _parser = {"OOOOO&O&:draw_view3d", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &py_scene, &py_view_layer, &py_view3d, &py_region,
-	        Matrix_Parse4x4, &py_mat_projection,
-	        Matrix_Parse4x4, &py_mat_view) ||
-	    (!(scene       = PyC_RNA_AsPointer(py_scene, "Scene")) ||
+	        Matrix_Parse4x4, &py_mat_view,
+	        Matrix_Parse4x4, &py_mat_projection) ||
+	    (!(scene      = PyC_RNA_AsPointer(py_scene, "Scene")) ||
 	     !(view_layer = PyC_RNA_AsPointer(py_view_layer, "ViewLayer")) ||
-	     !(v3d         = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
-	     !(ar          = PyC_RNA_AsPointer(py_region, "Region"))))
+	     !(v3d        = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
+	     !(ar         = PyC_RNA_AsPointer(py_region, "Region"))))
 	{
 		return NULL;
 	}
@@ -234,7 +234,7 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
-	GPU_offscreen_bind(self->ofs, true); /* bind */
+	GPU_offscreen_bind(self->ofs, true);
 
 	ED_view3d_draw_offscreen(depsgraph,
 	                         scene,
@@ -252,7 +252,7 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 	                         self->ofs,
 	                         NULL);
 
-	GPU_offscreen_unbind(self->ofs, true); /* unbind */
+	GPU_offscreen_unbind(self->ofs, true);
 
 	ED_view3d_mats_rv3d_restore(ar->regiondata, rv3d_mats);
 	MEM_freeN(rv3d_mats);
