@@ -718,14 +718,6 @@ void GPENCIL_draw_scene(void *ved)
 	}
 
 	if (DRW_state_is_fbo()) {
-		/* attach temp textures */
-		GPU_framebuffer_texture_attach(fbl->temp_fb_a, e_data.temp_depth_tx_a, 0, 0);
-		GPU_framebuffer_texture_attach(fbl->temp_fb_a, e_data.temp_color_tx_a, 0, 0);
-		GPU_framebuffer_texture_attach(fbl->temp_fb_b, e_data.temp_depth_tx_b, 0, 0);
-		GPU_framebuffer_texture_attach(fbl->temp_fb_b, e_data.temp_color_tx_b, 0, 0);
-
-		GPU_framebuffer_texture_attach(fbl->background_fb, e_data.background_depth_tx, 0, 0);
-		GPU_framebuffer_texture_attach(fbl->background_fb, e_data.background_color_tx, 0, 0);
 
 		/* Draw all pending objects */
 		if (stl->g_data->gp_cache_used > 0) {
@@ -815,17 +807,9 @@ void GPENCIL_draw_scene(void *ved)
 	/* free memory */
 	gpencil_free_obj_runtime(stl);
 
-	/* detach temp textures */
+	/* reset  */
 	if (DRW_state_is_fbo()) {
-		GPU_framebuffer_texture_detach(fbl->temp_fb_a, e_data.temp_depth_tx_a);
-		GPU_framebuffer_texture_detach(fbl->temp_fb_a, e_data.temp_color_tx_a);
-		GPU_framebuffer_texture_detach(fbl->temp_fb_b, e_data.temp_depth_tx_b);
-		GPU_framebuffer_texture_detach(fbl->temp_fb_b, e_data.temp_color_tx_b);
-
-		GPU_framebuffer_texture_detach(fbl->background_fb, e_data.background_depth_tx);
-		GPU_framebuffer_texture_detach(fbl->background_fb, e_data.background_color_tx);
-
-		/* attach again default framebuffer after detach textures */
+		/* attach again default framebuffer */
 		if (!is_render) {
 			GPU_framebuffer_bind(dfbl->default_fb);
 		}
