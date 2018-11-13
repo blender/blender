@@ -162,7 +162,22 @@ static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *arg
 }
 
 PyDoc_STRVAR(bpygpu_VertFormat_attr_add_doc,
-"TODO"
+".. method:: attr_add(id, comp_type, len, fetch_mode)\n"
+"\n"
+"   Add a new attribute to the format.\n"
+"\n"
+"   :param id: Name the attribute. Often `position`, `normal`, ...\n"
+"   :type id: str\n"
+"   :param comp_type: The data type that will be used store the value in memory.\n"
+"      Possible values are `I8`, `U8`, `I16`, `U16`, `I32`, `U32`, `F32` and `I10`.\n"
+"   :type comp_type: `str`\n"
+"   :param len: How many individual values the attribute consists of (e.g. 2 for uv coordinates).\n"
+"   :type len: int\n"
+"   :param fetch_mode: How values from memory will be converted when used in the shader.\n"
+"      This is mainly useful for memory optimizations when you want to store values with reduced precision.\n"
+"      E.g. you can store a float in only 1 byte but it will be converted to a normal 4 byte float when used.\n"
+"      Possible values are `FLOAT`, `INT`, `INT_TO_FLOAT_UNIT` and `INT_TO_FLOAT`.\n"
+"   :type fetch_mode: `str`\n"
 );
 static PyObject *bpygpu_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
@@ -206,12 +221,18 @@ static void bpygpu_VertFormat_dealloc(BPyGPUVertFormat *self)
 	Py_TYPE(self)->tp_free(self);
 }
 
+PyDoc_STRVAR(bpygpu_VertFormat_doc,
+".. class:: GPUVertFormat()\n"
+"\n"
+"   This object contains information about the structure of a vertex buffer.\n"
+);
 PyTypeObject BPyGPUVertFormat_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "GPUVertFormat",
 	.tp_basicsize = sizeof(BPyGPUVertFormat),
 	.tp_dealloc = (destructor)bpygpu_VertFormat_dealloc,
 	.tp_flags = Py_TPFLAGS_DEFAULT,
+	.tp_doc = bpygpu_VertFormat_doc,
 	.tp_methods = bpygpu_VertFormat_methods,
 	.tp_new = bpygpu_VertFormat_new,
 };

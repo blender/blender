@@ -253,7 +253,7 @@ PyDoc_STRVAR(bpygpu_VertBuf_attr_fill_doc,
 "   :param id: Either the name or the id of the attribute.\n"
 "   :type id: int or str\n"
 "   :param data: Sequence of data that should be stored in the buffer\n"
-"   :type data: sequence of individual values or tuples\n"
+"   :type data: sequence of values or tuples\n"
 );
 static PyObject *bpygpu_VertBuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
