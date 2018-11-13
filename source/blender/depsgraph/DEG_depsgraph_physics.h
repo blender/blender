@@ -69,7 +69,7 @@ void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  struct Object *object,
                                  struct Collection *collection,
                                  unsigned int modifier_type,
-                                 DEG_CollobjFilterFunction fn,
+                                 DEG_CollobjFilterFunction filter_function,
                                  const char *name);
 void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
                                   struct Object *object,
