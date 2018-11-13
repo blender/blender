@@ -42,3 +42,28 @@ def draw_circle_2d(position, color, radius, segments=32):
         batch.program_set(shader)
         shader.uniform_float("color", color)
         batch.draw()
+
+
+def draw_texture_2d(texture_id, position, width, height):
+    import gpu
+    import bgl
+    from . batch import batch_for_shader
+
+    coords = ((0, 0), (1, 0), (1, 1), (0, 1))
+
+    shader = gpu.shader.from_builtin('2D_IMAGE')
+    batch = batch_for_shader(shader, 'TRI_FAN',
+        {"pos" : coords,
+         "texCoord" : coords})
+
+    bgl.glActiveTexture(bgl.GL_TEXTURE0)
+    bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
+
+    with gpu.matrix.push_pop():
+        gpu.matrix.translate(position)
+        gpu.matrix.scale((width, height))
+
+        shader = gpu.shader.from_builtin('2D_IMAGE')
+        shader.bind()
+        shader.uniform_int("image", 0)
+        batch.draw(shader)
