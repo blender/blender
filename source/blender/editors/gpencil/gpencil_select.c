@@ -1001,12 +1001,12 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 
 
 	/* find visible strokes, and select if hit */
-	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
+	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
 	{
 		changed |= gp_stroke_do_circle_sel(
-			gps, &gsc, mx, my, radius, select, &rect, diff_mat, selectmode);
+			gps, &gsc, mx, my, radius, select, &rect, gpstroke_iter.diff_mat, selectmode);
 	}
-	GP_EDITABLE_STROKES_END;
+	GP_EDITABLE_STROKES_END(gpstroke_iter);
 
 	/* updates */
 	if (changed) {
@@ -1099,7 +1099,7 @@ static int gpencil_generic_select_exec(
 	}
 
 	/* select/deselect points */
-	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
+	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
 	{
 
 		bGPDspoint *pt;
@@ -1107,7 +1107,7 @@ static int gpencil_generic_select_exec(
 		bool hit = false;
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 			/* convert point coords to screenspace */
-			const bool is_inside = is_inside_fn(gps, pt, &gsc, diff_mat, user_data);
+			const bool is_inside = is_inside_fn(gps, pt, &gsc, gpstroke_iter.diff_mat, user_data);
 
 			if (strokemode == false) {
 				const bool is_select = (pt->flag & GP_SPOINT_SELECT) != 0;
@@ -1146,7 +1146,7 @@ static int gpencil_generic_select_exec(
 		/* Ensure that stroke selection is in sync with its points */
 		BKE_gpencil_stroke_sync_selection(gps);
 	}
-	GP_EDITABLE_STROKES_END;
+	GP_EDITABLE_STROKES_END(gpstroke_iter);
 
 	/* if paint mode,delete selected points */
 	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
@@ -1341,7 +1341,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
 	/* First Pass: Find stroke point which gets hit */
 	/* XXX: maybe we should go from the top of the stack down instead... */
-	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
+	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
 	{
 		bGPDspoint *pt;
 		int i;
@@ -1351,7 +1351,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 			int xy[2];
 
 			bGPDspoint pt2;
-			gp_point_to_parent_space(pt, diff_mat, &pt2);
+			gp_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
 			gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
 			/* do boundbox check first */
@@ -1370,7 +1370,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	GP_EDITABLE_STROKES_END;
+	GP_EDITABLE_STROKES_END(gpstroke_iter);
 
 	/* Abort if nothing hit... */
 	if (ELEM(NULL, hit_stroke, hit_point)) {
