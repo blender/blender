@@ -387,6 +387,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	/* free temp data */
 	MEM_SAFE_FREE(points2D);
 
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 }
@@ -562,6 +563,7 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	if (gps) {
 		gps->thickness = tgpi->brush->size;
 		gps->flag |= GP_STROKE_RECALC_CACHES;
+		gps->tot_triangles = 0;
 	}
 
 	/* transfer stroke from temporary buffer to the actual frame */
@@ -580,6 +582,9 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 
 		}
 	}
+
+	DEG_id_tag_update(&tgpi->gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&tgpi->gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	/* clean up temp data */
 	gpencil_primitive_exit(C, op);
