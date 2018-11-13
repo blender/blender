@@ -201,6 +201,8 @@ static GPUBatch *batch_sphere_wire(int lat_res, int lon_res)
 
 void gpu_batch_presets_init(void)
 {
+	BLI_mutex_init(&g_presets_3d.mutex);
+
 	/* Hard coded resolution */
 	g_presets_3d.batch.sphere_low = gpu_batch_sphere(8, 16);
 	gpu_batch_presets_register(g_presets_3d.batch.sphere_low);
@@ -216,8 +218,6 @@ void gpu_batch_presets_init(void)
 
 	g_presets_3d.batch.sphere_wire_med = batch_sphere_wire(8, 16);
 	gpu_batch_presets_register(g_presets_3d.batch.sphere_wire_med);
-
-	BLI_mutex_init(&g_presets_3d.mutex);
 }
 
 void gpu_batch_presets_register(GPUBatch *preset_batch)
