@@ -50,9 +50,9 @@ PyDoc_STRVAR(GPU_doc,
 "   :maxdepth: 1\n"
 "\n"
 "   gpu.types.rst\n"
+"   gpu.shader.rst\n"
 "   gpu.matrix.rst\n"
 "   gpu.select.rst\n"
-"   gpu.shader.rst\n"
 "\n"
 );
 static struct PyModuleDef GPU_module_def = {
