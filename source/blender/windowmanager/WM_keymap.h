@@ -42,6 +42,9 @@ struct EnumPropertyItem;
 
 /* Key Configuration */
 
+void		WM_keyconfig_init	(struct bContext *C);
+void		WM_keyconfig_reload	(struct bContext *C);
+
 wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, const char *idname, bool user_defined);
 wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, const char *idname);
 bool        WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
@@ -56,7 +59,6 @@ void        WM_keyconfig_update_operatortype(void);
 
 /* Keymap */
 
-void		WM_keymap_init		(struct bContext *C);
 void		WM_keymap_clear		(struct wmKeyMap *keymap);
 
 wmKeyMapItem *WM_keymap_verify_item(

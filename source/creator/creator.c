@@ -465,7 +465,7 @@ int main(
 #endif
 
 	CTX_py_init_set(C, 1);
-	WM_keymap_init(C);
+	WM_keyconfig_init(C);
 
 	/* Called on load, however Python is not yet initialized, so call again here. */
 	if (!G.background) {
