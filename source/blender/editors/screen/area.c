@@ -1449,8 +1449,13 @@ static void region_subwindow(ARegion *ar)
 	ar->visible = !hidden;
 }
 
-static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *handlers, int flag)
+/**
+ * \param ar: Region, may be NULL when adding handlers for \a sa.
+ */
+static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ARegion *ar, ListBase *handlers, int flag)
 {
+	BLI_assert(ar ? (&ar->handlers == handlers) : (&sa->handlers == handlers));
+
 	/* note, add-handler checks if it already exists */
 
 	/* XXX it would be good to have boundbox checks for some of these... */
@@ -1462,13 +1467,13 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 		UI_region_handlers_add(handlers);
 	}
 	if (flag & ED_KEYMAP_GIZMO) {
-		ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+		BLI_assert(ar && ar->type->regionid == RGN_TYPE_WINDOW);
 		if (ar) {
 			/* Anything else is confusing, only allow this. */
 			BLI_assert(&ar->handlers == handlers);
 			if (ar->gizmo_map == NULL) {
 				ar->gizmo_map = WM_gizmomap_new_from_type(
-				        &(const struct wmGizmoMapType_Params){sa->spacetype, RGN_TYPE_WINDOW});
+				        &(const struct wmGizmoMapType_Params){sa->spacetype, ar->type->regionid});
 			}
 			WM_gizmomap_add_handlers(ar, ar->gizmo_map);
 		}
@@ -1483,14 +1488,11 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Markers", 0, 0);
 
 		/* use a boundbox restricted map */
-		ARegion *ar;
 		/* same local check for all areas */
 		static rcti rect = {0, 10000, 0, -1};
 		rect.ymax = UI_MARKER_MARGIN_Y;
-		ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-		if (ar) {
-			WM_event_add_keymap_handler_bb(handlers, keymap, &rect, &ar->winrct);
-		}
+		BLI_assert(ar->type->regionid == RGN_TYPE_WINDOW);
+		WM_event_add_keymap_handler_bb(handlers, keymap, &rect, &ar->winrct);
 	}
 	if (flag & ED_KEYMAP_ANIMATION) {
 		/* frame changing and timeline operators (for time spaces) */
@@ -1605,7 +1607,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	sa->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 
 	/* default area handlers */
-	ed_default_handlers(wm, sa, &sa->handlers, sa->type->keymapflag);
+	ed_default_handlers(wm, sa, NULL, &sa->handlers, sa->type->keymapflag);
 	/* checks spacedata, adds own handlers */
 	if (sa->type->init)
 		sa->type->init(wm, sa);
@@ -1619,7 +1621,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 
 		if (ar->visible) {
 			/* default region handlers */
-			ed_default_handlers(wm, sa, &ar->handlers, ar->type->keymapflag);
+			ed_default_handlers(wm, sa, ar, &ar->handlers, ar->type->keymapflag);
 			/* own handlers */
 			if (ar->type->init) {
 				ar->type->init(wm, ar);
