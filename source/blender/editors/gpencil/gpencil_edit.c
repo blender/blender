@@ -3124,6 +3124,10 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 				MEM_SAFE_FREE(temp_points);
 				MEM_SAFE_FREE(temp_dverts);
 			}
+
+			/* triangles cache needs to be recalculated */
+			gps->flag |= GP_STROKE_RECALC_CACHES;
+			gps->tot_triangles = 0;
 		}
 	}
 	GP_EDITABLE_STROKES_END(gpstroke_iter);
