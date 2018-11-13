@@ -2159,11 +2159,11 @@ void UI_view2d_listview_visible_cells(
 /* *********************************************************************** */
 /* Coordinate Conversions */
 
-float UI_view2d_region_to_view_x(struct View2D *v2d, float x)
+float UI_view2d_region_to_view_x(const struct View2D *v2d, float x)
 {
 	return (v2d->cur.xmin + (BLI_rctf_size_x(&v2d->cur) * (x - v2d->mask.xmin) / BLI_rcti_size_x(&v2d->mask)));
 }
-float UI_view2d_region_to_view_y(struct View2D *v2d, float y)
+float UI_view2d_region_to_view_y(const struct View2D *v2d, float y)
 {
 	return (v2d->cur.ymin + (BLI_rctf_size_y(&v2d->cur) * (y - v2d->mask.ymin) / BLI_rcti_size_y(&v2d->mask)));
 }
@@ -2174,13 +2174,13 @@ float UI_view2d_region_to_view_y(struct View2D *v2d, float y)
  * \param x, y: coordinates to convert
  * \param r_view_x, r_view_y: resultant coordinates
  */
-void UI_view2d_region_to_view(View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
+void UI_view2d_region_to_view(const View2D *v2d, float x, float y, float *r_view_x, float *r_view_y)
 {
 	*r_view_x = UI_view2d_region_to_view_x(v2d, x);
 	*r_view_y = UI_view2d_region_to_view_y(v2d, y);
 }
 
-void UI_view2d_region_to_view_rctf(View2D *v2d, const rctf *rect_src, rctf *rect_dst)
+void UI_view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf *rect_dst)
 {
 	const float cur_size[2]  = {BLI_rctf_size_x(&v2d->cur),  BLI_rctf_size_y(&v2d->cur)};
 	const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
@@ -2191,11 +2191,11 @@ void UI_view2d_region_to_view_rctf(View2D *v2d, const rctf *rect_src, rctf *rect
 	rect_dst->ymax = (v2d->cur.ymin + (cur_size[1] * (rect_src->ymax - v2d->mask.ymin) / mask_size[1]));
 }
 
-float UI_view2d_view_to_region_x(View2D *v2d, float x)
+float UI_view2d_view_to_region_x(const View2D *v2d, float x)
 {
 	return (v2d->mask.xmin + (((x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur)) * BLI_rcti_size_x(&v2d->mask)));
 }
-float UI_view2d_view_to_region_y(View2D *v2d, float y)
+float UI_view2d_view_to_region_y(const View2D *v2d, float y)
 {
 	return (v2d->mask.ymin + (((y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur)) * BLI_rcti_size_y(&v2d->mask)));
 }
@@ -2207,7 +2207,7 @@ float UI_view2d_view_to_region_y(View2D *v2d, float y)
  * \param x, y: Coordinates to convert.
  * \param r_region_x, r_region_y: Resultant coordinates.
  */
-bool UI_view2d_view_to_region_clip(View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
+bool UI_view2d_view_to_region_clip(const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y)
 {
 	/* express given coordinates as proportional values */
 	x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
