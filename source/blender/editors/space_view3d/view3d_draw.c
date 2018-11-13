@@ -1133,7 +1133,7 @@ static void draw_selected_name(Scene *scene, ViewLayer *view_layer, Object *ob, 
 
 	if ((ob == NULL) || (ob->mode == OB_MODE_OBJECT)) {
 		LayerCollection *layer_collection = view_layer->active_collection;
-		s += sprintf(s, " %s |", BKE_collection_ui_name_get(layer_collection->collection));
+		s += sprintf(s, " %s%s", BKE_collection_ui_name_get(layer_collection->collection), (ob == NULL) ? "" : " |");
 	}
 
 	/*
