@@ -283,14 +283,22 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
 	RNA_POINTER_INVALIDATE(kmi_ptr);
 }
 
-static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid, bool modal)
+static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid, bool modal, bool tool)
 {
+	wmKeyMap *keymap;
+
 	if (modal == 0) {
-		return WM_keymap_ensure(keyconf, idname, spaceid, regionid);
+		keymap = WM_keymap_ensure(keyconf, idname, spaceid, regionid);
 	}
 	else {
-		return WM_modalkeymap_add(keyconf, idname, NULL); /* items will be lazy init */
+		keymap = WM_modalkeymap_add(keyconf, idname, NULL); /* items will be lazy init */
 	}
+
+	if (keymap && tool) {
+		keymap->flag |= KEYMAP_TOOL;
+	}
+
+	return keymap;
 }
 
 static wmKeyMap *rna_keymap_find(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid)
@@ -871,7 +879,8 @@ void RNA_api_keymaps(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
 	RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
-	RNA_def_boolean(func, "modal", 0, "Modal", "");
+	RNA_def_boolean(func, "modal", 0, "Modal", "Keymap for modal operators");
+	RNA_def_boolean(func, "tool", 0, "Tool", "Keymap for active tools");
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map");
 	RNA_def_function_return(func, parm);
 
