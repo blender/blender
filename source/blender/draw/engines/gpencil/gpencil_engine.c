@@ -783,7 +783,9 @@ void GPENCIL_draw_scene(void *ved)
 
 				/* prepare for fast drawing */
 				if (!is_render) {
-					gpencil_prepare_fast_drawing(stl, dfbl, fbl, psl->mix_pass_noblend, clearcol);
+					if (!playing) {
+						gpencil_prepare_fast_drawing(stl, dfbl, fbl, psl->mix_pass_noblend, clearcol);
+					}
 				}
 				else {
 					/* if render, the cache must be dirty for next loop */
