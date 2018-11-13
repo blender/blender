@@ -2984,10 +2984,12 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         # Selection
         *_grease_pencil_selection(params),
         # Painting
+        ("gpencil.brush_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("wait_for_input", False)]}),
         ("gpencil.brush_paint", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("wait_for_input", False), ("keep_brush", True)]}),
+         {"properties": [("wait_for_input", False)]}),
         ("gpencil.brush_paint", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("wait_for_input", False), ("keep_brush", True)]}),
+         {"properties": [("wait_for_input", False)]}),
         # Brush strength
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.brush.strength')]}),
@@ -3016,9 +3018,9 @@ def km_grease_pencil_stroke_weight_mode(params):
         *_grease_pencil_selection(params),
         # Painting
         ("gpencil.brush_paint", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("wait_for_input", False), ("keep_brush", True)]}),
+         {"properties": [("wait_for_input", False)]}),
         ("gpencil.brush_paint", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("wait_for_input", False), ("keep_brush", True)]}),
+         {"properties": [("wait_for_input", False)]}),
         # Brush strength
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.weight_brush.strength')]}),

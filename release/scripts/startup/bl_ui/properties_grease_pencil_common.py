@@ -247,10 +247,10 @@ class GreasePencilStrokeSculptPanel:
         layout.use_property_decorate = False
 
         settings = context.tool_settings.gpencil_sculpt
-        tool = settings.tool
+        tool = settings.sculpt_tool
         brush = settings.brush
 
-        layout.template_icon_view(settings, "tool", show_labels=True)
+        layout.template_icon_view(settings, "sculpt_tool", show_labels=True)
 
         row = layout.row(align=True)
         row.prop(brush, "size", slider=True)
@@ -271,7 +271,7 @@ class GreasePencilStrokeSculptPanel:
             row = layout.row(align=True)
             row.prop_enum(brush, "direction", value='ADD', text="Pinch")
             row.prop_enum(brush, "direction", value='SUBTRACT', text="Inflate")
-        elif settings.tool == 'TWIST':
+        elif tool == 'TWIST':
             row = layout.row(align=True)
             row.prop_enum(brush, "direction", value='ADD', text="CCW")
             row.prop_enum(brush, "direction", value='SUBTRACT', text="CW")
@@ -283,7 +283,7 @@ class GreasePencilSculptOptionsPanel:
     @classmethod
     def poll(cls, context):
         settings = context.tool_settings.gpencil_sculpt
-        tool = settings.tool
+        tool = settings.sculpt_tool
 
         return bool(tool in {'SMOOTH', 'RANDOMIZE', 'SMOOTH'})
 
@@ -294,7 +294,7 @@ class GreasePencilSculptOptionsPanel:
         layout.use_property_decorate = False
 
         settings = context.tool_settings.gpencil_sculpt
-        tool = settings.tool
+        tool = settings.sculpt_tool
         brush = settings.brush
 
         if tool in {'SMOOTH', 'RANDOMIZE'}:
@@ -350,7 +350,7 @@ class GreasePencilAppearancePanel:
         elif ob.mode in {'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             settings = context.tool_settings.gpencil_sculpt
             brush = settings.brush
-            tool = settings.tool
+            tool = settings.sculpt_tool
 
             col = layout.column(align=True)
             col.prop(brush, "use_cursor", text="Show Brush")
@@ -361,7 +361,7 @@ class GreasePencilAppearancePanel:
             elif tool == 'PINCH':
                 col.prop(brush, "cursor_color_add", text="Pinch")
                 col.prop(brush, "cursor_color_sub", text="Inflate")
-            elif settings.tool == 'TWIST':
+            elif tool == 'TWIST':
                 col.prop(brush, "cursor_color_add", text="CCW")
                 col.prop(brush, "cursor_color_sub", text="CW")
             else:
@@ -572,7 +572,7 @@ class GPENCIL_MT_pie_sculpt(Menu):
         # W - Launch Sculpt Mode
         col = pie.column()
         # col.label(text="Tool:")
-        col.prop(settings, "tool", text="")
+        col.prop(settings, "sculpt_tool", text="")
         col.operator("gpencil.brush_paint", text="Sculpt", icon='SCULPTMODE_HLT')
 
         # E - Common Settings
@@ -582,7 +582,7 @@ class GPENCIL_MT_pie_sculpt(Menu):
         row.prop(brush, "strength", slider=True)
         # row.prop(brush, "use_pressure_strength", text="", icon_only=True)
         col.prop(brush, "use_falloff")
-        if settings.tool in {'SMOOTH', 'RANDOMIZE'}:
+        if settings.sculpt_tool in {'SMOOTH', 'RANDOMIZE'}:
             row = col.row(align=True)
             row.prop(settings, "use_edit_position", text="Position", icon='MESH_DATA', toggle=True)
             row.prop(settings, "use_edit_strength", text="Strength", icon='COLOR', toggle=True)

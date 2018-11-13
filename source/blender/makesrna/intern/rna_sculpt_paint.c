@@ -78,12 +78,12 @@ const EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[] = {
 	{ 0, NULL, 0, NULL, NULL }
 };
 
-#ifndef RNA_RUNTIME
-static EnumPropertyItem rna_enum_gpencil_weight_brush_items[] = {
+const EnumPropertyItem rna_enum_gpencil_weight_brush_items[] = {
 	{GP_EDITBRUSH_TYPE_WEIGHT, "WEIGHT", ICON_GPBRUSH_WEIGHT, "Weight", "Weight Paint for Vertex Groups"},
 	{0, NULL, 0, NULL, NULL}
 };
 
+#ifndef RNA_RUNTIME
 static const EnumPropertyItem rna_enum_gpencil_lock_axis_items[] = {
 	{GP_LOCKAXIS_VIEW, "VIEW", ICON_RESTRICT_VIEW_ON, "View", "Align strokes to current view plane"},
 	{GP_LOCKAXIS_Y, "AXIS_Y", ICON_AXIS_FRONT, "Front (X-Z)", "Project strokes to plane locked to Y"},
@@ -1193,7 +1193,7 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_GPencilSculptSettings_path");
 	RNA_def_struct_ui_text(srna, "GPencil Sculpt Settings", "Properties for Grease Pencil stroke sculpting tool");
 
-	prop = RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brushtype");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_sculpt_brush_items);
 	RNA_def_property_ui_text(prop, "Tool", "");
