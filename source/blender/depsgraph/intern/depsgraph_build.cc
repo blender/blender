@@ -93,7 +93,6 @@ static DEG::eDepsNode_Type deg_build_object_component_type(
 		case DEG_OB_COMP_GEOMETRY:          return DEG::DEG_NODE_TYPE_GEOMETRY;
 		case DEG_OB_COMP_EVAL_POSE:         return DEG::DEG_NODE_TYPE_EVAL_POSE;
 		case DEG_OB_COMP_BONE:              return DEG::DEG_NODE_TYPE_BONE;
-		case DEG_OB_COMP_EVAL_PARTICLES:    return DEG::DEG_NODE_TYPE_EVAL_PARTICLES;
 		case DEG_OB_COMP_SHADING:           return DEG::DEG_NODE_TYPE_SHADING;
 		case DEG_OB_COMP_CACHE:             return DEG::DEG_NODE_TYPE_CACHE;
 	}

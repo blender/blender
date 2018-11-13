@@ -125,8 +125,6 @@ typedef enum eDepsObjectComponentType {
 	/* Bone Component - Child/Subcomponent of Pose */
 	DEG_OB_COMP_BONE,
 
-	/* Particle Systems Component */
-	DEG_OB_COMP_EVAL_PARTICLES,
 	/* Material Shading Component */
 	DEG_OB_COMP_SHADING,
 	/* Cache Component */

@@ -149,10 +149,9 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 		DEG_add_object_relation(
 		        handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
 		if (relation->psys) {
-			DEG_add_object_relation(
-			        handle, relation->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
-			/* TODO: remove this when/if EVAL_PARTICLES is sufficient for up to
-			 * date particles. */
+			/* TODO(sergey): Consider going more granular with more dedicated
+			 * particle system operation.
+			 */
 			DEG_add_object_relation(
 			        handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);
 		}
