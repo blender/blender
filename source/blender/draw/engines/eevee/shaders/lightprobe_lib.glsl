@@ -211,9 +211,9 @@ void fallback_cubemap(
 	/* Specular probes */
 	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 
+#ifdef SSR_AO
 	vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
 	vec3 bent_normal;
-#ifdef SSR_AO
 	float final_ao = occlusion_compute(N, viewPosition, 1.0, rand, bent_normal);
 	final_ao = specular_occlusion(dot(N, V), final_ao, roughness);
 #else
