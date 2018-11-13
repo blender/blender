@@ -417,7 +417,6 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth View";
-	ot->description = "";
 	ot->idname = "VIEW3D_OT_smoothview";
 
 	/* api callbacks */

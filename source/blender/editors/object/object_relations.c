@@ -2536,7 +2536,6 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Drop Named Material on Object";
-	ot->description = "";
 	ot->idname = "OBJECT_OT_drop_named_material";
 
 	/* api callbacks */
@@ -2593,7 +2592,6 @@ void OBJECT_OT_unlink_data(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Unlink";
 	ot->idname = "OBJECT_OT_unlink_data";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = object_unlink_data_exec;

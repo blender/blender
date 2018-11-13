@@ -1079,7 +1079,6 @@ void VIEW3D_OT_ruler_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Ruler Add";
 	ot->idname = "VIEW3D_OT_ruler_add";
-	ot->description = "";
 
 	ot->invoke = view3d_ruler_add_invoke;
 	ot->poll = view3d_ruler_poll;

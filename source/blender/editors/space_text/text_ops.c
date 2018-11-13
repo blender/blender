@@ -2307,7 +2307,6 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	 * scroll_bar. Both do basically the same thing (aside
 	 * from keymaps).*/
 	ot->idname = "TEXT_OT_scroll";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = text_scroll_exec;
@@ -2399,7 +2398,6 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	 * scroll. Both do basically the same thing (aside
 	 * from keymaps).*/
 	ot->idname = "TEXT_OT_scroll_bar";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->invoke = text_scroll_bar_invoke;

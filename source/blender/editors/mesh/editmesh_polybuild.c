@@ -312,7 +312,6 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Poly Build Face at Cursor";
 	ot->idname = "MESH_OT_polybuild_face_at_cursor";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->invoke = edbm_polybuild_face_at_cursor_invoke;
@@ -395,7 +394,6 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Poly Build Split at Cursor";
 	ot->idname = "MESH_OT_polybuild_split_at_cursor";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->invoke = edbm_polybuild_split_at_cursor_invoke;
@@ -486,7 +484,6 @@ void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Poly Build Dissolve at Cursor";
 	ot->idname = "MESH_OT_polybuild_dissolve_at_cursor";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->invoke = edbm_polybuild_dissolve_at_cursor_invoke;

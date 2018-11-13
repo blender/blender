@@ -561,7 +561,6 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner ID data Remap";
 	ot->idname = "OUTLINER_OT_id_remap";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = outliner_id_remap_invoke;

@@ -829,8 +829,9 @@ static StructRNA *rna_Menu_register(
 		memcpy(buf, _menu_descr, description_size);
 		mt->description = buf;
 	}
-	else
-		mt->description = "";
+	else {
+		mt->description = NULL;
+	}
 
 	mt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, mt->idname, &RNA_Menu);
 	RNA_def_struct_translation_context(mt->ext.srna, mt->translation_context);

@@ -1714,7 +1714,6 @@ static int filepath_drop_exec(bContext *C, wmOperator *op)
 void FILE_OT_filepath_drop(wmOperatorType *ot)
 {
 	ot->name = "File Selector Drop";
-	ot->description = "";
 	ot->idname = "FILE_OT_filepath_drop";
 
 	ot->exec = filepath_drop_exec;

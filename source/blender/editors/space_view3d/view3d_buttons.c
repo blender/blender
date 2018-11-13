@@ -1251,7 +1251,6 @@ static int view3d_object_mode_menu(bContext *C, wmOperator *op)
 void VIEW3D_OT_object_mode_pie_or_toggle(wmOperatorType *ot)
 {
 	ot->name = "Object Mode Menu";
-	ot->description = "";
 	ot->idname = "VIEW3D_OT_object_mode_pie_or_toggle";
 
 	ot->exec = view3d_object_mode_menu;
