@@ -1384,22 +1384,6 @@ class _defs_gpencil_edit:
 
 class _defs_gpencil_sculpt:
 
-    def draw_settings_common(context, layout, tool):
-        tool_settings = context.tool_settings
-        settings = tool_settings.gpencil_sculpt
-        tool = settings.sculpt_tool
-        brush = settings.brush
-
-        layout.prop(brush, "size", slider=True)
-
-        row = layout.row(align=True)
-        row.prop(brush, "strength", slider=True)
-        row.prop(brush, "use_pressure_strength", text="")
-
-        if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
-            row.separator()
-            row.prop(brush, "direction", expand=True, text="")
-
     @staticmethod
     def generate_from_brushes(context):
         return generate_from_enum_ex(
@@ -1407,23 +1391,10 @@ class _defs_gpencil_sculpt:
             icon_prefix="ops.gpencil.sculpt_",
             type=bpy.types.GPencilSculptSettings,
             attr="sculpt_tool",
-            tooldef_keywords={
-                "draw_settings": _defs_gpencil_sculpt.draw_settings_common,
-            },
         )
 
 
 class _defs_gpencil_weight:
-
-    def draw_settings_common(context, layout, tool):
-        settings = context.tool_settings.gpencil_sculpt
-        brush = settings.brush
-
-        layout.prop(brush, "size", slider=True)
-
-        row = layout.row(align=True)
-        row.prop(brush, "strength", slider=True)
-        row.prop(brush, "use_pressure_strength", text="")
 
     @staticmethod
     def generate_from_brushes(context):
@@ -1432,9 +1403,6 @@ class _defs_gpencil_weight:
             icon_prefix="ops.gpencil.sculpt_",
             type=bpy.types.GPencilSculptSettings,
             attr="weight_tool",
-            tooldef_keywords={
-                "draw_settings": _defs_gpencil_weight.draw_settings_common,
-            },
         )
 
 
