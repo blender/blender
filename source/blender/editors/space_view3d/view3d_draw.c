@@ -41,6 +41,7 @@
 #include "BIF_glutil.h"
 
 #include "BKE_camera.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -1114,10 +1115,10 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, int xoffset, int *yoffs
 
 /**
  * draw info beside axes in bottom left-corner:
- * framenum, object name, bone name (if available), marker name (if available)
+ * framenum, collection, object name, bone name (if available), marker name (if available)
  */
 
-static void draw_selected_name(Scene *scene, Object *ob, int xoffset, int *yoffset)
+static void draw_selected_name(Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
 {
 	const int cfra = CFRA;
 	const char *msg_pin = " (Pinned)";
@@ -1130,9 +1131,15 @@ static void draw_selected_name(Scene *scene, Object *ob, int xoffset, int *yoffs
 
 	s += sprintf(s, "(%d)", cfra);
 
+	if ((ob == NULL) || (ob->mode == OB_MODE_OBJECT)) {
+		LayerCollection *layer_collection = view_layer->active_collection;
+		s += sprintf(s, " %s |", BKE_collection_ui_name_get(layer_collection->collection));
+	}
+
 	/*
 	 * info can contain:
 	 * - a frame (7 + 2)
+	 * - a collection name (MAX_NAME + 3)
 	 * - 3 object names (MAX_NAME)
 	 * - 2 BREAD_CRUMB_SEPARATORs (6)
 	 * - a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1) - translated, so give some room!
@@ -1279,7 +1286,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 		if (U.uiflag & USER_DRAWVIEWINFO) {
 			ViewLayer *view_layer = CTX_data_view_layer(C);
 			Object *ob = OBACT(view_layer);
-			draw_selected_name(scene, ob, xoffset, &yoffset);
+			draw_selected_name(scene, view_layer, ob, xoffset, &yoffset);
 		}
 
 #if 0 /* TODO */
