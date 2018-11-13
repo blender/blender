@@ -876,6 +876,7 @@ const bTheme U_theme_default = {
 		.button_text = RGBA(0xe5e5e5ff),
 		.button_text_hi = RGBA(0xffffffff),
 		.list = RGBA(0x666666ff),
+		.list_text = RGBA(0x000000ff),
 		.list_text_hi = RGBA(0xffffffff),
 		.panelcolors = {
 			.header = RGBA(0x424242cc),

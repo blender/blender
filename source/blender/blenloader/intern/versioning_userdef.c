@@ -85,6 +85,9 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 	if (!USER_VERSION_ATLEAST(280, 29)) {
 		copy_v4_v4_char(btheme->tbuts.navigation_bar, U_theme_default.ttopbar.header);
 	}
+	if (!USER_VERSION_ATLEAST(280, 31)) {
+		copy_v4_v4_char(btheme->tclip.list_text, U_theme_default.tclip.list_text);
+	}
 
 #undef USER_VERSION_ATLEAST
 }
