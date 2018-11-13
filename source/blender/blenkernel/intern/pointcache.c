@@ -1672,88 +1672,161 @@ PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
 	return result;
 }
 
-void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
+/* Callback which is used by point cache foreach() family of functions.
+ *
+ * Receives ID of the point cache.
+ *
+ * NOTE: This ID is owned by foreach() routines and can not be used outside of
+ * the foreach loop. This means that if one wants to store them those are to be
+ * malloced and copied over.
+ *
+ * If the function returns false, then foreach() loop aborts.
+ */
+typedef bool (*ForeachPtcacheCb)(PTCacheID *pid, void *userdata);
+
+static bool foreach_object_particle_ptcache(Object *object,
+                                            ForeachPtcacheCb callback,
+                                            void *callback_user_data)
 {
-	PTCacheID *pid;
-	ParticleSystem *psys;
-	ModifierData *md;
-
-	lb->first= lb->last= NULL;
-
-	if (ob->soft) {
-		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-		BKE_ptcache_id_from_softbody(pid, ob, ob->soft);
-		BLI_addtail(lb, pid);
+	PTCacheID pid;
+	for (ParticleSystem *psys = object->particlesystem.first;
+	     psys != NULL;
+	     psys = psys->next)
+	{
+		if (psys->part==NULL) {
+			continue;
+		}
+		/* Check to make sure point cache is actually used by the particles. */
+		if (ELEM(psys->part->phystype, PART_PHYS_NO, PART_PHYS_KEYED)) {
+			continue;
+		}
+		/* Hair needs to be included in id-list for cache edit mode to work. */
+#if 0
+		if ((psys->part->type == PART_HAIR) &&
+		    (psys->flag & PSYS_HAIR_DYNAMICS) == 0)
+		{
+			continue;
+		}
+#endif
+		if (psys->part->type == PART_FLUID) {
+			continue;
+		}
+		BKE_ptcache_id_from_particles(&pid, object, psys);
+		if (!callback(&pid, callback_user_data)) {
+			return false;
+		}
 	}
+	return true;
+}
 
-	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-		if (psys->part==NULL)
-			continue;
-
-		/* check to make sure point cache is actually used by the particles */
-		if (ELEM(psys->part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
-			continue;
-
-		/* hair needs to be included in id-list for cache edit mode to work */
-		/* if (psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0) */
-		/*	continue; */
-
-		if (psys->part->type == PART_FLUID)
-			continue;
-
-		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-		BKE_ptcache_id_from_particles(pid, ob, psys);
-		BLI_addtail(lb, pid);
-	}
-
-	for (md=ob->modifiers.first; md; md=md->next) {
+static bool foreach_object_modifier_ptcache(Object *object,
+                                            ForeachPtcacheCb callback,
+                                            void *callback_user_data)
+{
+	PTCacheID pid;
+	for (ModifierData *md = object->modifiers.first; md != NULL; md = md->next) {
 		if (md->type == eModifierType_Cloth) {
-			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-			BKE_ptcache_id_from_cloth(pid, ob, (ClothModifierData*)md);
-			BLI_addtail(lb, pid);
+			BKE_ptcache_id_from_cloth(&pid, object, (ClothModifierData*)md);
+			if (!callback(&pid, callback_user_data)) {
+				return false;
+			}
 		}
 		else if (md->type == eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
 			if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-				BKE_ptcache_id_from_smoke(pid, ob, (SmokeModifierData*)md);
-				BLI_addtail(lb, pid);
+				BKE_ptcache_id_from_smoke(&pid, object, (SmokeModifierData*)md);
+				if (!callback(&pid, callback_user_data)) {
+					return false;
+				}
 			}
 		}
 		else if (md->type == eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 			if (pmd->canvas) {
 				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
-
 				for (; surface; surface=surface->next) {
-					pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-					BKE_ptcache_id_from_dynamicpaint(pid, ob, surface);
-					BLI_addtail(lb, pid);
+					BKE_ptcache_id_from_dynamicpaint(&pid, object, surface);
+					if (!callback(&pid, callback_user_data)) {
+						return false;
+					}
 				}
 			}
 		}
 	}
+	return true;
+}
 
-	if (scene && ob->rigidbody_object && scene->rigidbody_world) {
-		pid = MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-		BKE_ptcache_id_from_rigidbody(pid, ob, scene->rigidbody_world);
-		BLI_addtail(lb, pid);
+/* Return false if any of callbacks returned false. */
+static bool foreach_object_ptcache(Scene *scene,
+                                   Object *object,
+                                   int duplis,
+                                   ForeachPtcacheCb callback,
+                                   void *callback_user_data)
+{
+	PTCacheID pid;
+	/* Soft body. */
+	if (object->soft != NULL) {
+		BKE_ptcache_id_from_softbody(&pid, object, object->soft);
+		if (!callback(&pid, callback_user_data)) {
+			return false;
+		}
 	}
-
+	/* Particle systems. */
+	if (!foreach_object_particle_ptcache(object, callback, callback_user_data)) {
+		return false;
+	}
+	/* Modifiers. */
+	if (!foreach_object_modifier_ptcache(object, callback, callback_user_data)) {
+		return false;
+	}
+	/* Rigid body. */
+	if (scene != NULL &&
+	    object->rigidbody_object != NULL &&
+	    scene->rigidbody_world != NULL)
+	{
+		BKE_ptcache_id_from_rigidbody(&pid, object, scene->rigidbody_world);
+		if (!callback(&pid, callback_user_data)) {
+			return false;
+		}
+	}
 	/* Consider all object in dupli groups to be part of the same object,
 	 * for baking with linking dupligroups. Once we have better overrides
 	 * this can be revisited so users select the local objects directly. */
-	if (scene && (duplis-- > 0) && (ob->dup_group)) {
-		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(ob->dup_group, object)
+	if (scene != NULL && (duplis-- > 0) && (object->dup_group != NULL)) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(object->dup_group,
+		                                          current_object)
 		{
-			if (object != ob) {
-				ListBase lb_dupli_pid;
-				BKE_ptcache_ids_from_object(&lb_dupli_pid, object, scene, duplis);
-				BLI_movelisttolist(lb, &lb_dupli_pid);
+			if (current_object == object) {
+				continue;
 			}
+			foreach_object_ptcache(
+			        scene, object, duplis, callback, callback_user_data);
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
+	return true;
+}
+
+typedef struct PTCacheIDsFromObjectData {
+	ListBase *list_base;
+} PTCacheIDsFromObjectData;
+
+static bool ptcache_ids_from_object_cb(PTCacheID *pid, void *userdata)
+{
+	PTCacheIDsFromObjectData *data = userdata;
+	PTCacheID *own_pid = MEM_mallocN(sizeof(PTCacheID), "PTCacheID");
+	*own_pid = *pid;
+	BLI_addtail(data->list_base, own_pid);
+	return true;
+}
+
+void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
+{
+	PTCacheIDsFromObjectData data;
+	lb->first = lb->last = NULL;
+	data.list_base = lb;
+	foreach_object_ptcache(
+	        scene, ob, duplis, ptcache_ids_from_object_cb, &data);
 }
 
 /* File handling */
