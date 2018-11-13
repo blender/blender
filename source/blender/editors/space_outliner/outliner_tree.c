@@ -1345,13 +1345,7 @@ static void outliner_add_view_layer(SpaceOops *soops, ListBase *tree, TreeElemen
 
 BLI_INLINE void outliner_add_collection_init(TreeElement *te, Collection *collection)
 {
-	if (collection->flag & COLLECTION_IS_MASTER) {
-		te->name = IFACE_("Scene Collection");
-	}
-	else {
-		te->name = collection->id.name + 2;
-	}
-
+	te->name = BKE_collection_ui_name_get(collection);
 	te->directdata = collection;
 }
 

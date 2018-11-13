@@ -103,6 +103,7 @@ struct Base *BKE_collection_or_layer_objects(const struct ViewLayer *view_layer,
 
 struct Collection *BKE_collection_from_index(struct Scene *scene, const int index);
 void BKE_collection_new_name_get(struct Collection *collection_parent, char *rname);
+const char *BKE_collection_ui_name_get(struct Collection *collection);
 bool BKE_collection_objects_select(struct ViewLayer *view_layer, struct Collection *collection, bool deselect);
 
 /* Collection children */

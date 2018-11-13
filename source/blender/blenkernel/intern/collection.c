@@ -298,6 +298,19 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
 	MEM_freeN(name);
 }
 
+/**
+ * The name to show in the interface.
+ */
+const char *BKE_collection_ui_name_get(struct Collection *collection)
+{
+	if (collection->flag & COLLECTION_IS_MASTER) {
+		return IFACE_("Scene Collection");
+	}
+	else {
+		return collection->id.name + 2;
+	}
+}
+
 /* **************** Object List Cache *******************/
 
 static void collection_object_cache_fill(ListBase *lb, Collection *collection, int parent_restrict)
