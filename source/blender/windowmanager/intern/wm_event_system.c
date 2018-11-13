@@ -4589,7 +4589,7 @@ bool WM_window_modal_keymap_status_draw(
 			}
 		}
 	}
-	if (keymap == NULL) {
+	if (keymap == NULL || keymap->modal_items == NULL) {
 		return false;
 	}
 	const EnumPropertyItem *items = keymap->modal_items;

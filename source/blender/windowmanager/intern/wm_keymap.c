@@ -802,19 +802,20 @@ wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, const Enu
 {
 	wmKeyMap *km = WM_keymap_ensure(keyconf, idname, 0, 0);
 	km->flag |= KEYMAP_MODAL;
-	km->modal_items = items;
 
-	if (!items) {
-		/* init modal items from default config */
-		wmWindowManager *wm = G_MAIN->wm.first;
-		if (wm->defaultconf) {
-			wmKeyMap *defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
+	/* init modal items from default config */
+	wmWindowManager *wm = G_MAIN->wm.first;
+	if (wm->defaultconf && wm->defaultconf != keyconf) {
+		wmKeyMap *defaultkm = WM_keymap_list_find(&wm->defaultconf->keymaps, km->idname, 0, 0);
 
-			if (defaultkm) {
-				km->modal_items = defaultkm->modal_items;
-				km->poll = defaultkm->poll;
-			}
+		if (defaultkm) {
+			km->modal_items = defaultkm->modal_items;
+			km->poll = defaultkm->poll;
 		}
+	}
+
+	if (items) {
+		km->modal_items = items;
 	}
 
 	return km;
@@ -920,11 +921,13 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 		km->modal_items = defaultkm->modal_items;
 		km->poll = defaultkm->poll;
 
-		for (kmi = km->items.first; kmi; kmi = kmi->next) {
-			if (kmi->propvalue_str[0]) {
-				if (RNA_enum_value_from_id(km->modal_items, kmi->propvalue_str, &propvalue))
-					kmi->propvalue = propvalue;
-				kmi->propvalue_str[0] = '\0';
+		if (km->modal_items) {
+			for (kmi = km->items.first; kmi; kmi = kmi->next) {
+				if (kmi->propvalue_str[0]) {
+					if (RNA_enum_value_from_id(km->modal_items, kmi->propvalue_str, &propvalue))
+						kmi->propvalue = propvalue;
+					kmi->propvalue_str[0] = '\0';
+				}
 			}
 		}
 	}
