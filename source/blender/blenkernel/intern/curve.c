@@ -277,7 +277,7 @@ void BKE_curve_curve_dimension_update(Curve *cu)
 	else {
 		for (; nu; nu = nu->next) {
 			nu->flag |= CU_2D;
-			BKE_nurb_test2D(nu);
+			BKE_nurb_test_2d(nu);
 
 			/* since the handles are moved they need to be auto-located again */
 			if (nu->type == CU_BEZIER)
@@ -549,7 +549,7 @@ void BKE_nurbList_duplicate(ListBase *lb1, const ListBase *lb2)
 	}
 }
 
-void BKE_nurb_test2D(Nurb *nu)
+void BKE_nurb_test_2d(Nurb *nu)
 {
 	BezTriple *bezt;
 	BPoint *bp;

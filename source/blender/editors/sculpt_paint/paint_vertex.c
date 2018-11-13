@@ -348,7 +348,7 @@ static void tex_color_alpha(
 	const Brush *brush = BKE_paint_brush(&vp->paint);
 	BLI_assert(brush->mtex.tex != NULL);
 	if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-		BKE_brush_sample_tex_3D(vc->scene, brush, co, r_rgba, 0, NULL);
+		BKE_brush_sample_tex_3d(vc->scene, brush, co, r_rgba, 0, NULL);
 	}
 	else {
 		float co_ss[2];  /* screenspace */
@@ -358,7 +358,7 @@ static void tex_color_alpha(
 		        V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 		{
 			const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
-			BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, r_rgba, 0, NULL);
+			BKE_brush_sample_tex_3d(vc->scene, brush, co_ss_3d, r_rgba, 0, NULL);
 		}
 		else {
 			zero_v4(r_rgba);

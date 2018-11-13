@@ -4730,7 +4730,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							}
 
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex_3D(ps->scene, brush, samplecos, texrgba, thread_index, pool);
+							BKE_brush_sample_tex_3d(ps->scene, brush, samplecos, texrgba, thread_index, pool);
 
 							copy_v3_v3(texrgb, texrgba);
 							mask *= texrgba[3];

@@ -1147,7 +1147,7 @@ bool BKE_gpencil_stroke_select_check(
 }
 
 /* compute center of bounding box */
-void BKE_gpencil_centroid_3D(bGPdata *gpd, float r_centroid[3])
+void BKE_gpencil_centroid_3d(bGPdata *gpd, float r_centroid[3])
 {
 	float min[3], max[3], tot[3];
 

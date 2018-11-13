@@ -410,7 +410,7 @@ static ImBuf *brush_painter_imbuf_new(BrushPainter *painter, int size, float pre
 
 			if (is_texbrush) {
 				brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-				BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
+				BKE_brush_sample_tex_3d(scene, brush, texco, rgba, thread, pool);
 				/* TODO(sergey): Support texture paint color space. */
 				if (!use_float) {
 					IMB_colormanagement_scene_linear_to_display_v3(rgba, display);
@@ -485,7 +485,7 @@ static void brush_painter_imbuf_update(
 			if (!use_texture_old) {
 				if (is_texbrush) {
 					brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-					BKE_brush_sample_tex_3D(scene, brush, texco, rgba, thread, pool);
+					BKE_brush_sample_tex_3d(scene, brush, texco, rgba, thread, pool);
 					/* TODO(sergey): Support texture paint color space. */
 					if (!use_float) {
 						IMB_colormanagement_scene_linear_to_display_v3(rgba, display);

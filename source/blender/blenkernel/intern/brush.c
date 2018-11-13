@@ -845,7 +845,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
  * region space mouse coordinates, or 3d world coordinates for 3D mapping.
  *
  * rgba outputs straight alpha. */
-float BKE_brush_sample_tex_3D(const Scene *scene, const Brush *br,
+float BKE_brush_sample_tex_3d(const Scene *scene, const Brush *br,
                               const float point[3],
                               float rgba[4], const int thread,
                               struct ImagePool *pool)

@@ -1100,7 +1100,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				if (gpd) {
 					if (centermode == ORIGIN_TO_GEOMETRY) {
 						zero_v3(gpcenter);
-						BKE_gpencil_centroid_3D(gpd, gpcenter);
+						BKE_gpencil_centroid_3d(gpd, gpcenter);
 						add_v3_v3(gpcenter, ob->obmat[3]);
 					}
 					if (centermode == ORIGIN_TO_CURSOR) {

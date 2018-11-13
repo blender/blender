@@ -464,7 +464,7 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 		cu->actnu = BLI_listbase_count(editnurb);
 		cu->actvert = CU_ACT_NONE;
 
-		BKE_nurb_test2D(nu);
+		BKE_nurb_test_2d(nu);
 	}
 
 	return nu;

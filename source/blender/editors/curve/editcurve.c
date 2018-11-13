@@ -1261,7 +1261,7 @@ void ED_curve_editnurb_make(Object *obedit)
 		nu = cu->nurb.first;
 		while (nu) {
 			newnu = BKE_nurb_duplicate(nu);
-			BKE_nurb_test2D(newnu); // after join, or any other creation of curve
+			BKE_nurb_test_2d(newnu); // after join, or any other creation of curve
 			BLI_addtail(&editnurb->nurbs, newnu);
 			nu = nu->next;
 		}
@@ -1640,7 +1640,7 @@ void ed_editnurb_translate_flag(ListBase *editnurb, short flag, const float vec[
 			}
 		}
 
-		BKE_nurb_test2D(nu);
+		BKE_nurb_test_2d(nu);
 	}
 }
 
