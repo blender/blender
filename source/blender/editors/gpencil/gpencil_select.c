@@ -1014,21 +1014,25 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 	WM_operator_properties_gesture_circle_select(ot);
 }
 
-/* ********************************************** */
-/* Box Selection */
 
-static int gpencil_box_select_exec(bContext *C, wmOperator *op)
+typedef bool (*GPencilTestFn)(
+        bGPDstroke *gps, bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const float diff_mat[4][4], void *user_data);
+
+static int gpencil_generic_select_exec(
+        bContext *C, wmOperator *op,
+        GPencilTestFn is_inside_fn, void *user_data)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	ScrArea *sa = CTX_wm_area(C);
+	const bool strokemode = (
+	        (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) &&
+	        ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
+	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
 
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	bool extend = RNA_boolean_get(op->ptr, "extend") && ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0);
-	const bool strokemode = (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) && ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0);
 
 	GP_SpaceConversion gsc = {NULL};
-	rcti rect = {0};
 
 	bool changed = false;
 
@@ -1038,15 +1042,12 @@ static int gpencil_box_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (strokemode) {
-		extend = false;
-	}
-
 	/* init space conversion stuff */
 	gp_point_conversion_init(C, &gsc);
 
 	/* deselect all strokes first? */
-	if (select && !extend) {
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+
 		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 		{
 			bGPDspoint *pt;
@@ -1061,9 +1062,6 @@ static int gpencil_box_select_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	/* get settings from operator */
-	WM_operator_properties_border_to_rcti(op, &rect);
-
 	/* select/deselect points */
 	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
@@ -1072,40 +1070,40 @@ static int gpencil_box_select_exec(bContext *C, wmOperator *op)
 		int i;
 		bool hit = false;
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-			int x0, y0;
-
 			/* convert point coords to screenspace */
-			bGPDspoint pt2;
-			gp_point_to_parent_space(pt, diff_mat, &pt2);
-			gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
+			const bool is_inside = is_inside_fn(gps, pt, &gsc, diff_mat, user_data);
 
-			/* test if in selection rect */
-			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0)) {
-				hit = true;
-				if (select) {
-					pt->flag |= GP_SPOINT_SELECT;
+			if (strokemode == false) {
+				const bool is_select = (pt->flag & GP_SPOINT_SELECT) != 0;
+				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+				if (sel_op_result != -1) {
+					SET_FLAG_FROM_TEST(pt->flag, sel_op_result, GP_SPOINT_SELECT);
+					changed = true;
 				}
-				else {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
-
-				changed = true;
-
-				/* if stroke mode, don't check more points */
-				if ((hit) && (strokemode)) {
+			}
+			else {
+				if (is_inside) {
+					hit = true;
 					break;
 				}
 			}
 		}
+
 		/* if stroke mode expand selection */
-		if ((hit) && (strokemode)) {
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				if (select) {
-					pt->flag |= GP_SPOINT_SELECT;
+		if (strokemode) {
+			const bool is_select = BKE_gpencil_stroke_select_check(gps);
+			const bool is_inside = hit;
+			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+			if (sel_op_result != -1) {
+				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+					if (sel_op_result) {
+						pt->flag |= GP_SPOINT_SELECT;
+					}
+					else {
+						pt->flag &= ~GP_SPOINT_SELECT;
+					}
 				}
-				else {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
+				changed = true;
 			}
 		}
 
@@ -1132,6 +1130,35 @@ static int gpencil_box_select_exec(bContext *C, wmOperator *op)
 	}
 
 	return OPERATOR_FINISHED;
+}
+
+/* ********************************************** */
+/* Box Selection */
+
+struct GP_SelectBoxUserData {
+	rcti rect;
+};
+
+static bool gpencil_test_box(
+        bGPDstroke *gps, bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const float diff_mat[4][4], void *user_data)
+{
+	const struct GP_SelectBoxUserData *data = user_data;
+	bGPDspoint pt2;
+	int x0, y0;
+	gp_point_to_parent_space(pt, diff_mat, &pt2);
+	gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+	return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) &&
+	        BLI_rcti_isect_pt(&data->rect, x0, y0));
+}
+
+static int gpencil_box_select_exec(bContext *C, wmOperator *op)
+{
+	struct GP_SelectBoxUserData data = {0};
+	WM_operator_properties_border_to_rcti(op, &data.rect);
+	return gpencil_generic_select_exec(
+	        C, op,
+	        gpencil_test_box, &data);
 }
 
 void GPENCIL_OT_select_box(wmOperatorType *ot)
@@ -1153,129 +1180,55 @@ void GPENCIL_OT_select_box(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* rna */
-	WM_operator_properties_gesture_box_select(ot);
+	WM_operator_properties_select_operation(ot);
+	WM_operator_properties_gesture_box(ot);
 }
 
 /* ********************************************** */
 /* Lasso */
 
+struct GP_SelectLassoUserData {
+	rcti rect;
+	const int (*mcords)[2];
+	int         mcords_len;
+};
+
+static bool gpencil_test_lasso(
+        bGPDstroke *gps, bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const float diff_mat[4][4],
+        void *user_data)
+{
+	const struct GP_SelectLassoUserData *data = user_data;
+	bGPDspoint pt2;
+	int x0, y0;
+	gp_point_to_parent_space(pt, diff_mat, &pt2);
+	gp_point_to_xy(gsc, gps, &pt2, &x0, &y0);
+	/* test if in lasso boundbox + within the lasso noose */
+	return ((!ELEM(V2D_IS_CLIPPED, x0, y0)) &&
+	        BLI_rcti_isect_pt(&data->rect, x0, y0) &&
+	        BLI_lasso_is_point_inside(data->mcords, data->mcords_len, x0, y0, INT_MAX));
+}
+
 static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	GP_SpaceConversion gsc = {NULL};
-	rcti rect = {0};
+	struct GP_SelectLassoUserData data = {0};
+	data.mcords = WM_gesture_lasso_path_to_array(C, op, &data.mcords_len);
 
-	bool extend = RNA_boolean_get(op->ptr, "extend") && ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0);
-	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	const bool strokemode = (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) && ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0);
-	int mcords_tot;
-	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
-
-	bool changed = false;
-
-	/* sanity check */
-	if (mcords == NULL)
+	/* Sanity check. */
+	if (data.mcords == NULL) {
 		return OPERATOR_PASS_THROUGH;
-
-	if (strokemode) {
-		extend = false;
 	}
 
-	/* compute boundbox of lasso (for faster testing later) */
-	BLI_lasso_boundbox(&rect, mcords, mcords_tot);
+	/* Compute boundbox of lasso (for faster testing later). */
+	BLI_lasso_boundbox(&data.rect, data.mcords, data.mcords_len);
 
-	/* init space conversion stuff */
-	gp_point_conversion_init(C, &gsc);
+	int ret = gpencil_generic_select_exec(
+	        C, op,
+	        gpencil_test_lasso, &data);
 
-	/* deselect all strokes first? */
-	if (select && !extend) {
-		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-		{
-			bGPDspoint *pt;
-			int i;
+	MEM_freeN((void *)data.mcords);
 
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				pt->flag &= ~GP_SPOINT_SELECT;
-			}
-
-			gps->flag &= ~GP_STROKE_SELECT;
-		}
-		CTX_DATA_END;
-	}
-
-	/* select/deselect points */
-	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
-	{
-		bGPDspoint *pt;
-		int i;
-		bool hit = false;
-		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-			int x0, y0;
-
-			/* convert point coords to screenspace */
-			bGPDspoint pt2;
-			gp_point_to_parent_space(pt, diff_mat, &pt2);
-			gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
-			/* test if in lasso boundbox + within the lasso noose */
-			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0) &&
-			    BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX))
-			{
-				hit = true;
-				if (select) {
-					pt->flag |= GP_SPOINT_SELECT;
-				}
-				else {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
-
-				changed = true;
-
-				/* if stroke mode, don't check more points */
-				if ((hit) && (strokemode)) {
-					break;
-				}
-			}
-		}
-
-		/* if stroke mode expand selection */
-		if ((hit) && (strokemode)) {
-			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-				if (select) {
-					pt->flag |= GP_SPOINT_SELECT;
-				}
-				else {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
-			}
-		}
-
-		/* Ensure that stroke selection is in sync with its points */
-		BKE_gpencil_stroke_sync_selection(gps);
-	}
-	GP_EDITABLE_STROKES_END;
-
-	/* cleanup */
-	MEM_freeN((void *)mcords);
-
-	/* if paint mode,delete selected points */
-	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
-		gp_delete_selected_point_wrap(C);
-		changed = true;
-		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
-	}
-
-	/* updates */
-	if (changed) {
-		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
-
-		/* copy on write tag is needed, or else no refresh happens */
-		DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
-
-		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
-	}
-
-	return OPERATOR_FINISHED;
+	return ret;
 }
 
 void GPENCIL_OT_select_lasso(wmOperatorType *ot)
@@ -1294,7 +1247,8 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
-	WM_operator_properties_gesture_lasso_select(ot);
+	WM_operator_properties_select_operation(ot);
+	WM_operator_properties_gesture_lasso(ot);
 }
 
 /* ********************************************** */

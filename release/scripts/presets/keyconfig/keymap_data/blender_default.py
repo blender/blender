@@ -2727,18 +2727,18 @@ def _grease_pencil_selection(params):
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso select
         ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "ctrl": True},
-         {"properties": [("deselect", False)]}),
+         {"properties": [("mode", 'ADD')]}),
         ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "shift": True, "ctrl": True},
-         {"properties": [("deselect", True)]}),
+         {"properties": [("mode", 'SUB')]}),
         # In the Node Editor, lasso select needs ALT modifier too
         # (as somehow CTRL+LMB drag gets taken for "cut" quite early).
         # There probably isn't too much harm adding this for other editors too
         # as part of standard GP editing keymap. This hotkey combo doesn't seem
         # to see much use under standard scenarios?
         ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "ctrl": True, "alt": True},
-         {"properties": [("deselect", False)]}),
+         {"properties": [("mode", 'ADD')]}),
         ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "shift": True, "ctrl": True, "alt": True},
-         {"properties": [("deselect", True)]}),
+         {"properties": [("mode", 'SUB')]}),
         ("gpencil.select", {"type": params.select_mouse, "value": 'PRESS', "shift": True},
          {"properties": [("extend", True), ("toggle", True)]}),
         # Whole stroke select
@@ -2918,8 +2918,7 @@ def km_grease_pencil_stroke_paint_draw_brush(_params):
         # Box select
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso select
-        ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "ctrl": True, "alt": True},
-         {"properties": [("deselect", False)]}),
+        ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap
@@ -2942,8 +2941,7 @@ def km_grease_pencil_stroke_paint_erase(_params):
         # Box select (used by eraser)
         ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
         # Lasso select
-        ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "ctrl": True, "alt": True},
-         {"properties": [("deselect", False)]}),
+        ("gpencil.select_lasso", {"type": 'EVT_TWEAK_A', "value": 'ANY', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap

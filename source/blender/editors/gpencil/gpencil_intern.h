@@ -199,14 +199,14 @@ bool gp_stroke_inside_circle(
 void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 
 void gp_point_to_xy(
-        GP_SpaceConversion *settings, struct bGPDstroke *gps, struct bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const struct bGPDstroke *gps, const struct bGPDspoint *pt,
         int *r_x, int *r_y);
 
 void gp_point_to_xy_fl(
-        GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt,
         float *r_x, float *r_y);
 
-void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt);
+void gp_point_to_parent_space(const bGPDspoint *pt, const float diff_mat[4][4], bGPDspoint *r_pt);
 /**
  * Change points position relative to parent object
  */

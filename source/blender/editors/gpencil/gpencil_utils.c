@@ -555,7 +555,7 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
  * \param diff_mat: Matrix with the difference between original parent matrix
  * \param[out] r_pt: Pointer to new point after apply matrix
  */
-void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt)
+void gp_point_to_parent_space(const bGPDspoint *pt, const float diff_mat[4][4], bGPDspoint *r_pt)
 {
 	float fpt[3];
 
@@ -612,12 +612,12 @@ void gp_apply_parent_point(Depsgraph *depsgraph, Object *obact, bGPdata *gpd, bG
  * \warning This assumes that the caller has already checked whether the stroke in question can be drawn.
  */
 void gp_point_to_xy(
-        GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt,
         int *r_x, int *r_y)
 {
-	ARegion *ar = gsc->ar;
-	View2D *v2d = gsc->v2d;
-	rctf *subrect = gsc->subrect;
+	const ARegion *ar = gsc->ar;
+	const View2D *v2d = gsc->v2d;
+	const rctf *subrect = gsc->subrect;
 	int xyval[2];
 
 	/* sanity checks */
@@ -666,12 +666,12 @@ void gp_point_to_xy(
  * \warning This assumes that the caller has already checked whether the stroke in question can be drawn
  */
 void gp_point_to_xy_fl(
-        GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+        const GP_SpaceConversion *gsc, const bGPDstroke *gps, const bGPDspoint *pt,
         float *r_x, float *r_y)
 {
-	ARegion *ar = gsc->ar;
-	View2D *v2d = gsc->v2d;
-	rctf *subrect = gsc->subrect;
+	const ARegion *ar = gsc->ar;
+	const View2D *v2d = gsc->v2d;
+	const rctf *subrect = gsc->subrect;
 	float xyval[2];
 
 	/* sanity checks */
