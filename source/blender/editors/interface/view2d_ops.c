@@ -1545,7 +1545,6 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth View 2D";
-	ot->description = "";
 	ot->idname = "VIEW2D_OT_smoothview";
 
 	/* api callbacks */

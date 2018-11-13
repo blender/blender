@@ -1025,7 +1025,6 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Object Operation";
 	ot->idname = "OUTLINER_OT_object_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1128,7 +1127,6 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Group Operation";
 	ot->idname = "OUTLINER_OT_group_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1323,7 +1321,6 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner ID data Operation";
 	ot->idname = "OUTLINER_OT_id_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1418,7 +1415,6 @@ void OUTLINER_OT_lib_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Library Operation";
 	ot->idname = "OUTLINER_OT_lib_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1642,7 +1638,6 @@ void OUTLINER_OT_animdata_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Animation Data Operation";
 	ot->idname = "OUTLINER_OT_animdata_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1688,7 +1683,6 @@ void OUTLINER_OT_constraint_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Constraint Operation";
 	ot->idname = "OUTLINER_OT_constraint_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1734,7 +1728,6 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Modifier Operation";
 	ot->idname = "OUTLINER_OT_modifier_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -1832,7 +1825,6 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Outliner Data Operation";
 	ot->idname = "OUTLINER_OT_data_operation";
-	ot->description = "";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;

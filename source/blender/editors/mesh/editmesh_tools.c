@@ -247,7 +247,6 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Subdivide Edge-Ring";
-	ot->description = "";
 	ot->idname = "MESH_OT_subdivide_edgering";
 
 	/* api callbacks */

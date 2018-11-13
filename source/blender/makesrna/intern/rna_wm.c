@@ -1187,7 +1187,7 @@ static StructRNA *rna_Operator_register(
 
 		dummyot.idname = strings_table[0];  /* allocated string stored here */
 		dummyot.name = strings_table[1];
-		dummyot.description = strings_table[2];
+		dummyot.description = *strings_table[2] ? strings_table[2] : NULL;
 		dummyot.translation_context = strings_table[3];
 		dummyot.undo_group = strings_table[4];
 		BLI_assert(ARRAY_SIZE(strings) == 5);
@@ -1328,7 +1328,7 @@ static StructRNA *rna_MacroOperator_register(
 
 		dummyot.idname = strings_table[0];  /* allocated string stored here */
 		dummyot.name = strings_table[1];
-		dummyot.description = strings_table[2];
+		dummyot.description = *strings_table[2] ? strings_table[2] : NULL;
 		dummyot.translation_context = strings_table[3];
 		dummyot.undo_group = strings_table[4];
 		BLI_assert(ARRAY_SIZE(strings) == 5);

@@ -3288,7 +3288,6 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy";
 	ot->idname = "SEQUENCER_OT_copy";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = sequencer_copy_exec;
@@ -3353,7 +3352,6 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Paste";
 	ot->idname = "SEQUENCER_OT_paste";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = sequencer_paste_exec;
@@ -3683,7 +3681,6 @@ void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Change Effect Input";
 	ot->idname = "SEQUENCER_OT_change_effect_input";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = sequencer_change_effect_input_exec;
@@ -3743,7 +3740,6 @@ void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Change Effect Type";
 	ot->idname = "SEQUENCER_OT_change_effect_type";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = sequencer_change_effect_type_exec;
@@ -3878,7 +3874,6 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Change Data/Files";
 	ot->idname = "SEQUENCER_OT_change_path";
-	ot->description = "";
 
 	/* api callbacks */
 	ot->exec = sequencer_change_path_exec;
