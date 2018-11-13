@@ -69,8 +69,9 @@
 
 #include "gpencil_intern.h"
 
-/* ********************************************** */
-/* Polling callbacks */
+/* -------------------------------------------------------------------- */
+/** \name Shared Utilities
+ * \{ */
 
 static bool gpencil_select_poll(bContext *C)
 {
@@ -86,8 +87,11 @@ static bool gpencil_select_poll(bContext *C)
 	return false;
 }
 
-/* ********************************************** */
-/* Select All Operator */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select All Operator
+ * \{ */
 
 static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 {
@@ -216,8 +220,11 @@ void GPENCIL_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* ********************************************** */
-/* Select Linked */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Linked Operator
+ * \{ */
 
 static int gpencil_select_linked_exec(bContext *C, wmOperator *op)
 {
@@ -272,8 +279,11 @@ void GPENCIL_OT_select_linked(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
-/* Select Alternate */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Alternate Operator
+ * \{ */
 
 static int gpencil_select_alternate_exec(bContext *C, wmOperator *op)
 {
@@ -352,8 +362,11 @@ void GPENCIL_OT_select_alternate(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "unselect_ends", true, "Unselect Ends", "Do not select the first and last point of the stroke");
 }
 
-/* ********************************************** */
-/* Select Grouped */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Grouped Operator
+ * \{ */
 
 typedef enum eGP_SelectGrouped {
 	/* Select strokes in the same layer */
@@ -512,8 +525,11 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, GP_SEL_SAME_LAYER, "Type", "");
 }
 
-/* ********************************************** */
-/* Select First */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select First
+ * \{ */
 
 static int gpencil_select_first_exec(bContext *C, wmOperator *op)
 {
@@ -583,8 +599,11 @@ void GPENCIL_OT_select_first(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting all other selected points");
 }
 
-/* ********************************************** */
-/* Select First */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select First
+ * \{ */
 
 static int gpencil_select_last_exec(bContext *C, wmOperator *op)
 {
@@ -654,8 +673,11 @@ void GPENCIL_OT_select_last(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting all other selected points");
 }
 
-/* ********************************************** */
-/* Select More */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Mode Operator
+ * \{ */
 
 static int gpencil_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -735,8 +757,11 @@ void GPENCIL_OT_select_more(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
-/* Select Less */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Less Operator
+ * \{ */
 
 static int gpencil_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -817,8 +842,11 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
-/* Circle Select Operator */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Select Operator
+ * \{ */
 
 /* Helper to check if a given stroke is within the area */
 /* NOTE: Code here is adapted (i.e. copied directly) from gpencil_paint.c::gp_stroke_eraser_dostroke()
@@ -1014,6 +1042,14 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 	WM_operator_properties_gesture_circle_select(ot);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Select Utility
+ *
+ * Use for lasso & box select.
+ *
+ * \{ */
 
 typedef bool (*GPencilTestFn)(
         bGPDstroke *gps, bGPDspoint *pt,
@@ -1132,8 +1168,11 @@ static int gpencil_generic_select_exec(
 	return OPERATOR_FINISHED;
 }
 
-/* ********************************************** */
-/* Box Selection */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
 
 struct GP_SelectBoxUserData {
 	rcti rect;
@@ -1184,8 +1223,11 @@ void GPENCIL_OT_select_box(wmOperatorType *ot)
 	WM_operator_properties_gesture_box(ot);
 }
 
-/* ********************************************** */
-/* Lasso */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lasso Select Operator
+ * \{ */
 
 struct GP_SelectLassoUserData {
 	rcti rect;
@@ -1251,8 +1293,11 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 	WM_operator_properties_gesture_lasso(ot);
 }
 
-/* ********************************************** */
-/* Mouse Click to Select */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mouse Pick Select Operator
+ * \{ */
 
 static int gpencil_select_exec(bContext *C, wmOperator *op)
 {
@@ -1439,4 +1484,4 @@ void GPENCIL_OT_select(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-/* ********************************************** */
+/** \} */
