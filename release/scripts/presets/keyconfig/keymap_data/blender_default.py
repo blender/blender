@@ -29,6 +29,8 @@ class KeymapParams:
         "select_click",
         "action_mouse",
         "action_tweak",
+        "context_menu_event",
+        "cursor_set_event",
     )
 
     def __init__(self, legacy=False, select_mode='AUTO'):
@@ -45,6 +47,8 @@ class KeymapParams:
             self.select_click = 'CLICK'
             self.action_mouse = 'RIGHTMOUSE'
             self.action_tweak = 'EVT_TWEAK_R'
+            self.context_menu_event = {"type": 'RIGHTMOUSE', "value": 'PRESS'}
+            self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True}
         elif select_mode == 'RIGHT':
             # Right mouse select.
             self.select_mouse = 'RIGHTMOUSE'
@@ -52,6 +56,8 @@ class KeymapParams:
             self.select_click = 'PRESS'
             self.action_mouse = 'LEFTMOUSE'
             self.action_tweak = 'EVT_TWEAK_L'
+            self.context_menu_event = {"type": 'W', "value": 'PRESS'}
+            self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'PRESS'}
         else:
             # Automatic switching using special events, to be removed.
             self.select_mouse = 'SELECTMOUSE'
@@ -59,6 +65,8 @@ class KeymapParams:
             self.select_click = 'PRESS'
             self.action_mouse = 'ACTIONMOUSE'
             self.action_tweak = 'EVT_TWEAK_A'
+            self.context_menu_event = {"type": 'W', "value": 'PRESS'}
+            self.cursor_set_event = {"type": self.action_mouse, "value": 'PRESS'}
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -630,7 +638,7 @@ def km_uv_editor(params):
         ("uv.hide", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         ("uv.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
-        ("uv.cursor_set", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("uv.cursor_set", params.cursor_set_event, None),
         op_menu_pie("IMAGE_MT_uvs_snap_pie", {"type": 'S', "value": 'PRESS', "shift": True}),
         op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
         *_template_items_proportional_editing(connected=False),
@@ -1096,7 +1104,7 @@ def km_mask_editing(params):
         ("mask.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("mask.copy_splines", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("mask.paste_splines", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
-        ("uv.cursor_set", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("uv.cursor_set", params.cursor_set_event, None),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("transform.translate", {"type": params.select_tweak, "value": 'ANY'}, None),
         ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
@@ -1172,7 +1180,7 @@ def km_graph_editor(params):
     items.extend([
         ("wm.context_toggle", {"type": 'H', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_handles')]}),
-        ("graph.cursor_set", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("graph.cursor_set", params.cursor_set_event, None),
         ("graph.clickselect", {"type": params.select_mouse, "value": params.select_click},
          {"properties": [("extend", False), ("column", False), ("curves", False)]}),
         ("graph.clickselect", {"type": params.select_mouse, "value": params.select_click, "alt": True},
@@ -1229,7 +1237,7 @@ def km_graph_editor(params):
         ("graph.bake", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         op_menu("GRAPH_MT_delete", {"type": 'X', "value": 'PRESS'}),
         op_menu("GRAPH_MT_delete", {"type": 'DEL', "value": 'PRESS'}),
-        op_menu("GRAPH_MT_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("GRAPH_MT_specials", params.context_menu_event),
         ("graph.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         ("graph.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
         ("graph.click_insert", {"type": params.action_mouse, "value": 'CLICK', "ctrl": True},
@@ -1273,7 +1281,7 @@ def km_graph_editor(params):
     return keymap
 
 
-def km_image_generic(_params):
+def km_image_generic(params):
     items = []
     keymap = (
         "Image Generic",
@@ -1290,7 +1298,7 @@ def km_image_generic(_params):
         ("image.save_as", {"type": 'S', "value": 'PRESS', "shift": True}, None),
         ("image.properties", {"type": 'N', "value": 'PRESS'}, None),
         ("image.toolshelf", {"type": 'T', "value": 'PRESS'}, None),
-        op_menu("IMAGE_MT_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("IMAGE_MT_specials", params.context_menu_event),
         ("image.cycle_render_slot", {"type": 'J', "value": 'PRESS'}, None),
         ("image.cycle_render_slot", {"type": 'J', "value": 'PRESS', "alt": True},
          {"properties": [("reverse", True)]}),
@@ -1447,7 +1455,7 @@ def km_node_editor(params):
          {"properties": [("factor", 1.2)]}),
         ("node.backimage_fit", {"type": 'HOME', "value": 'PRESS', "alt": True}, None),
         ("node.backimage_sample", {"type": params.action_mouse, "value": 'PRESS', "alt": True}, None),
-        op_menu("NODE_MT_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("NODE_MT_specials", params.context_menu_event),
         ("node.link_make", {"type": 'F', "value": 'PRESS'},
          {"properties": [("replace", False)]}),
         ("node.link_make", {"type": 'F', "value": 'PRESS', "shift": True},
@@ -1749,7 +1757,7 @@ def km_dopesheet(params):
         ("action.interpolation_type", {"type": 'T', "value": 'PRESS'}, None),
         ("action.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
         ("action.keyframe_type", {"type": 'R', "value": 'PRESS'}, None),
-        op_menu("DOPESHEET_MT_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("DOPESHEET_MT_specials", params.context_menu_event),
         ("action.sample", {"type": 'O', "value": 'PRESS', "shift": True, "alt": True}, None),
         op_menu("DOPESHEET_MT_delete", {"type": 'X', "value": 'PRESS'}),
         op_menu("DOPESHEET_MT_delete", {"type": 'DEL', "value": 'PRESS'}),
@@ -2450,7 +2458,7 @@ def km_clip_editor(params):
         ("clip.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
         ("clip.keyframe_delete", {"type": 'I', "value": 'PRESS', "alt": True}, None),
         ("clip.join_tracks", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
-        op_menu("CLIP_MT_tracking_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("CLIP_MT_tracking_specials", params.context_menu_event),
         ("wm.context_toggle", {"type": 'L', "value": 'PRESS'},
          {"properties": [("data_path", 'space_data.lock_selection')]}),
         ("wm.context_toggle", {"type": 'D', "value": 'PRESS', "alt": True},
@@ -2469,7 +2477,7 @@ def km_clip_editor(params):
          {"properties": [("action", 'UPTO'), ("clear_active", False)]}),
         ("clip.clear_track_path", {"type": 'T', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("action", 'ALL'), ("clear_active", False)]}),
-        ("clip.cursor_set", {"type": params.action_mouse, "value": 'PRESS'}, None),
+        ("clip.cursor_set", params.cursor_set_event, None),
         op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
         ("clip.copy_tracks", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("clip.paste_tracks", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
@@ -2627,7 +2635,7 @@ def km_animation(params):
     return keymap
 
 
-def km_animation_channels(_params):
+def km_animation_channels(params):
     items = []
     keymap = (
         "Animation Channels",
@@ -2683,7 +2691,7 @@ def km_animation_channels(_params):
         ("anim.channels_group", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("anim.channels_ungroup", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Menus.
-        op_menu("DOPESHEET_MT_specials_channels", {"type": 'W', "value": 'PRESS'}),
+        op_menu("DOPESHEET_MT_specials_channels", params.context_menu_event),
     ])
 
     return keymap
@@ -2805,7 +2813,7 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "shift": True}, None),
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Context menu
-        op_menu("VIEW3D_MT_gpencil_edit_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_gpencil_edit_specials", params.context_menu_event),
         # Separate
         op_menu("GPENCIL_MT_separate", {"type": 'P', "value": 'PRESS'}),
         # Split and joint strokes
@@ -2869,7 +2877,7 @@ def km_grease_pencil_stroke_edit_mode(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_mode(_params):
+def km_grease_pencil_stroke_paint_mode(params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint Mode",
@@ -2888,7 +2896,7 @@ def km_grease_pencil_stroke_paint_mode(_params):
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path_primary", 'user_preferences.edit.grease_pencil_eraser_radius')]}),
         # Draw context menu
-        op_menu("GPENCIL_MT_gpencil_draw_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("GPENCIL_MT_gpencil_draw_specials", params.context_menu_event),
         # Draw delete menu
         op_menu("GPENCIL_MT_gpencil_draw_delete", {"type": 'X', "value": 'PRESS'}),
     ])
@@ -3008,7 +3016,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("wm.radial_control", {"type": 'F', "value": 'PRESS'},
          {"properties": [("data_path_primary", 'tool_settings.gpencil_sculpt.brush.size')]}),
         # Context menu
-        op_menu("VIEW3D_MT_gpencil_sculpt_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_gpencil_sculpt_specials", params.context_menu_event),
         # Display
         *_grease_pencil_display(),
     ])
@@ -3156,7 +3164,7 @@ def km_pose(params):
         ("pose.push", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
         ("pose.relax", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("pose.breakdown", {"type": 'E', "value": 'PRESS', "shift": True}, None),
-        op_menu("VIEW3D_MT_pose_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_pose_specials", params.context_menu_event),
         op_menu("VIEW3D_MT_pose_propagate", {"type": 'P', "value": 'PRESS', "alt": True}),
     ])
 
@@ -3227,7 +3235,7 @@ def km_object_mode(params):
         ("collection.objects_remove_all", {"type": 'G', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ("collection.objects_add_active", {"type": 'G', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("collection.objects_remove_active", {"type": 'G', "value": 'PRESS', "shift": True, "alt": True}, None),
-        op_menu("VIEW3D_MT_object_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_object_specials", params.context_menu_event),
         *_template_items_object_subdivision_set(),
         ("object.move_to_collection", {"type": 'M', "value": 'PRESS'}, None),
         ("object.link_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
@@ -3346,7 +3354,7 @@ def km_curve(params):
          {"properties": [("unselected", True)]}),
         ("curve.normals_make_consistent", {"type": 'N', "value": 'PRESS', "ctrl" if params.legacy else "shift": True}, None),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
-        op_menu("VIEW3D_MT_edit_curve_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_curve_specials", params.context_menu_event),
         op_menu("VIEW3D_MT_hook", {"type": 'H', "value": 'PRESS', "ctrl": True}),
         *_template_items_proportional_editing(connected=True),
     ])
@@ -3715,7 +3723,7 @@ def km_mesh(params):
          {"properties": [("use_occlude_geometry", True), ("only_selected", False)]}),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         # Menus.
-        op_menu("VIEW3D_MT_edit_mesh_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_mesh_specials", params.context_menu_event),
         op_menu("VIEW3D_MT_edit_mesh_faces", {"type": 'F', "value": 'PRESS', "ctrl": True}),
         op_menu("VIEW3D_MT_edit_mesh_edges", {"type": 'E', "value": 'PRESS', "ctrl": True}),
         op_menu("VIEW3D_MT_edit_mesh_vertices", {"type": 'V', "value": 'PRESS', "ctrl": True}),
@@ -3813,7 +3821,7 @@ def km_armature(params):
         ("transform.transform", {"type": 'R', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'BONE_ROLL')]}),
         # Menus.
-        op_menu("VIEW3D_MT_armature_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_armature_specials", params.context_menu_event),
     ])
 
     return keymap
@@ -3869,7 +3877,7 @@ def km_lattice(_params):
 
 
 # Particle edit mode.
-def km_particle(_params):
+def km_particle(params):
     items = []
     keymap = (
         "Particle",
@@ -3898,7 +3906,7 @@ def km_particle(_params):
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.size')]}),
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [("data_path_primary", 'tool_settings.particle_edit.brush.strength')]}),
-        op_menu("VIEW3D_MT_particle_specials", {"type": 'W', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_particle_specials", params.context_menu_event),
         ("particle.weight_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
         *_template_items_proportional_editing(connected=False),
     ])
