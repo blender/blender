@@ -154,7 +154,7 @@ void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(const struct Nurb *nu);
 struct Nurb *BKE_nurb_copy(struct Nurb *src, int pntsu, int pntsv);
 
-void BKE_nurb_test2D(struct Nurb *nu);
+void BKE_nurb_test_2d(struct Nurb *nu);
 void BKE_nurb_minmax(struct Nurb *nu, bool use_radius, float min[3], float max[3]);
 float BKE_nurb_calc_length(const struct Nurb *nu, int resolution);
 
