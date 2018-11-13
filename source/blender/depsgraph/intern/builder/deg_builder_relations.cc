@@ -1400,7 +1400,6 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 				             parameters_key,
 				             "Driver Target -> Properties");
 			}
-			add_relation(driver_key, target_key, "Driver -> Target");
 		}
 	}
 }
