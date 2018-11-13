@@ -1385,22 +1385,20 @@ class _defs_gpencil_edit:
 class _defs_gpencil_sculpt:
 
     def draw_settings_common(context, layout, tool):
-        ob = context.active_object
-        if ob and ob.mode == 'GPENCIL_SCULPT':
-            tool_settings = context.tool_settings
-            settings = tool_settings.gpencil_sculpt
-            tool = settings.sculpt_tool
-            brush = settings.brush
+        tool_settings = context.tool_settings
+        settings = tool_settings.gpencil_sculpt
+        tool = settings.sculpt_tool
+        brush = settings.brush
 
-            layout.prop(brush, "size", slider=True)
+        layout.prop(brush, "size", slider=True)
 
-            row = layout.row(align=True)
-            row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_pressure_strength", text="")
+        row = layout.row(align=True)
+        row.prop(brush, "strength", slider=True)
+        row.prop(brush, "use_pressure_strength", text="")
 
-            if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
-                row.separator()
-                row.prop(brush, "direction", expand=True, text="")
+        if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
+            row.separator()
+            row.prop(brush, "direction", expand=True, text="")
 
     @staticmethod
     def generate_from_brushes(context):
@@ -1418,16 +1416,14 @@ class _defs_gpencil_sculpt:
 class _defs_gpencil_weight:
 
     def draw_settings_common(context, layout, tool):
-        ob = context.active_object
-        if ob and ob.mode == 'GPENCIL_WEIGHT':
-            settings = context.tool_settings.gpencil_sculpt
-            brush = settings.brush
+        settings = context.tool_settings.gpencil_sculpt
+        brush = settings.brush
 
-            layout.prop(brush, "size", slider=True)
+        layout.prop(brush, "size", slider=True)
 
-            row = layout.row(align=True)
-            row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_pressure_strength", text="")
+        row = layout.row(align=True)
+        row.prop(brush, "strength", slider=True)
+        row.prop(brush, "use_pressure_strength", text="")
 
     @staticmethod
     def generate_from_brushes(context):
