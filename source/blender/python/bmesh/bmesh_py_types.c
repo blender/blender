@@ -3275,10 +3275,10 @@ PyDoc_STRVAR(bpy_bmloop_doc,
 "This is normally accessed from :class:`BMFace.loops` where each face loop represents a corner of the face.\n"
 );
 PyDoc_STRVAR(bpy_bmelemseq_doc,
-"General sequence type used for accessing any sequence of \n"
+"General sequence type used for accessing any sequence of\n"
 ":class:`BMVert`, :class:`BMEdge`, :class:`BMFace`, :class:`BMLoop`.\n"
 "\n"
-"When accessed via :class:`BMesh.verts`, :class:`BMesh.edges`, :class:`BMesh.faces` \n"
+"When accessed via :class:`BMesh.verts`, :class:`BMesh.edges`, :class:`BMesh.faces`\n"
 "there are also functions to create/remomove items.\n"
 );
 PyDoc_STRVAR(bpy_bmiter_doc,

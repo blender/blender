@@ -1371,17 +1371,17 @@ PyDoc_STRVAR(quaternion_doc,
 "   The constructor takes arguments in various forms:\n"
 "\n"
 "   (), *no args*\n"
-"       Create an identity quaternion\n"
+"      Create an identity quaternion\n"
 "   (*wxyz*)\n"
-"       Create a quaternion from a ``(w, x, y, z)`` vector.\n"
+"      Create a quaternion from a ``(w, x, y, z)`` vector.\n"
 "   (*exponential_map*)\n"
-"       Create a quaternion from a 3d exponential map vector.\n"
+"      Create a quaternion from a 3d exponential map vector.\n"
 "\n"
-"       .. seealso:: :meth:`to_exponential_map`\n"
+"      .. seealso:: :meth:`to_exponential_map`\n"
 "   (*axis, angle*)\n"
-"       Create a quaternion representing a rotation of *angle* radians over *axis*.\n"
+"      Create a quaternion representing a rotation of *angle* radians over *axis*.\n"
 "\n"
-"       .. seealso:: :meth:`to_axis_angle`\n"
+"      .. seealso:: :meth:`to_axis_angle`\n"
 );
 PyTypeObject quaternion_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

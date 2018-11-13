@@ -145,7 +145,7 @@ static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, P
 PyDoc_STRVAR(bpygpu_shader_bind_doc,
 ".. method:: bind()\n"
 "\n"
-"   Bind the shader object. Required to be able to change uniforms of this shader. \n"
+"   Bind the shader object. Required to be able to change uniforms of this shader.\n"
 );
 static PyObject *bpygpu_shader_bind(BPyGPUShader *self)
 {

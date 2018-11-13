@@ -115,7 +115,7 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
 ".. method:: update_edit_mesh(mesh, loop_triangles=True, destructive=True)\n"
 "\n"
-"   Update the mesh after changes to the BMesh in editmode, \n"
+"   Update the mesh after changes to the BMesh in editmode,\n"
 "   optionally recalculating n-gon tessellation.\n"
 "\n"
 "   :arg mesh: The editmode mesh.\n"

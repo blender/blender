@@ -90,7 +90,7 @@ static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 #define BPY_DOC_ID_PROP_TYPE_NOTE                                             \
 "   .. note::\n"                                                              \
 "\n"                                                                          \
-"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n"            \
+"      Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and\n"             \
 "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
 
 
@@ -7411,7 +7411,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 				    RNA_struct_idprops_contains_datablock(type_srna))
 				{
 					PyErr_Format(PyExc_ValueError,
-					             "bpy_struct \"%.200s\" doesn't support datablock properties \n",
+					             "bpy_struct \"%.200s\" doesn't support datablock properties\n",
 					             RNA_struct_identifier(srna));
 					return -1;
 				}
