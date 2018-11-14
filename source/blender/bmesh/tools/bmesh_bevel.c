@@ -5686,6 +5686,7 @@ void BM_mesh_bevel(
 		else {
 			clnordata = mod_bmop_customdata;
 			clnordata->faceHash = BLI_ghash_ptr_new(__func__);
+			BLI_ghash_flag_set(clnordata->faceHash, GHASH_FLAG_ALLOW_DUPES);
 			bp.faceHash = clnordata->faceHash;
 		}
 
