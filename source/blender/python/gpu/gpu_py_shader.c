@@ -740,7 +740,7 @@ PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
 "       '3D_FLAT_COLOR',\n"
 "       '3D_SMOOTH_COLOR'}\n"
 "   :type shader_name: str\n"
-"   :return: vertex, fragment and geometry shader codes.\n"
+"   :return: Vertex, fragment and geometry shader codes.\n"
 "   :rtype: dict\n"
 );
 static PyObject *bpygpu_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyObject *arg)
