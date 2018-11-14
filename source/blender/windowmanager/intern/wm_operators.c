@@ -3288,7 +3288,7 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "CLIP_OT_graph_select_box");
 	WM_modalkeymap_assign(keymap, "MASK_OT_select_box");
 	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
+//	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border"); /* TODO */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_box");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); /* XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel */

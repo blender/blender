@@ -655,7 +655,7 @@ kmi.properties.deselect = False
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_A', 'ANY', shift=True, ctrl=True)
 kmi.properties.deselect = True
 kmi = km.keymap_items.new('view3d.select_circle', 'C', 'PRESS', alt=True)
-kmi = km.keymap_items.new('view3d.clip_border', 'B', 'PRESS', alt=True)
+# kmi = km.keymap_items.new('view3d.clip_border', 'B', 'PRESS', alt=True)
 kmi = km.keymap_items.new('view3d.zoom_border', 'B', 'PRESS', shift=True)
 kmi = km.keymap_items.new('view3d.render_border', 'B', 'PRESS', shift=True)
 kmi.properties.camera_only = True

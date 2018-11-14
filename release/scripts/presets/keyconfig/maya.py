@@ -1058,7 +1058,7 @@ kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_M', 'ANY', ctrl=True
 kmi.properties.deselect = True
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_M', 'ANY', any=True)
 kmi = km.keymap_items.new('view3d.select_circle', 'Q', 'PRESS', shift=True)
-kmi = km.keymap_items.new('view3d.clip_border', 'B', 'PRESS', alt=True)
+# kmi = km.keymap_items.new('view3d.clip_border', 'B', 'PRESS', alt=True)
 kmi = km.keymap_items.new('view3d.zoom_border', 'B', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift=True, ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_snap'

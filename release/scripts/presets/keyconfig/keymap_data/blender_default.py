@@ -936,7 +936,7 @@ def km_view3d(params):
          {"properties": [("mode", 'SUB')]}),
         ("view3d.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         # Borders.
-        ("view3d.clip_border", {"type": 'B', "value": 'PRESS', "alt": True}, None),
+        # ("view3d.clip_border", {"type": 'B', "value": 'PRESS', "alt": True}, None),
         ("view3d.zoom_border", {"type": 'B', "value": 'PRESS', "shift": True}, None),
         ("view3d.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("view3d.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),

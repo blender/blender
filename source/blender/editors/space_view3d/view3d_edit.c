@@ -4550,6 +4550,8 @@ void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[4][4])
 		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
 }
 
+#if 0 /* TODO Missing from 2.8 drawing code. Find a solution to support clip border then uncomment it. */
+
 static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -4606,6 +4608,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_border(ot);
 }
+#endif
 
 /** \} */
 
