@@ -697,9 +697,9 @@ static PyObject *bpygpu_shader_unbind(BPyGPUShader *UNUSED(self))
 PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
 ".. function:: from_builtin(shader_name)\n"
 "\n"
-"Shaders that are embedded in the blender internal code.\n"
-"They all read the uniform 'mat4 ModelViewProjectionMatrix', which can be edited by the 'gpu.matrix' module.\n"
-"For more details, you can check the shader code with the function 'gpu.shader.code_from_builtin';\n"
+"   Shaders that are embedded in the blender internal code.\n"
+"   They all read the uniform 'mat4 ModelViewProjectionMatrix', which can be edited by the 'gpu.matrix' module.\n"
+"   For more details, you can check the shader code with the function 'gpu.shader.code_from_builtin';\n"
 "\n"
 "   :param shader_name: One of these builtin shader names: {\n"
 "       '2D_UNIFORM_COLOR',\n"
@@ -710,8 +710,8 @@ PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
 "       '3D_FLAT_COLOR',\n"
 "       '3D_SMOOTH_COLOR'}\n"
 "   :type shader_name: str\n"
-"   :return: the shader object\n"
-"   :rtype: bpy.types.GPUShader\n"
+"   :return: Shader object corresponding to the given name.\n"
+"   :rtype: :class:`bpy.types.GPUShader`\n"
 );
 static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
 {
@@ -729,7 +729,7 @@ static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *ar
 PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
 ".. function:: code_from_builtin(shader_name)\n"
 "\n"
-"Exposes the internal shader code for query.\n"
+"   Exposes the internal shader code for query.\n"
 "\n"
 "   :param shader_name: One of these builtin shader names: {\n"
 "       '2D_UNIFORM_COLOR',\n"
