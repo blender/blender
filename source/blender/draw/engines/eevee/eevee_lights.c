@@ -661,8 +661,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 		// power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
 	}
 	else {
-		power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) * /* 1/(r²*Pi) */
-		        12.5f; /* XXX : Empirical, Fit cycles power */
+		power = 1.0f / (evli->radius * evli->radius * M_PI); /* 1/(r²*Pi) */
 		/* Make illumation power closer to cycles for bigger radii. Cycles uses a cos^3 term that we cannot reproduce
 		 * so we account for that by scaling the light power. This function is the result of a rough manual fitting. */
 		power *= 1.0f + evli->radius * evli->radius * 0.5f;
