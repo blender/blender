@@ -476,7 +476,6 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 					wmOperatorType *ot = WM_operatortype_find("paint.brush_select", true);
 					PointerRNA op_props;
 					WM_operator_properties_create_ptr(&op_props, ot);
-					RNA_enum_set(&op_props, "paint_mode", paint_mode);
 					RNA_enum_set(&op_props, tool_attr, items[i].value);
 
 					/* Check for direct access to the tool. */
