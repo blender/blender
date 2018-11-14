@@ -297,8 +297,13 @@ class _draw_left_context_mode:
 
         @staticmethod
         def GPENCIL_PAINT(context, layout, tool):
+            if tool is None:
+                return
 
-            if (tool is None) or (not tool.has_datablock):
+            is_paint = True
+            if (tool.name in {"Line", "Box", "Circle"}):
+                is_paint = False
+            elif (not tool.has_datablock):
                 return
 
             paint = context.tool_settings.gpencil_paint
@@ -358,13 +363,15 @@ class _draw_left_context_mode:
                 row.prop(gp_settings, "fill_draw_mode", text="")
                 row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
 
-            else:  # bgpsettings.tool == 'DRAW':
+            else:  # brush.gpencil_tool == 'DRAW':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
-                row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
+                if is_paint:
+                    row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
                 row = layout.row(align=True)
                 row.prop(gp_settings, "pen_strength", slider=True)
-                row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
+                if is_paint:
+                    row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
 
                 draw_color_selector()
 
