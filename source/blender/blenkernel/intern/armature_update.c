@@ -760,9 +760,8 @@ void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph,
 	/* release the IK tree */
 	BIK_release_tree(scene, ob, ctime);
 
-	BLI_assert(pose->chan_array != NULL);
-	MEM_freeN(pose->chan_array);
-	pose->chan_array = NULL;
+	BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
+	MEM_SAFE_FREE(pose->chan_array);
 }
 
 void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
