@@ -224,6 +224,7 @@ static void axis_geom_draw(
 	static const float axis_black[4] = {0, 0, 0, 1};
 	static float axis_color[3][4];
 
+	const float axis_depth_bias = 0.01f;
 
 #ifdef USE_AXIS_FONT
 	struct {
@@ -270,7 +271,7 @@ static void axis_geom_draw(
 		const bool is_highlight = index + 1 == gz->highlight_part;
 
 		/* Draw slightly before, so axis aligned arrows draw ontop. */
-		if ((draw_center_done == false) && (axis_order[axis_index].depth > -0.01f)) {
+		if ((draw_center_done == false) && (axis_order[axis_index].depth > -axis_depth_bias)) {
 
 			/* Circle defining active area (revert back to 2D space). */
 			if (color[3] != 0.0f) {
@@ -304,6 +305,17 @@ static void axis_geom_draw(
 			const float *color_current = is_highlight ? axis_highlight : axis_color[axis];
 			float color_current_fade[4];
 
+			/* Flip the faded state when axis aligned, since we're hiding the front-mode axis
+			 * otherwise we see the color for the back-most axis, which is useful for
+			 * click-to-rotate 180d but not useful to visualize.
+			 *
+			 * Use depth bias so axis-aligned views show the positive axis as being in-front.
+			 * This is a detail so primary axes show as dominant.
+			 */
+			const bool is_pos_color = (
+					((axis_order[axis_index].depth > (axis_depth_bias * (is_pos ? -1 : 1))) == (axis_align != axis)));
+
+
 			if (select == false) {
 #ifdef USE_FADE_BACKGROUND
 				interp_v3_v3v3(color_current_fade, draw_info->color_bg, color_current, is_highlight ? 1.0 : 0.5f);
@@ -321,7 +333,7 @@ static void axis_geom_draw(
 			if (is_pos) {
 				float v_start[3];
 				GPU_line_width(2.0f);
-				immUniformColor4fv(color_current);
+				immUniformColor4fv(is_pos_color ? color_current : color_current_fade);
 				immBegin(GPU_PRIM_LINES, 2);
 				if (axis_align == -1) {
 					zero_v3(v_start);
@@ -341,11 +353,6 @@ static void axis_geom_draw(
 
 			/* Axis Ball. */
 			{
-				/* Flip the faded state when axis aligned, since we're hiding the front-mode axis
-				 * otherwise we see the color for the back-most axis, which is useful for
-				 * click-to-rotate 180d but not useful to visualize. */
-				const bool is_pos_color = is_pos == (axis_align != axis);
-
 				GPU_matrix_push();
 				GPU_matrix_translate_3fv(v_final);
 				GPU_matrix_scale_1f(show_axis_char ? AXIS_HANDLE_SIZE_FG : AXIS_HANDLE_SIZE_BG);
