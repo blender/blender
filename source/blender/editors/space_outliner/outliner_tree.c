@@ -1592,10 +1592,10 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 
 		if (!outliner_filter_has_name(te, search_string, soops->search_flags)) {
 			/* item isn't something we're looking for, but...
-			 *  - if the subtree is expanded, check if there are any matches that can be easily found
-			 *		so that searching for "cu" in the default scene will still match the Cube
-			 *	- otherwise, we can't see within the subtree and the item doesn't match,
-			 *		so these can be safely ignored (i.e. the subtree can get freed)
+			 * - if the subtree is expanded, check if there are any matches that can be easily found
+			 *     so that searching for "cu" in the default scene will still match the Cube
+			 * - otherwise, we can't see within the subtree and the item doesn't match,
+			 *     so these can be safely ignored (i.e. the subtree can get freed)
 			 */
 			tselem = TREESTORE(te);
 

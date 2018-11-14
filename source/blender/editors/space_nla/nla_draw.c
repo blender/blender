@@ -113,15 +113,15 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, View2D *v2d, 
 		return;
 
 	/* draw a darkened region behind the strips
-	 *	- get and reset the background color, this time without the alpha to stand out better
-	 *	  (amplified alpha is used instead)
+	 * - get and reset the background color, this time without the alpha to stand out better
+	 *   (amplified alpha is used instead)
 	 */
 	nla_action_get_color(adt, act, color);
 	color[3] *= 2.5f;
 
 	glColor4fv(color);
-	/*  - draw a rect from the first to the last frame (no extra overlaps for now)
-	 *	  that is slightly stumpier than the track background (hardcoded 2-units here)
+	/* - draw a rect from the first to the last frame (no extra overlaps for now)
+	 *   that is slightly stumpier than the track background (hardcoded 2-units here)
 	 */
 	f1 = ((ActKeyColumn *)keys.first)->cfra;
 	f2 = ((ActKeyColumn *)keys.last)->cfra;
@@ -136,7 +136,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, View2D *v2d, 
 	glColor3f(0.0f, 0.0f, 0.0f);
 
 	/* just draw each keyframe as a simple dot (regardless of the selection status)
-	 *	- size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
+	 * - size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
 	 */
 	for (ak = keys.first; ak; ak = ak->next)
 		draw_keyframe_shape(ak->cfra, y, xscale, 3.0f, 0, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f);
@@ -289,7 +289,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 			glBegin(GL_LINE_STRIP);
 
 			/* sample at 1 frame intervals, and draw
-			 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
+			 * - min y-val is yminc, max is y-maxc, so clamp in those regions
 			 */
 			for (cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
 				float y = evaluate_fcurve(fcu, cfra);
@@ -341,7 +341,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	nla_strip_get_color_inside(adt, strip, color);
 
 	/* draw extrapolation info first (as backdrop)
-	 *	- but this should only be drawn if track has some contribution
+	 * - but this should only be drawn if track has some contribution
 	 */
 	if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (non_solo == 0)) {
 		/* enable transparency... */
@@ -416,7 +416,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 
 
 	/* draw strip's control 'curves'
-	 *	- only if user hasn't hidden them...
+	 * - only if user hasn't hidden them...
 	 */
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
 		nla_draw_strip_curves(strip, yminc, ymaxc);
@@ -427,7 +427,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		nla_strip_draw_markers(strip, yminc, ymaxc);
 
 	/* draw strip outline
-	 *	- color used here is to indicate active vs non-active
+	 * - color used here is to indicate active vs non-active
 	 */
 	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
 		/* strip should appear 'sunken', so draw a light border around it */
@@ -469,13 +469,13 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		/* only draw first-level of child-strips, but don't draw any lines on the endpoints */
 		for (cs = strip->strips.first; cs; cs = cs->next) {
 			/* draw start-line if not same as end of previous (and only if not the first strip)
-			 *	- on upper half of strip
+			 * - on upper half of strip
 			 */
 			if ((cs->prev) && IS_EQF(cs->prev->end, cs->start) == 0)
 				fdrawline(cs->start, y, cs->start, ymaxc);
 
 			/* draw end-line if not the last strip
-			 *	- on lower half of strip
+			 * - on lower half of strip
 			 */
 			if (cs->next)
 				fdrawline(cs->end, yminc, cs->end, y);
@@ -520,7 +520,7 @@ static void nla_draw_strip_text(
 		col[3] = 128;
 
 	/* set bounding-box for text
-	 *	- padding of 2 'units' on either side
+	 * - padding of 2 'units' on either side
 	 */
 	// TODO: make this centered?
 	rect.xmin = xminc;
@@ -546,8 +546,8 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 	/* Always draw times above the strip, whereas sequencer drew below + above.
 	 * However, we should be fine having everything on top, since these tend to be
 	 * quite spaced out.
-	 *	- 1 dp is compromise between lack of precision (ints only, as per sequencer)
-	 *	  while also preserving some accuracy, since we do use floats
+	 * - 1 dp is compromise between lack of precision (ints only, as per sequencer)
+	 *   while also preserving some accuracy, since we do use floats
 	 */
 	/* start frame */
 	numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%.1f", strip->start);
@@ -578,10 +578,10 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* Update max-extent of channels here (taking into account scrollers):
-	 *  - this is done to allow the channel list to be scrollable, but must be done here
-	 *    to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
-	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 * - this is done to allow the channel list to be scrollable, but must be done here
+	 *   to avoid regenerating the list again and/or also because channels list is drawn first
+	 * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
+	 *   start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height = ((items * NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla) * 2));
 	/* don't use totrect set, as the width stays the same
@@ -702,10 +702,10 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* Update max-extent of channels here (taking into account scrollers):
-	 *  - this is done to allow the channel list to be scrollable, but must be done here
-	 *    to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
-	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 * - this is done to allow the channel list to be scrollable, but must be done here
+	 *   to avoid regenerating the list again and/or also because channels list is drawn first
+	 * - offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
+	 *  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height = ((items * NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla) * 2));
 	/* don't use totrect set, as the width stays the same

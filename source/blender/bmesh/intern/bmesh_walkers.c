@@ -190,10 +190,10 @@ void *BMW_current_state(BMWalker *walker)
 	if (currentstate) {
 		/* Automatic update of depth. For most walkers that
 		 * follow the standard "Step" pattern of:
-		 *  - read current state
-		 *  - remove current state
-		 *  - push new states
-		 *  - return walk result from just-removed current state
+		 * - read current state
+		 * - remove current state
+		 * - push new states
+		 * - return walk result from just-removed current state
 		 * this simple automatic update should keep track of depth
 		 * just fine. Walkers that deviate from that pattern may
 		 * need to manually update the depth if they care about

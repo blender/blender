@@ -539,9 +539,9 @@ static bool gp_brush_pinch_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 	float vec[3];
 
 	/* Scale down standard influence value to get it more manageable...
-	 *  - No damping = Unmanageable at > 0.5 strength
-	 *  - Div 10     = Not enough effect
-	 *  - Div 5      = Happy medium... (by trial and error)
+	 * - No damping = Unmanageable at > 0.5 strength
+	 * - Div 10     = Not enough effect
+	 * - Div 5      = Happy medium... (by trial and error)
 	 */
 	inf = gp_brush_influence_calc(gso, radius, co) / 5.0f;
 
@@ -1253,7 +1253,7 @@ static bool gpsculpt_brush_do_stroke(
 	}
 	else {
 		/* Loop over the points in the stroke, checking for intersections
-		 *  - an intersection means that we touched the stroke
+		 * - an intersection means that we touched the stroke
 		 */
 		for (i = 0; (i + 1) < gps->totpoints; i++) {
 			/* Get points to work with */
@@ -1287,7 +1287,7 @@ static bool gpsculpt_brush_do_stroke(
 			{
 				/* Check if point segment of stroke had anything to do with
 				 * brush region  (either within stroke painted, or on its lines)
-				 *  - this assumes that linewidth is irrelevant
+				 * - this assumes that linewidth is irrelevant
 				 */
 				if (gp_stroke_inside_circle(gso->mval, gso->mval_prev, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
 					/* Apply operation to these points */

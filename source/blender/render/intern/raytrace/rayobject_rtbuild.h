@@ -40,10 +40,10 @@ extern "C" {
 
 
 /*
- * Ray Tree Builder
- *	this structs helps building any type of tree
- *	it contains several methods to organize/split nodes
- *	allowing to create a given tree on the fly.
+ * Ray Tree Builder:
+ * this structs helps building any type of tree
+ * it contains several methods to organize/split nodes
+ * allowing to create a given tree on the fly.
  *
  * Idea is that other trees BVH, BIH can use this code to
  * generate with simple calls, and then convert to the theirs

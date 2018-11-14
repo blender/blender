@@ -1147,7 +1147,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 		vzd->dy += dy;
 
 		/* store mouse coordinates for next time, if not doing continuous zoom
-		 *	- continuous zoom only depends on distance of mouse to starting point to determine rate of change
+		 * - continuous zoom only depends on distance of mouse to starting point to determine rate of change
 		 */
 		if (U.viewzoom != USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
 			vzd->lastx = event->x;
@@ -1239,9 +1239,9 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 
 	if (zoom_in) {
 		/* zoom in:
-		 *	- 'cur' rect will be defined by the coordinates of the border region
-		 *	- just set the 'cur' rect to have the same coordinates as the border region
-		 *	  if zoom is allowed to be changed
+		 * - 'cur' rect will be defined by the coordinates of the border region
+		 * - just set the 'cur' rect to have the same coordinates as the border region
+		 *   if zoom is allowed to be changed
 		 */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
 			cur_new.xmin = rect.xmin;
@@ -1254,9 +1254,9 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		/* zoom out:
-		 *	- the current 'cur' rect coordinates are going to end up where the 'rect' ones are,
-		 *	  but the 'cur' rect coordinates will need to be adjusted to take in more of the view
-		 *	- calculate zoom factor, and adjust using center-point
+		 * - the current 'cur' rect coordinates are going to end up where the 'rect' ones are,
+		 *   but the 'cur' rect coordinates will need to be adjusted to take in more of the view
+		 * - calculate zoom factor, and adjust using center-point
 		 */
 		float zoom, center, size;
 
@@ -1626,8 +1626,8 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	bool in_min, in_max, in_bar, out_min, out_max, in_view = 1;
 
 	/* firstly, check if
-	 *	- 'bubble' fills entire scroller
-	 *	- 'bubble' completely out of view on either side
+	 * - 'bubble' fills entire scroller
+	 * - 'bubble' completely out of view on either side
 	 */
 	if ((sh_min <= sc_min) && (sh_max >= sc_max)) in_view = 0;
 	if (sh_min == sh_max) {
@@ -1690,7 +1690,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 	vsm->lastx = event->x;
 	vsm->lasty = event->y;
 	/* 'zone' depends on where mouse is relative to bubble
-	 *	- zooming must be allowed on this axis, otherwise, default to pan
+	 * - zooming must be allowed on this axis, otherwise, default to pan
 	 */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 

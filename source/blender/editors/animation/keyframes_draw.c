@@ -324,8 +324,8 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, BezTriple *first_bezt
 	}
 	else {
 		/* Check for same values...
-		 *  - Handles must have same central value as each other
-		 *  - Handles which control that section of the curve must be constant
+		 * - Handles must have same central value as each other
+		 * - Handles which control that section of the curve must be constant
 		 */
 		if (IS_EQF(beztn->vec[1][1], prev->vec[1][1]) == 0) return;
 
@@ -348,9 +348,9 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, BezTriple *first_bezt
 		 *      an A ___ B |---| B situation
 		 */
 		// FIXME: here there is a bug where we are trying to get the summary for the following channels
-		//		A|--------------|A ______________ B|--------------|B
-		//		A|------------------------------------------------|A
-		//		A|----|A|---|A|-----------------------------------|A
+		//      A|--------------|A ______________ B|--------------|B
+		//      A|------------------------------------------------|A
+		//      A|----|A|---|A|-----------------------------------|A
 		for (ab = blocks->root; ab; ab = abn) {
 			/* check if this is a match, or whether we go left or right
 			 * NOTE: we now use a float threshold to prevent precision errors causing problems with summaries
@@ -674,7 +674,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	if (keys) {
 		for (ak = keys->first; ak; ak = ak->next) {
 			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
-			 *	- this might give some improvements, since we current have to flip between view/region matrices
+			 * - this might give some improvements, since we current have to flip between view/region matrices
 			 */
 			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)
 				continue;

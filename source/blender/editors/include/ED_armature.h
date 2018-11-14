@@ -67,7 +67,7 @@ typedef struct EditBone {
 	float head[3];          /* Orientation and length is implicit during editing */
 	float tail[3];
 	/* All joints are considered to have zero rotation with respect to
-	 * their parents.	Therefore any rotations specified during the
+	 * their parents. Therefore any rotations specified during the
 	 * animation are automatically relative to the bones' rest positions*/
 	int flag;
 	int layer;

@@ -447,18 +447,18 @@ static void freepolygonize(PROCESS *process)
 
 /**** Cubical Polygonization (optional) ****/
 
-#define LB  0  /* left bottom edge	*/
-#define LT  1  /* left top edge	*/
-#define LN  2  /* left near edge	*/
-#define LF  3  /* left far edge	*/
+#define LB  0  /* left bottom edge */
+#define LT  1  /* left top edge */
+#define LN  2  /* left near edge */
+#define LF  3  /* left far edge */
 #define RB  4  /* right bottom edge */
-#define RT  5  /* right top edge	*/
-#define RN  6  /* right near edge	*/
-#define RF  7  /* right far edge	*/
-#define BN  8  /* bottom near edge	*/
-#define BF  9  /* bottom far edge	*/
-#define TN  10 /* top near edge	*/
-#define TF  11 /* top far edge	*/
+#define RT  5  /* right top edge */
+#define RN  6  /* right near edge */
+#define RF  7  /* right far edge */
+#define BN  8  /* bottom near edge */
+#define BF  9  /* bottom far edge */
+#define TN  10 /* top near edge */
+#define TF  11 /* top far edge */
 
 static INTLISTS *cubetable[256];
 static char faces[256];

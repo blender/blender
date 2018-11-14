@@ -125,7 +125,7 @@ typedef enum eFMod_Generator_Modes {
 
 
 /* generator flags
- *	- shared by Generator and Function Generator
+ * - shared by Generator and Function Generator
  */
 typedef enum eFMod_Generator_Flags {
 		/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
@@ -136,7 +136,7 @@ typedef enum eFMod_Generator_Flags {
 /* 'Built-In Function' Generator modifier data
  *
  * This uses the general equation for equations:
- * 		y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
+ * y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
  *
  * where amplitude, phase_multiplier/offset, y_offset are user-defined coefficients,
  * x is the evaluation 'time', and 'y' is the resultant value
@@ -353,7 +353,7 @@ typedef enum eDriverVar_Types {
 
 	/* maximum number of variable types
 	 * NOTE: this must always be th last item in this list,
-	 * 		so add new types above this line
+	 *       so add new types above this line.
 	 */
 	MAX_DVAR_TYPES
 } eDriverVar_Types;
@@ -571,9 +571,9 @@ typedef enum eFCurve_Smoothing {
  *
  * Defines what parts of the paths should be remapped from 'abc' to 'xyz'.
  * TODO:
- *	- Regrex (possibly provided through PY, though having our own module might be faster)
- *	  would be important to have at some point. Current replacements are just simple
- *	  string matches...
+ * - Regrex (possibly provided through PY, though having our own module might be faster)
+ *   would be important to have at some point. Current replacements are just simple
+ *   string matches...
  */
 typedef struct AnimMapPair {
 	char from[128];		/* part of path to bed replaced */
@@ -793,7 +793,7 @@ typedef enum eKSP_Grouping {
 		/* path should be grouped using KeyingSet's name */
 	KSP_GROUP_KSNAME,
 		/* path should be grouped using name of inner-most context item from templates
-		 * 	- this is most useful for relative KeyingSets only
+		 * - this is most useful for relative KeyingSets only
 		 */
 	KSP_GROUP_TEMPLATE_ITEM
 } eKSP_Grouping;

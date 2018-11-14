@@ -738,9 +738,9 @@ static int implicit_leafs_index(const BVHBuildHelper *data, const int depth, con
  * All tree types >= 2 are supported.
  *
  * Advantages of the used trees include:
- *  - No need to store child/parent relations (they are implicit);
- *  - Any node child always has an index greater than the parent;
- *  - Brother nodes are sequential in memory;
+ * - No need to store child/parent relations (they are implicit);
+ * - Any node child always has an index greater than the parent;
+ * - Brother nodes are sequential in memory;
  *
  *
  * Some math relations derived for general implicit trees:
@@ -764,9 +764,9 @@ static int implicit_needed_branches(int tree_type, int leafs)
  * This function handles the problem of "sorting" the leafs (along the split_axis).
  *
  * It arranges the elements in the given partitions such that:
- *  - any element in partition N is less or equal to any element in partition N+1.
- *  - if all elements are different all partition will get the same subset of elements
- *    as if the array was sorted.
+ * - any element in partition N is less or equal to any element in partition N+1.
+ * - if all elements are different all partition will get the same subset of elements
+ *   as if the array was sorted.
  *
  * partition P is described as the elements in the range ( nth[P], nth[P+1] ]
  *
@@ -863,9 +863,9 @@ static void non_recursive_bvh_div_nodes_task_cb(
 /**
  * This functions builds an optimal implicit tree from the given leafs.
  * Where optimal stands for:
- *  - The resulting tree will have the smallest number of branches;
- *  - At most only one branch will have NULL childs;
- *  - All leafs will be stored at level N or N+1.
+ * - The resulting tree will have the smallest number of branches;
+ * - At most only one branch will have NULL childs;
+ * - All leafs will be stored at level N or N+1.
  *
  * This function creates an implicit tree on branches_array, the leafs are given on the leafs_array.
  *

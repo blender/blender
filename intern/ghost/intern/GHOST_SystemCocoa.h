@@ -20,8 +20,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s):	Maarten Gribnau 05/2001
- *					Damien Plisson 09/2009
+ * Contributor(s): Maarten Gribnau 05/2001
+ *                 Damien Plisson 09/2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */

@@ -545,7 +545,7 @@ static void draw_textured_end(void)
 	 *
 	 * It would be better if drawmesh.c kept track
 	 * of and restored the light settings it changed.
-	 *  - zr
+	 * - zr
 	 */
 	glPushMatrix();
 	glLoadIdentity();

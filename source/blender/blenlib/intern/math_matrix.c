@@ -822,12 +822,11 @@ bool invert_m4(float m[4][4])
 }
 
 /*
- * invertmat -
- *      computes the inverse of mat and puts it in inverse.  Returns
- *  true on success (i.e. can always find a pivot) and false on failure.
- *  Uses Gaussian Elimination with partial (maximal column) pivoting.
+ * Computes the inverse of mat and puts it in inverse.
+ * Returns true on success (i.e. can always find a pivot) and false on failure.
+ * Uses Gaussian Elimination with partial (maximal column) pivoting.
  *
- *					Mark Segal - 1992
+ * Mark Segal - 1992
  */
 
 bool invert_m4_m4(float inverse[4][4], float mat[4][4])
@@ -2188,11 +2187,11 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 		 * negligible elements in the s and e arrays.  On
 		 * completion the variables kase and k are set as follows.
 		 *
-		 * kase = 1	  if s(p) and e[k - 1] are negligible and k<p
-		 * kase = 2	  if s(k) is negligible and k<p
-		 * kase = 3	  if e[k - 1] is negligible, k<p, and
-		 *               s(k), ..., s(p) are not negligible (qr step).
-		 * kase = 4	  if e(p - 1) is negligible (convergence). */
+		 * kase = 1: if s(p) and e[k - 1] are negligible and k<p
+		 * kase = 2: if s(k) is negligible and k<p
+		 * kase = 3: if e[k - 1] is negligible, k<p, and
+		 *              s(k), ..., s(p) are not negligible (qr step).
+		 * kase = 4: if e(p - 1) is negligible (convergence). */
 
 		for (k = p - 2; k >= -1; k--) {
 			if (k == -1) {

@@ -486,7 +486,7 @@ static void draw_bone_octahedral(void)
 		displist = glGenLists(1);
 		glNewList(displist, GL_COMPILE);
 
-		/*	Section 1, sides */
+		/* Section 1, sides */
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, bone_octahedral_verts);
 		glDrawElements(GL_LINE_LOOP,
@@ -494,7 +494,7 @@ static void draw_bone_octahedral(void)
 		               GL_UNSIGNED_INT,
 		               bone_octahedral_wire_sides);
 
-		/*	Section 1, square */
+		/* Section 1, square */
 		glDrawElements(GL_LINE_LOOP,
 		               sizeof(bone_octahedral_wire_square) / sizeof(*bone_octahedral_wire_square),
 		               GL_UNSIGNED_INT,
@@ -550,7 +550,7 @@ static void draw_bone_solid_octahedral(void)
 
 static void draw_bone_points(const short dt, int armflag, unsigned int boneflag, int id)
 {
-	/*	Draw root point if we are not connected */
+	/* Draw root point if we are not connected */
 	if ((boneflag & BONE_CONNECTED) == 0) {
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_ROOT);
@@ -574,7 +574,7 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 			draw_bonevert();
 	}
 
-	/*	Draw tip point */
+	/* Draw tip point */
 	if (id != -1)
 		GPU_select_load_id(id | BONESEL_TIP);
 
@@ -786,7 +786,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 	else if (armflag & ARM_POSEMODE)
 		set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
 
-	/*	Draw root point if we are not connected */
+	/* Draw root point if we are not connected */
 	if ((boneflag & BONE_CONNECTED) == 0) {
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_ROOT);
@@ -794,7 +794,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 		drawcircball(GL_LINE_LOOP, headvec, head, imat);
 	}
 
-	/*	Draw tip point */
+	/* Draw tip point */
 	if (armflag & ARM_EDITMODE) {
 		if (boneflag & BONE_TIPSEL) UI_ThemeColor(TH_VERTEX_SELECT);
 		else UI_ThemeColor(TH_VERTEX);
@@ -904,14 +904,14 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 	else if (dt == OB_SOLID)
 		UI_ThemeColorShade(TH_BONE_SOLID, -30);
 
-	/*	Draw root point if we are not connected */
+	/* Draw root point if we are not connected */
 	if ((boneflag & BONE_CONNECTED) == 0) {
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_ROOT);
 		gluSphere(qobj, head, 16, 10);
 	}
 
-	/*	Draw tip point */
+	/* Draw tip point */
 	if (armflag & ARM_EDITMODE) {
 		if (boneflag & BONE_TIPSEL) UI_ThemeColor(TH_VERTEX_SELECT);
 		else UI_ThemeColorShade(TH_BONE_SOLID, -30);
@@ -1011,7 +1011,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 			UI_ThemeColor(TH_WIRE_EDIT);
 		}
 
-		/*	Draw root point if we are not connected */
+		/* Draw root point if we are not connected */
 		if ((boneflag & BONE_CONNECTED) == 0) {
 			if (G.f & G_PICKSEL) {
 				GPU_select_load_id(id | BONESEL_ROOT);
@@ -2024,7 +2024,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 						}
 
 						/* Draw a line to IK root bone
-						 *  - only if temporary chain (i.e. "autoik")
+						 * - only if temporary chain (i.e. "autoik")
 						 */
 						if (arm->flag & ARM_POSEMODE) {
 							if (constflag & PCHAN_HAS_IK) {
@@ -2154,7 +2154,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 							view3d_cached_text_draw_add(vec, pchan->name, strlen(pchan->name), 10, 0, col);
 						}
 
-						/*	Draw additional axes on the bone tail  */
+						/* Draw additional axes on the bone tail  */
 						if ((arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE)) {
 							glPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
@@ -2357,12 +2357,12 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 
 						UI_GetThemeColor3ubv((eBone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, col);
 
-						/*	Draw name */
+						/* Draw name */
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, eBone->head, eBone->tail);
 							view3d_cached_text_draw_add(vec, eBone->name, strlen(eBone->name), 10, 0, col);
 						}
-						/*	Draw additional axes */
+						/* Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
 							glPushMatrix();
 							get_matrix_editbone(eBone, bmat);
@@ -2392,7 +2392,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 /* ---------- Paths --------- */
 
 /* draw bone paths
- *	- in view space
+ * - in view space
  */
 static void draw_pose_paths(Scene *scene, View3D *v3d, ARegion *ar, Object *ob)
 {
@@ -2512,7 +2512,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 }
 
 /* draw ghosts on keyframes in action within range
- *	- object should be in posemode
+ * - object should be in posemode
  */
 static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
@@ -2593,7 +2593,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 }
 
 /* draw ghosts around current frame
- *  - object is supposed to be armature in posemode
+ * - object is supposed to be armature in posemode
  */
 static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 {
@@ -2728,7 +2728,7 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		arm->flag &= ~ARM_EDITMODE;
 	}
 	else {
-		/*	Draw Pose */
+		/* Draw Pose */
 		if (ob->pose && ob->pose->chanbase.first) {
 			/* We can't safely draw non-updated pose, might contain NULL bone pointers... */
 			if (ob->pose->flag & POSE_RECALC) {

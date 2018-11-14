@@ -304,10 +304,10 @@ bool SCA_KeyboardSensor::Evaluate()
 		 * note, this will only change the results if key modifiers are set.
 		 *
 		 * When all modifiers and keys are positive
-		 *  - pulse true
+		 * - pulse true
 		 *
 		 * When ANY of the modifiers or main key become inactive,
-		 *  - pulse false
+		 * - pulse false
 		 */
 		if (qual==false) { /* one of the qualifiers are not pressed */
 			if (m_val_orig && qual_change) { /* we were originally enabled, but a qualifier changed */

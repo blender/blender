@@ -914,8 +914,8 @@ bool gp_smooth_stroke_thickness(bGPDstroke *gps, int i, float inf)
 	ptc = &gps->points[after];
 
 	/* the optimal value is the corresponding to the interpolation of the pressure
-	*  at the distance of point b
-	*/
+	 * at the distance of point b
+	 */
 	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
 	float optimal = (1.0f - fac) * pta->pressure + fac * ptc->pressure;
 

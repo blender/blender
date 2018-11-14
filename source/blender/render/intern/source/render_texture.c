@@ -2181,7 +2181,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE ) {
 			/* TODO: these calculations happen for every pixel!
-			 *	-> move to shi->obi */
+			 * -> move to shi->obi */
 			mul_m4_m4m4(tmp, R.viewmat, shi->obr->ob->obmat);
 			copy_m3_m4(obj2view, tmp); /* use only upper left 3x3 matrix */
 			invert_m3_m3(view2obj, obj2view);
@@ -3859,13 +3859,13 @@ void RE_sample_material_free(Material *mat)
 }
 
 /*
- *	Get material diffuse color and alpha (including linked textures) in given coordinates
+ * Get material diffuse color and alpha (including linked textures) in given coordinates
  *
- *	color,alpha : input/output color values
- *	volume_co : sample coordinate in global space. used by volumetric materials
- *	surface_co : sample surface coordinate in global space. used by "surface" materials
- *	tri_index : surface tri index
- *	orcoDm : orco state derived mesh
+ * color,alpha : input/output color values
+ * volume_co : sample coordinate in global space. used by volumetric materials
+ * surface_co : sample surface coordinate in global space. used by "surface" materials
+ * tri_index : surface tri index
+ * orcoDm : orco state derived mesh
  */
 void RE_sample_material_color(
         Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],

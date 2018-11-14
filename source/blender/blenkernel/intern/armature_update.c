@@ -160,7 +160,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		 */
 		for (i = 0; i < segcount; i++) {
 			/* 'head' joints, traveling towards the root of the chain
-			 *  - 2 methods; the one chosen depends on whether we've got usable lengths
+			 * - 2 methods; the one chosen depends on whether we've got usable lengths
 			 */
 			if ((ikData->flag & CONSTRAINT_SPLINEIK_EVENSPLITS) || (totLength == 0.0f)) {
 				/* 1) equi-spaced joints */
@@ -363,7 +363,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		rangle *= tree->con->enforce;
 
 		/* construct rotation matrix from the axis-angle rotation found above
-		 *	- this call takes care to make sure that the axis provided is a unit vector first
+		 * - this call takes care to make sure that the axis provided is a unit vector first
 		 */
 		axis_angle_to_mat3(dmat, raxis, rangle);
 
@@ -486,8 +486,8 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	}
 	else if (tree->con->enforce < 1.0f) {
 		/* when the influence is too low
-		 *	- blend the positions for the 'root' bone
-		 *	- stick to the parent for any other
+		 * - blend the positions for the 'root' bone
+		 * - stick to the parent for any other
 		 */
 		if (pchan->parent) {
 			copy_v3_v3(poseHead, pchan->pose_head);
@@ -604,8 +604,8 @@ void BKE_pose_eval_init_ik(EvaluationContext *UNUSED(eval_ctx),
 	/* construct the IK tree (standard IK) */
 	BIK_initialize_tree(scene, ob, ctime);
 	/* construct the Spline IK trees
-	 *  - this is not integrated as an IK plugin, since it should be able
-	 *    to function in conjunction with standard IK
+	 * - this is not integrated as an IK plugin, since it should be able
+	 *   to function in conjunction with standard IK
 	 */
 	BKE_pose_splineik_init_tree(scene, ob, ctime);
 }

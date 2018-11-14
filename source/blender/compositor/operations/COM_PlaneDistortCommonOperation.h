@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Sergey Sharybin
+ *      Sergey Sharybin
  */
 
 #ifndef __COM_PLANEDISTORTCOMMONOPERATION_H__

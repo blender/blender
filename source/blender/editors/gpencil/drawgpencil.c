@@ -573,7 +573,7 @@ static void gp_draw_stroke_point(
 		gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, co);
 
 		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
-		 *  - also mandatory in if Image Editor 'image-based' dot
+		 * - also mandatory in if Image Editor 'image-based' dot
 		 */
 		if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
 		    ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)))
@@ -723,7 +723,7 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 			/* if the first segment, start of segment is segment's normal */
 			if (i == 0) {
 				/* draw start cap first
-				 *	- make points slightly closer to center (about halfway across)
+				 * - make points slightly closer to center (about halfway across)
 				 */
 				mt[0] = m2[0] * pthick * 0.5f;
 				mt[1] = m2[1] * pthick * 0.5f;
@@ -764,8 +764,8 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 				normalize_v2(mb);
 
 				/* calculate gradient to apply
-				 *  - as basis, use just pthick * bisector gradient
-				 *	- if cross-section not as thick as it should be, add extra padding to fix it
+				 * - as basis, use just pthick * bisector gradient
+				 * - if cross-section not as thick as it should be, add extra padding to fix it
 				 */
 				mt[0] = mb[0] * pthick;
 				mt[1] = mb[1] * pthick;
@@ -815,7 +815,7 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 
 
 				/* draw end cap as last step
-				 *	- make points slightly closer to center (about halfway across)
+				 * - make points slightly closer to center (about halfway across)
 				 */
 				mt[0] = m2[0] * pthick * 0.5f;
 				mt[1] = m2[1] * pthick * 0.5f;
@@ -1407,11 +1407,11 @@ static void gp_draw_data_layers(
 #undef GP_DRAWFLAG_APPLY
 
 		/* Draw 'onionskins' (frame left + right)
-		 *   - It is only possible to show these if the option is enabled
-		 *   - The "no onions" flag prevents ghosts from appearing during animation playback/scrubbing
-		 *     and in renders
-		 *   - The per-layer "always show" flag however overrides the playback/render restriction,
-		 *     allowing artists to selectively turn onionskins on/off during playback
+		 * - It is only possible to show these if the option is enabled
+		 * - The "no onions" flag prevents ghosts from appearing during animation playback/scrubbing
+		 *   and in renders
+		 * - The per-layer "always show" flag however overrides the playback/render restriction,
+		 *   allowing artists to selectively turn onionskins on/off during playback
 		 */
 		if ((gpl->flag & GP_LAYER_ONIONSKIN) &&
 		    ((dflag & GP_DRAWDATA_NO_ONIONS) == 0 || (gpl->flag & GP_LAYER_GHOST_ALWAYS)))
@@ -1427,11 +1427,11 @@ static void gp_draw_data_layers(
 		                gpl->opacity, gpl->tintcolor, false, false, diff_mat);
 
 		/* Draw verts of selected strokes
-		 *  - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
-		 * 	- locked layers can't be edited, so there's no point showing these verts
-		 *    as they will have no bearings on what gets edited
-		 *  - only show when in editmode, since operators shouldn't work otherwise
-		 *    (NOTE: doing it this way means that the toggling editmode shows visible change immediately)
+		 * - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
+		 *   - locked layers can't be edited, so there's no point showing these verts
+		 *     as they will have no bearings on what gets edited
+		 * - only show when in editmode, since operators shouldn't work otherwise
+		 *   (NOTE: doing it this way means that the toggling editmode shows visible change immediately)
 		 */
 		/* XXX: perhaps we don't want to show these when users are drawing... */
 		if ((G.f & G_RENDER_OGL) == 0 &&
@@ -1590,8 +1590,8 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 
 /* ............................
  * XXX
- *	We need to review the calls below, since they may be/are not that suitable for
- *	the new ways that we intend to be drawing data...
+ * We need to review the calls below, since they may be/are not that suitable for
+ * the new ways that we intend to be drawing data...
  * ............................ */
 
 /* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */

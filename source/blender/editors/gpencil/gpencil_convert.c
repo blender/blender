@@ -141,7 +141,7 @@ static const EnumPropertyItem *rna_GPConvert_mode_items(bContext *UNUSED(C), Poi
 /* --- */
 
 /* convert the coordinates from the given stroke point into 3d-coordinates
- *	- assumes that the active space is the 3D-View
+ * - assumes that the active space is the 3D-View
  */
 static void gp_strokepoint_convertcoords(
         bContext *C, bGPDlayer *gpl, bGPDstroke *gps, bGPDspoint *source_pt,
@@ -1150,7 +1150,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	}
 
 	/* init the curve object (remove rotation and get curve data from it)
-	 *	- must clear transforms set on object, as those skew our results
+	 * - must clear transforms set on object, as those skew our results
 	 */
 	ob = BKE_object_add_only_object(bmain, OB_CURVE, gpl->info);
 	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);

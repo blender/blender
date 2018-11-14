@@ -16,8 +16,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Sergey Sharybin
- *		Lukas Toenne
+ *      Sergey Sharybin
+ *      Lukas Toenne
  */
 
 #include "COM_PlaneDistortCommonOperation.h"

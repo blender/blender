@@ -457,13 +457,13 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 	/*
 	 * //Notes about the supported data format:
 	 * File example::
-	 * 	mode
-	 * 	width height
-	 * 	n0_x n0_y n0_u n0_v n0_i
-	 * 	n1_x n1_y n1_u n1_v n1_i
-	 * 	n2_x n1_y n2_u n2_v n2_i
-	 * 	n3_x n3_y n3_u n3_v n3_i
-	 * 	(...)
+	 *  mode
+	 *  width height
+	 *  n0_x n0_y n0_u n0_v n0_i
+	 *  n1_x n1_y n1_u n1_v n1_i
+	 *  n2_x n1_y n2_u n2_v n2_i
+	 *  n3_x n3_y n3_u n3_v n3_i
+	 *  (...)
 	 * First line is the image type the mesh is support to be applied to: 2 = fisheye, 1=radial
 	 * The next line has the mesh dimensions
 	 * Rest of the lines are the nodes of the mesh. Each line has x y u v i
@@ -535,7 +535,7 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 void KX_Dome::CreateMeshDome180(void)
 {
 	/*
-	 * 1)-  Define the faces of half of a cube
+	 * 1) Define the faces of half of a cube
 	 *  - each face is made out of 2 triangles
 	 * 2) Subdivide the faces
 	 *  - more resolution == more curved lines

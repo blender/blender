@@ -38,9 +38,9 @@
  * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
  *
  * 3 modes are available:
- *    - Nearest vertex
- *	  - Nearest surface
- *    - Normal projection
+ * - Nearest vertex
+ * - Nearest surface
+ * - Normal projection
  *
  * ShrinkwrapCalcData encapsulates all needed data for shrinkwrap functions.
  * (So that you don't have to pass an enormous amount of arguments to functions)

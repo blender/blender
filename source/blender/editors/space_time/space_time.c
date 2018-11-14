@@ -337,9 +337,9 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 
 	/* start drawing keyframes
-	 *	- we use the binary-search capabilities of the tree to only start from
-	 *	  the first visible keyframe (last one can then be easily checked)
-	 *	- draw within a single GL block to be faster
+	 * - we use the binary-search capabilities of the tree to only start from
+	 *   the first visible keyframe (last one can then be easily checked)
+	 * - draw within a single GL block to be faster
 	 */
 	glBegin(GL_LINES);
 	for (ak = time_cfra_find_ak(keys.root, v2d->cur.xmin);
@@ -430,8 +430,8 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	}
 
 	/* draw scene keyframes first
-	 *	- don't try to do this when only drawing active/selected data keyframes,
-	 *	  since this can become quite slow
+	 * - don't try to do this when only drawing active/selected data keyframes,
+	 *   since this can become quite slow
 	 */
 	if (onlysel == 0) {
 		/* set draw color */
@@ -440,9 +440,9 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	}
 
 	/* draw keyframes from selected objects
-	 *  - only do the active object if in posemode (i.e. showing only keyframes for the bones)
-	 *    OR the onlysel flag was set, which means that only active object's keyframes should
-	 *    be considered
+	 * - only do the active object if in posemode (i.e. showing only keyframes for the bones)
+	 *   OR the onlysel flag was set, which means that only active object's keyframes should
+	 *   be considered
 	 */
 	UI_ThemeColor(TH_TIME_KEYFRAME);
 

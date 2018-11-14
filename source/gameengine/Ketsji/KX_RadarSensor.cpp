@@ -38,7 +38,7 @@
 #include "DNA_sensor_types.h"
 
 /**
- * 	RadarSensor constructor. Creates a near-sensor derived class, with a cone collision shape.
+ * RadarSensor constructor. Creates a near-sensor derived class, with a cone collision shape.
  */
 KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 		KX_GameObject* gameobj,
@@ -84,8 +84,8 @@ CValue* KX_RadarSensor::GetReplica()
 }
 
 /**
- *	Transforms the collision object. A cone is not correctly centered
- *	for usage.  */
+ * Transforms the collision object. A cone is not correctly centered
+ * for usage.  */
 void KX_RadarSensor::SynchronizeTransform()
 {
 	// Getting the parent location was commented out. Why?

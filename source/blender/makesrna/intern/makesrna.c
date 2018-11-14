@@ -49,8 +49,8 @@
 /**
  * Variable to control debug output of makesrna.
  * debugSRNA:
- *  - 0 = no output, except errors
- *  - 1 = detail actions
+ * - 0 = no output, except errors
+ * - 1 = detail actions
  */
 static int debugSRNA = 0;
 

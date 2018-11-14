@@ -2162,7 +2162,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				}/* existing spring list */
 			}/*any edges*/
 			/* ---springs */
-		}/*omit on snap	*/
+		}/*omit on snap */
 	}/*loop all bp's*/
 	return 0; /*done fine*/
 }
@@ -2514,7 +2514,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					}/* existing spring list */
 				}/*any edges*/
 				/* ---springs */
-			}/*omit on snap	*/
+			}/*omit on snap */
 		}/*loop all bp's*/
 
 

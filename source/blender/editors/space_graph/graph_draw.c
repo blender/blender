@@ -63,7 +63,7 @@
 
 /* determine the alpha value that should be used when
  * drawing components for some F-Curve (fcu)
- *	- selected F-Curves should be more visible than partially visible ones
+ * - selected F-Curves should be more visible than partially visible ones
  */
 static float fcurve_display_alpha(FCurve *fcu)
 {
@@ -106,7 +106,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 	glBegin(GL_POINTS);
 	for (i = 0, fed = env->data; i < env->totvert; i++, fed++) {
 		/* only draw if visible
-		 *	- min/max here are fixed, not relative
+		 * - min/max here are fixed, not relative
 		 */
 		if (IN_RANGE(fed->time, (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
 			glVertex2f(fed->time, fed->min);
@@ -132,13 +132,13 @@ static void draw_fcurve_vertices_keyframes(FCurve *fcu, SpaceIpo *UNUSED(sipo), 
 
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
 		/* as an optimization step, only draw those in view
-		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
+		 * - we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
 		 */
 		if (IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
 			if (edit) {
 				/* 'Keyframe' vertex only, as handle lines and handles have already been drawn
-				 *	- only draw those with correct selection state for the current drawing color
-				 *	-
+				 * - only draw those with correct selection state for the current drawing color
+				 * -
 				 */
 				if ((bezt->f2 & SELECT) == sel)
 					glVertex3fv(bezt->vec[1]);
@@ -216,8 +216,8 @@ static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2
 	for (i = 0; i < fcu->totvert; i++, prevbezt = bezt, bezt++) {
 		/* Draw the editmode handles for a bezier curve (others don't have handles)
 		 * if their selection status matches the selection status we're drawing for
-		 *	- first handle only if previous beztriple was bezier-mode
-		 *	- second handle only if current beztriple is bezier-mode
+		 * - first handle only if previous beztriple was bezier-mode
+		 * - second handle only if current beztriple is bezier-mode
 		 *
 		 * Also, need to take into account whether the keyframe was selected
 		 * if a Graph Editor option to only show handles of selected keys is on.
@@ -264,10 +264,10 @@ static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short
 	View2D *v2d = &ar->v2d;
 
 	/* only draw points if curve is visible
-	 *  - draw unselected points before selected points as separate passes to minimize color-changing overhead
-	 *	   (XXX dunno if this is faster than drawing all in one pass though)
-	 *     and also to make sure in the case of overlapping points that the selected is always visible
-	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
+	 * - draw unselected points before selected points as separate passes to minimize color-changing overhead
+	 *   (XXX dunno if this is faster than drawing all in one pass though)
+	 *   and also to make sure in the case of overlapping points that the selected is always visible
+	 * - draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
 	 */
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
@@ -492,15 +492,15 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 
 	/* Note about sampling frequency:
-	 *  Ideally, this is chosen such that we have 1-2 pixels = 1 segment
-	 *	which means that our curves can be as smooth as possible. However,
-	 *  this does mean that curves may not be fully accurate (i.e. if they have
-	 *  sudden spikes which happen at the sampling point, we may have problems).
-	 *  Also, this may introduce lower performance on less densely detailed curves,
-	 *	though it is impossible to predict this from the modifiers!
+	 * Ideally, this is chosen such that we have 1-2 pixels = 1 segment
+	 * which means that our curves can be as smooth as possible. However,
+	 * this does mean that curves may not be fully accurate (i.e. if they have
+	 * sudden spikes which happen at the sampling point, we may have problems).
+	 * Also, this may introduce lower performance on less densely detailed curves,
+	 * though it is impossible to predict this from the modifiers!
 	 *
-	 *	If the automatically determined sampling frequency is likely to cause an infinite
-	 *	loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
+	 * If the automatically determined sampling frequency is likely to cause an infinite
+	 * loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
 	 *  chosen here is just the coarsest value which still looks reasonable...
 	 */
 	/* grid->dx represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps */
@@ -533,8 +533,8 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 
 
 	/* at each sampling interval, add a new vertex
-	 *	- apply the unit correction factor to the calculated values so that
-	 *	  the displayed values appear correctly in the viewport
+	 * - apply the unit correction factor to the calculated values so that
+	 *   the displayed values appear correctly in the viewport
 	 */
 	glBegin(GL_LINE_STRIP);
 
@@ -722,7 +722,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 		}
 		else if (prevbezt->ipo == BEZT_IPO_BEZ) {
 			/* Bezier-Interpolation: draw curve as series of segments between keyframes
-			 *	- resol determines number of points to sample in between keyframes
+			 * - resol determines number of points to sample in between keyframes
 			 */
 
 			/* resol depends on distance between points (not just horizontal) OR is a fixed high res */
@@ -935,8 +935,8 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
 	for (fcu = sipo->ghostCurves.first; fcu; fcu = fcu->next) {
 		/* set whatever color the curve has set
-		 *  - this is set by the function which creates these
-		 *	- draw with a fixed opacity of 2
+		 * - this is set by the function which creates these
+		 * - draw with a fixed opacity of 2
 		 */
 		glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], 0.5f);
 
@@ -966,8 +966,8 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* for each curve:
-	 *	draw curve, then handle-lines, and finally vertices in this order so that
-	 *  the data will be layered correctly
+	 * draw curve, then handle-lines, and finally vertices in this order so that
+	 * the data will be layered correctly
 	 */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->key_data;
@@ -979,10 +979,10 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
 
 		/* draw curve:
-		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
-		 *	  so we need to check which method should be used
-		 *	- controls from active modifier take precedence over keyframes
-		 *	  (XXX! editing tools need to take this into account!)
+		 * - curve line may be result of one or more destructive modifiers or just the raw data,
+		 *   so we need to check which method should be used
+		 * - controls from active modifier take precedence over keyframes
+		 *   (XXX! editing tools need to take this into account!)
 		 */
 
 		/* 1) draw curve line */
@@ -999,7 +999,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			}
 			else {
 				/* set whatever color the curve has set
-				 *	- unselected curves draw less opaque to help distinguish the selected ones
+				 * - unselected curves draw less opaque to help distinguish the selected ones
 				 */
 				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], fcurve_display_alpha(fcu));
 			}
@@ -1044,7 +1044,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 		}
 
 		/* 2) draw handles and vertices as appropriate based on active
-		 *	- if the option to only show controls if the F-Curve is selected is enabled, we must obey this
+		 * - if the option to only show controls if the F-Curve is selected is enabled, we must obey this
 		 */
 		if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
 			if (fcurve_are_keyframes_usable(fcu) == 0) {
@@ -1125,10 +1125,10 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* Update max-extent of channels here (taking into account scrollers):
-	 *  - this is done to allow the channel list to be scrollable, but must be done here
-	 *    to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
-	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 * - this is done to allow the channel list to be scrollable, but must be done here
+	 *   to avoid regenerating the list again and/or also because channels list is drawn first
+	 * - offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for
+	 *   start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height = (float)((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac) * 2));
 	UI_view2d_totRect_set(v2d, BLI_rcti_size_x(&ar->v2d.mask), height);

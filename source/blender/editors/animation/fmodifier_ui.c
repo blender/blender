@@ -705,7 +705,7 @@ void ANIM_fmodifiers_copybuf_free(void)
 
 /* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
  * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
- *	- active: only copy the active modifier
+ * - active: only copy the active modifier
  */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 {
@@ -734,7 +734,7 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 }
 
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list
- *	- replace: free all the existing modifiers to leave only the pasted ones
+ * - replace: free all the existing modifiers to leave only the pasted ones
  */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *curve)
 {

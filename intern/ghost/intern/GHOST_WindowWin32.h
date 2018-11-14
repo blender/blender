@@ -225,10 +225,10 @@ public:
 	 * capturing).
 	 *
 	 * \param press
-	 *		0 - mouse pressed
-	 *		1 - mouse released
-	 *		2 - operator grab
-	 *		3 - operator ungrab
+	 *      0 - mouse pressed
+	 *      1 - mouse released
+	 *      2 - operator grab
+	 *      3 - operator ungrab
 	 */
 	void registerMouseClickEvent(int press);
 

@@ -1062,9 +1062,11 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 
 	*r_lambda = f * dot_v3v3(edge2, q);
 	/* don't care about 0..1 lambda range here */
-	/*if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f))
-	 *	return 0;
-	 */
+#if 0
+	if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f)) {
+		return 0;
+	}
+#endif
 
 	r_w[0] = 1.0f - u - v;
 	r_w[1] = u;

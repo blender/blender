@@ -124,7 +124,7 @@ static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
 static void lumrow(uchar *rgbptr, uchar *lumptr, int n);
 
 /*
- *	byte order independent read/write of shorts and ints.
+ * byte order independent read/write of shorts and ints.
  *
  */
 
@@ -245,9 +245,9 @@ int imb_is_a_iris(const uchar *mem)
 }
 
 /*
- *	longimagedata -
- *		read in a B/W RGB or RGBA iris image file and return a
- *	pointer to an array of ints.
+ * longimagedata -
+ * read in a B/W RGB or RGBA iris image file and return a
+ * pointer to an array of ints.
  *
  */
 

@@ -16,10 +16,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Jeroen Bakker
- *		Monique Dewanchand
- *		Lukas Tönne
- *		Dalai Felinto
+ *      Jeroen Bakker
+ *      Monique Dewanchand
+ *      Lukas Tönne
+ *      Dalai Felinto
  */
 
 #include "COM_OutputFileOperation.h"

@@ -102,8 +102,8 @@ static void linkedlist_sync_add_node(DLRBT_Tree *tree, DLRBT_Node *node)
 	linkedlist_sync_add_node(tree, node->left);
 
 	/* now add self
-	 *	- must remove detach from other links first
-	 *	  (for now, only clear own pointers)
+	 * - must remove detach from other links first
+	 *   (for now, only clear own pointers)
 	 */
 	node->prev = node->next = NULL;
 	BLI_addtail((ListBase *)tree, (Link *)node);

@@ -38,9 +38,9 @@ struct AnimData;
 struct CurveMapping;
 
 /* Grease-Pencil Annotations - 'Stroke Point'
- *	-> Coordinates may either be 2d or 3d depending on settings at the time
- * 	-> Coordinates of point on stroke, in proportions of window size
- *	   This assumes that the bottom-left corner is (0,0)
+ * -> Coordinates may either be 2d or 3d depending on settings at the time
+ * -> Coordinates of point on stroke, in proportions of window size
+ *    This assumes that the bottom-left corner is (0,0)
  */
 typedef struct bGPDspoint {
 	float x, y, z;			/* co-ordinates of point (usually 2d, but can be 3d as well) */
@@ -153,8 +153,8 @@ typedef enum eGPDpalette_Flag {
 } eGPDpalette_Flag;
 
 /* Grease-Pencil Annotations - 'Stroke'
- * 	-> A stroke represents a (simplified version) of the curve
- *	   drawn by the user in one 'mousedown'->'mouseup' operation
+ * -> A stroke represents a (simplified version) of the curve
+ *    drawn by the user in one 'mousedown'->'mouseup' operation
  */
 typedef struct bGPDstroke {
 	struct bGPDstroke *next, *prev;
@@ -199,7 +199,7 @@ typedef enum eGPDstroke_Flag {
 } eGPDstroke_Flag;
 
 /* Grease-Pencil Annotations - 'Frame'
- *	-> Acts as storage for the 'image' formed by strokes
+ * -> Acts as storage for the 'image' formed by strokes
  */
 typedef struct bGPDframe {
 	struct bGPDframe *next, *prev;
@@ -293,8 +293,8 @@ typedef struct bGPdata {
 	int flag;				/* settings for this datablock */
 
 	/* not-saved stroke buffer data (only used during paint-session)
-	 * 	- buffer must be initialized before use, but freed after
-	 *	  whole paint operation is over
+	 * - buffer must be initialized before use, but freed after
+	 *   whole paint operation is over
 	 */
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */

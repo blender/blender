@@ -141,7 +141,7 @@ struct ValueFlags {
 };
 
 /**
- *	Base Class for all Actions performed on CValue's. Can be extended for undo/redo system in future.
+ * Base Class for all Actions performed on CValue's. Can be extended for undo/redo system in future.
  */
 class CAction
 {

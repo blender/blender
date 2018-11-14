@@ -1460,8 +1460,8 @@ static void outliner_draw_tree_element(
 		glEnable(GL_BLEND);
 
 		/* start by highlighting search matches
-		 *	we don't expand items when searching in the datablocks but we
-		 *	still want to highlight any filter matches.
+		 * we don't expand items when searching in the datablocks but we
+		 * still want to highlight any filter matches.
 		 */
 		if ((SEARCHING_OUTLINER(soops) || (soops->outlinevis == SO_DATABLOCKS && soops->search_string[0] != 0)) &&
 		    (tselem->flag & TSE_SEARCHMATCH))
@@ -1845,9 +1845,9 @@ void draw_outliner(const bContext *C)
 
 	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* RNA has two columns:
-		 *  - column 1 is (max_width + OL_RNA_COL_SPACEX) or
-		 *				 (OL_RNA_COL_X), whichever is wider...
-		 *	- column 2 is fixed at OL_RNA_COL_SIZEX
+		 * - column 1 is (max_width + OL_RNA_COL_SPACEX) or
+		 *   (OL_RNA_COL_X), whichever is wider...
+		 * - column 2 is fixed at OL_RNA_COL_SIZEX
 		 *
 		 *  (*) XXX max width for now is a fixed factor of (UI_UNIT_X * (max_indention + 100))
 		 */

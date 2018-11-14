@@ -252,7 +252,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	float mat[4][4], oimat[4][4];
 	bool ok = false;
 
-	/*	Ensure we're not in editmode and that the active object is an armature*/
+	/* Ensure we're not in editmode and that the active object is an armature. */
 	if (!ob || ob->type != OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (!arm || arm->edbo)
@@ -435,8 +435,8 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 
 						for (ct = targets.first; ct; ct = ct->next) {
 							/* any targets which point to original armature are redirected to the new one only if:
-							 *	- the target isn't origArm/newArm itself
-							 *	- the target is one that can be found in newArm/origArm
+							 * - the target isn't origArm/newArm itself
+							 * - the target is one that can be found in newArm/origArm
 							 */
 							if (ct->subtarget[0] != 0) {
 								if (ct->tar == origArm) {
@@ -473,8 +473,8 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 
 					for (ct = targets.first; ct; ct = ct->next) {
 						/* any targets which point to original armature are redirected to the new one only if:
-						 *	- the target isn't origArm/newArm itself
-						 *	- the target is one that can be found in newArm/origArm
+						 * - the target isn't origArm/newArm itself
+						 * - the target is one that can be found in newArm/origArm
 						 */
 						if (ct->subtarget[0] != '\0') {
 							if (ct->tar == origArm) {
@@ -510,8 +510,8 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 }
 
 /* Helper function for armature separating - remove certain bones from the given armature
- *	sel: remove selected bones from the armature, otherwise the unselected bones are removed
- *  (ob is not in editmode)
+ * sel: remove selected bones from the armature, otherwise the unselected bones are removed
+ * (ob is not in editmode)
  */
 static void separate_armature_bones(Main *bmain, Object *ob, short sel)
 {
@@ -581,11 +581,11 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	WM_cursor_wait(1);
 
 	/* we are going to do this as follows (unlike every other instance of separate):
-	 *	1. exit editmode +posemode for active armature/base. Take note of what this is.
-	 *	2. duplicate base - BASACT is the new one now
-	 *	3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
-	 *	4. fix constraint links
-	 *	5. make original armature active and enter editmode
+	 * 1. exit editmode +posemode for active armature/base. Take note of what this is.
+	 * 2. duplicate base - BASACT is the new one now
+	 * 3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
+	 * 4. fix constraint links
+	 * 5. make original armature active and enter editmode
 	 */
 
 	/* 1) only edit-base selected */

@@ -150,8 +150,8 @@ static void set_motion_path_color(Scene *scene, bMotionPath *mpath, int i, short
 }
 
 /* Draw the given motion path for an Object or a Bone
- *  - assumes that the viewport has already been initialized properly
- *    i.e. draw_motion_paths_init() has been called
+ * - assumes that the viewport has already been initialized properly
+ *   i.e. draw_motion_paths_init() has been called
  */
 void draw_motion_path_instance(Scene *scene,
                                Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)

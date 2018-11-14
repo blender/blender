@@ -190,7 +190,7 @@ bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap
  * for standard animation evaluation UNDER ANY CIRCUMSTANCES!
  *
  * i.e. Pose Library (PoseLib) uses some of these for selectively applying poses, but
- *	    Particles/Sequencer performing funky time manipulation is not ok.
+ *      Particles/Sequencer performing funky time manipulation is not ok.
  */
 
 /* Evaluate Action (F-Curve Bag) */

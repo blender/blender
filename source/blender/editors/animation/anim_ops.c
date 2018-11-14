@@ -299,8 +299,8 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	efra = UI_view2d_region_to_view_x(&ar->v2d, rect.xmax);
 
 	/* set start/end frames for preview-range
-	 *	- must clamp within allowable limits
-	 *	- end must not be before start (though this won't occur most of the time)
+	 * - must clamp within allowable limits
+	 * - end must not be before start (though this won't occur most of the time)
 	 */
 	FRAMENUMBER_MIN_CLAMP(sfra);
 	FRAMENUMBER_MIN_CLAMP(efra);

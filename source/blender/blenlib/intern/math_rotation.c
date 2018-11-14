@@ -1477,7 +1477,7 @@ static const RotOrderInfo rotOrders[] = {
 
 /* Get relevant pointer to rotation order set from the array
  * NOTE: since we start at 1 for the values, but arrays index from 0,
- *		 there is -1 factor involved in this process...
+ *       there is -1 factor involved in this process...
  */
 static const RotOrderInfo *get_rotation_order_info(const short order)
 {

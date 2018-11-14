@@ -1202,8 +1202,8 @@ static void do_mul_effect_byte(
 	fac3 = (int)(256.0f * facf1);
 
 	/* formula:
-	 *		fac * (a * b) + (1 - fac) * a  => fac * a * (b - 1) + axaux = c * px + py * s; //+centx
-	 *		yaux = -s * px + c * py; //+centy
+	 * fac * (a * b) + (1 - fac) * a  => fac * a * (b - 1) + axaux = c * px + py * s; //+centx
+	 * yaux = -s * px + c * py; //+centy
 	 */
 
 	while (y--) {

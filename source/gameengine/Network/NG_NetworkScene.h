@@ -85,7 +85,7 @@ public:
 	void RemoveAllObjects();
 
 	/**
-	 *	send a message (ascii text) over the network
+	 * send a message (ascii text) over the network
 	 */
 	void SendMessage(const STR_String& to,const STR_String& from,const STR_String& subject,const STR_String& message);
 

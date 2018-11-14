@@ -218,7 +218,7 @@ static void pushup_simd(Node *parent)
 
 /*
  * Pushdown
- *	makes sure no child fits inside any of its sibling
+ * makes sure no child fits inside any of its sibling
  */
 template<class Node>
 static void pushdown(Node *parent)

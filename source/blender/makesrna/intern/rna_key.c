@@ -519,7 +519,7 @@ static KeyBlock *rna_ShapeKeyData_find_keyblock(Key *key, float *point)
 			}
 
 			/* determine where end of array is
-			 *	- elemsize is in bytes, so use (char *) cast to get array in terms of bytes
+			 * - elemsize is in bytes, so use (char *) cast to get array in terms of bytes
 			 */
 			end = (float *)((char *)start + (key->elemsize * kb->totelem));
 

@@ -45,11 +45,6 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
-/************************************************************************/
-/*								SCALING									*/
-/************************************************************************/
-
-
 static void imb_half_x_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
 	uchar *p1, *_p1, *dest;

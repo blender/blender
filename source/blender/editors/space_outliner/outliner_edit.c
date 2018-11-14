@@ -1465,18 +1465,18 @@ static void tree_element_to_path(TreeElement *te, TreeStoreElem *tselem,
 	char *newpath = NULL;
 
 	/* optimize tricks:
-	 *	- Don't do anything if the selected item is a 'struct', but arrays are allowed
+	 * - Don't do anything if the selected item is a 'struct', but arrays are allowed
 	 */
 	if (tselem->type == TSE_RNA_STRUCT)
 		return;
 
 	/* Overview of Algorithm:
-	 *  1. Go up the chain of parents until we find the 'root', taking note of the
-	 *	   levels encountered in reverse-order (i.e. items are added to the start of the list
-	 *      for more convenient looping later)
-	 *  2. Walk down the chain, adding from the first ID encountered
-	 *	   (which will become the 'ID' for the KeyingSet Path), and build a
-	 *      path as we step through the chain
+	 * 1. Go up the chain of parents until we find the 'root', taking note of the
+	 *    levels encountered in reverse-order (i.e. items are added to the start of the list
+	 *    for more convenient looping later)
+	 * 2. Walk down the chain, adding from the first ID encountered
+	 *    (which will become the 'ID' for the KeyingSet Path), and build a
+	 *    path as we step through the chain
 	 */
 
 	/* step 1: flatten out hierarchy of parents into a flat chain */

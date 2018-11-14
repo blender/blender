@@ -234,14 +234,14 @@ static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezT
 		return 0;
 
 	/* find first selected keyframe for now, and call it the active one
-	 *	- this is a reasonable assumption, given that whenever anyone
-	 *	  wants to edit numerically, there is likely to only be 1 vert selected
+	 * - this is a reasonable assumption, given that whenever anyone
+	 *   wants to edit numerically, there is likely to only be 1 vert selected
 	 */
 	for (i = 0, b = fcu->bezt; i < fcu->totvert; i++, b++) {
 		if (BEZT_ISSEL_ANY(b)) {
 			/* found
-			 *	- 'previous' is either the one before, of the keyframe itself (which is still fine)
-			 *		XXX: we can just make this null instead if needed
+			 * - 'previous' is either the one before, of the keyframe itself (which is still fine)
+			 *   XXX: we can just make this null instead if needed
 			 */
 			*prevbezt = (i > 0) ? b - 1 : b;
 			*bezt = b;
@@ -393,8 +393,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		}
 
 		/* numerical coordinate editing
-		 *  - we use the button-versions of the calls so that we can attach special update handlers
-		 *    and unit conversion magic that cannot be achieved using a purely RNA-approach
+		 * - we use the button-versions of the calls so that we can attach special update handlers
+		 *   and unit conversion magic that cannot be achieved using a purely RNA-approach
 		 */
 		col = uiLayoutColumn(layout, true);
 		/* keyframe itself */

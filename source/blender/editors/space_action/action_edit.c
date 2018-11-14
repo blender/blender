@@ -88,10 +88,10 @@
 /* *************************** Localise Markers ***************************** */
 
 /* ensure that there is:
- *  1) an active action editor
- *  2) that the mode will have an active action available
- *  3) that the set of markers being shown are the scene markers, not the list we're merging
- *	4) that there are some selected markers
+ * 1) an active action editor
+ * 2) that the mode will have an active action available
+ * 3) that the set of markers being shown are the scene markers, not the list we're merging
+ * 4) that there are some selected markers
  */
 static bool act_markers_make_local_poll(bContext *C)
 {

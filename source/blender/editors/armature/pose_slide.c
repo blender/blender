@@ -285,9 +285,9 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 		w2 = 1.0f - w1;          /* this must come first */
 	}
 	else {
-		/*	- these weights are derived from the relative distance of these
-		 *	  poses from the current frame
-		 *	- they then get normalized so that they only sum up to 1
+		/* - these weights are derived from the relative distance of these
+		 *   poses from the current frame
+		 * - they then get normalized so that they only sum up to 1
 		 */
 		float wtot;
 
@@ -300,15 +300,15 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 	}
 
 	/* depending on the mode, calculate the new value
-	 *	- in all of these, the start+end values are multiplied by w2 and w1 (respectively),
-	 *	  since multiplication in another order would decrease the value the current frame is closer to
+	 * - in all of these, the start+end values are multiplied by w2 and w1 (respectively),
+	 *   since multiplication in another order would decrease the value the current frame is closer to
 	 */
 	switch (pso->mode) {
 		case POSESLIDE_PUSH: /* make the current pose more pronounced */
 		{
 			/* perform a weighted average here, favoring the middle pose
-			 *	- numerator should be larger than denominator to 'expand' the result
-			 *	- perform this weighting a number of times given by the percentage...
+			 * - numerator should be larger than denominator to 'expand' the result
+			 * - perform this weighting a number of times given by the percentage...
 			 */
 			int iters = (int)ceil(10.0f * pso->percentage); /* TODO: maybe a sensitivity ctrl on top of this is needed */
 
@@ -320,8 +320,8 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 		case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
 		{
 			/* perform a weighted average here, favoring the middle pose
-			 *	- numerator should be smaller than denominator to 'relax' the result
-			 *	- perform this weighting a number of times given by the percentage...
+			 * - numerator should be smaller than denominator to 'relax' the result
+			 * - perform this weighting a number of times given by the percentage...
 			 */
 			int iters = (int)ceil(10.0f * pso->percentage); /* TODO: maybe a sensitivity ctrl on top of this is needed */
 
@@ -395,8 +395,8 @@ static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl, con
 			continue;
 
 		/* do we have a match?
-		 *	- bPtr is the RNA Path with the standard part chopped off
-		 *	- pPtr is the chunk of the path which is left over
+		 * - bPtr is the RNA Path with the standard part chopped off
+		 * - pPtr is the chunk of the path which is left over
 		 */
 		bPtr = strstr(fcu->rna_path, pfl->pchan_path) + len;
 		pPtr = strstr(bPtr, prop_prefix);
@@ -561,9 +561,9 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 	/* for each link, handle each set of transforms */
 	for (pfl = pso->pfLinks.first; pfl; pfl = pfl->next) {
 		/* valid transforms for each PoseChannel should have been noted already
-		 *	- sliding the pose should be a straightforward exercise for location+rotation,
-		 *	  but rotations get more complicated since we may want to use quaternion blending
-		 *	  for quaternions instead...
+		 * - sliding the pose should be a straightforward exercise for location+rotation,
+		 *   but rotations get more complicated since we may want to use quaternion blending
+		 *   for quaternions instead...
 		 */
 		bPoseChannel *pchan = pfl->pchan;
 
@@ -1261,7 +1261,7 @@ typedef union tPosePropagate_ModeData {
 /* get frame on which the "hold" for the bone ends
  * XXX: this may not really work that well if a bone moves on some channels and not others
  *      if this happens to be a major issue, scrap this, and just make this happen
- *		independently per F-Curve
+ *      independently per F-Curve
  */
 static float pose_propagate_get_boneHoldEndFrame(Object *ob, tPChanFCurveLink *pfl, float startFrame)
 {
@@ -1285,7 +1285,7 @@ static float pose_propagate_get_boneHoldEndFrame(Object *ob, tPChanFCurveLink *p
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 
 	/* find the long keyframe (i.e. hold), and hence obtain the endFrame value
-	 *	- the best case would be one that starts on the frame itself
+	 * - the best case would be one that starts on the frame itself
 	 */
 	ab = (ActKeyBlock *)BLI_dlrbTree_search_exact(&blocks, compare_ab_cfraPtr, &startFrame);
 
@@ -1439,11 +1439,11 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 		return;
 
 	/* find the first keyframe to start propagating from
-	 *	- if there's a keyframe on the current frame, we probably want to save this value there too
-	 *	  since it may be as of yet unkeyed
-	 *  - if starting before the starting frame, don't touch the key, as it may have had some valid
-	 *	  values
-	 *  - if only doing selected keyframes, start from the first one
+	 * - if there's a keyframe on the current frame, we probably want to save this value there too
+	 *   since it may be as of yet unkeyed
+	 * - if starting before the starting frame, don't touch the key, as it may have had some valid
+	 *   values
+	 * - if only doing selected keyframes, start from the first one
 	 */
 	if (mode != POSE_PROPAGATE_SELECTED_KEYS) {
 		match = binarysearch_bezt_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);

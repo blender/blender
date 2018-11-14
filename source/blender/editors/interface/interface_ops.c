@@ -605,8 +605,8 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 	txt = BKE_text_add(bmain, "Recent Reports");
 
 	/* convert entire list to a display string, and add this to the text-block
-	 *	- if commandline debug option enabled, show debug reports too
-	 *	- otherwise, up to info (which is what users normally see)
+	 * - if commandline debug option enabled, show debug reports too
+	 * - otherwise, up to info (which is what users normally see)
 	 */
 	str = BKE_reports_string(reports, (G.debug & G_DEBUG) ? RPT_DEBUG : RPT_INFO);
 
@@ -936,7 +936,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		}
 		/* Try to find a valid po file for current language... */
 		edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
-/*		printf("po path: %s\n", popath);*/
+		/* printf("po path: %s\n", popath); */
 		if (popath[0] == '\0') {
 			BKE_reportf(op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);
 			return OPERATOR_CANCELLED;

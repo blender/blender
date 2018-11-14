@@ -1314,10 +1314,10 @@ void BKE_scene_frame_set(struct Scene *scene, double cfra)
 
 #ifdef WITH_LEGACY_DEPSGRAPH
 /* drivers support/hacks
- *  - this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
- *	- these are always run since the depsgraph can't handle non-object data
- *	- these happen after objects are all done so that we can read in their final transform values,
- *	  though this means that objects can't refer to scene info for guidance...
+ * - this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
+ * - these are always run since the depsgraph can't handle non-object data
+ * - these happen after objects are all done so that we can read in their final transform values,
+ *   though this means that objects can't refer to scene info for guidance...
  */
 static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 {

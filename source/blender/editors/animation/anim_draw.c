@@ -80,9 +80,9 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	glScalef(1.0f / xscale, 1.0f, 1.0f);
 
 	/* get timecode string
-	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
-	 *	- power = 0, gives 'standard' behavior for time
-	 *	  but power = 1 is required for frames (to get integer frames)
+	 * - padding on str-buf passed so that it doesn't sit on the frame indicator
+	 * - power = 0, gives 'standard' behavior for time
+	 *   but power = 1 is required for frames (to get integer frames)
 	 */
 	if (time) {
 		BLI_timecode_string_from_time(&numstr[4], sizeof(numstr) - 4, 0, FRA2TIME(cfra), FPS, U.timecode_style);
@@ -233,8 +233,8 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve
- *	- restore = whether to map points back to non-mapped time
- *  - only_keys = whether to only adjust the location of the center point of beztriples
+ * - restore = whether to map points back to non-mapped time
+ * - only_keys = whether to only adjust the location of the center point of beztriples
  */
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys)
 {
@@ -242,8 +242,8 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
 	KeyframeEditFunc map_cb;
 
 	/* init edit data
-	 *	- AnimData is stored in 'data'
-	 *	- only_keys is stored in 'i1'
+	 * - AnimData is stored in 'data'
+	 * - only_keys is stored in 'i1'
 	 */
 	ked.data = (void *)adt;
 	ked.i1 = (int)only_keys;

@@ -16,9 +16,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Jeroen Bakker
- *		Monique Dewanchand
- *		Lukas Toenne
+ *      Jeroen Bakker
+ *      Monique Dewanchand
+ *      Lukas Toenne
  */
 
 #include "COM_CombineColorNode.h"

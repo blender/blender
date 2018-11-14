@@ -60,7 +60,7 @@ protected:
 	MT_Matrix3x3		m_worldRotation;
 	MT_Vector3		m_worldScaling;
 
-	SG_ParentRelation *	m_parent_relation;
+	SG_ParentRelation *m_parent_relation;
 
 	SG_BBox			m_bbox;
 	MT_Scalar		m_radius;

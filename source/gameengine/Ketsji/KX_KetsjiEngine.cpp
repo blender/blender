@@ -105,7 +105,7 @@ short  KX_KetsjiEngine::m_exitkey = 130; // ESC Key
 bool   KX_KetsjiEngine::m_doRender = true;
 
 /**
- *	Constructor of the Ketsji Engine
+ * Constructor of the Ketsji Engine
  */
 KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	:	m_canvas(NULL),
@@ -189,7 +189,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 
 
 /**
- *	Destructor of the Ketsji Engine, release all memory
+ * Destructor of the Ketsji Engine, release all memory
  */
 KX_KetsjiEngine::~KX_KetsjiEngine()
 {

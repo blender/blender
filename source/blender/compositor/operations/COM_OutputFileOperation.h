@@ -16,9 +16,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Jeroen Bakker
- *		Monique Dewanchand
- *		Lukas Tönne
+ *      Jeroen Bakker
+ *      Monique Dewanchand
+ *      Lukas Tönne
  */
 
 #ifndef __COM_OUTPUTFILEOPERATION_H__

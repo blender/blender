@@ -55,14 +55,14 @@ public:
 	 * Constructor.
 	 * Creates a new window and opens it.
 	 * To check if the window was created properly, use the getValid() method.
-	 * \param width				The width the window.
-	 * \param heigh				The height the window.
-	 * \param state				The state the window is initially opened with.
-	 * \param type				The type of drawing context installed in this window.
-	 * \param stereoVisual		Stereo visual for quad buffered stereo.
-	 * \param exclusive			Use to show the window ontop and ignore others
-	 *							(used fullscreen).
-	 * \param numOfAASamples	Number of samples used for AA (zero if no AA)
+	 * \param width             The width the window.
+	 * \param heigh             The height the window.
+	 * \param state             The state the window is initially opened with.
+	 * \param type              The type of drawing context installed in this window.
+	 * \param stereoVisual      Stereo visual for quad buffered stereo.
+	 * \param exclusive         Use to show the window ontop and ignore others
+	 *                          (used fullscreen).
+	 * \param numOfAASamples    Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_Window(
 	    GHOST_TUns32 width,

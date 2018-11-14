@@ -422,8 +422,8 @@ static bool animpath_matches_basepath(const char path[], const char basepath[])
 /* Move F-Curves in src action to dst action, setting up all the necessary groups
  * for this to happen, but only if the F-Curves being moved have the appropriate
  * "base path".
- *	- This is used when data moves from one datablock to another, causing the
- *	  F-Curves to need to be moved over too
+ * - This is used when data moves from one datablock to another, causing the
+ *   F-Curves to need to be moved over too
  */
 void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const char basepath[])
 {
@@ -449,7 +449,7 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 		fcn = fcu->next;
 
 		/* should F-Curve be moved over?
-		 *	- we only need the start of the path to match basepath
+		 * - we only need the start of the path to match basepath
 		 */
 		if (animpath_matches_basepath(fcu->rna_path, basepath)) {
 			bActionGroup *agrp = NULL;
@@ -1188,8 +1188,8 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const cha
 	ID *id;
 
 	/* macro for less typing
-	 *	- whether animdata exists is checked for by the main renaming callback, though taking
-	 *	  this outside of the function may make things slightly faster?
+	 * - whether animdata exists is checked for by the main renaming callback, though taking
+	 *   this outside of the function may make things slightly faster?
 	 */
 #define RENAMEFIX_ANIM_IDS(first) \
 	for (id = first; id; id = id->next) { \
@@ -1465,7 +1465,7 @@ void BKE_keyingsets_free(ListBase *list)
 		return;
 
 	/* loop over KeyingSets freeing them
-	 *  - BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
+	 * - BKE_keyingset_free() doesn't free the set itself, but it frees its sub-data
 	 */
 	for (ks = list->first; ks; ks = ksn) {
 		ksn = ks->next;
@@ -1481,9 +1481,9 @@ void BKE_keyingsets_free(ListBase *list)
  * It returns whether the string needs to be freed (i.e. if it was a temp remapped one)
  * // FIXME: maybe it would be faster if we didn't have to alloc/free strings like this all the time, but for now it's safer
  *
- *	- remap: remapping table to use
- *	- path: original path string (as stored in F-Curve data)
- *	- dst: destination string to write data to
+ * - remap: remapping table to use
+ * - path: original path string (as stored in F-Curve data)
+ * - dst: destination string to write data to
  */
 static bool animsys_remap_path(AnimMapper *UNUSED(remap), char *path, char **dst)
 {
@@ -1781,8 +1781,8 @@ static void action_idcode_patch_check(ID *id, bAction *act)
 	/* the actual checks... hopefully not too much of a performance hit in the long run... */
 	if (act->idroot == 0) {
 		/* use the current root if not set already (i.e. newly created actions and actions from 2.50-2.57 builds)
-		 *  - this has problems if there are 2 users, and the first one encountered is the invalid one
-		 *	  in which case, the user will need to manually fix this (?)
+		 * - this has problems if there are 2 users, and the first one encountered is the invalid one
+		 *   in which case, the user will need to manually fix this (?)
 		 */
 		act->idroot = idcode;
 	}
@@ -1878,8 +1878,8 @@ static void nlastrip_evaluate_controls(NlaStrip *strip, float ctime)
 	}
 
 	/* analytically generate values for influence and time (if applicable)
-	 *  - we do this after the F-Curves have been evaluated to override the effects of those
-	 *    in case the override has been turned off.
+	 * - we do this after the F-Curves have been evaluated to override the effects of those
+	 *   in case the override has been turned off.
 	 */
 	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
 		strip->strip_time = nlastrip_get_frame(strip, ctime, NLATIME_CONVERT_EVAL);
@@ -1925,8 +1925,8 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short 
 			else {
 				/* before next strip - previous strip has ended, but next hasn't begun,
 				 * so blending mode depends on whether strip is being held or not...
-				 *  - only occurs when no transition strip added, otherwise the transition would have
-				 *    been picked up above...
+				 * - only occurs when no transition strip added, otherwise the transition would have
+				 *   been picked up above...
 				 */
 				strip = strip->prev;
 
@@ -1953,7 +1953,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short 
 	}
 
 	/* check if a valid strip was found
-	 *	- must not be muted (i.e. will have contribution
+	 * - must not be muted (i.e. will have contribution
 	 */
 	if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED))
 		return NULL;
@@ -1969,8 +1969,8 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short 
 	}
 
 	/* evaluate strip's evaluation controls
-	 *  - skip if no influence (i.e. same effect as muting the strip)
-	 *	- negative influence is not supported yet... how would that be defined?
+	 * - skip if no influence (i.e. same effect as muting the strip)
+	 * - negative influence is not supported yet... how would that be defined?
 	 */
 	/* TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on... */
 	nlastrip_evaluate_controls(estrip, ctime);
@@ -2014,7 +2014,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short 
 /* ---------------------- */
 
 /* find an NlaEvalChannel that matches the given criteria
- *	- ptr and prop are the RNA data to find a match for
+ * - ptr and prop are the RNA data to find a match for
  */
 static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
@@ -2029,7 +2029,7 @@ static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, PointerRNA *pt
 		/* - comparing the PointerRNA's is done by comparing the pointers
 		 *   to the actual struct the property resides in, since that all the
 		 *   other data stored in PointerRNA cannot allow us to definitively
-		 *	identify the data
+		 *   identify the data
 		 */
 		if ((nec->ptr.data == ptr->data) && (nec->prop == prop) && (nec->index == array_index))
 			return nec;
@@ -2176,8 +2176,8 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float
 		case NLASTRIP_MODE_REPLACE:
 		default: /* TODO: do we really want to blend by default? it seems more uses might prefer add... */
 			/* do linear interpolation
-			 *	- the influence of the accumulated data (elsewhere, that is called dstweight)
-			 *	  is 1 - influence, since the strip's influence is srcweight
+			 * - the influence of the accumulated data (elsewhere, that is called dstweight)
+			 *   is 1 - influence, since the strip's influence is srcweight
 			 */
 			nec->value = nec->value * (1.0f - inf)   +   (value * inf);
 			break;
@@ -2238,7 +2238,7 @@ static void nlaeval_fmodifiers_join_stacks(ListBase *result, ListBase *list1, Li
 	}
 	else {
 		/* list1 should be added first, and list2 second, with the endpoints of these being the endpoints for result
-		 *  - the original lists must be left unchanged though, as we need that fact for restoring
+		 * - the original lists must be left unchanged though, as we need that fact for restoring
 		 */
 		result->first = list1->first;
 		result->last = list2->last;
@@ -2350,11 +2350,11 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &nes->strip->modifiers, modifiers);
 
 	/* get the two strips to operate on
-	 *	- we use the endpoints of the strips directly flanking our strip
-	 *	  using these as the endpoints of the transition (destination and source)
-	 *	- these should have already been determined to be valid...
-	 *	- if this strip is being played in reverse, we need to swap these endpoints
-	 *	  otherwise they will be interpolated wrong
+	 * - we use the endpoints of the strips directly flanking our strip
+	 *   using these as the endpoints of the transition (destination and source)
+	 * - these should have already been determined to be valid...
+	 * - if this strip is being played in reverse, we need to swap these endpoints
+	 *   otherwise they will be interpolated wrong
 	 */
 	if (nes->strip->flag & NLASTRIP_FLAG_REVERSE) {
 		s1 = nes->strip->next;
@@ -2366,11 +2366,11 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 	}
 
 	/* prepare template for 'evaluation strip'
-	 *	- based on the transition strip's evaluation strip data
-	 *	- strip_mode is NES_TIME_TRANSITION_* based on which endpoint
-	 *	- strip_time is the 'normalized' (i.e. in-strip) time for evaluation,
-	 *	  which doubles up as an additional weighting factor for the strip influences
-	 *	  which allows us to appear to be 'interpolating' between the two extremes
+	 * - based on the transition strip's evaluation strip data
+	 * - strip_mode is NES_TIME_TRANSITION_* based on which endpoint
+	 * - strip_time is the 'normalized' (i.e. in-strip) time for evaluation,
+	 *   which doubles up as an additional weighting factor for the strip influences
+	 *   which allows us to appear to be 'interpolating' between the two extremes
 	 */
 	tmp_nes = *nes;
 
@@ -2551,7 +2551,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 		}
 
 		/* if this track has strips (but maybe they won't be suitable), set has_strips
-		 *	- used for mainly for still allowing normal action evaluation...
+		 * - used for mainly for still allowing normal action evaluation...
 		 */
 		if (nlt->strips.first)
 			has_strips = true;
@@ -2562,9 +2562,9 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 	}
 
 	/* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
-	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
-	 *	- however, if the 'solo' track houses the current 'tweaking' strip,
-	 *	  then we should allow this to play, otherwise nothing happens
+	 * - only do this if we're not exclusively evaluating the 'solo' NLA-track
+	 * - however, if the 'solo' track houses the current 'tweaking' strip,
+	 *   then we should allow this to play, otherwise nothing happens
 	 */
 	if ((adt->action) && ((adt->flag & ADT_NLA_SOLO_TRACK) == 0 || (adt->flag & ADT_NLA_EDIT_ON))) {
 		/* if there are strips, evaluate action as per NLA rules */
@@ -2636,8 +2636,8 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 }
 
 /* NLA Evaluation function (mostly for use through do_animdata)
- *	- All channels that will be affected are not cleared anymore. Instead, we just evaluate into
- *		some temp channels, where values can be accumulated in one go.
+ * - All channels that will be affected are not cleared anymore. Instead, we just evaluate into
+ *   some temp channels, where values can be accumulated in one go.
  */
 static void animsys_calculate_nla(PointerRNA *ptr, AnimData *adt, float ctime)
 {
@@ -2690,34 +2690,34 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
 /* Evaluation System - Public API */
 
 /* Overview of how this system works:
- *	1) Depsgraph sorts data as necessary, so that data is in an order that means
- *		that all dependencies are resolved before dependents.
- *	2) All normal animation is evaluated, so that drivers have some basis values to
- *		work with
- *		a.	NLA stacks are done first, as the Active Actions act as 'tweaking' tracks
- *			which modify the effects of the NLA-stacks
- *		b.	Active Action is evaluated as per normal, on top of the results of the NLA tracks
+ * 1) Depsgraph sorts data as necessary, so that data is in an order that means
+ *     that all dependencies are resolved before dependents.
+ * 2) All normal animation is evaluated, so that drivers have some basis values to
+ *    work with
+ *    a.  NLA stacks are done first, as the Active Actions act as 'tweaking' tracks
+ *        which modify the effects of the NLA-stacks
+ *    b.  Active Action is evaluated as per normal, on top of the results of the NLA tracks
  *
  * --------------< often in a separate phase... >------------------
  *
- *	3) Drivers/expressions are evaluated on top of this, in an order where dependencies are
- *		resolved nicely.
- *	   Note: it may be necessary to have some tools to handle the cases where some higher-level
- *		drivers are added and cause some problematic dependencies that didn't exist in the local levels...
+ * 3) Drivers/expressions are evaluated on top of this, in an order where dependencies are
+ *    resolved nicely.
+ *    Note: it may be necessary to have some tools to handle the cases where some higher-level
+ *          drivers are added and cause some problematic dependencies that didn't exist in the local levels...
  *
  * --------------< always executed >------------------
  *
  * Maintenance of editability of settings (XXX):
- *	In order to ensure that settings that are animated can still be manipulated in the UI without requiring
- *	that keyframes are added to prevent these values from being overwritten, we use 'overrides'.
+ *  In order to ensure that settings that are animated can still be manipulated in the UI without requiring
+ *  that keyframes are added to prevent these values from being overwritten, we use 'overrides'.
  *
  * Unresolved things:
- *	- Handling of multi-user settings (i.e. time-offset, group-instancing) -> big cache grids or nodal system? but stored where?
- *	- Multiple-block dependencies (i.e. drivers for settings are in both local and higher levels) -> split into separate lists?
+ * - Handling of multi-user settings (i.e. time-offset, group-instancing) -> big cache grids or nodal system? but stored where?
+ * - Multiple-block dependencies (i.e. drivers for settings are in both local and higher levels) -> split into separate lists?
  *
  * Current Status:
- *	- Currently (as of September 2009), overrides we haven't needed to (fully) implement overrides.
- *    However, the code for this is relatively harmless, so is left in the code for now.
+ * - Currently (as of September 2009), overrides we haven't needed to (fully) implement overrides.
+ *   However, the code for this is relatively harmless, so is left in the code for now.
  */
 
 /* Evaluation loop for evaluation animation data
@@ -2738,15 +2738,15 @@ void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ct
 	RNA_id_pointer_create(id, &id_ptr);
 
 	/* recalculate keyframe data:
-	 *	- NLA before Active Action, as Active Action behaves as 'tweaking track'
-	 *	  that overrides 'rough' work in NLA
+	 * - NLA before Active Action, as Active Action behaves as 'tweaking track'
+	 *   that overrides 'rough' work in NLA
 	 */
 	/* TODO: need to double check that this all works correctly */
 	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM)) {
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF)) {
 			/* evaluate NLA-stack
-			 *	- active action is evaluated as part of the NLA stack as the last item
+			 * - active action is evaluated as part of the NLA stack as the last item
 			 */
 			animsys_calculate_nla(&id_ptr, adt, ctime);
 		}
@@ -2759,9 +2759,9 @@ void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ct
 	}
 
 	/* recalculate drivers
-	 *	- Drivers need to be evaluated afterwards, as they can either override
-	 *	  or be layered on top of existing animation data.
-	 *	- Drivers should be in the appropriate order to be evaluated without problems...
+	 * - Drivers need to be evaluated afterwards, as they can either override
+	 *   or be layered on top of existing animation data.
+	 * - Drivers should be in the appropriate order to be evaluated without problems...
 	 */
 	if ((recalc & ADT_RECALC_DRIVERS)
 	    /* XXX for now, don't check yet, as depsgraph hasn't been updated */
@@ -2771,10 +2771,10 @@ void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ct
 	}
 
 	/* always execute 'overrides'
-	 *	- Overrides allow editing, by overwriting the value(s) set from animation-data, with the
-	 *	  value last set by the user (and not keyframed yet).
-	 *	- Overrides are cleared upon frame change and/or keyframing
-	 *	- It is best that we execute this every time, so that no errors are likely to occur.
+	 * - Overrides allow editing, by overwriting the value(s) set from animation-data, with the
+	 *   value last set by the user (and not keyframed yet).
+	 * - Overrides are cleared upon frame change and/or keyframing
+	 * - It is best that we execute this every time, so that no errors are likely to occur.
 	 */
 	animsys_evaluate_overrides(&id_ptr, adt);
 
@@ -2804,9 +2804,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 		printf("Evaluate all animation - %f\n", ctime);
 
 	/* macros for less typing
-	 *	- only evaluate animation data for id if it has users (and not just fake ones)
-	 *	- whether animdata exists is checked for by the evaluation function, though taking
-	 *	  this outside of the function may make things slightly faster?
+	 * - only evaluate animation data for id if it has users (and not just fake ones)
+	 * - whether animdata exists is checked for by the evaluation function, though taking
+	 *   this outside of the function may make things slightly faster?
 	 */
 #define EVAL_ANIM_IDS(first, aflag) \
 	for (id = first; id; id = id->next) { \
@@ -2817,10 +2817,10 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	} (void)0
 
 	/* another macro for the "embedded" nodetree cases
-	 *	- this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
-	 *	  (i.e. scene/material/texture->nodetree) which we need a special exception
-	 *    for, otherwise they'd get skipped
-	 *	- ntp = "node tree parent" = datablock where node tree stuff resides
+	 * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
+	 *   (i.e. scene/material/texture->nodetree) which we need a special exception
+	 *   for, otherwise they'd get skipped
+	 * - ntp = "node tree parent" = datablock where node tree stuff resides
 	 */
 #define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
 	for (id = first; id; id = id->next) { \

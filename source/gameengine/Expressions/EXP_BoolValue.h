@@ -22,7 +22,7 @@
 #include "EXP_Value.h"
 
 /**
- *	Smart Boolean Value class.
+ * Smart Boolean Value class.
  * Is used by parser when an expression tree is build containing booleans.
  */
 

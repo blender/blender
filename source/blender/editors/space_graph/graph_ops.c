@@ -63,8 +63,8 @@
 
 /* Set Cursor --------------------------------------------------------------------- */
 /* The 'cursor' in the Graph Editor consists of two parts:
- *	1) Current Frame Indicator (as per ANIM_OT_change_frame)
- *	2) Value Indicator (stored per Graph Editor instance)
+ * 1) Current Frame Indicator (as per ANIM_OT_change_frame)
+ * 2) Value Indicator (stored per Graph Editor instance)
  */
 
 static bool graphview_cursor_poll(bContext *C)

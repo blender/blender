@@ -40,10 +40,10 @@ extern "C" {
  *
  * This class is intended as a place holder for control, configuration of the
  * rayobject like:
- *	- stop building (TODO maybe when porting build to threads this could be
- *    implemented with some thread_cancel function)
- *  - max number of threads and threads callback to use during build
- *	...
+ * - stop building (TODO maybe when porting build to threads this could be
+ *   implemented with some thread_cancel function)
+ * - max number of threads and threads callback to use during build
+ * ...
  */
 
 typedef int (*RE_rayobjectcontrol_test_break_callback)(void *data);

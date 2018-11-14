@@ -308,11 +308,11 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 * _should_ be wrong! - see from point Z values */
 
 
-	/*	build the from and to point in normalized device coordinates
-	 *	Normalized device coordinates are [-1,1] in x, y, z
+	/* build the from and to point in normalized device coordinates
+	 * Normalized device coordinates are [-1,1] in x, y, z
 	 *
-	 *	The actual z coordinates used don't have to be exact just infront and
-	 *	behind of the near and far clip planes.
+	 * The actual z coordinates used don't have to be exact just infront and
+	 * behind of the near and far clip planes.
 	 */
 	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0f,
 						1.0f - (2 * (m_y_inv - y_lb) / height),

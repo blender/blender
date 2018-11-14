@@ -120,8 +120,8 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 
 /* **************************** animation data <-> data syncing ******************************** */
 /* This code here is used to synchronize the
- *	- selection (to find selected data easier)
- *	- ... (insert other relevant items here later)
+ * - selection (to find selected data easier)
+ * - ... (insert other relevant items here later)
  * status in relevant Blender data with the status stored in animation channels.
  *
  * This should be called in the refresh() callbacks for various editors in
