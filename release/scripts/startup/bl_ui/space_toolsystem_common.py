@@ -865,9 +865,8 @@ def keymap_from_context(context, space_type):
                             'WEIGHT_PAINT': "weight_tool",
                             'TEXTURE_PAINT': "image_tool",
                             'GPENCIL_PAINT': "gpencil_tool",
-                        }.get(mode, (None, None))
+                        }.get(mode, None)
                         if attr is not None:
-                            kmi_hack_brush_select_properties.paint_mode = mode
                             setattr(kmi_hack_brush_select_properties, attr, item.data_block)
                             kmi_found = wm.keyconfigs.find_item_from_operator(
                                 idname="paint.brush_select",
