@@ -245,7 +245,7 @@ void BKE_object_eval_uber_data(
         struct Scene *scene,
         struct Object *ob);
 
-void BKE_object_eval_cloth(
+void BKE_object_eval_ptcache_reset(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *object);

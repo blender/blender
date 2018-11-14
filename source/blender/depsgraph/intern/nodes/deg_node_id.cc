@@ -204,11 +204,11 @@ ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
 	return comp_node;
 }
 
-void IDDepsNode::tag_update(Depsgraph *graph)
+void IDDepsNode::tag_update(Depsgraph *graph, eDepsTag_Source source)
 {
 	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
 	{
-		comp_node->tag_update(graph);
+		comp_node->tag_update(graph, source);
 	}
 	GHASH_FOREACH_END();
 }

@@ -283,20 +283,20 @@ void ComponentDepsNode::clear_operations()
 	operations.clear();
 }
 
-void ComponentDepsNode::tag_update(Depsgraph *graph)
+void ComponentDepsNode::tag_update(Depsgraph *graph, eDepsTag_Source source)
 {
 	OperationDepsNode *entry_op = get_entry_operation();
 	if (entry_op != NULL && entry_op->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
 		return;
 	}
 	foreach (OperationDepsNode *op_node, operations) {
-		op_node->tag_update(graph);
+		op_node->tag_update(graph, source);
 	}
 	// It is possible that tag happens before finalization.
 	if (operations_map != NULL) {
 		GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, operations_map)
 		{
-			op_node->tag_update(graph);
+			op_node->tag_update(graph, source);
 		}
 		GHASH_FOREACH_END();
 	}
@@ -392,8 +392,9 @@ DEG_COMPONENT_NODE_DEFINE(Geometry,          GEOMETRY,           ID_RECALC_GEOME
 DEG_COMPONENT_NODE_DEFINE(LayerCollections,  LAYER_COLLECTIONS,  0);
 DEG_COMPONENT_NODE_DEFINE(Parameters,        PARAMETERS,         ID_RECALC);
 DEG_COMPONENT_NODE_DEFINE(Particles,         EVAL_PARTICLES,     ID_RECALC_GEOMETRY);
-DEG_COMPONENT_NODE_DEFINE(Proxy,             PROXY,              ID_RECALC_GEOMETRY);
+DEG_COMPONENT_NODE_DEFINE(PointCache,        POINT_CACHE,        0);
 DEG_COMPONENT_NODE_DEFINE(Pose,              EVAL_POSE,          ID_RECALC_GEOMETRY);
+DEG_COMPONENT_NODE_DEFINE(Proxy,             PROXY,              ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(Sequencer,         SEQUENCER,          ID_RECALC);
 DEG_COMPONENT_NODE_DEFINE(Shading,           SHADING,            ID_RECALC_DRAW);
 DEG_COMPONENT_NODE_DEFINE(ShadingParameters, SHADING_PARAMETERS, ID_RECALC_DRAW);
@@ -414,6 +415,7 @@ void deg_register_component_depsnodes()
 	deg_register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
 	deg_register_node_typeinfo(&DNTI_PARAMETERS);
 	deg_register_node_typeinfo(&DNTI_EVAL_PARTICLES);
+	deg_register_node_typeinfo(&DNTI_POINT_CACHE);
 	deg_register_node_typeinfo(&DNTI_PROXY);
 	deg_register_node_typeinfo(&DNTI_EVAL_POSE);
 	deg_register_node_typeinfo(&DNTI_SEQUENCER);

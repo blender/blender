@@ -87,6 +87,7 @@ extern "C" {
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_shader_fx.h"
 #include "BKE_shrinkwrap.h"
@@ -184,9 +185,13 @@ static bool check_id_has_anim_component(ID *id)
 	       (!BLI_listbase_is_empty(&adt->nla_tracks));
 }
 
-static eDepsOperation_Code bone_target_opcode(ID *target, const char *subtarget, ID *id, const char *component_subdata, RootPChanMap *root_map)
+static eDepsOperation_Code bone_target_opcode(ID *target,
+                                              const char *subtarget,
+                                              ID *id,
+                                              const char *component_subdata,
+                                              RootPChanMap *root_map)
 {
-	/* same armature  */
+	/* Same armature.  */
 	if (target == id) {
 		/* Using "done" here breaks in-chain deps, while using
 		 * "ready" here breaks most production rigs instead.
@@ -197,7 +202,6 @@ static eDepsOperation_Code bone_target_opcode(ID *target, const char *subtarget,
 			return DEG_OPCODE_BONE_READY;
 		}
 	}
-
 	return DEG_OPCODE_BONE_DONE;
 }
 
@@ -642,6 +646,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	if (object->dup_group != NULL) {
 		build_collection(object, object->dup_group);
 	}
+	/* Point caches. */
+	build_object_pointcache(object);
 }
 
 void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
@@ -846,11 +852,47 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 			break;
 		}
 	}
+}
 
-	/* exception case: parent is duplivert */
-	if ((object->type == OB_MBALL) && (object->parent->transflag & OB_DUPLIVERTS)) {
-		//dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_OB, "Duplivert");
+void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
+{
+	ComponentKey point_cache_key(&object->id, DEG_NODE_TYPE_POINT_CACHE);
+	/* Different point caches are affecting different aspects of life of the
+	 * object. We keep track of those aspects and avoid duplicate relations. */
+	enum {
+		FLAG_TRANSFORM = (1 << 0),
+		FLAG_GEOMETRY = (1 << 1),
+		FLAG_ALL = (FLAG_TRANSFORM | FLAG_GEOMETRY),
+	};
+	ListBase ptcache_id_list;
+	BKE_ptcache_ids_from_object(&ptcache_id_list, object, scene_, 0);
+	int handled_components = 0;
+	LISTBASE_FOREACH (PTCacheID *, ptcache_id, &ptcache_id_list) {
+		/* Check which components needs the point cache. */
+		int flag;
+		if (ptcache_id->type == PTCACHE_TYPE_RIGIDBODY) {
+			flag = FLAG_TRANSFORM;
+			ComponentKey transform_key(&object->id,
+			                           DEG_NODE_TYPE_TRANSFORM);
+			add_relation(point_cache_key,
+			             transform_key,
+			             "Point Cache -> Rigid Body");
+		}
+		else {
+			flag = FLAG_GEOMETRY;
+			ComponentKey geometry_key(&object->id,
+			                           DEG_NODE_TYPE_GEOMETRY);
+			add_relation(point_cache_key,
+			             geometry_key,
+			             "Point Cache -> Geometry");
+		}
+		/* Tag that we did handle that component. */
+		handled_components |= flag;
+		if (handled_components == FLAG_ALL) {
+			break;
+		}
 	}
+	BLI_freelistN(&ptcache_id_list);
 }
 
 void DepsgraphRelationBuilder::build_constraints(ID *id,
@@ -1744,12 +1786,6 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 	 */
 	ComponentKey transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
 	add_relation(transform_key, obdata_ubereval_key, "Partcile Eval");
-
-	OperationKey point_cache_reset_key(&object->id,
-	                                   DEG_NODE_TYPE_CACHE,
-	                                   DEG_OPCODE_POINT_CACHE_RESET);
-	add_relation(transform_key, point_cache_reset_key, "Object Transform -> Point Cache Reset");
-	add_relation(point_cache_reset_key, obdata_ubereval_key, "Point Cache Reset -> UberEval");
 }
 
 void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
@@ -1781,19 +1817,6 @@ void DepsgraphRelationBuilder::build_particles_visualization_object(
 		             dup_geometry_key,
 		             "Particle MBall Visualization");
 	}
-}
-
-void DepsgraphRelationBuilder::build_cloth(Object *object,
-                                           ModifierData * /*md*/)
-{
-	OperationKey cache_key(&object->id,
-	                       DEG_NODE_TYPE_CACHE,
-	                       DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER);
-	/* Cache component affects on modifier. */
-	OperationKey modifier_key(&object->id,
-	                          DEG_NODE_TYPE_GEOMETRY,
-	                          DEG_OPCODE_GEOMETRY_UBEREVAL);
-	add_relation(cache_key, modifier_key, "Cloth Cache -> Cloth");
 }
 
 /* Shapekeys */
@@ -1868,9 +1891,6 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 			if (BKE_object_modifier_use_time(object, md)) {
 				TimeSourceKey time_src_key;
 				add_relation(time_src_key, obdata_ubereval_key, "Time Source");
-			}
-			if (md->type == eModifierType_Cloth) {
-				build_cloth(object, md);
 			}
 		}
 	}

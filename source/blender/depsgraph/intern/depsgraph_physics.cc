@@ -122,8 +122,10 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
 		            ob1,
 		            modifiers_findByType(ob1, (ModifierType)modifier_type)))
 		{
-			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
-			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
+			DEG_add_object_pointcache_relation(
+			        handle, ob1, DEG_OB_COMP_TRANSFORM, name);
+			DEG_add_object_pointcache_relation(
+			        handle, ob1, DEG_OB_COMP_GEOMETRY, name);
 		}
 	}
 }
@@ -146,26 +148,25 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 		if (relation->pd->forcefield == skip_forcefield) {
 			continue;
 		}
-		DEG_add_object_relation(
+		DEG_add_object_pointcache_relation(
 		        handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
 		if (relation->psys) {
 			/* TODO(sergey): Consider going more granular with more dedicated
-			 * particle system operation.
-			 */
-			DEG_add_object_relation(
+			 * particle system operation. */
+			DEG_add_object_pointcache_relation(
 			        handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);
 		}
 		if (relation->pd->forcefield == PFIELD_SMOKEFLOW &&
 		    relation->pd->f_source != NULL)
 		{
-			DEG_add_object_relation(handle,
-			                        relation->pd->f_source,
-			                        DEG_OB_COMP_TRANSFORM,
-			                        "Smoke Force Domain");
-			DEG_add_object_relation(handle,
-			                        relation->pd->f_source,
-			                        DEG_OB_COMP_GEOMETRY,
-			                        "Smoke Force Domain");
+			DEG_add_object_pointcache_relation(handle,
+			                                   relation->pd->f_source,
+			                                   DEG_OB_COMP_TRANSFORM,
+			                                   "Smoke Force Domain");
+			DEG_add_object_pointcache_relation(handle,
+			                                   relation->pd->f_source,
+			                                   DEG_OB_COMP_GEOMETRY,
+			                                   "Smoke Force Domain");
 		}
 		if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
 			DEG_add_collision_relations(handle,

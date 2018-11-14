@@ -69,6 +69,7 @@ static const char *deg_debug_colors[] = {
     "#33a02c", "#fb9a99", "#e31a1c",
     "#fdbf6f", "#ff7f00", "#cab2d6",
     "#6a3d9a", "#ffff99", "#b15928",
+    "#ff00ff",
 };
 #endif
 static const char *deg_debug_colors_light[] = {
@@ -76,6 +77,7 @@ static const char *deg_debug_colors_light[] = {
     "#fb8072", "#80b1d3", "#fdb462",
     "#b3de69", "#fccde5", "#d9d9d9",
     "#bc80bd", "#ccebc5", "#ffed6f",
+    "#ff00ff",
 };
 
 #ifdef COLOR_SCHEME_NODE_TYPE
@@ -84,18 +86,19 @@ static const int deg_debug_node_type_color_map[][2] = {
     {DEG_NODE_TYPE_ID_REF,       1},
 
     /* Outer Types */
-    {DEG_NODE_TYPE_PARAMETERS,        2},
-    {DEG_NODE_TYPE_PROXY,             3},
-    {DEG_NODE_TYPE_ANIMATION,         4},
-    {DEG_NODE_TYPE_TRANSFORM,         5},
-    {DEG_NODE_TYPE_GEOMETRY,          6},
-    {DEG_NODE_TYPE_SEQUENCER,         7},
-    {DEG_NODE_TYPE_SHADING,           8},
+    {DEG_NODE_TYPE_PARAMETERS,         2},
+    {DEG_NODE_TYPE_PROXY,              3},
+    {DEG_NODE_TYPE_ANIMATION,          4},
+    {DEG_NODE_TYPE_TRANSFORM,          5},
+    {DEG_NODE_TYPE_GEOMETRY,           6},
+    {DEG_NODE_TYPE_SEQUENCER,          7},
+    {DEG_NODE_TYPE_SHADING,            8},
     {DEG_NODE_TYPE_SHADING_PARAMETERS, 9},
-    {DEG_NODE_TYPE_CACHE,             10},
-    {DEG_NODE_TYPE_LAYER_COLLECTIONS, 11},
-    {DEG_NODE_TYPE_COPY_ON_WRITE,     12},
-    {-1,                              0}
+    {DEG_NODE_TYPE_CACHE,              10},
+    {DEG_NODE_TYPE_POINT_CACHE,        11},
+    {DEG_NODE_TYPE_LAYER_COLLECTIONS , 12},
+    {DEG_NODE_TYPE_COPY_ON_WRITE,      13},
+    {-1,                               0}
 };
 #endif
 
@@ -264,9 +267,13 @@ static void deg_debug_graphviz_relation_style(const DebugContext &ctx,
 {
 	const char *style_default = "solid";
 	const char *style_no_flush = "dashed";
+	const char *style_flush_user_only = "dotted";
 	const char *style = style_default;
 	if (rel->flag & DEPSREL_FLAG_NO_FLUSH) {
 		style = style_no_flush;
+	}
+	if (rel->flag & DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY) {
+		style = style_flush_user_only;
 	}
 	deg_debug_fprintf(ctx, "%s", style);
 }
@@ -403,6 +410,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEG_NODE_TYPE_SHADING:
 		case DEG_NODE_TYPE_SHADING_PARAMETERS:
 		case DEG_NODE_TYPE_CACHE:
+		case DEG_NODE_TYPE_POINT_CACHE:
 		case DEG_NODE_TYPE_LAYER_COLLECTIONS:
 		case DEG_NODE_TYPE_EVAL_PARTICLES:
 		case DEG_NODE_TYPE_COPY_ON_WRITE:

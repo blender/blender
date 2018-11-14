@@ -204,6 +204,10 @@ void depsgraph_tag_to_component_opcode(const ID *id,
 			depsgraph_base_flags_tag_to_component_opcode(id,
 			                                             component_type,
 			                                             operation_code);
+			break;
+		case DEG_TAG_POINT_CACHE_UPDATE:
+			*component_type = DEG_NODE_TYPE_POINT_CACHE;
+			break;
 		case DEG_TAG_EDITORS_UPDATE:
 			/* There is no such node in depsgraph, this tag is to be handled
 			 * separately.
@@ -249,20 +253,20 @@ void depsgraph_tag_component(Depsgraph *graph,
 		return;
 	}
 	if (operation_code == DEG_OPCODE_OPERATION) {
-		component_node->tag_update(graph);
+		component_node->tag_update(graph, DEG_UPDATE_SOURCE_USER_EDIT);
 	}
 	else {
 		OperationDepsNode *operation_node =
 		        component_node->find_operation(operation_code);
 		if (operation_node != NULL) {
-			operation_node->tag_update(graph);
+			operation_node->tag_update(graph, DEG_UPDATE_SOURCE_USER_EDIT);
 		}
 	}
 	/* If component depends on copy-on-write, tag it as well. */
 	if (component_node->need_tag_cow_before_update()) {
 		ComponentDepsNode *cow_comp =
 		        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
-		cow_comp->tag_update(graph);
+		cow_comp->tag_update(graph, DEG_UPDATE_SOURCE_USER_EDIT);
 		id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
 	}
 }
@@ -364,7 +368,7 @@ static void deg_graph_id_tag_update_single_flag(Main *bmain,
 	}
 	/* Tag corresponding dependency graph operation for update. */
 	if (component_type == DEG_NODE_TYPE_ID_REF) {
-		id_node->tag_update(graph);
+		id_node->tag_update(graph, DEG_UPDATE_SOURCE_USER_EDIT);
 	}
 	else {
 		depsgraph_tag_component(graph, id_node, component_type, operation_code);
@@ -427,7 +431,7 @@ void deg_graph_node_tag_zero(Main *bmain, Depsgraph *graph, IDDepsNode *id_node)
 		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
 			continue;
 		}
-		comp_node->tag_update(graph);
+		comp_node->tag_update(graph, DEG_UPDATE_SOURCE_USER_EDIT);
 	}
 	GHASH_FOREACH_END();
 	deg_graph_id_tag_legacy_compat(bmain, graph, id, (eDepsgraph_Tag)0);
@@ -463,6 +467,11 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	}
 	/* Special case for nested node tree datablocks. */
 	id_tag_update_ntree_special(bmain, graph, id, flag);
+	/* Direct update tags means that something outside of simulated/cached
+	 * physics did change and that cache is to be invalidated.
+	 */
+	deg_graph_id_tag_update_single_flag(
+	        bmain, graph, id, id_node, DEG_TAG_POINT_CACHE_UPDATE);
 }
 
 void deg_id_tag_update(Main *bmain, ID *id, int flag)
@@ -515,7 +524,7 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
 		if (id_type == ID_SCE) {
 			/* Make sure collection properties are up to date. */
-			id_node->tag_update(graph);
+			id_node->tag_update(graph, DEG_UPDATE_SOURCE_VISIBILITY);
 		}
 		/* Now when ID is updated to the new visibility state, prevent it from
 		 * being re-tagged again. Simplest way to do so is to pretend that it
@@ -590,6 +599,7 @@ const char *DEG_update_tag_as_string(eDepsgraph_Tag flag)
 		case DEG_TAG_SHADING_UPDATE: return "SHADING_UPDATE";
 		case DEG_TAG_SELECT_UPDATE: return "SELECT_UPDATE";
 		case DEG_TAG_BASE_FLAGS_UPDATE: return "BASE_FLAGS_UPDATE";
+		case DEG_TAG_POINT_CACHE_UPDATE: return "POINT_CACHE_UPDATE";
 		case DEG_TAG_EDITORS_UPDATE: return "EDITORS_UPDATE";
 	}
 	BLI_assert(!"Unhandled update flag, should never happen!");

@@ -217,6 +217,7 @@ struct DepsgraphRelationBuilder
 	void build_object_data_lightprobe(Object *object);
 	void build_object_data_speaker(Object *object);
 	void build_object_parent(Object *object);
+	void build_object_pointcache(Object *object);
 	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
 	                       const char *component_subdata,
@@ -244,7 +245,6 @@ struct DepsgraphRelationBuilder
 	void build_particles_visualization_object(Object *object,
 	                                          ParticleSystem *psys,
 	                                          Object *draw_object);
-	void build_cloth(Object *object, ModifierData *md);
 	void build_ik_pose(Object *object,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con,

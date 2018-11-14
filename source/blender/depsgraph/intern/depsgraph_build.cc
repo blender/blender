@@ -99,38 +99,38 @@ static DEG::eDepsNode_Type deg_build_object_component_type(
 	return DEG::DEG_NODE_TYPE_UNDEFINED;
 }
 
-static DEG::DepsNodeHandle *get_handle(DepsNodeHandle *handle)
+static DEG::DepsNodeHandle *get_node_handle(DepsNodeHandle *node_handle)
 {
-	return reinterpret_cast<DEG::DepsNodeHandle *>(handle);
+	return reinterpret_cast<DEG::DepsNodeHandle *>(node_handle);
 }
 
-void DEG_add_scene_relation(DepsNodeHandle *handle,
+void DEG_add_scene_relation(DepsNodeHandle *node_handle,
                             Scene *scene,
                             eDepsSceneComponentType component,
                             const char *description)
 {
 	DEG::eDepsNode_Type type = deg_build_scene_component_type(component);
 	DEG::ComponentKey comp_key(&scene->id, type);
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	deg_handle->builder->add_node_handle_relation(comp_key,
-	                                              deg_handle,
-	                                              description);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_node_handle_relation(comp_key,
+	                                                   deg_node_handle,
+	                                                   description);
 }
 
-void DEG_add_object_relation(DepsNodeHandle *handle,
+void DEG_add_object_relation(DepsNodeHandle *node_handle,
                              Object *object,
                              eDepsObjectComponentType component,
                              const char *description)
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type);
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	deg_handle->builder->add_node_handle_relation(comp_key,
-	                                              deg_handle,
-	                                              description);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_node_handle_relation(comp_key,
+	                                                   deg_node_handle,
+	                                                   description);
 }
 
-void DEG_add_object_relation_with_customdata(DepsNodeHandle *handle,
+void DEG_add_object_relation_with_customdata(DepsNodeHandle *node_handle,
                                              Object *object,
                                              eDepsObjectComponentType component,
                                              uint64_t customdata_mask,
@@ -138,29 +138,29 @@ void DEG_add_object_relation_with_customdata(DepsNodeHandle *handle,
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type);
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	deg_handle->builder->add_node_handle_relation(comp_key,
-	                                              deg_handle,
-	                                              description);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_node_handle_relation(comp_key,
+	                                                   deg_node_handle,
+	                                                   description);
 	if (object->type == OB_MESH) {
-		deg_handle->builder->add_customdata_mask(comp_key, customdata_mask);
+		deg_node_handle->builder->add_customdata_mask(comp_key, customdata_mask);
 	}
 }
 
-void DEG_add_object_cache_relation(DepsNodeHandle *handle,
+void DEG_add_object_cache_relation(DepsNodeHandle *node_handle,
                                    CacheFile *cache_file,
                                    eDepsObjectComponentType component,
                                    const char *description)
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&cache_file->id, type);
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	deg_handle->builder->add_node_handle_relation(comp_key,
-	                                              deg_handle,
-	                                              description);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_node_handle_relation(comp_key,
+	                                                   deg_node_handle,
+	                                                   description);
 }
 
-void DEG_add_bone_relation(DepsNodeHandle *handle,
+void DEG_add_bone_relation(DepsNodeHandle *node_handle,
                            Object *object,
                            const char *bone_name,
                            eDepsObjectComponentType component,
@@ -168,25 +168,50 @@ void DEG_add_bone_relation(DepsNodeHandle *handle,
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type, bone_name);
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	/* XXX: "Geometry Eval" might not always be true, but this only gets called
-	 * from modifier building now.
-	 */
-	deg_handle->builder->add_node_handle_relation(comp_key,
-	                                              deg_handle,
-	                                              description);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_node_handle_relation(comp_key,
+	                                                   deg_node_handle,
+	                                                   description);
 }
 
-void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, ID *id, uint32_t flag)
+void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
+                                        struct Object *object,
+                                        eDepsObjectComponentType component,
+                                        const char *description)
 {
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	deg_handle->builder->add_special_eval_flag(id, flag);
+	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::ComponentKey comp_key(&object->id, type);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	DEG::DepsgraphRelationBuilder *relation_builder = deg_node_handle->builder;
+	/* Add relation from source to the node handle. */
+	relation_builder->add_node_handle_relation(
+	        comp_key, deg_node_handle, description);
+	/* Node deduct point cache component and connect source to it. */
+	ID *id = DEG_get_id_from_handle(node_handle);
+	DEG::ComponentKey point_cache_key(id, DEG::DEG_NODE_TYPE_POINT_CACHE);
+	DEG::DepsRelation *rel = relation_builder->add_relation(
+	        comp_key, point_cache_key, "Point Cache");
+	rel->flag |= DEG::DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY;
 }
 
-struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *handle)
+void DEG_add_special_eval_flag(struct DepsNodeHandle *node_handle,
+                               ID *id,
+                               uint32_t flag)
 {
-	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
-	DEG::DepsgraphRelationBuilder *relation_builder = deg_handle->builder;
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_special_eval_flag(id, flag);
+}
+
+struct ID *DEG_get_id_from_handle(struct DepsNodeHandle *node_handle)
+{
+	DEG::DepsNodeHandle *deg_handle = get_node_handle(node_handle);
+	return deg_handle->node->owner->owner->id_orig;
+}
+
+struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle)
+{
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	DEG::DepsgraphRelationBuilder *relation_builder = deg_node_handle->builder;
 	return reinterpret_cast<Depsgraph *>(relation_builder->getGraph());
 }
 
@@ -267,11 +292,9 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 	 * TODO(sergey): Try to make it so we don't flush updates
 	 * to the whole depsgraph.
 	 */
-	{
-		DEG::IDDepsNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
-		if (id_node != NULL) {
-			id_node->tag_update(deg_graph);
-		}
+	DEG::IDDepsNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
+	if (id_node != NULL) {
+		id_node->tag_update(deg_graph, DEG::DEG_UPDATE_SOURCE_RELATIONS);
 	}
 }
 

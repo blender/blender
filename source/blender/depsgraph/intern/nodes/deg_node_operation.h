@@ -40,13 +40,17 @@ namespace DEG {
 
 struct ComponentDepsNode;
 
-/* Flags for Depsgraph Nodes */
+/* Flags for Depsgraph Nodes. */
 typedef enum eDepsOperation_Flag {
-	/* node needs to be updated */
+	/* Node needs to be updated. */
 	DEPSOP_FLAG_NEEDS_UPDATE       = (1 << 0),
-
-	/* node was directly modified, causing need for update */
+	/* Node was directly modified, causing need for update. */
 	DEPSOP_FLAG_DIRECTLY_MODIFIED  = (1 << 1),
+	/* Node was updated due to user input. */
+	DEPSOP_FLAG_USER_MODIFIED      = (1 << 2),
+
+	/* Set of flags which gets flushed along the relations. */
+	DEPSOP_FLAG_FLUSH = (DEPSOP_FLAG_USER_MODIFIED)
 } eDepsOperation_Flag;
 
 /* Atomic Operation - Base type for all operations */
@@ -54,17 +58,21 @@ struct OperationDepsNode : public DepsNode {
 	OperationDepsNode();
 	~OperationDepsNode();
 
-	string identifier() const;
+	virtual string identifier() const override;
 	string full_identifier() const;
 
-	void tag_update(Depsgraph *graph);
+	virtual void tag_update(Depsgraph *graph, eDepsTag_Source source) override;
 
 	bool is_noop() const { return (bool)evaluate == false; }
 
-	OperationDepsNode *get_entry_operation() { return this; }
-	OperationDepsNode *get_exit_operation() { return this; }
+	virtual OperationDepsNode *get_entry_operation() override {
+		return this;
+	}
+	virtual OperationDepsNode *get_exit_operation() override {
+		return this;
+	}
 
-	/* Set this operation as compoonent's entry/exit operation. */
+	/* Set this operation as component's entry/exit operation. */
 	void set_as_entry();
 	void set_as_exit();
 

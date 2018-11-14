@@ -343,9 +343,9 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph,
 	BKE_object_batch_cache_dirty_tag(ob);
 }
 
-void BKE_object_eval_cloth(Depsgraph *depsgraph,
-                           Scene *scene,
-                           Object *object)
+void BKE_object_eval_ptcache_reset(Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   Object *object)
 {
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);

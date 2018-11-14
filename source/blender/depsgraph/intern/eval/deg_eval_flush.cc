@@ -202,19 +202,32 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 {
 	OperationDepsNode *result = NULL;
 	foreach (DepsRelation *rel, op_node->outlinks) {
+		/* Flush is forbidden, completely. */
 		if (rel->flag & DEPSREL_FLAG_NO_FLUSH) {
 			continue;
 		}
-		OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
-		if (to_node->scheduled == false) {
-			if (result != NULL) {
-				queue->push_front(to_node);
-			}
-			else {
-				result = to_node;
-			}
-			to_node->scheduled = true;
+		/* Relation only allows flushes on user changes, but the node was not
+		 * affected by user. */
+		if ((rel->flag & DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY) &&
+		    (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) == 0)
+		{
+			continue;
 		}
+		OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
+		/* Always flush flushable flags, so children always know what happened
+		 * to their parents. */
+		to_node->flag |= (op_node->flag & DEPSOP_FLAG_FLUSH);
+		/* Flush update over the relation, if it was not flushed yet. */
+		if (to_node->scheduled) {
+			continue;
+		}
+		if (result != NULL) {
+			queue->push_front(to_node);
+		}
+		else {
+			result = to_node;
+		}
+		to_node->scheduled = true;
 	}
 	return result;
 }
@@ -408,7 +421,9 @@ static void graph_clear_operation_func(
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];
 	/* Clear node's "pending update" settings. */
-	node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE);
+	node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED |
+	                DEPSOP_FLAG_NEEDS_UPDATE |
+	                DEPSOP_FLAG_USER_MODIFIED);
 }
 
 /* Clear tags from all operation nodes. */

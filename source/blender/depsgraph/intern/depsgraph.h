@@ -72,11 +72,13 @@ struct OperationDepsNode;
 /* Settings/Tags on Relationship */
 typedef enum eDepsRelation_Flag {
 	/* "cyclic" link - when detecting cycles, this relationship was the one
-	 * which triggers a cyclic relationship to exist in the graph.
-	 */
-	DEPSREL_FLAG_CYCLIC     = (1 << 0),
+	 * which triggers a cyclic relationship to exist in the graph. */
+	DEPSREL_FLAG_CYCLIC               = (1 << 0),
 	/* Update flush will not go through this relation. */
-	DEPSREL_FLAG_NO_FLUSH   = (1 << 1),
+	DEPSREL_FLAG_NO_FLUSH             = (1 << 1),
+	/* Only flush along the relation is update comes from a node which was
+	 * affected by user input. */
+	DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY = (1 << 2),
 } eDepsRelation_Flag;
 
 /* B depends on A (A -> B) */

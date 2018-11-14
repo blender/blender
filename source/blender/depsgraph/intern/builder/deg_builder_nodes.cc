@@ -399,7 +399,10 @@ void DepsgraphNodeBuilder::end_build()
 		if (op_node == NULL) {
 			continue;
 		}
-		op_node->tag_update(graph_);
+		/* Since the tag is coming from a saved copy of entry tags, this means
+		 * that originally node was explicitly tagged for user update.
+		 */
+		op_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
 	}
 }
 
@@ -818,6 +821,22 @@ void DepsgraphNodeBuilder::build_object_constraints(Object *object)
 	                   DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 }
 
+void DepsgraphNodeBuilder::build_object_pointcache(Object *object)
+{
+	if (!BKE_ptcache_object_has(scene_, object, 0)) {
+		return;
+	}
+	Scene *scene_cow = get_cow_datablock(scene_);
+	Object *object_cow = get_cow_datablock(object);
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_POINT_CACHE,
+	                   function_bind(BKE_object_eval_ptcache_reset,
+	                                 _1,
+	                                 scene_cow,
+	                                 object_cow),
+	                   DEG_OPCODE_POINT_CACHE_RESET);
+}
+
 /**
  * Build graph nodes for AnimData block
  * \param id: ID-Block which hosts the AnimData
@@ -1123,15 +1142,6 @@ void DepsgraphNodeBuilder::build_particles(Object *object,
 				break;
 		}
 	}
-
-	/* TODO(sergey): Do we need a point cache operations here? */
-	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_CACHE,
-	                   function_bind(BKE_ptcache_object_reset,
-	                                 scene_cow,
-	                                 ob_cow,
-	                                 PTCACHE_RESET_DEPSGRAPH),
-	                   DEG_OPCODE_POINT_CACHE_RESET);
 }
 
 void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {
@@ -1145,19 +1155,6 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
-}
-
-void DepsgraphNodeBuilder::build_cloth(Object *object)
-{
-	Scene *scene_cow = get_cow_datablock(scene_);
-	Object *object_cow = get_cow_datablock(object);
-	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_CACHE,
-	                   function_bind(BKE_object_eval_cloth,
-	                                 _1,
-	                                 scene_cow,
-	                                 object_cow),
-	                   DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER);
 }
 
 /* Shapekeys */
@@ -1204,13 +1201,6 @@ void DepsgraphNodeBuilder::build_object_data_geometry(
 	                             DEG_OPCODE_PLACEHOLDER,
 	                             "Eval Init");
 	op_node->set_as_entry();
-	// TODO: "Done" operation
-	/* Cloth modifier. */
-	LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-		if (md->type == eModifierType_Cloth) {
-			build_cloth(object);
-		}
-	}
 	/* Materials. */
 	if (object->totcol != 0) {
 		if (object->type == OB_MESH) {
@@ -1221,7 +1211,6 @@ void DepsgraphNodeBuilder::build_object_data_geometry(
 			                                 object_cow),
 			                   DEG_OPCODE_SHADING);
 		}
-
 		for (int a = 1; a <= object->totcol; a++) {
 			Material *ma = give_current_material(object, a);
 			if (ma != NULL) {
@@ -1229,10 +1218,9 @@ void DepsgraphNodeBuilder::build_object_data_geometry(
 			}
 		}
 	}
-	/* Geometry collision. */
-	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
-		// add geometry collider relations
-	}
+	/* Point caches. */
+	build_object_pointcache(object);
+	/* Geometry. */
 	build_object_data_geometry_datablock((ID *)object->data, is_object_visible);
 }
 
