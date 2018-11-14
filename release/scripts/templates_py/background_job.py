@@ -17,11 +17,11 @@
 #
 # See blender --help for details.
 
+
 import bpy
 
 
 def example_function(text, save_path, render_path):
-
     # Clear existing objects.
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -31,22 +31,24 @@ def example_function(text, save_path, render_path):
 
     # Text Object
     txt_ob = bpy.data.objects.new(name="MyText", object_data=txt_data)
-    scene.objects.link(txt_ob)   # add the data to the scene as an object
+    scene.collection.objects.link(txt_ob)   # add the data to the scene as an object
     txt_data.body = text         # the body text to the command line arg given
     txt_data.align_x = 'CENTER'  # center text
 
     # Camera
     cam_data = bpy.data.cameras.new("MyCam")
     cam_ob = bpy.data.objects.new(name="MyCam", object_data=cam_data)
-    scene.objects.link(cam_ob)  # instance the camera object in the scene
+    scene.collection.objects.link(cam_ob)  # instance the camera object in the scene
     scene.camera = cam_ob       # set the active camera
     cam_ob.location = 0.0, 0.0, 10.0
 
     # Light
     light_data = bpy.data.lights.new("MyLight", 'POINT')
     light_ob = bpy.data.objects.new(name="MyCam", object_data=light_data)
-    scene.objects.link(light_ob)
+    scene.collection.objects.link(light_ob)
     light_ob.location = 2.0, 2.0, 5.0
+
+    scene.update()
 
     if save_path:
         bpy.ops.wm.save_as_mainfile(filepath=save_path)
