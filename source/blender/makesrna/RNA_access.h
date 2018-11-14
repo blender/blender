@@ -198,6 +198,7 @@ extern StructRNA RNA_CompositorNodeZcombine;
 extern StructRNA RNA_ConsoleLine;
 extern StructRNA RNA_Constraint;
 extern StructRNA RNA_ConstraintTarget;
+extern StructRNA RNA_ConstraintTargetBone;
 extern StructRNA RNA_Context;
 extern StructRNA RNA_ControlFluidSettings;
 extern StructRNA RNA_Controller;

@@ -314,7 +314,7 @@ static bConstraint *rna_constraint_from_target(PointerRNA *ptr)
 	Object *ob = ptr->id.data;
 	bConstraintTarget *tgt = ptr->data;
 
-	return BKE_constraint_find_from_target(ob, tgt);
+	return BKE_constraint_find_from_target(ob, tgt, NULL);
 }
 
 static char *rna_ConstraintTarget_path(PointerRNA *ptr)

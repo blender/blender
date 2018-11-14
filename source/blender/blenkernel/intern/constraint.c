@@ -5058,8 +5058,12 @@ static bConstraint *constraint_list_find_from_target(ListBase *constraints, bCon
 }
 
 /* Finds the constraint that owns the given target within the object. */
-bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt)
+bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt, bPoseChannel **r_pchan)
 {
+	if (r_pchan != NULL) {
+		*r_pchan = NULL;
+	}
+
 	bConstraint *result = constraint_list_find_from_target(&ob->constraints, tgt);
 
 	if (result != NULL) {
@@ -5071,6 +5075,10 @@ bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt)
 			result = constraint_list_find_from_target(&pchan->constraints, tgt);
 
 			if (result != NULL) {
+				if (r_pchan != NULL) {
+					*r_pchan = pchan;
+				}
+
 				return result;
 			}
 		}
