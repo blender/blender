@@ -99,7 +99,7 @@ def CLIP_default_settings_from_track(clip, track, framenr):
     width = clip.size[0]
     height = clip.size[1]
 
-    marker = track.markers.find_frame(framenr, False)
+    marker = track.markers.find_frame(framenr, exact=False)
     pattern_bb = marker.pattern_bound_box
 
     pattern = Vector(pattern_bb[1]) - Vector(pattern_bb[0])
@@ -1053,11 +1053,11 @@ class CLIP_OT_track_settings_to_track(bpy.types.Operator):
         track = clip.tracking.tracks.active
 
         framenr = context.scene.frame_current - clip.frame_start + 1
-        marker = track.markers.find_frame(framenr, False)
+        marker = track.markers.find_frame(framenr, exact=False)
 
         for t in clip.tracking.tracks:
             if t.select and t != track:
-                marker_selected = t.markers.find_frame(framenr, False)
+                marker_selected = t.markers.find_frame(framenr, exact=False)
                 for attr in self._attrs_track:
                     setattr(t, attr, getattr(track, attr))
                 for attr in self._attrs_marker:
