@@ -319,7 +319,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			}
 		}
 
-		/*	Increment the step */
+		/* Increment the step */
 		y -= ACHANNEL_STEP(ac);
 	}
 	GPU_blend(false);
@@ -336,9 +336,9 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	immUnbindProgram();
 
 	/* Draw keyframes
-	 *	1) Only channels that are visible in the Action Editor get drawn/evaluated.
-	 *	   This is to try to optimize this for heavier data sets
-	 *	2) Keyframes which are out of view horizontally are disregarded
+	 * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
+	 *    This is to try to optimize this for heavier data sets
+	 * 2) Keyframes which are out of view horizontally are disregarded
 	 */
 	y = (float)(-ACHANNEL_HEIGHT(ac));
 

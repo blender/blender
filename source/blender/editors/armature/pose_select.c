@@ -705,8 +705,8 @@ static bool pose_select_same_group(bContext *C, bool extend)
 	}
 
 	/* alloc a small array to keep track of the groups to use
-	 *  - each cell stores on/off state for whether group should be used
-	 *	- size is (groups_len + 1), since (index = 0) is used for no-group
+	 * - each cell stores on/off state for whether group should be used
+	 * - size is (groups_len + 1), since (index = 0) is used for no-group
 	 */
 	groups_len++;
 	group_flags_array = MEM_callocN(objects_len * groups_len * sizeof(bool), "pose_select_same_group");

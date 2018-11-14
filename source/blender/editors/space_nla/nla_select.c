@@ -80,9 +80,9 @@ static short selmodes_to_flagmodes(short sel)
 
 /* ******************** Deselect All Operator ***************************** */
 /* This operator works in one of three ways:
- *	1) (de)select all (AKEY) - test if select all or deselect all
- *	2) invert all (CTRL-IKEY) - invert selection of all keyframes
- *	3) (de)select all - no testing is done; only for use internal tools as normal function...
+ * 1) (de)select all (AKEY) - test if select all or deselect all
+ * 2) invert all (CTRL-IKEY) - invert selection of all keyframes
+ * 3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
 enum {
@@ -92,13 +92,13 @@ enum {
 } /*eDeselectNlaStrips*/;
 
 /* Deselects strips in the NLA Editor
- *	- This is called by the deselect all operator, as well as other ones!
+ * - This is called by the deselect all operator, as well as other ones!
  *
- *  - test: check if select or deselect all (1) or clear all active (2)
- *	- sel: how to select keyframes
- *		0 = deselect
- *		1 = select
- *		2 = invert
+ * - test: check if select or deselect all (1) or clear all active (2)
+ * - sel: how to select keyframes
+ * 0 = deselect
+ * 1 = select
+ * 2 = invert
  */
 static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
 {
@@ -317,9 +317,9 @@ static int nlaedit_box_select_exec(bContext *C, wmOperator *op)
 	/* selection 'mode' depends on whether box_select region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use
-		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
-		 *	  used for tweaking timing when "blocking", while channels is not that useful...
+		 * - checking this in region-space is fine, as it's fundamentally still going to be a different rect size
+		 * - the frame-range select option is favored over the channel one (x over y), as frame-range one is often
+		 *   used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
 			mode = NLA_BOXSEL_FRAMERANGE;
@@ -603,8 +603,8 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 			ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
 
 			/* if we selected it, we can make it active too
-			 *	- we always need to clear the active strip flag though...
-			 *  - as well as selecting its track...
+			 * - we always need to clear the active strip flag though...
+			 * - as well as selecting its track...
 			 */
 			deselect_nla_strips(ac, DESELECT_STRIPS_CLEARACTIVE, 0);
 

@@ -166,9 +166,9 @@ bool graphop_visible_keyframes_poll(bContext *C)
 		FCurve *fcu = (FCurve *)ale->data;
 
 		/* visible curves for selection must fulfill the following criteria:
-		 *	- it has bezier keyframes
-		 *	- F-Curve modifiers do not interfere with the result too much
-		 *	  (i.e. the modifier-control drawing check returns false)
+		 * - it has bezier keyframes
+		 * - F-Curve modifiers do not interfere with the result too much
+		 *   (i.e. the modifier-control drawing check returns false)
 		 */
 		if (fcu->bezt == NULL)
 			continue;
@@ -215,10 +215,10 @@ bool graphop_editable_keyframes_poll(bContext *C)
 		FCurve *fcu = (FCurve *)ale->data;
 
 		/* editable curves must fulfill the following criteria:
-		 *	- it has bezier keyframes
-		 *	- it must not be protected from editing (this is already checked for with the edit flag
-		 *	- F-Curve modifiers do not interfere with the result too much
-		 *	  (i.e. the modifier-control drawing check returns false)
+		 * - it has bezier keyframes
+		 * - it must not be protected from editing (this is already checked for with the edit flag
+		 * - F-Curve modifiers do not interfere with the result too much
+		 *   (i.e. the modifier-control drawing check returns false)
 		 */
 		if (fcu->bezt == NULL)
 			continue;

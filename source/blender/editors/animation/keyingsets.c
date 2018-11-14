@@ -118,7 +118,7 @@ static int add_default_keyingset_exec(bContext *C, wmOperator *UNUSED(op))
 	short flag = 0, keyingflag = 0;
 
 	/* validate flags
-	 *	- absolute KeyingSets should be created by default
+	 * - absolute KeyingSets should be created by default
 	 */
 	flag |= KEYINGSET_ABSOLUTE;
 
@@ -156,8 +156,8 @@ static int remove_active_keyingset_exec(bContext *C, wmOperator *op)
 	KeyingSet *ks;
 
 	/* verify the Keying Set to use:
-	 *	- use the active one
-	 *	- return error if it doesn't exist
+	 * - use the active one
+	 * - return error if it doesn't exist
 	 */
 	if (scene->active_keyingset == 0) {
 		BKE_report(op->reports, RPT_ERROR, "No active keying set to remove");
@@ -204,8 +204,8 @@ static int add_empty_ks_path_exec(bContext *C, wmOperator *op)
 	KS_Path *ksp;
 
 	/* verify the Keying Set to use:
-	 *	- use the active one
-	 *	- return error if it doesn't exist
+	 * - use the active one
+	 * - return error if it doesn't exist
 	 */
 	if (scene->active_keyingset == 0) {
 		BKE_report(op->reports, RPT_ERROR, "No active keying set to add empty path to");
@@ -304,14 +304,14 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 	}
 
 	/* verify the Keying Set to use:
-	 *	- use the active one for now (more control over this can be added later)
-	 *	- add a new one if it doesn't exist
+	 * - use the active one for now (more control over this can be added later)
+	 * - add a new one if it doesn't exist
 	 */
 	if (scene->active_keyingset == 0) {
 		short flag = 0, keyingflag = 0;
 
 		/* validate flags
-		 *	- absolute KeyingSets should be created by default
+		 * - absolute KeyingSets should be created by default
 		 */
 		flag |= KEYINGSET_ABSOLUTE;
 
@@ -407,8 +407,8 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 	}
 
 	/* verify the Keying Set to use:
-	 *	- use the active one for now (more control over this can be added later)
-	 *	- return error if it doesn't exist
+	 * - use the active one for now (more control over this can be added later)
+	 * - return error if it doesn't exist
 	 */
 	if (scene->active_keyingset == 0) {
 		BKE_report(op->reports, RPT_ERROR, "No active keying set to remove property from");
@@ -521,7 +521,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 	/* keyingset to use (dynamic enum) */
 	prop = RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
 	RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
-/*	RNA_def_property_flag(prop, PROP_HIDDEN);*/
+	// RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* ******************************************* */
@@ -584,7 +584,7 @@ void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
 	KeyingSet *ks;
 
 	/* create a new KeyingSet
-	 *	- inherit name and keyframing settings from the typeinfo
+	 * - inherit name and keyframing settings from the typeinfo
 	 */
 	ks = BKE_keyingset_add(&builtin_keyingsets, ksi->idname, ksi->name, 1, ksi->keyingflag);
 
@@ -669,9 +669,9 @@ KeyingSet *ANIM_scene_get_active_keyingset(Scene *scene)
 		return NULL;
 
 	/* currently, there are several possibilities here:
-	 *	-   0: no active keying set
-	 *	- > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
-	 *	- < 0: a builtin keying set
+	 * -   0: no active keying set
+	 * - > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
+	 * - < 0: a builtin keying set
 	 */
 	if (scene->active_keyingset > 0)
 		return BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1);
@@ -691,7 +691,7 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
 	/* check if the KeyingSet exists in scene list */
 	if (scene) {
 		/* get index and if valid, return
-		 *	- (absolute) Scene KeyingSets are from (>= 1)
+		 * - (absolute) Scene KeyingSets are from (>= 1)
 		 */
 		index = BLI_findindex(&scene->keyingsets, ks);
 		if (index != -1)
@@ -699,8 +699,8 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
 	}
 
 	/* still here, so try builtins list too
-	 *	- builtins are from (<= -1)
-	 *	- none/invalid is (= 0)
+	 * - builtins are from (<= -1)
+	 * - none/invalid is (= 0)
 	 */
 	index = BLI_findindex(&builtin_keyingsets, ks);
 	if (index != -1)
@@ -713,8 +713,8 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
 KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *transformKSName)
 {
 	/* get KeyingSet to use
-	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying),
-	 *    or otherwise key transforms only
+	 * - use the active KeyingSet if defined (and user wants to use it for all autokeying),
+	 *   or otherwise key transforms only
 	 */
 	if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (scene->active_keyingset))
 		return ANIM_scene_get_active_keyingset(scene);
@@ -740,7 +740,7 @@ const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C, PointerRNA *UNU
 	}
 
 	/* active Keying Set
-	 *	- only include entry if it exists
+	 * - only include entry if it exists
 	 */
 	if (scene->active_keyingset) {
 		/* active Keying Set */
@@ -756,7 +756,7 @@ const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C, PointerRNA *UNU
 	i++;
 
 	/* user-defined Keying Sets
-	 *	- these are listed in the order in which they were defined for the active scene
+	 * - these are listed in the order in which they were defined for the active scene
 	 */
 	if (scene->keyingsets.first) {
 		for (ks = scene->keyingsets.first; ks; ks = ks->next, i++) {
@@ -818,8 +818,8 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 /* Special 'Overrides' Iterator for Relative KeyingSets ------ */
 
 /* 'Data Sources' for relative Keying Set 'overrides'
- *  - this is basically a wrapper for PointerRNA's in a linked list
- *	- do not allow this to be accessed from outside for now
+ * - this is basically a wrapper for PointerRNA's in a linked list
+ * - do not allow this to be accessed from outside for now
  */
 typedef struct tRKS_DSource {
 	struct tRKS_DSource *next, *prev;
@@ -847,8 +847,8 @@ void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *s
 	tRKS_DSource *ds;
 
 	/* sanity checks
-	 *	- we must have somewhere to output the data
-	 *	- we must have both srna+data (and with id too optionally), or id by itself only
+	 * - we must have somewhere to output the data
+	 * - we must have both srna+data (and with id too optionally), or id by itself only
 	 */
 	if (dsources == NULL)
 		return;
@@ -928,10 +928,10 @@ static short keyingset_apply_keying_flags(const short base_flags, const short ov
 	short result = base_flags;
 
 	/* The logic for whether a keying flag applies is as follows:
-	 *  - If the flag in question is set in "overrides", that means that the
-	 *    status of that flag in "own_flags" is used
-	 *  - If however the flag isn't set, then its value in "base_flags" is used
-	 *    instead (i.e. no override)
+	 * - If the flag in question is set in "overrides", that means that the
+	 *   status of that flag in "own_flags" is used
+	 * - If however the flag isn't set, then its value in "base_flags" is used
+	 *   instead (i.e. no override)
 	 */
 #define APPLY_KEYINGFLAG_OVERRIDE(kflag) \
 	if (overrides & kflag) {             \
@@ -1034,7 +1034,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 			arraylen++;
 
 		/* for each possible index, perform operation
-		 *	- assume that arraylen is greater than index
+		 * - assume that arraylen is greater than index
 		 */
 		for (; i < arraylen; i++) {
 			/* action to take depends on mode */

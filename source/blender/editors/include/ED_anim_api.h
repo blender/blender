@@ -476,7 +476,7 @@ typedef struct bAnimChannelType {
 	int (*setting_flag)(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg);
 	/* get the pointer to int/short where data is stored,
 	 * with type being  sizeof(ptr_data) which should be fine for runtime use...
-	 *	- assume that setting has been checked to be valid for current context
+	 * - assume that setting has been checked to be valid for current context
 	 */
 	void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *type);
 } bAnimChannelType;
@@ -500,25 +500,25 @@ void ANIM_channel_draw_widgets(const struct bContext *C, bAnimContext *ac, bAnim
 /* Check if some setting for a channel is enabled
  * Returns: 1 = On, 0 = Off, -1 = Invalid
  *
- *  - setting: eAnimChannel_Settings
+ * - setting: eAnimChannel_Settings
  */
 short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
 
 /* Change value of some setting for a channel
- *	- setting: eAnimChannel_Settings
- *	- mode: eAnimChannels_SetFlag
+ * - setting: eAnimChannel_Settings
+ * - mode: eAnimChannels_SetFlag
  */
 void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode);
 
 
 /* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting
- *	- anim_data: list of the all the anim channels that can be chosen
- *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
- *		  then the channels under closed expanders get ignored...
- *	- ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
- *		with the new state of the setting that we want flushed up/down the hierarchy
- *	- setting: type of setting to set
- *	- on: whether the visibility setting has been enabled or disabled
+ * - anim_data: list of the all the anim channels that can be chosen
+ *   -> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
+ *      then the channels under closed expanders get ignored...
+ * - ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
+ *   with the new state of the setting that we want flushed up/down the hierarchy
+ * - setting: type of setting to set
+ * - on: whether the visibility setting has been enabled or disabled
  */
 void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, eAnimChannel_Settings setting, eAnimChannels_SetFlag mode);
 
@@ -582,12 +582,12 @@ void ANIM_fmodifiers_copybuf_free(void);
 
 /* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
  * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
- *	- active: only copy the active modifier
+ * - active: only copy the active modifier
  */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
 
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list
- *	- replace: free all the existing modifiers to leave only the pasted ones
+ * - replace: free all the existing modifiers to leave only the pasted ones
  */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FCurve *curve);
 
@@ -662,9 +662,9 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 #define BEZKEYTYPE(bezt) ((bezt)->hide)
 
 /* set/clear/toggle macro
- *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=invert
- *	- sflag - bitflag to set
+ * - channel - channel with a 'flag' member that we're setting
+ * - smode - 0=clear, 1=set, 2=invert
+ * - sflag - bitflag to set
  */
 #define ACHANNEL_SET_FLAG(channel, smode, sflag) \
 	{ \
@@ -674,9 +674,9 @@ float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FC
 	}
 
 /* set/clear/toggle macro, where the flag is negative
- *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=invert
- *	- sflag - bitflag to set
+ * - channel - channel with a 'flag' member that we're setting
+ * - smode - 0=clear, 1=set, 2=invert
+ * - sflag - bitflag to set
  */
 #define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
 	{ \

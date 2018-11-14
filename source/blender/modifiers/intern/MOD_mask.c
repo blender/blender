@@ -115,9 +115,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	}
 
 	/* Overview of Method:
-	 *	1. Get the vertices that are in the vertexgroup of interest
-	 *	2. Filter out unwanted geometry (i.e. not in vertexgroup), by populating mappings with new vs old indices
-	 *	3. Make a new mesh containing only the mapping data
+	 * 1. Get the vertices that are in the vertexgroup of interest
+	 * 2. Filter out unwanted geometry (i.e. not in vertexgroup), by populating mappings with new vs old indices
+	 * 3. Make a new mesh containing only the mapping data
 	 */
 
 	/* get original number of verts, edges, and faces */
@@ -126,7 +126,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	maxPolys = mesh->totpoly;
 
 	/* check if we can just return the original mesh
-	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
+	 * - must have verts and therefore verts assigned to vgroups to do anything useful
 	 */
 	if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) ||
 	    (maxVerts == 0) || BLI_listbase_is_empty(&ob->defbase))

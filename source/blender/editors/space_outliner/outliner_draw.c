@@ -2163,9 +2163,9 @@ void draw_outliner(const bContext *C)
 
 	if (soops->outlinevis == SO_DATA_API) {
 		/* RNA has two columns:
-		 *  - column 1 is (max_width + OL_RNA_COL_SPACEX) or
-		 *				 (OL_RNA_COL_X), whichever is wider...
-		 *	- column 2 is fixed at OL_RNA_COL_SIZEX
+		 * - column 1 is (max_width + OL_RNA_COL_SPACEX) or
+		 *   (OL_RNA_COL_X), whichever is wider...
+		 * - column 2 is fixed at OL_RNA_COL_SIZEX
 		 *
 		 *  (*) XXX max width for now is a fixed factor of (UI_UNIT_X * (max_indention + 100))
 		 */

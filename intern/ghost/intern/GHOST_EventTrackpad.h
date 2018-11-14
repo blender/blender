@@ -20,8 +20,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s):  James Deery		11/2009
- *					Damien Plisson	12/2009
+ * Contributor(s): James Deery     11/2009
+ *                 Damien Plisson  12/2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */

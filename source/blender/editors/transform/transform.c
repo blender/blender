@@ -810,7 +810,7 @@ enum {
 	TFM_MODAL_ADD_SNAP       = 16,
 	TFM_MODAL_REMOVE_SNAP    = 17,
 
-/*	18 and 19 used by numinput, defined in transform.h */
+/* 18 and 19 used by numinput, defined in transform.h */
 
 	TFM_MODAL_PROPSIZE_UP    = 20,
 	TFM_MODAL_PROPSIZE_DOWN  = 21,
@@ -2834,8 +2834,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		float ctime = (float)(t->scene->r.cfra);
 
 		/* Make a temporary bConstraintOb for using these limit constraints
-		 *  - they only care that cob->matrix is correctly set ;-)
-		 *	- current space should be local
+		 * - they only care that cob->matrix is correctly set ;-)
+		 * - current space should be local
 		 */
 		unit_m4(cob.matrix);
 		copy_v3_v3(cob.matrix[3], td->loc);
@@ -2901,8 +2901,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 {
 	/* Make a temporary bConstraintOb for use by limit constraints
-	 *  - they only care that cob->matrix is correctly set ;-)
-	 *	- current space should be local
+	 * - they only care that cob->matrix is correctly set ;-)
+	 * - current space should be local
 	 */
 	memset(cob, 0, sizeof(bConstraintOb));
 	if (td->ext) {
@@ -3003,8 +3003,8 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 		int i;
 
 		/* Make a temporary bConstraintOb for using these limit constraints
-		 *  - they only care that cob->matrix is correctly set ;-)
-		 *	- current space should be local
+		 * - they only care that cob->matrix is correctly set ;-)
+		 * - current space should be local
 		 */
 		if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
 			/* scale val and reset size */
@@ -8633,7 +8633,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 	}
 
 	/* toggle autosnap on/off
-	 *  - when toggling on, prefer nearest frame over 1.0 frame increments
+	 * - when toggling on, prefer nearest frame over 1.0 frame increments
 	 */
 	if (t->modifiers & MOD_SNAP_INVERT) {
 		if (autosnap)

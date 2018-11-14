@@ -149,16 +149,16 @@ public:
 	 * Create a new window.
 	 * The new window is added to the list of windows managed.
 	 * Never explicitly delete the window, use disposeWindow() instead.
-	 * \param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
-	 * \param	left		The coordinate of the left edge of the window.
-	 * \param	top		The coordinate of the top edge of the window.
-	 * \param	width		The width the window.
-	 * \param	height		The height the window.
-	 * \param	state		The state of the window when opened.
-	 * \param	type		The type of drawing context installed in this window.
-	 * \param	stereoVisual    Create a stereo visual for quad buffered stereo.
-	 * \param	exclusive	Use to show the window ontop and ignore others
-	 *						(used fullscreen).
+	 * \param   title   The name of the window (displayed in the title bar of the window if the OS supports it).
+	 * \param   left        The coordinate of the left edge of the window.
+	 * \param   top     The coordinate of the top edge of the window.
+	 * \param   width       The width the window.
+	 * \param   height      The height the window.
+	 * \param   state       The state of the window when opened.
+	 * \param   type        The type of drawing context installed in this window.
+	 * \param   stereoVisual    Create a stereo visual for quad buffered stereo.
+	 * \param   exclusive   Use to show the window ontop and ignore others
+	 *                      (used fullscreen).
 	 * \param	parentWindow    Parent (embedder) window
 	 * \return	The new window (or 0 if creation failed).
 	 */

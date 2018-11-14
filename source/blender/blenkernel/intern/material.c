@@ -226,9 +226,9 @@ Material *BKE_material_copy(Main *bmain, const Material *ma)
 Material *BKE_material_localize(Material *ma)
 {
 	/* TODO replace with something like
-	 * 	Material *ma_copy;
-	 * 	BKE_id_copy_ex(bmain, &ma->id, (ID **)&ma_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
-	 * 	return ma_copy;
+	 * Material *ma_copy;
+	 * BKE_id_copy_ex(bmain, &ma->id, (ID **)&ma_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
+	 * return ma_copy;
 	 *
 	 * ... Once f*** nodes are fully converted to that too :( */
 

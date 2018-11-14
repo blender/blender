@@ -266,7 +266,7 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src, const int fl
 /* Adding ------------------------------------------- */
 
 /* Add a NLA Track to the given AnimData
- *	- prev: NLA-Track to add the new one after
+ * - prev: NLA-Track to add the new one after
  */
 NlaTrack *BKE_nlatrack_add(AnimData *adt, NlaTrack *prev)
 {
@@ -311,11 +311,11 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
 	strip = MEM_callocN(sizeof(NlaStrip), "NlaStrip");
 
 	/* generic settings
-	 *	- selected flag to highlight this to the user
-	 *	- (XXX) disabled Auto-Blends, as this was often causing some unwanted effects
-	 *	- (XXX) synchronization of strip-length in accordance with changes to action-length
-	 *	  is not done though, since this should only really happens in editmode for strips now
-	 *	  though this decision is still subject to further review...
+	 * - selected flag to highlight this to the user
+	 * - (XXX) disabled Auto-Blends, as this was often causing some unwanted effects
+	 * - (XXX) synchronization of strip-length in accordance with changes to action-length
+	 *   is not done though, since this should only really happens in editmode for strips now
+	 *   though this decision is still subject to further review...
 	 */
 	strip->flag = NLASTRIP_FLAG_SELECT;
 
@@ -324,7 +324,7 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
 	id_us_plus(&act->id);
 
 	/* determine initial range
-	 *	- strip length cannot be 0... ever...
+	 * - strip length cannot be 0... ever...
 	 */
 	calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
 
@@ -413,7 +413,7 @@ NlaStrip *BKE_nla_add_soundstrip(Scene *scene, Speaker *speaker)
 /* Strip Mapping ------------------------------------- */
 
 /* non clipped mapping for strip-time <-> global time (for Action-Clips)
- *	invert = convert action-strip time to global time
+ * invert = convert action-strip time to global time
  */
 static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short mode)
 {
@@ -483,7 +483,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
 }
 
 /* non clipped mapping for strip-time <-> global time (for Transitions)
- *	invert = convert action-strip time to global time
+ * invert = convert action-strip time to global time
  */
 static float nlastrip_get_frame_transition(NlaStrip *strip, float cframe, short mode)
 {
@@ -528,7 +528,7 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode)
 
 
 /* Non clipped mapping for strip-time <-> global time
- *	mode = eNlaTime_ConvertModes -> NLATIME_CONVERT_*
+ * mode = eNlaTime_ConvertModes -> NLATIME_CONVERT_*
  *
  * Public API method - perform this mapping using the given AnimData block
  * and perform any necessary sanity checks on the value
@@ -538,9 +538,9 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 	NlaStrip *strip;
 
 	/* sanity checks
-	 *	- obviously we've got to have some starting data
-	 *	- when not in tweakmode, the active Action does not have any scaling applied :)
-	 *	- when in tweakmode, if the no-mapping flag is set, do not map
+	 * - obviously we've got to have some starting data
+	 * - when not in tweakmode, the active Action does not have any scaling applied :)
+	 * - when in tweakmode, if the no-mapping flag is set, do not map
 	 */
 	if ((adt == NULL) || (adt->flag & ADT_NLA_EDIT_ON) == 0 || (adt->flag & ADT_NLA_EDIT_NOMAP))
 		return cframe;
@@ -560,9 +560,9 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 	strip = adt->actstrip;
 
 	/* sanity checks
-	 *	- in rare cases, we may not be able to find this strip for some reason (internal error)
-	 *	- for now, if the user has defined a curve to control the time, this correction cannot be performed
-	 *	  reliably...
+	 * - in rare cases, we may not be able to find this strip for some reason (internal error)
+	 * - for now, if the user has defined a curve to control the time, this correction cannot be performed
+	 *   reliably...
 	 */
 	if ((strip == NULL) || (strip->flag & NLASTRIP_FLAG_USR_TIME))
 		return cframe;
@@ -692,7 +692,7 @@ bool BKE_nlastrips_add_strip(ListBase *strips, NlaStrip *strip)
 
 /* Convert 'islands' (i.e. continuous string of) selected strips to be
  * contained within 'Meta-Strips' which act as strips which contain strips.
- *	temp: are the meta-strips to be created 'temporary' ones used for transforms?
+ * temp: are the meta-strips to be created 'temporary' ones used for transforms?
  */
 void BKE_nlastrips_make_metas(ListBase *strips, bool is_temp)
 {
@@ -768,8 +768,8 @@ void BKE_nlastrips_clear_metastrip(ListBase *strips, NlaStrip *strip)
 }
 
 /* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips
- *	sel: only consider selected meta-strips, otherwise all meta-strips are removed
- *	onlyTemp: only remove the 'temporary' meta-strips used for transforms
+ * sel: only consider selected meta-strips, otherwise all meta-strips are removed
+ * onlyTemp: only remove the 'temporary' meta-strips used for transforms
  */
 void BKE_nlastrips_clear_metas(ListBase *strips, bool only_sel, bool only_temp)
 {
@@ -856,8 +856,8 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
 	short scaleChanged = 0;
 
 	/* sanity checks
-	 *	- strip must exist
-	 *	- strip must be a meta-strip with some contents
+	 * - strip must exist
+	 * - strip must be a meta-strip with some contents
 	 */
 	if (ELEM(NULL, mstrip, mstrip->strips.first))
 		return;
@@ -865,8 +865,8 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
 		return;
 
 	/* get the original start/end points, and calculate the start-frame offset
-	 *	- these are simply the start/end frames of the child strips,
-	 *	  since we assume they weren't transformed yet
+	 * - these are simply the start/end frames of the child strips,
+	 *   since we assume they weren't transformed yet
 	 */
 	oStart = ((NlaStrip *)mstrip->strips.first)->start;
 	oEnd = ((NlaStrip *)mstrip->strips.last)->end;
@@ -874,7 +874,7 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
 
 	/* optimization:
 	 * don't flush if nothing changed yet
-	 *	TODO: maybe we need a flag to say always flush?
+	 * TODO: maybe we need a flag to say always flush?
 	 */
 	if (IS_EQF(oStart, mstrip->start) && IS_EQF(oEnd, mstrip->end))
 		return;
@@ -1033,9 +1033,9 @@ void BKE_nlatrack_set_active(ListBase *tracks, NlaTrack *nlt_a)
 bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 {
 	/* sanity checks
-	 *  - track must exist
-	 *  - track must be editable
-	 *  - bounds cannot be equal (0-length is nasty)
+	 * - track must exist
+	 * - track must be editable
+	 * - bounds cannot be equal (0-length is nasty)
 	 */
 	if ((nlt == NULL) || (nlt->flag & NLATRACK_PROTECTED) || IS_EQF(start, end))
 		return false;
@@ -1162,8 +1162,8 @@ bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
 		return false;
 
 	/* only ok if at least part of the strip is within the bounding window
-	 *	- first 2 cases cover when the strip length is less than the bounding area
-	 *	- second 2 cases cover when the strip length is greater than the bounding area
+	 * - first 2 cases cover when the strip length is less than the bounding area
+	 * - second 2 cases cover when the strip length is greater than the bounding area
 	 */
 	if ((stripLen < boundsLen) &&
 	    !(IN_RANGE(strip->start, min, max) ||
@@ -1288,8 +1288,8 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 	float actlen, mapping;
 
 	/* sanity checks
-	 *	- must have a strip
-	 *	- can only be done for action clips
+	 * - must have a strip
+	 * - can only be done for action clips
 	 */
 	if ((strip == NULL) || (strip->type != NLASTRIP_TYPE_CLIP))
 		return;
@@ -1512,8 +1512,8 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 	}
 
 	/* build a hash-table of all the strips in the tracks
-	 *	- this is easier than iterating over all the tracks+strips hierarchy every time
-	 *	  (and probably faster)
+	 * - this is easier than iterating over all the tracks+strips hierarchy every time
+	 *   (and probably faster)
 	 */
 	gh = BLI_ghash_str_new("nlastrip_validate_name gh");
 
@@ -1529,7 +1529,7 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 	}
 
 	/* if the hash-table has a match for this name, try other names...
-	 *	- in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
+	 * - in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
 	 */
 	BLI_uniquename_cb(nla_editbone_name_check, (void *)gh, DATA_("NlaStrip"), '.', strip->name, sizeof(strip->name));
 
@@ -1540,9 +1540,9 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 /* ---- */
 
 /* Get strips which overlap the given one at the start/end of its range
- *	- strip: strip that we're finding overlaps for
- *	- track: nla-track that the overlapping strips should be found from
- *	- start, end: frames for the offending endpoints
+ * - strip: strip that we're finding overlaps for
+ * - track: nla-track that the overlapping strips should be found from
+ * - start, end: frames for the offending endpoints
  */
 static void nlastrip_get_endpoint_overlaps(NlaStrip *strip, NlaTrack *track, float **start, float **end)
 {
@@ -1567,7 +1567,7 @@ static void nlastrip_get_endpoint_overlaps(NlaStrip *strip, NlaTrack *track, flo
 			return;  /* the range we're after has already passed */
 
 		/* if this strip is not part of an island of continuous strips, it can be used
-		 *	- this check needs to be done for each end of the strip we try and use...
+		 * - this check needs to be done for each end of the strip we try and use...
 		 */
 		if ((nls->next == NULL) || IS_EQF(nls->next->start, nls->end) == 0) {
 			if ((nls->end > strip->start) && (nls->end < strip->end))
@@ -1601,9 +1601,9 @@ static void BKE_nlastrip_validate_autoblends(NlaTrack *nlt, NlaStrip *nls)
 		nlastrip_get_endpoint_overlaps(nls, nlt->next, &ns, &ne);
 
 	/* set overlaps for this strip
-	 *	- don't use the values obtained though if the end in question
-	 *	  is directly followed/preceded by another strip, forming an
-	 *	  'island' of continuous strips
+	 * - don't use the values obtained though if the end in question
+	 *   is directly followed/preceded by another strip, forming an
+	 *   'island' of continuous strips
 	 */
 	if ((ps || ns) && ((nls->prev == NULL) || IS_EQF(nls->prev->end, nls->start) == 0)) {
 		/* start overlaps - pick the largest overlap */
@@ -1866,7 +1866,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 		return true;
 
 	/* go over the tracks, finding the active one, and its active strip
-	 *  - if we cannot find both, then there's nothing to do
+	 * - if we cannot find both, then there's nothing to do
 	 */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
 		/* check if active */
@@ -1936,16 +1936,16 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 	}
 
 	/* go over all the tracks after AND INCLUDING the active one, tagging them as being disabled
-	 *	- the active track needs to also be tagged, otherwise, it'll overlap with the tweaks going on
+	 * - the active track needs to also be tagged, otherwise, it'll overlap with the tweaks going on
 	 */
 	for (nlt = activeTrack; nlt; nlt = nlt->next)
 		nlt->flag |= NLATRACK_DISABLED;
 
 	/* handle AnimData level changes:
-	 *	- 'real' active action to temp storage (no need to change user-counts)
-	 *	- action of active strip set to be the 'active action', and have its usercount incremented
-	 *	- editing-flag for this AnimData block should also get turned on (for more efficient restoring)
-	 *	- take note of the active strip for mapping-correction of keyframes in the action being edited
+	 * - 'real' active action to temp storage (no need to change user-counts)
+	 * - action of active strip set to be the 'active action', and have its usercount incremented
+	 * - editing-flag for this AnimData block should also get turned on (for more efficient restoring)
+	 * - take note of the active strip for mapping-correction of keyframes in the action being edited
 	 */
 	adt->tmpact = adt->action;
 	adt->action = activeStrip->act;
@@ -2011,11 +2011,11 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	}
 
 	/* handle AnimData level changes:
-	 *	- 'temporary' active action needs its usercount decreased, since we're removing this reference
-	 *	- 'real' active action is restored from storage
-	 *	- storage pointer gets cleared (to avoid having bad notes hanging around)
-	 *	- editing-flag for this AnimData block should also get turned off
-	 *	- clear pointer to active strip
+	 * - 'temporary' active action needs its usercount decreased, since we're removing this reference
+	 * - 'real' active action is restored from storage
+	 * - storage pointer gets cleared (to avoid having bad notes hanging around)
+	 * - editing-flag for this AnimData block should also get turned off
+	 * - clear pointer to active strip
 	 */
 	if (adt->action)
 		id_us_min(&adt->action->id);

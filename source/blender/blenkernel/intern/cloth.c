@@ -1576,13 +1576,13 @@ static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 			}
 		}
 		else {
-			/* bending springs for hair strands */
-			/* The current algorithm only goes through the edges in order of the mesh edges list	*/
-			/* and makes springs between the outer vert of edges sharing a vertice. This works just */
-			/* fine for hair, but not for user generated string meshes. This could/should be later	*/
-			/* extended to work with non-ordered edges so that it can be used for general "rope		*/
-			/* dynamics" without the need for the vertices or edges to be ordered through the length*/
-			/* of the strands. -jahka */
+			/* bending springs for hair strands
+			 * The current algorithm only goes through the edges in order of the mesh edges list
+			 * and makes springs between the outer vert of edges sharing a vertice. This works just
+			 * fine for hair, but not for user generated string meshes. This could/should be later
+			 * extended to work with non-ordered edges so that it can be used for general "rope
+			 * dynamics" without the need for the vertices or edges to be ordered through the length
+			 * of the strands. -jahka */
 			search = cloth->springs;
 			search2 = search->next;
 			while (search && search2) {

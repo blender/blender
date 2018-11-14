@@ -236,7 +236,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 	bArmature *arm = (bArmature *)ob->data;
 
 	/* old optimize trick... this enforces to bypass the depgraph
-	 *	- note: code copied from transform_generics.c -> recalcData()
+	 * - note: code copied from transform_generics.c -> recalcData()
 	 */
 	/* FIXME: shouldn't this use the builtin stuff? */
 	if ((arm->flag & ARM_DELAYDEFORM) == 0)
@@ -338,8 +338,8 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 	BLI_freelistN(&dsources);
 
 	/* do the bone paths
-	 *	- only do this if keyframes should have been added
-	 *	- do not calculate unless there are paths already to update...
+	 * - only do this if keyframes should have been added
+	 * - do not calculate unless there are paths already to update...
 	 */
 	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob) {
 		if (ob->id.tag & LIB_TAG_DOIT) {
@@ -354,7 +354,7 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 /* ------------------------- */
 
 /* find the next F-Curve for a PoseChannel with matching path...
- *	- path is not just the pfl rna_path, since that path doesn't have property info yet
+ * - path is not just the pfl rna_path, since that path doesn't have property info yet
  */
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path)
 {

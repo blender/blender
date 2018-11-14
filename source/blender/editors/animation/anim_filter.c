@@ -348,8 +348,8 @@ static bool nlaedit_get_context(bAnimContext *ac, SpaceNla *snla)
 /* ----------- Public API --------------- */
 
 /* Obtain current anim-data context, given that context info from Blender context has already been set
- *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
- *	  allocation/freeing costs (which are not that avoidable with channels).
+ * - AnimContext to write to is provided as pointer to var on stack so that we don't have
+ *   allocation/freeing costs (which are not that avoidable with channels).
  */
 bool ANIM_animdata_context_getdata(bAnimContext *ac)
 {
@@ -385,9 +385,9 @@ bool ANIM_animdata_context_getdata(bAnimContext *ac)
 }
 
 /* Obtain current anim-data context from Blender Context info
- *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
- *	  allocation/freeing costs (which are not that avoidable with channels).
- *	- Clears data and sets the information from Blender Context which is useful
+ * - AnimContext to write to is provided as pointer to var on stack so that we don't have
+ *   allocation/freeing costs (which are not that avoidable with channels).
+ * - Clears data and sets the information from Blender Context which is useful
  */
 bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 {
@@ -431,12 +431,12 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  * to abstract away some of the tricky logic involved
  *
  * cases:
- *	1) Graph Edit main area (just data) OR channels visible in Channel List
- *	2) If not showing channels, we're only interested in the data (Action Editor's editing)
- *	3) We don't care what data, we just care there is some (so that a collapsed
- *	   channel can be kept around). No need to clear channels-flag in order to
- *	   keep expander channels with no sub-data out, as those cases should get
- *	   dealt with by the recursive detection idiom in place.
+ * 1) Graph Edit main area (just data) OR channels visible in Channel List
+ * 2) If not showing channels, we're only interested in the data (Action Editor's editing)
+ * 3) We don't care what data, we just care there is some (so that a collapsed
+ *    channel can be kept around). No need to clear channels-flag in order to
+ *    keep expander channels with no sub-data out, as those cases should get
+ *    dealt with by the recursive detection idiom in place.
  *
  * Implementation Note:
  *  YES the _doSubChannels variable is NOT read anywhere. BUT, this is NOT an excuse
@@ -483,28 +483,28 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  *
  * For this to work correctly, a standard set of data needs to be available within the scope that this
  * gets called in:
- *  - ListBase anim_data;
- *  - bDopeSheet *ads;
- *  - bAnimListElem *ale;
- *  - size_t items;
+ * - ListBase anim_data;
+ * - bDopeSheet *ads;
+ * - bAnimListElem *ale;
+ * - size_t items;
  *
- *  - id: ID block which should have an AnimData pointer following it immediately, to use
- *  - adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
- *  - nlaOk: line or block of code to execute for NLA tracks+strips case
- *  - driversOk: line or block of code to execute for Drivers case
- *  - nlaKeysOk: line or block of code for NLA Strip Keyframes case
- *  - keysOk: line or block of code for Keyframes case
+ * - id: ID block which should have an AnimData pointer following it immediately, to use
+ * - adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
+ * - nlaOk: line or block of code to execute for NLA tracks+strips case
+ * - driversOk: line or block of code to execute for Drivers case
+ * - nlaKeysOk: line or block of code for NLA Strip Keyframes case
+ * - keysOk: line or block of code for Keyframes case
  *
  * The checks for the various cases are as follows:
- *	0) top level: checks for animdata and also that all the F-Curves for the block will be visible
- *	1) animdata check: for filtering animdata blocks only
- *	2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
- *	2B) actions to convert to nla: include animdata block's data as there is an action that can be
- *		converted to a new NLA strip, and the filtering options allow this
- *	2C) allow non-animated datablocks to be included so that datablocks can be added
- *	3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
- *  4A) nla strip keyframes: these are the per-strip controls for time and influence
- *	4B) normal keyframes: only when there is an active action
+ * 0) top level: checks for animdata and also that all the F-Curves for the block will be visible
+ * 1) animdata check: for filtering animdata blocks only
+ * 2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
+ * 2B) actions to convert to nla: include animdata block's data as there is an action that can be
+ *     converted to a new NLA strip, and the filtering options allow this
+ * 2C) allow non-animated datablocks to be included so that datablocks can be added
+ * 3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
+ * 4A) nla strip keyframes: these are the per-strip controls for time and influence
+ * 4B) normal keyframes: only when there is an active action
  */
 #define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, nlaKeysOk, keysOk) \
 	{ \
@@ -574,12 +574,12 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 	 ((filter_mode & ANIMFILTER_UNSEL) && test_func == 0) )
 
 /* quick macro to test if an anim-channel (F-Curve) is selected ok for editing purposes
- *	- _SELEDIT means that only selected curves will have visible+editable keyframes
+ * - _SELEDIT means that only selected curves will have visible+editable keyframes
  *
  * checks here work as follows:
- *	1) seledit off - don't need to consider the implications of this option
- *	2) foredit off - we're not considering editing, so channel is ok still
- *	3) test_func (i.e. selection test) - only if selected, this test will pass
+ * 1) seledit off - don't need to consider the implications of this option
+ * 2) foredit off - we're not considering editing, so channel is ok still
+ * 3) test_func (i.e. selection test) - only if selected, this test will pass
  */
 #define ANIMCHANNEL_SELEDITOK(test_func) \
 	(!(filter_mode & ANIMFILTER_SELEDIT) || \
@@ -1197,12 +1197,12 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, eAnim_Chan
 	 */
 	for (fcu = first; ((fcu) && (fcu->grp == grp)); fcu = fcu->next) {
 		/* special exception for Pose-Channel/Sequence-Strip/Node Based F-Curves:
-		 *	- the 'Only Selected' and 'Include Hidden' data filters should be applied to sub-ID data which
-		 *	  can be independently selected/hidden, such as Pose-Channels, Sequence Strips, and Nodes.
-		 *	  Since these checks were traditionally done as first check for objects, we do the same here
-		 *	- we currently use an 'approximate' method for getting these F-Curves that doesn't require
-		 *	  carefully checking the entire path
-		 *	- this will also affect things like Drivers, and also works for Bone Constraints
+		 * - the 'Only Selected' and 'Include Hidden' data filters should be applied to sub-ID data which
+		 *   can be independently selected/hidden, such as Pose-Channels, Sequence Strips, and Nodes.
+		 *   Since these checks were traditionally done as first check for objects, we do the same here
+		 * - we currently use an 'approximate' method for getting these F-Curves that doesn't require
+		 *   carefully checking the entire path
+		 * - this will also affect things like Drivers, and also works for Bone Constraints
 		 */
 		if (ads && owner_id) {
 			if ((filter_mode & ANIMFILTER_TMP_IGNORE_ONLYSEL) == 0) {
@@ -1255,13 +1255,13 @@ static size_t animfilter_fcurves(ListBase *anim_data, bDopeSheet *ads,
 	size_t items = 0;
 
 	/* loop over every F-Curve able to be included
-	 *	- this for-loop works like this:
-	 *		1) the starting F-Curve is assigned to the fcu pointer so that we have a starting point to search from
-	 *		2) the first valid F-Curve to start from (which may include the one given as 'first') in the remaining
-	 *		   list of F-Curves is found, and verified to be non-null
-	 *		3) the F-Curve referenced by fcu pointer is added to the list
-	 *		4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through
-	 *		   the rest of the F-Curve list without an eternal loop. Back to step 2 :)
+	 * - this for-loop works like this:
+	 *   1) the starting F-Curve is assigned to the fcu pointer so that we have a starting point to search from
+	 *   2) the first valid F-Curve to start from (which may include the one given as 'first') in the remaining
+	 *      list of F-Curves is found, and verified to be non-null
+	 *   3) the F-Curve referenced by fcu pointer is added to the list
+	 *   4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through
+	 *      the rest of the F-Curve list without an eternal loop. Back to step 2 :)
 	 */
 	for (fcu = first; ( (fcu = animfilter_fcurve_next(ads, fcu, fcurve_type, filter_mode, owner, owner_id)) ); fcu = fcu->next) {
 		if (UNLIKELY(fcurve_type == ANIMTYPE_NLACURVE)) {
@@ -1290,9 +1290,9 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 
 	/* if we care about the selection status of the channels,
 	 * but the group isn't expanded (1)...
-	 *  (1) this only matters if we actually care about the hierarchy though.
-	 *		- Hierarchy matters: this hack should be applied
-	 *		- Hierarchy ignored: cases like [#21276] won't work properly, unless we skip this hack
+	 * (1) this only matters if we actually care about the hierarchy though.
+	 *     - Hierarchy matters: this hack should be applied
+	 *     - Hierarchy ignored: cases like [#21276] won't work properly, unless we skip this hack
 	 */
 	if ( ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp) == 0) &&     /* care about hierarchy but group isn't expanded */
 	     (filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL)) )                          /* care about selection status */
@@ -1305,9 +1305,9 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 		 * since this creates too much overhead for animators (i.e. making a slow workflow)
 		 *
 		 * Tools affected by this at time of coding (2010 Feb 09):
-		 *	- inserting keyframes on selected channels only
-		 *	- pasting keyframes
-		 *	- creating ghost curves in Graph Editor
+		 * - inserting keyframes on selected channels only
+		 * - pasting keyframes
+		 * - creating ghost curves in Graph Editor
 		 */
 		filter_mode &= ~(ANIMFILTER_SEL | ANIMFILTER_UNSEL | ANIMFILTER_LIST_VISIBLE);
 	}
@@ -1392,12 +1392,12 @@ static size_t animfilter_action(bAnimContext *ac, ListBase *anim_data, bDopeShee
 }
 
 /* Include NLA-Data for NLA-Editor:
- *	- when ANIMFILTER_LIST_CHANNELS is used, that means we should be filtering the list for display
- *	  Although the evaluation order is from the first track to the last and then apply the Action on top,
- *	  we present this in the UI as the Active Action followed by the last track to the first so that we
- *	  get the evaluation order presented as per a stack.
- *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
- *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
+ * - when ANIMFILTER_LIST_CHANNELS is used, that means we should be filtering the list for display
+ *   Although the evaluation order is from the first track to the last and then apply the Action on top,
+ *   we present this in the UI as the Active Action followed by the last track to the first so that we
+ *   get the evaluation order presented as per a stack.
+ * - for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
+ *   order, i.e. first to last. Otherwise, some tools may get screwed up.
  */
 static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *ads, AnimData *adt, int filter_mode, ID *owner_id)
 {
@@ -1414,8 +1414,8 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 			/* there isn't really anything editable here, so skip if need editable */
 			if ((filter_mode & ANIMFILTER_FOREDIT) == 0) {
 				/* just add the action track now (this MUST appear for drawing)
-				 *	- as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
-				 *	  overwrite this with the real value - REVIEW THIS...
+				 * - as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
+				 *   overwrite this with the real value - REVIEW THIS...
 				 */
 				ANIMCHANNEL_NEW_CHANNEL_FULL((void *)(&adt->action), ANIMTYPE_NLAACTION, owner_id,
 					{
@@ -1441,7 +1441,7 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 			next = nlt->next;
 
 		/* if we're in NLA-tweakmode, don't show this track if it was disabled (due to tweaking) for now
-		 *	- active track should still get shown though (even though it has disabled flag set)
+		 * - active track should still get shown though (even though it has disabled flag set)
 		 */
 		// FIXME: the channels after should still get drawn, just 'differently', and after an active-action channel
 		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED) && (adt->act_track != nlt))
@@ -1716,13 +1716,13 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 				Object *ob = base->object;
 
 				/* firstly, check if object can be included, by the following factors:
-				 *	- if only visible, must check for layer and also viewport visibility
-				 *		--> while tools may demand only visible, user setting takes priority
-				 *			as user option controls whether sets of channels get included while
-				 *			tool-flag takes into account collapsed/open channels too
-				 *	- if only selected, must check if object is selected
-				 *	- there must be animation data to edit (this is done recursively as we
-				 *	  try to add the channels)
+				 * - if only visible, must check for layer and also viewport visibility
+				 *   --> while tools may demand only visible, user setting takes priority
+				 *       as user option controls whether sets of channels get included while
+				 *       tool-flag takes into account collapsed/open channels too
+				 * - if only selected, must check if object is selected
+				 * - there must be animation data to edit (this is done recursively as we
+				 *   try to add the channels)
 				 */
 				if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 					/* layer visibility - we check both object and base, since these may not be in sync yet */
@@ -1740,7 +1740,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 
 				/* check if object belongs to the filtering group if option to filter
 				 * objects by the grouped status is on
-				 *	- used to ease the process of doing multiple-character choreographies
+				 * - used to ease the process of doing multiple-character choreographies
 				 */
 				if (ads->filter_grp != NULL) {
 					if (BKE_collection_has_object_recursive(ads->filter_grp, ob) == 0)
@@ -2857,13 +2857,13 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
 		return false;
 
 	/* firstly, check if object can be included, by the following factors:
-	 *	- if only visible, must check for layer and also viewport visibility
-	 *		--> while tools may demand only visible, user setting takes priority
-	 *			as user option controls whether sets of channels get included while
-	 *			tool-flag takes into account collapsed/open channels too
-	 *	- if only selected, must check if object is selected
-	 *	- there must be animation data to edit (this is done recursively as we
-	 *	  try to add the channels)
+	 * - if only visible, must check for layer and also viewport visibility
+	 *   --> while tools may demand only visible, user setting takes priority
+	 *       as user option controls whether sets of channels get included while
+	 *       tool-flag takes into account collapsed/open channels too
+	 * - if only selected, must check if object is selected
+	 * - there must be animation data to edit (this is done recursively as we
+	 *   try to add the channels)
 	 */
 	if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 		/* layer visibility - we check both object and base, since these may not be in sync yet */
@@ -2909,7 +2909,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Base *base, int filter_m
 
 	/* check if object belongs to the filtering group if option to filter
 	 * objects by the grouped status is on
-	 *	- used to ease the process of doing multiple-character choreographies
+	 * - used to ease the process of doing multiple-character choreographies
 	 */
 	if (ads->filter_grp != NULL) {
 		if (BKE_collection_has_object_recursive(ads->filter_grp, ob) == 0)
@@ -2989,10 +2989,10 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 
 	/* If filtering for channel drawing, we want the objects in alphabetical order,
 	 * to make it easier to predict where items are in the hierarchy
-	 *  - This order only really matters if we need to show all channels in the list (e.g. for drawing)
-	 *    (XXX: What about lingering "active" flags? The order may now become unpredictable)
-	 *  - Don't do this if this behaviour has been turned off (i.e. due to it being too slow)
-	 *  - Don't do this if there's just a single object
+	 * - This order only really matters if we need to show all channels in the list (e.g. for drawing)
+	 *   (XXX: What about lingering "active" flags? The order may now become unpredictable)
+	 * - Don't do this if this behaviour has been turned off (i.e. due to it being too slow)
+	 * - Don't do this if there's just a single object
 	 */
 	if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !(ads->flag & ADS_FLAG_NO_DB_SORT) &&
 	    (view_layer->object_bases.first != view_layer->object_bases.last))
@@ -3032,16 +3032,16 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 }
 
 /* Summary track for DopeSheet/Action Editor
- *  - return code is whether the summary lets the other channels get drawn
+ * - return code is whether the summary lets the other channels get drawn
  */
 static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_data, int filter_mode, size_t *items)
 {
 	bDopeSheet *ads = NULL;
 
 	/* get the DopeSheet information to use
-	 *	- we should only need to deal with the DopeSheet/Action Editor,
-	 *	  since all the other Animation Editors won't have this concept
-	 *	  being applicable.
+	 * - we should only need to deal with the DopeSheet/Action Editor,
+	 *   since all the other Animation Editors won't have this concept
+	 *   being applicable.
 	 */
 	if ((ac && ac->sl) && (ac->spacetype == SPACE_ACTION)) {
 		SpaceAction *saction = (SpaceAction *)ac->sl;
@@ -3053,8 +3053,8 @@ static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_
 	}
 
 	/* dopesheet summary
-	 *	- only for drawing and/or selecting keyframes in channels, but not for real editing
-	 *	- only useful for DopeSheet/Action/etc. editors where it is actually useful
+	 * - only for drawing and/or selecting keyframes in channels, but not for real editing
+	 * - only useful for DopeSheet/Action/etc. editors where it is actually useful
 	 */
 	if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && (ads->filterflag & ADS_FILTER_SUMMARY)) {
 		bAnimListElem *ale = make_new_animlistelem(ac, ANIMTYPE_SUMMARY, NULL);
@@ -3064,7 +3064,7 @@ static short animdata_filter_dopesheet_summary(bAnimContext *ac, ListBase *anim_
 		}
 
 		/* if summary is collapsed, don't show other channels beneath this
-		 *	- this check is put inside the summary check so that it doesn't interfere with normal operation
+		 * - this check is put inside the summary check so that it doesn't interfere with normal operation
 		 */
 		if (ads->flag & ADS_FLAG_SUMMARY_COLLAPSED)
 			return 0;
@@ -3150,8 +3150,8 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 		next = ale->next;
 
 		/* check if hash has any record of an entry like this
-		 *	- just use ale->data for now, though it would be nicer to involve
-		 *	  ale->type in combination too to capture corner cases (where same data performs differently)
+		 * - just use ale->data for now, though it would be nicer to involve
+		 *   ale->type in combination too to capture corner cases (where same data performs differently)
 		 */
 		if (BLI_gset_add(gs, ale->data)) {
 			/* this entry is 'unique' and can be kept */
@@ -3175,9 +3175,9 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 /* This function filters the active data source to leave only animation channels suitable for
  * usage by the caller. It will return the length of the list
  *
- *  *anim_data: is a pointer to a ListBase, to which the filtered animation channels
- *		will be placed for use.
- *	filter_mode: how should the data be filtered - bitmapping accessed flags
+ * *anim_data: is a pointer to a ListBase, to which the filtered animation channels
+ * will be placed for use.
+ * filter_mode: how should the data be filtered - bitmapping accessed flags
  */
 size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_Flags filter_mode, void *data, eAnimCont_Types datatype)
 {

@@ -218,7 +218,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 	int index;
 
 	/* helper macro for use here to try and get the path
-	 *	- this calls the standard code for getting a path to a texture...
+	 * - this calls the standard code for getting a path to a texture...
 	 */
 
 #define COLRAMP_GETPATH                                                       \

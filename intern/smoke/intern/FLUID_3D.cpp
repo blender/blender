@@ -38,7 +38,7 @@
 
 #if PARALLEL==1
 #include <omp.h>
-#endif // PARALLEL 
+#endif // PARALLEL
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -51,13 +51,13 @@ FLUID_3D::FLUID_3D(int *res, float dx, float dtdef, int init_heat, int init_fire
 	_dt = dtdef;	// just in case. set in step from a RNA factor
 
 	_iterations = 100;
-	_tempAmb = 0; 
+	_tempAmb = 0;
 	_heatDiffusion = 1e-3;
 	_totalTime = 0.0f;
 	_totalSteps = 0;
 	_res = Vec3Int(_xRes,_yRes,_zRes);
 	_maxRes = MAX3(_xRes, _yRes, _zRes);
-	
+
 	// initialize wavelet turbulence
 	/*
 	if(amplify)
@@ -65,7 +65,7 @@ FLUID_3D::FLUID_3D(int *res, float dx, float dtdef, int init_heat, int init_fire
 	else
 		_wTurbulence = NULL;
 	*/
-	
+
 	// scale the constants according to the refinement of the grid
 	if (!dx)
 		_dx = 1.0f / (float)_maxRes;
@@ -218,7 +218,7 @@ void FLUID_3D::initColors(float init_r, float init_g, float init_b)
 
 void FLUID_3D::setBorderObstacles()
 {
-	
+
 	// set side obstacles
 	unsigned int index;
 	for (int y = 0; y < _yRes; y++)
@@ -331,7 +331,7 @@ void FLUID_3D::step(float dt, float gravity[3])
 	// If border rules have been changed
 	if (_colloPrev != *_borderColli) {
 		printf("Border collisions changed\n");
-		
+
 		// DG TODO: Need to check that no animated obstacle flags are overwritten
 		setBorderCollisions();
 	}
@@ -490,7 +490,7 @@ void FLUID_3D::step(float dt, float gravity[3])
 	for (int i=1; i<stepParts; i++)
 	{
 		int zPos=(int)((float)i*partSize + 0.5f);
-		
+
 		artificialDampingExactSL(zPos);
 
 	}
@@ -620,7 +620,7 @@ void FLUID_3D::artificialDampingSL(int zBegin, int zEnd) {
 void FLUID_3D::artificialDampingExactSL(int pos) {
 	const float w = 0.9;
 	int index, x,y,z;
-	
+
 
 	size_t posslab;
 
@@ -650,7 +650,7 @@ void FLUID_3D::artificialDampingExactSL(int pos) {
 							_zVelocityTemp[index+1] + _zVelocityTemp[index-1] +
 							_zVelocityTemp[index+_res[0]] + _zVelocityTemp[index-_res[0]] +
 							_zVelocityTemp[index+_slabSize] + _zVelocityTemp[index-_slabSize] );
-					
+
 				}
 	}
 
@@ -677,7 +677,7 @@ void FLUID_3D::artificialDampingExactSL(int pos) {
 							_zVelocityTemp[index+1] + _zVelocityTemp[index-1] +
 							_zVelocityTemp[index+_res[0]] + _zVelocityTemp[index-_res[0]] +
 							_zVelocityTemp[index+_slabSize] + _zVelocityTemp[index-_slabSize] );
-					
+
 				}
 
 	}
@@ -759,7 +759,7 @@ void FLUID_3D::wipeBoundaries(int zBegin, int zEnd)
 
 void FLUID_3D::wipeBoundariesSL(int zBegin, int zEnd)
 {
-	
+
 	/////////////////////////////////////
 	// setZeroBorder to all:
 	/////////////////////////////////////
@@ -933,16 +933,16 @@ void FLUID_3D::project()
 
 	memset(_pressure, 0, sizeof(float)*_totalCells);
 	memset(_divergence, 0, sizeof(float)*_totalCells);
-	
+
 	// set velocity and pressure inside of obstacles to zero
 	setObstacleBoundaries(_pressure, 0, _zRes);
-	
+
 	// copy out the boundaries
 	if(!_domainBcLeft)  setNeumannX(_xVelocity, _res, 0, _zRes);
-	else setZeroX(_xVelocity, _res, 0, _zRes); 
+	else setZeroX(_xVelocity, _res, 0, _zRes);
 
 	if(!_domainBcFront)   setNeumannY(_yVelocity, _res, 0, _zRes);
-	else setZeroY(_yVelocity, _res, 0, _zRes); 
+	else setZeroY(_yVelocity, _res, 0, _zRes);
 
 	if(!_domainBcTop) setNeumannZ(_zVelocity, _res, 0, _zRes);
 	else setZeroZ(_zVelocity, _res, 0, _zRes);
@@ -953,13 +953,13 @@ void FLUID_3D::project()
 		for (y = 1; y < _yRes - 1; y++, index += 2)
 			for (x = 1; x < _xRes - 1; x++, index++)
 			{
-				
+
 				if(_obstacles[index])
 				{
 					_divergence[index] = 0.0f;
 					continue;
 				}
-				
+
 
 				float xright = _xVelocity[index + 1];
 				float xleft  = _xVelocity[index - 1];
@@ -1058,7 +1058,7 @@ void FLUID_3D::project()
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::setObstacleVelocity(int zBegin, int zEnd)
 {
-	
+
 	// completely TODO <-- who wrote this and what is here TODO? DG
 
 	const size_t index_ = _slabSize + _xRes + 1;
@@ -1082,7 +1082,7 @@ void FLUID_3D::setObstacleVelocity(int zBegin, int zEnd)
 		{
 			if (!_obstacles[index])
 			{
-				// if(_obstacles[index+1]) xright = - _xVelocityOb[index]; 
+				// if(_obstacles[index+1]) xright = - _xVelocityOb[index];
 				if((_obstacles[index - 1] & 8) && abs(_xVelocityOb[index - 1]) > FLT_EPSILON )
 				{
 					// printf("velocity x!\n");
@@ -1221,7 +1221,7 @@ void FLUID_3D::setObstaclePressure(float *_pressure, int zBegin, int zEnd)
 					_pressure[index] += _pressure[index + _slabSize];
 					pcnt += 1.0f;
 				}
-				
+
 				if(pcnt > 0.000001f)
 				 	_pressure[index] /= pcnt;
 
@@ -1254,7 +1254,7 @@ void FLUID_3D::setObstacleBoundaries(float *_pressure, int zBegin, int zEnd)
 	for (int z = zBegin + bb; z < zEnd - bt; z++)
 	{
 		size_t index = index_ +(z-1)*_slabSize;
-		
+
 		for (int y = 1; y < _yRes - 1; y++, index += 2)
 		{
 			for (int x = 1; x < _xRes - 1; x++, index++)
@@ -1563,7 +1563,7 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 
 	// calculate normalized vorticity vectors
 	float eps = _vorticityEps;
-	
+
 	//index = _slabSize + _xRes + 1;
 	vIndex=_slabSize + _xRes + 1;
 
@@ -1618,7 +1618,7 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 				}		// y loop
 			//vIndex+=2*_xRes;
 		}				// z loop
-				
+
 	if (_xVorticity) delete[] _xVorticity;
 	if (_yVorticity) delete[] _yVorticity;
 	if (_zVorticity) delete[] _zVorticity;
@@ -1704,10 +1704,10 @@ void FLUID_3D::advectMacCormackEnd2(int zBegin, int zEnd)
 
 	/* set boundary conditions for velocity */
 	if(!_domainBcLeft) copyBorderX(_xVelocityTemp, res, zBegin, zEnd);
-	else setZeroX(_xVelocityTemp, res, zBegin, zEnd);				
+	else setZeroX(_xVelocityTemp, res, zBegin, zEnd);
 
 	if(!_domainBcFront) copyBorderY(_yVelocityTemp, res, zBegin, zEnd);
-	else setZeroY(_yVelocityTemp, res, zBegin, zEnd); 
+	else setZeroY(_yVelocityTemp, res, zBegin, zEnd);
 
 	if(!_domainBcTop) copyBorderZ(_zVelocityTemp, res, zBegin, zEnd);
 	else setZeroZ(_zVelocityTemp, res, zBegin, zEnd);
@@ -1778,9 +1778,9 @@ void FLUID_3D::updateFlame(float *react, float *flame, int total_cells)
 	for (int index = 0; index < total_cells; index++)
 	{
 		/* model flame temperature curve from the reaction coordinate (fuel)
-		 *	TODO: Would probably be best to get rid of whole "flame" data field.
-		 *		 Currently it's just sqrt mirror of reaction coordinate, and therefore
-		 *		 basically just waste of memory and disk space...
+		 *  TODO: Would probably be best to get rid of whole "flame" data field.
+		 *        Currently it's just sqrt mirror of reaction coordinate, and therefore
+		 *        basically just waste of memory and disk space...
 		 */
 		if (react[index]>0.0f) {
 			/* do a smooth falloff for rest of the values */

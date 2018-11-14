@@ -408,11 +408,11 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
 	bool t_b = false;
 
 	/* Horizontal leak (check vertical pixels)
-	 *     X
-	 *	   X
-	 *	   xB7
-	 *	   X
-	 *	   X
+	 * X
+	 * X
+	 * xB7
+	 * X
+	 * X
 	 */
 	if (type == LEAK_HORZ) {
 		/* pixels on top */

@@ -879,7 +879,7 @@ static void gp_draw_stroke_2d(
 			/* if the first segment, start of segment is segment's normal */
 			if (i == 0) {
 				/* draw start cap first
-				 *	- make points slightly closer to center (about halfway across)
+				 * - make points slightly closer to center (about halfway across)
 				 */
 				mt[0] = m2[0] * pthick * 0.5f;
 				mt[1] = m2[1] * pthick * 0.5f;
@@ -919,8 +919,8 @@ static void gp_draw_stroke_2d(
 				normalize_v2(mb);
 
 				/* calculate gradient to apply
-				 *  - as basis, use just pthick * bisector gradient
-				 *	- if cross-section not as thick as it should be, add extra padding to fix it
+				 * - as basis, use just pthick * bisector gradient
+				 * - if cross-section not as thick as it should be, add extra padding to fix it
 				 */
 				mt[0] = mb[0] * pthick;
 				mt[1] = mb[1] * pthick;
@@ -965,7 +965,7 @@ static void gp_draw_stroke_2d(
 				immVertex2fv(attr_id.pos, t1);
 
 				/* draw end cap as last step
-				 *	- make points slightly closer to center (about halfway across)
+				 * - make points slightly closer to center (about halfway across)
 				 */
 				mt[0] = m2[0] * pthick * 0.5f;
 				mt[1] = m2[1] * pthick * 0.5f;
@@ -1557,11 +1557,11 @@ static void gp_draw_data_layers(RegionView3D *rv3d,
 		gp_draw_strokes(&tgpw);
 
 		/* Draw verts of selected strokes
-		 *  - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
-		 * 	- locked layers can't be edited, so there's no point showing these verts
-		 *    as they will have no bearings on what gets edited
-		 *  - only show when in editmode, since operators shouldn't work otherwise
-		 *    (NOTE: doing it this way means that the toggling editmode shows visible change immediately)
+		 * - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
+		 *   - locked layers can't be edited, so there's no point showing these verts
+		 *     as they will have no bearings on what gets edited
+		 * - only show when in editmode, since operators shouldn't work otherwise
+		 *   (NOTE: doing it this way means that the toggling editmode shows visible change immediately)
 		 */
 		/* XXX: perhaps we don't want to show these when users are drawing... */
 		if ((G.f & G_RENDER_OGL) == 0 &&

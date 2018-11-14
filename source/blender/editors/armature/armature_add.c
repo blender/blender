@@ -436,7 +436,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 {
 	EditBone *eBone = MEM_mallocN(sizeof(EditBone), "addup_editbone");
 
-	/*	Copy data from old bone to new bone */
+	/* Copy data from old bone to new bone */
 	memcpy(eBone, curBone, sizeof(EditBone));
 
 	curBone->temp.ebone = eBone;
@@ -462,7 +462,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 		chanold = BKE_pose_channel_verify(src_ob->pose, curBone->name);
 		if (chanold) {
 			/* WARNING: this creates a new posechannel, but there will not be an attached bone
-			 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
+			 * yet as the new bones created here are still 'EditBones' not 'Bones'.
 			 */
 			channew = BKE_pose_channel_verify(dst_ob->pose, eBone->name);
 

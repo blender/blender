@@ -69,15 +69,15 @@ void *fmodifiers_storage_get(FModifierStackStorage *storage, FModifier *fcm);
  */
 
 /* Template for type-info data:
- *  - make a copy of this when creating new modifiers, and just change the functions
- *    pointed to as necessary
- *  - although the naming of functions doesn't matter, it would help for code
- *    readability, to follow the same naming convention as is presented here
- *  - any functions that a constraint doesn't need to define, don't define
- *    for such cases, just use NULL
- *  - these should be defined after all the functions have been defined, so that
- *    forward-definitions/prototypes don't need to be used!
- *	- keep this copy #if-def'd so that future constraints can get based off this
+ * - make a copy of this when creating new modifiers, and just change the functions
+ *   pointed to as necessary
+ * - although the naming of functions doesn't matter, it would help for code
+ *   readability, to follow the same naming convention as is presented here
+ * - any functions that a constraint doesn't need to define, don't define
+ *   for such cases, just use NULL
+ * - these should be defined after all the functions have been defined, so that
+ *   forward-definitions/prototypes don't need to be used!
+ * - keep this copy #if-def'd so that future constraints can get based off this
  */
 #if 0
 static FModifierTypeInfo FMI_MODNAME = {
@@ -260,7 +260,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
  * x is the evaluation 'time', and 'y' is the resultant value
  *
  * Functions available are
- *	sin, cos, tan, sinc (normalized sin), natural log, square root
+ * sin, cos, tan, sinc (normalized sin), natural log, square root
  */
 
 static void fcm_fn_generator_new_data(void *mdata)
@@ -460,8 +460,8 @@ static void fcm_envelope_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float *cv
 	}
 
 	/* adjust *cvalue
-	 *	- fac is the ratio of how the current y-value corresponds to the reference range
-	 *	- thus, the new value is found by mapping the old range to the new!
+	 * - fac is the ratio of how the current y-value corresponds to the reference range
+	 * - thus, the new value is found by mapping the old range to the new!
 	 */
 	fac = (*cvalue - (env->midval + env->min)) / (env->max - env->min);
 	*cvalue = min + fac * (max - min);
@@ -638,8 +638,8 @@ static float fcm_cycles_time(FModifierStackStorage *storage, FCurve *fcu, FModif
 		return evaltime;
 
 	/* check if modifier will do anything
-	 *	1) if in data range, definitely don't do anything
-	 *	2) if before first frame or after last frame, make sure some cycling is in use
+	 * 1) if in data range, definitely don't do anything
+	 * 2) if before first frame or after last frame, make sure some cycling is in use
 	 */
 	if (evaltime < prevkey[0]) {
 		if (data->before_mode) {
@@ -711,8 +711,8 @@ static float fcm_cycles_time(FModifierStackStorage *storage, FCurve *fcu, FModif
 		/* calculate where in the cycle we are (overwrite evaltime to reflect this) */
 		else if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle + 1) % 2)) {
 			/* when 'mirror' option is used and cycle number is odd, this cycle is played in reverse
-			 *	- for 'before' extrapolation, we need to flip in a different way, otherwise values past
-			 *	  then end of the curve get referenced (result of fmod will be negative, and with different phase)
+			 * - for 'before' extrapolation, we need to flip in a different way, otherwise values past
+			 *   then end of the curve get referenced (result of fmod will be negative, and with different phase)
 			 */
 			if (side < 0)
 				evaltime = prevkey[0] - cyct;
@@ -795,8 +795,8 @@ static void fcm_noise_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float *cvalu
 	float noise;
 
 	/* generate noise using good ol' Blender Noise
-	 *	- 0.1 is passed as the 'z' value, otherwise evaluation fails for size = phase = 1
-	 *	  with evaltime being an integer (which happens when evaluating on frame by frame basis)
+	 * - 0.1 is passed as the 'z' value, otherwise evaluation fails for size = phase = 1
+	 *   with evaltime being an integer (which happens when evaluating on frame by frame basis)
 	 */
 	noise = BLI_turbulence(data->size, evaltime - data->offset, data->phase, 0.1f, data->depth);
 
@@ -870,7 +870,7 @@ static void fcm_python_evaluate(FCurve *UNUSED(fcu), FModifier *UNUSED(fcm), flo
 	//FMod_Python *data = (FMod_Python *)fcm->data;
 
 	/* FIXME... need to implement this modifier...
-	 *	It will need it execute a script using the custom properties
+	 * It will need it execute a script using the custom properties
 	 */
 #endif /* WITH_PYTHON */
 }
@@ -965,7 +965,7 @@ static float fcm_stepped_time(FCurve *UNUSED(fcu), FModifier *fcm, float UNUSED(
 
 	/* we snap to the start of the previous closest block of 'step_size' frames
 	 * after the start offset has been discarded
-	 *	- i.e. round down
+	 * - i.e. round down
 	 */
 	snapblock = (int)((evaltime - data->offset) / data->step_size);
 
@@ -1243,8 +1243,8 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
 }
 
 /* Do we have any modifiers which match certain criteria
- *	- mtype - type of modifier (if 0, doesn't matter)
- *	- acttype - type of action to perform (if -1, doesn't matter)
+ * - mtype - type of modifier (if 0, doesn't matter)
+ * - acttype - type of action to perform (if -1, doesn't matter)
  */
 bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 {
@@ -1376,13 +1376,13 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
 }
 
 /* evaluate time modifications imposed by some F-Curve Modifiers
- *	- this step acts as an optimization to prevent the F-Curve stack being evaluated
- *	  several times by modifiers requesting the time be modified, as the final result
- *	  would have required using the modified time
- *	- modifiers only ever receive the unmodified time, as subsequent modifiers should be
- *	  working on the 'global' result of the modified curve, not some localised segment,
- *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
- *	- we start from the end of the stack, as only the last one matters for now
+ * - this step acts as an optimization to prevent the F-Curve stack being evaluated
+ *   several times by modifiers requesting the time be modified, as the final result
+ *   would have required using the modified time
+ * - modifiers only ever receive the unmodified time, as subsequent modifiers should be
+ *   working on the 'global' result of the modified curve, not some localised segment,
+ *   so nevaltime gets set to whatever the last time-modifying modifier likes...
+ * - we start from the end of the stack, as only the last one matters for now
  *
  * Note: *fcu might be NULL
  */

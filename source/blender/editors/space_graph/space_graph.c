@@ -651,8 +651,8 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 	UI_SetTheme(SPACE_IPO, RGN_TYPE_WINDOW);
 
 	/* build list of F-Curves which will be visible as channels in channel-region
-	 *  - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
-	 *    mismatch between channel-colors and the drawn curves
+	 * - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
+	 *   mismatch between channel-colors and the drawn curves
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);

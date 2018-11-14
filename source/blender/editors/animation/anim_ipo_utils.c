@@ -19,7 +19,7 @@
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation, 2005. Full recode
- *				   Joshua Leung
+ *                 Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -87,10 +87,10 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 			/* For now, name will consist of 3 parts: struct-name, property name, array index
 			 * There are several options possible:
-			 *	1) <struct-name>.<property-name>.<array-index>
-			 *		i.e. Bone1.Location.X, or Object.Location.X
-			 *	2) <array-index> <property-name> (<struct name>)
-			 *		i.e. X Location (Bone1), or X Location (Object)
+			 * 1) <struct-name>.<property-name>.<array-index>
+			 *     i.e. Bone1.Location.X, or Object.Location.X
+			 * 2) <array-index> <property-name> (<struct name>)
+			 *     i.e. X Location (Bone1), or X Location (Object)
 			 *
 			 * Currently, option 2 is in use, to try and make it easier to quickly identify F-Curves (it does have
 			 * problems with looking rather odd though). Option 1 is better in terms of revealing a consistent sense of
@@ -98,11 +98,11 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 */
 
 			/* for structname
-			 *	- as base, we use a custom name from the structs if one is available
-			 *	- however, if we're showing subdata of bones (probably there will be other exceptions later)
-			 *	  need to include that info too since it gets confusing otherwise
-			 *	- if a pointer just refers to the ID-block, then don't repeat this info
-			 *	  since this just introduces clutter
+			 * - as base, we use a custom name from the structs if one is available
+			 * - however, if we're showing subdata of bones (probably there will be other exceptions later)
+			 *   need to include that info too since it gets confusing otherwise
+			 * - if a pointer just refers to the ID-block, then don't repeat this info
+			 *   since this just introduces clutter
 			 */
 			if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
@@ -160,7 +160,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 
 			/* Icon for this property's owner:
-			 *	use the struct's icon if it is set
+			 * use the struct's icon if it is set
 			 */
 			icon = RNA_struct_ui_icon(ptr.type);
 
@@ -200,8 +200,8 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
 
 	/* we try to divide the color into groupings of n colors,
 	 * where n is:
-	 *	3 - for 'odd' numbers of curves - there should be a majority of triplets of curves
-	 *	4 - for 'even' numbers of curves - there should be a majority of quartets of curves
+	 * 3 - for 'odd' numbers of curves - there should be a majority of triplets of curves
+	 * 4 - for 'even' numbers of curves - there should be a majority of quartets of curves
 	 * so the base color is simply one of the three primary colors
 	 */
 	grouping = (4 - (tot % 2));

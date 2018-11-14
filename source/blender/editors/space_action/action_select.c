@@ -75,16 +75,16 @@
 
 /* ******************** Deselect All Operator ***************************** */
 /* This operator works in one of three ways:
- *	1) (de)select all (AKEY) - test if select all or deselect all
- *	2) invert all (CTRL-IKEY) - invert selection of all keyframes
- *	3) (de)select all - no testing is done; only for use internal tools as normal function...
+ * 1) (de)select all (AKEY) - test if select all or deselect all
+ * 2) invert all (CTRL-IKEY) - invert selection of all keyframes
+ * 3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
 /* Deselects keyframes in the action editor
- *	- This is called by the deselect all operator, as well as other ones!
+ * - This is called by the deselect all operator, as well as other ones!
  *
- *  - test: check if select or deselect all
- *	- sel: how to select keyframes (SELECT_*)
+ * - test: check if select or deselect all
+ * - sel: how to select keyframes (SELECT_*)
  */
 static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 {
@@ -209,10 +209,10 @@ void ACTION_OT_select_all(wmOperatorType *ot)
 
 /* ******************** Box Select Operator **************************** */
 /* This operator currently works in one of three ways:
- *	-> BKEY     - 1) all keyframes within region are selected (ACTKEYS_BORDERSEL_ALLKEYS)
- *	-> ALT-BKEY - depending on which axis of the region was larger...
- *		-> 2) x-axis, so select all frames within frame range (ACTKEYS_BORDERSEL_FRAMERANGE)
- *		-> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
+ * -> BKEY     - 1) all keyframes within region are selected (ACTKEYS_BORDERSEL_ALLKEYS)
+ * -> ALT-BKEY - depending on which axis of the region was larger...
+ *  -> 2) x-axis, so select all frames within frame range (ACTKEYS_BORDERSEL_FRAMERANGE)
+ *  -> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
  */
 
 /* defines for box_select mode */
@@ -359,9 +359,9 @@ static int actkeys_box_select_exec(bContext *C, wmOperator *op)
 	/* selection 'mode' depends on whether box_select region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use
-		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
-		 *	  used for tweaking timing when "blocking", while channels is not that useful...
+		 * - checking this in region-space is fine, as it's fundamentally still going to be a different rect size
+		 * - the frame-range select option is favored over the channel one (x over y), as frame-range one is often
+		 *   used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
 			mode = ACTKEYS_BORDERSEL_FRAMERANGE;
@@ -664,10 +664,10 @@ void ACTION_OT_select_circle(wmOperatorType *ot)
 
 /* ******************** Column Select Operator **************************** */
 /* This operator works in one of four ways:
- *	- 1) select all keyframes in the same frame as a selected one  (KKEY)
- *	- 2) select all keyframes in the same frame as the current frame marker (CTRL-KKEY)
- *	- 3) select all keyframes in the same frame as a selected markers (SHIFT-KKEY)
- *	- 4) select all keyframes that occur between selected markers (ALT-KKEY)
+ * - 1) select all keyframes in the same frame as a selected one  (KKEY)
+ * - 2) select all keyframes in the same frame as the current frame marker (CTRL-KKEY)
+ * - 3) select all keyframes in the same frame as a selected markers (SHIFT-KKEY)
+ * - 4) select all keyframes that occur between selected markers (ALT-KKEY)
  */
 
 /* defines for column-select mode */
@@ -802,7 +802,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
 		/* loop over cfraelems (stored in the KeyframeEditData->list)
-		 *	- we need to do this here, as we can apply fewer NLA-mapping conversions
+		 * - we need to do this here, as we can apply fewer NLA-mapping conversions
 		 */
 		for (ce = ked.list.first; ce; ce = ce->next) {
 			/* set frame for validation callback to refer to */
@@ -1228,10 +1228,10 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
 
 /* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of three ways:
- *	- 1) keyframe under mouse - no special modifiers
- *	- 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
- *	- 3) column select all keyframes in frame under mouse - CTRL modifier
- *  - 4) all keyframes in channel under mouse - CTRL+ALT modifiers
+ * - 1) keyframe under mouse - no special modifiers
+ * - 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
+ * - 3) column select all keyframes in frame under mouse - CTRL modifier
+ * - 4) all keyframes in channel under mouse - CTRL+ALT modifiers
  *
  * In addition to these basic options, the SHIFT modifier can be used to toggle the
  * selection mode between replacing the selection (without) and inverting the selection (with).

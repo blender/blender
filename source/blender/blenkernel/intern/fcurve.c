@@ -274,12 +274,12 @@ FCurve *iter_step_fcurve(FCurve *fcu_iter, const char rna_path[])
 
 /* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated
  * Lists...
- *	- dst: list of LinkData's matching the criteria returned.
- *	  List must be freed after use, and is assumed to be empty when passed.
- *	- src: list of F-Curves to search through
+ * - dst: list of LinkData's matching the criteria returned.
+ *   List must be freed after use, and is assumed to be empty when passed.
+ * - src: list of F-Curves to search through
  * Filters...
- *  - dataPrefix: i.e. 'pose.bones[' or 'nodes['
- *  - dataName: name of entity within "" immediately following the prefix
+ * - dataPrefix: i.e. 'pose.bones[' or 'nodes['
+ * - dataName: name of entity within "" immediately following the prefix
  */
 int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
 {
@@ -432,8 +432,8 @@ static int binarysearch_bezt_index_ex(BezTriple array[], float frame, int arrayl
 	*r_replace = false;
 
 	/* sneaky optimizations (don't go through searching process if...):
-	 *	- keyframe to be added is to be added out of current bounds
-	 *	- keyframe to be added would replace one of the existing ones on bounds
+	 * - keyframe to be added is to be added out of current bounds
+	 * - keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
 		printf("Warning: binarysearch_bezt_index() encountered invalid array\n");
@@ -833,7 +833,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 
 
 /* Basic sampling callback which acts as a wrapper for evaluate_fcurve()
- *	'data' arg here is unneeded here...
+ * 'data' arg here is unneeded here...
  */
 float fcurve_samplingcb_evalcurve(FCurve *fcu, void *UNUSED(data), float evaltime)
 {
@@ -954,9 +954,9 @@ void calchandles_fcurve(FCurve *fcu)
 	int a = fcu->totvert;
 
 	/* Error checking:
-	 *	- need at least two points
-	 *	- need bezier keys
-	 *	- only bezier-interpolation has handles (for now)
+	 * - need at least two points
+	 * - need bezier keys
+	 * - only bezier-interpolation has handles (for now)
 	 */
 	if (ELEM(NULL, fcu, fcu->bezt) || (a < 2) /*|| ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN)*/)
 		return;
@@ -1525,10 +1525,10 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 	pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
 
 	/* check if object or bone, and get transform matrix accordingly
-	 *	- "useEulers" code is used to prevent the problems associated with non-uniqueness
-	 *	  of euler decomposition from matrices [#20870]
-	 *	- localspace is for [#21384], where parent results are not wanted
-	 *	  but local-consts is for all the common "corrective-shapes-for-limbs" situations
+	 * - "useEulers" code is used to prevent the problems associated with non-uniqueness
+	 *   of euler decomposition from matrices [#20870]
+	 * - localspace is for [#21384], where parent results are not wanted
+	 *   but local-consts is for all the common "corrective-shapes-for-limbs" situations
 	 */
 	if (pchan) {
 		/* bone */
@@ -1594,12 +1594,12 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
 		/* extract rotation as eulers (if needed)
-		 *	- definitely if rotation order isn't eulers already
-		 *	- if eulers, then we have 2 options:
-		 *		a) decompose transform matrix as required, then try to make eulers from
-		 *		   there compatible with original values
-		 *		b) [NOT USED] directly use the original values (no decomposition)
-		 *			- only an option for "transform space", if quality is really bad with a)
+		 * - definitely if rotation order isn't eulers already
+		 * - if eulers, then we have 2 options:
+		 *     a) decompose transform matrix as required, then try to make eulers from
+		 *        there compatible with original values
+		 *     b) [NOT USED] directly use the original values (no decomposition)
+		 *         - only an option for "transform space", if quality is really bad with a)
 		 */
 		float eul[3];
 
@@ -1670,9 +1670,9 @@ void driver_free_variable(ListBase *variables, DriverVar *dvar)
 		return;
 
 	/* free target vars
-	 *	- need to go over all of them, not just up to the ones that are used
-	 *	  currently, since there may be some lingering RNA paths from
-	 *    previous users needing freeing
+	 * - need to go over all of them, not just up to the ones that are used
+	 *   currently, since there may be some lingering RNA paths from
+	 *   previous users needing freeing
 	 */
 	DRIVER_TARGETS_LOOPER(dvar)
 	{
@@ -2033,9 +2033,9 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
 }
 
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
- *	- "evaltime" is the frame at which F-Curve is being evaluated
- *  - has to return a float value
- *  - driver_orig is where we cache Python expressions, in case of COW
+ * - "evaltime" is the frame at which F-Curve is being evaluated
+ * - has to return a float value
+ * - driver_orig is where we cache Python expressions, in case of COW
  */
 float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, ChannelDriver *driver_orig, const float evaltime)
 {
@@ -2119,7 +2119,7 @@ float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, ChannelD
 			else if (!driver_try_evaluate_simple_expr(driver, driver_orig, &driver->curval, evaltime)) {
 #ifdef WITH_PYTHON
 				/* this evaluates the expression using Python, and returns its result:
-				 *  - on errors it reports, then returns 0.0f
+				 * - on errors it reports, then returns 0.0f
 				 */
 				BLI_mutex_lock(&python_driver_lock);
 
@@ -2164,9 +2164,9 @@ void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2])
 	h2[1] = v4[1] - v3[1];
 
 	/* calculate distances:
-	 *  - len	= span of time between keyframes
-	 *	- len1	= length of handle of start key
-	 *	- len2  = length of handle of end key
+	 * - len  = span of time between keyframes
+	 * - len1 = length of handle of start key
+	 * - len2 = length of handle of end key
 	 */
 	len = v4[0] - v1[0];
 	len1 = fabsf(h1[0]);
@@ -2771,8 +2771,8 @@ static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
 	devaltime = evaluate_time_fmodifiers(storage, &fcu->modifiers, fcu, cvalue, evaltime);
 
 	/* evaluate curve-data
-	 *	- 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying
-	 *	  F-Curve modifier on the stack requested the curve to be evaluated at
+	 * - 'devaltime' instead of 'evaltime', as this is the time that the last time-modifying
+	 *   F-Curve modifier on the stack requested the curve to be evaluated at
 	 */
 	if (fcu->bezt)
 		cvalue = fcurve_eval_keyframes(fcu, fcu->bezt, devaltime);

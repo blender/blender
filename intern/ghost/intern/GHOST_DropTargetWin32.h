@@ -60,7 +60,7 @@ public:
 	 *  - Determining the effect of the drop on the target application.
 	 *  - Incorporating any valid dropped data when the drop occurs.
 	 *  - Communicating target feedback to the source so the source application
-	 *	  can provide appropriate visual feedback such as setting the cursor.
+	 *    can provide appropriate visual feedback such as setting the cursor.
 	 *  - Implementing drag scrolling.
 	 *  - Registering and revoking its application windows as drop targets.
 	 *

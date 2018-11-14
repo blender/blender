@@ -52,10 +52,10 @@ typedef struct GPUTexture GPUTexture;
  *   graphics card capabilities the texture may actually be stored in a
  *   larger texture with power of two dimensions.
  * - can use reference counting:
- *     - reference counter after GPU_texture_create is 1
- *     - GPU_texture_ref increases by one
- *     - GPU_texture_free decreases by one, and frees if 0
- *  - if created with from_blender, will not free the texture
+ *   - reference counter after GPU_texture_create is 1
+ *   - GPU_texture_ref increases by one
+ *   - GPU_texture_free decreases by one, and frees if 0
+ * - if created with from_blender, will not free the texture
  */
 
 /* Wrapper to supported OpenGL/Vulkan texture internal storage

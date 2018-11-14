@@ -740,7 +740,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale
 		uint key_len = 0;
 		for (ActKeyColumn *ak = keys->first; ak; ak = ak->next) {
 			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
-			 *	- this might give some improvements, since we current have to flip between view/region matrices
+			 * - this might give some improvements, since we current have to flip between view/region matrices
 			 */
 			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax))
 				key_len++;

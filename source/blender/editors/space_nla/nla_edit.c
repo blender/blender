@@ -628,7 +628,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	nlaedit_add_tracks_empty(&ac);
 
 	/* get a list of the editable tracks being shown in the NLA
-	 *	- this is limited to active ones for now, but could be expanded to
+	 * - this is limited to active ones for now, but could be expanded to
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -758,8 +758,8 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 			if (IS_EQF(s1->end, s2->start))
 				continue;
 			/* make sure neither one is a transition
-			 *	- although this is impossible to create with the standard tools,
-			 *    the user may have altered the settings
+			 * - although this is impossible to create with the standard tools,
+			 *   the user may have altered the settings
 			 */
 			if (ELEM(NLASTRIP_TYPE_TRANSITION, s1->type, s2->type))
 				continue;
@@ -775,9 +775,9 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 			strip->type = NLASTRIP_TYPE_TRANSITION;
 
 			/* generic settings
-			 *	- selected flag to highlight this to the user
-			 *	- auto-blends to ensure that blend in/out values are automatically
-			 *	  determined by overlaps of strips
+			 * - selected flag to highlight this to the user
+			 * - auto-blends to ensure that blend in/out values are automatically
+			 *   determined by overlaps of strips
 			 */
 			strip->flag = NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_AUTO_BLENDS;
 
@@ -1081,8 +1081,8 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 				/* in case there's no space in the track above, or we haven't got a reference to it yet, try adding */
 				if (BKE_nlatrack_add_strip(nlt->next, nstrip) == 0) {
 					/* need to add a new track above the one above the current one
-					 *	- if the current one is the last one, nlt->next will be NULL, which defaults to adding
-					 *	  at the top of the stack anyway...
+					 * - if the current one is the last one, nlt->next will be NULL, which defaults to adding
+					 *   at the top of the stack anyway...
 					 */
 					track = BKE_nlatrack_add(adt, nlt->next);
 					BKE_nlatrack_add_strip(track, nstrip);
@@ -1238,7 +1238,7 @@ static void nlaedit_split_strip_actclip(Main *bmain, AnimData *adt, NlaTrack *nl
 	float splitframe, splitaframe;
 
 	/* calculate the frames to do the splitting at
-	 *	- use current frame if within extents of strip
+	 * - use current frame if within extents of strip
 	 */
 	if ((cfra > strip->start) && (cfra < strip->end)) {
 		/* use the current frame */
@@ -1480,7 +1480,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 		}
 
 		/* get two selected strips only (these will be metas due to prev step) to operate on
-		 *  - only allow swapping 2, as with more the context becomes unclear
+		 * - only allow swapping 2, as with more the context becomes unclear
 		 */
 		for (strip = nlt->strips.first; strip; strip = stripN) {
 			stripN = strip->next;

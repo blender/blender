@@ -333,8 +333,8 @@ static void make_duplis_frames(const DupliContext *ctx)
 
 	/* make a copy of the object's original data (before any dupli-data overwrites it)
 	 * as we'll need this to keep track of unkeyed data
-	 *	- this doesn't take into account other data that can be reached from the object,
-	 *	  for example it's shapekeys or bones, hence the need for an update flush at the end
+	 * - this doesn't take into account other data that can be reached from the object,
+	 *   for example it's shapekeys or bones, hence the need for an update flush at the end
 	 */
 	copyob = *ob;
 

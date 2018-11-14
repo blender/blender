@@ -19,7 +19,7 @@
  * All rights reserved.
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
- *				 Full recode, Joshua Leung, 2009
+ *                 Full recode, Joshua Leung, 2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -70,7 +70,7 @@ void BKE_action_make_local(struct Main *bmain, struct bAction *act, const bool l
 /* Action API ----------------- */
 
 /* types of transforms applied to the given item
- *  - these are the return flags for action_get_item_transforms()
+ * - these are the return flags for action_get_item_transforms()
  */
 typedef enum eAction_TransformFlags {
 	/* location */
@@ -94,8 +94,8 @@ typedef enum eAction_TransformFlags {
 } eAction_TransformFlags;
 
 /* Return flags indicating which transforms the given object/posechannel has
- *	- if 'curves' is provided, a list of links to these curves are also returned
- *	  whose nodes WILL NEED FREEING
+ * - if 'curves' is provided, a list of links to these curves are also returned
+ *   whose nodes WILL NEED FREEING
  */
 short action_get_item_transforms(struct bAction *act, struct Object *ob, struct bPoseChannel *pchan, ListBase *curves);
 

@@ -75,7 +75,7 @@
  * part of the channel is relevant.
  *
  * NOTE: eventually, this should probably be phased out when many of these things are replaced with buttons
- *	--> Most channels are now selection only...
+ * --> Most channels are now selection only...
  */
 
 static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channel_index, short selectmode)
@@ -375,8 +375,8 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
 
 	/* figure out which channel user clicked in
 	 * Note: although channels technically start at y= NLACHANNEL_FIRST, we need to adjust by half a channel's height
-	 *		so that the tops of channels get caught ok. Since NLACHANNEL_FIRST is really NLACHANNEL_HEIGHT, we simply use
-	 *		NLACHANNEL_HEIGHT_HALF.
+	 *      so that the tops of channels get caught ok. Since NLACHANNEL_FIRST is really NLACHANNEL_HEIGHT, we simply use
+	 *      NLACHANNEL_HEIGHT_HALF.
 	 */
 	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
 	UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);

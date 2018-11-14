@@ -94,7 +94,7 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
 
 
 /*
- *	Surfaces
+ * Surfaces
  */
 
 static void rna_DynamicPaint_redoModifier(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -511,7 +511,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
 	/*
-	 *	Initial Color
+	 * Initial Color
 	 */
 
 	prop = RNA_def_property(srna, "init_color_type", PROP_ENUM, PROP_NONE);
@@ -536,7 +536,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_DRAW | ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
 	/*
-	 *   Effect Settings
+	 * Effect Settings
 	 */
 	prop = RNA_def_property(srna, "effect_ui", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -756,7 +756,7 @@ static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_DynamicPaintCanvasSettings_path");
 
 	/*
-	 *	Surface Slots
+	 * Surface Slots
 	 */
 	prop = RNA_def_property(srna, "canvas_surfaces", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_DynamicPaint_surfaces_begin", "rna_iterator_listbase_next",

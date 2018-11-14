@@ -282,7 +282,7 @@ typedef struct MPathTarget {
 /* ........ */
 
 /* get list of motion paths to be baked for the given object
- *  - assumes the given list is ready to be used
+ * - assumes the given list is ready to be used
  */
 /* TODO: it would be nice in future to be able to update objects dependent on these bones too? */
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
@@ -349,7 +349,7 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 		bMotionPath *mpath = mpt->mpath;
 
 		/* current frame must be within the range the cache works for
-		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
+		 * - is inclusive of the first frame, but not the last otherwise we get buffer overruns
 		 */
 		if ((cframe < mpath->start_frame) || (cframe >= mpath->end_frame)) {
 			continue;
@@ -414,9 +414,9 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 }
 
 /* Perform baking of the given object's and/or its bones' transforms to motion paths
- *	- scene: current scene
- *	- ob: object whose flagged motionpaths should get calculated
- *	- recalc: whether we need to
+ * - scene: current scene
+ * - ob: object whose flagged motionpaths should get calculated
+ * - recalc: whether we need to
  */
 /* TODO: include reports pointer? */
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
@@ -557,7 +557,7 @@ void free_path(Path *path)
 }
 
 /* calculate a curve-deform path for a curve
- *  - only called from displist.c -> do_makeDispListCurveTypes
+ * - only called from displist.c -> do_makeDispListCurveTypes
  */
 void calc_curvepath(Object *ob, ListBase *nurbs)
 {

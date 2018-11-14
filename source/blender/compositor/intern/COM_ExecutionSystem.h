@@ -16,8 +16,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Jeroen Bakker
- *		Monique Dewanchand
+ *      Jeroen Bakker
+ *      Monique Dewanchand
  */
 
 class ExecutionGroup;
@@ -163,9 +163,9 @@ public:
 
 	/**
 	 * \brief execute this system
-	 *  - initialize the NodeOperation's and ExecutionGroup's
-	 *  - schedule the output ExecutionGroup's based on their priority
-	 *  - deinitialize the ExecutionGroup's and NodeOperation's
+	 * - initialize the NodeOperation's and ExecutionGroup's
+	 * - schedule the output ExecutionGroup's based on their priority
+	 * - deinitialize the ExecutionGroup's and NodeOperation's
 	 */
 	void execute();
 

@@ -71,10 +71,10 @@
 /* Get (or add relevant data to be able to do so) F-Curve from the driver stack,
  * for the given Animation Data block. This assumes that all the destinations are valid.
  *
- *	- add:	0 - don't add anything if not found,
- *			1 - add new Driver FCurve (with keyframes for visual tweaking),
- *			2 - add new Driver FCurve (with generator, for script backwards compatibility)
- *			-1 - add new Driver FCurve without driver stuff (for pasting)
+ * - add: 0 - don't add anything if not found,
+ *        1 - add new Driver FCurve (with keyframes for visual tweaking),
+ *        2 - add new Driver FCurve (with generator, for script backwards compatibility)
+ *        -1 - add new Driver FCurve without driver stuff (for pasting)
  */
 FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_index, short add)
 {
@@ -95,8 +95,8 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 	}
 
 	/* try to find f-curve matching for this setting
-	 *	- add if not found and allowed to add one
-	 *		TODO: add auto-grouping support? how this works will need to be resolved
+	 * - add if not found and allowed to add one
+	 * TODO: add auto-grouping support? how this works will need to be resolved
 	 */
 	fcu = list_find_fcurve(&adt->drivers, rna_path, array_index);
 
@@ -593,8 +593,8 @@ bool ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 }
 
 /* Main Driver Management API calls:
- *  Add a new driver for the specified property on the given ID block or replace an existing one
- *	with the driver + driver-curve data from the buffer
+ * Add a new driver for the specified property on the given ID block or replace an existing one
+ * with the driver + driver-curve data from the buffer
  */
 bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {

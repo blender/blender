@@ -54,19 +54,19 @@ typedef struct bConstraintChannel {
 typedef struct bConstraint {
 	struct bConstraint *next, *prev;
 
-	void		*data;		/*	Constraint data	(a valid constraint type) */
-	short		type;		/*	Constraint type	*/
-	short		flag;		/*	Flag - General Settings	*/
+	void		*data;		/* Constraint data	(a valid constraint type) */
+	short		type;		/* Constraint type	*/
+	short		flag;		/* Flag - General Settings	*/
 
-	char 		ownspace;	/* 	Space that owner should be evaluated in 	*/
-	char		tarspace;	/* 	Space that target should be evaluated in (only used if 1 target) */
+	char 		ownspace;	/* Space that owner should be evaluated in */
+	char		tarspace;	/* Space that target should be evaluated in (only used if 1 target) */
 
-	char		name[64];	/*	Constraint name, MAX_NAME */
+	char		name[64];	/* Constraint name, MAX_NAME */
 
 	short		pad;
 
-	float		enforce;	/* 	Amount of influence exherted by constraint (0.0-1.0) */
-	float		headtail;	/*	Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
+	float		enforce;	/* Amount of influence exherted by constraint (0.0-1.0) */
+	float		headtail;	/* Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
 
 	struct Ipo *ipo    DNA_DEPRECATED;		/* local influence ipo or driver */  /* old animation system, deprecated for 2.5 */
 
@@ -105,10 +105,10 @@ typedef enum eConstraintTargetFlag {
 
 /* bConstraintTarget/bConstraintOb -> type */
 typedef enum eConstraintObType {
-	CONSTRAINT_OBTYPE_OBJECT = 1,	/*	string is ""				*/
-	CONSTRAINT_OBTYPE_BONE   = 2,	/*	string is bone-name		*/
-	CONSTRAINT_OBTYPE_VERT   = 3,	/*	string is vertex-group name 	*/
-	CONSTRAINT_OBTYPE_CV     = 4	/*	string is vertex-group name - is not available until curves get vgroups */
+	CONSTRAINT_OBTYPE_OBJECT = 1,	/* string is "" */
+	CONSTRAINT_OBTYPE_BONE   = 2,	/* string is bone-name */
+	CONSTRAINT_OBTYPE_VERT   = 3,	/* string is vertex-group name */
+	CONSTRAINT_OBTYPE_CV     = 4	/* string is vertex-group name - is not available until curves get vgroups */
 } eConstraintObType;
 
 
@@ -354,33 +354,33 @@ typedef struct bTransformConstraint {
 	char		map[3];			/* defines which target-axis deform is copied by each owner-axis */
 	char		expo;			/* extrapolate motion? if 0, confine to ranges */
 
-	float		from_min[3];	/* from_min/max defines range of target transform 	*/
-	float		from_max[3];	/* 	to map on to to_min/max range. 			*/
+	float		from_min[3];	/* from_min/max defines range of target transform */
+	float		from_max[3];	/* to map on to to_min/max range. */
 	float		to_min[3];		/* range of motion on owner caused by target  */
 	float		to_max[3];
 
-	float		from_min_rot[3];	/* from_min/max defines range of target transform 	*/
-	float		from_max_rot[3];	/* 	to map on to to_min/max range. 			*/
+	float		from_min_rot[3];	/* from_min/max defines range of target transform */
+	float		from_max_rot[3];	/* to map on to to_min/max range. */
 	float		to_min_rot[3];		/* range of motion on owner caused by target  */
 	float		to_max_rot[3];
 
-	float		from_min_scale[3];	/* from_min/max defines range of target transform 	*/
-	float		from_max_scale[3];	/* 	to map on to to_min/max range. 			*/
-	float		to_min_scale[3];		/* range of motion on owner caused by target  */
+	float		from_min_scale[3];	/* from_min/max defines range of target transform */
+	float		from_max_scale[3];	/* to map on to to_min/max range. */
+	float		to_min_scale[3];	/* range of motion on owner caused by target  */
 	float		to_max_scale[3];
 } bTransformConstraint;
 
 /* Pivot Constraint */
 typedef struct bPivotConstraint {
 	/* Pivot Point:
-	 *	Either target object + offset, or just offset is used
+	 * Either target object + offset, or just offset is used
 	 */
 	struct Object 		*tar;			/* target object (optional) */
 	char		subtarget[64];		/* subtarget name (optional), MAX_ID_NAME-2 */
 	float 		offset[3];		/* offset from the target to use, regardless of whether it exists */
 
 	/* Rotation-driven activation:
-	 *	This option provides easier one-stop setups for footrolls
+	 * This option provides easier one-stop setups for footrolls
 	 */
 	short 		rotAxis;		/* rotation axes to consider for this (ePivotConstraint_Axis) */
 
@@ -479,8 +479,8 @@ typedef struct bTransformCacheConstraint {
 /* ------------------------------------------ */
 
 /* bConstraint->type
- * 	- Do not ever change the order of these, or else files could get
- * 	  broken as their correct value cannot be resolved
+ * - Do not ever change the order of these, or else files could get
+ *   broken as their correct value cannot be resolved
  */
 typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_NULL = 0,			/* Invalid/legacy constraint */

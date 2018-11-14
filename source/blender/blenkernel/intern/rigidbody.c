@@ -410,9 +410,9 @@ static void rigidbody_validate_sim_shape(Object *ob, bool rebuild)
 		return;
 
 	/* if automatically determining dimensions, use the Object's boundbox
-	 *	- assume that all quadrics are standing upright on local z-axis
-	 *	- assume even distribution of mass around the Object's pivot
-	 *	  (i.e. Object pivot is centralized in boundbox)
+	 * - assume that all quadrics are standing upright on local z-axis
+	 * - assume even distribution of mass around the Object's pivot
+	 *   (i.e. Object pivot is centralized in boundbox)
 	 */
 	// XXX: all dimensions are auto-determined now... later can add stored settings for this
 	/* get object dimensions without scaling */
@@ -498,10 +498,10 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 	float volume = 0.0f;
 
 	/* if automatically determining dimensions, use the Object's boundbox
-	 *	- assume that all quadrics are standing upright on local z-axis
-	 *	- assume even distribution of mass around the Object's pivot
-	 *	  (i.e. Object pivot is centralized in boundbox)
-	 *	- boundbox gives full width
+	 * - assume that all quadrics are standing upright on local z-axis
+	 * - assume even distribution of mass around the Object's pivot
+	 *   (i.e. Object pivot is centralized in boundbox)
+	 * - boundbox gives full width
 	 */
 	// XXX: all dimensions are auto-determined now... later can add stored settings for this
 	BKE_object_dimensions_get(ob, size);
@@ -583,10 +583,10 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 	zero_v3(r_center);
 
 	/* if automatically determining dimensions, use the Object's boundbox
-	 *	- assume that all quadrics are standing upright on local z-axis
-	 *	- assume even distribution of mass around the Object's pivot
-	 *	  (i.e. Object pivot is centralized in boundbox)
-	 *	- boundbox gives full width
+	 * - assume that all quadrics are standing upright on local z-axis
+	 * - assume even distribution of mass around the Object's pivot
+	 *   (i.e. Object pivot is centralized in boundbox)
+	 * - boundbox gives full width
 	 */
 	// XXX: all dimensions are auto-determined now... later can add stored settings for this
 	BKE_object_dimensions_get(ob, size);
@@ -651,7 +651,7 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 	float rot[4];
 
 	/* sanity checks:
-	 *	- object doesn't have RigidBody info already: then why is it here?
+	 * - object doesn't have RigidBody info already: then why is it here?
 	 */
 	if (rbo == NULL)
 		return;
@@ -783,8 +783,8 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 	float ang_upper;
 
 	/* sanity checks:
-	 *	- object should have a rigid body constraint
-	 *  - rigid body constraint should have at least one constrained object
+	 * - object should have a rigid body constraint
+	 * - rigid body constraint should have at least one constrained object
 	 */
 	if (rbc == NULL) {
 		return;
@@ -944,8 +944,8 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 	RigidBodyWorld *rbw;
 
 	/* sanity checks
-	 *	- there must be a valid scene to add world to
-	 *	- there mustn't be a sim world using this group already
+	 * - there must be a valid scene to add world to
+	 * - there mustn't be a sim world using this group already
 	 */
 	if (scene == NULL)
 		return NULL;
@@ -1025,9 +1025,9 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 
 	/* sanity checks
-	 *	- rigidbody world must exist
-	 *	- object must exist
-	 *	- cannot add rigid body if it already exists
+	 * - rigidbody world must exist
+	 * - object must exist
+	 * - cannot add rigid body if it already exists
 	 */
 	if (ob == NULL || (ob->rigidbody_object != NULL))
 		return NULL;
@@ -1081,9 +1081,9 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 
 	/* sanity checks
-	 *	- rigidbody world must exist
-	 *	- object must exist
-	 *	- cannot add constraint if it already exists
+	 * - rigidbody world must exist
+	 * - object must exist
+	 * - cannot add constraint if it already exists
 	 */
 	if (ob == NULL || (ob->rigidbody_constraint != NULL))
 		return NULL;
@@ -1332,7 +1332,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Scene *scene, RigidBod
 			pd_point_from_loc(scene, eff_loc, eff_vel, 0, &epoint);
 
 			/* calculate net force of effectors, and apply to sim object
-			 *	- we use 'central force' since apply force requires a "relative position" which we don't have...
+			 * - we use 'central force' since apply force requires a "relative position" which we don't have...
 			 */
 			BKE_effectors_apply(effectors, NULL, effector_weights, &epoint, eff_force, NULL);
 			if (G.f & G_DEBUG)
@@ -1398,7 +1398,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph, Scene *scene, Rigi
 			if (rbo == NULL) {
 				/* Since this object is included in the sim group but doesn't have
 				 * rigid body settings (perhaps it was added manually), add!
-				 *	- assume object to be active? That is the default for newly added settings...
+				 * - assume object to be active? That is the default for newly added settings...
 				 */
 				ob->rigidbody_object = BKE_rigidbody_create_object(scene, ob, RBO_TYPE_ACTIVE);
 				rigidbody_validate_sim_object(rbw, ob, true);

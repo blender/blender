@@ -2965,9 +2965,9 @@ int txt_setcurr_tab_spaces(Text *text, int space)
 	}
 	if (strstr(text->curl->line, word)) {
 		/* if we find a ':' on this line, then add a tab but not if it is:
-		 *  1) in a comment
-		 *  2) within an identifier
-		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414]
+		 * 1) in a comment
+		 * 2) within an identifier
+		 * 3) after the cursor (text->curc), i.e. when creating space before a function def [#25414]
 		 */
 		int a;
 		bool is_indent = false;

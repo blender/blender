@@ -53,7 +53,7 @@
 /* This file defines an API and set of callback-operators for non-destructive editing of keyframe data.
  *
  * Two API functions are defined for actually performing the operations on the data:
- *			ANIM_fcurve_keyframes_loop()
+ * ANIM_fcurve_keyframes_loop()
  * which take the data they operate on, a few callbacks defining what operations to perform.
  *
  * As operators which work on keyframes usually apply the same operation on all BezTriples in
@@ -434,8 +434,8 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 /* Some macros to make this easier... */
 
 /* run the given check on the 3 handles
- *	- check should be a macro, which takes the handle index as its single arg, which it substitutes later
- *	- requires that a var, of type short, is named 'ok', and has been initialized to 0
+ * - check should be a macro, which takes the handle index as its single arg, which it substitutes later
+ * - requires that a var, of type short, is named 'ok', and has been initialized to 0
  */
 #define KEYFRAME_OK_CHECKS(check) \
 	{ \
@@ -495,8 +495,8 @@ static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 	short ok = 0;
 
 	/* value is stored in f1 property
-	 *	- this float accuracy check may need to be dropped?
-	 *	- should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
+	 * - this float accuracy check may need to be dropped?
+	 * - should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
 	 */
 #define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][1], ked->f1)
 	KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
@@ -707,7 +707,7 @@ short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
 		ked->f1 += bezt->vec[1][0];
 
 		/* store average value in float 2 (only do rounding at last step)
-		 *	- this isn't always needed, but some operators may also require this
+		 * - this isn't always needed, but some operators may also require this
 		 */
 		ked->f2 += bezt->vec[1][1];
 
@@ -953,7 +953,7 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* Settings */
 
 /* standard validation step for a few of these (implemented as macro for inlining without fn-call overhead):
- *	"if the handles are not of the same type, set them to type free"
+ * "if the handles are not of the same type, set them to type free"
  */
 #define ENSURE_HANDLES_MATCH(bezt)                                            \
 	if (bezt->h1 != bezt->h2) {                                               \

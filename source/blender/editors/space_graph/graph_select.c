@@ -69,20 +69,20 @@
 
 /* ******************** Deselect All Operator ***************************** */
 /* This operator works in one of three ways:
- *	1) (de)select all (AKEY) - test if select all or deselect all
- *	2) invert all (CTRL-IKEY) - invert selection of all keyframes
- *	3) (de)select all - no testing is done; only for use internal tools as normal function...
+ * 1) (de)select all (AKEY) - test if select all or deselect all
+ * 2) invert all (CTRL-IKEY) - invert selection of all keyframes
+ * 3) (de)select all - no testing is done; only for use internal tools as normal function...
  */
 
 /* Deselects keyframes in the Graph Editor
- *	- This is called by the deselect all operator, as well as other ones!
+ * - This is called by the deselect all operator, as well as other ones!
  *
- *  - test: check if select or deselect all
- *	- sel: how to select keyframes
- *		0 = deselect
- *		1 = select
- *		2 = invert
- *	- do_channels: whether to affect selection status of channels
+ * - test: check if select or deselect all
+ * - sel: how to select keyframes
+ *   0 = deselect
+ *   1 = select
+ *   2 = invert
+ * - do_channels: whether to affect selection status of channels
  */
 void deselect_graph_keys(bAnimContext *ac, bool test, short sel, bool do_channels)
 {
@@ -221,10 +221,10 @@ void GRAPH_OT_select_all(wmOperatorType *ot)
 
 /* ******************** Box Select Operator **************************** */
 /* This operator currently works in one of three ways:
- *	-> BKEY     - 1) all keyframes within region are selected (validation with BEZT_OK_REGION)
- *	-> ALT-BKEY - depending on which axis of the region was larger...
- *		-> 2) x-axis, so select all frames within frame range (validation with BEZT_OK_FRAMERANGE)
- *		-> 3) y-axis, so select all frames within channels that region included (validation with BEZT_OK_VALUERANGE)
+ * -> BKEY     - 1) all keyframes within region are selected (validation with BEZT_OK_REGION)
+ * -> ALT-BKEY - depending on which axis of the region was larger...
+ *    -> 2) x-axis, so select all frames within frame range (validation with BEZT_OK_FRAMERANGE)
+ *    -> 3) y-axis, so select all frames within channels that region included (validation with BEZT_OK_VALUERANGE)
  *
  * The selection backend is also reused for the Lasso and Circle select operators.
  */
@@ -360,7 +360,7 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
 		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
 
 	/* get select mode
-	 *	- 'include_handles' from the operator specifies whether to include handles in the selection
+	 * - 'include_handles' from the operator specifies whether to include handles in the selection
 	 */
 	if (select) {
 		selectmode = SELECT_ADD;
@@ -377,9 +377,9 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
 	/* selection 'mode' depends on whether box_select region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use
-		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
-		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
-		 *	  used for tweaking timing when "blocking", while channels is not that useful...
+		 * - checking this in region-space is fine, as it's fundamentally still going to be a different rect size
+		 * - the frame-range select option is favored over the channel one (x over y), as frame-range one is often
+		 *   used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if ((BLI_rcti_size_x(&rect)) >= (BLI_rcti_size_y(&rect)))
 			mode = BEZT_OK_FRAMERANGE;
@@ -577,10 +577,10 @@ void GRAPH_OT_select_circle(wmOperatorType *ot)
 
 /* ******************** Column Select Operator **************************** */
 /* This operator works in one of four ways:
- *	- 1) select all keyframes in the same frame as a selected one  (KKEY)
- *	- 2) select all keyframes in the same frame as the current frame marker (CTRL-KKEY)
- *	- 3) select all keyframes in the same frame as a selected markers (SHIFT-KKEY)
- *	- 4) select all keyframes that occur between selected markers (ALT-KKEY)
+ * - 1) select all keyframes in the same frame as a selected one  (KKEY)
+ * - 2) select all keyframes in the same frame as the current frame marker (CTRL-KKEY)
+ * - 3) select all keyframes in the same frame as a selected markers (SHIFT-KKEY)
+ * - 4) select all keyframes that occur between selected markers (ALT-KKEY)
  */
 
 /* defines for column-select mode */
@@ -699,7 +699,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
 		/* loop over cfraelems (stored in the KeyframeEditData->list)
-		 *	- we need to do this here, as we can apply fewer NLA-mapping conversions
+		 * - we need to do this here, as we can apply fewer NLA-mapping conversions
 		 */
 		for (ce = ked.list.first; ce; ce = ce->next) {
 			/* set frame for validation callback to refer to */
@@ -1079,9 +1079,9 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
 
 /* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of three ways:
- *	- 1) keyframe under mouse - no special modifiers
- *	- 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
- *	- 3) column select all keyframes in frame under mouse - CTRL modifier
+ * - 1) keyframe under mouse - no special modifiers
+ * - 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
+ * - 3) column select all keyframes in frame under mouse - CTRL modifier
  *
  * In addition to these basic options, the SHIFT modifier can be used to toggle the
  * selection mode between replacing the selection (without) and inverting the selection (with).
@@ -1195,8 +1195,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 	short mapping_flag = 0;
 
 	/* get curves to search through
-	 *	- if the option to only show keyframes that belong to selected F-Curves is enabled,
-	 *	  include the 'only selected' flag...
+	 * - if the option to only show keyframes that belong to selected F-Curves is enabled,
+	 *   include the 'only selected' flag...
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
 	if (sipo->flag & SIPO_SELCUVERTSONLY)   // FIXME: this should really be check for by the filtering code...
@@ -1271,7 +1271,7 @@ static tNearestVertInfo *get_best_nearest_fcurve_vert(ListBase *matches)
 		/* which mode of search are we in: find first selected, or find vert? */
 		if (found) {
 			/* just take this vert now that we've found the selected one
-			 *	- we'll need to remove this from the list so that it can be returned to the original caller
+			 * - we'll need to remove this from the list so that it can be returned to the original caller
 			 */
 			BLI_remlink(matches, nvi);
 			return nvi;

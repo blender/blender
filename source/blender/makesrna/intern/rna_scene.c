@@ -828,8 +828,8 @@ static void rna_Scene_active_keying_set_set(PointerRNA *ptr, PointerRNA value)
 }
 
 /* get KeyingSet index stuff for list of Keying Sets editing UI
- *	- active_keyingset-1 since 0 is reserved for 'none'
- *	- don't clamp, otherwise can never set builtins types as active...
+ * - active_keyingset-1 since 0 is reserved for 'none'
+ * - don't clamp, otherwise can never set builtins types as active...
  */
 static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
 {
@@ -838,7 +838,7 @@ static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
 }
 
 /* get KeyingSet index stuff for list of Keying Sets editing UI
- *	- value+1 since 0 is reserved for 'none'
+ * - value+1 since 0 is reserved for 'none'
  */
 static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value)
 {

@@ -34,7 +34,7 @@ struct Main;
 struct Scene;
 struct ViewLayer;
 
-/* Actual surface point	*/
+/* Actual surface point */
 typedef struct PaintSurfaceData {
 	void *format_data; /* special data for each surface "format" */
 	void *type_data; /* data used by specific surface type */
@@ -45,7 +45,7 @@ typedef struct PaintSurfaceData {
 
 } PaintSurfaceData;
 
-/* Paint type surface point	*/
+/* Paint type surface point */
 typedef struct PaintPoint {
 
 	/* Wet paint is handled at effect layer only
@@ -56,7 +56,7 @@ typedef struct PaintPoint {
 	float color[4];
 } PaintPoint;
 
-/* height field waves	*/
+/* height field waves */
 typedef struct PaintWavePoint {
 
 	float height;

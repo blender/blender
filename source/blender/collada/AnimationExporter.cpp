@@ -69,25 +69,26 @@ bool AnimationExporter::is_flat_line(std::vector<float> &values, int channel_cou
  * <source>, <sampler>, and <channel> entries.
  * This is is used for creating sampled Transformation Animations for either:
  *
- *		1-axis animation:
- *		    times contains the time points in seconds from within the timeline
- *			values contains the data (list of single floats)
- *			channel_count = 1
- *			axis_name = ['X' | 'Y' | 'Z']
- *			is_rot indicates if the animation is a rotation
+ * 1-axis animation:
+ *   times contains the time points in seconds from within the timeline
+ *   values contains the data (list of single floats)
+ *   channel_count = 1
+ *   axis_name = ['X' | 'Y' | 'Z']
+ *   is_rot indicates if the animation is a rotation
  *
- *		3-axis animation:
- *			times contains the time points in seconds from within the timeline
- *			values contains the data (list of floats where each 3 entries are one vector)
- *			channel_count = 3
- *			axis_name = "" (actually not used)
- *			is_rot = false (see xxx below)
+ * 3-axis animation:
+ *   times contains the time points in seconds from within the timeline
+ *   values contains the data (list of floats where each 3 entries are one vector)
+ *   channel_count = 3
+ *   axis_name = "" (actually not used)
+ *   is_rot = false (see xxx below)
  *
- *	xxx: I tried to create a 3 axis rotation animation
- *		 like for translation or scale. But i could not
- *		 figure out how to setup the channel for this case.
- *		 So for now rotations are exported as 3 separate 1-axis collada animations
- *		 See export_sampled_animation() further down.
+ * xxx:
+ *   I tried to create a 3 axis rotation animation
+ *   like for translation or scale. But i could not
+ *   figure out how to setup the channel for this case.
+ *   So for now rotations are exported as 3 separate 1-axis collada animations
+ *   See export_sampled_animation() further down.
  */
 void AnimationExporter::create_sampled_animation(int channel_count,
 	std::vector<float> &times,
@@ -421,8 +422,8 @@ void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<fl
 			bConstraintTarget *ct;
 			Object *obtar;
 			/* get targets
-			 *  - constraints should use ct->matrix, not directly accessing values
-			 *	- ct->matrix members have not yet been calculated here!
+			 * - constraints should use ct->matrix, not directly accessing values
+			 * - ct->matrix members have not yet been calculated here!
 			 */
 			cti->get_constraint_targets(con, &targets);
 

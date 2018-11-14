@@ -792,7 +792,7 @@ bool BM_vert_edge_pair(BMVert *v, BMEdge **r_e_a, BMEdge **r_e_b)
 }
 
 /**
- *	Returns the number of edges around this vertex.
+ * Returns the number of edges around this vertex.
  */
 int BM_vert_edge_count(const BMVert *v)
 {
@@ -817,7 +817,7 @@ int BM_vert_edge_count_nonwire(const BMVert *v)
 	return count;
 }
 /**
- *	Returns the number of faces around this edge
+ * Returns the number of faces around this edge
  */
 int BM_edge_face_count(const BMEdge *e)
 {
@@ -1311,7 +1311,7 @@ bool BM_edge_share_face_check(BMEdge *e1, BMEdge *e2)
 }
 
 /**
- *	Test if e1 shares any quad faces with e2
+ * Test if e1 shares any quad faces with e2
  */
 bool BM_edge_share_quad_check(BMEdge *e1, BMEdge *e2)
 {
@@ -1334,7 +1334,7 @@ bool BM_edge_share_quad_check(BMEdge *e1, BMEdge *e2)
 }
 
 /**
- *	Tests to see if e1 shares a vertex with e2
+ * Tests to see if e1 shares a vertex with e2
  */
 bool BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2)
 {
@@ -1345,7 +1345,7 @@ bool BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2)
 }
 
 /**
- *	Return the shared vertex between the two edges or NULL
+ * Return the shared vertex between the two edges or NULL
  */
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
 {

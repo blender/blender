@@ -3457,13 +3457,13 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 				if (strip->type != NLASTRIP_TYPE_TRANSITION) {
 					if (strip->flag & NLASTRIP_FLAG_SELECT) {
 						/* our transform data is constructed as follows:
-						 *	- only the handles on the right side of the current-frame get included
-						 *	- td structs are transform-elements operated on by the transform system
-						 *	  and represent a single handle. The storage/pointer used (val or loc) depends on
-						 *	  whether we're scaling or transforming. Ultimately though, the handles
-						 *    the td writes to will simply be a dummy in tdn
-						 *	- for each strip being transformed, a single tdn struct is used, so in some
-						 *	  cases, there will need to be 1 of these tdn elements in the array skipped...
+						 * - only the handles on the right side of the current-frame get included
+						 * - td structs are transform-elements operated on by the transform system
+						 *   and represent a single handle. The storage/pointer used (val or loc) depends on
+						 *   whether we're scaling or transforming. Ultimately though, the handles
+						 *   the td writes to will simply be a dummy in tdn
+						 * - for each strip being transformed, a single tdn struct is used, so in some
+						 *   cases, there will need to be 1 of these tdn elements in the array skipped...
 						 */
 						float center[3], yval;
 
@@ -4650,9 +4650,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
 					}
 					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
-					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
-					 *	  then check if we're using auto-handles.
-					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
+					 * - Check if we've got entire BezTriple selected and we're scaling/rotating that point,
+					 *   then check if we're using auto-handles.
+					 * - If so, change them auto-handles to aligned handles so that handles get affected too
 					 */
 					if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) &&
 					    ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
@@ -4960,9 +4960,9 @@ void flushTransGraphData(TransInfo *t)
 		float inv_unit_scale = 1.0f / tdg->unit_scale;
 
 		/* handle snapping for time values
-		 *	- we should still be in NLA-mapping timespace
-		 *	- only apply to keyframes (but never to handles)
-		 *  - don't do this when canceling, or else these changes won't go away
+		 * - we should still be in NLA-mapping timespace
+		 * - only apply to keyframes (but never to handles)
+		 * - don't do this when canceling, or else these changes won't go away
 		 */
 		if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
 			switch (sipo->autosnap) {
@@ -5679,9 +5679,9 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	td->con = ob->constraints.first;
 
 	/* hack: temporarily disable tracking and/or constraints when getting
-	 *		object matrix, if tracking is on, or if constraints don't need
-	 *      inverse correction to stop it from screwing up space conversion
-	 *		matrix later
+	 * object matrix, if tracking is on, or if constraints don't need
+	 * inverse correction to stop it from screwing up space conversion
+	 * matrix later
 	 */
 	constinv = constraints_list_needinv(t, &ob->constraints);
 
@@ -5747,7 +5747,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 		/* Get the effect of parenting, and/or certain constraints.
 		 * NOTE: some Constraints, and also Tracking should never get this
-		 *		done, as it doesn't work well.
+		 *       done, as it doesn't work well.
 		 */
 		BKE_object_to_mat3(ob, obmtx);
 		copy_m3_m4(totmat, ob->obmat);
@@ -6084,9 +6084,9 @@ void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short t
 		short flag = 0;
 
 		/* flag is initialized from UserPref keyframing settings
-		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
-		 *    visual keyframes even if flag not set, as it's not that useful otherwise
-		 *	  (for quick animation recording)
+		 * - special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
+		 *   visual keyframes even if flag not set, as it's not that useful otherwise
+		 *   (for quick animation recording)
 		 */
 		flag = ANIM_get_keyframing_flags(scene, 1);
 

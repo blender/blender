@@ -123,10 +123,10 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 	}
 
 	/* if deselecting, we need to deselect strokes across all frames
-	 *  - Currently, an exception is only given for deselection
-	 *    Selecting and toggling should only affect what's visible,
-	 *    while deselecting helps clean up unintended/forgotten
-	 *    stuff on other frames
+	 * - Currently, an exception is only given for deselection
+	 *   Selecting and toggling should only affect what's visible,
+	 *   while deselecting helps clean up unintended/forgotten
+	 *   stuff on other frames
 	 */
 	if (action == SEL_DESELECT) {
 		/* deselect strokes across editable layers
@@ -887,7 +887,7 @@ static bool gp_stroke_do_circle_sel(
 	}
 	else {
 		/* Loop over the points in the stroke, checking for intersections
-		 *  - an intersection means that we touched the stroke
+		 * - an intersection means that we touched the stroke
 		 */
 		bool hit = false;
 		for (i = 0; (i + 1) < gps->totpoints; i++) {
@@ -910,7 +910,7 @@ static bool gp_stroke_do_circle_sel(
 
 				/* check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
-				 *  - this assumes that linewidth is irrelevant
+				 * - this assumes that linewidth is irrelevant
 				 */
 				if (gp_stroke_inside_circle(mval, mvalo, radius, x0, y0, x1, y1)) {
 					/* change selection of stroke, and then of both points

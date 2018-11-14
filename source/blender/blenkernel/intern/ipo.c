@@ -796,13 +796,13 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
- *	Input:
- *		- id					- the datablock that the curve's IPO block is attached to and/or which the new paths will start from
- *		- blocktype, adrcode	- determines setting to get
- *		- actname, constname,seq - used to build path
- *	Output:
- *		- array_index			- index in property's array (if applicable) to use
- *		- return				- the allocated path...
+ * Input:
+ *     - id                    - the datablock that the curve's IPO block is attached to and/or which the new paths will start from
+ *     - blocktype, adrcode    - determines setting to get
+ *     - actname, constname,seq - used to build path
+ * Output:
+ *     - array_index           - index in property's array (if applicable) to use
+ *     - return                - the allocated path...
  */
 static char *get_rna_access(ID *id, int blocktype, int adrcode, char actname[], char constname[], Sequence *seq, int *array_index)
 {
@@ -898,7 +898,7 @@ static char *get_rna_access(ID *id, int blocktype, int adrcode, char actname[], 
 	}
 
 	/* check if any property found
-	 *	- blocktype < 0 is special case for a specific type of driver, where we don't need a property name...
+	 * - blocktype < 0 is special case for a specific type of driver, where we don't need a property name...
 	 */
 	if ((propname == NULL) && (blocktype > 0)) {
 		/* nothing was found, so exit */
@@ -1080,7 +1080,7 @@ static ChannelDriver *idriver_to_cdriver(IpoDriver *idriver)
 }
 
 /* Add F-Curve to the correct list
- *	- grpname is needed to be used as group name where relevant, and is usually derived from actname
+ * - grpname is needed to be used as group name where relevant, and is usually derived from actname
  */
 static void fcurve_add_to_list(ListBase *groups, ListBase *list, FCurve *fcu, char *grpname, int muteipo)
 {
@@ -1138,8 +1138,8 @@ static void fcurve_add_to_list(ListBase *groups, ListBase *list, FCurve *fcu, ch
 
 /* Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that
  * is not relevant, BUT do not free the IPO-Curve itself...
- *	actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
- *	constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
+ *  actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
+ *  constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  *      seq: sequencer-strip (if applicable) that IPO-Curve's IPO-block belonged to
  */
 static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *icu, char *actname, char *constname, Sequence *seq, int muteipo)
@@ -1222,8 +1222,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 			fcurve->array_index = abp->array_index;
 
 			/* convert keyframes
-			 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
-			 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+			 * - beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+			 * - beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
 			 */
 			fcurve->totvert = icu->totvert;
 
@@ -1271,15 +1271,15 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 		unsigned int i = 0;
 
 		/* get rna-path
-		 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
+		 * - we will need to set the 'disabled' flag if no path is able to be made (for now)
 		 */
 		fcu->rna_path = get_rna_access(id, icu->blocktype, icu->adrcode, actname, constname, seq, &fcu->array_index);
 		if (fcu->rna_path == NULL)
 			fcu->flag |= FCURVE_DISABLED;
 
 		/* convert keyframes
-		 *	- beztriples and bpoints are mutually exclusive, so we won't have both at the same time
-		 *	- beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
+		 * - beztriples and bpoints are mutually exclusive, so we won't have both at the same time
+		 * - beztriples are more likely to be encountered as they are keyframes (the other type wasn't used yet)
 		 */
 		fcu->totvert = icu->totvert;
 
@@ -1308,8 +1308,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 				}
 
 				/* correct values for euler rotation curves
-				 *	- they were degrees/10
-				 *	- we need radians for RNA to do the right thing
+				 * - they were degrees/10
+				 * - we need radians for RNA to do the right thing
 				 */
 				if ( ((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
 				     ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)) )
@@ -1322,8 +1322,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 				}
 
 				/* correct values for path speed curves
-				 *	- their values were 0-1
-				 *	- we now need as 'frames'
+				 * - their values were 0-1
+				 * - we now need as 'frames'
 				 */
 				if ( (id) && (icu->blocktype == GS(id->name)) &&
 				     (fcu->rna_path && STREQ(fcu->rna_path, "eval_time")) )
@@ -1336,9 +1336,9 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 				}
 
 				/* correct times for rotation drivers
-				 *	- need to go from degrees to radians...
-				 *  - there's only really 1 target to worry about
-				 *  - were also degrees/10
+				 * - need to go from degrees to radians...
+				 * - there's only really 1 target to worry about
+				 * - were also degrees/10
 				 */
 				if (fcu->driver && fcu->driver->variables.first) {
 					DriverVar *dvar = fcu->driver->variables.first;
@@ -1397,10 +1397,10 @@ static void ipo_to_animato(ID *id, Ipo *ipo, char actname[], char constname[], S
 	if (G.debug & G_DEBUG) printf("ipo_to_animato\n");
 
 	/* validate actname and constname
-	 *	- clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
-	 *	- actname can then be used to assign F-Curves in Action to Action Groups
-	 *	  (i.e. thus keeping the benefits that used to be provided by Action Channels for grouping
-	 *		F-Curves for bones). This may be added later... for now let's just dump without them...
+	 * - clear actname if it was one of the generic <builtin> ones (i.e. 'Object', or 'Shapes')
+	 * - actname can then be used to assign F-Curves in Action to Action Groups
+	 *   (i.e. thus keeping the benefits that used to be provided by Action Channels for grouping
+	 *   F-Curves for bones). This may be added later... for now let's just dump without them...
 	 */
 	if (actname) {
 		if ((ipo->blocktype == ID_OB) && STREQ(actname, "Object"))
@@ -1608,8 +1608,8 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
 			/* create a new-style NLA-strip which references this Action, then copy over relevant settings */
 			{
 				/* init a new strip, and assign the action to it
-				 *	- no need to muck around with the user-counts, since this is just
-				 *	  passing over the ref to the new owner, not creating an additional ref
+				 * - no need to muck around with the user-counts, since this is just
+				 *   passing over the ref to the new owner, not creating an additional ref
 				 */
 				strip = MEM_callocN(sizeof(NlaStrip), "NlaStrip");
 				strip->act = as->act;

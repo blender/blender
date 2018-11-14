@@ -216,11 +216,11 @@ typedef enum eKeyMergeMode {
 /* function for working with F-Curve data only (i.e. when filters have been chosen to explicitly use this) */
 short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, struct FCurve *fcu, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb);
 /* function for working with any type (i.e. one of the known types) of animation channel
- *  - filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
+ * - filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
  */
 short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, struct bDopeSheet *ads, struct bAnimListElem *ale, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb);
 /* same as above, except bAnimListElem wrapper is not needed...
- *  - keytype is eAnim_KeyType
+ * - keytype is eAnim_KeyType
  */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, struct bDopeSheet *ads, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb);
 

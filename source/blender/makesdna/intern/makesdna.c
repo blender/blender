@@ -154,10 +154,10 @@ static short **structs, *structdata; /* at sp = structs[a] is the first address 
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:
- *  - 0 = no output, except errors
- *  - 1 = detail actions
- *  - 2 = full trace, tell which names and types were found
- *  - 4 = full trace, plus all gritty details
+ * - 0 = no output, except errors
+ * - 1 = detail actions
+ * - 2 = full trace, tell which names and types were found
+ * - 4 = full trace, plus all gritty details
  */
 static int debugSDNA = 0;
 static int additional_slen_offset;

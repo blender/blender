@@ -748,7 +748,7 @@ static int get_lamp(ViewLayer *view_layer, float *light)
 }
 
 /**********************************************************
- *	Obstacles
+ * Obstacles
  **********************************************************/
 
 typedef struct ObstaclesFromDMData {
@@ -1005,7 +1005,7 @@ static void update_obstacles(Depsgraph *depsgraph, Object *ob, SmokeDomainSettin
 }
 
 /**********************************************************
- *	Flow emission code
+ * Flow emission code
  **********************************************************/
 
 typedef struct EmissionMap {
@@ -1484,8 +1484,8 @@ static void sample_mesh(
 	if (sfs->volume_density) {
 		if (BLI_bvhtree_ray_cast(treeData->tree, ray_start, ray_dir, 0.0f, &hit, treeData->raycast_callback, treeData) != -1) {
 			float dot = ray_dir[0] * hit.no[0] + ray_dir[1] * hit.no[1] + ray_dir[2] * hit.no[2];
-			/*  If ray and hit face normal are facing same direction
-			 *	hit point is inside a closed mesh. */
+			/* If ray and hit face normal are facing same direction
+			 * hit point is inside a closed mesh. */
 			if (dot >= 0) {
 				/* Also cast a ray in opposite direction to make sure
 				 * point is at least surrounded by two faces */
@@ -1800,7 +1800,7 @@ static void emit_from_mesh(Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowS
 }
 
 /**********************************************************
- *	Smoke step
+ *  Smoke step
  **********************************************************/
 
 static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], EmissionMap *emaps, unsigned int numflowobj, float dt)

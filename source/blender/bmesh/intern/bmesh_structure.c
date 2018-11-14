@@ -37,7 +37,7 @@
 #include "intern/bmesh_private.h"
 
 /**
- *	MISC utility functions.
+ * MISC utility functions.
  */
 
 void bmesh_disk_vert_swap(BMEdge *e, BMVert *v_dst, BMVert *v_src)

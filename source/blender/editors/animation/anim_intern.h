@@ -39,15 +39,15 @@ extern ListBase builtin_keyingsets;
 /* Operator Define Prototypes ------------------- */
 
 /* Main Keyframe Management operators:
- *	These handle keyframes management from various spaces. They only make use of
- *  Keying Sets.
+ * These handle keyframes management from various spaces. They only make use of
+ * Keying Sets.
  */
 void ANIM_OT_keyframe_insert(struct wmOperatorType *ot);
 void ANIM_OT_keyframe_delete(struct wmOperatorType *ot);
 
 /* Main Keyframe Management operators:
- *	These handle keyframes management from various spaces. They will handle the menus
- *  required for each space.
+ * These handle keyframes management from various spaces. They will handle the menus
+ * required for each space.
  */
 void ANIM_OT_keyframe_insert_menu(struct wmOperatorType *ot);
 

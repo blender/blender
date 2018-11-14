@@ -16,8 +16,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor:
- *		Dalai Felinto
- *		Daniel Salazar
+ *      Dalai Felinto
+ *      Daniel Salazar
  */
 
 #ifndef __COM_MAPRANGEOPERATION_H__

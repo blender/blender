@@ -423,8 +423,8 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  * Returns true if "hit" was updated.
  * Opts control whether an hit is valid or not
  * Supported options are:
- *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
- *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
+ * - MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
+ * - MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
 bool BKE_shrinkwrap_project_normal(
         char options, const float vert[3], const float dir[3],

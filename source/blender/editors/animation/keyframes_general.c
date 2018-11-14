@@ -82,8 +82,8 @@ void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
 		return;
 
 	/* verify the index:
-	 *	1) cannot be greater than the number of available keyframes
-	 *	2) negative indices are for specifying a value from the end of the array
+	 * 1) cannot be greater than the number of available keyframes
+	 * 2) negative indices are for specifying a value from the end of the array
 	 */
 	if (abs(index) >= fcu->totvert)
 		return;
@@ -373,10 +373,10 @@ void smooth_fcurve(FCurve *fcu)
 		}
 
 		/* calculate the new smoothed F-Curve's with weighted averages:
-		 *	- this is done with two passes to avoid progressive corruption errors
-		 *	- uses 5 points for each operation (which stores in the relevant handles)
-		 *	-   previous: w/a ratio = 3:5:2:1:1
-		 *	-   next: w/a ratio = 1:1:2:5:3
+		 * - this is done with two passes to avoid progressive corruption errors
+		 * - uses 5 points for each operation (which stores in the relevant handles)
+		 * -   previous: w/a ratio = 3:5:2:1:1
+		 * -   next: w/a ratio = 1:1:2:5:3
 		 */
 
 		/* round 1: calculate smoothing deltas and new values */
@@ -466,7 +466,7 @@ void sample_fcurve(FCurve *fcu)
 
 				/* cache values then add keyframes using these values, as adding
 				 * keyframes while sampling will affect the outcome...
-				 *	- only start sampling+adding from index=1, so that we don't overwrite original keyframe
+				 * - only start sampling+adding from index=1, so that we don't overwrite original keyframe
 				 */
 				range = (int)(ceil(end->vec[1][0] - start->vec[1][0]));
 				sfra = (int)(floor(start->vec[1][0]));
@@ -514,7 +514,7 @@ void sample_fcurve(FCurve *fcu)
 /* - The copy/paste buffer currently stores a set of temporary F-Curves containing only the keyframes
  *   that were selected in each of the original F-Curves
  * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
- *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
+ *   the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
  * - The earliest frame is calculated per copy operation.
  */
 
@@ -587,8 +587,8 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 		int i;
 
 		/* firstly, check if F-Curve has any selected keyframes
-		 *	- skip if no selected keyframes found (so no need to create unnecessary copy-buffer data)
-		 *	- this check should also eliminate any problems associated with using sample-data
+		 * - skip if no selected keyframes found (so no need to create unnecessary copy-buffer data)
+		 * - this check should also eliminate any problems associated with using sample-data
 		 */
 		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
 			continue;
