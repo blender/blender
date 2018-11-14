@@ -313,7 +313,7 @@ static void bpygpu_VertBuf_dealloc(BPyGPUVertBuf *self)
 PyDoc_STRVAR(py_gpu_vertex_buffer_doc,
 ".. class:: GPUVertBuf(len, format)\n"
 "\n"
-"   Contains a VBO."
+"   Contains a VBO.\n"
 "\n"
 "   :param len: Amount of vertices that will fit into this buffer.\n"
 "   :type type: `int`\n"
