@@ -2419,7 +2419,6 @@ class WM_OT_toolbar(Operator):
 
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is None:
-            self.report({'WARNING'}, f"Toolbar not found for {space_type!r}")
             return {'CANCELLED'}
 
         wm = context.window_manager
