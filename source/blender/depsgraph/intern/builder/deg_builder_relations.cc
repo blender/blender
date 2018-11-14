@@ -1529,17 +1529,8 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 				}
 			}
 			else {
-				if (dtar->id == id) {
-					/* Ignore input dependency if we're driving properties of
-					 * the same ID, otherwise we'll be ending up in a cyclic
-					 * dependency here.
-					 */
-					continue;
-				}
-				/* Resolve path to get node. */
-				RNAPathKey target_key(dtar->id,
-				                      dtar->rna_path ? dtar->rna_path : "");
-				add_relation(target_key, driver_key, "RNA Target -> Driver");
+				/* If rna_path is NULL, and DTAR_FLAG_STRUCT_REF isn't set, this
+				 * is an incomplete target reference, so nothing to do here. */
 			}
 		}
 		DRIVER_TARGETS_LOOPER_END
