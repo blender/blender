@@ -1137,16 +1137,13 @@ void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 	BKE_scene_collections_iterator_begin(&data->scene_collection_iter, scene);
 
 	Collection *collection = data->scene_collection_iter.current;
-	if (collection->gobject.first != NULL) {
-		iter->current = ((CollectionObject *)collection->gobject.first)->ob;
-	}
-	else {
-		BKE_scene_objects_iterator_next(iter);
-	}
+	data->cob_next = collection->gobject.first;
+
+	BKE_scene_objects_iterator_next(iter);
 }
 
 /**
- * Gets the first unique object in the sequence
+ * Ensures we only get each object once, even when included in several collections.
  */
 static CollectionObject *object_base_unique(GSet *gs, CollectionObject *cob)
 {
