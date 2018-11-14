@@ -200,7 +200,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	/* TODO: Improve the builders to not add any ID nodes we don't need later (e.g. ProxyBuilder?) */
 	Depsgraph *graph_new = DEG_graph_new(deg_graph_src->scene,
 	                                     deg_graph_src->view_layer,
-	                                     DAG_EVAL_BACKGROUND);
+	                                     deg_graph_src->mode);
 	DEG_graph_build_from_view_layer(graph_new,
 	                                bmain,
 	                                deg_graph_src->scene,
