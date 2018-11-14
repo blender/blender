@@ -186,7 +186,7 @@ void integrate_slice(vec3 normal, vec2 t_phi, vec2 horizons, inout float visibil
 }
 
 void gtao_deferred(
-        vec3 normal, vec3 position, vec4 noise, float frag_depth, out float visibility, out vec3 bent_normal)
+        vec3 normal, vec4 noise, float frag_depth, out float visibility, out vec3 bent_normal)
 {
 	/* Fetch early, hide latency! */
 	vec4 horizons = texelFetch(horizonBuffer, ivec2(gl_FragCoord.xy), 0);
@@ -194,7 +194,6 @@ void gtao_deferred(
 	vec4 dirs;
 	dirs.xy = get_ao_dir(noise.x * 0.5);
 	dirs.zw = get_ao_dir(noise.x * 0.5 + 0.5);
-	vec2 uvs = get_uvs_from_view(position);
 
 	bent_normal = vec3(0.0);
 	visibility = 0.0;
@@ -252,7 +251,7 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec4 rand, out 
 		vec3 vnor = mat3(ViewMatrix) * N;
 
 #ifdef ENABLE_DEFERED_AO
-		gtao_deferred(vnor, vpos, rand, gl_FragCoord.z, visibility, bent_normal);
+		gtao_deferred(vnor, rand, gl_FragCoord.z, visibility, bent_normal);
 #else
 		gtao(vnor, vpos, rand, visibility, bent_normal);
 #endif

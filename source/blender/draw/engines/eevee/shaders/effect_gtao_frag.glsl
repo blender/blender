@@ -26,7 +26,7 @@ void main()
 
 	vec4 noise = texelfetch_noise_tex(gl_FragCoord.xy);
 
-	gtao_deferred(normal, viewPosition, noise, depth, visibility, bent_normal);
+	gtao_deferred(normal, noise, depth, visibility, bent_normal);
 
 	/* Handle Background case. Prevent artifact due to uncleared Horizon Render Target. */
 	FragColor = vec4((depth == 1.0) ? 0.0 : visibility);
