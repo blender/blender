@@ -244,7 +244,7 @@ void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *sc
 			settings->uvsculpt->paint.flags |= PAINT_SHOW_BRUSH;
 		}
 
-		BKE_paint_init(bmain, scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT_UV, PAINT_CURSOR_SCULPT);
 
 		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(
 		        wm, uv_sculpt_brush_poll,
