@@ -242,7 +242,7 @@ void ED_space_image_uv_sculpt_update(Main *bmain, wmWindowManager *wm, Scene *sc
 			settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
 		}
 		BKE_paint_ensure(settings, (Paint **)&settings->uvsculpt);
-		BKE_paint_init(bmain, scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT_UV, PAINT_CURSOR_SCULPT);
 
 		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(
 		        wm,

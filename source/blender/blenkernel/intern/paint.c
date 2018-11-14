@@ -99,9 +99,9 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const
 		return;
 
 	if (br->mtex.tex == tex)
-		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
+		overlay_flags |= PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY;
 	if (br->mask_mtex.tex == tex)
-		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
+		overlay_flags |= PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY;
 }
 
 void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
@@ -110,14 +110,14 @@ void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, Cu
 	Brush *br = p->brush;
 
 	if (br && br->curve == curve)
-		overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
+		overlay_flags |= PAINT_OVERLAY_INVALID_CURVE;
 }
 
 void BKE_paint_invalidate_overlay_all(void)
 {
-	overlay_flags |= (PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY |
-	                  PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY |
-	                  PAINT_INVALID_OVERLAY_CURVE);
+	overlay_flags |= (PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY |
+	                  PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY |
+	                  PAINT_OVERLAY_INVALID_CURVE);
 }
 
 eOverlayControlFlags BKE_paint_get_overlay_flags(void)
@@ -151,20 +151,20 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 		ToolSettings *ts = sce->toolsettings;
 
 		switch (mode) {
-			case ePaintSculpt:
+			case PAINT_MODE_SCULPT:
 				return &ts->sculpt->paint;
-			case ePaintVertex:
+			case PAINT_MODE_VERTEX:
 				return &ts->vpaint->paint;
-			case ePaintWeight:
+			case PAINT_MODE_WEIGHT:
 				return &ts->wpaint->paint;
-			case ePaintTexture2D:
-			case ePaintTexture3D:
+			case PAINT_MODE_TEXTURE_2D:
+			case PAINT_MODE_TEXTURE_3D:
 				return &ts->imapaint.paint;
-			case ePaintSculptUV:
+			case PAINT_MODE_SCULPT_UV:
 				return &ts->uvsculpt->paint;
-			case ePaintGpencil:
+			case PAINT_MODE_GPENCIL:
 				return &ts->gp_paint->paint;
-			case ePaintInvalid:
+			case PAINT_MODE_INVALID:
 				return NULL;
 			default:
 				return &ts->imapaint.paint;
@@ -177,20 +177,20 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
 {
 	switch (mode) {
-		case ePaintSculpt:
+		case PAINT_MODE_SCULPT:
 			return rna_enum_brush_sculpt_tool_items;
-		case ePaintVertex:
+		case PAINT_MODE_VERTEX:
 			return rna_enum_brush_vertex_tool_items;
-		case ePaintWeight:
+		case PAINT_MODE_WEIGHT:
 			return rna_enum_brush_weight_tool_items;
-		case ePaintTexture2D:
-		case ePaintTexture3D:
+		case PAINT_MODE_TEXTURE_2D:
+		case PAINT_MODE_TEXTURE_3D:
 			return rna_enum_brush_image_tool_items;
-		case ePaintSculptUV:
+		case PAINT_MODE_SCULPT_UV:
 			return NULL;
-		case ePaintGpencil:
+		case PAINT_MODE_GPENCIL:
 			return rna_enum_brush_gpencil_types_items;
-		case ePaintInvalid:
+		case PAINT_MODE_INVALID:
 			break;
 	}
 	return NULL;
@@ -199,12 +199,12 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
 const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
 {
 	switch (mode) {
-		case ePaintSculpt: return "sculpt_tool";
-		case ePaintVertex: return "vertex_tool";
-		case ePaintWeight: return "weight_tool";
-		case ePaintTexture2D:
-		case ePaintTexture3D: return "image_tool";
-		case ePaintGpencil: return "gpencil_tool";
+		case PAINT_MODE_SCULPT: return "sculpt_tool";
+		case PAINT_MODE_VERTEX: return "vertex_tool";
+		case PAINT_MODE_WEIGHT: return "weight_tool";
+		case PAINT_MODE_TEXTURE_2D:
+		case PAINT_MODE_TEXTURE_3D: return "image_tool";
+		case PAINT_MODE_GPENCIL: return "gpencil_tool";
 		default:
 			/* invalid paint mode */
 			return NULL;
@@ -292,39 +292,39 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 		if ((sima = CTX_wm_space_image(C)) != NULL) {
 			if (obact && obact->mode == OB_MODE_EDIT) {
 				if (sima->mode == SI_MODE_PAINT)
-					return ePaintTexture2D;
+					return PAINT_MODE_TEXTURE_2D;
 				else if (ts->use_uv_sculpt)
-					return ePaintSculptUV;
+					return PAINT_MODE_SCULPT_UV;
 			}
 			else {
-				return ePaintTexture2D;
+				return PAINT_MODE_TEXTURE_2D;
 			}
 		}
 		else if (obact) {
 			switch (obact->mode) {
 				case OB_MODE_SCULPT:
-					return ePaintSculpt;
+					return PAINT_MODE_SCULPT;
 				case OB_MODE_VERTEX_PAINT:
-					return ePaintVertex;
+					return PAINT_MODE_VERTEX;
 				case OB_MODE_WEIGHT_PAINT:
-					return ePaintWeight;
+					return PAINT_MODE_WEIGHT;
 				case OB_MODE_TEXTURE_PAINT:
-					return ePaintTexture3D;
+					return PAINT_MODE_TEXTURE_3D;
 				case OB_MODE_EDIT:
 					if (ts->use_uv_sculpt)
-						return ePaintSculptUV;
-					return ePaintTexture2D;
+						return PAINT_MODE_SCULPT_UV;
+					return PAINT_MODE_TEXTURE_2D;
 				default:
-					return ePaintTexture2D;
+					return PAINT_MODE_TEXTURE_2D;
 			}
 		}
 		else {
 			/* default to image paint */
-			return ePaintTexture2D;
+			return PAINT_MODE_TEXTURE_2D;
 		}
 	}
 
-	return ePaintInvalid;
+	return PAINT_MODE_INVALID;
 }
 
 ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
@@ -332,25 +332,25 @@ ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
 	if (tref->space_type == SPACE_VIEW3D) {
 		switch (tref->mode) {
 			case CTX_MODE_SCULPT:
-				return ePaintSculpt;
+				return PAINT_MODE_SCULPT;
 			case CTX_MODE_PAINT_VERTEX:
-				return ePaintVertex;
+				return PAINT_MODE_VERTEX;
 			case CTX_MODE_PAINT_WEIGHT:
-				return ePaintWeight;
+				return PAINT_MODE_WEIGHT;
 			case CTX_MODE_GPENCIL_PAINT:
-				return ePaintGpencil;
+				return PAINT_MODE_GPENCIL;
 			case CTX_MODE_PAINT_TEXTURE:
-				return ePaintTexture3D;
+				return PAINT_MODE_TEXTURE_3D;
 		}
 	}
 	else if (tref->space_type == SPACE_IMAGE) {
 		switch (tref->mode) {
 			case SI_MODE_PAINT:
-				return ePaintTexture2D;
+				return PAINT_MODE_TEXTURE_2D;
 		}
 	}
 
-	return ePaintInvalid;
+	return PAINT_MODE_INVALID;
 }
 
 Brush *BKE_paint_brush(Paint *p)
@@ -404,19 +404,19 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
 uint BKE_paint_get_brush_tool_offset_from_paintmode(const ePaintMode mode)
 {
 	switch (mode) {
-		case ePaintTexture2D:
-		case ePaintTexture3D:
+		case PAINT_MODE_TEXTURE_2D:
+		case PAINT_MODE_TEXTURE_3D:
 			return offsetof(Brush, imagepaint_tool);
-		case ePaintSculpt:
+		case PAINT_MODE_SCULPT:
 			return offsetof(Brush, sculpt_tool);
-		case ePaintVertex:
+		case PAINT_MODE_VERTEX:
 			return offsetof(Brush, vertexpaint_tool);
-		case ePaintWeight:
+		case PAINT_MODE_WEIGHT:
 			return offsetof(Brush, weightpaint_tool);
-		case ePaintGpencil:
+		case PAINT_MODE_GPENCIL:
 			return offsetof(Brush, gpencil_tool);
-		case ePaintSculptUV:
-		case ePaintInvalid:
+		case PAINT_MODE_SCULPT_UV:
+		case PAINT_MODE_INVALID:
 			break; /* We don't use these yet. */
 	}
 	return 0;
@@ -620,18 +620,18 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
 {
 	switch (mode) {
-		case ePaintSculpt:
+		case PAINT_MODE_SCULPT:
 			return OB_MODE_SCULPT;
-		case ePaintVertex:
+		case PAINT_MODE_VERTEX:
 			return OB_MODE_VERTEX_PAINT;
-		case ePaintWeight:
+		case PAINT_MODE_WEIGHT:
 			return OB_MODE_WEIGHT_PAINT;
-		case ePaintTexture2D:
-		case ePaintTexture3D:
+		case PAINT_MODE_TEXTURE_2D:
+		case PAINT_MODE_TEXTURE_3D:
 			return OB_MODE_TEXTURE_PAINT;
-		case ePaintSculptUV:
+		case PAINT_MODE_SCULPT_UV:
 			return OB_MODE_EDIT;
-		case ePaintInvalid:
+		case PAINT_MODE_INVALID:
 		default:
 			return 0;
 	}

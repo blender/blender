@@ -660,17 +660,17 @@ static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
 	const char *name;
 
 	switch (mode) {
-		case ePaintTexture2D:
-		case ePaintTexture3D:
+		case PAINT_MODE_TEXTURE_2D:
+		case PAINT_MODE_TEXTURE_3D:
 			name = "PAINT_OT_image_paint";
 			break;
-		case ePaintWeight:
+		case PAINT_MODE_WEIGHT:
 			name = "PAINT_OT_weight_paint";
 			break;
-		case ePaintVertex:
+		case PAINT_MODE_VERTEX:
 			name = "PAINT_OT_vertex_paint";
 			break;
-		case ePaintSculpt:
+		case PAINT_MODE_SCULPT:
 			name = "SCULPT_OT_brush_stroke";
 			break;
 		default:
@@ -700,7 +700,7 @@ static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	switch (mode) {
-		case ePaintTexture2D:
+		case PAINT_MODE_TEXTURE_2D:
 		{
 			ARegion *ar = CTX_wm_region(C);
 			SpaceImage *sima = CTX_wm_space_image(C);

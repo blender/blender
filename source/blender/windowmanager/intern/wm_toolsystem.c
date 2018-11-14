@@ -281,7 +281,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 		}
 		else {
 			const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
-			BLI_assert(paint_mode != ePaintInvalid);
+			BLI_assert(paint_mode != PAINT_MODE_INVALID);
 			const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
 			BLI_assert(items != NULL);
 

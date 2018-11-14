@@ -75,33 +75,35 @@ extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
 typedef enum ePaintMode {
-	ePaintSculpt = 0,
+	PAINT_MODE_SCULPT = 0,
 	/** Vertex color. */
-	ePaintVertex = 1,
-	ePaintWeight = 2,
+	PAINT_MODE_VERTEX = 1,
+	PAINT_MODE_WEIGHT = 2,
 	/** 3D view (projection painting). */
-	ePaintTexture3D = 3,
+	PAINT_MODE_TEXTURE_3D = 3,
 	/** Image space (2D painting). */
-	ePaintTexture2D = 4,
-	ePaintSculptUV = 5,
-	ePaintGpencil = 6,
+	PAINT_MODE_TEXTURE_2D = 4,
+	PAINT_MODE_SCULPT_UV = 5,
+	PAINT_MODE_GPENCIL = 6,
 
-	ePaintInvalid = 7,
+	/** Keep last. */
+	PAINT_MODE_INVALID = 7,
 } ePaintMode;
 
 /* overlay invalidation */
 typedef enum eOverlayControlFlags {
-	PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY = 1,
-	PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY = (1 << 2),
-	PAINT_INVALID_OVERLAY_CURVE = (1 << 3),
+	PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
+	PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY = (1 << 2),
+	PAINT_OVERLAY_INVALID_CURVE = (1 << 3),
 	PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
 	PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
 	PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6)
 } eOverlayControlFlags;
 
-#define PAINT_OVERRIDE_MASK (PAINT_OVERLAY_OVERRIDE_SECONDARY | \
-						     PAINT_OVERLAY_OVERRIDE_PRIMARY | \
-						     PAINT_OVERLAY_OVERRIDE_CURSOR)
+#define PAINT_OVERRIDE_MASK \
+	(PAINT_OVERLAY_OVERRIDE_SECONDARY | \
+	 PAINT_OVERLAY_OVERRIDE_PRIMARY | \
+	 PAINT_OVERLAY_OVERRIDE_CURSOR)
 
 void BKE_paint_invalidate_overlay_tex(struct Scene *scene, struct ViewLayer *view_layer, const struct Tex *tex);
 void BKE_paint_invalidate_cursor_overlay(struct Scene *scene, struct ViewLayer *view_layer, struct CurveMapping *curve);

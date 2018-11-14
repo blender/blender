@@ -1079,7 +1079,7 @@ static void ed_vwpaintmode_enter_generic(
 	BKE_object_free_derived_caches(ob);
 
 	if (mode_flag == OB_MODE_VERTEX_PAINT) {
-		const ePaintMode paint_mode = ePaintVertex;
+		const ePaintMode paint_mode = PAINT_MODE_VERTEX;
 		ED_mesh_color_ensure(me, NULL);
 
 		BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->vpaint);
@@ -1088,7 +1088,7 @@ static void ed_vwpaintmode_enter_generic(
 		BKE_paint_init(bmain, scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
-		const  ePaintMode paint_mode = ePaintWeight;
+		const  ePaintMode paint_mode = PAINT_MODE_WEIGHT;
 
 		BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->wpaint);
 		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
@@ -1409,7 +1409,7 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
 	 * brush coord/pressure/etc.
 	 * It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 * changing events. We should avoid this after events system re-design */
-	if (paint_supports_dynamic_size(brush, ePaintSculpt) || cache->first_time) {
+	if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
 		cache->pressure = RNA_float_get(ptr, "pressure");
 	}
 
@@ -1425,7 +1425,7 @@ static void vwpaint_update_cache_variants(bContext *C, VPaint *vp, Object *ob, P
 		}
 	}
 
-	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, ePaintSculpt)) {
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT)) {
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
 	else {
