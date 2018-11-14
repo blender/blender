@@ -101,6 +101,7 @@ void WM_keymap_add_context_enum_set_items(
         wmKeyMap *keymap, const struct EnumPropertyItem *items, const char *data_path,
         int type_start, int val, int modifier, int keymodifier);
 
+wmKeyMap *WM_keymap_guess_from_context(const struct bContext *C);
 wmKeyMap *WM_keymap_guess_opname(const struct bContext *C, const char *opname);
 
 void WM_keymap_fix_linking(void);

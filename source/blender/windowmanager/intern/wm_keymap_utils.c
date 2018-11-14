@@ -102,6 +102,52 @@ void WM_keymap_add_context_enum_set_items(
 /** \name Introspection
  * \{ */
 
+wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
+{
+	SpaceLink *sl = CTX_wm_space_data(C);
+	const char *km_id = NULL;
+	if (sl->spacetype == SPACE_VIEW3D) {
+		const enum eContextObjectMode mode = CTX_data_mode_enum(C);
+		switch (mode) {
+			case CTX_MODE_EDIT_MESH:            km_id = "Mesh"; break;
+			case CTX_MODE_EDIT_CURVE:           km_id = "Curve"; break;
+			case CTX_MODE_EDIT_SURFACE:         km_id = "Curve"; break;
+			case CTX_MODE_EDIT_TEXT:            km_id = "Font"; break;
+			case CTX_MODE_EDIT_ARMATURE:        km_id = "Armature"; break;
+			case CTX_MODE_EDIT_METABALL:        km_id = "Metaball"; break;
+			case CTX_MODE_EDIT_LATTICE:         km_id = "Lattice"; break;
+			case CTX_MODE_POSE:                 km_id = "Pose"; break;
+			case CTX_MODE_SCULPT:               km_id = "Sculpt"; break;
+			case CTX_MODE_PAINT_WEIGHT:         km_id = "Weight Paint"; break;
+			case CTX_MODE_PAINT_VERTEX:         km_id = "Vertex Paint"; break;
+			case CTX_MODE_PAINT_TEXTURE:        km_id = "Image Paint"; break;
+			case CTX_MODE_PARTICLE:             km_id = "Particle"; break;
+			case CTX_MODE_OBJECT:               km_id = "Object Mode"; break;
+			case CTX_MODE_GPENCIL_PAINT:        km_id = "Grease Pencil Stroke Paint Mode"; break;
+			case CTX_MODE_GPENCIL_EDIT:         km_id = "Grease Pencil Stroke Edit Mode"; break;
+			case CTX_MODE_GPENCIL_SCULPT:		km_id = "Grease Pencil Stroke Sculpt Mode"; break;
+			case CTX_MODE_GPENCIL_WEIGHT:       km_id = "Grease Pencil Stroke Weight Mode"; break;
+		}
+	}
+	else if (sl->spacetype == SPACE_IMAGE) {
+		const SpaceImage *sima = (SpaceImage *)sl;
+		const eSpaceImage_Mode mode = sima->mode;
+		switch (mode) {
+			case SI_MODE_VIEW:      km_id = "Image"; break;
+			case SI_MODE_PAINT:     km_id = "Image Paint"; break;
+			case SI_MODE_MASK:      km_id = "Mask Editing"; break;
+			case SI_MODE_UV:        km_id = "UV Editor"; break;
+		}
+	}
+	else {
+		return NULL;
+	}
+
+	wmKeyMap *km = WM_keymap_find_all(C, km_id, 0, 0);
+	BLI_assert(km);
+	return km;
+}
+
 /* Guess an appropriate keymap from the operator name */
 /* Needs to be kept up to date with Keymap and Operator naming */
 wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
@@ -125,7 +171,13 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 
 	/* Window */
 	if (STRPREFIX(opname, "WM_OT")) {
-		km = WM_keymap_find_all(C, "Window", 0, 0);
+		if (STREQ(opname, "WM_OT_tool_set_by_name")) {
+			km = WM_keymap_guess_from_context(C);
+		}
+
+		if (km == NULL) {
+			km = WM_keymap_find_all(C, "Window", 0, 0);
+		}
 	}
 	/* Screen & Render */
 	else if (STRPREFIX(opname, "SCREEN_OT") ||
