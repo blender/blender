@@ -106,6 +106,7 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	previous_eval_flags = 0;
 	linked_state = DEG_ID_LINKED_INDIRECTLY;
 	is_directly_visible = true;
+	is_collection_fully_expanded = false;
 
 	visible_components_mask = 0;
 	previously_visible_components_mask = 0;

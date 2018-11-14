@@ -434,7 +434,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 			build_camera((Camera *)id);
 			break;
 		case ID_GR:
-			build_collection(NULL, (Collection *)id);
+			build_collection(NULL, NULL, (Collection *)id);
 			break;
 		case ID_OB:
 			build_object(NULL, (Object *)id);
@@ -486,9 +486,19 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 }
 
 void DepsgraphRelationBuilder::build_collection(
+        LayerCollection *from_layer_collection,
         Object *object,
         Collection *collection)
 {
+	if (from_layer_collection != NULL) {
+		/* If we came from layer collection we don't go deeper, view layer
+		 * builder takes care of going deeper.
+		 *
+		 * NOTE: Do early output before tagging build as done, so possbile
+		 * subsequent builds from outside of the layer collection properly
+		 * recurses into all the nested objects and collections. */
+		return;
+	}
 	const bool group_done = built_map_.checkIsBuiltAndTag(collection);
 	OperationKey object_transform_final_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
@@ -500,7 +510,7 @@ void DepsgraphRelationBuilder::build_collection(
 			build_object(NULL, cob->ob);
 		}
 		LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-			build_collection(NULL, child->collection);
+			build_collection(NULL, NULL, child->collection);
 		}
 	}
 	if (object != NULL) {
@@ -644,7 +654,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
-		build_collection(object, object->dup_group);
+		build_collection(NULL, object, object->dup_group);
 	}
 	/* Point caches. */
 	build_object_pointcache(object);
@@ -1576,7 +1586,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		build_collection(NULL, rbw->group);
+		build_collection(NULL, NULL, rbw->group);
 
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 		{
@@ -1758,7 +1768,7 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 				break;
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
-					build_collection(NULL, part->dup_group);
+					build_collection(NULL, NULL, part->dup_group);
 					LISTBASE_FOREACH (CollectionObject *, go, &part->dup_group->gobject) {
 						build_particles_visualization_object(object,
 						                                     psys,

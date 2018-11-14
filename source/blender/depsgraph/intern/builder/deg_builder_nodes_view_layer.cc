@@ -75,7 +75,7 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 			continue;
 		}
 		if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-			build_collection(lc->collection);
+			build_collection(lc, lc->collection);
 		}
 		build_layer_collections(&lc->layer_collections);
 	}
@@ -86,8 +86,9 @@ void DepsgraphNodeBuilder::build_view_layer(
         ViewLayer *view_layer,
         eDepsNode_LinkedState_Type linked_state)
 {
-	view_layer_index_ = BLI_findindex(&scene->view_layers, view_layer);
-	BLI_assert(view_layer_index_ != -1);
+	/* NOTE: Pass view layer index of 0 since after scene CoW there is
+	 * only one view layer in there. */
+	view_layer_index_ = 0;
 	/* Scene ID block. */
 	add_id_node(&scene->id);
 	/* Time source. */
@@ -109,9 +110,14 @@ void DepsgraphNodeBuilder::build_view_layer(
 	LISTBASE_FOREACH(Base *, base, &view_layer->object_bases) {
 		/* object itself */
 		const bool is_object_visible = (base->flag & base_flag);
-		build_object(base_index, base->object, linked_state, is_object_visible);
+		if (is_object_visible) {
+			build_object(base_index,
+			             base->object,
+			             linked_state,
+			             is_object_visible);
+			++base_index;
+		}
 		base->object->select_color = select_color++;
-		++base_index;
 	}
 	build_layer_collections(&view_layer->layer_collections);
 	if (scene->camera != NULL) {

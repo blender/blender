@@ -165,7 +165,8 @@ struct DepsgraphNodeBuilder {
 	void build_view_layer(Scene *scene,
 	                      ViewLayer *view_layer,
 	                      eDepsNode_LinkedState_Type linked_state);
-	void build_collection(Collection *collection);
+	void build_collection(LayerCollection *from_layer_collection,
+	                      Collection *collection);
 	void build_object(int base_index,
 	                  Object *object,
 	                  eDepsNode_LinkedState_Type linked_state,

@@ -86,6 +86,10 @@ struct IDDepsNode : public DepsNode {
 	/* Indicates the datablock is visible in the evaluated scene. */
 	bool is_directly_visible;
 
+	/* For the collection type of ID, denotes whether collection was fully
+	 * recursed into. 	 */
+	bool is_collection_fully_expanded;
+
 	IDComponentsMask visible_components_mask;
 	IDComponentsMask previously_visible_components_mask;
 

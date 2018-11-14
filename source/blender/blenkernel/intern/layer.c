@@ -1425,8 +1425,9 @@ void BKE_layer_eval_view_layer(
 
 	/* Visibility based on depsgraph mode. */
 	const eEvaluationMode mode = DEG_get_mode(depsgraph);
-	const int base_flag = (mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
-
+	const int base_visible_flag = (mode == DAG_EVAL_VIEWPORT)
+	        ? BASE_ENABLED_VIEWPORT
+	        : BASE_ENABLED_RENDER;
 	/* Create array of bases, for fast index-based lookup. */
 	const int num_object_bases = BLI_listbase_count(&view_layer->object_bases);
 	MEM_SAFE_FREE(view_layer->object_bases_array);
@@ -1435,9 +1436,8 @@ void BKE_layer_eval_view_layer(
 	int base_index = 0;
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		/* Compute visibility for depsgraph evaluation mode. */
-		if (base->flag & base_flag) {
+		if (base->flag & base_visible_flag) {
 			base->flag |= BASE_ENABLED | BASE_VISIBLE;
-
 			if (mode == DAG_EVAL_VIEWPORT && (base->flag & BASE_HIDDEN)) {
 				base->flag &= ~BASE_VISIBLE;
 			}
@@ -1445,24 +1445,23 @@ void BKE_layer_eval_view_layer(
 		else {
 			base->flag &= ~(BASE_ENABLED | BASE_VISIBLE | BASE_SELECTABLE);
 		}
-
 		/* If base is not selectabled, clear select. */
 		if ((base->flag & BASE_SELECTABLE) == 0) {
 			base->flag &= ~BASE_SELECTED;
 		}
-
 		view_layer->object_bases_array[base_index++] = base;
 	}
-
 	/* Flush back base flag to the original view layer for editing. */
 	if (view_layer == DEG_get_evaluated_view_layer(depsgraph)) {
 		ViewLayer *view_layer_orig = DEG_get_input_view_layer(depsgraph);
 		Base *base_orig = view_layer_orig->object_bases.first;
 		const Base *base_eval = view_layer->object_bases.first;
 		while (base_orig != NULL) {
-			base_orig->flag = base_eval->flag;
+			if (base_orig->flag & base_visible_flag) {
+				base_orig->flag = base_eval->flag;
+				base_eval = base_eval->next;
+			}
 			base_orig = base_orig->next;
-			base_eval = base_eval->next;
 		}
 	}
 }
