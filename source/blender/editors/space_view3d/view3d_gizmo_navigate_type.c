@@ -341,13 +341,18 @@ static void axis_geom_draw(
 
 			/* Axis Ball. */
 			{
+				/* Flip the faded state when axis aligned, since we're hiding the front-mode axis
+				 * otherwise we see the color for the back-most axis, which is useful for
+				 * click-to-rotate 180d but not useful to visualize. */
+				const bool is_pos_color = is_pos == (axis_align != axis);
+
 				GPU_matrix_push();
 				GPU_matrix_translate_3fv(v_final);
 				GPU_matrix_scale_1f(show_axis_char ? AXIS_HANDLE_SIZE_FG : AXIS_HANDLE_SIZE_BG);
 
 				GPUBatch *sphere = GPU_batch_preset_sphere(0);
 				GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
-				GPU_batch_uniform_4fv(sphere, "color", is_pos ? color_current : color_current_fade);
+				GPU_batch_uniform_4fv(sphere, "color", is_pos_color ? color_current : color_current_fade);
 				GPU_batch_draw(sphere);
 				GPU_matrix_pop();
 			}
