@@ -468,7 +468,7 @@ void BKE_blendfile_read_make_empty(bContext *C)
 	while (a--) {
 		id = lbarray[a]->first;
 		if (id != NULL) {
-			if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM)) {
+			if (ELEM(GS(id->name), ID_SCE, ID_SCR, ID_WM, ID_WS)) {
 				continue;
 			}
 			while ((id = lbarray[a]->first)) {
