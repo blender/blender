@@ -215,7 +215,12 @@ void CLOSURE_NAME(
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
+		float l_vis = light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
+
+		if (l_vis < 1e-8)
+			continue;
+
+		vec3 l_color_vis = ld.l_color * l_vis;
 
 	#ifdef CLOSURE_DIFFUSE
 		out_diff += l_color_vis * light_diffuse(ld, N, V, l_vector);
