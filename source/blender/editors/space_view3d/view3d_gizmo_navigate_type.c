@@ -60,9 +60,9 @@
 
 #include "view3d_intern.h"
 
+#define USE_AXIS_FONT
 #define USE_FADE_BACKGROUND
 
-#define USE_AXIS_FONT
 #ifdef USE_AXIS_FONT
 #  include "BLF_api.h"
 #endif
@@ -75,6 +75,16 @@
 #define AXIS_HANDLE_SIZE_BG 0.15f
 /* How far axis handles are away from the center. */
 #define AXIS_HANDLE_OFFSET (1.0f - AXIS_HANDLE_SIZE_FG)
+
+struct AxisDrawInfo {
+	/* Matrix is needed for screen-aligned font drawing. */
+#ifdef USE_AXIS_FONT
+	float matrix_final[4][4];
+#endif
+#ifdef USE_FADE_BACKGROUND
+	float color_bg[3];
+#endif
+};
 
 #ifndef USE_AXIS_FONT
 /**
@@ -182,13 +192,12 @@ static void draw_xyz_wire(
 }
 #endif  /* !USE_AXIS_FONT */
 
+/**
+ * \param draw_info: Extra data needed for drawing.
+ */
 static void axis_geom_draw(
-        const wmGizmo *gz, const float color[4], const bool UNUSED(select),
-#ifdef USE_FADE_BACKGROUND
-        const float color_bg[3],
-#endif
-        /* Matrix is needed for screen-aligned font drawing. */
-        const float matrix_final[4][4])
+        const wmGizmo *gz, const float color[4], const bool select,
+        const struct AxisDrawInfo *draw_info)
 {
 	GPU_line_width(gz->line_width);
 
@@ -222,7 +231,7 @@ static void axis_geom_draw(
 		int id;
 	} font;
 
-	{
+	if (select == false) {
 		font.id = blf_mono_font;
 		BLF_disable(font.id, BLF_ROTATION | BLF_SHADOW | BLF_MATRIX | BLF_ASPECT | BLF_WORD_WRAP);
 		BLF_color4fv(font.id, axis_black);
@@ -233,14 +242,12 @@ static void axis_geom_draw(
 		 * show without any rotation. */
 		float m3[3][3];
 		float m3_offset[3][3];
-		copy_m3_m4(m3, matrix_final);
+		copy_m3_m4(m3, draw_info->matrix_final);
 		copy_m3_m4(m3_offset, gz->matrix_offset);
 		mul_m3_m3m3(m3, m3, m3_offset);
 		invert_m3(m3);
 		copy_m4_m3(font.matrix, m3);
 	}
-#else
-	UNUSED_VARS(matrix_final);
 #endif
 
 	GPU_matrix_push();
@@ -297,13 +304,18 @@ static void axis_geom_draw(
 			const float *color_current = is_highlight ? axis_highlight : axis_color[axis];
 			float color_current_fade[4];
 
+			if (select == false) {
 #ifdef USE_FADE_BACKGROUND
-			interp_v3_v3v3(color_current_fade, color_bg, color_current, is_highlight ? 1.0 : 0.5f);
-			color_current_fade[3] = color_current[3];
+				interp_v3_v3v3(color_current_fade, draw_info->color_bg, color_current, is_highlight ? 1.0 : 0.5f);
+				color_current_fade[3] = color_current[3];
 #else
-			copy_v4_v4(color_current_fade, color_current);
-			color_current_fade[3] *= 0.2;
+				copy_v4_v4(color_current_fade, color_current);
+				color_current_fade[3] *= 0.2;
 #endif
+			}
+			else {
+				copy_v4_fl(color_current_fade, 1.0f);
+			}
 
 			/* Axis Line. */
 			if (is_pos) {
@@ -341,7 +353,7 @@ static void axis_geom_draw(
 			}
 
 			/* Axis XYZ Character. */
-			if (show_axis_char) {
+			if (show_axis_char && (select == false)) {
 #ifdef USE_AXIS_FONT
 				immUnbindProgram();
 
@@ -392,13 +404,17 @@ static void axis3d_draw_intern(
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix_final);
 
-#ifdef USE_FADE_BACKGROUND
-	float color_bg[3];
+
+	struct AxisDrawInfo draw_info;
+#ifdef USE_AXIS_FONT
 	if (select == false) {
-		ED_view3d_background_color_get(CTX_data_scene(C), CTX_wm_view3d(C), color_bg);
+		copy_m4_m4(draw_info.matrix_final, matrix_final);
 	}
-	else {
-		zero_v3(color_bg);
+#endif
+
+#ifdef USE_FADE_BACKGROUND
+	if (select == false) {
+		ED_view3d_background_color_get(CTX_data_scene(C), CTX_wm_view3d(C), draw_info.color_bg);
 	}
 #else
 	UNUSED_VARS(C);
@@ -407,10 +423,7 @@ static void axis3d_draw_intern(
 	GPU_blend(true);
 	axis_geom_draw(
 	        gz, color, select,
-#ifdef USE_FADE_BACKGROUND
-	        color_bg,
-#endif
-	        matrix_final);
+	        &draw_info);
 	GPU_blend(false);
 	GPU_matrix_pop();
 }
