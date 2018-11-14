@@ -153,35 +153,6 @@ static PyObject *bpygpu_shader_bind(BPyGPUShader *self)
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpygpu_shader_transform_feedback_enable_doc,
-".. method:: transform_feedback_enable(vbo_id)\n"
-"\n"
-"   Start transform feedback operation.\n"
-"\n"
-"   :return: true if transform feedback was succesfully enabled.\n"
-"   :rtype: `bool`\n"
-);
-static PyObject *bpygpu_shader_transform_feedback_enable(
-        BPyGPUShader *self, PyObject *arg)
-{
-	uint vbo_id;
-	if ((vbo_id = PyC_Long_AsU32(arg)) == (uint)-1) {
-		return NULL;
-	}
-	return PyBool_FromLong(GPU_shader_transform_feedback_enable(self->shader, vbo_id));
-}
-
-PyDoc_STRVAR(bpygpu_shader_transform_feedback_disable_doc,
-".. method:: transform_feedback_disable()\n"
-"\n"
-"   Disable transform feedback.\n"
-);
-static PyObject *bpygpu_transform_feedback_disable(BPyGPUShader *self)
-{
-	GPU_shader_transform_feedback_disable(self->shader);
-	Py_RETURN_NONE;
-}
-
 PyDoc_STRVAR(bpygpu_shader_uniform_from_name_doc,
 ".. method:: uniform_from_name(name)\n"
 "\n"
@@ -610,12 +581,6 @@ static PyObject *bpygpu_shader_calc_format(BPyGPUShader *self, PyObject *UNUSED(
 static struct PyMethodDef bpygpu_shader_methods[] = {
 	{"bind", (PyCFunction)bpygpu_shader_bind,
 	 METH_NOARGS, bpygpu_shader_bind_doc},
-	{"transform_feedback_enable",
-	 (PyCFunction)bpygpu_shader_transform_feedback_enable,
-	 METH_O, bpygpu_shader_transform_feedback_enable_doc},
-	{"transform_feedback_disable",
-	 (PyCFunction)bpygpu_transform_feedback_disable,
-	 METH_NOARGS, bpygpu_shader_transform_feedback_disable_doc},
 	{"uniform_from_name",
 	 (PyCFunction)bpygpu_shader_uniform_from_name,
 	 METH_O, bpygpu_shader_uniform_from_name_doc},
