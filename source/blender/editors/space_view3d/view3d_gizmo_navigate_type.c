@@ -60,6 +60,8 @@
 
 #include "view3d_intern.h"
 
+#define USE_FADE_BACKGROUND
+
 #define USE_AXIS_FONT
 #ifdef USE_AXIS_FONT
 #  include "BLF_api.h"
@@ -251,6 +253,11 @@ static void axis_geom_draw(
 		}
 	}
 
+#ifdef USE_FADE_BACKGROUND
+	float color_bg[3];
+	UI_GetThemeColor3fv(TH_HIGH_GRAD, color_bg);
+#endif
+
 	for (int axis_index = 0; axis_index < ARRAY_SIZE(axis_order); axis_index++) {
 		const int index = axis_order[axis_index].index;
 		const int axis = axis_order[axis_index].axis;
@@ -291,8 +298,14 @@ static void axis_geom_draw(
 			const float v_final[3] = {v[index_x], v[index_y], v[index_z]};
 			const float *color_current = is_highlight ? axis_highlight : axis_color[axis];
 			float color_current_fade[4];
+
+#ifdef USE_FADE_BACKGROUND
+			interp_v3_v3v3(color_current_fade, color_bg, color_current, is_highlight ? 1.0 : 0.5f);
+			color_current_fade[3] = color_current[3];
+#else
 			copy_v4_v4(color_current_fade, color_current);
 			color_current_fade[3] *= 0.2;
+#endif
 
 			/* Axis Line. */
 			if (is_pos) {
