@@ -17,6 +17,19 @@
 # ***** END GPL LICENSE BLOCK *****
 
 def draw_circle_2d(position, color, radius, segments=32):
+    """
+    Draw a circle.
+
+    :arg position: Position where the circle will be drawn.
+    :type position: 2D Vector
+    :arg color: Color of the circle. To use transparency GL_BLEND has to be enabled.
+    :type color: tuple containing RGBA values
+    :arg radius: Radius of the circle.
+    :type radius: float
+    :arg segments: How many segments will be used to draw the circle.
+        Higher values give besser results but the drawing will take longer.
+    :type segments: int
+    """
     from math import sin, cos, pi
     import gpu
     from gpu.types import (
@@ -45,6 +58,19 @@ def draw_circle_2d(position, color, radius, segments=32):
 
 
 def draw_texture_2d(texture_id, position, width, height):
+    """
+    Draw a 2d texture.
+
+    :arg texture_id: OpenGL id of the texture (e.g. :class:`bpy.types.Image.bindcode`).
+    :type texture_id: int
+    :arg position: Position of the lower left corner.
+    :type position: 2D Vector
+    :arg width: Width of the image when drawn (not necessarily
+        the original width of the texture).
+    :type width: float
+    :arg height: Height of the image when drawn.
+    :type height: float
+    """
     import gpu
     import bgl
     from . batch import batch_for_shader
