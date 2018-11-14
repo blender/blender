@@ -139,11 +139,11 @@ typedef struct View3DShading {
 	short prev_type;   /* Runtime, for toggle between rendered viewport. */
 
 	short flag;
-	short color_type;
+	char color_type;
+	char _pad0[7];
 
-	short light;
-	short background_type;
-	short pad2[2];
+	char light;
+	char background_type;
 
 	char studio_light[256]; /* FILE_MAXFILE */
 	char matcap[256]; /* FILE_MAXFILE */
