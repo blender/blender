@@ -184,7 +184,10 @@ static void draw_xyz_wire(
 
 static void axis_geom_draw(
         const wmGizmo *gz, const float color[4], const bool UNUSED(select),
-        /* Needed for screen-aligned font drawing. */
+#ifdef USE_FADE_BACKGROUND
+        const float color_bg[3],
+#endif
+        /* Matrix is needed for screen-aligned font drawing. */
         const float matrix_final[4][4])
 {
 	GPU_line_width(gz->line_width);
@@ -252,11 +255,6 @@ static void axis_geom_draw(
 			break;
 		}
 	}
-
-#ifdef USE_FADE_BACKGROUND
-	float color_bg[3];
-	UI_GetThemeColor3fv(TH_HIGH_GRAD, color_bg);
-#endif
 
 	for (int axis_index = 0; axis_index < ARRAY_SIZE(axis_order); axis_index++) {
 		const int index = axis_order[axis_index].index;
@@ -376,7 +374,7 @@ static void axis_geom_draw(
 }
 
 static void axis3d_draw_intern(
-        const bContext *UNUSED(C), wmGizmo *gz,
+        const bContext *C, wmGizmo *gz,
         const bool select, const bool highlight)
 {
 	const float *color = highlight ? gz->color_hi : gz->color;
@@ -394,8 +392,25 @@ static void axis3d_draw_intern(
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix_final);
 
+#ifdef USE_FADE_BACKGROUND
+	float color_bg[3];
+	if (select == false) {
+		ED_view3d_background_color_get(CTX_data_scene(C), CTX_wm_view3d(C), color_bg);
+	}
+	else {
+		zero_v3(color_bg);
+	}
+#else
+	UNUSED_VARS(C);
+#endif
+
 	GPU_blend(true);
-	axis_geom_draw(gz, color, select, matrix_final);
+	axis_geom_draw(
+	        gz, color, select,
+#ifdef USE_FADE_BACKGROUND
+	        color_bg,
+#endif
+	        matrix_final);
 	GPU_blend(false);
 	GPU_matrix_pop();
 }

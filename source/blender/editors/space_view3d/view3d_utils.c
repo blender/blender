@@ -36,6 +36,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -65,12 +66,30 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "UI_resources.h"
+
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Data Access Utilities
  *
  * \{ */
+
+void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float r_color[3])
+{
+	switch (v3d->shading.background_type) {
+		case V3D_SHADING_BACKGROUND_WORLD:
+			copy_v3_v3(r_color, &scene->world->horr);
+			break;
+		case V3D_SHADING_BACKGROUND_VIEWPORT:
+			copy_v3_v3(r_color, v3d->shading.background_color);
+			break;
+		case V3D_SHADING_BACKGROUND_THEME:
+		default:
+			UI_GetThemeColor3fv(TH_HIGH_GRAD, r_color);
+			break;
+	}
+}
 
 View3DCursor *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
 {
