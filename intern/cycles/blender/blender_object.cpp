@@ -145,11 +145,12 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 			light->spot_smooth = b_spot_light.spot_blend();
 			break;
 		}
-		case BL::Light::type_HEMI: {
-			light->type = LIGHT_DISTANT;
-			light->size = 0.0f;
-			break;
-		}
+		/* Hemi were removed from 2.8 */
+		// case BL::Light::type_HEMI: {
+		// 	light->type = LIGHT_DISTANT;
+		// 	light->size = 0.0f;
+		// 	break;
+		// }
 		case BL::Light::type_SUN: {
 			BL::SunLight b_sun_light(b_light);
 			light->size = b_sun_light.shadow_soft_size();

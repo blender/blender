@@ -74,8 +74,6 @@ static StructRNA *rna_Light_refine(struct PointerRNA *ptr)
 			return &RNA_SunLight;
 		case LA_SPOT:
 			return &RNA_SpotLight;
-		case LA_HEMI:
-			return &RNA_HemiLight;
 		case LA_AREA:
 			return &RNA_AreaLight;
 		default:
@@ -115,7 +113,6 @@ const EnumPropertyItem rna_enum_light_type_items[] = {
 	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
 	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
 	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
-	{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
 	{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
 	{0, NULL, 0, NULL, NULL}
 };

@@ -90,13 +90,14 @@ void LightsExporter::operator()(Object *ob)
 		addLight(cla);
 	}
 	// hemi
-	else if (la->type == LA_HEMI) {
-		COLLADASW::AmbientLight cla(mSW, la_id, la_name);
-		cla.setColor(col, false, "color");
-		cla.setConstantAttenuation(constatt);
-		exportBlenderProfile(cla, la);
-		addLight(cla);
-	}
+	/* Hemi were removed from 2.8 */
+	// else if (la->type == LA_HEMI) {
+	// 	COLLADASW::AmbientLight cla(mSW, la_id, la_name);
+	// 	cla.setColor(col, false, "color");
+	// 	cla.setConstantAttenuation(constatt);
+	// 	exportBlenderProfile(cla, la);
+	// 	addLight(cla);
+	// }
 	// spot
 	else if (la->type == LA_SPOT) {
 		COLLADASW::SpotLight cla(mSW, la_id, la_name);

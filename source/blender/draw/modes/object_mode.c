@@ -1471,12 +1471,10 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 	DRW_shgroup_call_dynamic_add(sgl->lamp_circle, ob->obmat[3], color);
 
 	/* draw dashed outer circle for shadow */
-	if (la->type != LA_HEMI) {
-		DRW_shgroup_call_dynamic_add(sgl->lamp_circle_shadow, ob->obmat[3], color);
-	}
+	DRW_shgroup_call_dynamic_add(sgl->lamp_circle_shadow, ob->obmat[3], color);
 
 	/* Distance */
-	if (ELEM(la->type, LA_HEMI, LA_SUN, LA_AREA)) {
+	if (ELEM(la->type, LA_SUN, LA_AREA)) {
 		DRW_shgroup_call_dynamic_add(sgl->lamp_distance, color, &zero, &la->dist, ob->obmat);
 	}
 
@@ -1537,10 +1535,6 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 
 		DRW_shgroup_call_dynamic_add(sgl->lamp_buflimit, color, &la->clipsta, &la->clipend, ob->obmat);
 		DRW_shgroup_call_dynamic_add(sgl->lamp_buflimit_points, color, &la->clipsta, &la->clipend, ob->obmat);
-	}
-	else if (la->type == LA_HEMI) {
-		static float hemisize = 2.0f;
-		DRW_shgroup_call_dynamic_add(sgl->lamp_hemi, color, &hemisize, shapemat);
 	}
 	else if (la->type == LA_AREA) {
 		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];

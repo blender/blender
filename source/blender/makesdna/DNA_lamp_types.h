@@ -108,7 +108,7 @@ typedef struct Lamp {
 #define LA_LOCAL		0
 #define LA_SUN			1
 #define LA_SPOT			2
-#define LA_HEMI			3
+/* #define LA_HEMI			3 */ /* not used anymore */
 #define LA_AREA			4
 
 /* mode */

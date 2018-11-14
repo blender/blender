@@ -1200,7 +1200,8 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		switch (type) {
 			case COLLADAFW::Light::AMBIENT_LIGHT:
 			{
-				lamp->type = LA_HEMI;
+				/* TODO Fix */
+				// lamp->type = LA_HEMI;
 			}
 			break;
 			case COLLADAFW::Light::SPOT_LIGHT:

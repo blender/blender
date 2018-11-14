@@ -1371,9 +1371,6 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         if light.type == 'AREA':
             col.prop(clamp, "is_portal", text="Portal")
 
-        if light.type == 'HEMI':
-            layout.label(text="Not supported, interpreted as sun light")
-
 
 class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
     bl_label = "Nodes"

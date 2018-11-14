@@ -1272,8 +1272,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 							data.icon = ICON_LIGHT_SUN; break;
 						case LA_SPOT:
 							data.icon = ICON_LIGHT_SPOT; break;
-						case LA_HEMI:
-							data.icon = ICON_LIGHT_HEMI; break;
 						case LA_AREA:
 							data.icon = ICON_LIGHT_AREA; break;
 						default:

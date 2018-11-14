@@ -247,7 +247,7 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UN
 	if (ob != NULL) {
 		if (ob->type == OB_LAMP) {
 			Lamp *la = ob->data;
-			return (ELEM(la->type, LA_SUN, LA_SPOT, LA_HEMI, LA_AREA));
+			return (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA));
 		}
 #if 0
 		else if (ob->type == OB_CAMERA) {

@@ -2258,6 +2258,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
+			/* Removed Hemi lights. */
+			if (!ELEM(la->type, LA_LOCAL, LA_SUN, LA_SPOT, LA_AREA)) {
+				la->type = LA_SUN;
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "Brush", "char", "weightpaint_tool")) {
 			/* Magic defines from old files (2.7x) */
 
