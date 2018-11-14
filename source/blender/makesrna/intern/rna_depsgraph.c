@@ -280,38 +280,59 @@ static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
  * Contains extra information about duplicator and persistent ID.
  */
 
+/* XXX Ugly python seems to query next item of an iterator before using current one (see T57558).
+ * This forces us to use that nasty ping-pong game between two sets of iterator data, so that previous one remains
+ * valid memory for python to access to. Yuck.
+ */
+typedef struct RNA_Depsgraph_Instances_Iterator
+{
+	BLI_Iterator iterators[2];
+	DEGObjectIterData deg_data[2];
+	int counter;
+} RNA_Depsgraph_Instances_Iterator;
+
 static void rna_Depsgraph_object_instances_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
-	DEGObjectIterData *data = MEM_callocN(sizeof(DEGObjectIterData), __func__);
+	RNA_Depsgraph_Instances_Iterator *di_it = iter->internal.custom = MEM_callocN(sizeof(*di_it), __func__);
 
+	DEGObjectIterData *data = &di_it->deg_data[0];
 	data->graph = (Depsgraph *)ptr->data;
 	data->flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 	             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
 	             DEG_ITER_OBJECT_FLAG_VISIBLE |
 	             DEG_ITER_OBJECT_FLAG_DUPLI;
 
-	((BLI_Iterator *)iter->internal.custom)->valid = true;
-	DEG_iterator_objects_begin(iter->internal.custom, data);
-	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+	di_it->iterators[0].valid = true;
+	DEG_iterator_objects_begin(&di_it->iterators[0], data);
+	iter->valid = di_it->iterators[0].valid;
 }
 
 static void rna_Depsgraph_object_instances_next(CollectionPropertyIterator *iter)
 {
-	DEG_iterator_objects_next(iter->internal.custom);
-	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
+	RNA_Depsgraph_Instances_Iterator *di_it = (RNA_Depsgraph_Instances_Iterator *)iter->internal.custom;
+
+	/* We need to copy current iterator status to next one beeing worked on. */
+	di_it->iterators[(di_it->counter + 1) % 2] = di_it->iterators[di_it->counter % 2];
+	di_it->deg_data[(di_it->counter + 1) % 2] = di_it->deg_data[di_it->counter % 2];
+	di_it->counter++;
+
+	di_it->iterators[di_it->counter % 2].data = &di_it->deg_data[di_it->counter % 2];
+	DEG_iterator_objects_next(&di_it->iterators[di_it->counter % 2]);
+	iter->valid = di_it->iterators[di_it->counter % 2].valid;
 }
 
 static void rna_Depsgraph_object_instances_end(CollectionPropertyIterator *iter)
 {
-	DEG_iterator_objects_end(iter->internal.custom);
-	MEM_freeN(((BLI_Iterator *)iter->internal.custom)->data);
-	MEM_freeN(iter->internal.custom);
+	RNA_Depsgraph_Instances_Iterator *di_it = (RNA_Depsgraph_Instances_Iterator *)iter->internal.custom;
+	DEG_iterator_objects_end(&di_it->iterators[0]);
+	DEG_iterator_objects_end(&di_it->iterators[1]);
+	MEM_freeN(di_it);
 }
 
 static PointerRNA rna_Depsgraph_object_instances_get(CollectionPropertyIterator *iter)
 {
-	BLI_Iterator *iterator = (BLI_Iterator *)iter->internal.custom;
+	RNA_Depsgraph_Instances_Iterator *di_it = (RNA_Depsgraph_Instances_Iterator *)iter->internal.custom;
+	BLI_Iterator *iterator = &di_it->iterators[di_it->counter % 2];
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_DepsgraphObjectInstance, iterator);
 }
 
