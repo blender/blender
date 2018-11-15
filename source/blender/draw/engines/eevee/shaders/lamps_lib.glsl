@@ -157,6 +157,15 @@ float shadow_cascade(ShadowData sd, int scd_id, float texid, vec3 W)
 /* --------------------- Light Functions --------------------- */
 /* ----------------------------------------------------------- */
 #define MAX_MULTI_SHADOW 4
+/* From Frostbite PBR Course
+ * Distance based attenuation
+ * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
+float distance_attenuation(float dist_sqr, float inv_sqr_influence)
+{
+	float factor = dist_sqr * inv_sqr_influence;
+	float fac = saturate(1.0 - factor * factor);
+	return fac * fac;
+}
 
 float light_visibility(LightData ld, vec3 W,
 #ifndef VOLUMETRICS
@@ -182,6 +191,9 @@ float light_visibility(LightData ld, vec3 W,
 	}
 	else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
 		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
+	}
+	if (ld.l_type != SUN) {
+		vis *= distance_attenuation(l_vector.w * l_vector.w, ld.l_influence);
 	}
 
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
@@ -342,6 +354,10 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 	return vec3(0.0);
 #else
 	vec3 vis = vec3(1.0);
+
+	if (ld.l_type != SUN) {
+		vis *= distance_attenuation(l_vector.w * l_vector.w, ld.l_influence);
+	}
 
 	/* Only shadowed light can produce translucency */
 	if (ld.l_shadowid >= 0.0) {

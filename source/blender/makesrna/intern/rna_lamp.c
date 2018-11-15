@@ -164,6 +164,19 @@ static void rna_def_light(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Specular Factor", "Specular reflection multiplier");
 	RNA_def_property_update(prop, 0, "rna_Light_update");
 
+	prop = RNA_def_property(srna, "use_custom_distance", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_CUSTOM_ATTENUATION);
+	RNA_def_property_ui_text(prop, "Custom Attenuation", "Use custom attenuation distance instead of global light threshold");
+	RNA_def_property_update(prop, 0, "rna_Light_update");
+
+	prop = RNA_def_property(srna, "cutoff_distance", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "att_dist");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.01f, 100.0f, 1.0, 2);
+	RNA_def_property_ui_text(prop, "Cutoff Distance", "Distance at which the light influence will be set to 0");
+	RNA_def_property_update(prop, 0, "rna_Light_update");
+
 	/* nodes */
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");

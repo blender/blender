@@ -24,7 +24,7 @@ uniform sampler2DArray planarDepth;
 
 /* ------ Lights ----- */
 struct LightData {
-	vec4 position_influence;      /* w : InfluenceRadius */
+	vec4 position_influence;      /* w : InfluenceRadius (inversed and squared) */
 	vec4 color_spec;              /* w : Spec Intensity */
 	vec4 spotdata_radius_shadow;  /* x : spot size, y : spot blend, z : radius, w: shadow id */
 	vec4 rightvec_sizex;          /* xyz: Normalized up vector, w: area size X or spot scale X */

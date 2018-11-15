@@ -89,6 +89,7 @@ void BKE_lamp_init(Lamp *la)
 	la->contact_spread = 0.2f;
 	la->contact_thickness = 0.2f;
 	la->spec_fac = 1.0f;
+	la->att_dist = 40.0f;
 
 	curvemapping_initialize(la->curfalloff);
 }

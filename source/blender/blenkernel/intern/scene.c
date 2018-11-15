@@ -915,6 +915,7 @@ void BKE_scene_init(Scene *sce)
 	sce->eevee.shadow_cascade_size = 1024;
 
 	sce->eevee.light_cache = NULL;
+	sce->eevee.light_threshold = 0.01f;
 
 	sce->eevee.overscan = 3.0f;
 

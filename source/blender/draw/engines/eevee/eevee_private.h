@@ -349,7 +349,7 @@ typedef struct EEVEE_StorageList {
 
 /* ************ LIGHT UBO ************* */
 typedef struct EEVEE_Light {
-	float position[3], dist;
+	float position[3], invsqrdist;
 	float color[3], spec;
 	float spotsize, spotblend, radius, shadowid;
 	float rightvec[3], sizex;

@@ -1508,7 +1508,7 @@ typedef struct SceneEEVEE {
 	char light_cache_info[64];
 
 	float overscan;
-	float pad;
+	float light_threshold;
 } SceneEEVEE;
 
 /* *************************************************************** */
