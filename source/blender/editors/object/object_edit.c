@@ -311,6 +311,10 @@ void ED_hide_collections_menu_draw(const bContext *C, uiLayout *layout)
 		int index = BKE_layer_collection_findindex(view_layer, lc);
 		uiLayout *row = uiLayoutRow(layout, false);
 
+		if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
+			continue;
+		}
+
 		if (lc->collection->flag & COLLECTION_RESTRICT_VIEW) {
 			continue;
 		}
