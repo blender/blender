@@ -1412,8 +1412,16 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 			        rna_path);
 		}
 	}
-	else {
+	else if (rna_path != NULL && rna_path[0] != '\0') {
 		RNAPathKey target_key(id, rna_path);
+		if (RNA_pointer_is_null(&target_key.ptr)) {
+			/* TODO(sergey): This would only mean that driver is broken.
+			 * so we can't create relation anyway. However, we need to avoid
+			 * adding drivers which are known to be buggy to a dependency
+			 * graph, in order to save computational power.
+			 */
+			return;
+		}
 		add_relation(driver_key, target_key, "Driver -> Target");
 		/* Similar to the case with f-curves, driver might drive a nested
 		 * datablock, which means driver execution should wait for that
@@ -1434,24 +1442,15 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 				}
 			}
 		}
-		if (RNA_pointer_is_null(&target_key.ptr)) {
-			/* TODO(sergey): This would only mean that driver is broken.
-			 * so we can't create relation anyway. However, we need to avoid
-			 * adding drivers which are known to be buggy to a dependency
-			 * graph, in order to save computational power.
-			 */
-		}
-		else {
-			if (target_key.prop != NULL &&
-			    RNA_property_is_idprop(target_key.prop))
-			{
-				OperationKey parameters_key(id,
-				                            DEG_NODE_TYPE_PARAMETERS,
-				                            DEG_OPCODE_PARAMETERS_EVAL);
-				add_relation(target_key,
-				             parameters_key,
-				             "Driver Target -> Properties");
-			}
+		if (target_key.prop != NULL &&
+		    RNA_property_is_idprop(target_key.prop))
+		{
+			OperationKey parameters_key(id,
+			                            DEG_NODE_TYPE_PARAMETERS,
+			                            DEG_OPCODE_PARAMETERS_EVAL);
+			add_relation(target_key,
+			             parameters_key,
+			             "Driver Target -> Properties");
 		}
 	}
 }
@@ -1518,7 +1517,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 				                        DEG_OPCODE_TRANSFORM_FINAL);
 				add_relation(target_key, driver_key, "Target -> Driver");
 			}
-			else if (dtar->rna_path) {
+			else if (dtar->rna_path != NULL && dtar->rna_path[0] != '\0') {
 				RNAPathKey variable_key(dtar->id, dtar->rna_path);
 				if (RNA_pointer_is_null(&variable_key.ptr)) {
 					continue;
