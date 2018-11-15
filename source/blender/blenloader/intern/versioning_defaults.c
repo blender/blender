@@ -111,13 +111,6 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 	}
 
 	if (app_template == NULL) {
-		/* Clear all tools to use default options instead, ignore the tool saved in the file. */
-		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-			while (!BLI_listbase_is_empty(&workspace->tools)) {
-				BKE_workspace_tool_remove(workspace, workspace->tools.first);
-			}
-		}
-
 		/* Name all screens by their workspaces (avoids 'Default.###' names). */
 		{
 			/* Default only has one window. */
@@ -187,6 +180,13 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 	                        STREQ(app_template, "Video_Editing");
 
 	if (builtin_template) {
+		/* Clear all tools to use default options instead, ignore the tool saved in the file. */
+		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+			while (!BLI_listbase_is_empty(&workspace->tools)) {
+				BKE_workspace_tool_remove(workspace, workspace->tools.first);
+			}
+		}
+
 		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			/* Hide channels in timelines. */
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
