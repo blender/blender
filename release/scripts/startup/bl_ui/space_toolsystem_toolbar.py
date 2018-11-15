@@ -76,6 +76,7 @@ class _defs_view3d_generic:
                 "Set the cursor location, drag to transform"
             ),
             icon="ops.generic.cursor",
+            keymap=(),
             draw_settings=draw_settings,
         )
 

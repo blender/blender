@@ -4921,6 +4921,19 @@ def km_image_editor_tool_uv_annotate_eraser(params):
     )
 
 
+def km_3d_view_tool_object_cursor(params):
+    return (
+        "3D View Tool: Object, Cursor",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": (
+            ("view3d.cursor3d", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("transform.translate", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("release_confirm", True), ("cursor_transform", True)]}),
+        ),
+        },
+    )
+
+
 def km_3d_view_tool_object_select_box(params):
     return (
         "3D View Tool: Object, Select Box",
@@ -5787,6 +5800,7 @@ def generate_keymaps(params=None):
         km_image_editor_tool_uv_annotate_line(params),
         km_image_editor_tool_uv_annotate_polygon(params),
         km_image_editor_tool_uv_annotate_eraser(params),
+        km_3d_view_tool_object_cursor(params),
         km_3d_view_tool_object_select_box(params),
         km_3d_view_tool_object_select_circle(params),
         km_3d_view_tool_object_select_lasso(params),
