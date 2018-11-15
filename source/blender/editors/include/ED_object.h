@@ -171,7 +171,8 @@ float ED_object_new_primitive_matrix(
 /* Avoid allowing too much insane values even by typing (typos can hang/crash Blender otherwise). */
 #define OBJECT_ADD_SIZE_MAXF 1.0e12f
 
-void ED_object_add_unit_props(struct wmOperatorType *ot);
+void ED_object_add_unit_props_size(struct wmOperatorType *ot);
+void ED_object_add_unit_props_radius(struct wmOperatorType *ot);
 void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);
 void ED_object_add_mesh_props(struct wmOperatorType *ot);
 bool ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, const char view_align_axis,
