@@ -72,10 +72,14 @@ ComponentKey::ComponentKey(ID *id, eDepsNode_Type type, const char *name)
 string ComponentKey::identifier() const
 {
 	const char *idname = (id) ? id->name : "<None>";
-	char typebuf[5];
-	BLI_snprintf(typebuf, sizeof(typebuf), "%d", type);
-	return string("ComponentKey(") +
-	       idname + ", " + typebuf + ", '" + name + "')";
+	string result = string("ComponentKey(");
+	result += idname;
+	result += ", " + string(nodeTypeAsString(type));
+	if (name[0] != '\0') {
+		result += ", '" + string(name) + "'";
+	}
+	result += ')';
+	return result;
 }
 
 /////////////////////////////////////////
@@ -174,13 +178,15 @@ OperationKey::OperationKey(ID *id,
 
 string OperationKey::identifier() const
 {
-	char typebuf[5];
-	BLI_snprintf(typebuf, sizeof(typebuf), "%d", component_type);
-	return string("OperationKey(") +
-	       "t: " + typebuf +
-	       ", cn: '" + component_name +
-	       "', c: " + operationCodeAsString(opcode) +
-	       ", n: '" + name + "')";
+	string result = string("OperationKey(");
+	result += "type: " + string(nodeTypeAsString(component_type));
+	result += ", component name: '" + string(component_name) + "'";
+	result += ", operation code: " + string(operationCodeAsString(opcode));
+	if (name[0] != '\0') {
+		result += ", '" + string(name) + "'";
+	}
+	result += ")";
+	return result;
 }
 
 /////////////////////////////////////////
@@ -212,7 +218,7 @@ string RNAPathKey::identifier() const
 	const char *id_name   = (id) ?  id->name : "<No ID>";
 	const char *prop_name = (prop) ? RNA_property_identifier(prop) : "<No Prop>";
 	return string("RnaPathKey(") + "id: " + id_name +
-	                               ", prop: " + prop_name +  "')";
+	                               ", prop: '" + prop_name +  "')";
 }
 
 }  // namespace DEG
