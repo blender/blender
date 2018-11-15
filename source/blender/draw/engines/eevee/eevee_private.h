@@ -889,7 +889,7 @@ void EEVEE_lightbake_render_scene(
         const float pos[3], float near_clip, float far_clip);
 void EEVEE_lightbake_filter_glossy(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, struct GPUTexture *rt_color, struct GPUFrameBuffer *fb,
-        int probe_idx, float intensity, int maxlevel, float firefly_fac);
+        int probe_idx, float intensity, int maxlevel, float filter_quality, float firefly_fac);
 void EEVEE_lightbake_filter_diffuse(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, struct GPUTexture *rt_color, struct GPUFrameBuffer *fb,
         int grid_offset, float intensity);

@@ -448,6 +448,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         col.prop(props, "gi_visibility_resolution", text="Diffuse Occlusion")
         col.prop(props, "gi_irradiance_smoothing")
         col.prop(props, "gi_glossy_clamp")
+        col.prop(props, "gi_filter_quality")
 
 
 class RENDER_PT_eevee_indirect_lighting_display(RenderButtonsPanel, Panel):

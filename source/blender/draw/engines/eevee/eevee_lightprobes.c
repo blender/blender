@@ -1103,7 +1103,7 @@ static void eevee_lightbake_render_scene_to_planars(
 void EEVEE_lightbake_filter_glossy(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         struct GPUTexture *rt_color, struct GPUFrameBuffer *fb,
-        int probe_idx, float intensity, int maxlevel, float firefly_fac)
+        int probe_idx, float intensity, int maxlevel, float filter_quality, float firefly_fac)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
@@ -1149,6 +1149,9 @@ void EEVEE_lightbake_filter_glossy(
 #else /* Constant Sample count (slow) */
 		pinfo->samples_len = 1024.0f;
 #endif
+		/* Cannot go higher than HAMMERSLEY_SIZE */
+		CLAMP(filter_quality, 1.0f, 8.0f);
+		pinfo->samples_len *= filter_quality;
 
 		pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
 		pinfo->lodfactor = bias + 0.5f * log((float)(target_size * target_size) * pinfo->samples_len_inv) / log(2);
