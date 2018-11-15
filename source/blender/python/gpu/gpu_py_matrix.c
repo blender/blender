@@ -96,7 +96,7 @@ static bool bpygpu_stack_is_pop_projection_ok_or_error(void)
  * \{ */
 
 PyDoc_STRVAR(bpygpu_matrix_push_doc,
-"push()\n"
+".. function:: push()\n"
 "\n"
 "   Add to the model-view matrix stack.\n"
 );
@@ -110,7 +110,7 @@ static PyObject *bpygpu_matrix_push(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_pop_doc,
-"pop()\n"
+".. function:: pop()\n"
 "\n"
 "   Remove the last model-view matrix from the stack.\n"
 );
@@ -124,7 +124,7 @@ static PyObject *bpygpu_matrix_pop(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_push_projection_doc,
-"push_projection()\n"
+".. function:: push_projection()\n"
 "\n"
 "   Add to the projection matrix stack.\n"
 );
@@ -138,7 +138,7 @@ static PyObject *bpygpu_matrix_push_projection(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_pop_projection_doc,
-"pop_projection()\n"
+".. function:: pop_projection()\n"
 "\n"
 "   Remove the last projection matrix from the stack.\n"
 );
@@ -258,7 +258,7 @@ static PyObject *bpygpu_matrix_push_pop_impl(int type)
 }
 
 PyDoc_STRVAR(bpygpu_matrix_push_pop_doc,
-"push_pop()\n"
+".. function:: push_pop()\n"
 "\n"
 "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n"
 );
@@ -268,7 +268,7 @@ static PyObject *bpygpu_matrix_push_pop(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_push_pop_projection_doc,
-"push_pop_projection()\n"
+".. function:: push_pop_projection()\n"
 "\n"
 "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n"
 );
@@ -284,7 +284,7 @@ static PyObject *bpygpu_matrix_push_pop_projection(PyObject *UNUSED(self))
  * \{ */
 
 PyDoc_STRVAR(bpygpu_matrix_multiply_matrix_doc,
-"multiply_matrix(matrix)\n"
+".. function:: multiply_matrix(matrix)\n"
 "\n"
 "   Multiply the current stack matrix.\n"
 "\n"
@@ -302,7 +302,7 @@ static PyObject *bpygpu_matrix_multiply_matrix(PyObject *UNUSED(self), PyObject 
 }
 
 PyDoc_STRVAR(bpygpu_matrix_scale_doc,
-"scale(scale)\n"
+".. function:: scale(scale)\n"
 "\n"
 "   Scale the current stack matrix.\n"
 "\n"
@@ -326,7 +326,7 @@ static PyObject *bpygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
 }
 
 PyDoc_STRVAR(bpygpu_matrix_scale_uniform_doc,
-"scale_uniform(scale)\n"
+".. function:: scale_uniform(scale)\n"
 "\n"
 "   :param scale: Scale the current stack matrix.\n"
 "   :type scale: sequence of 2 or 3 floats\n"
@@ -345,7 +345,7 @@ static PyObject *bpygpu_matrix_scale_uniform(PyObject *UNUSED(self), PyObject *v
 }
 
 PyDoc_STRVAR(bpygpu_matrix_translate_doc,
-"translate(offset)\n"
+".. function:: translate(offset)\n"
 "\n"
 "   Scale the current stack matrix.\n"
 "\n"
@@ -375,7 +375,7 @@ static PyObject *bpygpu_matrix_translate(PyObject *UNUSED(self), PyObject *value
  * \{ */
 
 PyDoc_STRVAR(bpygpu_matrix_reset_doc,
-"reset()\n"
+".. function:: reset()\n"
 "\n"
 "   Empty stack and set to identity.\n"
 );
@@ -386,7 +386,7 @@ static PyObject *bpygpu_matrix_reset(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_load_identity_doc,
-"load_identity()\n"
+".. function:: load_identity()\n"
 "\n"
 "   Empty stack and set to identity.\n"
 );
@@ -397,7 +397,7 @@ static PyObject *bpygpu_matrix_load_identity(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_load_matrix_doc,
-"load_matrix(matrix)\n"
+".. function:: load_matrix(matrix)\n"
 "\n"
 "   Load a matrix into the stack.\n"
 "\n"
@@ -415,7 +415,7 @@ static PyObject *bpygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *val
 }
 
 PyDoc_STRVAR(bpygpu_matrix_load_projection_matrix_doc,
-"load_projection_matrix(matrix)\n"
+".. function:: load_projection_matrix(matrix)\n"
 "\n"
 "   Load a projection matrix into the stack.\n"
 "\n"
@@ -439,7 +439,7 @@ static PyObject *bpygpu_matrix_load_projection_matrix(PyObject *UNUSED(self), Py
  * \{ */
 
 PyDoc_STRVAR(bpygpu_matrix_get_projection_matrix_doc,
-"get_projection_matrix()\n"
+".. function:: get_projection_matrix()\n"
 "\n"
 "   Return a copy of the projection matrix.\n"
 "\n"
@@ -455,7 +455,7 @@ static PyObject *bpygpu_matrix_get_projection_matrix(PyObject *UNUSED(self))
 
 
 PyDoc_STRVAR(bpygpu_matrix_get_modal_view_matrix_doc,
-"get_view_matrix()\n"
+".. function:: get_view_matrix()\n"
 "\n"
 "   Return a copy of the view matrix.\n"
 "\n"
@@ -470,7 +470,7 @@ static PyObject *bpygpu_matrix_get_modal_view_matrix(PyObject *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_matrix_get_normal_matrix_doc,
-"get_normal_matrix()\n"
+".. function:: get_normal_matrix()\n"
 "\n"
 "   Return a copy of the normal matrix.\n"
 "\n"
