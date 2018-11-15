@@ -449,23 +449,23 @@ PyDoc_STRVAR(bpygpu_matrix_get_projection_matrix_doc,
 static PyObject *bpygpu_matrix_get_projection_matrix(PyObject *UNUSED(self))
 {
 	float matrix[4][4];
-	GPU_matrix_model_view_get(matrix);
+	GPU_matrix_projection_get(matrix);
 	return Matrix_CreatePyObject(&matrix[0][0], 4, 4, NULL);
 }
 
 
-PyDoc_STRVAR(bpygpu_matrix_get_modal_view_matrix_doc,
-".. function:: get_view_matrix()\n"
+PyDoc_STRVAR(bpygpu_matrix_get_model_view_matrix_doc,
+".. function:: get_model_view_matrix()\n"
 "\n"
-"   Return a copy of the view matrix.\n"
+"   Return a copy of the model-view matrix.\n"
 "\n"
 "   :return: A 4x4 view matrix.\n"
 "   :rtype: :class:`mathutils.Matrix`\n"
 );
-static PyObject *bpygpu_matrix_get_modal_view_matrix(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_get_model_view_matrix(PyObject *UNUSED(self))
 {
 	float matrix[4][4];
-	GPU_matrix_projection_get(matrix);
+	GPU_matrix_model_view_get(matrix);
 	return Matrix_CreatePyObject(&matrix[0][0], 4, 4, NULL);
 }
 
@@ -541,8 +541,8 @@ static struct PyMethodDef bpygpu_matrix_methods[] = {
 	/* Read State */
 	{"get_projection_matrix", (PyCFunction)bpygpu_matrix_get_projection_matrix,
 	 METH_NOARGS, bpygpu_matrix_get_projection_matrix_doc},
-	{"get_model_view_matrix", (PyCFunction)bpygpu_matrix_get_modal_view_matrix,
-	 METH_NOARGS, bpygpu_matrix_get_modal_view_matrix_doc},
+	{"get_model_view_matrix", (PyCFunction)bpygpu_matrix_get_model_view_matrix,
+	 METH_NOARGS, bpygpu_matrix_get_model_view_matrix_doc},
 	{"get_normal_matrix", (PyCFunction)bpygpu_matrix_get_normal_matrix,
 	 METH_NOARGS, bpygpu_matrix_get_normal_matrix_doc},
 
