@@ -251,7 +251,7 @@ class ExecutePreset(Operator):
             try:
                 mod_spec.loader.exec_module(importlib.util.module_from_spec(mod_spec))
             except Exception as ex:
-                self.report({'ERROR'}, "Failed to executge the preset: " + repr(ex))
+                self.report({'ERROR'}, "Failed to execute the preset: " + repr(ex))
 
         elif ext == ".xml":
             import rna_xml

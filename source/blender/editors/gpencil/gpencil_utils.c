@@ -1447,7 +1447,7 @@ static bool gp_check_cursor_region(bContext *C, int mval[2])
 	Object *ob = CTX_data_active_object(C);
 
 	if ((ob == NULL) ||
-		(!ELEM(ob->mode, OB_MODE_GPENCIL_PAINT, OB_MODE_GPENCIL_SCULPT, OB_MODE_GPENCIL_WEIGHT)))
+	    (!ELEM(ob->mode, OB_MODE_GPENCIL_PAINT, OB_MODE_GPENCIL_SCULPT, OB_MODE_GPENCIL_WEIGHT)))
 	{
 		return false;
 	}
