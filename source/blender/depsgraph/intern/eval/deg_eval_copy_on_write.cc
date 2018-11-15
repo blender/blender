@@ -375,6 +375,9 @@ void view_layer_remove_invisible_bases(const Depsgraph *depsgraph,
 			BLI_addtail(&visible_bases, base);
 		}
 		else {
+			if (base == view_layer->basact) {
+				view_layer->basact = NULL;
+			}
 			MEM_freeN(base);
 		}
 	}
