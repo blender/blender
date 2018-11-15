@@ -355,6 +355,27 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	        "Edit Mesh Face Overlay Pass",
 	        DRW_STATE_WRITE_COLOR | DRW_STATE_POINT | statemod);
 
+	if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
+		*r_lverts_shgrp = DRW_shgroup_create(e_data.overlay_lvert_sh, pass);
+		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", edge_width_scale, 1);
+		DRW_shgroup_state_enable(*r_lverts_shgrp, DRW_STATE_WRITE_DEPTH);
+
+		*r_verts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
+		DRW_shgroup_uniform_block(*r_verts_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_vec2(*r_verts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_float(*r_verts_shgrp, "edgeScale", edge_width_scale, 1);
+		DRW_shgroup_state_enable(*r_verts_shgrp, DRW_STATE_WRITE_DEPTH);
+	}
+
+	if ((tsettings->selectmode & SCE_SELECT_FACE) != 0) {
+		*r_facedot_shgrp = DRW_shgroup_create(e_data.overlay_facedot_sh, pass);
+		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", edge_width_scale, 1);
+		DRW_shgroup_state_enable(*r_facedot_shgrp, DRW_STATE_WRITE_DEPTH);
+	}
+
 	*r_face_shgrp = DRW_shgroup_create(tri_sh, pass);
 	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_face_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
@@ -372,24 +393,6 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	DRW_shgroup_uniform_float(*r_ledges_shgrp, "edgeScale", edge_width_scale, 1);
 	DRW_shgroup_uniform_ivec4(*r_ledges_shgrp, "dataMask", data_mask, 1);
 	DRW_shgroup_uniform_bool_copy(*r_ledges_shgrp, "doEdges", do_edges);
-
-	if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
-		*r_lverts_shgrp = DRW_shgroup_create(e_data.overlay_lvert_sh, pass);
-		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", edge_width_scale, 1);
-
-		*r_verts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
-		DRW_shgroup_uniform_block(*r_verts_shgrp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_vec2(*r_verts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_float(*r_verts_shgrp, "edgeScale", edge_width_scale, 1);
-	}
-
-	if ((tsettings->selectmode & SCE_SELECT_FACE) != 0) {
-		*r_facedot_shgrp = DRW_shgroup_create(e_data.overlay_facedot_sh, pass);
-		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", edge_width_scale, 1);
-	}
 
 	return pass;
 }

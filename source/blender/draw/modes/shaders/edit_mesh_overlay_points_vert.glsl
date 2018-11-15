@@ -3,7 +3,7 @@ uniform mat3 NormalMatrix;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
-uniform float ofs = 1e-4;
+uniform float ofs = 3e-5;
 
 in vec3 pos;
 in ivec4 data;
@@ -21,7 +21,15 @@ void main()
 
 	gl_PointSize = sizeVertex * 2.0;
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	gl_Position.z -= ofs;
+	gl_Position.z -= ofs * ((ProjectionMatrix[3][3] == 0.0) ? 1.0 : 0.0);
+
+	/* Make selected and active vertex always on top. */
+	if ((data.x & VERTEX_SELECTED) != 0) {
+		gl_Position.z -= 1e-7;
+	}
+	if ((data.x & VERTEX_ACTIVE) != 0) {
+		gl_Position.z -= 1e-7;
+	}
 
 #ifdef VERTEX_FACING
 	vec4 vPos = ModelViewMatrix * vec4(pos, 1.0);

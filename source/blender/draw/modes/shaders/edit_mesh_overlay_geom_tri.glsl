@@ -37,7 +37,7 @@ out float facing;
 #endif
 
 #ifdef ANTI_ALIASING
-#define Z_OFFSET -0.0013
+#define Z_OFFSET -0.0005
 #else
 #define Z_OFFSET 0.0
 #endif
@@ -80,7 +80,8 @@ void doVertexOfs(int v, vec2 fixvec)
 #ifdef VERTEX_FACING
 	facing = v_facing[v];
 #endif
-	gl_Position = pPos[v] + vec4(fixvec * pPos[v].w, Z_OFFSET, 0.0);
+	float z_ofs = Z_OFFSET * ((ProjectionMatrix[3][3] == 0.0) ? 1.0 : 0.0);
+	gl_Position = pPos[v] + vec4(fixvec * pPos[v].w, z_ofs, 0.0);
 
 	EmitVertex();
 }
@@ -91,7 +92,7 @@ void mask_edge_flag(int v, ivec3 eflag)
 
 	/* Only shade the edge that we are currently drawing.
 	 * (fix corner bleeding) */
-	flag = eflag;
+	flag = eflag & ~EDGE_VERTEX_EXISTS;
 	flag[vaf] &= ~EDGE_EXISTS;
 	flag[v]   &= ~EDGE_EXISTS;
 }

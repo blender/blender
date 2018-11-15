@@ -120,35 +120,24 @@ void main()
 
 #ifdef VERTEX_SELECTION
 			vec4 inner_edge_color = vec4(vertexColor, 1.0);
-#  ifdef EDGE_FIX
-			inner_edge_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
-#  endif
-			colorDistEdge(vec4(vertexColor, 1.0), innerEdge);
 #else
 			vec4 inner_edge_color = EDIT_MESH_edge_color_inner(flag[v], (flag[0] & FACE_ACTIVE_) != 0);
-#  ifdef EDGE_FIX
-			inner_edge_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
-#  endif
-			colorDistEdge(inner_edge_color, innerEdge);
 #endif
+#ifdef EDGE_FIX
+			inner_edge_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
+#endif
+			colorDistEdge(inner_edge_color, innerEdge);
 		}
 	}
 
 #if defined(VERTEX_SELECTION) && defined(EDGE_FIX)
 	/* Points */
 	for (int v = 0; v < 3; ++v) {
-		if ((flag[v] & EDGE_VERTEX_EXISTS) == 0) {
-			/* Leave as-is, no vertex. */
-		}
-		else {
+		if ((flag[v] & EDGE_VERTEX_EXISTS) != 0) {
 			float size = p[v] - sizeVertex;
-
 			vec4 point_color = colorVertex;
 			point_color = ((flag[v] & EDGE_VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
 			point_color = ((flag[v] & EDGE_VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
-#  ifdef EDGE_FIX
-			point_color *= isXray ? 1.0 : EDGE_FIX_ALPHA;
-#  endif
 			colorDist(point_color, size);
 		}
 	}
