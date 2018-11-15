@@ -1,19 +1,19 @@
 
-#define M_PI 3.14159265358979323846
-
 uniform float backgroundAlpha;
+uniform vec3 color;
+
+out vec4 FragColor;
+
+#ifdef LOOKDEV
 uniform mat4 ProjectionMatrix;
 uniform mat4 ProjectionMatrixInverse;
 uniform mat4 ViewMatrixInverse;
-#ifdef LOOKDEV
 uniform mat3 StudioLightMatrix;
 uniform sampler2D image;
 uniform float studioLightBackground = 1.0;
 in vec3 viewPosition;
-#endif
-uniform vec3 color;
 
-out vec4 FragColor;
+#define M_PI 3.14159265358979323846
 
 void background_transform_to_world(vec3 viewvec, out vec3 worldvec)
 {
@@ -46,6 +46,7 @@ void node_tex_environment_equirectangular(vec3 co, sampler2D ima, out vec4 color
 	 * texels. So we force the highest mipmap and don't do anisotropic filtering. */
 	color = textureLod(ima, vec2(u, v), 0.0);
 }
+#endif
 
 void main() {
 #ifdef LOOKDEV
