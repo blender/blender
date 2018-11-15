@@ -109,6 +109,8 @@
 
 static void damptrack_do_transform(float matrix[4][4], const float tarvec[3], int track_axis);
 
+static bConstraint *constraint_find_original(struct Depsgraph *depsgraph, Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob);
+
 /* -------------- Naming -------------- */
 
 /* Find the first available, non-duplicate name for a given constraint */
@@ -2977,8 +2979,23 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		dist /= size[1];
 
 		/* data->orglength==0 occurs on first run, and after 'R' button is clicked */
-		if (data->orglength == 0)
+		if (data->orglength == 0) {
 			data->orglength = dist;
+
+			/* Write the computed length back to the master copy if in COW evaluation. */
+			if (DEG_is_active(cob->depsgraph)) {
+				Object *orig_ob = NULL;
+				bConstraint *orig_con = constraint_find_original(cob->depsgraph, cob->ob, cob->pchan, con, &orig_ob);
+
+				if (orig_con != NULL) {
+					bStretchToConstraint *orig_data = orig_con->data;
+
+					orig_data->orglength = data->orglength;
+
+					DEG_id_tag_update(&orig_ob->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_TRANSFORM);
+				}
+			}
+		}
 
 		scale[1] = dist / data->orglength;
 
@@ -5081,6 +5098,56 @@ bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt,
 
 				return result;
 			}
+		}
+	}
+
+	return NULL;
+}
+
+/* Finds the original copy of the constraint based on a COW copy. */
+static bConstraint *constraint_find_original(struct Depsgraph *depsgraph, Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob)
+{
+	Object *orig_ob = (Object*)DEG_get_original_id((ID*)ob);
+
+	if (ELEM(orig_ob, NULL, ob)) {
+		return NULL;
+	}
+
+	/* Find which constraint list to use. */
+	ListBase *constraints, *orig_constraints;
+
+	if (pchan != NULL) {
+		if (orig_ob->type != OB_ARMATURE || orig_ob->pose == NULL) {
+			return NULL;
+		}
+
+		bPoseChannel *orig_pchan = BKE_pose_channel_find_name(orig_ob->pose, pchan->name);
+
+		if (orig_pchan == NULL) {
+			return NULL;
+		}
+
+		constraints = &pchan->constraints;
+		orig_constraints = &orig_pchan->constraints;
+	}
+	else {
+		constraints = &ob->constraints;
+		orig_constraints = &orig_ob->constraints;
+	}
+
+	/* Lookup the original constraint by index. */
+	int index = BLI_findindex(constraints, con);
+
+	if (index >= 0) {
+		bConstraint *orig_con = (bConstraint*)BLI_findlink(orig_constraints, index);
+
+		/* Verify it has correct type and name. */
+		if (orig_con && orig_con->type == con->type && STREQ(orig_con->name, con->name)) {
+			if (r_orig_ob != NULL) {
+				*r_orig_ob = orig_ob;
+			}
+
+			return orig_con;
 		}
 	}
 
