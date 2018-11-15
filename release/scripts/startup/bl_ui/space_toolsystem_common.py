@@ -746,6 +746,8 @@ def keymap_from_context(context, space_type):
     if ToolSelectPanelHelper._tool_get_by_name(context, space_type, tap_reset_tool)[1] is None:
         use_tap_reset = False
 
+    from bl_operators.wm import use_toolbar_release_hack
+
     # Pie-menu style release to activate.
     use_release_confirm = True
 
@@ -816,7 +818,7 @@ def keymap_from_context(context, space_type):
         if kmi_toolbar_tuple not in kmi_unique_args:
             kmi = keymap.keymap_items.new(
                 "wm.tool_set_by_name",
-                value='DOUBLE_CLICK',
+                value='PRESS' if use_toolbar_release_hack else 'DOUBLE_CLICK',
                 **kmi_toolbar_args,
             )
             kmi.properties.name = tap_reset_tool
@@ -1012,6 +1014,15 @@ def keymap_from_context(context, space_type):
             value='RELEASE',
         )
         kmi.properties.skip_depressed = True
+
+        if use_toolbar_release_hack:
+            # ... or pass through to let the toolbar know we're released.
+            # Let the operator know we're released.
+            kmi = keymap.keymap_items.new(
+                "wm.tool_set_by_name",
+                type=kmi_toolbar_type,
+                value='RELEASE',
+            )
 
     wm.keyconfigs.update()
     return keymap

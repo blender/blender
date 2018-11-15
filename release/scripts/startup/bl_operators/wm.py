@@ -35,6 +35,10 @@ from bpy.props import (
 
 from bpy.app.translations import pgettext_tip as tip_
 
+# FIXME, we need a way to detect key repeat events.
+# unfortunately checking event previous values isn't reliable.
+use_toolbar_release_hack = True
+
 
 rna_path_prop = StringProperty(
     name="Context Attributes",
@@ -2383,6 +2387,18 @@ class WM_OT_tool_set_by_name(Operator):
 
     space_type: rna_space_type_prop
 
+    if use_toolbar_release_hack:
+        def invoke(self, context, event):
+            # Hack :S
+            if not self.properties.is_property_set("name"):
+                WM_OT_toolbar._key_held = False
+                return {'PASS_THROUGH'}
+            elif WM_OT_toolbar._key_held and event.value != 'RELEASE':
+                return {'PASS_THROUGH'}
+            WM_OT_toolbar._key_held = False
+
+            return self.execute(context)
+
     def execute(self, context):
         from bl_ui.space_toolsystem_common import (
             activate_by_name,
@@ -2406,6 +2422,9 @@ class WM_OT_toolbar(Operator):
     bl_idname = "wm.toolbar"
     bl_label = "Toolbar"
 
+    if use_toolbar_release_hack:
+        _key_held = False
+
     @classmethod
     def poll(cls, context):
         return context.space_data is not None
@@ -2425,6 +2444,10 @@ class WM_OT_toolbar(Operator):
         keymap = keymap_from_context(context, space_type)
 
         def draw_menu(popover, context):
+            if use_toolbar_release_hack:
+                # Release event sets false.
+                WM_OT_toolbar._key_held = True
+
             layout = popover.layout
             layout.operator_context = 'INVOKE_REGION_WIN'
             cls.draw_cls(layout, context, detect_layout=False, scale_y=1.0)
