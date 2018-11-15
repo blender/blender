@@ -607,9 +607,6 @@ def keyconfig_set(filepath, report=None):
 
     # Get name, exception for default keymap to keep backwards compatibility.
     name = splitext(basename(filepath))[0]
-    if name == 'blender':
-        name = 'Blender'
-
     kc_new = keyconfigs.get(name)
     if kc_new is None:
         if report is not None:
