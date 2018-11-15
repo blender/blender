@@ -180,23 +180,23 @@ kmi = km.keymap_items.new('view2d.reset', 'A', 'PRESS')
 km = kc.keymaps.new('Markers', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
-kmi = km.keymap_items.new('marker.move', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('marker.move', 'EVT_TWEAK_L', 'ANY')
 kmi = km.keymap_items.new('marker.duplicate', 'D', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('marker.select', 'LEFTMOUSE', 'PRESS')
 kmi.properties.extend = False
 kmi.properties.camera = False
-kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('marker.select', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi.properties.camera = False
-kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('marker.select', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.camera = True
-kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True)
+kmi = km.keymap_items.new('marker.select', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.camera = True
-kmi = km.keymap_items.new('marker.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('marker.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('marker.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('marker.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('marker.select_all', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('marker.delete', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
@@ -227,7 +227,7 @@ kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
 kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('outliner.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('outliner.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('outliner.item_openclose', 'RET', 'PRESS')
 kmi.properties.all = False
 kmi = km.keymap_items.new('outliner.item_openclose', 'RET', 'PRESS', shift=True)
@@ -604,12 +604,12 @@ kmi.properties.data_path = 'tool_settings.sculpt.brush.stroke_method'
 km = kc.keymaps.new('Mesh', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('mesh.loopcut_slide', 'R', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi = km.keymap_items.new('mesh.loop_select', 'LEFTMOUSE', 'PRESS', ctrl=True, alt=True)
 kmi.properties.extend = False
 kmi.properties.deselect = False
 kmi.properties.toggle = False
 kmi.properties.ring = False
-kmi = km.keymap_items.new('mesh.loop_select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
+kmi = km.keymap_items.new('mesh.loop_select', 'LEFTMOUSE', 'PRESS', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.deselect = False
 kmi.properties.toggle = False
@@ -915,7 +915,7 @@ kmi = km.keymap_items.new('object.origin_set', 'C', 'PRESS', shift=True, ctrl=Tr
 # Map 3D View
 km = kc.keymaps.new('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
-kmi = km.keymap_items.new('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')
+kmi = km.keymap_items.new('view3d.cursor3d', 'RIGHTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('view3d.rotate', 'LEFTMOUSE', 'PRESS', alt=True)
 kmi = km.keymap_items.new('view3d.manipulator', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.release_confirm = True
@@ -993,65 +993,65 @@ kmi = km.keymap_items.new('wm.context_toggle_enum', 'FIVE', 'PRESS')
 kmi.properties.data_path = 'space_data.shading.type'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', shift=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = False
 kmi.properties.toggle = True
 kmi.properties.deselect = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', ctrl=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', ctrl=True)
 kmi.properties.center = False
 kmi.properties.extend = False
 kmi.properties.toggle = False
 kmi.properties.deselect = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', alt=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', alt=True)
 kmi.properties.enumerate = True
 kmi.properties.extend = False
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.center = False
 kmi.properties.object = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', ctrl=True, alt=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', ctrl=True, alt=True)
 kmi.properties.center = True
 kmi.properties.enumerate = True
 kmi.properties.extend = False
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.object = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', shift=True, alt=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.enumerate = True
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.center = False
 kmi.properties.object = False
-kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True, alt=True)
+kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'LEFTMOUSE', 'CLICK', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.enumerate = True
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.object = False
-kmi = km.keymap_items.new('view3d.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('view3d.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('view3d.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('view3d.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_M', 'ANY')
 kmi.properties.extend = False
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_M', 'ANY', ctrl=True)
@@ -1104,9 +1104,9 @@ kmi = km.keymap_items.new('anim.channels_rename', 'LEFTMOUSE', 'PRESS', ctrl=Tru
 kmi = km.keymap_items.new('anim.channels_select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('anim.channels_select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('anim.channels_select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('anim.channels_select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('anim.channels_select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('anim.channels_select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('anim.channels_delete', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('anim.channels_delete', 'DEL', 'PRESS')
 kmi = km.keymap_items.new('anim.channels_setting_toggle', 'W', 'PRESS', shift=True)
@@ -1134,18 +1134,18 @@ km = kc.keymaps.new('UV Editor', space_type='EMPTY', region_type='WINDOW', modal
 kmi = km.keymap_items.new('wm.context_toggle', 'Q', 'PRESS')
 kmi.properties.data_path = 'tool_settings.use_uv_sculpt'
 kmi = km.keymap_items.new('uv.mark_seam', 'E', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('uv.select', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('uv.select', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('uv.select', 'SELECTMOUSE', 'CLICK', shift=True)
+kmi = km.keymap_items.new('uv.select', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('uv.select_loop', 'LEFTMOUSE', 'PRESS', ctrl=True, alt=True)
 kmi.properties.extend = False
 kmi = km.keymap_items.new('uv.select_loop', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('uv.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('uv.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
 kmi.properties.pinned = False
-kmi = km.keymap_items.new('uv.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('uv.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi.properties.pinned = False
 kmi = km.keymap_items.new('uv.circle_select', 'Q', 'PRESS', shift=True)
 kmi = km.keymap_items.new('uv.select_linked', 'L', 'PRESS', ctrl=True)
@@ -1175,7 +1175,7 @@ kmi = km.keymap_items.new('uv.hide', 'H', 'PRESS', alt=True)
 kmi.properties.unselected = True
 kmi = km.keymap_items.new('uv.reveal', 'H', 'PRESS', shift=True)
 kmi = km.keymap_items.new('uv.cursor_set', 'RIGHTMOUSE', 'PRESS', key_modifier='C')
-kmi = km.keymap_items.new('uv.tile_set', 'ACTIONMOUSE', 'PRESS', shift=True, key_modifier='C')
+kmi = km.keymap_items.new('uv.tile_set', 'RIGHTMOUSE', 'PRESS', shift=True, key_modifier='C')
 kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift=True)
 kmi.properties.name = 'IMAGE_MT_uvs_snap'
 kmi = km.keymap_items.new('wm.call_menu', 'RIGHTMOUSE', 'PRESS')
@@ -1304,27 +1304,27 @@ kmi = km.keymap_items.new('wm.context_toggle', 'H', 'PRESS', ctrl=True)
 kmi.properties.data_path = 'space_data.show_handles'
 kmi = km.keymap_items.new('graph.cursor_set', 'LEFTMOUSE', 'PRESS', key_modifier='K')
 kmi.properties.value = 1.1754943508222875e-38
-kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('graph.clickselect', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
 kmi.properties.column = False
 kmi.properties.curves = False
-kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'PRESS', alt=True)
+kmi = km.keymap_items.new('graph.clickselect', 'LEFTMOUSE', 'PRESS', alt=True)
 kmi.properties.extend = False
 kmi.properties.column = True
 kmi.properties.curves = False
-kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'CLICK', shift=True)
+kmi = km.keymap_items.new('graph.clickselect', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
 kmi.properties.column = False
 kmi.properties.curves = False
-kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'CLICK', shift=True, alt=True)
+kmi = km.keymap_items.new('graph.clickselect', 'LEFTMOUSE', 'CLICK', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.column = True
 kmi.properties.curves = False
-kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi = km.keymap_items.new('graph.clickselect', 'LEFTMOUSE', 'PRESS', ctrl=True, alt=True)
 kmi.properties.extend = False
 kmi.properties.column = False
 kmi.properties.curves = True
-kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True, alt=True)
+kmi = km.keymap_items.new('graph.clickselect', 'LEFTMOUSE', 'CLICK', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.column = False
 kmi.properties.curves = True
@@ -1338,11 +1338,11 @@ kmi = km.keymap_items.new('graph.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi.properties.invert = False
 kmi = km.keymap_items.new('graph.select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('graph.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('graph.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
 kmi.properties.axis_range = False
 kmi.properties.include_handles = False
-kmi = km.keymap_items.new('graph.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('graph.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi.properties.axis_range = False
 kmi.properties.include_handles = False
 kmi = km.keymap_items.new('graph.select_more', 'PERIOD', 'PRESS', shift=True)
@@ -1371,7 +1371,7 @@ kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
 kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('graph.copy', 'C', 'PRESS', oskey=True)
 kmi = km.keymap_items.new('graph.paste', 'V', 'PRESS', oskey=True)
-kmi = km.keymap_items.new('graph.select_all_toggle', 'SELECTMOUSE', 'DOUBLE_CLICK')
+kmi = km.keymap_items.new('graph.select_all_toggle', 'LEFTMOUSE', 'DOUBLE_CLICK')
 
 # Map Image
 km = kc.keymaps.new('Image', space_type='IMAGE_EDITOR', region_type='WINDOW', modal=False)
@@ -1402,10 +1402,10 @@ kmi = km.keymap_items.new('image.view_zoom_ratio', 'NUMPAD_4', 'PRESS')
 kmi.properties.ratio = 0.25
 kmi = km.keymap_items.new('image.view_zoom_ratio', 'NUMPAD_8', 'PRESS')
 kmi.properties.ratio = 0.125
-kmi = km.keymap_items.new('image.sample', 'ACTIONMOUSE', 'PRESS')
-kmi = km.keymap_items.new('image.curves_point_set', 'ACTIONMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('image.sample', 'RIGHTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('image.curves_point_set', 'RIGHTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.point = 'BLACK_POINT'
-kmi = km.keymap_items.new('image.curves_point_set', 'ACTIONMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('image.curves_point_set', 'RIGHTMOUSE', 'PRESS', shift=True)
 kmi.properties.point = 'WHITE_POINT'
 kmi = km.keymap_items.new('object.mode_set', 'TAB', 'PRESS')
 kmi.properties.mode = 'EDIT'
@@ -1438,14 +1438,14 @@ kmi.properties.value = 7
 # Map Node Editor
 km = kc.keymaps.new('Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', modal=False)
 
-kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('node.select', 'LEFTMOUSE', 'PRESS')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('node.select', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('node.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('node.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
 kmi.properties.tweak = True
-kmi = km.keymap_items.new('node.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('node.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi.properties.tweak = True
 kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('node.resize', 'LEFTMOUSE', 'PRESS')
@@ -1456,7 +1456,7 @@ kmi = km.keymap_items.new('node.backimage_zoom', 'V', 'PRESS')
 kmi.properties.factor = 0.833329975605011
 kmi = km.keymap_items.new('node.backimage_zoom', 'V', 'PRESS', alt=True)
 kmi.properties.factor = 1.2000000476837158
-kmi = km.keymap_items.new('node.backimage_sample', 'ACTIONMOUSE', 'PRESS', alt=True)
+kmi = km.keymap_items.new('node.backimage_sample', 'RIGHTMOUSE', 'PRESS', alt=True)
 kmi = km.keymap_items.new('node.link_make', 'F', 'PRESS')
 kmi.properties.replace = False
 kmi = km.keymap_items.new('node.link_make', 'F', 'PRESS', ctrl=True)
@@ -1488,13 +1488,13 @@ kmi = km.keymap_items.new('node.read_viewlayers', 'R', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.read_fullsamplelayers', 'R', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.render_changed', 'Z', 'PRESS')
 kmi = km.keymap_items.new('node.translate_attach', 'W', 'PRESS')
-kmi = km.keymap_items.new('node.translate_attach', 'EVT_TWEAK_A', 'ANY')
-kmi = km.keymap_items.new('node.translate_attach', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('node.translate_attach', 'EVT_TWEAK_R', 'ANY')
+kmi = km.keymap_items.new('node.translate_attach', 'EVT_TWEAK_L', 'ANY')
 kmi = km.keymap_items.new('transform.rotate', 'E', 'PRESS')
 kmi = km.keymap_items.new('transform.resize', 'R', 'PRESS')
 kmi = km.keymap_items.new('node.move_detach_links', 'D', 'PRESS', alt=True)
-kmi = km.keymap_items.new('node.move_detach_links', 'EVT_TWEAK_A', 'ANY', alt=True)
-kmi = km.keymap_items.new('node.move_detach_links', 'EVT_TWEAK_S', 'ANY', alt=True)
+kmi = km.keymap_items.new('node.move_detach_links', 'EVT_TWEAK_R', 'ANY', alt=True)
+kmi = km.keymap_items.new('node.move_detach_links', 'EVT_TWEAK_L', 'ANY', alt=True)
 
 # Map File Browser Main
 km = kc.keymaps.new('File Browser Main', space_type='FILE_BROWSER', region_type='WINDOW', modal=False)
@@ -1510,9 +1510,9 @@ kmi.properties.extend = True
 kmi.properties.fill = True
 kmi = km.keymap_items.new('file.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('file.refresh', 'F', 'PRESS')
-kmi = km.keymap_items.new('file.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('file.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('file.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('file.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('file.rename', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('file.highlight', 'MOUSEMOVE', 'ANY', any=True)
 kmi = km.keymap_items.new('file.filenum', 'NUMPAD_PLUS', 'PRESS')
@@ -1553,10 +1553,10 @@ kmi = km.keymap_items.new('action.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi.properties.invert = False
 kmi = km.keymap_items.new('action.select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('action.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('action.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
 kmi.properties.axis_range = False
-kmi = km.keymap_items.new('action.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('action.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi.properties.axis_range = False
 kmi = km.keymap_items.new('action.select_more', 'PERIOD', 'PRESS', shift=True)
 kmi = km.keymap_items.new('action.select_less', 'COMMA', 'PRESS', shift=True)
@@ -1589,7 +1589,7 @@ kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
 kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('action.copy', 'C', 'PRESS', oskey=True)
 kmi = km.keymap_items.new('action.paste', 'V', 'PRESS', oskey=True)
-kmi = km.keymap_items.new('action.select_all_toggle', 'SELECTMOUSE', 'DOUBLE_CLICK')
+kmi = km.keymap_items.new('action.select_all_toggle', 'LEFTMOUSE', 'DOUBLE_CLICK')
 
 # Map NLA Channels
 km = kc.keymaps.new('NLA Channels', space_type='NLA_EDITOR', region_type='WINDOW', modal=False)
@@ -1608,14 +1608,14 @@ kmi = km.keymap_items.new('nla.tracks_delete', 'DEL', 'PRESS')
 # Map NLA Editor
 km = kc.keymaps.new('NLA Editor', space_type='NLA_EDITOR', region_type='WINDOW', modal=False)
 
-kmi = km.keymap_items.new('nla.click_select', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('nla.click_select', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('nla.click_select', 'SELECTMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('nla.click_select', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('nla.select_leftright', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('nla.select_leftright', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.mode = 'CHECK'
 kmi.properties.extend = False
-kmi = km.keymap_items.new('nla.select_leftright', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True)
+kmi = km.keymap_items.new('nla.select_leftright', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
 kmi.properties.mode = 'CHECK'
 kmi.properties.extend = True
 kmi = km.keymap_items.new('nla.select_leftright', 'LEFT_BRACKET', 'PRESS')
@@ -1628,10 +1628,10 @@ kmi = km.keymap_items.new('nla.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi.properties.invert = False
 kmi = km.keymap_items.new('nla.select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('nla.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('nla.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
 kmi.properties.axis_range = False
-kmi = km.keymap_items.new('nla.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('nla.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi.properties.axis_range = False
 kmi = km.keymap_items.new('nla.view_all', 'A', 'PRESS')
 kmi = km.keymap_items.new('nla.view_selected', 'F', 'PRESS')
@@ -1730,32 +1730,32 @@ kmi = km.keymap_items.new('sequencer.cut_multicam', 'NINE', 'PRESS')
 kmi.properties.camera = 9
 kmi = km.keymap_items.new('sequencer.cut_multicam', 'ZERO', 'PRESS')
 kmi.properties.camera = 10
-kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('sequencer.select', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
 kmi.properties.linked_handle = False
 kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
-kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'CLICK', shift=True)
+kmi = km.keymap_items.new('sequencer.select', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
 kmi.properties.linked_handle = False
 kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
-kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', alt=True)
+kmi = km.keymap_items.new('sequencer.select', 'LEFTMOUSE', 'PRESS', alt=True)
 kmi.properties.extend = False
 kmi.properties.linked_handle = True
 kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
-kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'CLICK', shift=True, alt=True)
+kmi = km.keymap_items.new('sequencer.select', 'LEFTMOUSE', 'CLICK', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.linked_handle = True
 kmi.properties.left_right = 'NONE'
 kmi.properties.linked_time = False
-kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('sequencer.select', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.linked_handle = False
 kmi.properties.left_right = 'MOUSE'
 kmi.properties.linked_time = True
-kmi = km.keymap_items.new('sequencer.select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True)
+kmi = km.keymap_items.new('sequencer.select', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.linked_handle = False
 kmi.properties.left_right = 'NONE'
@@ -1767,9 +1767,9 @@ kmi.properties.extend = False
 kmi = km.keymap_items.new('sequencer.select_linked_pick', 'L', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('sequencer.select_linked', 'L', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('sequencer.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('sequencer.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('sequencer.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('sequencer.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('sequencer.select_grouped', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
 kmi.properties.name = 'SEQUENCER_MT_add'
@@ -1823,17 +1823,17 @@ kmi.properties.position = 'FAILEDPREV'
 kmi = km.keymap_items.new('clip.frame_jump', 'RIGHT_ARROW', 'PRESS', shift=True, alt=True)
 kmi.properties.position = 'PATHSTART'
 kmi = km.keymap_items.new('clip.change_frame', 'LEFTMOUSE', 'PRESS')
-kmi = km.keymap_items.new('clip.select', 'SELECTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('clip.select', 'LEFTMOUSE', 'PRESS')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('clip.select', 'SELECTMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('clip.select', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('clip.select_all', 'A', 'PRESS', ctrl=True)
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('clip.select_all', 'I', 'PRESS', ctrl=True)
 kmi.properties.action = 'INVERT'
-kmi = km.keymap_items.new('clip.select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('clip.select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('clip.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('clip.select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('clip.select_circle', 'Q', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.call_menu', 'G', 'PRESS', shift=True)
 kmi.properties.name = 'CLIP_MT_select_grouped'
@@ -1866,7 +1866,7 @@ kmi.properties.data_path = 'space_data.show_marker_search'
 kmi = km.keymap_items.new('wm.context_toggle', 'M', 'PRESS')
 kmi.properties.data_path = 'space_data.use_mute_footage'
 kmi = km.keymap_items.new('transform.translate', 'W', 'PRESS')
-kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_L', 'ANY')
 kmi = km.keymap_items.new('transform.resize', 'R', 'PRESS')
 kmi = km.keymap_items.new('clip.clear_track_path', 'T', 'PRESS', alt=True)
 kmi.properties.action = 'REMAINED'
@@ -1881,18 +1881,18 @@ kmi.properties.clear_active = False
 # Map Clip Graph Editor
 km = kc.keymaps.new('Clip Graph Editor', space_type='CLIP_EDITOR', region_type='WINDOW', modal=False)
 
-kmi = km.keymap_items.new('clip.change_frame', 'ACTIONMOUSE', 'PRESS')
-kmi = km.keymap_items.new('clip.graph_select', 'SELECTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('clip.change_frame', 'RIGHTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('clip.graph_select', 'LEFTMOUSE', 'PRESS')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('clip.graph_select', 'SELECTMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('clip.graph_select', 'LEFTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('clip.graph_select_all_markers', 'A', 'PRESS')
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('clip.graph_select_all_markers', 'I', 'PRESS', ctrl=True)
 kmi.properties.action = 'INVERT'
-kmi = km.keymap_items.new('clip.graph_select_box', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('clip.graph_select_box', 'EVT_TWEAK_L', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('clip.graph_select_box', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('clip.graph_select_box', 'EVT_TWEAK_L', 'ANY', any=True)
 kmi = km.keymap_items.new('clip.graph_delete_curve', 'DEL', 'PRESS')
 kmi = km.keymap_items.new('clip.graph_delete_curve', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('clip.graph_delete_knot', 'DEL', 'PRESS', shift=True)
@@ -1913,5 +1913,5 @@ kmi.properties.clear_active = True
 kmi = km.keymap_items.new('clip.graph_disable_markers', 'D', 'PRESS', shift=True)
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('transform.translate', 'W', 'PRESS')
-kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_L', 'ANY')
 kmi = km.keymap_items.new('transform.resize', 'R', 'PRESS')

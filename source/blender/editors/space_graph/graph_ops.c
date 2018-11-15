@@ -196,9 +196,7 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, const wmEvent *ev
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
 		case MIDDLEMOUSE:
-			/* we check for either mouse-button to end, as checking for ACTIONMOUSE (which is used to init
-			 * the modal op) doesn't work for some reason
-			 */
+			/* We check for either mouse-button to end, to work with all user keymaps. */
 			if (event->val == KM_RELEASE) {
 				if (screen)
 					screen->scrubbing = false;

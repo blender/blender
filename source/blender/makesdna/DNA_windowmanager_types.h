@@ -355,13 +355,18 @@ typedef struct wmKeyConfig {
 	char basename[64];  /* idname of configuration this is derives from, "" if none */
 
 	ListBase keymaps;
-	int actkeymap, flag;
+	int actkeymap;
+	short flag;
+
+	/* Supports select mouse switching? */
+	char has_select_mouse;  /* may remove in favor of custom properties. */
+	char _pad0;
 } wmKeyConfig;
 
 /* wmKeyConfig.flag */
 enum {
 	KEYCONF_USER          = (1 << 1),  /* And what about (1 << 0)? */
-	KEYCONF_INIT_DEFAULT  = (1 << 2),
+	KEYCONF_INIT_DEFAULT  = (1 << 2),  /* Has default keymap been initialized? */
 };
 
 /* this one is the operator itself, stored in files for macros etc */

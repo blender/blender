@@ -2592,11 +2592,12 @@ class WM_MT_splash(Menu):
             text = "Blender"
         sub.menu("USERPREF_MT_keyconfigs", text=text)
 
-        sub = col.split(factor=0.35)
-        row = sub.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Select With")
-        sub.row().prop(userpref.inputs, 'select_mouse', expand=True)
+        if wm.keyconfigs.active.has_select_mouse:
+            sub = col.split(factor=0.35)
+            row = sub.row()
+            row.alignment = 'RIGHT'
+            row.label(text="Select With")
+            sub.row().prop(userpref.inputs, 'select_mouse', expand=True)
 
         col.separator()
 
@@ -2617,7 +2618,9 @@ class WM_MT_splash(Menu):
         #userpref = context.user_preferences
         #sub.prop(userpref.system, "language", text="")
 
-        col.label()
+        # Keep height constant
+        if not wm.keyconfigs.active.has_select_mouse:
+            col.label()
 
         layout.label()
 

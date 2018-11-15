@@ -61,9 +61,6 @@ enum {
 	MIDDLEMOUSE         = 0x0002,
 	RIGHTMOUSE          = 0x0003,
 	MOUSEMOVE           = 0x0004,
-	/* only use if you want user option switch possible */
-	ACTIONMOUSE         = 0x0005,
-	SELECTMOUSE         = 0x0006,
 	/* Extra mouse buttons */
 	BUTTON4MOUSE        = 0x0007,
 	BUTTON5MOUSE        = 0x0008,
@@ -324,9 +321,6 @@ enum {
 	EVT_TWEAK_L           = 0x5002,
 	EVT_TWEAK_M           = 0x5003,
 	EVT_TWEAK_R           = 0x5004,
-	/* tweak events for action or select mousebutton */
-	EVT_TWEAK_A           = 0x5005,
-	EVT_TWEAK_S           = 0x5006,
 	EVT_GESTURE           = 0x5010,
 
 	/* 0x5011 is taken, see EVT_ACTIONZONE_FULLSCREEN */
@@ -371,7 +365,7 @@ enum {
 #define ISMOUSE_GESTURE(event_type)  ((event_type) >= MOUSEPAN && (event_type) <= MOUSEROTATE)
 #define ISMOUSE_BUTTON(event_type) \
 	(ELEM(event_type, \
-	      LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE, ACTIONMOUSE, SELECTMOUSE, \
+	      LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE, \
 	      BUTTON4MOUSE, BUTTON5MOUSE, BUTTON6MOUSE, BUTTON7MOUSE))
 
 /* test whether the event is tweak event */

@@ -36,6 +36,7 @@ set(INC
 	../makesrna
 	../nodes
 	../render/extern/include
+	../windowmanager
 	../../../intern/guardedalloc
 
 	# for writefile.c: dna_type_offsets.h

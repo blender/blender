@@ -35,25 +35,13 @@ class KeymapParams:
         "cursor_set_event",
     )
 
-    def __init__(self, legacy=False, select_mode='AUTO'):
+    def __init__(self, legacy=False, select_mode='AUTO', select_mouse='RIGHT'):
         import platform
+
         self.apple = platform.system() == 'Darwin'
         self.legacy = legacy
 
-        if select_mode == 'LEFT':
-            # Left mouse select uses Click event for selection. This is a little
-            # less immediate, but is needed to distinguish between click and tweak
-            # events on the same mouse buttons.
-            self.select_mouse = 'LEFTMOUSE'
-            self.select_tweak = 'EVT_TWEAK_L'
-            self.select_click = 'CLICK'
-            self.action_mouse = 'RIGHTMOUSE'
-            self.action_tweak = 'EVT_TWEAK_R'
-            self.tool_mouse = 'RIGHTMOUSE'
-            self.tool_tweak = 'EVT_TWEAK_R'
-            self.context_menu_event = {"type": 'RIGHTMOUSE', "value": 'PRESS'}
-            self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True}
-        elif select_mode == 'RIGHT':
+        if select_mouse == 'RIGHT':
             # Right mouse select.
             self.select_mouse = 'RIGHTMOUSE'
             self.select_tweak = 'EVT_TWEAK_R'
@@ -65,16 +53,29 @@ class KeymapParams:
             self.context_menu_event = {"type": 'W', "value": 'PRESS'}
             self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'PRESS'}
         else:
-            # Automatic switching using special events, to be removed.
-            self.select_mouse = 'SELECTMOUSE'
-            self.select_tweak = 'EVT_TWEAK_S'
-            self.select_click = 'PRESS'
-            self.action_mouse = 'ACTIONMOUSE'
-            self.action_tweak = 'EVT_TWEAK_A'
-            self.tool_mouse = 'ACTIONMOUSE'
-            self.tool_tweak = 'EVT_TWEAK_A'
-            self.context_menu_event = {"type": 'W', "value": 'PRESS'}
-            self.cursor_set_event = {"type": self.action_mouse, "value": 'PRESS'}
+            # Left mouse select uses Click event for selection. This is a little
+            # less immediate, but is needed to distinguish between click and tweak
+            # events on the same mouse buttons.
+            self.select_mouse = 'LEFTMOUSE'
+            self.select_tweak = 'EVT_TWEAK_L'
+            self.action_mouse = 'RIGHTMOUSE'
+            self.action_tweak = 'EVT_TWEAK_R'
+
+            if True:
+                # Temporary backwards compatible behavior.
+                self.select_click = 'PRESS'
+                self.tool_mouse = 'RIGHTMOUSE'
+                self.tool_tweak = 'EVT_TWEAK_R'
+                self.context_menu_event = {"type": 'W', "value": 'PRESS'}
+                self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS'}
+            else:
+                # Planned keymap changes.
+                self.select_click = 'CLICK'
+                self.tool_mouse = 'LEFTMOUSE'
+                self.tool_tweak = 'EVT_TWEAK_L'
+                self.context_menu_event = {"type": 'RIGHTMOUSE', "value": 'PRESS'}
+                self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True}
+
 
 # ------------------------------------------------------------------------------
 # Constants

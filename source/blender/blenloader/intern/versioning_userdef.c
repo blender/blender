@@ -40,6 +40,8 @@
 
 #include "BLO_readfile.h"  /* Own include. */
 
+#include "wm_event_types.h"
+
 /* Disallow access to global userdef. */
 #define U (_error_)
 
@@ -90,6 +92,26 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 	}
 
 #undef USER_VERSION_ATLEAST
+}
+
+static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
+{
+	/* Remove select/action mouse from user defined keymaps. */
+	enum {
+		ACTIONMOUSE = 0x0005,
+		SELECTMOUSE = 0x0006,
+		EVT_TWEAK_A = 0x5005,
+		EVT_TWEAK_S = 0x5006,
+	};
+	const bool left = (userdef->flag & USER_LMOUSESELECT) != 0;
+
+	switch (kmi->type) {
+		case SELECTMOUSE: kmi->type = (left) ? LEFTMOUSE : RIGHTMOUSE; break;
+		case ACTIONMOUSE: kmi->type = (left) ? RIGHTMOUSE : LEFTMOUSE; break;
+		case EVT_TWEAK_S: kmi->type = (left) ? EVT_TWEAK_L : EVT_TWEAK_R; break;
+		case EVT_TWEAK_A: kmi->type = (left) ? EVT_TWEAK_R : EVT_TWEAK_L; break;
+		default: break;
+	}
 }
 
 /* patching UserDef struct and Themes */
@@ -350,6 +372,24 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 			 * - Non-full alpha looks better!
 			 */
 			ARRAY_SET_ITEMS(userdef->gpencil_new_layer_col, 0.38f, 0.61f, 0.78f, 0.9f);
+		}
+	}
+
+	if (!USER_VERSION_ATLEAST(280, 31)) {
+		/* Remove select/action mouse from user defined keymaps. */
+		for (wmKeyMap *keymap = userdef->user_keymaps.first; keymap; keymap = keymap->next) {
+			for (wmKeyMapDiffItem *kmdi = keymap->diff_items.first; kmdi; kmdi = kmdi->next) {
+				if (kmdi->remove_item) {
+					do_version_select_mouse(userdef, kmdi->remove_item);
+				}
+				if (kmdi->add_item) {
+					do_version_select_mouse(userdef, kmdi->add_item);
+				}
+			}
+
+			for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+				do_version_select_mouse(userdef, kmi);
+			}
 		}
 	}
 

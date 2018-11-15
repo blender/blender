@@ -1769,14 +1769,6 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 int WM_userdef_event_map(int kmitype)
 {
 	switch (kmitype) {
-		case SELECTMOUSE:
-			return (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
-		case ACTIONMOUSE:
-			return (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
-		case EVT_TWEAK_A:
-			return (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_R : EVT_TWEAK_L;
-		case EVT_TWEAK_S:
-			return (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_L : EVT_TWEAK_R;
 		case WHEELOUTMOUSE:
 			return (U.uiflag & USER_WHEELZOOMDIR) ? WHEELUPMOUSE : WHEELDOWNMOUSE;
 		case WHEELINMOUSE:
@@ -1794,14 +1786,6 @@ int WM_userdef_event_map(int kmitype)
 int WM_userdef_event_type_from_keymap_type(int kmitype)
 {
 	switch (kmitype) {
-		case SELECTMOUSE:
-			return (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
-		case ACTIONMOUSE:
-			return (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
-		case EVT_TWEAK_S:
-			return (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
-		case EVT_TWEAK_A:
-			return (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
 		case EVT_TWEAK_L:
 			return LEFTMOUSE;
 		case EVT_TWEAK_M:

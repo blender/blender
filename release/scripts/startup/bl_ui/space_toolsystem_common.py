@@ -927,8 +927,6 @@ def keymap_from_context(context, space_type):
                     'BUTTON5MOUSE',
                     'BUTTON6MOUSE',
                     'BUTTON7MOUSE',
-                    'ACTIONMOUSE',
-                    'SELECTMOUSE',
             }:
                 kmi_found_type = kmi_found.key_modifier
                 # excludes 'NONE'

@@ -74,8 +74,6 @@ static const EnumPropertyItem event_tweak_type_items[] = {
 	{EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Left", ""},
 	{EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Middle", ""},
 	{EVT_TWEAK_R, "EVT_TWEAK_R", 0, "Right", ""},
-	{EVT_TWEAK_A, "EVT_TWEAK_A", 0, "Action", ""},
-	{EVT_TWEAK_S, "EVT_TWEAK_S", 0, "Select", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -87,8 +85,6 @@ static const EnumPropertyItem event_mouse_type_items[] = {
 	{BUTTON5MOUSE, "BUTTON5MOUSE", 0, "Button5", ""},
 	{BUTTON6MOUSE, "BUTTON6MOUSE", 0, "Button6", ""},
 	{BUTTON7MOUSE, "BUTTON7MOUSE", 0, "Button7", ""},
-	{ACTIONMOUSE, "ACTIONMOUSE", 0, "Action", ""},
-	{SELECTMOUSE, "SELECTMOUSE", 0, "Select", ""},
 	{0, "", 0, NULL, NULL},
 	{TABLET_STYLUS, "PEN", 0, "Pen", ""},
 	{TABLET_ERASER, "ERASER", 0, "Eraser", ""},
@@ -184,8 +180,6 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
 	{BUTTON5MOUSE, "BUTTON5MOUSE", 0, "Button5 Mouse", "MB5"},
 	{BUTTON6MOUSE, "BUTTON6MOUSE", 0, "Button6 Mouse", "MB6"},
 	{BUTTON7MOUSE, "BUTTON7MOUSE", 0, "Button7 Mouse", "MB7"},
-	{ACTIONMOUSE, "ACTIONMOUSE", 0, "Action Mouse", "MBA"},
-	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", "MBS"},
 	{0, "", 0, NULL, NULL},
 	{TABLET_STYLUS, "PEN", 0, "Pen", ""},
 	{TABLET_ERASER, "ERASER", 0, "Eraser", ""},
@@ -204,8 +198,6 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
 	{EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Tweak Left", "TwkL"},
 	{EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Tweak Middle", "TwkM"},
 	{EVT_TWEAK_R, "EVT_TWEAK_R", 0, "Tweak Right", "TwkR"},
-	{EVT_TWEAK_A, "EVT_TWEAK_A", 0, "Tweak Action", "TwkA"},
-	{EVT_TWEAK_S, "EVT_TWEAK_S", 0, "Tweak Select", "TwkS"},
 	{0, "", 0, NULL, NULL},
 	{AKEY, "A", 0, "A", ""},
 	{BKEY, "B", 0, "B", ""},
@@ -2240,6 +2232,10 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user");
+
+	prop = RNA_def_property(srna, "has_select_mouse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "has_select_mouse", 1);
+	RNA_def_property_ui_text(prop, "Has Select Mouse", "Configuration supports select mouse switching");
 
 	RNA_api_keyconfig(srna);
 

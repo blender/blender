@@ -17,8 +17,8 @@ def my_tool():
         icon="ops.generic.select_circle",
         widget=None,
         keymap=(
-            ("view3d.select_circle", dict(deselect=False), dict(type='ACTIONMOUSE', value='PRESS')),
-            ("view3d.select_circle", dict(deselect=True), dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+            ("view3d.select_circle", dict(deselect=False), dict(type='LEFTMOUSE', value='PRESS')),
+            ("view3d.select_circle", dict(deselect=True), dict(type='LEFTMOUSE', value='PRESS', ctrl=True)),
         ),
         draw_settings=draw_settings,
     )

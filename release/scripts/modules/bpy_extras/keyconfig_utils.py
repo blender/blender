@@ -500,6 +500,8 @@ def keyconfig_import_from_data(name, keyconfig_data):
         km = kc.keymaps.new(km_name, **km_args)
         keymap_items_from_data(km, km_content["items"], is_modal=km_args.get("modal", False))
 
+    return kc
+
 
 def keyconfig_module_from_preset(name, preset_reference_filename=None):
     import os

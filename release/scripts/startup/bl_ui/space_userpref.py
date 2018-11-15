@@ -1087,15 +1087,15 @@ class USERPREF_PT_input(Panel):
         sub.separator()
 
         sub.label(text="Mouse:")
-        sub1 = sub.column()
-        sub1.active = (inputs.select_mouse == 'RIGHT')
-        sub1.prop(inputs, "use_mouse_emulate_3_button")
+        sub.prop(inputs, "use_mouse_emulate_3_button")
         sub.prop(inputs, "use_mouse_continuous")
         sub.prop(inputs, "drag_threshold")
         sub.prop(inputs, "tweak_threshold")
 
-        sub.label(text="Select With:")
-        sub.row().prop(inputs, "select_mouse", expand=True)
+        wm = bpy.context.window_manager
+        if wm.keyconfigs.active.has_select_mouse:
+            sub.label(text="Select With:")
+            sub.row().prop(inputs, "select_mouse", expand=True)
 
         sub = col.column()
         sub.label(text="Double Click:")
