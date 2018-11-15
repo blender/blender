@@ -217,11 +217,32 @@ static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), Po
 	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
 
+static bool rna_LayerCollection_has_objects(LayerCollection *lc)
+{
+	return (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) != 0;
+}
+
+static bool rna_LayerCollection_has_visible_objects(LayerCollection *lc, ViewLayer *view_layer)
+{
+	if ((view_layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
+	    !(lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS))
+	{
+		return false;
+	}
+	return true;
+}
+
+static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc, ViewLayer *view_layer)
+{
+	return BKE_layer_collection_has_selected_objects(view_layer, lc);
+}
+
 #else
 
 static void rna_def_layer_collection(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	FunctionRNA *func;
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "LayerCollection", NULL);
@@ -265,6 +286,22 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	                         "Objects in collection only contribute indirectly (through shadows and reflections) "
 	                         "in the view layer");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
+
+	func = RNA_def_function(srna, "has_objects", "rna_LayerCollection_has_objects");
+	RNA_def_function_ui_description(func, "");
+	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
+
+	func = RNA_def_function(srna, "has_visible_objects", "rna_LayerCollection_has_visible_objects");
+	RNA_def_function_ui_description(func, "");
+	prop = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "ViewLayer the layer collection belongs to");
+	RNA_def_parameter_flags(prop, 0, PARM_REQUIRED);
+	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
+
+	func = RNA_def_function(srna, "has_selected_objects", "rna_LayerCollection_has_selected_objects");
+	RNA_def_function_ui_description(func, "");
+	prop = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "ViewLayer the layer collection belongs to");
+	RNA_def_parameter_flags(prop, 0, PARM_REQUIRED);
+	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
 }
 
 static void rna_def_layer_objects(BlenderRNA *brna, PropertyRNA *cprop)
