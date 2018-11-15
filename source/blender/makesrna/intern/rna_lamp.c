@@ -374,8 +374,8 @@ static void rna_def_light_shadow(StructRNA *srna, int sun)
 	if (sun) {
 		prop = RNA_def_property(srna, "shadow_cascade_max_distance", PROP_FLOAT, PROP_DISTANCE);
 		RNA_def_property_float_sdna(prop, NULL, "cascade_max_dist");
-		RNA_def_property_float_default(prop, 1000.0f);
-		RNA_def_property_range(prop, 0.0f, 9999.0f);
+		RNA_def_property_float_default(prop, 200.0f);
+		RNA_def_property_range(prop, 0.0f, FLT_MAX);
 		RNA_def_property_ui_text(prop, "Cascade Max Distance", "End distance of the cascaded shadow map (only in perspective view)");
 		RNA_def_property_update(prop, 0, "rna_Light_update");
 

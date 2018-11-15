@@ -80,7 +80,7 @@ void BKE_lamp_init(Lamp *la)
 	la->coeff_lin = 0.0f;
 	la->coeff_quad = 0.0f;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-	la->cascade_max_dist = 1000.0f;
+	la->cascade_max_dist = 200.0f;
 	la->cascade_count = 4;
 	la->cascade_exponent = 0.8f;
 	la->cascade_fade = 0.1f;
