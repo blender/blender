@@ -3689,19 +3689,17 @@ def km_mesh(params):
          {"properties": [("vertex_only", True)]}),
         # Selection modes.
         *_template_items_editmode_mesh_select_mode(),
+        # Loop Select with double click.
+        ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK'},
+         {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
+        ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "shift": True},
+         {"properties": [("extend", True), ("deselect", False), ("toggle", False)]}),
+        ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "alt": True},
+         {"properties": [("extend", False), ("deselect", True), ("toggle", False)]}),
     ])
 
-    # Loop select: double click for left select to avoid conflicts.
-    if params.select_mouse == 'LEFTMOUSE':
-        items.extend([
-            ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK'},
-             {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
-            ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "shift": True},
-             {"properties": [("extend", True), ("deselect", False), ("toggle", False)]}),
-            ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "alt": True},
-             {"properties": [("extend", False), ("deselect", True), ("toggle", False)]}),
-        ])
-    else:
+    if params.select_mouse == 'RIGHTMOUSE':
+        # Loop select with Alt.
         items.extend([
             ("mesh.loop_select", {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True},
              {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
