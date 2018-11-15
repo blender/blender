@@ -18,7 +18,6 @@ layout(std140) uniform light_block {
 #define POINT          0.0
 #define SUN            1.0
 #define SPOT           2.0
-#define HEMI           3.0
 #define AREA_RECT      4.0
 /* Used to define the area lamp shape, doesn't directly correspond to a Blender lamp type. */
 #define AREA_ELLIPSE 100.0
@@ -38,9 +37,9 @@ layout(std140) uniform light_block {
 #endif
 
 #if defined(SHADOW_VSM)
-#define get_depth_delta(s) (dist - s.x)
+#define get_depth_delta(dist, s) (dist - s.x)
 #else
-#define get_depth_delta(s) (dist - s)
+#define get_depth_delta(dist, s) (dist - s)
 #endif
 
 /* ----------------------------------------------------------- */
@@ -92,12 +91,6 @@ float shadow_cubemap(ShadowData sd, ShadowCubeData scd, float texid, vec3 W)
 {
 	vec3 cubevec = W - scd.position.xyz;
 	float dist = length(cubevec);
-
-	/* If fragment is out of shadowmap range, do not occlude */
-	/* XXX : we check radial distance against a cubeface distance.
-	 * We loose quite a bit of valid area. */
-	if (dist > sd.sh_far)
-		return 1.0;
 
 	cubevec /= dist;
 
@@ -156,7 +149,7 @@ float shadow_cascade(ShadowData sd, int scd_id, float texid, vec3 W)
 /* ----------------------------------------------------------- */
 /* --------------------- Light Functions --------------------- */
 /* ----------------------------------------------------------- */
-#define MAX_MULTI_SHADOW 4
+
 /* From Frostbite PBR Course
  * Distance based attenuation
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
@@ -165,6 +158,17 @@ float distance_attenuation(float dist_sqr, float inv_sqr_influence)
 	float factor = dist_sqr * inv_sqr_influence;
 	float fac = saturate(1.0 - factor * factor);
 	return fac * fac;
+}
+
+float spot_attenuation(LightData ld, vec3 l_vector)
+{
+	float z = dot(ld.l_forward, l_vector.xyz);
+	vec3 lL = l_vector.xyz / z;
+	float x = dot(ld.l_right, lL) / ld.l_sizex;
+	float y = dot(ld.l_up, lL) / ld.l_sizey;
+	float ellipse = inversesqrt(1.0 + x * x + y * y);
+	float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
+	return spotmask;
 }
 
 float light_visibility(LightData ld, vec3 W,
@@ -177,19 +181,9 @@ float light_visibility(LightData ld, vec3 W,
 	float vis = 1.0;
 
 	if (ld.l_type == SPOT) {
-		float z = dot(ld.l_forward, l_vector.xyz);
-		vec3 lL = l_vector.xyz / z;
-		float x = dot(ld.l_right, lL) / ld.l_sizex;
-		float y = dot(ld.l_up, lL) / ld.l_sizey;
-
-		float ellipse = inversesqrt(1.0 + x * x + y * y);
-
-		float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
-
-		vis *= spotmask;
-		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
+		vis *= spot_attenuation(ld, l_vector.xyz);
 	}
-	else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
+	if (ld.l_type >= SPOT) {
 		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 	}
 	if (ld.l_type != SUN) {
@@ -198,7 +192,7 @@ float light_visibility(LightData ld, vec3 W,
 
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
 	/* shadowing */
-	if (ld.l_shadowid >= 0.0) {
+	if (ld.l_shadowid >= 0.0 && vis > 0.001) {
 		ShadowData data = shadows_data[int(ld.l_shadowid)];
 
 		if (ld.l_type == SUN) {
@@ -214,7 +208,7 @@ float light_visibility(LightData ld, vec3 W,
 
 #ifndef VOLUMETRICS
 		/* Only compute if not already in shadow. */
-		if ((vis > 0.001) && (data.sh_contact_dist > 0.0)) {
+		if (data.sh_contact_dist > 0.0) {
 			vec4 L = (ld.l_type != SUN) ? l_vector : vec4(-ld.l_forward, 1.0);
 			float trace_distance = (ld.l_type != SUN) ? min(data.sh_contact_dist, l_vector.w) : data.sh_contact_dist;
 
@@ -355,12 +349,18 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 #else
 	vec3 vis = vec3(1.0);
 
+	if (ld.l_type == SPOT) {
+		vis *= spot_attenuation(ld, l_vector.xyz);
+	}
+	if (ld.l_type >= SPOT) {
+		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
+	}
 	if (ld.l_type != SUN) {
 		vis *= distance_attenuation(l_vector.w * l_vector.w, ld.l_influence);
 	}
 
 	/* Only shadowed light can produce translucency */
-	if (ld.l_shadowid >= 0.0) {
+	if (ld.l_shadowid >= 0.0 && vis.x > 0.001) {
 		ShadowData data = shadows_data[int(ld.l_shadowid)];
 		float delta;
 
@@ -397,21 +397,15 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 			}
 
 			ShadowSample s = sample_cascade(shpos.xy, data.sh_tex_start + id);
-			delta = get_depth_delta(s);
+			delta = get_depth_delta(dist, s);
 		}
 		else {
 			vec3 cubevec = W - shadows_cube_data[int(data.sh_data_start)].position.xyz;
 			float dist = length(cubevec);
+			cubevec /= dist;
 
-			/* If fragment is out of shadowmap range, do not occlude */
-			/* XXX : we check radial distance against a cubeface distance.
-			 * We loose quite a bit of valid area. */
-			if (dist < data.sh_far) {
-				cubevec /= dist;
-
-				ShadowSample s = sample_cube(cubevec, data.sh_tex_start);
-				delta = get_depth_delta(s);
-			}
+			ShadowSample s = sample_cube(cubevec, data.sh_tex_start);
+			delta = get_depth_delta(dist, s);
 		}
 
 		/* XXX : Removing Area Power. */
@@ -446,23 +440,6 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 
 		/* No transmittance at grazing angle (hide artifacts) */
 		vis *= saturate(falloff * 2.0);
-
-		if (ld.l_type == SPOT) {
-			float z = dot(ld.l_forward, l_vector.xyz);
-			vec3 lL = l_vector.xyz / z;
-			float x = dot(ld.l_right, lL) / ld.l_sizex;
-			float y = dot(ld.l_up, lL) / ld.l_sizey;
-
-			float ellipse = inversesqrt(1.0 + x * x + y * y);
-
-			float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
-
-			vis *= spotmask;
-			vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
-		}
-		else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
-			vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
-		}
 	}
 	else {
 		vis = vec3(0.0);
