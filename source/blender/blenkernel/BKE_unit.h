@@ -68,6 +68,7 @@ int         bUnit_GetBaseUnit(const void *usys_pt);
 int         bUnit_GetBaseUnitOfType(int system, int type);
 const char *bUnit_GetName(const void *usys_pt, int index);
 const char *bUnit_GetNameDisplay(const void *usys_pt, int index);
+const char *bUnit_GetIdentifier(const void *usys_pt, int index);
 double      bUnit_GetScaler(const void *usys_pt, int index);
 bool        bUnit_IsSuppressed(const void *usys_pt, int index);
 

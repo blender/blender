@@ -2043,7 +2043,7 @@ static const EnumPropertyItem *get_unit_enum_items(int system, int type, bool *r
 	for (int i = 0; i < len; i++) {
 		if (!bUnit_IsSuppressed(usys, i)) {
 			EnumPropertyItem tmp = { 0 };
-			tmp.identifier = bUnit_GetName(usys, i);
+			tmp.identifier = bUnit_GetIdentifier(usys, i);
 			tmp.name = bUnit_GetNameDisplay(usys, i);
 			tmp.value = i;
 			RNA_enum_item_add(&items, &totitem, &tmp);
