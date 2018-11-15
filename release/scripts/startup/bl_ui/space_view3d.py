@@ -4011,7 +4011,7 @@ class VIEW3D_PT_collections(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_label = "Collections Visibility"
-    bl_ui_units_x = 7
+    bl_ui_units_x = 10
 
     def _draw_collection(self, layout, view_layer, collection, index):
         need_separator = index
@@ -4029,15 +4029,31 @@ class VIEW3D_PT_collections(Panel):
                 need_separator = False
 
             icon = 'BLANK1'
+            has_objects = True
             if child.has_selected_objects(view_layer):
                 icon = 'LAYER_ACTIVE'
             elif child.has_objects():
                 icon = 'LAYER_USED'
+            else:
+                has_objects = False
+
+            has_visible_objects = has_objects and child.has_visible_objects(view_layer)
 
             row = layout.row()
-            row.alignment = 'LEFT'
-            row.active = child.has_visible_objects(view_layer)
-            row.operator("object.hide_collection", text=child.name, icon=icon, emboss=False).collection_index = index
+            sub = row.split(factor=0.98)
+            subrow = sub.row()
+            subrow.alignment = 'LEFT'
+            subrow.active = has_visible_objects
+            subrow.operator("object.hide_collection", text=child.name, icon=icon, emboss=False).collection_index = index
+
+            sub = row.split()
+            subrow = sub.row(align=True)
+            subrow.alignment = 'RIGHT'
+            icon = 'HIDE_OFF' if has_visible_objects else 'HIDE_ON'
+            props = subrow.operator("object.hide_collection", text="", icon=icon, emboss=False)
+            props.collection_index = index
+            props.toggle = True
+            subrow.prop(child.collection, "hide_select", text="", emboss=False)
 
         for child in collection.children:
             index = self._draw_collection(layout, view_layer, child, index)
@@ -4046,7 +4062,7 @@ class VIEW3D_PT_collections(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
+        layout.use_property_split = False
 
         layout.label(text="Collections Visibility")
         col = layout.column()
