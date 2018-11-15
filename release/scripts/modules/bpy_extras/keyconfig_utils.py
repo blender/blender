@@ -476,6 +476,7 @@ def keyconfig_test(kc):
 # so key configs are always data.
 from .keyconfig_utils_experimental import (
     keyconfig_export_as_data,
+    keymap_items_from_data,
     keyconfig_import_from_data,
     keyconfig_module_from_preset,
 )

@@ -20,6 +20,7 @@
 
 __all__ = (
     "keyconfig_export_as_data",
+    "keymap_items_from_data",
     "keyconfig_import_from_data",
     "keyconfig_module_from_preset",
 )
@@ -205,44 +206,46 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
         fw("    keyconfig_import_from_data(os.path.splitext(os.path.basename(__file__))[0], keyconfig_data)\n")
 
 
+def _kmi_props_setattr(kmi_props, attr, value):
+    if type(value) is list:
+        kmi_subprop = getattr(kmi_props, attr)
+        for subattr, subvalue in value:
+            _kmi_props_setattr(kmi_subprop, subattr, subvalue)
+        return
+
+    try:
+        setattr(kmi_props, attr, value)
+    except AttributeError:
+        print(f"Warning: property '{attr}' not found in keymap item '{kmi_props.__class__.__name__}'")
+    except Exception as ex:
+        print(f"Warning: {ex!r}")
+
+
+def keymap_items_from_data(km, km_items, is_modal=False):
+    new_fn = getattr(km.keymap_items, "new_modal" if is_modal else "new")
+    for (kmi_idname, kmi_args, kmi_data) in km_items:
+        kmi = new_fn(kmi_idname, **kmi_args)
+        if kmi_data is not None:
+            if not kmi_data.get("active", True):
+                kmi.active = False
+            kmi_props_data = kmi_data.get("properties", None)
+            if kmi_props_data is not None:
+                kmi_props = kmi.properties
+                for attr, value in kmi_props_data:
+                    _kmi_props_setattr(kmi_props, attr, value)
+
+
 def keyconfig_import_from_data(name, keyconfig_data):
     # Load data in the format defined above.
     #
     # Runs at load time, keep this fast!
 
-    def kmi_props_setattr(kmi_props, attr, value):
-        if type(value) is list:
-            kmi_subprop = getattr(kmi_props, attr)
-            for subattr, subvalue in value:
-                kmi_props_setattr(kmi_subprop, subattr, subvalue)
-            return
-
-        try:
-            setattr(kmi_props, attr, value)
-        except AttributeError:
-            print(f"Warning: property '{attr}' not found in keymap item '{kmi_props.__class__.__name__}'")
-        except Exception as ex:
-            print(f"Warning: {ex!r}")
-
     import bpy
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.new(name)
-    del name
-
     for (km_name, km_args, km_content) in keyconfig_data:
         km = kc.keymaps.new(km_name, **km_args)
-        is_modal = km_args.get("modal", False)
-        new_fn = getattr(km.keymap_items, "new_modal" if is_modal else "new")
-        for (kmi_idname, kmi_args, kmi_data) in km_content["items"]:
-            kmi = new_fn(kmi_idname, **kmi_args)
-            if kmi_data is not None:
-                if not kmi_data.get("active", True):
-                    kmi.active = False
-                kmi_props_data = kmi_data.get("properties", None)
-                if kmi_props_data is not None:
-                    kmi_props = kmi.properties
-                    for attr, value in kmi_props_data:
-                        kmi_props_setattr(kmi_props, attr, value)
+        keymap_items_from_data(km, km_content["items"], is_modal=km_args.get("modal", False))
 
 
 def keyconfig_module_from_preset(name, preset_reference_filename=None):

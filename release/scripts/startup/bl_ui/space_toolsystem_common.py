@@ -47,20 +47,10 @@ _icon_cache = {}
 
 def _keymap_fn_from_seq(keymap_data):
 
-    # standalone
-    def _props_assign_recursive(rna_props, py_props):
-        for prop_id, value in py_props.items():
-            if isinstance(value, dict):
-                _props_assign_recursive(getattr(rna_props, prop_id), value)
-            else:
-                setattr(rna_props, prop_id, value)
-
     def keymap_fn(km):
-        for op_idname, op_props_dict, kmi_kwargs in keymap_fn.keymap_data:
-            kmi = km.keymap_items.new(op_idname, **kmi_kwargs)
-            kmi_props = kmi.properties
-            if op_props_dict:
-                _props_assign_recursive(kmi_props, op_props_dict)
+        if keymap_fn.keymap_data:
+            from bpy_extras.keyconfig_utils import keymap_items_from_data
+            keymap_items_from_data(km, keymap_fn.keymap_data)
     keymap_fn.keymap_data = keymap_data
     return keymap_fn
 
