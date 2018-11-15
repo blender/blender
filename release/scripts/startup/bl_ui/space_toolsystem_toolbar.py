@@ -1074,14 +1074,7 @@ class _defs_gpencil_edit:
             text="Select Circle",
             icon="ops.generic.select_circle",
             widget=None,
-            keymap=(
-                ("gpencil.select_circle",
-                 dict(),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-                ("gpencil.select_circle",
-                 dict(deselect=True),
-                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1090,11 +1083,7 @@ class _defs_gpencil_edit:
             text="Shear",
             icon="ops.gpencil.edit_shear",
             widget=None,
-            keymap=(
-                ("transform.shear",
-                 dict(release_confirm=True),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1103,11 +1092,7 @@ class _defs_gpencil_edit:
             text="To Sphere",
             icon="ops.transform.tosphere",
             widget=None,
-            keymap=(
-                ("transform.tosphere",
-                 dict(release_confirm=True),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
 
