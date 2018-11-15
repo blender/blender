@@ -122,7 +122,7 @@ vec2 compute_fixvec(int i)
 		perp = -perp;
 	}
 	/* Make it view independent */
-	return perp * sizeEdgeFix / viewportSize;;
+	return perp * sizeEdgeFix / viewportSize;
 }
 
 void main()

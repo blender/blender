@@ -18,7 +18,7 @@ Closure nodetree_exec(void)
 		/* Shade as a cylinder. */
 		cos_theta = hairThickTime / hairThickness;
 	}
-	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
+	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));
 	vec3 N = normalize(worldNormal * sin_theta + B * cos_theta);
 	vec3 vN = mat3(ViewMatrix) * N;
 #else
