@@ -2581,31 +2581,43 @@ class WM_MT_splash(Menu):
 
         col = split.column()
 
-        sub = col.column(align=True)
-        sub.label(text="Shortcuts:")
+        col.label()
+
+        sub = col.split(factor=0.35)
+        row = sub.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Shortcuts")
         text = bpy.path.display_name(wm.keyconfigs.active.name)
         if not text:
             text = "Blender"
         sub.menu("USERPREF_MT_keyconfigs", text=text)
 
-        split = col.split()
-        split.label(text="Select With:")
-        split.row().prop(userpref.inputs, 'select_mouse', expand=True)
+        sub = col.split(factor=0.35)
+        row = sub.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Select With")
+        sub.row().prop(userpref.inputs, 'select_mouse', expand=True)
 
         col.separator()
 
-        sub = col.column(align=True)
-        sub.label(text="Theme:")
+        sub = col.split(factor=0.35)
+        row = sub.row()
+        row.alignment = 'RIGHT'
+        row.label(text="Theme")
         label = bpy.types.USERPREF_MT_interface_theme_presets.bl_label
         if label == "Presets":
             label = "Blender Dark"
         sub.menu("USERPREF_MT_interface_theme_presets", text=label)
 
         # We need to make switching to a language easier first
-        #sub = col.column(align=False)
-        # sub.label(text="Language:")
+        #sub = col.split(factor=0.35)
+        #row = sub.row()
+        #row.alignment = 'RIGHT'
+        #row.label(text="Language:")
         #userpref = context.user_preferences
         #sub.prop(userpref.system, "language", text="")
+
+        col.label()
 
         layout.label()
 
