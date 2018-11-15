@@ -191,7 +191,15 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
 	DEG::ComponentKey point_cache_key(id, DEG::DEG_NODE_TYPE_POINT_CACHE);
 	DEG::DepsRelation *rel = relation_builder->add_relation(
 	        comp_key, point_cache_key, "Point Cache");
-	rel->flag |= DEG::DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY;
+	if (rel != NULL) {
+		rel->flag |= DEG::DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY;
+	}
+	else {
+		fprintf(stderr,
+		        "Error in point cache relation from %s to ^%s.\n",
+		        object->id.name,
+		        id->name);
+	}
 }
 
 void DEG_add_special_eval_flag(struct DepsNodeHandle *node_handle,
