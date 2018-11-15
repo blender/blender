@@ -139,12 +139,15 @@ Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
 
 Lamp *BKE_lamp_localize(Lamp *la)
 {
-	/* TODO replace with something like
-	 * Lamp *la_copy;
-	 * BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
-	 * return la_copy;
+	/* TODO(bastien): Replace with something like:
 	 *
-	 * ... Once f*** nodes are fully converted to that too :( */
+	 *   Lamp *la_copy;
+	 *   BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy,
+	 *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
+	 *                  false);
+	 *   return la_copy;
+	 *
+	 * NOTE: Only possible once nested node trees are fully converted to that too. */
 
 	Lamp *lan = BKE_libblock_copy_nolib(&la->id, false);
 
