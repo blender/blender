@@ -1646,12 +1646,13 @@ static void add_overlay_tri(
 	}
 
 	if (vbo_nor) {
-		/* TODO real loop normal */
-		GPUPackedNormal lnor = GPU_normal_convert_i10_v3(bm_looptri[0]->f->no);
+		float (*lnors)[3] = rdata->loop_normals;
 		for (uint i = 0; i < 3; i++) {
+			const float *nor = (lnors) ? lnors[BM_elem_index_get(bm_looptri[i])] : bm_looptri[0]->f->no;
+			GPUPackedNormal lnor = GPU_normal_convert_i10_v3(nor);
+			GPU_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 			GPUPackedNormal vnor = GPU_normal_convert_i10_v3(bm_looptri[i]->v->no);
 			GPU_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
-			GPU_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 		}
 	}
 
@@ -1720,12 +1721,13 @@ static void add_overlay_tri_mapped(
 	}
 
 	if (vbo_nor) {
-		/* TODO real loop normal */
-		GPUPackedNormal lnor = GPU_normal_convert_i10_v3(poly_normal);
+		float (*lnors)[3] = rdata->loop_normals;
 		for (uint i = 0; i < 3; i++) {
+			const float *nor = (lnors) ? lnors[mlt->tri[i]] : poly_normal;
+			GPUPackedNormal lnor = GPU_normal_convert_i10_v3(nor);
+			GPU_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 			GPUPackedNormal vnor = GPU_normal_convert_i10_s3(mvert[mloop[mlt->tri[i]].v].no);
 			GPU_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
-			GPU_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 		}
 	}
 
