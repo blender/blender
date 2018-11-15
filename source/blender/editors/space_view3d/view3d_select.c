@@ -2773,9 +2773,12 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_mouse_select(ot);
 
-	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection");
-	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
-	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");
+	prop = RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	prop = RNA_def_int_vector(ot->srna, "location", 2, NULL, INT_MIN, INT_MAX, "Location", "Mouse location", INT_MIN, INT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
