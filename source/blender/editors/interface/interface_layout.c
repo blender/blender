@@ -2442,10 +2442,10 @@ void uiItemS(uiLayout *layout)
 void uiItemSpacer(uiLayout *layout)
 {
 	uiBlock *block = layout->root->block;
-	bool is_menu = ui_block_is_menu(block);
+	const bool is_popup = ui_block_is_popup_any(block);
 
-	if (is_menu) {
-		printf("Error: separator_spacer() not supported in menus.\n");
+	if (is_popup) {
+		printf("Error: separator_spacer() not supported in popups.\n");
 		return;
 	}
 
