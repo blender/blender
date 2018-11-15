@@ -2271,6 +2271,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_irradiance_smoothing")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				scene->eevee.gi_irradiance_smoothing = 0.1f;
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "att_dist")) {
 			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
 				la->att_dist = la->clipend;

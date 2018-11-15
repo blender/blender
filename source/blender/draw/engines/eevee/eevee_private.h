@@ -653,6 +653,7 @@ typedef struct EEVEE_CommonUniformBuffer {
 	int prb_num_render_cube; /* int */
 	int prb_num_render_grid; /* int */
 	int prb_irradiance_vis_size; /* int */
+	float prb_irradiance_smooth; /* float */
 	float prb_lod_cube_max; /* float */
 	float prb_lod_planar_max; /* float */
 	/* Misc */

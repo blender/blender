@@ -671,6 +671,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 	/* Disable all effects BUT high bitdepth shadows. */
 	scene_eval->eevee.flag &= SCE_EEVEE_SHADOW_HIGH_BITDEPTH;
 	scene_eval->eevee.taa_samples = 1;
+	scene_eval->eevee.gi_irradiance_smoothing = 0.0f;
 
 	stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	stl->g_data->background_alpha = 1.0f;

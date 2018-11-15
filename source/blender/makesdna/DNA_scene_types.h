@@ -1460,6 +1460,8 @@ typedef struct SceneEEVEE {
 	int gi_diffuse_bounces;
 	int gi_cubemap_resolution;
 	int gi_visibility_resolution;
+	float gi_irradiance_smoothing;
+	float pad;
 
 	float gi_cubemap_draw_size;
 	float gi_irradiance_draw_size;

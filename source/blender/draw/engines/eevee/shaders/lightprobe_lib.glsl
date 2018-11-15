@@ -273,14 +273,18 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
 		float ws_dist_point_to_cell = length(ws_point_to_cell);
 		vec3 ws_light = ws_point_to_cell / ws_dist_point_to_cell;
 
-		vec3 trilinear = mix(1 - trilinear_weight, trilinear_weight, offset);
-		float weight = trilinear.x * trilinear.y * trilinear.z;
+		/* Smooth backface test */
+		float weight = saturate(dot(ws_light, N));
 
 		/* Precomputed visibility */
 		weight *= load_visibility_cell(cell, ws_light, ws_dist_point_to_cell, gd.g_vis_bias, gd.g_vis_bleed, gd.g_vis_range);
 
-		/* Smooth backface test */
-		weight *= dot(ws_light, N);
+		/* Smoother transition */
+		weight += prbIrradianceSmooth;
+
+		/* Trilinear weights */
+		vec3 trilinear = mix(1.0 - trilinear_weight, trilinear_weight, offset);
+		weight *= trilinear.x * trilinear.y * trilinear.z;
 
 		/* Avoid zero weight */
 		weight = max(0.00001, weight);

@@ -833,6 +833,8 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	EEVEE_StorageList *stl = vedata->stl;
 	LightCache *light_cache = stl->g_data->light_cache;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
 	eevee_lightprobes_extract_from_cache(sldata->probes, light_cache);
 
@@ -843,6 +845,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	sldata->common_data.prb_lod_cube_max = (float)light_cache->mips_len - 1.0f;
 	sldata->common_data.prb_lod_planar_max = (float)MAX_PLANAR_LOD_LEVEL;
 	sldata->common_data.prb_irradiance_vis_size = light_cache->vis_res;
+	sldata->common_data.prb_irradiance_smooth = SQUARE(scene_eval->eevee.gi_irradiance_smoothing);
 	sldata->common_data.prb_num_render_cube = max_ii(1, light_cache->cube_len);
 	sldata->common_data.prb_num_render_grid = max_ii(1, light_cache->grid_len);
 	sldata->common_data.prb_num_planar = pinfo->num_planar;
@@ -859,7 +862,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	if (!DRW_state_is_image_render() && !DRW_state_is_opengl_render() &&
 	    (pinfo->do_grid_update || pinfo->do_cube_update))
 	{
-		const DRWContextState *draw_ctx = DRW_context_state_get();
 		BLI_assert(draw_ctx->evil_C);
 
 		if (draw_ctx->scene->eevee.flag & SCE_EEVEE_GI_AUTOBAKE) {

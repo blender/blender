@@ -34,6 +34,7 @@ layout(std140) uniform common_block {
 	int prbNumRenderCube;
 	int prbNumRenderGrid;
 	int prbIrradianceVisSize;
+	float prbIrradianceSmooth;
 	float prbLodCubeMax;
 	float prbLodPlanarMax;
 	/* Misc*/
