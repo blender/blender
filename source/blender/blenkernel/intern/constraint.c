@@ -109,7 +109,7 @@
 
 static void damptrack_do_transform(float matrix[4][4], const float tarvec[3], int track_axis);
 
-static bConstraint *constraint_find_original(struct Depsgraph *depsgraph, Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob);
+static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob);
 
 /* -------------- Naming -------------- */
 
@@ -2985,7 +2985,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			/* Write the computed length back to the master copy if in COW evaluation. */
 			if (DEG_is_active(cob->depsgraph)) {
 				Object *orig_ob = NULL;
-				bConstraint *orig_con = constraint_find_original(cob->depsgraph, cob->ob, cob->pchan, con, &orig_ob);
+				bConstraint *orig_con = constraint_find_original(cob->ob, cob->pchan, con, &orig_ob);
 
 				if (orig_con != NULL) {
 					bStretchToConstraint *orig_data = orig_con->data;
@@ -5105,7 +5105,7 @@ bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt,
 }
 
 /* Finds the original copy of the constraint based on a COW copy. */
-static bConstraint *constraint_find_original(struct Depsgraph *depsgraph, Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob)
+static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob)
 {
 	Object *orig_ob = (Object*)DEG_get_original_id((ID*)ob);
 
