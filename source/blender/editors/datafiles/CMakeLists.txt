@@ -726,6 +726,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.transform.rotate
 	ops.transform.shear
 	ops.transform.shrink_fatten
+	ops.transform.tilt
 	ops.transform.tosphere
 	ops.transform.transform
 	ops.transform.translate
