@@ -164,6 +164,8 @@ World *BKE_world_localize(World *wrld)
 	BLI_listbase_clear(&wrldn->gpumaterial);
 	BLI_listbase_clear((ListBase *)&wrldn->drawdata);
 
+	wrldn->id.tag |= LIB_TAG_LOCALIZED;
+
 	return wrldn;
 }
 

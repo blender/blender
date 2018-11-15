@@ -158,6 +158,8 @@ Lamp *BKE_lamp_localize(Lamp *la)
 
 	lan->preview = NULL;
 
+	lan->id.tag |= LIB_TAG_LOCALIZED;
+
 	return lan;
 }
 

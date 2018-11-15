@@ -488,6 +488,8 @@ Tex *BKE_texture_localize(Tex *tex)
 		texn->nodetree = ntreeLocalize(tex->nodetree);
 	}
 
+	texn->id.tag |= LIB_TAG_LOCALIZED;
+
 	return texn;
 }
 
