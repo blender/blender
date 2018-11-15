@@ -746,6 +746,15 @@ class _defs_edit_curve:
             keymap=(),
         )
 
+    @ToolDef.from_fn
+    def tilt():
+        return dict(
+            text="Tilt",
+            icon="ops.transform.tilt",
+            widget=None,
+            keymap=(),
+        )
+
 
 class _defs_pose:
 
@@ -1407,11 +1416,12 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_annotate,
             None,
+            _defs_edit_curve.tilt,
             _defs_edit_curve.draw,
             (
                 _defs_edit_curve.extrude,
                 _defs_edit_curve.extrude_cursor,
-            )
+            ),
         ],
         'PARTICLE': [
             _defs_view3d_generic.cursor,
