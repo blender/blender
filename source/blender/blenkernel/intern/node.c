@@ -1695,7 +1695,7 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 	/* don't remove node animdata if the tree is localized,
 	 * Action is shared with the original tree (T38221)
 	 */
-	remove_animdata &= ntree && !(ntree->flag & NTREE_IS_LOCALIZED);
+	remove_animdata &= ntree && !(ntree->id.tag & LIB_TAG_LOCALIZED);
 
 	/* extra free callback */
 	if (use_api_free_cb && node->typeinfo->freefunc_api) {
@@ -1788,7 +1788,7 @@ static void free_localized_node_groups(bNodeTree *ntree)
 	 * since it is a localized copy itself (no risk of accessing free'd
 	 * data in main, see [#37939]).
 	 */
-	if (!(ntree->flag & NTREE_IS_LOCALIZED))
+	if (!(ntree->id.tag & LIB_TAG_LOCALIZED))
 		return;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
@@ -2018,7 +2018,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		         LIB_ID_COPY_NO_PREVIEW |
 		         LIB_ID_COPY_NO_ANIMDATA),
 		        false);
-		ltree->flag |= NTREE_IS_LOCALIZED;
 
 		for (node = ltree->nodes.first; node; node = node->next) {
 			if (node->type == NODE_GROUP && node->id) {

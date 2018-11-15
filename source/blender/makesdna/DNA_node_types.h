@@ -419,7 +419,8 @@ typedef struct bNodeTree {
 #define NTREE_TWO_PASS				4	/* two pass */
 #define NTREE_COM_GROUPNODE_BUFFER	8	/* use groupnode buffers */
 #define NTREE_VIEWER_BORDER			16	/* use a border for viewer nodes */
-#define NTREE_IS_LOCALIZED			32	/* tree is localized copy, free when deleting node groups */
+/* NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead. */
+/*#define NTREE_IS_LOCALIZED			32*/	/* tree is localized copy, free when deleting node groups */
 
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
