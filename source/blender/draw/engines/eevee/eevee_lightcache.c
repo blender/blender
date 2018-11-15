@@ -118,7 +118,6 @@ typedef struct EEVEE_LightBake {
 	int grid_sample_len;             /* Total number of samples for the current grid. */
 	int grid_curr;                   /* Nth grid in the cache being rendered. */
 	int bounce_curr, bounce_len;     /* The current light bounce being evaluated. */
-	float vis_range, vis_blur;       /* Sample Visibility compression and bluring. */
 	float vis_res;                   /* Resolution of the Visibility shadowmap. */
 	GPUTexture *grid_prev;           /* Result of previous light bounce. */
 	LightProbe **grid_prb;           /* Pointer to the id.data of the probe object. */
@@ -127,9 +126,6 @@ typedef struct EEVEE_LightBake {
 	EEVEE_LightProbe *cube;          /* Current probe being rendered (UBO data). */
 	int ref_cube_res;                /* Target cubemap at MIP 0. */
 	int cube_offset;                 /* Index of the current cube. */
-	float probemat[6][4][4];         /* ViewProjection matrix for each cube face. */
-	float texel_size, padding_size;  /* Texel and padding size for the final octahedral map. */
-	float roughness;                 /* Roughness level of the current mipmap. */
 	LightProbe **cube_prb;           /* Pointer to the id.data of the probe object. */
 
 	/* Dummy Textures */
@@ -745,12 +741,21 @@ static void eevee_lightbake_render_world_sample(void *ved, void *user_data)
 	EEVEE_LightBake *lbake = (EEVEE_LightBake *)user_data;
 	Scene *scene_eval = DEG_get_evaluated_scene(lbake->depsgraph);
 	LightCache *lcache = scene_eval->eevee.light_cache;
+	float clamp = scene_eval->eevee.gi_glossy_clamp;
 
 	/* TODO do this once for the whole bake when we have independent DRWManagers. */
 	eevee_lightbake_cache_create(vedata, lbake);
 
+	sldata->common_data.ray_type = EEVEE_RAY_GLOSSY;
+	sldata->common_data.ray_depth = 1;
+	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 	EEVEE_lightbake_render_world(sldata, vedata, lbake->rt_fb);
-	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake->rt_color, lbake->store_fb, 0, 1.0f, lcache->mips_len);
+	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake->rt_color, lbake->store_fb, 0, 1.0f, lcache->mips_len, clamp);
+
+	sldata->common_data.ray_type = EEVEE_RAY_DIFFUSE;
+	sldata->common_data.ray_depth = 1;
+	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+	EEVEE_lightbake_render_world(sldata, vedata, lbake->rt_fb);
 	EEVEE_lightbake_filter_diffuse(sldata, vedata, lbake->rt_color, lbake->store_fb, 0, 1.0f);
 
 	/* Clear the cache to avoid white values in the grid. */
@@ -919,6 +924,7 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
 	LightCache *lcache = scene_eval->eevee.light_cache;
 	EEVEE_LightProbe *eprobe = lbake->cube;
 	LightProbe *prb = *lbake->probe;
+	float clamp = scene_eval->eevee.gi_glossy_clamp;
 
 	/* TODO do this once for the whole bake when we have independent DRWManagers. */
 	eevee_lightbake_cache_create(vedata, lbake);
@@ -932,7 +938,8 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 	EEVEE_lightbake_render_scene(sldata, vedata, lbake->rt_fb, eprobe->position, prb->clipsta, prb->clipend);
-	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake->rt_color, lbake->store_fb, lbake->cube_offset, prb->intensity, lcache->mips_len);
+	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake->rt_color, lbake->store_fb, lbake->cube_offset,prb->intensity,
+	                              lcache->mips_len, clamp);
 
 	lcache->cube_len += 1;
 
@@ -1167,6 +1174,7 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
 void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, const Scene *scene)
 {
 	LightCache *lcache = vedata->stl->g_data->light_cache;
+	float clamp = scene->eevee.gi_glossy_clamp;
 
 	EEVEE_LightBake lbake = {
 		.resource_only = true
@@ -1181,7 +1189,7 @@ void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata, EEVEE_Data 
 	sldata->common_data.ray_depth = 1;
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 	EEVEE_lightbake_render_world(sldata, vedata, lbake.rt_fb);
-	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake.rt_color, lbake.store_fb, 0, 1.0f, lcache->mips_len);
+	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake.rt_color, lbake.store_fb, 0, 1.0f, lcache->mips_len, clamp);
 
 	sldata->common_data.ray_type = EEVEE_RAY_DIFFUSE;
 	sldata->common_data.ray_depth = 1;

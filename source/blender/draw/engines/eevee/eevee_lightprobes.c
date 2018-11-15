@@ -376,6 +376,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
 		DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
 		DRW_shgroup_uniform_float(grp, "texelSize", &pinfo->texel_size, 1);
 		DRW_shgroup_uniform_float(grp, "paddingSize", &pinfo->padding_size, 1);
+		DRW_shgroup_uniform_float(grp, "fireflyFactor", &pinfo->firefly_fac, 1);
 		DRW_shgroup_uniform_int(grp, "Layer", &pinfo->layer, 1);
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 		// DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
@@ -1102,7 +1103,7 @@ static void eevee_lightbake_render_scene_to_planars(
 void EEVEE_lightbake_filter_glossy(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         struct GPUTexture *rt_color, struct GPUFrameBuffer *fb,
-        int probe_idx, float intensity, int maxlevel)
+        int probe_idx, float intensity, int maxlevel, float firefly_fac)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
@@ -1151,6 +1152,7 @@ void EEVEE_lightbake_filter_glossy(
 
 		pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
 		pinfo->lodfactor = bias + 0.5f * log((float)(target_size * target_size) * pinfo->samples_len_inv) / log(2);
+		pinfo->firefly_fac = (firefly_fac > 0.0) ? firefly_fac : 1e16;
 
 		GPU_framebuffer_ensure_config(&fb, {
 			GPU_ATTACHMENT_NONE,

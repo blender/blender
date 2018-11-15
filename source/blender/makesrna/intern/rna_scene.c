@@ -5687,6 +5687,14 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 5, 2);
 	RNA_def_property_float_default(prop, 0.1f);
 	RNA_def_property_ui_text(prop, "Irradiance Smoothing", "Smoother irradiance interpolation but introduce light bleeding");
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+
+	prop = RNA_def_property(srna, "gi_glossy_clamp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 0.0f);
+	RNA_def_property_ui_text(prop, "Clamp Glossy", "Clamp pixel intensity to reduce noise inside glossy reflections "
+	                                               "from reflection cubemaps (0 to disabled)");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "gi_show_irradiance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SHOW_IRRADIANCE);
