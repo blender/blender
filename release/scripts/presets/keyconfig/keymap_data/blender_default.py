@@ -216,7 +216,6 @@ def km_window(params):
 
         # Quick menu and toolbar
         op_menu("SCREEN_MT_user_menu", {"type": 'Q', "value": 'PRESS'}),
-        ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS'}, None),
 
         # Fast editor switching
         *(
@@ -255,6 +254,7 @@ def km_window(params):
             ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS'}, None),
             op_menu("TOPBAR_MT_file_specials", {"type": 'F2', "value": 'PRESS'}),
             ("wm.search_menu", {"type": 'F3', "value": 'PRESS'}, None),
+            ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS'}, None),
             op_menu("TOPBAR_MT_window_specials", {"type": 'F4', "value": 'PRESS'}),
         ])
     else:
@@ -271,6 +271,7 @@ def km_window(params):
              {"properties": [("copy", True)]}),
             ("wm.window_fullscreen_toggle", {"type": 'F11', "value": 'PRESS', "alt": True}, None),
             ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS', "alt": True}, None),
+            ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS'}, None),
             ("wm.redraw_timer", {"type": 'T', "value": 'PRESS', "ctrl": True, "alt": True}, None),
             ("wm.debug_menu", {"type": 'D', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ])
