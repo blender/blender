@@ -51,7 +51,7 @@ class KeymapParams:
             self.tool_mouse = 'LEFTMOUSE'
             self.tool_tweak = 'EVT_TWEAK_L'
             self.context_menu_event = {"type": 'W', "value": 'PRESS'}
-            self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'PRESS'}
+            self.cursor_set_event = {"type": 'LEFTMOUSE', "value": 'CLICK'}
         else:
             # Left mouse select uses Click event for selection. This is a little
             # less immediate, but is needed to distinguish between click and tweak
