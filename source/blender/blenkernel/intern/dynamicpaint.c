@@ -2777,7 +2777,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 		return setError(canvas, N_("Cannot bake non-'image sequence' formats"));
 
 	mloop = mesh->mloop;
-	mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);;
+	mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
 	const int tottri = BKE_mesh_runtime_looptri_len(mesh);
 
 	/* get uv map */
