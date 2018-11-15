@@ -245,9 +245,14 @@ class ExecutePreset(Operator):
         if hasattr(preset_class, "reset_cb"):
             preset_class.reset_cb(context)
 
-        # execute the preset using script.python_file_run
         if ext == ".py":
-            bpy.ops.script.python_file_run(filepath=filepath)
+            import importlib.util
+            mod_spec = importlib.util.spec_from_file_location("__main__", filepath)
+            try:
+                mod_spec.loader.exec_module(importlib.util.module_from_spec(mod_spec))
+            except Exception as ex:
+                self.report({'ERROR'}, "Failed to executge the preset: " + repr(ex))
+
         elif ext == ".xml":
             import rna_xml
             rna_xml.xml_file_run(context,

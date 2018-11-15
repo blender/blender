@@ -514,7 +514,7 @@ def keyconfig_module_from_preset(name, preset_reference_filename=None):
         preset_path = bpy.utils.preset_find(name, "keyconfig")
 
     # module name isn't used or added to 'sys.modules'.
-    mod_spec = importlib.util.spec_from_file_location("__bl_keymap__", preset_path)
+    mod_spec = importlib.util.spec_from_file_location("__main__", preset_path)
     mod = importlib.util.module_from_spec(mod_spec)
     mod_spec.loader.exec_module(mod)
     return mod
