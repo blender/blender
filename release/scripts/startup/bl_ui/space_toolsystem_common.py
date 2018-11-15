@@ -735,12 +735,12 @@ def keymap_from_context(context, space_type):
     use_simple_keymap = False
 
     # Press the toolbar popup key again to set the default tool,
-    # this is useful because the cursor tool is useful as a way
+    # this is useful because the select box tool is useful as a way
     # to 'drop' currently active tools (it's basically a 'none' tool).
     # so this allows us to quickly go back to a state that allows
     # a shortcut based workflow (before the tool system was added).
     use_tap_reset = True
-    # TODO: support other tools for modes which don't use the cursor.
+    # TODO: support other tools for modes which don't use select box.
     tap_reset_tool = "Cursor"
     # Check the tool is available in the current context.
     if ToolSelectPanelHelper._tool_get_by_name(context, space_type, tap_reset_tool)[1] is None:

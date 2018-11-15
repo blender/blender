@@ -1227,8 +1227,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         'VIEW': [
         ],
         'UV': [
-            _defs_image_generic.cursor,
             *_tools_select,
+            _defs_image_generic.cursor,
             None,
             *_tools_transform,
             None,
@@ -1317,16 +1317,16 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             # End group.
         ],
         'OBJECT': [
-            _defs_view3d_generic.cursor,
             *_tools_select,
+            _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
             None,
             *_tools_annotate,
         ],
         'POSE': [
-            _defs_view3d_generic.cursor,
             *_tools_select,
+            _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
             None,
@@ -1339,8 +1339,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'EDIT_ARMATURE': [
-            _defs_view3d_generic.cursor,
             *_tools_select,
+            _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
             None,
@@ -1357,8 +1357,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'EDIT_MESH': [
-            _defs_view3d_generic.cursor,
             *_tools_select,
+            _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
             None,
@@ -1409,8 +1409,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'EDIT_CURVE': [
-            _defs_view3d_generic.cursor,
             *_tools_select,
+            _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
             None,
@@ -1471,8 +1471,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_paint.circle,
         ],
         'GPENCIL_EDIT': [
-            _defs_view3d_generic.cursor,
             *_tools_gpencil_select,
+            _defs_view3d_generic.cursor,
             None,
             *_tools_transform,
             None,

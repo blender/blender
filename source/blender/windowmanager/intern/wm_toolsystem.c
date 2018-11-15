@@ -810,17 +810,11 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 
 				case CTX_MODE_PARTICLE:
 					return "Comb";
-				default:
-					/* FIXME(campbell): disable for now since this means we can't lasso select by default. */
-#if 0
-					return "Select Box";
-#endif
-					break;
 			}
 			break;
 	}
 
-	return "Cursor";
+	return "Select Box";
 }
 
 /**
