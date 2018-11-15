@@ -4048,7 +4048,7 @@ class VIEW3D_PT_collections(Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        layout.label(text="Collections Visibility", icon='GROUP')
+        layout.label(text="Collections Visibility")
         col = layout.column()
 
         view_layer = context.view_layer
