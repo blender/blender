@@ -159,12 +159,15 @@ World *BKE_world_copy(Main *bmain, const World *wrld)
 
 World *BKE_world_localize(World *wrld)
 {
-	/* TODO replace with something like
-	 * World *wrld_copy;
-	 * BKE_id_copy_ex(bmain, &wrld->id, (ID **)&wrld_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
-	 * return wrld_copy;
+	/* TODO(bastien): Replace with something like:
 	 *
-	 * ... Once f*** nodes are fully converted to that too :( */
+	 *   World *wrld_copy;
+	 *   BKE_id_copy_ex(bmain, &wrld->id, (ID **)&wrld_copy,
+	 *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
+	 *                  false);
+	 *   return wrld_copy;
+	 *
+	 * NOTE: Only possible once nested node trees are fully converted to that too. */
 
 	World *wrldn;
 	int a;
