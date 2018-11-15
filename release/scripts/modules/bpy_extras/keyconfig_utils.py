@@ -276,7 +276,252 @@ def addon_keymap_unregister(wm, keymaps_description):
 
 
 # -----------------------------------------------------------------------------
-# Utility functions
+# Import/Export Functions
+
+
+def indent(levels):
+    return levels * " "
+
+
+def round_float_32(f):
+    from struct import pack, unpack
+    return unpack("f", pack("f", f))[0]
+
+
+def repr_f32(f):
+    f_round = round_float_32(f)
+    f_str = repr(f)
+    f_str_frac = f_str.partition(".")[2]
+    if not f_str_frac:
+        return f_str
+    for i in range(1, len(f_str_frac)):
+        f_test = round(f, i)
+        f_test_round = round_float_32(f_test)
+        if f_test_round == f_round:
+            return "%.*f" % (i, f_test)
+    return f_str
+
+
+def kmi_args_as_data(kmi):
+    s = [
+        f"\"type\": '{kmi.type}'",
+        f"\"value\": '{kmi.value}'"
+    ]
+
+    if kmi.any:
+        s.append("\"any\": True")
+    else:
+        if kmi.shift:
+            s.append("\"shift\": True")
+        if kmi.ctrl:
+            s.append("\"ctrl\": True")
+        if kmi.alt:
+            s.append("\"alt\": True")
+        if kmi.oskey:
+            s.append("\"oskey\": True")
+    if kmi.key_modifier and kmi.key_modifier != 'NONE':
+        s.append(f"\"key_modifier\": '{kmi.key_modifier}'")
+
+    return "{" + ", ".join(s) + "}"
+
+
+def _kmi_properties_to_lines_recursive(level, properties, lines):
+    from bpy.types import OperatorProperties
+
+    def string_value(value):
+        if isinstance(value, (str, bool, int)):
+            return repr(value)
+        elif isinstance(value, float):
+            return repr_f32(value)
+        elif getattr(value, '__len__', False):
+            return repr(tuple(value))
+        raise Exception(f"Export key configuration: can't write {value!r}")
+
+    for pname in properties.bl_rna.properties.keys():
+        if pname != "rna_type":
+            value = getattr(properties, pname)
+            if isinstance(value, OperatorProperties):
+                lines_test = []
+                _kmi_properties_to_lines_recursive(level + 2, value, lines_test)
+                if lines_test:
+                    lines.append(f"(")
+                    lines.append(f"\"{pname}\",\n")
+                    lines.append(f"{indent(level + 3)}" "[")
+                    lines.extend(lines_test)
+                    lines.append("],\n")
+                    lines.append(f"{indent(level + 3)}" "),\n" f"{indent(level + 2)}")
+                del lines_test
+            elif properties.is_property_set(pname):
+                value = string_value(value)
+                lines.append((f"(\"{pname}\", {value:s}),\n" f"{indent(level + 2)}"))
+
+
+def _kmi_properties_to_lines(level, kmi_props, lines):
+    if kmi_props is None:
+        return
+
+    lines_test = [f"\"properties\":\n" f"{indent(level + 1)}" "["]
+    _kmi_properties_to_lines_recursive(level, kmi_props, lines_test)
+    if len(lines_test) > 1:
+        lines_test.append("],\n")
+        lines.extend(lines_test)
+
+
+def _kmi_attrs_or_none(level, kmi):
+    lines = []
+    _kmi_properties_to_lines(level + 1, kmi.properties, lines)
+    if kmi.active is False:
+        lines.append(f"{indent(level)}\"active\":" "False,\n")
+    if not lines:
+        return None
+    return "".join(lines)
+
+
+def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
+    # Alternate foramt
+
+    # Generate a list of keymaps to export:
+    #
+    # First add all user_modified keymaps (found in keyconfigs.user.keymaps list),
+    # then add all remaining keymaps from the currently active custom keyconfig.
+    #
+    # This will create a final list of keymaps that can be used as a "diff" against
+    # the default blender keyconfig, recreating the current setup from a fresh blender
+    # without needing to export keymaps which haven't been edited.
+
+    from .keyconfig_utils import keyconfig_merge
+
+    class FakeKeyConfig:
+        keymaps = []
+    edited_kc = FakeKeyConfig()
+    for km in wm.keyconfigs.user.keymaps:
+        if all_keymaps or km.is_user_modified:
+            edited_kc.keymaps.append(km)
+    # merge edited keymaps with non-default keyconfig, if it exists
+    if kc != wm.keyconfigs.default:
+        export_keymaps = keyconfig_merge(edited_kc, kc)
+    else:
+        export_keymaps = keyconfig_merge(edited_kc, edited_kc)
+
+    with open(filepath, "w") as fh:
+        fw = fh.write
+        fw("keyconfig_data = \\\n[")
+
+        for km, kc_x in export_keymaps:
+            km = km.active()
+            fw("(")
+            fw(f"\"{km.name:s}\",\n")
+            fw(f"{indent(2)}" "{")
+            fw(f"\"space_type\": '{km.space_type:s}'")
+            fw(f", \"region_type\": '{km.region_type:s}'")
+            # We can detect from the kind of items.
+            if km.is_modal:
+                fw(", \"modal\": True")
+            fw("},\n")
+            fw(f"{indent(2)}" "{")
+            is_modal = km.is_modal
+            fw(f"\"items\":\n")
+            fw(f"{indent(3)}[")
+            for kmi in km.keymap_items:
+                if is_modal:
+                    kmi_id = kmi.propvalue
+                else:
+                    kmi_id = kmi.idname
+                fw(f"(")
+                kmi_args = kmi_args_as_data(kmi)
+                kmi_data = _kmi_attrs_or_none(4, kmi)
+                fw(f"\"{kmi_id:s}\"")
+                if kmi_data is None:
+                    fw(f", ")
+                else:
+                    fw(",\n" f"{indent(5)}")
+
+                fw(kmi_args)
+                if kmi_data is None:
+                    fw(", None),\n")
+                else:
+                    fw(",\n")
+                    fw(f"{indent(5)}" "{")
+                    fw(kmi_data)
+                    fw(f"{indent(6)}")
+                    fw("},\n" f"{indent(5)}")
+                    fw("),\n")
+                fw(f"{indent(4)}")
+            fw("],\n" f"{indent(3)}")
+            fw("},\n" f"{indent(2)}")
+            fw("),\n" f"{indent(1)}")
+
+        fw("]\n")
+        fw("\n\n")
+        fw("if __name__ == \"__main__\":\n")
+        fw("    import os\n")
+        fw("    from bpy_extras.keyconfig_utils import keyconfig_import_from_data\n")
+        fw("    keyconfig_import_from_data(os.path.splitext(os.path.basename(__file__))[0], keyconfig_data)\n")
+
+
+def _kmi_props_setattr(kmi_props, attr, value):
+    if type(value) is list:
+        kmi_subprop = getattr(kmi_props, attr)
+        for subattr, subvalue in value:
+            _kmi_props_setattr(kmi_subprop, subattr, subvalue)
+        return
+
+    try:
+        setattr(kmi_props, attr, value)
+    except AttributeError:
+        print(f"Warning: property '{attr}' not found in keymap item '{kmi_props.__class__.__name__}'")
+    except Exception as ex:
+        print(f"Warning: {ex!r}")
+
+
+def keymap_items_from_data(km, km_items, is_modal=False):
+    new_fn = getattr(km.keymap_items, "new_modal" if is_modal else "new")
+    for (kmi_idname, kmi_args, kmi_data) in km_items:
+        kmi = new_fn(kmi_idname, **kmi_args)
+        if kmi_data is not None:
+            if not kmi_data.get("active", True):
+                kmi.active = False
+            kmi_props_data = kmi_data.get("properties", None)
+            if kmi_props_data is not None:
+                kmi_props = kmi.properties
+                for attr, value in kmi_props_data:
+                    _kmi_props_setattr(kmi_props, attr, value)
+
+
+def keyconfig_import_from_data(name, keyconfig_data):
+    # Load data in the format defined above.
+    #
+    # Runs at load time, keep this fast!
+
+    import bpy
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.new(name)
+    for (km_name, km_args, km_content) in keyconfig_data:
+        km = kc.keymaps.new(km_name, **km_args)
+        keymap_items_from_data(km, km_content["items"], is_modal=km_args.get("modal", False))
+
+
+def keyconfig_module_from_preset(name, preset_reference_filename=None):
+    import os
+    import importlib.util
+    if preset_reference_filename is not None:
+        preset_path = os.path.join(os.path.dirname(preset_reference_filename), name + ".py")
+    else:
+        preset_path = None
+
+    # External presets may want to re-use other presets too.
+    if not (preset_path and os.path.exists(preset_path)):
+        preset_path = bpy.utils.preset_find(name, "keyconfig")
+
+    # module name isn't used or added to 'sys.modules'.
+    mod_spec = importlib.util.spec_from_file_location("__bl_keymap__", preset_path)
+    mod = importlib.util.module_from_spec(mod_spec)
+    mod_spec.loader.exec_module(mod)
+    return mod
+
+
+# -----------------------------------------------------------------------------
+# Utility Functions
 
 def km_exists_in(km, export_keymaps):
     for km2, kc in export_keymaps:
@@ -293,124 +538,6 @@ def keyconfig_merge(kc1, kc2):
         merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not km_exists_in(km, merged_keymaps))
 
     return merged_keymaps
-
-
-def _export_properties(prefix, properties, kmi_id, lines=None):
-    from bpy.types import OperatorProperties
-
-    if lines is None:
-        lines = []
-
-    def string_value(value):
-        if isinstance(value, (str, bool, float, int)):
-            return repr(value)
-        elif hasattr(value, "__len__"):
-            return repr(list(value))
-
-        print("Export key configuration: can't write ", value)
-        return ""
-
-    for pname in properties.bl_rna.properties.keys():
-        if pname != "rna_type":
-            value = getattr(properties, pname)
-            if isinstance(value, OperatorProperties):
-                _export_properties(prefix + "." + pname, value, kmi_id, lines)
-            elif properties.is_property_set(pname):
-                value = string_value(value)
-                if value != "":
-                    lines.append("kmi_props_setattr(%s, '%s', %s)\n" % (prefix, pname, value))
-    return lines
-
-
-def _kmistr(kmi, is_modal):
-    if is_modal:
-        kmi_id = kmi.propvalue
-        kmi_newfunc = 'new_modal'
-    else:
-        kmi_id = kmi.idname
-        kmi_newfunc = 'new'
-    s = ["kmi = km.keymap_items.%s(\'%s\', \'%s\', \'%s\'" % (kmi_newfunc, kmi_id, kmi.type, kmi.value)]
-
-    if kmi.any:
-        s.append(", any=True")
-    else:
-        if kmi.shift:
-            s.append(", shift=True")
-        if kmi.ctrl:
-            s.append(", ctrl=True")
-        if kmi.alt:
-            s.append(", alt=True")
-        if kmi.oskey:
-            s.append(", oskey=True")
-    if kmi.key_modifier and kmi.key_modifier != 'NONE':
-        s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
-
-    s.append(")\n")
-
-    props = kmi.properties
-
-    if props is not None:
-        _export_properties("kmi.properties", props, kmi_id, s)
-
-    if not kmi.active:
-        s.append("kmi.active = False\n")
-
-    return "".join(s)
-
-
-def keyconfig_export(
-        wm, kc, filepath, *,
-        all_keymaps=False,
-):
-    f = open(filepath, "w")
-
-    f.write("import bpy\n")
-    f.write("import os\n\n")
-    f.write("def kmi_props_setattr(kmi_props, attr, value):\n"
-            "    try:\n"
-            "        setattr(kmi_props, attr, value)\n"
-            "    except AttributeError:\n"
-            "        print(\"Warning: property '%s' not found in keymap item '%s'\" %\n"
-            "              (attr, kmi_props.__class__.__name__))\n"
-            "    except Exception as e:\n"
-            "        print(\"Warning: %r\" % e)\n\n")
-    f.write("wm = bpy.context.window_manager\n")
-    # keymap must be created by caller
-    f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")
-
-    # Generate a list of keymaps to export:
-    #
-    # First add all user_modified keymaps (found in keyconfigs.user.keymaps list),
-    # then add all remaining keymaps from the currently active custom keyconfig.
-    #
-    # This will create a final list of keymaps that can be used as a "diff" against
-    # the default blender keyconfig, recreating the current setup from a fresh blender
-    # without needing to export keymaps which haven't been edited.
-
-    class FakeKeyConfig:
-        keymaps = []
-    edited_kc = FakeKeyConfig()
-    for km in wm.keyconfigs.user.keymaps:
-        if all_keymaps or km.is_user_modified:
-            edited_kc.keymaps.append(km)
-    # merge edited keymaps with non-default keyconfig, if it exists
-    if kc != wm.keyconfigs.default:
-        export_keymaps = keyconfig_merge(edited_kc, kc)
-    else:
-        export_keymaps = keyconfig_merge(edited_kc, edited_kc)
-
-    for km, kc_x in export_keymaps:
-
-        km = km.active()
-
-        f.write("# Map %s\n" % km.name)
-        f.write("km = kc.keymaps.new('%s', space_type='%s', region_type='%s', modal=%s)\n\n" %
-                (km.name, km.space_type, km.region_type, km.is_modal))
-        for kmi in km.keymap_items:
-            f.write(_kmistr(kmi, km.is_modal))
-        f.write("\n")
-
-    f.close()
 
 
 def keyconfig_test(kc):
@@ -470,13 +597,3 @@ def keyconfig_test(kc):
         if testEntry(kc, entry):
             result = True
     return result
-
-
-# Note, we may eventually replace existing logic with this
-# so key configs are always data.
-from .keyconfig_utils_experimental import (
-    keyconfig_export_as_data,
-    keymap_items_from_data,
-    keyconfig_import_from_data,
-    keyconfig_module_from_preset,
-)
