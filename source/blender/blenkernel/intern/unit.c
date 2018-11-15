@@ -947,11 +947,11 @@ const char *bUnit_GetNameDisplay(const void *usys_pt, int index)
 }
 const char *bUnit_GetIdentifier(const void *usys_pt, int index)
 {
-	bUnitDef *unit = ((bUnitCollection *)usys_pt)->units + index;
+	const bUnitDef *unit = ((const bUnitCollection *)usys_pt)->units + index;
 	if (unit->identifier == NULL) {
 		BLI_assert(false && "identifier for this unit is not specified yet");
 	}
-	return unit->identifier;;
+	return unit->identifier;
 }
 
 double bUnit_GetScaler(const void *usys_pt, int index)
