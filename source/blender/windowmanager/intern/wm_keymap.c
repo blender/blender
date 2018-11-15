@@ -267,10 +267,7 @@ wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, const char *idname, bool user
 			/* For default configuration, we need to keep keymap
 			 * modal items and poll functions intact. */
 			for (wmKeyMap *km = keyconf->keymaps.first; km; km = km->next) {
-				/* Tool system keymaps are not part of preset, so don't clear. */
-				if (!(km->flag & KEYMAP_TOOL)) {
-					WM_keymap_clear(km);
-				}
+				WM_keymap_clear(km);
 			}
 		}
 		else {
