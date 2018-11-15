@@ -134,9 +134,9 @@ float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N, float roughness)
 float probe_attenuation_grid(GridData gd, mat4 localmat, vec3 W, out vec3 localpos)
 {
 	localpos = transform_point(localmat, W);
-
-	float fade = min(1.0, min_v3(1.0 - abs(localpos)));
-	return saturate(fade * gd.g_atten_scale + gd.g_atten_bias);
+	vec3 pos_to_edge = max(vec3(0.0), abs(localpos) - 1.0);
+	float fade = length(pos_to_edge);
+	return saturate(-fade * gd.g_atten_scale + gd.g_atten_bias);
 }
 
 vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
