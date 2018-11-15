@@ -39,17 +39,6 @@ from .properties_grease_pencil_common import (
 )
 
 
-class _km_template:
-    def select_actions(operator, *, type, value):
-        kw = {"type": type, "value": value}
-        return (
-            (operator, dict(mode='SET'), dict(**kw)),
-            (operator, dict(mode='ADD'), dict(**kw, shift=True)),
-            (operator, dict(mode='SUB'), dict(**kw, ctrl=True)),
-            (operator, dict(mode='AND'), dict(**kw, shift=True, ctrl=True)),
-        )
-
-
 def generate_from_enum_ex(
         context, *,
         icon_prefix,
@@ -87,13 +76,7 @@ class _defs_view3d_generic:
                 "Set the cursor location, drag to transform"
             ),
             icon="ops.generic.cursor",
-            keymap=(
-                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-                ("transform.translate",
-                 dict(release_confirm=True, cursor_transform=True),
-                 dict(type='EVT_TWEAK_A', value='ANY'),
-                 ),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -102,10 +85,7 @@ class _defs_view3d_generic:
         return dict(
             text="None",
             icon="ops.generic.cursor",
-            keymap=(
-                # This is a dummy keymap entry, until particle system is properly working with toolsystem.
-                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK', ctrl=True, alt=True, shift=True)),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -122,9 +102,7 @@ class _defs_view3d_generic:
             ),
             icon="ops.view3d.ruler",
             widget="VIEW3D_GGT_ruler",
-            keymap=(
-                ("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
 
@@ -177,11 +155,7 @@ def _defs_annotate_factory():
                 text="Annotate",
                 icon="ops.gpencil.draw",
                 cursor='PAINT_BRUSH',
-                keymap=(
-                    ("gpencil.annotate",
-                     dict(mode='DRAW', wait_for_input=False),
-                     dict(type='ACTIONMOUSE', value='PRESS')),
-                ),
+                keymap=(),
                 draw_settings=draw_settings,
             )
 
@@ -191,11 +165,7 @@ def _defs_annotate_factory():
                 text="Annotate Line",
                 icon="ops.gpencil.draw.line",
                 cursor='CROSSHAIR',
-                keymap=(
-                    ("gpencil.annotate",
-                     dict(mode='DRAW_STRAIGHT', wait_for_input=False),
-                     dict(type='EVT_TWEAK_A', value='ANY')),
-                ),
+                keymap=(),
                 draw_settings=draw_settings,
             )
 
@@ -205,11 +175,7 @@ def _defs_annotate_factory():
                 text="Annotate Polygon",
                 icon="ops.gpencil.draw.poly",
                 cursor='CROSSHAIR',
-                keymap=(
-                    ("gpencil.annotate",
-                     dict(mode='DRAW_POLY', wait_for_input=False),
-                     dict(type='ACTIONMOUSE', value='PRESS')),
-                ),
+                keymap=(),
                 draw_settings=draw_settings,
             )
 
@@ -223,11 +189,7 @@ def _defs_annotate_factory():
                 text="Annotate Eraser",
                 icon="ops.gpencil.draw.eraser",
                 cursor='CROSSHAIR',  # XXX: Always show brush circle when enabled
-                keymap=(
-                    ("gpencil.annotate",
-                     dict(mode='ERASER', wait_for_input=False),
-                     dict(type='ACTIONMOUSE', value='PRESS')),
-                ),
+                keymap=(),
                 draw_settings=draw_settings,
             )
 
@@ -249,9 +211,7 @@ class _defs_transform:
             icon="ops.transform.translate",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.translate",
-            keymap=(
-                ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -262,9 +222,7 @@ class _defs_transform:
             icon="ops.transform.rotate",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.rotate",
-            keymap=(
-                ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -275,9 +233,7 @@ class _defs_transform:
             icon="ops.transform.resize",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.resize",
-            keymap=(
-                ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -306,9 +262,7 @@ class _defs_transform:
             ),
             icon="ops.transform.transform",
             widget="TRANSFORM_GGT_gizmo",
-            keymap=(
-                ("transform.from_gizmo", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -324,7 +278,7 @@ class _defs_view3d_select:
             text="Select Box",
             icon="ops.generic.select_box",
             widget=None,
-            keymap=_km_template.select_actions("view3d.select_box", type='EVT_TWEAK_A', value='ANY'),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -337,7 +291,7 @@ class _defs_view3d_select:
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            keymap=_km_template.select_actions("view3d.select_lasso", type='EVT_TWEAK_A', value='ANY'),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -357,14 +311,7 @@ class _defs_view3d_select:
             text="Select Circle",
             icon="ops.generic.select_circle",
             widget=None,
-            keymap=(
-                ("view3d.select_circle",
-                 dict(deselect=False),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-                ("view3d.select_circle",
-                 dict(deselect=True),
-                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
             draw_cursor=draw_cursor,
         )
@@ -382,11 +329,7 @@ class _defs_edit_armature:
             text="Roll",
             icon="ops.armature.bone.roll",
             widget=None,
-            keymap=(
-                ("transform.transform",
-                 dict(release_confirm=True, mode='BONE_ROLL'),
-                 dict(type='EVT_TWEAK_A', value='ANY'),),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -395,11 +338,7 @@ class _defs_edit_armature:
             text="Bone Envelope",
             icon="ops.transform.bone_envelope",
             widget=None,
-            keymap=(
-                ("transform.transform",
-                 dict(release_confirm=True, mode='BONE_ENVELOPE'),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -408,11 +347,7 @@ class _defs_edit_armature:
             text="Bone Size",
             icon="ops.transform.bone_size",
             widget=None,
-            keymap=(
-                ("transform.transform",
-                 dict(release_confirm=True, mode='BONE_SIZE'),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -421,11 +356,7 @@ class _defs_edit_armature:
             text="Extrude",
             icon="ops.armature.extrude_move",
             widget=None,
-            keymap=(
-                ("armature.extrude_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -434,9 +365,7 @@ class _defs_edit_armature:
             text="Extrude to Cursor",
             icon="ops.armature.extrude_cursor",
             widget=None,
-            keymap=(
-                ("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
 
@@ -448,10 +377,7 @@ class _defs_edit_mesh:
             text="Add Cube",
             icon="ops.mesh.primitive_cube_add_gizmo",
             widget=None,
-            keymap=(
-                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
-                ("mesh.primitive_cube_add_gizmo", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -465,11 +391,7 @@ class _defs_edit_mesh:
             text="Rip Region",
             icon="ops.mesh.rip",
             widget=None,
-            keymap=(
-                ("mesh.rip_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -479,11 +401,7 @@ class _defs_edit_mesh:
             text="Rip Edge",
             icon="ops.mesh.rip_edge",
             widget=None,
-            keymap=(
-                ("mesh.rip_edge_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -492,15 +410,7 @@ class _defs_edit_mesh:
             text="Poly Build",
             icon="ops.mesh.polybuild_hover",
             widget="VIEW3D_GGT_mesh_preselect_elem",
-            keymap=(
-                ("mesh.polybuild_face_at_cursor_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-                ("mesh.polybuild_split_at_cursor_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
-                ("mesh.polybuild_dissolve_at_cursor", dict(), dict(type='ACTIONMOUSE', value='CLICK', alt=True)),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -513,11 +423,7 @@ class _defs_edit_mesh:
             text="Edge Slide",
             icon="ops.transform.edge_slide",
             widget=None,
-            keymap=(
-                ("transform.edge_slide", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')
-                 ),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -531,10 +437,7 @@ class _defs_edit_mesh:
             text="Vertex Slide",
             icon="ops.transform.vert_slide",
             widget=None,
-            keymap=(
-                ("transform.vert_slide", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -550,10 +453,7 @@ class _defs_edit_mesh:
             text="Spin",
             icon="ops.mesh.spin",
             widget="MESH_GGT_spin",
-            keymap=(
-                ("mesh.spin", dict(),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -569,10 +469,7 @@ class _defs_edit_mesh:
             text="Spin (Duplicate)",
             icon="ops.mesh.spin.duplicate",
             widget="MESH_GGT_spin",
-            keymap=(
-                ("mesh.spin", dict(dupli=True),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -589,10 +486,7 @@ class _defs_edit_mesh:
             text="Inset Faces",
             icon="ops.mesh.inset",
             widget=None,
-            keymap=(
-                ("mesh.inset", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -609,10 +503,7 @@ class _defs_edit_mesh:
             text="Bevel",
             icon="ops.mesh.bevel",
             widget=None,
-            keymap=(
-                ("mesh.bevel", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -631,11 +522,7 @@ class _defs_edit_mesh:
             widget="MESH_GGT_extrude",
             # Important to use same operator as 'E' key.
             operator="view3d.edit_mesh_extrude_move_normal",
-            keymap=(
-                ("mesh.extrude_context_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -650,11 +537,7 @@ class _defs_edit_mesh:
             icon="ops.mesh.extrude_region_shrink_fatten",
             widget=None,
             operator="mesh.extrude_region_shrink_fatten",
-            keymap=(
-                ("mesh.extrude_region_shrink_fatten",
-                 dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -664,10 +547,7 @@ class _defs_edit_mesh:
             text="Extrude Individual",
             icon="ops.mesh.extrude_faces_move",
             widget=None,
-            keymap=(
-                ("mesh.extrude_faces_move", dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -680,9 +560,7 @@ class _defs_edit_mesh:
             text="Extrude to Cursor",
             icon="ops.mesh.dupli_extrude_cursor",
             widget=None,
-            keymap=(
-                ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -700,11 +578,7 @@ class _defs_edit_mesh:
             text="Loop Cut",
             icon="ops.mesh.loopcut_slide",
             widget="VIEW3D_GGT_mesh_preselect_edgering",
-            keymap=(
-                ("mesh.loopcut_slide",
-                 dict(TRANSFORM_OT_edge_slide=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -714,9 +588,7 @@ class _defs_edit_mesh:
             text="Offset Edge Loop Cut",
             icon="ops.mesh.offset_edge_loops_slide",
             widget=None,
-            keymap=(
-                ("mesh.offset_edge_loops_slide", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -728,11 +600,7 @@ class _defs_edit_mesh:
             text="Smooth",
             icon="ops.mesh.vertices_smooth",
             widget="WM_GGT_value_operator_redo",
-            keymap=(
-                # Use 0.0, so dragging increases from nothing.
-                ("mesh.vertices_smooth", dict(factor=0.0),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -747,11 +615,7 @@ class _defs_edit_mesh:
             text="Randomize",
             icon="ops.transform.vertex_random",
             widget="WM_GGT_value_operator_redo",
-            keymap=(
-                # Use 0.0, so dragging increases from nothing.
-                ("transform.vertex_random", dict(offset=0.0),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -765,10 +629,7 @@ class _defs_edit_mesh:
             text="Shear",
             icon="ops.transform.shear",
             widget="VIEW3D_GGT_xform_shear",
-            keymap=(
-                ("transform.shear", dict(release_confirm=True),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -778,10 +639,7 @@ class _defs_edit_mesh:
             text="To Sphere",
             icon="ops.transform.tosphere",
             widget=None,
-            keymap=(
-                ("transform.tosphere", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -794,10 +652,7 @@ class _defs_edit_mesh:
             text="Shrink/Fatten",
             icon="ops.transform.shrink_fatten",
             widget=None,
-            keymap=(
-                ("transform.shrink_fatten", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -807,10 +662,7 @@ class _defs_edit_mesh:
             text="Push/Pull",
             icon="ops.transform.push_pull",
             widget=None,
-            keymap=(
-                ("transform.push_pull", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -824,11 +676,7 @@ class _defs_edit_mesh:
             text="Knife",
             icon="ops.mesh.knife_tool",
             widget=None,
-            keymap=(
-                ("mesh.knife_tool",
-                 dict(wait_for_input=False),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -844,11 +692,7 @@ class _defs_edit_mesh:
             text="Bisect",
             icon="ops.mesh.bisect",
             widget=None,
-            keymap=(
-                ("mesh.bisect",
-                 dict(),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -880,9 +724,7 @@ class _defs_edit_curve:
             cursor='PAINT_BRUSH',
             icon="ops.curve.draw",
             widget=None,
-            keymap=(
-                ("curve.draw", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -892,11 +734,7 @@ class _defs_edit_curve:
             text="Extrude",
             icon="ops.curve.extrude_move",
             widget=None,
-            keymap=(
-                ("curve.extrude_move",
-                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -905,9 +743,7 @@ class _defs_edit_curve:
             text="Extrude Cursor",
             icon="ops.curve.extrude_cursor",
             widget=None,
-            keymap=(
-                ("curve.vertex_add", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
 
@@ -919,9 +755,7 @@ class _defs_pose:
             text="Breakdowner",
             icon="ops.pose.breakdowner",
             widget=None,
-            keymap=(
-                ("pose.breakdown", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -930,9 +764,7 @@ class _defs_pose:
             text="Push",
             icon="ops.pose.push",
             widget=None,
-            keymap=(
-                ("pose.push", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -941,9 +773,7 @@ class _defs_pose:
             text="Relax",
             icon="ops.pose.relax",
             widget=None,
-            keymap=(
-                ("pose.relax", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
 
@@ -976,11 +806,7 @@ class _defs_sculpt:
             text="Box Hide",
             icon="ops.sculpt.border_hide",
             widget=None,
-            keymap=(
-                ("paint.hide_show", dict(action='HIDE'), dict(type='EVT_TWEAK_A', value='ANY')),
-                ("paint.hide_show", dict(action='SHOW'), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
-                ("paint.hide_show", dict(action='SHOW', area='ALL'), dict(type='SELECTMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -989,10 +815,7 @@ class _defs_sculpt:
             text="Box Mask",
             icon="ops.sculpt.border_mask",
             widget=None,
-            keymap=(
-                ("view3d.select_box", dict(mode='ADD'), dict(type='EVT_TWEAK_A', value='ANY')),
-                ("view3d.select_box", dict(mode='SUB'), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
-            ),
+            keymap=(),
         )
 
 
@@ -1048,9 +871,7 @@ class _defs_weight_paint:
             text="Sample Weight",
             icon="ops.paint.weight_sample",
             widget=None,
-            keymap=(
-                ("paint.weight_sample", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1059,9 +880,7 @@ class _defs_weight_paint:
             text="Sample Vertex Group",
             icon="ops.paint.weight_sample_group",
             widget=None,
-            keymap=(
-                ("paint.weight_sample_group", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1078,9 +897,7 @@ class _defs_weight_paint:
             text="Gradient",
             icon="ops.paint.weight_gradient",
             widget=None,
-            keymap=(
-                ("paint.weight_gradient", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -1104,13 +921,7 @@ class _defs_image_generic:
                 "Set the cursor location, drag to transform"
             ),
             icon="ops.generic.cursor",
-            keymap=(
-                ("uv.cursor_set", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-                ("transform.translate",
-                 dict(release_confirm=True, cursor_transform=True),
-                 dict(type='EVT_TWEAK_A', value='ANY'),
-                 ),
-            ),
+            keymap=(),
         )
 
 
@@ -1140,14 +951,7 @@ class _defs_image_uv_select:
             text="Select Box",
             icon="ops.generic.select_box",
             widget=None,
-            keymap=(
-                ("uv.select_box",
-                 dict(),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-                ("uv.select_box",
-                 dict(deselect=True),
-                 dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -1157,14 +961,7 @@ class _defs_image_uv_select:
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            keymap=(
-                ("uv.select_lasso",
-                 dict(deselect=False),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-                # ("uv.select_lasso",
-                #  dict(deselect=True),
-                #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1176,14 +973,7 @@ class _defs_image_uv_select:
             text="Select Circle",
             icon="ops.generic.select_circle",
             widget=None,
-            keymap=(
-                ("uv.select_circle",
-                 dict(deselect=False),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-                ("uv.select_circle",
-                 dict(deselect=True),
-                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
-            ),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -1220,11 +1010,7 @@ class _defs_gpencil_paint:
             text="Line",
             icon="ops.gpencil.primitive_line",
             widget=None,
-            keymap=(
-                ("gpencil.primitive",
-                 dict(type='LINE', wait_for_input=False),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1233,11 +1019,7 @@ class _defs_gpencil_paint:
             text="Box",
             icon="ops.gpencil.primitive_box",
             widget=None,
-            keymap=(
-                ("gpencil.primitive",
-                 dict(type='BOX', wait_for_input=False),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1246,11 +1028,7 @@ class _defs_gpencil_paint:
             text="Circle",
             icon="ops.gpencil.primitive_circle",
             widget=None,
-            keymap=(
-                ("gpencil.primitive",
-                 dict(type='CIRCLE', wait_for_input=False),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
 
@@ -1261,11 +1039,7 @@ class _defs_gpencil_edit:
             text="Bend",
             icon="ops.gpencil.edit_bend",
             widget=None,
-            keymap=(
-                ("transform.bend",
-                 dict(release_confirm=True),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
+            keymap=(),
         )
 
     @ToolDef.from_fn
@@ -1277,7 +1051,7 @@ class _defs_gpencil_edit:
             text="Select Box",
             icon="ops.generic.select_box",
             widget=None,
-            keymap=_km_template.select_actions("gpencil.select_box", type='EVT_TWEAK_A', value='ANY'),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
@@ -1290,7 +1064,7 @@ class _defs_gpencil_edit:
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            keymap=_km_template.select_actions("gpencil.select_lasso", type='EVT_TWEAK_A', value='ANY'),
+            keymap=(),
             draw_settings=draw_settings,
         )
 
