@@ -2566,7 +2566,11 @@ class WM_MT_splash(Menu):
     bl_label = "Splash"
 
     def draw_setup(self, context):
+        wm = context.window_manager
+        userpref = context.user_preferences
+
         layout = self.layout
+
         layout.operator_context = 'EXEC_DEFAULT'
 
         layout.label(text="Quick Setup")
@@ -2578,11 +2582,15 @@ class WM_MT_splash(Menu):
         col = split.column()
 
         sub = col.column(align=True)
-        sub.label(text="Input and Shortcuts:")
-        text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        sub.label(text="Shortcuts:")
+        text = bpy.path.display_name(wm.keyconfigs.active.name)
         if not text:
-            text = "Blender (default)"
-        sub.menu("USERPREF_MT_appconfigs", text=text)
+            text = "Blender"
+        sub.menu("USERPREF_MT_keyconfigs", text=text)
+
+        split = col.split()
+        split.label(text="Select With:")
+        split.row().prop(userpref.inputs, 'select_mouse', expand=True)
 
         col.separator()
 
@@ -2598,8 +2606,6 @@ class WM_MT_splash(Menu):
         # sub.label(text="Language:")
         #userpref = context.user_preferences
         #sub.prop(userpref.system, "language", text="")
-
-        col.label()
 
         layout.label()
 
