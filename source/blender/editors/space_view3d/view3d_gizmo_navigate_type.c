@@ -292,8 +292,8 @@ static void axis_geom_draw(
 
 		bool ok = true;
 
-		/* skip view align axis */
-		if ((axis_align == axis) && (gz->matrix_offset[axis][2] > 0.0f) == is_pos) {
+		/* Skip view align axis when selecting (allows to switch to opposite side). */
+		if (select && ((axis_align == axis) && (gz->matrix_offset[axis][2] > 0.0f) == is_pos)) {
 			ok = false;
 		}
 		if (ok) {
@@ -313,7 +313,7 @@ static void axis_geom_draw(
 			 * This is a detail so primary axes show as dominant.
 			 */
 			const bool is_pos_color = (
-					((axis_order[axis_index].depth > (axis_depth_bias * (is_pos ? -1 : 1))) == (axis_align != axis)));
+			        axis_order[axis_index].depth > (axis_depth_bias * (is_pos ? -1 : 1)));
 
 
 			if (select == false) {
@@ -355,7 +355,7 @@ static void axis_geom_draw(
 			{
 				GPU_matrix_push();
 				GPU_matrix_translate_3fv(v_final);
-				GPU_matrix_scale_1f(show_axis_char ? AXIS_HANDLE_SIZE_FG : AXIS_HANDLE_SIZE_BG);
+				GPU_matrix_scale_1f(is_pos ? AXIS_HANDLE_SIZE_FG : AXIS_HANDLE_SIZE_BG);
 
 				GPUBatch *sphere = GPU_batch_preset_sphere(0);
 				GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
