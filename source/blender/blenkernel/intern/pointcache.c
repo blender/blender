@@ -1799,8 +1799,11 @@ static bool foreach_object_ptcache(Scene *scene,
 			if (current_object == object) {
 				continue;
 			}
-			foreach_object_ptcache(
-			        scene, object, duplis, callback, callback_user_data);
+			foreach_object_ptcache(scene,
+			                       current_object,
+			                       duplis,
+			                       callback,
+			                       callback_user_data);
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
