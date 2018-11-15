@@ -427,6 +427,9 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 		return;
 	}
 	switch (GS(id->name)) {
+		case ID_AC:
+			build_action((bAction *)id);
+			break;
 		case ID_AR:
 			build_armature((bArmature *)id);
 			break;
@@ -2510,17 +2513,7 @@ void DepsgraphRelationBuilder::modifier_walk(void *user_data,
 	if (id == NULL) {
 		return;
 	}
-	switch (GS(id->name)) {
-		case ID_OB:
-			data->builder->build_object(NULL, (Object *)id);
-			break;
-		case ID_TE:
-			data->builder->build_texture((Tex *)id);
-			break;
-		default:
-			/* pass */
-			break;
-	}
+	data->builder->build_id(id);
 }
 
 void DepsgraphRelationBuilder::constraint_walk(bConstraint * /*con*/,
@@ -2529,12 +2522,11 @@ void DepsgraphRelationBuilder::constraint_walk(bConstraint * /*con*/,
                                                void *user_data)
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
-	if (*idpoin) {
-		ID *id = *idpoin;
-		if (GS(id->name) == ID_OB) {
-			data->builder->build_object(NULL, (Object *)id);
-		}
+	ID *id = *idpoin;
+	if (id == NULL) {
+		return;
 	}
+	data->builder->build_id(id);
 }
 
 }  // namespace DEG
