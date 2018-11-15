@@ -1236,7 +1236,7 @@ void BlenderSync::sync_materials(BL::Depsgraph& b_depsgraph, bool update_all)
 
 	BL::Depsgraph::ids_iterator b_id;
 	for(b_depsgraph.ids.begin(b_id); b_id != b_depsgraph.ids.end(); ++b_id) {
-		if (!b_id->is_a(&RNA_Material)) {
+		if(!b_id->is_a(&RNA_Material)) {
 			continue;
 		}
 
@@ -1409,7 +1409,7 @@ void BlenderSync::sync_lights(BL::Depsgraph& b_depsgraph, bool update_all)
 
 	BL::Depsgraph::ids_iterator b_id;
 	for(b_depsgraph.ids.begin(b_id); b_id != b_depsgraph.ids.end(); ++b_id) {
-		if (!b_id->is_a(&RNA_Light)) {
+		if(!b_id->is_a(&RNA_Light)) {
 			continue;
 		}
 

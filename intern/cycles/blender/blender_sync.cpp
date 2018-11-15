@@ -111,21 +111,21 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 		BL::ID b_id(b_update->id());
 
 		/* Material */
-		if (b_id.is_a(&RNA_Material)) {
+		if(b_id.is_a(&RNA_Material)) {
 			BL::Material b_mat(b_id);
 			shader_map.set_recalc(b_mat);
 		}
 		/* Light */
-		else if (b_id.is_a(&RNA_Light)) {
+		else if(b_id.is_a(&RNA_Light)) {
 			BL::Light b_light(b_id);
 			shader_map.set_recalc(b_light);
 		}
 		/* Object */
-		else if (b_id.is_a(&RNA_Object)) {
+		else if(b_id.is_a(&RNA_Object)) {
 			BL::Object b_ob(b_id);
 			const bool updated_geometry = !b_update->is_dirty_geometry();
 
-			if (!b_update->is_dirty_transform()) {
+			if(!b_update->is_dirty_transform()) {
 				object_map.set_recalc(b_ob);
 				light_map.set_recalc(b_ob);
 			}
@@ -151,12 +151,12 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 			}
 		}
 		/* Mesh */
-		else if (b_id.is_a(&RNA_Mesh)) {
+		else if(b_id.is_a(&RNA_Mesh)) {
 			BL::Mesh b_mesh(b_id);
 			mesh_map.set_recalc(b_mesh);
 		}
 		/* World */
-		else if (b_id.is_a(&RNA_World)) {
+		else if(b_id.is_a(&RNA_World)) {
 			BL::World b_world(b_id);
 			if(world_map == b_world.ptr.data) {
 				world_recalc = true;
@@ -165,13 +165,13 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 	}
 
 	/* Updates shader with object dependency if objects changed. */
-	if (has_updated_objects) {
+	if(has_updated_objects) {
 		if(scene->default_background->has_object_dependency) {
 			world_recalc = true;
 		}
 
 		foreach(Shader *shader, scene->shaders) {
-			if (shader->has_object_dependency) {
+			if(shader->has_object_dependency) {
 				shader->need_sync_object = true;
 			}
 		}
@@ -619,7 +619,7 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph& b_depsgraph)
 	const bool is_interface_locked = b_engine.render() &&
 	                                 b_engine.render().use_lock_interface();
 	const bool can_free_caches = BlenderSession::headless || is_interface_locked;
-	if (!can_free_caches) {
+	if(!can_free_caches) {
 		return;
 	}
 	/* TODO(sergey): We can actually remove the whole dependency graph,

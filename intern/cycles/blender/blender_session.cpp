@@ -180,12 +180,12 @@ void BlenderSession::reset_session(BL::BlendData& b_data, BL::Depsgraph& b_depsg
 	this->b_depsgraph = b_depsgraph;
 	this->b_scene = b_depsgraph.scene_eval();
 
-	if (preview_osl) {
+	if(preview_osl) {
 		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 		RNA_boolean_set(&cscene, "shading_system", preview_osl);
 	}
 
-	if (b_v3d) {
+	if(b_v3d) {
 		this->b_render = b_scene.render();
 	}
 	else {
@@ -194,11 +194,11 @@ void BlenderSession::reset_session(BL::BlendData& b_data, BL::Depsgraph& b_depsg
 		height = render_resolution_y(b_render);
 	}
 
-	if (session == NULL) {
+	if(session == NULL) {
 		create();
 	}
 
-	if (b_v3d) {
+	if(b_v3d) {
 		/* NOTE: We need to create session, but all the code from below
 		 * will make viewport render to stuck on initialization.
 		 */
@@ -1413,7 +1413,7 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 
 void BlenderSession::free_blender_memory_if_possible()
 {
-	if (!background) {
+	if(!background) {
 		/* During interactive render we can not free anything: attempts to save
 		 * memory would cause things to be allocated and evaluated for every
 		 * updated sample.

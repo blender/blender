@@ -203,7 +203,7 @@ bool Device::bind_fallback_display_space_shader(const float width, const float h
 		fallback_shader_program = bind_fallback_shader();
 		fallback_status = FALLBACK_SHADER_STATUS_ERROR;
 
-		if (fallback_shader_program == 0) {
+		if(fallback_shader_program == 0) {
 			return false;
 		}
 
@@ -266,7 +266,7 @@ void Device::draw_pixels(
 
 	GLint shader_program;
 	if(use_fallback_shader) {
-		if (!bind_fallback_display_space_shader(dw, dh)) {
+		if(!bind_fallback_display_space_shader(dw, dh)) {
 			return;
 		}
 		shader_program = fallback_shader_program;
