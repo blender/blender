@@ -430,8 +430,8 @@ static void object_deselect_cb(
 }
 
 static void object_delete_cb(
-        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
-        TreeStoreElem *tsep, TreeStoreElem *tselem, void *user_data)
+        bContext *C, ReportList *reports, Scene *scene, TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Object *ob = (Object *)tselem->id;
 	if (ob) {
@@ -459,13 +459,6 @@ static void object_delete_cb(
 		te->directdata = NULL;
 		tselem->id = NULL;
 #endif
-	}
-	else {
-		/* No base, means object is no more instantiated in any scene.
-		 * Should not happen ideally, but does happens, see T51625.
-		 * Rather than twisting in all kind of ways to address all possible cases leading to that situation, simpler
-		 * to allow deleting such object as a mere generic data-block. */
-		id_delete_cb(C, reports, scene, te, tsep, tselem, user_data);
 	}
 }
 
