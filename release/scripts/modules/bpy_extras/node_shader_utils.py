@@ -252,6 +252,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self._grid_to_location(-1, -2, dst_node=node_normalmap, ref_node=node_principled)
             # Link
             links.new(node_normalmap.outputs["Normal"], node_principled.inputs["Normal"])
+            self._node_normalmap = node_normalmap
         return self._node_normalmap
 
     node_normalmap = property(node_normalmap_get)
