@@ -79,6 +79,7 @@
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
+#include "BKE_lightprobe.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -2338,6 +2339,16 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					ID_NEW_REMAP_US2(obn->data)
 					else {
 						obn->data = ID_NEW_SET(obn->data, BKE_camera_copy(bmain, obn->data));
+						didit = 1;
+					}
+					id_us_min(id);
+				}
+				break;
+			case OB_LIGHTPROBE:
+				if (dupflag != 0) {
+					ID_NEW_REMAP_US2(obn->data)
+					else {
+						obn->data = ID_NEW_SET(obn->data, BKE_lightprobe_copy(bmain, obn->data));
 						didit = 1;
 					}
 					id_us_min(id);
