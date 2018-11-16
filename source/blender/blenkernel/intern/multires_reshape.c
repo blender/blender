@@ -875,8 +875,6 @@ static bool multires_reshape_from_vertcos(
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Mesh *coarse_mesh = object->data;
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
-	/* Make sure displacement grids are ready. */
-	multires_reshape_ensure_grids(coarse_mesh, mmd->totlvl);
 	/* Pick maximum between multires level and dispalcement level.
 	 * This is because mesh can be used by objects with multires at different
 	 * levels.
@@ -885,6 +883,8 @@ static bool multires_reshape_from_vertcos(
 	 * mdisps->level.
 	 */
 	const int top_level = max_ii(mmd->totlvl, mdisps->level);
+	/* Make sure displacement grids are ready. */
+	multires_reshape_ensure_grids(coarse_mesh, top_level);
 	/* Construct context. */
 	MultiresReshapeFromDeformedVertsContext reshape_deformed_verts_ctx = {
 	        .reshape_ctx = {
@@ -1166,8 +1166,6 @@ bool multiresModifier_reshapeFromCCG(
 	GridPaintMask *grid_paint_mask =
 	        CustomData_get_layer(&coarse_mesh->ldata, CD_GRID_PAINT_MASK);
 	Subdiv *subdiv = subdiv_ccg->subdiv;
-	/* Make sure displacement grids are ready. */
-	multires_reshape_ensure_grids(coarse_mesh, tot_level);
 	/* Pick maximum between multires level and dispalcement level.
 	 * This is because mesh can be used by objects with multires at different
 	 * levels.
@@ -1176,6 +1174,8 @@ bool multiresModifier_reshapeFromCCG(
 	 * mdisps->level.
 	 */
 	const int top_level = max_ii(tot_level, mdisps->level);
+	/* Make sure displacement grids are ready. */
+	multires_reshape_ensure_grids(coarse_mesh, top_level);
 	/* Construct context. */
 	ReshapeFromCCGTaskData data = {
 	        .reshape_ctx = {
