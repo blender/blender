@@ -476,7 +476,6 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 		}
 
 		const int sta = pid->cache->startframe, end = pid->cache->endframe;
-		const int len = (end - sta + 1) * 6;
 
 		GPU_blend(true);
 
@@ -493,23 +492,40 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 
 		immUniformColor4fv(col);
 
-		if (len > 0) {
-			immBeginAtMost(GPU_PRIM_TRIS, len);
+		{
+			/* draw a quad for each chunk of consecutive cached frames */
+			const int chunk_tot = 32;
+			int chunk_len = 0;
+			int ista = 0, iend = -1;
 
-			/* draw a quad for each cached frame */
 			for (int i = sta; i <= end; i++) {
 				if (pid->cache->cached_frames[i - sta]) {
-					immVertex2f(pos, (float)i - 0.5f, 0.0f);
-					immVertex2f(pos, (float)i - 0.5f, 1.0f);
-					immVertex2f(pos, (float)i + 0.5f, 1.0f);
-
-					immVertex2f(pos, (float)i - 0.5f, 0.0f);
-					immVertex2f(pos, (float)i + 0.5f, 1.0f);
-					immVertex2f(pos, (float)i + 0.5f, 0.0f);
+					if (chunk_len == 0) {
+						immBeginAtMost(GPU_PRIM_TRIS, chunk_tot * 6);
+					}
+					if (ista > iend) {
+						chunk_len++;
+						ista = i;
+					}
+					iend = i;
+				}
+				else {
+					if (ista <= iend) {
+						immRectf_fast(pos, (float)ista - 0.5f, 0.0f, (float)iend + 0.5f, 1.0f);
+						iend = ista - 1;
+					}
+					if (chunk_len >= chunk_tot) {
+						immEnd();
+						chunk_len = 0;
+					}
 				}
 			}
-
-			immEnd();
+			if (ista <= iend) {
+				immRectf_fast(pos, (float)ista - 0.5f, 0.0f, (float)iend + 0.5f, 1.0f);
+			}
+			if (chunk_len != 0) {
+				immEnd();
+			}
 		}
 
 		GPU_blend(false);

@@ -87,6 +87,17 @@ void immRecti(uint pos, int x1, int y1, int x2, int y2)
 	immEnd();
 }
 
+void immRectf_fast(uint pos, float x1, float y1, float x2, float y2)
+{
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x2, y1);
+	immVertex2f(pos, x2, y2);
+
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x2, y2);
+	immVertex2f(pos, x1, y2);
+}
+
 void immRectf_fast_with_color(uint pos, uint col, float x1, float y1, float x2, float y2, const float color[4])
 {
 	immAttr4fv(col, color);
