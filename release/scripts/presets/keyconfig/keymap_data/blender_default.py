@@ -3630,25 +3630,17 @@ def km_mesh(params):
          {"properties": [("vertex_only", True)]}),
         # Selection modes.
         *_template_items_editmode_mesh_select_mode(),
-        # Loop Select with double click.
+        # Loop Select with alt, and double click in case MMB emulation is on.
         ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK'},
          {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
         ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "shift": True},
          {"properties": [("extend", True), ("deselect", False), ("toggle", False)]}),
         ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK', "alt": True},
          {"properties": [("extend", False), ("deselect", True), ("toggle", False)]}),
-    ])
-
-    if params.select_mouse == 'RIGHTMOUSE':
-        # Loop select with Alt.
-        items.extend([
-            ("mesh.loop_select", {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True},
-             {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
-            ("mesh.loop_select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True, "alt": True},
-             {"properties": [("extend", False), ("deselect", False), ("toggle", True)]}),
-        ])
-
-    items.extend([
+        ("mesh.loop_select", {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True},
+         {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
+        ("mesh.loop_select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True, "alt": True},
+         {"properties": [("extend", False), ("deselect", False), ("toggle", True)]}),
         # Selection
         ("mesh.edgering_select", {"type": params.select_mouse, "value": params.select_mouse_value, "ctrl": True, "alt": True},
          {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
@@ -5043,7 +5035,7 @@ def km_3d_view_tool_pose_breakdowner(params):
         "3D View Tool: Pose, Breakdowner",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("pose.breakdown", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("pose.breakdown", {"type": params.tool_tweak, "value": 'ANY'}, None),
         ),
         },
     )
@@ -5054,7 +5046,7 @@ def km_3d_view_tool_pose_push(params):
         "3D View Tool: Pose, Push",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("pose.push", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("pose.push", {"type": params.tool_tweak, "value": 'ANY'}, None),
         ),
         },
     )
@@ -5065,7 +5057,7 @@ def km_3d_view_tool_pose_relax(params):
         "3D View Tool: Pose, Relax",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("pose.relax", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("pose.relax", {"type": params.tool_tweak, "value": 'ANY'}, None),
         ),
         },
     )
@@ -5088,7 +5080,7 @@ def km_3d_view_tool_edit_armature_bone_size(params):
         "3D View Tool: Edit Armature, Bone Size",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.transform", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.transform", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True), ("mode", 'BONE_SIZE')]}),
         ),
         },
@@ -5100,7 +5092,7 @@ def km_3d_view_tool_edit_armature_bone_envelope(params):
         "3D View Tool: Edit Armature, Bone Envelope",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.transform", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.transform", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True), ("mode", 'BONE_ENVELOPE')]}),
         ),
         },
@@ -5194,7 +5186,7 @@ def km_3d_view_tool_edit_mesh_inset_faces(params):
         "3D View Tool: Edit Mesh, Inset Faces",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("mesh.inset", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("mesh.inset", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5206,7 +5198,7 @@ def km_3d_view_tool_edit_mesh_bevel(params):
         "3D View Tool: Edit Mesh, Bevel",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("mesh.bevel", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("mesh.bevel", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5302,7 +5294,7 @@ def km_3d_view_tool_edit_mesh_smooth(params):
         "3D View Tool: Edit Mesh, Smooth",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("mesh.vertices_smooth", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("mesh.vertices_smooth", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("factor", 0.0)]}),
         ),
         },
@@ -5314,7 +5306,7 @@ def km_3d_view_tool_edit_mesh_randomize(params):
         "3D View Tool: Edit Mesh, Randomize",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.vertex_random", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.vertex_random", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("offset", 0.0)]}),
         ),
         },
@@ -5326,7 +5318,7 @@ def km_3d_view_tool_edit_mesh_edge_slide(params):
         "3D View Tool: Edit Mesh, Edge Slide",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.edge_slide", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.edge_slide", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5338,7 +5330,7 @@ def km_3d_view_tool_edit_mesh_vertex_slide(params):
         "3D View Tool: Edit Mesh, Vertex Slide",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.vert_slide", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.vert_slide", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5350,7 +5342,7 @@ def km_3d_view_tool_edit_mesh_shrink_fatten(params):
         "3D View Tool: Edit Mesh, Shrink/Fatten",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.shrink_fatten", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.shrink_fatten", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5362,7 +5354,7 @@ def km_3d_view_tool_edit_mesh_push_pull(params):
         "3D View Tool: Edit Mesh, Push/Pull",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.push_pull", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.push_pull", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5386,7 +5378,7 @@ def km_3d_view_tool_edit_mesh_to_sphere(params):
         "3D View Tool: Edit Mesh, To Sphere",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("transform.tosphere", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("transform.tosphere", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ),
         },
@@ -5398,7 +5390,7 @@ def km_3d_view_tool_edit_mesh_rip_region(params):
         "3D View Tool: Edit Mesh, Rip Region",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("mesh.rip_move", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("mesh.rip_move", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("TRANSFORM_OT_translate", [("release_confirm", True)])]}),
         ),
         },
@@ -5410,7 +5402,7 @@ def km_3d_view_tool_edit_mesh_rip_edge(params):
         "3D View Tool: Edit Mesh, Rip Edge",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": (
-            ("mesh.rip_edge_move", {"type": params.tool_mouse, "value": 'PRESS'},
+            ("mesh.rip_edge_move", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("TRANSFORM_OT_translate", [("release_confirm", True)])]}),
         ),
         },
