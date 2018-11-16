@@ -1159,7 +1159,7 @@ def km_graph_editor(params):
     items.extend([
         ("wm.context_toggle", {"type": 'H', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'space_data.show_handles')]}),
-        ("graph.cursor_set", params.cursor_set_event, None),
+        ("graph.cursor_set", {"type": params.action_mouse, "value": 'PRESS'}, None),
         ("graph.clickselect", {"type": params.select_mouse, "value": params.select_mouse_value},
          {"properties": [("extend", False), ("column", False), ("curves", False)]}),
         ("graph.clickselect", {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True},
