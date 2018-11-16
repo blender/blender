@@ -37,8 +37,8 @@ def main(context, event):
 
         # get the ray relative to the object
         matrix_inv = matrix.inverted()
-        ray_origin_obj = matrix_inv * ray_origin
-        ray_target_obj = matrix_inv * ray_target
+        ray_origin_obj = matrix_inv @ ray_origin
+        ray_target_obj = matrix_inv @ ray_target
         ray_direction_obj = ray_target_obj - ray_origin_obj
 
         # cast the ray
@@ -57,7 +57,7 @@ def main(context, event):
         if obj.type == 'MESH':
             hit, normal, face_index = obj_ray_cast(obj, matrix)
             if hit is not None:
-                hit_world = matrix * hit
+                hit_world = matrix @ hit
                 scene.cursor_location = hit_world
                 length_squared = (hit_world - ray_origin).length_squared
                 if best_obj is None or length_squared < best_length_squared:
