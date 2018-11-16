@@ -888,6 +888,9 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	movieclip_main_area_set_view2d(C, ar);
 
+	/* callback */
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	clip_draw_main(C, sc, ar);
 
 	/* TODO(sergey): would be nice to find a way to de-duplicate all this space conversions */
@@ -932,6 +935,9 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
 		/* Grease Pencil */
 		clip_draw_grease_pencil((bContext *)C, true);
 	}
+
+	/* callback */
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
