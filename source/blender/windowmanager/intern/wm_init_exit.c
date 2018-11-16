@@ -70,6 +70,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_keyconfig.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
@@ -207,6 +208,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	GHOST_CreateSystemPaths();
 
 	BKE_addon_pref_type_init();
+	BKE_keyconfig_pref_type_init();
 
 	wm_operatortype_init();
 	wm_operatortypes_register();
@@ -459,7 +461,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	}
 
 	WM_paneltype_clear();
+
 	BKE_addon_pref_type_free();
+	BKE_keyconfig_pref_type_free();
+
 	wm_operatortype_free();
 	wm_dropbox_free();
 	WM_menutype_free();

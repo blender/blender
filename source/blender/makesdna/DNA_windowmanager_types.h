@@ -348,6 +348,19 @@ enum {
 	KEYMAP_TOOL               = (1 << 7),  /* keymap for active tool system */
 };
 
+/**
+ * This is similar to addon-preferences,
+ * however unlike add-ons key-config's aren't saved to disk.
+ *
+ * #wmKeyConfigPrefType is written to DNA,
+ * #wmKeyConfigPrefType_Runtime has the RNA type.
+ */
+typedef struct wmKeyConfigPrefType {
+	struct wmKeyConfigPrefType *next, *prev;
+	char idname[64];    /* unique name */
+	IDProperty *prop;
+} wmKeyConfigPrefType;
+
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;
 

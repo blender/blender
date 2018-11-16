@@ -37,6 +37,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_workspace.h"
+#include "BKE_keyconfig.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -985,6 +986,117 @@ static void rna_WindowManager_active_keyconfig_set(PointerRNA *ptr, PointerRNA v
 	if (kc)
 		WM_keyconfig_set_active(wm, kc->idname);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Key Config Preferences
+ * \{ */
+
+static PointerRNA rna_wmKeyConfig_preferences_get(PointerRNA *ptr)
+{
+	wmKeyConfig *kc = ptr->data;
+	wmKeyConfigPrefType_Runtime *kpt_rt = BKE_keyconfig_pref_type_find(kc->idname, true);
+	if (kpt_rt) {
+		wmKeyConfigPrefType *kpt = BLI_findstring(
+		        &U.user_keyconfig_prefs, kc->idname, offsetof(wmKeyConfigPrefType, idname));
+		if (kpt == NULL) {
+			kpt = MEM_callocN(sizeof(*kpt), __func__);
+			STRNCPY(kpt->idname, kc->idname);
+			BLI_addtail(&U.user_keyconfig_prefs, kpt);
+		}
+		if (kpt->prop == NULL) {
+			IDPropertyTemplate val = {0};
+			kpt->prop = IDP_New(IDP_GROUP, &val, kc->idname); /* name is unimportant  */
+		}
+		return rna_pointer_inherit_refine(ptr, kpt_rt->ext.srna, kpt->prop);
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+
+static IDProperty *rna_wmKeyConfigPref_idprops(PointerRNA *ptr, bool create)
+{
+	if (create && !ptr->data) {
+		IDPropertyTemplate val = {0};
+		ptr->data = IDP_New(IDP_GROUP, &val, "RNA_KeyConfigPreferences group");
+	}
+	return ptr->data;
+}
+
+static void rna_wmKeyConfigPref_unregister(Main *UNUSED(bmain), StructRNA *type)
+{
+	wmKeyConfigPrefType_Runtime *kpt_rt = RNA_struct_blender_type_get(type);
+
+	if (!kpt_rt)
+		return;
+
+	RNA_struct_free_extension(type, &kpt_rt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
+
+	/* Possible we're not in the preferences if they have been reset. */
+	BKE_keyconfig_pref_type_remove(kpt_rt);
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_WINDOW, NULL);
+}
+
+static StructRNA *rna_wmKeyConfigPref_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	wmKeyConfigPrefType_Runtime *kpt_rt, dummy_kpt_rt = {{'\0'}};
+	wmKeyConfigPrefType dummy_kpt = {NULL};
+	PointerRNA dummy_ptr;
+	// int have_function[1];
+
+	/* setup dummy keyconf-prefs & keyconf-prefs type to store static properties in */
+	RNA_pointer_create(NULL, &RNA_KeyConfigPreferences, &dummy_kpt, &dummy_ptr);
+
+	/* validate the python class */
+	if (validate(&dummy_ptr, data, NULL /* have_function */ ) != 0)
+		return NULL;
+
+	STRNCPY(dummy_kpt_rt.idname, dummy_kpt.idname);
+	if (strlen(identifier) >= sizeof(dummy_kpt_rt.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "Registering key-config preferences class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummy_kpt_rt.idname));
+		return NULL;
+	}
+
+	/* check if we have registered this keyconf-prefs type before, and remove it */
+	kpt_rt = BKE_keyconfig_pref_type_find(dummy_kpt.idname, true);
+	if (kpt_rt && kpt_rt->ext.srna) {
+		rna_wmKeyConfigPref_unregister(bmain, kpt_rt->ext.srna);
+	}
+
+	/* create a new keyconf-prefs type */
+	kpt_rt = MEM_mallocN(sizeof(wmKeyConfigPrefType_Runtime), "keyconfigpreftype");
+	memcpy(kpt_rt, &dummy_kpt_rt, sizeof(dummy_kpt_rt));
+
+	BKE_keyconfig_pref_type_add(kpt_rt);
+
+	kpt_rt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_KeyConfigPreferences);
+	kpt_rt->ext.data = data;
+	kpt_rt->ext.call = call;
+	kpt_rt->ext.free = free;
+	RNA_struct_blender_type_set(kpt_rt->ext.srna, kpt_rt);
+
+//	kpt_rt->draw = (have_function[0]) ? header_draw : NULL;
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
+	return kpt_rt->ext.srna;
+}
+
+/* placeholder, doesn't do anything useful yet */
+static StructRNA *rna_wmKeyConfigPref_refine(PointerRNA *ptr)
+{
+	return (ptr->type) ? ptr->type : &RNA_KeyConfigPreferences;
+}
+
+/** \} */
+
 
 static void rna_wmKeyMapItem_idname_get(PointerRNA *ptr, char *value)
 {
@@ -2198,6 +2310,28 @@ static void rna_def_wm_keymaps(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_api_keymaps(srna);
 }
 
+static void rna_def_keyconfig_prefs(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "KeyConfigPreferences", NULL);
+	RNA_def_struct_ui_text(srna, "Key-Config Preferences", "");
+	RNA_def_struct_sdna(srna, "wmKeyConfigPrefType");  /* WARNING: only a bAddon during registration */
+
+	RNA_def_struct_refine_func(srna, "rna_wmKeyConfigPref_refine");
+	RNA_def_struct_register_funcs(srna, "rna_wmKeyConfigPref_register", "rna_wmKeyConfigPref_unregister", NULL);
+	RNA_def_struct_idprops_func(srna, "rna_wmKeyConfigPref_idprops");
+	RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);  /* Mandatory! */
+
+	/* registration */
+	RNA_define_verify_sdna(0);
+	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "idname");
+	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_define_verify_sdna(1);
+}
+
 static void rna_def_keyconfig(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2236,6 +2370,11 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "has_select_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "has_select_mouse", 1);
 	RNA_def_property_ui_text(prop, "Has Select Mouse", "Configuration supports select mouse switching");
+
+	/* Collection active property */
+	prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyConfigPreferences");
+	RNA_def_property_pointer_funcs(prop, "rna_wmKeyConfig_preferences_get", NULL, NULL, NULL);
 
 	RNA_api_keyconfig(srna);
 
@@ -2441,6 +2580,7 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_piemenu(brna);
 	rna_def_window(brna);
 	rna_def_windowmanager(brna);
+	rna_def_keyconfig_prefs(brna);
 	rna_def_keyconfig(brna);
 }
 

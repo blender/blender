@@ -8914,6 +8914,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	link_list(fd, &user->themes);
 	link_list(fd, &user->user_keymaps);
+	link_list(fd, &user->user_keyconfig_prefs);
 	link_list(fd, &user->user_menus);
 	link_list(fd, &user->addons);
 	link_list(fd, &user->autoexec_paths);
@@ -8938,6 +8939,11 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 		for (kmi=keymap->items.first; kmi; kmi=kmi->next)
 			direct_link_keymapitem(fd, kmi);
+	}
+
+	for (wmKeyConfigPrefType *kpt = user->user_keyconfig_prefs.first; kpt; kpt = kpt->next) {
+		kpt->prop = newdataadr(fd, kpt->prop);
+		IDP_DirectLinkGroup_OrFree(&kpt->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
 
 	for (bUserMenu *um = user->user_menus.first; um; um = um->next) {

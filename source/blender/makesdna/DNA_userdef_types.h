@@ -569,6 +569,7 @@ typedef struct UserDef {
 	struct ListBase uifonts;
 	struct ListBase uistyles;
 	struct ListBase user_keymaps;
+	struct ListBase user_keyconfig_prefs; /* wmKeyConfigPrefType. */
 	struct ListBase addons;
 	struct ListBase autoexec_paths;
 	struct ListBase user_menus; /* bUserMenu */

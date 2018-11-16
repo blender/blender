@@ -128,6 +128,7 @@ set(SRC
 	intern/image_gen.c
 	intern/ipo.c
 	intern/key.c
+	intern/keyconfig.c
 	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
@@ -280,6 +281,7 @@ set(SRC
 	BKE_image.h
 	BKE_ipo.h
 	BKE_key.h
+	BKE_keyconfig.h
 	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
