@@ -4829,10 +4829,18 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 
 		edit = PE_create_current(depsgraph, scene, ob);
 
-		/* mesh may have changed since last entering editmode.
-		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
-		if (edit && edit->psys)
+		/* Mesh may have changed since last entering editmode.
+		 * note, this may have run before if the edit data was just created,
+		 * so could avoid this and speed up a little. */
+		if (edit && edit->psys) {
+			/* Make sure pointer to the evaluated modifier data is up to date,
+			 * with possible changes applied when object was outside of the
+			 * edit mode. */
+			Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+			edit->psmd_eval = (ParticleSystemModifierData *)modifiers_findByName(
+			        object_eval, edit->psmd->modifier.name);
 			recalc_emitter_field(depsgraph, ob, edit->psys);
+		}
 
 		toggle_particle_cursor(C, 1);
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_PARTICLE, NULL);
