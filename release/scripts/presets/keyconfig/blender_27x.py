@@ -16,9 +16,8 @@ keyconfig_data = _mod.generate_keymaps(
     ),
 )
 
+idname = os.path.splitext(os.path.basename(__file__))[0]
+
 if __name__ == "__main__":
-    kc = keyconfig_import_from_data(
-        os.path.splitext(os.path.basename(__file__))[0],
-        keyconfig_data,
-    )
+    kc = keyconfig_import_from_data(idname, keyconfig_data)
     kc.has_select_mouse = True  # Support switching select mouse
