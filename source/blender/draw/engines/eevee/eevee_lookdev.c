@@ -54,7 +54,7 @@ static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
 }
 
 void EEVEE_lookdev_cache_init(
-        EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShader *shader, DRWPass *pass,
+        EEVEE_Data *vedata, DRWShadingGroup **grp, DRWPass *pass,
         World *UNUSED(world), EEVEE_LightProbesInfo *pinfo)
 {
 	EEVEE_StorageList *stl = vedata->stl;
@@ -64,6 +64,7 @@ void EEVEE_lookdev_cache_init(
 	if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
 		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
 		if (sl && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
+			GPUShader *shader = EEVEE_shaders_default_studiolight_sh_get();
 			struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 			GPUTexture *tex = NULL;
 

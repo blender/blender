@@ -54,20 +54,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#define HAMMERSLEY_SIZE 1024
-
 static struct {
-	struct GPUShader *probe_default_sh;
-	struct GPUShader *probe_default_studiolight_sh;
-	struct GPUShader *probe_filter_glossy_sh;
-	struct GPUShader *probe_filter_diffuse_sh;
-	struct GPUShader *probe_filter_visibility_sh;
-	struct GPUShader *probe_grid_fill_sh;
-	struct GPUShader *probe_grid_display_sh;
-	struct GPUShader *probe_planar_display_sh;
-	struct GPUShader *probe_planar_downsample_sh;
-	struct GPUShader *probe_cube_display_sh;
-
 	struct GPUTexture *hammersley;
 	struct GPUTexture *planar_pool_placeholder;
 	struct GPUTexture *depth_placeholder;
@@ -77,31 +64,6 @@ static struct {
 	struct GPUVertFormat *format_probe_display_cube;
 	struct GPUVertFormat *format_probe_display_planar;
 } e_data = {NULL}; /* Engine data */
-
-extern char datatoc_background_vert_glsl[];
-extern char datatoc_default_world_frag_glsl[];
-extern char datatoc_lightprobe_filter_glossy_frag_glsl[];
-extern char datatoc_lightprobe_filter_diffuse_frag_glsl[];
-extern char datatoc_lightprobe_filter_visibility_frag_glsl[];
-extern char datatoc_lightprobe_geom_glsl[];
-extern char datatoc_lightprobe_vert_glsl[];
-extern char datatoc_lightprobe_planar_display_frag_glsl[];
-extern char datatoc_lightprobe_planar_display_vert_glsl[];
-extern char datatoc_lightprobe_planar_downsample_frag_glsl[];
-extern char datatoc_lightprobe_planar_downsample_geom_glsl[];
-extern char datatoc_lightprobe_planar_downsample_vert_glsl[];
-extern char datatoc_lightprobe_cube_display_frag_glsl[];
-extern char datatoc_lightprobe_cube_display_vert_glsl[];
-extern char datatoc_lightprobe_grid_display_frag_glsl[];
-extern char datatoc_lightprobe_grid_display_vert_glsl[];
-extern char datatoc_lightprobe_grid_fill_frag_glsl[];
-extern char datatoc_irradiance_lib_glsl[];
-extern char datatoc_lightprobe_lib_glsl[];
-extern char datatoc_octahedron_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_bsdf_sampling_lib_glsl[];
 
 extern GlobalsUboStorage ts;
 
@@ -185,121 +147,6 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	}
 }
 
-static void lightprobe_shaders_init(void)
-{
-	const char *filter_defines = "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
-#if defined(IRRADIANCE_SH_L2)
-	                             "#define IRRADIANCE_SH_L2\n"
-#elif defined(IRRADIANCE_CUBEMAP)
-	                             "#define IRRADIANCE_CUBEMAP\n"
-#elif defined(IRRADIANCE_HL2)
-	                             "#define IRRADIANCE_HL2\n"
-#endif
-	                             "#define NOISE_SIZE 64\n";
-
-	char *shader_str = NULL;
-	char *vert_str = NULL;
-
-	shader_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_bsdf_sampling_lib_glsl,
-	        datatoc_lightprobe_filter_glossy_frag_glsl);
-
-	e_data.probe_filter_glossy_sh = DRW_shader_create(
-	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, shader_str, filter_defines);
-
-	e_data.probe_default_sh = DRW_shader_create(
-	        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
-
-	e_data.probe_default_studiolight_sh = DRW_shader_create(
-	        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, "#define LOOKDEV\n");
-
-	MEM_freeN(shader_str);
-
-	shader_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_bsdf_sampling_lib_glsl,
-	        datatoc_lightprobe_filter_diffuse_frag_glsl);
-
-	e_data.probe_filter_diffuse_sh = DRW_shader_create_fullscreen(shader_str, filter_defines);
-
-	MEM_freeN(shader_str);
-
-	shader_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_bsdf_sampling_lib_glsl,
-	        datatoc_lightprobe_filter_visibility_frag_glsl);
-
-	e_data.probe_filter_visibility_sh = DRW_shader_create_fullscreen(shader_str, filter_defines);
-
-	MEM_freeN(shader_str);
-
-	shader_str = BLI_string_joinN(
-	        datatoc_octahedron_lib_glsl,
-	        datatoc_common_view_lib_glsl,
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_irradiance_lib_glsl,
-	        datatoc_lightprobe_lib_glsl,
-	        datatoc_lightprobe_grid_display_frag_glsl);
-
-	vert_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_lightprobe_grid_display_vert_glsl);
-
-	e_data.probe_grid_display_sh = DRW_shader_create(vert_str, NULL, shader_str, filter_defines);
-
-	MEM_freeN(vert_str);
-	MEM_freeN(shader_str);
-
-	e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen(
-	        datatoc_lightprobe_grid_fill_frag_glsl, filter_defines);
-
-	shader_str = BLI_string_joinN(
-	        datatoc_octahedron_lib_glsl,
-	        datatoc_common_view_lib_glsl,
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_lightprobe_lib_glsl,
-	        datatoc_lightprobe_cube_display_frag_glsl);
-
-	vert_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_lightprobe_cube_display_vert_glsl);
-
-	e_data.probe_cube_display_sh = DRW_shader_create(vert_str, NULL, shader_str, SHADER_DEFINES);
-
-	MEM_freeN(vert_str);
-	MEM_freeN(shader_str);
-
-	vert_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_lightprobe_planar_display_vert_glsl);
-
-	shader_str = BLI_string_joinN(
-	        datatoc_common_view_lib_glsl,
-	        datatoc_lightprobe_planar_display_frag_glsl);
-
-	e_data.probe_planar_display_sh = DRW_shader_create(vert_str, NULL, shader_str, NULL);
-
-	MEM_freeN(vert_str);
-	MEM_freeN(shader_str);
-
-	e_data.probe_planar_downsample_sh = DRW_shader_create(
-	        datatoc_lightprobe_planar_downsample_vert_glsl,
-	        datatoc_lightprobe_planar_downsample_geom_glsl,
-	        datatoc_lightprobe_planar_downsample_frag_glsl,
-	        NULL);
-
-	e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
-}
-
 void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
@@ -308,8 +155,9 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (!e_data.probe_filter_glossy_sh) {
-		lightprobe_shaders_init();
+	if (!e_data.hammersley) {
+		EEVEE_shaders_lightprobe_shaders_init();
+		e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
 	}
 
 	/* Use fallback if we don't have gpu texture allocated an we cannot restore them. */
@@ -367,7 +215,9 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
 	{
 		psl->probe_glossy_compute = DRW_pass_create("LightProbe Glossy Compute", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_glossy_sh, psl->probe_glossy_compute);
+		DRWShadingGroup *grp = DRW_shgroup_create(
+		        EEVEE_shaders_probe_filter_glossy_sh_get(), psl->probe_glossy_compute);
+
 		DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
 		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
 		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
@@ -390,7 +240,8 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
 	{
 		psl->probe_diffuse_compute = DRW_pass_create("LightProbe Diffuse Compute", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_diffuse_sh, psl->probe_diffuse_compute);
+		DRWShadingGroup *grp = DRW_shgroup_create(
+		        EEVEE_shaders_probe_filter_diffuse_sh_get(), psl->probe_diffuse_compute);
 #ifdef IRRADIANCE_SH_L2
 		DRW_shgroup_uniform_int(grp, "probeSize", &pinfo->shres, 1);
 #else
@@ -411,7 +262,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
 	{
 		psl->probe_visibility_compute = DRW_pass_create("LightProbe Visibility Compute", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_visibility_sh, psl->probe_visibility_compute);
+		DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_probe_filter_visibility_sh_get(), psl->probe_visibility_compute);
 		DRW_shgroup_uniform_int(grp, "outputSize", &pinfo->shres, 1);
 		DRW_shgroup_uniform_float(grp, "visibilityRange", &pinfo->visibility_range, 1);
 		DRW_shgroup_uniform_float(grp, "visibilityBlur", &pinfo->visibility_blur, 1);
@@ -431,7 +282,9 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
 	{
 		psl->probe_grid_fill = DRW_pass_create("LightProbe Grid Floodfill", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_grid_fill_sh, psl->probe_grid_fill);
+		DRWShadingGroup *grp = DRW_shgroup_create(
+		        EEVEE_shaders_probe_grid_fill_sh_get(), psl->probe_grid_fill);
+
 		DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &light_cache->grid_tx.tex);
 
 		struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
@@ -466,7 +319,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		float *col = ts.colorBackground;
 
 		/* LookDev */
-		EEVEE_lookdev_cache_init(vedata, &grp, e_data.probe_default_studiolight_sh, psl->probe_background, wo, pinfo);
+		EEVEE_lookdev_cache_init(vedata, &grp, psl->probe_background, wo, pinfo);
 		/* END */
 		if (!grp && wo) {
 			col = &wo->horr;
@@ -499,7 +352,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 		/* Fallback if shader fails or if not using nodetree. */
 		if (grp == NULL) {
-			grp = DRW_shgroup_create(e_data.probe_default_sh, psl->probe_background);
+			grp = DRW_shgroup_create(EEVEE_shaders_probe_default_sh_get(), psl->probe_background);
 			DRW_shgroup_uniform_vec3(grp, "color", col, 1);
 			DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(grp, geom, NULL);
@@ -513,8 +366,9 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		/* Cube Display */
 		if (scene_eval->eevee.flag & SCE_EEVEE_SHOW_CUBEMAPS && lcache->cube_len > 1) {
 			int cube_len = lcache->cube_len - 1; /* don't count the world. */
-			DRWShadingGroup *grp = DRW_shgroup_empty_tri_batch_create(e_data.probe_cube_display_sh,
-			                                                          psl->probe_display, cube_len * 2);
+			DRWShadingGroup *grp = DRW_shgroup_empty_tri_batch_create(
+			        EEVEE_shaders_probe_cube_display_sh_get(), psl->probe_display, cube_len * 2);
+
 			DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &lcache->cube_tx.tex);
 			DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 			DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -529,7 +383,9 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		if (scene_eval->eevee.flag & SCE_EEVEE_SHOW_IRRADIANCE) {
 			EEVEE_LightGrid *egrid = lcache->grid_data + 1;
 			for (int p = 1; p < lcache->grid_len; ++p, egrid++) {
-				DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.probe_grid_display_sh, psl->probe_display);
+				DRWShadingGroup *shgrp = DRW_shgroup_create(
+				        EEVEE_shaders_probe_grid_display_sh_get(), psl->probe_display);
+
 				DRW_shgroup_uniform_int(shgrp, "offset", &egrid->offset, 1);
 				DRW_shgroup_uniform_ivec3(shgrp, "grid_resolution", egrid->resolution, 1);
 				DRW_shgroup_uniform_vec3(shgrp, "corner", egrid->corner, 1);
@@ -556,7 +412,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		});
 
 		DRWShadingGroup *grp = DRW_shgroup_instance_create(
-		        e_data.probe_planar_display_sh,
+		        EEVEE_shaders_probe_planar_display_sh_get(),
 		        psl->probe_display,
 		        DRW_cache_quad_get(),
 		        e_data.format_probe_display_planar);
@@ -570,7 +426,9 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 	{
 		psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_planar_downsample_sh, psl->probe_planar_downsample_ps);
+		DRWShadingGroup *grp = DRW_shgroup_create(
+		        EEVEE_shaders_probe_planar_downsample_sh_get(), psl->probe_planar_downsample_ps);
+
 		DRW_shgroup_uniform_texture_ref(grp, "source", &txl->planar_pool);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
 		DRW_shgroup_call_instances_add(grp, DRW_cache_fullscreen_quad_get(), NULL, (uint *)&pinfo->num_planar);
@@ -1374,16 +1232,6 @@ void EEVEE_lightprobes_free(void)
 {
 	MEM_SAFE_FREE(e_data.format_probe_display_cube);
 	MEM_SAFE_FREE(e_data.format_probe_display_planar);
-	DRW_SHADER_FREE_SAFE(e_data.probe_default_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_default_studiolight_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_filter_glossy_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_filter_diffuse_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_filter_visibility_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_grid_fill_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_grid_display_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_planar_display_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_planar_downsample_sh);
-	DRW_SHADER_FREE_SAFE(e_data.probe_cube_display_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
 	DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);
 	DRW_TEXTURE_FREE_SAFE(e_data.depth_placeholder);

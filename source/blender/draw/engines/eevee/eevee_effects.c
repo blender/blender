@@ -52,9 +52,6 @@ static struct {
 	struct GPUShader *downsample_sh;
 	struct GPUShader *downsample_cube_sh;
 
-	/* Velocity Resolve */
-	struct GPUShader *velocity_resolve_sh;
-
 	/* Theses are just references, not actually allocated */
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
@@ -66,25 +63,15 @@ static struct {
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_effect_velocity_resolve_frag_glsl[];
 extern char datatoc_effect_minmaxz_frag_glsl[];
 extern char datatoc_effect_downsample_frag_glsl[];
 extern char datatoc_effect_downsample_cube_frag_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 
+
 static void eevee_create_shader_downsample(void)
 {
-	char *frag_str = BLI_string_joinN(
-	    datatoc_common_uniforms_lib_glsl,
-	    datatoc_common_view_lib_glsl,
-	    datatoc_bsdf_common_lib_glsl,
-	    datatoc_effect_velocity_resolve_frag_glsl);
-
-	e_data.velocity_resolve_sh = DRW_shader_create_fullscreen(frag_str, NULL);
-
-	MEM_freeN(frag_str);
-
 	e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
 	e_data.downsample_cube_sh = DRW_shader_create(
 	        datatoc_lightprobe_vert_glsl,
@@ -377,7 +364,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		/* This pass compute camera motions to the non moving objects. */
 		psl->velocity_resolve = DRW_pass_create(
 		        "Velocity Resolve", DRW_STATE_WRITE_COLOR);
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.velocity_resolve_sh, psl->velocity_resolve);
+		DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_velocity_resolve_sh_get(), psl->velocity_resolve);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_uniform_mat4(grp, "currPersinv", effects->velocity_curr_persinv);
@@ -576,8 +563,6 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
 void EEVEE_effects_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
-
 	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
 	DRW_SHADER_FREE_SAFE(e_data.downsample_cube_sh);
 

@@ -436,6 +436,7 @@ static void eevee_render_to_image(void *vedata, RenderEngine *engine, struct Ren
 
 static void eevee_engine_free(void)
 {
+	EEVEE_shaders_free();
 	EEVEE_bloom_free();
 	EEVEE_depth_of_field_free();
 	EEVEE_effects_free();
@@ -447,7 +448,6 @@ static void eevee_engine_free(void)
 	EEVEE_occlusion_free();
 	EEVEE_screen_raytrace_free();
 	EEVEE_subsurface_free();
-	EEVEE_temporal_sampling_free();
 	EEVEE_volumes_free();
 }
 

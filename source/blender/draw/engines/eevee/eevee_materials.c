@@ -969,7 +969,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		float *col = ts.colorBackground;
 
 		/* LookDev */
-		EEVEE_lookdev_cache_init(vedata, &grp, e_data.default_studiolight_background, psl->background_pass, wo, NULL);
+		EEVEE_lookdev_cache_init(vedata, &grp, psl->background_pass, wo, NULL);
 		/* END */
 
 		if (!grp && wo) {

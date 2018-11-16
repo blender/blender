@@ -40,32 +40,14 @@
 #define FILTER_CDF_TABLE_SIZE 512
 
 static struct {
-	/* Temporal Anti Aliasing */
-	struct GPUShader *taa_resolve_sh;
-	struct GPUShader *taa_resolve_reproject_sh;
-
 	/* Pixel filter table: Only blackman-harris for now. */
+	bool inited;
 	float inverted_cdf[FILTER_CDF_TABLE_SIZE];
-} e_data = {NULL}; /* Engine data */
+} e_data = {false}; /* Engine data */
 
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_effect_temporal_aa_glsl[];
-
-static void eevee_create_shader_temporal_sampling(void)
-{
-	char *frag_str = BLI_string_joinN(
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_common_view_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_effect_temporal_aa_glsl);
-
-	e_data.taa_resolve_sh = DRW_shader_create_fullscreen(frag_str, NULL);
-	e_data.taa_resolve_reproject_sh = DRW_shader_create_fullscreen(frag_str, "#define USE_REPROJECTION\n");
-
-	MEM_freeN(frag_str);
-}
 
 static float UNUSED_FUNCTION(filter_box)(float UNUSED(x))
 {
@@ -149,6 +131,7 @@ static void eevee_create_cdf_table_temporal_sampling(void)
 	}
 
 	MEM_freeN(cdf_table);
+	e_data.inited = true;
 }
 
 void EEVEE_temporal_sampling_matrices_calc(
@@ -187,8 +170,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	EEVEE_EffectsInfo *effects = stl->effects;
 	int repro_flag = 0;
 
-	if (!e_data.taa_resolve_sh) {
-		eevee_create_shader_temporal_sampling();
+	if (!e_data.inited) {
 		eevee_create_cdf_table_temporal_sampling();
 	}
 
@@ -290,9 +272,7 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data 
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	if ((effects->enabled_effects & (EFFECT_TAA | EFFECT_TAA_REPROJECT)) != 0) {
-		struct GPUShader *sh = (effects->enabled_effects & EFFECT_TAA_REPROJECT)
-		                        ? e_data.taa_resolve_reproject_sh
-		                        : e_data.taa_resolve_sh;
+		struct GPUShader *sh = EEVEE_shaders_taa_resolve_sh_get(effects->enabled_effects);
 
 		psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->taa_resolve);
@@ -377,10 +357,4 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			}
 		}
 	}
-}
-
-void EEVEE_temporal_sampling_free(void)
-{
-	DRW_SHADER_FREE_SAFE(e_data.taa_resolve_sh);
-	DRW_SHADER_FREE_SAFE(e_data.taa_resolve_reproject_sh);
 }
