@@ -198,7 +198,7 @@ static void bevel_mod_harden_normals(
 							const bool has_vgroup = dvert != NULL;
 							const bool vert_of_group = (
 							        has_vgroup &&
-							        (defvert_find_index(&dvert[BM_elem_index_get(l->v)], vgroup) != NULL));
+							        (defvert_find_index(&dvert[BM_elem_index_get(lfan_pivot->v)], vgroup) != NULL));
 
 							if (vert_of_group && hnmode == MOD_BEVEL_HN_FACE) {
 								float cur[3];
