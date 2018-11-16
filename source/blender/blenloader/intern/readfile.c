@@ -8912,12 +8912,6 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	/* read all data into fd->datamap */
 	bhead = read_data_into_oldnewmap(fd, bhead, "user def");
 
-	if (user->keymaps.first) {
-		/* backwards compatibility */
-		user->user_keymaps= user->keymaps;
-		user->keymaps.first= user->keymaps.last= NULL;
-	}
-
 	link_list(fd, &user->themes);
 	link_list(fd, &user->user_keymaps);
 	link_list(fd, &user->user_menus);

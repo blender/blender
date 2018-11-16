@@ -568,7 +568,6 @@ typedef struct UserDef {
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;
-	struct ListBase keymaps  DNA_DEPRECATED; /* deprecated in favor of user_keymaps */
 	struct ListBase user_keymaps;
 	struct ListBase addons;
 	struct ListBase autoexec_paths;
