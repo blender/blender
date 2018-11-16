@@ -148,6 +148,35 @@ bool schedule_non_checked_node(CyclesSolverState *state)
 	return false;
 }
 
+bool check_relation_can_murder(DepsRelation *relation)
+{
+	if (relation->flag & DEPSREL_FLAG_GODMODE) {
+		return false;
+	}
+	return true;
+}
+
+DepsRelation *select_relation_to_murder(DepsRelation *relation,
+                                        StackEntry *cycle_start_entry)
+{
+	/* More or less russian roulette solver, which will make sure only
+	 * specially marked relations are kept alive.
+	 *
+	 * TODO(sergey): There might be better strategies here. */
+	if (check_relation_can_murder(relation)) {
+		return relation;
+	}
+	StackEntry *current = cycle_start_entry;
+	OperationDepsNode *to_node = (OperationDepsNode *)relation->to;
+	while (current->node != to_node) {
+		if (check_relation_can_murder(current->via_relation)) {
+			return current->via_relation;
+		}
+		current = current->from;
+	}
+	return relation;
+}
+
 /* Solve cycles with all nodes which are scheduled for traversal. */
 void solve_cycles(CyclesSolverState *state)
 {
@@ -168,7 +197,6 @@ void solve_cycles(CyclesSolverState *state)
 					       to->full_identifier().c_str(),
 					       node->full_identifier().c_str(),
 					       rel->name);
-
 					StackEntry *current = entry;
 					while (current->node != to) {
 						BLI_assert(current != NULL);
@@ -178,8 +206,9 @@ void solve_cycles(CyclesSolverState *state)
 						       current->via_relation->name);
 						current = current->from;
 					}
-					/* TODO(sergey): So called russian roulette cycle solver. */
-					rel->flag |= DEPSREL_FLAG_CYCLIC;
+					DepsRelation *sacrificial_relation =
+					        select_relation_to_murder(rel, entry);
+					sacrificial_relation->flag |= DEPSREL_FLAG_CYCLIC;
 					++state->num_cycles;
 				}
 				else if (to_state == NODE_NOT_VISITED) {

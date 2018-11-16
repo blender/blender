@@ -385,6 +385,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	}
 	/* Links between operations for each bone. */
 	LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+		DepsRelation *relation;
 		OperationKey bone_local_key(&object->id,
 		                            DEG_NODE_TYPE_BONE,
 		                            pchan->name,
@@ -403,7 +404,9 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 		                           DEG_OPCODE_BONE_DONE);
 		pchan->flag &= ~POSE_DONE;
 		/* Pose init to bone local. */
-		add_relation(pose_init_key, bone_local_key, "Pose Init - Bone Local");
+		relation = add_relation(
+		        pose_init_key, bone_local_key, "Pose Init - Bone Local");
+		relation->flag |= DEPSREL_FLAG_GODMODE;
 		/* Local to pose parenting operation. */
 		add_relation(bone_local_key, bone_pose_key, "Bone Local - Bone Pose");
 		/* Parent relation. */

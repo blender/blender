@@ -254,10 +254,14 @@ static void deg_debug_graphviz_relation_color(const DebugContext &ctx,
                                               const DepsRelation *rel)
 {
 	const char *color_default = "black";
-	const char *color_error = "red4";
+	const char *color_cyclic = "red4";  /* The color of crime scene. */
+	const char *color_godmode = "blue4";  /* The color of beautiful sky. */
 	const char *color = color_default;
 	if (rel->flag & DEPSREL_FLAG_CYCLIC) {
-		color = color_error;
+		color = color_cyclic;
+	}
+	else if (rel->flag & DEPSREL_FLAG_GODMODE) {
+		color = color_godmode;
 	}
 	deg_debug_fprintf(ctx, "%s", color);
 }

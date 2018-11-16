@@ -2389,8 +2389,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 	/* XXX: This is a quick hack to make Alt-A to work. */
 	// add_relation(time_source_key, copy_on_write_key, "Fluxgate capacitor hack");
 	/* Resat of code is using rather low level trickery, so need to get some
-	 * explicit pointers.
-	 */
+	 * explicit pointers. */
 	DepsNode *node_cow = find_node(copy_on_write_key);
 	OperationDepsNode *op_cow = node_cow->get_exit_operation();
 	/* Plug any other components to this one. */
@@ -2404,7 +2403,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 			/* Component explicitly requests to not add relation. */
 			continue;
 		}
-		int rel_flag = DEPSREL_FLAG_NO_FLUSH;
+		int rel_flag = (DEPSREL_FLAG_NO_FLUSH | DEPSREL_FLAG_GODMODE);
 		if (id_type == ID_ME && comp_node->type == DEG_NODE_TYPE_GEOMETRY) {
 			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
 		}
@@ -2412,7 +2411,6 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		if (id_type == ID_MA) {
 			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
 		}
-
 		/* Notes on exceptions:
 		 * - Parameters component is where drivers are living. Changing any
 		 *   of the (custom) properties in the original datablock (even the
@@ -2493,7 +2491,9 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 			OperationKey data_copy_on_write_key(object_data_id,
 			                                    DEG_NODE_TYPE_COPY_ON_WRITE,
 			                                    DEG_OPCODE_COPY_ON_WRITE);
-			add_relation(data_copy_on_write_key, copy_on_write_key, "Eval Order");
+			DepsRelation *rel = add_relation(
+			        data_copy_on_write_key, copy_on_write_key, "Eval Order");
+			rel->flag |= DEPSREL_FLAG_GODMODE;
 		}
 		else {
 			BLI_assert(object->type == OB_EMPTY);

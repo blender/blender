@@ -79,6 +79,8 @@ typedef enum eDepsRelation_Flag {
 	/* Only flush along the relation is update comes from a node which was
 	 * affected by user input. */
 	DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY = (1 << 2),
+	/* The relation can not be killed by the cyclic dependencies solver. */
+	DEPSREL_FLAG_GODMODE              = (1 << 3),
 } eDepsRelation_Flag;
 
 /* B depends on A (A -> B) */
