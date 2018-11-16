@@ -237,12 +237,11 @@ vec3 get_hit_vector(
 	}
 	else {
 		/* Find hit position in previous frame. */
-		mask = screen_border_mask(gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0)));
 		hit_co = get_reprojected_reflection(hit_pos, worldPosition, N);
 		hit_vec = hit_pos - worldPosition;
 	}
 
-	mask = min(mask, screen_border_mask(hit_co));
+	mask = screen_border_mask(hit_co);
 	return hit_vec;
 }
 
