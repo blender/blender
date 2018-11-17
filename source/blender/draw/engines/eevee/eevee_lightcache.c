@@ -940,8 +940,9 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 	EEVEE_lightbake_render_scene(sldata, vedata, lbake->rt_fb, eprobe->position, prb->clipsta, prb->clipend);
-	EEVEE_lightbake_filter_glossy(sldata, vedata, lbake->rt_color, lbake->store_fb, lbake->cube_offset,prb->intensity,
-	                              lcache->mips_len, filter_quality, clamp);
+	EEVEE_lightbake_filter_glossy(
+	        sldata, vedata, lbake->rt_color, lbake->store_fb, lbake->cube_offset, prb->intensity,
+	        lcache->mips_len, filter_quality, clamp);
 
 	lcache->cube_len += 1;
 

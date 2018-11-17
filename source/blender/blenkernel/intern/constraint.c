@@ -5107,7 +5107,7 @@ bConstraint *BKE_constraint_find_from_target(Object *ob, bConstraintTarget *tgt,
 /* Finds the original copy of the constraint based on a COW copy. */
 static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob)
 {
-	Object *orig_ob = (Object*)DEG_get_original_id((ID*)ob);
+	Object *orig_ob = (Object *)DEG_get_original_id(&ob->id);
 
 	if (ELEM(orig_ob, NULL, ob)) {
 		return NULL;
@@ -5139,7 +5139,7 @@ static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bC
 	int index = BLI_findindex(constraints, con);
 
 	if (index >= 0) {
-		bConstraint *orig_con = (bConstraint*)BLI_findlink(orig_constraints, index);
+		bConstraint *orig_con = BLI_findlink(orig_constraints, index);
 
 		/* Verify it has correct type and name. */
 		if (orig_con && orig_con->type == con->type && STREQ(orig_con->name, con->name)) {
@@ -5251,7 +5251,7 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph, Scene *scene,
 		cti->get_constraint_targets(con, &targets);
 
 		/* only calculate the target matrix on the first target */
-		ct = (bConstraintTarget *)BLI_findlink(&targets, index);
+		ct = BLI_findlink(&targets, index);
 
 		if (ct) {
 			if (cti->get_target_matrix)

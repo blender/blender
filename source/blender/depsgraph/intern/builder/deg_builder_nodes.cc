@@ -507,7 +507,7 @@ void DepsgraphNodeBuilder::build_collection(
 		id_node = find_id_node(&collection->id);
 		if (is_collection_visible &&
 		    id_node->is_directly_visible == false &&
-			id_node->is_collection_fully_expanded == true)
+		    id_node->is_collection_fully_expanded == true)
 		{
 			/* Collection became visible, make sure nested collections and
 			 * objects are poked with the new visibility flag, since they
