@@ -141,26 +141,16 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 	col_to.a = col_from.a;
 }
 
-void color_to_normal(vec3 color, out vec3 normal)
-{
-	normal.x =  2.0 * ((color.r) - 0.5);
-	normal.y = -2.0 * ((color.g) - 0.5);
-	normal.z =  2.0 * ((color.b) - 0.5);
-}
-
 void color_to_normal_new_shading(vec3 color, out vec3 normal)
 {
-	normal.x =  2.0 * ((color.r) - 0.5);
-	normal.y =  2.0 * ((color.g) - 0.5);
-	normal.z =  2.0 * ((color.b) - 0.5);
+	normal = vec3(2.0) * color - vec3(1.0);
 }
 
 void color_to_blender_normal_new_shading(vec3 color, out vec3 normal)
 {
-	normal.x =  2.0 * ((color.r) - 0.5);
-	normal.y = -2.0 * ((color.g) - 0.5);
-	normal.z = -2.0 * ((color.b) - 0.5);
+	normal = vec3(2.0, -2.0, -2.0) * color - vec3(1.0);
 }
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
