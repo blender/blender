@@ -69,6 +69,26 @@ static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 	float *array, layer;
 	int size;
 
+	/* Common / easy case optimisation. */
+	if ((coba->tot <= 2) && (coba->color_mode == COLBAND_BLEND_RGB)) {
+		float mul_bias[2];
+		switch (coba->ipotype) {
+			case COLBAND_INTERP_LINEAR:
+				mul_bias[0] = 1.0f / (coba->data[1].pos - coba->data[0].pos);
+				mul_bias[1] = -mul_bias[0] * coba->data[0].pos;
+				return GPU_stack_link(mat, node, "valtorgb_opti_linear", in, out, GPU_uniform(mul_bias),
+				                                                                  GPU_uniform(&coba->data[0].r),
+				                                                                  GPU_uniform(&coba->data[1].r));
+			case COLBAND_INTERP_CONSTANT:
+				mul_bias[1] = max_ff(coba->data[0].pos, coba->data[1].pos);
+				return GPU_stack_link(mat, node, "valtorgb_opti_constant", in, out, GPU_uniform(&mul_bias[1]),
+				                                                                    GPU_uniform(&coba->data[0].r),
+				                                                                    GPU_uniform(&coba->data[1].r));
+			default:
+				break;
+		}
+	}
+
 	BKE_colorband_evaluate_table_rgba(coba, &array, &size);
 	GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
