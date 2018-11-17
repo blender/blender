@@ -271,10 +271,13 @@ GPUShader *EEVEE_shaders_velocity_resolve_sh_get(void)
 GPUShader *EEVEE_shaders_taa_resolve_sh_get(EEVEE_EffectsFlag enabled_effects)
 {
 	GPUShader **sh;
-	char *define = NULL;
+	const char *define = NULL;
 	if (enabled_effects & EFFECT_TAA_REPROJECT) {
 		sh = &e_data.taa_resolve_reproject_sh;
 		define = "#define USE_REPROJECTION\n";
+
+
+
 	}
 	else {
 		sh = &e_data.taa_resolve_sh;
