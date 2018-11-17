@@ -103,6 +103,7 @@ extern GlobalsUboStorage ts;
 
 void EEVEE_shaders_lightprobe_shaders_init(void)
 {
+	BLI_assert(e_data.probe_filter_glossy_sh == NULL);
 	char *shader_str = NULL;
 
 	shader_str = BLI_string_joinN(
@@ -269,23 +270,27 @@ GPUShader *EEVEE_shaders_velocity_resolve_sh_get(void)
 
 GPUShader *EEVEE_shaders_taa_resolve_sh_get(EEVEE_EffectsFlag enabled_effects)
 {
-	GPUShader *sh = NULL;
-	char *frag_str = BLI_string_joinN(
-	        datatoc_common_uniforms_lib_glsl,
-	        datatoc_common_view_lib_glsl,
-	        datatoc_bsdf_common_lib_glsl,
-	        datatoc_effect_temporal_aa_glsl);
-
+	GPUShader **sh;
+	char *define = NULL;
 	if (enabled_effects & EFFECT_TAA_REPROJECT) {
-		sh = e_data.taa_resolve_reproject_sh = DRW_shader_create_fullscreen(frag_str, "#define USE_REPROJECTION\n");
+		sh = &e_data.taa_resolve_reproject_sh;
+		define = "#define USE_REPROJECTION\n";
 	}
 	else {
-		sh = e_data.taa_resolve_sh = DRW_shader_create_fullscreen(frag_str, NULL);
+		sh = &e_data.taa_resolve_sh;
+	}
+	if (*sh == NULL) {
+		char *frag_str = BLI_string_joinN(
+		        datatoc_common_uniforms_lib_glsl,
+		        datatoc_common_view_lib_glsl,
+		        datatoc_bsdf_common_lib_glsl,
+		        datatoc_effect_temporal_aa_glsl);
+
+		*sh = DRW_shader_create_fullscreen(frag_str, define);
+		MEM_freeN(frag_str);
 	}
 
-	MEM_freeN(frag_str);
-
-	return sh;
+	return *sh;
 }
 
 void EEVEE_shaders_free(void)
