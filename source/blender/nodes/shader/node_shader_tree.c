@@ -65,6 +65,10 @@
 #include "node_util.h"
 #include "node_shader_util.h"
 
+
+static void ntree_shader_tag_ssr_node(bNodeTree *ntree, bNode *output_node);
+static void ntree_shader_tag_sss_node(bNodeTree *ntree, bNode *output_node);
+
 static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -251,6 +255,30 @@ bNode *ntreeShaderOutputNode(bNodeTree *ntree, int target)
 			{
 				output_node = node;
 			}
+		}
+	}
+
+	return output_node;
+}
+
+/* Find the active output node of a group nodetree.
+ *
+ * Does not return the shading output node but the group output node.
+ */
+static bNode *ntree_group_output_node(bNodeTree *ntree)
+{
+	/* Make sure we only have single node tagged as output. */
+	ntreeSetOutput(ntree);
+
+	/* Find output node that matches type and target. If there are
+	 * multiple, we prefer exact target match and active nodes. */
+	bNode *output_node = NULL;
+
+	for (bNode *node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == NODE_GROUP_OUTPUT &&
+			node->flag & NODE_DO_OUTPUT)
+		{
+			output_node = node;
 		}
 	}
 
@@ -608,6 +636,16 @@ static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_nod
 static bool ntree_tag_ssr_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *userdata, const bool UNUSED(reversed))
 {
 	switch (fromnode->type) {
+		case NODE_GROUP:
+			/* Recursive */
+			if (fromnode->id != NULL) {
+				bNodeTree *ntree = (bNodeTree *)fromnode->id;
+				bNode *group_output = ntree_group_output_node(ntree);
+				if (fromnode) {
+					ntree_shader_tag_ssr_node(ntree, group_output);
+				}
+			}
+			break;
 		case SH_NODE_BSDF_ANISOTROPIC:
 		case SH_NODE_EEVEE_SPECULAR:
 		case SH_NODE_BSDF_PRINCIPLED:
@@ -629,7 +667,7 @@ static bool ntree_tag_ssr_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
 /* EEVEE: Scan the ntree to set the Screen Space Reflection
  * layer id of every specular node.
  */
-static void ntree_shader_tag_ssr_node(bNodeTree *ntree, bNode *output_node)
+void ntree_shader_tag_ssr_node(bNodeTree *ntree, bNode *output_node)
 {
 	if (output_node == NULL) {
 		return;
@@ -644,6 +682,16 @@ static void ntree_shader_tag_ssr_node(bNodeTree *ntree, bNode *output_node)
 static bool ntree_tag_sss_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *userdata, const bool UNUSED(reversed))
 {
 	switch (fromnode->type) {
+		case NODE_GROUP:
+			/* Recursive */
+			if (fromnode->id != NULL) {
+				bNodeTree *ntree = (bNodeTree *)fromnode->id;
+				bNode *group_output = ntree_group_output_node(ntree);
+				if (fromnode) {
+					ntree_shader_tag_sss_node(ntree, group_output);
+				}
+			}
+			break;
 		case SH_NODE_BSDF_PRINCIPLED:
 		case SH_NODE_SUBSURFACE_SCATTERING:
 			fromnode->sss_id = (*(float *)userdata);
@@ -658,7 +706,7 @@ static bool ntree_tag_sss_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
 
 /* EEVEE: Scan the ntree to set the Subsurface Scattering id of every SSS node.
  */
-static void ntree_shader_tag_sss_node(bNodeTree *ntree, bNode *output_node)
+void ntree_shader_tag_sss_node(bNodeTree *ntree, bNode *output_node)
 {
 	if (output_node == NULL) {
 		return;
