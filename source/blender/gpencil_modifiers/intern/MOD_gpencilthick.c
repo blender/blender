@@ -53,7 +53,7 @@ static void initData(GpencilModifierData *md)
 {
 	ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
 	gpmd->pass_index = 0;
-	gpmd->thickness = 0;
+	gpmd->thickness = 2;
 	gpmd->layername[0] = '\0';
 	gpmd->vgname[0] = '\0';
 	gpmd->curve_thickness = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
