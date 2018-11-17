@@ -565,34 +565,34 @@ static StructRNA *rna_AddonPref_register(
         Main *bmain, ReportList *reports, void *data, const char *identifier,
         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
-	bAddonPrefType *apt, dummyapt = {{'\0'}};
-	bAddon dummyaddon = {NULL};
-	PointerRNA dummyhtr;
+	bAddonPrefType *apt, dummy_apt = {{'\0'}};
+	bAddon dummy_addon = {NULL};
+	PointerRNA dummy_ptr;
 	// int have_function[1];
 
-	/* setup dummy header & header type to store static properties in */
-	RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummyaddon, &dummyhtr);
+	/* setup dummy addon-pref & addon-pref type to store static properties in */
+	RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummy_addon, &dummy_ptr);
 
 	/* validate the python class */
-	if (validate(&dummyhtr, data, NULL /* have_function */ ) != 0)
+	if (validate(&dummy_ptr, data, NULL /* have_function */ ) != 0)
 		return NULL;
 
-	BLI_strncpy(dummyapt.idname, dummyaddon.module, sizeof(dummyapt.idname));
-	if (strlen(identifier) >= sizeof(dummyapt.idname)) {
+	BLI_strncpy(dummy_apt.idname, dummy_addon.module, sizeof(dummy_apt.idname));
+	if (strlen(identifier) >= sizeof(dummy_apt.idname)) {
 		BKE_reportf(reports, RPT_ERROR, "Registering add-on preferences class: '%s' is too long, maximum length is %d",
-		            identifier, (int)sizeof(dummyapt.idname));
+		            identifier, (int)sizeof(dummy_apt.idname));
 		return NULL;
 	}
 
-	/* check if we have registered this header type before, and remove it */
-	apt = BKE_addon_pref_type_find(dummyaddon.module, true);
+	/* check if we have registered this addon-pref type before, and remove it */
+	apt = BKE_addon_pref_type_find(dummy_addon.module, true);
 	if (apt && apt->ext.srna) {
 		rna_AddonPref_unregister(bmain, apt->ext.srna);
 	}
 
-	/* create a new header type */
+	/* create a new addon-pref type */
 	apt = MEM_mallocN(sizeof(bAddonPrefType), "addonpreftype");
-	memcpy(apt, &dummyapt, sizeof(dummyapt));
+	memcpy(apt, &dummy_apt, sizeof(dummy_apt));
 	BKE_addon_pref_type_add(apt);
 
 	apt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_AddonPreferences);
