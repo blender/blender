@@ -1025,6 +1025,15 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
 	out[2] = (short) (in[2] * 32767.0f);
 }
 
+MINLINE void normal_float_to_short_v4(short out[4], const float in[4])
+{
+	out[0] = (short) (in[0] * 32767.0f);
+	out[1] = (short) (in[1] * 32767.0f);
+	out[2] = (short) (in[2] * 32767.0f);
+	out[3] = (short) (in[3] * 32767.0f);
+}
+
+
 /********************************* Comparison ********************************/
 
 
