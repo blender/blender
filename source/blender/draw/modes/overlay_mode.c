@@ -232,11 +232,12 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	View3D *v3d = draw_ctx->v3d;
 
-	if (!stl->g_data->show_overlays)
+	if ((!stl->g_data->show_overlays) ||
+		(ob->dt < OB_WIRE) ||
+		(!DRW_object_is_renderable(ob) && (ob->dt != OB_WIRE)))
+	{
 		return;
-
-	if (!DRW_object_is_renderable(ob) && (ob->dt != OB_WIRE))
-		return;
+	}
 
 	if (DRW_object_is_renderable(ob) && stl->g_data->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
 		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
