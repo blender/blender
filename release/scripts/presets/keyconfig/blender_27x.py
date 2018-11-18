@@ -14,7 +14,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
     bl_idname = idname
 
     select_mouse: EnumProperty(
-        name="Spacebar",
+        name="Select Mouse",
         items=(
             ('LEFT', "Left", "Use left Mouse Button for selection"),
             ('RIGHT', "Right", "Use Right Mouse Button for selection"),
