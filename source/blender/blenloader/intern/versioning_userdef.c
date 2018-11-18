@@ -36,7 +36,9 @@
 
 #include "BKE_addon.h"
 #include "BKE_colorband.h"
+#include "BKE_idprop.h"
 #include "BKE_main.h"
+#include "BKE_keyconfig.h"
 
 #include "BLO_readfile.h"  /* Own include. */
 
@@ -93,6 +95,9 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 
 #undef USER_VERSION_ATLEAST
 }
+
+/* UserDef.flag */
+#define USER_LMOUSESELECT (1 << 14)  /* deprecated */
 
 static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
 {
@@ -393,6 +398,14 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		}
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 32)) {
+		if ((userdef->flag & USER_LMOUSESELECT) ) {
+			userdef->flag &= ~USER_LMOUSESELECT;
+			wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, "blender");
+			IDP_AddToGroup(kpt->prop, IDP_New(IDP_INT, &(IDPropertyTemplate){ .i = 0, }, "select_mouse"));
+		}
+	}
+
 	/**
 	 * Include next version bump.
 	 */
@@ -415,3 +428,5 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 #undef USER_VERSION_ATLEAST
 
 }
+
+#undef USER_LMOUSESELECT

@@ -8941,7 +8941,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 			direct_link_keymapitem(fd, kmi);
 	}
 
-	for (wmKeyConfigPrefType *kpt = user->user_keyconfig_prefs.first; kpt; kpt = kpt->next) {
+	for (wmKeyConfigPref *kpt = user->user_keyconfig_prefs.first; kpt; kpt = kpt->next) {
 		kpt->prop = newdataadr(fd, kpt->prop);
 		IDP_DirectLinkGroup_OrFree(&kpt->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}

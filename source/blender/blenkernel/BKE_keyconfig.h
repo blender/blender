@@ -26,7 +26,10 @@
 
 /** Based on #BKE_addon_pref_type_init and friends */
 
-/** Actual data is stored in #wmKeyConfigPrefType. */
+struct UserDef;
+struct wmKeyConfigPref;
+
+/** Actual data is stored in #wmKeyConfigPref. */
 #if defined(__RNA_TYPES_H__)
 typedef struct wmKeyConfigPrefType_Runtime {
 	char idname[64];
@@ -39,7 +42,10 @@ typedef struct wmKeyConfigPrefType_Runtime {
 typedef struct wmKeyConfigPrefType_Runtime wmKeyConfigPrefType_Runtime;
 #endif
 
-/* KeyConfig preferenes. */
+/* KeyConfig preferenes (UserDef). */
+struct wmKeyConfigPref *BKE_keyconfig_pref_ensure(struct UserDef *userdef, const char *kc_idname);
+
+/* KeyConfig preferenes (RNA). */
 struct wmKeyConfigPrefType_Runtime *BKE_keyconfig_pref_type_find(const char *idname, bool quiet);
 void BKE_keyconfig_pref_type_add(struct wmKeyConfigPrefType_Runtime *kpt_rt);
 void BKE_keyconfig_pref_type_remove(const struct wmKeyConfigPrefType_Runtime *kpt_rt);

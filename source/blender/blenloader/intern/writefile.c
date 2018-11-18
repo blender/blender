@@ -1248,8 +1248,8 @@ static void write_userdef(WriteData *wd, const UserDef *userdef)
 		}
 	}
 
-	for (const wmKeyConfigPrefType *kpt = userdef->user_keyconfig_prefs.first; kpt; kpt = kpt->next) {
-		writestruct(wd, DATA, wmKeyConfigPrefType, 1, kpt);
+	for (const wmKeyConfigPref *kpt = userdef->user_keyconfig_prefs.first; kpt; kpt = kpt->next) {
+		writestruct(wd, DATA, wmKeyConfigPref, 1, kpt);
 		if (kpt->prop) {
 			IDP_WriteProperty(kpt->prop, wd);
 		}

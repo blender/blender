@@ -693,9 +693,16 @@ wmKeyMap *WM_gizmogroup_keymap_common_select(
 {
 	/* Use area and region id since we might have multiple gizmos with the same name in different areas/regions */
 	wmKeyMap *km = WM_keymap_ensure(config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
+	/* FIXME(campbell) */
+#if 0
 	const int select_mouse = (U.flag & USER_LMOUSESELECT) ? LEFTMOUSE : RIGHTMOUSE;
 	const int select_tweak = (U.flag & USER_LMOUSESELECT) ? EVT_TWEAK_L : EVT_TWEAK_R;
 	const int action_mouse = (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
+#else
+	const int select_mouse = RIGHTMOUSE;
+	const int select_tweak = EVT_TWEAK_R;
+	const int action_mouse = LEFTMOUSE;
+#endif
 
 	WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", action_mouse, KM_PRESS, KM_ANY, 0);
 	WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", select_tweak, KM_ANY, 0, 0);

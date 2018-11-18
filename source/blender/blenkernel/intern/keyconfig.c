@@ -29,15 +29,45 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_keyconfig.h"  /* own include */
+#include "BKE_idprop.h"
 
 #include "MEM_guardedalloc.h"
 
+
 /* -------------------------------------------------------------------- */
-/** \name Key-Config Preference API
+/** \name Key-Config Preference (UserDef) API
+ *
+ * \see #BKE_addon_pref_type_init for logic this is bases on.
+ * \{ */
+
+wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idname)
+{
+	wmKeyConfigPref *kpt = BLI_findstring(
+	        &userdef->user_keyconfig_prefs, kc_idname, offsetof(wmKeyConfigPref, idname));
+	if (kpt == NULL) {
+		kpt = MEM_callocN(sizeof(*kpt), __func__);
+		STRNCPY(kpt->idname, kc_idname);
+		BLI_addtail(&userdef->user_keyconfig_prefs, kpt);
+	}
+	if (kpt->prop == NULL) {
+		IDPropertyTemplate val = {0};
+		kpt->prop = IDP_New(IDP_GROUP, &val, kc_idname); /* name is unimportant  */
+	}
+	return kpt;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Key-Config Preference (RNA Type) API
  *
  * \see #BKE_addon_pref_type_init for logic this is bases on.
  * \{ */

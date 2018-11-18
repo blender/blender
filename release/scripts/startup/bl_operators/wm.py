@@ -2591,12 +2591,17 @@ class WM_MT_splash(Menu):
             text = "Blender"
         sub.menu("USERPREF_MT_keyconfigs", text=text)
 
-        if wm.keyconfigs.active.has_select_mouse:
+        kc = wm.keyconfigs.active
+        kc_prefs = kc.preferences
+        has_select_mouse = hasattr(kc_prefs, "select_mouse")
+        if has_select_mouse:
             sub = col.split(factor=0.35)
             row = sub.row()
             row.alignment = 'RIGHT'
             row.label(text="Select With")
-            sub.row().prop(userpref.inputs, 'select_mouse', expand=True)
+            sub.row().prop(kc_prefs, 'select_mouse', expand=True)
+            has_select_mouse = True
+
 
         col.separator()
 
@@ -2618,7 +2623,7 @@ class WM_MT_splash(Menu):
         #sub.prop(userpref.system, "language", text="")
 
         # Keep height constant
-        if not wm.keyconfigs.active.has_select_mouse:
+        if not has_select_mouse:
             col.label()
 
         layout.label()

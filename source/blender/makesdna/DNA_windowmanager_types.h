@@ -352,14 +352,14 @@ enum {
  * This is similar to addon-preferences,
  * however unlike add-ons key-config's aren't saved to disk.
  *
- * #wmKeyConfigPrefType is written to DNA,
+ * #wmKeyConfigPref is written to DNA,
  * #wmKeyConfigPrefType_Runtime has the RNA type.
  */
-typedef struct wmKeyConfigPrefType {
-	struct wmKeyConfigPrefType *next, *prev;
+typedef struct wmKeyConfigPref {
+	struct wmKeyConfigPref *next, *prev;
 	char idname[64];    /* unique name */
 	IDProperty *prop;
-} wmKeyConfigPrefType;
+} wmKeyConfigPref;
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;
@@ -370,10 +370,7 @@ typedef struct wmKeyConfig {
 	ListBase keymaps;
 	int actkeymap;
 	short flag;
-
-	/* Supports select mouse switching? */
-	char has_select_mouse;  /* may remove in favor of custom properties. */
-	char _pad0;
+	char _pad0[2];
 } wmKeyConfig;
 
 /* wmKeyConfig.flag */

@@ -996,17 +996,7 @@ static PointerRNA rna_wmKeyConfig_preferences_get(PointerRNA *ptr)
 	wmKeyConfig *kc = ptr->data;
 	wmKeyConfigPrefType_Runtime *kpt_rt = BKE_keyconfig_pref_type_find(kc->idname, true);
 	if (kpt_rt) {
-		wmKeyConfigPrefType *kpt = BLI_findstring(
-		        &U.user_keyconfig_prefs, kc->idname, offsetof(wmKeyConfigPrefType, idname));
-		if (kpt == NULL) {
-			kpt = MEM_callocN(sizeof(*kpt), __func__);
-			STRNCPY(kpt->idname, kc->idname);
-			BLI_addtail(&U.user_keyconfig_prefs, kpt);
-		}
-		if (kpt->prop == NULL) {
-			IDPropertyTemplate val = {0};
-			kpt->prop = IDP_New(IDP_GROUP, &val, kc->idname); /* name is unimportant  */
-		}
+		wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(&U, kc->idname);
 		return rna_pointer_inherit_refine(ptr, kpt_rt->ext.srna, kpt->prop);
 	}
 	else {
@@ -1045,7 +1035,7 @@ static StructRNA *rna_wmKeyConfigPref_register(
         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	wmKeyConfigPrefType_Runtime *kpt_rt, dummy_kpt_rt = {{'\0'}};
-	wmKeyConfigPrefType dummy_kpt = {NULL};
+	wmKeyConfigPref dummy_kpt = {NULL};
 	PointerRNA dummy_ptr;
 	// int have_function[1];
 
@@ -2317,7 +2307,7 @@ static void rna_def_keyconfig_prefs(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "KeyConfigPreferences", NULL);
 	RNA_def_struct_ui_text(srna, "Key-Config Preferences", "");
-	RNA_def_struct_sdna(srna, "wmKeyConfigPrefType");  /* WARNING: only a bAddon during registration */
+	RNA_def_struct_sdna(srna, "wmKeyConfigPref");  /* WARNING: only a bAddon during registration */
 
 	RNA_def_struct_refine_func(srna, "rna_wmKeyConfigPref_refine");
 	RNA_def_struct_register_funcs(srna, "rna_wmKeyConfigPref_register", "rna_wmKeyConfigPref_unregister", NULL);
@@ -2366,10 +2356,6 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user");
-
-	prop = RNA_def_property(srna, "has_select_mouse", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "has_select_mouse", 1);
-	RNA_def_property_ui_text(prop, "Has Select Mouse", "Configuration supports select mouse switching");
 
 	/* Collection active property */
 	prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);

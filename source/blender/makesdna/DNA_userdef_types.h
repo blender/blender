@@ -569,7 +569,7 @@ typedef struct UserDef {
 	struct ListBase uifonts;
 	struct ListBase uistyles;
 	struct ListBase user_keymaps;
-	struct ListBase user_keyconfig_prefs; /* wmKeyConfigPrefType. */
+	struct ListBase user_keyconfig_prefs; /* wmKeyConfigPref. */
 	struct ListBase addons;
 	struct ListBase autoexec_paths;
 	struct ListBase user_menus; /* bUserMenu */
@@ -700,7 +700,7 @@ typedef enum eUserPref_Flag {
 	USER_TOOLTIPS			= (1 << 11),
 	USER_TWOBUTTONMOUSE		= (1 << 12),
 	USER_NONUMPAD			= (1 << 13),
-	USER_LMOUSESELECT		= (1 << 14),
+	USER_FLAG_DEPRECATED_14	= (1 << 14),  /* cleared */
 	USER_FILECOMPRESS		= (1 << 15),
 	USER_SAVE_PREVIEWS		= (1 << 16),
 	USER_CUSTOM_RANGE		= (1 << 17),

@@ -210,23 +210,6 @@ static void rna_userdef_undo_steps_set(PointerRNA *ptr, int value)
 	userdef->undosteps = (value == 1) ? 2 : value;
 }
 
-static void rna_userdef_select_mouse_set(PointerRNA *ptr, int value)
-{
-	UserDef *userdef = (UserDef *)ptr->data;
-
-	if (value) {
-		userdef->flag |= USER_LMOUSESELECT;
-		userdef->flag &= ~USER_TWOBUTTONMOUSE;
-	}
-	else
-		userdef->flag &= ~USER_LMOUSESELECT;
-}
-
-static void rna_userdef_select_mouse_update(bContext *C, Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
-{
-	WM_keyconfig_reload(C);
-}
-
 static int rna_userdef_autokeymode_get(PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -4500,12 +4483,6 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	PropertyRNA *prop;
 	StructRNA *srna;
 
-	static const EnumPropertyItem select_mouse_items[] = {
-		{USER_LMOUSESELECT, "LEFT", 0, "Left", "Use left Mouse Button for selection"},
-		{0, "RIGHT", 0, "Right", "Use Right Mouse Button for selection"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static const EnumPropertyItem view_rotation_items[] = {
 		{0, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport"},
 		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
@@ -4545,14 +4522,6 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Input", "Settings for input devices");
-
-	prop = RNA_def_property(srna, "select_mouse", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, select_mouse_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_select_mouse_set", NULL);
-	RNA_def_property_ui_text(prop, "Select Mouse", "Mouse button used for selection");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_userdef_select_mouse_update");
 
 	prop = RNA_def_property(srna, "view_zoom_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "viewzoom");

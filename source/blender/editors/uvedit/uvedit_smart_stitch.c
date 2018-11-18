@@ -2549,18 +2549,6 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			return OPERATOR_CANCELLED;
 
 		case LEFTMOUSE:
-			if (event->shift && (U.flag & USER_LMOUSESELECT)) {
-				if (event->val == KM_PRESS) {
-					StitchState *selected_state = stitch_select(C, scene, event, ssc);
-
-					if (selected_state && !stitch_process_data(ssc, selected_state, scene, false)) {
-						stitch_cancel(C, op);
-						return OPERATOR_CANCELLED;
-					}
-				}
-				break;
-			}
-			ATTR_FALLTHROUGH;
 		case PADENTER:
 		case RETKEY:
 			if (event->val == KM_PRESS) {
@@ -2658,7 +2646,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				stitch_cancel(C, op);
 				return OPERATOR_CANCELLED;
 			}
-			if (event->val == KM_PRESS && !(U.flag & USER_LMOUSESELECT)) {
+			if (event->val == KM_PRESS) {
 				StitchState *selected_state = stitch_select(C, scene, event, ssc);
 
 				if (selected_state && !stitch_process_data(ssc, selected_state, scene, false)) {

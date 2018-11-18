@@ -1103,11 +1103,6 @@ class USERPREF_PT_input(Panel):
         sub.prop(inputs, "drag_threshold")
         sub.prop(inputs, "tweak_threshold")
 
-        wm = bpy.context.window_manager
-        if wm.keyconfigs.active.has_select_mouse:
-            sub.label(text="Select With:")
-            sub.row().prop(inputs, "select_mouse", expand=True)
-
         sub = layout.column()
         sub.label(text="Double Click:")
         sub.prop(inputs, "mouse_double_click_time", text="Speed")

@@ -5,8 +5,6 @@ from bpy.props import (
     EnumProperty,
 )
 
-userpref = bpy.context.user_preferences
-
 idname = os.path.splitext(os.path.basename(__file__))[0]
 
 def update(_self, _context):
@@ -16,6 +14,18 @@ def update(_self, _context):
 class Prefs(bpy.types.KeyConfigPreferences):
     bl_idname = idname
 
+    select_mouse: EnumProperty(
+        name="Spacebar",
+        items=(
+            ('LEFT', "Left", "Use left Mouse Button for selection"),
+            ('RIGHT', "Right", "Use Right Mouse Button for selection"),
+        ),
+        description=(
+            "Mouse button used for selection"
+        ),
+        default='RIGHT',
+        update=update,
+    )
     spacebar_action: EnumProperty(
         name="Spacebar",
         items=(
@@ -46,8 +56,13 @@ class Prefs(bpy.types.KeyConfigPreferences):
 
     def draw(self, layout):
         col = layout.column(align=True)
+        col.label(text="Select With:")
+        col.row().prop(self, "select_mouse", expand=True)
+
+        col = layout.column(align=True)
         col.label(text="Spacebar Action:")
         col.row().prop(self, "spacebar_action", expand=True)
+
         layout.prop(self, "use_select_all_toggle")
 
 
@@ -64,13 +79,12 @@ def _load():
 
     keyconfig_data = mod.generate_keymaps(
         mod.KeymapParams(
-            select_mouse=userpref.inputs.select_mouse,
+            select_mouse=kc_prefs.select_mouse,
             spacebar_action=kc_prefs.spacebar_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
         ),
     )
     keyconfig_init_from_data(kc, keyconfig_data)
-    kc.has_select_mouse = True  # Support switching select mouse
 
 
 if __name__ == "__main__":
