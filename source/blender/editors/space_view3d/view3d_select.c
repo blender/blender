@@ -2368,6 +2368,7 @@ static int opengl_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_
 
 static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
 {
+	bool changed = false;
 	int totobj = MAXPICKBUF; /* XXX solve later */
 
 	/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
@@ -2386,27 +2387,30 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 	Base **bases = NULL;
 	BLI_array_declare(bases);
 
-	/* The draw order doesn't always match the order we populate the engine, see: T51695. */
-	if (hits > 0) {
-		qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		object_deselect_all_visible(vc->view_layer);
+		changed = true;
+	}
 
-		for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
-			if (BASE_SELECTABLE(base)) {
-				if ((base->object->select_color & 0x0000FFFF) != 0) {
-					BLI_array_append(bases, base);
-				}
+	if ((hits == -1) && !SEL_OP_USE_OUTSIDE(sel_op)) {
+		goto finally;
+	}
+
+	for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
+		if (BASE_SELECTABLE(base)) {
+			if ((base->object->select_color & 0x0000FFFF) != 0) {
+				BLI_array_append(bases, base);
 			}
 		}
 	}
+
+	/* The draw order doesn't always match the order we populate the engine, see: T51695. */
+	qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
 
 	for (const uint *col = vbuffer + 3, *col_end = col + (hits * 4); col < col_end; col += 4) {
 		Bone *bone;
 		Base *base = ED_armature_base_and_bone_from_select_buffer(bases, BLI_array_len(bases), *col, &bone);
 		base->object->id.tag |= LIB_TAG_DOIT;
-	}
-
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		object_deselect_all_visible(vc->view_layer);
 	}
 
 	for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
@@ -2416,18 +2420,26 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
 			if (sel_op_result != -1) {
 				ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+				changed = true;
 			}
 		}
-		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
 	}
 
+finally:
 	if (bases != NULL) {
 		MEM_freeN(bases);
 	}
+
 	MEM_freeN(vbuffer);
 
-	return hits > 0 ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	if (changed) {
+		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
