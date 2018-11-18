@@ -33,9 +33,21 @@ class KeymapParams:
         "tool_tweak",
         "context_menu_event",
         "cursor_set_event",
+
+        # User preferences.
+        "use_select_all_toggle",
     )
 
-    def __init__(self, legacy=False, select_mode='AUTO', select_mouse='RIGHT'):
+    def __init__(
+            self,
+            *,
+            legacy=False,
+            select_mode='AUTO',
+            select_mouse='RIGHT',
+
+            # User preferences.
+            use_select_all_toggle=False,
+    ):
         import platform
 
         self.apple = platform.system() == 'Darwin'
@@ -71,6 +83,9 @@ class KeymapParams:
 
             self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}
 
+        # User preferences
+        self.use_select_all_toggle = use_select_all_toggle
+
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -100,13 +115,20 @@ def op_panel(menu, kmi_args, kmi_data=()):
 # ------------------------------------------------------------------------------
 # Keymap Templates
 
-def _template_items_select_actions(operator):
-    return [
-        (operator, {"type": 'A', "value": 'PRESS'}, {"properties": [("action", 'SELECT')]}),
-        (operator, {"type": 'A', "value": 'PRESS', "alt": True}, {"properties": [("action", 'DESELECT')]}),
-        (operator, {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
-        (operator, {"type": 'A', "value": 'DOUBLE_CLICK'}, {"properties": [("action", 'DESELECT')]}),
-    ]
+def _template_items_select_actions(params, operator):
+    if not params.use_select_all_toggle:
+        return [
+            (operator, {"type": 'A', "value": 'PRESS'}, {"properties": [("action", 'SELECT')]}),
+            (operator, {"type": 'A', "value": 'PRESS', "alt": True}, {"properties": [("action", 'DESELECT')]}),
+            (operator, {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+            (operator, {"type": 'A', "value": 'DOUBLE_CLICK'}, {"properties": [("action", 'DESELECT')]}),
+        ]
+    else:
+        return [
+            (operator, {"type": 'A', "value": 'PRESS'}, {"properties": [("action", 'TOGGLE')]}),
+            (operator, {"type": 'A', "value": 'PRESS', "alt": True}, {"properties": [("action", 'DESELECT')]}),
+            (operator, {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+        ]
 
 
 def _template_items_object_subdivision_set():
@@ -533,7 +555,7 @@ def km_property_editor(_params):
     return keymap
 
 
-def km_outliner(_params):
+def km_outliner(params):
     items = []
     keymap = (
         "Outliner",
@@ -571,7 +593,7 @@ def km_outliner(_params):
         ("outliner.show_one_level", {"type": 'NUMPAD_PLUS', "value": 'PRESS'}, None),
         ("outliner.show_one_level", {"type": 'NUMPAD_MINUS', "value": 'PRESS'},
          {"properties": [("open", False)]}),
-        *_template_items_select_actions("outliner.select_all"),
+        *_template_items_select_actions(params, "outliner.select_all"),
         ("outliner.expanded_toggle", {"type": 'A', "value": 'PRESS', "shift": True}, None),
         ("outliner.keyingset_add_selected", {"type": 'K', "value": 'PRESS'}, None),
         ("outliner.keyingset_remove_selected", {"type": 'K', "value": 'PRESS', "alt": True}, None),
@@ -646,7 +668,7 @@ def km_uv_editor(params):
          {"properties": [("extend", False), ("deselect", True)]}),
         ("uv.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
         ("uv.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
-        *_template_items_select_actions("uv.select_all"),
+        *_template_items_select_actions(params, "uv.select_all"),
         ("uv.select_pinned", {"type": 'P', "value": 'PRESS', "shift": True}, None),
         op_menu("IMAGE_MT_uvs_weldalign", {"type": 'W', "value": 'PRESS', "shift": True}),
         ("uv.stitch", {"type": 'V', "value": 'PRESS'}, None),
@@ -1050,7 +1072,7 @@ def km_mask_editing(params):
          {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
         ("mask.select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True},
          {"properties": [("extend", False), ("deselect", False), ("toggle", True)]}),
-        *_template_items_select_actions("mask.select_all"),
+        *_template_items_select_actions(params, "mask.select_all"),
         ("mask.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("mask.select_linked_pick", {"type": 'L', "value": 'PRESS'},
          {"properties": [("deselect", False)]}),
@@ -1115,7 +1137,7 @@ def km_markers(params):
         ("marker.select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True, "ctrl": True},
          {"properties": [("extend", True), ("camera", True)]}),
         ("marker.select_box", {"type": 'B', "value": 'PRESS'}, None),
-        *_template_items_select_actions("marker.select_all"),
+        *_template_items_select_actions(params, "marker.select_all"),
         ("marker.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("marker.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
@@ -1180,7 +1202,7 @@ def km_graph_editor(params):
          {"properties": [("mode", 'LEFT'), ("extend", False)]}),
         ("graph.select_leftright", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("mode", 'RIGHT'), ("extend", False)]}),
-        *_template_items_select_actions("graph.select_all"),
+        *_template_items_select_actions(params, "graph.select_all"),
         ("graph.select_box", {"type": 'B', "value": 'PRESS'},
          {"properties": [("axis_range", False), ("include_handles", False)]}),
         ("graph.select_box", {"type": 'B', "value": 'PRESS', "alt": True},
@@ -1458,7 +1480,7 @@ def km_node_editor(params):
         ("node.delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("node.delete_reconnect", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("node.delete_reconnect", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
-        *_template_items_select_actions("node.select_all"),
+        *_template_items_select_actions(params, "node.select_all"),
         ("node.select_linked_to", {"type": 'L', "value": 'PRESS', "shift": True}, None),
         ("node.select_linked_from", {"type": 'L', "value": 'PRESS'}, None),
         ("node.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True},
@@ -1708,7 +1730,7 @@ def km_dopesheet(params):
          {"properties": [("mode", 'LEFT'), ("extend", False)]}),
         ("action.select_leftright", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("mode", 'RIGHT'), ("extend", False)]}),
-        *_template_items_select_actions("action.select_all"),
+        *_template_items_select_actions(params, "action.select_all"),
         ("action.select_box", {"type": 'B', "value": 'PRESS'},
          {"properties": [("axis_range", False)]}),
         ("action.select_box", {"type": 'B', "value": 'PRESS', "alt": True},
@@ -1848,7 +1870,7 @@ def km_nla_editor(params):
          {"properties": [("mode", 'LEFT'), ("extend", False)]}),
         ("nla.select_leftright", {"type": 'RIGHT_BRACKET', "value": 'PRESS'},
          {"properties": [("mode", 'RIGHT'), ("extend", False)]}),
-        *_template_items_select_actions("nla.select_all"),
+        *_template_items_select_actions(params, "nla.select_all"),
         ("nla.select_box", {"type": 'B', "value": 'PRESS'},
          {"properties": [("axis_range", False)]}),
         ("nla.select_box", {"type": 'B', "value": 'PRESS', "alt": True},
@@ -2120,7 +2142,7 @@ def km_sequencer(params):
     )
 
     items.extend([
-        *_template_items_select_actions("sequencer.select_all"),
+        *_template_items_select_actions(params, "sequencer.select_all"),
         ("sequencer.cut", {"type": 'K', "value": 'PRESS'},
          {"properties": [("type", 'SOFT')]}),
         ("sequencer.cut", {"type": 'K', "value": 'PRESS', "shift": True},
@@ -2408,7 +2430,7 @@ def km_clip_editor(params):
          {"properties": [("extend", False)]}),
         ("clip.select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True},
          {"properties": [("extend", True)]}),
-        *_template_items_select_actions("clip.select_all"),
+        *_template_items_select_actions(params, "clip.select_all"),
         ("clip.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("clip.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         op_menu("CLIP_MT_select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}),
@@ -2479,7 +2501,7 @@ def km_clip_graph_editor(params):
          {"properties": [("extend", False)]}),
         ("clip.graph_select", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True},
          {"properties": [("extend", True)]}),
-        *_template_items_select_actions("clip.graph_select_all_markers"),
+        *_template_items_select_actions(params, "clip.graph_select_all_markers"),
         ("clip.graph_select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("clip.graph_delete_curve", {"type": 'X', "value": 'PRESS'}, None),
         ("clip.graph_delete_curve", {"type": 'DEL', "value": 'PRESS'}, None),
@@ -2639,7 +2661,7 @@ def km_animation_channels(params):
         # Find (setting the name filter).
         ("anim.channels_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         # Selection.
-        *_template_items_select_actions("anim.channels_select_all"),
+        *_template_items_select_actions(params, "anim.channels_select_all"),
         ("anim.channels_select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("anim.channels_select_box", {"type": 'EVT_TWEAK_L', "value": 'ANY'}, None),
         # Delete.
@@ -2718,7 +2740,7 @@ def km_grease_pencil(_params):
 def _grease_pencil_selection(params):
     return [
         # Select all
-        *_template_items_select_actions("gpencil.select_all"),
+        *_template_items_select_actions(params, "gpencil.select_all"),
         # Circle select
         ("gpencil.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         # Box select
@@ -3032,7 +3054,7 @@ def km_grease_pencil_stroke_weight_mode(params):
     return keymap
 
 
-def km_face_mask(_params):
+def km_face_mask(params):
     items = []
     keymap = (
         "Face Mask",
@@ -3041,7 +3063,7 @@ def km_face_mask(_params):
     )
 
     items.extend([
-        *_template_items_select_actions("paint.face_select_all"),
+        *_template_items_select_actions(params, "paint.face_select_all"),
         ("paint.face_select_hide", {"type": 'H', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
         ("paint.face_select_hide", {"type": 'H', "value": 'PRESS', "shift": True},
@@ -3066,7 +3088,7 @@ def km_weight_paint_vertex_selection(params):
     )
 
     items.extend([
-        *_template_items_select_actions("paint.vert_select_all"),
+        *_template_items_select_actions(params, "paint.vert_select_all"),
         ("view3d.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("view3d.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True},
          {"properties": [("mode", 'ADD')]}),
@@ -3105,7 +3127,7 @@ def km_pose(params):
          {"properties": [("flipped", False)]}),
         ("pose.paste", {"type": 'V', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("flipped", True)]}),
-        *_template_items_select_actions("pose.select_all"),
+        *_template_items_select_actions(params, "pose.select_all"),
         ("pose.select_parent", {"type": 'P', "value": 'PRESS', "shift": True}, None),
         ("pose.select_hierarchy", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
          {"properties": [("direction", 'PARENT'), ("extend", False)]}),
@@ -3171,7 +3193,7 @@ def km_object_mode(params):
         op_menu_pie("VIEW3D_MT_proportional_editing_falloff_pie", {"type": 'O', "value": 'PRESS', "shift": True}),
         ("wm.context_toggle", {"type": 'O', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.use_proportional_edit_objects')]}),
-        *_template_items_select_actions("object.select_all"),
+        *_template_items_select_actions(params, "object.select_all"),
         ("object.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
         ("object.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
         ("object.select_linked", {"type": 'L', "value": 'PRESS', "shift": True}, None),
@@ -3301,7 +3323,7 @@ def km_curve(params):
          {"properties": [("wait_for_input", False)]}),
         ("curve.draw", {"type": 'PEN', "value": 'PRESS', "shift": True},
          {"properties": [("wait_for_input", False)]}),
-        *_template_items_select_actions("curve.select_all"),
+        *_template_items_select_actions(params, "curve.select_all"),
         ("curve.select_row", {"type": 'R', "value": 'PRESS', "shift": True}, None),
         ("curve.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
         ("curve.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
@@ -3650,7 +3672,7 @@ def km_mesh(params):
          {"properties": [("use_fill", False)]}),
         ("mesh.shortest_path_pick", {"type": params.select_mouse, "value": params.select_mouse_value, "shift": True, "ctrl": True},
          {"properties": [("use_fill", True)]}),
-        *_template_items_select_actions("mesh.select_all"),
+        *_template_items_select_actions(params, "mesh.select_all"),
         ("mesh.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.select_next_item", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "shift": True, "ctrl": True}, None),
@@ -3762,7 +3784,7 @@ def km_armature(params):
         ("armature.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
         ("armature.parent_clear", {"type": 'P', "value": 'PRESS', "alt": True}, None),
         # Selection.
-        *_template_items_select_actions("armature.select_all"),
+        *_template_items_select_actions(params, "armature.select_all"),
         ("armature.select_mirror", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("extend", False)]}),
         ("armature.select_hierarchy", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
@@ -3814,7 +3836,7 @@ def km_armature(params):
 
 
 # Metaball edit mode.
-def km_metaball(_params):
+def km_metaball(params):
     items = []
     keymap = (
         "Metaball",
@@ -3832,7 +3854,7 @@ def km_metaball(_params):
         ("mball.delete_metaelems", {"type": 'X', "value": 'PRESS'}, None),
         ("mball.delete_metaelems", {"type": 'DEL', "value": 'PRESS'}, None),
         ("mball.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
-        *_template_items_select_actions("mball.select_all"),
+        *_template_items_select_actions(params, "mball.select_all"),
         ("mball.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         *_template_items_proportional_editing(connected=True),
     ])
@@ -3841,7 +3863,7 @@ def km_metaball(_params):
 
 
 # Lattice edit mode.
-def km_lattice(_params):
+def km_lattice(params):
     items = []
     keymap = (
         "Lattice",
@@ -3850,7 +3872,7 @@ def km_lattice(_params):
     )
 
     items.extend([
-        *_template_items_select_actions("lattice.select_all"),
+        *_template_items_select_actions(params, "lattice.select_all"),
         ("lattice.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
         ("lattice.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
         ("object.vertex_parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -3872,7 +3894,7 @@ def km_particle(params):
     )
 
     items.extend([
-        *_template_items_select_actions("particle.select_all"),
+        *_template_items_select_actions(params, "particle.select_all"),
         ("particle.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True}, None),
         ("particle.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True}, None),
         ("particle.select_linked", {"type": 'L', "value": 'PRESS'},
