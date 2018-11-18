@@ -1074,10 +1074,7 @@ class USERPREF_PT_input(Panel):
         import sys
 
         # General settings
-        row = layout.row()
-        col = row.column()
-
-        sub = col.column()
+        sub = layout.column()
         sub.label(text="Presets:")
         subrow = sub.row(align=True)
 
@@ -1097,7 +1094,7 @@ class USERPREF_PT_input(Panel):
             sub.label(text="Select With:")
             sub.row().prop(inputs, "select_mouse", expand=True)
 
-        sub = col.column()
+        sub = layout.column()
         sub.label(text="Double Click:")
         sub.prop(inputs, "mouse_double_click_time", text="Speed")
 
@@ -1120,18 +1117,18 @@ class USERPREF_PT_input(Panel):
 
         #sub.prop(inputs, "use_mouse_mmb_paste")
 
-        # col.separator()
+        # layout.separator()
 
-        sub = col.column()
+        sub = layout.column()
         sub.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         if sys.platform == "darwin":
-            sub = col.column()
+            sub = layout.column()
             sub.prop(inputs, "use_trackpad_natural", text="Natural Trackpad Direction")
 
-        col.separator()
-        sub = col.column()
+        layout.separator()
+        sub = layout.column()
         sub.label(text="View Navigation:")
         sub.row().prop(inputs, "navigation_mode", expand=True)
 
@@ -1143,36 +1140,34 @@ class USERPREF_PT_input(Panel):
         sub.prop(walk, "mouse_speed")
         sub.prop(walk, "teleport_time")
 
-        sub = col.column(align=True)
+        sub = layout.column(align=True)
         sub.prop(walk, "walk_speed")
         sub.prop(walk, "walk_speed_factor")
 
         sub.separator()
         sub.prop(walk, "use_gravity")
-        sub = col.column(align=True)
+        sub = layout.column(align=True)
         sub.active = walk.use_gravity
         sub.prop(walk, "view_height")
         sub.prop(walk, "jump_height")
 
         if inputs.use_ndof:
-            col.separator()
-            col.label(text="NDOF Device:")
-            sub = col.column(align=True)
+            layout.separator()
+            layout.label(text="NDOF Device:")
+            sub = layout.column(align=True)
             sub.prop(inputs, "ndof_sensitivity", text="Pan Sensitivity")
             sub.prop(inputs, "ndof_orbit_sensitivity", text="Orbit Sensitivity")
             sub.prop(inputs, "ndof_deadzone", text="Deadzone")
 
             sub.separator()
-            col.label(text="Navigation Style:")
-            sub = col.column(align=True)
+            layout.label(text="Navigation Style:")
+            sub = layout.column(align=True)
             sub.row().prop(inputs, "ndof_view_navigate_method", expand=True)
 
             sub.separator()
-            col.label(text="Rotation Style:")
-            sub = col.column(align=True)
+            layout.label(text="Rotation Style:")
+            sub = layout.column(align=True)
             sub.row().prop(inputs, "ndof_view_rotate_method", expand=True)
-
-        row.separator()
 
     def draw(self, context):
         from rna_keymap_ui import draw_keymaps
@@ -1189,8 +1184,13 @@ class USERPREF_PT_input(Panel):
 
         split = layout.split(factor=0.25)
 
+        row = split.row()
+        col = row.column()
+
         # Input settings
-        self.draw_input_prefs(inputs, split)
+        self.draw_input_prefs(inputs, col)
+
+        row.separator()
 
         # Keymap Settings
         draw_keymaps(context, split)
