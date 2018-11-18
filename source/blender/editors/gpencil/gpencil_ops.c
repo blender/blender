@@ -266,7 +266,7 @@ void ED_operatortypes_gpencil(void)
 
 	WM_operatortype_append(GPENCIL_OT_reproject);
 
-	WM_operatortype_append(GPENCIL_OT_brush_paint);
+	WM_operatortype_append(GPENCIL_OT_sculpt_paint);
 
 	/* Editing (Buttons) ------------ */
 

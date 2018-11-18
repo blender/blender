@@ -2091,11 +2091,11 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void GPENCIL_OT_brush_paint(wmOperatorType *ot)
+void GPENCIL_OT_sculpt_paint(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Stroke Sculpt";
-	ot->idname = "GPENCIL_OT_brush_paint";
+	ot->idname = "GPENCIL_OT_sculpt_paint";
 	ot->description = "Apply tweaks to strokes by painting over the strokes"; // XXX
 
 	/* api callbacks */
