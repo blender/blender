@@ -57,6 +57,7 @@
 
 #ifdef __linux__
 #include <mntent.h>
+#include "BLI_fileops_types.h"
 #endif
 
 #include "fsmenu.h"  /* include ourselves */
@@ -627,6 +628,33 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				if (endmntent(fp) == 0) {
 					fprintf(stderr, "could not close the list of mounted filesystems\n");
 				}
+			}
+			/* Check gvfs shares. */
+			const char * const xdg_runtime_dir = BLI_getenv("XDG_RUNTIME_DIR");
+			if (xdg_runtime_dir != NULL) {
+				struct direntry *dir;
+				char name[FILE_MAX];
+				BLI_join_dirfile(name, sizeof(name), xdg_runtime_dir, "gvfs/");
+				const uint dir_len = BLI_filelist_dir_contents(name, &dir);
+				for (uint i = 0; i < dir_len; i++) {
+					if ((dir[i].type & S_IFDIR)) {
+						const char *dirname = dir[i].relname;
+						if (dirname[0] != '.') {
+							/* Dir names contain a lot of unwanted text.
+							 * Assuming every entry ends with the share name */
+							const char *label = strstr(dirname, "share=");
+							if (label != NULL) {
+								/* Move pointer so "share=" is trimmed off or use full dirname as label. */
+								const char *label_test = label + 6;
+								label = *label_test ? label_test : dirname;
+							}
+							BLI_snprintf(line, sizeof(line), "%s%s/", name, dirname);
+							fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, label, FS_INSERT_SORTED);
+							found = 1;
+						}
+					}
+				}
+				BLI_filelist_free(dir, dir_len);
 			}
 #endif
 
