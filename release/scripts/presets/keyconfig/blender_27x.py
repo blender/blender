@@ -6,8 +6,8 @@ from bpy.props import (
 
 idname = os.path.splitext(os.path.basename(__file__))[0]
 
-def update(_self, _context):
-    _load()
+def update_fn(_self, _context):
+    load()
 
 
 class Prefs(bpy.types.KeyConfigPreferences):
@@ -23,7 +23,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
             "Mouse button used for selection"
         ),
         default='RIGHT',
-        update=update,
+        update=update_fn,
     )
 
     def draw(self, layout):
@@ -36,14 +36,14 @@ from bpy_extras.keyconfig_utils import (
     keyconfig_module_from_preset,
 )
 
-mod = keyconfig_module_from_preset(os.path.join("keymap_data", "blender_default"), __file__)
+blender_default = keyconfig_module_from_preset(os.path.join("keymap_data", "blender_default"), __file__)
 
-def _load():
+def load():
     kc = bpy.context.window_manager.keyconfigs.new(idname)
     kc_prefs = kc.preferences
 
-    keyconfig_data = mod.generate_keymaps(
-        mod.KeymapParams(
+    keyconfig_data = blender_default.generate_keymaps(
+        blender_default.Params(
             select_mouse=kc_prefs.select_mouse,
             legacy=True,
         ),
@@ -53,4 +53,4 @@ def _load():
 
 if __name__ == "__main__":
     bpy.utils.register_class(Prefs)
-    _load()
+    load()

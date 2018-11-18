@@ -474,7 +474,7 @@ def _kmi_props_setattr(kmi_props, attr, value):
         print(f"Warning: {ex!r}")
 
 
-def keymap_items_from_data(km, km_items, is_modal=False):
+def keymap_init_from_data(km, km_items, is_modal=False):
     new_fn = getattr(km.keymap_items, "new_modal" if is_modal else "new")
     for (kmi_idname, kmi_args, kmi_data) in km_items:
         kmi = new_fn(kmi_idname, **kmi_args)
@@ -494,7 +494,7 @@ def keyconfig_init_from_data(kc, keyconfig_data):
     # Runs at load time, keep this fast!
     for (km_name, km_args, km_content) in keyconfig_data:
         km = kc.keymaps.new(km_name, **km_args)
-        keymap_items_from_data(km, km_content["items"], is_modal=km_args.get("modal", False))
+        keymap_init_from_data(km, km_content["items"], is_modal=km_args.get("modal", False))
 
 
 def keyconfig_import_from_data(name, keyconfig_data):

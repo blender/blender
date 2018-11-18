@@ -1075,7 +1075,7 @@ class USERPREF_PT_input(Panel):
         kc_prefs = kc.preferences
         if kc_prefs is not None:
             box = layout.box()
-            box.label(text=kc.name.replace("_", " ").title() + " Keymap Options")
+            box.label(text=kc.name.replace("_", " ").title() + " Keymap")
             # Defined by user preset, may contain mistakes out of our control.
             try:
                 kc_prefs.draw(box)

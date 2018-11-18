@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------------
 # Configurable Parameters
 
-class KeymapParams:
+class Params:
     __slots__ = (
         "apple",
         "legacy",
@@ -5674,7 +5674,7 @@ def km_3d_view_tool_gpencil_edit_to_sphere(params):
 
 def generate_keymaps(params=None):
     if params is None:
-        params = KeymapParams()
+        params = Params()
     return [
         # Window, screen, area, region.
         km_window(params),
@@ -5889,7 +5889,7 @@ def generate_keymaps(params=None):
 # import pprint
 # for legacy in (False, True):
 #     with open("keymap_default.py" if not legacy else "keymap_legacy.py", 'w') as fh:
-#         fh.write(pprint.pformat(generate_keymaps(KeymapParams(legacy=legacy)), indent=2, width=80))
+#         fh.write(pprint.pformat(generate_keymaps(Params(legacy=legacy)), indent=2, width=80))
 # import sys
 # sys.exit()
 # # end code
@@ -5905,5 +5905,5 @@ def generate_keymaps(params=None):
 
 if __name__ == "__main__":
     from bpy_extras.keyconfig_utils import keyconfig_import_from_data
-    keyconfig_import_from_data("Blender", generate_keymaps())
-    keyconfig_import_from_data("Blender 27X", generate_keymaps(KeymapParams(legacy=True)))
+    keyconfig_import_from_data("blender", generate_keymaps())
+    keyconfig_import_from_data("blender_27", generate_keymaps(Params(legacy=True)))
