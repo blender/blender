@@ -244,7 +244,10 @@ Material *BKE_material_localize(Material *ma)
 		man->nodetree = ntreeLocalize(ma->nodetree);
 	}
 
-	/* man->gp_style = NULL; */ /* XXX: We probably don't want to clear here, or else we may get problems with COW later? */
+	if (ma->gp_style != NULL) {
+		man->gp_style = MEM_dupallocN(ma->gp_style);
+	}
+
 	BLI_listbase_clear(&man->gpumaterial);
 
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
