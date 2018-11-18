@@ -511,7 +511,7 @@ def keyconfig_import_from_data(name, keyconfig_data):
 
 def keyconfig_module_from_preset(name, preset_reference_filename=None):
     import os
-    import importlib.util
+    import bpy
     if preset_reference_filename is not None:
         preset_path = os.path.join(os.path.dirname(preset_reference_filename), name + ".py")
     else:
@@ -521,11 +521,7 @@ def keyconfig_module_from_preset(name, preset_reference_filename=None):
     if not (preset_path and os.path.exists(preset_path)):
         preset_path = bpy.utils.preset_find(name, "keyconfig")
 
-    # module name isn't used or added to 'sys.modules'.
-    mod_spec = importlib.util.spec_from_file_location("__main__", preset_path)
-    mod = importlib.util.module_from_spec(mod_spec)
-    mod_spec.loader.exec_module(mod)
-    return mod
+    return bpy.utils.execfile(preset_path)
 
 
 # -----------------------------------------------------------------------------

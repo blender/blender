@@ -51,6 +51,7 @@ __all__ = (
     "units",
     "unregister_class",
     "user_resource",
+    "execfile",
 )
 
 from _bpy import (
@@ -73,6 +74,18 @@ import addon_utils as _addon_utils
 _user_preferences = _bpy.context.user_preferences
 _script_module_dirs = "startup", "modules"
 _is_factory_startup = _bpy.app.factory_startup
+
+
+def execfile(filepath, mod=None):
+    # module name isn't used or added to 'sys.modules'.
+    # passing in 'mod' allows re-execution without having to reload.
+
+    import importlib.util
+    mod_spec = importlib.util.spec_from_file_location("__main__", filepath)
+    if mod is None:
+        mod = importlib.util.module_from_spec(mod_spec)
+    mod_spec.loader.exec_module(mod)
+    return mod
 
 
 def _test_import(module_name, loaded_modules):
@@ -585,14 +598,7 @@ def keyconfig_set(filepath, report=None):
 
     try:
         error_msg = ""
-        with open(filepath, 'r', encoding='utf-8') as keyfile:
-            exec(
-                compile(keyfile.read(), filepath, "exec"),
-                {
-                    "__file__": filepath,
-                    "__name__": "__main__",
-                }
-            )
+        execfile(filepath)
     except:
         import traceback
         error_msg = traceback.format_exc()

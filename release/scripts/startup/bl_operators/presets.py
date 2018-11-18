@@ -246,10 +246,8 @@ class ExecutePreset(Operator):
             preset_class.reset_cb(context)
 
         if ext == ".py":
-            import importlib.util
-            mod_spec = importlib.util.spec_from_file_location("__main__", filepath)
             try:
-                mod_spec.loader.exec_module(importlib.util.module_from_spec(mod_spec))
+                bpy.utils.execfile(filepath)
             except Exception as ex:
                 self.report({'ERROR'}, "Failed to execute the preset: " + repr(ex))
 
