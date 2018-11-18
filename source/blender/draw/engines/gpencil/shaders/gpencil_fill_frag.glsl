@@ -15,6 +15,7 @@ uniform int texture_mix;
 uniform int texture_flip;
 uniform float texture_opacity;
 uniform int xraymode;
+uniform float layer_opacity;
 
 uniform sampler2D myTexture;
 uniform int texture_clamp;
@@ -66,6 +67,7 @@ void set_color(in vec4 color, in vec4 color2, in vec4 tcolor, in float mixv, in 
 			ocolor = (flip == 0) ? mix(color, color2, factor) : mix(color2, color, factor);
 		}
 	}
+	ocolor.a *= layer_opacity;
 }
 
 void main()
@@ -115,15 +117,17 @@ void main()
 			}
 			/* mix with texture */
 			fragColor = (texture_mix == 1) ? mix(chesscolor, text_color, mix_factor) : chesscolor;
+			fragColor.a *= layer_opacity;
 		}
 		/* texture */
 		if (fill_type == TEXTURE) {
 			fragColor = (texture_mix == 1) ? mix(text_color, finalColor, mix_factor) : text_color;
+			fragColor.a *= layer_opacity;
 		}
 		/* pattern */
 		if (fill_type == PATTERN) {
 			fragColor = finalColor;
-			fragColor.a = min(text_color.a, finalColor.a);
+			fragColor.a = min(text_color.a, finalColor.a) * layer_opacity;
 		}
 	}
 
