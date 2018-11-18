@@ -1516,9 +1516,9 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 	Object *ob = CTX_data_active_object(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
+	GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	GP_EditBrush_Data *gp_brush = NULL;
+	GP_Sculpt_Data *gp_brush = NULL;
 	Brush *brush = NULL;
 	Material *ma = NULL;
 	MaterialGPencilStyle *gp_style = NULL;
@@ -1599,12 +1599,12 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 	/* for sculpt use sculpt brush size */
 	if (GPENCIL_SCULPT_OR_WEIGHT_MODE(gpd)) {
 		if (gp_brush) {
-			if ((gp_brush->flag & GP_EDITBRUSH_FLAG_ENABLE_CURSOR) == 0) {
+			if ((gp_brush->flag & GP_SCULPT_FLAG_ENABLE_CURSOR) == 0) {
 				return;
 			}
 
 			radius = gp_brush->size;
-			if (gp_brush->flag & (GP_EDITBRUSH_FLAG_INVERT | GP_EDITBRUSH_FLAG_TMP_INVERT)) {
+			if (gp_brush->flag & (GP_SCULPT_FLAG_INVERT | GP_SCULPT_FLAG_TMP_INVERT)) {
 				copy_v3_v3(color, gp_brush->curcolor_sub);
 			}
 			else {
@@ -1671,7 +1671,7 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
 {
 	Scene *scene = CTX_data_scene(C);
-	GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
+	GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
 	int *lastpost = customdata;
 
 	if (gset->paintcursor && !enable) {
@@ -1700,19 +1700,19 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
 static void gpencil_verify_brush_type(bContext *C, int newmode)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
+	GP_Sculpt_Settings *gset = &ts->gp_sculpt;
 
 	switch (newmode) {
 		case OB_MODE_GPENCIL_SCULPT:
-			gset->flag &= ~GP_BRUSHEDIT_FLAG_WEIGHT_MODE;
-			if ((gset->brushtype < 0) || (gset->brushtype >= GP_EDITBRUSH_TYPE_WEIGHT)) {
-				gset->brushtype = GP_EDITBRUSH_TYPE_PUSH;
+			gset->flag &= ~GP_SCULPT_SETT_FLAG_WEIGHT_MODE;
+			if ((gset->brushtype < 0) || (gset->brushtype >= GP_SCULPT_TYPE_WEIGHT)) {
+				gset->brushtype = GP_SCULPT_TYPE_PUSH;
 			}
 			break;
 		case OB_MODE_GPENCIL_WEIGHT:
-			gset->flag |= GP_BRUSHEDIT_FLAG_WEIGHT_MODE;
-			if ((gset->weighttype < GP_EDITBRUSH_TYPE_WEIGHT) || (gset->weighttype >= GP_EDITBRUSH_TYPE_MAX)) {
-				gset->weighttype = GP_EDITBRUSH_TYPE_WEIGHT;
+			gset->flag |= GP_SCULPT_SETT_FLAG_WEIGHT_MODE;
+			if ((gset->weighttype < GP_SCULPT_TYPE_WEIGHT) || (gset->weighttype >= GP_SCULPT_TYPE_MAX)) {
+				gset->weighttype = GP_SCULPT_TYPE_WEIGHT;
 			}
 			break;
 		default:

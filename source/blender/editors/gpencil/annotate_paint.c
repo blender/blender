@@ -1221,7 +1221,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 		 * (though this is only available in editmode)
 		 */
 		if (p->gpd->flag & GP_DATA_STROKE_EDITMODE) {
-			if (ts->gp_sculpt.flag & GP_BRUSHEDIT_FLAG_SELECT_MASK) {
+			if (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SELECT_MASK) {
 				p->flags |= GP_PAINTFLAG_SELECTMASK;
 			}
 		}

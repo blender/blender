@@ -775,65 +775,65 @@ void BKE_scene_init(Scene *sce)
 
 	/* GP Sculpt brushes */
 	{
-		GP_BrushEdit_Settings *gset = &sce->toolsettings->gp_sculpt;
-		GP_EditBrush_Data *gp_brush;
+		GP_Sculpt_Settings *gset = &sce->toolsettings->gp_sculpt;
+		GP_Sculpt_Data *gp_brush;
 		float curcolor_add[3], curcolor_sub[3];
 		ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
 		ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.3f;
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_SMOOTH_PRESSURE | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_THICKNESS];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_STRENGTH];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_GRAB];
 		gp_brush->size = 50;
 		gp_brush->strength = 0.3f;
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_PUSH];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.3f;
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_TWIST];
 		gp_brush->size = 50;
-		gp_brush->strength = 0.3f; // XXX?
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->strength = 0.3f;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_PINCH];
 		gp_brush->size = 50;
-		gp_brush->strength = 0.5f; // XXX?
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->strength = 0.5f;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMIZE];
+		gp_brush = &gset->brush[GP_SCULPT_TYPE_RANDOMIZE];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
-		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+		gp_brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_ENABLE_CURSOR;
 		copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
 		copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
 	}

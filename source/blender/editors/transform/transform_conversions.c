@@ -8146,7 +8146,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
 	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-	bool use_multiframe_falloff = (ts->gp_sculpt.flag & GP_BRUSHEDIT_FLAG_FRAME_FALLOFF) != 0;
+	bool use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
 
 	Object *obact = CTX_data_active_object(C);
 	bGPDlayer *gpl;

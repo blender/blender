@@ -1103,45 +1103,45 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			ToolSettings *ts = scene->toolsettings;
 
 			if (ts->gp_sculpt.brush[0].size == 0) {
-				GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
-				GP_EditBrush_Data *brush;
+				GP_Sculpt_Settings *gset = &ts->gp_sculpt;
+				GP_Sculpt_Data *brush;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
+				brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
 				brush->size = 25;
 				brush->strength = 0.3f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF | GP_SCULPT_FLAG_SMOOTH_PRESSURE;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
+				brush = &gset->brush[GP_SCULPT_TYPE_THICKNESS];
 				brush->size = 25;
 				brush->strength = 0.5f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
+				brush = &gset->brush[GP_SCULPT_TYPE_GRAB];
 				brush->size = 50;
 				brush->strength = 0.3f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
+				brush = &gset->brush[GP_SCULPT_TYPE_PUSH];
 				brush->size = 25;
 				brush->strength = 0.3f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
+				brush = &gset->brush[GP_SCULPT_TYPE_TWIST];
 				brush->size = 50;
 				brush->strength = 0.3f; // XXX?
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
+				brush = &gset->brush[GP_SCULPT_TYPE_PINCH];
 				brush->size = 50;
 				brush->strength = 0.5f; // XXX?
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMIZE];
+				brush = &gset->brush[GP_SCULPT_TYPE_RANDOMIZE];
 				brush->size = 25;
 				brush->strength = 0.5f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 
-				brush = &gset->brush[GP_EDITBRUSH_TYPE_CLONE];
+				brush = &gset->brush[GP_SCULPT_TYPE_CLONE];
 				brush->size = 50;
 				brush->strength = 1.0f;
 			}
@@ -1404,17 +1404,17 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				ToolSettings *ts = scene->toolsettings;
 				/* initialize use position for sculpt brushes */
-				ts->gp_sculpt.flag |= GP_BRUSHEDIT_FLAG_APPLY_POSITION;
+				ts->gp_sculpt.flag |= GP_SCULPT_SETT_FLAG_APPLY_POSITION;
 
 				/* new strength sculpt brush */
 				if (ts->gp_sculpt.brush[0].size >= 11) {
-					GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
-					GP_EditBrush_Data *brush;
+					GP_Sculpt_Settings *gset = &ts->gp_sculpt;
+					GP_Sculpt_Data *brush;
 
-					brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
+					brush = &gset->brush[GP_SCULPT_TYPE_STRENGTH];
 					brush->size = 25;
 					brush->strength = 0.5f;
-					brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+					brush->flag = GP_SCULPT_FLAG_USE_FALLOFF;
 				}
 			}
 			/* Convert Grease Pencil to new palettes/brushes
