@@ -35,6 +35,10 @@ class KeymapParams:
         "cursor_set_event",
 
         # User preferences.
+        #
+        # Swap 'Space/Shift-Space'.
+        "spacebar_action",
+        # Key toggles selection with 'A'.
         "use_select_all_toggle",
     )
 
@@ -46,6 +50,7 @@ class KeymapParams:
             select_mouse='RIGHT',
 
             # User preferences.
+            spacebar_action='TOOL',
             use_select_all_toggle=False,
     ):
         import platform
@@ -84,6 +89,7 @@ class KeymapParams:
             self.cursor_set_event = {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True}
 
         # User preferences
+        self.spacebar_action = spacebar_action
         self.use_select_all_toggle = use_select_all_toggle
 
 
@@ -276,9 +282,20 @@ def km_window(params):
             ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS'}, None),
             op_menu("TOPBAR_MT_file_specials", {"type": 'F2', "value": 'PRESS'}),
             ("wm.search_menu", {"type": 'F3', "value": 'PRESS'}, None),
-            ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS'}, None),
             op_menu("TOPBAR_MT_window_specials", {"type": 'F4', "value": 'PRESS'}),
         ])
+
+        if params.spacebar_action == 'TOOL':
+            items.append(
+                ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS'}, None),
+            )
+        elif params.spacebar_action == 'PLAY':
+            items.append(
+                ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
+            )
+        else:
+            assert(0)
+
     else:
         # Old shorctus
         items.extend([
@@ -2581,8 +2598,18 @@ def km_frames(params):
 
     if not params.legacy:
         # New playback
+        if params.spacebar_action == 'TOOL':
+            items.append(
+                ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
+            )
+        elif params.spacebar_action == 'PLAY':
+            items.append(
+                ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS'}, None),
+            )
+        else:
+            assert(0)
+
         items.extend([
-            ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
             ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True, "ctrl": True},
              {"properties": [("reverse", True)]}),
         ])

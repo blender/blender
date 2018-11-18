@@ -2,6 +2,7 @@ import os
 import bpy
 from bpy.props import (
     BoolProperty,
+    EnumProperty,
 )
 
 userpref = bpy.context.user_preferences
@@ -15,6 +16,25 @@ def update(_self, _context):
 class Prefs(bpy.types.KeyConfigPreferences):
     bl_idname = idname
 
+    spacebar_action: EnumProperty(
+        name="Spacebar",
+        items=(
+            ('TOOL', "Tool-Bar",
+             "Open the popup tool-bar\n"
+             "When 'Space' is held and used as a modifier:\n"
+             "\u2022 Pressing the tools binding key switches to it immediately.\n"
+             "\u2022 Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
+            ),
+            ('PLAY', "Playback",
+             "Toggle animation playback"
+            ),
+        ),
+        description=(
+            "Action when 'Space' is pressed ('Shift-Space' is used for the other action)"
+        ),
+        default='TOOL',
+        update=update,
+    )
     use_select_all_toggle: BoolProperty(
         name="Select All Toggles",
         description=(
@@ -25,8 +45,10 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
-        row = layout.row()
-        row.prop(self, "use_select_all_toggle")
+        col = layout.column(align=True)
+        col.label(text="Spacebar Action:")
+        col.row().prop(self, "spacebar_action", expand=True)
+        layout.prop(self, "use_select_all_toggle")
 
 
 from bpy_extras.keyconfig_utils import (
@@ -43,6 +65,7 @@ def _load():
     keyconfig_data = mod.generate_keymaps(
         mod.KeymapParams(
             select_mouse=userpref.inputs.select_mouse,
+            spacebar_action=kc_prefs.spacebar_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
         ),
     )
