@@ -81,7 +81,6 @@ op_blacklist = (
     "wm.operator_cheat_sheet",
     "wm.interface_theme_*",
     "wm.previews_ensure",       # slow - but harmless
-    "wm.appconfig_*",           # just annoying - but harmless
     "wm.keyitem_add",           # just annoying - but harmless
     "wm.keyconfig_activate",    # just annoying - but harmless
     "wm.keyconfig_preset_add",  # just annoying - but harmless

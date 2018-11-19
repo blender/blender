@@ -1419,49 +1419,6 @@ class WM_OT_keyconfig_activate(Operator):
             return {'CANCELLED'}
 
 
-class WM_OT_appconfig_default(Operator):
-    bl_idname = "wm.appconfig_default"
-    bl_label = "Default Application Configuration"
-
-    def execute(self, context):
-        import os
-
-        context.window_manager.keyconfigs.active = context.window_manager.keyconfigs.default
-
-        filepath = os.path.join(bpy.utils.preset_paths("interaction")[0], "blender.py")
-
-        if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(
-                filepath=filepath,
-                menu_idname="USERPREF_MT_interaction_presets",
-            )
-
-        return {'FINISHED'}
-
-
-class WM_OT_appconfig_activate(Operator):
-    bl_idname = "wm.appconfig_activate"
-    bl_label = "Activate Application Configuration"
-
-    filepath: StringProperty(
-        subtype='FILE_PATH',
-    )
-
-    def execute(self, context):
-        import os
-        filepath = self.filepath
-        bpy.utils.keyconfig_set(filepath)
-        dirname, filename = os.path.split(filepath)
-        filepath = os.path.normpath(os.path.join(dirname, os.pardir, "interaction", filename))
-        if os.path.exists(filepath):
-            bpy.ops.script.execute_preset(
-                filepath=filepath,
-                menu_idname="USERPREF_MT_interaction_presets",
-            )
-
-        return {'FINISHED'}
-
-
 class WM_OT_sysinfo(Operator):
     """Generate system information, saved into a text file"""
 
@@ -2754,8 +2711,6 @@ classes = (
     WM_OT_addon_remove,
     WM_OT_addon_userpref_show,
     WM_OT_app_template_install,
-    WM_OT_appconfig_activate,
-    WM_OT_appconfig_default,
     WM_OT_context_collection_boolean_set,
     WM_OT_context_cycle_array,
     WM_OT_context_cycle_enum,
