@@ -733,6 +733,8 @@ def keymap_from_context(context, space_type):
     def dict_as_tuple(d):
         return tuple((k, v) for (k, v) in sorted(d.items()))
 
+    tool_blacklist = set()
+
     use_simple_keymap = False
 
     # Press the toolbar popup key again to set the default tool,
@@ -771,15 +773,6 @@ def keymap_from_context(context, space_type):
 
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
-    items_all = [
-        # 0: tool
-        # 1: keymap item (direct access)
-        # 2: keymap item (newly calculated for toolbar)
-        [item, None, None]
-        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
-        if item is not None
-    ]
-
     if use_hack_properties:
         kmi_hack = keymap.keymap_items.new("wm.tool_set_by_name", 'A', 'PRESS')
         kmi_hack_properties = kmi_hack.properties
@@ -791,10 +784,8 @@ def keymap_from_context(context, space_type):
         kmi_toolbar = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
         kmi_toolbar_type = None if not kmi_toolbar else kmi_toolbar.type
         if use_tap_reset and kmi_toolbar_type is not None:
-            kmi_toolbar_args = {
-                "type": kmi_toolbar_type,
-                **modifier_keywords_from_item(kmi_toolbar),
-            }
+            kmi_toolbar_args_type_only = {"type": kmi_toolbar_type}
+            kmi_toolbar_args = {**kmi_toolbar_args_type_only, **modifier_keywords_from_item(kmi_toolbar)}
         else:
             use_tap_reset = False
         del kmi_toolbar
@@ -817,14 +808,24 @@ def keymap_from_context(context, space_type):
     if use_tap_reset:
         kmi_toolbar_tuple = dict_as_tuple(kmi_toolbar_args)
         if kmi_toolbar_tuple not in kmi_unique_args:
-            kmi = keymap.keymap_items.new(
-                "wm.tool_set_by_name",
-                value='PRESS' if use_toolbar_release_hack else 'DOUBLE_CLICK',
-                **kmi_toolbar_args,
-            )
-            kmi.properties.name = tap_reset_tool
-        kmi_unique_args.add(kmi_toolbar_tuple)
+            # Used after keymap is setup.
+            kmi_unique_args.add(kmi_toolbar_tuple)
+        else:
+            use_tap_reset = False
         del kmi_toolbar_tuple
+
+    if use_tap_reset:
+        tool_blacklist.add(tap_reset_tool)
+
+    items_all = [
+        # 0: tool
+        # 1: keymap item (direct access)
+        # 2: keymap item (newly calculated for toolbar)
+        [item, None, None]
+        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
+        if item is not None
+        if item.text not in tool_blacklist
+    ]
 
     if use_simple_keymap:
         # Simply assign a key from A-Z.
@@ -836,7 +837,6 @@ def keymap_from_context(context, space_type):
         for item_container in items_all:
             item = item_container[0]
             # Only check the first item in the tools key-map (a little arbitrary).
-
             if use_hack_properties:
                 # First check for direct assignment.
                 kmi_hack_properties.name = item.text
@@ -1010,11 +1010,35 @@ def keymap_from_context(context, space_type):
     if use_hack_properties:
         keymap.keymap_items.remove(kmi_hack)
 
+
+    # Keepo last so we can try add a key without any modifiers
+    # in the case this toolbar was activated with modifiers.
+    if use_tap_reset:
+        if len(kmi_toolbar_args_type_only) == len(kmi_toolbar_args):
+            kmi_toolbar_args_available = kmi_toolbar_args
+        else:
+            # We have modifiers, see if we have a free key w/o modifiers.
+            kmi_toolbar_tuple = dict_as_tuple(kmi_toolbar_args_type_only)
+            if kmi_toolbar_tuple not in kmi_unique_args:
+                kmi_toolbar_args_available = kmi_toolbar_args_type_only
+                kmi_unique_args.add(kmi_toolbar_tuple)
+            else:
+                kmi_toolbar_args_available = kmi_toolbar_args
+            del kmi_toolbar_tuple
+
+        kmi = keymap.keymap_items.new(
+            "wm.tool_set_by_name",
+            value='PRESS' if use_toolbar_release_hack else 'DOUBLE_CLICK',
+            **kmi_toolbar_args_available,
+        )
+        kmi.properties.name = tap_reset_tool
+
     if use_release_confirm:
         kmi = keymap.keymap_items.new(
             "ui.button_execute",
             type=kmi_toolbar_type,
             value='RELEASE',
+            any=True,
         )
         kmi.properties.skip_depressed = True
 
@@ -1025,6 +1049,7 @@ def keymap_from_context(context, space_type):
                 "wm.tool_set_by_name",
                 type=kmi_toolbar_type,
                 value='RELEASE',
+                any=True,
             )
 
     wm.keyconfigs.update()
