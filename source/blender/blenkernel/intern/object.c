@@ -2515,7 +2515,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_FONT:
-			bb = BKE_displist_boundbox_get(ob);
+			bb = BKE_curve_boundbox_get(ob);
 			break;
 		case OB_MBALL:
 			bb = BKE_mball_boundbox_get(ob);
