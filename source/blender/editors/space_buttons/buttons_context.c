@@ -1014,6 +1014,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	PointerRNA *ptr;
 	char namebuf[128], *name;
 	int a, icon;
+	bool first = true;
 
 	if (!path)
 		return;
@@ -1024,29 +1025,36 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	for (a = 0; a < path->len; a++) {
 		ptr = &path->ptr[a];
 
-		if (a != 0)
-			uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);
+		/* Skip scene and view layer to save space. */
+		if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_OUTPUT, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_Scene)) {
+			continue;
+		}
+		else if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_OUTPUT, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_ViewLayer)) {
+			continue;
+		}
 
+		/* Add > triangle. */
+		if (!first) {
+			uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);
+		}
+		else {
+			first = false;
+		}
+
+		/* Add icon + name .*/
 		if (ptr->data) {
 			icon = RNA_struct_ui_icon(ptr->type);
 			name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), NULL);
 
 			if (name) {
-				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_OUTPUT, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_Scene)) {
-					uiItemLDrag(row, ptr, "", icon);  /* save some space */
-				}
-				else if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_OUTPUT, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_ViewLayer)) {
-					uiItemLDrag(row, ptr, "", icon);  /* save some space */
-				}
-				else {
-					uiItemLDrag(row, ptr, name, icon);
-				}
+				uiItemLDrag(row, ptr, name, icon);
 
 				if (name != namebuf)
 					MEM_freeN(name);
 			}
-			else
+			else {
 				uiItemL(row, "", icon);
+			}
 		}
 	}
 
