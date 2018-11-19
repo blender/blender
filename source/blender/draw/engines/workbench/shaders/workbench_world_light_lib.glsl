@@ -55,20 +55,20 @@ vec3 get_world_specular_light(vec4 specular_data, LightData light_data, vec3 N, 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
 	vec3 specular_light = specular_data.rgb * light_data.specular_color.rgb * light_data.specular_color.a;
 
-	float shininess = exp2(10*(1.0-specular_data.a) + 1);
+	float shininess = exp2(10.0 * (1.0 - specular_data.a) + 1);
 
 #  ifdef BLINN
-	float normalization_factor = (shininess + 8) / (8 * M_PI);
+	float normalization_factor = (shininess + 8.0) / (8.0 * M_PI);
 	vec3 L = -light_data.light_direction_vs.xyz;
 	vec3 halfDir = normalize(L + I);
-	float specAngle = max(dot(halfDir, N), 0.0);
+	float spec_angle = max(dot(halfDir, N), 0.0);
 	float NL = max(dot(L, N), 0.0);
-	float specular_influence = pow(specAngle, shininess) * NL  * normalization_factor;
+	float specular_influence = pow(spec_angle, shininess) * NL  * normalization_factor;
 
 #  else
 	vec3 reflection_vector = reflect(I, N);
-	float specAngle = max(dot(light_data.light_direction_vs.xyz, reflection_vector), 0.0);
-	float specular_influence = pow(specAngle, shininess);
+	float spec_angle = max(dot(light_data.light_direction_vs.xyz, reflection_vector), 0.0);
+	float specular_influence = pow(spec_angle, shininess);
 #  endif
 
 	vec3 specular_color = specular_light * specular_influence;
@@ -82,8 +82,15 @@ vec3 get_world_specular_light(vec4 specular_data, LightData light_data, vec3 N, 
 vec3 get_world_specular_lights(WorldData world_data, vec4 specular_data, vec3 N, vec3 I)
 {
 	vec3 specular_light = vec3(0.0);
-	for (int i = 0 ; i < world_data.num_lights ; i ++) {
-		specular_light += get_world_specular_light(specular_data, world_data.lights[i], N, I);
+	/* Manual loop unrolling provide much better perf. */
+	if (world_data.num_lights > 0) {
+		specular_light += get_world_specular_light(specular_data, world_data.lights[0], N, I);
+	}
+	if (world_data.num_lights > 1) {
+		specular_light += get_world_specular_light(specular_data, world_data.lights[1], N, I);
+	}
+	if (world_data.num_lights > 2) {
+		specular_light += get_world_specular_light(specular_data, world_data.lights[2], N, I);
 	}
 	return specular_light;
 }
