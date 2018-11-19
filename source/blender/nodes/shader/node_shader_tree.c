@@ -275,8 +275,8 @@ static bNode *ntree_group_output_node(bNodeTree *ntree)
 	bNode *output_node = NULL;
 
 	for (bNode *node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == NODE_GROUP_OUTPUT &&
-			node->flag & NODE_DO_OUTPUT)
+		if ((node->type == NODE_GROUP_OUTPUT) &&
+		    (node->flag & NODE_DO_OUTPUT))
 		{
 			output_node = node;
 		}

@@ -280,7 +280,7 @@ static void DRW_gpencil_recalc_geometry_caches(Object *ob, MaterialGPencilStyle 
 static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass,
         GPUShader *shader, bGPdata *gpd, bGPDlayer *gpl,
-		MaterialGPencilStyle *gp_style, int id)
+        MaterialGPencilStyle *gp_style, int id)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 
@@ -844,7 +844,7 @@ static void gpencil_draw_strokes(
 				{
 					stl->shgroups[id].shgrps_fill = DRW_gpencil_shgroup_fill_create(
 					        e_data, vedata, psl->stroke_pass, e_data->gpencil_fill_sh,
-							gpd, gpl, gp_style, id);
+					        gpd, gpl, gp_style, id);
 				}
 				else {
 					stl->shgroups[id].shgrps_fill = NULL;

@@ -46,7 +46,6 @@ class Params:
             self,
             *,
             legacy=False,
-            select_mode='AUTO',
             select_mouse='RIGHT',
 
             # User preferences.
@@ -294,7 +293,7 @@ def km_window(params):
                 ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
             )
         else:
-            assert(0)
+            assert False
 
     else:
         # Old shorctus
@@ -728,8 +727,8 @@ def km_uv_editor(params):
         # Quick switch to select tool, since left select can't easily
         # select with any tool active.
         items.extend([
-           ("wm.tool_set_by_name", {"type": 'W', "value": 'PRESS'},
-            {"properties": [("name", "Select Box")]})
+            ("wm.tool_set_by_name", {"type": 'W', "value": 'PRESS'},
+             {"properties": [("name", "Select Box")]})
         ])
 
     return keymap
@@ -1060,8 +1059,8 @@ def km_view3d(params):
         # Quick switch to select tool, since left select can't easily
         # select with any tool active.
         items.extend([
-           ("wm.tool_set_by_name", {"type": 'W', "value": 'PRESS'},
-            {"properties": [("name", "Select Box")]})
+            ("wm.tool_set_by_name", {"type": 'W', "value": 'PRESS'},
+             {"properties": [("name", "Select Box")]})
         ])
 
     return keymap
@@ -2607,7 +2606,7 @@ def km_frames(params):
                 ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS'}, None),
             )
         else:
-            assert(0)
+            assert False
 
         items.extend([
             ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True, "ctrl": True},

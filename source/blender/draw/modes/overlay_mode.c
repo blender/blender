@@ -233,8 +233,8 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	View3D *v3d = draw_ctx->v3d;
 
 	if ((!stl->g_data->show_overlays) ||
-		(ob->dt < OB_WIRE) ||
-		(!DRW_object_is_renderable(ob) && (ob->dt != OB_WIRE)))
+	    (ob->dt < OB_WIRE) ||
+	    (!DRW_object_is_renderable(ob) && (ob->dt != OB_WIRE)))
 	{
 		return;
 	}
