@@ -19,8 +19,7 @@ from gpu_extras.presets import draw_circle_2d
 
 offscreen = gpu.types.GPUOffScreen(512, 512)
 
-offscreen.bind()
-try:
+with offscreen.bind():
     bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
     with gpu.matrix.push_pop():
         # reset matrices -> use normalized device coordinates [-1, 1]
@@ -31,8 +30,6 @@ try:
         for i in range(-amount, amount + 1):
             x_pos = i / amount
             draw_circle_2d((x_pos, 0.0), (1, 1, 1, 1), 0.5, 200)
-finally:
-    offscreen.unbind()
 
 
 # Drawing the generated texture in 3D space

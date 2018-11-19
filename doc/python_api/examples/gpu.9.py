@@ -23,8 +23,7 @@ RING_AMOUNT = 10
 
 offscreen = gpu.types.GPUOffScreen(WIDTH, HEIGHT)
 
-offscreen.bind()
-try:
+with offscreen.bind():
     bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
     with gpu.matrix.push_pop():
         # reset matrices -> use normalized device coordinates [-1, 1]
@@ -40,9 +39,8 @@ try:
     buffer = bgl.Buffer(bgl.GL_BYTE, WIDTH * HEIGHT * 4)
     bgl.glReadBuffer(bgl.GL_BACK)
     bgl.glReadPixels(0, 0, WIDTH, HEIGHT, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
-finally:
-    offscreen.unbind()
-    offscreen.free()
+
+offscreen.free()
 
 
 if not IMAGE_NAME in bpy.data.images:
