@@ -4,7 +4,8 @@ from bpy.props import (
     EnumProperty,
 )
 
-idname = os.path.splitext(os.path.basename(__file__))[0]
+dirname, filename = os.path.split(__file__)
+idname = os.path.splitext(filename)[0]
 
 def update_fn(_self, _context):
     load()
@@ -34,14 +35,11 @@ class Prefs(bpy.types.KeyConfigPreferences):
         split.column()
 
 
-from bpy_extras.keyconfig_utils import (
-    keyconfig_init_from_data,
-    keyconfig_module_from_preset,
-)
-
-blender_default = keyconfig_module_from_preset(os.path.join("keymap_data", "blender_default"), __file__)
+blender_default = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "blender_default.py"))
 
 def load():
+    from bl_keymap_utils.io import keyconfig_init_from_data
+
     kc = bpy.context.window_manager.keyconfigs.new(idname)
     kc_prefs = kc.preferences
 

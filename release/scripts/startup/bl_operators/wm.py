@@ -1613,7 +1613,7 @@ class WM_OT_keyconfig_export(Operator):
     )
 
     def execute(self, context):
-        from bpy_extras import keyconfig_utils
+        from bl_keymap_utils.io import keyconfig_export_as_data
 
         if not self.filepath:
             raise Exception("Filepath not set")
@@ -1623,7 +1623,7 @@ class WM_OT_keyconfig_export(Operator):
 
         wm = context.window_manager
 
-        keyconfig_utils.keyconfig_export_as_data(
+        keyconfig_export_as_data(
             wm,
             wm.keyconfigs.active,
             self.filepath,

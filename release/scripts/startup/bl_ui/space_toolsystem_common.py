@@ -49,7 +49,7 @@ def _keymap_fn_from_seq(keymap_data):
 
     def keymap_fn(km):
         if keymap_fn.keymap_data:
-            from bpy_extras.keyconfig_utils import keymap_init_from_data
+            from bl_keymap_utils.io import keymap_init_from_data
             keymap_init_from_data(km, keymap_fn.keymap_data)
     keymap_fn.keymap_data = keymap_data
     return keymap_fn

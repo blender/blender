@@ -361,7 +361,7 @@ def draw_hierarchy(display_keymaps, layout):
 
 
 def draw_keymaps(context, layout):
-    from bpy_extras import keyconfig_utils
+    from bl_keymap_utils.io import keyconfig_merge
 
     wm = context.window_manager
     kc_user = wm.keyconfigs.user
@@ -389,7 +389,7 @@ def draw_keymaps(context, layout):
     # postpone drawing into rowsub, so we can set alert!
 
     layout.separator()
-    display_keymaps = keyconfig_utils.keyconfig_merge(kc_user, kc_user)
+    display_keymaps = keyconfig_merge(kc_user, kc_user)
     filter_type = spref.filter_type
     filter_text = spref.filter_text.strip()
     if filter_text:
