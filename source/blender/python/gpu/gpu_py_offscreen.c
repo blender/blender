@@ -55,10 +55,35 @@
 
 #include "gpu_py_offscreen.h" /* own include */
 
+
+ /* -------------------------------------------------------------------- */
+
+ /** \name GPUOffScreen Common Utilities
+  * \{ */
+
+static int bpygpu_offscreen_valid_check(BPyGPUOffScreen *bpygpu_ofs)
+{
+	if (UNLIKELY(bpygpu_ofs->ofs == NULL)) {
+		PyErr_SetString(PyExc_ReferenceError, "GPU offscreen was freed, no further access is valid");
+		return -1;
+	}
+	return 0;
+}
+
+#define BPY_GPU_OFFSCREEN_CHECK_OBJ(bpygpu) { \
+	if (UNLIKELY(bpygpu_offscreen_valid_check(bpygpu) == -1)) { \
+		return NULL; \
+	} \
+} ((void)0)
+
+/** \} */
+
+
 /* -------------------------------------------------------------------- */
 
 /** \name GPUOffscreen Type
  * \{ */
+
 
 static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
@@ -87,21 +112,6 @@ static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args
 	return BPyGPUOffScreen_CreatePyObject(ofs);
 }
 
-static int bpygpu_offscreen_valid_check(BPyGPUOffScreen *bpygpu_ofs)
-{
-	if (UNLIKELY(bpygpu_ofs->ofs == NULL)) {
-		PyErr_SetString(PyExc_ReferenceError, "GPU offscreen was freed, no further access is valid");
-		return -1;
-	}
-	return 0;
-}
-
-#define BPY_GPU_OFFSCREEN_CHECK_OBJ(bpygpu) { \
-	if (UNLIKELY(bpygpu_offscreen_valid_check(bpygpu) == -1)) { \
-		return NULL; \
-	} \
-} ((void)0)
-
 PyDoc_STRVAR(bpygpu_offscreen_width_doc, "Width of the texture.\n\n:type: `int`");
 static PyObject *bpygpu_offscreen_width_get(BPyGPUOffScreen *self, void *UNUSED(type))
 {
@@ -128,15 +138,15 @@ PyDoc_STRVAR(bpygpu_offscreen_bind_doc,
 ".. method:: bind(save=True)\n"
 "\n"
 "   Bind the offscreen object.\n"
+"   To make sure that the offscreen gets unbind whether an exception occurs or not, pack it into a `with` statement.\n"
 "\n"
 "   :arg save: Save the current OpenGL state, so that it can be restored when unbinding.\n"
 "   :type save: `bool`\n"
 );
 static PyObject *bpygpu_offscreen_bind(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
-	bool save = true;
-
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
+	bool save = true;
 
 	static const char *_keywords[] = {"save", NULL};
 	static _PyArg_Parser _parser = {"|O&:bind", _keywords, 0};
@@ -148,7 +158,11 @@ static PyObject *bpygpu_offscreen_bind(BPyGPUOffScreen *self, PyObject *args, Py
 	}
 
 	GPU_offscreen_bind(self->ofs, save);
-	Py_RETURN_NONE;
+
+	self->is_saved = save;
+	Py_INCREF(self);
+
+	return (PyObject *)self;
 }
 
 PyDoc_STRVAR(bpygpu_offscreen_unbind_doc,
@@ -275,6 +289,17 @@ static PyObject *bpygpu_offscreen_free(BPyGPUOffScreen *self)
 	Py_RETURN_NONE;
 }
 
+static PyObject *bpygpu_offscreen_bind_context_enter(BPyGPUOffScreen *self)
+{
+	Py_RETURN_NONE;
+}
+
+static PyObject *bpygpu_offscreen_bind_context_exit(BPyGPUOffScreen *self, PyObject *UNUSED(args))
+{
+	GPU_offscreen_unbind(self->ofs, self->is_saved);
+	Py_RETURN_NONE;
+}
+
 static void BPyGPUOffScreen__tp_dealloc(BPyGPUOffScreen *self)
 {
 	if (self->ofs)
@@ -294,6 +319,8 @@ static struct PyMethodDef bpygpu_offscreen_methods[] = {
 	{"unbind", (PyCFunction)bpygpu_offscreen_unbind, METH_VARARGS | METH_KEYWORDS, bpygpu_offscreen_unbind_doc},
 	{"draw_view3d", (PyCFunction)bpygpu_offscreen_draw_view3d, METH_VARARGS | METH_KEYWORDS, bpygpu_offscreen_draw_view3d_doc},
 	{"free", (PyCFunction)bpygpu_offscreen_free, METH_NOARGS, bpygpu_offscreen_free_doc},
+	{"__enter__", (PyCFunction)bpygpu_offscreen_bind_context_enter, METH_NOARGS},
+	{"__exit__",  (PyCFunction)bpygpu_offscreen_bind_context_exit,  METH_VARARGS},
 	{NULL, NULL, 0, NULL}
 };
 

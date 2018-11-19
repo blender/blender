@@ -34,6 +34,7 @@ extern PyTypeObject BPyGPUOffScreen_Type;
 typedef struct BPyGPUOffScreen {
 	PyObject_HEAD
 	struct GPUOffScreen *ofs;
+	bool is_saved;
 } BPyGPUOffScreen;
 
 PyObject *BPyGPUOffScreen_CreatePyObject(struct GPUOffScreen *ofs) ATTR_NONNULL(1);
