@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -975,24 +976,13 @@ size_t BLI_str_partition_ex(
 	return end ? (size_t)(end - str) : strlen(str);
 }
 
-/**
- * Format ints with decimal grouping.
- * 1000 -> 1,000
- *
- * \param dst  The resulting string
- * \param num  Number to format
- * \return The length of \a dst
- */
-size_t BLI_str_format_int_grouped(char dst[16], int num)
+size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
 {
-	char src[16];
 	char *p_src = src;
 	char *p_dst = dst;
 
 	const char separator = ',';
-	int num_len, commas;
-
-	num_len = sprintf(src, "%d", num);
+	int commas;
 
 	if (*p_src == '-') {
 		*p_dst++ = *p_src++;
@@ -1008,6 +998,38 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
 	*--p_dst = '\0';
 
 	return (size_t)(p_dst - dst);
+}
+
+/**
+ * Format ints with decimal grouping.
+ * 1000 -> 1,000
+ *
+ * \param dst  The resulting string
+ * \param num  Number to format
+ * \return The length of \a dst
+ */
+size_t BLI_str_format_int_grouped(char dst[16], int num)
+{
+	char src[16];
+	int num_len = sprintf(src, "%d", num);
+
+	return BLI_str_format_int_grouped_ex(src, dst, num_len);
+}
+
+/**
+ * Format uint64_t with decimal grouping.
+ * 1000 -> 1,000
+ *
+ * \param dst  The resulting string
+ * \param num  Number to format
+ * \return The length of \a dst
+ */
+size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
+{
+	char src[16];
+	int num_len = sprintf(src, "%"PRIu64"",num);
+
+	return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }
 
 /**

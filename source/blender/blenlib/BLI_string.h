@@ -33,6 +33,7 @@
  */
 
 #include <stdarg.h>
+#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,6 +72,7 @@ char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT A
 size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy) ATTR_NONNULL();
 
 size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
+size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
 void   BLI_str_format_byte_unit(char dst[15], long long int size, const bool base_10) ATTR_NONNULL();
 
 int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

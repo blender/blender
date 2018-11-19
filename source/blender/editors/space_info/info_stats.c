@@ -70,14 +70,14 @@
 #define MAX_INFO_NUM_LEN 16
 
 typedef struct SceneStats {
-	int totvert, totvertsel;
-	int totedge, totedgesel;
-	int totface, totfacesel;
-	int totbone, totbonesel;
-	int totobj,  totobjsel;
-	int totlamp, totlampsel;
-	int tottri;
-	int totgplayer, totgpframe, totgpstroke, totgppoint;
+	uint64_t totvert, totvertsel;
+	uint64_t totedge, totedgesel;
+	uint64_t totface, totfacesel;
+	uint64_t totbone, totbonesel;
+	uint64_t totobj,  totobjsel;
+	uint64_t totlamp, totlampsel;
+	uint64_t tottri;
+	uint64_t totgplayer, totgpframe, totgpstroke, totgppoint;
 
 	char infostr[MAX_INFO_LEN];
 } SceneStats;
@@ -450,7 +450,7 @@ static void stats_string(ViewLayer *view_layer)
 
 	/* Generate formatted numbers */
 #define SCENE_STATS_FMT_INT(_id) \
-	BLI_str_format_int_grouped(stats_fmt._id, stats->_id)
+	BLI_str_format_uint64_grouped(stats_fmt._id, stats->_id)
 
 	SCENE_STATS_FMT_INT(totvert);
 	SCENE_STATS_FMT_INT(totvertsel);
