@@ -835,7 +835,8 @@ void BKE_object_init(Object *ob)
 	ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_DEFAULT;
 	ob->empty_image_visibility_flag = (
 	        OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE |
-	        OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC);
+	        OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC |
+	        OB_EMPTY_IMAGE_VISIBLE_BACKSIDE);
 	if (ob->type == OB_EMPTY) {
 		copy_v2_fl(ob->ima_ofs, -0.5f);
 	}
@@ -4078,4 +4079,22 @@ bool BKE_object_modifier_update_subframe(
 	}
 
 	return false;
+}
+
+bool BKE_image_empty_visible_in_view3d(const Object *ob, const RegionView3D *rv3d)
+{
+	int visibility_flag = ob->empty_image_visibility_flag;
+
+	if ((visibility_flag & OB_EMPTY_IMAGE_VISIBLE_BACKSIDE) == 0) {
+		if (dot_v3v3((float *)&ob->obmat[2], (float *)&rv3d->viewinv[2]) < 0.0f) {
+			return false;
+		}
+	}
+
+	if (rv3d->is_persp) {
+		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE;
+	}
+	else {
+		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC;
+	}
 }

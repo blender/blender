@@ -107,17 +107,6 @@ static void gizmo_empty_image_prop_matrix_set(
 	ob->ima_ofs[1] = (matrix[3][1] - (0.5f * dims[1])) / dims[1];
 }
 
-static bool is_image_empty_visible(Object *ob, RegionView3D *rv3d)
-{
-	int visibility_flag = ob->empty_image_visibility_flag;
-	if (rv3d->is_persp) {
-		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE;
-	}
-	else {
-		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC;
-	}
-}
-
 static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
@@ -133,7 +122,7 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 
 	if (ob && ob->type == OB_EMPTY) {
 		if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-			return is_image_empty_visible(ob, rv3d);
+			return BKE_image_empty_visible_in_view3d(ob, rv3d);
 		}
 	}
 	return false;

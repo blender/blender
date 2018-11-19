@@ -856,17 +856,6 @@ static void image_calc_aspect(Image *ima, ImageUser *iuser, float r_image_aspect
 	}
 }
 
-static bool is_image_empty_visible(Object *ob, RegionView3D *rv3d)
-{
-	int visibility_flag = ob->empty_image_visibility_flag;
-	if (rv3d->is_persp) {
-		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE;
-	}
-	else {
-		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC;
-	}
-}
-
 /* per-image shading groups for image-type empty objects */
 struct EmptyImageShadingGroupData {
 	DRWShadingGroup *shgrp_image;
@@ -879,7 +868,7 @@ static void DRW_shgroup_empty_image(
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
 
-	if (!is_image_empty_visible(ob, rv3d)) return;
+	if (!BKE_image_empty_visible_in_view3d(ob, rv3d)) return;
 
 	if (sgl->image_plane_map == NULL) {
 		sgl->image_plane_map = BLI_ghash_ptr_new(__func__);

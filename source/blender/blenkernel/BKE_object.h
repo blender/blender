@@ -53,6 +53,7 @@ struct RigidBodyWorld;
 struct HookModifierData;
 struct ModifierData;
 struct HookGpencilModifierData;
+struct RegionView3D;
 
 #include "DNA_object_enums.h"
 
@@ -341,6 +342,8 @@ bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
 bool BKE_object_modifier_update_subframe(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
         bool update_mesh, int parent_recursion, float frame, int type);
+
+bool BKE_image_empty_visible_in_view3d(const struct Object *ob, const struct RegionView3D *rv3d);
 
 #ifdef __cplusplus
 }
