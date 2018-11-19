@@ -32,7 +32,8 @@ fragment_shader = '''
 
 coords = [(1, 1, 1), (2, 0, 0), (-2, -1, 3)]
 shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
-batch = batch_for_shader(shader, 'TRIS', {"position" : coords})
+batch = batch_for_shader(shader, 'TRIS', {"position": coords})
+
 
 def draw():
     shader.bind()
@@ -40,5 +41,6 @@ def draw():
     shader.uniform_float("viewProjectionMatrix", matrix)
     shader.uniform_float("brightness", 0.5)
     batch.draw(shader)
+
 
 bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_VIEW')

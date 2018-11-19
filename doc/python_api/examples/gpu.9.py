@@ -6,7 +6,8 @@ This will create a new image with the given name.
 If it already exists, it will override the existing one.
 
 Currently almost all of the execution time is spent in the last line.
-In the future this will hopefully be solved by implementing the Python buffer protocol for `bgl.Buffer` and `Image.pixels` (aka `bpy_prop_array`).
+In the future this will hopefully be solved by implementing the Python buffer protocol
+for :class:`bgl.Buffer` and :class:`bpy.types.Image.pixels` (aka ``bpy_prop_array``).
 """
 import bpy
 import gpu
@@ -34,7 +35,6 @@ with offscreen.bind():
             draw_circle_2d(
                 (random.uniform(-1, 1), random.uniform(-1, 1)),
                 (1, 1, 1, 1), random.uniform(0.1, 1), 20)
-
 
     buffer = bgl.Buffer(bgl.GL_BYTE, WIDTH * HEIGHT * 4)
     bgl.glReadBuffer(bgl.GL_BACK)

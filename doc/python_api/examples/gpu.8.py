@@ -2,10 +2,10 @@
 Generate a texture using Offscreen Rendering
 --------------------------------------------
 
-1. Create an :class:`gpu.types.GPUOffScreen` object.
-2. Draw some circles into it.
-3. Make a new shader for drawing a planar texture in 3D.
-4. Draw the generated texture using the new shader.
+#. Create an :class:`gpu.types.GPUOffScreen` object.
+#. Draw some circles into it.
+#. Make a new shader for drawing a planar texture in 3D.
+#. Draw the generated texture using the new shader.
 """
 import bpy
 import gpu
@@ -63,9 +63,13 @@ fragment_shader = '''
 '''
 
 shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
-batch = batch_for_shader(shader, 'TRI_FAN',
-    {"position" : ((-1, -1), (1, -1), (1, 1), (-1, 1)),
-     "uv" : ((0, 0), (1, 0), (1, 1), (0, 1))})
+batch = batch_for_shader(
+    shader, 'TRI_FAN',
+    {
+        "position": ((-1, -1), (1, -1), (1, 1), (-1, 1)),
+        "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
+    },
+)
 
 
 def draw():
@@ -77,5 +81,6 @@ def draw():
     shader.uniform_float("viewProjectionMatrix", bpy.context.region_data.perspective_matrix)
     shader.uniform_float("image", 0)
     batch.draw(shader)
+
 
 bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_VIEW')

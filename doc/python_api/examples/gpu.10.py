@@ -3,7 +3,8 @@ Rendering the 3D View into a Texture
 ------------------------------------
 
 The scene has to have a camera for this example to work.
-You could also make this independent of a specific camera, but Blender does not expose good functions to create view and projection matrices yet.
+You could also make this independent of a specific camera,
+but Blender does not expose good functions to create view and projection matrices yet.
 """
 import bpy
 import bgl
@@ -14,6 +15,7 @@ WIDTH = 512
 HEIGHT = 256
 
 offscreen = gpu.types.GPUOffScreen(WIDTH, HEIGHT)
+
 
 def draw():
     context = bpy.context
@@ -34,5 +36,6 @@ def draw():
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     draw_texture_2d(offscreen.color_texture, (10, 10), WIDTH, HEIGHT)
+
 
 bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_PIXEL')
