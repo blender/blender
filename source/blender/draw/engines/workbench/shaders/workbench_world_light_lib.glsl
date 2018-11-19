@@ -1,18 +1,50 @@
 #define BLINN
 
+#if STUDIOLIGHT_SH_BANDS == 2
+vec3 spherical_harmonics(vec3 N, vec3 sh_coefs[STUDIOLIGHT_SH_MAX_COMPONENTS])
+{
+	/* http://www.geomerics.com/wp-content/uploads/2015/08/CEDEC_Geomerics_ReconstructingDiffuseLighting1.pdf */
+	/* Highly optimized form, precompute as much as we can. */
+	/**
+	 * R1 = 0.5 * vec3(L3.r, L2.r, L1.r);
+	 * sh_coefs[0..2] = R1 / length(R1);
+	 **/
+	vec3 q;
+	q.x = dot(sh_coefs[1], N);
+	q.y = dot(sh_coefs[2], N);
+	q.z = dot(sh_coefs[3], N);
+	q = 0.5 * q + 0.5;
+
+	/**
+	 * R0 = L0.r;
+	 * lr1_r0 = lenR1 / R0;
+	 * p = 1.0 + 2.0 * lr1_r0;
+	 * a = (1.0 - lr1_r0) / (1.0 + lr1_r0);
+	 * return R0 * (a + (1.0 - a) * (p + 1.0) * pow(q, p));
+	 *
+	 * sh_coefs[4] = p;
+	 * sh_coefs[5] = R0 * a;
+	 * sh_coefs[0] = R0 * (1.0 - a) * (p + 1.0);
+	 **/
+	q = pow(q, sh_coefs[4]);
+	return sh_coefs[0] * q + sh_coefs[5];
+}
+
+#else
+
 vec3 spherical_harmonics(vec3 N, vec3 sh_coefs[STUDIOLIGHT_SH_MAX_COMPONENTS])
 {
 	vec3 sh = 0.282095 * sh_coefs[0];
 
-#if STUDIOLIGHT_SH_BANDS > 1
+#  if STUDIOLIGHT_SH_BANDS > 1
 	float nx = N.x;
 	float ny = N.y;
 	float nz = N.z;
 	sh += -0.488603 * nz * sh_coefs[1];
 	sh += 0.488603 * ny * sh_coefs[2];
 	sh += -0.488603 * nx * sh_coefs[3];
-#endif
-#if STUDIOLIGHT_SH_BANDS > 2
+#  endif
+#  if STUDIOLIGHT_SH_BANDS > 2
 	float nx2 = nx * nx;
 	float ny2 = ny * ny;
 	float nz2 = nz * nz;
@@ -21,8 +53,8 @@ vec3 spherical_harmonics(vec3 N, vec3 sh_coefs[STUDIOLIGHT_SH_MAX_COMPONENTS])
 	sh += 0.315392 * (3.0 * ny2 - 1.0) * sh_coefs[6];
 	sh += -1.092548 * nx * ny * sh_coefs[7];
 	sh += 0.546274 * (nx2 - nz2) * sh_coefs[8];
-#endif
-#if STUDIOLIGHT_SH_BANDS > 4
+#  endif
+#  if STUDIOLIGHT_SH_BANDS > 4
 	float nx4 = nx2 * nx2;
 	float ny4 = ny2 * ny2;
 	float nz4 = nz2 * nz2;
@@ -35,9 +67,10 @@ vec3 spherical_harmonics(vec3 N, vec3 sh_coefs[STUDIOLIGHT_SH_MAX_COMPONENTS])
 	sh += (0.9461746957575601 * (nx2 - nz2) * (-1.0 + 7.0 * ny2)) * sh_coefs[15];
 	sh += (-1.7701307697799304 * nx * ny * (nx2 - 3.0 * nz2)) * sh_coefs[16];
 	sh += (0.6258357354491761 * (nx4 - 6.0 * nz2 * nx2 + nz4)) * sh_coefs[17];
-#endif
+#  endif
 	return sh;
 }
+#endif
 
 vec3 get_world_diffuse_light(WorldData world_data, vec3 N)
 {

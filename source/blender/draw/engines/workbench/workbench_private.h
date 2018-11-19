@@ -138,8 +138,10 @@ typedef struct WORKBENCH_UBO_Light {
 	float energy;
 } WORKBENCH_UBO_Light;
 
+#define WORKBENCH_SH_DATA_LEN ((STUDIOLIGHT_SH_BANDS == 2) ? 6 : STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN)
+
 typedef struct WORKBENCH_UBO_World {
-	float spherical_harmonics_coefs[STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN][4];
+	float spherical_harmonics_coefs[WORKBENCH_SH_DATA_LEN][4];
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];

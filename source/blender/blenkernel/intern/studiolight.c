@@ -558,19 +558,45 @@ static void studiolight_spherical_harmonics_apply_windowing(float (*sh)[3], floa
 	}
 }
 
-BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl, float color[3], float normal[3])
+static float studiolight_spherical_harmonics_geomerics_eval(const float normal[3], float sh0, float sh1, float sh2, float sh3)
 {
+	/* Use Geomerics non-linear SH. */
+	/* http://www.geomerics.com/wp-content/uploads/2015/08/CEDEC_Geomerics_ReconstructingDiffuseLighting1.pdf */
+	float R0 = sh0 * M_1_PI;
+
+	float R1[3] = {-sh3, sh2, -sh1};
+	mul_v3_fl(R1, 0.5f * M_1_PI * 1.5f); /* 1.5f is to improve the contrast a bit. */
+	float lenR1 = len_v3(R1);
+	mul_v3_fl(R1, 1.0f / lenR1);
+	float q = 0.5f * (1.0f + dot_v3v3(R1, normal));
+
+	float p = 1.0f + 2.0f * lenR1 / R0;
+	float a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
+
+	return R0 * (a + (1.0f - a) * (p + 1.0f) * powf(q, p));
+}
+
+BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl, float color[3], const float normal[3])
+{
+#if STUDIOLIGHT_SH_BANDS == 2
+	float (*sh)[3] = (float (*)[3])sl->spherical_harmonics_coefs;
+	for (int i = 0; i < 3; ++i) {
+		color[i] = studiolight_spherical_harmonics_geomerics_eval(normal, sh[0][i], sh[1][i], sh[2][i], sh[3][i]);
+	}
+	return;
+#else
+
 	/* L0 */
 	mul_v3_v3fl(color, sl->spherical_harmonics_coefs[0], 0.282095f);
-#if STUDIOLIGHT_SH_BANDS > 1 /* L1 */
+#  if STUDIOLIGHT_SH_BANDS > 1 /* L1 */
 	const float nx = normal[0];
 	const float ny = normal[1];
 	const float nz = normal[2];
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[1], -0.488603f * nz);
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[2],  0.488603f * ny);
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[3], -0.488603f * nx);
-#endif
-#if STUDIOLIGHT_SH_BANDS > 2 /* L2 */
+#  endif
+#  if STUDIOLIGHT_SH_BANDS > 2 /* L2 */
 	const float nx2 = SQUARE(nx);
 	const float ny2 = SQUARE(ny);
 	const float nz2 = SQUARE(nz);
@@ -579,9 +605,9 @@ BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl, float colo
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[6], 0.315392f * (3.0f * ny2 - 1.0f));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[7], -1.092548 * nx * ny);
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[8], 0.546274 * (nx2 - nz2));
-#endif
+#  endif
 	/* L3 coefs are 0 */
-#if STUDIOLIGHT_SH_BANDS > 4 /* L4 */
+#  if STUDIOLIGHT_SH_BANDS > 4 /* L4 */
 	const float nx4 = SQUARE(nx2);
 	const float ny4 = SQUARE(ny2);
 	const float nz4 = SQUARE(nz2);
@@ -594,6 +620,7 @@ BLI_INLINE void studiolight_spherical_harmonics_eval(StudioLight *sl, float colo
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[15],  0.9461746957575601f * (nx2 - nz2) * (-1.0f + 7.0f * ny2));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[16], -1.7701307697799304f * nx * ny * (nx2 - 3.0f * nz2));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[17],  0.6258357354491761f * (nx4 - 6.0f * nz2 * nx2 + nz4));
+#  endif
 #endif
 }
 
