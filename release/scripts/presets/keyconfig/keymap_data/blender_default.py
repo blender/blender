@@ -5901,9 +5901,3 @@ def generate_keymaps(params=None):
 # Command to lint:
 #
 #    pylint release/scripts/presets/keyconfig/keymap_data/blender_default.py --disable=C0111,C0301,C0302,R0902,R0903,R0913
-
-
-if __name__ == "__main__":
-    from bpy_extras.keyconfig_utils import keyconfig_import_from_data
-    keyconfig_import_from_data("blender", generate_keymaps())
-    keyconfig_import_from_data("blender_27", generate_keymaps(Params(legacy=True)))

@@ -239,12 +239,16 @@ void WM_keyconfig_init(bContext *C)
 	wmWindowManager *wm = CTX_wm_manager(C);
 
 	/* create standard key configs */
-	if (!wm->defaultconf)
-		wm->defaultconf = WM_keyconfig_new(wm, "Blender", false);
-	if (!wm->addonconf)
-		wm->addonconf = WM_keyconfig_new(wm, "Blender Addon", false);
-	if (!wm->userconf)
-		wm->userconf = WM_keyconfig_new(wm, "Blender User", false);
+	if (wm->defaultconf == NULL) {
+		/* Keep lowercase to match the preset filename. */
+		wm->defaultconf = WM_keyconfig_new(wm, "blender", false);
+	}
+	if (wm->addonconf == NULL) {
+		wm->addonconf = WM_keyconfig_new(wm, "blender addon", false);
+	}
+	if (wm->userconf == NULL) {
+		wm->userconf = WM_keyconfig_new(wm, "blender user", false);
+	}
 
 	/* initialize only after python init is done, for keymaps that
 	 * use python operators */
