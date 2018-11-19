@@ -126,6 +126,7 @@ static void drw_stats_timer_start_ex(const char *name, const bool is_query)
 				glGenQueries(1, timer->query);
 			}
 
+			glFinish();
 			/* Issue query for the next frame */
 			glBeginQuery(GL_TIME_ELAPSED, timer->query[0]);
 			DTP.is_querying = true;
