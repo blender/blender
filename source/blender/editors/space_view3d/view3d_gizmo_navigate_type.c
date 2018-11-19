@@ -209,7 +209,7 @@ static void axis_geom_draw(
 		float depth;
 		char index;
 		char axis;
-		char is_pos;
+		bool is_pos;
 	} axis_order[6] = {
 		{-gz->matrix_offset[0][2], 0, 0, false},
 		{+gz->matrix_offset[0][2], 1, 0, true},
@@ -218,6 +218,22 @@ static void axis_geom_draw(
 		{-gz->matrix_offset[2][2], 4, 2, false},
 		{+gz->matrix_offset[2][2], 5, 2, true},
 	};
+
+	int axis_align = -1;
+	for (int axis = 0; axis < 3; axis++) {
+		if (len_squared_v2(gz->matrix_offset[axis]) < 1e-6f) {
+			axis_align = axis;
+			break;
+		}
+	}
+
+	/* Show backwards pointing highlight on-top (else we can't see it at all). */
+	if ((select == false) && (gz->highlight_part > 0) && (axis_align != -1)) {
+		if (axis_order[gz->highlight_part - 1].is_pos == false) {
+			axis_order[gz->highlight_part - 1].depth = FLT_MAX;
+		}
+	}
+
 	qsort(&axis_order, ARRAY_SIZE(axis_order), sizeof(axis_order[0]), BLI_sortutil_cmp_float);
 
 	static const float axis_highlight[4] = {1, 1, 1, 1};
@@ -255,14 +271,6 @@ static void axis_geom_draw(
 	GPU_matrix_mul(gz->matrix_offset);
 
 	bool draw_center_done = false;
-
-	int axis_align = -1;
-	for (int axis = 0; axis < 3; axis++) {
-		if (len_squared_v2(gz->matrix_offset[axis]) < 1e-6f) {
-			axis_align = axis;
-			break;
-		}
-	}
 
 	for (int axis_index = 0; axis_index < ARRAY_SIZE(axis_order); axis_index++) {
 		const int index = axis_order[axis_index].index;
