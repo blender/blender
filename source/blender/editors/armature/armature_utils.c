@@ -816,6 +816,12 @@ void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
 		if (ebone_dst->parent) {
 			ebone_dst->parent = ebone_dst->parent->temp.ebone;
 		}
+		if (ebone_dst->bbone_next) {
+			ebone_dst->bbone_next = ebone_dst->bbone_next->temp.ebone;
+		}
+		if (ebone_dst->bbone_prev) {
+			ebone_dst->bbone_prev = ebone_dst->bbone_prev->temp.ebone;
+		}
 	}
 }
 

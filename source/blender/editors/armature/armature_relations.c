@@ -549,8 +549,15 @@ static void separate_armature_bones(Main *bmain, Object *ob, short sel)
 
 			/* clear the pchan->parent var of any pchan that had this as its parent */
 			for (pchn = ob->pose->chanbase.first; pchn; pchn = pchn->next) {
-				if (pchn->parent == pchan)
+				if (pchn->parent == pchan) {
 					pchn->parent = NULL;
+				}
+				if (pchn->bbone_next == pchan) {
+					pchn->bbone_next = NULL;
+				}
+				if (pchn->bbone_prev == pchan) {
+					pchn->bbone_prev = NULL;
+				}
 			}
 
 			/* free any of the extra-data this pchan might have */
