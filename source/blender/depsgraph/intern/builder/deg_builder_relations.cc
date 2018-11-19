@@ -104,6 +104,7 @@ extern "C" {
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"
+#include "intern/eval/deg_eval_copy_on_write.h"
 
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
@@ -2488,12 +2489,15 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		Object *object = (Object *)id_orig;
 		ID *object_data_id = (ID *)object->data;
 		if (object_data_id != NULL) {
-			OperationKey data_copy_on_write_key(object_data_id,
-			                                    DEG_NODE_TYPE_COPY_ON_WRITE,
-			                                    DEG_OPCODE_COPY_ON_WRITE);
-			DepsRelation *rel = add_relation(
-			        data_copy_on_write_key, copy_on_write_key, "Eval Order");
-			rel->flag |= DEPSREL_FLAG_GODMODE;
+			if (deg_copy_on_write_is_needed(object_data_id)) {
+				OperationKey data_copy_on_write_key(object_data_id,
+				                                    DEG_NODE_TYPE_COPY_ON_WRITE,
+				                                    DEG_OPCODE_COPY_ON_WRITE);
+				DepsRelation *rel = add_relation(data_copy_on_write_key,
+				                                 copy_on_write_key,
+				                                 "Eval Order");
+				rel->flag |= DEPSREL_FLAG_GODMODE;
+			}
 		}
 		else {
 			BLI_assert(object->type == OB_EMPTY);
