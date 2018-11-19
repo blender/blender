@@ -52,6 +52,7 @@ void main()
 	vec3 pos, binor;
 	hair_get_pos_tan_binor_time(
 	        (ProjectionMatrix[3][3] == 0.0),
+	        ModelMatrixInverse,
 	        ViewMatrixInverse[3].xyz, ViewMatrixInverse[2].xyz,
 	        pos, hairTangent, binor, hairTime, hairThickness, hairThickTime);
 

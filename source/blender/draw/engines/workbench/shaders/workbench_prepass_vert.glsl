@@ -1,4 +1,5 @@
 uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrixInverse;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
@@ -41,6 +42,7 @@ void main()
 	vec3 pos, tan, binor;
 	hair_get_pos_tan_binor_time(
 	        (ProjectionMatrix[3][3] == 0.0),
+	        ModelMatrixInverse,
 	        ViewMatrixInverse[3].xyz, ViewMatrixInverse[2].xyz,
 	        pos, tan, binor, time, thickness, thick_time);
 	/* To "simulate" anisotropic shading, randomize hair normal per strand. */
