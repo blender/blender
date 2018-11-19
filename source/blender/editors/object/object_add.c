@@ -1305,7 +1305,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
 	const bool use_global = RNA_boolean_get(op->ptr, "use_global");
-	bool changed = false;
+	uint changed_count = 0;
 
 	if (CTX_data_edit_object(C))
 		return OPERATOR_CANCELLED;
@@ -1338,7 +1338,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		if (use_global && ob->id.lib == NULL) {
 			/* We want to nuke the object, let's nuke it the easy way (not for linked data though)... */
 			BKE_libblock_delete(bmain, &ob->id);
-			changed = true;
+			changed_count += 1;
 			continue;
 		}
 
@@ -1357,7 +1357,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 
 		/* remove from current scene only */
 		ED_object_base_free_and_unlink(bmain, scene, ob);
-		changed = true;
+		changed_count += 1;
 
 		if (use_global) {
 			Scene *scene_iter;
@@ -1377,8 +1377,11 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if (!changed)
+	BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", changed_count);
+
+	if (changed_count == 0) {
 		return OPERATOR_CANCELLED;
+	}
 
 	/* delete has to handle all open scenes */
 	BKE_main_id_tag_listbase(&bmain->scene, LIB_TAG_DOIT, true);
