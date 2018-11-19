@@ -1410,7 +1410,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_delete";
 
 	/* api callbacks */
-	ot->invoke = WM_operator_confirm;
+	ot->invoke = WM_operator_confirm_or_exec;
 	ot->exec = object_delete_exec;
 	ot->poll = ED_operator_objectmode;
 
@@ -1420,6 +1420,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	PropertyRNA *prop;
 	prop = RNA_def_boolean(ot->srna, "use_global", 0, "Delete Globally", "Remove object from all scenes");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	WM_operator_properties_confirm_or_exec(ot);
 }
 
 /**************************** Copy Utilities ******************************/

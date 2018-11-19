@@ -863,6 +863,18 @@ int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *UNUSED(event
 	return WM_operator_confirm_message(C, op, NULL);
 }
 
+int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	const bool confirm = RNA_boolean_get(op->ptr, "confirm");
+	if (confirm) {
+		return WM_operator_confirm_message(C, op, NULL);
+	}
+	else {
+		return op->type->exec(C, op);
+	}
+}
+
+
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {

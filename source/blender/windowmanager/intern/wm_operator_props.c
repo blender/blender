@@ -44,6 +44,15 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+
+void WM_operator_properties_confirm_or_exec(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_boolean(ot->srna, "confirm", true, "Confirm", "Prompt for confirmation");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
 /* default properties for fileselect */
 void WM_operator_properties_filesel(
         wmOperatorType *ot, int filter, short type, short action,
