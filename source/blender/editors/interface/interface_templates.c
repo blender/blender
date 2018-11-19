@@ -2295,37 +2295,17 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	RNA_property_update(C, &cb->ptr, cb->prop);
 }
 
-static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
-{
-	ColorBand *coba = coba_v;
-	float pos = 0.5f;
+enum {
+	CB_FUNC_FLIP,
+	CB_FUNC_DISTRIBUTE_LR,
+	CB_FUNC_DISTRIBUTE_EVENLY,
+	CB_FUNC_RESET,
+};
 
-	if (coba->tot > 1) {
-		if (coba->cur > 0) pos = (coba->data[coba->cur - 1].pos + coba->data[coba->cur].pos) * 0.5f;
-		else pos = (coba->data[coba->cur + 1].pos + coba->data[coba->cur].pos) * 0.5f;
-	}
-
-	if (BKE_colorband_element_add(coba, pos)) {
-		rna_update_cb(C, cb_v, NULL);
-		ED_undo_push(C, "Add colorband");
-	}
-}
-
-static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
-{
-	ColorBand *coba = coba_v;
-
-	if (BKE_colorband_element_remove(coba, coba->cur)) {
-		ED_undo_push(C, "Delete colorband");
-		rna_update_cb(C, cb_v, NULL);
-	}
-}
-
-static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
+static void colorband_flip_cb(bContext *C, ColorBand *coba)
 {
 	CBData data_tmp[MAXCOLORBAND];
 
-	ColorBand *coba = coba_v;
 	int a;
 
 	for (a = 0; a < coba->tot; a++) {
@@ -2339,9 +2319,105 @@ static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
 	/* may as well flip the cur*/
 	coba->cur = coba->tot - (coba->cur + 1);
 
-	ED_undo_push(C, "Flip colorband");
+	ED_undo_push(C, "Flip Color Ramp");
+}
 
-	rna_update_cb(C, cb_v, NULL);
+static void colorband_distribute_cb(bContext *C, ColorBand *coba, bool evenly)
+{
+	if (coba->tot > 1) {
+		int a;
+		int tot = evenly ? coba->tot - 1 : coba->tot;
+		float gap = 1.0f / tot;
+		float pos = 0.0f;
+		for (a = 0; a < coba->tot; a++) {
+			coba->data[a].pos = pos;
+			pos += gap;
+		}
+		ED_undo_push(C, evenly ? "Distribute Stops Evenly" : "Distribute Stops from Left");
+	}
+}
+
+static void colorband_tools_dofunc(bContext *C, void *coba_v, int event)
+{
+	ColorBand *coba = coba_v;
+
+	switch (event) {
+		case CB_FUNC_FLIP:
+			colorband_flip_cb(C, coba);
+			break;
+		case CB_FUNC_DISTRIBUTE_LR:
+			colorband_distribute_cb(C, coba, false);
+			break;
+		case CB_FUNC_DISTRIBUTE_EVENLY:
+			colorband_distribute_cb(C, coba, true);
+			break;
+		case CB_FUNC_RESET:
+			BKE_colorband_init(coba, true);
+			ED_undo_push(C, "Reset Color Ramp");
+			break;
+	}
+	ED_region_tag_redraw(CTX_wm_region(C));
+}
+
+static uiBlock *colorband_tools_func(
+	bContext *C, ARegion *ar, ColorBand *coba)
+{
+	uiBut *bt;
+	uiBlock *block;
+	short yco = 0, menuwidth = 10 * UI_UNIT_X;
+
+	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
+	UI_block_func_butmenu_set(block, colorband_tools_dofunc, coba);
+	
+	{
+		uiDefIconTextBut(
+			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Flip Color Ramp"),
+			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_FLIP, "");
+		uiDefIconTextBut(
+			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Distribute Stops from Left"),
+			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_LR, "");
+		uiDefIconTextBut(
+			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Distribute Stops Evenly"),
+			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_EVENLY, "");
+		bt = uiDefIconTextButO(
+			block, UI_BTYPE_BUT_MENU, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, IFACE_("Eyedropper"),
+			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, "");
+			bt->custom_data = coba;
+		uiDefIconTextBut(
+			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Reset Color Ramp"),
+			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_RESET, "");
+	}
+	
+	UI_block_direction_set(block, UI_DIR_DOWN);
+	UI_block_bounds_set_text(block, 3.0f * UI_UNIT_X);
+
+	return block;
+}
+
+static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
+{
+	ColorBand *coba = coba_v;
+	float pos = 0.5f;
+
+	if (coba->tot > 1) {
+		if (coba->cur > 0) pos = (coba->data[coba->cur - 1].pos + coba->data[coba->cur].pos) * 0.5f;
+		else pos = (coba->data[coba->cur + 1].pos + coba->data[coba->cur].pos) * 0.5f;
+	}
+
+	if (BKE_colorband_element_add(coba, pos)) {
+		rna_update_cb(C, cb_v, NULL);
+		ED_undo_push(C, "Add Color Ramp Stop");
+	}
+}
+
+static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
+{
+	ColorBand *coba = coba_v;
+
+	if (BKE_colorband_element_remove(coba, coba->cur)) {
+		ED_undo_push(C, "Delete Color Ramp Stop");
+		rna_update_cb(C, cb_v, NULL);
+	}
 }
 
 static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
@@ -2376,8 +2452,7 @@ static void colorband_buttons_layout(
 
 	bt = uiDefIconTextBut(
 	        block, UI_BTYPE_BUT, 0, ICON_ADD, "", 0, 0, 2.0f * unit, UI_UNIT_Y, NULL,
-	        0, 0, 0, 0, TIP_("Add a new color stop to the colorband"));
-
+	        0, 0, 0, 0, TIP_("Add a new color stop to the color ramp"));
 	UI_but_funcN_set(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
 	bt = uiDefIconTextBut(
@@ -2385,14 +2460,10 @@ static void colorband_buttons_layout(
 	        NULL, 0, 0, 0, 0, TIP_("Delete the active position"));
 	UI_but_funcN_set(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
-	bt = uiDefIconTextBut(
-	        block, UI_BTYPE_BUT, 0, ICON_ARROW_LEFTRIGHT, "", xs + 4.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
-	        NULL, 0, 0, 0, 0, TIP_("Flip the color ramp"));
-	UI_but_funcN_set(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
-
-	bt = uiDefIconButO(block, UI_BTYPE_BUT, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, xs + 6.0f * unit, ys + UI_UNIT_Y, UI_UNIT_X, UI_UNIT_Y, NULL);
-	bt->custom_data = coba;
-	bt->func_argN = MEM_dupallocN(cb);
+	bt = uiDefIconBlockBut(
+	        block, colorband_tools_func, coba, 0, ICON_DOWNARROW_HLT,
+	        xs + 4.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y, TIP_("Tools"));
+	UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), coba);
 
 	UI_block_align_end(block);
 	UI_block_emboss_set(block, UI_EMBOSS);
@@ -2921,8 +2992,8 @@ static uiBlock *curvemap_tools_func(
 		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, reset_mode, "");
 	}
 
-	UI_block_direction_set(block, UI_DIR_RIGHT);
-	UI_block_bounds_set_text(block, 50);
+	UI_block_direction_set(block, UI_DIR_DOWN);
+	UI_block_bounds_set_text(block, 3.0f * UI_UNIT_X);
 
 	return block;
 }

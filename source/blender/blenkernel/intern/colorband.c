@@ -78,7 +78,9 @@ void BKE_colorband_init(ColorBand *coba, bool rangetype)
 	}
 
 	coba->tot = 2;
+	coba->cur = 0;
 	coba->color_mode = COLBAND_BLEND_RGB;
+	coba->ipotype = COLBAND_INTERP_LINEAR;
 }
 
 static void colorband_init_from_table_rgba_simple(
