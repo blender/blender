@@ -401,7 +401,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	if (!USER_VERSION_ATLEAST(280, 32)) {
 		if ((userdef->flag & USER_LMOUSESELECT) ) {
 			userdef->flag &= ~USER_LMOUSESELECT;
-			wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, "blender");
+			wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
 			IDP_AddToGroup(kpt->prop, IDP_New(IDP_INT, &(IDPropertyTemplate){ .i = 0, }, "select_mouse"));
 		}
 	}

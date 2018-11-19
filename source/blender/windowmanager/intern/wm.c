@@ -241,13 +241,13 @@ void WM_keyconfig_init(bContext *C)
 	/* create standard key configs */
 	if (wm->defaultconf == NULL) {
 		/* Keep lowercase to match the preset filename. */
-		wm->defaultconf = WM_keyconfig_new(wm, "blender", false);
+		wm->defaultconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT, false);
 	}
 	if (wm->addonconf == NULL) {
-		wm->addonconf = WM_keyconfig_new(wm, "blender addon", false);
+		wm->addonconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT " addon", false);
 	}
 	if (wm->userconf == NULL) {
-		wm->userconf = WM_keyconfig_new(wm, "blender user", false);
+		wm->userconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT " user", false);
 	}
 
 	/* initialize only after python init is done, for keymaps that

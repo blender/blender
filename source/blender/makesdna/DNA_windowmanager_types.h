@@ -171,6 +171,8 @@ enum {
 	WM_KEYCONFIG_IS_INITIALIZED = (1<<1),
 };
 
+#define WM_KEYCONFIG_STR_DEFAULT "blender"
+
 /* IME is win32 only! */
 #ifndef WIN32
 #  ifdef __GNUC__
