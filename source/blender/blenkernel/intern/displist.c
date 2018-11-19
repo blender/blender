@@ -65,9 +65,12 @@
 #include "BKE_modifier.h"
 
 #include "BLI_sys_types.h" // for intptr_t support
+#include "BLI_threads.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+static ThreadRWMutex cache_rwlock = BLI_RWLOCK_INITIALIZER;
 
 static void boundbox_displist_object(Object *ob);
 
@@ -1798,6 +1801,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph, Scene *scene, Object *ob
 	if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT))
 		return;
 
+	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
 	BKE_object_free_derived_caches(ob);
 
 	if (!ob->runtime.curve_cache) {
@@ -1809,6 +1813,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph, Scene *scene, Object *ob
 	do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, &ob->runtime.mesh_eval, 0, for_orco, 0);
 
 	boundbox_displist_object(ob);
+	BLI_rw_mutex_unlock(&cache_rwlock);
 }
 
 void BKE_displist_make_curveTypes_forRender(
@@ -1881,4 +1886,17 @@ static void boundbox_displist_object(Object *ob)
 			ob->bb->flag &= ~BOUNDBOX_DIRTY;
 		}
 	}
+}
+
+BoundBox *BKE_displist_boundbox_get(struct Object *ob)
+{
+	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
+	if ((ob->bb == NULL) || (ob->bb->flag & BOUNDBOX_DIRTY)) {
+		/* This should always only be called with evaluated objects, but currently RNA is a problem here... */
+		if (ob->runtime.curve_cache != NULL) {
+			boundbox_displist_object(ob);
+		}
+	}
+	BLI_rw_mutex_unlock(&cache_rwlock);
+	return ob->bb;
 }

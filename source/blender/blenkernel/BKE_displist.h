@@ -108,5 +108,6 @@ void BKE_displist_fill(struct ListBase *dispbase, struct ListBase *to, const flo
 float BKE_displist_calc_taper(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
 void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
+struct BoundBox *BKE_displist_boundbox_get(struct Object *ob);
 
 #endif
