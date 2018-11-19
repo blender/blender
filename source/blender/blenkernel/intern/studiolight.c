@@ -200,7 +200,7 @@ static void equirect_to_direction(float r[3], float u, float v)
 	r[2] = cosf(theta);
 }
 
-static void direction_to_cube_face_uv(float r_uv[2], int *r_face, const float dir[3])
+static void UNUSED_FUNCTION(direction_to_cube_face_uv)(float r_uv[2], int *r_face, const float dir[3])
 {
 	if (fabsf(dir[0]) > fabsf(dir[1]) && fabsf(dir[0]) > fabsf(dir[2])) {
 		bool is_pos = (dir[0] > 0.0f);

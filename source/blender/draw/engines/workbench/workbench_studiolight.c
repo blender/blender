@@ -41,18 +41,20 @@ void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd)
 	mul_v3_v3fl(wd->spherical_harmonics_coefs[0], sl->spherical_harmonics_coefs[0], M_1_PI);
 	/* Swizzle to make shader code simpler. */
 	for (int i = 0; i < 3; ++i) {
-		copy_v3_fl3(wd->spherical_harmonics_coefs[i+1], -sl->spherical_harmonics_coefs[3][i],
-		                                                 sl->spherical_harmonics_coefs[2][i],
-		                                                -sl->spherical_harmonics_coefs[1][i]);
-		mul_v3_fl(wd->spherical_harmonics_coefs[i+1], M_1_PI * 1.5f); /* 1.5f is to improve the contrast a bit. */
+		copy_v3_fl3(
+		        wd->spherical_harmonics_coefs[i + 1],
+		        -sl->spherical_harmonics_coefs[3][i],
+		        sl->spherical_harmonics_coefs[2][i],
+		        -sl->spherical_harmonics_coefs[1][i]);
+		mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], M_1_PI * 1.5f); /* 1.5f is to improve the contrast a bit. */
 	}
 
 	/* Precompute as much as we can. See shader code for derivation. */
 	float len_r1[3], lr1_r0[3], p[3], a[3];
 	for (int i = 0; i < 3; ++i) {
-		mul_v3_fl(wd->spherical_harmonics_coefs[i+1], 0.5f);
-		len_r1[i] = len_v3(wd->spherical_harmonics_coefs[i+1]);
-		mul_v3_fl(wd->spherical_harmonics_coefs[i+1], 1.0f / len_r1[i]);
+		mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], 0.5f);
+		len_r1[i] = len_v3(wd->spherical_harmonics_coefs[i + 1]);
+		mul_v3_fl(wd->spherical_harmonics_coefs[i + 1], 1.0f / len_r1[i]);
 	}
 	/* lr1_r0 = lenR1 / R0; */
 	copy_v3_v3(lr1_r0, wd->spherical_harmonics_coefs[0]);

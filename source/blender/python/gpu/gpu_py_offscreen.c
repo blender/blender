@@ -289,7 +289,7 @@ static PyObject *bpygpu_offscreen_free(BPyGPUOffScreen *self)
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygpu_offscreen_bind_context_enter(BPyGPUOffScreen *self)
+static PyObject *bpygpu_offscreen_bind_context_enter(BPyGPUOffScreen *UNUSED(self))
 {
 	Py_RETURN_NONE;
 }
