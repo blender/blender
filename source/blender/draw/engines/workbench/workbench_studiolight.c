@@ -34,14 +34,11 @@
 
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd)
 {
-	int i;
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED);
 
-	for (i = 0; i < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; i++) {
+	for (int i = 0; i < STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN; i++) {
+		/* Can't memcpy because of alignment */
 		copy_v3_v3(wd->spherical_harmonics_coefs[i], sl->spherical_harmonics_coefs[i]);
-	}
-	for (; i < STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS; i++) {
-		copy_v3_fl(wd->spherical_harmonics_coefs[i], 0.0);
 	}
 }
 

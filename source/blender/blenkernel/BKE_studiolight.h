@@ -61,43 +61,36 @@
 
 #define STUDIOLIGHT_ICON_SIZE 96
 
-#define STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL 2
-#define STUDIOLIGHT_SPHERICAL_HARMONICS_MAX_COMPONENTS 18
+/* Only 1 - 5 is supported */
+#define STUDIOLIGHT_SH_BANDS 3
 
-#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 0
-#  define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 1
+#define STUDIOLIGHT_SH_COEFS_LEN (STUDIOLIGHT_SH_BANDS * STUDIOLIGHT_SH_BANDS)
+
+#if STUDIOLIGHT_SH_BANDS > 3
+/* Bypass L3 */
+#define STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN (STUDIOLIGHT_SH_COEFS_LEN - 7)
+#else
+#define STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN STUDIOLIGHT_SH_COEFS_LEN
 #endif
 
-#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 1
-#  define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 4
-#endif
-
-#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 2
-#  define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 9
-#  define STUDIOLIGHT_SPHERICAL_HARMONICS_WINDOWING_TARGET_LAMPLACIAN 10.0f
-#endif
-
-#if STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL == 4
-#  define STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS 18
-#endif
 struct GPUTexture;
 struct StudioLight;
 
 /* StudioLight.flag */
 enum StudioLightFlag {
 	STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED = (1 << 0),
-	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1),
+/*	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1), */
 	STUDIOLIGHT_INTERNAL                                    = (1 << 2),
 	STUDIOLIGHT_EXTERNAL_FILE                               = (1 << 3),
-	STUDIOLIGHT_USER_DEFINED                                = (1 << 12),
 	STUDIOLIGHT_ORIENTATION_CAMERA                          = (1 << 4),
 	STUDIOLIGHT_ORIENTATION_WORLD                           = (1 << 5),
 	STUDIOLIGHT_ORIENTATION_VIEWNORMAL                      = (1 << 6),
 	STUDIOLIGHT_EXTERNAL_IMAGE_LOADED                       = (1 << 7),
-	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_IMAGE_CALCULATED = (1 << 8),
-	STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE         = (1 << 9),
-	STUDIOLIGHT_EQUIRECTANGULAR_IRRADIANCE_GPUTEXTURE       = (1 << 10),
+	STUDIOLIGHT_EQUIRECT_IRRADIANCE_IMAGE_CALCULATED        = (1 << 8),
+	STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE                = (1 << 9),
+	STUDIOLIGHT_EQUIRECT_IRRADIANCE_GPUTEXTURE              = (1 << 10),
 	STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED                 = (1 << 11),
+	STUDIOLIGHT_USER_DEFINED                                = (1 << 12),
 	STUDIOLIGHT_UI_EXPANDED                                 = (1 << 13),
 };
 
@@ -121,14 +114,13 @@ typedef struct StudioLight {
 	int icon_id_radiance;
 	int icon_id_matcap;
 	int icon_id_matcap_flipped;
-	float spherical_harmonics_coefs[STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS][3];
+	float spherical_harmonics_coefs[STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN][3];
 	float light_direction[3];
-	ImBuf *equirectangular_radiance_buffer;
-	ImBuf *equirectangular_irradiance_buffer;
+	ImBuf *equirect_radiance_buffer;
+	ImBuf *equirect_irradiance_buffer;
 	ImBuf *radiance_cubemap_buffers[6];
-	struct GPUTexture *equirectangular_radiance_gputexture;
-	struct GPUTexture *equirectangular_irradiance_gputexture;
-	float *gpu_matcap_3components; /* 3 channel buffer for GPU_R11F_G11F_B10F */
+	struct GPUTexture *equirect_radiance_gputexture;
+	struct GPUTexture *equirect_irradiance_gputexture;
 
 	/*
 	 * Free function to clean up the running icons previews (wmJob) the usage is in

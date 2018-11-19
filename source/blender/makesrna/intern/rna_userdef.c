@@ -726,7 +726,7 @@ static void rna_UserDef_studiolight_spherical_harmonics_coefficients_get(Pointer
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
 	float *value = values;
-	for (int i = 0; i < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; i++) {
+	for (int i = 0; i < STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN; i++) {
 		copy_v3_v3(value, sl->spherical_harmonics_coefs[i]);
 		value += 3;
 	}
@@ -3379,7 +3379,7 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "SH Cache Path", "Path where the spherical harmonics cache is stored");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	const int spherical_harmonics_dim[] = {STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS, 3};
+	const int spherical_harmonics_dim[] = {STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN, 3};
 	prop = RNA_def_property(srna, "spherical_harmonics_coefficients", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_multi_array(prop, 2, spherical_harmonics_dim);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
