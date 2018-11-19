@@ -688,7 +688,8 @@ def description_from_name(context, space_type, text, *, use_operator=True):
 
         if operator is None:
             if item.keymap is not None:
-                operator = item.keymap[0].keymap_items[0].idname
+                if item.keymap[0].keymap_items:
+                    operator = item.keymap[0].keymap_items[0].idname
 
         if operator is not None:
             import _bpy
@@ -880,12 +881,16 @@ def keymap_from_context(context, space_type):
                     context='INVOKE_REGION_WIN',
                 )[1]
             elif item.keymap is not None:
-                kmi_first = item.keymap[0].keymap_items[0]
-                kmi_found = wm.keyconfigs.find_item_from_operator(
-                    idname=kmi_first.idname,
-                    # properties=kmi_first.properties,  # prevents matches, don't use.
-                    context='INVOKE_REGION_WIN',
-                )[1]
+                kmi_first = item.keymap[0].keymap_items
+                kmi_first = kmi_first[0] if kmi_first else None
+                if kmi_first is not None:
+                    kmi_found = wm.keyconfigs.find_item_from_operator(
+                        idname=kmi_first.idname,
+                        # properties=kmi_first.properties,  # prevents matches, don't use.
+                        context='INVOKE_REGION_WIN',
+                    )[1]
+                else:
+                    kmi_found = None
                 del kmi_first
             else:
                 kmi_found = None
