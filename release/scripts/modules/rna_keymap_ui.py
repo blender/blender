@@ -364,19 +364,18 @@ def draw_keymaps(context, layout):
     from bpy_extras import keyconfig_utils
 
     wm = context.window_manager
-    kc = wm.keyconfigs.user
+    kc_user = wm.keyconfigs.user
+    kc_active = wm.keyconfigs.active
     spref = context.space_data
 
-    col = layout.column()
-    sub = col.column()
-
-    subsplit = sub.split()
+    subsplit = layout.split()
     subcol = subsplit.column()
 
-    row = subcol.row(align=True)
+    col = subcol.column()
+    row = col.row(align=True)
 
     # row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config")
-    text = bpy.path.display_name(wm.keyconfigs.active.name)
+    text = bpy.path.display_name(kc_active.name)
     if not text:
         text = "Blender (default)"
     row.menu("USERPREF_MT_keyconfigs", text=text)
@@ -389,15 +388,15 @@ def draw_keymaps(context, layout):
     rowsub = row.split(factor=0.33, align=True)
     # postpone drawing into rowsub, so we can set alert!
 
-    col.separator()
-    display_keymaps = keyconfig_utils.keyconfig_merge(kc, kc)
+    layout.separator()
+    display_keymaps = keyconfig_utils.keyconfig_merge(kc_user, kc_user)
     filter_type = spref.filter_type
     filter_text = spref.filter_text.strip()
     if filter_text:
         filter_text = filter_text.lower()
-        ok = draw_filtered(display_keymaps, filter_type, filter_text, col)
+        ok = draw_filtered(display_keymaps, filter_type, filter_text, layout)
     else:
-        draw_hierarchy(display_keymaps, col)
+        draw_hierarchy(display_keymaps, layout)
         ok = True
 
     # go back and fill in rowsub
@@ -406,3 +405,31 @@ def draw_keymaps(context, layout):
     if not ok:
         rowsubsub.alert = True
     rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
+
+    # When the keyconfig defines it's own preferences.
+    kc_prefs = kc_active.preferences
+    if kc_prefs is not None:
+        box = col.box()
+        row = box.row(align=True)
+
+        userpref = context.user_preferences
+        inputs = userpref.inputs
+        show_ui_keyconfig = inputs.show_ui_keyconfig
+        row.prop(
+            inputs,
+            "show_ui_keyconfig",
+            text="",
+            icon='TRIA_DOWN' if show_ui_keyconfig else 'TRIA_RIGHT',
+            emboss=False,
+        )
+        row.label(text="Preferences")
+
+        if show_ui_keyconfig:
+            # Defined by user preset, may contain mistakes out of our control.
+            try:
+                kc_prefs.draw(box)
+            except Exception:
+                import traceback
+                traceback.print_exc()
+        del box
+    del kc_prefs

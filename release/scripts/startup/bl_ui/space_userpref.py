@@ -1051,20 +1051,6 @@ class USERPREF_PT_input(Panel):
         return (userpref.active_section == 'INPUT')
 
     @staticmethod
-    def draw_input_prefs_keyconfig(context, layout):
-        kc = context.window_manager.keyconfigs.active
-        kc_prefs = kc.preferences
-        if kc_prefs is not None:
-            box = layout.box()
-            box.label(text=kc.name.replace("_", " ").title() + " Keymap")
-            # Defined by user preset, may contain mistakes out of our control.
-            try:
-                kc_prefs.draw(box)
-            except Exception:
-                import traceback
-                traceback.print_exc()
-
-    @staticmethod
     def draw_input_prefs(inputs, layout):
         import sys
 
@@ -1173,13 +1159,11 @@ class USERPREF_PT_input(Panel):
         # Input settings
         self.draw_input_prefs(inputs, col)
 
-        # When the keyconfig defines it's own preferences.
-        self.draw_input_prefs_keyconfig(context, col)
-
         row.separator()
 
         # Keymap Settings
-        draw_keymaps(context, split)
+        col = split.column()
+        draw_keymaps(context, col)
 
         #print("runtime", time.time() - start)
 

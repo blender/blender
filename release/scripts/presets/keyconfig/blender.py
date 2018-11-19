@@ -55,11 +55,12 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
-        col = layout.column(align=True)
+        split = layout.split()
+        col = split.column(align=True)
         col.label(text="Select With:")
         col.row().prop(self, "select_mouse", expand=True)
 
-        col = layout.column(align=True)
+        col = split.column(align=True)
         col.label(text="Spacebar Action:")
         col.row().prop(self, "spacebar_action", expand=True)
 

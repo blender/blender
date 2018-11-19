@@ -541,7 +541,9 @@ typedef struct UserDef {
 	 * which are outside the scope of typical preferences. */
 	short app_flag;
 	short language;
-	short userpref, viewzoom;
+	short userpref;
+	char  userpref_flag;
+	char viewzoom;
 
 	int mixbufsize;
 	int audiodevice;
@@ -683,6 +685,12 @@ typedef enum eUserPref_Section {
 	USER_SECTION_ADDONS 	= 6,
 	USER_SECTION_LIGHT 	= 7,
 } eUserPref_Section;
+
+/* UserDef.userpref_flag (State of the user preferences UI). */
+typedef enum eUserPref_SectionFlag {
+	/* Hide/expand keymap preferences. */
+	USER_SECTION_INPUT_HIDE_UI_KEYCONFIG        = (1 << 0),
+} eUserPref_SectionFlag;
 
 /* UserDef.flag */
 typedef enum eUserPref_Flag {

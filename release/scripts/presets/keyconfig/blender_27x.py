@@ -27,9 +27,12 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     def draw(self, layout):
-        col = layout.column(align=True)
+        split = layout.split()
+        col = split.column()
         col.label(text="Select With:")
         col.row().prop(self, "select_mouse", expand=True)
+        split.column()
+
 
 from bpy_extras.keyconfig_utils import (
     keyconfig_init_from_data,
