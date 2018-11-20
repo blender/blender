@@ -1051,6 +1051,8 @@ typedef enum eGP_Sculpt_SettingsFlag {
 	GP_SCULPT_SETT_FLAG_FRAME_FALLOFF = (1 << 5),
 	/* apply brush to uv data */
 	GP_SCULPT_SETT_FLAG_APPLY_UV = (1 << 6),
+	/* paint weight, not add/substract */
+	GP_SCULPT_SETT_FLAG_PAINT_WEIGHT = (1 << 7),
 } eGP_Sculpt_SettingsFlag;
 
 /* Settings for GP Interpolation Operators */

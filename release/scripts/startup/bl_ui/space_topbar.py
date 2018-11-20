@@ -405,8 +405,15 @@ class _draw_left_context_mode:
             layout.prop(brush, "size", slider=True)
 
             row = layout.row(align=True)
-            row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_pressure_strength", text="")
+            row.prop(settings, "use_fix_weight", text="", icon='WPAINT_HLT')
+            if settings.use_fix_weight is False:
+                row.prop(brush, "strength", slider=True)
+            else:
+                row.prop(brush, "strength", text="Weight", slider=True)
+
+            sub = row.row(align=True)
+            sub.enabled = not settings.use_fix_weight
+            sub.prop(brush, "use_pressure_strength", text="")
 
         @staticmethod
         def PARTICLE(context, layout, tool):
