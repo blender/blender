@@ -109,6 +109,8 @@ bool ED_object_parent_set(struct ReportList *reports, const struct bContext *C, 
 void ED_object_parent_clear(struct Object *ob, const int type);
 
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
+bool ED_object_base_select_all_visible(struct ViewLayer *view_layer);
+bool ED_object_base_deselect_all_visible(struct ViewLayer *view_layer);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
 void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);
 

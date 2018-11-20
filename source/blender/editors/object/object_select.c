@@ -117,6 +117,31 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 	}
 }
 
+/** Apply selection operation to all visible bases in the view layer. */
+bool ED_object_base_select_all_visible(ViewLayer *view_layer)
+{
+	bool changed = false;
+	FOREACH_VISIBLE_BASE_BEGIN(view_layer, base)
+	{
+		ED_object_base_select(base, BA_SELECT);
+		changed = true;
+	}
+	FOREACH_VISIBLE_BASE_END;
+	return changed;
+}
+
+bool ED_object_base_deselect_all_visible(ViewLayer *view_layer)
+{
+	bool changed = false;
+	FOREACH_VISIBLE_BASE_BEGIN(view_layer, base)
+	{
+		ED_object_base_select(base, BA_DESELECT);
+		changed = true;
+	}
+	FOREACH_VISIBLE_BASE_END;
+	return changed;
+}
+
 /**
  * Change active base, it includes the notifier
  */
@@ -154,17 +179,14 @@ static bool objects_selectable_poll(bContext *C)
 
 static int object_select_by_type_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	short obtype, extend;
 
 	obtype = RNA_enum_get(op->ptr, "type");
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (extend == 0) {
-		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-		{
-			ED_object_base_select(base, BA_DESELECT);
-		}
-		CTX_DATA_END;
+		ED_object_base_deselect_all_visible(view_layer);
 	}
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
@@ -387,11 +409,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (extend == 0) {
-		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-		{
-			ED_object_base_select(base, BA_DESELECT);
-		}
-		CTX_DATA_END;
+		ED_object_base_deselect_all_visible(view_layer);
 	}
 
 	ob = OBACT(view_layer);
@@ -760,12 +778,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (extend == 0) {
-		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-		{
-			ED_object_base_select(base, BA_DESELECT);
-			changed = true;
-		}
-		CTX_DATA_END;
+		changed = ED_object_base_deselect_all_visible(view_layer);
 	}
 
 	ob = OBACT(view_layer);
