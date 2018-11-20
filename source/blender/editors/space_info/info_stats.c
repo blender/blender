@@ -154,16 +154,18 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		}
 		case OB_GPENCIL:
 		{
-			bGPdata *gpd = (bGPdata *)ob->data;
-			/* GPXX Review if we can move to other place when object change
-			 * maybe to depsgraph evaluation
-			 */
-			BKE_gpencil_stats_update(gpd);
+			if (sel) {
+				bGPdata *gpd = (bGPdata *)ob->data;
+				/* GPXX Review if we can move to other place when object change
+				 * maybe to depsgraph evaluation
+				 */
+				BKE_gpencil_stats_update(gpd);
 
-			stats->totgplayer = gpd->totlayer;
-			stats->totgpframe = gpd->totframe;
-			stats->totgpstroke = gpd->totstroke;
-			stats->totgppoint = gpd->totpoint;
+				stats->totgplayer += gpd->totlayer;
+				stats->totgpframe += gpd->totframe;
+				stats->totgpstroke += gpd->totstroke;
+				stats->totgppoint += gpd->totpoint;
+			}
 			break;
 		}
 	}
