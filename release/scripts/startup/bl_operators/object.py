@@ -870,10 +870,7 @@ class DupliOffsetFromCursor(Operator):
         return {'FINISHED'}
 
 
-class LoadImageAsEmpty(Operator):
-    """Select an image file and create a new image empty with it"""
-    bl_idname = "object.load_image_as_empty"
-    bl_label = "Load Image as Empty"
+class LoadImageAsEmpty:
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath: StringProperty(
@@ -896,6 +893,7 @@ class LoadImageAsEmpty(Operator):
         scene = context.scene
         space = context.space_data
         cursor = (space if space and space.type == 'VIEW_3D' else scene).cursor_location
+
         try:
             image = bpy.data.images.load(self.filepath, check_existing=True)
         except RuntimeError as ex:
@@ -908,10 +906,40 @@ class LoadImageAsEmpty(Operator):
             location=cursor,
             view_align=self.view_align,
         )
+
         obj = context.active_object
         obj.data = image
         obj.empty_display_size = 5.0
+        self.set_settings(context, obj)
         return {'FINISHED'}
+
+    def set_settings(self, context, obj):
+        pass
+
+
+class LoadBackgroundImage(LoadImageAsEmpty, Operator):
+    """Add a reference image into the background behind objects"""
+    bl_idname = "object.load_background_image"
+    bl_label = "Load Background Image"
+
+    def set_settings(self, context, obj):
+        obj.empty_image_depth = "BACK"
+        obj.show_empty_image_backside = False
+
+        if context.space_data.type == "VIEW_3D":
+            if context.space_data.region_3d.is_perspective:
+                obj.show_empty_image_orthographic = False
+            else:
+                obj.show_empty_image_perspective = False
+
+
+class LoadReferenceImage(LoadImageAsEmpty, Operator):
+    """Add a reference image into the scene between objects"""
+    bl_idname = "object.load_reference_image"
+    bl_label = "Load Reference Image"
+
+    def set_settings(self, context, obj):
+        pass
 
 
 classes = (
@@ -919,7 +947,8 @@ classes = (
     DupliOffsetFromCursor,
     IsolateTypeRender,
     JoinUVs,
-    LoadImageAsEmpty,
+    LoadBackgroundImage,
+    LoadReferenceImage,
     MakeDupliFace,
     SelectCamera,
     SelectHierarchy,

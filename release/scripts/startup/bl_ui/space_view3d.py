@@ -1534,10 +1534,8 @@ class VIEW3D_MT_add(Menu):
         layout.menu("VIEW3D_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
+        layout.menu("VIEW3D_MT_image_add", text="Image", icon='OUTLINER_OB_IMAGE')
 
-        sublayout = layout.column()
-        sublayout.operator_context = 'INVOKE_DEFAULT'
-        sublayout.operator("object.load_image_as_empty", text="Image", icon="OUTLINER_OB_IMAGE")
         layout.separator()
 
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
@@ -1574,6 +1572,15 @@ class VIEW3D_MT_add(Menu):
                 text="Collection Instance",
                 icon='OUTLINER_OB_GROUP_INSTANCE',
             )
+
+
+class VIEW3D_MT_image_add(Menu):
+    bl_label = "Add Image"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.load_reference_image", text="Reference")
+        layout.operator("object.load_background_image", text="Background")
 
 
 class VIEW3D_MT_object_relations(Menu):
@@ -5475,6 +5482,7 @@ classes = (
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,
+    VIEW3D_MT_image_add,
 )
 
 
