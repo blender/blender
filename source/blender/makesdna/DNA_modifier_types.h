@@ -313,14 +313,20 @@ typedef struct MirrorModifierData {
 
 /* MirrorModifierData->flag */
 enum {
-	MOD_MIR_CLIPPING  = (1 << 0),
-	MOD_MIR_MIRROR_U  = (1 << 1),
-	MOD_MIR_MIRROR_V  = (1 << 2),
-	MOD_MIR_AXIS_X    = (1 << 3),
-	MOD_MIR_AXIS_Y    = (1 << 4),
-	MOD_MIR_AXIS_Z    = (1 << 5),
-	MOD_MIR_VGROUP    = (1 << 6),
-	MOD_MIR_NO_MERGE  = (1 << 7),
+	MOD_MIR_CLIPPING      = (1 << 0),
+	MOD_MIR_MIRROR_U      = (1 << 1),
+	MOD_MIR_MIRROR_V      = (1 << 2),
+	MOD_MIR_AXIS_X        = (1 << 3),
+	MOD_MIR_AXIS_Y        = (1 << 4),
+	MOD_MIR_AXIS_Z        = (1 << 5),
+	MOD_MIR_VGROUP        = (1 << 6),
+	MOD_MIR_NO_MERGE      = (1 << 7),
+	MOD_MIR_BISECT_AXIS_X = (1 << 8),
+	MOD_MIR_BISECT_AXIS_Y = (1 << 9),
+	MOD_MIR_BISECT_AXIS_Z = (1 << 10),
+	MOD_MIR_FLIP_AXIS_X   = (1 << 11),
+	MOD_MIR_FLIP_AXIS_Y   = (1 << 12),
+	MOD_MIR_FLIP_AXIS_Z   = (1 << 13),
 };
 
 typedef struct EdgeSplitModifierData {
