@@ -282,21 +282,6 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 	return mdisps;
 }
 
-DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd, Object *ob)
-{
-	ModifierData *md = (ModifierData *)mmd;
-	DerivedMesh *tdm = mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
-	DerivedMesh *dm;
-	ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
-
-	dm = modifier_applyModifier_DM_deprecated(md, &mectx, tdm);
-	if (dm == tdm) {
-		dm = CDDM_copy(tdm);
-	}
-
-	return dm;
-}
-
 Mesh *BKE_multires_create_mesh(
         struct Depsgraph *depsgraph,
         Scene *scene,

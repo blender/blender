@@ -88,8 +88,6 @@ struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
 struct MultiresModifierData *get_multires_modifier(struct Scene *scene, struct Object *ob, bool use_first);
 int multires_get_level(const struct Scene *scene, const struct Object *ob, const struct MultiresModifierData *mmd,
                        bool render, bool ignore_simplify);
-struct DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
-                                    struct Object *ob);
 struct Mesh *BKE_multires_create_mesh(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct MultiresModifierData *mmd, struct Object *ob);
