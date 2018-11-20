@@ -743,7 +743,7 @@ int ED_transform_calc_gizmo_stats(
 
 	/* global, local or normal orientation?
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
-	if (ob && !is_gp_edit) {
+	if (ob) {
 		const short orientation_type = params->orientation_type ? (params->orientation_type - 1) : scene->orientation_type;
 		float mat[3][3];
 		ED_transform_calc_orientation_from_type_ex(
