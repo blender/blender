@@ -706,6 +706,7 @@ static void view3d_widgets(void)
 	WM_gizmogrouptype_append(VIEW3D_GGT_xform_shear);
 	WM_gizmogrouptype_append(VIEW3D_GGT_mesh_preselect_elem);
 	WM_gizmogrouptype_append(VIEW3D_GGT_mesh_preselect_edgering);
+	WM_gizmogrouptype_append(MESH_GGT_extrude);
 
 	WM_gizmogrouptype_append(VIEW3D_GGT_ruler);
 	WM_gizmotype_append(VIEW3D_GT_ruler_item);

@@ -45,9 +45,10 @@ set(SRC
 	transform_constraints.c
 	transform_conversions.c
 	transform_generics.c
-	transform_input.c
 	transform_gizmo_2d.c
 	transform_gizmo_3d.c
+	transform_gizmo_extrude_3d.c
+	transform_input.c
 	transform_ops.c
 	transform_orientations.c
 	transform_snap.c

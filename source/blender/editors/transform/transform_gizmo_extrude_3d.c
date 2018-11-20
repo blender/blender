@@ -15,17 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2004 by Blender Foundation.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Joseph Eagar
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mesh/editmesh_extrude_gizmo.c
+/** \file blender/editors/transform/transform_gizmo_extrude_3d.c
  *  \ingroup edmesh
  */
 
@@ -52,8 +45,6 @@
 #include "UI_resources.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "mesh_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Extrude Gizmo

@@ -54,8 +54,6 @@
 
 #include "mesh_intern.h"  /* own include */
 
-#define USE_GIZMO
-
 /* -------------------------------------------------------------------- */
 /** \name Extrude Internal Utilities
  * \{ */
@@ -502,10 +500,6 @@ void MESH_OT_extrude_context(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_normal_flip", false, "Flip Normals", "");
 	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
-
-#ifdef USE_GIZMO
-	WM_gizmogrouptype_append(MESH_GGT_extrude);
-#endif
 }
 
 /** \} */
