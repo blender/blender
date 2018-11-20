@@ -18,10 +18,15 @@
 
 # <pep8 compliant>
 
-# simple script to test 'keyconfig_utils' contains correct values.
+# simple script to test 'bl_keymap_utils.keymap_hierarchy' contains correct values.
 
+# Needed for 'bl_keymap_utils.keymap_hierarchy' which inspects tools.
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "release", "scripts", "startup"))
+del sys, os
 
-from bpy_extras import keyconfig_utils
+from bl_keymap_utils import keymap_hierarchy
 
 
 def check_maps():
@@ -32,7 +37,7 @@ def check_maps():
             maps[km_name] = (km_space_type, km_region_type)
             fill_maps(km_sub)
 
-    fill_maps(keyconfig_utils.km_hierarchy())
+    fill_maps(keymap_hierarchy.generate())
 
     import bpy
     keyconf = bpy.context.window_manager.keyconfigs.active
@@ -43,14 +48,14 @@ def check_maps():
     # Check keyconfig contains only maps that exist in blender
     test = maps_py - maps_bl
     if test:
-        print("Keymaps that are in 'keyconfig_utils' but not blender")
+        print("Keymaps that are in 'bl_keymap_utils.keymap_hierarchy' but not blender")
         for km_id in sorted(test):
             print("\t%s" % km_id)
         err = True
 
     test = maps_bl - maps_py
     if test:
-        print("Keymaps that are in blender but not in 'keyconfig_utils'")
+        print("Keymaps that are in blender but not in 'bl_keymap_utils.keymap_hierarchy'")
         for km_id in sorted(test):
             km = keyconf.keymaps[km_id]
             print("    ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type))
