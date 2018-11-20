@@ -608,8 +608,6 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			 */
 			Object *object_cow = (Object *)id_cow;
 			const Object *object_orig = (const Object *)id_orig;
-			BLI_assert(object_cow->derivedFinal == NULL);
-			BLI_assert(object_cow->derivedDeform == NULL);
 			object_cow->mode = object_orig->mode;
 			object_cow->sculpt = object_orig->sculpt;
 			if (object_cow->type == OB_MESH) {
