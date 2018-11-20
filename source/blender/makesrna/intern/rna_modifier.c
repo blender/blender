@@ -1541,54 +1541,27 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "MirrorModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MIRROR);
 
-	prop = RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_X);
-	RNA_def_property_ui_text(prop, "X", "Enable X axis mirror");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Mirror Axis", "Enable axis mirror");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_Y);
-	RNA_def_property_ui_text(prop, "Y", "Enable Y axis mirror");
+	prop = RNA_def_property(srna, "use_bisect_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_BISECT_AXIS_X);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Bisect Axis", "Cuts the mesh across the mirrorplane");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_Z);
-	RNA_def_property_ui_text(prop, "Z", "Enable Z axis mirror");
+	prop = RNA_def_property(srna, "use_bisect_flip_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_BISECT_FLIP_AXIS_X);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Bisect Flip Axis", "Flips the direction of the slice");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_CLIPPING);
 	RNA_def_property_ui_text(prop, "Clip", "Prevent vertices from going through the mirror during transform");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "use_bisect_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_BISECT_AXIS_X);
-	RNA_def_property_ui_text(prop, "X", "Cuts the mesh across the mirrorplane");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "use_bisect_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_BISECT_AXIS_Y);
-	RNA_def_property_ui_text(prop, "Y", "Cuts the mesh across the mirrorplane");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "use_bisect_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_BISECT_AXIS_Z);
-	RNA_def_property_ui_text(prop, "Z", "Cuts the mesh across the mirrorplane");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "flip_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_FLIP_AXIS_X);
-	RNA_def_property_ui_text(prop, "X", "Flips the direction of the slice");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "flip_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_FLIP_AXIS_Y);
-	RNA_def_property_ui_text(prop, "Y", "Flips the direction of the slice");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "flip_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_FLIP_AXIS_Z);
-	RNA_def_property_ui_text(prop, "Z", "Flips the direction of the slice");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_mirror_vertex_groups", PROP_BOOLEAN, PROP_NONE);

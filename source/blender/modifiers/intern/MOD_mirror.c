@@ -88,10 +88,10 @@ static Mesh *doBiscetOnMirrorPlane(
         int axis,
         float mirrormat[4][4])
 {
-	bool do_flip_axis = (
-	        (axis == 0 && mmd->flag & MOD_MIR_FLIP_AXIS_X) ||
-	        (axis == 1 && mmd->flag & MOD_MIR_FLIP_AXIS_Y) ||
-	        (axis == 2 && mmd->flag & MOD_MIR_FLIP_AXIS_Z));
+	bool do_bisect_flip_axis = (
+	        (axis == 0 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_X) ||
+	        (axis == 1 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Y) ||
+	        (axis == 2 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Z));
 
 	const float bisect_distance = 0.001;
 
@@ -132,7 +132,7 @@ static Mesh *doBiscetOnMirrorPlane(
 	copy_v3_v3(plane_offset, plane);
 	plane_offset[3] = plane[3] - bisect_distance;
 
-	if (do_flip_axis) {
+	if (do_bisect_flip_axis) {
 		negate_v3(plane_offset);
 	}
 

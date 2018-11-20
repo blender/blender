@@ -569,43 +569,27 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout.operator("object.meshdeform_bind", text="Bind")
 
     def MIRROR(self, layout, ob, md):
+        axis_text = "XYZ"
         split = layout.split(factor=0.33)
 
         col = split.column()
         col.label(text="Axis:")
-        col.prop(md, "use_x")
-        col.prop(md, "use_y")
-        col.prop(md, "use_z")
+        for i, text in enumerate(axis_text):
+            col.prop(md, "use_axis", text=text, index=i)
 
         col = split.column()
         col.label(text="Bisect:")
-
-        col_x = col.column()
-        col_x.prop(md, "use_bisect_x")
-        col_x.active = md.use_x
-
-        col_y = col.column()
-        col_y.prop(md, "use_bisect_y")
-        col_y.active = md.use_y
-
-        col_z = col.column()
-        col_z.prop(md, "use_bisect_z")
-        col_z.active = md.use_z
+        for i, text in enumerate(axis_text):
+            colsub = col.column()
+            colsub.prop(md, "use_bisect_axis", text=text, index=i)
+            colsub.active = md.use_axis[i]
 
         col = split.column()
         col.label(text="Flip:")
-
-        col_fx = col.column()
-        col_fx.prop(md, "flip_x")
-        col_fx.active = md.use_bisect_x and md.use_x
-
-        col_fy = col.column()
-        col_fy.prop(md, "flip_y")
-        col_fy.active = md.use_bisect_y and md.use_y
-
-        col_fz = col.column()
-        col_fz.prop(md, "flip_z")
-        col_fz.active = md.use_bisect_z and md.use_z
+        for i, text in enumerate(axis_text):
+            colsub = col.column()
+            colsub.prop(md, "use_bisect_flip_axis", text=text, index=i)
+            colsub.active = md.use_axis[i] and md.use_bisect_axis[i]
 
         layout.separator()
 
