@@ -72,6 +72,16 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 	values[1] = clip->lastsize[1];
 }
 
+static float rna_MovieClip_fps_get(PointerRNA *ptr)
+{
+	MovieClip *clip = (MovieClip *)ptr->id.data;
+	if (clip == NULL) {
+		return 0.0f;
+	}
+
+	return BKE_movieclip_get_fps(clip);
+}
+
 static void rna_MovieClipUser_proxy_render_settings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = (ID *) ptr->id.data;
@@ -362,6 +372,12 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "len");
 	RNA_def_property_ui_text(prop, "Duration", "Detected duration of movie clip in frames");
+
+	/* FPS */
+	prop = RNA_def_property(srna, "fps", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MovieClip_fps_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Frame Rate", "Detected frame rate of the movie clip in frames per second");
 
 	/* color management */
 	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
