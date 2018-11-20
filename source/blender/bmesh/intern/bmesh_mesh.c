@@ -392,6 +392,11 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 
 		fac = saacos(-dotprod);
 
+		if (fac != fac) {  /* NAN detection. */
+			/* Degenerated case, nothing to do here, just ignore that vertex. */
+			continue;
+		}
+
 		/* accumulate weighted face normal into the vertex's normal */
 		float *v_no = data->vnos ? data->vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
 
