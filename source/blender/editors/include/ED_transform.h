@@ -167,7 +167,7 @@ void VIEW3D_GGT_xform_cage(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_shear(struct wmGizmoGroupType *gzgt);
 
 /* *** transform_gizmo_extrude_3d.c *** */
-void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt);
 
 bool ED_widgetgroup_gizmo2d_poll(const struct bContext *C, struct wmGizmoGroupType *gzgt);
 void ED_widgetgroup_gizmo2d_setup(const struct bContext *C, struct wmGizmoGroup *gzgroup);

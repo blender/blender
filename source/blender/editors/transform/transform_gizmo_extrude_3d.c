@@ -393,10 +393,10 @@ static void gizmo_mesh_extrude_message_subscribe(
 	        &msg_sub_value_gz_tag_refresh, __func__);
 }
 
-void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt)
+void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt)
 {
-	gzgt->name = "Mesh Extrude";
-	gzgt->idname = "MESH_GGT_extrude";
+	gzgt->name = "3D View Extrude";
+	gzgt->idname = "VIEW3D_GGT_xform_extrude";
 
 	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 
