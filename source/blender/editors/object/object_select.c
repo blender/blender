@@ -44,6 +44,7 @@
 #include "DNA_gpencil_types.h"
 
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
@@ -284,6 +285,7 @@ bool ED_object_jump_to_object(bContext *C, Object *ob)
 /**
  * Select and make the target object and bone active.
  * Switches to Pose mode if in Object mode so the selection is visible.
+ * Unhides the target bone and bone layer if necessary.
  *
  * \returns false if object not in layer, bone not found, or other error
  */
@@ -314,6 +316,14 @@ bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
 		/* In Edit mode select and activate the target Edit-Bone. */
 		EditBone *ebone = ED_armature_ebone_find_name(arm->edbo, bone_name);
 		if (ebone != NULL) {
+			/* Unhide the bone. */
+			ebone->flag &= ~BONE_HIDDEN_A;
+
+			if ((arm->layer & ebone->layer) == 0) {
+				arm->layer |= 1U << bitscan_forward_uint(ebone->layer);
+			}
+
+			/* Select it. */
 			ED_armature_edit_deselect_all(ob);
 
 			if (EBONE_SELECTABLE(arm, ebone)) {
@@ -321,9 +331,7 @@ bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
 				ED_armature_edit_sync_selection(arm->edbo);
 			}
 
-			if (EBONE_VISIBLE(arm, ebone)) {
-				arm->act_edbone = ebone;
-			}
+			arm->act_edbone = ebone;
 
 			ED_pose_bone_select_tag_update(ob);
 			return true;
@@ -333,15 +341,18 @@ bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
 		/* In Pose mode select and activate the target Bone/Pose-Channel. */
 		bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 		if (pchan != NULL) {
+			/* Unhide the bone. */
+			pchan->bone->flag &= ~BONE_HIDDEN_P;
+
+			if ((arm->layer & pchan->bone->layer) == 0) {
+				arm->layer |= 1U << bitscan_forward_uint(pchan->bone->layer);
+			}
+
+			/* Select it. */
 			ED_pose_deselect_all(ob, SEL_DESELECT, true);
+			ED_pose_bone_select(ob, pchan, true);
 
-			if (PBONE_SELECTABLE(arm, pchan->bone)) {
-				ED_pose_bone_select(ob, pchan, true);
-			}
-
-			if (PBONE_VISIBLE(arm, pchan->bone)) {
-				arm->act_bone = pchan->bone;
-			}
+			arm->act_bone = pchan->bone;
 
 			ED_pose_bone_select_tag_update(ob);
 			return true;
