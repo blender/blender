@@ -426,7 +426,10 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 	BMEditMesh *em = vc.em;
 	BMesh *bm = em->bm;
 
-	if (ele_act->head.htype == BM_EDGE) {
+	if (ele_act == NULL) {
+		/* pass */
+	}
+	else if (ele_act->head.htype == BM_EDGE) {
 		BMEdge *e_act = (BMEdge *)ele_act;
 		BMLoop *l_a, *l_b;
 		if (BM_edge_loop_pair(e_act, &l_a, &l_b)) {
