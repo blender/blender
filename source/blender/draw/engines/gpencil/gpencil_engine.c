@@ -315,9 +315,6 @@ void GPENCIL_cache_init(void *vedata)
 
 	if (!stl->shgroups) {
 		/* Alloc maximum size because count strokes is very slow and can be very complex due onion skinning.
-		   I tried to allocate only one block and using realloc, increasing the size when read a new strokes
-		   in cache_finish, but the realloc produce weird things on screen, so we keep as is while we found
-		   a better solution
 		 */
 		stl->shgroups = MEM_mallocN(sizeof(GPENCIL_shgroup) * GPENCIL_MAX_SHGROUPS, "GPENCIL_shgroup");
 	}
@@ -498,27 +495,21 @@ void GPENCIL_cache_init(void *vedata)
 static void gpencil_add_draw_data(void *vedata, Object *ob)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	Scene *scene = draw_ctx->scene;
 	bGPdata *gpd = (bGPdata *)ob->data;
 	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
 	int i = stl->g_data->gp_cache_used - 1;
 	tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
 
-	/* save init shading group */
-	cache_ob->init_grp = stl->storage->shgroup_id;
-
-	/* fill shading groups */
-	if ((!is_multiedit) || (cache_ob->is_dup_ob)) {
-		DRW_gpencil_populate_datablock(&e_data, vedata, scene, ob, cache_ob);
+	if (!cache_ob->is_dup_ob) {
+		/* fill shading groups */
+		if (!is_multiedit) {
+			DRW_gpencil_populate_datablock(&e_data, vedata, ob, cache_ob);
+		}
+		else {
+			DRW_gpencil_populate_multiedit(&e_data, vedata, ob, cache_ob);
+		}
 	}
-	else {
-		DRW_gpencil_populate_multiedit(&e_data, vedata, scene, ob, cache_ob);
-	}
-
-	/* save end shading group */
-	cache_ob->end_grp = stl->storage->shgroup_id - 1;
 
 	/* FX passses */
 	cache_ob->has_fx = false;
@@ -549,23 +540,10 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	if (ob->type == OB_GPENCIL && ob->data) {
 		bGPdata *gpd = (bGPdata *)ob->data;
 
-		/* if onion, set as dirty always
-		 * This reduces performance, but avoid any crash in the multiple
-		 * overlay and multiwindow options
-		 */
-		if (gpd->flag & GP_DATA_SHOW_ONIONSKINS) {
-			gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
-		}
-
 		/* when start/stop animation the cache must be set as dirty to reset all data */
 		if (stl->storage->reset_cache) {
 			gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 			stl->storage->reset_cache = false;
-		}
-
-		/* is edit mode only current object, not particle instances */
-		if ((ob->base_flag & BASE_FROMDUPLI) && GPENCIL_ANY_EDIT_MODE(gpd)) {
-			return;
 		}
 
 		if ((stl->g_data->session_flag & GP_DRW_PAINT_READY) == 0) {
@@ -618,10 +596,9 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-void GPENCIL_cache_finish(void *UNUSED(vedata))
+void GPENCIL_cache_finish(void *vedata)
 {
-	return;
-
+	DRW_gpencil_populate_particles(&e_data, vedata);
 }
 
 /* helper function to sort inverse gpencil objects using qsort */
@@ -657,6 +634,13 @@ static void gpencil_prepare_fast_drawing(
 
 static void gpencil_free_obj_runtime(GPENCIL_StorageList *stl)
 {
+	/* reset all cache flags */
+	for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
+		tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
+		bGPdata *gpd = cache_ob->gpd;
+		gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;
+	}
+
 	/* free the cache itself */
 	MEM_SAFE_FREE(stl->g_data->gp_object_cache);
 }
@@ -672,7 +656,6 @@ void GPENCIL_draw_scene(void *ved)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	GPENCIL_TextureList *txl = ((GPENCIL_Data *)vedata)->txl;
 
-	int init_grp, end_grp;
 	tGPencilObjectCache *cache_ob;
 	const float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -729,33 +712,27 @@ void GPENCIL_draw_scene(void *ved)
 			for (int i = 0; i < stl->g_data->gp_cache_used; i++) {
 				cache_ob = &stl->g_data->gp_object_cache[i];
 				bGPdata *gpd = cache_ob->gpd;
-				init_grp = cache_ob->init_grp;
-				end_grp = cache_ob->end_grp;
 
 				/* Render stroke in separated framebuffer */
 				GPU_framebuffer_bind(fbl->temp_fb_a);
 				GPU_framebuffer_clear_color_depth(fbl->temp_fb_a, clearcol, 1.0f);
 
-				/* Stroke Pass: DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND | DRW_STATE_WRITE_DEPTH
-				 * draw only a subset that usually start with a fill and end with stroke because the
-				 * shading groups are created by pairs */
-				if (end_grp >= init_grp) {
+				/* Stroke Pass:
+				 * draw only a subset that usually starts with a fill and ends with stroke
+				 */
+				if (cache_ob->init_grp) {
 					/* previews don't use AA */
 					if (!stl->storage->is_mat_preview) {
 						MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
 					}
 
 					DRW_draw_pass_subset(
-					        psl->stroke_pass,
-					        stl->shgroups[init_grp].shgrps_fill != NULL ?
-					        stl->shgroups[init_grp].shgrps_fill : stl->shgroups[init_grp].shgrps_stroke,
-					        stl->shgroups[end_grp].shgrps_stroke);
+						psl->stroke_pass, cache_ob->init_grp, cache_ob->end_grp);
 
 					if (!stl->storage->is_mat_preview) {
 						MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fbl->temp_fb_a, txl);
 					}
 				}
-
 				/* Current buffer drawing */
 				if ((!is_render) && (cache_ob->is_dup_ob == false)) {
 					DRW_draw_pass(psl->drawing_pass);

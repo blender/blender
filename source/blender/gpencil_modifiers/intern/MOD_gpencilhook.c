@@ -353,4 +353,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };

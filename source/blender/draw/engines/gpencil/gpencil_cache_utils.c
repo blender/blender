@@ -26,13 +26,13 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BKE_global.h"
-
 #include "ED_gpencil.h"
 #include "ED_view3d.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_view3d_types.h"
+
+#include "BKE_gpencil.h"
 
 #include "gpencil_engine.h"
 
@@ -40,63 +40,6 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
-
-static bool gpencil_check_ob_duplicated(tGPencilObjectCache *cache_array,
-	int gp_cache_used, Object *ob, int *r_index)
-{
-	if (gp_cache_used == 0) {
-		return false;
-	}
-
-	for (int i = 0; i < gp_cache_used; i++) {
-		tGPencilObjectCache *cache_elem = &cache_array[i];
-		if (cache_elem->ob == ob) {
-			*r_index = cache_elem->data_idx;
-			return true;
-		}
-	}
-	return false;
-}
-
-static bool gpencil_check_datablock_duplicated(
-        tGPencilObjectCache *cache_array, int gp_cache_used,
-        Object *ob, bGPdata *gpd)
-{
-	if (gp_cache_used == 0) {
-		return false;
-	}
-
-	for (int i = 0; i < gp_cache_used; i++) {
-		tGPencilObjectCache *cache_elem = &cache_array[i];
-		if ((cache_elem->ob != ob) &&
-		    (cache_elem->gpd == gpd))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-static int gpencil_len_datablock_duplicated(
-	tGPencilObjectCache *cache_array, int gp_cache_used,
-	Object *ob, bGPdata *gpd)
-{
-	int tot = 0;
-	if (gp_cache_used == 0) {
-		return 0;
-	}
-
-	for (int i = 0; i < gp_cache_used; i++) {
-		tGPencilObjectCache *cache_elem = &cache_array[i];
-		if ((cache_elem->ob != ob) &&
-		    (cache_elem->gpd == gpd) &&
-		    (!cache_elem->is_dup_ob))
-		{
-			tot++;
-		}
-	}
-	return tot;
-}
 
  /* add a gpencil object to cache to defer drawing */
 tGPencilObjectCache *gpencil_object_cache_add(
@@ -133,38 +76,15 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	copy_m4_m4(cache_elem->obmat, ob->obmat);
 	cache_elem->idx = *gp_cache_used;
 
-	/* check if object is duplicated */
-	cache_elem->is_dup_ob = gpencil_check_ob_duplicated(
-	        cache_array,
-	        *gp_cache_used, ob_orig,
-	        &cache_elem->data_idx);
-
-	if (!cache_elem->is_dup_ob) {
-		/* check if object reuse datablock */
-		cache_elem->is_dup_data = gpencil_check_datablock_duplicated(
-			cache_array, *gp_cache_used,
-			ob_orig, cache_elem->gpd);
-		if (cache_elem->is_dup_data) {
-			cache_elem->data_idx = gpencil_len_datablock_duplicated(
-				cache_array, *gp_cache_used,
-				ob_orig, cache_elem->gpd);
-
-			cache_elem->gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
-		}
-		else {
-			cache_elem->data_idx = 0;
-		}
-	}
-	else {
-		cache_elem->is_dup_data = false;
-	}
+	/* object is duplicated (particle) */
+	cache_elem->is_dup_ob = ob->base_flag & BASE_FROMDUPLI;
 
 	/* save FXs */
 	cache_elem->pixfactor = cache_elem->gpd->pixfactor;
 	cache_elem->shader_fx = ob_orig->shader_fx;
 
-	cache_elem->init_grp = 0;
-	cache_elem->end_grp = -1;
+	cache_elem->init_grp = NULL;
+	cache_elem->end_grp = NULL;
 
 	/* calculate zdepth from point of view */
 	float zdepth = 0.0;
@@ -198,6 +118,48 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	return cache_array;
 }
 
+/* add a shading group to the cache to create later */
+GpencilBatchGroup *gpencil_group_cache_add(
+	GpencilBatchGroup *cache_array,
+	bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps,
+	const short type, const bool onion,
+	const int vertex_idx,
+	int *grp_size, int *grp_used)
+{
+	GpencilBatchGroup *cache_elem = NULL;
+	GpencilBatchGroup *p = NULL;
+
+	/* By default a cache is created with one block with a predefined number of free slots,
+	if the size is not enough, the cache is reallocated adding a new block of free slots.
+	This is done in order to keep cache small */
+	if (*grp_used + 1 > *grp_size) {
+		if ((*grp_size == 0) || (cache_array == NULL)) {
+			p = MEM_callocN(sizeof(struct GpencilBatchGroup) * GPENCIL_GROUPS_BLOCK_SIZE, "GpencilBatchGroup");
+			*grp_size = GPENCIL_GROUPS_BLOCK_SIZE;
+		}
+		else {
+			*grp_size += GPENCIL_GROUPS_BLOCK_SIZE;
+			p = MEM_recallocN(cache_array, sizeof(struct GpencilBatchGroup) * *grp_size);
+		}
+		cache_array = p;
+	}
+	/* zero out all data */
+	cache_elem = &cache_array[*grp_used];
+	memset(cache_elem, 0, sizeof(*cache_elem));
+
+	cache_elem->gpl = gpl;
+	cache_elem->gpf = gpf;
+	cache_elem->gps = gps;
+	cache_elem->type = type;
+	cache_elem->onion = onion;
+	cache_elem->vertex_idx = vertex_idx;
+
+	/* increase slots used in cache */
+	(*grp_used)++;
+
+	return cache_array;
+}
+
 /* get current cache data */
 static GpencilBatchCache *gpencil_batch_get_element(Object *ob)
 {
@@ -208,51 +170,33 @@ static GpencilBatchCache *gpencil_batch_get_element(Object *ob)
 /* verify if cache is valid */
 static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, int cfra)
 {
+	bool valid = true;
 	if (cache == NULL) {
 		return false;
 	}
 
 	cache->is_editmode = GPENCIL_ANY_EDIT_MODE(gpd);
-
 	if (cfra != cache->cache_frame) {
-		return false;
+		valid = false;
+	}
+	else if (gpd->flag & GP_DATA_CACHE_IS_DIRTY) {
+		valid = false;
+	}
+	else if (gpd->flag & GP_DATA_SHOW_ONIONSKINS) {
+		/* if onion, set as dirty always
+		 * This reduces performance, but avoid any crash in the multiple
+		 * overlay and multiwindow options and keep all windows working
+		 */
+		valid = false;
+	}
+	else if (cache->is_editmode) {
+		valid = false;
+	}
+	else if (cache->is_dirty) {
+		valid = false;
 	}
 
-	if (gpd->flag & GP_DATA_CACHE_IS_DIRTY) {
-		return false;
-	}
-
-	if (cache->is_editmode) {
-		return false;
-	}
-
-	if (cache->is_dirty) {
-		return false;
-	}
-
-	return true;
-}
-
-/* resize the cache to the number of slots */
-static void gpencil_batch_cache_resize(GpencilBatchCache *cache, int slots)
-{
-	cache->cache_size = slots;
-	cache->batch_stroke = MEM_recallocN(cache->batch_stroke, sizeof(struct Gwn_Batch *) * slots);
-	cache->batch_fill = MEM_recallocN(cache->batch_fill, sizeof(struct Gwn_Batch *) * slots);
-	cache->batch_edit = MEM_recallocN(cache->batch_edit, sizeof(struct Gwn_Batch *) * slots);
-	cache->batch_edlin = MEM_recallocN(cache->batch_edlin, sizeof(struct Gwn_Batch *) * slots);
-}
-
-/* check size and increase if no free slots */
-void gpencil_batch_cache_check_free_slots(Object *ob)
-{
-	GpencilBatchCache *cache = gpencil_batch_get_element(ob);
-
-	/* the memory is reallocated by chunks, not for one slot only to improve speed */
-	if (cache->cache_idx >= cache->cache_size) {
-		cache->cache_size += GPENCIL_MIN_BATCH_SLOTS_CHUNK;
-		gpencil_batch_cache_resize(cache, cache->cache_size);
-	}
+	return valid;
 }
 
 /* cache init */
@@ -263,10 +207,6 @@ static GpencilBatchCache *gpencil_batch_cache_init(Object *ob, int cfra)
 
 	GpencilBatchCache *cache = gpencil_batch_get_element(ob);
 
-	if (G.debug_value >= 664) {
-		printf("gpencil_batch_cache_init: %s\n", ob->id.name);
-	}
-
 	if (!cache) {
 		cache = MEM_callocN(sizeof(*cache), __func__);
 		ob_orig->runtime.gpencil_cache = cache;
@@ -275,18 +215,16 @@ static GpencilBatchCache *gpencil_batch_cache_init(Object *ob, int cfra)
 		memset(cache, 0, sizeof(*cache));
 	}
 
-	cache->cache_size = GPENCIL_MIN_BATCH_SLOTS_CHUNK;
-	cache->batch_stroke = MEM_callocN(sizeof(struct Gwn_Batch *) * cache->cache_size, "Gpencil_Batch_Stroke");
-	cache->batch_fill = MEM_callocN(sizeof(struct Gwn_Batch *) * cache->cache_size, "Gpencil_Batch_Fill");
-	cache->batch_edit = MEM_callocN(sizeof(struct Gwn_Batch *) * cache->cache_size, "Gpencil_Batch_Edit");
-	cache->batch_edlin = MEM_callocN(sizeof(struct Gwn_Batch *) * cache->cache_size, "Gpencil_Batch_Edlin");
-
 	cache->is_editmode = GPENCIL_ANY_EDIT_MODE(gpd);
-	gpd->flag &= ~GP_DATA_CACHE_IS_DIRTY;
 
-	cache->cache_idx = 0;
 	cache->is_dirty = true;
+
 	cache->cache_frame = cfra;
+
+	/* create array of derived frames equal to number of layers */
+	cache->tot_layers = BLI_listbase_count(&gpd->layers);
+	CLAMP_MIN(cache->tot_layers, 1);
+	cache->derived_array = MEM_callocN(sizeof(struct bGPDframe) * cache->tot_layers, "Derived GPF");
 
 	return cache;
 }
@@ -298,24 +236,30 @@ static void gpencil_batch_cache_clear(GpencilBatchCache *cache)
 		return;
 	}
 
-	if (cache->cache_size == 0) {
-		return;
-	}
+	GPU_BATCH_DISCARD_SAFE(cache->b_stroke.batch);
+	GPU_BATCH_DISCARD_SAFE(cache->b_point.batch);
+	GPU_BATCH_DISCARD_SAFE(cache->b_fill.batch);
+	GPU_BATCH_DISCARD_SAFE(cache->b_edit.batch);
+	GPU_BATCH_DISCARD_SAFE(cache->b_edlin.batch);
 
-	if (cache->cache_size > 0) {
-		for (int i = 0; i < cache->cache_size; i++) {
-			GPU_BATCH_DISCARD_SAFE(cache->batch_stroke[i]);
-			GPU_BATCH_DISCARD_SAFE(cache->batch_fill[i]);
-			GPU_BATCH_DISCARD_SAFE(cache->batch_edit[i]);
-			GPU_BATCH_DISCARD_SAFE(cache->batch_edlin[i]);
-		}
-		MEM_SAFE_FREE(cache->batch_stroke);
-		MEM_SAFE_FREE(cache->batch_fill);
-		MEM_SAFE_FREE(cache->batch_edit);
-		MEM_SAFE_FREE(cache->batch_edlin);
-	}
+	MEM_SAFE_FREE(cache->b_stroke.batch);
+	MEM_SAFE_FREE(cache->b_point.batch);
+	MEM_SAFE_FREE(cache->b_fill.batch);
+	MEM_SAFE_FREE(cache->b_edit.batch);
+	MEM_SAFE_FREE(cache->b_edlin.batch);
 
-	cache->cache_size = 0;
+	MEM_SAFE_FREE(cache->grp_cache);
+	cache->grp_size = 0;
+	cache->grp_used = 0;
+
+	/* clear all frames derived data */
+	for (int i = 0; i < cache->tot_layers; i++) {
+		bGPDframe *derived_gpf = &cache->derived_array[i];
+		BKE_gpencil_free_frame_runtime_data(derived_gpf);
+		derived_gpf = NULL;
+	}
+	cache->tot_layers = 0;
+	MEM_SAFE_FREE(cache->derived_array);
 }
 
 /* get cache */
@@ -326,10 +270,6 @@ GpencilBatchCache *gpencil_batch_cache_get(Object *ob, int cfra)
 
 	GpencilBatchCache *cache = gpencil_batch_get_element(ob);
 	if (!gpencil_batch_cache_valid(cache, gpd, cfra)) {
-		if (G.debug_value >= 664) {
-			printf("gpencil_batch_cache: %s\n", gpd->id.name);
-		}
-
 		if (cache) {
 			gpencil_batch_cache_clear(cache);
 		}

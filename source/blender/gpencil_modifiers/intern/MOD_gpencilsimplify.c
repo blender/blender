@@ -123,4 +123,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Simplify = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };

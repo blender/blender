@@ -183,4 +183,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Opacity = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };

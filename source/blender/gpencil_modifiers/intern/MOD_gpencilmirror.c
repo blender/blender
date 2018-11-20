@@ -189,6 +189,21 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
+static int getDuplicationFactor(GpencilModifierData *md)
+{
+	MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+	int factor = 1;
+	/* create a duplication for each axis */
+	for (int xi = 0; xi < 3; ++xi) {
+		if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
+			factor++;
+		}
+	}
+	CLAMP_MIN(factor, 1);
+
+	return factor;
+}
+
 GpencilModifierTypeInfo modifierType_Gpencil_Mirror = {
 	/* name */              "Mirror",
 	/* structName */        "MirrorGpencilModifierData",
@@ -211,4 +226,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Mirror = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ getDuplicationFactor,
 };

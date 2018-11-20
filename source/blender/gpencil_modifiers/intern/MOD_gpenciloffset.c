@@ -143,4 +143,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Offset = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };

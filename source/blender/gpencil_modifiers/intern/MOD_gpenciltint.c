@@ -172,4 +172,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Tint = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };

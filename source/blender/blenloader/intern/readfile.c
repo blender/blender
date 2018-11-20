@@ -6612,8 +6612,6 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 
 		gpl->actframe = newdataadr(fd, gpl->actframe);
 
-		gpl->runtime.derived_array = NULL;
-		gpl->runtime.len_derived = 0;
 		gpl->runtime.icon_id = 0;
 
 		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {

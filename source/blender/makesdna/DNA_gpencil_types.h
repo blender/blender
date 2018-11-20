@@ -236,10 +236,7 @@ typedef enum eGPDframe_Flag {
 
 /* Runtime temp data for bGPDlayer */
 typedef struct bGPDlayer_Runtime {
-	struct bGPDframe *derived_array;/* runtime data created by modifiers */
 	int icon_id;                    /* id for dynamic icon used to show annotation color preview for layer */
-	int batch_index;                /* batch used for dupli instances */
-	int len_derived;                /* len of the derived array */
 	char pad_[4];
 } bGPDlayer_Runtime;
 

@@ -315,6 +315,13 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
+static int getDuplicationFactor(GpencilModifierData *md)
+{
+	ArrayGpencilModifierData *mmd = (ArrayGpencilModifierData *)md;
+	int t = mmd->count;
+	CLAMP_MIN(t, 1);
+	return t;
+}
 
 GpencilModifierTypeInfo modifierType_Gpencil_Array = {
 	/* name */              "Array",
@@ -338,4 +345,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Array = {
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ getDuplicationFactor,
 };

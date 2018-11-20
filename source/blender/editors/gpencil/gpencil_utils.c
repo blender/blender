@@ -1844,7 +1844,9 @@ void ED_gpencil_calc_stroke_uv(Object *ob, bGPDstroke *gps)
 	float factor;
 
 	/* if image, use texture width */
-	if ((gp_style) && (gp_style->sima)) {
+	if ((gp_style) && (gp_style->stroke_style == GP_STYLE_STROKE_STYLE_TEXTURE) &&
+		(gp_style->sima))
+	{
 		factor = gp_style->sima->gen_x;
 	}
 	else if (totlen == 0) {

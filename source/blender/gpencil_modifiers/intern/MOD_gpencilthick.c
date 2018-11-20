@@ -171,4 +171,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };

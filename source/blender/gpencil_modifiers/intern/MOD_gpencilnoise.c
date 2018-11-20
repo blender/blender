@@ -285,4 +285,5 @@ GpencilModifierTypeInfo modifierType_Gpencil_Noise = {
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
+	/* getDuplicationFactor */ NULL,
 };
