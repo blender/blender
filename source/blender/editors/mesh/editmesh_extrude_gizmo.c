@@ -278,6 +278,14 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		if (redo.is_flip) {
 			negate_v3(ggd->adjust->matrix_basis[2]);
 		}
+
+		/* Set redo properties. */
+		bool constraint[3] = {0, 0, 0};
+		constraint[ggd->adjust_axis] = true;
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust, 0);
+		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
+		RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
+		RNA_float_set_array(&macroptr, "value", redo.value);
 	}
 
 	/* Location. */
