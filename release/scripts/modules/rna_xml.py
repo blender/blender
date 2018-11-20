@@ -61,22 +61,24 @@ def print_ln(data):
     print(data, end="")
 
 
-def rna2xml(fw=print_ln,
-            root_node="",
-            root_rna=None,  # must be set
-            root_rna_skip=set(),
-            root_ident="",
-            ident_val="  ",
-            skip_classes=(bpy.types.Operator,
-                          bpy.types.Panel,
-                          bpy.types.KeyingSet,
-                          bpy.types.Header,
-                          bpy.types.PropertyGroup,
-                          ),
-            skip_typemap=None,
-            pretty_format=True,
-            method='DATA'):
-
+def rna2xml(
+        fw=print_ln,
+        root_node="",
+        root_rna=None,  # must be set
+        root_rna_skip=set(),
+        root_ident="",
+        ident_val="  ",
+        skip_classes=(
+            bpy.types.Operator,
+            bpy.types.Panel,
+            bpy.types.KeyingSet,
+            bpy.types.Header,
+            bpy.types.PropertyGroup,
+        ),
+        skip_typemap=None,
+        pretty_format=True,
+        method='DATA',
+):
     from xml.sax.saxutils import quoteattr
     property_typemap = build_property_typemap(skip_classes, skip_typemap)
 
@@ -177,11 +179,10 @@ def rna2xml(fw=print_ln,
         # declare + attributes
         if pretty_format:
             if node_attrs:
-                tmp_str = "<%s " % value_type_name
-                tmp_ident = "\n" + ident + (" " * len(tmp_str))
-                fw("%s%s%s>\n" % (ident, tmp_str, tmp_ident.join(node_attrs)))
-                del tmp_str
-                del tmp_ident
+                fw("%s<%s\n" % (ident, value_type_name))
+                for node_attr in node_attrs:
+                    fw("%s%s\n" % (ident_next, node_attr))
+                fw("%s>\n" % (ident_next,))
             else:
                 fw("%s<%s>\n" % (ident, value_type_name))
         else:
