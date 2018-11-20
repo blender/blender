@@ -51,6 +51,8 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
@@ -70,6 +72,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
@@ -157,6 +160,165 @@ void ED_object_base_activate(bContext *C, Base *base)
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, NULL);
 	}
 	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_SELECT_UPDATE);
+}
+
+/********************** Jump To Object Utilities **********************/
+
+static int get_base_select_priority(Base *base)
+{
+	if (base->flag & BASE_VISIBLE) {
+		if (base->flag & BASE_SELECTABLE) {
+			return 3;
+		}
+		else {
+			return 2;
+		}
+	}
+	else {
+		return 1;
+	}
+}
+
+/**
+ * If id is not already an Object, try to find an object that uses it as data.
+ * Prefers active, then selected, then visible/selectable.
+ */
+Base *ED_object_find_first_by_data_id(ViewLayer *view_layer, ID *id)
+{
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
+	/* Try active object. */
+	Base *basact = view_layer->basact;
+
+	if (basact && basact->object && basact->object->data == id) {
+		return basact;
+	}
+
+	/* Try all objects. */
+	Base *base_best = NULL;
+	int priority_best = 0;
+
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		if (base->object && base->object->data == id) {
+			if (base->flag & BASE_SELECTED) {
+				return base;
+			}
+			else {
+				int priority_test = get_base_select_priority(base);
+
+				if (priority_test > priority_best) {
+					priority_best = priority_test;
+					base_best = base;
+				}
+			}
+		}
+	}
+
+	return base_best;
+}
+
+/**
+ * Select and make the target object active in the view layer.
+ * If already selected, selection isn't changed.
+ *
+ * \returns false if not found in current view layer
+ */
+bool ED_object_jump_to_object(bContext *C, Object *ob)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+	if (base == NULL) {
+		return false;
+	}
+
+	if (view_layer->basact != base) {
+		/* Select if not selected. */
+		if (!(base->flag & BASE_SELECTED)) {
+			ED_object_base_deselect_all_visible(view_layer);
+
+			if (base->flag & BASE_VISIBLE) {
+				ED_object_base_select(base, BA_SELECT);
+			}
+
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+		}
+
+		/* Make active if not active. */
+		ED_object_base_activate(C, base);
+	}
+
+	return true;
+}
+
+/**
+ * Select and make the target object and bone active.
+ * Switches to Pose mode if in Object mode so the selection is visible.
+ *
+ * \returns false if object not in layer, bone not found, or other error
+ */
+bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
+{
+	/* Verify it's a valid armature object. */
+	if (ob == NULL || ob->type != OB_ARMATURE) {
+		return false;
+	}
+
+	bArmature *arm = ob->data;
+
+	if (arm == NULL || GS(arm->id.name) != ID_AR) {
+		return false;
+	}
+
+	/* Activate the armature object. */
+	if (!ED_object_jump_to_object(C, ob)) {
+		return false;
+	}
+
+	/* Switch to pose mode from object mode. */
+	if (!ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_POSE)) {
+		ED_object_mode_set(C, OB_MODE_POSE);
+	}
+
+	if (ob->mode == OB_MODE_EDIT && arm->edbo != NULL) {
+		/* In Edit mode select and activate the target Edit-Bone. */
+		EditBone *ebone = ED_armature_ebone_find_name(arm->edbo, bone_name);
+		if (ebone != NULL) {
+			ED_armature_edit_deselect_all(ob);
+
+			if (EBONE_SELECTABLE(arm, ebone)) {
+				ED_armature_ebone_select_set(ebone, true);
+				ED_armature_edit_sync_selection(arm->edbo);
+			}
+
+			if (EBONE_VISIBLE(arm, ebone)) {
+				arm->act_edbone = ebone;
+			}
+
+			ED_pose_bone_select_tag_update(ob);
+			return true;
+		}
+	}
+	else if (ob->mode == OB_MODE_POSE && ob->pose != NULL) {
+		/* In Pose mode select and activate the target Bone/Pose-Channel. */
+		bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+		if (pchan != NULL) {
+			ED_pose_deselect_all(ob, SEL_DESELECT, true);
+
+			if (PBONE_SELECTABLE(arm, pchan->bone)) {
+				ED_pose_bone_select(ob, pchan, true);
+			}
+
+			if (PBONE_VISIBLE(arm, pchan->bone)) {
+				arm->act_bone = pchan->bone;
+			}
+
+			ED_pose_bone_select_tag_update(ob);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /********************** Selection Operators **********************/

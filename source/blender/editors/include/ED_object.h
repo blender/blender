@@ -302,6 +302,11 @@ const struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
 void ED_object_check_force_modifiers(
         struct Main *bmain, struct Scene *scene, struct Object *object);
 
+struct Base *ED_object_find_first_by_data_id(struct ViewLayer *view_layer, struct ID *id);
+
+bool ED_object_jump_to_object(struct bContext *C, struct Object *ob);
+bool ED_object_jump_to_bone(struct bContext *C, struct Object *ob, const char *bone_name);
+
 /* object_facemap_ops.c */
 void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
 void ED_object_facemap_face_remove(struct Object *ob, struct bFaceMap *fmap, int facenum);

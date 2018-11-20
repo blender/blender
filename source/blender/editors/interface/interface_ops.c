@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_text_types.h" /* for UI_OT_reports_to_text */
 #include "DNA_object_types.h" /* for OB_DATA_SUPPORT_ID */
@@ -65,6 +66,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_paint.h"
 
 /* only for UI_OT_editsource */
@@ -802,6 +804,151 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", true, "All", "Copy to selected all elements of the array");
 }
 
+
+/* -------------------------------------------------------------------- */
+/** \name Jump to Target Operator
+ * \{ */
+
+/** Jump to the object or bone referenced by the pointer, or check if it is possible. */
+static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
+{
+	if (RNA_pointer_is_null(&ptr)) {
+		return false;
+	}
+
+	/* Verify pointer type. */
+	char bone_name[MAXBONENAME];
+	const StructRNA *target_type = NULL;
+
+	if (ELEM(ptr.type, &RNA_EditBone, &RNA_PoseBone, &RNA_Bone)) {
+		RNA_string_get(&ptr, "name", bone_name);
+		if (bone_name[0] != '\0') {
+			target_type = &RNA_Bone;
+		}
+	}
+	else if (RNA_struct_is_a(ptr.type, &RNA_Object)) {
+		target_type = &RNA_Object;
+	}
+
+	if (target_type == NULL) {
+		return false;
+	}
+
+	/* Find the containing Object. */
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = NULL;
+	const short id_type = GS(((ID *)ptr.id.data)->name);
+	if (id_type == ID_OB) {
+		base = BKE_view_layer_base_find(view_layer, ptr.id.data);
+	}
+	else if (OB_DATA_SUPPORT_ID(id_type)) {
+		base = ED_object_find_first_by_data_id(view_layer, ptr.id.data);
+	}
+
+	bool ok = false;
+	if ((base == NULL) ||
+	    ((target_type == &RNA_Bone) && (base->object->type != OB_ARMATURE)))
+	{
+		/* pass */
+	}
+	else if (poll) {
+		ok = true;
+	}
+	else {
+		/* Select and activate the target. */
+		if (target_type == &RNA_Bone) {
+			ok = ED_object_jump_to_bone(C, base->object, bone_name);
+		}
+		else if (target_type == &RNA_Object) {
+			ok = ED_object_jump_to_object(C, base->object);
+		}
+		else {
+			BLI_assert(0);
+		}
+	}
+	return ok;
+}
+
+/**
+ * Jump to the object or bone referred to by the current UI field value.
+ *
+ * \note quite heavy for a poll callback, but the operator is only
+ * used as a right click menu item for certain UI field types, and
+ * this will fail quickly if the context is completely unsuitable.
+ */
+static bool jump_to_target_button(bContext *C, bool poll)
+{
+	PointerRNA ptr, target_ptr;
+	PropertyRNA *prop;
+	int index;
+
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+
+	/* If there is a valid property... */
+	if (ptr.data && prop) {
+		const PropertyType type = RNA_property_type(prop);
+
+		/* For pointer properties, use their value directly. */
+		if (type == PROP_POINTER) {
+			target_ptr = RNA_property_pointer_get(&ptr, prop);
+
+			return jump_to_target_ptr(C, target_ptr, poll);
+		}
+		/* For string properties with prop_search, look up the search collection item. */
+		else if (type == PROP_STRING) {
+			const uiBut *but = UI_context_active_but_get(C);
+
+			if (but->type == UI_BTYPE_SEARCH_MENU && but->search_func == ui_rna_collection_search_cb) {
+				uiRNACollectionSearch *coll_search = but->search_arg;
+
+				char str_buf[MAXBONENAME];
+				char *str_ptr = RNA_property_string_get_alloc(&ptr, prop, str_buf, sizeof(str_buf), NULL);
+
+				int found = RNA_property_collection_lookup_string(&coll_search->search_ptr, coll_search->search_prop, str_ptr, &target_ptr);
+
+				if (str_ptr != str_buf) {
+					MEM_freeN(str_ptr);
+				}
+
+				if (found) {
+					return jump_to_target_ptr(C, target_ptr, poll);
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+static bool jump_to_target_button_poll(bContext *C)
+{
+	return jump_to_target_button(C, true);
+}
+
+static int jump_to_target_button_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bool success = jump_to_target_button(C, false);
+
+	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+static void UI_OT_jump_to_target_button(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Jump To Target";
+	ot->idname = "UI_OT_jump_to_target_button";
+	ot->description = "Switch to the target object or bone";
+
+	/* callbacks */
+	ot->poll = jump_to_target_button_poll;
+	ot->exec = jump_to_target_button_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 /* Reports to Textblock Operator ------------------------ */
 
 /* FIXME: this is just a temporary operator so that we can see all the reports somewhere
@@ -1410,6 +1557,7 @@ void ED_operatortypes_ui(void)
 	WM_operatortype_append(UI_OT_override_type_set_button);
 	WM_operatortype_append(UI_OT_override_remove_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
+	WM_operatortype_append(UI_OT_jump_to_target_button);
 	WM_operatortype_append(UI_OT_reports_to_textblock);  /* XXX: temp? */
 	WM_operatortype_append(UI_OT_drop_color);
 #ifdef WITH_PYTHON

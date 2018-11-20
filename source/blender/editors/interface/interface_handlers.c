@@ -6614,6 +6614,17 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			return WM_UI_HANDLER_BREAK;
 		}
 
+		/* handle menu */
+		if ((event->type == RIGHTMOUSE) &&
+		    !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&
+		    (event->val == KM_PRESS))
+		{
+			/* RMB has two options now */
+			if (ui_popup_context_menu_for_button(C, but)) {
+				return WM_UI_HANDLER_BREAK;
+			}
+		}
+
 		if (is_disabled) {
 			return WM_UI_HANDLER_CONTINUE;
 		}
@@ -6626,16 +6637,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		/* handle drop */
 		if (event->type == EVT_DROP) {
 			ui_but_drop(C, event, but, data);
-		}
-		/* handle menu */
-		else if ((event->type == RIGHTMOUSE) &&
-		         !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			/* RMB has two options now */
-			if (ui_popup_context_menu_for_button(C, but)) {
-				return WM_UI_HANDLER_BREAK;
-			}
 		}
 	}
 

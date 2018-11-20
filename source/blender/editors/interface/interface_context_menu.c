@@ -361,7 +361,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 	}
 
-	if (but->type == UI_BTYPE_TAB) {
+	const bool is_disabled = but->flag & UI_BUT_DISABLED;
+
+	if (is_disabled) {
+		/* Suppress editing commands. */
+	}
+	else if (but->type == UI_BTYPE_TAB) {
 		uiButTab *tab = (uiButTab *)but;
 		if (tab->menu) {
 			UI_menutype_draw(C, tab->menu, layout);
@@ -635,6 +640,17 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
 		if (type == PROP_STRING && ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
 			ui_but_menu_add_path_operators(layout, ptr, prop);
+			uiItemS(layout);
+		}
+	}
+
+	/* Pointer properties and string properties with prop_search support jumping to target object/bone. */
+	if (but->rnapoin.data && but->rnaprop) {
+		const PropertyType type = RNA_property_type(but->rnaprop);
+
+		if ((type == PROP_POINTER) || (type == PROP_STRING && but->type == UI_BTYPE_SEARCH_MENU && but->search_func == ui_rna_collection_search_cb)) {
+			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump To Target"),
+			        ICON_NONE, "UI_OT_jump_to_target_button");
 			uiItemS(layout);
 		}
 	}
