@@ -69,13 +69,16 @@ struct Mesh *dynamicPaint_Modifier_do(
         struct DynamicPaintModifierData *pmd, struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, struct Mesh *me);
 void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd);
-void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
+void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
+                                struct DynamicPaintModifierData *tsmd,
+                                int flag);
 
 bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene);
 struct DynamicPaintSurface *dynamicPaint_createNewSurface(struct DynamicPaintCanvasSettings *canvas, struct Scene *scene);
 void dynamicPaint_clearSurface(const struct Scene *scene, struct DynamicPaintSurface *surface);
 bool dynamicPaint_resetSurface(const struct Scene *scene, struct DynamicPaintSurface *surface);
-void dynamicPaint_freeSurface(struct DynamicPaintSurface *surface);
+void dynamicPaint_freeSurface(const struct DynamicPaintModifierData *pmd,
+                              struct DynamicPaintSurface *surface);
 void dynamicPaint_freeCanvas(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeSurfaceData(struct DynamicPaintSurface *surface);

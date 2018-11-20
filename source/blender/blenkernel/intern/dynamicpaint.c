@@ -915,10 +915,13 @@ void dynamicPaint_freeSurfaceData(DynamicPaintSurface *surface)
 	surface->data = NULL;
 }
 
-void dynamicPaint_freeSurface(DynamicPaintSurface *surface)
+void dynamicPaint_freeSurface(const DynamicPaintModifierData *pmd,
+                              DynamicPaintSurface *surface)
 {
 	/* point cache */
-	BKE_ptcache_free_list(&(surface->ptcaches));
+	if ((pmd->modifier.flag & eModifierFlag_SharedCaches) == 0) {
+		BKE_ptcache_free_list(&(surface->ptcaches));
+	}
 	surface->pointcache = NULL;
 
 	if (surface->effector_weights)
@@ -940,7 +943,7 @@ void dynamicPaint_freeCanvas(DynamicPaintModifierData *pmd)
 
 		while (surface) {
 			next_surface = surface->next;
-			dynamicPaint_freeSurface(surface);
+			dynamicPaint_freeSurface(pmd, surface);
 			surface = next_surface;
 		}
 
@@ -1139,7 +1142,9 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 	return true;
 }
 
-void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tpmd)
+void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
+                                struct DynamicPaintModifierData *tpmd,
+                                int flag)
 {
 	/* Init modifier */
 	tpmd->type = pmd->type;
@@ -1154,11 +1159,19 @@ void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd, stru
 		tpmd->canvas->pmd = tpmd;
 		/* free default surface */
 		if (tpmd->canvas->surfaces.first)
-			dynamicPaint_freeSurface(tpmd->canvas->surfaces.first);
+			dynamicPaint_freeSurface(tpmd, tpmd->canvas->surfaces.first);
 
 		/* copy existing surfaces */
 		for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
 			DynamicPaintSurface *t_surface = dynamicPaint_createNewSurface(tpmd->canvas, NULL);
+			if (flag & LIB_ID_CREATE_NO_MAIN) {
+				/* TODO(sergey): Consider passing some tips to the surface
+				 * creation to avoid this allocate-and-free cache behavior. */
+				BKE_ptcache_free_list(&t_surface->ptcaches);
+				tpmd->modifier.flag |= eModifierFlag_SharedCaches;
+				t_surface->ptcaches = surface->ptcaches;
+				t_surface->pointcache = surface->pointcache;
+			}
 
 			/* surface settings */
 			t_surface->brush_group = surface->brush_group;

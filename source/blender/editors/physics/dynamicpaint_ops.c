@@ -130,7 +130,7 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	for (; surface; surface = surface->next) {
 		if (id == canvas->active_sur) {
 				canvas->active_sur -= 1;
-				dynamicPaint_freeSurface(surface);
+				dynamicPaint_freeSurface(pmd, surface);
 				break;
 			}
 		id++;

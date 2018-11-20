@@ -58,12 +58,12 @@ static void initData(ModifierData *md)
 	pmd->type = MOD_DYNAMICPAINT_TYPE_CANVAS;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int UNUSED(flag))
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const DynamicPaintModifierData *pmd  = (const DynamicPaintModifierData *)md;
 	DynamicPaintModifierData *tpmd = (DynamicPaintModifierData *)target;
 
-	dynamicPaint_Modifier_copy(pmd, tpmd);
+	dynamicPaint_Modifier_copy(pmd, tpmd, flag);
 }
 
 static void freeData(ModifierData *md)
