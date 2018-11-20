@@ -363,6 +363,8 @@ typedef struct BMVertsCalcNormalsData {
 
 static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp_f)
 {
+#define FLT_EQ_NONAN(_fa, _fb) (*((const uint32_t *)&_fa) == *((const uint32_t *)&_fb))
+
 	BMVertsCalcNormalsData *data = userdata;
 	BMFace *f = (BMFace *)mp_f;
 
@@ -405,7 +407,7 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 			 *   - v_no[0] was not FLT_MAX, i.e. it was not locked by another thread.
 			 */
 			const float vl = atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX);
-			if (vl == virtual_lock && vl != FLT_MAX) {
+			if (FLT_EQ_NONAN(vl, virtual_lock) && vl != FLT_MAX) {
 				break;
 			}
 			virtual_lock = vl;
@@ -423,6 +425,8 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 		BLI_assert(virtual_lock == FLT_MAX);
 
 	} while ((l_iter = l_iter->next) != l_first);
+
+#undef FLT_EQ_NONAN
 }
 
 static void mesh_verts_calc_normals_normalize_cb(void *userdata, MempoolIterData *mp_v)
