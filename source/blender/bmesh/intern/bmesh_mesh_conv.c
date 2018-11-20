@@ -193,7 +193,7 @@ static BMFace *bm_face_create_from_mpoly(
  * \warning This function doesn't calculate face normals.
  */
 void BM_mesh_bm_from_me(
-        BMesh *bm, Mesh *me,
+        BMesh *bm, const Mesh *me,
         const struct BMeshFromMeshParams *params)
 {
 	const bool is_new =

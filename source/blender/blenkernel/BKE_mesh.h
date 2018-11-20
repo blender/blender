@@ -83,7 +83,7 @@ extern "C" {
 /* *** mesh.c *** */
 
 struct BMesh *BKE_mesh_to_bmesh_ex(
-        struct Mesh *me,
+        const struct Mesh *me,
         const struct BMeshCreateParams *create_params,
         const struct BMeshFromMeshParams *convert_params);
 struct BMesh *BKE_mesh_to_bmesh(

@@ -718,7 +718,7 @@ Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 }
 
 BMesh *BKE_mesh_to_bmesh_ex(
-        Mesh *me,
+        const Mesh *me,
         const struct BMeshCreateParams *create_params,
         const struct BMeshFromMeshParams *convert_params)
 {

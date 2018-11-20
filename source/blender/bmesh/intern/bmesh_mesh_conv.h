@@ -52,7 +52,7 @@ struct BMeshFromMeshParams {
 	int64_t cd_mask_extra;
 };
 void BM_mesh_bm_from_me(
-        BMesh *bm, struct Mesh *me,
+        BMesh *bm, const struct Mesh *me,
         const struct BMeshFromMeshParams *params)
 ATTR_NONNULL(1, 3);
 
