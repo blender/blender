@@ -75,10 +75,6 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 static float rna_MovieClip_fps_get(PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
-	if (clip == NULL) {
-		return 0.0f;
-	}
-
 	return BKE_movieclip_get_fps(clip);
 }
 
