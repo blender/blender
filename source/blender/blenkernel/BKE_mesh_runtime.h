@@ -47,7 +47,7 @@ struct Object;
 struct Scene;
 
 /* Undefine to hide DerivedMesh-based function declarations */
-#define USE_DERIVEDMESH
+#undef USE_DERIVEDMESH
 
 #ifdef USE_DERIVEDMESH
 struct DerivedMesh;
