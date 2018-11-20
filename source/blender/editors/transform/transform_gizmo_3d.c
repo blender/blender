@@ -899,11 +899,11 @@ int ED_transform_calc_gizmo_stats(
 								totsel++;
 							}
 							if ((ebo->flag & BONE_ROOTSEL) &&
-								/* don't include same point multiple times */
-								((ebo->flag & BONE_CONNECTED) &&
-								 (ebo->parent != NULL) &&
-								 (ebo->parent->flag & BONE_TIPSEL) &&
-								 EBONE_VISIBLE(arm, ebo->parent)) == 0)
+							    /* don't include same point multiple times */
+							    ((ebo->flag & BONE_CONNECTED) &&
+							     (ebo->parent != NULL) &&
+							     (ebo->parent->flag & BONE_TIPSEL) &&
+							     EBONE_VISIBLE(arm, ebo->parent)) == 0)
 							{
 								calc_tw_center_with_matrix(tbounds, ebo->head, use_mat_local, mat_local);
 								totsel++;

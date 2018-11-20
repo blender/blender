@@ -637,7 +637,7 @@ static void studiolight_spherical_harmonics_apply_band_factors(StudioLight *sl, 
 
 	int index = 0, dst_idx = 0;
 	for (int band = 0; band < STUDIOLIGHT_SH_BANDS; band++) {
-		for (int m = 0; m < SQUARE(band+1) - SQUARE(band); m++) {
+		for (int m = 0; m < SQUARE(band + 1) - SQUARE(band); m++) {
 			/* Skip L3 */
 			if (band != 3) {
 				mul_v3_v3fl(sl->spherical_harmonics_coefs[dst_idx++], sh[index], sl_sh_band_factors[band]);

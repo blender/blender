@@ -1990,7 +1990,7 @@ static void mesh_build_extra_data(struct Depsgraph *depsgraph, Object *ob)
 	}
 }
 
-static void mesh_runtime_check_normals_valid(const Mesh* mesh)
+static void mesh_runtime_check_normals_valid(const Mesh *mesh)
 {
 	UNUSED_VARS_NDEBUG(mesh);
 	BLI_assert(!(mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL));
