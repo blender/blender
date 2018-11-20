@@ -585,21 +585,21 @@ BLI_INLINE bPoseChannel *pose_pchan_get_indexed(Object *ob, int pchan_index)
 
 void BKE_pose_eval_init(struct Depsgraph *depsgraph,
                         Scene *UNUSED(scene),
-                        Object *ob)
+                        Object *object)
 {
-	bPose *pose = ob->pose;
+	bPose *pose = object->pose;
 	BLI_assert(pose != NULL);
 
-	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
-	BLI_assert(ob->type == OB_ARMATURE);
+	BLI_assert(object->type == OB_ARMATURE);
 
 	/* We demand having proper pose. */
-	BLI_assert(ob->pose != NULL);
-	BLI_assert((ob->pose->flag & POSE_RECALC) == 0);
+	BLI_assert(object->pose != NULL);
+	BLI_assert((object->pose->flag & POSE_RECALC) == 0);
 
 	/* imat is needed for solvers. */
-	invert_m4_m4(ob->imat, ob->obmat);
+	invert_m4_m4(object->imat, object->obmat);
 
 	/* clear flags */
 	for (bPoseChannel *pchan = pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
@@ -607,6 +607,7 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph,
 	}
 
 	pose_pchan_index_create(pose);
+	armature_cached_bbone_deformation_free_data(object);
 }
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
@@ -746,22 +747,45 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
 	BKE_splineik_execute_tree(depsgraph, scene, ob, rootchan, ctime);
 }
 
-void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph,
-                           Scene *scene,
-                           Object *ob)
+/* Common part for both original and proxy armatrues. */
+static void pose_eval_done_common(Object *object)
 {
-	bPose *pose = ob->pose;
+	bPose *pose = object->pose;
+	UNUSED_VARS_NDEBUG(pose);
 	BLI_assert(pose != NULL);
-
-	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
-	BLI_assert(ob->type == OB_ARMATURE);
-
-	/* release the IK tree */
-	BIK_release_tree(scene, ob, ctime);
-
+	armature_cached_bbone_deformation_update(object);
+}
+static void pose_eval_cleanup_common(Object *object)
+{
+	bPose *pose = object->pose;
+	BLI_assert(pose != NULL);
 	BLI_assert(pose->chan_array != NULL || BLI_listbase_is_empty(&pose->chanbase));
 	MEM_SAFE_FREE(pose->chan_array);
+}
+
+void BKE_pose_eval_done(struct Depsgraph *depsgraph, Object *object)
+{
+	bPose *pose = object->pose;
+	BLI_assert(pose != NULL);
+	UNUSED_VARS_NDEBUG(pose);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+	BLI_assert(object->type == OB_ARMATURE);
+	pose_eval_done_common(object);
+}
+
+void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph,
+                           Scene *scene,
+                           Object *object)
+{
+	bPose *pose = object->pose;
+	BLI_assert(pose != NULL);
+	UNUSED_VARS_NDEBUG(pose);
+	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+	BLI_assert(object->type == OB_ARMATURE);
+	/* Release the IK tree. */
+	BIK_release_tree(scene, object, ctime);
+	pose_eval_cleanup_common(object);
 }
 
 void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
@@ -770,17 +794,21 @@ void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
 	pose_pchan_index_create(object->pose);
+	armature_cached_bbone_deformation_free_data(object);
+}
+
+void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph, Object *object)
+{
+	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+	pose_eval_done_common(object);
 }
 
 void BKE_pose_eval_proxy_cleanup(struct Depsgraph *depsgraph, Object *object)
 {
 	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
-
-	bPose *pose = object->pose;
-	BLI_assert(pose->chan_array != NULL);
-	MEM_freeN(pose->chan_array);
-	pose->chan_array = NULL;
+	pose_eval_cleanup_common(object);
 }
 
 void BKE_pose_eval_proxy_copy_bone(

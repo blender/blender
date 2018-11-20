@@ -253,12 +253,18 @@ void BKE_pose_splineik_evaluate(
         struct Object *ob,
         int rootchan_index);
 
+void BKE_pose_eval_done(
+        struct Depsgraph *depsgraph,
+        struct Object *object);
+
 void BKE_pose_eval_cleanup(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
 
 void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph,
+                              struct Object *object);
+void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph,
                               struct Object *object);
 void BKE_pose_eval_proxy_cleanup(struct Depsgraph *depsgraph,
                                  struct Object *object);
@@ -267,6 +273,18 @@ void BKE_pose_eval_proxy_copy_bone(
         struct Depsgraph *depsgraph,
         struct Object *object,
         int pchan_index);
+
+/* BBOne deformation cache.
+ *
+ * The idea here is to pre-calculate deformation queternions, matricies and such
+ * used by armature_deform_verts().
+ */
+struct ObjectBBoneDeform;
+struct ObjectBBoneDeform * armature_cached_bbone_deformation_get(
+        struct Object *object);
+void armature_cached_bbone_deformation_free_data(struct Object *object);
+void armature_cached_bbone_deformation_free(struct Object *object);
+void armature_cached_bbone_deformation_update(struct Object *object);
 
 #ifdef __cplusplus
 }
