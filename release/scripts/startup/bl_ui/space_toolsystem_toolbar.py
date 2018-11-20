@@ -63,6 +63,15 @@ def generate_from_enum_ex(
     return tuple(tool_defs)
 
 
+# Use for shared widget data.
+class _template_widget:
+    class MESH_GGT_extrude:
+        @staticmethod
+        def draw_settings(context, layout, tool):
+            props = tool.gizmo_group_properties("MESH_GGT_extrude")
+            layout.prop(props, "axis_type", expand=True)
+
+
 class _defs_view3d_generic:
     @ToolDef.from_fn
     def cursor():
@@ -355,8 +364,9 @@ class _defs_edit_armature:
         return dict(
             text="Extrude",
             icon="ops.armature.extrude_move",
-            widget=None,
+            widget="MESH_GGT_extrude",
             keymap=(),
+            draw_settings=_template_widget.MESH_GGT_extrude.draw_settings,
         )
 
     @ToolDef.from_fn
@@ -509,9 +519,6 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def extrude():
-        def draw_settings(context, layout, tool):
-            props = tool.gizmo_group_properties("MESH_GGT_extrude")
-            layout.prop(props, "axis_type", expand=True)
         return dict(
             text="Extrude Region",
             # The operator description isn't useful in this case, give our own.
@@ -523,7 +530,7 @@ class _defs_edit_mesh:
             # Important to use same operator as 'E' key.
             operator="view3d.edit_mesh_extrude_move_normal",
             keymap=(),
-            draw_settings=draw_settings,
+            draw_settings=_template_widget.MESH_GGT_extrude.draw_settings,
         )
 
     @ToolDef.from_fn
@@ -733,8 +740,9 @@ class _defs_edit_curve:
         return dict(
             text="Extrude",
             icon="ops.curve.extrude_move",
-            widget=None,
+            widget="MESH_GGT_extrude",
             keymap=(),
+            draw_settings=_template_widget.MESH_GGT_extrude.draw_settings,
         )
 
     @ToolDef.from_fn

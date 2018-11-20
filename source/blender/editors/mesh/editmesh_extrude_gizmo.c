@@ -117,7 +117,7 @@ static void gizmo_mesh_extrude_orientation_matrix_set_for_adjust(
 	swap_v3_v3(ggd->adjust->matrix_basis[ggd->adjust_axis], ggd->adjust->matrix_basis[2]);
 }
 
-static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	struct GizmoExtrudeGroup *ggd = MEM_callocN(sizeof(GizmoExtrudeGroup), __func__);
 	gzgroup->customdata = ggd;
@@ -141,7 +141,21 @@ static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gz
 	}
 
 	{
-		ggd->ot_extrude = WM_operatortype_find("MESH_OT_extrude_context_move", true);
+		const Object *obedit = CTX_data_edit_object(C);
+		const char *op_idname = NULL;
+		if (obedit->type == OB_MESH) {
+			op_idname = "MESH_OT_extrude_context_move";
+		}
+		else if (obedit->type == OB_ARMATURE) {
+			op_idname = "ARMATURE_OT_extrude_move";
+		}
+		else if (obedit->type == OB_CURVE) {
+			op_idname = "CURVE_OT_extrude_move";
+		}
+		else {
+			BLI_assert(0);
+		}
+		ggd->ot_extrude = WM_operatortype_find(op_idname, true);
 		ggd->gzgt_axis_type_prop = RNA_struct_type_find_property(gzgroup->type->srna, "axis_type");
 	}
 
