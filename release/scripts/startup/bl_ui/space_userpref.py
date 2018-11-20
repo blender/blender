@@ -1121,6 +1121,12 @@ class USERPREF_PT_input(Panel):
         sub.prop(walk, "view_height")
         sub.prop(walk, "jump_height")
 
+        sub.separator()
+        sub = layout.column()
+        sub.label(text="Tablet Pressure:")
+        sub.prop(inputs, "pressure_threshold_max")
+        sub.prop(inputs, "pressure_softness")
+
         if inputs.use_ndof:
             layout.separator()
             layout.label(text="NDOF Device:")

@@ -4582,6 +4582,20 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tweak Threshold",
 	                         "Number of pixels you have to drag before tweak event is triggered");
 
+	/* tablet pressure curve */
+	prop = RNA_def_property(srna, "pressure_threshold_max", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 3);
+	RNA_def_property_ui_text(prop, "Max Threshold",
+	                         "Raw input pressure value that is interpreted as 100% by Blender");
+
+	prop = RNA_def_property(srna, "pressure_softness", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -1.0f, 1.0f, 0.1f, 2);
+	RNA_def_property_ui_text(prop, "Softness",
+	                         "Adjusts softness of the low pressure response onset using a gamma curve");
+
 #ifdef WITH_INPUT_NDOF
 	/* 3D mouse settings */
 	/* global options */

@@ -618,6 +618,9 @@ typedef struct UserDef {
 	short anisotropic_filter;
 	short use_16bit_textures, use_gpu_mipmap;
 
+	float pressure_threshold_max; /* raw tablet pressure that maps to 100% */
+	float pressure_softness;      /* curve non-linearity parameter */
+
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	float ndof_orbit_sensitivity;
 	float ndof_deadzone; /* deadzone of 3D mouse */

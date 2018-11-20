@@ -2014,7 +2014,7 @@ float WM_cursor_pressure(const struct wmWindow *win)
 	const GHOST_TabletData *td = GHOST_GetTabletData(win->ghostwin);
 	/* if there's tablet data from an active tablet device then add it */
 	if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
-		return td->Pressure;
+		return wm_pressure_curve(td->Pressure);
 	}
 	else {
 		return -1.0f;

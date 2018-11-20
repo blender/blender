@@ -3662,6 +3662,22 @@ static void wm_eventemulation(wmEvent *event)
 	}
 }
 
+/* applies the global tablet pressure correction curve */
+float wm_pressure_curve(float pressure)
+{
+	if (U.pressure_threshold_max != 0.0f) {
+		pressure /= U.pressure_threshold_max;
+	}
+
+	CLAMP(pressure, 0.0f, 1.0f);
+
+	if (U.pressure_softness != 0.0f) {
+		pressure = powf(pressure, powf(4.0f, -U.pressure_softness));
+	}
+
+	return pressure;
+}
+
 /* adds customdata to event */
 static void update_tablet_data(wmWindow *win, wmEvent *event)
 {
@@ -3672,7 +3688,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 		struct wmTabletData *wmtab = MEM_mallocN(sizeof(wmTabletData), "customdata tablet");
 
 		wmtab->Active = (int)td->Active;
-		wmtab->Pressure = td->Pressure;
+		wmtab->Pressure = wm_pressure_curve(td->Pressure);
 		wmtab->Xtilt = td->Xtilt;
 		wmtab->Ytilt = td->Ytilt;
 

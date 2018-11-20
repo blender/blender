@@ -101,6 +101,8 @@ void        wm_event_do_depsgraph(bContext *C);
 void        wm_event_do_refresh_wm_and_depsgraph(bContext *C);
 void        wm_event_do_notifiers(bContext *C);
 
+float       wm_pressure_curve(float raw_pressure);
+
 /* wm_keymap.c */
 
 /* wm_dropbox.c */

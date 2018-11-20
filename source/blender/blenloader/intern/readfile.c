@@ -8793,6 +8793,11 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 	if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "gpencil_multisamples")) {
 		user->gpencil_multisamples = 4;
 	}
+
+	/* tablet pressure threshold */
+	if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "float", "pressure_threshold_max")) {
+		user->pressure_threshold_max = 1.0f;
+	}
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
