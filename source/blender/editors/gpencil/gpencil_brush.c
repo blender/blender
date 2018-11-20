@@ -903,21 +903,16 @@ static bool gp_brush_weight_apply(
 
 	if (gp_brush_invert_check(gso)) {
 		/* reduce weight */
-		if (gso->settings->flag & GP_SCULPT_SETT_FLAG_PAINT_WEIGHT) {
-			curweight = 0.0f;
-		}
-		else {
-			curweight -= inf;
-		}
+		curweight -= inf;
 	}
 	else {
 		/* increase weight */
-		if (gso->settings->flag & GP_SCULPT_SETT_FLAG_PAINT_WEIGHT) {
-			curweight = gso->gp_brush->strength;
-		}
-		else {
-			curweight += inf;
-		}
+		curweight += inf;
+	}
+
+	/* verify target weight */
+	if (gso->gp_brush->flag & GP_SCULPT_FLAG_TARGET_WEIGHT) {
+		CLAMP_MAX(curweight, gso->gp_brush->target_weight);
 	}
 
 	CLAMP(curweight, 0.0f, 1.0f);

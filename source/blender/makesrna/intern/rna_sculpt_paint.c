@@ -1244,13 +1244,6 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-	prop = RNA_def_property(srna, "use_fix_weight", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_PAINT_WEIGHT);
-	RNA_def_property_ui_text(prop, "Fix Weight",
-		"Set the predefined weight to any point affected by the brush");
-	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
 	prop = RNA_def_property(srna, "use_multiframe_falloff", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_SETT_FLAG_FRAME_FALLOFF);
 	RNA_def_property_ui_text(prop, "Use Falloff", "Use falloff effect when edit in multiframe mode to compute brush effect by frame");
@@ -1291,6 +1284,19 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.001, 1.0);
 	RNA_def_property_ui_text(prop, "Strength", "Brush strength");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	prop = RNA_def_property(srna, "target_weight", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Weight", "Target weight");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	prop = RNA_def_property(srna, "use_target_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SCULPT_FLAG_TARGET_WEIGHT);
+	RNA_def_property_ui_text(prop, "Target",
+		"Use predefined target weight to any point affected by the brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
