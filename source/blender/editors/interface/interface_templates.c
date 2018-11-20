@@ -2360,34 +2360,39 @@ static void colorband_tools_dofunc(bContext *C, void *coba_v, int event)
 }
 
 static uiBlock *colorband_tools_func(
-	bContext *C, ARegion *ar, ColorBand *coba)
+        bContext *C, ARegion *ar, void *coba_v)
 {
-	uiBut *bt;
+	ColorBand *coba = coba_v;
 	uiBlock *block;
 	short yco = 0, menuwidth = 10 * UI_UNIT_X;
 
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	UI_block_func_butmenu_set(block, colorband_tools_dofunc, coba);
-	
+
 	{
+		uiBut *but;
 		uiDefIconTextBut(
-			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Flip Color Ramp"),
-			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_FLIP, "");
+		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1,
+		        IFACE_("Flip Color Ramp"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
+		        NULL, 0.0, 0.0, 0, CB_FUNC_FLIP, "");
 		uiDefIconTextBut(
-			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Distribute Stops from Left"),
-			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_LR, "");
+		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1,
+		        IFACE_("Distribute Stops from Left"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
+		        NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_LR, "");
 		uiDefIconTextBut(
-			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Distribute Stops Evenly"),
-			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_EVENLY, "");
-		bt = uiDefIconTextButO(
-			block, UI_BTYPE_BUT_MENU, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, IFACE_("Eyedropper"),
-			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, "");
-			bt->custom_data = coba;
+		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1,
+		        IFACE_("Distribute Stops Evenly"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
+		        NULL, 0.0, 0.0, 0, CB_FUNC_DISTRIBUTE_EVENLY, "");
+		but = uiDefIconTextButO(
+		        block, UI_BTYPE_BUT_MENU, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER,
+		        IFACE_("Eyedropper"), 0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y,
+		        "");
+		but->custom_data = coba;
 		uiDefIconTextBut(
-			block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Reset Color Ramp"),
-			0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_RESET, "");
+		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Reset Color Ramp"),
+		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, CB_FUNC_RESET, "");
 	}
-	
+
 	UI_block_direction_set(block, UI_DIR_DOWN);
 	UI_block_bounds_set_text(block, 3.0f * UI_UNIT_X);
 
