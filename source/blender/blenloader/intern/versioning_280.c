@@ -454,6 +454,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 	/* Handle legacy render layers. */
 	bool have_override = false;
+	const bool need_default_renderlayer = scene->r.layers.first == NULL;
 
 	for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 		ViewLayer *view_layer = BKE_view_layer_add(scene, srl->name);
@@ -541,9 +542,9 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 	BLI_freelistN(&scene->r.layers);
 
-	/* If render layers included overrides, we also create a vanilla
-	 * viewport layer without them. */
-	if (have_override) {
+	/* If render layers included overrides, or there are no render layers,
+	 * we also create a vanilla viewport layer. */
+	if (have_override || need_default_renderlayer) {
 		ViewLayer *view_layer = BKE_view_layer_add(scene, "Viewport");
 
 		/* Make it first in the list. */
