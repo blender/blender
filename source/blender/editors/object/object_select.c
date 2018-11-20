@@ -120,31 +120,6 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 	}
 }
 
-/** Apply selection operation to all visible bases in the view layer. */
-bool ED_object_base_select_all_visible(ViewLayer *view_layer)
-{
-	bool changed = false;
-	FOREACH_VISIBLE_BASE_BEGIN(view_layer, base)
-	{
-		ED_object_base_select(base, BA_SELECT);
-		changed = true;
-	}
-	FOREACH_VISIBLE_BASE_END;
-	return changed;
-}
-
-bool ED_object_base_deselect_all_visible(ViewLayer *view_layer)
-{
-	bool changed = false;
-	FOREACH_VISIBLE_BASE_BEGIN(view_layer, base)
-	{
-		ED_object_base_select(base, BA_DESELECT);
-		changed = true;
-	}
-	FOREACH_VISIBLE_BASE_END;
-	return changed;
-}
-
 /**
  * Change active base, it includes the notifier
  */
@@ -160,6 +135,61 @@ void ED_object_base_activate(bContext *C, Base *base)
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, NULL);
 	}
 	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_SELECT_UPDATE);
+}
+
+bool ED_object_base_deselect_all_ex(ViewLayer *view_layer, int action, bool *r_any_visible)
+{
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		FOREACH_VISIBLE_BASE_BEGIN(view_layer, base) {
+			if ((base->flag & BASE_SELECTED) != 0) {
+				action = SEL_DESELECT;
+				break;
+			}
+		}
+		FOREACH_VISIBLE_BASE_END;
+	}
+
+	bool any_visible = false;
+	bool changed = false;
+	FOREACH_VISIBLE_BASE_BEGIN(view_layer, base) {
+		switch (action) {
+			case SEL_SELECT:
+				if ((base->flag & BASE_SELECTED) == 0) {
+					ED_object_base_select(base, BA_SELECT);
+					changed = true;
+				}
+				break;
+			case SEL_DESELECT:
+				if ((base->flag & BASE_SELECTED) != 0) {
+					ED_object_base_select(base, BA_DESELECT);
+					changed = true;
+				}
+				break;
+			case SEL_INVERT:
+				if ((base->flag & BASE_SELECTED) != 0) {
+					ED_object_base_select(base, BA_DESELECT);
+					changed = true;
+				}
+				else {
+					ED_object_base_select(base, BA_SELECT);
+					changed = true;
+				}
+				break;
+		}
+		any_visible = true;
+	}
+	FOREACH_VISIBLE_BASE_END;
+	if (r_any_visible) {
+		*r_any_visible = any_visible;
+	}
+	return changed;
+}
+
+
+bool ED_object_base_deselect_all(ViewLayer *view_layer, int action)
+{
+	return ED_object_base_deselect_all_ex(view_layer, action, NULL);
 }
 
 /********************** Jump To Object Utilities **********************/
@@ -235,7 +265,7 @@ bool ED_object_jump_to_object(bContext *C, Object *ob)
 	if (view_layer->basact != base) {
 		/* Select if not selected. */
 		if (!(base->flag & BASE_SELECTED)) {
-			ED_object_base_deselect_all_visible(view_layer);
+			ED_object_base_deselect_all(view_layer, SEL_DESELECT);
 
 			if (base->flag & BASE_VISIBLE) {
 				ED_object_base_select(base, BA_SELECT);
@@ -348,7 +378,7 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (extend == 0) {
-		ED_object_base_deselect_all_visible(view_layer);
+		ED_object_base_deselect_all(view_layer, SEL_DESELECT);
 	}
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
@@ -571,7 +601,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (extend == 0) {
-		ED_object_base_deselect_all_visible(view_layer);
+		ED_object_base_deselect_all(view_layer, SEL_DESELECT);
 	}
 
 	ob = OBACT(view_layer);
@@ -940,7 +970,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (extend == 0) {
-		changed = ED_object_base_deselect_all_visible(view_layer);
+		changed = ED_object_base_deselect_all(view_layer, SEL_DESELECT);
 	}
 
 	ob = OBACT(view_layer);
@@ -1024,49 +1054,27 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 
 static int object_select_all_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int action = RNA_enum_get(op->ptr, "action");
+	bool any_visible = false;
 
-	/* passthrough if no objects are visible */
-	if (CTX_DATA_COUNT(C, visible_bases) == 0) return OPERATOR_PASS_THROUGH;
+	bool changed = ED_object_base_deselect_all_ex(view_layer, action, &any_visible);
 
-	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-		{
-			if ((base->flag & BASE_SELECTED) != 0) {
-				action = SEL_DESELECT;
-				break;
-			}
-		}
-		CTX_DATA_END;
+	if (changed) {
+		Scene *scene = CTX_data_scene(C);
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+
+		return OPERATOR_FINISHED;
 	}
-
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-	{
-		switch (action) {
-			case SEL_SELECT:
-				ED_object_base_select(base, BA_SELECT);
-				break;
-			case SEL_DESELECT:
-				ED_object_base_select(base, BA_DESELECT);
-				break;
-			case SEL_INVERT:
-				if ((base->flag & BASE_SELECTED) != 0) {
-					ED_object_base_select(base, BA_DESELECT);
-				}
-				else {
-					ED_object_base_select(base, BA_SELECT);
-				}
-				break;
-		}
+	else if (any_visible == false) {
+		/* TODO(campbell): Looks like we could remove this,
+		 * if not comment should say why its needed. */
+		return OPERATOR_PASS_THROUGH;
 	}
-	CTX_DATA_END;
-
-	Scene *scene = CTX_data_scene(C);
-	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-
-	return OPERATOR_FINISHED;
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_select_all(wmOperatorType *ot)
