@@ -993,14 +993,14 @@ void uiTemplateIDPreview(
 }
 
 void uiTemplateGpencilColorPreview(
-	uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname,
-	int rows, int cols, float scale, int filter)
+        uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname,
+        int rows, int cols, float scale, int filter)
 {
 	ui_template_id(
-		layout, C, ptr, propname,
-		NULL, NULL, NULL,
-		UI_ID_BROWSE | UI_ID_PREVIEWS | UI_ID_DELETE,
-		rows, cols, filter, false, scale < 0.5f ? 0.5f : scale, false, false);
+	        layout, C, ptr, propname,
+	        NULL, NULL, NULL,
+	        UI_ID_BROWSE | UI_ID_PREVIEWS | UI_ID_DELETE,
+	        rows, cols, filter, false, scale < 0.5f ? 0.5f : scale, false, false);
 }
 
 /**
@@ -1355,7 +1355,7 @@ static int modifier_is_simulation(ModifierData *md)
 {
 	/* Physic Tab */
 	if (ELEM(md->type, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim, eModifierType_Smoke,
-	          eModifierType_Softbody, eModifierType_Surface, eModifierType_DynamicPaint))
+	         eModifierType_Softbody, eModifierType_Surface, eModifierType_DynamicPaint))
 	{
 		return 1;
 	}
@@ -1533,7 +1533,7 @@ static uiLayout *draw_modifier(
 			UI_block_lock_set(block, ob && ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
 
 			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
-			           eModifierType_Cloth, eModifierType_Smoke))
+			          eModifierType_Cloth, eModifierType_Smoke))
 			{
 				uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
 				        "OBJECT_OT_modifier_copy");
@@ -1636,8 +1636,8 @@ static uiLayout *gpencil_draw_modifier(
 
 	/* mode enabling buttons */
 	UI_block_align_begin(block);
-		uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
-		uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
+	uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
+	uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
 
 	if (mti->flags & eGpencilModifierTypeFlag_SupportsEditmode) {
 		sub = uiLayoutRow(row, true);
@@ -1675,7 +1675,7 @@ static uiLayout *gpencil_draw_modifier(
 		uiItemEnumO(sub, "OBJECT_OT_gpencil_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
 		            0, "apply_as", MODIFIER_APPLY_DATA);
 		uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
-			"OBJECT_OT_gpencil_modifier_copy");
+		        "OBJECT_OT_gpencil_modifier_copy");
 
 		/* result is the layout block inside the box, that we return so that modifier settings can be drawn */
 		result = uiLayoutColumn(box, false);
@@ -1726,8 +1726,9 @@ uiLayout *uiTemplateGpencilModifier(uiLayout *layout, bContext *UNUSED(C), Point
 
 /************************ Shader FX Template *************************/
 
-static uiLayout *gpencil_draw_shaderfx(uiLayout *layout, Object *ob,
-	ShaderFxData *md)
+static uiLayout *gpencil_draw_shaderfx(
+        uiLayout *layout, Object *ob,
+        ShaderFxData *md)
 {
 	const ShaderFxTypeInfo *mti = BKE_shaderfxType_getInfo(md->type);
 	PointerRNA ptr;
@@ -3583,7 +3584,7 @@ static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *
 		subrow = uiLayoutRow(row, true);
 		uiItemR(subrow, &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		uiItemR(subrow, &listptr, "use_filter_sort_reverse", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
-			(ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_SORT_DESC : ICON_SORT_ASC);
+		        (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_SORT_DESC : ICON_SORT_ASC);
 	}
 }
 
@@ -4300,8 +4301,8 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 				/* check for hotkey */
 				if (len < sizeof(name) - 6) {
 					if (WM_key_event_operator_string(
-					        C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, true,
-					        &name[len + 1], sizeof(name) - len - 1))
+					            C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, true,
+					            &name[len + 1], sizeof(name) - len - 1))
 					{
 						name[len] = UI_SEP_CHAR;
 					}

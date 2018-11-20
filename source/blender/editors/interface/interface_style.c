@@ -318,7 +318,8 @@ void UI_fontstyle_draw_simple_backdrop(
 		float color[4] = { col_bg[0], col_bg[1], col_bg[2], 0.5f };
 
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_aa(true,
+		UI_draw_roundbox_aa(
+		        true,
 		        x - margin,
 		        (y + decent) - margin,
 		        x + width + margin,
@@ -529,10 +530,11 @@ void uiStyleInit(void)
 
 	/* Set default flags based on UI preferences (not render fonts) */
 	{
-		int flag_disable = BLF_MONOCHROME |
-		                   BLF_HINTING_NONE |
-		                   BLF_HINTING_SLIGHT |
-		                   BLF_HINTING_FULL;
+		int flag_disable = (
+		        BLF_MONOCHROME |
+		        BLF_HINTING_NONE |
+		        BLF_HINTING_SLIGHT |
+		        BLF_HINTING_FULL);
 		int flag_enable = 0;
 
 		if (U.text_render & USER_TEXT_HINTING_NONE) {

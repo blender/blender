@@ -549,8 +549,8 @@ static void ui_block_colorpicker(
 	UI_but_func_set(bt, ui_colorpicker_hex_rna_cb, bt, hexcol);
 	bt->custom_data = cpicker;
 	uiDefBut(
-	         block, UI_BTYPE_LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y,
-	         butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	        block, UI_BTYPE_LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y,
+	        butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	ui_rgb_to_color_picker_v(rgb_gamma, hsv);
 

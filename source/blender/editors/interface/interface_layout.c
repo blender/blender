@@ -268,7 +268,7 @@ static int ui_item_fit(int item, int pos, int all, int available, bool is_last, 
 static int ui_layout_vary_direction(uiLayout *layout)
 {
 	return ((ELEM(layout->root->type, UI_LAYOUT_HEADER, UI_LAYOUT_PIEMENU) ||
-	        (layout->alignment != UI_LAYOUT_ALIGN_EXPAND)) ?
+	         (layout->alignment != UI_LAYOUT_ALIGN_EXPAND)) ?
 	        UI_ITEM_VARY_X : UI_ITEM_VARY_Y);
 }
 
@@ -2533,8 +2533,8 @@ void uiItemMenuEnumO_ptr(
 	{
 		char keybuf[128];
 		if (WM_key_event_operator_string(
-		        C, ot->idname, layout->root->opcontext, NULL, false,
-		        keybuf, sizeof(keybuf)))
+		            C, ot->idname, layout->root->opcontext, NULL, false,
+		            keybuf, sizeof(keybuf)))
 		{
 			ui_but_add_shortcut(but, keybuf, false);
 		}
