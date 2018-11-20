@@ -500,10 +500,10 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 			{
 				/* Generate keymap in order to inspect it.
 				 * Note, we could make a utility to avoid the keymap generation part of this. */
-				const char *expr_imports[] = {"bpy", "bl_ui", NULL};
+				const char *expr_imports[] = {"bpy", "bl_keymap_utils", "bl_keymap_utils.keymap_from_toolbar", NULL};
 				const char *expr = (
 				        "getattr("
-				        "bl_ui.space_toolsystem_common.keymap_from_context("
+				        "bl_keymap_utils.keymap_from_toolbar.generate("
 				        "bpy.context, "
 				        "bpy.context.space_data.type), "
 				        "'as_pointer', lambda: 0)()");

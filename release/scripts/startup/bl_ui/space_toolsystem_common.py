@@ -29,7 +29,6 @@ __all__ = (
     "activate_by_name_or_cycle",
     "description_from_name",
     "keymap_from_name",
-    "keymap_from_context",
 )
 
 # Support reloading icons.
