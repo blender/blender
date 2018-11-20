@@ -2013,15 +2013,19 @@ static void mesh_build_data(
 
 	mesh_finalize_eval(ob);
 
+#ifdef USE_DERIVEDMESH
 	/* TODO(campbell): remove these copies, they are expected in various places over the code. */
 	ob->derivedDeform = CDDM_from_mesh_ex(ob->runtime.mesh_deform_eval, CD_REFERENCE, CD_MASK_MESH);
 	ob->derivedFinal = CDDM_from_mesh_ex(ob->runtime.mesh_eval, CD_REFERENCE, CD_MASK_MESH);
+#endif
 
 	BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
 	BKE_mesh_texspace_copy_from_object(ob->runtime.mesh_eval, ob);
 
+#ifdef USE_DERIVEDMESH
 	ob->derivedFinal->needsFree = 0;
 	ob->derivedDeform->needsFree = 0;
+#endif
 	ob->lastDataMask = dataMask;
 	ob->lastNeedMapping = need_mapping;
 
