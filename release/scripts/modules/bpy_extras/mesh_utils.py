@@ -239,7 +239,7 @@ def edge_loops_from_edges(mesh, edges=None):
     return line_polys
 
 
-def ngon_tessellate(from_data, indices, fix_loops=True):
+def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
     """
     Takes a polyline of indices (fgon) and returns a list of face
     index lists. Designed to be used for importers that need indices for an
@@ -405,7 +405,8 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
         fill = [[vert_map[i] for i in reversed(f)] for f in fill]
 
     if not fill:
-        print('Warning Cannot scanfill, fallback on a triangle fan.')
+        if debug_print:
+            print('Warning Cannot scanfill, fallback on a triangle fan.')
         fill = [[0, i - 1, i] for i in range(2, len(indices))]
     else:
         # Use real scanfill.
