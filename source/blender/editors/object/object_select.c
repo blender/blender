@@ -266,7 +266,7 @@ bool ED_object_jump_to_object(
 
 	/* TODO, use 'reveal_hidden', as is done with bones. */
 
-	if (view_layer->basact != base) {
+	if (view_layer->basact != base || !(base->flag & BASE_SELECTED)) {
 		/* Select if not selected. */
 		if (!(base->flag & BASE_SELECTED)) {
 			ED_object_base_deselect_all(view_layer, SEL_DESELECT);
@@ -302,10 +302,6 @@ bool ED_object_jump_to_bone(
 	}
 
 	bArmature *arm = ob->data;
-
-	if (arm == NULL || GS(arm->id.name) != ID_AR) {
-		return false;
-	}
 
 	/* Activate the armature object. */
 	if (!ED_object_jump_to_object(C, ob, reveal_hidden)) {
