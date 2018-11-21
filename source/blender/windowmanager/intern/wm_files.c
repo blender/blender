@@ -956,6 +956,17 @@ int wm_homefile_read(
 
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+
+	if (use_factory_settings) {
+		/*  Clear keymaps because the current default keymap may have been initialized from user preferences,
+		 *  which have been reset. */
+		for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+			if (wm->defaultconf) {
+				wm->defaultconf->flag &= ~KEYCONF_INIT_DEFAULT;
+			}
+		}
+	}
+
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	bmain->name[0] = '\0';
