@@ -90,6 +90,8 @@ typedef enum ePaintMode {
 	PAINT_MODE_INVALID = 7,
 } ePaintMode;
 
+#define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PAINT_MODE_SCULPT_UV)
+
 /* overlay invalidation */
 typedef enum eOverlayControlFlags {
 	PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,

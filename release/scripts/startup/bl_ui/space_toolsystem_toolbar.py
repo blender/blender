@@ -1002,7 +1002,7 @@ class _defs_image_uv_sculpt:
         return generate_from_enum_ex(
             context,
             icon_prefix="brush.uv_sculpt.",
-            data=context.tool_settings,
+            type=bpy.types.ToolSettings,
             attr="uv_sculpt_tool",
         )
 

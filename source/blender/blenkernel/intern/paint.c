@@ -689,29 +689,30 @@ bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
 
 	paint->flags |= PAINT_SHOW_BRUSH;
 
+	*r_paint = paint;
+
 	BKE_paint_runtime_init(ts, paint);
 
-	*r_paint = paint;
 	return false;
 }
 
 void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
 {
 	UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
-	Brush *brush;
 	Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
 	/* If there's no brush, create one */
-	brush = BKE_paint_brush(paint);
-	if (brush == NULL) {
-		eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
-		brush = BKE_brush_first_search(bmain, ob_mode);
-
-		if (!brush) {
-			brush = BKE_brush_add(bmain, "Brush", ob_mode);
-			id_us_min(&brush->id);  /* fake user only */
+	if (PAINT_MODE_HAS_BRUSH(mode)) {
+		Brush *brush = BKE_paint_brush(paint);
+		if (brush == NULL) {
+			eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
+			brush = BKE_brush_first_search(bmain, ob_mode);
+			if (!brush) {
+				brush = BKE_brush_add(bmain, "Brush", ob_mode);
+				id_us_min(&brush->id);  /* fake user only */
+			}
+			BKE_paint_brush_set(paint, brush);
 		}
-		BKE_paint_brush_set(paint, brush);
 	}
 
 	memcpy(paint->paint_cursor_col, col, 3);
