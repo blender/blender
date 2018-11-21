@@ -487,17 +487,31 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_strength = 1.0f;
 
 	/* Soft Eraser brush */
-	brush = BKE_brush_add_gpencil(bmain, ts, "Eraser");
+	brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Soft");
 	brush->size = 30.0f;
+	brush->gpencil_settings->draw_strength = 0.5f;
 	brush->gpencil_settings->flag |= (GP_BRUSH_ENABLE_CURSOR | GP_BRUSH_DEFAULT_ERASER);
+	brush->gpencil_settings->flag |= GP_BRUSH_USE_PRESSURE;
+	brush->gpencil_settings->flag |= GP_BRUSH_USE_STENGTH_PRESSURE;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
 	brush->gpencil_tool = GPAINT_TOOL_ERASE;
 	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
 	brush->gpencil_settings->era_strength_f = 100.0f;
-	brush->gpencil_settings->era_thickness_f = 0.10f;
+	brush->gpencil_settings->era_thickness_f = 10.0f;
 
 	/* Hard Eraser brush */
-	brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Vertex");
+	brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Hard");
+	brush->size = 30.0f;
+	brush->gpencil_settings->draw_strength = 1.0f;
+	brush->gpencil_settings->flag |= (GP_BRUSH_ENABLE_CURSOR | GP_BRUSH_DEFAULT_ERASER);
+	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
+	brush->gpencil_tool = GPAINT_TOOL_ERASE;
+	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
+	brush->gpencil_settings->era_strength_f = 100.0f;
+	brush->gpencil_settings->era_thickness_f = 50.0f;
+
+	/* Point Eraser brush */
+	brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Point");
 	brush->size = 30.0f;
 	brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_HARD;
