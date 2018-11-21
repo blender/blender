@@ -1026,6 +1026,7 @@ class _defs_gpencil_paint:
         return dict(
             text="Line",
             icon="ops.gpencil.primitive_line",
+            cursor='CROSSHAIR',
             widget=None,
             keymap=(),
         )
@@ -1035,6 +1036,7 @@ class _defs_gpencil_paint:
         return dict(
             text="Box",
             icon="ops.gpencil.primitive_box",
+            cursor='CROSSHAIR',
             widget=None,
             keymap=(),
         )
@@ -1044,6 +1046,7 @@ class _defs_gpencil_paint:
         return dict(
             text="Circle",
             icon="ops.gpencil.primitive_circle",
+            cursor='CROSSHAIR',
             widget=None,
             keymap=(),
         )
