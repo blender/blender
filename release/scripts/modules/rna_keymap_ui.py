@@ -406,30 +406,31 @@ def draw_keymaps(context, layout):
         rowsubsub.alert = True
     rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
 
-    # When the keyconfig defines it's own preferences.
-    kc_prefs = kc_active.preferences
-    if kc_prefs is not None:
-        box = col.box()
-        row = box.row(align=True)
+    if not filter_text:
+        # When the keyconfig defines it's own preferences.
+        kc_prefs = kc_active.preferences
+        if kc_prefs is not None:
+            box = col.box()
+            row = box.row(align=True)
 
-        userpref = context.user_preferences
-        inputs = userpref.inputs
-        show_ui_keyconfig = inputs.show_ui_keyconfig
-        row.prop(
-            inputs,
-            "show_ui_keyconfig",
-            text="",
-            icon='TRIA_DOWN' if show_ui_keyconfig else 'TRIA_RIGHT',
-            emboss=False,
-        )
-        row.label(text="Preferences")
+            userpref = context.user_preferences
+            inputs = userpref.inputs
+            show_ui_keyconfig = inputs.show_ui_keyconfig
+            row.prop(
+                inputs,
+                "show_ui_keyconfig",
+                text="",
+                icon='TRIA_DOWN' if show_ui_keyconfig else 'TRIA_RIGHT',
+                emboss=False,
+            )
+            row.label(text="Preferences")
 
-        if show_ui_keyconfig:
-            # Defined by user preset, may contain mistakes out of our control.
-            try:
-                kc_prefs.draw(box)
-            except Exception:
-                import traceback
-                traceback.print_exc()
-        del box
-    del kc_prefs
+            if show_ui_keyconfig:
+                # Defined by user preset, may contain mistakes out of our control.
+                try:
+                    kc_prefs.draw(box)
+                except Exception:
+                    import traceback
+                    traceback.print_exc()
+            del box
+        del kc_prefs
