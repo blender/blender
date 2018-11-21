@@ -340,11 +340,11 @@ RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 # stored in ./rst/info_*
 INFO_DOCS = (
     ("info_quickstart.rst",
-     "Blender/Python Quickstart: new to Blender/scripting and want to get your feet wet?"),
+     "Quickstart: new to Blender or scripting and want to get your feet wet?"),
     ("info_overview.rst",
-     "Blender/Python API Overview: a more complete explanation of Python integration"),
+     "API Overview: a more complete explanation of Python integration"),
     ("info_api_reference.rst",
-     "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
+     "API Reference Usage: examples of how to use the API reference docs"),
     ("info_best_practice.rst",
      "Best Practice: Conventions to follow for writing good scripts"),
     ("info_tips_and_tricks.rst",
@@ -1620,6 +1620,7 @@ def write_sphinx_conf_py(basepath):
     fw("    'include__bmesh.rst',\n")
     fw("]\n\n")
 
+    fw("html_title = 'Blender %s Python API'\n" % BLENDER_VERSION_DOTS)
     fw("html_theme = 'sphinx_rtd_theme'\n")
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
@@ -1671,21 +1672,21 @@ def write_rst_contents(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
-    fw(title_string("Blender Documentation Contents", "%", double=True))
+    fw(title_string("Blender Python API Documentation", "%", double=True))
     fw("\n")
-    fw("Welcome, this document is an API reference for Blender %s, built %s.\n" %
+    fw("Welcome to the API reference for Blender %s, built %s.\n" %
        (BLENDER_VERSION_DOTS, BLENDER_DATE))
     fw("\n")
 
     # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
-    fw("This site can be downloaded for offline use `Download the full Documentation (zipped HTML files) <%s>`_\n" %
+    fw("This site can be downloaded for offline use: `Download the full Documentation (zipped HTML files) <%s>`_\n" %
        BLENDER_ZIP_FILENAME)
     fw("\n")
 
     if not EXCLUDE_INFO_DOCS:
         fw(".. toctree::\n")
         fw("   :maxdepth: 1\n")
-        fw("   :caption: Blender/Python Documentation\n\n")
+        fw("   :caption: Documentation\n\n")
         for info, info_desc in INFO_DOCS:
             fw("   %s <%s>\n" % (info_desc, info))
         fw("\n")
