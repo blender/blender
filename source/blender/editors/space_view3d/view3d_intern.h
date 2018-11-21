@@ -104,6 +104,7 @@ void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
+void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(struct ScrArea *sa, struct ARegion *ar);
 void view3d_boxview_sync(struct ScrArea *sa, struct ARegion *ar);

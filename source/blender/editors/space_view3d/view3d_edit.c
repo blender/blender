@@ -4918,3 +4918,51 @@ void VIEW3D_OT_toggle_shading(wmOperatorType *ot)
 }
 
 /** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle XRay
+ * \{ */
+
+static int toggle_xray_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	ScrArea *sa = CTX_wm_area(C);
+	Object *obact = CTX_data_active_object(C);
+
+	if (obact && obact->mode & OB_MODE_POSE) {
+		v3d->overlay.flag ^= V3D_OVERLAY_BONE_SELECT;
+	}
+	else {
+		const bool xray_active = (
+		        (obact && (obact->mode & OB_MODE_EDIT)) ||
+		        ELEM(v3d->shading.type, OB_WIRE, OB_SOLID));
+
+		if (v3d->shading.type == OB_WIRE) {
+			v3d->shading.flag ^= V3D_SHADING_XRAY_WIREFRAME;
+		}
+		else {
+			v3d->shading.flag ^= V3D_SHADING_XRAY;
+		}
+		if (!xray_active) {
+			BKE_report(op->reports, RPT_INFO, "X-Ray not available in current mode");
+		}
+	}
+
+	ED_area_tag_redraw(sa);
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_toggle_xray(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Toggle X-Ray";
+	ot->idname = "VIEW3D_OT_toggle_xray";
+
+	/* api callbacks */
+	ot->exec = toggle_xray_exec;
+	ot->poll = ED_operator_view3d_active;
+}
+
+/** \} */

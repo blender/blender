@@ -224,6 +224,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 
 	WM_operatortype_append(VIEW3D_OT_toggle_shading);
+	WM_operatortype_append(VIEW3D_OT_toggle_xray);
 	WM_operatortype_append(VIEW3D_OT_toggle_matcap_flip);
 
 	WM_operatortype_append(VIEW3D_OT_ruler_add);
