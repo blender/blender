@@ -109,9 +109,8 @@ void DRW_gpencil_get_point_geom(GpencilBatchCacheElem *be, bGPDstroke *gps, shor
 		GPU_vertbuf_data_alloc(be->vbo, be->tot_vertex);
 		be->vbo_len = 0;
 	}
-	else {
-		gpencil_vbo_ensure_size(be, totvertex);
-	}
+	gpencil_vbo_ensure_size(be, totvertex);
+
 	/* draw stroke curve */
 	const bGPDspoint *pt = gps->points;
 	float alpha;
@@ -156,9 +155,7 @@ void DRW_gpencil_get_stroke_geom(struct GpencilBatchCacheElem *be, bGPDstroke *g
 		GPU_vertbuf_data_alloc(be->vbo, be->tot_vertex);
 		be->vbo_len = 0;
 	}
-	else {
-		gpencil_vbo_ensure_size(be, totvertex);
-	}
+	gpencil_vbo_ensure_size(be, totvertex);
 
 	/* draw stroke curve */
 	const bGPDspoint *pt = points;
@@ -229,9 +226,7 @@ void DRW_gpencil_get_fill_geom(struct GpencilBatchCacheElem *be, Object *ob, bGP
 		GPU_vertbuf_data_alloc(be->vbo, be->tot_vertex);
 		be->vbo_len = 0;
 	}
-	else {
-		gpencil_vbo_ensure_size(be, totvertex);
-	}
+	gpencil_vbo_ensure_size(be, totvertex);
 
 	/* Draw all triangles for filling the polygon (cache must be calculated before) */
 	bGPDtriangle *stroke_triangle = gps->triangles;
@@ -500,9 +495,7 @@ void DRW_gpencil_get_edit_geom(struct GpencilBatchCacheElem *be, bGPDstroke *gps
 		GPU_vertbuf_data_alloc(be->vbo, gps->totpoints);
 		be->vbo_len = 0;
 	}
-	else {
-		gpencil_vbo_ensure_size(be, gps->totpoints);
-	}
+	gpencil_vbo_ensure_size(be, gps->totpoints);
 
 	/* Draw start and end point differently if enabled stroke direction hint */
 	bool show_direction_hint = (dflag & GP_DATA_SHOW_DIRECTION) && (gps->totpoints > 1);
@@ -581,9 +574,7 @@ void DRW_gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be, bGPDstroke *gp
 		GPU_vertbuf_data_alloc(be->vbo, gps->totpoints);
 		be->vbo_len = 0;
 	}
-	else {
-		gpencil_vbo_ensure_size(be, gps->totpoints);
-	}
+	gpencil_vbo_ensure_size(be, gps->totpoints);
 
 	/* Draw all the stroke lines (selected or not) */
 	bGPDspoint *pt = gps->points;
