@@ -464,14 +464,15 @@ class USERPREF_PT_system(Panel):
 
         if bpy.app.build_options.international:
             column.prop(system, "use_international_fonts")
-            if system.use_international_fonts:
-                column.prop(system, "language")
-                row = column.row()
-                row.label(text="Translate:", text_ctxt=i18n_contexts.id_windowmanager)
-                row = column.row(align=True)
-                row.prop(system, "use_translate_interface", text="Interface", toggle=True)
-                row.prop(system, "use_translate_tooltips", text="Tooltips", toggle=True)
-                row.prop(system, "use_translate_new_dataname", text="New Data", toggle=True)
+            sub_col = column.column()
+            sub_col.active = system.use_international_fonts
+            sub_col.prop(system, "language")
+            row = sub_col.row()
+            row.label(text="Translate:", text_ctxt=i18n_contexts.id_windowmanager)
+            row = sub_col.row(align=True)
+            row.prop(system, "use_translate_tooltips", text="Tooltips", toggle=True)
+            row.prop(system, "use_translate_interface", text="Interface", toggle=True)
+            row.prop(system, "use_translate_new_dataname", text="New Data", toggle=True)
 
 
 class USERPREF_MT_interface_theme_presets(Menu):
