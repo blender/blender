@@ -22,6 +22,8 @@
  *  \ingroup edmesh
  */
 
+#include "BLI_utildefines.h"
+#include "BLI_array_utils.h"
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
@@ -76,6 +78,14 @@ typedef struct GizmoExtrudeGroup {
 	struct wmGizmo *invoke_xyz_no[4];
 	struct wmGizmo *adjust;
 	int             adjust_axis;
+
+	/* Copied from the transform operator,
+	 * use to redo with the same settings. */
+	struct {
+		float constraint_matrix[3][3];
+		bool  constraint_axis[3];
+		float value[4];
+	} redo_xform;
 
 	/* Depends on object type. */
 	int normal_axis;
@@ -258,32 +268,20 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	/* Don't use 'WM_operator_last_redo' because selection actions will be ignored. */
 	wmOperator *op = CTX_wm_manager(C)->operators.last;
 	bool has_redo = (op && op->type == ggd->ot_extrude);
-	wmOperator *op_transform = has_redo ? op->macro.last : NULL;
+	wmOperator *op_xform = has_redo ? op->macro.last : NULL;
 
-	struct {
-		float constraint_matrix[3][3];
-		bool  constraint_axis[3];
-		float value[4];
-		bool  is_flip;
-	} redo;
-
+	bool adjust_is_flip = false;
 	if (has_redo) {
 		/* We can't access this from 'ot->last_properties'
 		 * because some properties use skip-save. */
-		RNA_float_get_array(op_transform->ptr, "constraint_matrix", &redo.constraint_matrix[0][0]);
-		RNA_boolean_get_array(op_transform->ptr, "constraint_axis", redo.constraint_axis);
-		RNA_float_get_array(op_transform->ptr, "value", redo.value);
+		RNA_float_get_array(op_xform->ptr, "constraint_matrix", &ggd->redo_xform.constraint_matrix[0][0]);
+		RNA_boolean_get_array(op_xform->ptr, "constraint_axis", ggd->redo_xform.constraint_axis);
+		RNA_float_get_array(op_xform->ptr, "value", ggd->redo_xform.value);
 
 		/* Set properties for redo. */
-		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust, 0);
-		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
-		RNA_float_set_array(&macroptr, "constraint_matrix", &redo.constraint_matrix[0][0]);
-		RNA_boolean_set_array(&macroptr, "constraint_axis", redo.constraint_axis);
-		RNA_float_set_array(&macroptr, "value", redo.value);
-
 		for (int i = 0; i < 3; i++) {
-			if (redo.constraint_axis[i]) {
-				redo.is_flip = redo.value[i] < 0.0f;
+			if (ggd->redo_xform.constraint_axis[i]) {
+				adjust_is_flip = ggd->redo_xform.value[i] < 0.0f;
 				ggd->adjust_axis = i;
 				break;
 			}
@@ -293,8 +291,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	/* Needed for normal orientation. */
 	gizmo_mesh_extrude_orientation_matrix_set(ggd, tbounds.axis);
 	if (has_redo) {
-		gizmo_mesh_extrude_orientation_matrix_set_for_adjust(ggd, redo.constraint_matrix);
-		if (redo.is_flip) {
+		gizmo_mesh_extrude_orientation_matrix_set_for_adjust(ggd, ggd->redo_xform.constraint_matrix);
+		if (adjust_is_flip) {
 			negate_v3(ggd->adjust->matrix_basis[2]);
 		}
 	}
@@ -312,20 +310,6 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	WM_gizmo_set_flag(ggd->adjust, WM_GIZMO_HIDDEN, !has_redo);
 
 	/* Operator properties. */
-
-	/* Workaround for extrude action modifying normals. */
-	if (use_normal) {
-		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->invoke_xyz_no[3], 0);
-		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
-		RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->data.normal_mat3[0][0]);
-	}
-	if (ggd->data.orientation_type == V3D_MANIP_NORMAL) {
-		for (int i = 0; i < 3; i++) {
-			wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->invoke_xyz_no[i], 0);
-			PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
-			RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->data.normal_mat3[0][0]);
-		}
-	}
 
 	/* Redo with current settings. */
 	if (has_redo) {
@@ -381,6 +365,36 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzg
 	}
 }
 
+static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C), wmGizmoGroup *gzgroup, wmGizmo *gz)
+{
+	GizmoExtrudeGroup *ggd = gzgroup->customdata;
+	if (gz == ggd->adjust) {
+		/* Set properties for redo. */
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust, 0);
+		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
+		RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->redo_xform.constraint_matrix[0][0]);
+		RNA_boolean_set_array(&macroptr, "constraint_axis", ggd->redo_xform.constraint_axis);
+		RNA_float_set_array(&macroptr, "value", ggd->redo_xform.value);
+	}
+	else {
+		/* Workaround for extrude action modifying normals. */
+		const int i = BLI_array_findindex(ggd->invoke_xyz_no, ARRAY_SIZE(ggd->invoke_xyz_no), &gz);
+		BLI_assert(i != -1);
+		bool use_normal_matrix = false;
+		if (i == 3) {
+			use_normal_matrix = true;
+		}
+		else if (ggd->data.orientation_type == V3D_MANIP_NORMAL) {
+			use_normal_matrix = true;
+		}
+		if (use_normal_matrix) {
+			wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
+			PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
+			RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->data.normal_mat3[0][0]);
+		}
+	}
+}
+
 static void gizmo_mesh_extrude_message_subscribe(
         const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
@@ -422,6 +436,7 @@ void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt)
 	gzgt->setup = gizmo_mesh_extrude_setup;
 	gzgt->refresh = gizmo_mesh_extrude_refresh;
 	gzgt->draw_prepare = gizmo_mesh_extrude_draw_prepare;
+	gzgt->invoke_prepare = gizmo_mesh_extrude_invoke_prepare;
 	gzgt->message_subscribe = gizmo_mesh_extrude_message_subscribe;
 
 	static const EnumPropertyItem axis_type_items[] = {
