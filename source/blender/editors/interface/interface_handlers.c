@@ -1721,7 +1721,7 @@ static bool ui_but_drag_init(
 	/* prevent other WM gestures to start while we try to drag */
 	WM_gestures_remove(C);
 
-	if (ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > U.dragthreshold) {
+	if (ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > U.dragthreshold * U.dpi_fac) {
 
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = true;
@@ -8691,7 +8691,7 @@ float ui_block_calc_pie_segment(uiBlock *block, const float event_xy[2])
 
 	len = normalize_v2_v2(block->pie_data.pie_dir, seg2);
 
-	if (len < U.pie_menu_threshold * U.pixelsize)
+	if (len < U.pie_menu_threshold * U.dpi_fac)
 		block->pie_data.flags |= UI_PIE_INVALID_DIR;
 	else
 		block->pie_data.flags &= ~UI_PIE_INVALID_DIR;
@@ -9409,7 +9409,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 					but = ui_but_find_active_in_region(menu->region);
 
 					if (but && (U.pie_menu_confirm > 0) &&
-					    (dist >= U.pie_menu_threshold + U.pie_menu_confirm))
+					    (dist >= U.dpi_fac * (U.pie_menu_threshold + U.pie_menu_confirm)))
 					{
 						if (but)
 							return ui_but_pie_menu_apply(C, menu, but, true);
@@ -9436,7 +9436,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 						/* here instead, we use the offset location to account for the initial direction timeout */
 						if ((U.pie_menu_confirm > 0) &&
-						    (dist >= U.pie_menu_threshold + U.pie_menu_confirm))
+						    (dist >= U.dpi_fac * (U.pie_menu_threshold + U.pie_menu_confirm)))
 						{
 							block->pie_data.flags |= UI_PIE_GESTURE_END_WAIT;
 							copy_v2_v2(block->pie_data.last_pos, event_xy);

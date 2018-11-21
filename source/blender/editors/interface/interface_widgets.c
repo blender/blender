@@ -4566,8 +4566,8 @@ void ui_draw_pie_center(uiBlock *block)
 
 	float *pie_dir = block->pie_data.pie_dir;
 
-	float pie_radius_internal = U.pixelsize * U.pie_menu_threshold;
-	float pie_radius_external = U.pixelsize * (U.pie_menu_threshold + 7.0f);
+	float pie_radius_internal = U.dpi_fac * U.pie_menu_threshold;
+	float pie_radius_external = U.dpi_fac * (U.pie_menu_threshold + 7.0f);
 
 	int subd = 40;
 
@@ -4609,8 +4609,8 @@ void ui_draw_pie_center(uiBlock *block)
 	immUnbindProgram();
 
 	if (U.pie_menu_confirm > 0 && !(block->pie_data.flags & (UI_PIE_INVALID_DIR | UI_PIE_CLICK_STYLE))) {
-		float pie_confirm_radius = U.pixelsize * (pie_radius_internal + U.pie_menu_confirm);
-		float pie_confirm_external = U.pixelsize * (pie_radius_internal + U.pie_menu_confirm + 7.0f);
+		float pie_confirm_radius = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm);
+		float pie_confirm_external = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm + 7.0f);
 
 		const char col[4] = {btheme->tui.wcol_pie_menu.text_sel[0],
 		                     btheme->tui.wcol_pie_menu.text_sel[1],
