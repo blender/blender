@@ -309,7 +309,7 @@ ccl_device_inline int ray_triangle_intersect8(
 					return 2;
 				}
 				/* If maximum number of hits reached, block all light. */
-				else if(*num_hits == max_hits) {
+				else if(num_hits == NULL || *num_hits == max_hits) {
 					return 2;
 				}
 				/* Move on to next entry in intersections array. */
