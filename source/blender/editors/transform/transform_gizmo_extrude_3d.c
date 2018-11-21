@@ -312,10 +312,19 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	WM_gizmo_set_flag(ggd->adjust, WM_GIZMO_HIDDEN, !has_redo);
 
 	/* Operator properties. */
+
+	/* Workaround for extrude action modifying normals. */
 	if (use_normal) {
 		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->invoke_xyz_no[3], 0);
 		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
 		RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->data.normal_mat3[0][0]);
+	}
+	if (ggd->data.orientation_type == V3D_MANIP_NORMAL) {
+		for (int i = 0; i < 3; i++) {
+			wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->invoke_xyz_no[i], 0);
+			PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
+			RNA_float_set_array(&macroptr, "constraint_matrix", &ggd->data.normal_mat3[0][0]);
+		}
 	}
 
 	/* Redo with current settings. */
