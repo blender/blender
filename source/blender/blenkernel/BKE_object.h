@@ -233,7 +233,8 @@ void BKE_object_eval_constraints(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
-void BKE_object_eval_done(struct Depsgraph *depsgraph, struct Object *ob);
+void BKE_object_eval_transform_final(
+        struct Depsgraph *depsgraph, struct Object *ob);
 
 bool BKE_object_eval_proxy_copy(
         struct Depsgraph *depsgraph,

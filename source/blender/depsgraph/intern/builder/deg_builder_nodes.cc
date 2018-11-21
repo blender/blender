@@ -800,7 +800,7 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 
 	/* object transform is done */
 	op_node = add_operation_node(&object->id, DEG_NODE_TYPE_TRANSFORM,
-	                             function_bind(BKE_object_eval_done,
+	                             function_bind(BKE_object_eval_transform_final,
 	                                           _1,
 	                                           ob_cow),
 	                             DEG_OPCODE_TRANSFORM_FINAL);

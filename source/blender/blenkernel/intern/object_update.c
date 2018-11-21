@@ -135,7 +135,7 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph,
 	BKE_constraints_clear_evalob(cob);
 }
 
-void BKE_object_eval_done(Depsgraph *depsgraph, Object *ob)
+void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
 {
 	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
@@ -364,7 +364,7 @@ void BKE_object_eval_transform_all(Depsgraph *depsgraph,
 		BKE_object_eval_constraints(depsgraph, scene, object);
 	}
 	BKE_object_eval_uber_transform(depsgraph, object);
-	BKE_object_eval_done(depsgraph, object);
+	BKE_object_eval_transform_final(depsgraph, object);
 }
 
 void BKE_object_eval_update_shading(Depsgraph *depsgraph, Object *object)
