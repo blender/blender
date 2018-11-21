@@ -1017,8 +1017,6 @@ typedef enum eGP_Sculpt_Flag {
 	GP_SCULPT_FLAG_TMP_INVERT = (1 << 5),
 	/* adjust radius using pen pressure */
 	GP_SCULPT_FLAG_PRESSURE_RADIUS = (1 << 6),
-	/* paint weight, define a target */
-	GP_SCULPT_FLAG_TARGET_WEIGHT = (1 << 7),
 } eGP_Sculpt_Flag;
 
 /* GPencil Stroke Sculpting Settings */

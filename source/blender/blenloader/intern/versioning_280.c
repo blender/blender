@@ -2276,6 +2276,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		/* Grease pencil target weight  */
+		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "target_weight")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				/* sculpt brushes */
+				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
+				if (gset) {
+					for (int i = 0; i < GP_SCULPT_TYPE_MAX; i++) {
+						GP_Sculpt_Data *gp_brush = &gset->brush[i];
+						gp_brush->target_weight = 1.0f;
+					}
+				}
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "overscan")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->eevee.overscan = 3.0f;
