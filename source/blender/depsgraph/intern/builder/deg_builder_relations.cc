@@ -2427,7 +2427,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		 *   that cached array fo bases exists and is up-to-date.
 		 */
 		if (comp_node->type == DEG_NODE_TYPE_PARAMETERS ||
-		    comp_node->type == DEG_NODE_TYPE_LAYER_COLLECTIONS)
+		    comp_node->type == DEG_NODE_TYPE_LAYER_COLLECTIONS ||
+		    (comp_node->type == DEG_NODE_TYPE_ANIMATION && id_type == ID_AC))
 		{
 			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
 		}
