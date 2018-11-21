@@ -81,7 +81,8 @@ const EnumPropertyItem rna_enum_navigation_mode_items[] = {
 
 #if defined(WITH_INTERNATIONAL) || !defined(RNA_RUNTIME)
 static const EnumPropertyItem rna_enum_language_default_items[] = {
-	{0, "DEFAULT", 0, "Default (Default)", ""},
+	{0, "DEFAULT", 0, "Automatic (Automatic)",
+	 "Automatically choose system's defined language if available, or fall-back to English"},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif
@@ -4196,12 +4197,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "System & OpenGL", "Graphics driver and operating system settings");
 
-	/* Language */
-
-	prop = RNA_def_property(srna, "use_international_fonts", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
-	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts");
-	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
+	/* UI settings. */
 
 	prop = RNA_def_property(srna, "ui_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -4246,7 +4242,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Author",
 	                         "Name that will be used in exported files when format supports such feature");
 
-	/* Language Selection */
+	/* Language. */
+
+	prop = RNA_def_property(srna, "use_international_fonts", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
+	RNA_def_property_ui_text(prop, "Translate UI", "Enable UI translation and use international fonts");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
 	prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_language_default_items);
@@ -4258,17 +4259,21 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_translate_tooltips", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_TOOLTIPS);
-	RNA_def_property_ui_text(prop, "Translate Tooltips", "Translate tooltips");
+	RNA_def_property_ui_text(prop, "Translate Tooltips",
+	                         "Translate the descriptions when hovering UI elements (recommended)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "use_translate_interface", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_IFACE);
-	RNA_def_property_ui_text(prop, "Translate Interface", "Translate interface");
+	RNA_def_property_ui_text(prop, "Translate Interface",
+	                         "Translate all labels in menus, buttons and panels "
+	                         "(note that this might make it hard to follow tutorials or the manual)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "use_translate_new_dataname", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_NEWDATANAME);
-	RNA_def_property_ui_text(prop, "Translate New Names", "Translate new data names (when adding/creating some)");
+	RNA_def_property_ui_text(prop, "Translate New Names",
+	                         "Translate the names of new data-blocks (objects, materials...)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* System & OpenGL */

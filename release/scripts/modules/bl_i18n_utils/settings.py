@@ -44,7 +44,7 @@ LANGUAGES_CATEGORIES = (
 )
 LANGUAGES = (
     # ID, UI english label, ISO code.
-    (0, "Default (Default)", "DEFAULT"),
+    (0, "Automatic (Automatic)", "DEFAULT"),
     (1, "English (English)", "en_US"),
     (2, "Japanese (日本語)", "ja_JP"),
     (3, "Dutch (Nederlandse taal)", "nl_NL"),

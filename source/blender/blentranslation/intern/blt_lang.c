@@ -157,9 +157,12 @@ static void fill_locales(void)
 					}
 
 					if (id == 0) {
-						/* The DEFAULT item... */
+						/* The DEFAULT/Automatic item... */
 						if (BLI_strnlen(loc, 2)) {
-							locales[id] = locales_menu[idx].description = BLI_strdup("");
+							locales[id] = "";
+							/* Keep this tip in sync with the one in rna_userdef (rna_enum_language_default_items). */
+							locales_menu[idx].description = BLI_strdup("Automatically choose system's defined language "
+							                                           "if available, or fall-back to English");
 						}
 						/* Menu "label", not to be stored in locales! */
 						else {
