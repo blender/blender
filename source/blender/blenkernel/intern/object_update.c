@@ -149,14 +149,6 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
 		copy_m4_m4(ob_orig->constinv, ob->constinv);
 		ob_orig->transflag = ob->transflag;
 		ob_orig->flag = ob->flag;
-
-		BoundBox *bb = BKE_object_boundbox_get(ob);
-		if (bb != NULL) {
-			if (ob_orig->bb == NULL) {
-				ob_orig->bb = MEM_mallocN(sizeof(*ob_orig->bb), __func__);
-			}
-			*ob_orig->bb = *bb;
-		}
 	}
 }
 
@@ -276,8 +268,22 @@ void BKE_object_handle_data_update(
 				psys = psys->next;
 		}
 	}
+	BKE_object_eval_boundbox(depsgraph, ob);
+}
 
-	/* quick cache removed */
+void BKE_object_eval_boundbox(Depsgraph *depsgraph, Object *object)
+{
+	if (!DEG_is_active(depsgraph)) {
+		return;
+	}
+	Object *ob_orig = DEG_get_original_object(object);
+	BoundBox *bb = BKE_object_boundbox_get(object);
+	if (bb != NULL) {
+		if (ob_orig->bb == NULL) {
+			ob_orig->bb = MEM_mallocN(sizeof(*ob_orig->bb), __func__);
+		}
+		*ob_orig->bb = *bb;
+	}
 }
 
 bool BKE_object_eval_proxy_copy(Depsgraph *depsgraph,
