@@ -43,8 +43,15 @@ class INFO_MT_area(Menu):
             layout.operator("screen.region_quadview")
             layout.separator()
 
-        layout.operator("screen.area_dupli", icon='DUPLICATE')
+        layout.operator("screen.area_split", text="Horizontal Split").direction = 'HORIZONTAL'
+        layout.operator("screen.area_split", text="Vertical Split").direction = 'VERTICAL'
+
         layout.separator()
+
+        layout.operator("screen.area_dupli", icon='DUPLICATE')
+
+        layout.separator()
+
         layout.operator("screen.screen_full_area")
         layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area", icon='FULLSCREEN_ENTER').use_hide_panels = True
 
