@@ -35,6 +35,8 @@
 
 #include "ED_mesh.h"
 
+#include "UI_resources.h"
+
 /* -------------------------------------------------------------------- */
 /** \name Mesh Edge Ring Pre-Select
  * Public API:
@@ -174,7 +176,7 @@ void EDBM_preselect_edgering_draw(
 	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-	immUniformColor3ub(255, 0, 255);
+	immUniformThemeColor3(TH_GIZMO_PRIMARY);
 
 	if (psel->edges_len > 0) {
 		immBegin(GPU_PRIM_LINES, psel->edges_len * 2);
