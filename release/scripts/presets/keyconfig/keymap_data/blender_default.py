@@ -4107,7 +4107,7 @@ def km_object_non_modal(params):
         items.extend([
             ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
              {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
-            ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
+            op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'TAB', "value": 'PRESS'}),
         ])
 
     if params.legacy:
