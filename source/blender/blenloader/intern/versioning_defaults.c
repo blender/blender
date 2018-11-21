@@ -77,6 +77,9 @@ void BLO_update_defaults_userpref_blend(void)
 
 	/* Leave temp directory empty, will then get appropriate value per OS. */
 	U.tempdir[0] = '\0';
+
+	/* Only enable tooltips translation by default, without actually enabling translation itself, for now. */
+	U.transopts = USER_TR_TOOLTIPS;
 }
 
 /**
