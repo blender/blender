@@ -927,9 +927,7 @@ class LoadBackgroundImage(LoadImageAsEmpty, Operator):
         obj.show_empty_image_backside = False
 
         if context.space_data.type == "VIEW_3D":
-            if context.space_data.region_3d.is_perspective:
-                obj.show_empty_image_orthographic = False
-            else:
+            if not context.space_data.region_3d.is_perspective:
                 obj.show_empty_image_perspective = False
 
 
