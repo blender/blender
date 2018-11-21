@@ -2425,6 +2425,11 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		 *   to preserve that cache in copy-on-write, but for the time being
 		 *   we allow flush to layer collections component which will ensure
 		 *   that cached array fo bases exists and is up-to-date.
+		 *
+		 * - Action is allowed to flush as well, this way it's possible to
+		 *   keep current tagging in animation editors (which tags action for
+		 *   CoW update when it's changed) but yet guarantee evaluation order
+		 *   with objects which are using that action.
 		 */
 		if (comp_node->type == DEG_NODE_TYPE_PARAMETERS ||
 		    comp_node->type == DEG_NODE_TYPE_LAYER_COLLECTIONS ||
