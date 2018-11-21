@@ -55,17 +55,31 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    use_v3d_tab_menu: BoolProperty(
+        name="Tab for Pie Menu",
+        description=(
+            "Causes tab to open pie menu (swaps 'Tab' / 'Ctrl-Tab')"
+        ),
+        default=False,
+        update=update_fn,
+    )
+
     def draw(self, layout):
         split = layout.split()
         col = split.column(align=True)
         col.label(text="Select With:")
         col.row().prop(self, "select_mouse", expand=True)
+        col.prop(self, "use_select_all_toggle")
 
         col = split.column(align=True)
         col.label(text="Spacebar Action:")
         col.row().prop(self, "spacebar_action", expand=True)
 
-        layout.prop(self, "use_select_all_toggle")
+        split = layout.split()
+        col = split.column()
+        col.label(text="3D View:")
+        col.prop(self, "use_v3d_tab_menu")
+        split.column()
 
 
 blender_default = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "blender_default.py"))
@@ -82,6 +96,7 @@ def load():
             select_mouse=kc_prefs.select_mouse,
             spacebar_action=kc_prefs.spacebar_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
+            use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
         ),
     )
     keyconfig_init_from_data(kc, keyconfig_data)

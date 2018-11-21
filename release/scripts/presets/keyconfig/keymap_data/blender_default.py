@@ -41,6 +41,8 @@ class Params:
         "spacebar_action",
         # Key toggles selection with 'A'.
         "use_select_all_toggle",
+        # Use pie menu for tab by default (swap 'Tab/Ctrl-Tab').
+        "use_v3d_tab_menu",
     )
 
     def __init__(
@@ -52,6 +54,8 @@ class Params:
             # User preferences.
             spacebar_action='TOOL',
             use_select_all_toggle=False,
+            use_pie_on_tab=False,
+            use_v3d_tab_menu=False,
     ):
         import platform
 
@@ -93,6 +97,7 @@ class Params:
         # User preferences
         self.spacebar_action = spacebar_action
         self.use_select_all_toggle = use_select_all_toggle
+        self.use_v3d_tab_menu = use_v3d_tab_menu
 
 
 # ------------------------------------------------------------------------------
@@ -4090,11 +4095,19 @@ def km_object_non_modal(params):
         {"items": items},
     )
 
-    items.extend([
-        ("object.mode_set", {"type": 'TAB', "value": 'PRESS'},
-         {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
-        ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
-    ])
+    if not params.use_v3d_tab_menu:
+        items.extend([
+            ("object.mode_set", {"type": 'TAB', "value": 'PRESS'},
+             {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
+            ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
+        ])
+    else:
+        # Swap Tab/Ctrl-Tab
+        items.extend([
+            ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+             {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
+            ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
+        ])
 
     if params.legacy:
         items.extend([
