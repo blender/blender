@@ -992,7 +992,11 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 							add_v3_v3(plane, tmat[1]);
 							ok = true;
 						}
-						else if ((ok == false) && (ebone->flag & (BONE_ROOTSEL | BONE_TIPSEL))) {
+						else if ((ok == false) &&
+						         ((ebone->flag & BONE_TIPSEL) ||
+						          ((ebone->flag & BONE_ROOTSEL) &&
+						           (ebone->parent && ebone->flag & BONE_CONNECTED) == false)))
+						{
 							ED_armature_ebone_to_mat3(ebone, tmat);
 							add_v3_v3(fallback_normal, tmat[2]);
 							add_v3_v3(fallback_plane, tmat[1]);
