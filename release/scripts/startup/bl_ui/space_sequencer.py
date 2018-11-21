@@ -1185,6 +1185,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
+    bl_category = "Strip"
 
     def draw(self, context):
         layout = self.layout
@@ -1203,6 +1204,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
     bl_label = "View Settings"
+    bl_category = "Strip"
 
     def draw(self, context):
         layout = self.layout
@@ -1224,6 +1226,7 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
 
 class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):
     bl_label = "Safe Areas"
+    bl_category = "Strip"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1326,6 +1329,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
 class SEQUENCER_PT_grease_pencil(AnnotationDataPanel, SequencerButtonsPanel_Output, Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
+    bl_category = "Strip"
 
     # NOTE: this is just a wrapper around the generic GP Panel
     # But, it should only show up when there are images in the preview region
@@ -1334,6 +1338,7 @@ class SEQUENCER_PT_grease_pencil(AnnotationDataPanel, SequencerButtonsPanel_Outp
 class SEQUENCER_PT_grease_pencil_tools(GreasePencilToolsPanel, SequencerButtonsPanel_Output, Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
+    bl_category = "Strip"
 
     # NOTE: this is just a wrapper around the generic GP tools panel
     # It contains access to some essential tools usually found only in

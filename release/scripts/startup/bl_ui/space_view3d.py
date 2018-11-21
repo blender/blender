@@ -5088,6 +5088,7 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
 class VIEW3D_PT_quad_view(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_category = "View"
     bl_label = "Quad View"
     bl_options = {'DEFAULT_CLOSED'}
 

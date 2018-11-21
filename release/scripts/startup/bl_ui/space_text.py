@@ -111,6 +111,7 @@ class TEXT_MT_editor_menus(Menu):
 class TEXT_PT_properties(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
+    bl_category = "Text"
     bl_label = "Properties"
 
     def draw(self, context):
@@ -142,6 +143,7 @@ class TEXT_PT_properties(Panel):
 class TEXT_PT_find(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
+    bl_category = "Text"
     bl_label = "Find"
 
     def draw(self, context):
