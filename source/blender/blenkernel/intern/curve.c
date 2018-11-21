@@ -357,7 +357,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 	}
 }
 
-void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
+BoundBox *BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_size[3])
 {
 	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_curve_texspace_calc(cu);
@@ -366,6 +366,8 @@ void BKE_curve_texspace_get(Curve *cu, float r_loc[3], float r_rot[3], float r_s
 	if (r_loc) copy_v3_v3(r_loc,  cu->loc);
 	if (r_rot) copy_v3_v3(r_rot,  cu->rot);
 	if (r_size) copy_v3_v3(r_size, cu->size);
+
+	return cu->bb;
 }
 
 bool BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])

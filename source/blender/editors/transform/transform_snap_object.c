@@ -1556,7 +1556,7 @@ static short snapCurve(
 
 	if (use_obedit == false) {
 		/* Test BoundBox */
-		BoundBox *bb = BKE_curve_boundbox_get(ob);
+		BoundBox *bb = BKE_curve_texspace_get(cu, NULL, NULL, NULL);
 		if (bb) {
 			bool dummy[3];
 			/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
