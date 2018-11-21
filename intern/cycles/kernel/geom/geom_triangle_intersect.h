@@ -234,12 +234,7 @@ ccl_device_inline int ray_triangle_intersect8(
 		if((mask_final & prim_num_mask) == 0) {
 			return false;
 		}
-		unsigned long i = 0;
-#if defined(_MSC_VER)
-		unsigned char res = _BitScanForward(&i, (unsigned long)mask_final);
-#else
-		i = __builtin_ffs(mask_final)-1;
-#endif
+		const int i = __bsf(mask_final);
 		__m256 inv_den_256 = _mm256_rcp_ps(den_256);
 		U_256 = _mm256_mul_ps(U_256, inv_den_256);
 		V_256 = _mm256_mul_ps(V_256, inv_den_256);
