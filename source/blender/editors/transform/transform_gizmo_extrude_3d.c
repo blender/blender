@@ -267,6 +267,14 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		RNA_float_get_array(op_transform->ptr, "constraint_matrix", &redo.constraint_matrix[0][0]);
 		RNA_boolean_get_array(op_transform->ptr, "constraint_axis", redo.constraint_axis);
 		RNA_float_get_array(op_transform->ptr, "value", redo.value);
+
+		/* Set properties for redo. */
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust, 0);
+		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
+		RNA_float_set_array(&macroptr, "constraint_matrix", &redo.constraint_matrix[0][0]);
+		RNA_boolean_set_array(&macroptr, "constraint_axis", redo.constraint_axis);
+		RNA_float_set_array(&macroptr, "value", redo.value);
+
 		for (int i = 0; i < 3; i++) {
 			if (redo.constraint_axis[i]) {
 				redo.is_flip = redo.value[i] < 0.0f;
@@ -283,14 +291,6 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		if (redo.is_flip) {
 			negate_v3(ggd->adjust->matrix_basis[2]);
 		}
-
-		/* Set redo properties. */
-		bool constraint[3] = {0, 0, 0};
-		constraint[ggd->adjust_axis] = true;
-		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust, 0);
-		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
-		RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
-		RNA_float_set_array(&macroptr, "value", redo.value);
 	}
 
 	/* Location. */
