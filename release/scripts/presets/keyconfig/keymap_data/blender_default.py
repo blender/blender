@@ -1218,6 +1218,8 @@ def km_graph_editor_generic(_params):
         ("graph.hide", {"type": 'H', "value": 'PRESS', "shift": True},
          {"properties": [("unselected", True)]}),
         ("graph.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
+        ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'area.type'), ("value", 'DOPESHEET_EDITOR')]}),
     ])
 
     return keymap
@@ -1749,6 +1751,8 @@ def km_dopesheet_generic(_params):
 
     items.extend([
         ("action.properties", {"type": 'N', "value": 'PRESS'}, None),
+        ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'area.type'), ("value", 'GRAPH_EDITOR')]})
     ])
 
     return keymap
