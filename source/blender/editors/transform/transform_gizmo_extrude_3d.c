@@ -77,6 +77,9 @@ typedef struct GizmoExtrudeGroup {
 	struct wmGizmo *adjust;
 	int             adjust_axis;
 
+	/* Depends on object type. */
+	int normal_axis;
+
 	struct {
 		float normal_mat3[3][3];  /* use Z axis for normal. */
 		int orientation_type;
@@ -136,12 +139,15 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		const char *op_idname = NULL;
 		if (obedit->type == OB_MESH) {
 			op_idname = "MESH_OT_extrude_context_move";
+			ggd->normal_axis = 2;
 		}
 		else if (obedit->type == OB_ARMATURE) {
 			op_idname = "ARMATURE_OT_extrude_move";
+			ggd->normal_axis = 1;
 		}
 		else if (obedit->type == OB_CURVE) {
 			op_idname = "CURVE_OT_extrude_move";
+			ggd->normal_axis = 2;
 		}
 		else {
 			BLI_assert(0);
@@ -168,7 +174,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		PointerRNA *ptr = WM_gizmo_operator_set(ggd->invoke_xyz_no[i], 0, ggd->ot_extrude, NULL);
 		{
 			bool constraint[3] = {0, 0, 0};
-			constraint[MIN2(i, 2)] = 1;
+			constraint[(i < 3) ? i : ggd->normal_axis] = true;
 			PointerRNA macroptr = RNA_pointer_get(ptr, "TRANSFORM_OT_translate");
 			RNA_boolean_set(&macroptr, "release_confirm", true);
 			RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
@@ -245,7 +251,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	/* Offset the add icon. */
 	mul_v3_v3fl(
 	        ggd->invoke_xyz_no[3]->matrix_offset[3],
-	        ggd->data.normal_mat3[2],
+	        ggd->data.normal_mat3[ggd->normal_axis],
 	        (extrude_arrow_normal_axis_scale * extrude_button_offset_scale) / extrude_button_scale);
 
 	/* Adjust current operator. */
