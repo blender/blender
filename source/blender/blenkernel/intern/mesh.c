@@ -926,7 +926,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
 	return me->bb;
 }
 
-void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
+BoundBox *BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])
 {
 	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(me);
@@ -935,6 +935,8 @@ void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_siz
 	if (r_loc) copy_v3_v3(r_loc,  me->loc);
 	if (r_rot) copy_v3_v3(r_rot,  me->rot);
 	if (r_size) copy_v3_v3(r_size, me->size);
+
+	return me->bb;
 }
 
 void BKE_mesh_texspace_get_reference(Mesh *me, short **r_texflag,  float **r_loc, float **r_rot, float **r_size)

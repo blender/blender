@@ -112,10 +112,6 @@ typedef struct SnapObjectData_EditMesh {
 	SnapObjectData sd;
 	BVHTreeFromEditMesh *bvh_trees[3];
 
-	 /* It's like a boundbox. It is tested first to avoid
-	  * to create a bvhtree for all the edited objects. */
-	float min[3], max[3];
-
 } SnapObjectData_EditMesh;
 
 struct SnapObjectContext {
@@ -161,18 +157,6 @@ struct SnapObjectContext {
 
 typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data);
 
-static void min_max_from_bmesh(
-        BMesh *bm, float r_min[3], float r_max[3])
-{
-	BMIter iter;
-	BMVert *eve;
-
-	INIT_MINMAX(r_min, r_max);
-	BM_ITER_MESH(eve, &iter, bm, BM_VERTS_OF_MESH) {
-		minmax_v3v3_v3(r_min, r_max, eve->co);
-	}
-}
-
 static SnapObjectData_Mesh *snap_object_data_mesh_get(SnapObjectContext *sctx, Object *ob)
 {
 	void **sod_p;
@@ -202,7 +186,6 @@ static SnapObjectData_EditMesh *snap_object_data_editmesh_get(SnapObjectContext 
 	else {
 		SnapObjectData_EditMesh *sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
 		sod->sd.type = SNAP_EDIT_MESH;
-		min_max_from_bmesh(em->bm, sod->min, sod->max);
 	}
 
 	return *sod_p;
@@ -383,12 +366,10 @@ static bool raycastMesh(
 	}
 
 	float imat[4][4];
-	float timat[3][3]; /* transpose inverse matrix for normals */
 	float ray_start_local[3], ray_normal_local[3];
 	float local_scale, local_depth, len_diff = 0.0f;
 
 	invert_m4_m4(imat, obmat);
-	transpose_m3_m4(timat, imat);
 
 	copy_v3_v3(ray_start_local, ray_start);
 	copy_v3_v3(ray_normal_local, ray_dir);
@@ -478,6 +459,10 @@ static bool raycastMesh(
 	else {
 		len_diff = 0.0f;
 	}
+
+	float timat[3][3]; /* transpose inverse matrix for normals */
+	transpose_m3_m4(timat, imat);
+
 	if (r_hit_list) {
 		struct RayCastAll_Data data;
 
@@ -549,18 +534,37 @@ static bool raycastEditMesh(
 
 	BLI_assert(em->ob->data == BKE_object_get_pre_modified_mesh(ob));
 
-	SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
-	{
-		float min[3], max[3];
-		mul_v3_m4v3(min, obmat, sod->min);
-		mul_v3_m4v3(max, obmat, sod->max);
+	float imat[4][4];
+	float ray_start_local[3], ray_normal_local[3];
+	float local_scale, local_depth, len_diff = 0.0f;
 
+	invert_m4_m4(imat, obmat);
+
+	copy_v3_v3(ray_start_local, ray_start);
+	copy_v3_v3(ray_normal_local, ray_dir);
+
+	mul_m4_v3(imat, ray_start_local);
+	mul_mat3_m4_v3(imat, ray_normal_local);
+
+	/* local scale in normal direction */
+	local_scale = normalize_v3(ray_normal_local);
+	local_depth = *ray_depth;
+	if (local_depth != BVH_RAYCAST_DIST_MAX) {
+		local_depth *= local_scale;
+	}
+
+	/* Test BoundBox */
+	BoundBox *bb = BKE_mesh_texspace_get(em->ob->data, NULL, NULL, NULL);
+	if (bb) {
+		/* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
 		if (!isect_ray_aabb_v3_simple(
-		        ray_start, ray_dir, min, max, NULL, NULL))
+		        ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], &len_diff, NULL))
 		{
 			return retval;
 		}
 	}
+
+	SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
 
 	if (sod->bvh_trees[2] == NULL) {
 		sod->bvh_trees[2] = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(BVHTreeFromEditMesh));
@@ -610,26 +614,6 @@ static bool raycastEditMesh(
 		treedata->em = em;
 	}
 
-	float imat[4][4];
-	float timat[3][3]; /* transpose inverse matrix for normals */
-	float ray_normal_local[3], ray_start_local[3], len_diff = 0.0f;
-
-	invert_m4_m4(imat, obmat);
-	transpose_m3_m4(timat, imat);
-
-	copy_v3_v3(ray_normal_local, ray_dir);
-	mul_mat3_m4_v3(imat, ray_normal_local);
-
-	copy_v3_v3(ray_start_local, ray_start);
-	mul_m4_v3(imat, ray_start_local);
-
-	/* local scale in normal direction */
-	float local_scale = normalize_v3(ray_normal_local);
-	float local_depth = *ray_depth;
-	if (local_depth != BVH_RAYCAST_DIST_MAX) {
-		local_depth *= local_scale;
-	}
-
 	/* Only use closer ray_start in case of ortho view! In perspective one, ray_start
 	 * may already been *inside* boundbox, leading to snap failures (see T38409).
 	 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
@@ -653,6 +637,10 @@ static bool raycastEditMesh(
 		}
 		else len_diff = 0.0f;
 	}
+
+	float timat[3][3]; /* transpose inverse matrix for normals */
+	transpose_m3_m4(timat, imat);
+
 	if (r_hit_list) {
 		struct RayCastAll_Data data;
 
@@ -874,6 +862,25 @@ static bool raycastObjects(
 /* -------------------------------------------------------------------- */
 /** Snap Nearest utilities
  * \{ */
+
+ /* Test BoundBox */
+bool snap_bound_box_check_dist(BoundBox *bb, float lpmat[4][4], float win_size[2], float mval[2], float dist_px_sq)
+{
+	/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
+
+	struct DistProjectedAABBPrecalc data_precalc;
+	dist_squared_to_projected_aabb_precalc(
+	        &data_precalc, lpmat, win_size, mval);
+
+	bool dummy[3];
+	float bb_dist_px_sq = dist_squared_to_projected_aabb(
+	        &data_precalc, bb->vec[0], bb->vec[6], dummy);
+
+	if (bb_dist_px_sq > dist_px_sq) {
+		return false;
+	}
+	return true;
+}
 
 static void cb_mvert_co_get(
         const int index, const float **co, const BVHTreeFromMesh *data)
@@ -1421,15 +1428,8 @@ static short snapArmature(
 	if (use_obedit == false) {
 		/* Test BoundBox */
 		BoundBox *bb = BKE_armature_boundbox_get(ob);
-		if (bb) {
-			bool dummy[3];
-			/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
-			float bb_dist_px_sq = dist_squared_to_projected_aabb(
-			        &neasrest_precalc, bb->vec[0], bb->vec[6], dummy);
-
-			if (bb_dist_px_sq > dist_px_sq) {
-				return retval;
-			}
+		if (bb && !snap_bound_box_check_dist(bb, lpmat, snapdata->win_size, snapdata->mval, dist_px_sq)) {
+			return retval;
 		}
 	}
 
@@ -1557,15 +1557,8 @@ static short snapCurve(
 	if (use_obedit == false) {
 		/* Test BoundBox */
 		BoundBox *bb = BKE_curve_texspace_get(cu, NULL, NULL, NULL);
-		if (bb) {
-			bool dummy[3];
-			/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
-			float bb_dist_px_sq = dist_squared_to_projected_aabb(
-			        &neasrest_precalc, bb->vec[0], bb->vec[6], dummy);
-
-			if (bb_dist_px_sq > dist_px_sq) {
-				return 0;
-			}
+		if (bb && !snap_bound_box_check_dist(bb, lpmat, snapdata->win_size, snapdata->mval, dist_px_sq)) {
+			return 0;
 		}
 	}
 
@@ -1841,20 +1834,8 @@ static short snapMesh(
 
 	/* Test BoundBox */
 	BoundBox *bb = BKE_mesh_boundbox_get(ob);
-	if (bb) {
-		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
-
-		struct DistProjectedAABBPrecalc data_precalc;
-		dist_squared_to_projected_aabb_precalc(
-		        &data_precalc, lpmat, snapdata->win_size, snapdata->mval);
-
-		bool dummy[3];
-		float bb_dist_px_sq = dist_squared_to_projected_aabb(
-		        &data_precalc, bb->vec[0], bb->vec[6], dummy);
-
-		if (bb_dist_px_sq > dist_px_sq) {
-			return 0;
-		}
+	if (bb && !snap_bound_box_check_dist(bb, lpmat, snapdata->win_size, snapdata->mval, dist_px_sq)) {
+		return 0;
 	}
 
 	SnapObjectData_Mesh *sod = snap_object_data_mesh_get(sctx, ob);
@@ -2057,28 +2038,18 @@ static short snapEditMesh(
 	BLI_assert(em->ob->data == BKE_object_get_pre_modified_mesh(ob));
 	UNUSED_VARS_NDEBUG(ob);
 
-	SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
+	float lpmat[4][4];
+	mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 
 	float dist_px_sq = SQUARE(*dist_px);
 
-	{
-		float min[3], max[3];
-		mul_v3_m4v3(min, obmat, sod->min);
-		mul_v3_m4v3(max, obmat, sod->max);
-
-		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
-		struct DistProjectedAABBPrecalc data_precalc;
-		dist_squared_to_projected_aabb_precalc(
-		        &data_precalc, snapdata->pmat, snapdata->win_size, snapdata->mval);
-
-		bool dummy[3];
-		float bb_dist_px_sq = dist_squared_to_projected_aabb(
-		        &data_precalc, min, max, dummy);
-
-		if (bb_dist_px_sq > dist_px_sq) {
-			return 0;
-		}
+	/* Test BoundBox */
+	BoundBox *bb = BKE_mesh_texspace_get(em->ob->data, NULL, NULL, NULL);
+	if (bb && !snap_bound_box_check_dist(bb, lpmat, snapdata->win_size, snapdata->mval, dist_px_sq)) {
+		return 0;
 	}
+
+	SnapObjectData_EditMesh *sod = snap_object_data_editmesh_get(sctx, em);
 
 	BVHCache *em_bvh_cache = ((Mesh *)em->ob->data)->runtime.bvh_cache;
 
@@ -2161,8 +2132,7 @@ static short snapEditMesh(
 	int last_index = nearest.index;
 	short elem = SCE_SNAP_MODE_VERTEX;
 
-	float lpmat[4][4], tobmat[4][4], clip_planes_local[MAX_CLIPPLANE_LEN][4];
-	mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
+	float tobmat[4][4], clip_planes_local[MAX_CLIPPLANE_LEN][4];
 	transpose_m4_m4(tobmat, obmat);
 
 	for (int i = snapdata->clip_plane_len; i--;) {
