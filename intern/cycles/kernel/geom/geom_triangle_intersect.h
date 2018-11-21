@@ -87,7 +87,7 @@ ccl_device_inline int ray_triangle_intersect8(
             uint *num_hits,
             uint max_hits,
             int *num_hits_in_instance,
-            float isec_t)
+            float isect_t)
 {
 
 	const unsigned char prim_num_mask = (1 << prim_num) - 1;
@@ -217,156 +217,144 @@ ccl_device_inline int ray_triangle_intersect8(
 	ccl_align(32) float den8[8], U8[8], V8[8], T8[8], sign_T8[8], xor_signmask8[8];
 	ccl_align(32) unsigned int mask_minmaxUVW8[8];
 
-	if(visibility == PATH_RAY_SHADOW_OPAQUE){
-			__m256i mask_final_256 = _mm256_cmpeq_epi32(mask_minmaxUVW_256, zero256);
-			__m256i maskden256 = _mm256_cmpeq_epi32(_mm256_castps_si256(den_256), zero256);
-			__m256i mask0 = _mm256_cmpgt_epi32(zero256, _mm256_castps_si256(sign_T_256));
-			__m256 rayt_256 = _mm256_set1_ps((*isect)->t);
-			__m256i mask1 = _mm256_cmpgt_epi32(_mm256_castps_si256(sign_T_256),
-				_mm256_castps_si256(
-					_mm256_mul_ps(_mm256_castsi256_ps(_mm256_xor_si256(_mm256_castps_si256(den_256), sign_den_256)), rayt_256)
-				)
-			);
-			mask0 = _mm256_or_si256(mask1, mask0);
-			mask_final_256 = _mm256_andnot_si256(mask0, mask_final_256); //(~mask_minmaxUVW_pos) &(~mask)
-			mask_final_256 = _mm256_andnot_si256(maskden256, mask_final_256); //(~mask_minmaxUVW_pos) &(~mask) & (~maskden)
-			unsigned char mask_final = _mm256_movemask_ps(_mm256_castsi256_ps(mask_final_256));
-			if((mask_final & prim_num_mask) == 0) {
-				return false;
-			}
-			unsigned long i = 0;
+	if(visibility == PATH_RAY_SHADOW_OPAQUE) {
+		__m256i mask_final_256 = _mm256_cmpeq_epi32(mask_minmaxUVW_256, zero256);
+		__m256i maskden256 = _mm256_cmpeq_epi32(_mm256_castps_si256(den_256), zero256);
+		__m256i mask0 = _mm256_cmpgt_epi32(zero256, _mm256_castps_si256(sign_T_256));
+		__m256 rayt_256 = _mm256_set1_ps((*isect)->t);
+		__m256i mask1 = _mm256_cmpgt_epi32(_mm256_castps_si256(sign_T_256),
+			_mm256_castps_si256(
+				_mm256_mul_ps(_mm256_castsi256_ps(_mm256_xor_si256(_mm256_castps_si256(den_256), sign_den_256)), rayt_256)
+			)
+		);
+		mask0 = _mm256_or_si256(mask1, mask0);
+		mask_final_256 = _mm256_andnot_si256(mask0, mask_final_256); //(~mask_minmaxUVW_pos) &(~mask)
+		mask_final_256 = _mm256_andnot_si256(maskden256, mask_final_256); //(~mask_minmaxUVW_pos) &(~mask) & (~maskden)
+		unsigned char mask_final = _mm256_movemask_ps(_mm256_castsi256_ps(mask_final_256));
+		if((mask_final & prim_num_mask) == 0) {
+			return false;
+		}
+		unsigned long i = 0;
 #if defined(_MSC_VER)
-			unsigned char res = _BitScanForward(&i, (unsigned long)mask_final);
+		unsigned char res = _BitScanForward(&i, (unsigned long)mask_final);
 #else
-            i = __builtin_ffs(mask_final)-1;
+		i = __builtin_ffs(mask_final)-1;
 #endif
-
-			__m256 inv_den_256 = _mm256_rcp_ps(den_256);
-			U_256 = _mm256_mul_ps(U_256, inv_den_256);
-			V_256 = _mm256_mul_ps(V_256, inv_den_256);
-			T_256 = _mm256_mul_ps(T_256, inv_den_256);
-
-			_mm256_store_ps(U8, U_256);
-			_mm256_store_ps(V8, V_256);
-			_mm256_store_ps(T8, T_256);
-
-			/* NOTE: Here we assume visibility for all triangles in the node is
-			 * the same. */
-
-			(*isect)->u = U8[i];
-			(*isect)->v = V8[i];
-			(*isect)->t = T8[i];
-
-			(*isect)->prim = (prim_addr + i);
-			(*isect)->object = object;
-			(*isect)->type = PRIMITIVE_TRIANGLE;
-
-			return true;
-		}
+		__m256 inv_den_256 = _mm256_rcp_ps(den_256);
+		U_256 = _mm256_mul_ps(U_256, inv_den_256);
+		V_256 = _mm256_mul_ps(V_256, inv_den_256);
+		T_256 = _mm256_mul_ps(T_256, inv_den_256);
+		_mm256_store_ps(U8, U_256);
+		_mm256_store_ps(V8, V_256);
+		_mm256_store_ps(T8, T_256);
+		/* NOTE: Here we assume visibility for all triangles in the node is
+		 * the same. */
+		(*isect)->u = U8[i];
+		(*isect)->v = V8[i];
+		(*isect)->t = T8[i];
+		(*isect)->prim = (prim_addr + i);
+		(*isect)->object = object;
+		(*isect)->type = PRIMITIVE_TRIANGLE;
+		return true;
+	}
 	else {
-			_mm256_store_ps(den8, den_256);
-			_mm256_store_ps(U8, U_256);
-			_mm256_store_ps(V8, V_256);
-			_mm256_store_ps(T8, T_256);
+		_mm256_store_ps(den8, den_256);
+		_mm256_store_ps(U8, U_256);
+		_mm256_store_ps(V8, V_256);
+		_mm256_store_ps(T8, T_256);
 
-			_mm256_store_ps(sign_T8, sign_T_256);
-			_mm256_store_ps(xor_signmask8, xor_signmask_256);
-			_mm256_store_si256((__m256i*)mask_minmaxUVW8, mask_minmaxUVW_256);
+		_mm256_store_ps(sign_T8, sign_T_256);
+		_mm256_store_ps(xor_signmask8, xor_signmask_256);
+		_mm256_store_si256((__m256i*)mask_minmaxUVW8, mask_minmaxUVW_256);
 
-			int ret = false;
+		int ret = false;
 
-			if(visibility == PATH_RAY_SHADOW) {
-				for(int i = 0; i < prim_num; i++) {
-					if(!mask_minmaxUVW8[i]) {
-#ifdef __VISIBILITY_FLAG__
-						if(kernel_tex_fetch(__prim_visibility, (prim_addr + i)) & visibility)
-#endif
-						{
-							if((sign_T8[i] >= 0.0f) &&
-							   (sign_T8[i] <= (*isect)->t * xor_signmask8[i]))
-							{
-								if(den8[i]) {
-									const float inv_den = 1.0f / den8[i];
-
-									(*isect)->u = U8[i] * inv_den;
-									(*isect)->v = V8[i] * inv_den;
-									(*isect)->t = T8[i] * inv_den;
-
-									(*isect)->prim = (prim_addr + i);
-									(*isect)->object = object;
-									(*isect)->type = PRIMITIVE_TRIANGLE;
-
-									int prim = kernel_tex_fetch(__prim_index, (*isect)->prim);
-									int shader = 0;
-
-#ifdef __HAIR__
-									if(kernel_tex_fetch(__prim_type, (*isect)->prim) & PRIMITIVE_ALL_TRIANGLE)
-#endif
-									{
-										shader = kernel_tex_fetch(__tri_shader, prim);
-									}
-#ifdef __HAIR__
-									else {
-										float4 str = kernel_tex_fetch(__curves, prim);
-										shader = __float_as_int(str.z);
-									}
-#endif
-									int flag = kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
-
-									/* if no transparent shadows, all light is blocked. */
-									if(!(flag & SD_HAS_TRANSPARENT_SHADOW)) {
-										return 2;
-									}
-									/* if maximum number of hits reached, block all light. */
-									else if(*num_hits == max_hits) {
-										return 2;
-									}
-									/* move on to next entry in intersections array */
-									ret = true;
-
-									(*isect)++;
-									(*num_hits)++;
-
-									(*num_hits_in_instance)++;
-
-									(*isect)->t = isec_t;
-
-								} //den
-							} //if sign
-						} //vis
-					}//if mask
-				} //for
-		}
-		else { //default case
+		if(visibility == PATH_RAY_SHADOW) {
 			for(int i = 0; i < prim_num; i++) {
-				if(!mask_minmaxUVW8[i]) {
+				if(mask_minmaxUVW8[i]) {
+					continue;
+				}
 #ifdef __VISIBILITY_FLAG__
-					if(kernel_tex_fetch(__prim_visibility, (prim_addr + i)) & visibility)
+				if((kernel_tex_fetch(__prim_visibility, (prim_addr + i)) & visibility) == 0) {
+					continue;
+				}
 #endif
-					{
-						if((sign_T8[i] >= 0.0f) &&
-						   (sign_T8[i] <= (*isect)->t * xor_signmask8[i]))
-						{
-							if(den8[i]) {
-								const float inv_den = 1.0f / den8[i];
-
-								(*isect)->u = U8[i] * inv_den;
-								(*isect)->v = V8[i] * inv_den;
-								(*isect)->t = T8[i] * inv_den;
-
-								(*isect)->prim = (prim_addr + i);
-								(*isect)->object = object;
-								(*isect)->type = PRIMITIVE_TRIANGLE;
-
-								ret = true;
-							} //den
-						} //if sign
-					} //vis
-				}//if mask
-			} //for
-		} //default
+				if((sign_T8[i] < 0.0f) ||
+				   (sign_T8[i] > (*isect)->t * xor_signmask8[i]))
+				{
+					continue;
+				}
+				if(!den8[i]) {
+					continue;
+				}
+				const float inv_den = 1.0f / den8[i];
+				(*isect)->u = U8[i] * inv_den;
+				(*isect)->v = V8[i] * inv_den;
+				(*isect)->t = T8[i] * inv_den;
+				(*isect)->prim = (prim_addr + i);
+				(*isect)->object = object;
+				(*isect)->type = PRIMITIVE_TRIANGLE;
+				const int prim = kernel_tex_fetch(__prim_index, (*isect)->prim);
+				int shader = 0;
+#ifdef __HAIR__
+				if(kernel_tex_fetch(__prim_type, (*isect)->prim) & PRIMITIVE_ALL_TRIANGLE)
+#endif
+				{
+					shader = kernel_tex_fetch(__tri_shader, prim);
+				}
+#ifdef __HAIR__
+				else {
+					float4 str = kernel_tex_fetch(__curves, prim);
+					shader = __float_as_int(str.z);
+				}
+#endif
+				const int flag = kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
+				/* If no transparent shadows, all light is blocked. */
+				if(!(flag & SD_HAS_TRANSPARENT_SHADOW)) {
+					return 2;
+				}
+				/* If maximum number of hits reached, block all light. */
+				else if(*num_hits == max_hits) {
+					return 2;
+				}
+				/* Move on to next entry in intersections array. */
+				ret = true;
+				(*isect)++;
+				(*num_hits)++;
+				(*num_hits_in_instance)++;
+				(*isect)->t = isect_t;
+			}
+		}
+		else {
+			for(int i = 0; i < prim_num; i++) {
+				if(mask_minmaxUVW8[i]) {
+					continue;
+				}
+#ifdef __VISIBILITY_FLAG__
+				if((kernel_tex_fetch(__prim_visibility, (prim_addr + i)) & visibility) == 0) {
+					continue;
+				}
+#endif
+				if((sign_T8[i] < 0.0f) ||
+				   (sign_T8[i] > (*isect)->t * xor_signmask8[i]))
+				{
+					continue;
+				}
+				if(!den8[i]) {
+					continue;
+				}
+				const float inv_den = 1.0f / den8[i];
+				(*isect)->u = U8[i] * inv_den;
+				(*isect)->v = V8[i] * inv_den;
+				(*isect)->t = T8[i] * inv_den;
+				(*isect)->prim = (prim_addr + i);
+				(*isect)->object = object;
+				(*isect)->type = PRIMITIVE_TRIANGLE;
+				ret = true;
+			}
+		}
 		return ret;
-	}// else PATH_RAY_SHADOW_OPAQUE
+	}
 }
 
 ccl_device_inline int triangle_intersect8(
@@ -381,7 +369,7 @@ ccl_device_inline int triangle_intersect8(
         uint *num_hits,
         uint max_hits,
         int *num_hits_in_instance,
-        float isec_t)
+        float isect_t)
  {
 	__m128 tri_a[8], tri_b[8], tri_c[8];
 	__m256  tritmp[12], tri[12];
@@ -483,7 +471,7 @@ ccl_device_inline int triangle_intersect8(
 	                                     num_hits,
 	                                     max_hits,
 	                                     num_hits_in_instance,
-	                                     isec_t);
+	                                     isect_t);
 	return result;
 }
 
