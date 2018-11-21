@@ -976,6 +976,14 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 				ok = true;
 			}
 			else {
+				/* When we only have the root/tip are selected. */
+				bool fallback_ok = false;
+				float fallback_normal[3];
+				float fallback_plane[3];
+
+				zero_v3(fallback_normal);
+				zero_v3(fallback_plane);
+
 				for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 					if (arm->layer & ebone->layer) {
 						if (ebone->flag & BONE_SELECTED) {
@@ -984,7 +992,18 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 							add_v3_v3(plane, tmat[1]);
 							ok = true;
 						}
+						else if ((ok == false) && (ebone->flag & (BONE_ROOTSEL | BONE_TIPSEL))) {
+							ED_armature_ebone_to_mat3(ebone, tmat);
+							add_v3_v3(fallback_normal, tmat[2]);
+							add_v3_v3(fallback_plane, tmat[1]);
+							fallback_ok = true;
+						}
 					}
+				}
+				if ((ok == false) && fallback_ok) {
+					ok = true;
+					copy_v3_v3(normal, fallback_normal);
+					copy_v3_v3(plane, fallback_plane);
 				}
 			}
 
