@@ -2793,8 +2793,6 @@ def km_grease_pencil(params):
             ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
 
-            # Enter edit mode
-            ("gpencil.editmode_toggle", {"type": 'TAB', "value": 'PRESS', "key_modifier": 'D'}, None),
             # Add blank frame (B because it's easy to reach from D).
             ("gpencil.blank_frame_add", {"type": 'B', "value": 'PRESS', "key_modifier": 'D'}, None),
             # Delete active frame - for easier video tutorials/review sessions.
