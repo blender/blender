@@ -71,28 +71,23 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 }
 
 #ifdef __KERNEL_AVX2__
-
 #define	cross256(A,B, C,D) _mm256_fmsub_ps(A,B, _mm256_mul_ps(C,D))
-#if defined(__KERNEL_CUDA__) && __CUDA_ARCH__ < 300
-ccl_device_inline
-#else
-ccl_device_forceinline
-#endif
-int ray_triangle_intersect8(KernelGlobals *kg,
-                            float3 ray_P,
-                            float3 ray_dir,
-                            Intersection **isect,
-                            uint visibility,
-                            int object,
-                            __m256 *triA,
-                            __m256 *triB,
-                            __m256 *triC,
-                            int prim_addr,
-                            int prim_num,
-                            uint *num_hits,
-                            uint max_hits,
-                            int *num_hits_in_instance,
-                            float isec_t)
+ccl_device_inline int ray_triangle_intersect8(
+            KernelGlobals *kg,
+            float3 ray_P,
+            float3 ray_dir,
+            Intersection **isect,
+            uint visibility,
+            int object,
+            __m256 *triA,
+            __m256 *triB,
+            __m256 *triC,
+            int prim_addr,
+            int prim_num,
+            uint *num_hits,
+            uint max_hits,
+            int *num_hits_in_instance,
+            float isec_t)
 {
 
 	const unsigned char prim_num_mask = (1 << prim_num) - 1;
@@ -425,20 +420,19 @@ int ray_triangle_intersect8(KernelGlobals *kg,
 
 }
 
-//vz static
-ccl_device_inline
-int triangle_intersect8(KernelGlobals *kg,
-                        Intersection **isect,
-                        float3 P,
-                        float3 dir,
-                        uint visibility,
-                        int object,
-                        int prim_addr,
-                        int prim_num,
-                        uint *num_hits,
-                        uint max_hits,
-                        int *num_hits_in_instance,
-                        float isec_t)
+ccl_device_inline int triangle_intersect8(
+        KernelGlobals *kg,
+        Intersection **isect,
+        float3 P,
+        float3 dir,
+        uint visibility,
+        int object,
+        int prim_addr,
+        int prim_num,
+        uint *num_hits,
+        uint max_hits,
+        int *num_hits_in_instance,
+        float isec_t)
  {
 	__m128 tri_a[8], tri_b[8], tri_c[8];
 	__m256  tritmp[12], tri[12];
