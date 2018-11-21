@@ -2775,7 +2775,7 @@ def km_grease_pencil(params):
     keymap = (
         "Grease Pencil",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": []},
+        {"items": items},
     )
 
     if params.legacy:
