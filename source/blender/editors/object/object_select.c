@@ -254,7 +254,8 @@ Base *ED_object_find_first_by_data_id(ViewLayer *view_layer, ID *id)
  *
  * \returns false if not found in current view layer
  */
-bool ED_object_jump_to_object(bContext *C, Object *ob)
+bool ED_object_jump_to_object(
+        bContext *C, Object *ob, const bool UNUSED(reveal_hidden))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
@@ -262,6 +263,8 @@ bool ED_object_jump_to_object(bContext *C, Object *ob)
 	if (base == NULL) {
 		return false;
 	}
+
+	/* TODO, use 'reveal_hidden', as is done with bones. */
 
 	if (view_layer->basact != base) {
 		/* Select if not selected. */
@@ -289,7 +292,9 @@ bool ED_object_jump_to_object(bContext *C, Object *ob)
  *
  * \returns false if object not in layer, bone not found, or other error
  */
-bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
+bool ED_object_jump_to_bone(
+        bContext *C, Object *ob, const char *bone_name,
+        const bool reveal_hidden)
 {
 	/* Verify it's a valid armature object. */
 	if (ob == NULL || ob->type != OB_ARMATURE) {
@@ -303,7 +308,7 @@ bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
 	}
 
 	/* Activate the armature object. */
-	if (!ED_object_jump_to_object(C, ob)) {
+	if (!ED_object_jump_to_object(C, ob, reveal_hidden)) {
 		return false;
 	}
 
@@ -316,11 +321,13 @@ bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
 		/* In Edit mode select and activate the target Edit-Bone. */
 		EditBone *ebone = ED_armature_ebone_find_name(arm->edbo, bone_name);
 		if (ebone != NULL) {
-			/* Unhide the bone. */
-			ebone->flag &= ~BONE_HIDDEN_A;
+			if (reveal_hidden) {
+				/* Unhide the bone. */
+				ebone->flag &= ~BONE_HIDDEN_A;
 
-			if ((arm->layer & ebone->layer) == 0) {
-				arm->layer |= 1U << bitscan_forward_uint(ebone->layer);
+				if ((arm->layer & ebone->layer) == 0) {
+					arm->layer |= 1U << bitscan_forward_uint(ebone->layer);
+				}
 			}
 
 			/* Select it. */
@@ -341,11 +348,13 @@ bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name)
 		/* In Pose mode select and activate the target Bone/Pose-Channel. */
 		bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 		if (pchan != NULL) {
-			/* Unhide the bone. */
-			pchan->bone->flag &= ~BONE_HIDDEN_P;
+			if (reveal_hidden) {
+				/* Unhide the bone. */
+				pchan->bone->flag &= ~BONE_HIDDEN_P;
 
-			if ((arm->layer & pchan->bone->layer) == 0) {
-				arm->layer |= 1U << bitscan_forward_uint(pchan->bone->layer);
+				if ((arm->layer & pchan->bone->layer) == 0) {
+					arm->layer |= 1U << bitscan_forward_uint(pchan->bone->layer);
+				}
 			}
 
 			/* Select it. */

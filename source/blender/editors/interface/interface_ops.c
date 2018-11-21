@@ -855,12 +855,14 @@ static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
 		ok = true;
 	}
 	else {
+		/* Make optional. */
+		const bool reveal_hidden = true;
 		/* Select and activate the target. */
 		if (target_type == &RNA_Bone) {
-			ok = ED_object_jump_to_bone(C, base->object, bone_name);
+			ok = ED_object_jump_to_bone(C, base->object, bone_name, reveal_hidden);
 		}
 		else if (target_type == &RNA_Object) {
-			ok = ED_object_jump_to_object(C, base->object);
+			ok = ED_object_jump_to_object(C, base->object, reveal_hidden);
 		}
 		else {
 			BLI_assert(0);

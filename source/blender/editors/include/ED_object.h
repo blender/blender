@@ -304,8 +304,12 @@ void ED_object_check_force_modifiers(
 
 struct Base *ED_object_find_first_by_data_id(struct ViewLayer *view_layer, struct ID *id);
 
-bool ED_object_jump_to_object(struct bContext *C, struct Object *ob);
-bool ED_object_jump_to_bone(struct bContext *C, struct Object *ob, const char *bone_name);
+bool ED_object_jump_to_object(
+        struct bContext *C, struct Object *ob,
+        const bool reveal_hidden);
+bool ED_object_jump_to_bone(
+        struct bContext *C, struct Object *ob, const char *bone_name,
+        const bool reveal_hidden);
 
 /* object_facemap_ops.c */
 void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);
