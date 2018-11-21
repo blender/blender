@@ -140,7 +140,7 @@ class AnnotationDrawingToolsPanel:
             layout.separator()
 
             col = layout.column(align=True)
-            col.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", icon='EDIT', toggle=True)
+            col.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", toggle=True)  # was: icon='EDIT'
 
 
 class GreasePencilStrokeEditPanel:

@@ -976,7 +976,7 @@ size_t BLI_str_partition_ex(
 	return end ? (size_t)(end - str) : strlen(str);
 }
 
-size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
+static size_t BLI_str_format_int_grouped_ex(char src[16], char dst[16], int num_len)
 {
 	char *p_src = src;
 	char *p_dst = dst;
@@ -1027,7 +1027,7 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
 {
 	char src[16];
-	int num_len = sprintf(src, "%"PRIu64"",num);
+	int num_len = sprintf(src, "%"PRIu64"", num);
 
 	return BLI_str_format_int_grouped_ex(src, dst, num_len);
 }

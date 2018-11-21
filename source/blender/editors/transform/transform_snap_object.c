@@ -864,7 +864,7 @@ static bool raycastObjects(
  * \{ */
 
  /* Test BoundBox */
-bool snap_bound_box_check_dist(BoundBox *bb, float lpmat[4][4], float win_size[2], float mval[2], float dist_px_sq)
+static bool snap_bound_box_check_dist(BoundBox *bb, float lpmat[4][4], float win_size[2], float mval[2], float dist_px_sq)
 {
 	/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
 
