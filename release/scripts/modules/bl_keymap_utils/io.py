@@ -267,14 +267,12 @@ def keyconfig_import_from_data(name, keyconfig_data):
 def keyconfig_merge(kc1, kc2):
     """ note: kc1 takes priority over kc2
     """
-    def km_exists_in(km, export_keymaps):
-        for km2, kc in export_keymaps:
-            if km2.name == km.name:
-                return True
-        return False
-
+    kc1_names = {km.name for km in kc1.keymaps}
     merged_keymaps = [(km, kc1) for km in kc1.keymaps]
     if kc1 != kc2:
-        merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not km_exists_in(km, merged_keymaps))
-
+        merged_keymaps.extend(
+            (km, kc2)
+            for km in kc2.keymaps
+            if km.name not in kc1_names
+        )
     return merged_keymaps
