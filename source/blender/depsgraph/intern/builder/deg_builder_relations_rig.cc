@@ -93,8 +93,15 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 	                        DEG_NODE_TYPE_EVAL_POSE,
 	                        rootchan->name,
 	                        DEG_OPCODE_POSE_IK_SOLVER);
+	OperationKey pose_cleanup_key(
+	        &object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_CLEANUP);
 	add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
 	add_relation(init_ik_key, solver_key, "Init IK -> IK Solver");
+	/* Never cleanup before solver is run. */
+	add_relation(solver_key,
+	             pose_cleanup_key,
+	             "IK Solver -> Cleanup",
+	             DEPSREL_FLAG_GODMODE);
 	/* IK target */
 	/* TODO(sergey): This should get handled as part of the constraint code. */
 	if (data->tar != NULL) {
@@ -254,10 +261,17 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
 	                        DEG_NODE_TYPE_EVAL_POSE,
 	                        rootchan->name,
 	                        DEG_OPCODE_POSE_SPLINE_IK_SOLVER);
+	OperationKey pose_cleanup_key(
+	        &object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_CLEANUP);
 	/* Solver depends on initialization. */
 	add_relation(init_ik_key, solver_key, "Init IK -> IK Solver");
+	/* Never cleanup before solver is run. */
+	add_relation(solver_key, pose_cleanup_key, "IK Solver -> Cleanup");
 	/* Attach owner to IK Solver. */
-	add_relation(transforms_key, solver_key, "Spline IK Solver Owner");
+	add_relation(transforms_key,
+	             solver_key,
+	             "Spline IK Solver Owner",
+	             DEPSREL_FLAG_GODMODE);
 	/* Attach path dependency to solver. */
 	if (data->tar != NULL) {
 		/* TODO(sergey): For until we'll store partial matricies in the
