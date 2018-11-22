@@ -87,6 +87,12 @@ def generate(context, space_type):
 
     kmi_unique_args = set()
 
+    def kmi_unique_or_pass(kmi_args):
+        kmi_unique_len = len(kmi_unique_args)
+        kmi_unique_args.add(dict_as_tuple(kmi_args))
+        return kmi_unique_len != len(kmi_unique_args)
+
+
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
     if use_hack_properties:
@@ -124,13 +130,7 @@ def generate(context, space_type):
         del kmi_found
 
     if use_tap_reset:
-        kmi_toolbar_tuple = dict_as_tuple(kmi_toolbar_args)
-        if kmi_toolbar_tuple not in kmi_unique_args:
-            # Used after keymap is setup.
-            kmi_unique_args.add(kmi_toolbar_tuple)
-        else:
-            use_tap_reset = False
-        del kmi_toolbar_tuple
+        use_tap_reset = kmi_unique_or_pass(kmi_toolbar_args)
 
     if use_tap_reset:
         tool_blacklist.add(tap_reset_tool)
@@ -234,11 +234,10 @@ def generate(context, space_type):
                     (kmi_found.idname in {"wm.tool_set_by_name", "WM_OT_tool_set_by_name"})
             ):
                 kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
-                kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
-                kmi.properties.name = item.text
-                item_container[2] = kmi
-                if use_auto_keymap:
-                    kmi_unique_args.add(dict_as_tuple(kmi_args))
+                if kmi_unique_or_pass(kmi_args):
+                    kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
+                    kmi.properties.name = item.text
+                    item_container[2] = kmi
 
         # Test for key_modifier, where alpha key is used as a 'key_modifier'
         # (grease pencil holding 'D' for example).
@@ -262,14 +261,10 @@ def generate(context, space_type):
                 if len(kmi_found_type) == 1:
                     kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
                     del kmi_args["key_modifier"]
-                    kmi_tuple = dict_as_tuple(kmi_args)
-                    if kmi_tuple in kmi_unique_args:
-                        continue
-                    kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
-                    kmi.properties.name = item.text
-                    item_container[2] = kmi
-                    if use_auto_keymap:
-                        kmi_unique_args.add(kmi_tuple)
+                    if kmi_unique_or_pass(kmi_args):
+                        kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
+                        kmi.properties.name = item.text
+                        item_container[2] = kmi
 
         if use_auto_keymap:
             # Map all unmapped keys to numbers,
@@ -284,9 +279,8 @@ def generate(context, space_type):
                 if kmi_exist:
                     continue
                 kmi_type = item.text[0].upper()
-                kmi_tuple = kmi_type_alpha_args_tuple[kmi_type]
-                if kmi_tuple not in kmi_unique_args:
-                    # print(kmi_tuple, item.text)
+                kmi_tuple = kmi_type_alpha_args_tuple.get(kmi_type)
+                if kmi_tuple and kmi_tuple not in kmi_unique_args:
                     kmi_unique_args.add(kmi_tuple)
                     kmi = keymap.keymap_items.new(
                         idname="wm.tool_set_by_name",
@@ -295,7 +289,6 @@ def generate(context, space_type):
                     )
                     kmi.properties.name = item.text
                     item_container[2] = kmi
-                    kmi_unique_args.add(kmi_tuple)
             del kmi_type_alpha_char, kmi_type_alpha_args, kmi_type_alpha_args_tuple
 
             # Free events (last used first).
