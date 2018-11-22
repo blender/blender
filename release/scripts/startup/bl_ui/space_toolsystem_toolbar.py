@@ -279,7 +279,19 @@ class _defs_transform:
 class _defs_view3d_select:
 
     @ToolDef.from_fn
-    def border():
+    def select():
+        def draw_settings(context, layout, tool):
+            pass
+        return dict(
+            text="Select",
+            icon="ops.generic.select",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def box():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("view3d.select_box")
             layout.prop(props, "mode", expand=True)
@@ -960,7 +972,19 @@ class _defs_image_uv_transform:
 class _defs_image_uv_select:
 
     @ToolDef.from_fn
-    def border():
+    def select():
+        def draw_settings(context, layout, tool):
+            pass
+        return dict(
+            text="Select",
+            icon="ops.generic.select",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def box():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("uv.select_box")
             layout.prop(props, "mode", expand=True)
@@ -1064,6 +1088,18 @@ class _defs_gpencil_edit:
             icon="ops.gpencil.edit_bend",
             widget=None,
             keymap=(),
+        )
+
+    @ToolDef.from_fn
+    def select():
+        def draw_settings(context, layout, tool):
+            pass
+        return dict(
+            text="Select",
+            icon="ops.generic.select",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -1220,7 +1256,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     _tools_select = (
         (
-            _defs_image_uv_select.border,
+            _defs_image_uv_select.select,
+            _defs_image_uv_select.box,
             _defs_image_uv_select.circle,
             _defs_image_uv_select.lasso,
         ),
@@ -1301,7 +1338,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     _tools_select = (
         (
-            _defs_view3d_select.border,
+            _defs_view3d_select.select,
+            _defs_view3d_select.box,
             _defs_view3d_select.circle,
             _defs_view3d_select.lasso,
         ),
@@ -1319,6 +1357,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     _tools_gpencil_select = (
         (
+            _defs_gpencil_edit.select,
             _defs_gpencil_edit.box_select,
             _defs_gpencil_edit.circle_select,
             _defs_gpencil_edit.lasso_select,

@@ -814,7 +814,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 			break;
 	}
 
-	return "Select Box";
+	return "Select";
 }
 
 /**
