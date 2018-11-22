@@ -134,7 +134,6 @@ static void gp_draw_stroke_buffer(
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3fvAlpha(ink, ink[3]);
 
-		/* TODO: implement this with a geometry shader to draw one continuous tapered stroke */
 		immBeginAtMost(GPU_PRIM_LINE_STRIP, totpoints);
 
 		for (int i = 0; i < totpoints; i++, pt++) {
@@ -263,8 +262,6 @@ static void gp_draw_stroke_3d(
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor3fvAlpha(ink, ink[3]);
 
-	/* TODO: implement this with a geometry shader to draw one continuous tapered stroke */
-
 	/* draw stroke curve */
 	GPU_line_width(max_ff(curpressure * thickness, 1.0f));
 	immBeginAtMost(GPU_PRIM_LINE_STRIP, totpoints + cyclic_add);
@@ -336,8 +333,6 @@ static void gp_draw_stroke_2d(
 	if ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) {
 		scalefac = 0.001f;
 	}
-
-	/* TODO: fancy++ with the magic of shaders */
 
 	/* tessellation code - draw stroke as series of connected quads (triangle strips in fact) with connection
 	 * edges rotated to minimize shrinking artifacts, and rounded endcaps
