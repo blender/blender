@@ -2932,7 +2932,7 @@ static void OBJECT_draw_scene(void *vedata)
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_wire) ||
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_outline) ||
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.non_meshes) ||
-		!DRW_pass_is_empty(stl->g_data->sgl_ghost.image_empties) ||
+	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.image_empties) ||
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_axes))
 	{
 		if (DRW_state_is_fbo()) {

@@ -1095,7 +1095,7 @@ void armature_deform_verts(
 	}
 
 	if ((armOb->pose->flag & POSE_RECALC) != 0) {
-		printf("ERROR! Trying to evaluate influence of armature '%s' which needs Pose recalc!", armOb->id.name);
+		printf("ERROR! Trying to evaluate influence of armature '%s' which needs Pose recalc!\n", armOb->id.name);
 		BLI_assert(0);
 	}
 
