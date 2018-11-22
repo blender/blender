@@ -55,6 +55,7 @@
 #include "BKE_main.h"
 
 #include "BLO_undofile.h"
+#include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
 #include "DEG_depsgraph.h"
@@ -81,7 +82,10 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu, bContext *C)
 		success = (BKE_blendfile_read(C, mfu->filename, NULL, 0) != BKE_BLENDFILE_READ_FAIL);
 	}
 	else {
-		success = BKE_blendfile_read_from_memfile(C, &mfu->memfile, NULL, 0);
+		success = BKE_blendfile_read_from_memfile(
+		        C, &mfu->memfile,
+		        &(const struct BlendFileReadParams){0},
+		        NULL);
 	}
 
 	/* Restore, bmain has been re-allocated. */

@@ -114,11 +114,12 @@ static bool wm_scene_is_visible(wmWindowManager *wm, Scene *scene)
  */
 static void setup_app_data(
         bContext *C, BlendFileData *bfd,
-        const char *filepath, ReportList *reports)
+        const char *filepath,
+        const bool is_startup,
+        ReportList *reports)
 {
 	Main *bmain = G_MAIN;
 	Scene *curscene = NULL;
-	const bool is_startup = (bfd->filename[0] == '\0');
 	const bool recover = (G.fileflags & G_FILE_RECOVER) != 0;
 	enum {
 		LOAD_UI = 1,
@@ -314,7 +315,7 @@ static void setup_app_data(
 	bmain->recovered = 0;
 
 	/* startup.blend or recovered startup */
-	if (bfd->filename[0] == 0) {
+	if (is_startup) {
 		bmain->name[0] = '\0';
 	}
 	else if (recover && G.relbase_valid) {
@@ -376,7 +377,8 @@ static int handle_subversion_warning(Main *main, ReportList *reports)
 
 int BKE_blendfile_read(
         bContext *C, const char *filepath,
-        ReportList *reports, int skip_flags)
+        const struct BlendFileReadParams *params,
+        ReportList *reports)
 {
 	BlendFileData *bfd;
 	int retval = BKE_BLENDFILE_READ_OK;
@@ -386,7 +388,7 @@ int BKE_blendfile_read(
 		printf("Read blend: %s\n", filepath);
 	}
 
-	bfd = BLO_read_from_file(filepath, reports, skip_flags);
+	bfd = BLO_read_from_file(filepath, params->skip_flags, reports);
 	if (bfd) {
 		if (bfd->user) {
 			retval = BKE_BLENDFILE_READ_OK_USERPREFS;
@@ -399,7 +401,7 @@ int BKE_blendfile_read(
 			retval = BKE_BLENDFILE_READ_FAIL;
 		}
 		else {
-			setup_app_data(C, bfd, filepath, reports);
+			setup_app_data(C, bfd, filepath, params->is_startup, reports);
 		}
 	}
 	else
@@ -409,16 +411,17 @@ int BKE_blendfile_read(
 }
 
 bool BKE_blendfile_read_from_memory(
-        bContext *C, const void *filebuf, int filelength,
-        ReportList *reports, int skip_flags, bool update_defaults)
+        bContext *C, const void *filebuf, int filelength, bool update_defaults,
+        const struct BlendFileReadParams *params,
+        ReportList *reports)
 {
 	BlendFileData *bfd;
 
-	bfd = BLO_read_from_memory(filebuf, filelength, reports, skip_flags);
+	bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
 	if (bfd) {
 		if (update_defaults)
 			BLO_update_defaults_startup_blend(bfd->main, NULL);
-		setup_app_data(C, bfd, "<memory2>", reports);
+		setup_app_data(C, bfd, "<memory2>", params->is_startup, reports);
 	}
 	else {
 		BKE_reports_prepend(reports, "Loading failed: ");
@@ -430,12 +433,13 @@ bool BKE_blendfile_read_from_memory(
 /* memfile is the undo buffer */
 bool BKE_blendfile_read_from_memfile(
         bContext *C, struct MemFile *memfile,
-        ReportList *reports, int skip_flags)
+        const struct BlendFileReadParams *params,
+        ReportList *reports)
 {
 	Main *bmain = CTX_data_main(C);
 	BlendFileData *bfd;
 
-	bfd = BLO_read_from_memfile(bmain, BKE_main_blendfile_path(bmain), memfile, reports, skip_flags);
+	bfd = BLO_read_from_memfile(bmain, BKE_main_blendfile_path(bmain), memfile, params->skip_flags, reports);
 	if (bfd) {
 		/* remove the unused screens and wm */
 		while (bfd->main->wm.first)
@@ -443,7 +447,7 @@ bool BKE_blendfile_read_from_memfile(
 		while (bfd->main->screen.first)
 			BKE_libblock_free(bfd->main, bfd->main->screen.first);
 
-		setup_app_data(C, bfd, "<memory1>", reports);
+		setup_app_data(C, bfd, "<memory1>", params->is_startup, reports);
 	}
 	else {
 		BKE_reports_prepend(reports, "Loading failed: ");
@@ -484,7 +488,7 @@ UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
 	BlendFileData *bfd;
 	UserDef *userdef = NULL;
 
-	bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF);
+	bfd = BLO_read_from_file(filepath, BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF, reports);
 	if (bfd) {
 		if (bfd->user) {
 			userdef = bfd->user;
@@ -504,7 +508,10 @@ UserDef *BKE_blendfile_userdef_read_from_memory(
 	BlendFileData *bfd;
 	UserDef *userdef = NULL;
 
-	bfd = BLO_read_from_memory(filebuf, filelength, reports, BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF);
+	bfd = BLO_read_from_memory(
+	        filebuf, filelength,
+	        BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF,
+	        reports);
 	if (bfd) {
 		if (bfd->user) {
 			userdef = bfd->user;
@@ -567,10 +574,10 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
 	WorkspaceConfigFileData *workspace_config = NULL;
 
 	if (filepath) {
-		bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_USERDEF);
+		bfd = BLO_read_from_file(filepath, BLO_READ_SKIP_USERDEF, reports);
 	}
 	else {
-		bfd = BLO_read_from_memory(filebuf, filelength, reports, BLO_READ_SKIP_USERDEF);
+		bfd = BLO_read_from_memory(filebuf, filelength, BLO_READ_SKIP_USERDEF, reports);
 	}
 
 	if (bfd) {

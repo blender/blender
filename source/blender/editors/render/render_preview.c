@@ -207,7 +207,7 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
 	BlendFileData *bfd;
 
 	G.fileflags |= G_FILE_NO_UI;
-	bfd = BLO_read_from_memory(blend, blend_size, NULL, BLO_READ_SKIP_NONE);
+	bfd = BLO_read_from_memory(blend, blend_size, BLO_READ_SKIP_NONE, NULL);
 	if (bfd) {
 		bmain = bfd->main;
 

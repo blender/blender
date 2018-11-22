@@ -34,6 +34,7 @@ struct Main;
 struct MemFile;
 struct ReportList;
 struct UserDef;
+struct BlendFileReadParams;
 
 enum {
 	BKE_BLENDFILE_READ_FAIL             = 0, /* no load */
@@ -43,13 +44,16 @@ enum {
 
 int BKE_blendfile_read(
         struct bContext *C, const char *filepath,
-        struct ReportList *reports, int skip_flag);
+        const struct BlendFileReadParams *params,
+        struct ReportList *reports);
 bool BKE_blendfile_read_from_memory(
-        struct bContext *C, const void *filebuf, int filelength,
-        struct ReportList *reports, int skip_flag, bool update_defaults);
+        struct bContext *C, const void *filebuf, int filelength, bool update_defaults,
+        const struct BlendFileReadParams *params,
+        struct ReportList *reports);
 bool BKE_blendfile_read_from_memfile(
         struct bContext *C, struct MemFile *memfile,
-        struct ReportList *reports, int skip_flag);
+        const struct BlendFileReadParams *params,
+        struct ReportList *reports);
 void BKE_blendfile_read_make_empty(struct bContext *C);
 
 struct UserDef *BKE_blendfile_userdef_read(

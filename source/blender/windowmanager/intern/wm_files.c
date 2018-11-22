@@ -594,7 +594,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		/* confusing this global... */
 		G.relbase_valid = 1;
-		retval = BKE_blendfile_read(C, filepath, reports, 0);
+		retval = BKE_blendfile_read(
+		        C, filepath,
+		        &(const struct BlendFileReadParams){0},
+		        reports);
 
 		/* BKE_file_read sets new Main into context. */
 		Main *bmain = CTX_data_main(C);
@@ -865,7 +868,13 @@ int wm_homefile_read(
 
 	if (!use_factory_settings || (filepath_startup[0] != '\0')) {
 		if (BLI_access(filepath_startup, R_OK) == 0) {
-			success = (BKE_blendfile_read(C, filepath_startup, NULL, skip_flags) != BKE_BLENDFILE_READ_FAIL);
+			success = BKE_blendfile_read(
+			        C, filepath_startup,
+			        &(const struct BlendFileReadParams){
+			            .is_startup = true,
+			            .skip_flags = skip_flags,
+			        },
+			        NULL) != BKE_BLENDFILE_READ_FAIL;
 		}
 		if (BLI_listbase_is_empty(&U.themes)) {
 			if (G.debug & G_DEBUG)
@@ -884,8 +893,12 @@ int wm_homefile_read(
 
 	if (success == false) {
 		success = BKE_blendfile_read_from_memory(
-		        C, datatoc_startup_blend, datatoc_startup_blend_size,
-		        NULL, skip_flags, true);
+		        C, datatoc_startup_blend, datatoc_startup_blend_size, true,
+		        &(const struct BlendFileReadParams){
+		            .is_startup = true,
+		            .skip_flags = skip_flags,
+		        },
+		        NULL);
 		if (success) {
 			if (use_userdef) {
 				if ((skip_flags & BLO_READ_SKIP_USERDEF) == 0) {
