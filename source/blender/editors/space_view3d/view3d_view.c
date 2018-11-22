@@ -893,11 +893,33 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
 
 }
 
+eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, const Object *obact)
+{
+	if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+		if ((obact->mode & OB_MODE_WEIGHT_PAINT) &&
+		    BKE_object_pose_armature_get((Object *)obact))
+		{
+			return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
+		}
+		return VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK;
+	}
+	return VIEW3D_SELECT_FILTER_NOP;
+}
+
 /** Implement #VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK. */
 static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
 {
 	const Object *obact = user_data;
 	return BKE_object_is_mode_compat(ob, obact->mode);
+}
+
+/** Implement #VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK for special case when
+ * we want to select pose bones (this doesn't switch modes). */
+static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void *user_data)
+{
+	const Object *ob_pose = user_data;
+	return ((DEG_get_original_object(ob) == ob_pose) ||
+	        BKE_object_is_mode_compat(ob, OB_MODE_WEIGHT_PAINT));
 }
 
 /**
@@ -970,6 +992,16 @@ int view3d_opengl_select(
 				object_filter.fn = drw_select_filter_object_mode_lock;
 				object_filter.user_data = obact;
 			}
+			break;
+		}
+		case VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK:
+		{
+			Object *obact = OBACT(vc->view_layer);
+			BLI_assert(obact && (obact->mode & OB_MODE_WEIGHT_PAINT));
+			Object *ob_pose = BKE_object_pose_armature_get(obact);
+
+			object_filter.fn = drw_select_filter_object_mode_lock_for_weight_paint;
+			object_filter.user_data = ob_pose;
 			break;
 		}
 		case VIEW3D_SELECT_FILTER_NOP:

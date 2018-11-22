@@ -1397,7 +1397,9 @@ finally:
 	view3d_opengl_select_cache_end();
 
 	if (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-		const bool is_pose_mode = (vc->obact && vc->obact->mode & OB_MODE_POSE);
+		const bool is_pose_mode = (
+		        (vc->obact && vc->obact->mode & OB_MODE_POSE) ||
+		        (select_filter == VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK));
 		struct {
 			uint data[4];
 		} *buffer4 = (void *)buffer;
@@ -1648,9 +1650,7 @@ static bool ed_object_select_pick(
 		// TIMEIT_START(select_time);
 
 		/* if objects have posemode set, the bones are in the same selection buffer */
-		const eV3DSelectObjectFilter select_filter = (
-		        (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
-		        VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK : VIEW3D_SELECT_FILTER_NOP);
+		const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(scene, vc.obact);
 		hits = mixed_bones_object_selectbuffer(
 		        &vc, buffer, mval,
 		        true, enumerate, select_filter,
@@ -1668,20 +1668,6 @@ static bool ed_object_select_pick(
 			}
 			else {
 				basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, has_bones, do_nearest);
-			}
-
-			if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-				if (is_obedit == false) {
-					if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
-						if (object_mode == OB_MODE_OBJECT) {
-							struct Main *bmain = CTX_data_main(C);
-							ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
-						}
-						if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
-							basact = NULL;
-						}
-					}
-				}
 			}
 
 			if (has_bones && basact) {
@@ -1769,6 +1755,20 @@ static bool ed_object_select_pick(
 				/* prevent bone selecting to pass on to object selecting */
 				if (basact == BASACT(view_layer))
 					basact = NULL;
+			}
+
+			if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+				if (is_obedit == false) {
+					if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
+						if (object_mode == OB_MODE_OBJECT) {
+							struct Main *bmain = CTX_data_main(C);
+							ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+						}
+						if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
+							basact = NULL;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -2373,9 +2373,7 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 
 	/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
 	uint *vbuffer = MEM_mallocN(4 * (totobj + MAXPICKELEMS) * sizeof(uint[4]), "selection buffer");
-	const eV3DSelectObjectFilter select_filter = (
-	        (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
-	        VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK : VIEW3D_SELECT_FILTER_NOP);
+	const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene, vc->obact);
 	const int hits = view3d_opengl_select(
 	        vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect,
 	        VIEW3D_SELECT_ALL, select_filter);
@@ -2451,9 +2449,7 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 
 	/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
 	uint *vbuffer = MEM_mallocN((totobj + MAXPICKELEMS) * sizeof(uint[4]), "selection buffer");
-	const eV3DSelectObjectFilter select_filter = (
-	        (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
-	        VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK : VIEW3D_SELECT_FILTER_NOP);
+	const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(vc->scene, vc->obact);
 	const int hits = view3d_opengl_select(
 	        vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect,
 	        VIEW3D_SELECT_ALL, select_filter);

@@ -383,11 +383,15 @@ typedef enum {
 } eV3DSelectMode;
 
 typedef enum {
-	/* Don't exclude anything. */
+	/** Don't exclude anything. */
 	VIEW3D_SELECT_FILTER_NOP = 0,
-	/* Don't select objects outside the current mode. */
+	/** Don't select objects outside the current mode. */
 	VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK = 1,
+	/** A version of #VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK that allows pose-bone selection. */
+	VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK = 2,
 } eV3DSelectObjectFilter;
+
+eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const struct Scene *scene, const struct Object *obact);
 
 void view3d_opengl_select_cache_begin(void);
 void view3d_opengl_select_cache_end(void);
