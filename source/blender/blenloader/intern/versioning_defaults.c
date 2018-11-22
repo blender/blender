@@ -48,6 +48,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -253,6 +254,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			/* create new hard brush (only create one, but need ToolSettings) */
 			br = (Brush *)BKE_libblock_find_name(bmain, ID_BR, "Eraser Hard");
 			if (!br) {
+				Paint *paint = &ts->gp_paint->paint;
+				Brush *old_brush = paint->brush;
+
 				br = BKE_brush_add_gpencil(bmain, ts, "Eraser Hard");
 				br->size = 30.0f;
 				br->gpencil_settings->draw_strength = 1.0f;
@@ -262,6 +266,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 				br->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
 				br->gpencil_settings->era_strength_f = 100.0f;
 				br->gpencil_settings->era_thickness_f = 50.0f;
+
+				/* back to default brush */
+				BKE_paint_brush_set(paint, old_brush);
 			}
 		}
 	}
