@@ -77,6 +77,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         elif probe.type == 'PLANAR':
             col = layout.column()
             col.prop(probe, "influence_distance", text="Distance")
+            col.prop(probe, "falloff")
         else:
             col = layout.column()
             col.prop(probe, "influence_type")
@@ -91,7 +92,10 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         col = layout.column()
         sub = col.column()
-        sub.prop(probe, "clip_start", text="Clipping Start")
+        if probe.type != 'PLANAR':
+            sub.prop(probe, "clip_start", text="Clipping Start")
+        else:
+            sub.prop(probe, "clip_start", text="Clipping Offset")
 
         if probe.type != 'PLANAR':
             sub.prop(probe, "clip_end", text="End")
