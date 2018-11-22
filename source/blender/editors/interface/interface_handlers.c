@@ -3882,6 +3882,15 @@ static bool ui_but_is_mouse_over_icon_extra(const ARegion *region, uiBut *but, c
 
 static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+#ifdef USE_DRAG_TOGGLE
+	{
+		int retval;
+		if (ui_do_but_ANY_drag_toggle(C, but, data, event, &retval)) {
+			return retval;
+		}
+	}
+#endif
+
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		const int rna_type = but->rnaprop ? RNA_property_type(but->rnaprop) : 0;
 
@@ -3894,7 +3903,7 @@ static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			return WM_UI_HANDLER_BREAK;
 		}
-		else if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && (event->val == KM_CLICK)) {
+		else if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && (event->val == KM_PRESS)) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}

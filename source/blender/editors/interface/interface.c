@@ -1829,7 +1829,7 @@ bool ui_but_is_float(const uiBut *but)
 
 bool ui_but_is_bool(const uiBut *but)
 {
-	if (ELEM(but->type, UI_BTYPE_TOGGLE, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE, UI_BTYPE_ICON_TOGGLE_N))
+	if (ELEM(but->type, UI_BTYPE_TOGGLE, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_TAB))
 		return true;
 
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
