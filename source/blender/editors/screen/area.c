@@ -1115,10 +1115,6 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 				if (regiontype == RGN_TYPE_HEADER)
 					return 1;
 			}
-			else if (spacetype == SPACE_SEQ) {
-				if (regiontype == RGN_TYPE_PREVIEW)
-					return 1;
-			}
 		}
 	}
 
