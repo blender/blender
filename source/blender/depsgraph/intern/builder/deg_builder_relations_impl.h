@@ -49,14 +49,16 @@ template <typename KeyFrom, typename KeyTo>
 DepsRelation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
                                                      const KeyTo &key_to,
                                                      const char *description,
-                                                     bool check_unique)
+                                                     bool check_unique,
+                                                     int flags)
 {
 	DepsNode *node_from = get_node(key_from);
 	DepsNode *node_to = get_node(key_to);
 	OperationDepsNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
 	OperationDepsNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
 	if (op_from && op_to) {
-		return add_operation_relation(op_from, op_to, description, check_unique);
+		return add_operation_relation(
+		        op_from, op_to, description, check_unique, flags);
 	}
 	else {
 		if (!op_from) {
@@ -81,18 +83,31 @@ DepsRelation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
 	return NULL;
 }
 
+template <typename KeyFrom, typename KeyTo>
+DepsRelation *DepsgraphRelationBuilder::add_relation(
+        const KeyFrom& key_from,
+        const KeyTo& key_to,
+        const char *description,
+        eDepsRelation_Flag flag)
+{
+	return add_relation(
+	        key_from, key_to, description, false, static_cast<int>(flag));
+}
+
 template <typename KeyTo>
 DepsRelation *DepsgraphRelationBuilder::add_relation(
         const TimeSourceKey &key_from,
         const KeyTo &key_to,
         const char *description,
-        bool check_unique)
+        bool check_unique,
+        int flags)
 {
 	TimeSourceDepsNode *time_from = get_node(key_from);
 	DepsNode *node_to = get_node(key_to);
 	OperationDepsNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
 	if (time_from != NULL && op_to != NULL) {
-		return add_time_relation(time_from, op_to, description, check_unique);
+		return add_time_relation(
+		        time_from, op_to, description, check_unique, flags);
 	}
 	return NULL;
 }
@@ -102,13 +117,15 @@ DepsRelation *DepsgraphRelationBuilder::add_node_handle_relation(
         const KeyType &key_from,
         const DepsNodeHandle *handle,
         const char *description,
-        bool check_unique)
+        bool check_unique,
+        int flags)
 {
 	DepsNode *node_from = get_node(key_from);
 	OperationDepsNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
 	OperationDepsNode *op_to = handle->node->get_entry_operation();
 	if (op_from != NULL && op_to != NULL) {
-		return add_operation_relation(op_from, op_to, description, check_unique);
+		return add_operation_relation(
+		        op_from, op_to, description, check_unique, flags);
 	}
 	else {
 		if (!op_from) {

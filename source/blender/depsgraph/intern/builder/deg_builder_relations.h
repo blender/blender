@@ -44,6 +44,7 @@
 #include "BLI_string.h"
 
 #include "intern/builder/deg_builder_map.h"
+#include "intern/depsgraph.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
@@ -186,19 +187,28 @@ struct DepsgraphRelationBuilder
 	DepsRelation *add_relation(const KeyFrom& key_from,
 	                           const KeyTo& key_to,
 	                           const char *description,
-	                           bool check_unique = false);
+	                           bool check_unique = false,
+	                           int flags = 0);
+
+	template <typename KeyFrom, typename KeyTo>
+	DepsRelation *add_relation(const KeyFrom& key_from,
+	                           const KeyTo& key_to,
+	                           const char *description,
+	                           eDepsRelation_Flag flag);
 
 	template <typename KeyTo>
 	DepsRelation *add_relation(const TimeSourceKey& key_from,
 	                           const KeyTo& key_to,
 	                           const char *description,
-	                           bool check_unique = false);
+	                           bool check_unique = false,
+	                           int flags = 0);
 
 	template <typename KeyType>
 	DepsRelation *add_node_handle_relation(const KeyType& key_from,
 	                                       const DepsNodeHandle *handle,
 	                                       const char *description,
-	                                       bool check_unique = false);
+	                                       bool check_unique = false,
+	                                       int flags = 0);
 
 	void add_customdata_mask(const ComponentKey &key, uint64_t mask);
 	void add_special_eval_flag(ID *object, uint32_t flag);
@@ -306,11 +316,13 @@ protected:
 	DepsRelation *add_time_relation(TimeSourceDepsNode *timesrc,
 	                                DepsNode *node_to,
 	                                const char *description,
-	                                bool check_unique = false);
+	                                bool check_unique = false,
+	                                int flags = 0);
 	DepsRelation *add_operation_relation(OperationDepsNode *node_from,
 	                                     OperationDepsNode *node_to,
 	                                     const char *description,
-	                                     bool check_unique = false);
+	                                     bool check_unique = false,
+	                                     int flags = 0);
 
 	template <typename KeyType>
 	DepsNodeHandle create_node_handle(const KeyType& key,

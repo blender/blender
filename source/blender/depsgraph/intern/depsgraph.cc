@@ -393,34 +393,40 @@ void Depsgraph::clear_id_nodes()
 DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
                                           OperationDepsNode *to,
                                           const char *description,
-                                          bool check_unique)
+                                          bool check_unique,
+                                          int flags)
 {
 	DepsRelation *rel = NULL;
 	if (check_unique) {
 		rel = check_nodes_connected(from, to, description);
 	}
 	if (rel != NULL) {
+		rel->flag |= flags;
 		return rel;
 	}
 	/* Create new relation, and add it to the graph. */
 	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel->flag |= flags;
 	return rel;
 }
 
 /* Add new relation between two nodes */
 DepsRelation *Depsgraph::add_new_relation(DepsNode *from, DepsNode *to,
                                           const char *description,
-                                          bool check_unique)
+                                          bool check_unique,
+                                          int flags)
 {
 	DepsRelation *rel = NULL;
 	if (check_unique) {
 		rel = check_nodes_connected(from, to, description);
 	}
 	if (rel != NULL) {
+		rel->flag |= flags;
 		return rel;
 	}
 	/* Create new relation, and add it to the graph. */
 	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel->flag |= flags;
 	return rel;
 }
 

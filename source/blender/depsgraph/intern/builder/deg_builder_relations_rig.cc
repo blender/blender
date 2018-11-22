@@ -341,8 +341,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	 * Unsolved Issues:
 	 * - Care is needed to ensure that multi-headed trees work out the same as
 	 *   in ik-tree building
-	 * - Animated chain-lengths are a problem...
-	 */
+	 * - Animated chain-lengths are a problem. */
 	RootPChanMap root_map;
 	bool pose_depends_on_local_transform = false;
 	LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
@@ -359,8 +358,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 					break;
 
 				/* Constraints which needs world's matrix for transform.
-				 * TODO(sergey): More constraints here?
-				 */
+				 * TODO(sergey): More constraints here? */
 				case CONSTRAINT_TYPE_ROTLIKE:
 				case CONSTRAINT_TYPE_SIZELIKE:
 				case CONSTRAINT_TYPE_LOCLIKE:
@@ -377,15 +375,13 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	//root_map.print_debug();
 	if (pose_depends_on_local_transform) {
 		/* TODO(sergey): Once partial updates are possible use relation between
-		 * object transform and solver itself in it's build function.
-		 */
+		 * object transform and solver itself in it's build function. */
 		ComponentKey pose_key(&object->id, DEG_NODE_TYPE_EVAL_POSE);
 		ComponentKey local_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(local_transform_key, pose_key, "Local Transforms");
 	}
 	/* Links between operations for each bone. */
 	LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-		DepsRelation *relation;
 		OperationKey bone_local_key(&object->id,
 		                            DEG_NODE_TYPE_BONE,
 		                            pchan->name,
@@ -404,18 +400,17 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 		                           DEG_OPCODE_BONE_DONE);
 		pchan->flag &= ~POSE_DONE;
 		/* Pose init to bone local. */
-		relation = add_relation(
-		        pose_init_key, bone_local_key, "Pose Init - Bone Local");
-		relation->flag |= DEPSREL_FLAG_GODMODE;
+		add_relation(pose_init_key,
+		             bone_local_key,
+		             "Pose Init - Bone Local",
+		             DEPSREL_FLAG_GODMODE);
 		/* Local to pose parenting operation. */
 		add_relation(bone_local_key, bone_pose_key, "Bone Local - Bone Pose");
 		/* Parent relation. */
 		if (pchan->parent != NULL) {
 			eDepsOperation_Code parent_key_opcode;
-
 			/* NOTE: this difference in handling allows us to prevent lockups
-			 * while ensuring correct poses for separate chains.
-			 */
+			 * while ensuring correct poses for separate chains. */
 			if (root_map.has_common_root(pchan->name, pchan->parent->name)) {
 				parent_key_opcode = DEG_OPCODE_BONE_READY;
 			}
@@ -449,8 +444,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			add_relation(bone_pose_key, constraints_key, "Constraints Stack");
 			/* Constraints -> ready/ */
 			/* TODO(sergey): When constraint stack is exploded, this step should
-			 * occur before the first IK solver.
-			 */
+			 * occur before the first IK solver.  */
 			add_relation(
 			        constraints_key, bone_ready_key, "Constraints -> Ready");
 		}
@@ -461,12 +455,10 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 		/* Bone ready -> Bone done.
 		 * NOTE: For bones without IK, this is all that's needed.
 		 *       For IK chains however, an additional rel is created from IK
-		 *       to done, with transitive reduction removing this one..
-		 */
+		 *       to done, with transitive reduction removing this one. */
 		add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
-		/* assume that all bones must be done for the pose to be ready
-		 * (for deformers)
-		 */
+		/* Assume that all bones must be done for the pose to be ready
+		 * (for deformers). */
 		add_relation(bone_done_key, pose_done_key, "PoseEval Result-Bone Link");
 		add_relation(bone_done_key, pose_cleanup_key, "Cleanup dependency");
 		/* Custom shape. */

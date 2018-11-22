@@ -304,10 +304,12 @@ DepsRelation *DepsgraphRelationBuilder::add_time_relation(
         TimeSourceDepsNode *timesrc,
         DepsNode *node_to,
         const char *description,
-        bool check_unique)
+        bool check_unique,
+        int flags)
 {
 	if (timesrc && node_to) {
-		return graph_->add_new_relation(timesrc, node_to, description, check_unique);
+		return graph_->add_new_relation(
+		        timesrc, node_to, description, check_unique, flags);
 	}
 	else {
 		DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
@@ -323,13 +325,15 @@ DepsRelation *DepsgraphRelationBuilder::add_operation_relation(
         OperationDepsNode *node_from,
         OperationDepsNode *node_to,
         const char *description,
-        bool check_unique)
+        bool check_unique,
+        int flags)
 {
 	if (node_from && node_to) {
 		return graph_->add_new_relation(node_from,
 		                                node_to,
 		                                description,
-		                                check_unique);
+		                                check_unique,
+		                                flags);
 	}
 	else {
 		DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
@@ -2499,10 +2503,10 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 				OperationKey data_copy_on_write_key(object_data_id,
 				                                    DEG_NODE_TYPE_COPY_ON_WRITE,
 				                                    DEG_OPCODE_COPY_ON_WRITE);
-				DepsRelation *rel = add_relation(data_copy_on_write_key,
-				                                 copy_on_write_key,
-				                                 "Eval Order");
-				rel->flag |= DEPSREL_FLAG_GODMODE;
+				add_relation(data_copy_on_write_key,
+				             copy_on_write_key,
+				             "Eval Order",
+				             DEPSREL_FLAG_GODMODE);
 			}
 		}
 		else {

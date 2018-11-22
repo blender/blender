@@ -141,12 +141,14 @@ struct Depsgraph {
 	DepsRelation *add_new_relation(OperationDepsNode *from,
 	                               OperationDepsNode *to,
 	                               const char *description,
-	                               bool check_unique = false);
+	                               bool check_unique = false,
+	                               int flags = 0);
 
 	DepsRelation *add_new_relation(DepsNode *from,
 	                               DepsNode *to,
 	                               const char *description,
-	                               bool check_unique = false);
+	                               bool check_unique = false,
+	                               int flags = 0);
 
 	/* Check whether two nodes are connected by relation with given
 	 * description. Description might be NULL to check ANY relation between
