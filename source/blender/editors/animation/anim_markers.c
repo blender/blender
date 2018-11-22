@@ -416,6 +416,7 @@ static void draw_marker(
 		else {
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.38f);
 		}
+		immUniform1i("colors_len", 0);  /* "simple" mode */
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
 
