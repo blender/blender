@@ -58,6 +58,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
@@ -71,6 +72,7 @@
 #include "WM_message.h"
 #include "WM_toolsystem.h"
 
+#include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -1259,6 +1261,21 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ED_object_wpaintmode_enter_ex(bmain, depsgraph, wm, scene, ob);
 		BKE_paint_toolslots_brush_validate(bmain, &ts->wpaint->paint);
+	}
+
+	/* When locked, it's almost impossible to select the pose then the object to enter weight paint mode.
+	 * In this case move our pose object in/out of pose mode.
+	 * This is in fits with the convention of selecting multiple objects and entering a mode. */
+	if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+		Object *ob_arm = modifiers_isDeformedByArmature(ob);
+		if (ob_arm && (ob_arm->base_flag & BASE_SELECTED)) {
+			if (ob_arm->mode & OB_MODE_POSE) {
+				ED_object_posemode_exit_ex(bmain, ob_arm);
+			}
+			else {
+				ED_object_posemode_enter_ex(bmain, ob_arm);
+			}
+		}
 	}
 
 	/* Weightpaint works by overriding colors in mesh,
