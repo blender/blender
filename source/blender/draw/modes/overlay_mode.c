@@ -279,11 +279,13 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			else if (is_flat_object_viewed_from_side) {
 				/* Avoid losing flat objects when in ortho views (see T56549) */
 				struct GPUBatch *geom = DRW_cache_object_wire_outline_get(ob);
-				GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-				shgrp = DRW_shgroup_create(sh, psl->flat_wireframe_pass);
-				DRW_shgroup_stencil_mask(shgrp, stencil_mask);
-				DRW_shgroup_uniform_vec4(shgrp, "color", ts.colorWire, 1);
-				DRW_shgroup_call_object_add(shgrp, geom, ob);
+				if (geom) {
+					GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+					shgrp = DRW_shgroup_create(sh, psl->flat_wireframe_pass);
+					DRW_shgroup_stencil_mask(shgrp, stencil_mask);
+					DRW_shgroup_uniform_vec4(shgrp, "color", ts.colorWire, 1);
+					DRW_shgroup_call_object_add(shgrp, geom, ob);
+				}
 			}
 			else {
 				int tri_count;
