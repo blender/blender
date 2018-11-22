@@ -608,7 +608,7 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph,
 	}
 
 	pose_pchan_index_create(pose);
-	armature_cached_bbone_deformation_free_data(object);
+	BKE_armature_cached_bbone_deformation_free_data(object);
 }
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
@@ -754,7 +754,7 @@ static void pose_eval_done_common(struct Depsgraph *depsgraph, Object *object)
 	bPose *pose = object->pose;
 	UNUSED_VARS_NDEBUG(pose);
 	BLI_assert(pose != NULL);
-	armature_cached_bbone_deformation_update(object);
+	BKE_armature_cached_bbone_deformation_update(object);
 	BKE_object_eval_boundbox(depsgraph, object);
 }
 static void pose_eval_cleanup_common(Object *object)
@@ -796,7 +796,7 @@ void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph, Object *object)
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
 	pose_pchan_index_create(object->pose);
-	armature_cached_bbone_deformation_free_data(object);
+	BKE_armature_cached_bbone_deformation_free_data(object);
 }
 
 void BKE_pose_eval_proxy_done(struct Depsgraph *depsgraph, Object *object)

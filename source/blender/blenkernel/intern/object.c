@@ -458,7 +458,7 @@ void BKE_object_free_derived_caches(Object *ob)
 
 	object_update_from_subsurf_ccg(ob);
 	BKE_object_free_derived_mesh_caches(ob);
-	armature_cached_bbone_deformation_free(ob);
+	BKE_armature_cached_bbone_deformation_free(ob);
 
 	if (ob->runtime.mesh_eval != NULL) {
 		Mesh *mesh_eval = ob->runtime.mesh_eval;

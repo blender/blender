@@ -280,11 +280,11 @@ void BKE_pose_eval_proxy_copy_bone(
  * used by armature_deform_verts().
  */
 struct ObjectBBoneDeform;
-struct ObjectBBoneDeform * armature_cached_bbone_deformation_get(
+struct ObjectBBoneDeform * BKE_armature_cached_bbone_deformation_get(
         struct Object *object);
-void armature_cached_bbone_deformation_free_data(struct Object *object);
-void armature_cached_bbone_deformation_free(struct Object *object);
-void armature_cached_bbone_deformation_update(struct Object *object);
+void BKE_armature_cached_bbone_deformation_free_data(struct Object *object);
+void BKE_armature_cached_bbone_deformation_free(struct Object *object);
+void BKE_armature_cached_bbone_deformation_update(struct Object *object);
 
 #ifdef __cplusplus
 }
