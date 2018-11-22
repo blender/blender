@@ -370,6 +370,12 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, float edge_thick
 void ED_screen_draw_edges(wmWindow *win)
 {
 	bScreen *screen = WM_window_get_active_screen(win);
+	screen->do_draw = false;
+
+	if (screen->state == SCREENFULL) {
+		return;
+	}
+
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
 	float col[4], corner_scale, edge_thickness;
@@ -421,8 +427,6 @@ void ED_screen_draw_edges(wmWindow *win)
 	}
 
 	glDisable(GL_SCISSOR_TEST);
-
-	screen->do_draw = false;
 }
 
 /**
