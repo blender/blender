@@ -1113,7 +1113,7 @@ void armature_deform_verts(
 	if (bbone_deform == NULL || bbone_deform->pdef_info_array == NULL) {
 		fprintf(stderr,
 		        "Armature does not have bbone cache %s, "
-		        "usually happens due to a dependency cycle.",
+		        "usually happens due to a dependency cycle.\n",
 		        armOb->id.name + 2);
 		return;
 	}
