@@ -1789,7 +1789,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Un-Mute Strips";
+	ot->name = "Unmute Strips";
 	ot->idname = "SEQUENCER_OT_unmute";
 	ot->description = "Unmute (un)selected strips";
 
@@ -1858,7 +1858,7 @@ static int sequencer_unlock_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "UnLock Strips";
+	ot->name = "Unlock Strips";
 	ot->idname = "SEQUENCER_OT_unlock";
 	ot->description = "Unlock the active strip so that it can't be transformed";
 

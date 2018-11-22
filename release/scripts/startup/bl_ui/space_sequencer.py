@@ -483,7 +483,7 @@ class SEQUENCER_MT_strip_lock_mute(Menu):
 
         layout.operator("sequencer.mute").unselected = False
         layout.operator("sequencer.unmute").unselected = False
-        layout.operator("sequencer.mute", text="Mute Deselected Strips").unselected = True
+        layout.operator("sequencer.mute", text="Mute Unselected Strips").unselected = True
 
 
 class SEQUENCER_MT_strip(Menu):
