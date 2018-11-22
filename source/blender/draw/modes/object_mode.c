@@ -106,6 +106,7 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 /* *********** LISTS *********** */
 typedef struct OBJECT_PassList {
 	struct DRWPass *non_meshes[2];
+	struct DRWPass *image_empties[2];
 	struct DRWPass *spot_shapes[2];
 	struct DRWPass *ob_center;
 	struct DRWPass *outlines;
@@ -147,6 +148,7 @@ typedef struct OBJECT_Data {
 typedef struct OBJECT_ShadingGroupList {
 	/* Reference only */
 	struct DRWPass *non_meshes;
+	struct DRWPass *image_empties;
 	struct DRWPass *spot_shapes;
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_outline;
@@ -167,8 +169,6 @@ typedef struct OBJECT_ShadingGroupList {
 	DRWShadingGroup *single_arrow;
 	DRWShadingGroup *single_arrow_line;
 	DRWShadingGroup *empty_axes;
-	/* GPUTexture -> EmptyImageShadingGroupData */
-	GHash *image_plane_map;
 
 	/* Force Field */
 	DRWShadingGroup *field_wind;
@@ -856,95 +856,48 @@ static void image_calc_aspect(Image *ima, ImageUser *iuser, float r_image_aspect
 	}
 }
 
-/* per-image shading groups for image-type empty objects */
-struct EmptyImageShadingGroupData {
-	DRWShadingGroup *shgrp_image;
-	DRWShadingGroup *shgrp_wire;
-	float image_aspect[2];
-};
-
 static void DRW_shgroup_empty_image(
         OBJECT_ShadingGroupList *sgl, Object *ob, const float color[3], RegionView3D *rv3d)
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
 
-	if (!BKE_image_empty_visible_in_view3d(ob, rv3d)) return;
-
-	if (sgl->image_plane_map == NULL) {
-		sgl->image_plane_map = BLI_ghash_ptr_new(__func__);
-	}
-
-	struct EmptyImageShadingGroupData *empty_image_data;
+	if (!BKE_image_empty_visible_in_view3d(ob, rv3d))
+		return;
 
 	GPUTexture *tex = ob->data ?
-	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f) : NULL;
-	void **val_p;
+	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f) :
+	        NULL;
 
-	/* Create on demand, 'tex' may be NULL. */
-	if (BLI_ghash_ensure_p(sgl->image_plane_map, tex, &val_p)) {
-		empty_image_data = *val_p;
-	}
-	else {
-		empty_image_data = MEM_mallocN(sizeof(*empty_image_data), __func__);
+	float image_aspect[2];
+	image_calc_aspect(ob->data, ob->iuser, image_aspect);
 
-		image_calc_aspect(ob->data, ob->iuser, empty_image_data->image_aspect);
+	/* OPTI(fclem) We need sorting only for transparent images. If an image as no alpha channel and
+	 * ob->col[3] == 1.0f,  we could remove it from the sorting pass. */
 
-		if (tex) {
-			DRW_shgroup_instance_format(e_data.empty_image_format, {
-				{"objectColor",         DRW_ATTRIB_FLOAT, 4},
-				{"size",                DRW_ATTRIB_FLOAT, 1},
-				{"offset",              DRW_ATTRIB_FLOAT, 2},
-				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
-			});
-
-			struct GPUBatch *geom = DRW_cache_image_plane_get();
-			DRWShadingGroup *grp = DRW_shgroup_instance_create(
-			        e_data.object_empty_image_sh, sgl->non_meshes, geom, e_data.empty_image_format);
-			DRW_shgroup_uniform_texture(grp, "image", tex);
-			DRW_shgroup_uniform_vec2(grp, "aspect", empty_image_data->image_aspect, 1);
-			DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
-
-			empty_image_data->shgrp_image = grp;
-		}
-		else {
-			empty_image_data->shgrp_image = NULL;
-		}
-
-		{
-			DRW_shgroup_instance_format(e_data.empty_image_wire_format, {
-				{"color",               DRW_ATTRIB_FLOAT, 4},
-				{"size",                DRW_ATTRIB_FLOAT, 1},
-				{"offset",              DRW_ATTRIB_FLOAT, 2},
-				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
-			});
-
-			struct GPUBatch *geom = DRW_cache_image_plane_wire_get();
-			DRWShadingGroup *grp = DRW_shgroup_instance_create(
-			        e_data.object_empty_image_wire_sh, sgl->non_meshes, geom, e_data.empty_image_wire_format);
-			DRW_shgroup_uniform_vec2(grp, "aspect", empty_image_data->image_aspect, 1);
-			DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
-
-			empty_image_data->shgrp_wire = grp;
-		}
-
-		*val_p = empty_image_data;
+	if (tex && (ob->col[3] > 0.0f)) {
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.object_empty_image_sh, sgl->image_empties);
+		DRW_shgroup_uniform_texture(grp, "image", tex);
+		/* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
+		DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
+		DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
+		DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
+		DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
+		DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
+		DRW_shgroup_uniform_vec4(grp, "objectColor", ob->col, 1);
+		DRW_shgroup_call_add(grp, DRW_cache_image_plane_get(), ob->obmat);
 	}
 
-	if (empty_image_data->shgrp_image != NULL) {
-		DRW_shgroup_call_dynamic_add(
-		        empty_image_data->shgrp_image,
-		        ob->col,
-		        &ob->empty_drawsize,
-		        ob->ima_ofs,
-		        ob->obmat);
+	{
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.object_empty_image_wire_sh, sgl->non_meshes);
+		/* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
+		DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
+		DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
+		DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
+		DRW_shgroup_uniform_float(grp, "size", &ob->empty_drawsize, 1);
+		DRW_shgroup_uniform_vec2(grp, "offset", ob->ima_ofs, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", color, 1);
+		DRW_shgroup_call_add(grp, DRW_cache_image_plane_wire_get(), ob->obmat);
 	}
-
-	DRW_shgroup_call_dynamic_add(
-	        empty_image_data->shgrp_wire,
-	        color,
-	        &ob->empty_drawsize,
-	        ob->ima_ofs,
-	        ob->obmat);
 }
 
 static void OBJECT_cache_init(void *vedata)
@@ -1130,6 +1083,10 @@ static void OBJECT_cache_init(void *vedata)
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND | DRW_STATE_POINT | DRW_STATE_WIRE;
 		sgl->non_meshes = psl->non_meshes[i] = DRW_pass_create("Non Meshes Pass", state);
 
+		state = DRW_STATE_WRITE_COLOR |
+		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND | DRW_STATE_WIRE;
+		sgl->image_empties = psl->image_empties[i] = DRW_pass_create("Image Empties", state);
+
 		/* Empties */
 		geom = DRW_cache_plain_axes_get();
 		sgl->plain_axes = shgroup_instance(sgl->non_meshes, geom);
@@ -1166,9 +1123,6 @@ static void OBJECT_cache_init(void *vedata)
 
 		geom = DRW_cache_bone_arrows_get();
 		sgl->empty_axes = shgroup_instance_empty_axes(sgl->non_meshes, geom);
-
-		/* initialize on first use */
-		sgl->image_plane_map = NULL;
 
 		/* Force Field */
 		geom = DRW_cache_field_wind_get();
@@ -2875,9 +2829,16 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	}
 }
 
+static void OBJECT_cache_finish(void *vedata)
+{
+	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
+
+	DRW_pass_sort_shgroup_z(stl->g_data->sgl.image_empties);
+	DRW_pass_sort_shgroup_z(stl->g_data->sgl_ghost.image_empties);
+}
+
 static void OBJECT_draw_scene(void *vedata)
 {
-
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
@@ -2909,6 +2870,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(stl->g_data->sgl.bone_outline);
 	DRW_draw_pass(stl->g_data->sgl.non_meshes);
 	DRW_draw_pass(psl->particle);
+	DRW_draw_pass(stl->g_data->sgl.image_empties);
 	DRW_draw_pass(stl->g_data->sgl.bone_axes);
 
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
@@ -2963,12 +2925,6 @@ static void OBJECT_draw_scene(void *vedata)
 		}
 	}
 
-	/* This has to be freed only after drawing empties! */
-	if (stl->g_data->sgl.image_plane_map) {
-		BLI_ghash_free(stl->g_data->sgl.image_plane_map, NULL, MEM_freeN);
-		stl->g_data->sgl.image_plane_map = NULL;
-	}
-
 	volumes_free_smoke_textures();
 	batch_camera_path_free(&stl->g_data->sgl.camera_path);
 
@@ -2976,6 +2932,7 @@ static void OBJECT_draw_scene(void *vedata)
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_wire) ||
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_outline) ||
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.non_meshes) ||
+		!DRW_pass_is_empty(stl->g_data->sgl_ghost.image_empties) ||
 	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_axes))
 	{
 		if (DRW_state_is_fbo()) {
@@ -3005,6 +2962,7 @@ static void OBJECT_draw_scene(void *vedata)
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_wire);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_outline);
 		DRW_draw_pass(stl->g_data->sgl_ghost.non_meshes);
+		DRW_draw_pass(stl->g_data->sgl_ghost.image_empties);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_axes);
 
 		if (DRW_state_is_select()) {
@@ -3013,11 +2971,6 @@ static void OBJECT_draw_scene(void *vedata)
 	}
 
 	batch_camera_path_free(&stl->g_data->sgl_ghost.camera_path);
-	/* This has to be freed only after drawing empties! */
-	if (stl->g_data->sgl_ghost.image_plane_map) {
-		BLI_ghash_free(stl->g_data->sgl_ghost.image_plane_map, NULL, MEM_freeN);
-		stl->g_data->sgl_ghost.image_plane_map = NULL;
-	}
 
 	DRW_draw_pass(psl->ob_center);
 }
@@ -3032,7 +2985,7 @@ DrawEngineType draw_engine_object_type = {
 	&OBJECT_engine_free,
 	&OBJECT_cache_init,
 	&OBJECT_cache_populate,
-	NULL,
+	&OBJECT_cache_finish,
 	NULL,
 	&OBJECT_draw_scene,
 	NULL,
