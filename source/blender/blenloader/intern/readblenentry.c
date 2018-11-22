@@ -319,7 +319,8 @@ void BLO_blendhandle_close(BlendHandle *bh)
  */
 BlendFileData *BLO_read_from_file(
         const char *filepath,
-        ReportList *reports, eBLOReadSkip skip_flags)
+        eBLOReadSkip skip_flags,
+        ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -346,7 +347,8 @@ BlendFileData *BLO_read_from_file(
  */
 BlendFileData *BLO_read_from_memory(
         const void *mem, int memsize,
-        ReportList *reports, eBLOReadSkip skip_flags)
+        eBLOReadSkip skip_flags,
+        ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -370,7 +372,8 @@ BlendFileData *BLO_read_from_memory(
  */
 BlendFileData *BLO_read_from_memfile(
         Main *oldmain, const char *filename, MemFile *memfile,
-        ReportList *reports, eBLOReadSkip skip_flags)
+        eBLOReadSkip skip_flags,
+        ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;

@@ -48,6 +48,7 @@ struct View3D;
 struct bContext;
 struct BHead;
 struct FileData;
+struct BlendFileReadParams;
 
 typedef struct BlendHandle BlendHandle;
 
@@ -71,6 +72,10 @@ typedef struct BlendFileData {
 	eBlenFileType type;
 } BlendFileData;
 
+struct BlendFileReadParams {
+	uint skip_flags : 2;  /* eBLOReadSkip */
+	uint is_startup : 1;
+};
 
 /* skip reading some data-block types (may want to skip screen data too). */
 typedef enum eBLOReadSkip {
@@ -83,13 +88,16 @@ typedef enum eBLOReadSkip {
 
 BlendFileData *BLO_read_from_file(
         const char *filepath,
-        struct ReportList *reports, eBLOReadSkip skip_flag);
+        eBLOReadSkip skip_flags,
+        struct ReportList *reports);
 BlendFileData *BLO_read_from_memory(
         const void *mem, int memsize,
-        struct ReportList *reports, eBLOReadSkip skip_flag);
+        eBLOReadSkip skip_flags,
+        struct ReportList *reports);
 BlendFileData *BLO_read_from_memfile(
         struct Main *oldmain, const char *filename, struct MemFile *memfile,
-        struct ReportList *reports, eBLOReadSkip skip_flag);
+        eBLOReadSkip skip_flags,
+        struct ReportList *reports);
 
 void BLO_blendfiledata_free(BlendFileData *bfd);
 

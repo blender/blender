@@ -110,7 +110,8 @@ static BlendFileData *load_game_data(const char *filename)
 	BlendFileData *bfd;
 
 	BKE_reports_init(&reports, RPT_STORE);
-	bfd= BLO_read_from_file(filename, &reports, BLO_READ_SKIP_USERDEF);
+	bfd= BLO_read_from_file(filename, BLO_READ_SKIP_USERDEF, &reports);
+
 
 	if (!bfd) {
 		printf("Loading %s failed: ", filename);
