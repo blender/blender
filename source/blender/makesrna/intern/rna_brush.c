@@ -117,7 +117,7 @@ const EnumPropertyItem rna_enum_brush_image_tool_items[] = {
 };
 
 const EnumPropertyItem rna_enum_brush_gpencil_types_items[] = {
-	{GPAINT_TOOL_DRAW, "DRAW", ICON_GP_STROKE, "Draw", "The brush is of type used for drawing strokes"},
+	{GPAINT_TOOL_DRAW, "DRAW", ICON_STROKE, "Draw", "The brush is of type used for drawing strokes"},
 	{GPAINT_TOOL_FILL, "FILL", ICON_COLOR, "Fill", "The brush is of type used for filling areas"},
 	{GPAINT_TOOL_ERASE, "ERASE", ICON_PANEL_CLOSE, "Erase", "The brush is used for erasing strokes"},
 	{0, NULL, 0, NULL, NULL}

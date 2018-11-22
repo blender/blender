@@ -99,14 +99,14 @@ const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_object_empty_drawtype_items[] = {
-	{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
-	{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
-	{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
-	{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
-	{OB_CUBE, "CUBE", 0, "Cube", ""},
-	{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
-	{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
-	{OB_EMPTY_IMAGE, "IMAGE", 0, "Image", ""},
+	{OB_PLAINAXES, "PLAIN_AXES", ICON_EMPTY_AXIS, "Plain Axes", ""},
+	{OB_ARROWS, "ARROWS", ICON_EMPTY_ARROWS, "Arrows", ""},
+	{OB_SINGLE_ARROW, "SINGLE_ARROW", ICON_EMPTY_SINGLE_ARROW, "Single Arrow", ""},
+	{OB_CIRCLE, "CIRCLE", ICON_MESH_CIRCLE, "Circle", ""},
+	{OB_CUBE, "CUBE", ICON_CUBE, "Cube", ""},
+	{OB_EMPTY_SPHERE, "SPHERE", ICON_SPHERE, "Sphere", ""},
+	{OB_EMPTY_CONE, "CONE", ICON_CONE, "Cone", ""},
+	{OB_EMPTY_IMAGE, "IMAGE", ICON_FILE_IMAGE, "Image", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -118,8 +118,8 @@ const EnumPropertyItem rna_enum_object_empty_image_depth_items[] = {
 };
 
 const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
-	{GP_EMPTY, "EMPTY", ICON_GP_EMPTY, "Blank", "Create an empty grease pencil object"},
-	{GP_STROKE, "STROKE", ICON_GP_STROKE, "Stroke", "Create a simple stroke with basic colors"},
+	{GP_EMPTY, "EMPTY", ICON_EMPTY_AXIS, "Blank", "Create an empty grease pencil object"},
+	{GP_STROKE, "STROKE", ICON_STROKE, "Stroke", "Create a simple stroke with basic colors"},
 	{GP_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Construct a Suzanne grease pencil object"},
 	{0, NULL, 0, NULL, NULL }
 };

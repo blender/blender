@@ -1579,8 +1579,8 @@ class VIEW3D_MT_image_add(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("object.load_reference_image", text="Reference")
-        layout.operator("object.load_background_image", text="Background")
+        layout.operator("object.load_reference_image", text="Reference", icon='IMAGE_REFERENCE')
+        layout.operator("object.load_background_image", text="Background", icon='IMAGE_BACKGROUND')
 
 
 class VIEW3D_MT_object_relations(Menu):

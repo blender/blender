@@ -775,8 +775,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	/* paint collision type */
 	static const EnumPropertyItem prop_dynamicpaint_collisiontype[] = {
 		{MOD_DPAINT_COL_PSYS, "PARTICLE_SYSTEM", ICON_PARTICLES, "Particle System", ""},
-		{MOD_DPAINT_COL_POINT, "POINT", ICON_META_EMPTY, "Object Center", ""},
-		{MOD_DPAINT_COL_DIST, "DISTANCE", ICON_META_EMPTY, "Proximity", ""},
+		{MOD_DPAINT_COL_POINT, "POINT", ICON_EMPTY_AXIS, "Object Center", ""},
+		{MOD_DPAINT_COL_DIST, "DISTANCE", ICON_DRIVER_DISTANCE, "Proximity", ""},
 		{MOD_DPAINT_COL_VOLDIST, "VOLUME_DISTANCE", ICON_META_CUBE, "Mesh Volume + Proximity", ""},
 		{MOD_DPAINT_COL_VOLUME, "VOLUME", ICON_MESH_CUBE, "Mesh Volume", ""},
 		{0, NULL, 0, NULL, NULL}

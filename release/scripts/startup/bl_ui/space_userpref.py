@@ -1210,8 +1210,8 @@ class USERPREF_PT_addons(Panel):
 
     _support_icon_mapping = {
         'OFFICIAL': 'FILE_BLEND',
-        'COMMUNITY': 'POSE_DATA',
-        'TESTING': 'MOD_EXPLODE',
+        'COMMUNITY': 'COMUNITY',
+        'TESTING': 'EXPERIMENTAL',
     }
 
     @classmethod
@@ -1354,7 +1354,7 @@ class USERPREF_PT_addons(Panel):
 
                 row.operator(
                     "wm.addon_expand",
-                    icon='TRIA_DOWN' if info["show_expanded"] else 'TRIA_RIGHT',
+                    icon='DISCLOSURE_TRI_DOWN' if info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
                     emboss=False,
                 ).module = module_name
 
