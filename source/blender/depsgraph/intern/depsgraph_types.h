@@ -254,6 +254,8 @@ typedef enum eDepsOperation_Code {
 	// TODO: deform mats could get calculated in the final_transform ops...
 	DEG_OPCODE_BONE_READY,
 	DEG_OPCODE_BONE_DONE,
+	/* B-Bone segment shape computation (after DONE) */
+	DEG_OPCODE_BONE_SEGMENTS,
 
 	/* Particles. --------------------------------------- */
 	/* Particle System evaluation. */

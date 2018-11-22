@@ -1082,7 +1082,12 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 	if (pchan) {
 		Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
 		if (bbone_segments > 1) {
-			b_bone_spline_setup(pchan, false, bbones_mat);
+			if (bbone_segments == pchan->runtime.bbone_segments) {
+				memcpy(bbones_mat, pchan->runtime.bbone_pose_mats, sizeof(Mat4) * bbone_segments);
+			}
+			else {
+				b_bone_spline_setup(pchan, false, bbones_mat);
+			}
 
 			for (int i = bbone_segments; i--; bbones_mat++) {
 				mul_m4_m4m4(bbones_mat->mat, bbones_mat->mat, s);

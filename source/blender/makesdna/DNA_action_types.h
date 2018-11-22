@@ -199,6 +199,22 @@ typedef struct bPoseChannelDrawData {
 	float bbone_matrix[0][4][4];
 } bPoseChannelDrawData;
 
+struct Mat4;
+struct DualQuat;
+
+typedef struct bPoseChannelRuntime {
+	int bbone_segments;
+	char pad[4];
+
+	/* Rest and posed matrices for segments. */
+	struct Mat4 *bbone_rest_mats;
+	struct Mat4 *bbone_pose_mats;
+
+	/* Delta from rest to pose in matrix and DualQuat form. */
+	struct Mat4 *bbone_deform_mats;
+	struct DualQuat *bbone_dual_quats;
+} bPoseChannelRuntime;
+
 /* ************************************************ */
 /* Poses */
 
@@ -287,6 +303,9 @@ typedef struct bPoseChannel {
 
 	/* Points to an original pose channel. */
 	struct bPoseChannel *orig_pchan;
+
+	/* Runtime data. */
+	struct bPoseChannelRuntime runtime;
 } bPoseChannel;
 
 

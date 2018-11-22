@@ -206,6 +206,17 @@ static eDepsOperation_Code bone_target_opcode(ID *target,
 	return DEG_OPCODE_BONE_DONE;
 }
 
+static bool bone_has_segments(Object *object, const char *bone_name)
+{
+	/* Proxies don't have BONE_SEGMENTS */
+	if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
+		return false;
+	}
+	/* Only B-Bones have segments. */
+	bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
+	return pchan && pchan->bone && pchan->bone->segments > 1;
+}
+
 /* **** General purpose functions ****  */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
@@ -1017,39 +1028,20 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					/* relation to bone */
 					opcode = bone_target_opcode(&ct->tar->id, ct->subtarget,
 					                            id, component_subdata, root_map);
+					/* Armature constraint always wants the final position and chan_mat. */
+					if (ELEM(con->type, CONSTRAINT_TYPE_ARMATURE)) {
+						opcode = DEG_OPCODE_BONE_DONE;
+					}
+					/* if needs bbone shape, reference the segment computation */
+					if (BKE_constraint_target_uses_bbone(con, ct) &&
+					    bone_has_segments(ct->tar, ct->subtarget)) {
+						opcode = DEG_OPCODE_BONE_SEGMENTS;
+					}
 					OperationKey target_key(&ct->tar->id,
 					                        DEG_NODE_TYPE_BONE,
 					                        ct->subtarget,
 					                        opcode);
 					add_relation(target_key, constraint_op_key, cti->name);
-					/* if needs bbone shape, also reference handles */
-					if (BKE_constraint_target_uses_bbone(con, ct)) {
-						bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
-						/* actually a bbone */
-						if (pchan && pchan->bone && pchan->bone->segments > 1) {
-							bPoseChannel *prev, *next;
-							BKE_pchan_get_bbone_handles(pchan, &prev, &next);
-							/* add handle links */
-							if (prev) {
-								opcode = bone_target_opcode(&ct->tar->id, prev->name,
-								                            id, component_subdata, root_map);
-								OperationKey prev_key(&ct->tar->id,
-								                      DEG_NODE_TYPE_BONE,
-								                      prev->name,
-								                      opcode);
-								add_relation(prev_key, constraint_op_key, cti->name);
-							}
-							if (next) {
-								opcode = bone_target_opcode(&ct->tar->id, next->name,
-								                            id, component_subdata, root_map);
-								OperationKey next_key(&ct->tar->id,
-								                      DEG_NODE_TYPE_BONE,
-								                      next->name,
-								                      opcode);
-								add_relation(next_key, constraint_op_key, cti->name);
-							}
-						}
-					}
 				}
 				else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) &&
 				         (ct->subtarget[0]))

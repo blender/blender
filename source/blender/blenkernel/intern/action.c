@@ -594,6 +594,9 @@ void BKE_pose_copy_data_ex(bPose **dst, const bPose *src, const int flag, const 
 		}
 
 		pchan->draw_data = NULL;  /* Drawing cache, no need to copy. */
+
+		/* Runtime data, no need to copy. */
+		memset(&pchan->runtime, 0, sizeof(pchan->runtime));
 	}
 
 	/* for now, duplicate Bone Groups too when doing this */
@@ -790,6 +793,21 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 
 	/* Cached data, for new draw manager rendering code. */
 	MEM_SAFE_FREE(pchan->draw_data);
+
+	/* Cached B-Bone shape data. */
+	BKE_pose_channel_free_bbone_cache(pchan);
+}
+
+/** Deallocates runtime cache of a pose channel's B-Bone shape. */
+void BKE_pose_channel_free_bbone_cache(bPoseChannel *pchan)
+{
+	bPoseChannelRuntime *runtime = &pchan->runtime;
+
+	runtime->bbone_segments = 0;
+	MEM_SAFE_FREE(runtime->bbone_rest_mats);
+	MEM_SAFE_FREE(runtime->bbone_pose_mats);
+	MEM_SAFE_FREE(runtime->bbone_deform_mats);
+	MEM_SAFE_FREE(runtime->bbone_dual_quats);
 }
 
 void BKE_pose_channel_free(bPoseChannel *pchan)

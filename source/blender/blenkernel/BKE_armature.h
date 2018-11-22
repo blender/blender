@@ -170,6 +170,9 @@ void b_bone_spline_setup(struct bPoseChannel *pchan, const bool rest, Mat4 resul
 
 int BKE_compute_b_bone_spline(struct BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
+void BKE_pchan_cache_bbone_segments(struct bPoseChannel *pchan);
+void BKE_pchan_copy_bbone_segments_cache(struct bPoseChannel *pchan, struct bPoseChannel *pchan_from);
+
 /* like EBONE_VISIBLE */
 #define PBONE_VISIBLE(arm, bone) ( \
 	CHECK_TYPE_INLINE(arm, bArmature *), \
@@ -237,6 +240,11 @@ void BKE_pose_constraints_evaluate(
         int pchan_index);
 
 void BKE_pose_bone_done(
+        struct Depsgraph *depsgraph,
+        struct Object *ob,
+        int pchan_index);
+
+void BKE_pose_eval_bbone_segments(
         struct Depsgraph *depsgraph,
         struct Object *ob,
         int pchan_index);
