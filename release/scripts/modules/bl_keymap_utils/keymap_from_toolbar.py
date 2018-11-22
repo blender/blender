@@ -90,11 +90,13 @@ def generate(context, space_type):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
     if use_hack_properties:
-        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_name", 'A', 'PRESS')
+        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_name", 'NONE', 'PRESS')
         kmi_hack_properties = kmi_hack.properties
+        kmi_hack.active = False
 
-        kmi_hack_brush_select = keymap.keymap_items.new("paint.brush_select", 'A', 'PRESS')
+        kmi_hack_brush_select = keymap.keymap_items.new("paint.brush_select", 'NONE', 'PRESS')
         kmi_hack_brush_select_properties = kmi_hack_brush_select.properties
+        kmi_hack_brush_select.active = False
 
     if use_release_confirm or use_tap_reset:
         kmi_toolbar = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
