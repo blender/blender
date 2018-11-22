@@ -275,6 +275,29 @@ def generate(context, space_type):
             # Map all unmapped keys to numbers,
             # while this is a bit strange it means users will not confuse regular key bindings to ordered bindings.
 
+            # First map A-Z.
+            kmi_type_alpha_char = [chr(i) for i in range(65, 91)]
+            kmi_type_alpha_args = {c: {"type": c} for c in kmi_type_alpha_char}
+            kmi_type_alpha_args_tuple = {c: dict_as_tuple(kmi_type_alpha_args[c]) for c in kmi_type_alpha_char}
+            for item_container in items_all:
+                item, kmi_found, kmi_exist = item_container
+                if kmi_exist:
+                    continue
+                kmi_type = item.text[0].upper()
+                kmi_tuple = kmi_type_alpha_args_tuple[kmi_type]
+                if kmi_tuple not in kmi_unique_args:
+                    # print(kmi_tuple, item.text)
+                    kmi_unique_args.add(kmi_tuple)
+                    kmi = keymap.keymap_items.new(
+                        idname="wm.tool_set_by_name",
+                        value='PRESS',
+                        **kmi_type_alpha_args[kmi_type],
+                    )
+                    kmi.properties.name = item.text
+                    item_container[2] = kmi
+                    kmi_unique_args.add(kmi_tuple)
+            del kmi_type_alpha_char, kmi_type_alpha_args, kmi_type_alpha_args_tuple
+
             # Free events (last used first).
             kmi_type_auto = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
             # Map both numbers and num-pad.
