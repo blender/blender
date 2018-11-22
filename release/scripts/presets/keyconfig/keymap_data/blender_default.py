@@ -4876,6 +4876,24 @@ def km_backdrop_transform_widget(_params):
 
 
 # ------------------------------------------------------------------------------
+# Popup Keymaps
+
+def km_popup_toolbar(params):
+    return (
+        "Toolbar Popup",
+        {"space_type": 'EMPTY', "region_type": 'TEMPORARY'},
+        {"items": [
+            ("wm.tool_set_by_name", {"type": 'T', "value": 'PRESS'},
+             {"properties": [("name", "Transform")]}),
+            ("wm.tool_set_by_name", {"type": 'D', "value": 'PRESS'},
+             {"properties": [("name", "Annotate")]}),
+            ("wm.tool_set_by_name", {"type": 'M', "value": 'PRESS'},
+             {"properties": [("name", "Measure")]}),
+        ]},
+    )
+
+
+# ------------------------------------------------------------------------------
 # Tool System Keymaps
 #
 # Named are auto-generated based on the tool name and it's toolbar.
@@ -5857,6 +5875,9 @@ def generate_keymaps(params=None):
         km_armature_spline_widgets(params),
         km_armature_spline_widgets_tweak_modal_map(params),
         km_backdrop_transform_widget(params),
+
+        # Pop-Up Keymaps.
+        km_popup_toolbar(params),
 
         # Tool System.
         km_image_editor_tool_uv_cursor(params),

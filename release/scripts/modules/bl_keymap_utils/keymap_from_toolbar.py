@@ -71,7 +71,8 @@ def generate(context, space_type):
     use_release_confirm = True
 
     # Generate items when no keys are mapped.
-    use_auto_keymap = True
+    use_auto_keymap_alpha = False  # Map manially in the default keymap
+    use_auto_keymap_num = True
 
     # Temporary, only create so we can pass 'properties' to find_item_from_operator.
     use_hack_properties = True
@@ -82,8 +83,6 @@ def generate(context, space_type):
     keymap = keyconf.keymaps.get(km_name)
     if keymap is None:
         keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY', tool=True)
-    for kmi in keymap.keymap_items:
-        keymap.keymap_items.remove(kmi)
 
     kmi_unique_args = set()
 
@@ -266,7 +265,7 @@ def generate(context, space_type):
                         kmi.properties.name = item.text
                         item_container[2] = kmi
 
-        if use_auto_keymap:
+        if use_auto_keymap_alpha:
             # Map all unmapped keys to numbers,
             # while this is a bit strange it means users will not confuse regular key bindings to ordered bindings.
 
@@ -291,6 +290,7 @@ def generate(context, space_type):
                     item_container[2] = kmi
             del kmi_type_alpha_char, kmi_type_alpha_args, kmi_type_alpha_args_tuple
 
+        if use_auto_keymap_num:
             # Free events (last used first).
             kmi_type_auto = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
             # Map both numbers and num-pad.
@@ -334,8 +334,7 @@ def generate(context, space_type):
                     kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
                     kmi.properties.name = item.text
                     item_container[2] = kmi
-                    if use_auto_keymap:
-                        kmi_unique_args.add(kmi_tuple)
+                    kmi_unique_args.add(kmi_tuple)
 
                     key = kmi_type_dupe.get(kmi_args["type"])
                     if key is not None:
@@ -344,8 +343,7 @@ def generate(context, space_type):
                         if not kmi_tuple in kmi_unique_args:
                             kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
                             kmi.properties.name = item.text
-                            if use_auto_keymap:
-                                kmi_unique_args.add(kmi_tuple)
+                            kmi_unique_args.add(kmi_tuple)
 
     if use_hack_properties:
         keymap.keymap_items.remove(kmi_hack)
