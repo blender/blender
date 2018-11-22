@@ -197,17 +197,23 @@ def generate(context, space_type):
                     context='INVOKE_REGION_WIN',
                 )[1]
             elif item.keymap is not None:
-                kmi_first = item.keymap[0].keymap_items
-                kmi_first = kmi_first[0] if kmi_first else None
-                if kmi_first is not None:
-                    kmi_found = wm.keyconfigs.find_item_from_operator(
-                        idname=kmi_first.idname,
-                        # properties=kmi_first.properties,  # prevents matches, don't use.
-                        context='INVOKE_REGION_WIN',
-                    )[1]
-                else:
+                km = keyconf.keymaps.get(item.keymap[0])
+                if km is None:
+                    print("Keymap", repr(item.keymap[0]), "not found for tool", item.text)
                     kmi_found = None
-                del kmi_first
+                else:
+                    kmi_first = km.keymap_items
+                    kmi_first = kmi_first[0] if kmi_first else None
+                    if kmi_first is not None:
+                        kmi_found = wm.keyconfigs.find_item_from_operator(
+                            idname=kmi_first.idname,
+                            # properties=kmi_first.properties,  # prevents matches, don't use.
+                            context='INVOKE_REGION_WIN',
+                        )[1]
+                    else:
+                        kmi_found = None
+                    del kmi_first
+                del km
             else:
                 kmi_found = None
             item_container[1] = kmi_found

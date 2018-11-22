@@ -687,8 +687,14 @@ def description_from_name(context, space_type, text, *, use_operator=True):
 
         if operator is None:
             if item.keymap is not None:
-                if item.keymap[0].keymap_items:
-                    operator = item.keymap[0].keymap_items[0].idname
+                wm = context.window_manager
+                keyconf = wm.keyconfigs.active
+                km = keyconf.keymaps.get(item.keymap[0])
+                if km is not None:
+                    for kmi in km.keymap_items:
+                        if kmi.active:
+                            operator = kmi.idname
+                            break
 
         if operator is not None:
             import _bpy
