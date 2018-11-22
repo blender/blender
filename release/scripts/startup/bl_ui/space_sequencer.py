@@ -476,7 +476,7 @@ class SEQUENCER_MT_strip_lock_mute(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("sequencer.lock", icon='LOCK')
+        layout.operator("sequencer.lock", icon='LOCKED')
         layout.operator("sequencer.unlock")
 
         layout.separator()
