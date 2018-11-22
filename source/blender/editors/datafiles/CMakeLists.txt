@@ -52,12 +52,10 @@ set(ICON_NAMES
 	dot
 	collapsemenu
 	x
-	go_left
-	plug
-	ui
+	duplicate
 	node
 	node_sel
-	fullscreen
+	window
 	workspace
 	rightarrow_thin
 	bordermove
@@ -67,7 +65,6 @@ set(ICON_NAMES
 	panel_close
 	copy_id
 	eyedropper
-	link_area
 	auto
 	checkbox_dehlt
 	checkbox_hlt
@@ -78,25 +75,21 @@ set(ICON_NAMES
 	screen_back
 	rightarrow
 	downarrow_hlt
-	dotsup
-	dotsdown
-	link
-	inlink
 	plugin
 	help
 	ghost_enabled
 	color
-	linked
 	unlinked
+	linked
 	hand
 	zoom_all
 	zoom_selected
 	zoom_previous
 	zoom_in
 	zoom_out
-	render_region
-	border_rect
-	border_lasso
+	driver_distance
+	driver_rotational_difference
+	driver_transform
 	freeze
 	stylus_pressure
 	ghost_disabled
@@ -105,27 +98,24 @@ set(ICON_NAMES
 	quit
 	url
 	recover_last
-	30
+	three_dots
 	fullscreen_enter
 	fullscreen_exit
-	#onionskin
 	light
 	material
 	texture
 	anim
 	world
 	scene
-	edit
-	game
-	radio
+	output
 	script
 	particles
 	physics
 	speaker
-	texture_shaded
 	tool_settings
 	shaderfx
-	#blank1
+	fake_user_off
+	fake_user_on
 	view3d
 	graph
 	outliner
@@ -141,7 +131,6 @@ set(ICON_NAMES
 	preferences
 	time
 	nodetree
-	logic
 	console
 	clip
 	asset_manager
@@ -150,15 +139,13 @@ set(ICON_NAMES
 	node_material
 	object_datamode
 	editmode_hlt
-	facesel_hlt
+	uv
 	vpaint_hlt
 	tpaint_hlt
 	wpaint_hlt
 	sculptmode_hlt
 	pose_hlt
 	particlemode
-	lightpaint
-	greasepencil_stroke_paint
 	tracking
 	tracking_backwards
 	tracking_forwards
@@ -185,7 +172,7 @@ set(ICON_NAMES
 	library_data_direct
 	group
 	armature_data
-	pose_data
+	community
 	bone_data
 	constraint
 	shapekey_data
@@ -193,6 +180,7 @@ set(ICON_NAMES
 	camera_stereo
 	package
 	uglypackage
+	experimental
 	brush_data
 	image_data
 	file
@@ -201,6 +189,7 @@ set(ICON_NAMES
 	render_result
 	surface_data
 	empty_data
+	preset
 	render_animation
 	render_still
 	library_data_broken
@@ -224,16 +213,18 @@ set(ICON_NAMES
 	mouse_lmb_drag
 	mouse_mmb_drag
 	mouse_rmb_drag
-	preset
+	preset_new
 	decorate
 	decorate_keyframe
 	decorate_animate
 	decorate_driver
 	decorate_linked
-	decorate_override
+	decorate_library_override
 	decorate_unlocked
 	decorate_locked
-	fake_user
+	decorate_override
+	sealed
+	heart
 	orphan_data
 	user
 	system
@@ -256,12 +247,13 @@ set(ICON_NAMES
 	outliner_ob_image
 	restrict_color_off
 	restrict_color_on
-	restrict_view_off
-	restrict_view_on
-	restrict_select_off
+	hide_on
+	hide_off
 	restrict_select_on
-	restrict_render_off
+	restrict_select_off
 	restrict_render_on
+	restrict_render_off
+	outliner_data_empty
 	outliner_data_mesh
 	outliner_data_curve
 	outliner_data_lattice
@@ -272,12 +264,17 @@ set(ICON_NAMES
 	outliner_data_font
 	outliner_data_surface
 	outliner_data_speaker
-	outliner_data_pose
 	outliner_data_greasepencil
+	gp_select_points
+	gp_select_strokes
+	gp_multiframe_editing
+	gp_only_selected
+	modifier_off
+	modifier_on
 	onionskin_off
 	onionskin_on
-	hide_off
-	hide_on
+	restrict_view_on
+	restrict_view_off
 	mesh_plane
 	mesh_cube
 	mesh_circle
@@ -289,12 +286,15 @@ set(ICON_NAMES
 	mesh_torus
 	mesh_cone
 	mesh_capsule
+	empty_single_arrow
 	light_point
 	light_sun
 	light_spot
 	light_hemi
 	light_area
-	meta_empty
+	cube
+	sphere
+	cone
 	meta_plane
 	meta_cube
 	meta_ball
@@ -306,6 +306,9 @@ set(ICON_NAMES
 	surface_ncylinder
 	surface_nsphere
 	surface_ntorus
+	empty_axis
+	stroke
+	empty_arrows
 	curve_bezcurve
 	curve_bezcircle
 	curve_ncurve
@@ -334,8 +337,9 @@ set(ICON_NAMES
 	force_turbulence
 	force_drag
 	force_smokeflow
-	temperature
-	gear
+	image_plane
+	image_background
+	image_reference
 	node_insert_on
 	node_insert_off
 	node_top
@@ -370,7 +374,7 @@ set(ICON_NAMES
 	mod_displace
 	mod_curve
 	mod_lattice
-	constraint_data
+	mod_tint
 	mod_armature
 	mod_shrinkwrap
 	mod_cast
@@ -396,6 +400,15 @@ set(ICON_NAMES
 	mod_wireframe
 	mod_data_transfer
 	mod_normaledit
+	mod_particle_instance
+	mod_hue_saturation
+	mod_noise
+	mod_offset
+	mod_simplify
+	mod_thickness
+	mod_instance
+	mod_time
+	mod_opacity
 	rec
 	play
 	ff
@@ -466,10 +479,6 @@ set(ICON_NAMES
 	particle_point
 	particle_tip
 	particle_path
-	man_trans
-	man_rot
-	man_scale
-	manipul
 	snap_off
 	snap_on
 	snap_normal
@@ -492,8 +501,8 @@ set(ICON_NAMES
 	orientation_local
 	orientation_normal
 	orientation_view
-	pastedown
 	copydown
+	pastedown
 	pasteflipup
 	pasteflipdown
 	vis_sel_11
@@ -502,15 +511,14 @@ set(ICON_NAMES
 	vis_sel_00
 	automerge_on
 	automerge_off
-	retopo
 	uv_vertexsel
 	uv_edgesel
 	uv_facesel
 	uv_islandsel
 	uv_sync_select
 	normals_vertex
-	normals_vertex_face
 	normals_face
+	normals_vertex_face
 	shading_bbox
 	shading_wire
 	shading_solid
@@ -533,15 +541,13 @@ set(ICON_NAMES
 	sortbyext
 	sorttime
 	sortsize
-	longdisplay
 	shortdisplay
-	ghost
+	longdisplay
 	imgdisplay
 	bookmarks
 	fontpreview
 	filter
 	newfolder
-	open_recent
 	file_parent
 	file_refresh
 	file_folder
@@ -559,11 +565,11 @@ set(ICON_NAMES
 	append_blend
 	import
 	export
-	external_data
 	loop_back
 	loop_forwards
 	back
 	forward
+	file_volume
 	alembic
 	volume
 	file_hidden
@@ -577,6 +583,9 @@ set(ICON_NAMES
 	aliased
 	antialiased
 	mat_sphere_sky
+	matshaderball
+	matcloth
+	matfluid
 	wordwrap_off
 	wordwrap_on
 	syntax_off
@@ -594,7 +603,6 @@ set(ICON_NAMES
 	image_rgb_alpha
 	image_alpha
 	image_zdepth
-	imagefile
 	view_perspective
 	view_ortho
 	view_camera
