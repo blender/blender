@@ -1210,7 +1210,7 @@ class USERPREF_PT_addons(Panel):
 
     _support_icon_mapping = {
         'OFFICIAL': 'FILE_BLEND',
-        'COMMUNITY': 'COMUNITY',
+        'COMMUNITY': 'COMMUNITY',
         'TESTING': 'EXPERIMENTAL',
     }
 
