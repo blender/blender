@@ -125,6 +125,10 @@ def op_panel(menu, kmi_args, kmi_data=()):
     return ("wm.call_panel", kmi_args, {"properties": [("name", menu), *kmi_data]})
 
 
+def op_tool(tool, kmi_args):
+    return ("wm.tool_set_by_name", kmi_args, {"properties": [("name", tool)]})
+
+
 # ------------------------------------------------------------------------------
 # Keymap Templates
 
@@ -748,8 +752,7 @@ def km_uv_editor(params):
         # Quick switch to select tool, since left select can't easily
         # select with any tool active.
         items.extend([
-            ("wm.tool_set_by_name", {"type": 'W', "value": 'PRESS'},
-             {"properties": [("name", "Select Box")]})
+            op_tool("Select Box", {"type": 'W', "value": 'PRESS'}),
         ])
 
     return keymap
@@ -1092,8 +1095,7 @@ def km_view3d(params):
         # Quick switch to select tool, since left select can't easily
         # select with any tool active.
         items.extend([
-            ("wm.tool_set_by_name", {"type": 'W', "value": 'PRESS'},
-             {"properties": [("name", "Select Box")]})
+            op_tool("Select Box", {"type": 'W', "value": 'PRESS'}),
         ])
 
     return keymap
@@ -4883,12 +4885,9 @@ def km_popup_toolbar(params):
         "Toolbar Popup",
         {"space_type": 'EMPTY', "region_type": 'TEMPORARY'},
         {"items": [
-            ("wm.tool_set_by_name", {"type": 'T', "value": 'PRESS'},
-             {"properties": [("name", "Transform")]}),
-            ("wm.tool_set_by_name", {"type": 'D', "value": 'PRESS'},
-             {"properties": [("name", "Annotate")]}),
-            ("wm.tool_set_by_name", {"type": 'M', "value": 'PRESS'},
-             {"properties": [("name", "Measure")]}),
+            op_tool("Transform", {"type": 'T', "value": 'PRESS'}),
+            op_tool("Annotate", {"type": 'D', "value": 'PRESS'}),
+            op_tool("Measure", {"type": 'M', "value": 'PRESS'}),
         ]},
     )
 
