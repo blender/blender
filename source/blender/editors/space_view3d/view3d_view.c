@@ -918,8 +918,7 @@ static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
 static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void *user_data)
 {
 	const Object *ob_pose = user_data;
-	return ((DEG_get_original_object(ob) == ob_pose) ||
-	        BKE_object_is_mode_compat(ob, OB_MODE_WEIGHT_PAINT));
+	return (DEG_get_original_object(ob) == ob_pose);
 }
 
 /**
