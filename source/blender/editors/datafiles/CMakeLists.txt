@@ -669,6 +669,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.curve.extrude_cursor
 	ops.curve.extrude_move
 	ops.generic.cursor
+	ops.generic.select
 	ops.generic.select_box
 	ops.generic.select_circle
 	ops.generic.select_lasso
