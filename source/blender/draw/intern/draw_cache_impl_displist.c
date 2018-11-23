@@ -91,6 +91,7 @@ typedef void (setTriIndicesFn)(void *thunk, uint v1, uint v2, uint v3);
 
 static void displist_indexbufbuilder_set(
 	setTriIndicesFn *set_tri_indices,
+	setTriIndicesFn *set_quad_tri_indices, /* meh, find a better solution. */
 	void *thunk, const DispList *dl, const int ofs)
 {
 	if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
@@ -104,18 +105,20 @@ static void displist_indexbufbuilder_set(
 		else if (dl->type == DL_SURF) {
 			const int i_end = dl->totindex;
 			for (int i = 0; i < i_end; i++, idx += 4) {
-				set_tri_indices(thunk, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
-				set_tri_indices(thunk, idx[2] + ofs, idx[0] + ofs, idx[3] + ofs);
+				set_quad_tri_indices(thunk, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
+				set_quad_tri_indices(thunk, idx[2] + ofs, idx[0] + ofs, idx[3] + ofs);
 			}
 		}
 		else {
 			BLI_assert(dl->type == DL_INDEX4);
 			const int i_end = dl->parts;
 			for (int i = 0; i < i_end; i++, idx += 4) {
-				set_tri_indices(thunk, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-
 				if (idx[2] != idx[3]) {
-					set_tri_indices(thunk, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+					set_quad_tri_indices(thunk, idx[2] + ofs, idx[0] + ofs, idx[1] + ofs);
+					set_quad_tri_indices(thunk, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+				}
+				else {
+					set_tri_indices(thunk, idx[2] + ofs, idx[0] + ofs, idx[1] + ofs);
 				}
 			}
 		}
@@ -173,7 +176,9 @@ GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 
 	int ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
-		displist_indexbufbuilder_set((setTriIndicesFn *)GPU_indexbuf_add_tri_verts, &elb, dl, ofs);
+		displist_indexbufbuilder_set((setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		                             (setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		                             &elb, dl, ofs);
 		ofs += dl_vert_len(dl);
 	}
 
@@ -198,7 +203,9 @@ GPUIndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(Li
 	/* calc each index buffer builder */
 	int ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
-		displist_indexbufbuilder_set((setTriIndicesFn *)GPU_indexbuf_add_tri_verts, &elb[dl->col], dl, ofs);
+		displist_indexbufbuilder_set((setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		                             (setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		                             &elb[dl->col], dl, ofs);
 		ofs += dl_vert_len(dl);
 	}
 
@@ -219,18 +226,21 @@ typedef struct DRWDisplistWireThunk {
 static void set_overlay_wires_tri_indices(void *thunk, uint v1, uint v2, uint v3)
 {
 	DRWDisplistWireThunk *dwt = (DRWDisplistWireThunk *)thunk;
-	/* TODO consider non-manifold edges correctly. */
-	if (dwt->dl_type == DL_SURF) {
-		/* Tag real edges. */
-		v2 |= (1 << 30);
-		v3 |= (1 << 30);
-	}
-	else {
-		/* Tag real edges. */
-		v1 |= (1 << 30);
-		v2 |= (1 << 30);
-		v3 |= (1 << 30);
-	}
+	/* Tag real edges. */
+	v1 |= (1 << 30);
+	v2 |= (1 << 30);
+	v3 |= (1 << 30);
+	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v1);
+	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v2);
+	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v3);
+}
+
+static void set_overlay_wires_quad_tri_indices(void *thunk, uint v1, uint v2, uint v3)
+{
+	DRWDisplistWireThunk *dwt = (DRWDisplistWireThunk *)thunk;
+	/* Tag real edges. */
+	v2 |= (1 << 30);
+	v3 |= (1 << 30);
 	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v1);
 	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v2);
 	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v3);
@@ -249,7 +259,10 @@ GPUVertBuf *DRW_displist_create_edges_overlay_texture_buf(ListBase *lb)
 	int ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
 		thunk.dl_type = dl->type;
-		displist_indexbufbuilder_set(set_overlay_wires_tri_indices, &thunk, dl, ofs);
+		/* TODO consider non-manifold edges correctly. */
+		displist_indexbufbuilder_set(set_overlay_wires_tri_indices,
+		                             set_overlay_wires_quad_tri_indices,
+		                             &thunk, dl, ofs);
 		ofs += dl_vert_len(dl);
 	}
 

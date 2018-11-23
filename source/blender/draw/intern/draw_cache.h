@@ -209,5 +209,7 @@ struct GPUBatch *DRW_cache_particles_get_prim(int type);
 /* Metaball */
 struct GPUBatch *DRW_cache_mball_surface_get(struct Object *ob);
 struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+void DRW_cache_mball_face_wireframe_get(
+        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count);
 
 #endif /* __DRAW_CACHE_H__ */

@@ -82,6 +82,8 @@ void DRW_curve_batch_cache_get_wireframes_face_texbuf(
 /* Metaball */
 struct GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
 struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(struct Object *ob, struct MetaBall *mb, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+void DRW_metaball_batch_cache_get_wireframes_face_texbuf(
+        struct Object *ob, struct GPUTexture **verts_data, struct GPUTexture **face_indices, int *tri_count);
 
 /* Curve (Font) */
 struct GPUBatch *DRW_curve_batch_cache_get_overlay_cursor(struct Curve *cu);
