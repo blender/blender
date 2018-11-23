@@ -2801,7 +2801,7 @@ static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	vgroup_select_verts(ob, 1);
-	DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(ob->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
@@ -2827,7 +2827,7 @@ static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_context(C);
 
 	vgroup_select_verts(ob, 0);
-	DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(ob->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;

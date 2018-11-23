@@ -243,6 +243,7 @@ void EDBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEd
 
 /* editface.c */
 void paintface_flush_flags(struct Object *ob, short flag);
+void paintface_tag_select_update(struct bContext *C, struct Object *ob);
 bool paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], bool extend, bool deselect, bool toggle);
 int  do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int sel_op);
 void paintface_deselect_all_visible(struct Object *ob, int action, bool flush_flags);
@@ -255,6 +256,7 @@ void paintface_reveal(struct Object *ob, const bool select);
 void paintvert_deselect_all_visible(struct Object *ob, int action, bool flush_flags);
 void paintvert_select_ungrouped(struct Object *ob, bool extend, bool flush_flags);
 void paintvert_flush_flags(struct Object *ob);
+void paintvert_tag_select_update(struct bContext *C, struct Object *ob);
 
 /* mirrtopo */
 typedef struct MirrTopoStore_t {

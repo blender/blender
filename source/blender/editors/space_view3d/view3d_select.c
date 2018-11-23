@@ -119,6 +119,7 @@ float ED_view3d_select_dist_px(void)
 void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
+	vc->C = C;
 	vc->ar = CTX_wm_region(C);
 	vc->bmain = CTX_data_main(C);
 	vc->depsgraph = CTX_data_depsgraph(C);
@@ -911,6 +912,7 @@ static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], sh
 		BKE_mesh_mselect_validate(me);
 	}
 	paintvert_flush_flags(ob);
+	paintvert_tag_select_update(vc->C, ob);
 }
 static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], short moves, const eSelectOp sel_op)
 {
@@ -935,6 +937,7 @@ static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], sh
 	EDBM_backbuf_free();
 
 	paintface_flush_flags(ob, SELECT);
+	paintface_tag_select_update(vc->C, ob);
 }
 
 #if 0
@@ -1986,6 +1989,7 @@ static int do_paintvert_box_select(
 		BKE_mesh_mselect_validate(me);
 	}
 	paintvert_flush_flags(vc->obact);
+	paintvert_tag_select_update(vc->C, vc->obact);
 
 	return OPERATOR_FINISHED;
 }
@@ -2677,8 +2681,7 @@ static bool ed_wpaint_vertex_select_pick(
 		}
 
 		paintvert_flush_flags(obact);
-		DEG_id_tag_update(obact->data, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
+		paintvert_tag_select_update(C, obact);
 		return true;
 	}
 	return false;
@@ -2907,6 +2910,7 @@ static void paint_facesel_circle_select(ViewContext *vc, const bool select, cons
 		edbm_backbuf_check_and_select_tfaces(me, select ? SEL_OP_ADD : SEL_OP_SUB);
 		EDBM_backbuf_free();
 		paintface_flush_flags(ob, SELECT);
+		paintface_tag_select_update(vc->C, ob);
 	}
 }
 
@@ -2948,6 +2952,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, const bool select, cons
 		BKE_mesh_mselect_validate(me);
 	}
 	paintvert_flush_flags(ob);
+	paintvert_tag_select_update(vc->C, ob);
 }
 
 
@@ -3275,13 +3280,9 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 			}
 			else if (BKE_paint_select_face_test(obact)) {
 				paint_facesel_circle_select(&vc, select, mval, (float)radius);
-				DEG_id_tag_update(obact->data, DEG_TAG_SELECT_UPDATE);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
 			}
 			else if (BKE_paint_select_vert_test(obact)) {
 				paint_vertsel_circle_select(&vc, select, mval, (float)radius);
-				DEG_id_tag_update(obact->data, DEG_TAG_SELECT_UPDATE);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
 			}
 			else if (obact->mode & OB_MODE_POSE) {
 				pose_circle_select(&vc, select, mval, (float)radius);
