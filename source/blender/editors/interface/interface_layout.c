@@ -718,6 +718,11 @@ static void ui_item_enum_expand_exec(
 
 		if (ui_layout_local_dir(layout) != UI_LAYOUT_HORIZONTAL)
 			but->drawflag |= UI_BUT_TEXT_LEFT;
+
+		/* Allow quick, inaccurate swipe motions to switch tabs (no need to keep cursor over them). */
+		if (but_type == UI_BTYPE_TAB) {
+			but->flag |= UI_BUT_DRAG_LOCK;
+		}
 	}
 	UI_block_layout_set_current(block, layout);
 
