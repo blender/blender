@@ -251,8 +251,8 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
 	{
-		/* Don't do that in edit mode. */
-		if ((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) {
+		/* Don't do that in edit Mesh mode. */
+		if (((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) || ob->type != OB_MESH) {
 			const bool is_active = (ob == draw_ctx->obact);
 			const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 			const bool all_wires = (stl->g_data->overlay.wireframe_threshold == 1.0f) ||
