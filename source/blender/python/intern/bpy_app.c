@@ -316,6 +316,12 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 	return 0;
 }
 
+static PyObject *bpy_app_global_flag_get(PyObject *UNUSED(self), void *closure)
+{
+	const int flag = POINTER_AS_INT(closure);
+	return PyBool_FromLong(G.f & flag);
+}
+
 PyDoc_STRVAR(bpy_app_tempdir_doc,
 "String, the temp directory used by blender (read-only)"
 );
@@ -346,6 +352,12 @@ static PyObject *bpy_app_preview_render_size_get(PyObject *UNUSED(self), void *c
 {
 	return PyLong_FromLong((long)UI_preview_render_size(POINTER_AS_INT(closure)));
 }
+
+static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void *UNUSED(closure))
+{
+	return PyC_UnicodeFromByte(G.autoexec_fail);
+}
+
 
 PyDoc_STRVAR(bpy_app_use_static_override_doc,
 "Boolean, whether static override is exposed in UI or not."
@@ -399,6 +411,10 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"render_icon_size", bpy_app_preview_render_size_get, NULL, (char *)bpy_app_preview_render_size_doc, (void *)ICON_SIZE_ICON},
 	{(char *)"render_preview_size", bpy_app_preview_render_size_get, NULL, (char *)bpy_app_preview_render_size_doc, (void *)ICON_SIZE_PREVIEW},
 
+	/* security */
+	{(char *)"autoexec_fail", bpy_app_global_flag_get, NULL, NULL, (void *)G_SCRIPT_AUTOEXEC_FAIL},
+	{(char *)"autoexec_fail_quiet", bpy_app_global_flag_get, NULL, NULL, (void *)G_SCRIPT_AUTOEXEC_FAIL_QUIET},
+	{(char *)"autoexec_fail_message", bpy_app_autoexec_fail_message_get, NULL, NULL, NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 
