@@ -4887,7 +4887,7 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
 		char *prev_type = (
 		        (type == OB_WIRE) ?
 		        &v3d->shading.prev_type_wire :
-		        &v3d->shading.prev_type));
+		        &v3d->shading.prev_type);
 		if (v3d->shading.type == type) {
 			if (*prev_type == type || !ELEM(*prev_type, OB_WIRE, OB_SOLID, OB_MATERIAL, OB_RENDER)) {
 				*prev_type = OB_SOLID;
