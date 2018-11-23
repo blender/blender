@@ -43,6 +43,7 @@
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -202,7 +203,9 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	BKE_tracking_get_rna_path_for_track(tracking,
 	                                    track,
 	                                    rna_path, sizeof(rna_path));
-	BKE_animdata_fix_paths_remove(&clip->id, rna_path);
+	if (BKE_animdata_fix_paths_remove(&clip->id, rna_path)) {
+		DEG_relations_tag_update(CTX_data_main(C));
+	}
 	/* Delete track itself. */
 	BKE_tracking_track_free(track);
 	BLI_freelinkN(tracksbase, track);
@@ -243,7 +246,9 @@ void clip_delete_plane_track(bContext *C,
 	BKE_tracking_get_rna_path_for_plane_track(tracking,
 	                                          plane_track,
 	                                          rna_path, sizeof(rna_path));
-	BKE_animdata_fix_paths_remove(&clip->id, rna_path);
+	if (BKE_animdata_fix_paths_remove(&clip->id, rna_path)) {
+		DEG_relations_tag_update(CTX_data_main(C));
+	}
 	/* Delete the plane track itself. */
 	BKE_tracking_plane_track_free(plane_track);
 	BLI_freelinkN(plane_tracks_base, plane_track);
