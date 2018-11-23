@@ -91,7 +91,7 @@ extern "C" {
 
 #include "collada_internal.h"
 #include "collada_utils.h"
-#include "materials.h"
+#include "Materials.h"
 
 /*
  * COLLADA Importer limitations:
