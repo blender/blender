@@ -279,6 +279,19 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/* Some tools don't support XOR/END */
+void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
+{
+	static const EnumPropertyItem select_mode_items[] = {
+		{SEL_OP_SET, "SET", 0, "New", ""},
+		{SEL_OP_ADD, "ADD", 0, "Add", ""},
+		{SEL_OP_SUB, "SUB", 0, "Subtract", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_SET, "Mode", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
 void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot)
 {
 	WM_operator_properties_border(ot);

@@ -221,6 +221,17 @@ def _template_items_tool_select_actions(operator, *, type, value):
     ]
 
 
+def _template_items_tool_select_actions_simple(operator, *, type, value):
+    kmi_args = {"type": type, "value": value}
+    return [
+        (operator, kmi_args,
+         {"properties": [("mode", 'SET')]}),
+        (operator, {**kmi_args, "shift": True},
+         {"properties": [("mode", 'ADD')]}),
+        (operator, {**kmi_args, "ctrl": True},
+         {"properties": [("mode", 'SUB')]}),
+    ]
+
 # ------------------------------------------------------------------------------
 # Window, Screen, Areas, Regions
 
@@ -685,9 +696,9 @@ def km_uv_editor(params):
          {"properties": [("pinned", True)]}),
         ("uv.circle_select", {"type": 'C', "value": 'PRESS'}, None),
         ("uv.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True},
-         {"properties": [("deselect", False)]}),
+         {"properties": [("mode", 'ADD')]}),
         ("uv.select_lasso", {"type": params.action_tweak, "value": 'ANY', "shift": True, "ctrl": True},
-         {"properties": [("deselect", True)]}),
+         {"properties": [("mode", 'SUB')]}),
         ("uv.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True},
          {"properties": [("extend", True), ("deselect", False)]}),
         ("uv.select_linked_pick", {"type": 'L', "value": 'PRESS'},
@@ -4912,12 +4923,7 @@ def km_image_editor_tool_uv_select_box(params):
     return (
         "Image Editor Tool: Uv, Select Box",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": (
-            ("uv.select_box", {"type": params.tool_tweak, "value": 'ANY'}, None),
-            ("uv.select_box", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
-             {"properties": [("deselect", True)]}),
-        ),
-        },
+        {"items": _template_items_tool_select_actions_simple("uv.select_box", type=params.tool_tweak, value='ANY')},
     )
 
 
@@ -4939,11 +4945,7 @@ def km_image_editor_tool_uv_select_lasso(params):
     return (
         "Image Editor Tool: Uv, Select Lasso",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": (
-            ("uv.select_lasso", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("deselect", False)]}),
-        ),
-        },
+        {"items": _template_items_tool_select_actions_simple("uv.select_lasso", type=params.tool_tweak, value='ANY')},
     )
 
 

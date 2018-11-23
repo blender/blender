@@ -963,7 +963,7 @@ class _defs_image_uv_select:
     def border():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("uv.select_box")
-            layout.prop(props, "deselect")
+            layout.prop(props, "mode", expand=True)
         return dict(
             text="Select Box",
             icon="ops.generic.select_box",
@@ -974,11 +974,15 @@ class _defs_image_uv_select:
 
     @ToolDef.from_fn
     def lasso():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("uv.select_lasso")
+            layout.prop(props, "mode", expand=True)
         return dict(
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
