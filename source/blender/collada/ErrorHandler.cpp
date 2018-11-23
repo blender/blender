@@ -82,7 +82,8 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 			error_context = "File access";
 		}
 
-		else isError = (parserError.getSeverity() != COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL);
+		else isError = (parserError.getSeverity() != GeneratedSaxParser::ParserError::Severity::SEVERITY_ERROR_NONCRITICAL);
+
 	}
 	else if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXFWL) {
 		error_context = "Sax FWL";
