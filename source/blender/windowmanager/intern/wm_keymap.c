@@ -513,6 +513,20 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type,
 	return kmi;
 }
 
+wmKeyMapItem *WM_keymap_add_item_copy(
+        struct wmKeyMap *keymap, wmKeyMapItem *kmi_src)
+{
+	wmKeyMapItem *kmi_dst = wm_keymap_item_copy(kmi_src);
+
+	BLI_addtail(&keymap->items, kmi_dst);
+
+	keymap_item_set_id(keymap, kmi_dst);
+
+	WM_keyconfig_update_tag(keymap, kmi_dst);
+
+	return kmi_dst;
+}
+
 bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
 	if (BLI_findindex(&keymap->items, kmi) != -1) {

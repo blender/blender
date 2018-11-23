@@ -240,6 +240,25 @@ static wmKeyMapItem *rna_KeyMap_item_new(
 	return kmi;
 }
 
+static wmKeyMapItem *rna_KeyMap_item_new_from_item(
+        wmKeyMap *km, ReportList *reports, wmKeyMapItem *kmi_src, bool head)
+{
+/*	wmWindowManager *wm = CTX_wm_manager(C); */
+
+	if ((km->flag & KEYMAP_MODAL) == (kmi_src->idname[0] != '\0')) {
+		BKE_report(reports, RPT_ERROR, "Can not mix mondal/non-modal items");
+		return NULL;
+	}
+
+	/* create keymap item */
+	wmKeyMapItem *kmi = WM_keymap_add_item_copy(km, kmi_src);
+	if (head) {
+		BLI_remlink(&km->items, kmi);
+		BLI_addhead(&km->items, kmi);
+	}
+	return kmi;
+}
+
 static wmKeyMapItem *rna_KeyMap_item_new_modal(
         wmKeyMap *km, ReportList *reports, const char *propvalue_str,
         int type, int value, bool any, bool shift, bool ctrl, bool alt,
@@ -853,6 +872,14 @@ void RNA_api_keymapitems(StructRNA *srna)
 	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
 	RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "new_from_item", "rna_KeyMap_item_new_from_item");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Item to use as a reference");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	RNA_def_boolean(func, "head", 0, "At Head", "");
+	parm = RNA_def_pointer(func, "result", "KeyMapItem", "Item", "Added key map item");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_KeyMap_item_remove");
