@@ -49,7 +49,6 @@ extern "C" {
 	#include "BKE_material.h"
 }
 
-// OB_MESH is assumed
 static std::string getActiveUVLayerName(Object *ob)
 {
 	Mesh *me = (Mesh *)ob->data;
@@ -61,8 +60,12 @@ static std::string getActiveUVLayerName(Object *ob)
 	return "";
 }
 
-EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryEffects(sw), export_settings(export_settings) {
-}
+EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings, KeyImageMap &key_image_map) :
+	COLLADASW::LibraryEffects(sw),
+	export_settings(export_settings),
+	key_image_map(key_image_map)
+{}
+
 
 bool EffectsExporter::hasEffects(Scene *sce)
 {
@@ -82,9 +85,10 @@ bool EffectsExporter::hasEffects(Scene *sce)
 	return false;
 }
 
-void EffectsExporter::exportEffects(Scene *sce)
+void EffectsExporter::exportEffects(bContext *C, Scene *sce)
 {
 	if (hasEffects(sce)) {
+		this->mContext = C;
 		this->scene = sce;
 		openLibrary();
 		MaterialFunctor mf;
@@ -94,61 +98,105 @@ void EffectsExporter::exportEffects(Scene *sce)
 	}
 }
 
-void EffectsExporter::writeLambert(COLLADASW::EffectProfile &ep, Material *ma)
+void EffectsExporter::set_shader_type(COLLADASW::EffectProfile &ep, Material *ma)
 {
-	COLLADASW::ColorOrTexture cot;
-	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
+	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT); //XXX check if BLINN and PHONG can be supported as well
+}
+
+void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	if (ma->alpha == 1.0f) {
+		return; // have no transparency
+	}
+
+	// Tod: because we are in A_ONE mode transparency is calculated like this:
+	COLLADASW::ColorOrTexture cot = getcol(1.0f, 1.0f, 1.0f, ma->alpha);
+	ep.setTransparent(cot);
+	ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
+}
+void EffectsExporter::set_diffuse_color(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	// get diffuse color
+	COLLADASW::ColorOrTexture cot = bc_get_base_color(ma);
+	ep.setDiffuse(cot, false, "diffuse");
+}
+
+void EffectsExporter::set_specular_color(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	bool use_fallback = ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT;
+	COLLADASW::ColorOrTexture cot = bc_get_specular_color(ma, use_fallback);
+	ep.setSpecular(cot, false, "specular");
+}
+
+void EffectsExporter::set_emission(COLLADASW::EffectProfile &ep, Material *ma)
+{
+	// not yet supported (needs changes in principled shader
+}
+
+void EffectsExporter::get_images(Material *ma, KeyImageMap &material_image_map)
+{
+	if (!ma->use_nodes) {
+		return;
+	}
+
+	MaterialNode material = MaterialNode(mContext, ma, key_image_map);
+	Image *image = material.get_diffuse_image();
+	if (image == nullptr) {
+		return;
+	}
+
+	std::string uid(id_name(image));
+	std::string key = translate_id(uid);
+
+	if (material_image_map.find(key) == material_image_map.end()) {
+		material_image_map[key] = image;
+		key_image_map[key] = image;
+	}
+}
+
+void EffectsExporter::create_image_samplers(COLLADASW::EffectProfile &ep, KeyImageMap &material_image_map, std::string &active_uv)
+{
+	KeyImageMap::iterator iter;
+
+	for (iter = material_image_map.begin(); iter != material_image_map.end(); iter++) {
+
+		Image *image = iter->second;
+		std::string uid(id_name(image));
+		std::string key = translate_id(uid);
+
+		COLLADASW::Sampler *sampler = new COLLADASW::Sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
+			key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+			key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+
+		sampler->setImageId(key);
+
+		ep.setDiffuse(createTexture(image, active_uv, sampler), false, "diffuse");
+	}
 }
 
 void EffectsExporter::operator()(Material *ma, Object *ob)
 {
-	// TODO: add back texture and extended material parameter support
+	KeyImageMap material_image_map;
 
-	openEffect(translate_id(id_name(ma)) + "-effect");
+	openEffect(get_effect_id(ma));
 
 	COLLADASW::EffectProfile ep(mSW);
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
-	writeLambert(ep, ma);
+	set_shader_type(ep, ma);
 
 	COLLADASW::ColorOrTexture cot;
 
-	// transparency
-	if (ma->alpha != 1.0f) {
-		// Tod: because we are in A_ONE mode transparency is calculated like this:
-		cot = getcol(1.0f, 1.0f, 1.0f, ma->alpha);
-		ep.setTransparent(cot);
-		ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
-	}
+	set_transparency(ep, ma);
+	set_diffuse_color(ep, ma);
+	set_specular_color(ep, ma);
+	set_emission(ep, ma);
 
-	// emission
-#if 0
-	cot = getcol(ma->emit, ma->emit, ma->emit, 1.0f);
-#endif
-
-	// diffuse
-	cot = getcol(ma->r, ma->g, ma->b, 1.0f);
-	ep.setDiffuse(cot, false, "diffuse");
-
-	// specular
-	if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
-		cot = getcol(ma->specr * ma->spec, ma->specg * ma->spec, ma->specb * ma->spec, 1.0f);
-		ep.setSpecular(cot, false, "specular");
-	}
-
-	// XXX make this more readable if possible
+	get_images(ma, material_image_map);
+	std::string active_uv(getActiveUVLayerName(ob));
+	create_image_samplers(ep, material_image_map, active_uv);
 
 #if 0
-	// create <sampler> and <surface> for each image
-	COLLADASW::Sampler samplers[MAX_MTEX];
-	//COLLADASW::Surface surfaces[MAX_MTEX];
-	//void *samp_surf[MAX_MTEX][2];
-	void *samp_surf[MAX_MTEX];
-
-	// image to index to samp_surf map
-	// samp_surf[index] stores 2 pointers, sampler and surface
-	std::map<std::string, int> im_samp_map;
-
 	unsigned int a, b;
 	for (a = 0, b = 0; a < tex_indices.size(); a++) {
 		MTex *t = ma->mtex[tex_indices[a]];
@@ -162,24 +210,13 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 		// create only one <sampler>/<surface> pair for each unique image
 		if (im_samp_map.find(key) == im_samp_map.end()) {
-			// //<newparam> <surface> <init_from>
-			// COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-			//                         key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-			// COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-			// sio.setImageReference(key);
-			// surface.setInitOption(sio);
-
-			// COLLADASW::NewParamSurface surface(mSW);
-			// surface->setParamType(COLLADASW::CSW_SURFACE_TYPE_2D);
-
 			//<newparam> <sampler> <source>
 			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-			                           key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
-			                           key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+				key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+				key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
 			sampler.setImageId(key);
 			// copy values to arrays since they will live longer
 			samplers[a] = sampler;
-			//surfaces[a] = surface;
 
 			// store pointers so they can be used later when we create <texture>s
 			samp_surf[b] = &samplers[a];
@@ -189,15 +226,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			b++;
 		}
 	}
-#endif
 
-	// used as fallback when MTex->uvname is "" (this is pretty common)
-	// it is indeed the correct value to use in that case
-	std::string active_uv(getActiveUVLayerName(ob));
-
-	// write textures
-	// XXX very slow
-#if 0
 	for (a = 0; a < tex_indices.size(); a++) {
 		MTex *t = ma->mtex[tex_indices[a]];
 		Image *ima = t->tex->ima;
@@ -210,7 +239,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		key = translate_id(key);
 		int i = im_samp_map[key];
 		std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
-		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i];
+		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i]; // possibly uninitialised memory ...
 		writeTextures(ep, key, sampler, t, ima, uvname);
 	}
 #endif

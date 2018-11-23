@@ -151,8 +151,8 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
-DocumentExporter::DocumentExporter(Depsgraph *depsgraph, const ExportSettings *export_settings) :
-	depsgraph(depsgraph),
+DocumentExporter::DocumentExporter(BlenderContext &blender_context, const ExportSettings *export_settings) :
+	blender_context(blender_context),
 	export_settings(export_settings) {
 }
 
@@ -180,9 +180,13 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
 
-int DocumentExporter::exportCurrentScene(bContext *C, Scene *sce)
+int DocumentExporter::exportCurrentScene()
 {
-	Main *bmain = CTX_data_main(C);
+	Main *bmain = blender_context.get_main();
+	Scene *sce = blender_context.get_scene();
+	bContext *C = blender_context.get_context();
+	Depsgraph *depsgraph = blender_context.get_depsgraph(); \
+
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
 
@@ -272,13 +276,13 @@ int DocumentExporter::exportCurrentScene(bContext *C, Scene *sce)
 		le.exportLights(sce);
 	}
 
-	// <library_images>
-	ImagesExporter ie(writer, this->export_settings);
-	ie.exportImages(sce);
-
 	// <library_effects>
-	EffectsExporter ee(writer, this->export_settings);
-	ee.exportEffects(sce);
+	EffectsExporter ee(writer, this->export_settings, key_image_map);
+	ee.exportEffects(C, sce);
+
+	// <library_images>
+	ImagesExporter ie(writer, this->export_settings, key_image_map);
+	ie.exportImages(sce);
 
 	// <library_materials>
 	MaterialsExporter me(writer, this->export_settings);
@@ -286,28 +290,29 @@ int DocumentExporter::exportCurrentScene(bContext *C, Scene *sce)
 
 	// <library_geometries>
 	if (bc_has_object_type(export_set, OB_MESH)) {
-		GeometryExporter ge(writer, this->export_settings);
-		ge.exportGeom(bmain, depsgraph, sce);
+		GeometryExporter ge(blender_context, writer, this->export_settings);
+		ge.exportGeom();
 	}
 
 	// <library_controllers>
-	ArmatureExporter arm_exporter(writer, this->export_settings);
-	ControllerExporter controller_exporter(writer, this->export_settings);
+	ArmatureExporter arm_exporter(blender_context, writer, this->export_settings);
+	ControllerExporter controller_exporter(blender_context, writer, this->export_settings);
 	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys)
 	{
-		controller_exporter.export_controllers(bmain, depsgraph, sce);
+		controller_exporter.export_controllers();
 	}
 
 	// <library_visual_scenes>
 
-	SceneExporter se(writer, &arm_exporter, this->export_settings);
+	SceneExporter se(blender_context, writer, &arm_exporter, this->export_settings);
 
 	if (this->export_settings->include_animations) {
 		// <library_animations>
-		AnimationExporter ae(depsgraph, writer, this->export_settings);
-		ae.exportAnimations(bmain, sce);
+		AnimationExporter ae(blender_context, writer, this->export_settings);
+		ae.exportAnimations();
 	}
-	se.exportScene(C, depsgraph, sce);
+
+	se.exportScene();
 
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));

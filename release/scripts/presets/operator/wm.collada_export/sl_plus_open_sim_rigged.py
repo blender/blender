@@ -10,7 +10,6 @@ op.include_armatures = True
 op.include_shapekeys = False
 op.deform_bones_only = True
 op.active_uv_only = True
-op.include_uv_textures = True
 op.use_texture_copies = True
 op.triangulate = True
 op.use_object_instantiation = False

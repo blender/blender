@@ -80,8 +80,10 @@ void TransformReader::get_node_mat(
 				dae_scale_to_mat4(tm, cur);
 				break;
 			case COLLADAFW::Transformation::LOOKAT:
+				fprintf(stderr, "|!     LOOKAT transformations are not supported yet.\n");
+				break;
 			case COLLADAFW::Transformation::SKEW:
-				fprintf(stderr, "LOOKAT and SKEW transformations are not supported yet.\n");
+				fprintf(stderr, "|!     SKEW transformations are not supported yet.\n");
 				break;
 		}
 

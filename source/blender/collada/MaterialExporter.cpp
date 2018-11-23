@@ -68,12 +68,12 @@ bool MaterialsExporter::hasMaterials(Scene *sce)
 
 void MaterialsExporter::operator()(Material *ma, Object *ob)
 {
-	std::string name(id_name(ma));
+	std::string mat_name = encode_xml(id_name(ma));
+	std::string mat_id = get_material_id(ma);
+	std::string eff_id = get_effect_id(ma);
 
-	openMaterial(get_material_id(ma), translate_id(name));
-
-	std::string efid = translate_id(name) + "-effect";
-	addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
+	openMaterial(mat_id, mat_name);
+	addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, eff_id));
 
 	closeMaterial();
 }

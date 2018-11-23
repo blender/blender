@@ -44,6 +44,19 @@ typedef enum BC_export_transformation_type {
 } BC_export_transformation_type;
 
 
+typedef enum BC_export_animation_type {
+	BC_ANIMATION_EXPORT_SAMPLES,
+	BC_ANIMATION_EXPORT_KEYS
+} BC_export_animation_type;
+
+typedef enum BC_ui_export_section {
+	BC_UI_SECTION_MAIN,
+	BC_UI_SECTION_GEOMETRY,
+	BC_UI_SECTION_ARMATURE,
+	BC_UI_SECTION_ANIMATION,
+	BC_UI_SECTION_COLLADA
+} BC_ui_export_section;
+
 typedef struct ExportSettings {
 	bool apply_modifiers;
 	BC_export_mesh_type export_mesh_type;
@@ -54,10 +67,13 @@ typedef struct ExportSettings {
 	bool include_shapekeys;
 	bool deform_bones_only;
 	bool include_animations;
+	bool include_all_actions;
 	int sampling_rate;
+	bool keep_smooth_curves;
+	bool keep_keyframes;
 
 	bool active_uv_only;
-	bool include_material_textures;
+	BC_export_animation_type export_animation_type;
 	bool use_texture_copies;
 
 	bool triangulate;

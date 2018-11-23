@@ -59,8 +59,8 @@ class DocumentImporter : COLLADAFW::IWriter
 public:
 	//! Enumeration to denote the stage of import
 	enum ImportStage {
-		General,		//!< First pass to collect all data except controller
-		Controller,		//!< Second pass to collect controller data
+		Fetching_Scene_data, /* First pass to collect all data except controller */
+		Fetching_Controller_data, /* Second pass to collect controller data */
 	};
 	/** Constructor */
 	DocumentImporter(bContext *C, const ImportSettings *import_settings);
@@ -155,7 +155,7 @@ private:
 	/** Tags map of unique id as a string and ExtraTags instance. */
 	TagsMap uid_tags_map;
 
-	std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
+	UidImageMap uid_image_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
@@ -172,6 +172,7 @@ private:
 	std::string import_from_version;
 
 	void report_unknown_reference(const COLLADAFW::Node &node, const std::string object_type);
+
 };
 
 #endif

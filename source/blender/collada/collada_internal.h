@@ -91,19 +91,19 @@ extern std::string translate_id(const std::string &id);
 extern std::string translate_id(const char *idString);
 
 extern std::string id_name(void *id);
+extern std::string encode_xml(std::string xml);
 
 extern std::string get_geometry_id(Object *ob);
 extern std::string get_geometry_id(Object *ob, bool use_instantiation);
 
 extern std::string get_light_id(Object *ob);
 
-extern std::string get_joint_id(Object *ob, Bone *bone);
 extern std::string get_joint_sid(Bone *bone);
 
 extern std::string get_camera_id(Object *ob);
-
-extern std::string get_material_id(Material *mat);
-
 extern std::string get_morph_id(Object *ob);
+
+extern std::string get_effect_id(Material *mat);
+extern std::string get_material_id(Material *mat);
 
 #endif /* __COLLADA_INTERNAL_H__ */

@@ -15,47 +15,36 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov.
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Jan Diederich, Tod Liverseed.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file collada.h
- *  \ingroup collada
- */
-
-#ifndef __COLLADA_H__
-#define __COLLADA_H__
-
 #include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
-#include "ImportSettings.h"
-#include "ExportSettings.h"
+#include "COLLADASWLibraryAnimationClips.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-#include "BLI_linklist.h"
-#include "BLI_path_util.h"
-#include "RNA_types.h"
+class AnimationClipExporter:COLLADASW::LibraryAnimationClips {
+private:
+	Depsgraph *depsgraph;
+	Scene *scene;
+	COLLADASW::StreamWriter *sw;
+	const ExportSettings *export_settings;
+	std::vector<std::vector<std::string>> anim_meta;
 
-struct bContext;
-struct Depsgraph;
-struct Scene;
-struct ViewLayer;
+public:
 
-/*
- * both return 1 on success, 0 on error
- */
-int collada_import(struct bContext *C,
-				   ImportSettings *import_settings);
+	AnimationClipExporter(Depsgraph *depsgraph , COLLADASW::StreamWriter *sw, const ExportSettings *export_settings, std::vector<std::vector<std::string>> anim_meta) :
+		depsgraph(depsgraph),
+		COLLADASW::LibraryAnimationClips(sw),
+		export_settings(export_settings),
+		anim_meta(anim_meta)
+	{
+		this->sw = sw;
+	}
 
-int collada_export(struct bContext *C,
-                   ExportSettings *export_settings);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+	void exportAnimationClips(Scene *sce);
+};

@@ -56,39 +56,47 @@ extern "C" {
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
 // we make controller ids then?
-ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryControllers(sw), export_settings(export_settings) {
+ArmatureExporter::ArmatureExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) :
+	blender_context(blender_context),
+	COLLADASW::LibraryControllers(sw), export_settings(export_settings)
+{
 }
 
 // write bone nodes
-void ArmatureExporter::add_armature_bones(bContext *C, Depsgraph *depsgraph, Object *ob_arm,
-                                          Scene *sce, SceneExporter *se,
-                                          std::list<Object *>& child_objects)
+void ArmatureExporter::add_armature_bones(
+	Object *ob_arm,
+	ViewLayer *view_layer,
+	SceneExporter *se,
+	std::vector<Object *>& child_objects)
+
 {
-	Main *bmain = CTX_data_main(C);
 	// write bone nodes
 
 	bArmature *armature = (bArmature *)ob_arm->data;
 	bool is_edited = armature->edbo != NULL;
 
-	if (!is_edited)
+	if (!is_edited) {
 		ED_armature_to_edit(armature);
+	}
 
 	for (Bone *bone = (Bone *)armature->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
-		if (!bone->parent)
-			add_bone_node(C, depsgraph, bone, ob_arm, sce, se, child_objects);
+		if (!bone->parent) {
+			add_bone_node(bone, ob_arm, se, child_objects);
+		}
 	}
 
 	if (!is_edited) {
-		ED_armature_from_edit(bmain, armature);
 		ED_armature_edit_free(armature);
 	}
 }
 
 void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
 {
-	if (bc_is_root_bone(bone, this->export_settings->deform_bones_only))
-		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(ob_arm, bone)));
+	if (bc_is_root_bone(bone, this->export_settings->deform_bones_only)) {
+		std::string joint_id = translate_id(id_name(ob_arm) + "_" + bone->name);
+		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, joint_id));
+	}
 	else {
 		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
 			write_bone_URLs(ins, ob_arm, child);
@@ -156,12 +164,14 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 #endif
 
 // parent_mat is armature-space
-void ArmatureExporter::add_bone_node(bContext *C, Depsgraph *depsgraph, Bone *bone, Object *ob_arm, Scene *sce,
-                                     SceneExporter *se,
-                                     std::list<Object *>& child_objects)
+void ArmatureExporter::add_bone_node(
+	Bone *bone,
+	Object *ob_arm,
+    SceneExporter *se,
+    std::vector<Object *>& child_objects)
 {
 	if (!(this->export_settings->deform_bones_only && bone->flag & BONE_NO_DEFORM)) {
-		std::string node_id = get_joint_id(ob_arm, bone);
+		std::string node_id = translate_id(id_name(ob_arm) + "_" + bone->name);
 		std::string node_name = std::string(bone->name);
 		std::string node_sid = get_joint_sid(bone);
 
@@ -201,7 +211,7 @@ void ArmatureExporter::add_bone_node(bContext *C, Depsgraph *depsgraph, Bone *bo
 			add_bone_transform(ob_arm, bone, node);
 
 			// Write nodes of childobjects, remove written objects from list
-			std::list<Object *>::iterator i = child_objects.begin();
+			std::vector<Object *>::iterator i = child_objects.begin();
 
 			while (i != child_objects.end()) {
 				if ((*i)->partype == PARBONE && STREQ((*i)->parsubstr, bone->name)) {
@@ -230,8 +240,7 @@ void ArmatureExporter::add_bone_node(bContext *C, Depsgraph *depsgraph, Bone *bo
 						mul_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
 					}
 
-					se->writeNodes(C, depsgraph, *i, sce);
-
+					se->writeNodes(*i);
 					copy_m4_m4((*i)->parentinv, backup_parinv);
 					child_objects.erase(i++);
 				}
@@ -239,13 +248,13 @@ void ArmatureExporter::add_bone_node(bContext *C, Depsgraph *depsgraph, Bone *bo
 			}
 
 			for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-				add_bone_node(C, depsgraph, child, ob_arm, sce, se, child_objects);
+				add_bone_node(child, ob_arm, se, child_objects);
 			}
 			node.end();
 		}
 		else {
 			for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-				add_bone_node(C, depsgraph, child, ob_arm, sce, se, child_objects);
+				add_bone_node(child, ob_arm, se, child_objects);
 			}
 		}
 }

@@ -45,23 +45,51 @@ extern "C"
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
 
+
+static void print_import_header(ImportSettings &import_settings)
+{
+	fprintf(stderr, "+-- Collada Import parameters------\n");
+	fprintf(stderr, "| input file      : %s\n", import_settings.filepath);
+	fprintf(stderr, "| use units       : %s\n", (import_settings.import_units)?"yes":"no");
+	fprintf(stderr, "| autoconnect     : %s\n", (import_settings.auto_connect) ? "yes" : "no");
+	fprintf(stderr, "+-- Armature Import parameters ----\n");
+	fprintf(stderr, "| find bone chains: %s\n", (import_settings.find_chains) ? "yes" : "no");
+	fprintf(stderr, "| min chain len   : %d\n", import_settings.min_chain_length);
+	fprintf(stderr, "| fix orientation : %s\n", (import_settings.fix_orientation) ? "yes" : "no");
+	fprintf(stderr, "| keep bind info  : %s\n", (import_settings.keep_bind_info) ? "yes" : "no");
+
+}
+
+static void print_import_footer(int status)
+{
+	fprintf(stderr, "+----------------------------------\n");
+	fprintf(stderr, "| Collada Import : %s\n", (status)? "OK":"FAIL");
+	fprintf(stderr, "+----------------------------------\n");
+}
+
 int collada_import(bContext *C, ImportSettings *import_settings)
 {
+	print_import_header(*import_settings);
 	DocumentImporter imp(C, import_settings);
-	return (imp.import())? 1:0;
+	int status = imp.import()? 1:0;
+	print_import_footer(status);
+
+	return status;
 }
 
 int collada_export(bContext *C,
-                   Depsgraph *depsgraph,
-                   Scene *sce,
                    ExportSettings *export_settings)
 {
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	BlenderContext blender_context(C);
+	ViewLayer *view_layer = blender_context.get_view_layer();
 
 	int includeFilter = OB_REL_NONE;
 	if (export_settings->include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
 	if (export_settings->include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
+	/* Fetch the complete set of exported objects
+	 * ATTENTION: Invisible objects will not be exported
+	 */
 	eObjectSet objectSet = (export_settings->selected) ? OB_SET_SELECTED : OB_SET_ALL;
 	export_settings->export_set = BKE_object_relational_superset(view_layer, objectSet, (eObRelationTypes)includeFilter);
 
@@ -80,8 +108,8 @@ int collada_export(bContext *C,
 			bc_bubble_sort_by_Object_name(export_settings->export_set);
 	}
 
-	DocumentExporter exporter(depsgraph, export_settings);
-	int status = exporter.exportCurrentScene(C, sce);
+	DocumentExporter exporter(blender_context, export_settings);
+	int status = exporter.exportCurrentScene();
 
 	BLI_linklist_free(export_settings->export_set, NULL);
 

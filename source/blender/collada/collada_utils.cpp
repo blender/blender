@@ -33,20 +33,29 @@
 #include "COLLADAFWMeshVertexData.h"
 
 #include <set>
-
+#include <string>
 extern "C" {
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 
 #include "BLI_math.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_constraint.h"
+#include "BKE_key.h"
+#include "BKE_material.h"
+#include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
@@ -56,19 +65,27 @@ extern "C" {
 #include "BKE_scene.h"
 
 #include "ED_armature.h"
+#include "ED_screen.h"
+#include "ED_node.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
-}
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+#if 0
+#include "NOD_common.h"
+#endif
+}
 
 #include "collada_utils.h"
 #include "ExportSettings.h"
+#include "BlenderContext.h"
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
 {
@@ -90,6 +107,47 @@ int bc_test_parent_loop(Object *par, Object *ob)
 	if (ob == par) return 1;
 
 	return bc_test_parent_loop(par->parent, ob);
+}
+
+void bc_get_children(std::vector<Object *> &child_set, Object *ob, ViewLayer *view_layer)
+{
+	Base *base;
+	for (base = (Base *)view_layer->object_bases.first; base; base = base->next) {
+		Object *cob = base->object;
+		if (cob->parent == ob) {
+			switch (ob->type) {
+			case OB_MESH:
+			case OB_CAMERA:
+			case OB_LAMP:
+			case OB_EMPTY:
+			case OB_ARMATURE:
+				child_set.push_back(cob);
+			default: break;
+			}
+		}
+	}
+}
+
+bool bc_validateConstraints(bConstraint *con)
+{
+	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+
+	/* these we can skip completely (invalid constraints...) */
+	if (cti == NULL)
+		return false;
+	if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))
+		return false;
+
+	/* these constraints can't be evaluated anyway */
+	if (cti->evaluate_constraint == NULL)
+		return false;
+
+	/* influence == 0 should be ignored */
+	if (con->enforce == 0.0f)
+		return false;
+
+	/* validation passed */
+	return true;
 }
 
 // a shortened version of parent_set_exec()
@@ -131,15 +189,52 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	return true;
 }
 
-Scene *bc_get_scene(bContext *C)
+std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool all_actions)
 {
-	return CTX_data_scene(C);
+	std::vector<bAction *> actions;
+	if (all_actions) {
+		Main *bmain = CTX_data_main(C);
+		ID *id;
+
+		for (id = (ID *)bmain->action.first; id; id = (ID *)(id->next)) {
+			bAction *act = (bAction *)id;
+			/* XXX This currently creates too many actions.
+			   TODO Need to check if the action is compatible to the given object
+			*/
+			actions.push_back(act);
+		}
+	}
+	else
+	{
+		bAction *action = bc_getSceneObjectAction(ob);
+		actions.push_back(action);
+	}
+
+	return actions;
 }
 
-void bc_update_scene(Main *bmain, Depsgraph *depsgraph, Scene *scene, float ctime)
+std::string bc_get_action_id(std::string action_name, std::string ob_name, std::string channel_type, std::string axis_name, std::string axis_separator)
 {
+	std::string result = action_name + "_" + channel_type;
+	if (ob_name.length() > 0)
+		result = ob_name + "_" + result;
+	if (axis_name.length() > 0)
+		result += axis_separator + axis_name;
+	return translate_id(result);
+}
+
+void bc_update_scene(BlenderContext &blender_context, float ctime)
+{
+	Main *bmain = blender_context.get_main();
+	Scene *scene = blender_context.get_scene();
+	Depsgraph *depsgraph = blender_context.get_depsgraph();
+
+	/*
+	 * See remark in physics_fluid.c lines 395...)
+	 * BKE_scene_update_for_newframe(ev_context, bmain, scene, scene->lay);
+	*/
 	BKE_scene_frame_set(scene, ctime);
-	BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+	ED_update_for_newframe(bmain, depsgraph);
 }
 
 Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name)
@@ -161,7 +256,11 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
 }
 
 Mesh *bc_get_mesh_copy(
-        Depsgraph *depsgraph, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
+    BlenderContext &blender_context, 
+	Object *ob,
+	BC_export_mesh_type export_mesh_type,
+	bool apply_modifiers,
+	bool triangulate)
 {
 	CustomDataMask mask = CD_MASK_MESH;
 	Mesh *mesh = (Mesh *)ob->data;
@@ -181,6 +280,8 @@ Mesh *bc_get_mesh_copy(
 			}
 		}
 #else
+		Depsgraph *depsgraph = blender_context.get_depsgraph();
+		Scene *scene = blender_context.get_scene();
 		tmpmesh = mesh_get_eval_final(depsgraph, scene, ob, mask);
 #endif
 	}
@@ -221,12 +322,14 @@ Object *bc_get_assigned_armature(Object *ob)
 	return ob_arm;
 }
 
-// Returns the highest selected ancestor
-// returns NULL if no ancestor is selected
-// IMPORTANT: This function expects that
-// all exported objects have set:
-// ob->id.tag & LIB_TAG_DOIT
+/*
+* Returns the highest selected ancestor
+* returns NULL if no ancestor is selected
+* IMPORTANT: This function expects that all exported objects have set:
+* ob->id.tag & LIB_TAG_DOIT
+*/
 Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob)
+
 {
 	Object *ancestor = ob;
 	while (ob->parent && bc_is_marked(ob->parent)) {
@@ -236,16 +339,31 @@ Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *o
 	return ancestor;
 }
 
-
 bool bc_is_base_node(LinkNode *export_set, Object *ob)
 {
 	Object *root = bc_get_highest_selected_ancestor_or_self(export_set, ob);
 	return (root == ob);
 }
 
-bool bc_is_in_Export_set(LinkNode *export_set, Object *ob)
+bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer)
 {
-	return (BLI_linklist_index(export_set, ob) != -1);
+	bool to_export = (BLI_linklist_index(export_set, ob) != -1);
+
+	if (!to_export)
+	{
+		/* Mark this object as to_export even if it is not in the 
+		export list, but it contains children to export */
+
+		std::vector<Object *> children;
+		bc_get_children(children, ob, view_layer);
+		for (int i = 0; i < children.size(); i++) {
+			if (bc_is_in_Export_set(export_set, children[i], view_layer)) {
+				to_export = true;
+				break;
+			}
+		}
+	}
+	return to_export;
 }
 
 bool bc_has_object_type(LinkNode *export_set, short obtype)
@@ -819,6 +937,133 @@ static bool has_custom_props(Bone *bone, bool enabled, std::string key)
 
 }
 
+void bc_enable_fcurves(bAction *act, char *bone_name)
+{
+	FCurve *fcu;
+	char prefix[200];
+
+	if (bone_name)
+		BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name);
+
+	for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {
+		if (bone_name) {
+			if (STREQLEN(fcu->rna_path, prefix, strlen(prefix)))
+				fcu->flag &= ~FCURVE_DISABLED;
+			else
+				fcu->flag |= FCURVE_DISABLED;
+		}
+		else {
+			fcu->flag &= ~FCURVE_DISABLED;
+		}
+	}
+}
+
+bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_opensim)
+{
+
+	/* Ok, lets be super cautious and check if the bone exists */
+	bPose *pose = ob->pose;
+	bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone->name);
+	if (!pchan) {
+		return false;
+	}
+
+	bAction *action = bc_getSceneObjectAction(ob);
+	bPoseChannel *parchan = pchan->parent;
+
+	bc_enable_fcurves(action, bone->name);
+	float ipar[4][4];
+
+	if (bone->parent) {
+		invert_m4_m4(ipar, parchan->pose_mat);
+		mul_m4_m4m4(mat, ipar, pchan->pose_mat);
+	}
+	else
+		copy_m4_m4(mat, pchan->pose_mat);
+
+	/* OPEN_SIM_COMPATIBILITY
+	* AFAIK animation to second life is via BVH, but no
+	* reason to not have the collada-animation be correct
+	*/
+	if (for_opensim) {
+		float temp[4][4];
+		copy_m4_m4(temp, bone->arm_mat);
+		temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+		invert_m4(temp);
+
+		mul_m4_m4m4(mat, mat, temp);
+
+		if (bone->parent) {
+			copy_m4_m4(temp, bone->parent->arm_mat);
+			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+
+			mul_m4_m4m4(mat, temp, mat);
+		}
+	}
+	bc_enable_fcurves(action, NULL);
+	return true;
+}
+
+bool bc_is_animated(BCMatrixSampleMap &values)
+{
+	static float MIN_DISTANCE = 0.00001;
+
+	if (values.size() < 2)
+		return false; // need at least 2 entries to be not flat
+
+	BCMatrixSampleMap::iterator it;
+	const BCMatrix *refmat = NULL;
+	for (it = values.begin(); it != values.end(); ++it) {
+		const BCMatrix *matrix = it->second;
+
+		if (refmat == NULL) {
+			refmat = matrix;
+			continue;
+		}
+
+		if (!matrix->in_range(*refmat, MIN_DISTANCE))
+			return true;
+	}
+	return false;
+}
+
+bool bc_has_animations(Object *ob)
+{
+	/* Check for object,lamp and camera transform animations */
+	if ((bc_getSceneObjectAction(ob) && bc_getSceneObjectAction(ob)->curves.first) ||
+		(bc_getSceneLampAction(ob) && bc_getSceneLampAction(ob)->curves.first) ||
+		(bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first))
+		return true;
+
+	//Check Material Effect parameter animations.
+	for (int a = 0; a < ob->totcol; a++) {
+		Material *ma = give_current_material(ob, a + 1);
+		if (!ma) continue;
+		if (ma->adt && ma->adt->action && ma->adt->action->curves.first)
+			return true;
+	}
+
+	Key *key = BKE_key_from_object(ob);
+	if ((key && key->adt && key->adt->action) && key->adt->action->curves.first)
+		return true;
+
+	return false;
+}
+
+
+bool bc_has_animations(Scene *sce, LinkNode &export_set)
+{
+	LinkNode *node;
+
+	for (node = &export_set; node; node = node->next) {
+		Object *ob = (Object *)node->link;
+
+		if (bc_has_animations(ob))
+			return true;
+	}
+	return false;
+}
+
 /**
  * Check if custom information about bind matrix exists and modify the from_mat
  * accordingly.
@@ -883,8 +1128,11 @@ void bc_create_restpose_mat(const ExportSettings *export_settings, Bone *bone, f
 void bc_sanitize_mat(float mat[4][4], int precision)
 {
 	for (int i = 0; i < 4; i++)
-		for (int j = 0; j < 4; j++)
-			mat[i][j] = double_round(mat[i][j], precision);
+		for (int j = 0; j < 4; j++) {
+			double val = (double)mat[i][j];
+			val = double_round(val, precision);
+			mat[i][j] = (float)val;
+		}
 }
 
 void bc_sanitize_mat(double mat[4][4], int precision)
@@ -906,7 +1154,31 @@ void bc_copy_farray_m4(float *r, float a[4][4])
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
 			*r++ = a[i][j];
+}
 
+void bc_copy_darray_m4d(double *r, double a[4][4])
+{
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			*r++ = a[i][j];
+}
+
+void bc_copy_v44_m4d(std::vector<std::vector<double>> &r, double(&a)[4][4])
+{
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			r[i][j] = a[i][j];
+		}
+	}
+}
+
+void bc_copy_m4d_v44(double (&r)[4][4], std::vector<std::vector<double>> &a)
+{
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			r[i][j] = a[i][j];
+		}
+	}
 }
 
 /**
@@ -947,4 +1219,204 @@ std::string bc_get_uvlayer_name(Mesh *me, int layer)
 		}
 	}
 	return "";
+}
+
+std::string bc_find_bonename_in_path(std::string path, std::string probe)
+{
+	std::string result;
+	char *boneName = BLI_str_quoted_substrN(path.c_str(), probe.c_str());
+	if (boneName) {
+		result = std::string(boneName);
+		MEM_freeN(boneName);
+	}
+	return result;
+}
+
+static bNodeTree *prepare_material_nodetree(Material *ma)
+{
+	if (ma->nodetree == NULL) {
+		ma->nodetree = ntreeAddTree(NULL, "Shader Nodetree", "ShaderNodeTree");
+		ma->use_nodes = true;
+	}
+	return ma->nodetree;
+}
+
+bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx, int locy, std::string label)
+{
+	bNode *node = nodeAddStaticNode(C, ntree, node_type);
+	if (node) {
+		if (label.length() > 0) {
+			strcpy(node->label, label.c_str());
+		}
+		node->locx = locx;
+		node->locy = locy;
+		node->flag |= NODE_SELECT;
+	}
+	return node;
+}
+
+
+bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx, int locy)
+{
+	return bc_add_node(C, ntree, node_type, locx, locy, "");
+}
+
+#if 0
+// experimental, probably not used
+static bNodeSocket *bc_group_add_input_socket(bNodeTree *ntree, bNode *to_node, int to_index, std::string label)
+{
+	bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
+	
+	//bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
+	//return socket;
+
+	bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
+	bNode *inputGroup = ntreeFindType(ntree, NODE_GROUP_INPUT);
+	node_group_input_verify(ntree, inputGroup, (ID *)ntree);
+	bNodeSocket *newsock = node_group_input_find_socket(inputGroup, gsock->identifier);
+	nodeAddLink(ntree, inputGroup, newsock, to_node, to_socket);
+	strcpy(newsock->name, label.c_str());
+	return newsock;
+}
+
+static bNodeSocket *bc_group_add_output_socket(bNodeTree *ntree, bNode *from_node, int from_index, std::string label)
+{
+	bNodeSocket *from_socket = (bNodeSocket *)BLI_findlink(&from_node->outputs, from_index);
+
+	//bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
+	//return socket;
+
+	bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, from_node, from_socket);
+	bNode *outputGroup = ntreeFindType(ntree, NODE_GROUP_OUTPUT);
+	node_group_output_verify(ntree, outputGroup, (ID *)ntree);
+	bNodeSocket *newsock = node_group_output_find_socket(outputGroup, gsock->identifier);
+	nodeAddLink(ntree, from_node, from_socket, outputGroup, newsock);
+	strcpy(newsock->name, label.c_str());
+	return newsock;
+}
+
+
+void bc_make_group(bContext *C, bNodeTree *ntree, std::map<std::string, bNode *> nmap)
+{
+	bNode * gnode = node_group_make_from_selected(C, ntree, "ShaderNodeGroup", "ShaderNodeTree");
+	bNodeTree *gtree = (bNodeTree *)gnode->id;
+
+	bc_group_add_input_socket(gtree, nmap["main"], 0, "Diffuse");
+	bc_group_add_input_socket(gtree, nmap["emission"], 0, "Emission");
+	bc_group_add_input_socket(gtree, nmap["mix"], 0, "Transparency");
+	bc_group_add_input_socket(gtree, nmap["emission"], 1, "Emission");
+	bc_group_add_input_socket(gtree, nmap["main"], 4, "Metallic");
+	bc_group_add_input_socket(gtree, nmap["main"], 5, "Specular");
+
+	bc_group_add_output_socket(gtree, nmap["mix"], 0, "Shader");
+}
+#endif
+
+static void bc_node_add_link(bNodeTree *ntree, bNode *from_node, int from_index, bNode *to_node, int to_index)
+{
+	bNodeSocket *from_socket = (bNodeSocket *)BLI_findlink(&from_node->outputs, from_index);
+	bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
+
+	nodeAddLink(ntree, from_node, from_socket, to_node, to_socket);
+}
+
+void bc_add_default_shader(bContext *C, Material *ma)
+{
+	bNodeTree *ntree = prepare_material_nodetree(ma);
+	std::map<std::string, bNode *> nmap;
+#if 0
+	nmap["main"] = bc_add_node(C, ntree, SH_NODE_BSDF_PRINCIPLED, -300, 300);
+	nmap["emission"] = bc_add_node(C, ntree, SH_NODE_EMISSION, -300, 500, "emission");
+	nmap["add"] = bc_add_node(C, ntree, SH_NODE_ADD_SHADER, 100, 400);
+	nmap["transparent"] = bc_add_node(C, ntree, SH_NODE_BSDF_TRANSPARENT, 100, 200);
+	nmap["mix"] = bc_add_node(C, ntree, SH_NODE_MIX_SHADER, 400, 300, "transparency");
+	nmap["out"] = bc_add_node(C, ntree, SH_NODE_OUTPUT_MATERIAL, 600, 300);
+	nmap["out"]->flag &= ~NODE_SELECT;
+
+	bc_node_add_link(ntree, nmap["emission"], 0, nmap["add"], 0);
+	bc_node_add_link(ntree, nmap["main"], 0, nmap["add"], 1);
+	bc_node_add_link(ntree, nmap["add"], 0, nmap["mix"], 1);
+	bc_node_add_link(ntree, nmap["transparent"], 0, nmap["mix"], 2);
+
+	bc_node_add_link(ntree, nmap["mix"], 0, nmap["out"], 0);
+	// experimental, probably not used.
+	bc_make_group(C, ntree, nmap);
+#else
+nmap["main"] = bc_add_node(C, ntree, SH_NODE_BSDF_PRINCIPLED,  0, 300);
+nmap["out"] = bc_add_node(C, ntree, SH_NODE_OUTPUT_MATERIAL, 300, 300);
+bc_node_add_link(ntree, nmap["main"], 0, nmap["out"], 0);
+#endif
+}
+
+COLLADASW::ColorOrTexture bc_get_base_color(Material *ma)
+{
+	bNode *master_shader = bc_get_master_shader(ma);
+	if (master_shader) {
+		return bc_get_base_color(master_shader);
+	}
+	else {
+		return bc_get_cot(ma->r, ma->g, ma->b, ma->alpha);
+	}
+}
+
+COLLADASW::ColorOrTexture bc_get_specular_color(Material *ma, bool use_fallback)
+{
+	bNode *master_shader = bc_get_master_shader(ma);
+	if (master_shader) {
+		return bc_get_specular_color(master_shader);
+	}
+	else if (use_fallback) {
+		return bc_get_cot(ma->specr * ma->spec, ma->specg * ma->spec, ma->specb * ma->spec, 1.0f);
+	}
+	else {
+		return bc_get_cot(0.0, 0.0, 0.0, 1.0); // no specular
+	}
+}
+
+COLLADASW::ColorOrTexture bc_get_base_color(bNode *shader)
+{
+	bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, "Base Color");
+	if (socket)
+	{
+		bNodeSocketValueRGBA *dcol = (bNodeSocketValueRGBA *)socket->default_value;
+		float* col = dcol->value;
+		return bc_get_cot(col[0], col[1], col[2], col[3]);
+	}
+	else {
+		return bc_get_cot(0.8, 0.8, 0.8, 1.0); //default white
+	}
+}
+
+COLLADASW::ColorOrTexture bc_get_specular_color(bNode *shader)
+{
+	bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, "Specular");
+	if (socket)
+	{
+		bNodeSocketValueRGBA *dcol = (bNodeSocketValueRGBA *)socket->default_value;
+		float* col = dcol->value;
+		return bc_get_cot(col[0], col[1], col[2], col[3]);
+	}
+	else {
+		return bc_get_cot(0.8, 0.8, 0.8, 1.0); //default white
+	}
+}
+
+bNode *bc_get_master_shader(Material *ma)
+{
+	bNodeTree *nodetree = ma->nodetree;
+	if (nodetree) {
+		for (bNode *node = (bNode *)nodetree->nodes.first; node; node = node->next) {
+			if (node->typeinfo->type == SH_NODE_BSDF_PRINCIPLED) {
+				return node;
+			}
+		}
+	}
+	return NULL;
+}
+
+COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a)
+{
+	COLLADASW::Color color(r, g, b, a);
+	COLLADASW::ColorOrTexture cot(color);
+	return cot;
 }

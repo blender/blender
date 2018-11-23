@@ -28,24 +28,24 @@
 #define __DOCUMENTEXPORTER_H__
 
 #include "collada.h"
+#include "collada_utils.h"
+#include "BlenderContext.h"
 
 extern "C" {
 #include "DNA_customdata_types.h"
 
 }
 
-struct Scene;
-
 class DocumentExporter
 {
  public:
-	DocumentExporter(Depsgraph *depsgraph, const ExportSettings *export_settings);
-	int  exportCurrentScene(bContext *C, Scene *sce);
-
+	DocumentExporter(BlenderContext &blender_context, const ExportSettings *export_settings);
+	int  exportCurrentScene();
 	void exportScenes(const char *filename);
 private:
-	Depsgraph *depsgraph;
+	BlenderContext &blender_context;
 	const ExportSettings *export_settings;
+	KeyImageMap key_image_map;
 };
 
 #endif

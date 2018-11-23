@@ -58,7 +58,9 @@ extern "C" {
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
 // we make controller ids then?
-ControllerExporter::ControllerExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryControllers(sw), export_settings(export_settings) {
+ControllerExporter::ControllerExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : 
+	blender_context(blender_context),
+	COLLADASW::LibraryControllers(sw), export_settings(export_settings) {
 }
 
 bool ControllerExporter::is_skinned_mesh(Object *ob)
@@ -66,11 +68,12 @@ bool ControllerExporter::is_skinned_mesh(Object *ob)
 	return bc_get_assigned_armature(ob) != NULL;
 }
 
-
 void ControllerExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
 {
-	if (bc_is_root_bone(bone, this->export_settings->deform_bones_only))
-		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(ob_arm, bone)));
+	if (bc_is_root_bone(bone, this->export_settings->deform_bones_only)) {
+		std::string node_id = translate_id(id_name(ob_arm) + "_" + bone->name);
+		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, node_id));
+	}
 	else {
 		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
 			write_bone_URLs(ins, ob_arm, child);
@@ -103,12 +106,9 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 	return true;
 }
 
-void ControllerExporter::export_controllers(Main *bmain, Depsgraph *depsgraph, Scene *sce)
+void ControllerExporter::export_controllers()
 {
-	this->depsgraph = depsgraph;
-	m_bmain = bmain;
-	scene = sce;
-
+	Scene *sce = blender_context.get_scene();
 	openLibrary();
 
 	GeometryFunctor gf;
@@ -203,8 +203,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	}
 
 	me = bc_get_mesh_copy(
-				depsgraph,
-				scene,
+				blender_context,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
@@ -305,8 +304,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	Mesh *me;
 
 	me = bc_get_mesh_copy(
-				depsgraph,
-				scene,
+				blender_context,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
@@ -499,6 +497,9 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 
 	// put armature in rest position
 	if (!(arm->flag & ARM_RESTPOS)) {
+		Depsgraph *depsgraph = blender_context.get_depsgraph();
+		Scene *scene = blender_context.get_scene();
+
 		arm->flag |= ARM_RESTPOS;
 		BKE_pose_where_is(depsgraph, scene, ob_arm);
 	}
@@ -547,6 +548,8 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 
 	// back from rest position
 	if (!(flag & ARM_RESTPOS)) {
+		Depsgraph *depsgraph = blender_context.get_depsgraph();
+		Scene *scene = blender_context.get_scene();
 		arm->flag = flag;
 		BKE_pose_where_is(depsgraph, scene, ob_arm);
 	}

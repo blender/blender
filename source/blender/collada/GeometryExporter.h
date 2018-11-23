@@ -43,7 +43,7 @@
 
 #include "ExportSettings.h"
 #include "collada_utils.h"
-
+#include "BlenderContext.h"
 #include "BKE_key.h"
 
 struct Depsgraph;
@@ -74,14 +74,10 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 
 	Normal n;
 
-	struct Depsgraph *mDepsgraph;
-	Main *m_bmain;
-	Scene *mScene;
-
 public:
-	GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+	GeometryExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
-	void exportGeom(Main *bmain, Depsgraph *depsgraph, Scene *sce);
+	void exportGeom();
 
 	void operator()(Object *ob);
 
@@ -125,7 +121,7 @@ public:
 
 private:
 	std::set<std::string> exportedGeometry;
-
+	BlenderContext &blender_context;
 	const ExportSettings *export_settings;
 
 	Mesh *get_mesh(Scene *sce, Object *ob, int apply_modifiers);

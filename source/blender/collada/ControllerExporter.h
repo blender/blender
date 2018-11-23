@@ -60,20 +60,18 @@ class SceneExporter;
 class ControllerExporter : public COLLADASW::LibraryControllers, protected TransformWriter, protected InstanceWriter
 {
 public:
-	ControllerExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+	ControllerExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
 	bool is_skinned_mesh(Object *ob);
 
 	bool add_instance_controller(Object *ob);
 
-	void export_controllers(Main *bmain, Depsgraph *depsgraph, Scene *sce);
+	void export_controllers();
 
 	void operator()(Object *ob);
 
 private:
-	Depsgraph *depsgraph;
-	Main *m_bmain;
-	Scene *scene;
+	BlenderContext &blender_context;
 	UnitConverter converter;
 	const ExportSettings *export_settings;
 
