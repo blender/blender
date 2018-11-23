@@ -182,7 +182,7 @@ public:
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
-	Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
+	Object *translate_animation_OLD(COLLADAFW::Node *node,
 		std::map<COLLADAFW::UniqueId, Object *>& object_map,
 		std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& root_map,
 		COLLADAFW::Transformation::TransformationType tm_type,

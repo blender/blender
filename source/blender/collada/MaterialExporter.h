@@ -44,7 +44,7 @@ extern "C" {
 #include "GeometryExporter.h"
 #include "collada_internal.h"
 #include "ExportSettings.h"
-#include "materials.h"
+#include "Materials.h"
 
 class MaterialsExporter: COLLADASW::LibraryMaterials
 {
