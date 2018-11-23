@@ -147,7 +147,7 @@ static void POSE_cache_init(void *vedata)
 
 	{
 		if (POSE_is_bone_selection_overlay_active()) {
-			const float alpha = (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) ? 0.0f : v3d->overlay.bone_select_alpha;
+			const float alpha = (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) ? 0.0f : v3d->overlay.xray_alpha_bone;
 			copy_v4_fl4(ppd->blend_color, 0.0f, 0.0f, 0.0f, alpha);
 			copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(alpha, 4));
 			DRWShadingGroup *grp;

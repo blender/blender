@@ -188,7 +188,7 @@ typedef struct View3DOverlay {
 
 	/* Armature edit/pose mode settings */
 	int arm_flag;
-	float bone_select_alpha;
+	float xray_alpha_bone;
 
 	/* Other settings */
 	float wireframe_threshold;
@@ -389,7 +389,7 @@ enum {
 	V3D_SHADING_CAVITY              = (1 << 5),
 	V3D_SHADING_MATCAP_FLIP_X       = (1 << 6),
 	V3D_SHADING_SCENE_WORLD         = (1 << 7),
-	V3D_SHADING_XRAY_WIREFRAME      = (1 << 8),
+	V3D_SHADING_XRAY_BONE           = (1 << 8),
 };
 
 /* View3DShading->color_type */

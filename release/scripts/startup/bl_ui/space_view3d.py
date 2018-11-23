@@ -4832,13 +4832,13 @@ class VIEW3D_PT_overlay_pose(Panel):
 
         if mode == 'POSE':
             row = col.row()
-            row.prop(overlay, "show_bone_select", text="")
+            row.prop(overlay, "show_xray_bone", text="")
             sub = row.row()
-            sub.active = display_all and overlay.show_bone_select
-            sub.prop(overlay, "bone_select_alpha", text="Fade Geometry")
+            sub.active = display_all and overlay.show_xray_bone
+            sub.prop(overlay, "xray_alpha_bone", text="Fade Geometry")
         else:
             row = col.row()
-            row.prop(overlay, "show_bone_select")
+            row.prop(overlay, "show_xray_bone")
 
 
 class VIEW3D_PT_overlay_edit_armature(Panel):

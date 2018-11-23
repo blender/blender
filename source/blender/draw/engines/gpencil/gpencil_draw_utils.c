@@ -1508,7 +1508,7 @@ void DRW_gpencil_populate_datablock(
 		if ((draw_ctx->obact) && (draw_ctx->object_mode == OB_MODE_POSE) &&
 		    (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
 		{
-			opacity = opacity * v3d->overlay.bone_select_alpha;
+			opacity = opacity * v3d->overlay.xray_alpha_bone;
 		}
 		/* fade no active layers */
 		if ((overlay) && (draw_ctx->object_mode == OB_MODE_GPENCIL_PAINT) &&

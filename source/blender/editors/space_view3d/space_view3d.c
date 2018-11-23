@@ -325,7 +325,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	BKE_screen_view3d_shading_init(&v3d->shading);
 
 	v3d->overlay.wireframe_threshold = 0.5f;
-	v3d->overlay.bone_select_alpha = 0.5f;
+	v3d->overlay.xray_alpha_bone = 0.5f;
 	v3d->overlay.texture_paint_mode_opacity = 0.8;
 	v3d->overlay.weight_paint_mode_opacity = 1.0f;
 	v3d->overlay.vertex_paint_mode_opacity = 0.8;
