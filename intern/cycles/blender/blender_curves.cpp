@@ -619,6 +619,41 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 	}
 }
 
+static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, int curvekey)
+{
+	float3 ickey_loc = CData->curvekey_co[curvekey];
+	float time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
+	float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
+
+	if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
+		radius = 0.0f;
+
+	/* curve motion keys store both position and radius in float4 */
+	float4 mP = float3_to_float4(ickey_loc);
+	mP.w = radius;
+	return mP;
+}
+
+static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, float step)
+{
+	step = clamp(step, 0.0f, 1.0f);
+	float curve_key_f = step * (CData->curve_keynum[curve] - 1);
+	int curvekey = (int)floorf(curve_key_f);
+	float remainder = curve_key_f - curvekey;
+	if(remainder == 0.0f) {
+		return CurveSegmentMotionCV(CData, sys, curve, curvekey);
+	}
+	int curvekey2 = curvekey + 1;
+	if(curvekey2 >= (CData->curve_keynum[curve] - 1)) {
+		curvekey2 = (CData->curve_keynum[curve] - 1);
+		curvekey = curvekey2 - 1;
+	}
+
+	float4 mP = CurveSegmentMotionCV(CData, sys, curve, curvekey);
+	float4 mP2 = CurveSegmentMotionCV(CData, sys, curve, curvekey2);
+	return lerp(mP, mP2, remainder);
+}
+
 static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int motion_step)
 {
 	VLOG(1) << "Exporting curve motion segments for mesh " << mesh->name
@@ -640,6 +675,7 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 	float4 *mP = attr_mP->data_float4() + motion_step*numkeys;
 	bool have_motion = false;
 	int i = 0;
+	int num_curves = 0;
 
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
 		if(CData->psys_curvenum[sys] == 0)
@@ -649,30 +685,39 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
-			for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve]; curvekey++) {
-				if(i < mesh->curve_keys.size()) {
-					float3 ickey_loc = CData->curvekey_co[curvekey];
-					float time = CData->curvekey_time[curvekey]/CData->curve_length[curve];
-					float radius = shaperadius(CData->psys_shape[sys], CData->psys_rootradius[sys], CData->psys_tipradius[sys], time);
+			/* Curve lengths may not match! Curves can be clipped. */
+			int curve_key_end = (num_curves+1 < (int)mesh->curve_first_key.size() ? mesh->curve_first_key[num_curves+1] : (int)mesh->curve_keys.size());
+			int center_curve_len = curve_key_end - mesh->curve_first_key[num_curves];
+			int diff = CData->curve_keynum[curve] - center_curve_len;
 
-					if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
-						radius = 0.0f;
-
-					/* curve motion keys store both position and radius in float4 */
-					mP[i] = float3_to_float4(ickey_loc);
-					mP[i].w = radius;
-
-					/* unlike mesh coordinates, these tend to be slightly different
-					 * between frames due to particle transforms into/out of object
-					 * space, so we use an epsilon to detect actual changes */
-					float4 curve_key = float3_to_float4(mesh->curve_keys[i]);
-					curve_key.w = mesh->curve_radius[i];
-					if(len_squared(mP[i] - curve_key) > 1e-5f*1e-5f)
-						have_motion = true;
+			if(diff == 0) {
+				for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve]; curvekey++) {
+					if(i < mesh->curve_keys.size()) {
+						mP[i] = CurveSegmentMotionCV(CData, sys, curve, curvekey);
+						if(!have_motion) {
+							/* unlike mesh coordinates, these tend to be slightly different
+							 * between frames due to particle transforms into/out of object
+							 * space, so we use an epsilon to detect actual changes */
+							float4 curve_key = float3_to_float4(mesh->curve_keys[i]);
+							curve_key.w = mesh->curve_radius[i];
+							if(len_squared(mP[i] - curve_key) > 1e-5f*1e-5f)
+								have_motion = true;
+						}
+					}
+					i++;
 				}
-
-				i++;
 			}
+			else {
+				/* Number of keys has changed. Genereate an interpolated version to preserve motion blur. */
+				float step = 0;
+				float step_size = 1.0f / (center_curve_len-1);
+				for(; i < curve_key_end; i++) {
+					mP[i] = LerpCurveSegmentMotionCV(CData, sys, curve, step);
+					step = i * step_size;
+				}
+				have_motion = true;
+			}
+			num_curves++;
 		}
 	}
 
