@@ -258,6 +258,8 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
+	bGPdata *gpd = *gpd_ptr;
+	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
