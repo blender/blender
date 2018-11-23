@@ -628,7 +628,7 @@ const bool BCCurveKey::operator<(const BCCurveKey &other) const
 	return this->curve_array_index < other.curve_array_index;
 }
 
-BCBezTriple::BCBezTriple(BezTriple bezt) :
+BCBezTriple::BCBezTriple(BezTriple &bezt) :
 	bezt(bezt) {}
 
 const float BCBezTriple::get_frame() const

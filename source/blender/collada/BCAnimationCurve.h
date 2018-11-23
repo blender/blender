@@ -82,7 +82,7 @@ class BCBezTriple {
 public:
 	BezTriple & bezt;
 
-	BCBezTriple(BezTriple bezt);
+	BCBezTriple(BezTriple &bezt);
 	const float get_frame() const;
 	const float get_time(Scene *scene) const;
 	const float get_value() const;
