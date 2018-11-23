@@ -49,7 +49,17 @@ def generate(context, space_type):
     def dict_as_tuple(d):
         return tuple((k, v) for (k, v) in sorted(d.items()))
 
-    tool_blacklist = set()
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+
+    items_all = [
+        # 0: tool
+        # 1: keymap item (direct access)
+        # 2: keymap item (newly calculated for toolbar)
+        [item, None, None]
+        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
+        if item is not None
+    ]
+    items_all_text = {item_container[0].text for item_container in items_all}
 
     use_simple_keymap = False
 
@@ -62,7 +72,7 @@ def generate(context, space_type):
     # TODO: support other tools for modes which don't use this tool.
     tap_reset_tool = "Cursor"
     # Check the tool is available in the current context.
-    if ToolSelectPanelHelper._tool_get_by_name(context, space_type, tap_reset_tool)[1] is None:
+    if tap_reset_tool not in items_all_text:
         use_tap_reset = False
 
     from bl_operators.wm import use_toolbar_release_hack
@@ -90,8 +100,15 @@ def generate(context, space_type):
     keymap_src = keyconf.keymaps.get(km_name_default)
     if keymap_src is not None:
         for kmi_src in keymap_src.keymap_items:
+            # Skip tools that aren't currently shown.
+            if (
+                    (kmi_src.idname == "wm.tool_set_by_name") and
+                    (kmi_src.properties.name not in items_all_text)
+            ):
+                continue
             keymap.keymap_items.new_from_item(kmi_src)
     del keymap_src
+    del items_all_text
 
 
     kmi_unique_args = set()
@@ -142,17 +159,11 @@ def generate(context, space_type):
         use_tap_reset = kmi_unique_or_pass(kmi_toolbar_args)
 
     if use_tap_reset:
-        tool_blacklist.add(tap_reset_tool)
-
-    items_all = [
-        # 0: tool
-        # 1: keymap item (direct access)
-        # 2: keymap item (newly calculated for toolbar)
-        [item, None, None]
-        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
-        if item is not None
-        if item.text not in tool_blacklist
-    ]
+        items_all[:] = [
+            item_container
+            for item_container in items_all
+            if item_container[0].text != tap_reset_tool
+        ]
 
     if use_simple_keymap:
         # Simply assign a key from A-Z.
