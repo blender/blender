@@ -182,10 +182,8 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 
 int DocumentExporter::exportCurrentScene()
 {
-	Main *bmain = blender_context.get_main();
 	Scene *sce = blender_context.get_scene();
 	bContext *C = blender_context.get_context();
-	Depsgraph *depsgraph = blender_context.get_depsgraph(); \
 
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
