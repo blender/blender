@@ -3226,8 +3226,6 @@ def km_pose(params):
         ("armature.layers_show_all", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True}, None),
         ("armature.armature_layers", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("pose.bone_layers", {"type": 'M', "value": 'PRESS'}, None),
-        ("wm.context_toggle", {"type": 'Z', "value": 'PRESS'},
-         {"properties": [("data_path", 'space_data.overlay.show_bone_select')]}),
         ("transform.transform", {"type": 'S', "value": 'PRESS', "ctrl": True, "alt": True},
          {"properties": [("mode", 'BONE_SIZE')]}),
         ("anim.keyframe_insert_menu", {"type": 'I', "value": 'PRESS'}, None),
