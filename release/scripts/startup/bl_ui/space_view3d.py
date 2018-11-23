@@ -1891,7 +1891,8 @@ class VIEW3D_MT_object_specials(Menu):
 
         layout.separator()
 
-        layout.operator("object.delete", text="Delete...").use_global = False
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator("object.delete", text="Delete").use_global = False
 
 
 class VIEW3D_MT_object_shading(Menu):
