@@ -1412,6 +1412,11 @@ void BKE_scene_graph_update_tagged(Depsgraph *depsgraph,
 	Scene *scene = DEG_get_input_scene(depsgraph);
 	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 
+	bool run_callbacks = DEG_id_type_any_updated(depsgraph);
+	if (run_callbacks) {
+		BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_DEPSGRAPH_UPDATE_PRE);
+	}
+
 	/* TODO(sergey): Some functions here are changing global state,
 	 * for example, clearing update tags from bmain.
 	 */
@@ -1429,6 +1434,11 @@ void BKE_scene_graph_update_tagged(Depsgraph *depsgraph,
 	DEG_evaluate_on_refresh(depsgraph);
 	/* Update sound system animation (TODO, move to depsgraph). */
 	BKE_sound_update_scene(bmain, scene);
+
+	/* Notify python about depsgraph update */
+	if (run_callbacks) {
+		BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_DEPSGRAPH_UPDATE_POST);
+	}
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
 	/* Clear recalc flags. */
