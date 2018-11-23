@@ -1249,11 +1249,12 @@ static bool ui_drag_toggle_but_is_pushed(uiBut *but)
 
 typedef struct uiDragToggleHandle {
 	/* init */
-	bool is_init;
 	bool is_set;
 	float but_cent_start[2];
 
-	bool xy_lock[2];
+	bool is_xy_lock_init;
+	bool    xy_lock[2];
+
 	int  xy_init[2];
 	int  xy_last[2];
 } uiDragToggleHandle;
@@ -1320,7 +1321,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 	 * Check if we need to initialize the lock axis by finding if the first
 	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
 	 */
-	if (drag_info->is_init == false) {
+	if (drag_info->is_xy_lock_init == false) {
 		/* first store the buttons original coords */
 		uiBut *but = ui_but_find_mouse_over_ex(ar, xy_input[0], xy_input[1], true);
 
@@ -1341,11 +1342,11 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 					else {
 						drag_info->xy_lock[1] = true;
 					}
-					drag_info->is_init = true;
+					drag_info->is_xy_lock_init = true;
 				}
 			}
 			else {
-				drag_info->is_init = true;
+				drag_info->is_xy_lock_init = true;
 			}
 		}
 	}
@@ -1751,6 +1752,22 @@ static bool ui_but_drag_init(
 			        drag_info, WM_HANDLER_BLOCKING);
 
 			CTX_wm_region_set(C, ar_prev);
+
+			/* Initialize alignment for single row/column regions,
+			 * otherwise we use the relative position of the first other button dragged over. */
+			if (ELEM(data->region->regiontype, RGN_TYPE_NAV_BAR, RGN_TYPE_HEADER)) {
+				int lock_axis = -1;
+				if (ELEM(data->region->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+					lock_axis = 0;
+				}
+				else if (ELEM(data->region->alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
+					lock_axis = 1;
+				}
+				if (lock_axis != -1) {
+					drag_info->xy_lock[lock_axis] = true;
+					drag_info->is_xy_lock_init = true;
+				}
+			}
 		}
 		else
 #endif
