@@ -83,6 +83,7 @@ void BLO_update_defaults_userpref_blend(void)
 
 	/* Only enable tooltips translation by default, without actually enabling translation itself, for now. */
 	U.transopts = USER_TR_TOOLTIPS;
+	U.memcachelimit = 4096;
 }
 
 /**
