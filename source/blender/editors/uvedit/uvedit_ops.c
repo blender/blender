@@ -3205,6 +3205,10 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
+	}
+
 	/* don't indent to avoid diff noise! */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
@@ -3213,10 +3217,6 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
 		bool changed = false;
 
 		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-		if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-			uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
-		}
 
 		/* do actual selection */
 		if (use_face_center && !pinned) {
@@ -3486,6 +3486,10 @@ static bool do_lasso_select_mesh_uv(
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
+	}
+
 	/* don't indent to avoid diff noise! */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
@@ -3495,10 +3499,6 @@ static bool do_lasso_select_mesh_uv(
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-		if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-			uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
-		}
 
 		if (use_face_center) { /* Face Center Sel */
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {

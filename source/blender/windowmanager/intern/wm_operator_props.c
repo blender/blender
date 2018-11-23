@@ -279,7 +279,7 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* Some tools don't support XOR/END */
+/* Some tools don't support XOR/AND. */
 void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
 {
 	static const EnumPropertyItem select_mode_items[] = {
