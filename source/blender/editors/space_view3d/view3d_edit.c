@@ -4930,7 +4930,10 @@ static int toggle_xray_exec(bContext *C, wmOperator *op)
 	ScrArea *sa = CTX_wm_area(C);
 	Object *obact = CTX_data_active_object(C);
 
-	if (obact && obact->mode & OB_MODE_POSE) {
+	if (obact &&
+	    ((obact->mode & OB_MODE_POSE) ||
+	     ((obact->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(obact))))
+	{
 		v3d->overlay.flag ^= V3D_OVERLAY_BONE_SELECT;
 	}
 	else {

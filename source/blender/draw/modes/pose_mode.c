@@ -86,9 +86,9 @@ static struct {
 /* *********** FUNCTIONS *********** */
 static bool POSE_is_bone_selection_overlay_active(void)
 {
-	const DRWContextState *dcs = DRW_context_state_get();
-	const View3D *v3d = dcs->v3d;
-	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT) && OBPOSE_FROM_OBACT(dcs->obact);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const View3D *v3d = draw_ctx->v3d;
+	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT) && draw_ctx->object_pose;
 }
 
 static void POSE_engine_init(void *UNUSED(vedata))
@@ -147,8 +147,9 @@ static void POSE_cache_init(void *vedata)
 
 	{
 		if (POSE_is_bone_selection_overlay_active()) {
-			copy_v4_fl4(ppd->blend_color, 0.0f, 0.0f, 0.0f, v3d->overlay.bone_select_alpha);
-			copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(v3d->overlay.bone_select_alpha, 4));
+			const float alpha = (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) ? 0.0f : v3d->overlay.bone_select_alpha;
+			copy_v4_fl4(ppd->blend_color, 0.0f, 0.0f, 0.0f, alpha);
+			copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(alpha, 4));
 			DRWShadingGroup *grp;
 			psl->bone_selection = DRW_pass_create(
 			        "Bone Selection",

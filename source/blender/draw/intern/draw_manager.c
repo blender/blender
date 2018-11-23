@@ -1986,6 +1986,7 @@ void DRW_draw_select_loop(
 	}
 	if (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT) {
 		if (!(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+			/* Note: don't use "BKE_object_pose_armature_get" here, it breaks selection. */
 			Object *obpose = OBPOSE_FROM_OBACT(obact);
 			if (obpose) {
 				use_obedit = true;
