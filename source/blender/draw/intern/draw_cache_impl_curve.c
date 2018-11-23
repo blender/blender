@@ -39,8 +39,11 @@
 #include "BKE_font.h"
 
 #include "GPU_batch.h"
+#include "GPU_texture.h"
 
 #include "UI_resources.h"
+
+#include "DRW_render.h"
 
 #include "draw_cache_impl.h"  /* own include */
 
@@ -320,6 +323,14 @@ typedef struct CurveBatchCache {
 		int mat_len;
 	} surface;
 
+	/* Wireframes */
+	struct {
+		GPUVertBuf *elem_vbo;
+		GPUTexture *elem_tx;
+		GPUTexture *verts_tx;
+		uint tri_count;
+	} face_wire;
+
 	/* 3d text */
 	struct {
 		GPUBatch *select;
@@ -438,6 +449,11 @@ static void curve_batch_cache_clear(Curve *cu)
 
 	GPU_BATCH_DISCARD_ARRAY_SAFE(cache->surface.shaded_triangles, cache->surface.mat_len);
 	GPU_BATCH_DISCARD_SAFE(cache->surface.batch);
+
+	GPU_VERTBUF_DISCARD_SAFE(cache->face_wire.elem_vbo);
+	DRW_TEXTURE_FREE_SAFE(cache->face_wire.elem_tx);
+	DRW_TEXTURE_FREE_SAFE(cache->face_wire.verts_tx);
+	cache->face_wire.tri_count = 0;
 
 	/* don't own vbo & elems */
 	GPU_BATCH_DISCARD_SAFE(cache->wire.batch);
@@ -785,6 +801,40 @@ static GPUBatch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, C
 	return cache->surface.batch;
 }
 
+static GPUTexture *curve_batch_cache_get_edges_overlay_texture_buf(CurveRenderData *rdata, CurveBatchCache *cache)
+{
+	BLI_assert(rdata->types & CU_DATATYPE_SURFACE);
+
+	if (cache->face_wire.elem_tx != NULL) {
+		return cache->face_wire.elem_tx;
+	}
+
+	ListBase *lb = &rdata->ob_curve_cache->disp;
+
+	/* We need a special index buffer. */
+	GPUVertBuf *vbo = cache->face_wire.elem_vbo = DRW_displist_create_edges_overlay_texture_buf(lb);
+
+	/* Upload data early because we need to create the texture for it. */
+	GPU_vertbuf_use(vbo);
+	cache->face_wire.elem_tx = GPU_texture_create_from_vertbuf(vbo);
+	cache->face_wire.tri_count = vbo->vertex_alloc / 3;
+
+	return cache->face_wire.elem_tx;
+}
+
+static GPUTexture *curve_batch_cache_get_vert_pos_and_nor_in_order_buf(CurveRenderData *rdata, CurveBatchCache *cache)
+{
+	BLI_assert(rdata->types & CU_DATATYPE_SURFACE);
+
+	if (cache->face_wire.verts_tx == NULL) {
+		curve_batch_cache_get_pos_and_normals(rdata, cache);
+		GPU_vertbuf_use(cache->surface.verts); /* Upload early for buffer texture creation. */
+		cache->face_wire.verts_tx = GPU_texture_create_buffer(GPU_R32F, cache->surface.verts->vbo_id);
+	}
+
+	return cache->face_wire.verts_tx;
+}
+
 /** \} */
 
 
@@ -1024,6 +1074,25 @@ GPUBatch **DRW_curve_batch_cache_get_surface_shaded(
 	return cache->surface.shaded_triangles;
 }
 
+void DRW_curve_batch_cache_get_wireframes_face_texbuf(
+        Curve *cu, CurveCache *ob_curve_cache,
+        GPUTexture **verts_data, GPUTexture **face_indices, int *tri_count)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+
+	if (cache->face_wire.elem_tx == NULL || cache->face_wire.verts_tx == NULL) {
+		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_SURFACE);
+
+		curve_batch_cache_get_edges_overlay_texture_buf(rdata, cache);
+		curve_batch_cache_get_vert_pos_and_nor_in_order_buf(rdata, cache);
+
+		curve_render_data_free(rdata);
+	}
+
+	*tri_count = cache->face_wire.tri_count;
+	*face_indices = cache->face_wire.elem_tx;
+	*verts_data = cache->face_wire.verts_tx;
+}
 
 /* -------------------------------------------------------------------- */
 
