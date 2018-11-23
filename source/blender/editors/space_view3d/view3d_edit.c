@@ -4872,7 +4872,7 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
 	ScrArea *sa = CTX_wm_area(C);
 	int type = RNA_enum_get(op->ptr, "type");
 
-	if (ELEM(type, OB_WIRE, OB_SOLID)) {
+	if (type == OB_SOLID) {
 		if (v3d->shading.type != type) {
 			v3d->shading.type = type;
 		}
@@ -4884,12 +4884,18 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-
+		char *prev_type = (
+		        (type == OB_WIRE) ?
+		        &v3d->shading.prev_type_wire :
+		        &v3d->shading.prev_type));
 		if (v3d->shading.type == type) {
-			v3d->shading.type = v3d->shading.prev_type;
+			if (*prev_type == type || !ELEM(*prev_type, OB_WIRE, OB_SOLID, OB_MATERIAL, OB_RENDER)) {
+				*prev_type = OB_SOLID;
+			}
+			v3d->shading.type = *prev_type;
 		}
 		else {
-			v3d->shading.prev_type = v3d->shading.type;
+			*prev_type = v3d->shading.type;
 			v3d->shading.type = type;
 		}
 	}

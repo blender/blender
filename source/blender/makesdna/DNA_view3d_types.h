@@ -135,12 +135,12 @@ typedef struct View3DCursor {
 
 /* 3D Viewport Shading settings */
 typedef struct View3DShading {
-	short type;        /* Shading type (VIEW3D_SHADE_SOLID, ..) */
-	short prev_type;   /* Runtime, for toggle between rendered viewport. */
+	char type;        /* Shading type (VIEW3D_SHADE_SOLID, ..) */
+	char prev_type;   /* Runtime, for toggle between rendered viewport. */
+	char prev_type_wire;
 
-	short flag;
 	char color_type;
-	char _pad0[7];
+	short flag;
 
 	char light;
 	char background_type;
