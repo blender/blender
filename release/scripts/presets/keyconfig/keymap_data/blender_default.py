@@ -1022,13 +1022,14 @@ def km_view3d(params):
              {"properties": [("data_path", 'space_data.show_gizmo_tool')]}),
             op_menu_pie("VIEW3D_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
             op_menu_pie("VIEW3D_MT_orientations_pie", {"type": 'COMMA', "value": 'PRESS'}),
-            op_menu_pie("VIEW3D_MT_shading_pie", {"type": 'D', "value": 'PRESS'}),
-            ("wm.context_toggle_enum", {"type": 'Z', "value": 'PRESS'},
-             {"properties": [("data_path", 'space_data.shading.type'), ("value_1", 'WIREFRAME'), ("value_2", 'SOLID')]}),
-            ("view3d.toggle_shading", {"type": 'Z', "value": 'PRESS', "alt": True},
-             {"properties": [("type", 'MATERIAL')]}),
+            ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
+             {"properties": [("data_path", 'space_data.show_gizmo_tool')]}),
+            op_menu_pie("VIEW3D_MT_shading_pie", {"type": 'Z', "value": 'PRESS'}),
             ("view3d.toggle_shading", {"type": 'Z', "value": 'PRESS', "shift": True},
-             {"properties": [("type", 'RENDERED')]}),
+             {"properties": [("type", 'WIREFRAME')]}),
+            ("view3d.toggle_xray", {"type": 'Z', "value": 'PRESS', "alt": True}, None),
+            ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
+             {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         ])
     else:
         items.extend([
