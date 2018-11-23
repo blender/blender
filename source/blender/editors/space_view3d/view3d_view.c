@@ -896,7 +896,7 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
 eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, const Object *obact)
 {
 	if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-		if ((obact->mode & OB_MODE_WEIGHT_PAINT) &&
+		if (obact && (obact->mode & OB_MODE_WEIGHT_PAINT) &&
 		    BKE_object_pose_armature_get((Object *)obact))
 		{
 			return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
