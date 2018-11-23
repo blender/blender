@@ -1029,6 +1029,7 @@ public:
 	float3 value;
 
 protected:
+	using ShaderNode::constant_fold;
 	void constant_fold(const ConstantFolder& folder, ShaderInput *value_in);
 	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
 	void compile(OSLCompiler& compiler, const char *name);
