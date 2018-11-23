@@ -926,7 +926,7 @@ class ConstraintButtonsPanel:
 
         if not con.targets:
             box = topcol.box()
-            box.label(text="No target bones were added", icon="ERROR")
+            box.label(text="No target bones were added", icon='ERROR')
 
         for i, tgt in enumerate(con.targets):
             box = topcol.box()
@@ -944,9 +944,9 @@ class ConstraintButtonsPanel:
             if has_target:
                 row.prop_search(tgt, "subtarget", tgt.target.data, "bones", text="")
             else:
-                row.prop(tgt, "subtarget", text="", icon="BONE_DATA")
+                row.prop(tgt, "subtarget", text="", icon='BONE_DATA')
 
-            header.operator("constraint.remove_target", icon="REMOVE", text="").index = i
+            header.operator("constraint.remove_target", text="", icon='REMOVE').index = i
 
             col = box.column()
             col.active = has_target and tgt.subtarget != ""

@@ -1141,8 +1141,8 @@ class VIEW3D_MT_select_edit_text(Menu):
         layout = self.layout
 
         layout.operator("font.text_cut", text="Cut")
-        layout.operator("font.text_copy", text="Copy", icon="COPYDOWN")
-        layout.operator("font.text_paste", text="Paste", icon="PASTEDOWN")
+        layout.operator("font.text_copy", text="Copy", icon='COPYDOWN')
+        layout.operator("font.text_paste", text="Paste", icon='PASTEDOWN')
 
         layout.separator()
 
@@ -1626,8 +1626,8 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.copybuffer", text="Copy Objects", icon="COPYDOWN")
-        layout.operator("view3d.pastebuffer", text="Paste Objects", icon="PASTEDOWN")
+        layout.operator("view3d.copybuffer", text="Copy Objects", icon='COPYDOWN')
+        layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
 
         layout.separator()
 
@@ -1875,7 +1875,7 @@ class VIEW3D_MT_object_specials(Menu):
 
         layout.separator()
 
-        layout.operator("object.duplicate_move", icon="DUPLICATE")
+        layout.operator("object.duplicate_move", icon='DUPLICATE')
         layout.operator("object.duplicate_move_linked")
 
         layout.separator()
@@ -2466,8 +2466,8 @@ class VIEW3D_MT_pose(Menu):
 
         layout.separator()
 
-        layout.operator("pose.copy", icon="COPYDOWN")
-        layout.operator("pose.paste", icon="PASTEDOWN").flipped = False
+        layout.operator("pose.copy", icon='COPYDOWN')
+        layout.operator("pose.paste", icon='PASTEDOWN').flipped = False
         layout.operator("pose.paste", text="Paste Pose Flipped").flipped = True
 
         layout.separator()
@@ -2649,8 +2649,8 @@ class VIEW3D_MT_pose_specials(Menu):
 
         layout.separator()
 
-        layout.operator("pose.copy", icon="COPYDOWN")
-        layout.operator("pose.paste", icon="PASTEDOWN").flipped = False
+        layout.operator("pose.copy", icon='COPYDOWN')
+        layout.operator("pose.paste", icon='PASTEDOWN').flipped = False
         layout.operator("pose.paste", text="Paste X-Flipped Pose").flipped = True
 
         layout.separator()
@@ -3728,8 +3728,8 @@ class VIEW3D_MT_edit_gpencil(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.copy", text="Copy", icon="COPYDOWN")
-        layout.operator("gpencil.paste", text="Paste", icon="PASTEDOWN").type = 'COPY'
+        layout.operator("gpencil.copy", text="Copy", icon='COPYDOWN')
+        layout.operator("gpencil.paste", text="Paste", icon='PASTEDOWN').type = 'COPY'
         layout.operator("gpencil.paste", text="Paste & Merge").type = 'MERGE'
 
         layout.separator()

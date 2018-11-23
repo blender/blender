@@ -180,7 +180,7 @@ class NODE_MT_add(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        props = layout.operator("node.add_search", text="Search...", icon="VIEWZOOM")
+        props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
         props.use_transform = True
 
         layout.separator()
