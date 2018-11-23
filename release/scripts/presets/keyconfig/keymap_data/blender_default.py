@@ -2787,28 +2787,27 @@ def km_grease_pencil(params):
         {"items": items},
     )
 
-    if params.legacy:
-        items.extend([
-            # Draw
-            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
-             {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-            # Draw - straight lines
-            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "key_modifier": 'D'},
-             {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-            # Draw - poly lines
-            ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True, "key_modifier": 'D'},
-             {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
-            # Erase
-            ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+    items.extend([
+        # Draw
+        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
+         {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
+        # Draw - straight lines
+        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "key_modifier": 'D'},
+         {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
+        # Draw - poly lines
+        ("gpencil.annotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True, "key_modifier": 'D'},
+         {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
+        # Erase
+        ("gpencil.annotate", {"type": 'RIGHTMOUSE', "value": 'PRESS', "key_modifier": 'D'},
+         {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
 
-            # Add blank frame (B because it's easy to reach from D).
-            ("gpencil.blank_frame_add", {"type": 'B', "value": 'PRESS', "key_modifier": 'D'}, None),
-            # Delete active frame - for easier video tutorials/review sessions.
-            # This works even when not in edit mode.
-            ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "key_modifier": 'D'}, None),
-            ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "key_modifier": 'D'}, None),
-        ])
+        # Add blank frame (B because it's easy to reach from D).
+        ("gpencil.blank_frame_add", {"type": 'B', "value": 'PRESS', "key_modifier": 'D'}, None),
+        # Delete active frame - for easier video tutorials/review sessions.
+        # This works even when not in edit mode.
+        ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "key_modifier": 'D'}, None),
+        ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "key_modifier": 'D'}, None),
+    ])
 
     return keymap
 
