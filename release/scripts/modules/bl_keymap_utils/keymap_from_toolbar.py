@@ -77,12 +77,22 @@ def generate(context, space_type):
     # Temporary, only create so we can pass 'properties' to find_item_from_operator.
     use_hack_properties = True
 
-    km_name = "Toolbar Popup"
+    km_name_default = "Toolbar Popup"
+    km_name = km_name_default + " <temp>"
     wm = context.window_manager
     keyconf = wm.keyconfigs.active
     keymap = keyconf.keymaps.get(km_name)
     if keymap is None:
-        keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY', tool=True)
+        keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
+    for kmi in keymap.keymap_items:
+        keymap.keymap_items.remove(kmi)
+
+    keymap_src = keyconf.keymaps.get(km_name_default)
+    if keymap_src is not None:
+        for kmi_src in keymap_src.keymap_items:
+            keymap.keymap_items.new_from_item(kmi_src)
+    del keymap_src
+
 
     kmi_unique_args = set()
 
