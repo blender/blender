@@ -722,8 +722,8 @@ int ED_transform_calc_gizmo_stats(
 	Scene *scene = CTX_data_scene(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = sa->spacedata.first;
+	Object *obedit = CTX_data_edit_object(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	Object *ob = OBACT(view_layer);
@@ -1128,7 +1128,7 @@ int ED_transform_calc_gizmo_stats(
 		if (base && ((base->flag & BASE_SELECTED) == 0)) ob = NULL;
 
 		for (base = view_layer->object_bases.first; base; base = base->next) {
-			if (!TESTBASELIB(base)) {
+			if (!TESTBASELIB(v3d, base)) {
 				continue;
 			}
 			if (ob == NULL) {

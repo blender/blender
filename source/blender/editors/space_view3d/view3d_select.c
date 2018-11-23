@@ -405,12 +405,12 @@ static void do_lasso_tag_pose(ViewContext *vc, Object *ob, const int mcords[][2]
 	pose_foreachScreenBone(&vc_tmp, do_lasso_select_pose__do_tag, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
-static void object_deselect_all_visible(ViewLayer *view_layer)
+static void object_deselect_all_visible(ViewLayer *view_layer, View3D *v3d)
 {
 	Base *base;
 
 	for (base = view_layer->object_bases.first; base; base = base->next) {
-		if (BASE_SELECTABLE(base)) {
+		if (BASE_SELECTABLE(v3d, base)) {
 			ED_object_base_select(base, BA_DESELECT);
 		}
 	}
@@ -420,15 +420,16 @@ static void do_lasso_select_objects(
         ViewContext *vc, const int mcords[][2], const short moves,
         const eSelectOp sel_op)
 {
+	View3D *v3d = vc->v3d;
 	Base *base;
 
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		object_deselect_all_visible(vc->view_layer);
+		object_deselect_all_visible(vc->view_layer, vc->v3d);
 	}
 
 	bool changed = false;
 	for (base = vc->view_layer->object_bases.first; base; base = base->next) {
-		if (BASE_SELECTABLE(base)) { /* use this to avoid un-needed lasso lookups */
+		if (BASE_SELECTABLE(v3d, base)) { /* use this to avoid un-needed lasso lookups */
 			const bool is_select = base->flag & BASE_SELECTED;
 			const bool is_inside = (
 			        (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) &&
@@ -1202,8 +1203,6 @@ static Base *object_mouse_select_menu(
 	short baseCount = 0;
 	bool ok;
 	LinkNode *linklist = NULL;
-	const int object_type_exclude_select = (
-	        vc->v3d->object_type_exclude_viewport | vc->v3d->object_type_exclude_select);
 
 	/* handle base->object->select_color */
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
@@ -1221,9 +1220,6 @@ static Base *object_mouse_select_menu(
 			}
 		}
 		else {
-			if (object_type_exclude_select & (1 << base->object->type)) {
-				continue;
-			}
 			const int dist = 15 * U.pixelsize;
 			if (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) {
 				const int delta_px[2] = {base->sx - mval[0], base->sy - mval[1]};
@@ -1427,6 +1423,7 @@ static Base *mouse_select_eval_buffer(
         Base *startbase, bool has_bones, bool do_nearest)
 {
 	ViewLayer *view_layer = vc->view_layer;
+	View3D *v3d = vc->v3d;
 	Base *base, *basact = NULL;
 	int a;
 
@@ -1460,7 +1457,7 @@ static Base *mouse_select_eval_buffer(
 
 		base = FIRSTBASE(view_layer);
 		while (base) {
-			if (BASE_SELECTABLE(base)) {
+			if (BASE_SELECTABLE(v3d, base)) {
 				if (base->object->select_color == selcol) break;
 			}
 			base = base->next;
@@ -1479,7 +1476,7 @@ static Base *mouse_select_eval_buffer(
 				if (base == startbase) break;
 			}
 
-			if (BASE_SELECTABLE(base)) {
+			if (BASE_SELECTABLE(v3d, base)) {
 				for (a = 0; a < hits; a++) {
 					if (has_bones) {
 						/* skip non-bone objects */
@@ -1573,6 +1570,7 @@ static bool ed_object_select_pick(
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = BASACT(view_layer);
 	const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
 	bool is_obedit;
@@ -1606,13 +1604,9 @@ static bool ed_object_select_pick(
 			basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, toggle);
 		}
 		else {
-			const int object_type_exclude_select = (
-			        vc.v3d->object_type_exclude_viewport | vc.v3d->object_type_exclude_select);
 			base = startbase;
 			while (base) {
-				if (BASE_SELECTABLE(base) &&
-				    ((object_type_exclude_select & (1 << base->object->type)) == 0))
-				{
+				if (BASE_SELECTABLE(v3d, base)) {
 					float screen_co[2];
 					if (ED_view3d_project_float_global(
 					            ar, base->object->obmat[3], screen_co,
@@ -1800,7 +1794,7 @@ static bool ed_object_select_pick(
 			ED_object_base_select(basact, BA_SELECT);
 		}
 		/* also prevent making it active on mouse selection */
-		else if (BASE_SELECTABLE(basact)) {
+		else if (BASE_SELECTABLE(v3d, basact)) {
 			if (extend) {
 				ED_object_base_select(basact, BA_SELECT);
 			}
@@ -2372,6 +2366,7 @@ static int opengl_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_
 
 static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
 {
+	View3D *v3d = vc->v3d;
 	bool changed = false;
 	int totobj = MAXPICKBUF; /* XXX solve later */
 
@@ -2390,7 +2385,7 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 	BLI_array_declare(bases);
 
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		object_deselect_all_visible(vc->view_layer);
+		object_deselect_all_visible(vc->view_layer, vc->v3d);
 		changed = true;
 	}
 
@@ -2399,7 +2394,7 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 	}
 
 	for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
-		if (BASE_SELECTABLE(base)) {
+		if (BASE_SELECTABLE(v3d, base)) {
 			if ((base->object->select_color & 0x0000FFFF) != 0) {
 				BLI_array_append(bases, base);
 			}
@@ -2416,7 +2411,7 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 	}
 
 	for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
-		if (BASE_SELECTABLE(base)) {
+		if (BASE_SELECTABLE(v3d, base)) {
 			const bool is_select = base->flag & BASE_SELECTED;
 			const bool is_inside = base->object->id.tag & LIB_TAG_DOIT;
 			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
@@ -3222,6 +3217,8 @@ static void obedit_circle_select(
 static bool object_circle_select(ViewContext *vc, const bool select, const int mval[2], float rad)
 {
 	ViewLayer *view_layer = vc->view_layer;
+	View3D *v3d = vc->v3d;
+
 	const float radius_squared = rad * rad;
 	const float mval_fl[2] = {mval[0], mval[1]};
 	bool changed = false;
@@ -3230,7 +3227,7 @@ static bool object_circle_select(ViewContext *vc, const bool select, const int m
 
 	Base *base;
 	for (base = FIRSTBASE(view_layer); base; base = base->next) {
-		if (BASE_SELECTABLE(base) && ((base->flag & BASE_SELECTED) != select_flag)) {
+		if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
 			float screen_co[2];
 			if (ED_view3d_project_float_global(
 			            vc->ar, base->object->obmat[3], screen_co,

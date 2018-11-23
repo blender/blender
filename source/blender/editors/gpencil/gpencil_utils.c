@@ -264,7 +264,7 @@ bool ED_gpencil_data_owner_is_annotation(PointerRNA *owner_ptr)
 /* -------------------------------------------------------- */
 
 // XXX: this should be removed... We really shouldn't duplicate logic like this!
-bGPdata *ED_gpencil_data_get_active_v3d(ViewLayer *view_layer)
+bGPdata *ED_gpencil_data_get_active_v3d(ViewLayer *view_layer, View3D *v3d)
 {
 	Base *base = view_layer->basact;
 	bGPdata *gpd = NULL;
@@ -272,7 +272,7 @@ bGPdata *ED_gpencil_data_get_active_v3d(ViewLayer *view_layer)
 	/* We have to make sure active object is actually visible and selected, else we must use default scene gpd,
 	 * to be consistent with ED_gpencil_data_get_active's behavior.
 	 */
-	if (base && TESTBASE(base)) {
+	if (base && TESTBASE(v3d, base)) {
 		if (base->object->type == OB_GPENCIL)
 			gpd = base->object->data;
 	}

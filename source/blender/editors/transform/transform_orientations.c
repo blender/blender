@@ -588,6 +588,7 @@ static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const 
 int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3], const short around)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Base *base;
 	Object *ob = OBACT(view_layer);
@@ -839,7 +840,6 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 				}
 			}
 			else {
-				View3D *v3d = CTX_wm_view3d(C);
 				const bool use_handle = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
 
 				for (nu = nurbs->first; nu; nu = nu->next) {
@@ -1090,7 +1090,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			/* first selected */
 			ob = NULL;
 			for (base = view_layer->object_bases.first; base; base = base->next) {
-				if (TESTBASELIB(base)) {
+				if (TESTBASELIB(v3d, base)) {
 					ob = base->object;
 					break;
 				}

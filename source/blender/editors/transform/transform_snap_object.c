@@ -205,12 +205,13 @@ static void iter_snap_objects(
         void *data)
 {
 	ViewLayer *view_layer = DEG_get_input_view_layer(sctx->depsgraph);
+	const View3D *v3d = sctx->v3d_data.v3d;
 	const eSnapSelect snap_select = params->snap_select;
 	const bool use_object_edit_cage = params->use_object_edit_cage;
 
 	Base *base_act = view_layer->basact;
 	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
-		if ((BASE_VISIBLE(base)) && (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) == 0 &&
+		if ((BASE_VISIBLE(v3d, base)) && (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) == 0 &&
 		    !((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||
 		      (snap_select == SNAP_NOT_ACTIVE && base == base_act)))
 		{

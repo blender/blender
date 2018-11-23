@@ -1207,13 +1207,13 @@ Object *BKE_object_pose_armature_get(Object *ob)
 	return NULL;
 }
 
-Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer)
+Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer, View3D *v3d)
 {
 	Object *ob_armature = BKE_object_pose_armature_get(ob);
 	if (ob_armature) {
 		Base *base = BKE_view_layer_base_find(view_layer, ob_armature);
 		if (base) {
-			if (BASE_VISIBLE(base)) {
+			if (BASE_VISIBLE(v3d, base)) {
 				return ob_armature;
 			}
 		}
@@ -3612,8 +3612,8 @@ LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer, eObjectSe
 			obrel_list_add(&links, ob);
 		}
 		else {
-			if ((objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE(base)) ||
-			    (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE(base)))
+			if ((objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE(((View3D *)NULL), base)) ||
+			    (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE(((View3D *)NULL), base)))
 			{
 				Object *ob = base->object;
 
@@ -3643,7 +3643,7 @@ LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer, eObjectSe
 				if (includeFilter & (OB_REL_CHILDREN | OB_REL_CHILDREN_RECURSIVE)) {
 					Base *local_base;
 					for (local_base = view_layer->object_bases.first; local_base; local_base = local_base->next) {
-						if (BASE_EDITABLE_BGMODE(local_base)) {
+						if (BASE_EDITABLE_BGMODE(((View3D *)NULL), local_base)) {
 
 							Object *child = local_base->object;
 							if (obrel_list_test(child)) {

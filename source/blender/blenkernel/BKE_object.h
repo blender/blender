@@ -146,7 +146,7 @@ void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4]);
 
 bool BKE_object_pose_context_check(const struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
-struct Object *BKE_object_pose_armature_get_visible(struct Object *ob, struct ViewLayer *view_layer);
+struct Object *BKE_object_pose_armature_get_visible(struct Object *ob, struct ViewLayer *view_layer, struct View3D *v3d);
 
 struct Object **BKE_object_pose_array_get_ex(struct ViewLayer *view_layer, unsigned int *r_objects_len, bool unique);
 struct Object **BKE_object_pose_array_get_unique(struct ViewLayer *view_layer, unsigned int *r_objects_len);

@@ -894,7 +894,7 @@ static void copy_texture_space(Object *to, Object *ob)
 }
 
 /* UNUSED, keep in case we want to copy functionality for use elsewhere */
-static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short event)
+static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, short event)
 {
 	Object *ob;
 	Base *base;
@@ -918,7 +918,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 
 	for (base = FIRSTBASE(view_layer); base; base = base->next) {
 		if (base != BASACT(view_layer)) {
-			if (TESTBASELIB(base)) {
+			if (TESTBASELIB(v3d, base)) {
 				DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 
 				if (event == 1) {  /* loc */
@@ -1111,7 +1111,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 	}
 }
 
-static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *view_layer, Object *obedit)
+static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, Object *obedit)
 {
 	Object *ob;
 	short event;
@@ -1165,7 +1165,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLaye
 	event = pupmenu(str);
 	if (event <= 0) return;
 
-	copy_attr(bmain, scene, view_layer, event);
+	copy_attr(bmain, scene, view_layer, v3d, event);
 }
 
 /* ******************* force field toggle operator ***************** */
