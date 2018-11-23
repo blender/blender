@@ -370,6 +370,11 @@ function(setup_liblinks
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}" PARENT_SCOPE)
 	set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}" PARENT_SCOPE)
 
+	# jemalloc must be early in the list, to be before pthread (see T57998)
+	if(WITH_MEM_JEMALLOC)
+		target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
+	endif()
+
 	target_link_libraries(
 		${target}
 		${PNG_LIBRARIES}
@@ -484,9 +489,6 @@ function(setup_liblinks
 				${EXPAT_LIB}
 			)
 		endif()
-	endif()
-	if(WITH_MEM_JEMALLOC)
-		target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
 	endif()
 	if(WITH_MOD_CLOTH_ELTOPO)
 		target_link_libraries(${target} ${LAPACK_LIBRARIES})
