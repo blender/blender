@@ -342,11 +342,11 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
 	while (nodes_delayed_free) {
 		node = BLI_linklist_pop(&nodes_delayed_free);
-		nodeFreeNode(ntree, node);
+		nodeDeleteNode(bmain, ntree, node);
 	}
 
 	/* delete the group instance */
-	nodeFreeNode(ntree, gnode);
+	nodeDeleteNode(bmain, ntree, gnode);
 
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 

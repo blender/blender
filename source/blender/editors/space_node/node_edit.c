@@ -1586,7 +1586,7 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 			do_tag_update |= (do_tag_update || node_connected_to_output(bmain, snode->edittree, node));
 			if (node->id)
 				id_us_min(node->id);
-			nodeFreeNode(snode->edittree, node);
+			nodeDeleteNode(bmain, snode->edittree, node);
 		}
 	}
 
@@ -1666,6 +1666,7 @@ void NODE_OT_switch_view_update(wmOperatorType *ot)
 /* ****************** Delete with reconnect ******************* */
 static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node, *next;
 
@@ -1679,7 +1680,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 			/* check id user here, nodeFreeNode is called for free dbase too */
 			if (node->id)
 				id_us_min(node->id);
-			nodeFreeNode(snode->edittree, node);
+			nodeDeleteNode(bmain, snode->edittree, node);
 		}
 	}
 

@@ -76,6 +76,7 @@
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #define NODE_DEFAULT_MAX_WIDTH 700
 
@@ -1688,7 +1689,9 @@ static void node_unlink_attached(bNodeTree *ntree, bNode *parent)
 }
 
 /** \note caller needs to manage node->id user */
-static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdata, bool use_api_free_cb)
+static void node_free_node_ex(
+        Main *bmain, bNodeTree *ntree, bNode *node,
+        bool remove_animdata, bool use_api_free_cb)
 {
 	bNodeSocket *sock, *nextsock;
 
@@ -1722,7 +1725,11 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 			BLI_strescape(propname_esc, node->name, sizeof(propname_esc));
 			BLI_snprintf(prefix, sizeof(prefix), "nodes[\"%s\"]", propname_esc);
 
-			BKE_animdata_fix_paths_remove((ID *)ntree, prefix);
+			if (BKE_animdata_fix_paths_remove((ID *)ntree, prefix)) {
+				if (bmain != NULL) {
+					DEG_relations_tag_update(bmain);
+				}
+			}
 		}
 
 		if (ntree->typeinfo->free_node_cache)
@@ -1765,7 +1772,12 @@ static void node_free_node_ex(bNodeTree *ntree, bNode *node, bool remove_animdat
 
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
-	node_free_node_ex(ntree, node, true, true);
+	node_free_node_ex(NULL, ntree, node, false, true);
+}
+
+void nodeDeleteNode(Main *bmain, bNodeTree *ntree, bNode *node)
+{
+	node_free_node_ex(bmain, ntree, node, true, true);
 }
 
 static void node_socket_interface_free(bNodeTree *UNUSED(ntree), bNodeSocket *sock)
@@ -1835,7 +1847,7 @@ void ntreeFreeTree(bNodeTree *ntree)
 
 	for (node = ntree->nodes.first; node; node = next) {
 		next = node->next;
-		node_free_node_ex(ntree, node, false, false);
+		node_free_node_ex(NULL, ntree, node, false, false);
 	}
 
 	/* free interface sockets */
@@ -2577,7 +2589,7 @@ void BKE_node_clipboard_clear(void)
 
 	for (node = node_clipboard.nodes.first; node; node = node_next) {
 		node_next = node->next;
-		node_free_node_ex(NULL, node, false, false);
+		node_free_node_ex(NULL, NULL, node, false, false);
 	}
 	BLI_listbase_clear(&node_clipboard.nodes);
 

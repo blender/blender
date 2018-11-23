@@ -124,7 +124,7 @@ static void node_clear_recursive(bNode *node)
 			node_clear_recursive(input->link->fromnode);
 }
 
-static void node_remove_linked(bNodeTree *ntree, bNode *rem_node)
+static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
 {
 	bNode *node, *next;
 	bNodeSocket *sock;
@@ -152,7 +152,7 @@ static void node_remove_linked(bNodeTree *ntree, bNode *rem_node)
 		if (node->flag & NODE_TEST) {
 			if (node->id)
 				id_us_min(node->id);
-			nodeFreeNode(ntree, node);
+			nodeDeleteNode(bmain, ntree, node);
 		}
 	}
 }
@@ -178,7 +178,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 	if (!sock_to->link)
 		return;
 
-	node_remove_linked(ntree, sock_to->link->fromnode);
+	node_remove_linked(bmain, ntree, sock_to->link->fromnode);
 	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
@@ -269,7 +269,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 		}
 
 		/* remove node */
-		node_remove_linked(ntree, node_prev);
+		node_remove_linked(bmain, ntree, node_prev);
 	}
 
 	nodeUpdate(ntree, node_from);

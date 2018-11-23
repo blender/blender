@@ -6281,8 +6281,9 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 	}
 }
 
-static void special_aftertrans_update__node(bContext *UNUSED(C), TransInfo *t)
+static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
+	Main *bmain = CTX_data_main(C);
 	const bool canceled = (t->state == TRANS_CANCEL);
 
 	if (canceled && t->remove_on_cancel) {
@@ -6294,7 +6295,7 @@ static void special_aftertrans_update__node(bContext *UNUSED(C), TransInfo *t)
 			for (node = ntree->nodes.first; node; node = node_next) {
 				node_next = node->next;
 				if (node->flag & NODE_SELECT)
-					nodeFreeNode(ntree, node);
+					nodeDeleteNode(bmain, ntree, node);
 			}
 		}
 	}

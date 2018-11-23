@@ -450,7 +450,11 @@ struct bNode	*nodeAddStaticNode(const struct bContext *C, struct bNodeTree *ntre
 void            nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 void            nodeUniqueName(struct bNodeTree *ntree, struct bNode *node);
 
+/* Frees the node itself, without affect to anything else. */
 void            nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
+/* Will additionally cleanup things like f-curves which uses this node. */
+void            nodeDeleteNode(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+
 struct bNode    *BKE_node_copy_ex(struct bNodeTree *ntree, struct bNode *node_src, const int flag);
 struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
