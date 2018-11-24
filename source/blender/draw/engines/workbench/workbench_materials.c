@@ -5,6 +5,7 @@
 #include "BIF_gl.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_hash.h"
 
 #define HSV_SATURATION 0.5
 #define HSV_VALUE 0.9
@@ -27,9 +28,9 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 		if (ob->id.lib) {
 			hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->name);
 		}
-		float offset = fmodf((hash / 100000.0) * M_GOLDEN_RATION_CONJUGATE, 1.0);
 
-		float hsv[3] = {offset, HSV_SATURATION, HSV_VALUE};
+		float hue = BLI_hash_int_01(hash);
+		float hsv[3] = {hue, HSV_SATURATION, HSV_VALUE};
 		hsv_to_rgb_v(hsv, data->diffuse_color);
 	}
 	else {
