@@ -597,7 +597,7 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Mesh* mesh
 			num_motion_steps = mesh->motion_steps;
 		}
 	}
-	
+
 	const size_t num_curves = mesh->num_curves();
 	size_t num_keys = 0;
 	for(size_t j = 0; j < num_curves; ++j) {

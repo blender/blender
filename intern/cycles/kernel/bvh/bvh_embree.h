@@ -30,7 +30,7 @@ struct CCLIntersectContext  {
 		RAY_SHADOW_ALL = 1,
 		RAY_SSS = 2,
 		RAY_VOLUME_ALL = 3,
-		
+
 	} RayType;
 
 	KernelGlobals *kg;

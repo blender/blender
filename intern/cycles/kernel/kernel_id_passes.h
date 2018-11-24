@@ -22,7 +22,7 @@ ccl_device_inline void kernel_write_id_slots(ccl_global float *buffer, int num_s
 	if(weight == 0.0f) {
 		return;
 	}
-	
+
 	for(int slot = 0; slot < num_slots; slot++) {
 		ccl_global float2 *id_buffer = (ccl_global float2*)buffer;
 #ifdef __ATOMIC_PASS_WRITE__
