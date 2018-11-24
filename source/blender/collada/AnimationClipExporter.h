@@ -38,13 +38,13 @@ private:
 public:
 
 	AnimationClipExporter(Depsgraph *depsgraph , COLLADASW::StreamWriter *sw, const ExportSettings *export_settings, std::vector<std::vector<std::string>> anim_meta) :
-		depsgraph(depsgraph),
 		COLLADASW::LibraryAnimationClips(sw),
+		depsgraph(depsgraph),
+		scene(nullptr),
+		sw(sw),
 		export_settings(export_settings),
 		anim_meta(anim_meta)
-	{
-		this->sw = sw;
-	}
+	{}
 
 	void exportAnimationClips(Scene *sce);
 };

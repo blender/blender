@@ -53,6 +53,7 @@ private:
 	COLLADAFW::EffectCommon *effect;
 	UidImageMap *uid_image_map = nullptr;
 	KeyImageMap *key_image_map = nullptr;
+
 	NodeMap node_map;
 	bNodeTree *ntree;
 

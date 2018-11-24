@@ -34,12 +34,6 @@ extern "C" {
 #include "SceneExporter.h"
 #include "collada_utils.h"
 
-SceneExporter::SceneExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings):
-	blender_context(blender_context),
-	COLLADASW::LibraryVisualScenes(sw), arm_exporter(arm), export_settings(export_settings)
-{
-}
-
 void SceneExporter::exportScene()
 {
 	ViewLayer *view_layer = blender_context.get_view_layer();

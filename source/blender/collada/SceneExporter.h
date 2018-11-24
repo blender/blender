@@ -94,18 +94,26 @@ extern "C" {
 class SceneExporter: COLLADASW::LibraryVisualScenes, protected TransformWriter, protected InstanceWriter
 {
 public:
-	SceneExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings);
+
+	SceneExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings) :
+		COLLADASW::LibraryVisualScenes(sw),
+		blender_context(blender_context),
+		arm_exporter(arm),
+		export_settings(export_settings)
+	{}
+
 	void exportScene();
 
 private:
-	friend class ArmatureExporter;
 	BlenderContext &blender_context;
+	friend class ArmatureExporter;
+	ArmatureExporter *arm_exporter;
+	const ExportSettings *export_settings;
+
 	void exportHierarchy();
 	void writeNodeList(std::vector<Object *> &child_objects, Object *parent);
 	void writeNodes(Object *ob);
 
-	ArmatureExporter *arm_exporter;
-	const ExportSettings *export_settings;
 };
 
 #endif

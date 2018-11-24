@@ -244,11 +244,6 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain, Object *ob, std::vect
 	}
 }
 
-AnimationImporter::AnimationImporter(bContext *C, UnitConverter *conv, ArmatureImporter *arm, Scene *scene) :
-	mContext(C),
-	TransformReader(conv), armature_importer(arm), scene(scene) {
-}
-
 AnimationImporter::~AnimationImporter()
 {
 	// free unused FCurves

@@ -139,7 +139,11 @@ private:
 	};
 public:
 
-	AnimationImporter(bContext *C, UnitConverter *conv, ArmatureImporter *arm, Scene *scene);
+	AnimationImporter(bContext *C, UnitConverter *conv, ArmatureImporter *arm, Scene *scene) :
+		TransformReader(conv),
+		mContext(C),
+		armature_importer(arm),
+		scene(scene) {}
 
 	~AnimationImporter();
 

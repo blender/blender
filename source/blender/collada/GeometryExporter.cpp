@@ -50,12 +50,6 @@ extern "C" {
 #include "collada_internal.h"
 #include "collada_utils.h"
 
-// TODO: optimize UV sets by making indexed list with duplicates removed
-GeometryExporter::GeometryExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : 
-	blender_context(blender_context),
-	COLLADASW::LibraryGeometries(sw), export_settings(export_settings)
-{
-}
 
 void GeometryExporter::exportGeom()
 {

@@ -75,7 +75,13 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 	Normal n;
 
 public:
-	GeometryExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+
+	// TODO: optimize UV sets by making indexed list with duplicates removed
+	GeometryExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) :
+		COLLADASW::LibraryGeometries(sw),
+		blender_context(blender_context),
+		export_settings(export_settings)
+	{}
 
 	void exportGeom();
 

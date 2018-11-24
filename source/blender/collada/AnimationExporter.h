@@ -98,16 +98,16 @@ class AnimationExporter: COLLADASW::LibraryAnimations
 private:
 	BlenderContext &blender_context;
 	COLLADASW::StreamWriter *sw;
+	const ExportSettings *export_settings;
 
 public:
 
 	AnimationExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
-		blender_context(blender_context),
 		COLLADASW::LibraryAnimations(sw),
+		blender_context(blender_context),
+		sw(sw),
 		export_settings(export_settings)
-	{
-		this->sw = sw;
-	}
+	{}
 
 	bool exportAnimations();
 
@@ -115,7 +115,6 @@ public:
 	void operator() (Object *ob);
 
 protected:
-	const ExportSettings *export_settings;
 
 	void export_object_constraint_animation(Object *ob);
 

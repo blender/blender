@@ -24,8 +24,8 @@
 
 MaterialNode::MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map) :
 	mContext(C),
-	effect(nullptr),
 	material(ma),
+	effect(nullptr),
 	key_image_map(&key_image_map)
 {
 	ntree = prepare_material_nodetree();
@@ -34,8 +34,8 @@ MaterialNode::MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map
 
 MaterialNode::MaterialNode(bContext *C, COLLADAFW::EffectCommon *ef, Material *ma, UidImageMap &uid_image_map) :
 	mContext(C),
-	effect(ef),
 	material(ma),
+	effect(ef),
 	uid_image_map(&uid_image_map)
 {
 	ntree = prepare_material_nodetree();

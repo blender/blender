@@ -53,15 +53,6 @@ extern "C" {
 
 #include "collada_utils.h"
 
-// XXX exporter writes wrong data for shared armatures.  A separate
-// controller should be written for each armature-mesh binding how do
-// we make controller ids then?
-ArmatureExporter::ArmatureExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) :
-	blender_context(blender_context),
-	COLLADASW::LibraryControllers(sw), export_settings(export_settings)
-{
-}
-
 // write bone nodes
 void ArmatureExporter::add_armature_bones(
 	Object *ob_arm,

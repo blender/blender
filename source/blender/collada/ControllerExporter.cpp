@@ -55,13 +55,6 @@ extern "C" {
 
 #include "collada_utils.h"
 
-// XXX exporter writes wrong data for shared armatures.  A separate
-// controller should be written for each armature-mesh binding how do
-// we make controller ids then?
-ControllerExporter::ControllerExporter(BlenderContext &blender_context, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : 
-	blender_context(blender_context),
-	COLLADASW::LibraryControllers(sw), export_settings(export_settings) {
-}
 
 bool ControllerExporter::is_skinned_mesh(Object *ob)
 {
@@ -428,8 +421,7 @@ void ControllerExporter::add_joints_element(ListBase *defbase,
 void ControllerExporter::add_bind_shape_mat(Object *ob)
 {
 	double bind_mat[4][4];
-
-	converter.mat4_to_dae_double(bind_mat, ob->obmat);
+	UnitConverter::mat4_to_dae_double(bind_mat, ob->obmat);
 
 	addBindShapeTransform(bind_mat);
 }
@@ -539,7 +531,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			mul_m4_m4m4(world, ob_arm->obmat, bind_mat);
 
 			invert_m4_m4(mat, world);
-			converter.mat4_to_dae(inv_bind_mat, mat);
+			UnitConverter::mat4_to_dae(inv_bind_mat, mat);
 			if (this->export_settings->limit_precision)
 				bc_sanitize_mat(inv_bind_mat, 6);
 			source.appendValues(inv_bind_mat);
