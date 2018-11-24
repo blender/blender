@@ -443,4 +443,3 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 
 	return (MAX_LIBARRAY - 1);
 }
-

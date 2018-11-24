@@ -317,7 +317,7 @@ bool BCAnimationSampler::get_object_samples(BCMatrixSampleMap &samples, Object *
 
 #if 0
 /*
-   Add sampled values to FCurve 
+   Add sampled values to FCurve
    If no FCurve exists, create a temporary FCurve;
    Note: The temporary FCurve will later be removed when the
    BCAnimationSampler is removed (by its destructor)
@@ -352,7 +352,7 @@ void BCAnimationSampler::add_value_set(
 			else {
 				good = sample->get_value(tm_type, array_index, &val, subindex);
 			}
-			
+
 			if (good) {
 				curve.add_value(val, frame_index);
 			}

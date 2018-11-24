@@ -88,7 +88,7 @@ void SceneExporter::writeNodeList(std::vector<Object *> &child_objects, Object *
 {
 	/* TODO: Handle the case where a parent is not exported
 	   Actually i am not even sure if this can be done at all
-	   in a good way. 
+	   in a good way.
 	   I really prefer to enforce the export of hidden
 	   elements in an object hierarchy. When the children of
 	   the hidden elements are exported as well.
@@ -202,7 +202,7 @@ void SceneExporter::writeNodes(Object *ob)
 					colladaNode.addExtraTechniqueChildParameter("blender", con_tag, "tar_space", con->tarspace);
 					colladaNode.addExtraTechniqueChildParameter("blender", con_tag, "lin_error", con->lin_error);
 
-					//not ideal: add the target object name as another parameter. 
+					//not ideal: add the target object name as another parameter.
 					//No real mapping in the .dae
 					//Need support for multiple target objects also.
 					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);

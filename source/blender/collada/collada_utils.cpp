@@ -256,7 +256,7 @@ Object *bc_add_object(Main *bmain, Scene *scene, ViewLayer *view_layer, int type
 }
 
 Mesh *bc_get_mesh_copy(
-    BlenderContext &blender_context, 
+    BlenderContext &blender_context,
 	Object *ob,
 	BC_export_mesh_type export_mesh_type,
 	bool apply_modifiers,
@@ -351,7 +351,7 @@ bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer
 
 	if (!to_export)
 	{
-		/* Mark this object as to_export even if it is not in the 
+		/* Mark this object as to_export even if it is not in the
 		export list, but it contains children to export */
 
 		std::vector<Object *> children;
@@ -1266,7 +1266,7 @@ bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx, int l
 static bNodeSocket *bc_group_add_input_socket(bNodeTree *ntree, bNode *to_node, int to_index, std::string label)
 {
 	bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
-	
+
 	//bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
 	//return socket;
 

@@ -127,7 +127,7 @@ void AnimationCurveCache::sampleMain(Scene *scene, BC_export_transformation_type
 				}
 			}
 
-			/* When this SamplePoint is not for a Bone, 
+			/* When this SamplePoint is not for a Bone,
 			 * then we just store the Object local matrix here
 			 */
 
@@ -207,7 +207,7 @@ void AnimationCurveCache::add_sample_point(SamplePoint &point)
 * loop over all cached objects
 *     loop over all fcurves
 *         record all keyframes
-* 
+*
 * The vector sample_frames finally contains a list of vectors
 * where each vector contains a list of SamplePoints which
 * need to be processed when evaluating the animation.
@@ -250,7 +250,7 @@ void AnimationCurveCache::create_sample_frames_generated(float sfra, float efra,
 		Object *ob = cached_objects[i];
 		float f = sfra;
 
-		do {		
+		do {
 			int frame_index = int(f);
 			SamplePoint sample_point(frame_index, ob);
 			add_sample_point(sample_point);

@@ -386,8 +386,8 @@ void BCAnimationCurve::add_value(const float val, const int frame_index)
 	FCurve *fcu = get_edit_fcurve();
 	fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
 	insert_vert_fcurve(
-		fcu, 
-		frame_index, val, 
+		fcu,
+		frame_index, val,
 		BEZT_KEYTYPE_KEYFRAME,
 		INSERTKEY_NOFLAGS);
 
@@ -676,4 +676,3 @@ void BCBezTriple::get_tangent(Scene *scene, float point[2], bool as_angle, int i
 		point[1] = bezt.vec[index][1];
 	}
 }
-

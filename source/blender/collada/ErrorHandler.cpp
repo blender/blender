@@ -96,7 +96,7 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 		 */
 
 		isError = (saxFWLError->getSeverity() != COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL);
-		
+
 	}
 	else {
 		error_context = "OpenCollada";

@@ -2329,6 +2329,7 @@ static BOOL is_stylus(const char *name, const char *type)
 		"stylus",
 		"wizardpen",
 		"acecad",
+		"pen",
 		NULL
 	};
 
@@ -2384,7 +2385,8 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 
 				if ((m_xtablet.StylusDevice == NULL) &&
-				    (is_stylus(device_info[i].name, device_type) || (device_info[i].type == m_atom.TABLET)))
+				    (is_stylus(device_info[i].name, device_type) && (device_info[i].type != m_atom.TABLET)))
+				    /* for libinput to work reliable, only lookup ValuatorClass in Tablet type:'STYLUS' */
 				{
 //					printf("\tfound stylus\n");
 					m_xtablet.StylusID = device_info[i].id;

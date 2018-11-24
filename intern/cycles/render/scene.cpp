@@ -218,7 +218,7 @@ void Scene::device_update(Device *device_, Progress& progress)
 	object_manager->device_update(device, &dscene, this, progress);
 
 	if(progress.get_cancel() || device->have_error()) return;
-	
+
 	progress.set_status("Updating Hair Systems");
 	curve_system_manager->device_update(device, &dscene, this, progress);
 
@@ -248,7 +248,7 @@ void Scene::device_update(Device *device_, Progress& progress)
 	camera->device_update_volume(device, &dscene, this);
 
 	if(progress.get_cancel() || device->have_error()) return;
-	
+
 	progress.set_status("Updating Lookup Tables");
 	lookup_tables->device_update(device, &dscene);
 

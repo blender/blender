@@ -125,7 +125,7 @@ bool AnimationExporter::exportAnimations()
 		/* TODO: If all actions shall be exported, we need to call the
 		 * AnimationClipExporter which will figure out which actions
 		 * need to be exported for which objects
-		 */ 
+		 */
 		if (this->export_settings->include_all_actions) {
 			AnimationClipExporter ace(eval_ctx, sw, export_settings, anim_meta);
 			ace.exportAnimationClips(sce);
@@ -247,7 +247,7 @@ void AnimationExporter::export_bone_animations_recursive(Object *ob, Bone *bone,
 {
 	std::vector<float> frames;
 	sampler.get_bone_frames(frames, ob, bone);
-	
+
 	if (frames.size()) {
 		BCMatrixSampleMap samples;
 		bool is_animated = sampler.get_bone_samples(samples, ob, bone);
@@ -478,8 +478,8 @@ std::string AnimationExporter::get_semantic_suffix(COLLADASW::InputSemantic::Sem
 
 void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
 	COLLADASW::InputSemantic::Semantics semantic,
-	bool is_rot, 
-	const std::string axis, 
+	bool is_rot,
+	const std::string axis,
 	bool transform)
 {
 	switch (semantic) {
@@ -633,7 +633,7 @@ std::string AnimationExporter::collada_source_from_values(BCMatrixSampleMap &sam
 }
 
 std::string AnimationExporter::collada_interpolation_source(const BCAnimationCurve &curve,
-	const std::string& anim_id, 
+	const std::string& anim_id,
 	const std::string axis,
 	bool *has_tangents)
 {

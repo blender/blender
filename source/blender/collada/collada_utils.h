@@ -173,7 +173,7 @@ inline std::string bc_string_after(const std::string& s, const char c)
 
 inline bool bc_startswith(std::string const & value, std::string const & starting)
 {
-	if (starting.size() > value.size()) 
+	if (starting.size() > value.size())
 		return false;
 	return (value.substr(0, starting.size()) == starting);
 }
@@ -184,8 +184,8 @@ inline bool bc_endswith(std::string const & value, std::string const & ending)
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement); 
-extern std::string bc_url_encode(std::string data); 
+extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement);
+extern std::string bc_url_encode(std::string data);
 extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene);
 extern void bc_match_scale(std::vector<Object *> *objects_done, UnitConverter &unit_converter, bool scale_to_scene);
 

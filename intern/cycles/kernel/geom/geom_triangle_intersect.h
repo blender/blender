@@ -210,7 +210,7 @@ ccl_device_inline int ray_triangle_intersect8(
 	unsigned char mask_sign_T = _mm256_movemask_ps(sign_T_256);
 	if(((mask_minmaxUVW_pos | mask_sign_T) & prim_num_mask) == prim_num_mask) {
 		return false;
-	} 
+	}
 
 	__m256 xor_signmask_256 = _mm256_castsi256_ps(_mm256_xor_si256(_mm256_castps_si256(den_256), sign_den_256));
 

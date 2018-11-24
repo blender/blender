@@ -184,5 +184,3 @@ float(&BCMatrix::quat() const)[4]
 {
 	return q;
 }
-
-

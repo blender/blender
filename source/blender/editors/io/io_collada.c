@@ -257,7 +257,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiLayout *box, *row, *col, *split;
 	bool include_animations = RNA_boolean_get(imfptr, "include_animations");
 	int ui_section = RNA_enum_get(imfptr, "prop_bc_export_ui_section");
-	
+
 	BC_export_animation_type animation_type = RNA_enum_get(imfptr, "export_animation_type_selection");
 	BC_export_transformation_type transformation_type = RNA_enum_get(imfptr, "export_transformation_type_selection");
 
@@ -265,7 +265,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	/* Export Options: */
 	box = uiLayoutBox(layout);
-	
+
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "prop_bc_export_ui_section", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
@@ -348,7 +348,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 		row = uiLayoutColumn(box, false);
 		uiItemR(row, imfptr, "keep_smooth_curves", 0, NULL, ICON_NONE);
-		uiLayoutSetEnabled(row, include_animations && 
+		uiLayoutSetEnabled(row, include_animations &&
 			(transformation_type == BC_TRANSFORMATION_TYPE_TRANSROTLOC || animation_type == BC_ANIMATION_EXPORT_KEYS));
 
 		row = uiLayoutColumn(box, false);

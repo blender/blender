@@ -167,8 +167,8 @@ protected:
 
 	/* step through the bone hierarchy */
 	void export_bone_animations_recursive(
-		Object *ob_arm, 
-		Bone *bone, 
+		Object *ob_arm,
+		Bone *bone,
 		BCAnimationSampler &sampler);
 
 	/* Export for one bone */
@@ -205,10 +205,10 @@ protected:
 	std::string collada_source_from_values(
 		BC_animation_source_type tm_channel,
 		COLLADASW::InputSemantic::Semantics semantic,
-		std::vector<float> &values,  
-		const std::string& anim_id, 
+		std::vector<float> &values,
+		const std::string& anim_id,
 		const std::string axis_name);
-	
+
 	/* Output sources (matrix data) */
 	std::string collada_source_from_values(
 		BCMatrixSampleMap &samples,
@@ -216,7 +216,7 @@ protected:
 
 	/* Interpolation sources */
 	std::string collada_linear_interpolation_source(
-		int tot, 
+		int tot,
 		const std::string& anim_id);
 
 	/* source ID = animation_name + semantic_suffix */
@@ -239,7 +239,7 @@ protected:
 		const std::string axis_name);
 
 	std::string collada_interpolation_source(const BCAnimationCurve &curve, const std::string& anim_id, std::string axis_name, bool *has_tangents);
-		
+
 	std::string get_axis_name(std::string channel, int id);
 	const std::string get_collada_name(std::string channel_target) const;
 	std::string get_collada_sid(const BCAnimationCurve &curve, const std::string axis_name);

@@ -105,17 +105,17 @@ public:
 	~AnimationCurveCache();
 
 	void addObject(Object *obj);
-	
-	void sampleMain(Scene *scene, 
-		BC_export_transformation_type atm_type, 
+
+	void sampleMain(Scene *scene,
+		BC_export_transformation_type atm_type,
 		bool for_opensim);
-	
-	void sampleScene(Scene *scene, 
-		BC_export_transformation_type atm_type, 
+
+	void sampleScene(Scene *scene,
+		BC_export_transformation_type atm_type,
 		bool for_opensim,
 		bool keyframe_at_end = true); // use keys from FCurves, use timeline boundaries
 
-	void sampleScene(Scene *scene, 
+	void sampleScene(Scene *scene,
 		BC_export_transformation_type atm_type,
 		int sampling_rate, bool for_opensim,
 		bool keyframe_at_end = true ); // generate keyframes for frames use timeline boundaries

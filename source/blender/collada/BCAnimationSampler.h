@@ -121,22 +121,22 @@ class BCSampleFrameContainer {
 	* with the timeline frame as key.
 	*
 	* Some details on the purpose:
-	* An Animation is made of multiple FCurves where each FCurve can 
+	* An Animation is made of multiple FCurves where each FCurve can
 	* have multiple keyframes. When we want to export the animation we
 	* also can decide whether we want to export the keyframes or a set
-	* of sample frames at equidistant locations (sample period). 
-	* In any case we must resample first need to resample it fully 
+	* of sample frames at equidistant locations (sample period).
+	* In any case we must resample first need to resample it fully
 	* to resolve things like:
 	*
 	* - animations by constraints
 	* - animations by drivers
 	*
 	* For this purpose we need to step through the entire animation and
-	* then sample each frame that contains at least one keyFrame or 
+	* then sample each frame that contains at least one keyFrame or
 	* sampleFrame. Then for each frame we have to store the transform
 	* information for all exported objects in a BCSampleframe
 	*
-	* The entire set of BCSampleframes is finally collected into 
+	* The entire set of BCSampleframes is finally collected into
 	* a BCSampleframneContainer
 	*/
 
