@@ -996,7 +996,6 @@ class SmartProject(Operator):
     island_margin: FloatProperty(
         name="Island Margin",
         description="Margin to reduce bleed from adjacent islands",
-        unit='LENGTH', subtype='DISTANCE',
         min=0.0, max=1.0,
         default=0.0,
     )
