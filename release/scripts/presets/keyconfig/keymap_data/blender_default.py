@@ -43,6 +43,8 @@ class Params:
         "use_select_all_toggle",
         # Use pie menu for tab by default (swap 'Tab/Ctrl-Tab').
         "use_v3d_tab_menu",
+        # Use extended pie menu for shading.
+        "use_v3d_shade_ex_pie"
     )
 
     def __init__(
@@ -56,6 +58,7 @@ class Params:
             use_select_all_toggle=False,
             use_pie_on_tab=False,
             use_v3d_tab_menu=False,
+            use_v3d_shade_ex_pie=False,
     ):
         import platform
 
@@ -98,6 +101,7 @@ class Params:
         self.spacebar_action = spacebar_action
         self.use_select_all_toggle = use_select_all_toggle
         self.use_v3d_tab_menu = use_v3d_tab_menu
+        self.use_v3d_shade_ex_pie = use_v3d_shade_ex_pie
 
 
 # ------------------------------------------------------------------------------
@@ -1035,7 +1039,9 @@ def km_view3d(params):
             op_menu_pie("VIEW3D_MT_orientations_pie", {"type": 'COMMA', "value": 'PRESS'}),
             ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
              {"properties": [("data_path", 'space_data.show_gizmo_tool')]}),
-            op_menu_pie("VIEW3D_MT_shading_pie", {"type": 'Z', "value": 'PRESS'}),
+            op_menu_pie(
+                "VIEW3D_MT_shading_pie" if not params.use_v3d_shade_ex_pie else
+                "VIEW3D_MT_shading_ex_pie", {"type": 'Z', "value": 'PRESS'}),
             ("view3d.toggle_shading", {"type": 'Z', "value": 'PRESS', "shift": True},
              {"properties": [("type", 'WIREFRAME')]}),
             ("view3d.toggle_xray", {"type": 'Z', "value": 'PRESS', "alt": True}, None),

@@ -55,10 +55,19 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    # 3D View
     use_v3d_tab_menu: BoolProperty(
         name="Tab for Pie Menu",
         description=(
             "Causes tab to open pie menu (swaps 'Tab' / 'Ctrl-Tab')"
+        ),
+        default=False,
+        update=update_fn,
+    )
+    use_v3d_shade_ex_pie: BoolProperty(
+        name="Extra Shading Pie Menu Items",
+        description=(
+            "Show additional options in the shading menu ('Z')"
         ),
         default=False,
         update=update_fn,
@@ -75,11 +84,12 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col.label(text="Spacebar Action:")
         col.row().prop(self, "spacebar_action", expand=True)
 
+        layout.label(text="3D View:")
         split = layout.split()
         col = split.column()
-        col.label(text="3D View:")
         col.prop(self, "use_v3d_tab_menu")
-        split.column()
+        col = split.column()
+        col.prop(self, "use_v3d_shade_ex_pie")
 
 
 blender_default = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "blender_default.py"))
@@ -97,6 +107,7 @@ def load():
             spacebar_action=kc_prefs.spacebar_action,
             use_select_all_toggle=kc_prefs.use_select_all_toggle,
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
+            use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
         ),
     )
     keyconfig_init_from_data(kc, keyconfig_data)

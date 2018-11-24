@@ -3855,6 +3855,35 @@ class VIEW3D_MT_shading_pie(Menu):
         pie.prop_enum(view.shading, "type", value='RENDERED')
 
 
+class VIEW3D_MT_shading_ex_pie(Menu):
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        view = context.space_data
+
+        pie.prop_enum(view.shading, "type", value='WIREFRAME')
+
+        xray_active = (
+            (context.mode in {'POSE', 'EDIT_MESH'}) or
+            (view.shading.type in {'SOLID', 'WIREFRAME'})
+        )
+        if xray_active:
+            sub = pie
+        else:
+            sub = pie.row()
+            sub.active = False
+        sub.operator("view3d.toggle_xray", text="Toggle X-Ray", icon='XRAY')
+
+        pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
+
+        pie.prop_enum(view.shading, "type", value='SOLID')
+        pie.prop_enum(view.shading, "type", value='MATERIAL')
+        pie.prop_enum(view.shading, "type", value='RENDERED')
+
+
 class VIEW3D_MT_pivot_pie(Menu):
     bl_label = "Pivot Point"
 
@@ -5435,6 +5464,7 @@ classes = (
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
     VIEW3D_MT_shading_pie,
+    VIEW3D_MT_shading_ex_pie,
     VIEW3D_MT_pivot_pie,
     VIEW3D_MT_snap_pie,
     VIEW3D_MT_orientations_pie,
