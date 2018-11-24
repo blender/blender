@@ -42,6 +42,7 @@
 
 #include <stddef.h>
 
+#include "BLI_math_vector.h"
 #include "BKE_armature.h"
 
 static void rna_EditBone_align_roll(EditBone *ebo, float no[3])
@@ -56,6 +57,24 @@ static float rna_Bone_do_envelope(Bone *bone, float *vec)
 	                          bone->rad_tail * scale, bone->dist * scale);
 }
 
+static void rna_Bone_MatrixFromAxisRoll(float *axis, float roll, float *r_matrix)
+{
+	vec_roll_to_mat3(axis, roll, (float (*)[3])r_matrix);
+}
+
+static void rna_Bone_AxisRollFromMatrix(float *matrix, float *axis_override, float *r_axis, float *r_roll)
+{
+	float mat[3][3];
+
+	normalize_m3_m3(mat, (float (*)[3])matrix);
+
+	if (normalize_v3_v3(r_axis, axis_override) != 0.0f) {
+		mat3_vec_to_roll(mat, r_axis, r_roll);
+	}
+	else {
+		mat3_to_vec_roll(mat, r_axis, r_roll);
+	}
+}
 #else
 
 void RNA_api_armature_edit_bone(StructRNA *srna)
@@ -83,6 +102,40 @@ void RNA_api_bone(StructRNA *srna)
 	/* return value */
 	parm = RNA_def_float(func, "factor", 0, -FLT_MAX, FLT_MAX, "Factor", "Envelope factor", -FLT_MAX, FLT_MAX);
 	RNA_def_function_return(func, parm);
+
+	/* Conversions between Matrix and Axis + Roll representations. */
+	func = RNA_def_function(srna, "MatrixFromAxisRoll", "rna_Bone_MatrixFromAxisRoll");
+	RNA_def_function_ui_description(func, "Convert the axis + roll representation to a matrix");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	parm = RNA_def_property(func, "axis", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(parm, 3);
+	RNA_def_property_ui_text(parm, "", "The main axis of the bone (tail - head)");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	parm = RNA_def_property(func, "roll", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(parm, "", "The roll of the bone");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_property(func, "result_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_3x3);
+	RNA_def_property_ui_text(parm, "", "The resulting orientation matrix");
+	RNA_def_function_output(func, parm);
+
+	func = RNA_def_function(srna, "AxisRollFromMatrix", "rna_Bone_AxisRollFromMatrix");
+	RNA_def_function_ui_description(func, "Convert a rotational matrix to the axis + roll representation");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_3x3);
+	RNA_def_property_ui_text(parm, "", "The orientation matrix of the bone");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	parm = RNA_def_property(func, "axis", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_array(parm, 3);
+	RNA_def_property_ui_text(parm, "", "The optional override for the axis (finds closest approximation for the matrix)");
+	parm = RNA_def_property(func, "result_axis", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(parm, 3);
+	RNA_def_property_ui_text(parm, "", "The main axis of the bone");
+	RNA_def_function_output(func, parm);
+	parm = RNA_def_property(func, "result_roll", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(parm, "", "The roll of the bone");
+	RNA_def_function_output(func, parm);
 }
 
 #endif
