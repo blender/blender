@@ -38,7 +38,6 @@ set(INC_SYS
 )
 
 set(SRC
-	cin_debug_stuff.h
 	cineonlib.h
 	dpxlib.h
 	logImageCore.h
