@@ -2253,7 +2253,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 33)) {
 		/* Grease pencil reset sculpt brushes after struct rename  */
 		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "int", "weighttype")) {
 			float curcolor_add[3], curcolor_sub[3];
@@ -2428,4 +2428,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
+	{
+		/* Versioning code until next subversion bump goes here. */
+	}
 }

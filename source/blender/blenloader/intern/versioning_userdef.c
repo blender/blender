@@ -406,6 +406,11 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		}
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 33)) {
+		/* Enable GLTF addon by default. */
+		BKE_addon_ensure(&userdef->addons, "io_scene_gltf2");
+	}
+
 	/**
 	 * Include next version bump.
 	 */
