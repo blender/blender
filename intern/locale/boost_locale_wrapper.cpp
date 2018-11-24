@@ -35,6 +35,40 @@ static std::string messages_path;
 static std::string default_domain;
 static std::string locale_str;
 
+/* Note: We cannot use short stuff like boost::locale::gettext, because those return
+ * std::basic_string objects, which c_ptr()-returned char* is no more valid
+ * once deleted (which happens as soons they are out of scope of this func). */
+typedef boost::locale::message_format<char> char_message_facet;
+static std::locale locale_global;
+static char_message_facet const *facet_global = NULL;
+
+static void bl_locale_global_cache()
+{
+	/* Cache facet in global variable. Not only is it better for performance,
+	 * it also fixes crashes on macOS when doing translation from threads other
+	 * than main. Likely because of some internal thread local variables. */
+	try {
+		/* facet_global reference is valid as long as local_global exists,
+		 * so we store both. */
+		locale_global = std::locale();
+		facet_global = &std::use_facet<char_message_facet>(locale_global);
+	}
+	catch(const std::bad_cast &e) { /* if std::has_facet<char_message_facet>(l) == false, LC_ALL = "C" case */
+#ifndef NDEBUG
+		std::cout << "bl_locale_global_cache:" << e.what() << " \n";
+#endif
+		(void)e;
+		facet_global = NULL;
+	}
+	catch(const std::exception &e) {
+#ifndef NDEBUG
+		std::cout << "bl_locale_global_cache:" << e.what() << " \n";
+#endif
+		(void)e;
+		facet_global = NULL;
+	}
+}
+
 void bl_locale_init(const char *_messages_path, const char *_default_domain)
 {
 	// Avoid using ICU backend, we do not need its power and it's rather heavy!
@@ -74,6 +108,8 @@ void bl_locale_set(const char *locale)
 		std::locale::global(_locale);
 		// Note: boost always uses "C" LC_NUMERIC by default!
 
+		bl_locale_global_cache();
+
 		// Generate the locale string (useful to know which locale we are actually using in case of "default" one).
 #define LOCALE_INFO std::use_facet<boost::locale::info>(_locale)
 
@@ -100,30 +136,12 @@ const char *bl_locale_get(void)
 
 const char *bl_locale_pgettext(const char *msgctxt, const char *msgid)
 {
-	// Note: We cannot use short stuff like boost::locale::gettext, because those return
-	//       std::basic_string objects, which c_ptr()-returned char* is no more valid
-	//       once deleted (which happens as soons they are out of scope of this func).
-	typedef boost::locale::message_format<char> char_message_facet;
-	try {
-		std::locale l;
-		char_message_facet const &facet = std::use_facet<char_message_facet>(l);
-		char const *r = facet.get(0, msgctxt, msgid);
-		if (r)
+	if (facet_global) {
+		char const *r = facet_global->get(0, msgctxt, msgid);
+		if (r) {
 			return r;
-		return msgid;
+		}
 	}
-	catch(const std::bad_cast &e) { /* if std::has_facet<char_message_facet>(l) == false, LC_ALL = "C" case */
-#ifndef NDEBUG
-		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
-#endif
-		(void)e;
-		return msgid;
-	}
-	catch(const std::exception &e) {
-#ifndef NDEBUG
-		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
-#endif
-		(void)e;
-		return msgid;
-	}
+
+	return msgid;
 }

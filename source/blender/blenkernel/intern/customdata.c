@@ -1874,7 +1874,14 @@ static CustomDataLayer *customData_add_layer__internal(
 	data->layers[index].flag = flag;
 	data->layers[index].data = newlayerdata;
 
-	if (name || (name = DATA_(typeInfo->defaultname))) {
+	/* Set default name if none exists. Note we only call DATA_()  once
+	 * we know there is a default name, to avoid overhead of locale lookups
+	 * in the depsgraph. */
+	if (!name && typeInfo->defaultname) {
+		name = DATA_(typeInfo->defaultname);
+	}
+
+	if (name) {
 		BLI_strncpy(data->layers[index].name, name, sizeof(data->layers[index].name));
 		CustomData_set_layer_unique_name(data, index);
 	}
@@ -3440,11 +3447,17 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
 	data_arg.type = nlayer->type;
 	data_arg.index = index;
 
-	if (!typeInfo->defaultname)
+	if (!typeInfo->defaultname) {
 		return;
+	}
 
-	BLI_uniquename_cb(customdata_unique_check, &data_arg, DATA_(typeInfo->defaultname), '.', nlayer->name,
-	                  sizeof(nlayer->name));
+	/* Set default name if none specified. Note we only call DATA_() when
+	 * needed to avoid overhead of locale lookups in the depsgraph. */
+	if (nlayer->name[0] == '\0') {
+		STRNCPY(nlayer->name, DATA_(typeInfo->defaultname));
+	}
+
+	BLI_uniquename_cb(customdata_unique_check, &data_arg, NULL, '.', nlayer->name, sizeof(nlayer->name));
 }
 
 void CustomData_validate_layer_name(const CustomData *data, int type, const char *name, char *outname)
