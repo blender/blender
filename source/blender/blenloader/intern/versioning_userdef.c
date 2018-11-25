@@ -93,6 +93,10 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		copy_v4_v4_char(btheme->tclip.list_text, U_theme_default.tclip.list_text);
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 33)) {
+		copy_v4_v4_char(btheme->tuserpref.navigation_bar, U_theme_default.tuserpref.navigation_bar);
+	}
+
 #undef USER_VERSION_ATLEAST
 }
 
