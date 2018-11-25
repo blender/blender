@@ -1461,6 +1461,11 @@ static float project_paint_uvpixel_mask(
 			angle_cos = dot_v3v3(viewDirPersp, no);
 		}
 
+		/* If backface culling is disabled, allow painting on back faces. */
+		if (!ps->do_backfacecull) {
+			angle_cos = fabsf(angle_cos);
+		}
+
 		if (angle_cos <= ps->normal_angle__cos) {
 			return 0.0f; /* outsize the normal limit*/
 		}
