@@ -914,16 +914,22 @@ void BKE_mesh_texspace_calc(Mesh *me)
 
 BoundBox *BKE_mesh_boundbox_get(Object *ob)
 {
-	Mesh *me = ob->data;
+	/* This is Object-level data access, DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
+	if (ob->bb == NULL || ob->bb->flag & BOUNDBOX_DIRTY) {
+		Mesh *me = ob->data;
+		float min[3], max[3];
 
-	if (ob->bb)
-		return ob->bb;
+		INIT_MINMAX(min, max);
+		BKE_mesh_minmax(me, min, max);
 
-	if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
-		BKE_mesh_texspace_calc(me);
+		if (ob->bb == NULL) {
+			ob->bb = MEM_mallocN(sizeof(*ob->bb), __func__);
+		}
+		BKE_boundbox_init_from_minmax(ob->bb, min, max);
+		ob->bb->flag &= ~BOUNDBOX_DIRTY;
 	}
 
-	return me->bb;
+	return ob->bb;
 }
 
 BoundBox *BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_size[3])

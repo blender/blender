@@ -325,16 +325,22 @@ void BKE_curve_boundbox_calc(Curve *cu, float r_loc[3], float r_size[3])
 
 BoundBox *BKE_curve_boundbox_get(Object *ob)
 {
-	Curve *cu = ob->data;
+	/* This is Object-level data access, DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
+	if (ob->bb == NULL || ob->bb->flag & BOUNDBOX_DIRTY) {
+		Curve *cu = ob->data;
+		float min[3], max[3];
 
-	if (ob->bb)
-		return ob->bb;
+		INIT_MINMAX(min, max);
+		BKE_curve_minmax(cu, true, min, max);
 
-	if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
-		BKE_curve_texspace_calc(cu);
+		if (ob->bb == NULL) {
+			ob->bb = MEM_mallocN(sizeof(*ob->bb), __func__);
+		}
+		BKE_boundbox_init_from_minmax(ob->bb, min, max);
+		ob->bb->flag &= ~BOUNDBOX_DIRTY;
 	}
 
-	return cu->bb;
+	return ob->bb;
 }
 
 void BKE_curve_texspace_calc(Curve *cu)
