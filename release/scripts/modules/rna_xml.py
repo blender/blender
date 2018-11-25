@@ -396,7 +396,7 @@ def xml_file_write(context, filepath, rna_map, skip_typemap=None):
 
     fw("<bpy>\n")
 
-    for rna_path, xml_tag in rna_map:
+    for rna_path, _xml_tag in rna_map:
         # xml_tag is ignored, we get this from the rna
         value = _get_context_val(context, rna_path)
         rna2xml(fw,

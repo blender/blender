@@ -23,7 +23,6 @@ from bpy.types import Operator
 from bpy.props import (
     BoolProperty,
     EnumProperty,
-    FloatProperty,
     IntProperty,
     StringProperty,
 )

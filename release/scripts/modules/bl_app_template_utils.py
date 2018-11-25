@@ -51,8 +51,6 @@ _modules = {}
 
 
 def _enable(template_id, *, handle_error=None, ignore_not_found=False):
-    import os
-    import sys
     from bpy_restrict_state import RestrictBlend
 
     if handle_error is None:
@@ -107,7 +105,6 @@ def _disable(template_id, *, handle_error=None):
        taking an exception argument.
     :type handle_error: function
     """
-    import sys
 
     if handle_error is None:
         def handle_error(ex):
@@ -178,7 +175,7 @@ def activate(template_id=None):
     addon_utils.disable_all()
 
     # ignore_not_found so modules that don't contain scripts don't raise errors
-    mod = _enable(template_id, ignore_not_found=True) if template_id else None
+    _mod = _enable(template_id, ignore_not_found=True) if template_id else None
 
     _app_template["id"] = template_id
 

@@ -2212,7 +2212,7 @@ class WM_OT_addon_userpref_show(Operator):
 
         module_name = self.module
 
-        modules = addon_utils.modules(refresh=False)
+        _modules = addon_utils.modules(refresh=False)
         mod = addon_utils.addons_fake_modules.get(module_name)
         if mod is not None:
             info = addon_utils.module_bl_info(mod)
@@ -2521,7 +2521,7 @@ class WM_MT_splash(Menu):
 
     def draw_setup(self, context):
         wm = context.window_manager
-        userpref = context.user_preferences
+        # userpref = context.user_preferences
 
         layout = self.layout
 

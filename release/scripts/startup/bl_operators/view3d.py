@@ -192,14 +192,16 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
         return True
 
     def invoke(self, context, event):
-        retval = bpy.ops.view3d.select('INVOKE_DEFAULT',
-                                       True, # undo push
-                                       extend=self.extend,
-                                       deselect=self.deselect,
-                                       toggle=self.toggle,
-                                       center=self.center,
-                                       enumerate=self.enumerate,
-                                       object=self.object)
+        retval = bpy.ops.view3d.select(
+            'INVOKE_DEFAULT',
+            True, # undo push
+            extend=self.extend,
+            deselect=self.deselect,
+            toggle=self.toggle,
+            center=self.center,
+            enumerate=self.enumerate,
+            object=self.object,
+        )
 
         # Finished means something was selected.
         if 'FINISHED' in retval:
