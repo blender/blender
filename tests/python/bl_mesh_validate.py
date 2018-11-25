@@ -114,7 +114,7 @@ def test_builtins():
             getattr(bpy.ops.mesh, func)(location=(x * 2.5, y * 2.5, 0))
             data = bpy.context.active_object.data
             try:
-                for n in range(BUILTINS_NBRCHANGES):
+                for _ in range(BUILTINS_NBRCHANGES):
                     rnd = random.randint(1, 3)
                     if rnd == 1:
                         # Make fun with some edge.

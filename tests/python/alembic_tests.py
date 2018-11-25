@@ -20,17 +20,15 @@
 # <pep8 compliant>
 
 import argparse
-import functools
-import shutil
 import pathlib
 import subprocess
 import sys
-import tempfile
 import unittest
 
-from modules.test_utils import (with_tempdir,
-                                AbstractBlenderRunnerTest,
-                                )
+from modules.test_utils import (
+    with_tempdir,
+    AbstractBlenderRunnerTest,
+)
 
 
 class AbcPropError(Exception):

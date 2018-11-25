@@ -175,8 +175,6 @@ class SimpleImportTest(AbstractAlembicTest):
         self.assertAlmostEqual(z, 0)
 
     def test_change_path_modifier(self):
-        import math
-
         fname = 'animated-mesh.abc'
         abc = self.testdir / fname
         relpath = bpy.path.relpath(str(abc))
@@ -188,7 +186,6 @@ class SimpleImportTest(AbstractAlembicTest):
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(6)
         scene = bpy.context.scene
-        layer = scene.view_layers[scene.active_layer]
         mesh = plane.to_mesh(bpy.context.depsgraph, True, True, False)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)

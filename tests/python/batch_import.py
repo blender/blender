@@ -157,7 +157,7 @@ def main():
     parser.add_option("-S", "--start", dest="start", help="From collected files, start with this index", metavar='int')
     parser.add_option("-E", "--end", dest="end", help="From collected files, end with this index", metavar='int')
 
-    options, args = parser.parse_args(argv)  # In this example we wont use the args
+    options, _args = parser.parse_args(argv)  # In this example we wont use the args
 
     if not argv:
         parser.print_help()

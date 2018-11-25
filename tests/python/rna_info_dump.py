@@ -71,7 +71,7 @@ def api_dump(use_properties=True, use_functions=True):
 
     def dump_funcs():
         data = []
-        for struct_id, v in sorted(struct.items()):
+        for _struct_id, v in sorted(struct.items()):
             struct_id_str = struct_full_id(v)
 
             funcs = [(func.identifier, func) for func in v.functions]
@@ -90,7 +90,7 @@ def api_dump(use_properties=True, use_functions=True):
 
     def dump_props():
         data = []
-        for struct_id, v in sorted(struct.items()):
+        for _struct_id, v in sorted(struct.items()):
             struct_id_str = struct_full_id(v)
 
             props = [(prop.identifier, prop) for prop in v.properties]

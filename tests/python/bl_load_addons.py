@@ -102,7 +102,7 @@ def reload_addons(do_reload=True, do_reverse=True):
     disable_addons()
 
     # Run twice each time.
-    for i in (0, 1):
+    for _ in (0, 1):
         for mod in modules:
             mod_name = mod.__name__
             print("\tenabling:", mod_name)

@@ -62,7 +62,7 @@ def is_pep8(path):
             return 1
 
     f = open(path, 'r', encoding="utf8")
-    for i in range(PEP8_SEEK_COMMENT):
+    for _ in range(PEP8_SEEK_COMMENT):
         line = f.readline()
         if line.startswith("# <pep8"):
             if line.startswith("# <pep8 compliant>"):

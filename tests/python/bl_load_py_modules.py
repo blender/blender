@@ -197,7 +197,7 @@ def load_modules():
                     assert(os.path.samefile(mod_imp.__file__, submod_full))
 
                     modules.append(mod_imp)
-                except Exception as e:
+                except Exception:
                     import traceback
                     # Module might fail to import, but we don't want whole test to fail here.
                     # Reasoning:
