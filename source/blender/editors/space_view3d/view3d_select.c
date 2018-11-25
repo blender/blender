@@ -2086,8 +2086,8 @@ static void do_mesh_box_select__doSelectEdge_pass0(
 	const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
 	if (sel_op_result != -1) {
 		BM_edge_select_set(data->vc->em->bm, eed, sel_op_result);
+		data->is_done = true;
 	}
-	data->is_done = true;
 }
 static void do_mesh_box_select__doSelectEdge_pass1(
         void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
