@@ -3753,9 +3753,7 @@ static void widget_roundbut_exec(uiWidgetColors *wcol, rcti *rect, int state, in
 
 static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-	const uiStyle *style = UI_style_get();
 	const float rad = wcol->roundness * U.widget_unit;
-	const int fontid = style->widget.uifont_id;
 	const bool is_active = (state & UI_SELECT);
 
 /* Draw shaded outline - Disabled for now, seems incorrect and also looks nicer without it imho ;) */
@@ -3796,11 +3794,6 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 	/* draw outline (3d look) */
 	ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, (unsigned char *)wcol->inner);
 #endif
-
-	/* text shadow */
-	BLF_enable(fontid, BLF_SHADOW);
-	BLF_shadow(fontid, 3, (const float[4]){1.0f, 1.0f, 1.0f, 0.25f});
-	BLF_shadow_offset(fontid, 0, -1);
 
 #ifndef USE_TAB_SHADED_HIGHLIGHT
 	UNUSED_VARS(is_active, theme_col_tab_highlight);

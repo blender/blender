@@ -1914,10 +1914,6 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
 	BLF_size(fontid, fstyle_points, U.dpi);
 
-	BLF_enable(fontid, BLF_SHADOW);
-	BLF_shadow(fontid, 3, (const float[4]){1.0f, 1.0f, 1.0f, 0.25f});
-	BLF_shadow_offset(fontid, -1, -1);
-
 	BLI_assert(UI_panel_category_is_visible(ar));
 
 
@@ -2099,8 +2095,6 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	GPU_line_smooth(false);
 
 	BLF_disable(fontid, BLF_ROTATION);
-
-	BLF_disable(fontid, BLF_SHADOW);
 
 	if (fstyle->kerning == 1) {
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
