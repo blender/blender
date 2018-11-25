@@ -1659,7 +1659,7 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 
 void WM_OT_save_userpref(wmOperatorType *ot)
 {
-	ot->name = "Save User Preferences";
+	ot->name = "Save Settings";
 	ot->idname = "WM_OT_save_userpref";
 	ot->description = "Save user preferences separately, overrides startup file preferences";
 

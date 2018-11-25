@@ -655,6 +655,7 @@ static void ui_item_enum_expand_exec(
 	uiLayout *layout_radial = NULL;
 	const EnumPropertyItem *item, *item_array;
 	const char *name;
+	char group_name[UI_MAX_NAME_STR];
 	int itemw, icon, value;
 	bool free;
 	bool radial = (layout->root->type == UI_LAYOUT_PIEMENU);
@@ -687,10 +688,22 @@ static void ui_item_enum_expand_exec(
 	}
 
 	for (item = item_array; item->identifier; item++) {
+		const bool is_first = item == item_array;
+
 		if (!item->identifier[0]) {
 			const EnumPropertyItem *next_item = item + 1;
+
+			/* Separate items, potentially with a label. */
 			if (next_item->identifier) {
-				if (radial && layout_radial) {
+				/* Item without identifier but with name: Add group label for the following items. */
+				if (item->name) {
+					if (!is_first) {
+						uiItemS(block->curlayout);
+					}
+					BLI_snprintf(group_name, sizeof(group_name), "%s:", item->name);
+					uiItemL(block->curlayout, group_name, item->icon);
+				}
+				else if (radial && layout_radial) {
 					uiItemS(layout_radial);
 				}
 				else {

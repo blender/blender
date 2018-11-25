@@ -2428,6 +2428,29 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 34)) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+				for (SpaceLink *slink = area->spacedata.first; slink; slink = slink->next) {
+					if (slink->spacetype == SPACE_USERPREF) {
+						ARegion *navigation_region = BKE_spacedata_find_region_type(slink, area, RGN_TYPE_NAV_BAR);
+
+						if (!navigation_region) {
+							ListBase *regionbase = (slink == area->spacedata.first) ?
+							                           &area->regionbase : &slink->regionbase;
+
+							navigation_region = MEM_callocN(sizeof(ARegion), "userpref navigation-region do_versions");
+
+							BLI_addhead(regionbase, navigation_region); /* order matters, addhead not addtail! */
+							navigation_region->regiontype = RGN_TYPE_NAV_BAR;
+							navigation_region->alignment = RGN_ALIGN_LEFT;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	{
 		/* Versioning code until next subversion bump goes here. */
 	}

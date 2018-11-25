@@ -677,16 +677,29 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* ***************** USERDEF ****************** */
 
+/* Toggles for unfinished 2.8 UserPref design. */
+//#define WITH_USERDEF_WORKSPACES
+//#define WITH_USERDEF_SYSTEM_SPLIT
+
 /* UserDef.userpref (UI active_section) */
 typedef enum eUserPref_Section {
-	USER_SECTION_INTERFACE	= 0,
-	USER_SECTION_EDIT		= 1,
-	USER_SECTION_FILE		= 2,
-	USER_SECTION_SYSTEM		= 3,
-	USER_SECTION_THEME		= 4,
-	USER_SECTION_INPUT		= 5,
-	USER_SECTION_ADDONS 	= 6,
-	USER_SECTION_LIGHT 	= 7,
+	USER_SECTION_INTERFACE         = 0,
+	USER_SECTION_EDIT              = 1,
+	USER_SECTION_SYSTEM_FILES      = 2,
+	USER_SECTION_SYSTEM_GENERAL    = 3,
+	USER_SECTION_THEME             = 4,
+	USER_SECTION_INPUT             = 5,
+	USER_SECTION_ADDONS            = 6,
+	USER_SECTION_LIGHT             = 7,
+#ifdef WITH_USERDEF_WORKSPACES
+	USER_SECTION_WORKSPACE_CONFIG  = 8,
+	USER_SECTION_WORKSPACE_ADDONS  = 9,
+	USER_SECTION_WORKSPACE_KEYMAPS = 10,
+#endif
+#ifdef WITH_USERDEF_SYSTEM_SPLIT
+	USER_SECTION_SYSTEM_DISPLAY    = 11,
+	USER_SECTION_SYSTEM_DEVICES    = 12,
+#endif
 } eUserPref_Section;
 
 /* UserDef.userpref_flag (State of the user preferences UI). */

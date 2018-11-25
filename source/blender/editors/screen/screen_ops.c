@@ -4332,9 +4332,9 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 /** \name Show User Preferences Operator
  * \{ */
 
-static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int settings_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	int sizex = 800 * UI_DPI_FAC;
+	int sizex = (800 + UI_NAVIGATION_REGION_WIDTH) * UI_DPI_FAC;
 	int sizey = 500 * UI_DPI_FAC;
 
 	/* changes context! */
@@ -4348,15 +4348,15 @@ static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *even
 }
 
 
-static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
+static void SCREEN_OT_settings_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Show User Preferences";
-	ot->description = "Show user preferences";
-	ot->idname = "SCREEN_OT_userpref_show";
+	ot->name = "Show Blender Settings";
+	ot->description = "Edit user preferences, workspaces and system settings";
+	ot->idname = "SCREEN_OT_settings_show";
 
 	/* api callbacks */
-	ot->invoke = userpref_show_invoke;
+	ot->invoke = settings_show_invoke;
 	ot->poll = ED_operator_screenactive;
 }
 
@@ -4814,7 +4814,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_back_to_previous);
 	WM_operatortype_append(SCREEN_OT_spacedata_cleanup);
 	WM_operatortype_append(SCREEN_OT_screenshot);
-	WM_operatortype_append(SCREEN_OT_userpref_show);
+	WM_operatortype_append(SCREEN_OT_settings_show);
 	WM_operatortype_append(SCREEN_OT_drivers_editor_show);
 	WM_operatortype_append(SCREEN_OT_region_blend);
 	WM_operatortype_append(SCREEN_OT_space_context_cycle);

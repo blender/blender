@@ -59,10 +59,10 @@ class USERPREF_HT_header(Header):
         layout.operator("wm.save_userpref")
 
 
-class USERPREF_PT_tabs(Panel):
+class USERPREF_PT_navigation(Panel):
     bl_label = ""
     bl_space_type = 'USER_PREFERENCES'
-    bl_region_type = 'WINDOW'
+    bl_region_type = 'NAVIGATION_BAR'
     bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
@@ -70,7 +70,11 @@ class USERPREF_PT_tabs(Panel):
 
         userpref = context.user_preferences
 
-        layout.row().prop(userpref, "active_section", expand=True)
+        col = layout.column()
+
+        col.scale_x = 1.3
+        col.scale_y = 1.3
+        col.prop(userpref, "active_section", expand=True)
 
 
 class USERPREF_PT_interface(Panel):
@@ -331,16 +335,16 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "use_duplicate_particle", text="Particle")
 
 
-class USERPREF_PT_system(Panel):
+class USERPREF_PT_system_general(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = "System"
+    bl_label = "System General"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
         userpref = context.user_preferences
-        return (userpref.active_section == 'SYSTEM')
+        return (userpref.active_section == 'SYSTEM_GENERAL')
 
     def draw(self, context):
         import sys
@@ -880,7 +884,7 @@ class USERPREF_PT_file(Panel):
     @classmethod
     def poll(cls, context):
         userpref = context.user_preferences
-        return (userpref.active_section == 'FILES')
+        return (userpref.active_section == 'SYSTEM_FILES')
 
     def draw(self, context):
         layout = self.layout
@@ -1572,10 +1576,10 @@ class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
 
 classes = (
     USERPREF_HT_header,
-    USERPREF_PT_tabs,
+    USERPREF_PT_navigation,
     USERPREF_PT_interface,
     USERPREF_PT_edit,
-    USERPREF_PT_system,
+    USERPREF_PT_system_general,
     USERPREF_MT_interface_theme_presets,
     USERPREF_PT_theme,
     USERPREF_PT_file,
