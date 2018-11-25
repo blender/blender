@@ -487,7 +487,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 	}
 #endif
 
-	BLI_assert(rng_skip_tot > 0);  /* should never be below zero */
+	BLI_assert(rng_skip_tot >= 0);  /* should never be below zero */
 	if (rng_skip_tot > 0) {
 		BLI_rng_skip(thread->rng, rng_skip_tot);
 	}
@@ -531,7 +531,7 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
 	}
 	pa->foffset= 0.0f;
 
-	BLI_assert(rng_skip_tot > 0);  /* should never be below zero */
+	BLI_assert(rng_skip_tot >= 0);  /* should never be below zero */
 	if (rng_skip_tot > 0) {
 		BLI_rng_skip(thread->rng, rng_skip_tot);
 	}
@@ -628,7 +628,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 		}
 	}
 
-	BLI_assert(rng_skip_tot > 0); /* should never be below zero */
+	BLI_assert(rng_skip_tot >= 0); /* should never be below zero */
 	if (rng_skip_tot > 0) {
 		BLI_rng_skip(thread->rng, rng_skip_tot);
 	}
