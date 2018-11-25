@@ -144,7 +144,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 bool ED_armature_pose_select_pick_with_buffer(
-        ViewLayer *view_layer, Base *base, const unsigned int *buffer, short hits,
+        ViewLayer *view_layer, View3D *v3d, Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest)
 {
 	Object *ob = base->object;
@@ -180,7 +180,7 @@ bool ED_armature_pose_select_pick_with_buffer(
 		if (!extend && !deselect && !toggle) {
 			{
 				uint objects_len = 0;
-				Object **objects = BKE_object_pose_array_get_unique(view_layer, &objects_len);
+				Object **objects = BKE_object_pose_array_get_unique(view_layer, v3d, &objects_len);
 				ED_pose_deselect_all_multi(objects, objects_len, SEL_DESELECT, true);
 				MEM_freeN(objects);
 			}
@@ -683,7 +683,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
 	uint ob_index;
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
 	for (ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
 		bArmature *arm = (ob) ? ob->data : NULL;
@@ -784,7 +784,7 @@ static bool pose_select_same_layer(bContext *C, bool extend)
 	bool changed = false;
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
 	for (ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		ob->id.tag &= ~LIB_TAG_DOIT;
@@ -896,7 +896,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
 	}
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
 		bArmature *arm = (ob) ? ob->data : NULL;
@@ -1024,7 +1024,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len, OB_MODE_POSE);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		bArmature *arm = ob->data;

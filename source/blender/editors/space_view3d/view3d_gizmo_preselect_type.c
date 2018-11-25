@@ -107,12 +107,13 @@ static int gizmo_preselect_elem_test_select(
 
 	{
 		ViewLayer *view_layer = CTX_data_view_layer(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		if (((gz_ele->bases)) == NULL ||
 		    (gz_ele->bases[0] != view_layer->basact))
 		{
 			MEM_SAFE_FREE(gz_ele->bases);
 			gz_ele->bases = BKE_view_layer_array_from_bases_in_edit_mode(
-			        view_layer, &gz_ele->bases_len);
+			        view_layer, v3d, &gz_ele->bases_len);
 		}
 	}
 
@@ -298,12 +299,13 @@ static int gizmo_preselect_edgering_test_select(
 
 	{
 		ViewLayer *view_layer = CTX_data_view_layer(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		if (((gz_ring->bases)) == NULL ||
 		    (gz_ring->bases[0] != view_layer->basact))
 		{
 			MEM_SAFE_FREE(gz_ring->bases);
 			gz_ring->bases = BKE_view_layer_array_from_bases_in_edit_mode(
-			        view_layer, &gz_ring->bases_len);
+			        view_layer, v3d, &gz_ring->bases_len);
 		}
 	}
 

@@ -1806,28 +1806,34 @@ extern const char *RE_engine_id_CYCLES;
 
 /* deprecate this! */
 #define TESTBASE(v3d, base)  (                                                \
+	(((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	(((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0) && \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	(((base)->flag & BASE_VISIBLE) != 0))
 #define TESTBASELIB(v3d, base)  (                                             \
+	(((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	(((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0) && \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->flag & BASE_VISIBLE) != 0))
 #define TESTBASELIB_BGMODE(v3d, base)  (                                      \
+	((v3d == NULL) || ((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	((v3d == NULL) || (((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0)) && \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->flag & BASE_VISIBLE) != 0))
 #define BASE_EDITABLE_BGMODE(v3d, base)  (                                    \
+	((v3d == NULL) || ((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	((v3d == NULL) || (((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0)) && \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->flag & BASE_VISIBLE) != 0))
 #define BASE_SELECTABLE(v3d, base)  (                                         \
+	(((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	(((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0) && \
 	(((1 << (base)->object->type) & (v3d)->object_type_exclude_select) == 0) && \
 	(((base)->flag & BASE_SELECTABLE) != 0))
 #define BASE_VISIBLE(v3d, base)  (                                            \
+	(((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	(((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0) && \
 	(((base)->flag & BASE_VISIBLE) != 0))
 

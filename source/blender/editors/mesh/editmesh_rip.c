@@ -1011,7 +1011,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 
 	bool no_vertex_selected = true;

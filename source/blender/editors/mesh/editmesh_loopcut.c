@@ -359,7 +359,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	uint objects_len;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, CTX_wm_view3d(C), &objects_len);
 
 	if (is_interactive) {
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {

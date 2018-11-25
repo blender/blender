@@ -73,11 +73,12 @@ static bool make_regular_poll(bContext *C)
 static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	const bool is_editmode = CTX_data_edit_object(C) != NULL;
 
 	if (is_editmode) {
 		uint objects_len;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			Object *ob = objects[ob_index];
 			Lattice *lt = ob->data;
@@ -94,7 +95,7 @@ static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 		MEM_freeN(objects);
 	}
 	else {
-		FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob) {
+		FOREACH_SELECTED_OBJECT_BEGIN(view_layer, v3d, ob) {
 			if (ob->type != OB_LATTICE) {
 				continue;
 			}
@@ -218,7 +219,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 	const eLattice_FlipAxes axis = RNA_enum_get(op->ptr, "axis");
 
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		Lattice *lt;

@@ -46,6 +46,7 @@ struct ShaderFxData;
 struct Object;
 struct ReportList;
 struct Scene;
+struct View3D;
 struct ViewLayer;
 struct bConstraint;
 struct bContext;
@@ -111,8 +112,8 @@ void ED_object_parent_clear(struct Object *ob, const int type);
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
 void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);
-bool ED_object_base_deselect_all_ex(struct ViewLayer *view_layer, int action, bool *r_any_visible);
-bool ED_object_base_deselect_all(struct ViewLayer *view_layer, int action);
+bool ED_object_base_deselect_all_ex(struct ViewLayer *view_layer, struct View3D *v3d, int action, bool *r_any_visible);
+bool ED_object_base_deselect_all(struct ViewLayer *view_layer, struct View3D *v3d, int action);
 
 /* single object duplicate, if (dupflag == 0), fully linked, else it uses the flags given */
 struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, struct Base *base, int dupflag);

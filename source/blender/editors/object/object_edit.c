@@ -682,6 +682,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene =  CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Object *obact = OBACT(view_layer);
 
 	if (!is_mode_set) {
@@ -693,7 +694,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	if (!is_mode_set) {
 		ED_object_editmode_enter(C, EM_WAITCURSOR);
 		if (obact->mode & mode_flag) {
-			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
+			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, v3d, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
 					ED_object_editmode_enter_ex(bmain, scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
@@ -805,7 +806,8 @@ static int posemode_exec(bContext *C, wmOperator *op)
 		if (ok) {
 			struct Main *bmain = CTX_data_main(C);
 			ViewLayer *view_layer = CTX_data_view_layer(C);
-			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
+			View3D *v3d = CTX_wm_view3d(C);
+			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, v3d, ob)
 			{
 				if ((ob != obact) &&
 				    (ob->type == OB_ARMATURE) &&

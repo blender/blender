@@ -90,7 +90,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	if (obedit) {
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		uint objects_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			obedit = objects[ob_index];
 
@@ -132,7 +132,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN(view_layer_eval, ob_eval)
+		FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN(view_layer_eval, v3d, ob_eval)
 		{
 			Object *ob = DEG_get_original_object(ob_eval);
 			if (ob->mode & OB_MODE_POSE) {
@@ -268,7 +268,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 		float snap_target_local[3];
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		uint objects_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			obedit = objects[ob_index];
 
@@ -624,7 +624,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 		int global_transverts_tot = 0;
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		uint objects_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			obedit = objects[ob_index];
 
@@ -687,7 +687,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 			}
 		}
 		else {
-			FOREACH_SELECTED_OBJECT_BEGIN(view_layer_eval, ob_eval)
+			FOREACH_SELECTED_OBJECT_BEGIN(view_layer_eval, v3d, ob_eval)
 			{
 				copy_v3_v3(vec, ob_eval->obmat[3]);
 

@@ -91,14 +91,9 @@ void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float
 	}
 }
 
-View3DCursor *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
+View3DCursor *ED_view3d_cursor3d_get(Scene *scene, View3D *UNUSED(v3d))
 {
-	if (v3d && v3d->localvd) {
-		return &v3d->cursor;
-	}
-	else {
-		return &scene->cursor;
-	}
+	return &scene->cursor;
 }
 
 void ED_view3d_cursor3d_calc_mat3(const Scene *scene, const View3D *v3d, float mat[3][3])

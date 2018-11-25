@@ -134,10 +134,15 @@ static bool rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
+		return false;
+	}
+
+	if (v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
 		return false;
 	}
 
@@ -503,7 +508,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "visible_get", "rna_Object_visible_get");
-	RNA_def_function_ui_description(func, "Get the object visibility for the active view layer");
+	RNA_def_function_ui_description(func, "Get the object visibility for the active view layer and viewport");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visible");
 	RNA_def_function_return(func, parm);

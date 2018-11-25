@@ -37,7 +37,7 @@ extern "C" {
 typedef struct Base {
 	struct Base *next, *prev;
 	short flag;
-	short pad;
+	unsigned short local_view_bits;
 	short sx, sy;
 	struct Object *object;
 	unsigned int lay DNA_DEPRECATED;

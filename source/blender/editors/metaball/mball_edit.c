@@ -132,7 +132,7 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 
 	if (action == SEL_TOGGLE) {
 		action = BKE_mball_is_any_selected_multi(objects, objects_len) ?
@@ -312,7 +312,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 
 	tot_mball_selected_all = BKE_mball_select_count_multi(objects, objects_len);
 
@@ -429,7 +429,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		MetaBall *mb = (MetaBall *)obedit->data;
@@ -490,7 +490,7 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		MetaBall *mb = (MetaBall *)obedit->data;
@@ -541,7 +541,7 @@ static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		MetaBall *mb = (MetaBall *)obedit->data;
@@ -690,7 +690,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 	        &vc, buffer, MAXPICKBUF, &rect,
 	        VIEW3D_SELECT_PICK_NEAREST, VIEW3D_SELECT_FILTER_NOP);
 
-	FOREACH_BASE_IN_EDIT_MODE_BEGIN (vc.view_layer, base) {
+	FOREACH_BASE_IN_EDIT_MODE_BEGIN (vc.view_layer, vc.v3d, base) {
 		ED_view3d_viewcontext_init_object(&vc, base->object);
 		MetaBall *mb = (MetaBall *)base->object->data;
 		MetaElem *ml, *ml_act = NULL;
@@ -752,7 +752,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 			if (ml_act) {
 				if (!extend && !deselect && !toggle) {
 					uint objects_len;
-					Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
+					Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, vc.v3d, &objects_len);
 					for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 						Object *ob_iter = objects[ob_index];
 

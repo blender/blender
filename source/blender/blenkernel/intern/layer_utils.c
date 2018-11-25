@@ -40,11 +40,11 @@
 #include "MEM_guardedalloc.h"
 
 Base **BKE_view_layer_array_from_bases_in_mode_params(
-        ViewLayer *view_layer, uint *r_len,
+        ViewLayer *view_layer, View3D *v3d, uint *r_len,
         const struct ObjectsInModeParams *params)
 {
 	if (params->no_dup_data) {
-		FOREACH_BASE_IN_MODE_BEGIN(view_layer, params->object_mode, base_iter) {
+		FOREACH_BASE_IN_MODE_BEGIN(view_layer, v3d, params->object_mode, base_iter) {
 			ID *id = base_iter->object->data;
 			if (id) {
 				id->tag |= LIB_TAG_DOIT;
@@ -55,7 +55,7 @@ Base **BKE_view_layer_array_from_bases_in_mode_params(
 	Base **base_array = NULL;
 	BLI_array_declare(base_array);
 
-	FOREACH_BASE_IN_MODE_BEGIN(view_layer, params->object_mode, base_iter) {
+	FOREACH_BASE_IN_MODE_BEGIN(view_layer, v3d, params->object_mode, base_iter) {
 		if (params->filter_fn) {
 			if (!params->filter_fn(base_iter->object, params->filter_userdata)) {
 				continue;
@@ -83,11 +83,11 @@ Base **BKE_view_layer_array_from_bases_in_mode_params(
 }
 
 Object **BKE_view_layer_array_from_objects_in_mode_params(
-        ViewLayer *view_layer, uint *r_len,
+        ViewLayer *view_layer, View3D *v3d, uint *r_len,
         const struct ObjectsInModeParams *params)
 {
 	Base **base_array = BKE_view_layer_array_from_bases_in_mode_params(
-	        view_layer, r_len, params);
+	        view_layer, v3d, r_len, params);
 	if (base_array != NULL) {
 		for (uint i = 0; i < *r_len; i++) {
 			((Object **)base_array)[i] = base_array[i]->object;

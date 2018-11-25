@@ -245,7 +245,7 @@ typedef struct Object {
 
 	/* Depsgraph */
 	short base_flag; /* used by depsgraph, flushed from base */
-	short pad8;
+	unsigned short base_local_view_bits; /* used by viewport, synced from base */
 
 	/** Collision mask settings */
 	unsigned short col_group, col_mask;

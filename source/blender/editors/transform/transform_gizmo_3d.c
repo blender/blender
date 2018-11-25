@@ -816,7 +816,7 @@ int ED_transform_calc_gizmo_stats(
 		{ \
 			invert_m4_m4(obedit->imat, obedit->obmat); \
 			uint objects_len = 0; \
-			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len); \
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, CTX_wm_view3d(C), &objects_len); \
 			for (uint ob_index = 0; ob_index < objects_len; ob_index++) { \
 				Object *ob_iter = objects[ob_index]; \
 				const bool use_mat_local = (ob_iter != obedit);

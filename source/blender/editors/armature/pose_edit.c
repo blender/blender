@@ -741,9 +741,10 @@ static int pose_flip_names_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob)
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob)
 	{
 		bArmature *arm = ob->data;
 		ListBase bones_names = {NULL};
@@ -1210,7 +1211,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len;
-	Object **objects = BKE_object_pose_array_get_unique(view_layer, &objects_len);
+	Object **objects = BKE_object_pose_array_get_unique(view_layer, CTX_wm_view3d(C), &objects_len);
 	bool changed_multi = false;
 
 	const int hide_select = !RNA_boolean_get(op->ptr, "unselected");
@@ -1278,7 +1279,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len;
-	Object **objects = BKE_object_pose_array_get_unique(view_layer, &objects_len);
+	Object **objects = BKE_object_pose_array_get_unique(view_layer, CTX_wm_view3d(C), &objects_len);
 	bool changed_multi = false;
 	const bool select = RNA_boolean_get(op->ptr, "select");
 	void *select_p = POINTER_FROM_INT(select);
@@ -1327,7 +1328,8 @@ static int pose_flip_quats_exec(bContext *C, wmOperator *UNUSED(op))
 	bool changed_multi = false;
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter) {
+	View3D *v3d = CTX_wm_view3d(C);
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob_iter) {
 		bool changed = false;
 		/* loop through all selected pchans, flipping and keying (as needed) */
 		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {

@@ -41,6 +41,7 @@ struct ImageUser;
 struct Main;
 struct Object;
 struct Scene;
+struct View3D;
 struct ViewLayer;
 struct SpaceImage;
 struct bNode;

@@ -587,7 +587,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	WM_cursor_wait(1);
 
 	uint bases_len = 0;
-	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, &bases_len);
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &bases_len);
 
 	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
@@ -897,7 +897,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		bArmature *arm = ob->data;

@@ -398,7 +398,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
 
 	if (obedit) {
 		/* Edit Mode */
-		FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, ob->mode, ob_iter)
+		FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, ((View3D *)NULL), ob->mode, ob_iter)
 		{
 			stats_object_edit(ob_iter, &stats);
 		}

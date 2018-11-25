@@ -481,7 +481,7 @@ void ED_uvedit_draw_main(
 		}
 		else if (show_uvedit) {
 			uint objects_len = 0;
-			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, ((View3D *)NULL), &objects_len);
 			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 				Object *ob_iter = objects[ob_index];
 				draw_uvs(sima, scene, ob_iter, depsgraph);

@@ -428,6 +428,7 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 		object->base_flag |= BASE_FROM_SET;
 		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLE);
 	}
+	object->base_local_view_bits = base->local_view_bits;
 
 	/* Copy to original object datablock if needed. */
 	if (DEG_is_active(depsgraph)) {

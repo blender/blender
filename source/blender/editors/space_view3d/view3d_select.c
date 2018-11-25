@@ -456,7 +456,7 @@ static Base **do_pose_tag_select_op_prepare(ViewContext *vc, uint *r_bases_len)
 {
 	Base **bases = NULL;
 	BLI_array_declare(bases);
-	FOREACH_BASE_IN_MODE_BEGIN (vc->view_layer, OB_MODE_POSE, base_iter) {
+	FOREACH_BASE_IN_MODE_BEGIN (vc->view_layer, vc->v3d, OB_MODE_POSE, base_iter) {
 		Object *ob_iter = base_iter->object;
 		bArmature *arm = ob_iter->data;
 		for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -1001,7 +1001,7 @@ static void view3d_lasso_select(
 	}
 	else { /* Edit Mode */
 
-		FOREACH_OBJECT_IN_MODE_BEGIN (vc->view_layer, ob->mode, ob_iter) {
+		FOREACH_OBJECT_IN_MODE_BEGIN (vc->view_layer, vc->v3d, ob->mode, ob_iter) {
 			ED_view3d_viewcontext_init_object(vc, ob_iter);
 
 			switch (vc->obedit->type) {
@@ -1729,7 +1729,7 @@ static bool ed_object_select_pick(
 					}
 				}
 				else if (ED_armature_pose_select_pick_with_buffer(
-				                 view_layer, basact, buffer, hits, extend, deselect, toggle, do_nearest))
+				                 view_layer, v3d, basact, buffer, hits, extend, deselect, toggle, do_nearest))
 				{
 					/* then bone is found */
 
@@ -2252,7 +2252,7 @@ static int do_armature_box_select(
 	        VIEW3D_SELECT_ALL, VIEW3D_SELECT_FILTER_NOP);
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc->view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc->view_layer, vc->v3d, &objects_len);
 
 	/* clear flag we use to detect point was affected */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -2531,7 +2531,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
 
 	if (vc.obedit) {
 
-		FOREACH_OBJECT_IN_MODE_BEGIN (vc.view_layer, vc.obedit->mode, ob_iter) {
+		FOREACH_OBJECT_IN_MODE_BEGIN (vc.view_layer, vc.v3d, vc.obedit->mode, ob_iter) {
 			ED_view3d_viewcontext_init_object(&vc, ob_iter);
 
 			switch (vc.obedit->type) {
@@ -3264,7 +3264,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	{
 		view3d_operator_needs_opengl(C);
 
-		FOREACH_OBJECT_IN_MODE_BEGIN (vc.view_layer, obact->mode, ob_iter) {
+		FOREACH_OBJECT_IN_MODE_BEGIN (vc.view_layer, vc.v3d, obact->mode, ob_iter) {
 			ED_view3d_viewcontext_init_object(&vc, ob_iter);
 
 			obact = vc.obact;

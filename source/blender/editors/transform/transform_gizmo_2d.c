@@ -165,10 +165,11 @@ static void gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
 	if (sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = sa->spacedata.first;
 		ViewLayer *view_layer = CTX_data_view_layer(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		Image *ima = ED_space_image(sima);
 		uint objects_len = 0;
 		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-		        view_layer, &objects_len);
+		        view_layer, v3d, &objects_len);
 		if (!ED_uvedit_minmax_multi(CTX_data_scene(C), ima, objects, objects_len, r_min, r_max)) {
 			zero_v2(r_min);
 			zero_v2(r_max);

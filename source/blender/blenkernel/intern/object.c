@@ -1224,14 +1224,14 @@ Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer, 
 /**
  * Access pose array with special check to get pose object when in weight paint mode.
  */
-Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer, uint *r_objects_len, bool unique)
+Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer, View3D *v3d, uint *r_objects_len, bool unique)
 {
 	Object *ob_active = OBACT(view_layer);
 	Object *ob_pose = BKE_object_pose_armature_get(ob_active);
 	Object **objects = NULL;
 	if (ob_pose == ob_active) {
 		objects = BKE_view_layer_array_from_objects_in_mode(
-		        view_layer, r_objects_len, {
+		        view_layer, v3d, r_objects_len, {
 		            .object_mode = OB_MODE_POSE,
 		            .no_dup_data = unique});
 	}
@@ -1246,16 +1246,16 @@ Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer, uint *r_objects_len
 	}
 	return objects;
 }
-Object **BKE_object_pose_array_get_unique(ViewLayer *view_layer, uint *r_objects_len)
+Object **BKE_object_pose_array_get_unique(ViewLayer *view_layer, View3D *v3d, uint *r_objects_len)
 {
-	return BKE_object_pose_array_get_ex(view_layer, r_objects_len, true);
+	return BKE_object_pose_array_get_ex(view_layer, v3d, r_objects_len, true);
 }
-Object **BKE_object_pose_array_get(ViewLayer *view_layer, uint *r_objects_len)
+Object **BKE_object_pose_array_get(ViewLayer *view_layer, View3D *v3d, uint *r_objects_len)
 {
-	return BKE_object_pose_array_get_ex(view_layer, r_objects_len, false);
+	return BKE_object_pose_array_get_ex(view_layer, v3d, r_objects_len, false);
 }
 
-Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer, uint *r_bases_len, bool unique)
+Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer, View3D *v3d, uint *r_bases_len, bool unique)
 {
 	Base *base_active = BASACT(view_layer);
 	Object *ob_pose = base_active ? BKE_object_pose_armature_get(base_active->object) : NULL;
@@ -1273,7 +1273,7 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer, uint *r_bases_le
 
 	if (base_active && (base_pose == base_active)) {
 		bases = BKE_view_layer_array_from_bases_in_mode(
-		        view_layer, r_bases_len, {
+		        view_layer, v3d, r_bases_len, {
 		            .object_mode = OB_MODE_POSE,
 		            .no_dup_data = unique});
 	}
@@ -1288,13 +1288,13 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer, uint *r_bases_le
 	}
 	return bases;
 }
-Base **BKE_object_pose_base_array_get_unique(ViewLayer *view_layer, uint *r_bases_len)
+Base **BKE_object_pose_base_array_get_unique(ViewLayer *view_layer, View3D *v3d, uint *r_bases_len)
 {
-	return BKE_object_pose_base_array_get_ex(view_layer, r_bases_len, true);
+	return BKE_object_pose_base_array_get_ex(view_layer, v3d, r_bases_len, true);
 }
-Base **BKE_object_pose_base_array_get(ViewLayer *view_layer, uint *r_bases_len)
+Base **BKE_object_pose_base_array_get(ViewLayer *view_layer, View3D *v3d, uint *r_bases_len)
 {
-	return BKE_object_pose_base_array_get_ex(view_layer, r_bases_len, false);
+	return BKE_object_pose_base_array_get_ex(view_layer, v3d, r_bases_len, false);
 }
 
 void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)

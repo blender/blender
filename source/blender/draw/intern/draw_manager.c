@@ -1426,9 +1426,13 @@ void DRW_draw_render_loop_ex(
 		const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
 		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 		{
-			if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
-				drw_engines_cache_populate(ob);
+			if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
+				continue;
 			}
+			if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+				continue;
+			}
+			drw_engines_cache_populate(ob);
 		}
 		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
 
@@ -2043,7 +2047,7 @@ void DRW_draw_select_loop(
 #if 0
 			drw_engines_cache_populate(obact);
 #else
-			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obact->mode, ob_iter) {
+			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->mode, ob_iter) {
 				drw_engines_cache_populate(ob_iter);
 			}
 			FOREACH_OBJECT_IN_MODE_END;
@@ -2060,6 +2064,10 @@ void DRW_draw_select_loop(
 			        DEG_ITER_OBJECT_FLAG_VISIBLE |
 			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
+				if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+					continue;
+				}
+
 				if ((ob->base_flag & BASE_SELECTABLE) &&
 				    (object_type_exclude_select & (1 << ob->type)) == 0)
 				{
@@ -2237,9 +2245,15 @@ void DRW_draw_depth_loop(
 		const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
 		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 		{
-			if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
-				drw_engines_cache_populate(ob);
+			if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
+				continue;
 			}
+
+			if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
+				continue;
+			}
+
+			drw_engines_cache_populate(ob);
 		}
 		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
 

@@ -232,9 +232,10 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
-	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob)
+	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, v3d, OB_MODE_POSE, ob)
 	{
 		/* loop over all selected pchans
 		 *
@@ -779,7 +780,8 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 
 	/* only clear relevant transforms for selected bones */
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter)
+	View3D *v3d = CTX_wm_view3d(C);
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob_iter)
 	{
 		Object *ob_eval = DEG_get_evaluated_object(CTX_data_depsgraph(C), ob_iter); // XXX: UGLY HACK (for autokey + clear transforms)
 		ListBase dsources = {NULL, NULL};
@@ -935,11 +937,12 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
 static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	float cframe = (float)CFRA;
 	const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob)
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob)
 	{
 		if ((ob->adt) && (ob->adt->action)) {
 			/* XXX: this is just like this to avoid contaminating anything else;

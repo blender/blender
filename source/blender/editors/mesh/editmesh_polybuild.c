@@ -71,10 +71,10 @@ static void edbm_selectmode_ensure(Scene *scene, BMEditMesh *em, short selectmod
 }
 
 /* Could make public, for now just keep here. */
-static void edbm_flag_disable_all_multi(ViewLayer *view_layer, const char hflag)
+static void edbm_flag_disable_all_multi(ViewLayer *view_layer, View3D *v3d, const char hflag)
 {
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, v3d, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob_iter = objects[ob_index];
 		BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
@@ -106,7 +106,7 @@ static bool edbm_preselect_or_active(
 		Object *obedit = NULL;
 		{
 			uint bases_len;
-			Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, &bases_len);
+			Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, CTX_wm_view3d(C), &bases_len);
 			if (object_index < bases_len) {
 				base = bases[object_index];
 				obedit = base->object;
@@ -191,7 +191,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		mul_m4_v3(vc.obedit->imat, center);
 
 		BMVert *v_new = BM_vert_create(bm, center, NULL, BM_CREATE_NOP);
-		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_new, true);
 		BM_select_history_store(bm, v_new);
 		changed = true;
@@ -215,7 +215,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		// BMFace *f_new =
 		BM_face_create_verts(bm, v_tri, 3, f_reference, BM_CREATE_NOP, true);
 
-		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_tri[2], true);
 		BM_select_history_store(bm, v_tri[2]);
 		changed = true;
@@ -267,7 +267,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 			// BMFace *f_new =
 			BM_face_create_verts(bm, v_quad, 4, f_reference, BM_CREATE_NOP, true);
 
-			edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
+			edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 			BM_vert_select_set(bm, v_quad[2], true);
 			BM_select_history_store(bm, v_quad[2]);
 			changed = true;
@@ -362,7 +362,7 @@ static int edbm_polybuild_split_at_cursor_invoke(
 		BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, NULL, CLAMPIS(fac, 0.0f, 1.0f));
 		copy_v3_v3(v_new->co, center);
 
-		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_new, true);
 		BM_select_history_store(bm, v_new);
 		changed = true;
@@ -464,7 +464,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 	}
 
 	if (changed) {
-		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, vc.v3d, BM_ELEM_SELECT);
 
 		EDBM_mesh_normals_update(em);
 		EDBM_update_generic(em, true, true);
