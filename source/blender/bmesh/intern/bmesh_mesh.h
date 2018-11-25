@@ -132,6 +132,8 @@ void BM_mesh_rebuild(
         BMesh *bm, const struct BMeshCreateParams *params,
         struct BLI_mempool *vpool, struct BLI_mempool *epool, struct BLI_mempool *lpool, struct BLI_mempool *fpool);
 
+bool BM_mesh_minmax(BMesh *bm, float r_min[3], float r_max[3]);
+
 typedef struct BMAllocTemplate {
 	int totvert, totedge, totloop, totface;
 } BMAllocTemplate;

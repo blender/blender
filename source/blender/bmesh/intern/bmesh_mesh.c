@@ -2499,3 +2499,18 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
 
 	bm->use_toolflags = use_toolflags;
 }
+
+/**
+ * Calculate the minimum and maximum coordinates of the box that encompasses this mesh.
+ */
+bool BM_mesh_minmax(BMesh *bm, float r_min[3], float r_max[3])
+{
+	BMIter iter;
+	BMVert *v;
+
+	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		minmax_v3v3_v3(r_min, r_max, v->co);
+	}
+
+	return (bm->totvert != 0);
+}
