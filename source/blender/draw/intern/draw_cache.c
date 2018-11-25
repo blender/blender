@@ -3293,7 +3293,7 @@ void DRW_cache_mball_face_wireframe_get(
         Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count)
 {
 	BLI_assert(ob->type == OB_MBALL);
-	return DRW_metaball_batch_cache_get_wireframes_face_texbuf(ob, r_vert_tx, r_faceid_tx, r_tri_count);
+	DRW_metaball_batch_cache_get_wireframes_face_texbuf(ob, r_vert_tx, r_faceid_tx, r_tri_count);
 }
 
 GPUBatch **DRW_cache_mball_surface_shaded_get(
