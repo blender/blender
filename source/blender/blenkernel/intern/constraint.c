@@ -5107,11 +5107,7 @@ static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bC
 	ListBase *constraints, *orig_constraints;
 
 	if (pchan != NULL) {
-		if (orig_ob->type != OB_ARMATURE || orig_ob->pose == NULL) {
-			return NULL;
-		}
-
-		bPoseChannel *orig_pchan = BKE_pose_channel_find_name(orig_ob->pose, pchan->name);
+		bPoseChannel *orig_pchan = pchan->orig_pchan;
 
 		if (orig_pchan == NULL) {
 			return NULL;
