@@ -2011,8 +2011,6 @@ static void mesh_build_data(
 	        depsgraph, scene, ob, NULL, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
 	        &ob->runtime.mesh_deform_eval, &ob->runtime.mesh_eval);
 
-	mesh_finalize_eval(ob);
-
 #ifdef USE_DERIVEDMESH
 	/* TODO(campbell): remove these copies, they are expected in various places over the code. */
 	ob->derivedDeform = CDDM_from_mesh_ex(ob->runtime.mesh_deform_eval, CD_REFERENCE, CD_MASK_MESH);
@@ -2021,6 +2019,8 @@ static void mesh_build_data(
 
 	BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
 	BKE_mesh_texspace_copy_from_object(ob->runtime.mesh_eval, ob);
+
+	mesh_finalize_eval(ob);
 
 #ifdef USE_DERIVEDMESH
 	ob->derivedFinal->needsFree = 0;
