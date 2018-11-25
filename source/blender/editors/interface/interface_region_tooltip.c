@@ -228,17 +228,11 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			uiFontStyle fstyle_header = data->fstyle;
 
 			/* override text-style */
-			fstyle_header.shadow = 1;
-			fstyle_header.shadowcolor = rgb_to_grayscale(tip_colors[UI_TIP_LC_MAIN]);
-			fstyle_header.shadx = fstyle_header.shady = 0;
-			fstyle_header.shadowalpha = 1.0f;
 			fstyle_header.word_wrap = true;
 
 			rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_MAIN]);
 			UI_fontstyle_set(&fstyle_header);
 			UI_fontstyle_draw(&fstyle_header, &bbox, field->text, drawcol);
-
-			fstyle_header.shadow = 0;
 
 			/* offset to the end of the last line */
 			if (field->text_suffix) {
