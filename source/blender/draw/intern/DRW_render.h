@@ -512,6 +512,7 @@ DrawData *DRW_drawdata_ensure(
 bool DRW_object_is_renderable(const struct Object *ob);
 bool DRW_object_is_visible_in_active_context(const struct Object *ob);
 bool DRW_object_is_flat_normal(const struct Object *ob);
+bool DRW_object_use_hide_faces(const struct Object *ob);
 
 bool DRW_object_is_visible_psys_in_active_context(const struct Object *object, const struct ParticleSystem *psys);
 

@@ -729,9 +729,14 @@ GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob)
 
 GPUBatch *DRW_cache_object_surface_get(Object *ob)
 {
+	return DRW_cache_object_surface_get_ex(ob, false);
+}
+
+GPUBatch *DRW_cache_object_surface_get_ex(Object *ob, bool use_hide)
+{
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_surface_get(ob);
+			return DRW_cache_mesh_surface_get(ob, use_hide);
 		case OB_CURVE:
 			return DRW_cache_curve_surface_get(ob);
 		case OB_SURF:
@@ -746,7 +751,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
 }
 
 GPUBatch **DRW_cache_object_surface_material_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	if (auto_layer_names != NULL) {
@@ -757,7 +762,7 @@ GPUBatch **DRW_cache_object_surface_material_get(
 
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len,
+			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len, use_hide,
 			                                         auto_layer_names, auto_layer_is_srgb, auto_layer_count);
 		case OB_CURVE:
 			return DRW_cache_curve_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
@@ -3049,12 +3054,12 @@ GPUBatch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold)
 	return DRW_mesh_batch_cache_get_edge_detection(me, r_is_manifold);
 }
 
-GPUBatch *DRW_cache_mesh_surface_get(Object *ob)
+GPUBatch *DRW_cache_mesh_surface_get(Object *ob, bool use_hide)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_triangles_with_normals(me);
+	return DRW_mesh_batch_cache_get_triangles_with_normals(me, use_hide);
 }
 
 void DRW_cache_mesh_face_wireframe_get(
@@ -3127,23 +3132,23 @@ GPUBatch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
 
 /* Return list of batches */
 GPUBatch **DRW_cache_mesh_surface_shaded_get(
-        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len,
+	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len, use_hide,
 	                                               auto_layer_names, auto_layer_is_srgb, auto_layer_count);
 }
 
 /* Return list of batches */
-GPUBatch **DRW_cache_mesh_surface_texpaint_get(Object *ob)
+GPUBatch **DRW_cache_mesh_surface_texpaint_get(Object *ob, bool use_hide)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_surface_texpaint(me);
+	return DRW_mesh_batch_cache_get_surface_texpaint(me, use_hide);
 }
 
 GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob)
@@ -3183,7 +3188,7 @@ GPUBatch *DRW_cache_mesh_edges_paint_overlay_get(Object *ob, bool use_wire, bool
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel);
+	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel, use_sel);
 }
 
 GPUBatch *DRW_cache_mesh_faces_weight_overlay_get(Object *ob)

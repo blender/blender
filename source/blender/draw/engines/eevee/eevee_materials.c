@@ -1450,6 +1450,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 	        is_sculpt_mode &&
 	        ((ob->sculpt && ob->sculpt->pbvh) && (BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES));
 #endif
+	const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
 	const bool is_default_mode_shader = is_sculpt_mode;
 
 	/* First get materials for this mesh. */
@@ -1526,7 +1527,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 			int *auto_layer_is_srgb;
 			int auto_layer_count;
 			struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
-			        ob, gpumat_array, materials_len,
+			        ob, gpumat_array, materials_len, use_hide,
 			        &auto_layer_names,
 			        &auto_layer_is_srgb,
 			        &auto_layer_count);

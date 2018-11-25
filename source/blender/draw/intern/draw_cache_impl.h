@@ -128,16 +128,16 @@ bool DRW_mesh_weight_state_compare(const struct DRW_MeshWeightState *a, const st
 
 /* Mesh */
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
-        struct Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        struct Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
-struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Mesh *me);
+struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Mesh *me, bool use_hide);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_edges(struct Mesh *me, bool use_wire, bool use_sel);
+struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_edges(struct Mesh *me, bool use_wire, bool use_sel, bool use_hide);
 struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_faces(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_triangles(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me, bool use_hide);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, const struct DRW_MeshWeightState *wstate);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide, uint select_id_offset);

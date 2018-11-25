@@ -291,21 +291,23 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 		Scene *scene = draw_ctx->scene;
 		const bool use_surface = draw_ctx->v3d->overlay.texture_paint_mode_opacity != 0.0; //DRW_object_is_mode_shade(ob) == true;
 		const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
+		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		bool ok = false;
 
 		if (use_surface) {
 			if (me->mloopuv != NULL) {
-				if (use_material_slots) {
-					struct GPUBatch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
+				if (use_material_slots || use_face_sel) {
+					struct GPUBatch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob, use_face_sel) : NULL;
 					if ((me->totcol == 0) || (geom_array == NULL)) {
-						struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob);
+						struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob, use_face_sel);
 						DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
 						ok = true;
 					}
 					else {
 						for (int i = 0; i < me->totcol; i++) {
-							if (stl->g_data->shgroup_image_array[i]) {
-								DRW_shgroup_call_add(stl->g_data->shgroup_image_array[i], geom_array[i], ob->obmat);
+							const int index = use_material_slots ? i : 0;
+							if (stl->g_data->shgroup_image_array[index]) {
+								DRW_shgroup_call_add(stl->g_data->shgroup_image_array[index], geom_array[i], ob->obmat);
 							}
 							else {
 								DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom_array[i], ob->obmat);
@@ -324,13 +326,12 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (!ok) {
-				struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob);
+				struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob, use_face_sel);
 				DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
 			}
 		}
 
 		/* Face Mask */
-		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		if (use_face_sel) {
 			struct GPUBatch *geom;
 			/* Note: ideally selected faces wouldn't show interior wire. */
