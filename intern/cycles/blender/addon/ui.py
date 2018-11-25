@@ -23,7 +23,6 @@ import _cycles
 
 from bpy.types import (
     Panel,
-    Menu,
     Operator,
 )
 
@@ -328,7 +327,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
     def draw_header(self, context):
         layout = self.layout
         scene = context.scene
-        cscene = scene.cycles
         ccscene = scene.cycles_curves
 
         layout.prop(ccscene, "use_curves", text="")
@@ -339,7 +337,6 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         scene = context.scene
-        cscene = scene.cycles
         ccscene = scene.cycles_curves
 
         layout.active = ccscene.use_curves
@@ -369,7 +366,6 @@ class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
-        ccscene = scene.cycles_curves
 
         col = layout.column()
         col.prop(cscene, "volume_step_size", text="Step Size")
@@ -485,7 +481,6 @@ class CYCLES_RENDER_PT_motion_blur_curve(CyclesButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         scene = context.scene
-        cscene = scene.cycles
         rd = scene.render
         layout.active = rd.use_motion_blur
 
@@ -524,7 +519,6 @@ class CYCLES_RENDER_PT_film_transparency(CyclesButtonsPanel, Panel):
 
     def draw_header(self, context):
         layout = self.layout
-        rd = context.scene.render
 
         scene = context.scene
         cscene = scene.cycles
@@ -584,7 +578,6 @@ class CYCLES_RENDER_PT_performance_threads(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        cscene = scene.cycles
 
         col = layout.column()
 
@@ -632,7 +625,6 @@ class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Pa
         layout.use_property_decorate = False
 
         scene = context.scene
-        rd = scene.render
         cscene = scene.cycles
 
         col = layout.column()
@@ -661,7 +653,6 @@ class CYCLES_RENDER_PT_performance_final_render(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        cscene = scene.cycles
 
         col = layout.column()
 
@@ -785,7 +776,6 @@ class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        scene = context.scene
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
 
@@ -894,7 +884,6 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         scene = context.scene
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
-        cscene = scene.cycles
         layout = self.layout
 
         layout.prop(cycles_view_layer, "use_denoising", text="")
@@ -905,7 +894,6 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         scene = context.scene
-        cscene = scene.cycles
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
 
@@ -999,8 +987,6 @@ class CYCLES_CAMERA_PT_dof(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         cam = context.camera
-        ccam = cam.cycles
-        dof_options = cam.gpu_dof
 
         split = layout.split()
 
@@ -1027,7 +1013,6 @@ class CYCLES_CAMERA_PT_dof_aperture(CyclesButtonsPanel, Panel):
 
         cam = context.camera
         ccam = cam.cycles
-        dof_options = cam.gpu_dof
 
         col = flow.column()
         col.prop(ccam, "aperture_type")
@@ -1200,7 +1185,6 @@ class CYCLES_OBJECT_PT_cycles_settings_ray_visibility(CyclesButtonsPanel, Panel)
         layout.use_property_decorate = False
 
         scene = context.scene
-        cscene = scene.cycles
         ob = context.object
         cob = ob.cycles
         visibility = ob.cycles_visibility
@@ -1247,7 +1231,6 @@ class CYCLES_OBJECT_PT_cycles_settings_performance(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
         ob = context.object
         cob = ob.cycles
-        visibility = ob.cycles_visibility
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
@@ -1551,11 +1534,7 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        world = context.world
-        cworld = world.cycles
-        # cscene = context.scene.cycles
-
-        col = layout.column()
+        layout.column()
 
 
 class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
@@ -1695,7 +1674,6 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         mat = context.material
-        cmat = mat.cycles
 
         layout.prop(mat, "pass_index")
 

@@ -81,7 +81,7 @@ def _parse_command_line():
         return
 
     parser = _configure_argument_parser()
-    args, unknown = parser.parse_known_args(argv[argv.index("--") + 1:])
+    args, _ = parser.parse_known_args(argv[argv.index("--") + 1:])
 
     if args.cycles_resumable_num_chunks is not None:
         if args.cycles_resumable_current_chunk is not None:
@@ -255,8 +255,6 @@ def register_passes(engine, scene, srl):
     if crl.pass_debug_ray_bounces:             engine.register_pass(scene, srl, "Debug Ray Bounces",             1, "X",   'VALUE')
     if crl.use_pass_volume_direct:             engine.register_pass(scene, srl, "VolumeDir",                     3, "RGB", 'COLOR')
     if crl.use_pass_volume_indirect:           engine.register_pass(scene, srl, "VolumeInd",                     3, "RGB", 'COLOR')
-
-    cscene = scene.cycles
 
     if crl.use_pass_crypto_object:
         for i in range(0, crl.pass_crypto_depth, 2):

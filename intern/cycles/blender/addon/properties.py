@@ -839,8 +839,6 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 
     @classmethod
     def register(cls):
-        import math
-
         bpy.types.Camera.cycles = PointerProperty(
             name="Cycles Camera Settings",
             description="Cycles camera settings",
@@ -1226,8 +1224,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
 
 def update_render_passes(self, context):
-    scene = context.scene
-    rd = scene.render
     view_layer = context.view_layer
     view_layer.update_render_passes()
 
