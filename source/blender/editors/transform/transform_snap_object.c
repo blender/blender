@@ -533,7 +533,7 @@ static bool raycastEditMesh(
 		return retval;
 	}
 
-	BLI_assert(em->ob->data == BKE_object_get_pre_modified_mesh(ob));
+	BLI_assert(BKE_object_get_pre_modified_mesh(em->ob) == BKE_object_get_pre_modified_mesh(ob));
 
 	float imat[4][4];
 	float ray_start_local[3], ray_normal_local[3];
@@ -599,8 +599,11 @@ static bool raycastEditMesh(
 			bvh_cache = &em_bvh_cache;
 		}
 
+		/* Get original version of the edit_btmesh. */
+		BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+
 		bvhtree_from_editmesh_looptri_ex(
-		        treedata, em, elem_mask, looptri_num_active,
+		        treedata, em_orig, elem_mask, looptri_num_active,
 		        0.0f, 4, 6, bvh_cache);
 
 		if (elem_mask) {
@@ -609,10 +612,6 @@ static bool raycastEditMesh(
 		if (treedata->tree == NULL) {
 			return retval;
 		}
-	}
-	else {
-		/* COW hack: Update pointers */
-		treedata->em = em;
 	}
 
 	/* Only use closer ray_start in case of ortho view! In perspective one, ray_start
@@ -687,7 +686,10 @@ static bool raycastEditMesh(
 				retval = true;
 
 				if (r_index) {
-					*r_index = BM_elem_index_get(em->looptris[hit.index][0]->f);
+					/* Get original version of the edit_btmesh. */
+					BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+
+					*r_index = BM_elem_index_get(em_orig->looptris[hit.index][0]->f);
 				}
 			}
 		}
@@ -2036,7 +2038,7 @@ static short snapEditMesh(
 
 	BVHTreeFromEditMesh *treedata_vert = NULL, *treedata_edge = NULL;
 
-	BLI_assert(em->ob->data == BKE_object_get_pre_modified_mesh(ob));
+	BLI_assert(BKE_object_get_pre_modified_mesh(ob) == BKE_object_get_pre_modified_mesh(ob));
 	UNUSED_VARS_NDEBUG(ob);
 
 	float lpmat[4][4];
