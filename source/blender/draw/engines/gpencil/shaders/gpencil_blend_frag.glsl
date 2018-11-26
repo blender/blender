@@ -58,7 +58,8 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 blend_color)
 		outcolor.a = clamp(src_color.a - (mix_color.a * blend_opacity), 0.0, 1.0);
 	}
 	else if (mode == MODE_MULTIPLY)	{
-		mix_color.rgb = mix_color.rgb * mix_color.a * blend_opacity;
+		/* interpolate between 1 and color using opacity */
+		mix_color.rgb = mix(vec3(1,1,1), mix_color.rgb * mix_color.a, blend_opacity);
 		outcolor = src_color * mix_color;
 		outcolor.a = src_color.a;
 	}
