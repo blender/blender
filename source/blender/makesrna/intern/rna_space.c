@@ -691,7 +691,7 @@ static int rna_3DViewShading_type_get(PointerRNA *ptr)
 	if (BKE_scene_uses_blender_eevee(scene)) {
 		return shading->type;
 	}
-	else if (BKE_scene_uses_blender_opengl(scene)) {
+	else if (BKE_scene_uses_blender_workbench(scene)) {
 		return (shading->type == OB_MATERIAL) ? OB_RENDER : shading->type;
 	}
 	else {
@@ -730,7 +730,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_MATERIAL);
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 	}
-	else if (BKE_scene_uses_blender_opengl(scene)) {
+	else if (BKE_scene_uses_blender_workbench(scene)) {
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 	}
 	else {

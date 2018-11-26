@@ -24,7 +24,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->use_color_view_settings = true;
 	}
 	else if (v3d->shading.type == OB_RENDER &&
-	         BKE_scene_uses_blender_opengl(scene))
+	         BKE_scene_uses_blender_workbench(scene))
 	{
 		wpd->shading = scene->display.shading;
 		wpd->use_color_view_settings = true;
