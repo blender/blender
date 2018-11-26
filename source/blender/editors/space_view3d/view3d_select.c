@@ -1647,7 +1647,8 @@ static bool ed_object_select_pick(
 		// TIMEIT_START(select_time);
 
 		/* if objects have posemode set, the bones are in the same selection buffer */
-		const eV3DSelectObjectFilter select_filter = ED_view3d_select_filter_from_mode(scene, vc.obact);
+		const eV3DSelectObjectFilter select_filter = (
+		        (object == false) ? ED_view3d_select_filter_from_mode(scene, vc.obact) : VIEW3D_SELECT_FILTER_NOP);
 		hits = mixed_bones_object_selectbuffer(
 		        &vc, buffer, mval,
 		        true, enumerate, select_filter,
