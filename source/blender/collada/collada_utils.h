@@ -74,6 +74,8 @@ extern "C" {
 #include "BCSampleData.h"
 #include "BlenderContext.h"
 
+static int LIMITTED_PRECISION = 6;
+
 struct Depsgraph;
 
 typedef std::map<COLLADAFW::UniqueId, Image*> UidImageMap;
@@ -209,6 +211,8 @@ void bc_copy_v44_m4d(std::vector<std::vector<double>> &a, double(&r)[4][4]);
 
 void bc_sanitize_mat(float mat[4][4], int precision);
 void bc_sanitize_mat(double mat[4][4], int precision);
+void bc_sanitize_v3(double v[3], int precision);
+void bc_sanitize_v3(float v[3], int precision);
 
 extern IDProperty *bc_get_IDProperty(Bone *bone, std::string key);
 extern void bc_set_IDProperty(EditBone *ebone, const char *key, float value);

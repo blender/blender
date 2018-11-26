@@ -533,7 +533,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 			invert_m4_m4(mat, world);
 			UnitConverter::mat4_to_dae(inv_bind_mat, mat);
 			if (this->export_settings->limit_precision)
-				bc_sanitize_mat(inv_bind_mat, 6);
+				bc_sanitize_mat(inv_bind_mat, LIMITTED_PRECISION);
 			source.appendValues(inv_bind_mat);
 		}
 	}

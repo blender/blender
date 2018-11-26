@@ -39,10 +39,17 @@
 class TransformWriter
 {
 protected:
-	void add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4]);
+	void add_node_transform(
+		COLLADASW::Node& node,
+		float mat[4][4],
+		float parent_mat[4][4],
+		bool limit_precision=false);
 
-	void add_node_transform_ob(COLLADASW::Node& node, Object *ob,
-	                           BC_export_transformation_type transformation_type);
+	void add_node_transform_ob(
+		COLLADASW::Node& node,
+		Object *ob,
+		BC_export_transformation_type transformation_type,
+		bool limit_precision = false);
 
 	void add_node_transform_identity(COLLADASW::Node& node);
 

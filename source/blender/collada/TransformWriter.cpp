@@ -33,7 +33,7 @@
 
 #include "TransformWriter.h"
 
-void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4])
+void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4], bool limit_precision)
 {
 	float loc[3], rot[3], scale[3];
 	float local[4][4];
@@ -63,8 +63,11 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 	}
 }
 
-void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob,
-                                            BC_export_transformation_type transformation_type)
+void TransformWriter::add_node_transform_ob(
+	COLLADASW::Node& node, 
+	Object *ob,
+	BC_export_transformation_type transformation_type,
+	bool limit_precision)
 {
 #if 0
 	float rot[3], loc[3], scale[3];
@@ -101,17 +104,18 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob,
 	add_transform(node, loc, rot, scale);
 #endif
 
-	UnitConverter converter;
-	double d_obmat[4][4];
-	float  f_obmat[4][4];
-
 	/* Export the local Matrix (relative to the object parent, be it an object, bone or vertex(-tices)) */
+	float  f_obmat[4][4];
 	BKE_object_matrix_local_get(ob, f_obmat);
-	converter.mat4_to_dae_double(d_obmat, f_obmat);
 
 	switch (transformation_type) {
 		case BC_TRANSFORMATION_TYPE_MATRIX:
 		{
+			UnitConverter converter;
+			double d_obmat[4][4];
+			converter.mat4_to_dae_double(d_obmat, f_obmat);
+			if (limit_precision)
+				bc_sanitize_mat(d_obmat, LIMITTED_PRECISION);
 			node.addMatrix("transform",d_obmat);
 			break;
 		}
@@ -119,6 +123,11 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob,
 		{
 			float loc[3], rot[3], scale[3];
 			bc_decompose(f_obmat, loc, rot, NULL, scale);
+			if (limit_precision) {
+				bc_sanitize_v3(loc, LIMITTED_PRECISION);
+				bc_sanitize_v3(rot, LIMITTED_PRECISION);
+				bc_sanitize_v3(scale, LIMITTED_PRECISION);
+			}
 			add_transform(node, loc, rot, scale);
 			break;
 		}

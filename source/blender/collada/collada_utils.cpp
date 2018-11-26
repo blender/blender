@@ -1135,11 +1135,27 @@ void bc_sanitize_mat(float mat[4][4], int precision)
 		}
 }
 
+void bc_sanitize_v3(float v[3], int precision)
+{
+	for (int i = 0; i < 3; i++) {
+		double val = (double)v[i];
+		val = double_round(val, precision);
+		v[i] = (float)val;
+	}
+}
+
 void bc_sanitize_mat(double mat[4][4], int precision)
 {
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
 			mat[i][j] = double_round(mat[i][j], precision);
+}
+
+void bc_sanitize_v3(double v[3], int precision)
+{
+	for (int i = 0; i < 3; i++) {
+		v[i] = double_round(v[i], precision);
+	}
 }
 
 void bc_copy_m4_farray(float r[4][4], float *a)

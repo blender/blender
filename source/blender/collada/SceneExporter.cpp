@@ -36,10 +36,10 @@ extern "C" {
 
 void SceneExporter::exportScene()
 {
-	ViewLayer *view_layer = blender_context.get_view_layer();
+	Scene *scene = blender_context.get_scene();
 
 	// <library_visual_scenes> <visual_scene>
-	std::string name = id_name(view_layer);
+	std::string name = id_name(scene);
 	openVisualScene(translate_id(name), encode_xml(name));
 	exportHierarchy();
 	closeVisualScene();
@@ -136,7 +136,12 @@ void SceneExporter::writeNodes(Object *ob)
 			TransformWriter::add_node_transform_identity(colladaNode);
 		}
 		else {
-			TransformWriter::add_node_transform_ob(colladaNode, ob, this->export_settings->export_transformation_type);
+			TransformWriter::add_node_transform_ob(
+				colladaNode, 
+				ob,
+				this->export_settings->export_transformation_type,
+				this->export_settings->limit_precision
+			);
 		}
 
 		// <instance_geometry>
