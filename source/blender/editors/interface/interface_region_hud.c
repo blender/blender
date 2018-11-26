@@ -357,11 +357,15 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 
 	/* We shouldn't need to do this every time :S */
 	/* XXX, this is evil! - it also makes the menu show on first draw. :( */
-	ARegion *ar_prev = CTX_wm_region(C);
-	CTX_wm_region_set((bContext *)C, ar);
-	hud_region_layout(C, ar);
-	CTX_wm_region_set((bContext *)C, ar_prev);
-
+	if (ar->visible) {
+		ARegion *ar_prev = CTX_wm_region(C);
+		CTX_wm_region_set((bContext *)C, ar);
+		ED_region_panels_layout(C, ar);
+		ar->winx = ar->v2d.winx;
+		ar->winy = ar->v2d.winy;
+		ar->v2d.cur = ar->v2d.tot = (rctf){.xmax = ar->winx, .ymax = ar->winy};
+		CTX_wm_region_set((bContext *)C, ar_prev);
+	}
 }
 
 /** \} */
