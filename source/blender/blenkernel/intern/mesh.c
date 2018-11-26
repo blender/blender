@@ -863,17 +863,14 @@ bool BKE_mesh_uv_cdlayer_rename(Mesh *me, const char *old_name, const char *new_
 	}
 }
 
-void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])
+void BKE_mesh_texspace_calc(Mesh *me)
 {
 	BoundBox *bb;
 	float min[3], max[3];
-	float mloc[3], msize[3];
+	float loc[3], size[3];
 
 	if (me->bb == NULL) me->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 	bb = me->bb;
-
-	if (!r_loc) r_loc = mloc;
-	if (!r_size) r_size = msize;
 
 	INIT_MINMAX(min, max);
 	if (!(me->edit_btmesh ?
@@ -884,26 +881,18 @@ void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])
 		max[0] = max[1] = max[2] = 1.0f;
 	}
 
-	mid_v3_v3v3(r_loc, min, max);
+	mid_v3_v3v3(loc, min, max);
 
-	r_size[0] = (max[0] - min[0]) / 2.0f;
-	r_size[1] = (max[1] - min[1]) / 2.0f;
-	r_size[2] = (max[2] - min[2]) / 2.0f;
+	size[0] = (max[0] - min[0]) / 2.0f;
+	size[1] = (max[1] - min[1]) / 2.0f;
+	size[2] = (max[2] - min[2]) / 2.0f;
 
 	BKE_boundbox_init_from_minmax(bb, min, max);
 
 	bb->flag &= ~BOUNDBOX_DIRTY;
-}
-
-void BKE_mesh_texspace_calc(Mesh *me)
-{
-	float loc[3], size[3];
-	int a;
-
-	BKE_mesh_boundbox_calc(me, loc, size);
 
 	if (me->texflag & ME_AUTOSPACE) {
-		for (a = 0; a < 3; a++) {
+		for (int a = 0; a < 3; a++) {
 			if (size[a] == 0.0f) size[a] = 1.0f;
 			else if (size[a] > 0.0f && size[a] < 0.00001f) size[a] = 0.00001f;
 			else if (size[a] < 0.0f && size[a] > -0.00001f) size[a] = -0.00001f;
