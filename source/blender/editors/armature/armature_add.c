@@ -131,7 +131,6 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
  */
 static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	View3D *v3d;
 	bArmature *arm;
 	EditBone *ebone, *newbone, *flipbone;
 	float mat[3][3], imat[3][3];
@@ -140,7 +139,6 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene;
 
 	scene = CTX_data_scene(C);
-	v3d = CTX_wm_view3d(C);
 	obedit = CTX_data_edit_object(C);
 	arm = obedit->data;
 
@@ -196,7 +194,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 			newbone->flag |= BONE_CONNECTED;
 		}
 
-		const View3DCursor *curs = ED_view3d_cursor3d_get(scene, v3d);
+		const View3DCursor *curs = &scene->cursor;
 		copy_v3_v3(newbone->tail, curs->location);
 		sub_v3_v3v3(newbone->tail, newbone->tail, obedit->obmat[3]);
 
@@ -236,7 +234,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
 	ar = CTX_wm_region(C);
 	v3d = CTX_wm_view3d(C);
 
-	View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+	View3DCursor *cursor = &scene->cursor;
 
 	copy_v3_v3(oldcurs, cursor->location);
 
@@ -1063,7 +1061,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "name", name);
 
-	copy_v3_v3(curs, ED_view3d_cursor3d_get(CTX_data_scene(C), CTX_wm_view3d(C))->location);
+	copy_v3_v3(curs, CTX_data_scene(C)->cursor.location);
 
 	/* Get inverse point for head and orientation for tail */
 	invert_m4_m4(obedit->imat, obedit->obmat);

@@ -2723,7 +2723,7 @@ static bool merge_firstlast(BMEditMesh *em, const bool use_first, const bool use
 }
 
 static bool merge_target(
-        BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
+        BMEditMesh *em, Scene *scene, Object *ob,
         const bool use_cursor, const bool use_uvmerge, wmOperator *wmop)
 {
 	BMIter iter;
@@ -2732,7 +2732,7 @@ static bool merge_target(
 	const float *vco = NULL;
 
 	if (use_cursor) {
-		vco = ED_view3d_cursor3d_get(scene, v3d)->location;
+		vco = scene->cursor.location;
 		copy_v3_v3(co, vco);
 		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->imat, co);
@@ -2773,7 +2773,6 @@ static bool merge_target(
 static int edbm_merge_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
@@ -2791,10 +2790,10 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 		bool ok = false;
 		switch (type) {
 			case MESH_MERGE_CENTER:
-				ok = merge_target(em, scene, v3d, obedit, false, uvs, op);
+				ok = merge_target(em, scene, obedit, false, uvs, op);
 				break;
 			case MESH_MERGE_CURSOR:
-				ok = merge_target(em, scene, v3d, obedit, true, uvs, op);
+				ok = merge_target(em, scene, obedit, true, uvs, op);
 				break;
 			case MESH_MERGE_LAST:
 				ok = merge_firstlast(em, false, uvs, op);
@@ -5628,7 +5627,7 @@ static int bmelemsort_comp(const void *v1, const void *v2)
 static void sort_bmelem_flag(
         bContext *C,
         Scene *scene, Object *ob,
-        View3D *v3d, RegionView3D *rv3d,
+        RegionView3D *rv3d,
         const int types, const int flag, const int action,
         const int reverse, const unsigned int seed)
 {
@@ -5730,10 +5729,8 @@ static void sort_bmelem_flag(
 		float mat[4][4];
 		float fact = reverse ? -1.0 : 1.0;
 
-		if (v3d && v3d->localvd)
-			copy_v3_v3(cur, v3d->cursor.location);
-		else
-			copy_v3_v3(cur, scene->cursor.location);
+		copy_v3_v3(cur, scene->cursor.location);
+
 		invert_m4_m4(mat, ob->obmat);
 		mul_m4_v3(mat, cur);
 
@@ -6067,7 +6064,6 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 	Object *ob_active = CTX_data_edit_object(C);
 
 	/* may be NULL */
-	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 
 	const int action = RNA_enum_get(op->ptr, "type");
@@ -6121,8 +6117,8 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 		}
 
 		sort_bmelem_flag(
-		            C, scene, ob, v3d, rv3d,
-		            elem_types, BM_ELEM_SELECT, action, use_reverse, seed_iter);
+		        C, scene, ob, rv3d,
+		        elem_types, BM_ELEM_SELECT, action, use_reverse, seed_iter);
 	}
 	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
@@ -7363,7 +7359,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 			case EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR:
 				new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
 				ED_view3d_cursor3d_update(C, event->mval, false, V3D_CURSOR_ORIENT_NONE);
-				copy_v3_v3(target, ED_view3d_cursor3d_get(scene, v3d)->location);
+				copy_v3_v3(target, scene->cursor.location);
 				ret = OPERATOR_RUNNING_MODAL;
 				break;
 
@@ -7412,7 +7408,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 					}
 
 					case V3D_AROUND_CURSOR:
-						copy_v3_v3(target, ED_view3d_cursor3d_get(scene, v3d)->location);
+						copy_v3_v3(target, scene->cursor.location);
 						break;
 
 					case V3D_AROUND_ACTIVE:

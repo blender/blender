@@ -61,10 +61,7 @@ def add_object_align_init(context, operator):
     if operator and properties.is_property_set("location"):
         location = Matrix.Translation(Vector(properties.location))
     else:
-        if space_data:  # local view cursor is detected below
-            location = Matrix.Translation(space_data.cursor_location)
-        else:
-            location = Matrix.Translation(context.scene.cursor_location)
+        location = Matrix.Translation(context.scene.cursor_location)
 
         if operator:
             properties.location = location.to_translation()

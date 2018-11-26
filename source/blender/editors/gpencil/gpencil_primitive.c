@@ -348,7 +348,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
 
 		/* convert screen-coordinates to 3D coordinates */
-		gp_stroke_convertcoords_tpoint(tgpi->scene, tgpi->ar, tgpi->v3d, tgpi->ob, tgpi->gpl, p2d, NULL, &pt->x);
+		gp_stroke_convertcoords_tpoint(tgpi->scene, tgpi->ar, tgpi->ob, tgpi->gpl, p2d, NULL, &pt->x);
 
 		pt->pressure = 1.0f;
 		pt->strength = tgpi->brush->gpencil_settings->draw_strength;
@@ -365,7 +365,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	if (tgpi->lock_axis > GP_LOCKAXIS_VIEW) {
 		bGPDspoint *tpt = gps->points;
 		float origin[3];
-		ED_gp_get_drawing_reference(tgpi->v3d, tgpi->scene, tgpi->ob, tgpi->gpl,
+		ED_gp_get_drawing_reference(tgpi->scene, tgpi->ob, tgpi->gpl,
 			ts->gpencil_v3d_align, origin);
 
 		for (int i = 0; i < gps->totpoints; i++, tpt++) {

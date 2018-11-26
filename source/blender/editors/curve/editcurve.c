@@ -4819,14 +4819,13 @@ static int spin_exec(bContext *C, wmOperator *op)
 static int spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 	float axis[3] = {0.0f, 0.0f, 1.0f};
 
 	if (rv3d)
 		copy_v3_v3(axis, rv3d->viewinv[2]);
 
-	RNA_float_set_array(op->ptr, "center", ED_view3d_cursor3d_get(scene, v3d)->location);
+	RNA_float_set_array(op->ptr, "center", scene->cursor.location);
 	RNA_float_set_array(op->ptr, "axis", axis);
 
 	return spin_exec(C, op);
@@ -5303,7 +5302,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			mul_v3_m4v3(location, vc.obedit->obmat, bp->vec);
 		}
 		else {
-			copy_v3_v3(location, ED_view3d_cursor3d_get(vc.scene, vc.v3d)->location);
+			copy_v3_v3(location, vc.scene->cursor.location);
 		}
 
 		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, location, event->mval, location);

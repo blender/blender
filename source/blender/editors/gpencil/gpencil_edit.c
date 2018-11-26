@@ -2196,12 +2196,11 @@ static int gp_snap_to_cursor(bContext *C, wmOperator *op)
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *obact = CTX_data_active_object(C);
 
 	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
-	const float *cursor_global = ED_view3d_cursor3d_get(scene, v3d)->location;
+	const float *cursor_global = scene->cursor.location;
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* only editable and visible layers are considered */
@@ -2288,7 +2287,7 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *obact = CTX_data_active_object(C);
 
-	float *cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
+	float *cursor = scene->cursor.location;
 	float centroid[3] = {0.0f};
 	float min[3], max[3];
 	size_t count = 0;
@@ -2857,10 +2856,8 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	View3D *v3d = sa->spacedata.first;
 
 	GP_SpaceConversion gsc = {NULL};
 	eGP_ReprojectModes mode = RNA_enum_get(op->ptr, "type");
@@ -2905,7 +2902,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 
 				/* Project stroke in one axis */
 				if (ELEM(mode, GP_REPROJECT_FRONT, GP_REPROJECT_SIDE, GP_REPROJECT_TOP)) {
-					ED_gp_get_drawing_reference(v3d, scene, ob, gpl,
+					ED_gp_get_drawing_reference(scene, ob, gpl,
 						ts->gpencil_v3d_align, origin);
 
 					int axis = 0;

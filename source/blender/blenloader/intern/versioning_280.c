@@ -1374,16 +1374,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				unit_qt(scene->cursor.rotation);
 			}
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							unit_qt(v3d->cursor.rotation);
-						}
-					}
-				}
-			}
 		}
 	}
 

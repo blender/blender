@@ -4028,9 +4028,9 @@ class VIEW3D_PT_view3d_cursor(Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        view = context.space_data
+        scene = context.scene
 
-        layout.column().prop(view, "cursor_location", text="Location")
+        layout.column().prop(scene, "cursor_location", text="Location")
 
 
 class VIEW3D_PT_collections(Panel):

@@ -316,8 +316,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 	const float *gizmo_center = NULL;
 	{
 		Scene *scene = CTX_data_scene(C);
-		View3D *v3d = CTX_wm_view3d(C);
-		const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+		const View3DCursor *cursor = &scene->cursor;
 		gizmo_center = cursor->location;
 	}
 

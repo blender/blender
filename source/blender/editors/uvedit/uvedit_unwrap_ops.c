@@ -1107,7 +1107,7 @@ static void uv_map_transform_center(
 		case V3D_AROUND_CURSOR:  /* cursor center */
 		{
 			invert_m4_m4(ob->imat, ob->obmat);
-			mul_v3_m4v3(r_center, ob->imat, ED_view3d_cursor3d_get(scene, v3d)->location);
+			mul_v3_m4v3(r_center, ob->imat, scene->cursor.location);
 			break;
 		}
 		case V3D_AROUND_ACTIVE:

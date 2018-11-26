@@ -246,8 +246,6 @@ typedef struct View3D {
 	float near, far;
 	float ofs[3]  DNA_DEPRECATED;			/* XXX deprecated */
 
-	View3DCursor cursor;
-
 	char _pad[4];
 
 	short matcap_icon;			/* icon id */

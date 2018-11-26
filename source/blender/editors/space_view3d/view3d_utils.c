@@ -91,20 +91,15 @@ void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float
 	}
 }
 
-View3DCursor *ED_view3d_cursor3d_get(Scene *scene, View3D *UNUSED(v3d))
+void ED_view3d_cursor3d_calc_mat3(const Scene *scene, float mat[3][3])
 {
-	return &scene->cursor;
-}
-
-void ED_view3d_cursor3d_calc_mat3(const Scene *scene, const View3D *v3d, float mat[3][3])
-{
-	const View3DCursor *cursor = ED_view3d_cursor3d_get((Scene *)scene, (View3D *)v3d);
+	const View3DCursor *cursor = &scene->cursor;
 	quat_to_mat3(mat, cursor->rotation);
 }
 
-void ED_view3d_cursor3d_calc_mat4(const Scene *scene, const View3D *v3d, float mat[4][4])
+void ED_view3d_cursor3d_calc_mat4(const Scene *scene, float mat[4][4])
 {
-	const View3DCursor *cursor = ED_view3d_cursor3d_get((Scene *)scene, (View3D *)v3d);
+	const View3DCursor *cursor = &scene->cursor;
 	quat_to_mat4(mat, cursor->rotation);
 	copy_v3_v3(mat[3], cursor->location);
 }

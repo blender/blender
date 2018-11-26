@@ -737,9 +737,8 @@ void gp_point_to_xy_fl(
  */
 bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen_co[2], float r_out[3])
 {
-	View3D *v3d = gsc->sa->spacedata.first;
-	RegionView3D *rv3d = gsc->ar->regiondata;
-	float *rvec = ED_view3d_cursor3d_get(scene, v3d)->location;
+	const RegionView3D *rv3d = gsc->ar->regiondata;
+	float *rvec = scene->cursor.location;
 	float ref[3] = {rvec[0], rvec[1], rvec[2]};
 	float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
@@ -771,7 +770,7 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen
  * \param[out] r_out: The resulting 2D point data
  */
 void gp_stroke_convertcoords_tpoint(
-        Scene *scene, ARegion *ar, View3D *v3d,
+        Scene *scene, ARegion *ar,
         Object *ob, bGPDlayer *gpl,
         const tGPspoint *point2D, float *depth,
         float r_out[3])
@@ -793,7 +792,7 @@ void gp_stroke_convertcoords_tpoint(
 		/* Current method just converts each point in screen-coordinates to
 		 * 3D-coordinates using the 3D-cursor as reference.
 		 */
-		ED_gp_get_drawing_reference(v3d, scene, ob, gpl, ts->gpencil_v3d_align, rvec);
+		ED_gp_get_drawing_reference(scene, ob, gpl, ts->gpencil_v3d_align, rvec);
 		zfac = ED_view3d_calc_zfac(ar->regiondata, rvec, NULL);
 
 		if (ED_view3d_project_float_global(ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
@@ -812,10 +811,10 @@ void gp_stroke_convertcoords_tpoint(
  * \param[out] r_vec : Reference point found
  */
 void ED_gp_get_drawing_reference(
-        View3D *v3d, Scene *scene, Object *ob, bGPDlayer *UNUSED(gpl),
+        const Scene *scene, const Object *ob, bGPDlayer *UNUSED(gpl),
         char align_flag, float r_vec[3])
 {
-	const float *fp = ED_view3d_cursor3d_get(scene, v3d)->location;
+	const float *fp = scene->cursor.location;
 
 	/* if using a gpencil object at cursor mode, can use the location of the object */
 	if (align_flag & GP_PROJECT_VIEWSPACE) {
@@ -841,7 +840,8 @@ void ED_gp_get_drawing_reference(
 /**
  * Reproject all points of the stroke to a plane locked to axis to avoid stroke offset
  */
-void ED_gp_project_stroke_to_plane(Object *ob, RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
+void ED_gp_project_stroke_to_plane(
+        const Object *ob, const RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
 {
 	float plane_normal[3];
 	float vn[3];
@@ -887,7 +887,8 @@ void ED_gp_project_stroke_to_plane(Object *ob, RegionView3D *rv3d, bGPDstroke *g
  * Reproject given point to a plane locked to axis to avoid stroke offset
  * \param[in, out] pt : Point to affect
  */
-void ED_gp_project_point_to_plane(Object *ob, RegionView3D *rv3d, const float origin[3], const int axis, bGPDspoint *pt)
+void ED_gp_project_point_to_plane(
+        const Object *ob, const RegionView3D *rv3d, const float origin[3], const int axis, bGPDspoint *pt)
 {
 	float plane_normal[3];
 	float vn[3];

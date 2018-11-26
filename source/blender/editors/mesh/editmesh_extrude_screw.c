@@ -171,13 +171,12 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 static int edbm_screw_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 
 	PropertyRNA *prop;
 	prop = RNA_struct_find_property(op->ptr, "center");
 	if (!RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_float_set_array(op->ptr, prop, ED_view3d_cursor3d_get(scene, v3d)->location);
+		RNA_property_float_set_array(op->ptr, prop, scene->cursor.location);
 	}
 	if (rv3d) {
 		prop = RNA_struct_find_property(op->ptr, "axis");

@@ -221,7 +221,7 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, struct Scene *scene, const float
 /* helper to convert 2d to 3d */
 void gp_stroke_convertcoords_tpoint(
         struct Scene *scene, struct ARegion *ar,
-        struct View3D *v3d, struct Object *ob,
+        struct Object *ob,
         bGPDlayer *gpl, const struct tGPspoint *point2D,
         float *depth, float out[3]);
 

@@ -242,7 +242,6 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 
 	/* both can be NULL, fallbacks values are used */
-	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 
 	int ret = OPERATOR_CANCELLED;
@@ -264,7 +263,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 		RNA_property_float_get_array(op->ptr, prop_plane_co, plane_co);
 	}
 	else {
-		copy_v3_v3(plane_co, ED_view3d_cursor3d_get(scene, v3d)->location);
+		copy_v3_v3(plane_co, scene->cursor.location);
 		RNA_property_float_set_array(op->ptr, prop_plane_co, plane_co);
 	}
 

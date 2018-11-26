@@ -285,12 +285,11 @@ static bool gpencil_project_check(tGPsdata *p)
 /* get the reference point for stroke-point conversions */
 static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 {
-	View3D *v3d = p->sa->spacedata.first;
 	Object *ob = NULL;
 	if (p->ownerPtr.type == &RNA_Object) {
 		ob = (Object *)p->ownerPtr.data;
 	}
-	ED_gp_get_drawing_reference(v3d, p->scene, ob, p->gpl, *p->align_flag, vec);
+	ED_gp_get_drawing_reference(p->scene, ob, p->gpl, *p->align_flag, vec);
 }
 
 /* Stroke Editing ---------------------------- */
@@ -1774,7 +1773,6 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 	ARegion *ar = CTX_wm_region(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obact = CTX_data_active_object(C);
-	View3D *v3d = curarea->spacedata.first;
 
 	/* make sure the active view (at the starting time) is a 3d-view */
 	if (curarea == NULL) {
@@ -1818,7 +1816,7 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 			}
 
 			/* if active object doesn't exist or isn't a GP Object, create one */
-			float *cur = ED_view3d_cursor3d_get(p->scene, v3d)->location;
+			const float *cur = p->scene->cursor.location;
 			if ((!obact) || (obact->type != OB_GPENCIL)) {
 				/* create new default object */
 				obact = ED_add_gpencil_object(C, p->scene, cur);

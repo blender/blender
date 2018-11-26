@@ -129,9 +129,8 @@ def align_objects(context,
 
     depsgraph = context.depsgraph
     scene = context.scene
-    space = context.space_data
 
-    cursor = (space if space and space.type == 'VIEW_3D' else scene).cursor_location
+    cursor = scene.cursor_location
 
     # We are accessing runtime data such as evaluated bounding box, so we need to
     # be sure it is properly updated and valid (bounding box might be lost on operator

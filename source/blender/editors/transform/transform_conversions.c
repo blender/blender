@@ -383,14 +383,12 @@ static void createTransCursor_view3d(TransInfo *t)
 	TransData *td;
 
 	Scene *scene = t->scene;
-	View3D *v3d = ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) ? t->view : NULL;
-	View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
-
-	if ((cursor == &scene->cursor) && ID_IS_LINKED(scene)) {
+	if (ID_IS_LINKED(scene)) {
 		BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
 		return;
 	}
 
+	View3DCursor *cursor = &scene->cursor;
 	{
 		BLI_assert(t->data_container_len == 1);
 		TransDataContainer *tc = t->data_container;

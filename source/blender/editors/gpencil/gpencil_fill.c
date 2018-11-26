@@ -880,10 +880,10 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	for (int i = 0; i < tgpf->sbuffer_size && point2D; i++, point2D++, pt++) {
 		/* convert screen-coordinates to 3D coordinates */
 		gp_stroke_convertcoords_tpoint(
-			tgpf->scene, tgpf->ar, tgpf->v3d, tgpf->ob,
-			tgpf->gpl, point2D,
-			tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
-			&pt->x);
+		        tgpf->scene, tgpf->ar, tgpf->ob,
+		        tgpf->gpl, point2D,
+		        tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
+		        &pt->x);
 
 		pt->pressure = 1.0f;
 		pt->strength = 1.0f;
@@ -920,7 +920,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	if ((tgpf->lock_axis > GP_LOCKAXIS_VIEW) && ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
 		float origin[3];
 		ED_gp_get_drawing_reference(
-		        tgpf->v3d, tgpf->scene, tgpf->ob, tgpf->gpl,
+		        tgpf->scene, tgpf->ob, tgpf->gpl,
 		        ts->gpencil_v3d_align, origin);
 		ED_gp_project_stroke_to_plane(
 		        tgpf->ob, tgpf->rv3d, gps, origin,

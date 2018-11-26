@@ -232,8 +232,7 @@ static bool gpencil_project_check(tGPsdata *p)
 /* get the reference point for stroke-point conversions */
 static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 {
-	View3D *v3d = p->sa->spacedata.first;
-	const float *fp = ED_view3d_cursor3d_get(p->scene, v3d)->location;
+	const float *fp = p->scene->cursor.location;
 
 	/* use 3D-cursor */
 	copy_v3_v3(vec, fp);

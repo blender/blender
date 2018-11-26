@@ -70,7 +70,6 @@ static void calc_initial_placement_point_from_view(
 {
 
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -78,7 +77,7 @@ static void calc_initial_placement_point_from_view(
 
 	float cursor_matrix[4][4];
 	float orient_matrix[3][3];
-	ED_view3d_cursor3d_calc_mat4(scene, v3d, cursor_matrix);
+	ED_view3d_cursor3d_calc_mat4(scene, cursor_matrix);
 
 	float dots[3] = {
 		dot_v3v3(rv3d->viewinv[2], cursor_matrix[0]),

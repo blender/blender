@@ -209,7 +209,7 @@ void ED_transform_calc_orientation_from_type(
  void ED_transform_calc_orientation_from_type_ex(
          const struct bContext *C, float r_mat[3][3],
          /* extra args */
-         struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d, struct Object *ob, struct Object *obedit,
+         struct Scene *scene, struct RegionView3D *rv3d, struct Object *ob, struct Object *obedit,
          const short orientation_type, const int pivot_point);
 
 struct TransformBounds {

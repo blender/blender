@@ -163,13 +163,8 @@ static EnumPropertyItem lightprobe_type_items[] = {
 
 void ED_object_location_from_view(bContext *C, float loc[3])
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	Scene *scene = CTX_data_scene(C);
-	const float *cursor;
-
-	cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
-
-	copy_v3_v3(loc, cursor);
+	const Scene *scene = CTX_data_scene(C);
+	copy_v3_v3(loc, scene->cursor.location);
 }
 
 void ED_object_rotation_from_quat(float rot[3], const float viewquat[4], const char align_axis)

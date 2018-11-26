@@ -454,9 +454,8 @@ static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
 	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
 
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 
-	const float *snap_target_global = ED_view3d_cursor3d_get(scene, v3d)->location;
+	const float *snap_target_global = scene->cursor.location;
 
 	return snap_selected_to_location(C, snap_target_global, use_offset);
 }
@@ -521,7 +520,7 @@ static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	float gridf, *curs;
 
 	gridf = ED_view3d_grid_scale(scene, v3d, NULL);
-	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
+	curs = scene->cursor.location;
 
 	curs[0] = gridf * floorf(0.5f + curs[0] / gridf);
 	curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
@@ -724,13 +723,8 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 static int snap_curs_to_sel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	float *curs;
-
-	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
-
-	if (snap_curs_to_sel_ex(C, curs)) {
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+	if (snap_curs_to_sel_ex(C, scene->cursor.location)) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 
 		return OPERATOR_FINISHED;
@@ -805,11 +799,8 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	float *curs;
 
-	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
-
-	if (snap_calc_active_center(C, false, curs)) {
+	if (snap_calc_active_center(C, false, scene->cursor.location)) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 
@@ -841,15 +832,12 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	float *curs;
-	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
-	zero_v3(curs);
+	zero_v3(scene->cursor.location);
 
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	return OPERATOR_FINISHED;
 }
 

@@ -615,12 +615,10 @@ bool gimbal_axis(Object *ob, float gmat[3][3])
 void ED_transform_calc_orientation_from_type(
         const bContext *C, float r_mat[3][3])
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
-	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = OBACT(view_layer);
 	const short orientation_type = scene->orientation_type;
@@ -628,13 +626,13 @@ void ED_transform_calc_orientation_from_type(
 
 	ED_transform_calc_orientation_from_type_ex(
 	        C, r_mat,
-	        scene, v3d, rv3d, ob, obedit, orientation_type, pivot_point);
+	        scene, rv3d, ob, obedit, orientation_type, pivot_point);
 }
 
 void ED_transform_calc_orientation_from_type_ex(
         const bContext *C, float r_mat[3][3],
         /* extra args (can be accessed from context) */
-        Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, Object *obedit,
+        Scene *scene, RegionView3D *rv3d, Object *ob, Object *obedit,
         const short orientation_type, const int pivot_point)
 {
 	bool ok = false;
@@ -690,7 +688,7 @@ void ED_transform_calc_orientation_from_type_ex(
 		}
 		case V3D_MANIP_CURSOR:
 		{
-			ED_view3d_cursor3d_calc_mat3(scene, v3d, r_mat);
+			ED_view3d_cursor3d_calc_mat3(scene, r_mat);
 			ok = true;
 			break;
 		}
@@ -748,7 +746,7 @@ int ED_transform_calc_gizmo_stats(
 		float mat[3][3];
 		ED_transform_calc_orientation_from_type_ex(
 		        C, mat,
-		        scene, v3d, rv3d, ob, obedit, orientation_type, pivot_point);
+		        scene, rv3d, ob, obedit, orientation_type, pivot_point);
 		copy_m4_m3(rv3d->twmat, mat);
 	}
 
@@ -1184,7 +1182,7 @@ static void gizmo_get_idot(RegionView3D *rv3d, float r_idot[3])
 }
 
 static void gizmo_prepare_mat(
-        const bContext *C, View3D *v3d, RegionView3D *rv3d, const struct TransformBounds *tbounds)
+        const bContext *C, RegionView3D *rv3d, const struct TransformBounds *tbounds)
 {
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1213,7 +1211,7 @@ static void gizmo_prepare_mat(
 			copy_v3_v3(rv3d->twmat[3], tbounds->center);
 			break;
 		case V3D_AROUND_CURSOR:
-			copy_v3_v3(rv3d->twmat[3], ED_view3d_cursor3d_get(scene, v3d)->location);
+			copy_v3_v3(rv3d->twmat[3], scene->cursor.location);
 			break;
 	}
 }
@@ -1478,9 +1476,7 @@ static int gizmo_modal(
 		return OPERATOR_RUNNING_MODAL;
 	}
 
-	const ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	struct TransformBounds tbounds;
 
@@ -1490,7 +1486,7 @@ static int gizmo_modal(
 	                .use_only_center = true,
 	            }, &tbounds))
 	{
-		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
+		gizmo_prepare_mat(C, rv3d, &tbounds);
 		WM_gizmo_set_matrix_location(widget, rv3d->twmat[3]);
 	}
 
@@ -1658,9 +1654,7 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	GizmoGroup *ggd = gzgroup->customdata;
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	struct TransformBounds tbounds;
 
@@ -1683,7 +1677,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		return;
 	}
 
-	gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
+	gizmo_prepare_mat(C, rv3d, &tbounds);
 
 	/* *** set properties for axes *** */
 
@@ -1915,8 +1909,6 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup
 
 static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = sa->spacedata.first;
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -1934,7 +1926,7 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
 		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
 	}
 	else {
-		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
+		gizmo_prepare_mat(C, rv3d, &tbounds);
 
 		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 		WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
@@ -2093,8 +2085,6 @@ static void WIDGETGROUP_xform_shear_setup(const bContext *UNUSED(C), wmGizmoGrou
 
 static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = sa->spacedata.first;
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2114,7 +2104,7 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 		}
 	}
 	else {
-		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
+		gizmo_prepare_mat(C, rv3d, &tbounds);
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 2; j++) {
 				wmGizmo *gz = xgzgroup->gizmo[i][j];

@@ -823,7 +823,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		}
 		else {
 			/* This only runs for the active object. */
-			const float *cursor = ED_view3d_cursor3d_get(vc.scene, vc.v3d)->location;
+			const float *cursor = vc.scene->cursor.location;
 			BMOperator bmop;
 			BMOIter oiter;
 

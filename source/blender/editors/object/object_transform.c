@@ -828,7 +828,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	else {
 		/* get the view settings if 'around' isn't set and the view is available */
 		View3D *v3d = CTX_wm_view3d(C);
-		copy_v3_v3(cursor, ED_view3d_cursor3d_get(scene, v3d)->location);
+		copy_v3_v3(cursor, scene->cursor.location);
 		if (v3d && !RNA_struct_property_is_set(op->ptr, "center"))
 			around = scene->toolsettings->transform_pivot_point;
 	}

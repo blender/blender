@@ -484,7 +484,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		case V3D_MANIP_CURSOR:
 		{
 			BLI_strncpy(t->spacename, IFACE_("cursor"), sizeof(t->spacename));
-			ED_view3d_cursor3d_calc_mat3(t->scene, CTX_wm_view3d(C), t->spacemtx);
+			ED_view3d_cursor3d_calc_mat3(t->scene, t->spacemtx);
 			break;
 		}
 		case V3D_MANIP_CUSTOM_MATRIX:

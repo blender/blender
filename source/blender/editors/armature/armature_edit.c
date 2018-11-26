@@ -325,9 +325,8 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 
 		if (type == CALC_ROLL_CURSOR) { /* Cursor */
 			Scene *scene = CTX_data_scene(C);
-			View3D *v3d = CTX_wm_view3d(C); /* can be NULL */
 			float cursor_local[3];
-			const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+			const View3DCursor *cursor = &scene->cursor;
 
 			invert_m4_m4(ob->imat, ob->obmat);
 			copy_v3_v3(cursor_local, cursor->location);
@@ -728,7 +727,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 
 		/* Get points - cursor (tail) */
 		invert_m4_m4(obedit->imat, obedit->obmat);
-		mul_v3_m4v3(curs, obedit->imat, ED_view3d_cursor3d_get(scene, v3d)->location);
+		mul_v3_m4v3(curs, obedit->imat, scene->cursor.location);
 
 		/* Create a bone */
 		newbone = add_points_bone(obedit, ebp->vec, curs);
@@ -766,7 +765,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 
 				/* get cursor location */
 				invert_m4_m4(obedit->imat, obedit->obmat);
-				mul_v3_m4v3(curs, obedit->imat, ED_view3d_cursor3d_get(scene, v3d)->location);
+				mul_v3_m4v3(curs, obedit->imat, scene->cursor.location);
 
 				/* get distances */
 				dist_sq_a = len_squared_v3v3(ebp_a->vec, curs);

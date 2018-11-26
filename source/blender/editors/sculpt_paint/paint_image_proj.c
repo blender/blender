@@ -3899,7 +3899,7 @@ static void paint_proj_begin_clone(ProjPaintState *ps, const float mouse[2])
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float projCo[4];
-		copy_v3_v3(projCo, ED_view3d_cursor3d_get(ps->scene, ps->v3d)->location);
+		copy_v3_v3(projCo, ps->scene->cursor.location);
 		mul_m4_v3(ps->obmat_imat, projCo);
 
 		projCo[3] = 1.0f;
@@ -5013,7 +5013,7 @@ void paint_proj_stroke(
 		struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
-		float *cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
+		float *cursor = scene->cursor.location;
 		int mval_i[2] = {(int)pos[0], (int)pos[1]};
 
 		view3d_operator_needs_opengl(C);
