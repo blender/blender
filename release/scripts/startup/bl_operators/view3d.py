@@ -184,13 +184,6 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
         options={'SKIP_SAVE'},
     )
 
-    @classmethod
-    def poll(cls, context):
-        active_object = context.active_object
-        if active_object:
-            return active_object.mode in {'EDIT', 'OBJECT', 'POSE'}
-        return True
-
     def invoke(self, context, event):
         retval = bpy.ops.view3d.select(
             'INVOKE_DEFAULT',
@@ -210,9 +203,10 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
             return retval
 
         active_object = context.active_object
-
         if active_object:
-            if active_object.mode == 'EDIT':
+            if active_object.mode == 'OBJECT':
+                select_all = bpy.ops.object.select_all
+            elif active_object.mode == 'EDIT':
                 if active_object.type == 'MESH':
                     select_all = bpy.ops.mesh.select_all
                 elif active_object.type == 'CURVE':
@@ -230,7 +224,8 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
             elif active_object.mode == 'PARTICLE_EDIT':
                 select_all = bpy.ops.particle.select_all
             else:
-                select_all = bpy.ops.object.select_all
+                # Don nothing in paint and sculpt modes.
+                return retval
         else:
             select_all = bpy.ops.object.select_all
 
