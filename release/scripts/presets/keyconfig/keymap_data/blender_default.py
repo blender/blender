@@ -4920,8 +4920,8 @@ def km_popup_toolbar(params):
         "Toolbar Popup",
         {"space_type": 'EMPTY', "region_type": 'TEMPORARY'},
         {"items": [
+            op_tool("Select", {"type": 'W', "value": 'PRESS'}),
             op_tool("Transform", {"type": 'T', "value": 'PRESS'}),
-            op_tool("Annotate", {"type": 'D', "value": 'PRESS'}),
             op_tool("Measure", {"type": 'M', "value": 'PRESS'}),
         ]},
     )
