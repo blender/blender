@@ -252,7 +252,7 @@ static void DRW_gpencil_recalc_geometry_caches(
 		if ((gps->tot_triangles == 0) || (gps->triangles == NULL)) {
 			if ((gps->totpoints > 2) &&
 			    ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
-				(gp_style->fill_style > 0) || (gpl->blend_mode != eGplBlendMode_Normal)))
+			     (gp_style->fill_style > 0) || (gpl->blend_mode != eGplBlendMode_Normal)))
 			{
 				DRW_gpencil_triangulate_stroke_fill(ob, gps);
 			}
@@ -562,8 +562,9 @@ static void gpencil_add_fill_vertexdata(
 		interp_v3_v3v3(tfill, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
 		tfill[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
 		if ((tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
-			(gp_style->fill_style > 0) ||
-			(gpl->blend_mode != eGplBlendMode_Normal)) {
+		    (gp_style->fill_style > 0) ||
+		    (gpl->blend_mode != eGplBlendMode_Normal))
+		{
 			if (cache->is_dirty) {
 				const float *color;
 				if (!onion) {
@@ -586,7 +587,7 @@ static void gpencil_add_fill_vertexdata(
 				if (old_len < cache->b_fill.vbo_len) {
 					cache->grp_cache = gpencil_group_cache_add(
 					        cache->grp_cache, gpl, gpf, gps,
-							eGpencilBatchGroupType_Fill, onion,
+					        eGpencilBatchGroupType_Fill, onion,
 					        cache->b_fill.vbo_len,
 					        &cache->grp_size, &cache->grp_used);
 				}
@@ -643,7 +644,7 @@ static void gpencil_add_stroke_vertexdata(
 			if (old_len < cache->b_stroke.vbo_len) {
 				cache->grp_cache = gpencil_group_cache_add(
 				        cache->grp_cache, gpl, gpf, gps,
-						eGpencilBatchGroupType_Stroke, onion,
+				        eGpencilBatchGroupType_Stroke, onion,
 				        cache->b_stroke.vbo_len,
 				        &cache->grp_size, &cache->grp_used);
 			}
@@ -694,7 +695,7 @@ static void gpencil_add_editpoints_vertexdata(
 				/* add to list of groups */
 				cache->grp_cache = gpencil_group_cache_add(
 				        cache->grp_cache, gpl, gpf, gps,
-						eGpencilBatchGroupType_Edlin, false,
+				        eGpencilBatchGroupType_Edlin, false,
 				        cache->b_edlin.vbo_len,
 				        &cache->grp_size, &cache->grp_used);
 			}
@@ -707,7 +708,7 @@ static void gpencil_add_editpoints_vertexdata(
 						/* add to list of groups */
 						cache->grp_cache = gpencil_group_cache_add(
 						        cache->grp_cache, gpl, gpf, gps,
-								eGpencilBatchGroupType_Edit, false,
+						        eGpencilBatchGroupType_Edit, false,
 						        cache->b_edit.vbo_len,
 						        &cache->grp_size, &cache->grp_used);
 					}
@@ -786,7 +787,7 @@ static void gpencil_draw_strokes(
 		if ((stl->storage->simplify_fill) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_REMOVE_FILL_LINE)) {
 			if ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 			    (gp_style->fill_style > GP_STYLE_FILL_STYLE_SOLID) ||
-				(gpl->blend_mode != eGplBlendMode_Normal))
+			    (gpl->blend_mode != eGplBlendMode_Normal))
 			{
 				GP_SET_SRC_GPS(src_gps);
 				continue;
@@ -809,12 +810,12 @@ static void gpencil_draw_strokes(
 
 			/* hide any blend layer */
 			if ((!stl->storage->simplify_blend) ||
-				(gpl->blend_mode == eGplBlendMode_Normal))
+			    (gpl->blend_mode == eGplBlendMode_Normal))
 			{
 				/* fill */
 				if ((gp_style->flag & GP_STYLE_FILL_SHOW) &&
-					(!stl->storage->simplify_fill) &&
-					((gps->flag & GP_STROKE_NOFILL) == 0))
+				    (!stl->storage->simplify_fill) &&
+				    ((gps->flag & GP_STROKE_NOFILL) == 0))
 				{
 					gpencil_add_fill_vertexdata(
 						cache, ob, gpl, derived_gpf, gps,
@@ -822,8 +823,8 @@ static void gpencil_draw_strokes(
 				}
 				/* stroke */
 				if ((gp_style->flag & GP_STYLE_STROKE_SHOW) &&
-					((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
-					(gpl->blend_mode == eGplBlendMode_Normal)))
+				    ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
+				     (gpl->blend_mode == eGplBlendMode_Normal)))
 				{
 					gpencil_add_stroke_vertexdata(
 						cache, ob, gpl, derived_gpf, gps,
@@ -1301,8 +1302,7 @@ static void DRW_gpencil_shgroups_create(
 			tag_first = true;
 		}
 		else {
-			if (elm->gpl != gpl_prev)
-			{
+			if (elm->gpl != gpl_prev) {
 				/* first layer is always blend Normal */
 				array_elm->mode = idx == 0 ? eGplBlendMode_Normal: gpl->blend_mode;
 				array_elm->end_shgrp = shgrp;

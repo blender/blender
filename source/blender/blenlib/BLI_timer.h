@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2018 Blender Foundation.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,7 +24,7 @@
 #ifndef __BLI_TIMER_H__
 #define __BLI_TIMER_H__
 
-#include "BLI_utildefines.h"
+#include "BLI_sys_types.h"
 
 /** \file BLI_timer.h
  *  \ingroup BLI

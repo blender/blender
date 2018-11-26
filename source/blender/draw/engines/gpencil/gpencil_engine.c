@@ -781,8 +781,8 @@ void GPENCIL_draw_scene(void *ved)
 						array_elm = &cache_ob->shgrp_array[e];
 
 						if (((array_elm->mode == eGplBlendMode_Normal) &&
-							(!use_blend) && (!array_elm->clamp_layer)) ||
-							( e == 0))
+						     (!use_blend) && (!array_elm->clamp_layer)) ||
+						    (e == 0))
 						{
 							if (init_shgrp == NULL) {
 								init_shgrp = array_elm->init_shgrp;

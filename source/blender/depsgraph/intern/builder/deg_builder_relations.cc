@@ -1034,7 +1034,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					}
 					/* if needs bbone shape, reference the segment computation */
 					if (BKE_constraint_target_uses_bbone(con, ct) &&
-					    bone_has_segments(ct->tar, ct->subtarget)) {
+					    bone_has_segments(ct->tar, ct->subtarget))
+					{
 						opcode = DEG_OPCODE_BONE_SEGMENTS;
 					}
 					OperationKey target_key(&ct->tar->id,

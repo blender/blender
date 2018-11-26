@@ -155,7 +155,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	include_all_actions      = RNA_boolean_get(op->ptr, "include_all_actions");
 	export_animation_type    = RNA_enum_get(op->ptr, "export_animation_type_selection");
 	sample_animations        = (export_animation_type == BC_ANIMATION_EXPORT_SAMPLES);
-	sampling_rate            = (sample_animations)? RNA_int_get(op->ptr, "sampling_rate") : 0;
+	sampling_rate            = (sample_animations) ? RNA_int_get(op->ptr, "sampling_rate") : 0;
 	keep_smooth_curves       = RNA_boolean_get(op->ptr, "keep_smooth_curves");
 	keep_keyframes           = RNA_boolean_get(op->ptr, "keep_keyframes");
 

@@ -86,7 +86,7 @@ void DRW_hair_init(void)
 	g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_TRANS_FEEDBACK);
 }
 
-typedef struct DRWHairInstanceData{
+typedef struct DRWHairInstanceData {
 	DrawData dd;
 
 	float mat[4][4];

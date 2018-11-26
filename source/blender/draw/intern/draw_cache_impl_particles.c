@@ -687,7 +687,7 @@ static float particle_key_select_ratio(const PTCacheEdit *edit, int strand, floa
 		int index = (int)interp;
 		interp -= floorf(interp); /* Time between 2 edit key */
 		float s1 = (point->keys[index].flag & PEK_SELECT) ? 1.0f : 0.0;
-		float s2 = (point->keys[index+1].flag & PEK_SELECT) ? 1.0f : 0.0;
+		float s2 = (point->keys[index + 1].flag & PEK_SELECT) ? 1.0f : 0.0;
 		return s1 + interp * (s2 - s1);
 	}
 }
@@ -697,7 +697,7 @@ static int particle_batch_cache_fill_segments_edit(
         ParticleCacheKey **path_cache,
         const int start_index,
         const int num_path_keys,
-		GPUIndexBufBuilder *elb,
+        GPUIndexBufBuilder *elb,
         GPUVertBufRaw *attr_step)
 {
 	int curr_point = start_index;
