@@ -58,6 +58,7 @@ set(SRC
 	bpy_app_opensubdiv.c
 	bpy_app_openvdb.c
 	bpy_app_sdl.c
+	bpy_app_timers.c
 	bpy_app_translations.c
 	bpy_capi_utils.c
 	bpy_driver.c
@@ -96,6 +97,7 @@ set(SRC
 	bpy_app_opensubdiv.h
 	bpy_app_openvdb.h
 	bpy_app_sdl.h
+	bpy_app_timers.h
 	bpy_app_translations.h
 	bpy_capi_utils.h
 	bpy_driver.h

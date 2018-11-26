@@ -54,6 +54,7 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_timer.h"
 
 #include "BLO_writefile.h"
 #include "BLO_undofile.h"
@@ -459,6 +460,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 			ED_screen_exit(C, win, WM_window_get_active_screen(win));
 		}
 	}
+
+	BLI_timer_free();
 
 	WM_paneltype_clear();
 

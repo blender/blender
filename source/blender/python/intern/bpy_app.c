@@ -49,6 +49,7 @@
 
 /* modules */
 #include "bpy_app_icons.h"
+#include "bpy_app_timers.h"
 
 #include "BLI_utildefines.h"
 
@@ -124,6 +125,7 @@ static PyStructSequence_Field app_info_fields[] = {
 
 	/* Modules (not struct sequence). */
 	{(char *)"icons", (char *)"Manage custom icons"},
+	{(char *)"timers", (char *)"Manage timers"},
 	{NULL},
 };
 
@@ -137,6 +139,7 @@ PyDoc_STRVAR(bpy_app_doc,
 "\n"
 "   bpy.app.handlers.rst\n"
 "   bpy.app.icons.rst\n"
+"   bpy.app.timers.rst\n"
 "   bpy.app.translations.rst\n"
 );
 
@@ -220,6 +223,7 @@ static PyObject *make_app_info(void)
 
 	/* modules */
 	SetObjItem(BPY_app_icons_module());
+	SetObjItem(BPY_app_timers_module());
 
 #undef SetIntItem
 #undef SetStrItem

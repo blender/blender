@@ -51,6 +51,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_timer.h"
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -371,6 +372,8 @@ void wm_event_do_notifiers(bContext *C)
 
 	if (wm == NULL)
 		return;
+
+	BLI_timer_execute();
 
 	/* disable? - keep for now since its used for window level notifiers. */
 #if 1
