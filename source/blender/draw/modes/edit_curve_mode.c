@@ -169,7 +169,6 @@ static void EDIT_CURVE_cache_init(void *vedata)
 
 		grp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_vert_pass);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 		stl->g_data->overlay_vert_shgrp = grp;
 	}
 }
