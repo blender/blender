@@ -690,7 +690,7 @@ static bool vfont_to_curve(Object *ob, Curve *cu, int mode,
 	struct CharTrans *chartransdata = NULL, *ct;
 	struct TempLineInfo *lineinfo;
 	float *f, xof, yof, xtrax, linedist;
-	float twidth, maxlen = 0;
+	float twidth = 0, maxlen = 0;
 	int i, slen, j;
 	int curbox;
 	int selstart, selend;
