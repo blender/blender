@@ -2635,15 +2635,15 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					event->x = x;
 					event->y = y;
 
-					win->eventstate->check_click = 0;
-					win->eventstate->check_drag = 0;
+					win->eventstate->check_click = false;
+					win->eventstate->check_drag = false;
 				}
 			}
 		}
 		else {
 			wmWindow *win = CTX_wm_window(C);
 			if (win) {
-				win->eventstate->check_drag = 0;
+				win->eventstate->check_drag = false;
 			}
 		}
 	}
@@ -3113,6 +3113,12 @@ void wm_event_do_handlers(bContext *C)
 						return;
 				}
 
+			}
+
+			/* If press was handled, we don't want to do click. This way
+			 * press in tool keymap can override click in editor keymap.*/
+			if (event->val == KM_PRESS && !wm_action_not_handled(action)) {
+				win->eventstate->check_click = false;
 			}
 
 			/* update previous mouse position for following events to use */
