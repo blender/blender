@@ -384,9 +384,10 @@ class USERPREF_PT_system_general(Panel):
                 addon.preferences.draw_impl(col, context)
             del addon
 
-        if hasattr(system, "opensubdiv_compute_type"):
-            col.label(text="OpenSubdiv compute:")
-            col.row().prop(system, "opensubdiv_compute_type", text="")
+        # NOTE: Disabled for until GPU side of OpenSubdiv is brought back.
+        # if hasattr(system, "opensubdiv_compute_type"):
+        #     col.label(text="OpenSubdiv compute:")
+        #     col.row().prop(system, "opensubdiv_compute_type", text="")
 
         # 2. Column
         column = split.column()
