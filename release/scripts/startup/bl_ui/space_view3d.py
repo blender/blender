@@ -3866,6 +3866,7 @@ class VIEW3D_MT_shading_ex_pie(Menu):
         view = context.space_data
 
         pie.prop_enum(view.shading, "type", value='WIREFRAME')
+        pie.prop_enum(view.shading, "type", value='SOLID')
 
         xray_active = (
             (context.mode in {'POSE', 'EDIT_MESH'}) or
@@ -3880,7 +3881,6 @@ class VIEW3D_MT_shading_ex_pie(Menu):
 
         pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
 
-        pie.prop_enum(view.shading, "type", value='SOLID')
         pie.prop_enum(view.shading, "type", value='MATERIAL')
         pie.prop_enum(view.shading, "type", value='RENDERED')
 
