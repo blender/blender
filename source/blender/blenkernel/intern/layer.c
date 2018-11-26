@@ -1134,6 +1134,7 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
 
 	/* when there are no objects */
 	if (base ==  NULL) {
+		iter->data = NULL;
 		iter->valid = false;
 		return;
 	}
