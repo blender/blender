@@ -2196,7 +2196,7 @@ void WM_window_set_active_view_layer(wmWindow *win, ViewLayer *view_layer)
 	wmWindow *win_parent = (win->parent) ? win->parent : win;
 
 	/* Set  view layer in parent and child windows. */
-	STRNCPY(win->view_layer_name, view_layer->name);
+	STRNCPY(win_parent->view_layer_name, view_layer->name);
 
 	for (wmWindow *win_child = wm->windows.first; win_child; win_child = win_child->next) {
 		if (win_child->parent == win_parent) {
