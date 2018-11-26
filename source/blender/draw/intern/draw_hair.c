@@ -40,6 +40,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_customdata_types.h"
 
+#include "BKE_anim.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -85,6 +86,12 @@ void DRW_hair_init(void)
 	g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_TRANS_FEEDBACK);
 }
 
+typedef struct DRWHairInstanceData{
+	DrawData dd;
+
+	float mat[4][4];
+} DRWHairInstanceData;
+
 static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
         Object *object, ParticleSystem *psys, ModifierData *md,
         DRWPass *hair_pass,
@@ -93,6 +100,15 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 	/* TODO(fclem): Pass the scene as parameter */
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
+	static float unit_mat[4][4] = {
+		{1, 0, 0, 0},
+		{0, 1, 0, 0},
+		{0, 0, 1, 0},
+		{0, 0, 0, 1},
+	};
+	float (*dupli_mat)[4];
+	Object *dupli_parent = DRW_object_get_dupli_parent(object);
+	DupliObject *dupli_object = DRW_object_get_dupli(object);
 
 	int subdiv = scene->r.hair_subdiv;
 	int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
@@ -125,10 +141,29 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 		}
 	}
 
+	if (dupli_parent) {
+		DRWHairInstanceData *hair_inst_data = (DRWHairInstanceData *)DRW_drawdata_ensure(
+		        &object->id, (DrawEngineType *)&drw_shgroup_create_hair_procedural_ex,
+		        sizeof(DRWHairInstanceData), NULL, NULL);
+		dupli_mat = hair_inst_data->mat;
+		if (dupli_object->type & OB_DUPLICOLLECTION) {
+			copy_m4_m4(dupli_mat, dupli_parent->obmat);
+		}
+		else {
+			copy_m4_m4(dupli_mat, dupli_object->ob->obmat);
+			invert_m4(dupli_mat);
+			mul_m4_m4m4(dupli_mat, object->obmat, dupli_mat);
+		}
+	}
+	else {
+		dupli_mat = unit_mat;
+	}
+
 	DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
 	DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
 	DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
 	DRW_shgroup_uniform_float(shgrp, "hairRadShape", &part->shape, 1);
+	DRW_shgroup_uniform_mat4(shgrp, "hairDupliMatrix", dupli_mat);
 	DRW_shgroup_uniform_float_copy(shgrp, "hairRadRoot", part->rad_root * part->rad_scale * 0.5f);
 	DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", part->rad_tip * part->rad_scale * 0.5f);
 	DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0);
