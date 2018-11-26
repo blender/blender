@@ -506,6 +506,7 @@ void GPENCIL_cache_init(void *vedata)
 		DRW_shgroup_uniform_int(blend_shgrp, "mode", &stl->storage->blend_mode, 1);
 		DRW_shgroup_uniform_int(blend_shgrp, "clamp_layer", &stl->storage->clamp_layer, 1);
 		DRW_shgroup_uniform_float(blend_shgrp, "blend_opacity", &stl->storage->blend_opacity, 1);
+		DRW_shgroup_uniform_int(mix_shgrp, "tonemapping", &stl->storage->tonemapping, 1);
 
 		/* create effects passes */
 		if (!stl->storage->simplify_fx) {
@@ -813,7 +814,9 @@ void GPENCIL_draw_scene(void *ved)
 							stl->storage->blend_mode = array_elm->mode;
 							stl->storage->clamp_layer = (int)array_elm->clamp_layer;
 							stl->storage->blend_opacity = array_elm->blend_opacity;
+							stl->storage->tonemapping = stl->storage->is_render ? 1 : 0;
 							DRW_draw_pass(psl->blend_pass);
+							stl->storage->tonemapping = 0;
 
 							/* Copy B texture to A texture to follow loop */
 							e_data.input_depth_tx = e_data.temp_depth_tx_b;

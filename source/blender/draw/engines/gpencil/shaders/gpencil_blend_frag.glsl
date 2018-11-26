@@ -9,6 +9,7 @@ uniform sampler2D blendDepth;
 uniform int mode;
 uniform int clamp_layer;
 uniform float blend_opacity;
+uniform int tonemapping;
 
 #define ON 1
 #define OFF 0
@@ -76,6 +77,28 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 blend_color)
 	return outcolor;
 }
 
+float linearrgb_to_srgb(float c)
+{
+	if (c < 0.0031308)
+		return (c < 0.0) ? 0.0 : c * 12.92;
+	else
+		return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+}
+
+vec4 tone(vec4 stroke_color)
+{
+	if (tonemapping == 1) {
+		vec4 color = vec4(0, 0, 0, stroke_color.a);
+		color.r = linearrgb_to_srgb(stroke_color.r);
+		color.g = linearrgb_to_srgb(stroke_color.g);
+		color.b = linearrgb_to_srgb(stroke_color.b);
+		return color;
+	}
+	else {
+		return stroke_color;
+	}
+}		
+
 void main()
 {
 	vec4 outcolor;
@@ -115,17 +138,18 @@ void main()
 				gl_FragDepth = mix_depth;
 			}
 		}
+		FragColor = tone(FragColor);
 		return;
 	}
 	
 	/* if not using mask, return mix color */
 	if ((stroke_color.a == 0) && (clamp_layer == OFF)) {
-		FragColor = mix_color;
+		FragColor = tone(mix_color);
 		gl_FragDepth = mix_depth;
 		return;
 	}
 
 	/* apply blend mode */
-	FragColor = get_blend_color(mode, stroke_color, mix_color);
+	FragColor = tone(get_blend_color(mode, stroke_color, mix_color));
 	gl_FragDepth = stroke_depth;
 }
