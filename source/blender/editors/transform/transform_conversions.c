@@ -169,52 +169,62 @@ static int trans_data_compare_rdist(const void *a, const void *b)
 	else                                return  0;
 }
 
-void sort_trans_data_dist(TransInfo *t)
+static void sort_trans_data_dist_container(const TransInfo *t, TransDataContainer *tc)
 {
-	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *start = tc->data;
-		int i;
+	TransData *start = tc->data;
+	int i;
 
-		for (i = 0; i < tc->data_len && start->flag & TD_SELECTED; i++) {
-			start++;
+	for (i = 0; i < tc->data_len && start->flag & TD_SELECTED; i++) {
+		start++;
+	}
+
+	if (i < tc->data_len) {
+		if (t->flag & T_PROP_CONNECTED) {
+			qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
 		}
-
-		if (i < tc->data_len) {
-			if (t->flag & T_PROP_CONNECTED)
-				qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
-			else
-				qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
+		else {
+			qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
 		}
 	}
 }
+void sort_trans_data_dist(TransInfo *t)
+{
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		sort_trans_data_dist_container(t, tc);
+	}
+}
 
+static void sort_trans_data_container(TransDataContainer *tc)
+{
+	TransData *sel, *unsel;
+	TransData temp;
+	unsel = tc->data;
+	sel = tc->data;
+	sel += tc->data_len - 1;
+	while (sel > unsel) {
+		while (unsel->flag & TD_SELECTED) {
+			unsel++;
+			if (unsel == sel) {
+				return;
+			}
+		}
+		while (!(sel->flag & TD_SELECTED)) {
+			sel--;
+			if (unsel == sel) {
+				return;
+			}
+		}
+		temp = *unsel;
+		*unsel = *sel;
+		*sel = temp;
+		sel--;
+		unsel++;
+	}
+}
 static void sort_trans_data(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *sel, *unsel;
-		TransData temp;
-		unsel = tc->data;
-		sel = tc->data;
-		sel += tc->data_len - 1;
-		while (sel > unsel) {
-			while (unsel->flag & TD_SELECTED) {
-				unsel++;
-				if (unsel == sel) {
-					return;
-				}
-			}
-			while (!(sel->flag & TD_SELECTED)) {
-				sel--;
-				if (unsel == sel) {
-					return;
-				}
-			}
-			temp = *unsel;
-			*unsel = *sel;
-			*sel = temp;
-			sel--;
-			unsel++;
-		}
+		sort_trans_data_container(tc);
 	}
 }
 
