@@ -319,6 +319,8 @@ typedef struct DRWManager {
 	/* State of the object being evaluated if already allocated. */
 	DRWCallState *ob_state;
 	uchar state_cache_id; /* Could be larger but 254 view changes is already a lot! */
+	struct DupliObject *dupli_source;
+	struct Object *dupli_parent;
 
 	/* Rendering state */
 	GPUShader *shader;

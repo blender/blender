@@ -234,6 +234,16 @@ bool DRW_object_is_visible_psys_in_active_context(
 	return true;
 }
 
+struct Object *DRW_object_get_dupli_parent(const Object *UNUSED(ob))
+{
+	return DST.dupli_parent;
+}
+
+struct DupliObject *DRW_object_get_dupli(const Object *UNUSED(ob))
+{
+	return DST.dupli_source;
+}
+
 /** \} */
 
 
@@ -1442,7 +1452,11 @@ void DRW_draw_render_loop_ex(
 		drw_engines_world_update(scene);
 
 		const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
+		DEG_OBJECT_ITER_BEGIN(depsgraph, ob,
+		        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+		        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+		        DEG_ITER_OBJECT_FLAG_VISIBLE |
+		        DEG_ITER_OBJECT_FLAG_DUPLI)
 		{
 			if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
 				continue;
@@ -1450,9 +1464,11 @@ void DRW_draw_render_loop_ex(
 			if (v3d->localvd && ((v3d->local_view_uuid & ob->base_local_view_bits) == 0)) {
 				continue;
 			}
+			DST.dupli_parent = data_.dupli_parent;
+			DST.dupli_source = data_.dupli_object_current;
 			drw_engines_cache_populate(ob);
 		}
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+		DEG_OBJECT_ITER_END;
 
 		drw_engines_cache_finish();
 
@@ -1871,14 +1887,20 @@ void DRW_render_object_iter(
 	DRW_hair_init();
 
 	const int object_type_exclude_viewport = draw_ctx->v3d ? draw_ctx->v3d->object_type_exclude_viewport : 0;
-	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
+	DEG_OBJECT_ITER_BEGIN(depsgraph, ob,
+	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+	        DEG_ITER_OBJECT_FLAG_VISIBLE |
+	        DEG_ITER_OBJECT_FLAG_DUPLI)
 	{
 		if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
+			DST.dupli_parent = data_.dupli_parent;
+			DST.dupli_source = data_.dupli_object_current;
 			DST.ob_state = NULL;
 			callback(vedata, ob, engine, depsgraph);
 		}
 	}
-	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
+	DEG_OBJECT_ITER_END
 }
 
 /* Assume a valid gl context is bound (and that the gl_context_mutex has been acquired).
@@ -2076,9 +2098,9 @@ void DRW_draw_select_loop(
 			        v3d->object_type_exclude_viewport | v3d->object_type_exclude_select
 			);
 			bool filter_exclude = false;
-			DEG_OBJECT_ITER_BEGIN(
-			        depsgraph, ob,
+			DEG_OBJECT_ITER_BEGIN(depsgraph, ob,
 			        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+			        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
 			        DEG_ITER_OBJECT_FLAG_VISIBLE |
 			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
@@ -2106,6 +2128,8 @@ void DRW_draw_select_loop(
 						Object *ob_orig = DEG_get_original_object(ob);
 						DRW_select_load_id(ob_orig->select_color);
 					}
+					DST.dupli_parent = data_.dupli_parent;
+					DST.dupli_source = data_.dupli_object_current;
 					drw_engines_cache_populate(ob);
 				}
 			}
@@ -2261,7 +2285,11 @@ void DRW_draw_depth_loop(
 		drw_engines_world_update(scene);
 
 		const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
+		DEG_OBJECT_ITER_BEGIN(depsgraph, ob,
+		        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+		        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+		        DEG_ITER_OBJECT_FLAG_VISIBLE |
+		        DEG_ITER_OBJECT_FLAG_DUPLI)
 		{
 			if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
 				continue;
@@ -2271,9 +2299,11 @@ void DRW_draw_depth_loop(
 				continue;
 			}
 
+			DST.dupli_parent = data_.dupli_parent;
+			DST.dupli_source = data_.dupli_object_current;
 			drw_engines_cache_populate(ob);
 		}
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+		DEG_OBJECT_ITER_END;
 
 		drw_engines_cache_finish();
 
