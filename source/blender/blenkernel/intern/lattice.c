@@ -704,14 +704,12 @@ static bool calc_curve_deform(Object *par, float co[3],
 }
 
 void curve_deform_verts(
-        Object *cuOb, Object *target, Mesh *mesh, float (*vertexCos)[3],
-        int numVerts, const char *vgroup, short defaxis)
+        Object *cuOb, Object *target, float (*vertexCos)[3],
+        int numVerts, MDeformVert *dvert, const int defgrp_index, short defaxis)
 {
 	Curve *cu;
 	int a;
 	CurveDeform cd;
-	MDeformVert *dvert = NULL;
-	int defgrp_index = -1;
 	const bool is_neg_axis = (defaxis > 2);
 
 	if (cuOb->type != OB_CURVE)
@@ -730,26 +728,6 @@ void curve_deform_verts(
 		/* negative, these bounds give a good rest position */
 		cd.dmin[0] = cd.dmin[1] = cd.dmin[2] = -1.0f;
 		cd.dmax[0] = cd.dmax[1] = cd.dmax[2] =  0.0f;
-	}
-
-	/* Check whether to use vertex groups (only possible if target is a Mesh or Lattice).
-	 * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
-	 */
-	if (vgroup && vgroup[0] && ELEM(target->type, OB_MESH, OB_LATTICE)) {
-		defgrp_index = defgroup_name_index(target, vgroup);
-
-		if (defgrp_index != -1) {
-			/* if there's derived data without deformverts, don't use vgroups */
-			if (mesh) {
-				dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
-			}
-			else if (target->type == OB_LATTICE) {
-				dvert = ((Lattice *)target->data)->dvert;
-			}
-			else {
-				dvert = ((Mesh *)target->data)->dvert;
-			}
-		}
 	}
 
 	if (dvert) {

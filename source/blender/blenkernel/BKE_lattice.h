@@ -63,9 +63,8 @@ bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
 void curve_deform_verts(
-        struct Object *cuOb, struct Object *target,
-        struct Mesh *mesh, float (*vertexCos)[3],
-        int numVerts, const char *vgroup, short defaxis);
+        struct Object *cuOb, struct Object *target, float (*vertexCos)[3],
+        int numVerts, struct MDeformVert *dvert, const int defgrp_index, short defaxis);
 void curve_deform_vector(
         struct Object *cuOb, struct Object *target,
         float orco[3], float vec[3], float mat[3][3], int no_rot_axis);
