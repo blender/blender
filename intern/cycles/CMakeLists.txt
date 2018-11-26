@@ -226,7 +226,7 @@ if(WITH_CYCLES_EMBREE)
 	)
 endif()
 
-if(WITH_CYCLES_OPENSUBDIV)
+if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
 	include_directories(
 		SYSTEM

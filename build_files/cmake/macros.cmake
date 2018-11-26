@@ -431,7 +431,7 @@ function(setup_liblinks
 	if(WITH_OPENCOLORIO)
 		target_link_libraries(${target} ${OPENCOLORIO_LIBRARIES})
 	endif()
-	if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
+	if(WITH_OPENSUBDIV)
 			target_link_libraries(${target} ${OPENSUBDIV_LIBRARIES})
 	endif()
 	if(WITH_OPENVDB)
