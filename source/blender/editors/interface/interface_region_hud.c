@@ -294,8 +294,9 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 		return;
 	}
 
-	bool init = false;
 	ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_HUD);
+	bool init = false;
+	bool was_hidden = ar == NULL || ar->visible == false;
 	if (!last_redo_poll(C)) {
 		if (ar) {
 			ED_region_tag_redraw(ar);
@@ -360,10 +361,12 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	if (ar->visible) {
 		ARegion *ar_prev = CTX_wm_region(C);
 		CTX_wm_region_set((bContext *)C, ar);
-		ED_region_panels_layout(C, ar);
-		ar->winx = ar->v2d.winx;
-		ar->winy = ar->v2d.winy;
-		ar->v2d.cur = ar->v2d.tot = (rctf){.xmax = ar->winx, .ymax = ar->winy};
+		hud_region_layout(C, ar);
+		if (was_hidden) {
+			ar->winx = ar->v2d.winx;
+			ar->winy = ar->v2d.winy;
+			ar->v2d.cur = ar->v2d.tot = (rctf){.xmax = ar->winx, .ymax = ar->winy};
+		}
 		CTX_wm_region_set((bContext *)C, ar_prev);
 	}
 }
