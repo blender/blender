@@ -172,7 +172,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	}
 	copy_v3_v3(bone->head, mat[3]);
 
-	if (bone_is_skinned)
+	if (bone_is_skinned && this->import_settings->keep_bind_info)
 	{
 		float rest_mat[4][4];
 		get_node_mat(rest_mat, node, NULL, NULL, NULL);
