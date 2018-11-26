@@ -637,7 +637,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
         sub = row.row(align=True)
         sub.prop(brush, "cursor_overlay_alpha", text="Curve Alpha")
         sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
-        row.prop(brush,"use_cursor_overlay", text="", toggle=True, icon='HIDE_ON' if brush.use_cursor_overlay else 'HIDE_OFF')
+        row.prop(brush,"use_cursor_overlay", text="", toggle=True, icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON')
 
         col.active = brush.brush_capabilities.has_overlay
 
@@ -648,7 +648,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
             sub.prop(brush, "texture_overlay_alpha", text="Texture Alpha")
             sub.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot.map_mode != 'STENCIL':
-                row.prop(brush, "use_primary_overlay", text="", toggle=True, icon='HIDE_ON' if brush.use_primary_overlay else 'HIDE_OFF')
+                row.prop(brush, "use_primary_overlay", text="", toggle=True, icon='HIDE_OFF' if brush.use_primary_overlay else 'HIDE_ON')
 
         if context.image_paint_object:
             row = col.row(align=True)
@@ -657,7 +657,7 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
             sub.prop(brush, "mask_overlay_alpha", text="Mask Texture Alpha")
             sub.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot_mask.map_mode != 'STENCIL':
-                row.prop(brush, "use_secondary_overlay", text="", toggle=True, icon='HIDE_ON' if brush.use_secondary_overlay else 'HIDE_OFF')
+                row.prop(brush, "use_secondary_overlay", text="", toggle=True, icon='HIDE_OFF' if brush.use_secondary_overlay else 'HIDE_ON')
 
 
 # TODO, move to space_view3d.py
