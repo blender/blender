@@ -2396,6 +2396,13 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	};
 	static const float default_background_color[] = {0.05f, 0.05f, 0.05f};
 
+	static const EnumPropertyItem cavity_type_items[] = {
+		{V3D_SHADING_CAVITY_SSAO,      "WORLD",  0, "World",  "Cavity shading computed in world space, useful for larger-scale occlusion"},
+		{V3D_SHADING_CAVITY_CURVATURE, "SCREEN", 0, "Screen", "Curvature-based shading, useful for making fine details more visible"},
+		{V3D_SHADING_CAVITY_BOTH,      "BOTH",   0, "Both",   "Use both effects simultaneously"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 
 	/* Note these settings are used for both 3D viewport and the OpenGL render
 	 * engine in the scene, so can't assume to always be part of a screen. */
@@ -2436,10 +2443,31 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Cavity", "Show Cavity");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "cavity_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, cavity_type_items);
+	RNA_def_property_ui_text(prop, "Cavity Type", "Way to draw the cavity shading");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "curvature_ridge_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "curvature_ridge_factor");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Curvature Ridge", "Factor for the curvature ridges");
+	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "curvature_valley_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "curvature_valley_factor");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Curvature Valley", "Factor for the curvature valleys");
+	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "cavity_ridge_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "cavity_ridge_factor");
 	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Ridge", "Factor for the ridges");
+	RNA_def_property_ui_text(prop, "Cavity Ridge", "Factor for the cavity ridges");
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 	RNA_def_property_ui_range(prop, 0.00f, 2.5f, 1, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2448,7 +2476,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "cavity_valley_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "cavity_valley_factor");
 	RNA_def_property_float_default(prop, 1.0);
-	RNA_def_property_ui_text(prop, "Valley", "Factor for the valleys");
+	RNA_def_property_ui_text(prop, "Cavity Valley", "Factor for the cavity valleys");
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 	RNA_def_property_ui_range(prop, 0.00f, 2.5f, 1, 3);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

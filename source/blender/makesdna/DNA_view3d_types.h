@@ -144,6 +144,8 @@ typedef struct View3DShading {
 
 	char light;
 	char background_type;
+	char cavity_type;
+	char pad[7];
 
 	char studio_light[256]; /* FILE_MAXFILE */
 	char matcap[256]; /* FILE_MAXFILE */
@@ -162,6 +164,9 @@ typedef struct View3DShading {
 	float cavity_ridge_factor;
 
 	float background_color[3];
+
+	float curvature_ridge_factor;
+	float curvature_valley_factor;
 
 } View3DShading;
 
@@ -404,6 +409,13 @@ enum {
 	V3D_SHADING_BACKGROUND_THEME    = 0,
 	V3D_SHADING_BACKGROUND_WORLD    = 1,
 	V3D_SHADING_BACKGROUND_VIEWPORT = 2,
+};
+
+/* View3DShading->cavity_type */
+enum {
+	V3D_SHADING_CAVITY_SSAO = 0,
+	V3D_SHADING_CAVITY_CURVATURE = 1,
+	V3D_SHADING_CAVITY_BOTH = 2,
 };
 
 /* View3DOverlay->flag */

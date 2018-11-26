@@ -4325,16 +4325,25 @@ class VIEW3D_PT_shading_options(Panel):
             row.active = not shading.show_xray
             row.prop(shading, "show_cavity")
 
-            if shading.show_cavity:
-                sub = col.row(align=True)
-                sub.active = not shading.show_xray and shading.show_cavity
-                sub.prop(shading, "cavity_ridge_factor")
-                sub.prop(shading, "cavity_valley_factor")
-                sub.popover(
-                    panel="VIEW3D_PT_shading_options_ssao",
-                    icon='PREFERENCES',
-                    text=""
-                )
+            if shading.show_cavity and not shading.show_xray:
+                row.prop(shading, "cavity_type", text="Type")
+
+                if shading.cavity_type in {'WORLD', 'BOTH'}:
+                    col.label(text="World Space")
+                    sub = col.row(align=True)
+                    sub.prop(shading, "cavity_ridge_factor", text="Ridge")
+                    sub.prop(shading, "cavity_valley_factor", text="Valley")
+                    sub.popover(
+                        panel="VIEW3D_PT_shading_options_ssao",
+                        icon='PREFERENCES',
+                        text=""
+                    )
+
+                if shading.cavity_type in {'SCREEN', 'BOTH'}:
+                    col.label(text="Screen Space")
+                    sub = col.row(align=True)
+                    sub.prop(shading, "curvature_ridge_factor", text="Ridge")
+                    sub.prop(shading, "curvature_valley_factor", text="Valley")
 
         row = layout.split()
         row.prop(shading, "show_object_outline")

@@ -104,6 +104,7 @@ extern char datatoc_workbench_cavity_lib_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
+extern char datatoc_workbench_curvature_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
@@ -123,6 +124,9 @@ static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 	}
 	if (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE) {
 		BLI_dynstr_append(ds, datatoc_workbench_object_outline_lib_glsl);
+	}
+	if (CURVATURE_ENABLED(wpd)) {
+		BLI_dynstr_append(ds, datatoc_workbench_curvature_lib_glsl);
 	}
 
 	BLI_dynstr_append(ds, datatoc_workbench_deferred_composite_frag_glsl);
@@ -499,7 +503,7 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
 	if (NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &e_data.normal_buffer_tx);
 	}
-	if (CAVITY_ENABLED(wpd)) {
+	if (SSAO_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "cavityBuffer", &e_data.cavity_buffer_tx);
 	}
 	if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
@@ -903,7 +907,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->ghost_resolve_pass);
 	}
 
-	if (CAVITY_ENABLED(wpd)) {
+	if (SSAO_ENABLED(wpd)) {
 		GPU_framebuffer_bind(fbl->cavity_fb);
 		DRW_draw_pass(psl->cavity_pass);
 	}

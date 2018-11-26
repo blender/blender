@@ -103,10 +103,15 @@ void main()
 #endif
 	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
 
-#ifdef V3D_SHADING_CAVITY
+#ifdef V3D_SHADING_SSAO
 	vec2 cavity = texelFetch(cavityBuffer, texel, 0).rg;
 	shaded_color *= 1.0 - cavity.x;
 	shaded_color *= 1.0 + cavity.y;
+#endif
+
+#ifdef V3D_SHADING_CURVATURE
+	float curvature = calculate_curvature(objectId, normalBuffer, texel, world_data.curvature_ridge, world_data.curvature_valley);
+	shaded_color *= curvature + 1.0;
 #endif
 
 #ifdef V3D_SHADING_SHADOW

@@ -75,6 +75,7 @@ extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_background_lib_glsl[];
 extern char datatoc_workbench_checkerboard_depth_frag_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
+extern char datatoc_workbench_curvature_lib_glsl[];
 extern char datatoc_workbench_prepass_vert_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
@@ -123,6 +124,7 @@ static char *workbench_build_forward_composite_frag(void)
 	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_background_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_object_outline_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_workbench_curvature_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_forward_composite_frag_glsl);
 
 	str = BLI_dynstr_get_cstring(ds);
