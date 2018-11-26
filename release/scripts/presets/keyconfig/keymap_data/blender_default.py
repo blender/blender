@@ -3640,6 +3640,12 @@ def km_weight_paint(params):
          {"properties": [("data_path", 'tool_settings.weight_paint.brush.use_smooth_stroke')]}),
     ])
 
+    if params.select_mouse == 'LEFTMOUSE':
+        # Bone selection for combined weight paint + pose mode.
+        items.extend([
+            ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
+        ])
+
     return keymap
 
 
