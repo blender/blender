@@ -105,16 +105,27 @@ static void deformVerts(
         float (*vertexCos)[3],
         int numVerts)
 {
+	ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	Mesh *mesh_src = mesh;
+	Mesh *mesh_src = NULL;
 
-	if (mesh_src == NULL && ctx->object->type == OB_MESH) {
-		mesh_src = ctx->object->data;
+	if (ctx->object->type == OB_MESH) {
+		/* mesh_src is only needed for vgroups. */
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
+		BLI_assert(mesh_src->totvert == numVerts);
 	}
+
+	struct MDeformVert *dvert = NULL;
+	int defgrp_index = -1;
+	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
 	BLI_assert(mesh_src == NULL || mesh_src->totvert == numVerts);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, scene, ctx->object, mesh_src, vertexCos, numVerts);
+	shrinkwrapModifier_deform(swmd, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+
+	if (!ELEM(mesh_src, NULL, mesh)) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
@@ -122,6 +133,7 @@ static void deformVertsEM(
         struct BMEditMesh *editData, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
+	ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Mesh *mesh_src = mesh;
 
@@ -131,7 +143,11 @@ static void deformVertsEM(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, scene, ctx->object, mesh_src, vertexCos, numVerts);
+	struct MDeformVert *dvert = NULL;
+	int defgrp_index = -1;
+	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
+
+	shrinkwrapModifier_deform(swmd, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
 	if (!mesh) {
 		BKE_id_free(NULL, mesh_src);

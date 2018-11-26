@@ -1281,7 +1281,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 /* Main shrinkwrap function */
 void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene, Object *ob, Mesh *mesh,
-                               float (*vertexCos)[3], int numVerts)
+                               MDeformVert *dvert, const int defgrp_index, float (*vertexCos)[3], int numVerts)
 {
 
 	DerivedMesh *ss_mesh    = NULL;
@@ -1298,17 +1298,9 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene,
 	calc.ob = ob;
 	calc.numVerts = numVerts;
 	calc.vertexCos = vertexCos;
+	calc.dvert = dvert;
+	calc.vgroup = defgrp_index;
 	calc.invert_vgroup = (smd->shrinkOpts & MOD_SHRINKWRAP_INVERT_VGROUP) != 0;
-
-	/* DeformVertex */
-	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
-	if (mesh) {
-		calc.dvert = mesh->dvert;
-	}
-	else if (calc.ob->type == OB_LATTICE) {
-		calc.dvert = BKE_lattice_deform_verts_get(calc.ob);
-	}
-
 
 	if (smd->target) {
 		calc.target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(smd->target, &target_free);
@@ -1322,14 +1314,9 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene,
 		calc.keepDist = smd->keepDist;
 	}
 
-
-
-	calc.vgroup = defgroup_name_index(calc.ob, smd->vgroup_name);
-
 	if (mesh != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
 		/* Setup arrays to get vertexs positions, normals and deform weights */
-		calc.vert   = mesh->mvert;
-		calc.dvert  = mesh->dvert;
+		calc.vert = mesh->mvert;
 
 		/* Using vertexs positions/normals as if a subsurface was applied */
 		if (smd->subsurfLevels) {
