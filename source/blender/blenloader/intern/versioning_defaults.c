@@ -71,6 +71,9 @@ void BLO_update_defaults_userpref_blend(void)
 	U.flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
 
+	/* Transform tweak with single click and drag. */
+	U.flag |= USER_RELEASECONFIRM;
+
 	/* Ignore the theme saved in the blend file,
 	 * instead use the theme from 'userdef_default_theme.c' */
 	{
