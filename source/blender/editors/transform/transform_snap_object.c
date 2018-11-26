@@ -211,7 +211,7 @@ static void iter_snap_objects(
 
 	Base *base_act = view_layer->basact;
 	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
-		if ((BASE_VISIBLE(v3d, base)) && (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) == 0 &&
+		if ((BASE_VISIBLE_BGMODE(v3d, base)) && (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) == 0 &&
 		    !((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||
 		      (snap_select == SNAP_NOT_ACTIVE && base == base_act)))
 		{

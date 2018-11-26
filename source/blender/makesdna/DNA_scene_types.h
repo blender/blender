@@ -1836,6 +1836,10 @@ extern const char *RE_engine_id_CYCLES;
 	(((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
 	(((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0) && \
 	(((base)->flag & BASE_VISIBLE) != 0))
+#define BASE_VISIBLE_BGMODE(v3d, base) ( \
+	((v3d == NULL) || ((v3d)->localvd == NULL) || ((v3d)->local_view_uuid & (base)->local_view_bits)) && \
+	((v3d == NULL) || (((1 << (base)->object->type) & (v3d)->object_type_exclude_viewport) == 0)) && \
+	(((base)->flag & BASE_VISIBLE) != 0))
 
 #define FIRSTBASE(_view_layer)  ((_view_layer)->object_bases.first)
 #define LASTBASE(_view_layer)   ((_view_layer)->object_bases.last)
