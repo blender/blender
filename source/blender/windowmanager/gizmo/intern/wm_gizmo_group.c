@@ -67,6 +67,7 @@
 /* Allow gizmo part's to be single click only,
  * dragging falls back to activating their 'drag_part' action. */
 #define USE_DRAG_DETECT
+#define DRAG_THRESHOLD (U.tweak_threshold * U.dpi_fac)
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroup
@@ -445,7 +446,7 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	wmGizmoMap *gzmap = mtweak->gzmap;
 	if (mtweak->drag_state == DRAG_DETECT) {
 		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-			if (len_manhattan_v2v2_int(&event->x, gzmap->gzmap_context.event_xy) > 2) {
+			if (len_manhattan_v2v2_int(&event->x, gzmap->gzmap_context.event_xy) >= DRAG_THRESHOLD) {
 				mtweak->drag_state = DRAG_IDLE;
 				gz->highlight_part = gz->drag_part;
 			}
