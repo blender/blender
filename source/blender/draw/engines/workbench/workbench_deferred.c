@@ -643,10 +643,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	if (ob == draw_ctx->object_edit) {
-		return;
-	}
+
 	for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 		if (md->type != eModifierType_ParticleSystem) {
 			continue;

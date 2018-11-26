@@ -1,34 +1,31 @@
 
 uniform mat4 ModelViewProjectionMatrix;
-uniform mat3 NormalMatrix;
-uniform mat4 ModelViewMatrix;
 
 in vec3 pos;
-in vec3 nor;
-in int ind;
-out vec3 tangent;
-out vec3 viewPosition;
-flat out float colRand;
+in float color;
 
-float rand(int s)
-{
-	int seed = s * 1023423;
-
-	seed = (seed ^ 61) ^ (seed >> 16);
-	seed *= 9;
-	seed = seed ^ (seed >> 4);
-	seed *= 0x27d4eb2d;
-	seed = seed ^ (seed >> 15);
-
-	float value = float(seed);
-	value *= 1.0 / 42596.0;
-	return fract(value);
-}
+out vec4 finalColor;
+#ifdef USE_POINTS
+out vec2 radii;
+#endif
 
 void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	tangent = normalize(NormalMatrix * nor);
-	viewPosition = (ModelViewMatrix * vec4(pos, 1.0)).xyz;
-	colRand = rand(ind);
+
+	finalColor = mix(colorWire, colorEdgeSelect, color);
+
+#ifdef USE_POINTS
+	gl_PointSize = sizeVertex;
+
+	/* calculate concentric radii in pixels */
+	float radius = 0.5 * sizeVertex;
+
+	/* start at the outside and progress toward the center */
+	radii[0] = radius;
+	radii[1] = radius - 1.0;
+
+	/* convert to PointCoord units */
+	radii /= sizeVertex;
+#endif
 }

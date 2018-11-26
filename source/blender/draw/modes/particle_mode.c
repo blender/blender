@@ -48,6 +48,9 @@
 
 extern char datatoc_particle_strand_vert_glsl[];
 extern char datatoc_particle_strand_frag_glsl[];
+extern char datatoc_common_globals_lib_glsl[];
+
+extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 
 /* *********** LISTS *********** */
 
@@ -94,15 +97,19 @@ typedef struct PARTICLE_PrivateData {
 static void particle_engine_init(void *UNUSED(vedata))
 {
 	if (!e_data.strands_shader) {
-		e_data.strands_shader = DRW_shader_create(
+		e_data.strands_shader = DRW_shader_create_with_lib(
 		        datatoc_particle_strand_vert_glsl,
 		        NULL,
 		        datatoc_particle_strand_frag_glsl,
+		        datatoc_common_globals_lib_glsl,
 		        "");
-	}
-	if (!e_data.points_shader) {
-		e_data.points_shader = GPU_shader_get_builtin_shader(
-		        GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
+
+		e_data.points_shader = DRW_shader_create_with_lib(
+		        datatoc_particle_strand_vert_glsl,
+		        NULL,
+		        datatoc_particle_strand_frag_glsl,
+		        datatoc_common_globals_lib_glsl,
+		        "#define USE_POINTS");
 	}
 }
 
@@ -131,12 +138,9 @@ static void particle_cache_init(void *vedata)
 	stl->g_data->tip_points_group = DRW_shgroup_create(
 	        e_data.points_shader, psl->psys_edit_pass);
 
-	static float size = 5.0f;
-	static float outline_width = 1.0f;
-	DRW_shgroup_uniform_float(stl->g_data->inner_points_group, "size", &size, 1);
-	DRW_shgroup_uniform_float(stl->g_data->inner_points_group, "outlineWidth", &outline_width, 1);
-	DRW_shgroup_uniform_float(stl->g_data->tip_points_group, "size", &size, 1);
-	DRW_shgroup_uniform_float(stl->g_data->tip_points_group, "outlineWidth", &outline_width, 1);
+	DRW_shgroup_uniform_block(stl->g_data->strands_group, "globalsBlock", globals_ubo);
+	DRW_shgroup_uniform_block(stl->g_data->inner_points_group, "globalsBlock", globals_ubo);
+	DRW_shgroup_uniform_block(stl->g_data->tip_points_group, "globalsBlock", globals_ubo);
 }
 
 static void particle_edit_cache_populate(void *vedata,
@@ -225,6 +229,7 @@ static void particle_draw_scene(void *vedata)
 static void particle_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.strands_shader);
+	DRW_SHADER_FREE_SAFE(e_data.points_shader);
 }
 
 static const DrawEngineDataSize particle_data_size =

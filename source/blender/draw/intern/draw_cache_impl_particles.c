@@ -80,6 +80,9 @@ typedef struct ParticleBatchCache {
 	/* Control points when in edit mode. */
 	ParticleHairCache edit_hair;
 
+	GPUVertBuf *edit_pos;
+	GPUBatch *edit_strands;
+
 	GPUVertBuf *edit_inner_pos;
 	GPUBatch *edit_inner_points;
 	int edit_inner_point_len;
@@ -99,6 +102,25 @@ typedef struct HairAttributeID {
 	uint tan;
 	uint ind;
 } HairAttributeID;
+
+typedef struct EditStrandData {
+	float pos[3];
+	uchar color;
+} EditStrandData;
+
+static GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_color_id)
+{
+	static GPUVertFormat edit_point_format = { 0 };
+	static uint pos_id, color_id;
+	if (edit_point_format.attr_len == 0) {
+		/* Keep in sync with EditStrandData */
+		pos_id = GPU_vertformat_attr_add(&edit_point_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		color_id = GPU_vertformat_attr_add(&edit_point_format, "color", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+	}
+	*r_pos_id = pos_id;
+	*r_color_id = color_id;
+	return &edit_point_format;
+}
 
 static bool particle_batch_cache_valid(ParticleSystem *psys)
 {
@@ -651,6 +673,52 @@ static void particle_batch_cache_fill_segments_proc_pos(
 			}
 		}
 	}
+}
+
+static float particle_key_select_ratio(const PTCacheEdit *edit, int strand, float t)
+{
+	const PTCacheEditPoint *point = &edit->points[strand];
+	float edit_key_seg_t = 1.0f / (point->totkey - 1);
+	if (t == 1.0) {
+		return (point->keys[point->totkey - 1].flag & PEK_SELECT) ? 1.0f : 0.0;
+	}
+	else {
+		float interp = t / edit_key_seg_t;
+		int index = (int)interp;
+		interp -= floorf(interp); /* Time between 2 edit key */
+		float s1 = (point->keys[index].flag & PEK_SELECT) ? 1.0f : 0.0;
+		float s2 = (point->keys[index+1].flag & PEK_SELECT) ? 1.0f : 0.0;
+		return s1 + interp * (s2 - s1);
+	}
+}
+
+static int particle_batch_cache_fill_segments_edit(
+        const PTCacheEdit *edit,
+        ParticleCacheKey **path_cache,
+        const int start_index,
+        const int num_path_keys,
+		GPUIndexBufBuilder *elb,
+        GPUVertBufRaw *attr_step)
+{
+	int curr_point = start_index;
+	for (int i = 0; i < num_path_keys; i++) {
+		ParticleCacheKey *path = path_cache[i];
+		if (path->segments <= 0) {
+			continue;
+		}
+		for (int j = 0; j <= path->segments; j++) {
+			EditStrandData *seg_data = (EditStrandData *)GPU_vertbuf_raw_step(attr_step);
+			copy_v3_v3(seg_data->pos, path[j].co);
+			float strand_t = (float)(j) / path->segments;
+			float selected = particle_key_select_ratio(edit, i, strand_t);
+			seg_data->color = (uchar)(0xFF * selected);
+			GPU_indexbuf_add_generic_vert(elb, curr_point);
+			curr_point++;
+		}
+		/* Finish the segment and add restart primitive. */
+		GPU_indexbuf_add_primitive_restart(elb);
+	}
+	return curr_point;
 }
 
 static int particle_batch_cache_fill_segments_indices(
@@ -1366,6 +1434,46 @@ GPUBatch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psy
 	return cache->point.points;
 }
 
+static void particle_batch_cache_ensure_edit_pos_and_seg(
+        PTCacheEdit *edit,
+        ParticleSystem *UNUSED(psys),
+        ModifierData *UNUSED(md),
+        ParticleHairCache *hair_cache)
+{
+	if (hair_cache->pos != NULL && hair_cache->indices != NULL) {
+		return;
+	}
+
+	GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
+	GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
+
+	GPUVertBufRaw data_step;
+	GPUIndexBufBuilder elb;
+	uint pos_id, color_id;
+	GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &color_id);
+
+	hair_cache->pos = GPU_vertbuf_create_with_format(edit_point_format);
+	GPU_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_len);
+	GPU_vertbuf_attr_get_raw_data(hair_cache->pos, pos_id, &data_step);
+
+	GPU_indexbuf_init_ex(
+	        &elb,
+	        GPU_PRIM_LINE_STRIP,
+	        hair_cache->elems_len, hair_cache->point_len,
+	        true);
+
+	if (edit != NULL && edit->pathcache != NULL) {
+		particle_batch_cache_fill_segments_edit(
+		        edit, edit->pathcache,
+		        0, edit->totcached,
+		        &elb, &data_step);
+	}
+	else {
+		BLI_assert(!"Hairs are not in edit mode!");
+	}
+	hair_cache->indices = GPU_indexbuf_build(&elb);
+}
+
 GPUBatch *DRW_particles_batch_cache_get_edit_strands(
         Object *object,
         ParticleSystem *psys,
@@ -1377,7 +1485,7 @@ GPUBatch *DRW_particles_batch_cache_get_edit_strands(
 	}
 	drw_particle_update_ptcache_edit(object, psys, edit);
 	ensure_seg_pt_count(edit, psys, &cache->edit_hair);
-	particle_batch_cache_ensure_pos_and_seg(edit, psys, NULL, &cache->edit_hair);
+	particle_batch_cache_ensure_edit_pos_and_seg(edit, psys, NULL, &cache->edit_hair);
 	cache->edit_hair.hairs = GPU_batch_create(
 	        GPU_PRIM_LINE_STRIP,
 	        cache->edit_hair.pos,
@@ -1400,17 +1508,6 @@ static void ensure_edit_inner_points_count(
 	}
 }
 
-static void edit_colors_get(
-        PTCacheEdit *edit,
-        float selected_color[4],
-        float normal_color[4])
-{
-	rgb_uchar_to_float(selected_color, edit->sel_col);
-	rgb_uchar_to_float(normal_color, edit->nosel_col);
-	selected_color[3] = 1.0f;
-	normal_color[3] = 1.0f;
-}
-
 static void particle_batch_cache_ensure_edit_inner_pos(
         PTCacheEdit *edit,
         ParticleBatchCache *cache)
@@ -1419,35 +1516,20 @@ static void particle_batch_cache_ensure_edit_inner_pos(
 		return;
 	}
 
-	static GPUVertFormat format = { 0 };
-	static uint pos_id, color_id;
+	uint pos_id, color_id;
+	GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &color_id);
 
-	GPU_VERTBUF_DISCARD_SAFE(cache->edit_inner_pos);
-
-	if (format.attr_len == 0) {
-		/* initialize vertex format */
-		pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-		color_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-	}
-
-	cache->edit_inner_pos = GPU_vertbuf_create_with_format(&format);
+	cache->edit_inner_pos = GPU_vertbuf_create_with_format(edit_point_format);
 	GPU_vertbuf_data_alloc(cache->edit_inner_pos, cache->edit_inner_point_len);
-
-	float selected_color[4], normal_color[4];
-	edit_colors_get(edit, selected_color, normal_color);
 
 	int global_key_index = 0;
 	for (int point_index = 0; point_index < edit->totpoint; point_index++) {
 		const PTCacheEditPoint *point = &edit->points[point_index];
 		for (int key_index = 0; key_index < point->totkey - 1; key_index++) {
 			PTCacheEditKey *key = &point->keys[key_index];
+			uchar color = (key->flag & PEK_SELECT) ? 0xFF : 0x00;
 			GPU_vertbuf_attr_set(cache->edit_inner_pos, pos_id, global_key_index, key->world_co);
-			if (key->flag & PEK_SELECT) {
-				GPU_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, selected_color);
-			}
-			else {
-				GPU_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, normal_color);
-			}
+			GPU_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, &color);
 			global_key_index++;
 		}
 	}
@@ -1490,33 +1572,18 @@ static void particle_batch_cache_ensure_edit_tip_pos(
 		return;
 	}
 
-	static GPUVertFormat format = { 0 };
-	static uint pos_id, color_id;
+	uint pos_id, color_id;
+	GPUVertFormat *edit_point_format = edit_points_vert_format_get(&pos_id, &color_id);
 
-	GPU_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
-
-	if (format.attr_len == 0) {
-		/* initialize vertex format */
-		pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-		color_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-	}
-
-	cache->edit_tip_pos = GPU_vertbuf_create_with_format(&format);
+	cache->edit_tip_pos = GPU_vertbuf_create_with_format(edit_point_format);
 	GPU_vertbuf_data_alloc(cache->edit_tip_pos, cache->edit_tip_point_len);
-
-	float selected_color[4], normal_color[4];
-	edit_colors_get(edit, selected_color, normal_color);
 
 	for (int point_index = 0; point_index < edit->totpoint; point_index++) {
 		const PTCacheEditPoint *point = &edit->points[point_index];
 		PTCacheEditKey *key = &point->keys[point->totkey - 1];
+		uchar color = (key->flag & PEK_SELECT) ? 0xFF : 0x00;
 		GPU_vertbuf_attr_set(cache->edit_tip_pos, pos_id, point_index, key->world_co);
-		if (key->flag & PEK_SELECT) {
-			GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, selected_color);
-		}
-		else {
-			GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, normal_color);
-		}
+		GPU_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, &color);
 	}
 }
 
@@ -1581,7 +1648,6 @@ bool particles_ensure_procedural_data(
 	if ((*r_hair_cache)->final[subdiv].proc_hairs[thickness_res - 1] == NULL) {
 		particle_batch_cache_ensure_procedural_indices(source.edit, source.psys, &cache->hair, thickness_res, subdiv);
 	}
-
 
 	return need_ft_update;
 }
