@@ -99,47 +99,6 @@ static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParam
 	return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
 }
 
-#ifndef WITH_OPENSUBDIV_MODIFIER
-
-static DerivedMesh *applyModifier_DM(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *derivedData)
-{
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
-	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	SubsurfFlags subsurf_flags = 0;
-	DerivedMesh *result;
-	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
-	const bool isFinalCalc = (ctx->flag & MOD_APPLY_USECACHE) != 0;
-
-	bool do_cddm_convert = useRenderParams || !isFinalCalc;
-
-	if (useRenderParams)
-		subsurf_flags |= SUBSURF_USE_RENDER_PARAMS;
-	if (isFinalCalc)
-		subsurf_flags |= SUBSURF_IS_FINAL_CALC;
-	if (ctx->object->mode & OB_MODE_EDIT)
-		subsurf_flags |= SUBSURF_IN_EDIT_MODE;
-
-	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, subsurf_flags);
-	result->cd_flag = derivedData->cd_flag;
-
-	{
-		DerivedMesh *cddm = CDDM_copy(result);
-		result->release(result);
-		result = cddm;
-	}
-
-	(void) do_cddm_convert;
-
-	return result;
-}
-
-applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
-
-#endif
-
-#ifdef WITH_OPENSUBDIV_MODIFIER
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
                                           const ModifierEvalContext *ctx)
 {
@@ -217,9 +176,9 @@ static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
 
 /* Modifier itself. */
 
-static Mesh *applyModifier_subdiv(ModifierData *md,
-                                  const ModifierEvalContext *ctx,
-                                  Mesh *mesh)
+static Mesh *applyModifier(ModifierData *md,
+                           const ModifierEvalContext *ctx,
+                           Mesh *mesh)
 {
 	Mesh *result = mesh;
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
@@ -248,7 +207,6 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	BKE_subdiv_free(subdiv);
 	return result;
 }
-#endif
 
 ModifierTypeInfo modifierType_Subsurf = {
 	/* name */              "Subdivision",
@@ -273,11 +231,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-#ifdef WITH_OPENSUBDIV_MODIFIER
-	/* applyModifier */     applyModifier_subdiv,
-#else
 	/* applyModifier */     applyModifier,
-#endif
 
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,

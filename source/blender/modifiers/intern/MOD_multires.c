@@ -67,91 +67,6 @@ static void initData(ModifierData *md)
 	mmd->quality = 3;
 }
 
-#ifndef WITH_OPENSUBDIV_MODIFIER
-
-static DerivedMesh *applyModifier_DM(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
-{
-	MultiresModifierData *mmd = (MultiresModifierData *)md;
-	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	DerivedMesh *result;
-	Mesh *me = (Mesh *)ctx->object->data;
-	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
-	const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY) != 0;
-	MultiresFlags flags = 0;
-	const bool has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
-
-	if (mmd->totlvl) {
-		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
-			/* multires always needs a displacement layer */
-			CustomData_add_layer(&me->ldata, CD_MDISPS, CD_CALLOC, NULL, me->totloop);
-		}
-	}
-
-	if (has_mask)
-		flags |= MULTIRES_ALLOC_PAINT_MASK;
-
-	if (useRenderParams)
-		flags |= MULTIRES_USE_RENDER_PARAMS;
-
-	if (ignore_simplify)
-		flags |= MULTIRES_IGNORE_SIMPLIFY;
-
-	result = multires_make_derived_from_derived(dm, mmd, scene, ctx->object, flags);
-
-	if (result == dm)
-		return dm;
-
-	if (useRenderParams || !(ctx->flag & MOD_APPLY_USECACHE)) {
-		DerivedMesh *cddm;
-
-		cddm = CDDM_copy(result);
-
-		/* copy hidden/masks to vertices */
-		if (!useRenderParams) {
-			struct MDisps *mdisps;
-			struct GridPaintMask *grid_paint_mask;
-
-			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
-			grid_paint_mask = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
-
-			if (mdisps) {
-				subsurf_copy_grid_hidden(result, me->mpoly,
-				                         cddm->getVertArray(cddm),
-				                         mdisps);
-
-				BKE_mesh_flush_hidden_from_verts_ex(cddm->getVertArray(cddm),
-				                                    cddm->getLoopArray(cddm),
-				                                    cddm->getEdgeArray(cddm),
-				                                    cddm->getNumEdges(cddm),
-				                                    cddm->getPolyArray(cddm),
-				                                    cddm->getNumPolys(cddm));
-			}
-			if (grid_paint_mask) {
-				float *paint_mask = CustomData_add_layer(&cddm->vertData,
-				                                         CD_PAINT_MASK,
-				                                         CD_CALLOC, NULL,
-				                                         cddm->getNumVerts(cddm));
-
-				subsurf_copy_grid_paint_mask(result, me->mpoly,
-				                             paint_mask, grid_paint_mask);
-			}
-		}
-
-		result->release(result);
-		result = cddm;
-	}
-
-	return result;
-}
-
-applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
-
-#endif
-
-#ifdef WITH_OPENSUBDIV_MODIFIER
-
 /* Subdivide into fully qualified mesh. */
 
 static Mesh *multires_as_mesh(MultiresModifierData *mmd,
@@ -211,9 +126,9 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
 	return result;
 }
 
-static Mesh *applyModifier_subdiv(ModifierData *md,
-                                  const ModifierEvalContext *ctx,
-                                  Mesh *mesh)
+static Mesh *applyModifier(ModifierData *md,
+                           const ModifierEvalContext *ctx,
+                           Mesh *mesh)
 {
 	Mesh *result = mesh;
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -247,7 +162,6 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	}
 	return result;
 }
-#endif
 
 ModifierTypeInfo modifierType_Multires = {
 	/* name */              "Multires",
@@ -270,11 +184,7 @@ ModifierTypeInfo modifierType_Multires = {
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-#ifdef WITH_OPENSUBDIV_MODIFIER
-	/* applyModifier */     applyModifier_subdiv,
-#else
 	/* applyModifier */     applyModifier,
-#endif
 
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,
