@@ -269,6 +269,9 @@ typedef struct bGPDlayer {
 	float opacity;          /* Opacity of the layer */
 	char viewlayername[64]; /* Name of the layer used to filter render output */
 
+	int blend_mode;         /* blend modes */
+	char pad_[4];
+
 	bGPDlayer_Runtime runtime;
 } bGPDlayer;
 
@@ -292,6 +295,8 @@ typedef enum eGPDlayer_Flag {
 	GP_LAYER_VOLUMETRIC		= (1 << 10),
 	/* Unlock color */
 	GP_LAYER_UNLOCK_COLOR 	= (1 << 12),
+	/* Mask Layer */
+	GP_LAYER_USE_MASK = (1 << 13),
 } eGPDlayer_Flag;
 
 /* bGPDlayer->onion_flag */
@@ -299,6 +304,16 @@ typedef enum eGPDlayer_OnionFlag {
 	/* do onion skinning */
 	GP_LAYER_ONIONSKIN = (1 << 0),
 } eGPDlayer_OnionFlag;
+
+/* layer blend_mode */
+typedef enum eGPLayerBlendModes {
+	eGplBlendMode_Normal = 0,
+	eGplBlendMode_Overlay = 1,
+	eGplBlendMode_Add = 2,
+	eGplBlendMode_Subtract = 3,
+	eGplBlendMode_Multiply = 4,
+	eGplBlendMode_Divide = 5,
+} eGPLayerBlendModes;
 
 /* ***************************************** */
 /* GP Datablock */

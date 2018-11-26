@@ -54,17 +54,23 @@ struct RenderLayer;
 #define GP_SIMPLIFY_FILL(scene, playing) ((GP_SIMPLIFY_ONPLAY(playing) && (GP_SIMPLIFY(scene)) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FILL)))
 #define GP_SIMPLIFY_MODIF(scene, playing) ((GP_SIMPLIFY_ONPLAY(playing) && (GP_SIMPLIFY(scene)) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_MODIFIER)))
 #define GP_SIMPLIFY_FX(scene, playing) ((GP_SIMPLIFY_ONPLAY(playing) && (GP_SIMPLIFY(scene)) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_FX)))
+#define GP_SIMPLIFY_BLEND(scene, playing) ((GP_SIMPLIFY_ONPLAY(playing) && (GP_SIMPLIFY(scene)) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_BLEND)))
 
 #define GP_IS_CAMERAVIEW ((rv3d != NULL) && (rv3d->persp == RV3D_CAMOB && v3d->camera))
 
  /* *********** OBJECTS CACHE *********** */
+typedef struct tGPencilObjectCache_shgrp {
+	int mode;
+	bool clamp_layer;
+	float blend_opacity;
+	DRWShadingGroup *init_shgrp;
+	DRWShadingGroup *end_shgrp;
+} tGPencilObjectCache_shgrp;
 
  /* used to save gpencil object data for drawing */
 typedef struct tGPencilObjectCache {
 	struct Object *ob;
 	struct bGPdata *gpd;
-	DRWShadingGroup *init_grp;
-	DRWShadingGroup *end_grp;
 	int idx;  /*original index, can change after sort */
 
 	/* effects */
@@ -90,6 +96,11 @@ typedef struct tGPencilObjectCache {
 	/* GPU data size */
 	int tot_vertex;
 	int tot_triangles;
+
+	/* Save shader groups by layer */
+	int tot_layers;
+	tGPencilObjectCache_shgrp *shgrp_array;
+
 } tGPencilObjectCache;
 
   /* *********** LISTS *********** */
@@ -127,10 +138,15 @@ typedef struct GPENCIL_Storage {
 	int tonemapping;
 	short multisamples;
 
+	int blend_mode;
+	int clamp_layer;
+	float blend_opacity;
+
 	/* simplify settings*/
 	bool simplify_fill;
 	bool simplify_modif;
 	bool simplify_fx;
+	bool simplify_blend;
 
 	/* Render Matrices and data */
 	float persmat[4][4], persinv[4][4];
@@ -158,6 +174,7 @@ typedef struct GPENCIL_PassList {
 	struct DRWPass *background_pass;
 	struct DRWPass *paper_pass;
 	struct DRWPass *grid_pass;
+	struct DRWPass *blend_pass;
 
 	/* effects */
 	struct DRWPass *fx_shader_pass;
@@ -232,6 +249,7 @@ typedef struct GPENCIL_e_data {
 	struct GPUShader *gpencil_drawing_fill_sh;
 	struct GPUShader *gpencil_fullscreen_sh;
 	struct GPUShader *gpencil_simple_fullscreen_sh;
+	struct GPUShader *gpencil_blend_fullscreen_sh;
 	struct GPUShader *gpencil_background_sh;
 	struct GPUShader *gpencil_paper_sh;
 

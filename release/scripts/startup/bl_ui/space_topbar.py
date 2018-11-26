@@ -516,6 +516,16 @@ class TOPBAR_PT_gpencil_layers(Panel):
         col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
                           rows=layer_rows, reverse=True)
 
+        gpl = context.active_gpencil_layer
+        if gpl:
+            srow = col.row(align=True)
+            srow.prop(gpl, "blend_mode", text="Blend")
+
+            srow = col.row(align=True)
+            srow.prop(gpl, "opacity", text="Opacity", slider=True)
+            srow.prop(gpl, "clamp_layer", text="",
+                     icon='MOD_MASK' if gpl.clamp_layer else 'ONIONSKIN_OFF')
+
         col = row.column()
 
         sub = col.column(align=True)
@@ -538,10 +548,6 @@ class TOPBAR_PT_gpencil_layers(Panel):
                 sub = col.column(align=True)
                 sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
                 sub.operator("gpencil.layer_isolate", icon='HIDE_OFF', text="").affect_visibility = True
-
-        row = layout.row(align=True)
-        if gpl:
-            row.prop(gpl, "opacity", text="Opacity", slider=True)
 
 
 class TOPBAR_MT_editor_menus(Menu):

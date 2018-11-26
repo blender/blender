@@ -766,7 +766,6 @@ class AnnotationDataPanel:
             layout.prop(tool_settings, "annotation_thickness", text="Thickness")
 
         if gpl:
-            # layout.prop(gpl, "opacity", text="Opacity", slider=True)
             # Full-Row - Frame Locking (and Delete Frame)
             row = layout.row(align=True)
             row.active = not gpl.lock
@@ -873,6 +872,10 @@ class GPENCIL_UL_layer(UIList):
             row.prop(gpl, "info", text="", emboss=False)
 
             row = layout.row(align=True)
+            row.prop(gpl, "clamp_layer", text="",
+                        icon='MOD_MASK' if gpl.clamp_layer else 'ONIONSKIN_OFF',
+                        emboss=False)
+
             row.prop(gpl, "lock", text="", emboss=False)
             row.prop(gpl, "hide", text="", emboss=False)
             subrow = row.row(align=True)

@@ -135,13 +135,22 @@ class DATA_PT_gpencil_datapanel(Panel):
         col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
                           rows=layer_rows, reverse=True)
 
+        gpl = context.active_gpencil_layer
+        if gpl:
+            srow = col.row(align=True)
+            srow.prop(gpl, "blend_mode", text="Blend")
+
+            srow = col.row(align=True)
+            srow.prop(gpl, "opacity", text="Opacity", slider=True)
+            srow.prop(gpl, "clamp_layer", text="",
+                     icon='MOD_MASK' if gpl.clamp_layer else 'ONIONSKIN_OFF')
+
         col = row.column()
 
         sub = col.column(align=True)
         sub.operator("gpencil.layer_add", icon='ADD', text="")
         sub.operator("gpencil.layer_remove", icon='REMOVE', text="")
 
-        gpl = context.active_gpencil_layer
         if gpl:
             sub.menu("GPENCIL_MT_layer_specials", icon='DOWNARROW_HLT', text="")
 
@@ -157,10 +166,6 @@ class DATA_PT_gpencil_datapanel(Panel):
                 sub = col.column(align=True)
                 sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
                 sub.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
-
-        row = layout.row(align=True)
-        if gpl:
-            row.prop(gpl, "opacity", text="Opacity", slider=True)
 
 
 class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):

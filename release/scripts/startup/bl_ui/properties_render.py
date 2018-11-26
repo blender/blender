@@ -650,6 +650,7 @@ class RENDER_PT_simplify_greasepencil(RenderButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         rd = context.scene.render
 
@@ -659,8 +660,8 @@ class RENDER_PT_simplify_greasepencil(RenderButtonsPanel, Panel):
         col.prop(rd, "simplify_gpencil_onplay", text="Playback Only")
         col.prop(rd, "simplify_gpencil_view_modifier", text="Modifiers")
         col.prop(rd, "simplify_gpencil_shader_fx", text="ShaderFX")
+        col.prop(rd, "simplify_gpencil_blend", text="Layers Blending")
 
-        col = layout.column(align=True)
         col.prop(rd, "simplify_gpencil_view_fill")
         sub = col.column()
         sub.active = rd.simplify_gpencil_view_fill
