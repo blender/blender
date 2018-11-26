@@ -1916,5 +1916,8 @@ void BKE_mesh_eval_geometry(
 	DEG_debug_print_eval(depsgraph, __func__, mesh->id.name, mesh);
 	if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(mesh);
+		/* Clear autospace flag in evaluated mesh, so that texspace does not get recomputed when bbox is
+		 * (e.g. after modifiers, etc.) */
+		mesh->texflag &= ~ME_AUTOSPACE;
 	}
 }
