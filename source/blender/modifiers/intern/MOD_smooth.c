@@ -216,11 +216,8 @@ static void deformVerts(
 	SmoothModifierData *smd = (SmoothModifierData *)md;
 	Mesh *mesh_src = NULL;
 
-	if (ctx->object->type == OB_MESH) {
-		/* mesh_src is needed for vgroups, and taking edges into account. */
-		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-		BLI_assert(mesh_src->totvert == numVerts);
-	}
+	/* mesh_src is needed for vgroups, and taking edges into account. */
+	mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
 	smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, numVerts);
 
@@ -234,13 +231,10 @@ static void deformVertsEM(
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	SmoothModifierData *smd = (SmoothModifierData *)md;
-	Mesh *mesh_src = mesh;
+	Mesh *mesh_src = NULL;
 
-	if (mesh_src == NULL) {
-		mesh_src = BKE_mesh_from_bmesh_for_eval_nomain(editData->bm, 0);
-	}
-
-	BLI_assert(mesh_src->totvert == numVerts);
+	/* mesh_src is needed for vgroups, and taking edges into account. */
+	mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
 	smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, numVerts);
 

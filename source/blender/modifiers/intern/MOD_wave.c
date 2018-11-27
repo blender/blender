@@ -314,8 +314,9 @@ static void deformVerts(
 
 	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (mesh_src != mesh)
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
@@ -333,8 +334,9 @@ static void deformVertsEM(
 
 	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (mesh_src != mesh)
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 

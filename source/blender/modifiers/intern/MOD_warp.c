@@ -317,10 +317,9 @@ static void deformVerts(
 	WarpModifierData *wmd = (WarpModifierData *)md;
 	Mesh *mesh_src = NULL;
 
-	if (ctx->object->type == OB_MESH) {
-		/* mesh_src is only needed for vgroups and textures, which only work on meshes. */
+	if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
+		/* mesh_src is only needed for vgroups and textures. */
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
 	warpModifier_do(wmd, ctx, mesh_src, vertexCos, numVerts);
@@ -335,13 +334,12 @@ static void deformVertsEM(
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	WarpModifierData *wmd = (WarpModifierData *)md;
-	Mesh *mesh_src = mesh;
+	Mesh *mesh_src = NULL;
 
-	if (mesh_src == NULL) {
-		mesh_src = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, 0);
+	if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
+		/* mesh_src is only needed for vgroups and textures. */
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 	}
-
-	BLI_assert(mesh_src->totvert == numVerts);
 
 	warpModifier_do(wmd, ctx, mesh_src, vertexCos, numVerts);
 

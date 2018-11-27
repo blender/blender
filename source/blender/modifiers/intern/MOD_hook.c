@@ -358,7 +358,7 @@ static void deformVerts(
 
 	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (mesh_src != mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }
@@ -373,7 +373,7 @@ static void deformVertsEM(
 
 	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (mesh_src != mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }

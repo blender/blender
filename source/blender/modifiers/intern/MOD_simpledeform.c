@@ -388,10 +388,9 @@ static void deformVerts(
 	SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
 	Mesh *mesh_src = NULL;
 
-	if (ctx->object->type == OB_MESH) {
+	if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
 		/* mesh_src is only needed for vgroups. */
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
 	SimpleDeformModifier_do(sdmd, ctx->object, mesh_src, vertexCos, numVerts);
@@ -408,11 +407,17 @@ static void deformVertsEM(
         float (*vertexCos)[3],
         int numVerts)
 {
-	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
+	SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
+	Mesh *mesh_src = NULL;
 
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+	if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
+		/* mesh_src is only needed for vgroups. */
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
+	}
 
-	if (mesh_src != mesh) {
+	SimpleDeformModifier_do(sdmd, ctx->object, mesh_src, vertexCos, numVerts);
+
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }

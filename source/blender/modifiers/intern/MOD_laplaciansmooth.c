@@ -512,8 +512,9 @@ static void deformVerts(
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
 
-	if (mesh_src != mesh)
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
@@ -530,8 +531,9 @@ static void deformVertsEM(
 	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
 
-	if (mesh_src != mesh)
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 

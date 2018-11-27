@@ -112,14 +112,11 @@ static void deformVerts(
 	if (ctx->object->type == OB_MESH) {
 		/* mesh_src is only needed for vgroups. */
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
 	struct MDeformVert *dvert = NULL;
 	int defgrp_index = -1;
 	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
-
-	BLI_assert(mesh_src == NULL || mesh_src->totvert == numVerts);
 
 	shrinkwrapModifier_deform(swmd, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
@@ -135,13 +132,7 @@ static void deformVertsEM(
 {
 	ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = BKE_mesh_from_bmesh_for_eval_nomain(editData->bm, 0);
-	}
-
-	BLI_assert(mesh_src->totvert == numVerts);
+	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
 	struct MDeformVert *dvert = NULL;
 	int defgrp_index = -1;
@@ -149,7 +140,7 @@ static void deformVertsEM(
 
 	shrinkwrapModifier_deform(swmd, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
-	if (!mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }

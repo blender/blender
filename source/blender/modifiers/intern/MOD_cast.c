@@ -431,10 +431,9 @@ static void deformVerts(
 	CastModifierData *cmd = (CastModifierData *)md;
 	Mesh *mesh_src = NULL;
 
-	if (ctx->object->type == OB_MESH) {
+	if (ctx->object->type == OB_MESH && cmd->defgrp_name[0] != '\0') {
 		/* mesh_src is only needed for vgroups. */
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
-		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {

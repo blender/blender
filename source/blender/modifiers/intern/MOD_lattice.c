@@ -107,9 +107,10 @@ static void deformVerts(
 	lattice_deform_verts(lmd->object, ctx->object, mesh_src,
 	                     vertexCos, numVerts, lmd->name, lmd->strength);
 
-	if (mesh_src != mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
-	}}
+	}
+}
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
@@ -119,7 +120,7 @@ static void deformVertsEM(
 
 	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
-	if (mesh_src != mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }
