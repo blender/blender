@@ -20,6 +20,6 @@ def execute_queued_functions():
     while not execution_queue.empty():
         function = execution_queue.get()
         function()
-    return 1
+    return 1.0
 
 bpy.app.timers.register(execute_queued_functions)
