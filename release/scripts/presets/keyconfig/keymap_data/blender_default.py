@@ -4943,6 +4943,62 @@ def km_popup_toolbar(params):
 #
 # Named are auto-generated based on the tool name and it's toolbar.
 
+
+def km_generic_tool_annotate(params):
+    return (
+        "Generic Tool: Annotate",
+        {"region_type": 'WINDOW'},
+        {"items": (
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+        ),
+        },
+    )
+
+
+def km_generic_tool_annotate_line(params):
+    return (
+        "Generic Tool: Annotate Line",
+        {"region_type": 'WINDOW'},
+        {"items": (
+            ("gpencil.annotate", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+        ),
+        },
+    )
+
+
+def km_generic_tool_annotate_polygon(params):
+    return (
+        "Generic Tool: Annotate Polygon",
+        {"region_type": 'WINDOW'},
+        {"items": (
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+        ),
+        },
+    )
+
+
+def km_generic_tool_annotate_eraser(params):
+    return (
+        "Generic Tool: Annotate Eraser",
+        {"region_type": 'WINDOW'},
+        {"items": (
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
+        ),
+        },
+    )
+
 def km_image_editor_tool_uv_cursor(params):
     return (
         "Image Editor Tool: Uv, Cursor",
@@ -4991,54 +5047,6 @@ def km_image_editor_tool_uv_select_lasso(params):
         "Image Editor Tool: Uv, Select Lasso",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select_actions_simple("uv.select_lasso", type=params.tool_tweak, value='ANY')},
-    )
-
-
-def km_image_editor_tool_uv_annotate(params):
-    return (
-        "Image Editor Tool: Uv, Annotate",
-        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-        ),
-        },
-    )
-
-
-def km_image_editor_tool_uv_annotate_line(params):
-    return (
-        "Image Editor Tool: Uv, Annotate Line",
-        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-        ),
-        },
-    )
-
-
-def km_image_editor_tool_uv_annotate_polygon(params):
-    return (
-        "Image Editor Tool: Uv, Annotate Polygon",
-        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
-        ),
-        },
-    )
-
-
-def km_image_editor_tool_uv_annotate_eraser(params):
-    return (
-        "Image Editor Tool: Uv, Annotate Eraser",
-        {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        ),
-        },
     )
 
 
@@ -5135,62 +5143,6 @@ def km_3d_view_tool_object_scale(params):
         {"items": (
             ("transform.resize", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
-        ),
-        },
-    )
-
-
-def km_3d_view_tool_object_annotate(params):
-    return (
-        "3D View Tool: Object, Annotate",
-        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        ),
-        },
-    )
-
-
-def km_3d_view_tool_object_annotate_line(params):
-    return (
-        "3D View Tool: Object, Annotate Line",
-        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_tweak, "value": 'ANY'},
-             {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        ),
-        },
-    )
-
-
-def km_3d_view_tool_object_annotate_polygon(params):
-    return (
-        "3D View Tool: Object, Annotate Polygon",
-        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        ),
-        },
-    )
-
-
-def km_3d_view_tool_object_annotate_eraser(params):
-    return (
-        "3D View Tool: Object, Annotate Eraser",
-        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
-        {"items": (
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
-             {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
         ),
         },
     )
@@ -5940,15 +5892,16 @@ def generate_keymaps(params=None):
         km_popup_toolbar(params),
 
         # Tool System.
+        km_generic_tool_annotate(params),
+        km_generic_tool_annotate_line(params),
+        km_generic_tool_annotate_polygon(params),
+        km_generic_tool_annotate_eraser(params),
+
         km_image_editor_tool_uv_cursor(params),
         km_image_editor_tool_uv_select(params),
         km_image_editor_tool_uv_select_box(params),
         km_image_editor_tool_uv_select_circle(params),
         km_image_editor_tool_uv_select_lasso(params),
-        km_image_editor_tool_uv_annotate(params),
-        km_image_editor_tool_uv_annotate_line(params),
-        km_image_editor_tool_uv_annotate_polygon(params),
-        km_image_editor_tool_uv_annotate_eraser(params),
         km_3d_view_tool_object_cursor(params),
         km_3d_view_tool_object_select(params),
         km_3d_view_tool_object_select_box(params),
@@ -5958,10 +5911,6 @@ def generate_keymaps(params=None):
         km_3d_view_tool_object_move(params),
         km_3d_view_tool_object_rotate(params),
         km_3d_view_tool_object_scale(params),
-        km_3d_view_tool_object_annotate(params),
-        km_3d_view_tool_object_annotate_line(params),
-        km_3d_view_tool_object_annotate_polygon(params),
-        km_3d_view_tool_object_annotate_eraser(params),
         km_3d_view_tool_object_measure(params),
         km_3d_view_tool_pose_breakdowner(params),
         km_3d_view_tool_pose_push(params),

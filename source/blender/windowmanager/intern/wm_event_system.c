@@ -2860,8 +2860,9 @@ static void wm_event_temp_tool_handler_apply(
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
 		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
 		if (tref_rt && tref_rt->keymap[0]) {
-			wmKeyMap *km = WM_keymap_find_all(
+			wmKeyMap *km = WM_keymap_find_all_spaceid_or_empty(
 			        C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW);
+			/* We shouldn't use keymaps from unrelated spaces. */
 			if (km != NULL) {
 				// printf("Keymap: '%s' -> '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
 				sneaky_handler->keymap = km;
