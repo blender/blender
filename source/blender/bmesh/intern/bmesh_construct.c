@@ -99,7 +99,7 @@ void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr,
 /* prototypes */
 static void bm_loop_attrs_copy(
         BMesh *source_mesh, BMesh *target_mesh,
-        const BMLoop *source_loop, BMLoop *target_loop);
+        const BMLoop *source_loop, BMLoop *target_loop, uint64_t cd_mask);
 
 /**
  * \brief Make Quad/Triangle
@@ -169,7 +169,7 @@ void BM_face_copy_shared(
 				BLI_assert(l_dst[j]->v == l_src[j]->v);
 				if (BM_ELEM_API_FLAG_TEST(l_dst[j], _FLAG_OVERLAP) == 0) {
 					if ((filter_fn == NULL) || filter_fn(l_src[j], user_data)) {
-						bm_loop_attrs_copy(bm, bm, l_src[j], l_dst[j]);
+						bm_loop_attrs_copy(bm, bm, l_src[j], l_dst[j], 0x0);
 						BM_ELEM_API_FLAG_ENABLE(l_dst[j], _FLAG_OVERLAP);
 					}
 				}
@@ -486,13 +486,15 @@ void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
 
 static void bm_vert_attrs_copy(
         BMesh *source_mesh, BMesh *target_mesh,
-        const BMVert *source_vertex, BMVert *target_vertex)
+        const BMVert *source_vertex, BMVert *target_vertex, uint64_t cd_mask)
 {
 	if ((source_mesh == target_mesh) && (source_vertex == target_vertex)) {
 		BLI_assert(!"BMVert: source and targer match");
 		return;
 	}
-	copy_v3_v3(target_vertex->no, source_vertex->no);
+	if ((cd_mask & CD_MASK_NORMAL) == 0) {
+		copy_v3_v3(target_vertex->no, source_vertex->no);
+	}
 	CustomData_bmesh_free_block_data(&target_mesh->vdata, target_vertex->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata,
 	                           source_vertex->head.data, &target_vertex->head.data);
@@ -500,7 +502,7 @@ static void bm_vert_attrs_copy(
 
 static void bm_edge_attrs_copy(
         BMesh *source_mesh, BMesh *target_mesh,
-        const BMEdge *source_edge, BMEdge *target_edge)
+        const BMEdge *source_edge, BMEdge *target_edge, uint64_t UNUSED(cd_mask))
 {
 	if ((source_mesh == target_mesh) && (source_edge == target_edge)) {
 		BLI_assert(!"BMEdge: source and targer match");
@@ -513,7 +515,7 @@ static void bm_edge_attrs_copy(
 
 static void bm_loop_attrs_copy(
         BMesh *source_mesh, BMesh *target_mesh,
-        const BMLoop *source_loop, BMLoop *target_loop)
+        const BMLoop *source_loop, BMLoop *target_loop, uint64_t UNUSED(cd_mask))
 {
 	if ((source_mesh == target_mesh) && (source_loop == target_loop)) {
 		BLI_assert(!"BMLoop: source and targer match");
@@ -526,13 +528,15 @@ static void bm_loop_attrs_copy(
 
 static void bm_face_attrs_copy(
         BMesh *source_mesh, BMesh *target_mesh,
-        const BMFace *source_face, BMFace *target_face)
+        const BMFace *source_face, BMFace *target_face, uint64_t cd_mask)
 {
 	if ((source_mesh == target_mesh) && (source_face == target_face)) {
 		BLI_assert(!"BMFace: source and targer match");
 		return;
 	}
-	copy_v3_v3(target_face->no, source_face->no);
+	if ((cd_mask & CD_MASK_NORMAL) == 0) {
+		copy_v3_v3(target_face->no, source_face->no);
+	}
 	CustomData_bmesh_free_block_data(&target_mesh->pdata, target_face->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata,
 	                           source_face->head.data, &target_face->head.data);
@@ -548,13 +552,16 @@ static void bm_face_attrs_copy(
  */
 void BM_elem_attrs_copy_ex(
         BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
-        const char hflag_mask)
+        const char hflag_mask, const uint64_t cd_mask)
 {
 	const BMHeader *ele_src = ele_src_v;
 	BMHeader *ele_dst = ele_dst_v;
 
 	BLI_assert(ele_src->htype == ele_dst->htype);
 	BLI_assert(ele_src != ele_dst);
+
+	/* Only support normal layer at the moment. */
+	BLI_assert((cd_mask & ~CD_MASK_NORMAL) == 0);
 
 	if ((hflag_mask & BM_ELEM_SELECT) == 0) {
 		/* First we copy select */
@@ -577,16 +584,16 @@ void BM_elem_attrs_copy_ex(
 	/* Copy specific attributes */
 	switch (ele_dst->htype) {
 		case BM_VERT:
-			bm_vert_attrs_copy(bm_src, bm_dst, (const BMVert *)ele_src, (BMVert *)ele_dst);
+			bm_vert_attrs_copy(bm_src, bm_dst, (const BMVert *)ele_src, (BMVert *)ele_dst, cd_mask);
 			break;
 		case BM_EDGE:
-			bm_edge_attrs_copy(bm_src, bm_dst, (const BMEdge *)ele_src, (BMEdge *)ele_dst);
+			bm_edge_attrs_copy(bm_src, bm_dst, (const BMEdge *)ele_src, (BMEdge *)ele_dst, cd_mask);
 			break;
 		case BM_LOOP:
-			bm_loop_attrs_copy(bm_src, bm_dst, (const BMLoop *)ele_src, (BMLoop *)ele_dst);
+			bm_loop_attrs_copy(bm_src, bm_dst, (const BMLoop *)ele_src, (BMLoop *)ele_dst, cd_mask);
 			break;
 		case BM_FACE:
-			bm_face_attrs_copy(bm_src, bm_dst, (const BMFace *)ele_src, (BMFace *)ele_dst);
+			bm_face_attrs_copy(bm_src, bm_dst, (const BMFace *)ele_src, (BMFace *)ele_dst, cd_mask);
 			break;
 		default:
 			BLI_assert(0);
@@ -597,7 +604,7 @@ void BM_elem_attrs_copy_ex(
 void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src, void *ele_dst)
 {
 	/* BMESH_TODO, default 'use_flags' to false */
-	BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, BM_ELEM_SELECT);
+	BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, BM_ELEM_SELECT, 0x0);
 }
 
 void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v)
@@ -644,7 +651,7 @@ static BMFace *bm_mesh_copy_new_face(
 	/* use totface in case adding some faces fails */
 	BM_elem_index_set(f_new, (bm_new->totface - 1)); /* set_inline */
 
-	BM_elem_attrs_copy_ex(bm_old, bm_new, f, f_new, 0xff);
+	BM_elem_attrs_copy_ex(bm_old, bm_new, f, f_new, 0xff, 0x0);
 	f_new->head.hflag = f->head.hflag;  /* low level! don't do this for normal api use */
 
 	j = 0;
@@ -701,7 +708,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	BM_ITER_MESH_INDEX (v, &iter, bm_old, BM_VERTS_OF_MESH, i) {
 		/* copy between meshes so cant use 'example' argument */
 		v_new = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD);
-		BM_elem_attrs_copy_ex(bm_old, bm_new, v, v_new, 0xff);
+		BM_elem_attrs_copy_ex(bm_old, bm_new, v, v_new, 0xff, 0x0);
 		v_new->head.hflag = v->head.hflag;  /* low level! don't do this for normal api use */
 		vtable[i] = v_new;
 		BM_elem_index_set(v, i); /* set_inline */
@@ -719,7 +726,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		                       vtable[BM_elem_index_get(e->v2)],
 		                       e, BM_CREATE_SKIP_CD);
 
-		BM_elem_attrs_copy_ex(bm_old, bm_new, e, e_new, 0xff);
+		BM_elem_attrs_copy_ex(bm_old, bm_new, e, e_new, 0xff, 0x0);
 		e_new->head.hflag = e->head.hflag;  /* low level! don't do this for normal api use */
 		etable[i] = e_new;
 		BM_elem_index_set(e, i); /* set_inline */
