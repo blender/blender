@@ -391,8 +391,8 @@ typedef struct SequencerScopes {
 #define SEQ_EDIT_OVERLAY_SHOW           1
 #define SEQ_EDIT_OVERLAY_ABS            2
 
-#define SEQ_STRIP_OFSBOTTOM     0.2f
-#define SEQ_STRIP_OFSTOP        0.8f
+#define SEQ_STRIP_OFSBOTTOM     0.05f
+#define SEQ_STRIP_OFSTOP        0.95f
 
 /* Editor->proxy_storage */
 /* store proxies in project directory */
