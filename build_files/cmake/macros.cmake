@@ -687,6 +687,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 
 		bf_intern_glew_mx
 		bf_intern_clog
+		bf_intern_numaapi
 	)
 
 	if(NOT WITH_SYSTEM_GLOG)

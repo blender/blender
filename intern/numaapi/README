@@ -1,0 +1,7 @@
+LibNumaAPI is aimed to provide one common cross-platform API for all
+possible platforms, so cross-platform applications might not worry
+about implementation details.
+
+LICENSE
+
+LibNumaAPI library is released under the MIT license.
