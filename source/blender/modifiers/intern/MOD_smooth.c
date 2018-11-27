@@ -109,7 +109,7 @@ static void smoothModifier_do(
 	fac = smd->fac;
 	facm = 1 - fac;
 
-	if (mesh->totvert == numVerts) {
+	if (mesh != NULL) {
 		medges = mesh->medge;
 		numDMEdges = mesh->totedge;
 	}
@@ -213,22 +213,27 @@ static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = mesh;
+	SmoothModifierData *smd = (SmoothModifierData *)md;
+	Mesh *mesh_src = NULL;
 
-	if (mesh_src == NULL) {
-		mesh_src = ctx->object->data;
+	if (ctx->object->type == OB_MESH) {
+		/* mesh_src is needed for vgroups, and taking edges into account. */
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
+		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
-	BLI_assert(mesh_src->totvert == numVerts);
+	smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, numVerts);
 
-	smoothModifier_do((SmoothModifierData *)md, ctx->object, mesh_src,
-	                  vertexCos, numVerts);
+	if (!ELEM(mesh_src, NULL, mesh)) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
+	SmoothModifierData *smd = (SmoothModifierData *)md;
 	Mesh *mesh_src = mesh;
 
 	if (mesh_src == NULL) {
@@ -237,10 +242,9 @@ static void deformVertsEM(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	smoothModifier_do((SmoothModifierData *)md, ctx->object, mesh_src,
-	                  vertexCos, numVerts);
+	smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (!mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }
