@@ -338,6 +338,10 @@ def km_window(params):
             items.append(
                 ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
             )
+        elif params.spacebar_action == 'SEARCH':
+            items.append(
+                ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS'}, None),
+            )
         else:
             assert False
 
@@ -2685,7 +2689,7 @@ def km_frames(params):
 
     if not params.legacy:
         # New playback
-        if params.spacebar_action == 'TOOL':
+        if params.spacebar_action in {'TOOL', 'SEARCH'}:
             items.append(
                 ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
             )
