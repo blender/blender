@@ -214,7 +214,7 @@ static void warpModifier_do(
 	}
 	weight = strength;
 
-	if (wmd->texture) {
+	if (mesh != NULL && wmd->texture) {
 		tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co), "warpModifier_do tex_co");
 		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ob, mesh, vertexCos, tex_co);
 
@@ -314,21 +314,27 @@ static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = mesh;
+	WarpModifierData *wmd = (WarpModifierData *)md;
+	Mesh *mesh_src = NULL;
 
-	if (mesh_src == NULL) {
-		mesh_src = ctx->object->data;
+	if (ctx->object->type == OB_MESH) {
+		/* mesh_src is only needed for vgroups and textures, which only work on meshes. */
+		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
+		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
-	BLI_assert(mesh_src->totvert == numVerts);
+	warpModifier_do(wmd, ctx, mesh_src, vertexCos, numVerts);
 
-	warpModifier_do((WarpModifierData *)md, ctx, mesh_src, vertexCos, numVerts);
+	if (!ELEM(mesh_src, NULL, mesh)) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
+	WarpModifierData *wmd = (WarpModifierData *)md;
 	Mesh *mesh_src = mesh;
 
 	if (mesh_src == NULL) {
@@ -337,9 +343,9 @@ static void deformVertsEM(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	warpModifier_do((WarpModifierData *)md, ctx, mesh_src, vertexCos, numVerts);
+	warpModifier_do(wmd, ctx, mesh_src, vertexCos, numVerts);
 
-	if (!mesh) {
+	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }
