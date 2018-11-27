@@ -527,24 +527,17 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 		return;
 	}
 
-	if (calc->vert) {
+	if (calc->vert != NULL && calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
 		/* calc->vert contains verts from evaluated mesh.  */
 		/* These coordinates are deformed by vertexCos only for normal projection (to get correct normals) */
 		/* for other cases calc->verts contains undeformed coordinates and vertexCos should be used */
-		if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
-			copy_v3_v3(tmp_co, calc->vert[i].co);
-			normal_short_to_float_v3(tmp_no, calc->vert[i].no);
-		}
-		else {
-			copy_v3_v3(tmp_co, co);
-			copy_v3_v3(tmp_no, proj_axis);
-		}
+		copy_v3_v3(tmp_co, calc->vert[i].co);
+		normal_short_to_float_v3(tmp_no, calc->vert[i].no);
 	}
 	else {
 		copy_v3_v3(tmp_co, co);
 		copy_v3_v3(tmp_no, proj_axis);
 	}
-
 
 	hit->index = -1;
 	hit->dist = BVH_RAYCAST_DIST_MAX; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
