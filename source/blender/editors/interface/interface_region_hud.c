@@ -341,8 +341,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 	ar->v2d.minzoom = 1.0f;
 	ar->v2d.maxzoom = 1.0f;
 
-	/* XXX, should be handled in more general way. */
-	ar->visible = !((ar->flag & RGN_FLAG_HIDDEN) || (ar->flag & RGN_FLAG_TOO_SMALL));
+	ar->visible = !(ar->flag & RGN_FLAG_HIDDEN);
 
 	/* We shouldn't need to do this every time :S */
 	/* XXX, this is evil! - it also makes the menu show on first draw. :( */
@@ -357,6 +356,8 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *sa)
 		}
 		CTX_wm_region_set((bContext *)C, ar_prev);
 	}
+
+	ar->visible = !((ar->flag & RGN_FLAG_HIDDEN) || (ar->flag & RGN_FLAG_TOO_SMALL));
 }
 
 /** \} */
