@@ -876,10 +876,7 @@ void BKE_mesh_boundbox_calc(Mesh *me, float r_loc[3], float r_size[3])
 	if (!r_size) r_size = msize;
 
 	INIT_MINMAX(min, max);
-	if (!(me->edit_btmesh ?
-	    BM_mesh_minmax(me->edit_btmesh->bm, min, max) :
-	    BKE_mesh_minmax(me, min, max)))
-	{
+	if (!BKE_mesh_minmax(me, min, max)) {
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
