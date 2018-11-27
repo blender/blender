@@ -1529,7 +1529,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
 	BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_STARTUP_FILE, NULL);
 
-	printf("trying to save homefile at %s ", filepath);
+	printf("Writing homefile: '%s' ", filepath);
 
 	ED_editors_flush_edits(C, false);
 
@@ -1617,6 +1617,7 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 		bool ok_write;
 		BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
 
+		printf("Writing userprefs: '%s' ", filepath);
 		if (use_template_userpref) {
 			ok_write = BKE_blendfile_userdef_write_app_template(filepath, op->reports);
 		}
@@ -1640,6 +1641,8 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 		if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
 			/* Also save app-template prefs */
 			BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
+
+			printf("Writing userprefs app-template: '%s' ", filepath);
 			if (BKE_blendfile_userdef_write(filepath, op->reports) != 0) {
 				printf("ok\n");
 			}
