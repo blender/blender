@@ -2854,7 +2854,7 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 }
 
 #ifdef USE_WORKSPACE_TOOL
-static void wm_event_gizmo_temp_handler_apply(
+static void wm_event_temp_tool_handler_apply(
         bContext *C, ScrArea *sa, ARegion *ar, wmEventHandler *sneaky_handler)
 {
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
@@ -2863,6 +2863,7 @@ static void wm_event_gizmo_temp_handler_apply(
 			wmKeyMap *km = WM_keymap_find_all(
 			        C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW);
 			if (km != NULL) {
+				// printf("Keymap: '%s' -> '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
 				sneaky_handler->keymap = km;
 				sneaky_handler->keymap_tool = sa->runtime.tool;
 
@@ -2874,11 +2875,14 @@ static void wm_event_gizmo_temp_handler_apply(
 				/* Head of list or after last gizmo. */
 				BLI_insertlinkafter(&ar->handlers, handler_last, sneaky_handler);
 			}
+			else {
+				printf("Keymap: '%s' not found for tool '%s'\n", tref_rt->keymap, sa->runtime.tool->idname);
+			}
 		}
 	}
 }
 
-static void wm_event_gizmo_temp_handler_clear(
+static void wm_event_temp_tool_handler_clear(
         bContext *UNUSED(C), ScrArea *UNUSED(sa), ARegion *ar, wmEventHandler *sneaky_handler)
 {
 	if (sneaky_handler->keymap) {
@@ -3071,13 +3075,13 @@ void wm_event_do_handlers(bContext *C)
 									 * to fetch its current keymap.
 									 */
 									wmEventHandler sneaky_handler = {NULL};
-									wm_event_gizmo_temp_handler_apply(C, sa, ar, &sneaky_handler);
+									wm_event_temp_tool_handler_apply(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
 									action |= wm_handlers_do(C, event, &ar->handlers);
 
 #ifdef USE_WORKSPACE_TOOL
-									wm_event_gizmo_temp_handler_clear(C, sa, ar, &sneaky_handler);
+									wm_event_temp_tool_handler_clear(C, sa, ar, &sneaky_handler);
 #endif /* USE_WORKSPACE_TOOL */
 
 									/* fileread case (python), [#29489] */
@@ -4548,7 +4552,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 
 #ifdef USE_WORKSPACE_TOOL
 	wmEventHandler sneaky_handler = {NULL};
-	wm_event_gizmo_temp_handler_apply(C, sa, ar, &sneaky_handler);
+	wm_event_temp_tool_handler_apply(C, sa, ar, &sneaky_handler);
 #endif
 
 	ListBase *handlers[] = {
@@ -4581,7 +4585,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 	}
 
 #ifdef USE_WORKSPACE_TOOL
-	wm_event_gizmo_temp_handler_clear(C, sa, ar, &sneaky_handler);
+	wm_event_temp_tool_handler_clear(C, sa, ar, &sneaky_handler);
 #endif
 
 	if (memcmp(&cd_prev.text, &cd->text, sizeof(cd_prev.text)) != 0) {
