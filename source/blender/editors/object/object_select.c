@@ -126,15 +126,11 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
  */
 void ED_object_base_activate(bContext *C, Base *base)
 {
+	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	view_layer->basact = base;
 
-	if (base) {
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, view_layer);
-	}
-	else {
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, NULL);
-	}
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_SELECT_UPDATE);
 }
 
