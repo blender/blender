@@ -910,6 +910,8 @@ def km_view3d(params):
          {"properties": [("center", False)]}),
         ("view3d.view_all", {"type": 'HOME', "value": 'PRESS', "ctrl": True},
          {"properties": [("use_all_regions", True), ("center", False)]}),
+        ("view3d.view_all", {"type": 'C', "value": 'PRESS', "shift": True},
+         {"properties": [("center", True)]}),
         op_menu_pie("VIEW3D_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
         ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
@@ -1082,8 +1084,6 @@ def km_view3d(params):
             ("view3d.zoom_camera_1_to_1", {"type": 'NUMPAD_ENTER', "value": 'PRESS', "shift": True}, None),
             ("view3d.view_center_cursor", {"type": 'HOME', "value": 'PRESS', "alt": True}, None),
             ("view3d.view_center_pick", {"type": 'F', "value": 'PRESS', "alt": True}, None),
-            ("view3d.view_all", {"type": 'C', "value": 'PRESS', "shift": True},
-             {"properties": [("center", True)]}),
             ("view3d.view_pan", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True},
              {"properties": [("type", 'PANRIGHT')]}),
             ("view3d.view_pan", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True},
