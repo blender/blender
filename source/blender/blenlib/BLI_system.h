@@ -30,6 +30,10 @@
 int BLI_cpu_support_sse2(void);
 void BLI_system_backtrace(FILE *fp);
 
+
+/* Get CPU brand, result is to be MEM_freeN()-ed. */
+char *BLI_cpu_brand_string(void);
+
 /* getpid */
 #ifdef WIN32
 #  define BLI_SYSTEM_PID_H <process.h>
