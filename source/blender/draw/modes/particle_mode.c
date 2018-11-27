@@ -83,6 +83,7 @@ typedef struct PARTICLE_Data {
 
 static struct {
 	struct GPUShader *strands_shader;
+	struct GPUShader *strands_weight_shader;
 	struct GPUShader *points_shader;
 } e_data = {NULL}; /* Engine data */
 
@@ -104,6 +105,13 @@ static void particle_engine_init(void *UNUSED(vedata))
 		        datatoc_common_globals_lib_glsl,
 		        "");
 
+		e_data.strands_weight_shader = DRW_shader_create_with_lib(
+		        datatoc_particle_strand_vert_glsl,
+		        NULL,
+		        datatoc_particle_strand_frag_glsl,
+		        datatoc_common_globals_lib_glsl,
+		        "#define USE_WEIGHT");
+
 		e_data.points_shader = DRW_shader_create_with_lib(
 		        datatoc_particle_strand_vert_glsl,
 		        NULL,
@@ -117,6 +125,9 @@ static void particle_cache_init(void *vedata)
 {
 	PARTICLE_PassList *psl = ((PARTICLE_Data *)vedata)->psl;
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ParticleEditSettings *pset = PE_settings(draw_ctx->scene);
+	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT);
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -131,12 +142,10 @@ static void particle_cache_init(void *vedata)
 	                                       DRW_STATE_WIRE |
 	                                       DRW_STATE_POINT));
 
-	stl->g_data->strands_group = DRW_shgroup_create(
-	        e_data.strands_shader, psl->psys_edit_pass);
-	stl->g_data->inner_points_group = DRW_shgroup_create(
-	        e_data.points_shader, psl->psys_edit_pass);
-	stl->g_data->tip_points_group = DRW_shgroup_create(
-	        e_data.points_shader, psl->psys_edit_pass);
+	GPUShader *strand_shader = (use_weight) ? e_data.strands_weight_shader : e_data.strands_shader;
+	stl->g_data->strands_group = DRW_shgroup_create(strand_shader, psl->psys_edit_pass);
+	stl->g_data->inner_points_group = DRW_shgroup_create(e_data.points_shader, psl->psys_edit_pass);
+	stl->g_data->tip_points_group = DRW_shgroup_create(e_data.points_shader, psl->psys_edit_pass);
 
 	DRW_shgroup_uniform_block(stl->g_data->strands_group, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_block(stl->g_data->inner_points_group, "globalsBlock", globals_ubo);
@@ -151,9 +160,10 @@ static void particle_edit_cache_populate(void *vedata,
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ParticleEditSettings *pset = PE_settings(draw_ctx->scene);
+	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT);
 	{
 		struct GPUBatch *strands =
-		        DRW_cache_particles_get_edit_strands(object, psys, edit);
+		        DRW_cache_particles_get_edit_strands(object, psys, edit, use_weight);
 		DRW_shgroup_call_add(stl->g_data->strands_group, strands, NULL);
 	}
 	if (pset->selectmode == SCE_SELECT_POINT) {
@@ -229,6 +239,7 @@ static void particle_draw_scene(void *vedata)
 static void particle_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.strands_shader);
+	DRW_SHADER_FREE_SAFE(e_data.strands_weight_shader);
 	DRW_SHADER_FREE_SAFE(e_data.points_shader);
 }
 

@@ -200,7 +200,7 @@ struct GPUBatch *DRW_cache_particles_get_hair(
 struct GPUBatch *DRW_cache_particles_get_dots(
         struct Object *object, struct ParticleSystem *psys);
 struct GPUBatch *DRW_cache_particles_get_edit_strands(
-        struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
+        struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit, bool use_weight);
 struct GPUBatch *DRW_cache_particles_get_edit_inner_points(
         struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
 struct GPUBatch *DRW_cache_particles_get_edit_tip_points(

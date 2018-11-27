@@ -93,6 +93,7 @@ typedef struct ParticleBatchCache {
 
 	/* Settings to determine if cache is invalid. */
 	bool is_dirty;
+	bool edit_is_weight;
 } ParticleBatchCache;
 
 /* GPUBatch cache management. */
@@ -692,8 +693,27 @@ static float particle_key_select_ratio(const PTCacheEdit *edit, int strand, floa
 	}
 }
 
+static float particle_key_weight(const ParticleData *particle, int strand, float t)
+{
+	const ParticleData *part = particle + strand;
+	const HairKey *hkeys = part->hair;
+	float edit_key_seg_t = 1.0f / (part->totkey - 1);
+	if (t == 1.0) {
+		return hkeys[part->totkey - 1].weight;
+	}
+	else {
+		float interp = t / edit_key_seg_t;
+		int index = (int)interp;
+		interp -= floorf(interp); /* Time between 2 edit key */
+		float s1 = hkeys[index].weight;
+		float s2 = hkeys[index+1].weight;
+		return s1 + interp * (s2 - s1);
+	}
+}
+
 static int particle_batch_cache_fill_segments_edit(
-        const PTCacheEdit *edit,
+        const PTCacheEdit *edit, /* NULL for weight data */
+        const ParticleData *particle, /* NULL for select data */
         ParticleCacheKey **path_cache,
         const int start_index,
         const int num_path_keys,
@@ -710,8 +730,15 @@ static int particle_batch_cache_fill_segments_edit(
 			EditStrandData *seg_data = (EditStrandData *)GPU_vertbuf_raw_step(attr_step);
 			copy_v3_v3(seg_data->pos, path[j].co);
 			float strand_t = (float)(j) / path->segments;
-			float selected = particle_key_select_ratio(edit, i, strand_t);
-			seg_data->color = (uchar)(0xFF * selected);
+			if (particle) {
+				float weight = particle_key_weight(particle, i, strand_t);
+				/* NaN or unclamped become 0xFF */
+				seg_data->color = (uchar)((weight <= 1.0f) ? 0xFE * weight : 0xFF);
+			}
+			else {
+				float selected = particle_key_select_ratio(edit, i, strand_t);
+				seg_data->color = (uchar)(0xFF * selected);
+			}
 			GPU_indexbuf_add_generic_vert(elb, curr_point);
 			curr_point++;
 		}
@@ -1436,13 +1463,16 @@ GPUBatch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psy
 
 static void particle_batch_cache_ensure_edit_pos_and_seg(
         PTCacheEdit *edit,
-        ParticleSystem *UNUSED(psys),
+        ParticleSystem *psys,
         ModifierData *UNUSED(md),
-        ParticleHairCache *hair_cache)
+        ParticleHairCache *hair_cache,
+        bool use_weight)
 {
 	if (hair_cache->pos != NULL && hair_cache->indices != NULL) {
 		return;
 	}
+
+	ParticleData *particle = (use_weight) ? psys->particles : NULL;
 
 	GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
 	GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
@@ -1464,7 +1494,7 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(
 
 	if (edit != NULL && edit->pathcache != NULL) {
 		particle_batch_cache_fill_segments_edit(
-		        edit, edit->pathcache,
+		        edit, particle, edit->pathcache,
 		        0, edit->totcached,
 		        &elb, &data_step);
 	}
@@ -1477,19 +1507,25 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(
 GPUBatch *DRW_particles_batch_cache_get_edit_strands(
         Object *object,
         ParticleSystem *psys,
-        PTCacheEdit *edit)
+        PTCacheEdit *edit,
+        bool use_weight)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
+	if (cache->edit_is_weight != use_weight) {
+		GPU_VERTBUF_DISCARD_SAFE(cache->edit_hair.pos);
+		GPU_BATCH_DISCARD_SAFE(cache->edit_hair.hairs);
+	}
 	if (cache->edit_hair.hairs != NULL) {
 		return cache->edit_hair.hairs;
 	}
 	drw_particle_update_ptcache_edit(object, psys, edit);
 	ensure_seg_pt_count(edit, psys, &cache->edit_hair);
-	particle_batch_cache_ensure_edit_pos_and_seg(edit, psys, NULL, &cache->edit_hair);
+	particle_batch_cache_ensure_edit_pos_and_seg(edit, psys, NULL, &cache->edit_hair, use_weight);
 	cache->edit_hair.hairs = GPU_batch_create(
 	        GPU_PRIM_LINE_STRIP,
 	        cache->edit_hair.pos,
 	        cache->edit_hair.indices);
+	cache->edit_is_weight = use_weight;
 	return cache->edit_hair.hairs;
 }
 
