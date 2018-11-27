@@ -2554,9 +2554,17 @@ class WM_MT_splash(Menu):
             row = sub.row()
             row.alignment = 'RIGHT'
             row.label(text="Select With")
-            sub.row().prop(kc_prefs, 'select_mouse', expand=True)
+            sub.row().prop(kc_prefs, "select_mouse", expand=True)
             has_select_mouse = True
 
+        has_spacebar_action = hasattr(kc_prefs, "spacebar_action")
+        if has_spacebar_action:
+            sub = col.split(factor=0.35)
+            row = sub.row()
+            row.alignment = 'RIGHT'
+            row.label(text="Spacebar")
+            sub.row().prop(kc_prefs, "spacebar_action", expand=True)
+            has_select_mouse = True
 
         col.separator()
 
@@ -2579,6 +2587,8 @@ class WM_MT_splash(Menu):
 
         # Keep height constant
         if not has_select_mouse:
+            col.label()
+        if not has_spacebar_action:
             col.label()
 
         layout.label()

@@ -34,23 +34,25 @@ class Prefs(bpy.types.KeyConfigPreferences):
     spacebar_action: EnumProperty(
         name="Spacebar",
         items=(
-            ('TOOL', "Tool-Bar",
+            ('PLAY', "Play",
+             "Toggle animation playback "
+             "('Shift-Space' for Tools)",
+             1),
+            ('TOOL', "Tools",
              "Open the popup tool-bar\n"
              "When 'Space' is held and used as a modifier:\n"
              "\u2022 Pressing the tools binding key switches to it immediately.\n"
              "\u2022 Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
-            ),
-            ('PLAY', "Playback",
-             "Toggle animation playback"
-            ),
-            ('SEARCH', "Operator Search",
-             "Open the operator search popup"
-            ),
+             "For Play use 'Shift-Space'",
+             0),
+            ('SEARCH', "Search",
+             "Open the operator search popup",
+             2),
         ),
         description=(
-            "Action when 'Space' is pressed ('Shift-Space' is used for the other action)"
+            "Action when 'Space' is pressed"
         ),
-        default='TOOL',
+        default='PLAY',
         update=update_fn,
     )
     use_select_all_toggle: BoolProperty(
