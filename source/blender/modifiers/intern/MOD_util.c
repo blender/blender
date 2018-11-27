@@ -168,11 +168,12 @@ void MOD_previous_vcos_store(ModifierData *md, float (*vertexCos)[3])
 }
 
 /* returns a mesh if mesh == NULL, for deforming modifiers that need it */
-Mesh *MOD_get_mesh_eval(
+Mesh *MOD_deform_mesh_eval_get(
         Object *ob, struct BMEditMesh *em, Mesh *mesh,
-        float (*vertexCos)[3], bool use_normals, bool use_orco)
+        float (*vertexCos)[3], const int num_verts,
+        const bool use_normals, const bool use_orco)
 {
-	if (mesh) {
+	if (mesh != NULL) {
 		/* pass */
 	}
 	else if (ob->type == OB_MESH) {
@@ -207,6 +208,12 @@ Mesh *MOD_get_mesh_eval(
 	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		/* TODO(sybren): get evaluated mesh from depsgraph once that's properly generated for curves. */
 		mesh = BKE_mesh_new_nomain_from_curve(ob);
+
+		/* Currently, that may not be the case everytime
+		 * (texts e.g. tend to give issues, also when deforming curve points instead of generated curve geometry... ). */
+		if (mesh != NULL && mesh->totvert != num_verts) {
+			BKE_id_free(NULL, mesh);
+		}
 	}
 
 	if (use_normals) {
@@ -214,6 +221,8 @@ Mesh *MOD_get_mesh_eval(
 			BKE_mesh_ensure_normals(mesh);
 		}
 	}
+
+	BLI_assert(mesh == NULL || mesh->totvert == num_verts);
 
 	return mesh;
 }

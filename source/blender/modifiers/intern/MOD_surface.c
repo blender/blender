@@ -91,7 +91,7 @@ static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx,
         Mesh *mesh,
         float (*vertexCos)[3],
-        int UNUSED(numVerts))
+        int numVerts)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	const int cfra = (int)DEG_get_ctime(ctx->depsgraph);
@@ -111,7 +111,9 @@ static void deformVerts(
 		        LIB_ID_COPY_NO_PREVIEW,
 		        false);
 	}
-	else surmd->mesh = MOD_get_mesh_eval(ctx->object, NULL, NULL, NULL, false, false);
+	else {
+		surmd->mesh = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, numVerts, false, false);
+	}
 
 	if (!ctx->object->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");

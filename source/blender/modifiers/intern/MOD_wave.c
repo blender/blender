@@ -308,9 +308,9 @@ static void deformVerts(
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, vertexCos, true, false);
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, vertexCos, numVerts, true, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
 	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 
@@ -327,9 +327,9 @@ static void deformVertsEM(
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, vertexCos, true, false);
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, vertexCos, numVerts, true, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		mesh_src = MOD_get_mesh_eval(ctx->object, editData, mesh, NULL, false, false);
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
 	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
 

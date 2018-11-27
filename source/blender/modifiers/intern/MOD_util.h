@@ -51,9 +51,10 @@ void MOD_get_texture_coords(
 
 void MOD_previous_vcos_store(struct ModifierData *md, float (*vertexCos)[3]);
 
-struct Mesh *MOD_get_mesh_eval(
+struct Mesh *MOD_deform_mesh_eval_get(
         struct Object *ob, struct BMEditMesh *em, struct Mesh *mesh,
-        float (*vertexCos)[3], bool use_normals, bool use_orco);
+        float (*vertexCos)[3], const int num_verts,
+        const bool use_normals, const bool use_orco);
 
 void MOD_get_vgroup(
         struct Object *ob, struct Mesh *mesh,

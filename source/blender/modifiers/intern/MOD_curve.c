@@ -116,7 +116,7 @@ static void deformVerts(
 
 	if (ctx->object->type == OB_MESH) {
 		/* mesh_src is only needed for vgroups. */
-		mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
+		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 		BLI_assert(mesh_src->totvert == numVerts);
 	}
 
@@ -141,7 +141,7 @@ static void deformVertsEM(
         float (*vertexCos)[3],
         int numVerts)
 {
-	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, em, mesh, NULL, false, false);
+	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 

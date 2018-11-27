@@ -105,7 +105,7 @@ static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx,
         Mesh *mesh,
         float (*vertexCos)[3],
-        int UNUSED(numVerts))
+        int numVerts)
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	Mesh *mesh_src;
@@ -113,7 +113,7 @@ static void deformVerts(
 	Object *ob = ctx->object;
 
 	if (mesh == NULL) {
-		mesh_src = MOD_get_mesh_eval(ob, NULL, NULL, NULL, false, false);
+		mesh_src = MOD_deform_mesh_eval_get(ob, NULL, NULL, NULL, numVerts, false, false);
 	}
 	else {
 		/* Not possible to use get_mesh() in this case as we'll modify its vertices
