@@ -529,8 +529,8 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 
 	if (calc->vert) {
 		/* calc->vert contains verts from evaluated mesh.  */
-		/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
-		/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
+		/* These coordinates are deformed by vertexCos only for normal projection (to get correct normals) */
+		/* for other cases calc->verts contains undeformed coordinates and vertexCos should be used */
 		if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
 			copy_v3_v3(tmp_co, calc->vert[i].co);
 			normal_short_to_float_v3(tmp_no, calc->vert[i].no);
