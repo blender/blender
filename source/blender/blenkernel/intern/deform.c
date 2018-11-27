@@ -479,12 +479,12 @@ void defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip
 
 bDeformGroup *defgroup_find_name(Object *ob, const char *name)
 {
-	return BLI_findstring(&ob->defbase, name, offsetof(bDeformGroup, name));
+	return (name && name[0] != '\0') ? BLI_findstring(&ob->defbase, name, offsetof(bDeformGroup, name)) : NULL;
 }
 
 int defgroup_name_index(Object *ob, const char *name)
 {
-	return (name) ? BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name)) : -1;
+	return (name && name[0] != '\0') ? BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name)) : -1;
 }
 
 /**
