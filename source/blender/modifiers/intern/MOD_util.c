@@ -213,6 +213,7 @@ Mesh *MOD_deform_mesh_eval_get(
 		 * (texts e.g. tend to give issues, also when deforming curve points instead of generated curve geometry... ). */
 		if (mesh != NULL && mesh->totvert != num_verts) {
 			BKE_id_free(NULL, mesh);
+			mesh = NULL;
 		}
 	}
 
