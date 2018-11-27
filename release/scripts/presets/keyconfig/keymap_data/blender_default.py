@@ -969,6 +969,7 @@ def km_view3d(params):
          {"properties": [("type", 'RIGHT'), ("relative", True)]}),
         ("view3d.view_axis", {"type": 'EVT_TWEAK_M', "value": 'WEST', "alt": True},
          {"properties": [("type", 'LEFT'), ("relative", True)]}),
+        ("view3d.view_center_pick", {"type": 'MIDDLEMOUSE', "value": 'CLICK', "alt": True}, None),
         ("view3d.ndof_orbit_zoom", {"type": 'NDOF_MOTION', "value": 'ANY'}, None),
         ("view3d.ndof_orbit", {"type": 'NDOF_MOTION', "value": 'ANY', "ctrl": True}, None),
         ("view3d.ndof_pan", {"type": 'NDOF_MOTION', "value": 'ANY', "shift": True}, None),
