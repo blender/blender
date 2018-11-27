@@ -33,8 +33,7 @@ class USERPREF_HT_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        # No need to show type selector.
-        # layout.template_header()
+        layout.template_header()
 
         userpref = context.user_preferences
 
