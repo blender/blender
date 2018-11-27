@@ -2188,6 +2188,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 			BKE_collection_object_add(bmain, layer_collection->collection, obn);
 		}
 		basen = BKE_view_layer_base_find(view_layer, obn);
+		basen->local_view_bits = base->local_view_bits;
 
 		/* 1) duplis should end up in same collection as the original
 		 * 2) Rigid Body sim participants MUST always be part of a collection...
