@@ -5170,6 +5170,13 @@ class VIEW3D_PT_grease_pencil(AnnotationDataPanel, Panel):
     # NOTE: this is just a wrapper around the generic GP Panel
 
 
+class TOPBAR_PT_annotation_layers(Panel, AnnotationDataPanel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Layers"
+    bl_ui_units_x = 14
+
+
 class VIEW3D_PT_view3d_stereo(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -5338,6 +5345,48 @@ class VIEW3D_MT_gpencil_sculpt_specials(Menu):
             layout.menu("VIEW3D_MT_gpencil_autoweights")
 
 
+class TOPBAR_PT_gpencil_materials(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Materials"
+    bl_ui_units_x = 14
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and ob.type == 'GPENCIL'
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        ob = context.object
+
+        if ob:
+            is_sortable = len(ob.material_slots) > 1
+            rows = 1
+            if (is_sortable):
+                rows = 10
+
+            row = layout.row()
+
+            row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+
+            col = row.column(align=True)
+            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
+
+            if is_sortable:
+                col.separator()
+
+                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+                col.separator()
+
+                sub = col.column(align=True)
+                sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
+
+
 classes = (
     VIEW3D_HT_header,
     VIEW3D_MT_editor_menus,
@@ -5388,6 +5437,7 @@ classes = (
     VIEW3D_MT_lightprobe_add,
     VIEW3D_MT_camera_add,
     VIEW3D_MT_add,
+    VIEW3D_MT_image_add,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
     VIEW3D_MT_object_rigid_body,
@@ -5524,7 +5574,8 @@ classes = (
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,
-    VIEW3D_MT_image_add,
+    TOPBAR_PT_gpencil_materials,
+    TOPBAR_PT_annotation_layers,
 )
 
 

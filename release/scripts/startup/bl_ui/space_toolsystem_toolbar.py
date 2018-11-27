@@ -31,13 +31,6 @@ from .space_toolsystem_common import (
     ToolSelectPanelHelper,
     ToolDef,
 )
-from .properties_material_gpencil import (
-    GPENCIL_UL_matslots,
-)
-from .properties_grease_pencil_common import (
-    AnnotationDataPanel,
-)
-
 
 def generate_from_enum_ex(
         context, *,
@@ -1180,48 +1173,6 @@ class _defs_gpencil_weight:
         )
 
 
-class TOPBAR_PT_gpencil_materials(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'HEADER'
-    bl_label = "Materials"
-    bl_ui_units_x = 14
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        return ob and ob.type == 'GPENCIL'
-
-    @staticmethod
-    def draw(self, context):
-        layout = self.layout
-        ob = context.object
-
-        if ob:
-            is_sortable = len(ob.material_slots) > 1
-            rows = 1
-            if (is_sortable):
-                rows = 10
-
-            row = layout.row()
-
-            row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
-
-            col = row.column(align=True)
-            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
-
-            if is_sortable:
-                col.separator()
-
-                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
-                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-
-                col.separator()
-
-                sub = col.column(align=True)
-                sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
-                sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
-
-
 class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -1563,18 +1514,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     }
 
 
-class TOPBAR_PT_annotation_layers(Panel, AnnotationDataPanel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'HEADER'
-    bl_label = "Layers"
-    bl_ui_units_x = 14
-
-
 classes = (
     IMAGE_PT_tools_active,
     VIEW3D_PT_tools_active,
-    TOPBAR_PT_gpencil_materials,
-    TOPBAR_PT_annotation_layers,
 )
 
 if __name__ == "__main__":  # only for live edit.
