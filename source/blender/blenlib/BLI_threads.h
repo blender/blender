@@ -204,6 +204,12 @@ void BLI_thread_queue_nowait(ThreadQueue *queue);
 #  define BLI_thread_local_set(name, value) name = value
 #endif  /* defined(__APPLE__) */
 
+/* **** Special functions to help performance on crazy NUMA setups. **** */
+
+/* Make sure process/thread is using NUMA node with fast memory access. */
+void BLI_thread_put_process_on_fast_node(void);
+void BLI_thread_put_thread_on_fast_node(void);
+
 #ifdef __cplusplus
 }
 #endif

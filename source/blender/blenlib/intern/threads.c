@@ -37,6 +37,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_gsqueue.h"
+#include "BLI_system.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
@@ -55,6 +56,7 @@
 #endif
 
 #include "atomic_ops.h"
+#include "numaapi.h"
 
 #if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && !defined(__clang__)
 #  define USE_APPLE_OMP_FIX
@@ -126,6 +128,7 @@ static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
+static bool is_numa_available = false;
 static unsigned int thread_levels = 0;  /* threads can be invoked inside threads */
 static int num_threads_override = 0;
 
@@ -155,6 +158,9 @@ void BLI_threadapi_init(void)
 	mainid = pthread_self();
 
 	BLI_spin_init(&_malloc_lock);
+	if (numaAPI_Initialize() == NUMAAPI_SUCCESS) {
+		is_numa_available = true;
+	}
 }
 
 void BLI_threadapi_exit(void)
@@ -838,5 +844,100 @@ void BLI_threaded_malloc_end(void)
 	unsigned int level = atomic_sub_and_fetch_u(&thread_levels, 1);
 	if (level == 0) {
 		MEM_set_lock_callback(NULL, NULL);
+	}
+}
+
+/* **** Special functions to help performance on crazy NUMA setups. **** */
+
+static bool check_is_threadripper2_alike_topology(void)
+{
+	/* NOTE: We hope operating system does not support CPU hotswap to
+	 * a different brand. And that SMP of different types is also not
+	 * encouraged by the system. */
+	static bool is_initialized = false;
+	static bool is_threadripper2 = false;
+	if (is_initialized) {
+		return is_threadripper2;
+	}
+	is_initialized = true;
+	char *cpu_brand = BLI_cpu_brand_string();
+	if (cpu_brand == NULL) {
+		return false;
+	}
+	if (strstr(cpu_brand, "Threadripper")) {
+		/* NOTE: We consinder all Threadrippers having similar topology to
+		* the second one. This is because we are trying to utilize NUMA node
+		* 0 as much as possible. This node does exist on earlier versions of
+		* threadripper and setting affinity to it should not have negative
+		* effect.
+		* This allows us to avoid per-model check, making the code more
+		* reliable for the CPUs which are not yet released.
+		*/
+		if (strstr(cpu_brand, "2990WX") || strstr(cpu_brand, "2950X")) {
+			is_threadripper2 = true;
+		}
+	}
+	/* NOTE: While all dies of EPYC has memory controller, only two f them
+	 * has access to a lower-indexed DDR slots. Those dies are same as on
+	 * Threadripper2 with the memory controller.
+	 * Now, it is rather likely that reasonable amount of users don't max
+	 * up their DR slots, making it only two dies connected to a DDR slot
+	 * with actual memory in it. */
+	if (strstr(cpu_brand, "EPYC")) {
+		/* NOTE: Similarly to Threadripper we do not do model check. */
+		is_threadripper2 = true;
+	}
+	return is_threadripper2;
+}
+
+static void threadripper_put_process_on_fast_node(void)
+{
+	if (!is_numa_available) {
+		return;
+	}
+	/* NOTE: Technically, we can use NUMA nodes 0 and 2 and usning both of
+	 * them in the affinity mask will allow OS to schedule threads more
+	 * flexible,possibly increasing overall performance when multiple apps
+	 * are crunching numbers.
+	 *
+	 * However, if scene fits into memory adjacent to a single die we don't
+	 * want OS to re-schedule the process to another die since that will make
+	 * it further away from memory allocated for .blend file. */
+	/* NOTE: Even if NUMA is avasilable in the API but is disabled in BIOS on
+	 * this workstation we still process here. If NUMA is disabled it will be a
+	 * single node, so our action is no-visible-changes, but allows to keep
+	 * things simple and unified. */
+	numaAPI_RunProcessOnNode(0);
+}
+
+static void threadripper_put_thread_on_fast_node(void)
+{
+	if (!is_numa_available) {
+		return;
+	}
+	/* NOTE: This is where things becomes more interesting. On the one hand
+	 * we can use nodes 0 and 2 and allow operating system to do balancing
+	 * of processes/threads for the maximum performance when multiple apps
+	 * are running.
+	 * On another hand, however, we probably want to use same node as the
+	 * main thread since that's where the memory of .blend file is likely
+	 * to be allocated.
+	 * Since the main thread is currently on node 0, we also put thread on
+	 * same node. */
+	/* See additional note about NUMA disabled in BIOS above. */
+	numaAPI_RunThreadOnNode(0);
+}
+
+void BLI_thread_put_process_on_fast_node(void)
+{
+	if (check_is_threadripper2_alike_topology()) {
+		threadripper_put_process_on_fast_node();
+	}
+}
+
+void BLI_thread_put_thread_on_fast_node(void)
+{
+	if (check_is_threadripper2_alike_topology()) {
+		threadripper_put_thread_on_fast_node();
 	}
 }
