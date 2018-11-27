@@ -709,7 +709,7 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 		{
 			char orientation_str[128];
 			BLI_snprintf(orientation_str, sizeof(orientation_str), "%s \"%s\"",
-			             IFACE_("custom orientation"), t->custom_orientation->name);
+			             IFACE_("custom orientation"), t->orientation.custom->name);
 			BLI_snprintf(text, sizeof(text), ftext, orientation_str);
 			setConstraint(t, t->spacemtx, mode, text);
 			break;

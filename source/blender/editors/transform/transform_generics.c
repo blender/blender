@@ -1395,9 +1395,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->around = V3D_AROUND_CURSOR;
 		}
 
-		t->current_orientation = t->scene->orientation_type;
-		t->custom_orientation = BKE_scene_transform_orientation_find(
+		t->orientation.user = t->scene->orientation_type;
+		t->orientation.custom = BKE_scene_transform_orientation_find(
 		        t->scene, t->scene->orientation_index_custom);
+
+		t->orientation.index = 0;
+		ARRAY_SET_ITEMS(
+		        t->orientation.types,
+		        V3D_MANIP_GLOBAL,  /* Value isn't used (first index is no constraint). */
+		        t->orientation.user,
+		        V3D_MANIP_GLOBAL);
 
 		/* exceptional case */
 		if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
@@ -1489,8 +1496,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	           RNA_property_is_set(op->ptr, prop)))
 	{
 		RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);
-		t->current_orientation = V3D_MANIP_CUSTOM_MATRIX;
-		t->custom_orientation = 0;
+		t->orientation.user = V3D_MANIP_CUSTOM_MATRIX;
+		t->orientation.custom = 0;
 	}
 	else if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
 	                RNA_property_is_set(op->ptr, prop)))
@@ -1509,8 +1516,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			}
 		}
 
-		t->current_orientation = orientation;
-		t->custom_orientation = custom_orientation;
+		t->orientation.user = orientation;
+		t->orientation.custom = custom_orientation;
 	}
 
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&

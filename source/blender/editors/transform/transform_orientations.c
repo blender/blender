@@ -432,7 +432,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	Object *ob = CTX_data_active_object(C);
 	Object *obedit = CTX_data_active_object(C);
 
-	switch (t->current_orientation) {
+	switch (t->orientation.user) {
 		case V3D_MANIP_GLOBAL:
 			unit_m3(t->spacemtx);
 			BLI_strncpy(t->spacename, IFACE_("global"), sizeof(t->spacename));
@@ -492,9 +492,9 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			BLI_strncpy(t->spacename, IFACE_("custom"), sizeof(t->spacename));
 			break;
 		case V3D_MANIP_CUSTOM:
-			BLI_strncpy(t->spacename, t->custom_orientation->name, sizeof(t->spacename));
+			BLI_strncpy(t->spacename, t->orientation.custom->name, sizeof(t->spacename));
 
-			if (applyTransformOrientation(t->custom_orientation, t->spacemtx, t->spacename)) {
+			if (applyTransformOrientation(t->orientation.custom, t->spacemtx, t->spacename)) {
 				/* pass */
 			}
 			else {
