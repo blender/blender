@@ -718,48 +718,6 @@ def register_submodule_factory(module_name, submodule_names):
 
 
 # -----------------------------------------------------------------------------
-# Tool Registraion
-
-def register_tool(space_type, context_mode, tool_def):
-    from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-    if cls is None:
-        raise Exception(f"Space type {space_type!r} has no toolbar")
-    tools = cls._tools[context_mode]
-
-    keymap_data = tool_def.keymap
-    if keymap_data is not None:
-        if context_mode is None:
-            context_descr = "All"
-        else:
-            context_descr = context_mode.replace("_", " ").title()
-        from bpy import context
-        wm = context.window_manager
-        kc = wm.keyconfigs.default
-        if callable(keymap_data[0]):
-            cls._km_action_simple(kc, context_descr, tool_def.text, keymap_data)
-
-    tools.append(tool_def)
-
-
-def unregister_tool(space_type, context_mode, tool_def):
-    from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-    if cls is None:
-        raise Exception(f"Space type {space_type!r} has no toolbar")
-    tools = cls._tools[context_mode]
-    tools.remove(tool_def)
-
-    keymap_data = tool_def.keymap
-    if keymap_data is not None:
-        from bpy import context
-        wm = context.window_manager
-        kc = wm.keyconfigs.default
-        km = keymap_data[0]
-        kc.keymaps.remove(km)
-
-
-# -----------------------------------------------------------------------------
 # Manual lookups, each function has to return a basepath and a sequence
 # of...
 
