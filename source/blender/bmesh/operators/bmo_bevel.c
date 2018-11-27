@@ -63,6 +63,9 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		BMO_ITER (e, &siter, op->slots_in, "geom", BM_EDGE) {
 			if (BM_edge_is_manifold(e)) {
 				BM_elem_flag_enable(e, BM_ELEM_TAG);
+				/* in case verts were not also included in the geom */
+				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 			}
 		}
 
