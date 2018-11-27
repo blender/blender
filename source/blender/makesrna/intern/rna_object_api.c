@@ -142,7 +142,7 @@ static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 		return false;
 	}
 
-	if (v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
+	if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
 		return false;
 	}
 
