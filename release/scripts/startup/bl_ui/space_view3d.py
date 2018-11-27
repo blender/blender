@@ -1747,7 +1747,10 @@ class VIEW3D_MT_object_specials(Menu):
 
             layout.separator()
 
-            layout.operator("object.origin_set")
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("object.origin_set", text="Set Origin...")
+
+            layout.operator_context = 'INVOKE_DEFAULT'
             layout.operator("object.join")
             layout.operator_menu_enum("object.convert", "target")
 
