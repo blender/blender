@@ -184,7 +184,6 @@ elseif(WIN32)
 	set(_init_JACK                           OFF)
 elseif(APPLE)
 	set(_init_JACK                           OFF)
-	set(_init_OPENSUBDIV                     OFF)
 endif()
 
 
