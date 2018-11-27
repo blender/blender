@@ -132,6 +132,12 @@ static bToolRef *rna_WorkSpace_tools_from_space_image_mode(
 	return rna_WorkSpace_tools_from_tkey(workspace, &(bToolKey){ .space_type = SPACE_IMAGE, .mode = mode}, create);
 }
 
+static bToolRef *rna_WorkSpace_tools_from_space_node(
+        WorkSpace *workspace, bool create)
+{
+	return rna_WorkSpace_tools_from_tkey(workspace, &(bToolKey){ .space_type = SPACE_NODE, .mode = 0}, create);
+}
+
 const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
@@ -297,6 +303,13 @@ static void rna_def_workspace_tools(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "");
 	parm = RNA_def_enum(func, "mode", rna_enum_space_image_mode_items, 0, "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_boolean(func, "create", false, "Create", "");
+	/* return type */
+	parm = RNA_def_pointer(func, "result", "WorkspaceTool", "", "");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "from_space_node", "rna_WorkSpace_tools_from_space_node");
+	RNA_def_function_ui_description(func, "");
 	RNA_def_boolean(func, "create", false, "Create", "");
 	/* return type */
 	parm = RNA_def_pointer(func, "result", "WorkspaceTool", "", "");

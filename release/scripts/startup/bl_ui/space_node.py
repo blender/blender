@@ -553,18 +553,6 @@ class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
     # toolbar, but which may not necessarily be open
 
 
-# Tool Shelf ------------------
-
-
-# Grease Pencil drawing tools
-class NODE_PT_tools_grease_pencil_draw(AnnotationDrawingToolsPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-
-
-# -----------------------------
-
-
 def node_draw_tree_view(layout, context):
     pass
 
@@ -587,7 +575,6 @@ classes = (
     NODE_UL_interface_sockets,
     NODE_PT_grease_pencil,
     NODE_PT_grease_pencil_tools,
-    NODE_PT_tools_grease_pencil_draw,
 )
 
 

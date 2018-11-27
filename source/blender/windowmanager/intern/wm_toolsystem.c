@@ -613,6 +613,11 @@ int WM_toolsystem_mode_from_spacetype(
 			mode = sima->mode;
 			break;
 		}
+		case SPACE_NODE:
+		{
+			mode = 0;
+			break;
+		}
 	}
 	return mode;
 }

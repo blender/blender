@@ -293,6 +293,12 @@ class ToolSelectPanelHelper:
             if tool is not None:
                 tool.refresh_from_context()
                 return tool
+        elif space_type == 'NODE_EDITOR':
+            space_data = context.space_data
+            tool = context.workspace.tools.from_space_node(create=create)
+            if tool is not None:
+                tool.refresh_from_context()
+                return tool
         return None
 
     @staticmethod

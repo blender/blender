@@ -1164,6 +1164,49 @@ class _defs_gpencil_weight:
         )
 
 
+class _defs_node_select:
+
+    @ToolDef.from_fn
+    def select():
+        def draw_settings(context, layout, tool):
+            pass
+        return dict(
+            text="Select",
+            icon="ops.generic.select",
+            widget=None,
+            keymap="Node Tool: Select",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def box():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("node.select_box")
+            layout.prop(props, "deselect")
+            pass
+        return dict(
+            text="Select Box",
+            icon="ops.generic.select_box",
+            widget=None,
+            keymap="Node Tool: Select Box",
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def lasso():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("node.select_lasso")
+            layout.prop(props, "deselect")
+            pass
+        return dict(
+            text="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap="Node Tool: Select Lasso",
+            draw_settings=draw_settings,
+        )
+
+
 class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -1239,6 +1282,59 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PAINT': [
             _defs_texture_paint.generate_from_brushes,
+        ],
+    }
+
+
+class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_label = "Tools"  # not visible
+    bl_options = {'HIDE_HEADER'}
+
+    # Satisfy the 'ToolSelectPanelHelper' API.
+    keymap_prefix = "Node Editor Tool:"
+
+    @classmethod
+    def tools_from_context(cls, context, mode=None):
+        if mode is None:
+            if context.space_data is None:
+                mode = None
+            else:
+                mode = context.space_data.tree_type
+        for tools in (cls._tools[None], cls._tools.get(mode, ())):
+            for item in tools:
+                if not (type(item) is ToolDef) and callable(item):
+                    yield from item(context)
+                else:
+                    yield item
+
+    @classmethod
+    def tools_all(cls):
+        yield from cls._tools.items()
+
+    _tools_select = (
+        (
+            _defs_node_select.select,
+            _defs_node_select.box,
+            _defs_node_select.lasso,
+        ),
+    )
+
+    _tools_annotate = (
+        (
+            _defs_annotate.scribble,
+            _defs_annotate.line,
+            _defs_annotate.poly,
+            _defs_annotate.eraser,
+        ),
+    )
+
+    _tools = {
+        None: [
+            *_tools_select,
+            None,
+            *_tools_annotate,
         ],
     }
 
@@ -1507,6 +1603,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
 classes = (
     IMAGE_PT_tools_active,
+    NODE_PT_tools_active,
     VIEW3D_PT_tools_active,
 )
 

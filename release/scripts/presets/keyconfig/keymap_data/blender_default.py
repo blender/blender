@@ -5050,6 +5050,46 @@ def km_image_editor_tool_uv_select_lasso(params):
     )
 
 
+def km_node_editor_tool_select(params):
+    return (
+        "Node Tool: Select",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": (
+            ("node.select", {"type": params.select_mouse, "value": 'PRESS'},
+             {"properties": [("extend", False)]}),
+        ),
+        },
+    )
+
+
+def km_node_editor_tool_select_box(params):
+    return (
+        "Node Tool: Select Box",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": (
+            ("node.select_box", {"type": params.tool_mouse, "value": 'PRESS'},
+              {"properties": [("deselect", False), ("tweak", True)]}),
+            ("node.select_box", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+              {"properties": [("deselect", True), ("tweak", True)]}),
+        ),
+        },
+    )
+
+
+def km_node_editor_tool_select_lasso(params):
+    return (
+        "Node Tool: Select Lasso",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": (
+            ("node.select_lasso", {"type": params.tool_mouse, "value": 'PRESS'},
+              {"properties": [("deselect", False)]}),
+            ("node.select_lasso", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+              {"properties": [("deselect", True)]}),
+        ),
+        },
+    )
+
+
 def km_3d_view_tool_object_cursor(params):
     return (
         "3D View Tool: Object, Cursor",
@@ -5902,6 +5942,9 @@ def generate_keymaps(params=None):
         km_image_editor_tool_uv_select_box(params),
         km_image_editor_tool_uv_select_circle(params),
         km_image_editor_tool_uv_select_lasso(params),
+        km_node_editor_tool_select(params),
+        km_node_editor_tool_select_box(params),
+        km_node_editor_tool_select_lasso(params),
         km_3d_view_tool_object_cursor(params),
         km_3d_view_tool_object_select(params),
         km_3d_view_tool_object_select_box(params),
