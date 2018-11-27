@@ -20,15 +20,15 @@ class Prefs(bpy.types.KeyConfigPreferences):
         items=(
             ('LEFT', "Left",
              "Use left mouse button for selection. "
-             "The standard behavior that works well for all input devices"),
+             "The standard behavior that works well for mouse, trackpad and tablet devices"),
             ('RIGHT', "Right",
-             "Use right mouse button for selection."
-             "For efficiently working with keyboard and mouse"),
+             "Use right mouse button for selection, and left mouse button for actions. "
+             "This works well primarily for keyboard and mouse devices"),
         ),
         description=(
             "Mouse button used for selection"
         ),
-        default='RIGHT',
+        default='LEFT',
         update=update_fn,
     )
     spacebar_action: EnumProperty(

@@ -44,6 +44,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
+#include "BKE_keyconfig.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -87,6 +88,9 @@ void BLO_update_defaults_userpref_blend(void)
 	/* Only enable tooltips translation by default, without actually enabling translation itself, for now. */
 	U.transopts = USER_TR_TOOLTIPS;
 	U.memcachelimit = 4096;
+
+	/* Default to left click select. */
+	BKE_keyconfig_pref_set_select_mouse(&U, 0, true);
 }
 
 /**

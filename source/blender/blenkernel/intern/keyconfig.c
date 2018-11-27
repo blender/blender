@@ -120,4 +120,18 @@ void BKE_keyconfig_pref_type_free(void)
 	global_keyconfigpreftype_hash = NULL;
 }
 
+/* Set select mouse, for versioning code. */
+void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool override)
+{
+	wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
+	IDProperty *idprop = IDP_GetPropertyFromGroup(kpt->prop, "select_mouse");
+	if (!idprop) {
+		IDPropertyTemplate tmp = { .i = value };
+		IDP_AddToGroup(kpt->prop, IDP_New(IDP_INT, &tmp, "select_mouse"));
+	}
+	else if (override) {
+		IDP_Int(idprop) = value;
+	}
+}
+
 /** \} */
