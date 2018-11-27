@@ -1104,24 +1104,28 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 bool ED_region_is_overlap(int spacetype, int regiontype)
 {
 	if (regiontype == RGN_TYPE_HUD) {
-		return 1;
+		return true;
 	}
 	if (U.uiflag2 & USER_REGION_OVERLAP) {
-		if (spacetype == SPACE_NODE && regiontype == RGN_TYPE_TOOLS) {
-			return 1;
+		if (spacetype == SPACE_NODE) {
+			if (regiontype == RGN_TYPE_TOOLS) {
+				return true;
+			}
 		}
-		if (ELEM(spacetype, SPACE_VIEW3D, SPACE_SEQ, SPACE_IMAGE)) {
-			if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
-				return 1;
+		else if (ELEM(spacetype, SPACE_VIEW3D, SPACE_SEQ, SPACE_IMAGE)) {
+			if (ELEM(regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS)) {
+				return true;
+			}
 
 			if (ELEM(spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
-				if (regiontype == RGN_TYPE_HEADER)
-					return 1;
+				if (regiontype == RGN_TYPE_HEADER) {
+					return true;
+				}
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rcti *overlap_remainder, int quad)
