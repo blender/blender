@@ -148,6 +148,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
 		DEG_add_object_relation(ctx->node, dmd->map_object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
 	}
 	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||

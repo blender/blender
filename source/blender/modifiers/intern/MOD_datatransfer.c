@@ -132,6 +132,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 		CustomDataMask mask = BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types);
 
 		DEG_add_object_relation_with_customdata(ctx->node, dtmd->ob_source, DEG_OB_COMP_GEOMETRY, mask, "DataTransfer Modifier");
+
+		if (dtmd->flags & MOD_DATATRANSFER_OBSRC_TRANSFORM) {
+			DEG_add_object_relation(ctx->node, dtmd->ob_source, DEG_OB_COMP_TRANSFORM, "DataTransfer Modifier");
+			DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "DataTransfer Modifier");
+		}
 	}
 }
 

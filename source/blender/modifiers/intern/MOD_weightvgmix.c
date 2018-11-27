@@ -178,8 +178,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if (wmd->mask_tex_map_obj != NULL && wmd->mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
 		DEG_add_object_relation(ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_TRANSFORM, "WeightVGMix Modifier");
 		DEG_add_object_relation(ctx->node, wmd->mask_tex_map_obj, DEG_OB_COMP_GEOMETRY, "WeightVGMix Modifier");
+
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "WeightVGMix Modifier");
 	}
-	if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL) {
+	else if (wmd->mask_tex_mapping == MOD_DISP_MAP_GLOBAL) {
 		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "WeightVGMix Modifier");
 		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_GEOMETRY, "WeightVGMix Modifier");
 	}

@@ -104,11 +104,15 @@ static void foreachIDLink(
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData *)md;
-	int i;
-	for (i = 0; i < umd->num_projectors; ++i) {
+	bool do_add_own_transform = false;
+	for (int i = 0; i < umd->num_projectors; ++i) {
 		if (umd->projectors[i] != NULL) {
 			DEG_add_object_relation(ctx->node, umd->projectors[i], DEG_OB_COMP_TRANSFORM, "UV Project Modifier");
+			do_add_own_transform = true;
 		}
+	}
+	if (do_add_own_transform) {
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "UV Project Modifier");
 	}
 }
 

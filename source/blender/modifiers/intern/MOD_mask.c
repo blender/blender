@@ -81,6 +81,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 		/* TODO(sergey): Is it a proper relation here? */
 		DEG_add_object_relation(ctx->node, mmd->ob_arm, DEG_OB_COMP_TRANSFORM, "Mask Modifier");
 		arm->flag |= ARM_HAS_VIZ_DEPS;
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Mask Modifier");
 	}
 }
 

@@ -536,6 +536,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	NormalEditModifierData *enmd = (NormalEditModifierData *) md;
 	if (enmd->target) {
 		DEG_add_object_relation(ctx->node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
 	}
 }
 

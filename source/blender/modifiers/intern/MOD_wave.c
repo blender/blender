@@ -123,6 +123,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if (wmd->map_object != NULL) {
 		DEG_add_object_relation(ctx->node, wmd->map_object, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
 	}
+	if (wmd->objectcenter != NULL || wmd->map_object != NULL) {
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Wave Modifier");
+	}
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

@@ -143,6 +143,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 	if (wmd->object_from != NULL && wmd->object_to != NULL) {
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Warplace Modifier");
 		DEG_add_object_relation(ctx->node, wmd->object_from, DEG_OB_COMP_TRANSFORM, "Warp Modifier from");
 		DEG_add_object_relation(ctx->node, wmd->object_to, DEG_OB_COMP_TRANSFORM, "Warp Modifier to");
 	}

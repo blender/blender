@@ -107,6 +107,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if (amd->offset_ob != NULL) {
 		DEG_add_object_relation(ctx->node, amd->offset_ob, DEG_OB_COMP_TRANSFORM, "Array Modifier Offset");
 	}
+	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Array Modifier");
 }
 
 BLI_INLINE float sum_v3(const float v[3])
