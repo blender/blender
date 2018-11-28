@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from .properties_paint_common import UnifiedPaintPanel
-from .properties_grease_pencil_common import AnnotationDataPanel
+from .properties_grease_pencil_common import AnnotationDataPanel, AnnotationOnionSkin
 from bpy.app.translations import contexts as i18n_contexts
 
 
@@ -5171,6 +5171,15 @@ class VIEW3D_PT_grease_pencil(AnnotationDataPanel, Panel):
     # NOTE: this is just a wrapper around the generic GP Panel
 
 
+class VIEW3D_PT_annotation_onion(AnnotationOnionSkin, Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "View"
+    bl_parent_id = 'VIEW3D_PT_grease_pencil'
+
+    # NOTE: this is just a wrapper around the generic GP Panel
+
+
 class TOPBAR_PT_annotation_layers(Panel, AnnotationDataPanel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -5539,6 +5548,7 @@ classes = (
     VIEW3D_PT_collections,
     VIEW3D_PT_object_type_visibility,
     VIEW3D_PT_grease_pencil,
+    VIEW3D_PT_annotation_onion,
     VIEW3D_PT_gpencil_multi_frame,
     VIEW3D_MT_gpencil_autoweights,
     VIEW3D_MT_gpencil_edit_specials,

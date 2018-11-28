@@ -272,6 +272,14 @@ typedef struct bGPDlayer {
 	int blend_mode;         /* blend modes */
 	char pad_[4];
 
+	/* annotation onion skin */
+	short gstep;			/* Ghosts Before: max number of ghost frames to show between active frame and the one before it (0 = only the ghost itself) */
+	short gstep_next;		/* Ghosts After:  max number of ghost frames to show after active frame and the following it    (0 = only the ghost itself) */
+
+	float gcolor_prev[3];	/* color for ghosts before the active frame */
+	float gcolor_next[3];	/* color for ghosts after the active frame */
+	char pad_1[4];
+
 	bGPDlayer_Runtime runtime;
 } bGPDlayer;
 

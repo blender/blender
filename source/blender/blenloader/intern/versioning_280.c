@@ -1116,7 +1116,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 
 			/* Init grease pencil pixel size factor */
-			if (!DNA_struct_elem_find(fd->filesdna, "bGPDdata", "int", "pixfactor")) {
+			if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "int", "pixfactor")) {
 				for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
 					gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
 				}
@@ -2463,5 +2463,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				STRNCPY(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH);
 			}
 		}
+
+		/* init Annotations onion skin */
+		if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "int", "gstep")) {
+			for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					ARRAY_SET_ITEMS(gpl->gcolor_prev, 0.302f, 0.851f, 0.302f);
+					ARRAY_SET_ITEMS(gpl->gcolor_next, 0.250f, 0.1f, 1.0f);
+				}
+			}
+		}
+
 	}
 }

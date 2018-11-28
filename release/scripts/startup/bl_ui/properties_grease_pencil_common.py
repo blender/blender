@@ -779,6 +779,54 @@ class AnnotationDataPanel:
             row.operator("gpencil.active_frame_delete", text="", icon='X')
 
 
+class AnnotationOnionSkin:
+    bl_label = "Onion Skin"
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        # Show this panel as long as someone that might own this exists
+        # AND the owner isn't an object (e.g. GP Object)
+        if context.gpencil_data_owner is None:
+            return False
+        elif type(context.gpencil_data_owner) is bpy.types.Object:
+            return False
+        else:
+            gpl = context.active_gpencil_layer
+            if gpl is None:
+                return False
+
+            return True
+
+    @staticmethod
+    def draw_header(self, context):
+        gpl = context.active_gpencil_layer
+        self.layout.prop(gpl, "use_annotation_onion_skinning", text="")
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_decorate = False
+
+        gpl = context.active_gpencil_layer
+        col = layout.column()
+        split = col.split(factor=0.5)
+        split.active = gpl.use_annotation_onion_skinning
+
+        # - Before Frames
+        sub = split.column(align=True)
+        row = sub.row(align=True)
+        row.prop(gpl, "annotation_onion_before_color", text="")
+        sub.prop(gpl, "annotation_onion_before_range", text="Before")
+
+        # - After Frames
+        sub = split.column(align=True)
+        row = sub.row(align=True)
+        row.prop(gpl, "annotation_onion_after_color", text="")
+        sub.prop(gpl, "annotation_onion_after_range", text="After")
+
+
 class GreasePencilOnionPanel:
     @staticmethod
     def draw_settings(layout, gp):
