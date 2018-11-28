@@ -487,11 +487,11 @@ class PHYSICS_PT_smoke_collections(PhysicButtonsPanel, Panel):
         domain = context.smoke.domain_settings
 
         col = layout.column()
-        col.prop(domain, "fluid_group", text="Flow")
+        col.prop(domain, "fluid_collection", text="Flow")
 
         # col = layout.column()
-        # col.prop(domain, "effector_group", text="Effector")
-        col.prop(domain, "collision_group", text="Collision")
+        # col.prop(domain, "effector_collection", text="Effector")
+        col.prop(domain, "collision_collection", text="Collision")
 
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):

@@ -1188,8 +1188,8 @@ def get_dashed_pattern(linestyle):
 
 def get_grouped_objects(group):
     for ob in group.objects:
-        if ob.dupli_type == 'GROUP' and ob.dupli_group is not None:
-            for dupli in get_grouped_objects(ob.dupli_group):
+        if ob.instance_type == 'COLLECTION' and ob.instance_collection is not None:
+            for dupli in get_grouped_objects(ob.instance_collection):
                 yield dupli
         else:
             yield ob
@@ -1275,10 +1275,10 @@ def process(layer_name, lineset_name):
             upred = NotUP1D(upred)
         selection_criteria.append(upred)
     # prepare selection criteria by group of objects
-    if lineset.select_by_group:
-        if lineset.group is not None:
-            names = {getQualifiedObjectName(ob): True for ob in get_grouped_objects(lineset.group)}
-            upred = ObjectNamesUP1D(names, lineset.group_negation == 'EXCLUSIVE')
+    if lineset.select_by_collection:
+        if lineset.collection is not None:
+            names = {getQualifiedObjectName(ob): True for ob in get_grouped_objects(lineset.collection)}
+            upred = ObjectNamesUP1D(names, lineset.collection_negation == 'EXCLUSIVE')
             selection_criteria.append(upred)
     # prepare selection criteria by image border
     if lineset.select_by_image_border:

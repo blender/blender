@@ -400,7 +400,7 @@ class SCENE_PT_rigid_body_world_settings(SceneButtonsPanel, Panel):
             col.active = rbw.enabled
 
             col = col.column()
-            col.prop(rbw, "group")
+            col.prop(rbw, "collection")
             col.prop(rbw, "constraints")
 
             col = col.column()

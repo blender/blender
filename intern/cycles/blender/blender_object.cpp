@@ -506,15 +506,15 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 }
 
 static bool object_render_hide_original(BL::Object::type_enum ob_type,
-                                        BL::Object::dupli_type_enum dupli_type)
+                                        BL::Object::instance_type_enum dupli_type)
 {
 	/* metaball exception, they duplicate self */
 	if(ob_type == BL::Object::type_META)
 		return false;
 
-	return (dupli_type == BL::Object::dupli_type_VERTS ||
-	        dupli_type == BL::Object::dupli_type_FACES ||
-	        dupli_type == BL::Object::dupli_type_FRAMES);
+	return (dupli_type == BL::Object::instance_type_VERTS ||
+	        dupli_type == BL::Object::instance_type_FACES ||
+	        dupli_type == BL::Object::instance_type_FRAMES);
 }
 
 static bool object_render_hide(BL::Object& b_ob,
@@ -541,15 +541,15 @@ static bool object_render_hide(BL::Object& b_ob,
 	}
 
 	/* Both mode_PREVIEW and mode_VIEWPORT are treated the same here.*/
-	const bool show_duplicator = depsgraph_mode == BL::Depsgraph::mode_RENDER
-	                             ? b_ob.show_duplicator_for_render()
-	                             : b_ob.show_duplicator_for_viewport();
+	const bool show_instancer = depsgraph_mode == BL::Depsgraph::mode_RENDER
+	                             ? b_ob.show_instancer_for_render()
+	                             : b_ob.show_instancer_for_viewport();
 
 	if(has_particles) {
-		show_emitter = show_duplicator;
+		show_emitter = show_instancer;
 		hide_emitter = !show_emitter;
-	} else if(b_ob.is_duplicator()) {
-		if(top_level || show_duplicator) {
+	} else if(b_ob.is_instancer()) {
+		if(top_level || show_instancer) {
 			hide_as_dupli_parent = true;
 		}
 	}
@@ -558,7 +558,7 @@ static bool object_render_hide(BL::Object& b_ob,
 	BL::Object parent = b_ob.parent();
 	while(parent) {
 		if(object_render_hide_original(b_ob.type(),
-		                               parent.dupli_type()))
+		                               parent.instance_type()))
 		{
 			if(parent_hide) {
 				hide_as_dupli_child_original = true;

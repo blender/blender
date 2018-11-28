@@ -56,7 +56,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         md = context.soft_body
         softbody = md.settings
 
-        layout.prop(softbody, "collision_group")
+        layout.prop(softbody, "collision_collection")
 
 
 class PHYSICS_PT_softbody_object(PhysicButtonsPanel, Panel):

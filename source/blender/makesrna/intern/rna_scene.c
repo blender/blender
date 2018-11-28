@@ -3384,7 +3384,7 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem group_negation_items[] = {
+	static const EnumPropertyItem collection_negation_items[] = {
 		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges belonging to some object in the group"},
 		{FREESTYLE_LINESET_GR_NOT, "EXCLUSIVE", 0, "Exclusive",
 		                           "Select feature edges not belonging to any object in the group"},
@@ -3458,9 +3458,9 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selection by Edge Types", "Select feature edges based on edge types");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
-	prop = RNA_def_property(srna, "select_by_group", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "select_by_collection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_GROUP);
-	RNA_def_property_ui_text(prop, "Selection by Group", "Select feature edges based on a group of objects");
+	RNA_def_property_ui_text(prop, "Selection by Collection", "Select feature edges based on a collection of objects");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "select_by_image_border", PROP_BOOLEAN, PROP_NONE);
@@ -3488,16 +3488,16 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 	                         "Specify a logical combination of selection conditions on feature edge types");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
-	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "group");
 	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Collection", "A collection of objects based on which feature edges are selected");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
-	prop = RNA_def_property(srna, "group_negation", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "collection_negation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
-	RNA_def_property_enum_items(prop, group_negation_items);
+	RNA_def_property_enum_items(prop, collection_negation_items);
 	RNA_def_property_ui_text(prop, "Collection Negation",
 	                         "Specify either inclusion or exclusion of feature edges belonging to a collection of objects");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");

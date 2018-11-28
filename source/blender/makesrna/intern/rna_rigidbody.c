@@ -267,7 +267,7 @@ static void rna_RigidBodyOb_collision_margin_set(PointerRNA *ptr, float value)
 #endif
 }
 
-static void rna_RigidBodyOb_collision_groups_set(PointerRNA *ptr, const bool *values)
+static void rna_RigidBodyOb_collision_collections_set(PointerRNA *ptr, const bool *values)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 	int i;
@@ -768,8 +768,9 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_RigidBodyWorld_path");
 
 	/* groups */
-	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Collection");
+	RNA_def_property_pointer_sdna(prop, NULL, "group");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Collection", "Collection containing objects participating in this simulation");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
@@ -1024,10 +1025,10 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	                         "(best results when non-zero)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_shape_reset");
 
-	prop = RNA_def_property(srna, "collision_groups", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop = RNA_def_property(srna, "collision_collections", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "col_groups", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyOb_collision_groups_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyOb_collision_collections_set");
 	RNA_def_property_ui_text(prop, "Collision Collections", "Collision collections rigid body belongs to");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);

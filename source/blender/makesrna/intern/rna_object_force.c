@@ -994,8 +994,9 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
 
 	/* General */
-	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Collection");
+	RNA_def_property_pointer_sdna(prop, NULL, "group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Collection", "Limit effectors to this collection");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_dependency_update");
@@ -1781,8 +1782,9 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Self Collision", "Enable naive vertex ball self collision");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
-	prop = RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "collision_collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Collection");
+	RNA_def_property_pointer_sdna(prop, NULL, "collision_group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Collision Collection", "Limit colliders to this collection");
 	RNA_def_property_update(prop, 0, "rna_softbody_dependency_update");

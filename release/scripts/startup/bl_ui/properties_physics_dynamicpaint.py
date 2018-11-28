@@ -260,7 +260,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
             col.separator()
 
         col = flow.column()
-        col.prop(surface, "brush_group")
+        col.prop(surface, "brush_collection")
 
         if surface_type not in {'DISPLACE', 'WAVE'}:
             col = flow.column()  # flow the layout otherwise.

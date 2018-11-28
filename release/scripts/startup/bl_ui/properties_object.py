@@ -176,7 +176,7 @@ class COLLECTION_MT_specials(Menu):
 
         layout.operator("object.collection_unlink", icon='X')
         layout.operator("object.collection_objects_select")
-        layout.operator("object.dupli_offset_from_cursor")
+        layout.operator("object.instance_offset_from_cursor")
 
 
 class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
@@ -212,7 +212,7 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
                 row.menu("COLLECTION_MT_specials", icon='DOWNARROW_HLT', text="")
 
                 row = col.box().row()
-                row.prop(collection, "dupli_offset", text="")
+                row.prop(collection, "instance_offset", text="")
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):
@@ -230,7 +230,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'})
         is_wire = (obj_type in {'CAMERA', 'EMPTY'})
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_display_type == 'IMAGE')
-        is_dupli = (obj.dupli_type != 'NONE')
+        is_dupli = (obj.instance_type != 'NONE')
 
         col = flow.column()
         col.prop(obj, "show_name", text="Name")
@@ -288,42 +288,42 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
         ob = context.object
 
         row = layout.row()
-        row.prop(ob, "dupli_type", expand=True)
+        row.prop(ob, "instance_type", expand=True)
 
         layout.use_property_split = True
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        if ob.dupli_type == 'FRAMES':
+        if ob.instance_type == 'FRAMES':
 
             col = flow.column(align=True)
-            col.prop(ob, "dupli_frames_start", text="Start")
-            col.prop(ob, "dupli_frames_end", text="End")
+            col.prop(ob, "instance_frames_start", text="Start")
+            col.prop(ob, "instance_frames_end", text="End")
 
             col = flow.column(align=True)
-            col.prop(ob, "dupli_frames_on", text="On")
-            col.prop(ob, "dupli_frames_off", text="Off")
+            col.prop(ob, "instance_frames_on", text="On")
+            col.prop(ob, "instance_frames_off", text="Off")
 
             col = flow.column(align=True)
-            col.prop(ob, "use_dupli_frames_speed", text="Speed")
+            col.prop(ob, "use_instance_frames_speed", text="Speed")
 
-        elif ob.dupli_type == 'VERTS':
-            layout.prop(ob, "use_dupli_vertices_rotation", text="Rotation")
+        elif ob.instance_type == 'VERTS':
+            layout.prop(ob, "use_instance_vertices_rotation", text="Rotation")
 
-        elif ob.dupli_type == 'FACES':
+        elif ob.instance_type == 'FACES':
             col = flow.column()
-            col.prop(ob, "use_dupli_faces_scale", text="Scale")
+            col.prop(ob, "use_instance_faces_scale", text="Scale")
             sub = col.column()
-            sub.active = ob.use_dupli_faces_scale
-            sub.prop(ob, "dupli_faces_scale", text="Inherit Scale")
+            sub.active = ob.use_instance_faces_scale
+            sub.prop(ob, "instance_faces_scale", text="Inherit Scale")
 
-        elif ob.dupli_type == 'COLLECTION':
+        elif ob.instance_type == 'COLLECTION':
             col = flow.column()
-            col.prop(ob, "dupli_group", text="Collection")
+            col.prop(ob, "instance_collection", text="Collection")
 
-        if ob.dupli_type != 'NONE' or len(ob.particle_systems):
+        if ob.instance_type != 'NONE' or len(ob.particle_systems):
             col = flow.column(align=True)
-            col.prop(ob, "show_duplicator_for_viewport")
-            col.prop(ob, "show_duplicator_for_render")
+            col.prop(ob, "show_instancer_for_viewport")
+            col.prop(ob, "show_instancer_for_render")
 
 
 from .properties_animviz import (

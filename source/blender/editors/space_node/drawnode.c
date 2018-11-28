@@ -921,7 +921,7 @@ static void node_shader_buts_tex_pointdensity(uiLayout *layout, bContext *UNUSED
 static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "object", 0, NULL, 0);
-	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
+	uiItemR(layout, ptr, "from_instancer", 0, NULL, 0);
 }
 
 static void node_shader_buts_bump(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -931,9 +931,9 @@ static void node_shader_buts_bump(uiLayout *layout, bContext *UNUSED(C), Pointer
 
 static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
+	uiItemR(layout, ptr, "from_instancer", 0, NULL, 0);
 
-	if (!RNA_boolean_get(ptr, "from_dupli")) {
+	if (!RNA_boolean_get(ptr, "from_instancer")) {
 		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 
 		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {

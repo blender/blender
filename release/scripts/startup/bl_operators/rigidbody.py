@@ -47,7 +47,7 @@ class CopyRigidbodySettings(Operator):
         "deactivate_angular_velocity",
         "linear_damping",
         "angular_damping",
-        "collision_groups",
+        "collision_collections",
         "mesh_source",
         "use_deform",
         "enabled",

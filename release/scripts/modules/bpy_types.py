@@ -104,7 +104,7 @@ class Collection(bpy_types.ID):
         """The collection instance objects this collection is used in"""
         import bpy
         return tuple(obj for obj in bpy.data.objects
-                     if self == obj.dupli_group)
+                     if self == obj.instance_collection)
 
 
 class Object(bpy_types.ID):

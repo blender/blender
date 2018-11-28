@@ -309,15 +309,16 @@ void RNA_def_collections(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Collection", "ID");
+	/* XXX: CAN WE RENAME TO Collection? */
 	RNA_def_struct_sdna(srna, "Group"); /* it is actually Collection but for 2.8 the dna is patched! */
 	RNA_def_struct_ui_text(srna, "Collection", "Collection of Object data-blocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 	/* this is done on save/load in readfile.c, removed if no objects are in the collection and not in a scene */
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
-	prop = RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "instance_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
-	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing");
+	RNA_def_property_ui_text(prop, "Instance Offset", "Offset from the origin to use when instancing");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 

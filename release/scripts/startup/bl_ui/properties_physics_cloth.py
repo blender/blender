@@ -273,7 +273,7 @@ class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
         col.prop(cloth, "impulse_clamp")
 
         col = flow.column()
-        col.prop(cloth, "group")
+        col.prop(cloth, "collection")
 
 
 class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):

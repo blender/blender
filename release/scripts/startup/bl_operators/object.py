@@ -640,10 +640,10 @@ class MakeDupliFace(Operator):
             for obj in objects:
                 scene.objects.unlink(obj)
 
-            ob_new.dupli_type = 'FACES'
+            ob_new.instance_type = 'FACES'
             ob_inst.parent = ob_new
-            ob_new.use_dupli_faces_scale = True
-            ob_new.dupli_faces_scale = 1.0 / SCALE_FAC
+            ob_new.use_instance_faces_scale = True
+            ob_new.instance_faces_scale = 1.0 / SCALE_FAC
 
             ob_inst.select_set(True)
             ob_new.select_set(True)
@@ -852,7 +852,7 @@ class TransformsToDeltasAnim(Operator):
 
 class DupliOffsetFromCursor(Operator):
     """Set offset used for collection instances based on cursor position"""
-    bl_idname = "object.dupli_offset_from_cursor"
+    bl_idname = "object.instance_offset_from_cursor"
     bl_label = "Set Offset From Cursor"
     bl_options = {'INTERNAL', 'UNDO'}
 
@@ -864,7 +864,7 @@ class DupliOffsetFromCursor(Operator):
         scene = context.scene
         collection = context.collection
 
-        collection.dupli_offset = scene.cursor_location
+        collection.instance_offset = scene.cursor_location
 
         return {'FINISHED'}
 

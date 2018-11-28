@@ -242,7 +242,7 @@ def effector_weights_ui(self, context, weights, weight_type):
     # NOTE: TODO temporarly used until the animate properties are properly skipped.
     layout.use_property_decorate = False  # No animation (remove this later on).
 
-    layout.prop(weights, "group")
+    layout.prop(weights, "collection")
 
     flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 

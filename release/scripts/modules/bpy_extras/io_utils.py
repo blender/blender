@@ -341,10 +341,10 @@ def axis_conversion_ensure(operator, forward_attr, up_attr):
 # return a tuple (free, object list), free is True if memory should be freed
 # later with free_derived_objects()
 def create_derived_objects(scene, ob):
-    if ob.parent and ob.parent.dupli_type in {'VERTS', 'FACES'}:
+    if ob.parent and ob.parent.instance_type in {'VERTS', 'FACES'}:
         return False, None
 
-    if ob.dupli_type != 'NONE':
+    if ob.instance_type != 'NONE':
         ob.dupli_list_create(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
