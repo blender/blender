@@ -694,7 +694,7 @@ static float displist_calc_taper(Depsgraph *depsgraph, Scene *scene, Object *tap
 
 	dl = taperobj->runtime.curve_cache ? taperobj->runtime.curve_cache->disp.first : NULL;
 	if (dl == NULL) {
-		BKE_displist_make_curveTypes(depsgraph, scene, taperobj, 0);
+		BKE_displist_make_curveTypes(depsgraph, scene, taperobj, false, false);
 		dl = taperobj->runtime.curve_cache->disp.first;
 	}
 	if (dl) {
@@ -1578,7 +1578,7 @@ static void do_makeDispListCurveTypes(
 		if (!for_orco)
 			curve_calc_modifiers_pre(depsgraph, scene, ob, &nubase, for_render, use_render_resolution);
 
-		BKE_curve_bevelList_make(ob, &nubase, for_render != false);
+		BKE_curve_bevelList_make(ob, &nubase, use_render_resolution);
 
 		/* If curve has no bevel will return nothing */
 		BKE_curve_bevel_make(depsgraph, scene, ob, &dlbev, for_render, use_render_resolution);
@@ -1788,7 +1788,8 @@ static void do_makeDispListCurveTypes(
 	}
 }
 
-void BKE_displist_make_curveTypes(Depsgraph *depsgraph, Scene *scene, Object *ob, const bool for_orco)
+void BKE_displist_make_curveTypes(
+        Depsgraph *depsgraph, Scene *scene, Object *ob, const bool for_render, const bool for_orco)
 {
 	ListBase *dispbase;
 
@@ -1806,7 +1807,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph, Scene *scene, Object *ob
 
 	dispbase = &(ob->runtime.curve_cache->disp);
 
-	do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, &ob->runtime.mesh_eval, 0, for_orco, 0);
+	do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, &ob->runtime.mesh_eval, for_render, for_orco, false);
 
 	boundbox_displist_object(ob);
 }

@@ -168,7 +168,7 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
 		Curve *cu = eff->ob->data;
 		if (cu->flag & CU_PATH) {
 			if (eff->ob->runtime.curve_cache == NULL || eff->ob->runtime.curve_cache->path == NULL || eff->ob->runtime.curve_cache->path->data == NULL)
-				BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, 0);
+				BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false, false);
 
 			if (eff->ob->runtime.curve_cache->path && eff->ob->runtime.curve_cache->path->data) {
 				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius, NULL);

@@ -91,7 +91,8 @@ void BKE_displist_make_surf(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
         struct Mesh **r_final, const bool for_render, const bool for_orco, const bool use_render_resolution);
 void BKE_displist_make_curveTypes(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, const bool for_orco);
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
+        const bool for_render, const bool for_orco);
 void BKE_displist_make_curveTypes_forRender(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct ListBase *dispbase,
         struct Mesh **r_final, const bool for_orco, const bool use_render_resolution);

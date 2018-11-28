@@ -1723,9 +1723,12 @@ static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Objec
 	if (ob->runtime.curve_cache == NULL) {
 		/* Force creation. This is normally not needed but on operator
 		 * redo we might end up with an object which isn't evaluated yet.
+		 * Also happens in case we are working on a copy of the object (all its caches have been nuked then).
 		 */
 		if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
-			BKE_displist_make_curveTypes(depsgraph, scene, ob, false);
+			/* We need 'for render' ON here, to enable computing bevel dipslist if needed.
+			 * Also makes sense anyway, we would not want e.g. to loose hidden parts etc. */
+			BKE_displist_make_curveTypes(depsgraph, scene, ob, true, false);
 		}
 		else if (ob->type == OB_MBALL) {
 			BKE_displist_make_mball(depsgraph, scene, ob);
