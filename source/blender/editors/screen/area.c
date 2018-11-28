@@ -1639,7 +1639,11 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		region_azones_add(screen, sa, ar, ar->alignment & ~RGN_SPLIT_PREV);
 	}
 
-	WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
+
+	if ((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
+		WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
+		sa->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+	}
 }
 
 static void region_update_rect(ARegion *ar)

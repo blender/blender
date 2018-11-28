@@ -6729,6 +6729,8 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 	area->butspacetype = SPACE_EMPTY; /* Should always be unset so that rna_Area_type_get works correctly */
 	area->region_active_win = -1;
 
+	area->flag &= ~AREA_FLAG_ACTIVE_TOOL_UPDATE;
+
 	area->global = newdataadr(fd, area->global);
 
 	/* if we do not have the spacetype registered we cannot

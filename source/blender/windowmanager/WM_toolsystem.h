@@ -86,11 +86,11 @@ int WM_toolsystem_mode_from_spacetype(
         struct ViewLayer *view_layer, struct ScrArea *sa, int space_type);
 bool WM_toolsystem_key_from_context(
         struct ViewLayer *view_layer, struct ScrArea *sa, bToolKey *tkey);
-void WM_toolsystem_update_from_context(
-        struct bContext *C,
-        struct WorkSpace *workspace, struct Scene *scene, struct ScrArea *sa);
 
 void WM_toolsystem_update_from_context_view3d(struct bContext *C);
+void WM_toolsystem_update_from_context(
+        struct bContext *C, struct WorkSpace *workspace, struct ViewLayer *view_layer,
+        struct ScrArea *sa);
 
 bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
 

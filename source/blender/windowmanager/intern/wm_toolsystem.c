@@ -851,6 +851,18 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
 	toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
 }
 
+void WM_toolsystem_update_from_context(
+        bContext *C, WorkSpace *workspace, ViewLayer *view_layer,
+        ScrArea *sa)
+{
+	const bToolKey tkey = {
+		.space_type = sa->spacetype,
+		.mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype),
+	};
+	toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
+}
+
+
 /**
  * For paint modes to support non-brush tools.
  */
