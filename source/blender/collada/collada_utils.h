@@ -74,7 +74,7 @@ extern "C" {
 #include "BCSampleData.h"
 #include "BlenderContext.h"
 
-static int LIMITTED_PRECISION = 6;
+constexpr int LIMITTED_PRECISION = 6;
 
 struct Depsgraph;
 
