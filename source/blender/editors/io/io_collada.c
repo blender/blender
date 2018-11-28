@@ -99,7 +99,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int keep_smooth_curves;
 	int keep_keyframes;
 
-	int include_material_textures;
 	int export_animation_type;
 	int use_texture_copies;
 	int active_uv_only;
@@ -161,7 +160,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 
-	include_material_textures = RNA_boolean_get(op->ptr, "include_material_textures");
 	use_texture_copies       = RNA_boolean_get(op->ptr, "use_texture_copies");
 	active_uv_only           = RNA_boolean_get(op->ptr, "active_uv_only");
 
@@ -507,9 +505,6 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");
-
-	RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures",
-	                "Export textures assigned to the object Materials");
 
 	RNA_def_boolean(func, "use_texture_copies", 1, "Copy",
 	                "Copy textures to same folder where the .dae file is exported");
