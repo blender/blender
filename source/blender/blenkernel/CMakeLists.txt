@@ -347,14 +347,16 @@ set(SRC
 	BKE_writeavi.h
 
 	nla_private.h
-	tracking_private.h
 	particle_private.h
+	tracking_private.h
 	intern/CCGSubSurf.h
 	intern/CCGSubSurf_inline.h
 	intern/CCGSubSurf_intern.h
 	intern/data_transfer_intern.h
+	intern/multires_inline.h
 	intern/pbvh_intern.h
 	intern/subdiv_converter.h
+	intern/subdiv_inline.h
 )
 
 if(WITH_BINRELOC)
