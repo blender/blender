@@ -550,6 +550,8 @@ void BKE_scene_init(Scene *sce)
 
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(sce, id));
 
+	unit_qt(sce->cursor.rotation);
+
 	sce->r.mode = R_OSA;
 	sce->r.cfra = 1;
 	sce->r.sfra = 1;
