@@ -790,12 +790,13 @@ static void subdiv_mesh_edge(
 	Mesh *subdiv_mesh = ctx->subdiv_mesh;
 	MEdge *subdiv_medge = subdiv_mesh->medge;
 	MEdge *subdiv_edge = &subdiv_medge[subdiv_edge_index];
+	const MEdge *coarse_edge = NULL;
 	if (coarse_edge_index != ORIGINDEX_NONE) {
 		const Mesh *coarse_mesh = ctx->coarse_mesh;
 		const MEdge *coarse_medge = coarse_mesh->medge;
-		const MEdge *coarse_edge = &coarse_medge[coarse_edge_index];
-		subdiv_copy_edge_data(ctx, subdiv_edge, coarse_edge);
+		coarse_edge = &coarse_medge[coarse_edge_index];
 	}
+	subdiv_copy_edge_data(ctx, subdiv_edge, coarse_edge);
 	subdiv_edge->v1 = subdiv_v1;
 	subdiv_edge->v2 = subdiv_v2;
 }
