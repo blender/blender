@@ -3639,11 +3639,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Layout Widgets", "Show screen layout editing UI");
 	RNA_def_property_update(prop, 0, "rna_userdef_update_ui");
 
-	prop = RNA_def_property(srna, "show_view3d_cursor", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "app_flag", USER_APP_VIEW3D_HIDE_CURSOR);
-	RNA_def_property_ui_text(prop, "Show 3D View Cursor", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	/* menus */
 	prop = RNA_def_property(srna, "use_mouse_over_open", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MENUOPENAUTO);
