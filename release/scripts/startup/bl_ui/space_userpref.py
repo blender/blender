@@ -202,7 +202,6 @@ class USERPREF_PT_interface(Panel):
         col.label(text="App Template:")
         col.label(text="Options intended for use with app-templates only.")
         col.prop(view, "show_layout_ui")
-        col.prop(view, "show_view3d_cursor")
 
 
 class USERPREF_PT_edit(Panel):
