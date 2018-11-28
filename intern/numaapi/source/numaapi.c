@@ -24,7 +24,6 @@
 
 #include <assert.h>
 
-// Get string representation of NUMAPIResult.
 const char* numaAPI_ResultAsString(NUMAAPI_Result result) {
   switch (result) {
     case NUMAAPI_SUCCESS: return "SUCCESS";
