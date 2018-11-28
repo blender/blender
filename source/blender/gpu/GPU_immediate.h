@@ -76,7 +76,7 @@ void immAttr4fv(uint attr_id, const float data[4]);
 void immAttr3ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b);
 void immAttr4ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
-void immAttr3ubv(uint attr_id, const unsigned char data[4]);
+void immAttr3ubv(uint attr_id, const unsigned char data[3]);
 void immAttr4ubv(uint attr_id, const unsigned char data[4]);
 
 /* Explicitly skip an attribute. */

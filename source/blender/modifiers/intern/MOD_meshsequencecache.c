@@ -151,8 +151,8 @@ static Mesh *applyModifier(
 
 	return result ? result : mesh;
 #else
-	return mesh;
 	UNUSED_VARS(ctx, md);
+	return mesh;
 #endif
 }
 
