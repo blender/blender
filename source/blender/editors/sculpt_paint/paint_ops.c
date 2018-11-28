@@ -50,7 +50,6 @@
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_keymap_templates.h"
 #include "ED_image.h"
 #include "ED_gpencil.h"
 #include "UI_resources.h"
