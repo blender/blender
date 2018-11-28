@@ -1104,6 +1104,12 @@ typedef struct LayerObjectBaseIteratorData {
 static bool object_bases_iterator_is_valid(View3D *v3d, Base *base, const int flag)
 {
 	BLI_assert((v3d == NULL) || (v3d->spacetype == SPACE_VIEW3D));
+
+	/* Any flag satisfies the condition. */
+	if (flag == ~0) {
+		return (base->flag != 0);
+	}
+
 	/* Flags may be more than one flag, so we can't check != 0. */
 	return BASE_VISIBLE(v3d, base) && ((base->flag & flag) == flag);
 }
