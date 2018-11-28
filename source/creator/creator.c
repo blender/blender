@@ -52,6 +52,7 @@
 #include "BLI_callbacks.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_threads.h"
 
 /* mostly init functions */
 #include "BKE_appdir.h"
@@ -364,6 +365,7 @@ int main(
 	BKE_appdir_program_path_init(argv[0]);
 
 	BLI_threadapi_init();
+	BLI_thread_put_process_on_fast_node();
 
 	DNA_sdna_current_init();
 

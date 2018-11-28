@@ -30,6 +30,7 @@ set(INC
 	../../../intern/guardedalloc
 	../../../intern/atomic
 	../../../intern/eigen
+	../../../intern/numaapi/include
 	../../../extern/wcwidth
 )
 
