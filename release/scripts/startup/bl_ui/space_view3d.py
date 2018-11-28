@@ -3903,7 +3903,7 @@ class VIEW3D_MT_pivot_pie(Menu):
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='MEDIAN_POINT')
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
-            pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align", text="Center Points Only")
+            pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align", text="Only Origins")
 
 
 class VIEW3D_MT_orientations_pie(Menu):
@@ -4972,7 +4972,7 @@ class VIEW3D_PT_pivot_point(Panel):
             col.prop(
                 toolsettings,
                 "use_transform_pivot_point_align",
-                text="Center Points Only",
+                text="Only Origins",
             )
 
 
