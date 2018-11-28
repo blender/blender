@@ -137,7 +137,7 @@ void SceneExporter::writeNodes(Object *ob)
 		}
 		else {
 			TransformWriter::add_node_transform_ob(
-				colladaNode, 
+				colladaNode,
 				ob,
 				this->export_settings->export_transformation_type,
 				this->export_settings->limit_precision

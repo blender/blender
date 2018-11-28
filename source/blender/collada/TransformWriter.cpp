@@ -64,7 +64,7 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 }
 
 void TransformWriter::add_node_transform_ob(
-	COLLADASW::Node& node, 
+	COLLADASW::Node& node,
 	Object *ob,
 	BC_export_transformation_type transformation_type,
 	bool limit_precision)

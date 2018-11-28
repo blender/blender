@@ -1285,7 +1285,7 @@ makebreak:
 		}
 	}
 
-	if (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN) && 
+	if (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN) &&
 	    iter_data->status == VFONT_TO_CURVE_INIT)
 	{
 		ct = &chartransdata[ef->pos];

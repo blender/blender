@@ -73,7 +73,7 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 blend_color)
 		outcolor = mix_color * blend_opacity;;
 		outcolor.a = src_color.a;
 	}
-	
+
 	return outcolor;
 }
 
@@ -97,7 +97,7 @@ vec4 tone(vec4 stroke_color)
 	else {
 		return stroke_color;
 	}
-}		
+}
 
 void main()
 {
@@ -105,7 +105,7 @@ void main()
 	ivec2 uv = ivec2(gl_FragCoord.xy);
 	vec4 stroke_color =  texelFetch(strokeColor, uv, 0).rgba;
 	float stroke_depth = texelFetch(strokeDepth, uv, 0).r;
-	
+
 	vec4 mix_color =  texelFetch(blendColor, uv, 0).rgba;
 	float mix_depth = texelFetch(blendDepth, uv, 0).r;
 
@@ -116,7 +116,7 @@ void main()
 	if (mix_color.a > 0) {
 		mix_color = vec4(vec3(mix_color.rgb / mix_color.a), mix_color.a);
 	}
-	
+
 	/* Normal mode */
 	if (mode == MODE_NORMAL) {
 		if (stroke_color.a > 0) {
@@ -141,7 +141,7 @@ void main()
 		FragColor = tone(FragColor);
 		return;
 	}
-	
+
 	/* if not using mask, return mix color */
 	if ((stroke_color.a == 0) && (clamp_layer == OFF)) {
 		FragColor = tone(mix_color);

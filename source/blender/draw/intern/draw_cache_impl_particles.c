@@ -706,7 +706,7 @@ static float particle_key_weight(const ParticleData *particle, int strand, float
 		int index = (int)interp;
 		interp -= floorf(interp); /* Time between 2 edit key */
 		float s1 = hkeys[index].weight;
-		float s2 = hkeys[index+1].weight;
+		float s2 = hkeys[index + 1].weight;
 		return s1 + interp * (s2 - s1);
 	}
 }
