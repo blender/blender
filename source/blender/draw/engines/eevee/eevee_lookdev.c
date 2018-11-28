@@ -63,7 +63,7 @@ void EEVEE_lookdev_cache_init(
 	View3D *v3d = draw_ctx->v3d;
 	if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
 		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
-		if (sl && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
+		if (sl && (sl->flag & STUDIOLIGHT_TYPE_WORLD)) {
 			GPUShader *shader = EEVEE_shaders_default_studiolight_sh_get();
 			struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 			GPUTexture *tex = NULL;

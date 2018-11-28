@@ -87,10 +87,10 @@ static const EnumPropertyItem rna_enum_language_default_items[] = {
 };
 #endif
 
-static const EnumPropertyItem rna_enum_studio_light_orientation_items[] = {
-	{STUDIOLIGHT_ORIENTATION_CAMERA,     "CAMERA", 0, "Camera", ""},
-	{STUDIOLIGHT_ORIENTATION_WORLD,      "WORLD",  0, "World",  ""},
-	{STUDIOLIGHT_ORIENTATION_VIEWNORMAL, "MATCAP", 0, "MatCap", ""},
+static const EnumPropertyItem rna_enum_studio_light_type_items[] = {
+	{STUDIOLIGHT_TYPE_STUDIO,     "STUDIO", 0, "Studio", ""},
+	{STUDIOLIGHT_TYPE_WORLD,      "WORLD",  0, "World",  ""},
+	{STUDIOLIGHT_TYPE_MATCAP,     "MATCAP", 0, "MatCap", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -628,9 +628,9 @@ static void rna_StudioLights_remove(UserDef *UNUSED(userdef), StudioLight *studi
 	BKE_studiolight_remove(studio_light);
 }
 
-static StudioLight *rna_StudioLights_new(UserDef *UNUSED(userdef), const char *path, int orientation)
+static StudioLight *rna_StudioLights_new(UserDef *UNUSED(userdef), const char *path, int type)
 {
-	return BKE_studiolight_new(path, orientation);
+	return BKE_studiolight_new(path, type);
 }
 
 /* StudioLight.name */
@@ -715,9 +715,9 @@ static bool rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
 	return (sl->flag & STUDIOLIGHT_USER_DEFINED) != 0;
 }
 
-/* StudioLight.orientation */
+/* StudioLight.type */
 
-static int rna_UserDef_studiolight_orientation_get(PointerRNA *ptr)
+static int rna_UserDef_studiolight_type_get(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
 	return sl->flag & STUDIOLIGHT_FLAG_ORIENTATIONS;
@@ -3319,7 +3319,7 @@ static void rna_def_userdef_studiolights(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Create a new studiolight");
 	parm = RNA_def_string(func, "path", NULL, 0, "File Path", "File path where the studio light file can be found");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_enum(func, "orientation", rna_enum_studio_light_orientation_items, STUDIOLIGHT_ORIENTATION_WORLD, "Orientation", "The orientation for the new studio light");
+	parm = RNA_def_enum(func, "type", rna_enum_studio_light_type_items, STUDIOLIGHT_TYPE_WORLD, "Type", "The type for the new studio light");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "studio_light", "StudioLight", "", "Newly created StudioLight");
 	RNA_def_function_return(func, parm);
@@ -3353,11 +3353,11 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Defined", "");
 
-	prop = RNA_def_property(srna, "orientation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, rna_enum_studio_light_orientation_items);
-	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_orientation_get", NULL, NULL);
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rna_enum_studio_light_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_UserDef_studiolight_type_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Orientation", "");
+	RNA_def_property_ui_text(prop, "Type", "");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_name_get", "rna_UserDef_studiolight_name_length", NULL);

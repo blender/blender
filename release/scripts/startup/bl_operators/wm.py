@@ -2432,11 +2432,11 @@ class WM_OT_studiolight_install(Operator):
         default="*.png;*.jpg;*.hdr;*.exr",
         options={'HIDDEN'},
     )
-    orientation: EnumProperty(
+    type: EnumProperty(
         items=(
             ('MATCAP', "MatCap", ""),
             ('WORLD', "World", ""),
-            ('CAMERA', "Camera", ""),
+            ('STUDIO', "Studio", ""),
         )
     )
 
@@ -2453,7 +2453,7 @@ class WM_OT_studiolight_install(Operator):
             self.report({'ERROR'}, "Failed to get Studio Light path")
             return {'CANCELLED'}
 
-        path_studiolights = pathlib.Path(path_studiolights, "studiolights", self.orientation.lower())
+        path_studiolights = pathlib.Path(path_studiolights, "studiolights", self.type.lower())
         if not path_studiolights.exists():
             try:
                 path_studiolights.mkdir(parents=True, exist_ok=True)
@@ -2462,7 +2462,7 @@ class WM_OT_studiolight_install(Operator):
 
         for filepath in filepaths:
             shutil.copy(str(filepath), str(path_studiolights))
-            userpref.studio_lights.new(str(path_studiolights.joinpath(filepath.name)), self.orientation)
+            userpref.studio_lights.new(str(path_studiolights.joinpath(filepath.name)), self.type)
 
         # print message
         msg = (

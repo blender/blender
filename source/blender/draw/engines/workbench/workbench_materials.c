@@ -83,14 +83,14 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	if (MATCAP_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_MATCAP\n");
 	}
-	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_WORLD\n");
+	if (STUDIOLIGHT_TYPE_WORLD_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_TYPE_WORLD\n");
 	}
-	if (STUDIOLIGHT_ORIENTATION_CAMERA_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_CAMERA\n");
+	if (STUDIOLIGHT_TYPE_STUDIO_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_TYPE_STUDIO\n");
 	}
-	if (STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_VIEWNORMAL\n");
+	if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_TYPE_MATCAP\n");
 	}
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
@@ -158,8 +158,8 @@ int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_tex
 	SET_FLAG_FROM_TEST(index, uses_curvature, 1 << 7);
 	SET_FLAG_FROM_TEST(index, uses_curvature && (U.pixelsize > 1.5f), 1 << 8);
 	/* 2 bits STUDIOLIGHT_ORIENTATION */
-	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD, 1 << 9);
-	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL, 1 << 10);
+	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_TYPE_WORLD, 1 << 9);
+	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_TYPE_MATCAP, 1 << 10);
 	/* 1 bit for hair */
 	SET_FLAG_FROM_TEST(index, is_hair, 1 << 11);
 	return index;

@@ -807,7 +807,7 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 
 	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
 	if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
-		flag = STUDIOLIGHT_ORIENTATION_VIEWNORMAL;
+		flag = STUDIOLIGHT_TYPE_MATCAP;
 		dna_storage = shading->matcap;
 	}
 	else if (shading->type == OB_MATERIAL) {
@@ -830,7 +830,7 @@ static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 
 	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
 	if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
-		flag = STUDIOLIGHT_ORIENTATION_VIEWNORMAL;
+		flag = STUDIOLIGHT_TYPE_MATCAP;
 		dna_storage = shading->matcap;
 	}
 	else if (shading->type == OB_MATERIAL) {
@@ -851,7 +851,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 	int totitem = 0;
 
 	if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
-		const int flags = (STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+		const int flags = (STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_TYPE_MATCAP);
 
 		LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
 			int icon_id = (shading->flag & V3D_SHADING_MATCAP_FLIP_X) ? sl->icon_id_matcap_flipped: sl->icon_id_matcap;
@@ -877,11 +877,11 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 					case OB_SOLID:
 					case OB_TEXTURE:
 						show_studiolight = (
-						        (sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA)) != 0);
+						        (sl->flag & (STUDIOLIGHT_TYPE_WORLD | STUDIOLIGHT_TYPE_STUDIO)) != 0);
 						break;
 
 					case OB_MATERIAL:
-						show_studiolight = ((sl->flag & STUDIOLIGHT_ORIENTATION_WORLD) != 0);
+						show_studiolight = ((sl->flag & STUDIOLIGHT_TYPE_WORLD) != 0);
 						icon_id = sl->icon_id_radiance;
 						break;
 				}

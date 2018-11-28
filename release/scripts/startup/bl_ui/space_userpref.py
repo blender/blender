@@ -45,9 +45,9 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif userpref.active_section == 'LIGHTS':
-            layout.operator('wm.studiolight_install', text="Add MatCap").orientation = 'MATCAP'
-            layout.operator('wm.studiolight_install', text="Add World HDRI").orientation = 'WORLD'
-            layout.operator('wm.studiolight_install', text="Add Camera HDRI").orientation = 'CAMERA'
+            layout.operator('wm.studiolight_install', text="Add MatCap").type = 'MATCAP'
+            layout.operator('wm.studiolight_install', text="Add LookDev HDRI").type = 'WORLD'
+            layout.operator('wm.studiolight_install', text="Add Studio Light").type = 'STUDIO'
         elif userpref.active_section == 'THEMES':
             layout.operator("wm.theme_install", icon='FILEBROWSER')
             layout.operator("ui.reset_default_theme", icon='LOOP_BACK')
@@ -1492,7 +1492,7 @@ class StudioLightPanelMixin():
         return (userpref.active_section == 'LIGHTS')
 
     def _get_lights(self, userpref):
-        return [light for light in userpref.studio_lights if light.is_user_defined and light.orientation == self.sl_orientation]
+        return [light for light in userpref.studio_lights if light.is_user_defined and light.type == self.sl_type]
 
     def draw(self, context):
         layout = self.layout
@@ -1518,22 +1518,17 @@ class StudioLightPanelMixin():
 
 class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
     bl_label = "MatCaps"
-    sl_orientation = 'MATCAP'
+    sl_type = 'MATCAP'
 
 
 class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
-    bl_label = "World HDRI"
-    sl_orientation = 'WORLD'
-
-
-class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
-    bl_label = "Camera HDRI"
-    sl_orientation = 'CAMERA'
+    bl_label = "LookDev HDRIs"
+    sl_type = 'WORLD'
 
 
 class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
     bl_label = "Studio Lights"
-    sl_orientation = 'CAMERA'
+    sl_type = 'STUDIO'
 
     @classmethod
     def poll(cls, context):
@@ -1593,7 +1588,6 @@ classes = (
     USERPREF_PT_studiolight_lights,
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
-    USERPREF_PT_studiolight_camera,
 )
 
 if __name__ == "__main__":  # only for live edit.

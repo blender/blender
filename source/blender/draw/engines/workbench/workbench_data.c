@@ -36,17 +36,17 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 	if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
 		wpd->studio_light = BKE_studiolight_find(
-		        wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+		        wpd->shading.matcap, STUDIOLIGHT_TYPE_MATCAP);
 	}
 	else {
 		wpd->studio_light = BKE_studiolight_find(
-		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_TYPE_WORLD);
 	}
 
 	/* If matcaps are missing, use this as fallback. */
 	if (UNLIKELY(wpd->studio_light == NULL)) {
 		wpd->studio_light = BKE_studiolight_find(
-		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_TYPE_WORLD);
 	}
 
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
@@ -168,7 +168,7 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, r_light_direction);
 
 	/* TODO enable when we support studiolight presets. */
-	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) && false) {
+	if (STUDIOLIGHT_TYPE_WORLD_ENABLED(wpd) && false) {
 		axis_angle_to_mat4_single(rot_matrix, 'Y', -wpd->shading.studiolight_rot_z);
 		mul_m4_m4m4(rot_matrix, rot_matrix, view_matrix);
 		swap_v3_v3(rot_matrix[2], rot_matrix[1]);

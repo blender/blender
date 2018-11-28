@@ -49,7 +49,7 @@ void main()
 	}
 #else
 	diffuseColor = vec4(materialDiffuseColor.rgb, 0.0);
-#  ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
+#  ifdef STUDIOLIGHT_TYPE_MATCAP
 	specularColor = vec4(materialDiffuseColor.rgb, 0.0);
 
 #  endif

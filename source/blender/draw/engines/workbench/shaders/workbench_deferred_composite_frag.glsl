@@ -9,16 +9,13 @@ uniform sampler2D specularBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
 uniform sampler2D cavityBuffer;
+uniform sampler2D matcapImage;
 
 uniform vec2 invertedViewportSize;
 uniform vec4 viewvecs[3];
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
-
-#ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
-uniform sampler2D matcapImage;
-#endif
 
 layout(std140) uniform world_block {
 	WorldData world_data;
