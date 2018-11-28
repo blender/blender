@@ -295,6 +295,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
 
 	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
 
+	DEG_relations_tag_update(CTX_data_main(C));
 	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
@@ -368,7 +369,7 @@ static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEv
 void OBJECT_OT_hide_collection(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Hide Objects By Collection";
+	ot->name = "Hide Collection";
 	ot->description = "Show only objects in collection (Shift to extend)";
 	ot->idname = "OBJECT_OT_hide_collection";
 

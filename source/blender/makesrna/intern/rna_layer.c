@@ -297,6 +297,19 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	                         "in the view layer");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
 
+	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_RESTRICT_VIEW);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+	RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
+	RNA_def_property_ui_text(prop, "Disable Viewport", "Disable collection in viewport for this view layer");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_use_update");
+
+	prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "runtime_flag", LAYER_COLLECTION_VISIBLE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Visible",
+	                         "Whether this collection is visible, take into account the collection parent");
+
 	func = RNA_def_function(srna, "has_objects", "rna_LayerCollection_has_objects");
 	RNA_def_function_ui_description(func, "");
 	RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));

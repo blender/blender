@@ -71,6 +71,11 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 		COLLECTION_RESTRICT_VIEW : COLLECTION_RESTRICT_RENDER;
 
 	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
+		if ((graph_->mode == DAG_EVAL_VIEWPORT) &&
+		    ((lc->flag & LAYER_COLLECTION_RESTRICT_VIEW) != 0))
+		{
+			continue;
+		}
 		if (lc->collection->flag & restrict_flag) {
 			continue;
 		}

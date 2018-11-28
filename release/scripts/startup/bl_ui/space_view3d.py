@@ -4078,11 +4078,8 @@ class VIEW3D_PT_collections(Panel):
             sub = row.split()
             subrow = sub.row(align=True)
             subrow.alignment = 'RIGHT'
-            icon = 'HIDE_OFF' if has_visible_objects else 'HIDE_ON'
-            props = subrow.operator("object.hide_collection", text="", icon=icon, emboss=False)
-            props.collection_index = index
-            props.toggle = True
-            subrow.prop(child.collection, "hide_select", text="", emboss=False)
+            subrow.active = collection.is_visible # Parent collection runtime visibility
+            subrow.prop(child, "hide_viewport", text="", emboss=False)
 
         for child in collection.children:
             index = self._draw_collection(layout, view_layer, child, index)
