@@ -641,9 +641,7 @@ static bool ntree_tag_ssr_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
 			if (fromnode->id != NULL) {
 				bNodeTree *ntree = (bNodeTree *)fromnode->id;
 				bNode *group_output = ntree_group_output_node(ntree);
-				if (fromnode) {
-					ntree_shader_tag_ssr_node(ntree, group_output);
-				}
+				ntree_shader_tag_ssr_node(ntree, group_output);
 			}
 			break;
 		case SH_NODE_BSDF_ANISOTROPIC:
@@ -687,9 +685,7 @@ static bool ntree_tag_sss_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
 			if (fromnode->id != NULL) {
 				bNodeTree *ntree = (bNodeTree *)fromnode->id;
 				bNode *group_output = ntree_group_output_node(ntree);
-				if (fromnode) {
-					ntree_shader_tag_sss_node(ntree, group_output);
-				}
+				ntree_shader_tag_sss_node(ntree, group_output);
 			}
 			break;
 		case SH_NODE_BSDF_PRINCIPLED:

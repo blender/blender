@@ -86,7 +86,7 @@ static void rect_subregion_stride_calc(const rcti *src, const rcti *dst, SubRect
 	const int y = dst->ymin - src->ymin;
 
 	BLI_assert(src->xmin <= dst->xmin && src->ymin <= dst->ymin &&
-	           src->ymax >= dst->ymax && src->ymax >= dst->ymax);
+	           src->xmax >= dst->xmax && src->ymax >= dst->ymax);
 	BLI_assert(x >= 0 && y >= 0);
 
 	r_sub->start    = (uint)((src_x * y) + x);
