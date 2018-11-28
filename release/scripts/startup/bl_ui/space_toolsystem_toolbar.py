@@ -1207,6 +1207,18 @@ class _defs_node_select:
         )
 
 
+class _defs_node_edit:
+
+    @ToolDef.from_fn
+    def links_cut():
+        return dict(
+            text="Links Cut",
+            icon="ops.mesh.knife_tool",
+            widget=None,
+            keymap="Node Tool: Links Cut",
+        )
+
+
 class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -1335,6 +1347,8 @@ class NODE_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_select,
             None,
             *_tools_annotate,
+            None,
+            _defs_node_edit.links_cut,
         ],
     }
 

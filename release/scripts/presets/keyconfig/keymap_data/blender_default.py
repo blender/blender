@@ -5090,6 +5090,18 @@ def km_node_editor_tool_select_lasso(params):
     )
 
 
+def km_node_editor_tool_links_cut(params):
+    return (
+        "Node Tool: Links Cut",
+        {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
+        {"items": (
+            ("node.links_cut", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+        ),
+        },
+    )
+
+
+
 def km_3d_view_tool_object_cursor(params):
     return (
         "3D View Tool: Object, Cursor",
@@ -5945,6 +5957,7 @@ def generate_keymaps(params=None):
         km_node_editor_tool_select(params),
         km_node_editor_tool_select_box(params),
         km_node_editor_tool_select_lasso(params),
+        km_node_editor_tool_links_cut(params),
         km_3d_view_tool_object_cursor(params),
         km_3d_view_tool_object_select(params),
         km_3d_view_tool_object_select_box(params),
