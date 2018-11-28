@@ -41,6 +41,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "UI_interface.h"
+
 #include "wm_cursors.h"
 
 #include "rna_internal.h"  /* own include */
@@ -72,6 +74,11 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 #include "BKE_context.h"
 
 #include "WM_types.h"
+
+static void rna_KeyMapItem_to_string(wmKeyMapItem *kmi, bool compact, char *result)
+{
+	WM_keymap_item_to_string(kmi, compact, result, UI_MAX_SHORTCUT_STR);
+}
 
 static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
 {
@@ -830,6 +837,12 @@ void RNA_api_keymapitem(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "result", 0, "Comparison result", "");
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "to_string", "rna_KeyMapItem_to_string");
+	RNA_def_boolean(func, "compact", false, "Compact", "");
+	parm = RNA_def_string(func, "result", NULL, UI_MAX_SHORTCUT_STR, "result", "");
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
+	RNA_def_function_output(func, parm);
 }
 
 void RNA_api_keymapitems(StructRNA *srna)
