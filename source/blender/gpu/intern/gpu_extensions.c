@@ -263,7 +263,10 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_OFFICIAL;
 
 #if defined(__APPLE__)
-		if (strstr(renderer, "AMD Radeon Pro") || strstr(renderer, "AMD Radeon R9")) {
+		if (strstr(renderer, "AMD Radeon Pro") ||
+		    strstr(renderer, "AMD Radeon R9") ||
+		    strstr(renderer, "AMD Radeon RX"))
+		{
 			GG.depth_blitting_workaround = true;
 		}
 #endif
