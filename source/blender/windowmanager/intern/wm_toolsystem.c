@@ -553,40 +553,10 @@ void WM_toolsystem_init(bContext *C)
 	LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
 		LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
 			MEM_SAFE_FREE(tref->runtime);
-			tref->tag = 0;
 		}
 	}
 
-	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-		for (wmWindow *win = wm->windows.first; win; win = win->next) {
-			CTX_wm_window_set(C, win);
-			WorkSpace *workspace = WM_window_get_active_workspace(win);
-			bScreen *screen = WM_window_get_active_screen(win);
-			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-				if (((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) == 0) {
-					continue;
-				}
-				const bToolKey tkey = {
-					.space_type = sa->spacetype,
-					.mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype),
-				};
-				bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
-				if (tref) {
-					if (tref->tag == 0) {
-						toolsystem_reinit_ref(C, workspace, tref);
-						tref->tag = 1;
-					}
-				}
-				else {
-					/* Without this we may load a file without a default tool. */
-					tref = toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
-					tref->tag = 1;
-				}
-			}
-			CTX_wm_window_set(C, NULL);
-		}
-	}
+	/* Rely on screen initialization for gizmos. */
 }
 
 int WM_toolsystem_mode_from_spacetype(

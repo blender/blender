@@ -187,7 +187,7 @@ bool ED_workspace_change(
 	BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
 	WM_toolsystem_unlink_all(C, workspace_old);
-	WM_toolsystem_reinit_all(C, win);
+	/* Area initialization will initialize based on the new workspace. */
 
 	/* Automatic mode switching. */
 	if (workspace_new->object_mode != workspace_old->object_mode) {

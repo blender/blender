@@ -467,11 +467,6 @@ int main(
 	CTX_py_init_set(C, 1);
 	WM_keyconfig_init(C);
 
-	/* Called on load, however Python is not yet initialized, so call again here. */
-	if (!G.background) {
-		WM_toolsystem_init(C);
-	}
-
 #ifdef WITH_FREESTYLE
 	/* initialize Freestyle */
 	FRS_initialize();
