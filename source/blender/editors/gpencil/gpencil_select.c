@@ -1299,6 +1299,28 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 /** \name Mouse Pick Select Operator
  * \{ */
 
+/* helper to deselect all selected strokes/points */
+static void deselect_all_selected(bContext *C)
+{
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		/* deselect stroke and its points if selected */
+		if (gps->flag & GP_STROKE_SELECT) {
+			bGPDspoint *pt;
+			int i;
+
+			/* deselect points */
+			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+				pt->flag &= ~GP_SPOINT_SELECT;
+			}
+
+			/* deselect stroke itself too */
+			gps->flag &= ~GP_STROKE_SELECT;
+		}
+	}
+	CTX_DATA_END;
+}
+
 static int gpencil_select_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -1376,23 +1398,8 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, hit_stroke, hit_point)) {
 
 		/* since left mouse select change, deselect all if click outside any hit */
-		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-		{
-			/* deselect stroke and its points if selected */
-			if (gps->flag & GP_STROKE_SELECT) {
-				bGPDspoint *pt;
-				int i;
+		deselect_all_selected(C);
 
-				/* deselect points */
-				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
-
-				/* deselect stroke itself too */
-				gps->flag &= ~GP_STROKE_SELECT;
-			}
-		}
-		CTX_DATA_END;
 		/* copy on write tag is needed, or else no refresh happens */
 		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
 		DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
@@ -1408,23 +1415,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
 	/* If not extending selection, deselect everything else */
 	if (extend == false) {
-		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-		{
-			/* deselect stroke and its points if selected */
-			if (gps->flag & GP_STROKE_SELECT) {
-				bGPDspoint *pt;
-				int i;
-
-				/* deselect points */
-				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-					pt->flag &= ~GP_SPOINT_SELECT;
-				}
-
-				/* deselect stroke itself too */
-				gps->flag &= ~GP_STROKE_SELECT;
-			}
-		}
-		CTX_DATA_END;
+		deselect_all_selected(C);
 	}
 
 	/* Perform selection operations... */
