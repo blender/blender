@@ -140,7 +140,7 @@ static NUMAAPI_Result loadNumaSymbols(void) {
 NUMAAPI_Result numaAPI_Initialize(void) {
 #if !ARCH_CPU_64_BITS
   // No NUMA on 32 bit platforms.
-  return LIBNUMAAPI_NOT_AVAILABLE;
+  return NUMAAPI_NOT_AVAILABLE;
 #else
   if (!IsWindows7OrGreater()) {
     // Require Windows 7 or higher.
