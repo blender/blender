@@ -29,7 +29,8 @@ if not sys.version.startswith("3"):
     sys.exit(1)
 
 from cmake_consistency_check_config import (
-    IGNORE,
+    IGNORE_SOURCE,
+    IGNORE_CMAKE,
     UTF8_CHECK,
     SOURCE_DIR,
     BUILD_DIR,
@@ -156,6 +157,7 @@ def cmake_get_src(f):
                         break
 
                     # replace dirs
+                    l = l.replace("${CMAKE_SOURCE_DIR}", SOURCE_DIR)
                     l = l.replace("${CMAKE_CURRENT_SOURCE_DIR}", cmake_base)
                     l = l.replace("${CMAKE_CURRENT_BINARY_DIR}", cmake_base_bin)
                     l = l.strip('"')
@@ -238,8 +240,16 @@ def cmake_get_src(f):
     filen.close()
 
 
-def is_ignore(f, ignore_used):
-    for index, ig in enumerate(IGNORE):
+def is_ignore_source(f, ignore_used):
+    for index, ig in enumerate(IGNORE_SOURCE):
+        if ig in f:
+            ignore_used[index] = True
+            return True
+    return False
+
+
+def is_ignore_cmake(f, ignore_used):
+    for index, ig in enumerate(IGNORE_CMAKE):
         if ig in f:
             ignore_used[index] = True
             return True
@@ -250,8 +260,12 @@ def main():
 
     print("Scanning:", SOURCE_DIR)
 
+    ignore_used_source = [False] * len(IGNORE_SOURCE)
+    ignore_used_cmake = [False] * len(IGNORE_CMAKE)
+
     for cmake in source_list(SOURCE_DIR, is_cmake):
-        cmake_get_src(cmake)
+        if not is_ignore_cmake(cmake, ignore_used_cmake):
+            cmake_get_src(cmake)
 
     # First do stupid check, do these files exist?
     print("\nChecking for missing references:")
@@ -282,12 +296,10 @@ def main():
     del is_err
     del errs
 
-    ignore_used = [False] * len(IGNORE)
-
     # now check on files not accounted for.
     print("\nC/C++ Files CMake does not know about...")
     for cf in sorted(source_list(SOURCE_DIR, is_c)):
-        if not is_ignore(cf, ignore_used):
+        if not is_ignore_source(cf, ignore_used_source):
             if cf not in global_c:
                 print("missing_c: ", cf)
 
@@ -304,7 +316,7 @@ def main():
 
     print("\nC/C++ Headers CMake does not know about...")
     for hf in sorted(source_list(SOURCE_DIR, is_c_header)):
-        if not is_ignore(hf, ignore_used):
+        if not is_ignore_source(hf, ignore_used_source):
             if hf not in global_h:
                 print("missing_h: ", hf)
 
@@ -326,9 +338,15 @@ def main():
                                 traceback.print_exc()
 
     # Check ignores aren't stale
-    print("\nCheck for unused 'IGNORE' paths...")
-    for index, ig in enumerate(IGNORE):
-        if not ignore_used[index]:
+    print("\nCheck for unused 'IGNORE_SOURCE' paths...")
+    for index, ig in enumerate(IGNORE_SOURCE):
+        if not ignore_used_source[index]:
+            print("unused ignore: %r" % ig)
+
+    # Check ignores aren't stale
+    print("\nCheck for unused 'IGNORE_CMAKE' paths...")
+    for index, ig in enumerate(IGNORE_CMAKE):
+        if not ignore_used_cmake[index]:
             print("unused ignore: %r" % ig)
 
 
