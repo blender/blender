@@ -1061,9 +1061,12 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 		 * updating meshes here will end up having derived mesh referencing
 		 * freed data from the blender side.
 		 */
-		if(preview && b_ob.type() != BL::Object::type_MESH)
+		if(preview && b_ob.type() != BL::Object::type_MESH) {
 			b_ob.update_from_editmode(b_data);
+		}
 
+		/* For some reason, meshes do not need this... */
+		bool apply_modifiers = (b_ob.type() != BL::Object::type_MESH);
 		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
 
 		mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
@@ -1078,7 +1081,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 		BL::Mesh b_mesh = object_to_mesh(b_data,
 		                                 b_ob,
 		                                 b_depsgraph,
-		                                 false,
+		                                 apply_modifiers,
 		                                 need_undeformed,
 		                                 mesh->subdivision_type);
 
