@@ -1397,7 +1397,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlock *block;
 	uiBut *but;
 	uiStyle *style = UI_style_get();
-	const char *version_suffix = NULL;
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
@@ -1453,7 +1452,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 			ibuf_template = IMB_loadiffname(splash_filepath, IB_rect, NULL);
 			if (ibuf_template) {
 				const int x_expect = ibuf->x;
-				const int y_expect = 282 * (int)U.dpi_fac;
+				const int y_expect = 250 * (int)U.dpi_fac;
 				/* don't cover the header text */
 				if (ibuf_template->x == x_expect && ibuf_template->y == y_expect) {
 					memcpy(ibuf->rect, ibuf_template->rect, ibuf_template->x * ibuf_template->y * sizeof(char[4]));
@@ -1477,55 +1476,63 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
 	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-	but = uiDefBut(block, UI_BTYPE_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.dpi_fac * 501, U.dpi_fac * 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
+	but = uiDefBut(block, UI_BTYPE_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.dpi_fac * 501, U.dpi_fac * 250, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
 	UI_but_func_set(but, wm_block_splash_close, block, NULL);
 	UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 * avoids recreating splash for version updates */
+	const char *version_suffix = NULL;
+
 	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
-		version_suffix = "Alpha 2";
+		version_suffix = " Alpha";
 	}
 	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
-		version_suffix = "Beta";
+		version_suffix = " Beta";
 	}
 	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
-		version_suffix = "Release Candidate";
+		version_suffix = " Release Candidate";
 	}
 	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
 		version_suffix = STRINGIFY(BLENDER_VERSION_CHAR);
 	}
-	if (version_suffix != NULL && version_suffix[0]) {
+
+	char *version = BLI_sprintfN("Version %d.%d%s", BLENDER_VERSION / 100, BLENDER_VERSION % 100, version_suffix);
+
+	if (version != NULL && version[0]) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
-		int x = 234 * U.dpi_fac;
-		int y = 235 * U.dpi_fac;
-		int w = 240 * U.dpi_fac;
-
 		/* hack to have text draw 'text_sel' */
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
-		but = uiDefBut(block, UI_BTYPE_LABEL, 0, version_suffix, x, y, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		int x = 202 * U.dpi_fac;
+		int y = 130 * U.dpi_fac;
+		int w = 240 * U.dpi_fac;
+
+
+		but = uiDefBut(block, UI_BTYPE_LABEL, 0, version, x, y, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 		/* XXX, set internal flag - UI_SELECT */
 		UI_but_flag_enable(but, 1);
 		UI_block_emboss_set(block, UI_EMBOSS);
 	}
 
+	MEM_freeN(version);
+
 #ifdef WITH_BUILDINFO
 	if (build_commit_timestamp != 0) {
 		but = uiDefBut(
 		          block, UI_BTYPE_LABEL, 0, date_buf,
-		          U.dpi_fac * 502 - date_width, U.dpi_fac * 267,
+		          U.dpi_fac * 502 - date_width, U.dpi_fac * 237,
 		          date_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 		/* XXX, set internal flag - UI_SELECT */
-		UI_but_flag_enable(but, 1);
+		UI_but_flag_enable(but, 0);
 		label_delta = 12;
 	}
 	but = uiDefBut(
 	          block, UI_BTYPE_LABEL, 0, hash_buf,
-	          U.dpi_fac * 502 - hash_width, U.dpi_fac * (267 - label_delta),
+	          U.dpi_fac * 502 - hash_width, U.dpi_fac * (237 - label_delta),
 	          hash_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 	/* XXX, set internal flag - UI_SELECT */
-	UI_but_flag_enable(but, 1);
+	UI_but_flag_enable(but, 0);
 
 	if (!STREQ(build_branch, "master")) {
 		char branch_buf[128] = "\0";
@@ -1534,16 +1541,16 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		branch_width = (int)BLF_width(style->widgetlabel.uifont_id, branch_buf, sizeof(branch_buf)) + U.widget_unit;
 		but = uiDefBut(
 		          block, UI_BTYPE_LABEL, 0, branch_buf,
-		          U.dpi_fac * 502 - branch_width, U.dpi_fac * (255 - label_delta),
+		          U.dpi_fac * 502 - branch_width, U.dpi_fac * (225 - label_delta),
 		          branch_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 		/* XXX, set internal flag - UI_SELECT */
-		UI_but_flag_enable(but, 1);
+		UI_but_flag_enable(but, 0);
 	}
 #endif  /* WITH_BUILDINFO */
 
 	uiLayout *layout = UI_block_layout(
-	        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2,
-	        U.dpi_fac * 480, U.dpi_fac * 110, 0, style);
+	        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, U.dpi_fac * 40, 0,
+	        U.dpi_fac * 450, U.dpi_fac * 110, 0, style);
 
 	MenuType *mt = WM_menutype_find("WM_MT_splash", true);
 	if (mt) {
