@@ -279,7 +279,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
-    bl_label = "Duplication"
+    bl_label = "Instancing"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
