@@ -1646,6 +1646,10 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 			WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
 			sa->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
 		}
+		else {
+			sa->runtime.tool = NULL;
+			sa->runtime.is_tool_set = true;
+		}
 	}
 }
 
