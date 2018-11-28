@@ -95,6 +95,30 @@ typedef struct SceneStatsFmt {
 	char totgpstroke[MAX_INFO_NUM_LEN], totgppoint[MAX_INFO_NUM_LEN];
 } SceneStatsFmt;
 
+static bool stats_mesheval(Mesh *me_eval, int sel, int totob, SceneStats *stats)
+{
+	int totvert, totedge, totface, totloop;
+
+	if (me_eval) {
+		totvert = me_eval->totvert;
+		totedge = me_eval->totedge;
+		totface = me_eval->totpoly;
+		totloop = me_eval->totloop;
+
+		stats->totvert += totvert * totob;
+		stats->totedge += totedge * totob;
+		stats->totface += totface * totob;
+		stats->tottri  += poly_to_tri_count(totface, totloop) * totob;
+
+		if (sel) {
+			stats->totvertsel += totvert;
+			stats->totfacesel += totface;
+		}
+		return true;
+	}
+	return false;
+}
+
 static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 {
 	switch (ob->type) {
@@ -102,24 +126,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		{
 			/* we assume evaluated mesh is already built, this strictly does stats now. */
 			Mesh *me_eval = ob->runtime.mesh_eval;
-			int totvert, totedge, totface, totloop;
-
-			if (me_eval) {
-				totvert = me_eval->totvert;
-				totedge = me_eval->totedge;
-				totface = me_eval->totpoly;
-				totloop = me_eval->totloop;
-
-				stats->totvert += totvert * totob;
-				stats->totedge += totedge * totob;
-				stats->totface += totface * totob;
-				stats->tottri  += poly_to_tri_count(totface, totloop) * totob;
-
-				if (sel) {
-					stats->totvertsel += totvert;
-					stats->totfacesel += totface;
-				}
-			}
+			stats_mesheval(me_eval, sel, totob, stats);
 			break;
 		}
 		case OB_LAMP:
@@ -131,6 +138,13 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		case OB_SURF:
 		case OB_CURVE:
 		case OB_FONT:
+		{
+			Mesh *me_eval = ob->runtime.mesh_eval;
+			if (stats_mesheval(me_eval, sel, totob, stats)) {
+				break;
+			}
+			ATTR_FALLTHROUGH;  /* Falltrough to displist. */
+		}
 		case OB_MBALL:
 		{
 			int totv = 0, totf = 0, tottri = 0;
