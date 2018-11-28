@@ -887,6 +887,7 @@ static bool check_is_threadripper2_alike_topology(void)
 		/* NOTE: Similarly to Threadripper we do not do model check. */
 		is_threadripper2 = true;
 	}
+	MEM_freeN(cpu_brand);
 	return is_threadripper2;
 }
 
