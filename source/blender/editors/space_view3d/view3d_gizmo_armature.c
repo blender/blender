@@ -133,7 +133,8 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
 	if (ob != NULL) {
 		const bArmature *arm = ob->data;
 		if (arm->drawtype == ARM_B_BONE) {
-			if (arm->act_bone && arm->act_bone->segments > 1) {
+			bPoseChannel *pchan = BKE_pose_channel_active(ob);
+			if (pchan && pchan->bone->segments > 1) {
 				View3D *v3d = CTX_wm_view3d(C);
 				if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
 				    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
