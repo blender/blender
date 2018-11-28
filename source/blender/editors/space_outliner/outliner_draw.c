@@ -274,44 +274,6 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
 	}
 }
 
-static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
-{
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = poin;
-	Base *base = poin2;
-	bool extend = (CTX_wm_window(C)->eventstate->ctrl == 0);
-
-	/* Undo button toggle, let function do it. */
-	base->flag ^= BASE_HIDDEN;
-
-	BKE_base_set_visible(scene, view_layer, base, extend);
-
-	if (!extend && (base->flag & BASE_VISIBLE)) {
-		/* Auto select solo-ed object. */
-		ED_object_base_select(base, BA_SELECT);
-		view_layer->basact = base;
-	}
-
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-}
-
-static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *poin2)
-{
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = poin;
-	LayerCollection *lc = poin2;
-	bool extend = (CTX_wm_window(C)->eventstate->ctrl == 0);
-
-	/* Undo button toggle, let function do it. */
-	lc->runtime_flag ^= LAYER_COLLECTION_HAS_VISIBLE_OBJECTS;
-
-	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
-
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-}
-
 static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
 	Main *bmain = CTX_data_main(C);
@@ -525,18 +487,6 @@ static void outliner_draw_restrictbuts(
 			}
 			else if (tselem->type == 0 && te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
-				Base *base = BKE_view_layer_base_find(view_layer, ob);
-
-				if (base) {
-					bt = uiDefIconButBitS(
-					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDDEN, 0, ICON_HIDE_OFF,
-					        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
-					        UI_UNIT_Y, &base->flag, 0, 0, 0, 0,
-					        TIP_("Hide object in viewport (Ctrl to isolate)"));
-					UI_but_func_set(bt, hidebutton_base_flag_cb, view_layer, base);
-					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-					UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
-				}
 
 				PointerRNA ptr;
 				RNA_pointer_create(&ob->id, &RNA_Object, ob, &ptr);
@@ -648,17 +598,6 @@ static void outliner_draw_restrictbuts(
 				if ((!lc || !(lc->flag & LAYER_COLLECTION_EXCLUDE)) &&
 				    !(collection->flag & COLLECTION_IS_MASTER))
 				{
-					if (lc && (lc->runtime_flag & LAYER_COLLECTION_HAS_ENABLED_OBJECTS)) {
-						bt = uiDefIconButBitS(
-						        block, UI_BTYPE_ICON_TOGGLE_N, LAYER_COLLECTION_HAS_VISIBLE_OBJECTS, 0, ICON_HIDE_OFF,
-						        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
-						        UI_UNIT_Y, &lc->runtime_flag, 0, 0, 0, 0,
-						        TIP_("Hide collection in viewport (Ctrl to isolate)"));
-						UI_but_func_set(bt, hidebutton_layer_collection_flag_cb, view_layer, lc);
-						UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-						UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
-					}
-
 					PointerRNA collection_ptr;
 					RNA_id_pointer_create(&collection->id, &collection_ptr);
 
@@ -2120,10 +2059,7 @@ static void outliner_draw_restrictcols(ARegion *ar)
 	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
-	immBegin(GPU_PRIM_LINES, 8);
-
-	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), (int)ar->v2d.cur.ymax);
-	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), (int)ar->v2d.cur.ymin);
+	immBegin(GPU_PRIM_LINES, 6);
 
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymax);
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymin);
