@@ -31,7 +31,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Initialization.
 
-NUMAAPIResult numaAPI_Initialize(void) {
+NUMAAPI_Result numaAPI_Initialize(void) {
   return NUMAAPI_NOT_AVAILABLE;
 }
 
@@ -42,9 +42,14 @@ int numaAPI_GetNumNodes(void) {
   return 0;
 }
 
-bool numApiIsNodeAvailable(int node) {
+bool numaAPI_IsNodeAvailable(int node) {
   (void) node;  // Ignored.
   return false;
+}
+
+int numaAPI_GetNumNodeProcessors(int node) {
+  (void) node;  // Ignored.
+  return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
