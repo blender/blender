@@ -253,8 +253,8 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
         layout.use_property_split = True
 
         col = layout.column()
-        col.prop(mat, "diffuse_color")
-        col.prop(mat, "specular_color")
+        col.prop(mat, "diffuse_color", text="Color")
+        col.prop(mat, "metallic")
         col.prop(mat, "roughness")
 
 

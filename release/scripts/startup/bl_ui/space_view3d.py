@@ -4205,13 +4205,14 @@ class VIEW3D_PT_shading_lighting(Panel):
             sub.scale_y = 0.6  # smaller matcap/hdri preview
 
             if shading.light == 'STUDIO':
-                sub.template_icon_view(shading, "studio_light", scale=3)
+                # Not implemented right now
+                # sub.template_icon_view(shading, "studio_light", scale=3)
 
-                if shading.selected_studio_light.orientation == 'WORLD':
-                    col.prop(shading, "studiolight_rotate_z", text="Rotation")
+                # if shading.selected_studio_light.orientation == 'WORLD':
+                #     col.prop(shading, "studiolight_rotate_z", text="Rotation")
 
                 col = split.column()
-                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                # col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
             elif shading.light == 'MATCAP':
                 sub.template_icon_view(shading, "studio_light", scale=3)
@@ -4355,8 +4356,8 @@ class VIEW3D_PT_shading_options(Panel):
         sub.prop(shading, "object_outline_color", text="")
 
         col = layout.column()
-        if (shading.light is not 'MATCAP') and (shading.type is not 'WIREFRAME'):
-            col.prop(shading, "show_specular_highlight")
+        if (shading.light == 'STUDIO') and (shading.type is not 'WIREFRAME'):
+            col.prop(shading, "show_specular_highlight", text="Specular Lighting")
 
 
 class VIEW3D_PT_shading_options_shadow(Panel):

@@ -280,4 +280,15 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			}
 		}
 	}
+
+	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_VIEW3D) {
+					View3D *v3d = (View3D *)sl;
+					v3d->shading.flag |= V3D_SHADING_SPECULAR_HIGHLIGHT;
+				}
+			}
+		}
+	}
 }

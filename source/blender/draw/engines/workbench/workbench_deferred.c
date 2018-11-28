@@ -78,7 +78,6 @@ static struct {
 
 	SceneDisplay display; /* world light direction for shadows */
 	int next_object_id;
-	float normal_world_matrix[3][3];
 
 	struct GPUUniformBuffer *sampling_ubo;
 	struct GPUTexture *jitter_tx;
@@ -517,8 +516,6 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
 		BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
 		DRW_shgroup_uniform_texture(grp, "matcapImage", wpd->studio_light->equirect_radiance_gputexture );
 	}
-
-	workbench_material_set_normal_world_matrix(grp, wpd, e_data.normal_world_matrix);
 }
 
 void workbench_deferred_cache_init(WORKBENCH_Data *vedata)

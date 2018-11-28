@@ -1531,8 +1531,8 @@ class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
     sl_orientation = 'CAMERA'
 
 
-class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
-    bl_label = "Specular Lights"
+class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
+    bl_label = "Studio Lights"
     sl_orientation = 'CAMERA'
 
     @classmethod
@@ -1548,7 +1548,9 @@ class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
 
         sub = col.column()
         sub.active = light.use
+        sub.prop(light, "diffuse_color")
         sub.prop(light, "specular_color")
+        sub.prop(light, "smooth")
 
         col = split.column()
         col.active = light.use
@@ -1561,6 +1563,8 @@ class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
         userpref = context.user_preferences
         system = userpref.system
 
+        layout.prop(system, "light_ambient")
+
         light = system.solid_lights[0]
         colsplit = column.split(factor=0.85)
         self.opengl_light_buttons(colsplit, light)
@@ -1571,7 +1575,6 @@ class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
 
         light = system.solid_lights[2]
         self.opengl_light_buttons(column, light)
-
 
 classes = (
     USERPREF_HT_header,
@@ -1590,7 +1593,7 @@ classes = (
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
     USERPREF_PT_studiolight_camera,
-    USERPREF_PT_studiolight_specular,
+    USERPREF_PT_studiolight_lights,
 )
 
 if __name__ == "__main__":  # only for live edit.

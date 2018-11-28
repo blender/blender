@@ -1,6 +1,7 @@
 out vec4 fragColor;
 
 uniform mat4 ProjectionMatrix;
+uniform mat4 ViewMatrixInverse;
 
 uniform usampler2D objectId;
 uniform sampler2D colorBuffer;
@@ -14,7 +15,6 @@ uniform vec4 viewvecs[3];
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
-uniform mat3 normalWorldMatrix;
 
 #ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
 uniform sampler2D matcapImage;
@@ -70,39 +70,30 @@ void main()
 
 	vec3 I_vs = view_vector_from_screen_uv(uv_viewport, viewvecs, ProjectionMatrix);
 
-#ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
+	/* -------- SHADING --------- */
+#ifdef V3D_LIGHTING_FLAT
+	vec3 shaded_color = diffuse_color.rgb;
+
+#elif defined(V3D_LIGHTING_MATCAP)
 	bool flipped = world_data.matcap_orientation != 0;
 	vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
-	diffuse_color = textureLod(matcapImage, matcap_uv, 0.0);
-#endif
+	vec3 object_color = texelFetch(specularBuffer, texel, 0).rgb;
+	vec3 matcap = textureLod(matcapImage, matcap_uv, 0.0).rgb;
+	vec3 shaded_color = matcap * object_color;
 
-#ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
+#elif defined(V3D_LIGHTING_STUDIO)
+
+#  ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
 	vec4 specular_data = texelFetch(specularBuffer, texel, 0);
-	vec3 specular_color = get_world_specular_lights(world_data, specular_data, normal_viewport, I_vs);
-#else
-	vec3 specular_color = vec3(0.0);
-#endif
-
-#ifdef V3D_LIGHTING_FLAT
-	vec3 diffuse_light = vec3(1.0);
-#endif
-
-#ifdef V3D_LIGHTING_MATCAP
-	vec3 diffuse_light = texelFetch(specularBuffer, texel, 0).rgb;
-#endif
-
-#ifdef V3D_LIGHTING_STUDIO
-#  ifdef STUDIOLIGHT_ORIENTATION_CAMERA
-	vec3 diffuse_light = get_camera_diffuse_light(world_data, normal_viewport);
+#  else
+	vec4 specular_data = vec4(0.0);
 #  endif
-
-#  ifdef STUDIOLIGHT_ORIENTATION_WORLD
-	vec3 normal_world = normalWorldMatrix * normal_viewport;
-	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_world);
-#  endif
+	vec3 shaded_color = get_world_lighting(world_data,
+	                                       diffuse_color.rgb, specular_data.rgb, specular_data.a,
+	                                       normal_viewport, I_vs);
 #endif
-	vec3 shaded_color = diffuse_light * diffuse_color.rgb + specular_color;
 
+	/* -------- POST EFFECTS --------- */
 #ifdef V3D_SHADING_SSAO
 	vec2 cavity = texelFetch(cavityBuffer, texel, 0).rg;
 	shaded_color *= 1.0 - cavity.x;
@@ -119,16 +110,12 @@ void main()
 	/* The step function might be ok for meshes but it's
 	 * clearly not the case for hairs. Do smoothstep in this case. */
 	float shadow_mix = smoothstep(1.0, shadowShift, light_factor);
-	float light_multiplier = mix(lightMultiplier, shadowMultiplier, shadow_mix);
-
-#else /* V3D_SHADING_SHADOW */
-	float light_multiplier = 1.0;
-#endif /* V3D_SHADING_SHADOW */
-
-	shaded_color *= light_multiplier;
+	shaded_color *= mix(lightMultiplier, shadowMultiplier, shadow_mix);
+#endif
 
 #ifdef V3D_SHADING_OBJECT_OUTLINE
 	shaded_color = mix(world_data.object_outline_color.rgb, shaded_color, object_outline);
-#endif /* V3D_SHADING_OBJECT_OUTLINE */
+#endif
+
 	fragColor = vec4(shaded_color, 1.0);
 }

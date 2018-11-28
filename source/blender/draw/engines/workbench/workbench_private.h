@@ -59,7 +59,7 @@
                             (IN_RANGE(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_FXAA, GPU_VIEWPORT_QUALITY_TAA8) || \
                              ((IS_NAVIGATING(wpd) || wpd->is_playback) && (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8))))
 #define TAA_ENABLED(wpd) (DRW_state_is_image_render() || (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd) && !wpd->is_playback))
-#define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
+#define SPECULAR_HIGHLIGHT_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
 #define OBJECT_OUTLINE_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define OBJECT_ID_PASS_ENABLED(wpd) (OBJECT_OUTLINE_ENABLED(wpd) || CURVATURE_ENABLED(wpd))
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd) || CURVATURE_ENABLED(wpd))
@@ -135,9 +135,9 @@ typedef struct WORKBENCH_Data {
 } WORKBENCH_Data;
 
 typedef struct WORKBENCH_UBO_Light {
-	float light_direction_vs[4];
-	float specular_color[3];
-	float energy;
+	float light_direction[4];
+	float specular_color[3], pad;
+	float diffuse_color[3], wrapped;
 } WORKBENCH_UBO_Light;
 
 #define WORKBENCH_SH_DATA_LEN ((STUDIOLIGHT_SH_BANDS == 2) ? 6 : STUDIOLIGHT_SH_EFFECTIVE_COEFS_LEN)
@@ -148,7 +148,8 @@ typedef struct WORKBENCH_UBO_World {
 	float background_color_high[4];
 	float object_outline_color[4];
 	float shadow_direction_vs[4];
-	WORKBENCH_UBO_Light lights[3];
+	WORKBENCH_UBO_Light lights[4];
+	float ambient_color[4];
 	int num_lights;
 	int matcap_orientation;
 	float background_alpha;
@@ -293,8 +294,6 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
-void workbench_material_set_normal_world_matrix(
-        DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
 void workbench_material_shgroup_uniform(
         WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob);
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material);

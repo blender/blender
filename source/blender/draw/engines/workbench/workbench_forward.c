@@ -62,7 +62,6 @@ static struct {
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 
 	int next_object_id;
-	float normal_world_matrix[3][3];
 } e_data = {{NULL}};
 
 /* Shaders */
@@ -168,7 +167,6 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
 		DRW_shgroup_uniform_float(grp, "alpha", &wpd->shading.xray_alpha, 1);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
-		workbench_material_set_normal_world_matrix(grp, wpd, e_data.normal_world_matrix);
 		workbench_material_copy(material, &material_template);
 		if (STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)) {
 			BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
@@ -445,7 +443,6 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			                                ob, psys, md,
 			                                psl->transparent_accum_pass,
 			                                shader);
-			workbench_material_set_normal_world_matrix(shgrp, wpd, e_data.normal_world_matrix);
 			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
 			workbench_material_shgroup_uniform(wpd, shgrp, material, ob);
 			DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);

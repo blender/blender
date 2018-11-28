@@ -3478,6 +3478,13 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this OpenGL light in solid draw mode");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
+	prop = RNA_def_property(srna, "smooth", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "smooth");
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Smooth", "Smooth the lighting from this light");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
+
 	prop = RNA_def_property(srna, "direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
@@ -3489,6 +3496,12 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Specular Color", "Color of the light's specular highlight");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
+
+	prop = RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "col");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Color of the light's diffuse highlight");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 }
 
@@ -4277,6 +4290,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "light", "");
 	RNA_def_property_struct_type(prop, "UserSolidLight");
 	RNA_def_property_ui_text(prop, "Solid Lights", "Lights user to display objects in solid draw mode");
+
+	prop = RNA_def_property(srna, "light_ambient", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "light_ambient");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Ambient Color", "Color of the ambient light that uniformly lit the scene");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop = RNA_def_property(srna, "use_weight_color_range", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_CUSTOM_RANGE);
