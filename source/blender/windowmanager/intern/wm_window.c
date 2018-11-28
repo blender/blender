@@ -954,7 +954,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	if (sa->spacetype == SPACE_IMAGE)
 		title = IFACE_("Blender Render");
 	else if (ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
-		title = IFACE_("Blender Settings");
+		title = IFACE_("Blender Preferences");
 	else if (sa->spacetype == SPACE_FILE)
 		title = IFACE_("Blender File View");
 	else if (sa->spacetype == SPACE_IPO)

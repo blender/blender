@@ -425,7 +425,7 @@ def km_screen(params):
             ("screen.region_flip", {"type": 'F5', "value": 'PRESS'}, None),
             ("screen.redo_last", {"type": 'F6', "value": 'PRESS'}, None),
             ("script.reload", {"type": 'F8', "value": 'PRESS'}, None),
-            ("screen.settings_show", {"type": 'U', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+            ("screen.userpref_show", {"type": 'U', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ])
 
     if params.apple:
@@ -434,7 +434,7 @@ def km_screen(params):
             ("ed.undo", {"type": 'Z', "value": 'PRESS', "oskey": True}, None),
             ("ed.redo", {"type": 'Z', "value": 'PRESS', "shift": True, "oskey": True}, None),
             ("ed.undo_history", {"type": 'Z', "value": 'PRESS', "alt": True, "oskey": True}, None),
-            ("screen.settings_show", {"type": 'COMMA', "value": 'PRESS', "oskey": True}, None),
+            ("screen.userpref_show", {"type": 'COMMA', "value": 'PRESS', "oskey": True}, None),
         ])
 
     return keymap
