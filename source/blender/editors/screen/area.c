@@ -1640,9 +1640,12 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	}
 
 
-	if ((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-		WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
-		sa->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+	/* Avoid re-initializing tools while resizing the window. */
+	if ((G.moving & G_TRANSFORM_WM) == 0) {
+		if ((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
+			WM_toolsystem_refresh_screen_area(workspace, view_layer, sa);
+			sa->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+		}
 	}
 }
 

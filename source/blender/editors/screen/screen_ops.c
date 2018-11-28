@@ -1541,6 +1541,8 @@ static void area_move_exit(bContext *C, wmOperator *op)
 	/* this makes sure aligned edges will result in aligned grabbing */
 	BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
 	BKE_screen_remove_double_scredges(CTX_wm_screen(C));
+
+	G.moving &= ~G_TRANSFORM_WM;
 }
 
 static int area_move_exec(bContext *C, wmOperator *op)
@@ -1562,6 +1564,8 @@ static int area_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (!area_move_init(C, op))
 		return OPERATOR_PASS_THROUGH;
+
+	G.moving |= G_TRANSFORM_WM;
 
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
