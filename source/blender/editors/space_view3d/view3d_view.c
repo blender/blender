@@ -1384,6 +1384,7 @@ static int localview_exec(bContext *C, wmOperator *op)
 
 		/* Unselected objects become selected when exiting. */
 		if (v3d->localvd == NULL) {
+			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 		else {
