@@ -610,7 +610,7 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
 static short layer_collection_sync(
         ViewLayer *view_layer, const ListBase *lb_scene,
         ListBase *lb_layer, ListBase *new_object_bases,
-        short parent_exclude, short parent_restrict, short parent_layer_restrict)
+        short parent_exclude, short parent_restrict)
 {
 	/* TODO: support recovery after removal of intermediate collections, reordering, ..
 	 * For local edits we can make editing operating do the appropriate thing, but for
@@ -655,17 +655,15 @@ static short layer_collection_sync(
 
 		/* Collection restrict is inherited. */
 		short child_restrict = parent_restrict;
-		short child_layer_restrict = parent_layer_restrict;
 		if (!(collection->flag & COLLECTION_IS_MASTER)) {
 			child_restrict |= collection->flag;
-			child_layer_restrict |= lc->flag;
 		}
 
 		/* Sync child collections. */
 		short child_runtime_flag = layer_collection_sync(
 		        view_layer, &collection->children,
 		        &lc->layer_collections, new_object_bases,
-		        lc->flag, child_restrict, child_layer_restrict);
+		        lc->flag, child_restrict);
 
 		/* Layer collection exclude is not inherited. */
 		if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
@@ -674,10 +672,6 @@ static short layer_collection_sync(
 		}
 		else {
 			lc->runtime_flag = child_runtime_flag;
-		}
-
-		if ((child_layer_restrict & LAYER_COLLECTION_RESTRICT_VIEW) == 0) {
-			lc->runtime_flag |= LAYER_COLLECTION_VISIBLE;
 		}
 
 		/* Sync objects, except if collection was excluded. */
@@ -707,7 +701,6 @@ static short layer_collection_sync(
 			int object_restrict = base->object->restrictflag;
 
 			if (((child_restrict & COLLECTION_RESTRICT_VIEW) == 0) &&
-			    ((child_layer_restrict & LAYER_COLLECTION_RESTRICT_VIEW) == 0) &&
 			    ((object_restrict & OB_RESTRICT_VIEW) == 0))
 			{
 				base->flag |= BASE_VISIBLE | BASE_ENABLED | BASE_ENABLED_VIEWPORT;
@@ -721,6 +714,7 @@ static short layer_collection_sync(
 
 			if (((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) &&
 			    ((object_restrict & OB_RESTRICT_RENDER) == 0))
+
 			{
 				base->flag |= BASE_ENABLED_RENDER;
 			}
@@ -797,11 +791,11 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 	const ListBase collections = {&child, &child};
 	ListBase new_object_bases = {NULL, NULL};
 
-	const short parent_exclude = 0, parent_restrict = 0, parent_layer_restrict = 0;
+	const short parent_exclude = 0, parent_restrict = 0;
 	layer_collection_sync(
 	        view_layer, &collections,
 	        &view_layer->layer_collections, &new_object_bases,
-	        parent_exclude, parent_restrict, parent_layer_restrict);
+	        parent_exclude, parent_restrict);
 
 	/* Any remaning object bases are to be removed. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
@@ -925,7 +919,7 @@ bool BKE_layer_collection_has_selected_objects(ViewLayer *view_layer, LayerColle
 		for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
 			Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
-			if (base && (base->flag & BASE_SELECTED) && (base->flag & BASE_VISIBLE)) {
+			if (base && (base->flag & BASE_SELECTED)) {
 				return true;
 			}
 		}
@@ -937,20 +931,6 @@ bool BKE_layer_collection_has_selected_objects(ViewLayer *view_layer, LayerColle
 		}
 	}
 
-	return false;
-}
-
-bool BKE_layer_collection_has_layer_collection(LayerCollection *lc_parent, LayerCollection *lc_child)
-{
-	if (lc_parent == lc_child) {
-		return true;
-	}
-
-	for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-		if (BKE_layer_collection_has_layer_collection(lc_iter, lc_child)) {
-			return true;
-		}
-	}
 	return false;
 }
 
@@ -975,62 +955,44 @@ void BKE_base_set_visible(Scene *scene, ViewLayer *view_layer, Base *base, bool 
 	BKE_layer_collection_sync(scene, view_layer);
 }
 
-static void layer_collection_flag_set_recursive(LayerCollection *lc, const int flag)
-{
-	lc->flag |= flag;
-	for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-		layer_collection_flag_set_recursive(lc_iter, flag);
-	}
-}
-
-static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int flag)
-{
-	lc->flag &= ~flag;
-	for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-		layer_collection_flag_unset_recursive(lc_iter, flag);
-	}
-}
-
-/**
- * Set collection per-view layer visiblity.
- * When not extending, we show all the direct parents and all children of the layer collection.
- */
 void BKE_layer_collection_set_visible(Scene *scene, ViewLayer *view_layer, LayerCollection *lc, bool extend)
 {
 	if (!extend) {
-		/* Make only this collection visible. */
-		for (LayerCollection *lc_iter = view_layer->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-			layer_collection_flag_set_recursive(lc_iter, LAYER_COLLECTION_RESTRICT_VIEW);
+		/* Make only objects from one collection visible. */
+		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+			base->flag |= BASE_HIDDEN;
 		}
 
-		/* Make all the direct parents visible. */
-		LayerCollection *lc_parent = lc;
-		LayerCollection *lc_master = view_layer->layer_collections.first;
-		for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-			if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
-				lc_parent = lc_iter;
-				break;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(lc->collection, ob)
+		{
+			Base *base = BLI_ghash_lookup(view_layer->object_bases_hash, ob);
+
+			if (base) {
+				base->flag &= ~BASE_HIDDEN;
 			}
 		}
-
-		while (lc_parent != lc) {
-			lc_parent->flag &= ~LAYER_COLLECTION_RESTRICT_VIEW;
-
-			for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-				if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
-					lc_parent = lc_iter;
-					break;
-				}
-			}
-		}
-
-		/* Make all the children visible. */
-		layer_collection_flag_unset_recursive(lc, LAYER_COLLECTION_RESTRICT_VIEW);
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
 		BKE_layer_collection_activate(view_layer, lc);
 	}
 	else {
-		lc->flag ^= LAYER_COLLECTION_RESTRICT_VIEW;
+		/* Toggle visibility of objects from collection. */
+		bool hide = (lc->runtime_flag & LAYER_COLLECTION_HAS_VISIBLE_OBJECTS) != 0;
+
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(lc->collection, ob)
+		{
+			Base *base = BLI_ghash_lookup(view_layer->object_bases_hash, ob);
+
+			if (base) {
+				if (hide) {
+					base->flag |= BASE_HIDDEN;
+				}
+				else {
+					base->flag &= ~BASE_HIDDEN;
+				}
+			}
+		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 
 	BKE_layer_collection_sync(scene, view_layer);
@@ -1139,7 +1101,7 @@ typedef struct LayerObjectBaseIteratorData {
 	Base *base;
 } LayerObjectBaseIteratorData;
 
-static bool object_bases_iterator_is_valid_ex(View3D *v3d, Base *base, const int flags)
+static bool object_bases_iterator_is_valid_ex(View3D *v3d, Base *base, const int flag)
 {
 	if (v3d != NULL) {
 		if ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0) {
@@ -1150,12 +1112,12 @@ static bool object_bases_iterator_is_valid_ex(View3D *v3d, Base *base, const int
 			return false;
 		}
 	}
-	/* Any flag satisfies the condition. */
-	if (flags == ~0) {
-		return (base->flag != 0);
+
+	if ((base->flag & flag) == 0) {
+		return false;
 	}
-	/* flags may be more than one flag, so we can't check != 0. */
-	return ((base->flag & flags) == flags);
+
+	return true;
 }
 
 static bool object_bases_iterator_is_valid(View3D *v3d, Base *base)
@@ -1243,12 +1205,12 @@ static void objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-	objects_iterator_begin(iter, data_in, BASE_VISIBLE | BASE_SELECTED);
+	objects_iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_objects_iterator_next(BLI_Iterator *iter)
 {
-	objects_iterator_next(iter, BASE_VISIBLE | BASE_SELECTED);
+	objects_iterator_next(iter, BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_objects_iterator_end(BLI_Iterator *iter)
@@ -1285,7 +1247,7 @@ void BKE_view_layer_visible_objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_editable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-	objects_iterator_begin(iter, data_in, BASE_VISIBLE | BASE_SELECTED);
+	objects_iterator_begin(iter, data_in, BASE_SELECTED);
 	if (iter->valid) {
 		if (BKE_object_is_libdata((Object *)iter->current) == false) {
 			// First object is valid (selectable and not libdata) -> all good.
@@ -1302,7 +1264,7 @@ void BKE_view_layer_selected_editable_objects_iterator_next(BLI_Iterator *iter)
 {
 	// Search while there are objects and the one we have is not editable (editable = not libdata).
 	do {
-		objects_iterator_next(iter, BASE_VISIBLE | BASE_SELECTED);
+		objects_iterator_next(iter, BASE_SELECTED);
 	} while (iter->valid && BKE_object_is_libdata((Object *)iter->current) != false);
 }
 
@@ -1319,12 +1281,12 @@ void BKE_view_layer_selected_editable_objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-	objects_iterator_begin(iter, data_in, BASE_VISIBLE | BASE_SELECTED);
+	objects_iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_bases_iterator_next(BLI_Iterator *iter)
 {
-	object_bases_iterator_next(iter, BASE_VISIBLE | BASE_SELECTED);
+	object_bases_iterator_next(iter, BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_bases_iterator_end(BLI_Iterator *iter)

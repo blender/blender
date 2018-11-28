@@ -5906,8 +5906,7 @@ static int count_proportional_objects(TransInfo *t)
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 			/* all base not already selected or marked that is editable */
 			if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-			    ((base->flag & BASE_VISIBLE) != 0 &&
-			     (base->flag & BASE_SELECTED) == 0) &&
+			    (base->flag & BASE_SELECTED) == 0 &&
 			    (BASE_EDITABLE_BGMODE(v3d, base)))
 			{
 				mark_children(base->object);
@@ -5921,8 +5920,7 @@ static int count_proportional_objects(TransInfo *t)
 		 * selection and it is editable.
 		 */
 		if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-		    ((base->flag & BASE_VISIBLE) != 0 &&
-		     (base->flag & BASE_SELECTED) == 0) &&
+		    (base->flag & BASE_SELECTED) == 0 &&
 		    (BASE_EDITABLE_BGMODE(v3d, base)))
 		{
 			flush_trans_object_base_deps_flag(depsgraph, ob);

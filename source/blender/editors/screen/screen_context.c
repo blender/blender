@@ -203,9 +203,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
 				continue;
 			}
-			if ((base->flag & BASE_VISIBLE) == 0) {
-				continue;
-			}
 			if ((base->flag & BASE_SELECTED) != 0) {
 				CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
@@ -219,9 +216,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				continue;
 			}
 			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if ((base->flag & BASE_VISIBLE) == 0) {
 				continue;
 			}
 			if ((base->flag & BASE_SELECTED) != 0) {
