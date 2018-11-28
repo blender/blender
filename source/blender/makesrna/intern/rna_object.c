@@ -136,9 +136,9 @@ static const EnumPropertyItem parent_type_items[] = {
 
 #define INSTANCE_ITEMS_SHARED \
 	{0, "NONE", 0, "None", ""}, \
-	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"}, \
-	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"}, \
-	{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"}
+	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make instance of object for every frame"}, \
+	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Instantiate child objects on all vertices"}, \
+	{OB_DUPLIFACES, "FACES", 0, "Faces", "Instantiate child objects on all faces"}
 
 #define INSTANCE_ITEM_COLLECTION \
 	{OB_DUPLICOLLECTION, "COLLECTION", 0, "Collection", "Enable collection instancing"}
@@ -2587,11 +2587,11 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_instancer_for_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_RENDER);
-	RNA_def_property_ui_text(prop, "Render Instancer", "Make duplicator visible when rendering");
+	RNA_def_property_ui_text(prop, "Render Instancer", "Make instancer visible when rendering");
 
 	prop = RNA_def_property(srna, "show_instancer_for_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "duplicator_visibility_flag", OB_DUPLI_FLAG_VIEWPORT);
-	RNA_def_property_ui_text(prop, "Display Instancer", "Make duplicator visible in the viewport");
+	RNA_def_property_ui_text(prop, "Display Instancer", "Make instancer visible in the viewport");
 
 	/* anim */
 	rna_def_animdata_common(srna);
@@ -2614,34 +2614,34 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Slow Parent Offset", "Delay in the parent relationship");
 	RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
-	/* duplicates */
+	/* instancing */
 	prop = RNA_def_property(srna, "instance_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
 	RNA_def_property_enum_items(prop, instance_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_instance_type_itemf");
-	RNA_def_property_ui_text(prop, "Instance Type", "If not None, object duplication method to use");
+	RNA_def_property_ui_text(prop, "Instance Type", "If not None, object instancing method to use");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
 
 	prop = RNA_def_property(srna, "use_instance_frames_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
 	RNA_def_property_ui_text(prop, "Instance Frames Speed",
-	                         "Set dupliframes to use the current frame instead of parent curve's evaluation time");
+	                         "Set frames instancing to use the current frame instead of parent curve's evaluation time");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "use_instance_vertices_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
-	RNA_def_property_ui_text(prop, "Dupli Verts Rotation", "Rotate dupli according to vertex normal");
+	RNA_def_property_ui_text(prop, "Instance Verts Rotation", "Rotate instance according to vertex normal");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "use_instance_faces_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES_SCALE);
-	RNA_def_property_ui_text(prop, "Instance Faces Inherit Scale", "Scale dupli based on face size");
+	RNA_def_property_ui_text(prop, "Instance Faces Inherit Scale", "Scale instance based on face size");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "instance_faces_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dupfacesca");
 	RNA_def_property_range(prop, 0.001f, 10000.0f);
-	RNA_def_property_ui_text(prop, "Instance Faces Scale", "Scale the DupliFace objects");
+	RNA_def_property_ui_text(prop, "Instance Faces Scale", "Scale the face instance objects");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "instance_collection", PROP_POINTER, PROP_NONE);
@@ -2655,13 +2655,13 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "instance_frames_start", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupsta");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Instance Frames Start", "Start frame for DupliFrames");
+	RNA_def_property_ui_text(prop, "Instance Frames Start", "Start frame for frame instances");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "instance_frames_end", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupend");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Instance Frames End", "End frame for DupliFrames");
+	RNA_def_property_ui_text(prop, "Instance Frames End", "End frame for frame instances");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "instance_frames_on", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
@@ -2675,7 +2675,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "dupoff");
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_range(prop, 0, 1500, 1, -1);
-	RNA_def_property_ui_text(prop, "Instance Frames Off", "Recurring frames to exclude from the Dupliframes");
+	RNA_def_property_ui_text(prop, "Instance Frames Off", "Recurring frames to exclude from the frame instances");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "is_instancer", PROP_BOOLEAN, PROP_NONE);
@@ -2797,7 +2797,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* Base Settings */
 	prop = RNA_def_property(srna, "is_from_instancer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_FROMDUPLI);
-	RNA_def_property_ui_text(prop, "Base from Duplicator", "Object comes from a duplicator");
+	RNA_def_property_ui_text(prop, "Base from Instancer", "Object comes from a instancer");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "is_from_set", PROP_BOOLEAN, PROP_NONE);
