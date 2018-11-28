@@ -1150,7 +1150,10 @@ static bool object_bases_iterator_is_valid_ex(View3D *v3d, Base *base, const int
 			return false;
 		}
 	}
-
+	/* Any flag satisfies the condition. */
+	if (flags == ~0) {
+		return (base->flag != 0);
+	}
 	/* flags may be more than one flag, so we can't check != 0. */
 	return ((base->flag & flags) == flags);
 }
