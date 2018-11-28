@@ -302,7 +302,6 @@ class NODE_MT_node(Menu):
         layout.separator()
 
         layout.operator("node.read_viewlayers")
-        layout.operator("node.read_fullsamplelayers")
 
 
 class NODE_PT_node_color_presets(PresetMenu):

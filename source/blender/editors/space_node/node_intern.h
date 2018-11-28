@@ -200,7 +200,6 @@ void NODE_OT_preview_toggle(struct wmOperatorType *ot);
 void NODE_OT_options_toggle(struct wmOperatorType *ot);
 void NODE_OT_node_copy_color(struct wmOperatorType *ot);
 
-void NODE_OT_read_fullsamplelayers(struct wmOperatorType *ot);
 void NODE_OT_read_viewlayers(struct wmOperatorType *ot);
 void NODE_OT_render_changed(struct wmOperatorType *ot);
 
