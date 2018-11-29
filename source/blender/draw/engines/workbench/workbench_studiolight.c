@@ -37,8 +37,7 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd, StudioLight *studiolig
 	float view_matrix[4][4], rot_matrix[4][4];
 	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
 
-	/* TODO enable when we support studiolight presets. */
-	if (STUDIOLIGHT_TYPE_WORLD_ENABLED(wpd) && false) {
+	if (USE_WORLD_ORIENTATION(wpd)) {
 		axis_angle_to_mat4_single(rot_matrix, 'Y', -wpd->shading.studiolight_rot_z);
 		mul_m4_m4m4(rot_matrix, rot_matrix, view_matrix);
 		swap_v3_v3(rot_matrix[2], rot_matrix[1]);

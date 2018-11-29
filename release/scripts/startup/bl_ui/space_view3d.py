@@ -4189,14 +4189,22 @@ class VIEW3D_PT_shading_lighting(Panel):
             sub.scale_y = 0.6  # smaller matcap/hdri preview
 
             if shading.light == 'STUDIO':
-                # Not implemented right now
+                userpref = context.user_preferences
+                system = userpref.system
+
                 sub.template_icon_view(shading, "studio_light", scale=3)
 
-                # if shading.selected_studio_light.type == 'WORLD':
-                #     col.prop(shading, "studiolight_rotate_z", text="Rotation")
-
                 col = split.column()
-                # col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+
+                split = layout.split(factor=0.9)
+                col = split.column()
+                row = col.row()
+                row.prop(shading, "use_world_space_lighting", text="", icon="WORLD", toggle=True)
+                row = row.row()
+                row.active = shading.use_world_space_lighting
+                row.prop(shading, "studiolight_rotate_z", text="Rotation")
+                col = split.column()  # to align properly with above
 
             elif shading.light == 'MATCAP':
                 sub.template_icon_view(shading, "studio_light", scale=3)

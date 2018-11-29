@@ -2441,6 +2441,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Studiolight", "Studio lighting setup");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "use_world_space_lighting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_WORLD_ORIENTATION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "World Space Lighting", "Make the lighting fixed and not follow the camera");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "show_cavity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_CAVITY);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

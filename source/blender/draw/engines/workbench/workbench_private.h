@@ -46,6 +46,7 @@
 #define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
 #define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
 #define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP)
+#define USE_WORLD_ORIENTATION(wpd) ((wpd->shading.flag & V3D_SHADING_WORLD_ORIENTATION) != 0)
 #define STUDIOLIGHT_TYPE_WORLD_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_TYPE_WORLD))
 #define STUDIOLIGHT_TYPE_STUDIO_ENABLED(wpd) (STUDIOLIGHT_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_TYPE_STUDIO))
 #define STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_TYPE_MATCAP))
