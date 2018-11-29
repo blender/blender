@@ -994,8 +994,9 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 		else if (!edit_2d) {
 			if (cmode != axis) {
 				/* First press, constraint to an axis. */
-				t->orientation.index = 1;
-				const short orientation = t->orientation.types[t->orientation.index];
+				t->orientation.index = 0;
+				const short *orientation_ptr = t->orientation.types[t->orientation.index];
+				const short  orientation = orientation_ptr ? *orientation_ptr : V3D_MANIP_GLOBAL;
 				if (is_plane == false) {
 					setUserConstraint(t, orientation, constraint_axis, msg2);
 				}
@@ -1011,7 +1012,8 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 					stopConstraint(t);
 				}
 				else {
-					const short orientation = t->orientation.types[t->orientation.index];
+					const short *orientation_ptr = t->orientation.types[t->orientation.index];
+					const short  orientation = orientation_ptr ? *orientation_ptr : V3D_MANIP_GLOBAL;
 					if (is_plane == false) {
 						setUserConstraint(t, orientation, constraint_axis, msg2);
 					}
