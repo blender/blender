@@ -49,6 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
@@ -1867,15 +1868,24 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 {
 	Object *ob = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
+	Scene *scene = CTX_data_scene(C);
 	tGPsdata *p = NULL;
 
-	/* GPXX Need a better solution */
+	/* if try to do annotations with a gp object selected, first
+	 * unselect the object to avoid conflicts.
+	 * The solution is not perfect but we can keep running the annotations while
+	 * found a better solution.
+	 */
 	if (sa && sa->spacetype == SPACE_VIEW3D) {
 		if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
-			BKE_report(op->reports, RPT_ERROR, "Cannot draw annotation with a Grease Pencil object active");
-			return OPERATOR_CANCELLED;
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+			BKE_view_layer_base_deselect_all(view_layer);
+			view_layer->basact = NULL;
+			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 	}
+
 	if (G.debug & G_DEBUG)
 		printf("GPencil - Starting Drawing\n");
 
