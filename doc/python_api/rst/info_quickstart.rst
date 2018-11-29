@@ -339,11 +339,11 @@ Notice the extra ``bl_`` variables used to set the context they display in.
 
 To run the script:
 
-#. Highlight the above code then press :kbd:`Ctrl-C` to copy it
-#. Start Blender
-#. Press :kbd:`Ctrl-Right` twice to change to the Scripting layout
-#. Click the button labeled ``New`` and the confirmation pop up in order to create a new text block.
-#. Press :kbd:`Ctrl-V` to paste the code into the text panel (the upper left frame)
+#. Highlight the above code then press :kbd:`Ctrl-C` to copy it.
+#. Start Blender.
+#. Click on the tab for the *Scripting* workspace.
+#. Click the button labeled ``New`` to create a new text block.
+#. Press :kbd:`Ctrl-V` to paste the code into the text panel (the upper left frame).
 #. Click on the button **Run Script**.
 
 
