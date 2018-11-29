@@ -964,7 +964,6 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
     bl_region_type = 'UI'
     bl_label = "2D Stabilization"
     bl_category = "Stabilization"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1177,7 +1176,6 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
     bl_region_type = 'UI'
     bl_category = "Footage"
     bl_label = "Footage Settings"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -1219,8 +1217,8 @@ class CLIP_PT_tools_scenesetup(Panel):
 class CLIP_PT_grease_pencil(AnnotationDataPanel, CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Track"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Annotation"
+    bl_options = set()
 
     # NOTE: this is just a wrapper around the generic GP Panel
     # But, this should only be visible in "clip" view
@@ -1551,15 +1549,15 @@ classes = (
     CLIP_PT_tracking_camera,
     CLIP_PT_tracking_lens,
     CLIP_PT_marker,
-    CLIP_PT_stabilization,
     CLIP_PT_proxy,
+    CLIP_PT_footage,
+    CLIP_PT_stabilization,
     CLIP_PT_mask,
     CLIP_PT_mask_layers,
     CLIP_PT_mask_display,
     CLIP_PT_active_mask_spline,
     CLIP_PT_active_mask_point,
     CLIP_PT_tools_mask_transforms,
-    CLIP_PT_footage,
     CLIP_PT_tools_scenesetup,
     CLIP_PT_grease_pencil,
     CLIP_PT_tools_grease_pencil_draw,
