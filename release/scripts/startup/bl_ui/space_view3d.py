@@ -4186,19 +4186,23 @@ class VIEW3D_PT_shading_lighting(Panel):
             split = layout.split(factor=0.9)
             col = split.column()
             sub = col.row()
-            sub.scale_y = 0.6  # smaller matcap/hdri preview
 
             if shading.light == 'STUDIO':
                 userpref = context.user_preferences
                 system = userpref.system
 
-                sub.template_icon_view(shading, "studio_light", scale=3)
+                if not system.edit_solid_light:
+                    sub.scale_y = 0.6  # smaller studiolight preview
+                    sub.template_icon_view(shading, "studio_light", scale=3)
+                else:
+                    sub.prop(system, "edit_solid_light", text="Disable Studio Light Edit", icon="NONE", toggle=True)
 
                 col = split.column()
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
                 split = layout.split(factor=0.9)
                 col = split.column()
+
                 row = col.row()
                 row.prop(shading, "use_world_space_lighting", text="", icon="WORLD", toggle=True)
                 row = row.row()
@@ -4207,6 +4211,8 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col = split.column()  # to align properly with above
 
             elif shading.light == 'MATCAP':
+                sub.scale_y = 0.6  # smaller matcap preview
+
                 sub.template_icon_view(shading, "studio_light", scale=3)
 
                 col = split.column()
