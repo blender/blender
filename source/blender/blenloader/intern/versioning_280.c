@@ -723,24 +723,12 @@ void do_versions_after_linking_280(Main *bmain)
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 4)) {
 		for (Object *object = bmain->object.first; object; object = object->id.next) {
-#ifndef VERSION_280_SUBVERSION_4
-			/* If any object already has an initialized value for
-			 * duplicator_visibility_flag it means we've already doversioned it.
-			 * TODO(all) remove the VERSION_280_SUBVERSION_4 code once the subversion was bumped. */
-			if (object->duplicator_visibility_flag != 0) {
-				break;
-			}
-#endif
 			if (object->particlesystem.first) {
 				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
 				for (ParticleSystem *psys = object->particlesystem.first; psys; psys = psys->next) {
 					if (psys->part->draw & PART_DRAW_EMITTER) {
 						object->duplicator_visibility_flag |= OB_DUPLI_FLAG_RENDER;
-#ifndef VERSION_280_SUBVERSION_4
-						psys->part->draw &= ~PART_DRAW_EMITTER;
-#else
 						break;
-#endif
 					}
 				}
 			}
@@ -750,6 +738,11 @@ void do_versions_after_linking_280(Main *bmain)
 			else {
 				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
 			}
+		}
+
+		/* Cleanup deprecated flag from particlesettings data-blocks. */
+		for (ParticleSettings *part = bmain->particle.first; part; part = part->id.next) {
+			part->draw &= ~PART_DRAW_EMITTER;
 		}
 	}
 
