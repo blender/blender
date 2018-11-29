@@ -1458,6 +1458,11 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 		"/we4431"  # missing type specifier - int assumed
 	)
 
+	if(MSVC_VERSION GREATER_EQUAL 1911)
+		# see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
+		set(_WARNINGS "${_WARNINGS} /w35038") #order of initialisation in c++ constructors
+	endif()
+
 	string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
 	set(C_WARNINGS "${_WARNINGS}")
 	set(CXX_WARNINGS "${_WARNINGS}")
