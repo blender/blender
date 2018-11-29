@@ -20,6 +20,7 @@
 #include "render/buffers.h"
 #include "device/device.h"
 #include "render/shader.h"
+#include "render/stats.h"
 #include "render/tile.h"
 
 #include "util/util_progress.h"
@@ -55,6 +56,8 @@ public:
 	int pixel_size;
 	int threads;
 
+	bool use_profiling;
+
 	bool display_buffer_linear;
 
 	bool use_denoising;
@@ -89,6 +92,8 @@ public:
 		pixel_size = 1;
 		threads = 0;
 
+		use_profiling = false;
+
 		use_denoising = false;
 		denoising_passes = false;
 		denoising_radius = 8;
@@ -118,6 +123,7 @@ public:
 		&& start_resolution == params.start_resolution
 		&& pixel_size == params.pixel_size
 		&& threads == params.threads
+		&& use_profiling == params.use_profiling
 		&& display_buffer_linear == params.display_buffer_linear
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
@@ -159,7 +165,7 @@ public:
 	void set_samples(int samples);
 	void set_pause(bool pause);
 
-	void update_scene();
+	bool update_scene();
 	void load_kernels(bool lock_scene=true);
 
 	void device_free();
@@ -167,6 +173,8 @@ public:
 	/* Returns the rendering progress or 0 if no progress can be determined
 	 * (for example, when rendering with unlimited samples). */
 	float get_progress();
+
+	void collect_statistics(RenderStats *stats);
 
 protected:
 	struct DelayedReset {

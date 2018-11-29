@@ -362,6 +362,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 	info.has_half_images = true;
 	info.has_volume_decoupled = true;
 	info.has_osl = true;
+	info.has_profiling = true;
 
 	foreach(const DeviceInfo &device, subdevices) {
 		/* Ensure CPU device does not slow down GPU. */
@@ -396,6 +397,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 		info.has_half_images &= device.has_half_images;
 		info.has_volume_decoupled &= device.has_volume_decoupled;
 		info.has_osl &= device.has_osl;
+		info.has_profiling &= device.has_profiling;
 	}
 
 	return info;

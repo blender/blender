@@ -217,6 +217,8 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg,
 	ShaderData *sd, ShaderData *emission_sd, float3 throughput, ccl_addr_space PathState *state,
 	PathRadiance *L)
 {
+	PROFILING_INIT(kg, PROFILING_CONNECT_LIGHT);
+
 #ifdef __EMISSION__
 	if(!(kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL)))
 		return;
@@ -274,6 +276,8 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
                                            PathRadianceState *L_state,
                                            ccl_addr_space Ray *ray)
 {
+	PROFILING_INIT(kg, PROFILING_SURFACE_BOUNCE);
+
 	/* no BSDF? we can stop here */
 	if(sd->flag & SD_BSDF) {
 		/* sample BSDF */

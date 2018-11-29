@@ -32,6 +32,8 @@ bool kernel_path_subsurface_scatter(
         ccl_addr_space float3 *throughput,
         ccl_addr_space SubsurfaceIndirectRays *ss_indirect)
 {
+	PROFILING_INIT(kg, PROFILING_SUBSURFACE);
+
 	float bssrdf_u, bssrdf_v;
 	path_state_rng_2D(kg, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 

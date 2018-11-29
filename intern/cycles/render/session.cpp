@@ -250,7 +250,9 @@ void Session::run_gpu()
 		if(!no_tiles) {
 			/* update scene */
 			scoped_timer update_timer;
-			update_scene();
+			if(update_scene()) {
+				stats.profiler.reset(scene->shaders.size(), scene->objects.size());
+			}
 			progress.add_skip_time(update_timer, params.background);
 
 			if(!device->error_message().empty())
@@ -585,7 +587,9 @@ void Session::run_cpu()
 
 			/* update scene */
 			scoped_timer update_timer;
-			update_scene();
+			if(update_scene()) {
+				stats.profiler.reset(scene->shaders.size(), scene->objects.size());
+			}
 			progress.add_skip_time(update_timer, params.background);
 
 			if(!device->error_message().empty())
@@ -729,6 +733,10 @@ void Session::run()
 	/* load kernels */
 	load_kernels();
 
+	if(params.use_profiling && (params.device.type == DEVICE_CPU)) {
+		stats.profiler.start();
+	}
+
 	/* session thread loop */
 	progress.set_status("Waiting for render to start");
 
@@ -742,6 +750,8 @@ void Session::run()
 		else
 			run_cpu();
 	}
+
+	stats.profiler.stop();
 
 	/* progress update */
 	if(progress.get_cancel())
@@ -825,7 +835,7 @@ void Session::wait()
 	session_thread = NULL;
 }
 
-void Session::update_scene()
+bool Session::update_scene()
 {
 	thread_scoped_lock scene_lock(scene->mutex);
 
@@ -876,7 +886,10 @@ void Session::update_scene()
 
 		progress.set_status("Updating Scene");
 		MEM_GUARDED_CALL(&progress, scene->device_update, device, progress);
+
+		return true;
 	}
+	return false;
 }
 
 void Session::update_status_time(bool show_pause, bool show_done)
@@ -1050,6 +1063,14 @@ void Session::device_free()
 	/* used from background render only, so no need to
 	 * re-create render/display buffers here
 	 */
+}
+
+void Session::collect_statistics(RenderStats *render_stats)
+{
+	scene->collect_statistics(render_stats);
+	if(params.use_profiling && (params.device.type == DEVICE_CPU)) {
+		render_stats->collect_profiling(scene, &stats);
+	}
 }
 
 int Session::get_max_closure_count()

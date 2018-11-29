@@ -376,6 +376,9 @@ ccl_device_inline void kernel_write_result(KernelGlobals *kg,
                                            int sample,
                                            PathRadiance *L)
 {
+	PROFILING_INIT(kg, PROFILING_WRITE_RESULT);
+	PROFILING_OBJECT(PRIM_NONE);
+
 	float alpha;
 	float3 L_sum = path_radiance_clamp_and_sum(kg, L, &alpha);
 

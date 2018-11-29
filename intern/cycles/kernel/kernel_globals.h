@@ -19,6 +19,8 @@
 #ifndef __KERNEL_GLOBALS_H__
 #define __KERNEL_GLOBALS_H__
 
+#include "kernel/kernel_profiling.h"
+
 #ifdef __KERNEL_CPU__
 #  include "util/util_vector.h"
 #  include "util/util_map.h"
@@ -82,6 +84,8 @@ typedef struct KernelGlobals {
 
 	int2 global_size;
 	int2 global_id;
+
+	ProfilingState profiler;
 } KernelGlobals;
 
 #endif  /* __KERNEL_CPU__ */

@@ -477,6 +477,8 @@ public:
 	bool denoising_non_local_means(device_ptr image_ptr, device_ptr guide_ptr, device_ptr variance_ptr, device_ptr out_ptr,
 	                               DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_NON_LOCAL_MEANS);
+
 		int4 rect = task->rect;
 		int   r   = task->nlm_state.r;
 		int   f   = task->nlm_state.f;
@@ -529,6 +531,8 @@ public:
 
 	bool denoising_construct_transform(DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_CONSTRUCT_TRANSFORM);
+
 		for(int y = 0; y < task->filter_area.w; y++) {
 			for(int x = 0; x < task->filter_area.z; x++) {
 				filter_construct_transform_kernel()((float*) task->buffer.mem.device_pointer,
@@ -551,6 +555,8 @@ public:
 	                           device_ptr output_ptr,
 	                           DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_RECONSTRUCT);
+
 		mem_zero(task->storage.XtWX);
 		mem_zero(task->storage.XtWY);
 
@@ -609,8 +615,10 @@ public:
 
 	bool denoising_combine_halves(device_ptr a_ptr, device_ptr b_ptr,
 	                              device_ptr mean_ptr, device_ptr variance_ptr,
-	                              int r, int4 rect, DenoisingTask * /*task*/)
+	                              int r, int4 rect, DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_COMBINE_HALVES);
+
 		for(int y = rect.y; y < rect.w; y++) {
 			for(int x = rect.x; x < rect.z; x++) {
 				filter_combine_halves_kernel()(x, y,
@@ -629,6 +637,8 @@ public:
 	                             device_ptr sample_variance_ptr, device_ptr sv_variance_ptr,
 	                             device_ptr buffer_variance_ptr, DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_DIVIDE_SHADOW);
+
 		for(int y = task->rect.y; y < task->rect.w; y++) {
 			for(int x = task->rect.x; x < task->rect.z; x++) {
 				filter_divide_shadow_kernel()(task->render_buffer.samples,
@@ -653,6 +663,8 @@ public:
 	                           device_ptr variance_ptr,
 	                           DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_GET_FEATURE);
+
 		for(int y = task->rect.y; y < task->rect.w; y++) {
 			for(int x = task->rect.x; x < task->rect.z; x++) {
 				filter_get_feature_kernel()(task->render_buffer.samples,
@@ -676,6 +688,8 @@ public:
 	                               device_ptr output_ptr,
 	                               DenoisingTask *task)
 	{
+		ProfilingHelper profiling(task->profiler, PROFILING_DENOISING_DETECT_OUTLIERS);
+
 		for(int y = task->rect.y; y < task->rect.w; y++) {
 			for(int x = task->rect.x; x < task->rect.z; x++) {
 				filter_detect_outliers_kernel()(x, y,
@@ -735,6 +749,8 @@ public:
 
 	void denoise(DenoisingTask& denoising, RenderTile &tile)
 	{
+		ProfilingHelper profiling(denoising.profiler, PROFILING_DENOISING);
+
 		tile.sample = tile.start_sample + tile.num_samples;
 
 		denoising.functions.construct_transform = function_bind(&CPUDevice::denoising_construct_transform, this, &denoising);
@@ -765,6 +781,8 @@ public:
 
 		KernelGlobals *kg = new ((void*) kgbuffer.device_pointer) KernelGlobals(thread_kernel_globals_init());
 
+		stats.profiler.add_state(&kg->profiler);
+
 		CPUSplitKernel *split_kernel = NULL;
 		if(use_split_kernel) {
 			split_kernel = new CPUSplitKernel(this);
@@ -778,6 +796,7 @@ public:
 
 		RenderTile tile;
 		DenoisingTask denoising(this, task);
+		denoising.profiler = &kg->profiler;
 
 		while(task.acquire_tile(this, tile)) {
 			if(tile.task == RenderTile::PATH_TRACE) {
@@ -801,6 +820,8 @@ public:
 					break;
 			}
 		}
+
+		stats.profiler.remove_state(&kg->profiler);
 
 		thread_kernel_globals_free((KernelGlobals*)kgbuffer.device_pointer);
 		kg->~KernelGlobals();
@@ -1061,6 +1082,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.has_volume_decoupled = true;
 	info.has_osl = true;
 	info.has_half_images = true;
+	info.has_profiling = true;
 
 	devices.insert(devices.begin(), info);
 }
