@@ -473,7 +473,7 @@ base class --- :class:`SCA_IObject`
       If true, the object's and children's debug properties will be displayed on screen.
 
       :type: boolean
-      
+
    .. attribute:: currentLodLevel
 
       The index of the level of detail (LOD) currently used by this object (read-only).

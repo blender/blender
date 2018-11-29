@@ -14,7 +14,7 @@ base class --- :class:`SCA_IActuator`
       This will generate a warning in the console
 
       .. code-block:: none
-      
+
          Error: GameObject 'Name' ReplaceMeshActuator 'ActuatorName' without object
 
    .. code-block:: python
@@ -33,18 +33,18 @@ base class --- :class:`SCA_IActuator`
             (".Med", -15.0, -50.0),
             (".Lo", -40.0, -100.0)
           )
-      
+
       cont = logic.getCurrentController()
       object = cont.owner
       actuator = cont.actuators["LOD." + obj.name]
       camera = logic.getCurrentScene().active_camera
-      
+
       def Depth(pos, plane):
         return pos[0]*plane[0] + pos[1]*plane[1] + pos[2]*plane[2] + plane[3]
-      
+
       # Depth is negative and decreasing further from the camera
       depth = Depth(object.position, camera.world_to_camera[2])
-      
+
       newmesh = None
       curmesh = None
       # Find the lowest detail mesh for depth
@@ -53,7 +53,7 @@ base class --- :class:`SCA_IActuator`
           newmesh = mesh
         if "ME" + object.name + mesh[0] == actuator.getMesh():
             curmesh = mesh
-      
+
       if newmesh != None and "ME" + object.name + newmesh[0] != actuator.mesh:
         # The mesh is a different mesh - switch it.
         # Check the current mesh is not a better fit.
@@ -64,7 +64,7 @@ base class --- :class:`SCA_IActuator`
    .. attribute:: mesh
 
       :class:`MeshProxy` or the name of the mesh that will replace the current one.
-   
+
       Set to None to disable actuator.
 
       :type: :class:`MeshProxy` or None if no mesh is set

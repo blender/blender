@@ -72,5 +72,3 @@ base class --- :class:`SCA_IActuator`
       type of constraint. Use one of the :ref:`these constants <constraint-actuator-limit>`
 
       :type: integer.
-
-      

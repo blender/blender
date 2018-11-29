@@ -9,16 +9,16 @@ base class --- :class:`PyObjectPlus`
    Obtained through :class:`BL_ArmatureObject`.constraints.
 
    .. note::
-   
+
       Not all armature constraints are supported in the GE.
 
-      
+
    .. attribute:: type
 
       Type of constraint, (read-only).
 
       Use one of :ref:`these constants<armatureconstraint-constants-type>`.
-      
+
       :type: integer, one of CONSTRAINT_TYPE_* constants
 
    .. attribute:: name
@@ -42,7 +42,7 @@ base class --- :class:`PyObjectPlus`
       :type: float.
 
       .. note::
-      
+
          Only used if the target is a bone (i.e target object is an armature.
 
    .. attribute:: lin_error
@@ -82,9 +82,9 @@ base class --- :class:`PyObjectPlus`
       True if the constraint is active.
 
       :type: boolean
-      
+
       .. note::
-      
+
          An inactive constraint does not update lin_error and rot_error.
 
    .. attribute:: ik_weight
@@ -100,13 +100,13 @@ base class --- :class:`PyObjectPlus`
       Type of IK constraint, (read-only).
 
       Use one of :ref:`these constants<armatureconstraint-constants-ik-type>`.
-      
+
       :type: integer.
 
    .. attribute:: ik_flag
 
       Combination of IK constraint option flags, read-only.
-      
+
       Use one of :ref:`these constants<armatureconstraint-constants-ik-flag>`.
 
       :type: integer
@@ -120,7 +120,7 @@ base class --- :class:`PyObjectPlus`
    .. attribute:: ik_mode
 
       Use one of :ref:`these constants<armatureconstraint-constants-ik-mode>`.
-      
+
       Additional mode for IK constraint. Currently only used for Distance constraint:
 
       :type: integer

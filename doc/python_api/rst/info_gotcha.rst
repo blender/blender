@@ -205,8 +205,8 @@ Support Overview
 
    * - Usage
      - :class:`bpy.types.MeshPolygon`
-     - :class:`bpy.types.MeshTessFace` 
-     - :class:`bmesh.types.BMFace` 
+     - :class:`bpy.types.MeshTessFace`
+     - :class:`bmesh.types.BMFace`
    * - Import/Create
      - Poor *(inflexible)*
      - Good *(supported as upgrade path)*
@@ -317,7 +317,7 @@ Example using :class:`bpy.types.EditBone` in armature editmode:
 
 This is only possible in edit mode.
 
-   >>> bpy.context.object.data.edit_bones["Bone"].head = Vector((1.0, 2.0, 3.0)) 
+   >>> bpy.context.object.data.edit_bones["Bone"].head = Vector((1.0, 2.0, 3.0))
 
 This will be empty outside of editmode.
 
@@ -362,7 +362,7 @@ Examples using :class:`bpy.types.PoseBone` in object or pose mode:
 .. code-block:: python
 
    # Gets the name of the first constraint (if it exists)
-   bpy.context.object.pose.bones["Bone"].constraints[0].name 
+   bpy.context.object.pose.bones["Bone"].constraints[0].name
 
    # Gets the last selected pose bone (pose mode only)
    bpy.context.active_pose_bone
@@ -407,7 +407,7 @@ This can cause bugs when you add some data (normally imported) then reference it
 .. code-block:: python
 
    bpy.data.meshes.new(name=meshid)
-   
+
    # normally some code, function calls...
    bpy.data.meshes[meshid]
 
@@ -417,7 +417,7 @@ Or with name assignment...
 .. code-block:: python
 
    obj.name = objname
-   
+
    # normally some code, function calls...
    obj = bpy.data.meshes[objname]
 
@@ -437,12 +437,12 @@ this way you don't run this risk of referencing existing data from the blend fil
 
    # typically declared in the main body of the function.
    mesh_name_mapping = {}
-   
+
    mesh = bpy.data.meshes.new(name=meshid)
    mesh_name_mapping[meshid] = mesh
-   
+
    # normally some code, or function calls...
-   
+
    # use own dictionary rather than bpy.data
    mesh = mesh_name_mapping[meshid]
 

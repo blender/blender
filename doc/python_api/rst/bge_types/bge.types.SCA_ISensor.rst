@@ -10,13 +10,13 @@ base class --- :class:`SCA_ILogicBrick`
    .. attribute:: usePosPulseMode
 
       Flag to turn positive pulse mode on and off.
-      
+
       :type: boolean
 
    .. attribute:: useNegPulseMode
 
       Flag to turn negative pulse mode on and off.
-      
+
       :type: boolean
 
    .. attribute:: frequency
@@ -44,7 +44,7 @@ base class --- :class:`SCA_ILogicBrick`
 
    .. attribute:: tap
 
-      When enabled only sensors that are just activated will send a positive event, 
+      When enabled only sensors that are just activated will send a positive event,
       after this they will be detected as negative by the controllers.
       This will make a key thats held act as if its only tapped for an instant.
       note: mutually exclusive with :data:`level`, enabling will disable :data:`level`.
@@ -54,31 +54,31 @@ base class --- :class:`SCA_ILogicBrick`
    .. attribute:: invert
 
       Flag to set if this sensor activates on positive or negative events.
-      
+
       :type: boolean
 
    .. attribute:: triggered
 
       True if this sensor brick is in a positive state. (read-only).
-     
+
       :type: boolean
 
    .. attribute:: positive
 
       True if this sensor brick is in a positive state. (read-only).
-      
+
       :type: boolean
 
    .. attribute:: pos_ticks
 
       The number of ticks since the last positive pulse (read-only).
-      
+
       :type: int
 
    .. attribute:: neg_ticks
 
       The number of ticks since the last negative pulse (read-only).
-      
+
       :type: int
 
    .. attribute:: status
@@ -88,7 +88,7 @@ base class --- :class:`SCA_ILogicBrick`
       :type: int
 
       .. note::
-      
+
          This convenient attribute combines the values of triggered and positive attributes.
 
    .. method:: reset()

@@ -14,7 +14,7 @@ base class --- :class:`SCA_IActuator`
       This will generate a warning in the console:
 
       .. code-block:: none
-      
+
          Error: GameObject 'Name' has a SceneActuator 'ActuatorName' (SetScene) without scene
 
    .. attribute:: scene
@@ -28,9 +28,9 @@ base class --- :class:`SCA_IActuator`
       the camera to change to.
 
       :type: :class:`KX_Camera` on read, string or :class:`KX_Camera` on write
-      
+
       .. note::
-         
+
          When setting the attribute, you can use either a :class:`KX_Camera` or the name of the camera.
 
    .. attribute:: useRestart

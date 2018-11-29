@@ -133,7 +133,7 @@ string NamedNestedSampleStats::full_report(int indent_level, uint64_t total_samp
 	                            sum_seconds,
 	                            self_percent,
 	                            self_seconds);
-	string result = indent + info; 
+	string result = indent + info;
 
 	sort(entries.begin(), entries.end(), namedTimeSampleEntryComparator);
 	foreach(NamedNestedSampleStats& entry, entries) {

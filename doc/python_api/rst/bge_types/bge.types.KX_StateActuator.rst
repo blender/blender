@@ -10,7 +10,7 @@ base class --- :class:`SCA_IActuator`
    .. attribute:: operation
 
       Type of bit operation to be applied on object state mask.
-      
+
       You can use one of :ref:`these constants <state-actuator-operation>`
 
       :type: integer

@@ -16,11 +16,11 @@ base class --- :class:`CValue`
    .. attribute:: owner
 
       The game object this logic brick is attached to (read-only).
-      
+
       :type: :class:`KX_GameObject` or None in exceptional cases.
 
    .. attribute:: name
 
       The name of this logic brick (read-only).
-      
+
       :type: string

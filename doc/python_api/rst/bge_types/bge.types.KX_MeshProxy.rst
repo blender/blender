@@ -31,7 +31,7 @@ base class --- :class:`SCA_IObject`
       #. They are the same color, for example: a cube has 24 vertices: 6 faces with 4 vertices per face.
 
    The correct method of iterating over every :class:`KX_VertexProxy` in a game object
-   
+
    .. code-block:: python
 
       from bge import logic

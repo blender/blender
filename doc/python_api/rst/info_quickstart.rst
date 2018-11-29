@@ -125,7 +125,7 @@ its attributes can be accessed much like you would change a setting using the gr
 In fact, the tooltip for each button also displays the Python attribute
 which can help in finding what settings to change in a script.
 
-   >>> bpy.data.objects[0].name 
+   >>> bpy.data.objects[0].name
    'Camera'
 
    >>> bpy.data.scenes["Scene"]
@@ -267,7 +267,7 @@ Operator Poll()
 ^^^^^^^^^^^^^^^
 
 Many operators have a "poll" function which may check that the cursor
-is in a valid area or that the object is in the correct mode (Edit Mode, Weight Paint etc). 
+is in a valid area or that the object is in the correct mode (Edit Mode, Weight Paint etc).
 When an operator's poll function fails within Python, an exception is raised.
 
 For example, calling ``bpy.ops.view3d.render_border()`` from the console raises the following error:
@@ -477,4 +477,3 @@ Using Low-Level Functions:
    fcu_z.keyframe_points.add(2)
    fcu_z.keyframe_points[0].co = 10.0, 0.0
    fcu_z.keyframe_points[1].co = 20.0, 1.0
-

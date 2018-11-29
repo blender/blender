@@ -8,7 +8,7 @@ base class --- :class:`SCA_IActuator`
    Edit Object actuator in Track To mode.
 
    .. warning::
-   
+
       Track To Actuators will be ignored if at game start, the object to track to is invalid.
 
       This will generate a warning in the console:

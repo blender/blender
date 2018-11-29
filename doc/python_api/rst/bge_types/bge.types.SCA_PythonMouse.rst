@@ -18,7 +18,7 @@ base class --- :class:`PyObjectPlus`
       a dictionary containing the status of only the active mouse events. (read-only).
 
       :type: dictionary {:ref:`keycode<mouse-keys>`::ref:`status<input-status>`, ...}
-      
+
    .. attribute:: position
 
       The normalized x and y position of the mouse cursor.
@@ -28,5 +28,5 @@ base class --- :class:`PyObjectPlus`
    .. attribute:: visible
 
       The visibility of the mouse cursor.
-      
+
       :type: boolean

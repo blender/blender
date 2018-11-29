@@ -76,9 +76,9 @@ base class --- :class:`PyObjectPlus`
       The current active camera.
 
       :type: :class:`KX_Camera`
-      
+
       .. note::
-         
+
          This can be set directly from python to avoid using the :class:`KX_SceneActuator`.
 
    .. attribute:: world

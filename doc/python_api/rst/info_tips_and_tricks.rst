@@ -320,4 +320,3 @@ enable the CMake build option ``WITH_PYTHON_SAFETY``.
 
 This enables data tracking which makes data access about 2x slower
 which is why the option isn't enabled in release builds.
-

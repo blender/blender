@@ -297,13 +297,13 @@ Here are 3 ways of joining multiple strings into one string for writing.
 This also applies to any area of your code that involves a lot of string joining.
 
 
-``String addition`` - 
+``String addition`` -
 this is the slowest option, *don't use if you can help it, especially when writing data in a loop*.
 
 >>> file.write(str1 + " " + str2 + " " + str3 + "\n")
 
 
-``String formatting`` - 
+``String formatting`` -
 use this when you are writing string data from floats and ints.
 
 >>> file.write("%s %s %s\n" % (str1, str2, str3))
@@ -392,4 +392,3 @@ While developing a script it is good to time it to be aware of any changes in pe
    # do something...
 
    print("My Script Finished: %.4f sec" % (time.time() - time_start))
-

@@ -5,7 +5,7 @@ base class --- :class:`SCA_IActuator`
 
 .. class:: KX_ObjectActuator(SCA_IActuator)
 
-   The object actuator ("Motion Actuator") applies force, torque, displacement, angular displacement, 
+   The object actuator ("Motion Actuator") applies force, torque, displacement, angular displacement,
    velocity, or angular velocity to an object.
    Servo control allows to regulate force to achieve a certain speed target.
 
@@ -50,9 +50,9 @@ base class --- :class:`SCA_IActuator`
       The angular displacement vector applied by the actuator
 
       :type: Vector((x, y, z))
-      
+
       .. note::
-      
+
          Since the displacement is applied every frame, you must adjust the displacement based on the frame rate, or you game experience will depend on the player's computer speed.
 
    .. attribute:: useLocalDRot
@@ -72,9 +72,9 @@ base class --- :class:`SCA_IActuator`
       A flag specifying if the linear velocity is local.
 
       :type: boolean
-      
+
       .. note::
-      
+
          This is the target speed for servo controllers.
 
    .. attribute:: angV

@@ -8,19 +8,19 @@ base class --- :class:`PyObjectPlus`
    This is the interface to materials in the game engine.
 
    Materials define the render state to be applied to mesh objects.
-   
+
    The example below shows a simple GLSL shader setup allowing to dynamically mix two texture channels
    in a material. All materials of the object executing this script should have two textures using
    separate UV maps in the two first texture channels.
-   
+
    The code works for both Multitexture and GLSL rendering modes.
 
    .. code-block:: python
 
       from bge import logic
-      
+
       vertex_shader = """
-      
+
       void main(void)
       {
          // simple projection of the vertex position to view space
@@ -31,7 +31,7 @@ base class --- :class:`PyObjectPlus`
          gl_TexCoord[1] = gl_MultiTexCoord1;
       }
       """
-      
+
       fragment_shader ="""
 
       uniform sampler2D texture_0;
@@ -47,7 +47,7 @@ base class --- :class:`PyObjectPlus`
       """
 
       object = logic.getCurrentController().owner
-      
+
       for mesh in object.meshes:
           for material in mesh.materials:
               shader = material.getShader()
@@ -143,7 +143,7 @@ base class --- :class:`PyObjectPlus`
       Set the pixel color arithmetic functions.
 
       :arg src: Specifies how the red, green, blue, and alpha source blending factors are computed, one of...
-      
+
          * :data:`~bgl.GL_ZERO`
          * :data:`~bgl.GL_ONE`
          * :data:`~bgl.GL_SRC_COLOR`
@@ -155,11 +155,11 @@ base class --- :class:`PyObjectPlus`
          * :data:`~bgl.GL_DST_ALPHA`
          * :data:`~bgl.GL_ONE_MINUS_DST_ALPHA`
          * :data:`~bgl.GL_SRC_ALPHA_SATURATE`
-      
+
       :type src: int
 
       :arg dest: Specifies how the red, green, blue, and alpha destination blending factors are computed, one of...
-      
+
          * :data:`~bgl.GL_ZERO`
          * :data:`~bgl.GL_ONE`
          * :data:`~bgl.GL_SRC_COLOR`
@@ -171,7 +171,7 @@ base class --- :class:`PyObjectPlus`
          * :data:`~bgl.GL_DST_ALPHA`
          * :data:`~bgl.GL_ONE_MINUS_DST_ALPHA`
          * :data:`~bgl.GL_SRC_ALPHA_SATURATE`
-      
+
       :type dest: int
 
    .. method:: getMaterialIndex()

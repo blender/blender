@@ -105,7 +105,7 @@ Types
 
 .. class:: RASOffScreen
 
-   An off-screen render buffer object. 
+   An off-screen render buffer object.
 
    Use :func:`offScreenCreate` to create it.
    Currently it can only be used in the :class:`bge.texture.ImageRender`
@@ -183,7 +183,7 @@ Functions
    monitor). Can return the size of the entire view, so the
    combination of all monitors; for example, ``(3840, 1080)`` for two
    side-by-side 1080p monitors.
-   
+
    :rtype: tuple (width, height)
 
 .. function:: makeScreenshot(filename)
@@ -416,10 +416,9 @@ Functions
    :arg samples: the number of multisample for anti-aliasing (MSAA), 0 to disable MSAA
    :type samples: integer
    :arg target: the pixel storage: :data:`RAS_OFS_RENDER_BUFFER` to render on RenderBuffers (the default),
-      :data:`RAS_OFS_RENDER_TEXTURE` to render on texture. 
+      :data:`RAS_OFS_RENDER_TEXTURE` to render on texture.
       The later is interesting if you want to access the texture directly (see :attr:`RASOffScreen.color`).
       Otherwise the default is preferable as it's more widely supported by GPUs and more efficient.
       If the GPU does not support MSAA+Texture (e.g. Intel HD GPU), MSAA will be disabled.
    :type target: integer
    :rtype: :class:`RASOffScreen`
-

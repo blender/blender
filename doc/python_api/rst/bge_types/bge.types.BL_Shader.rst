@@ -214,10 +214,10 @@ base class --- :class:`PyObjectPlus`
 
    .. method:: setUniformEyef(name)
 
-      Set a uniform with a float value that reflects the eye being render in stereo mode: 
+      Set a uniform with a float value that reflects the eye being render in stereo mode:
       0.0 for the left eye, 0.5 for the right eye. In non stereo mode, the value of the uniform
       is fixed to 0.0. The typical use of this uniform is in stereo mode to sample stereo textures
-      containing the left and right eye images in a top-bottom order. 
+      containing the left and right eye images in a top-bottom order.
 
       :arg name: the uniform name
       :type name: string

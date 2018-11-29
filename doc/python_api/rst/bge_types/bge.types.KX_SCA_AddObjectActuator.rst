@@ -13,8 +13,8 @@ base class --- :class:`SCA_IActuator`
 
       .. code-block:: none
 
-         Error: GameObject 'Name' has a AddObjectActuator 'ActuatorName' without object (in 'nonactive' layer) 
-      
+         Error: GameObject 'Name' has a AddObjectActuator 'ActuatorName' without object (in 'nonactive' layer)
+
    .. attribute:: object
 
       the object this actuator adds.

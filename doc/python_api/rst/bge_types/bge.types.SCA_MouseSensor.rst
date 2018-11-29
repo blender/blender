@@ -29,7 +29,7 @@ base class --- :class:`SCA_ISensor`
    .. method:: getButtonStatus(button)
 
       Get the mouse button status.
- 
+
       :arg button: The code that represents the key you want to get the state of, use one of :ref:`these constants<mouse-keys>`
       :type button: int
       :return: The state of the given key, can be one of :ref:`these constants<input-status>`

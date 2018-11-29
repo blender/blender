@@ -5,7 +5,7 @@ base class --- :class:`KX_GameObject`
 
 .. class:: KX_NavMeshObject(KX_GameObject)
 
-   Python interface for using and controlling navigation meshes. 
+   Python interface for using and controlling navigation meshes.
 
    .. method:: findPath(start, goal)
 

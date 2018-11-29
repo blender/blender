@@ -12,4 +12,3 @@ base class --- :class:`PyObjectPlus`
       The name of this CValue derived object (read-only).
 
       :type: string
-      

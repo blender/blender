@@ -28,7 +28,7 @@ base class --- :class:`SCA_ISensor`
       :type: integer
 
       .. note::
-         
+
          Only use this for "Single Axis" type sensors otherwise it will raise an error.
 
    .. attribute:: hatValues
