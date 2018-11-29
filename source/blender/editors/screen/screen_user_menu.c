@@ -189,6 +189,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 		(sl->spacetype != SPACE_TOPBAR) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_TOPBAR, context) : NULL,
 		(sl->spacetype == SPACE_VIEW3D) ? BKE_blender_user_menu_find(&U.user_menus, SPACE_BUTS, context) : NULL,
 	};
+	bool is_empty = true;
 	for (int um_index = 0; um_index < ARRAY_SIZE(um_array); um_index++) {
 		bUserMenu *um = um_array[um_index];
 		if (um == NULL) {
@@ -202,11 +203,13 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 				uiItemFullO(
 				        menu->layout, umi_op->op_idname, ui_name,
 				        ICON_NONE, prop, umi_op->opcontext, 0, NULL);
+				is_empty = false;
 			}
 			else if (umi->type == USER_MENU_TYPE_MENU) {
 				bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)umi;
 				uiItemM(menu->layout, umi_mt->mt_idname, ui_name,
 				        ICON_NONE);
+				is_empty = false;
 			}
 			else if (umi->type == USER_MENU_TYPE_PROP) {
 				bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
@@ -240,6 +243,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 							        menu->layout,
 							        &prop_ptr, prop, umi_pr->prop_index,
 							        0, 0, ui_name, ICON_NONE);
+							is_empty = false;
 						}
 					}
 				}
@@ -253,6 +257,11 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 				uiItemS(menu->layout);
 			}
 		}
+	}
+
+	if (is_empty) {
+		uiItemL(menu->layout, IFACE_("No menu items found."), ICON_NONE);
+		uiItemL(menu->layout, IFACE_("Right click on buttons to add them to this menu."), ICON_NONE);
 	}
 }
 
