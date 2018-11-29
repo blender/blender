@@ -1074,19 +1074,34 @@ static bool ui_but_event_property_operator_string(
 		NULL
 	};
 
+	const char *ctx_enum_opnames_for_Area_ui_type[] = {
+		"SCREEN_OT_space_type_set_or_cycle",
+		NULL
+	};
+
+	const char **opnames = ctx_toggle_opnames;
+	int          opnames_len = ARRAY_SIZE(ctx_toggle_opnames);
+
+
 	int  prop_enum_value = -1;
 	bool prop_enum_value_ok = false;
+	bool prop_enum_value_is_int = false;
+	const char *prop_enum_value_id = "value";
 	PointerRNA *ptr = &but->rnapoin;
 	PropertyRNA *prop = but->rnaprop;
 	if ((but->type == UI_BTYPE_BUT_MENU) && (but->block->handle != NULL)) {
 		uiBut *but_parent = but->block->handle->popup_create_vars.but;
 		if ((but->type == UI_BTYPE_BUT_MENU) &&
+		    (RNA_property_type(but_parent->rnaprop) == PROP_ENUM) &&
 		    but_parent && (but_parent->menu_create_func == ui_def_but_rna__menu))
 		{
 			prop_enum_value = (int)but->hardmin;
-			ptr = &but->block->handle->popup_create_vars.but->rnapoin;
-			prop = but->block->handle->popup_create_vars.but->rnaprop;
+			ptr = &but_parent->rnapoin;
+			prop = but_parent->rnaprop;
 			prop_enum_value_ok = true;
+
+			opnames = ctx_enum_opnames;
+			opnames_len = ARRAY_SIZE(ctx_enum_opnames);
 		}
 	}
 
@@ -1102,7 +1117,6 @@ static bool ui_but_event_property_operator_string(
 		 *
 		 * TODO: userpref settings?
 		 */
-		// TODO: value (for enum stuff)?
 		char *data_path = NULL;
 
 		if (ptr->id.data) {
@@ -1120,13 +1134,20 @@ static bool ui_but_event_property_operator_string(
 				else if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
 					/* data should be directly on here... */
 					const char *prop_id = RNA_property_identifier(prop);
-					/* Hack since keys access 'type'. */
+					/* Hack since keys access 'type', UI shows 'ui_type'. */
 					if (STREQ(prop_id, "ui_type")) {
 						prop_id = "type";
 						prop_enum_value >>= 16;
 						prop = RNA_struct_find_property(ptr, prop_id);
+
+						opnames = ctx_enum_opnames_for_Area_ui_type;
+						opnames_len = ARRAY_SIZE(ctx_enum_opnames_for_Area_ui_type);
+						prop_enum_value_id = "space_type";
+						prop_enum_value_is_int = true;
 					}
-					data_path = BLI_sprintfN("area.%s", prop_id);
+					else {
+						data_path = BLI_sprintfN("area.%s", prop_id);
+					}
 				}
 				else {
 					/* special exceptions for common nested data in editors... */
@@ -1171,28 +1192,31 @@ static bool ui_but_event_property_operator_string(
 		}
 
 		/* we have a datapath! */
-		if (data_path) {
+		if (data_path || prop_enum_value_id) {
 			/* create a property to host the "datapath" property we're sending to the operators */
 			IDProperty *prop_path;
 
 			IDPropertyTemplate val = {0};
 			prop_path = IDP_New(IDP_GROUP, &val, __func__);
-			IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path", strlen(data_path) + 1));
-
-			const char **opnames;
-			int          opnames_len;
-
-			if (prop_enum_value_ok && prop && RNA_property_type(prop) == PROP_ENUM) {
-				opnames_len = ARRAY_SIZE(ctx_enum_opnames) - 1;
-				opnames                = ctx_enum_opnames;
-
+			if (data_path) {
+				IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path", strlen(data_path) + 1));
+			}
+			if (prop_enum_value_ok) {
 				const EnumPropertyItem *item;
 				bool free;
 				RNA_property_enum_items((bContext *)C, ptr, prop, &item, NULL, &free);
 				int index = RNA_enum_from_value(item, prop_enum_value);
 				if (index != -1) {
-					const char *id = item[index].identifier;
-					IDP_AddToGroup(prop_path, IDP_NewString(id, "value", strlen(id) + 1));
+					IDProperty *prop_value;
+					if (prop_enum_value_is_int) {
+						int value = item[index].value;
+						prop_value = IDP_New(IDP_INT, &(IDPropertyTemplate){ .i = value, }, prop_enum_value_id);
+					}
+					else {
+						const char *id = item[index].identifier;
+						prop_value = IDP_NewString(id, prop_enum_value_id, strlen(id) + 1);
+					}
+					IDP_AddToGroup(prop_path, prop_value);
 				}
 				else {
 					opnames_len = 0;  /* Do nothing. */
@@ -1200,10 +1224,6 @@ static bool ui_but_event_property_operator_string(
 				if (free) {
 					MEM_freeN((void *)item);
 				}
-			}
-			else {
-				opnames_len = ARRAY_SIZE(ctx_toggle_opnames) - 1;
-				opnames                = ctx_toggle_opnames;
 			}
 
 			/* check each until one works... */
@@ -1221,7 +1241,9 @@ static bool ui_but_event_property_operator_string(
 			/* cleanup */
 			IDP_FreeProperty(prop_path);
 			MEM_freeN(prop_path);
-			MEM_freeN(data_path);
+			if (data_path) {
+				MEM_freeN(data_path);
+			}
 		}
 	}
 
