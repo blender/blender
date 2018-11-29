@@ -56,8 +56,8 @@ public:
 		return false;
 	}
 
-	NetworkDevice(DeviceInfo& info, Stats &stats, const char *address)
-	: Device(info, stats, true), socket(io_service)
+	NetworkDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, const char *address)
+	: Device(info, stats, profiler, true), socket(io_service)
 	{
 		error_func = NetworkError();
 		stringstream portstr;
@@ -293,9 +293,9 @@ private:
 	NetworkError error_func;
 };
 
-Device *device_network_create(DeviceInfo& info, Stats &stats, const char *address)
+Device *device_network_create(DeviceInfo& info, Stats &stats, Profiler &profiler, const char *address)
 {
-	return new NetworkDevice(info, stats, address);
+	return new NetworkDevice(info, stats, profiler, address);
 }
 
 void device_network_info(vector<DeviceInfo>& devices)

@@ -144,7 +144,7 @@ public:
 	string full_report();
 
 	/* Collect kernel sampling information from Stats. */
-	void collect_profiling(Scene *scene, Stats *stats);
+	void collect_profiling(Scene *scene, Profiler& prof);
 
 	bool has_profiling;
 

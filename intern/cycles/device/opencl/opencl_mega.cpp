@@ -33,8 +33,8 @@ class OpenCLDeviceMegaKernel : public OpenCLDeviceBase
 public:
 	OpenCLProgram path_trace_program;
 
-	OpenCLDeviceMegaKernel(DeviceInfo& info, Stats &stats, bool background_)
-	: OpenCLDeviceBase(info, stats, background_),
+	OpenCLDeviceMegaKernel(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_)
+	: OpenCLDeviceBase(info, stats, profiler, background_),
 	  path_trace_program(this, "megakernel", "kernel.cl", "-D__COMPILE_ONLY_MEGAKERNEL__ ")
 	{
 	}
@@ -160,9 +160,9 @@ public:
 	}
 };
 
-Device *opencl_create_mega_device(DeviceInfo& info, Stats& stats, bool background)
+Device *opencl_create_mega_device(DeviceInfo& info, Stats& stats, Profiler &profiler, bool background)
 {
-	return new OpenCLDeviceMegaKernel(info, stats, background);
+	return new OpenCLDeviceMegaKernel(info, stats, profiler, background);
 }
 
 CCL_NAMESPACE_END
