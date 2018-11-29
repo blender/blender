@@ -120,7 +120,7 @@ however, the index of a member may change while running Blender.
 Accessing Attributes
 ^^^^^^^^^^^^^^^^^^^^
 
-Once you have a data block, such as a material, object, groups etc.,
+Once you have a data block, such as a material, object, collections etc.,
 its attributes can be accessed much like you would change a setting using the graphical interface.
 In fact, the tooltip for each button also displays the Python attribute
 which can help in finding what settings to change in a script.
@@ -195,10 +195,10 @@ Example:
    value = bpy.data.scenes["Scene"].get("test_prop", "fallback value")
 
    # dictionaries can be assigned as long as they only use basic types.
-   group = bpy.data.groups.new("MyTestGroup")
-   group["MySettings"] = {"foo": 10, "bar": "spam", "baz": {}}
+   collection = bpy.data.collections.new("MyTestCollection")
+   collection["MySettings"] = {"foo": 10, "bar": "spam", "baz": {}}
 
-   del group["MySettings"]
+   del collection["MySettings"]
 
 
 Note that these properties can only be assigned  basic Python types.
@@ -394,7 +394,7 @@ Internal Types
 
 Used for Blender data-blocks and collections: :class:`bpy.types.bpy_struct`
 
-For data that contains its own attributes groups/meshes/bones/scenes... etc.
+For data that contains its own attributes collections/meshes/bones/scenes... etc.
 
 There are 2 main types that wrap Blenders data, one for data-blocks
 (known internally as ``bpy_struct``), another for properties.

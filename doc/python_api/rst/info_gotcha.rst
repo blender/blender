@@ -741,7 +741,7 @@ Removing Data
 
 **Any** data that you remove shouldn't be modified or accessed afterwards,
 this includes f-curves, drivers, render layers, timeline markers, modifiers, constraints
-along with objects, scenes, groups, bones.. etc.
+along with objects, scenes, collections, bones.. etc.
 
 The ``remove()`` api calls will invalidate the data they free to prevent common mistakes.
 
