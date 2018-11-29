@@ -505,6 +505,8 @@ typedef struct TransInfo {
 
 	struct {
 		short		user;
+		/* Used when user is global. */
+		short		user_alt;
 		short		index;
 		short		*types[2];
 		/* this gets used when current_orientation is V3D_MANIP_CUSTOM */
