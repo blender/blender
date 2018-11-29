@@ -1533,6 +1533,14 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_edit_curve.extrude_cursor,
             ),
         ],
+        'EDIT_SURFACE': [
+            *_tools_select,
+            _defs_view3d_generic.cursor,
+            None,
+            *_tools_transform,
+            None,
+            *_tools_annotate,
+        ],
         'EDIT_METABALL': [
             *_tools_select,
             _defs_view3d_generic.cursor,
