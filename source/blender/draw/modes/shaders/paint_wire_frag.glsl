@@ -11,6 +11,9 @@ void main()
 		discard;
 	}
 
+	/* Apply depth offset by taking slope and distance into account. */
+	gl_FragDepth = gl_FragCoord.z - mix(exp2(-10), exp2(-23), gl_FragCoord.z) - 2.0 * fwidth(gl_FragCoord.z);
+
 #ifdef VERTEX_MODE
 	vec4 colSel = colorEdgeSelect;
 	colSel.rgb = clamp(colSel.rgb - 0.2, 0.0, 1.0);
