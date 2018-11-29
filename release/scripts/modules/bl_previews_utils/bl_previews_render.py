@@ -390,7 +390,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             bpy.context.screen.scene = scene
 
             bpy.ops.object.collection_instance_add(collection=grp.name)
-            grp_ob = next((ob for ob in scene.objects if ob.instance_collection and ob.dupli_coilection.name == grp.name))
+            grp_ob = next((ob for ob in scene.objects if ob.instance_collection and ob.instance_collection.name == grp.name))
             grp_obname = grp_ob.name
             scene.update()
 
