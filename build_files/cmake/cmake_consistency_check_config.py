@@ -6,7 +6,7 @@ IGNORE_SOURCE = (
     "/release/",
 
     # specific source files
-    "extern/audaspace/"
+    "extern/audaspace/",
 
     # specific source files
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp",
