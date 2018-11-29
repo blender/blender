@@ -661,6 +661,9 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	brush.sculpt.smooth
 	brush.sculpt.snake_hook
 	brush.sculpt.thumb
+	brush.uv_sculpt.grab
+	brush.uv_sculpt.pinch
+	brush.uv_sculpt.relax
 	none
 	ops.armature.bone.roll
 	ops.armature.extrude_cursor
