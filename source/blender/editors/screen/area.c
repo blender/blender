@@ -2117,7 +2117,9 @@ void ED_region_panels_layout_ex(
 	int scroll;
 
 	/* XXX, should use some better check? */
-	bool use_category_tabs = (1 << ar->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK;
+	/* For now also has hardcoded check for clip editor until it supports actual toolbar. */
+	bool use_category_tabs = ((1 << ar->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) ||
+	                         (ar->regiontype == RGN_TYPE_TOOLS && sa->spacetype == SPACE_CLIP);
 	/* offset panels for small vertical tab area */
 	const char *category = NULL;
 	const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
