@@ -47,7 +47,9 @@ class USERPREF_HT_header(Header):
         elif userpref.active_section == 'LIGHTS':
             layout.operator('wm.studiolight_install', text="Add MatCap").type = 'MATCAP'
             layout.operator('wm.studiolight_install', text="Add LookDev HDRI").type = 'WORLD'
-            layout.operator('wm.studiolight_install', text="Add Studio Light").type = 'STUDIO'
+            op = layout.operator('wm.studiolight_install', text="Add Studio Light")
+            op.type = 'STUDIO'
+            op.filter_glob = ".sl"
         elif userpref.active_section == 'THEMES':
             layout.operator("wm.theme_install", icon='FILEBROWSER')
             layout.operator("ui.reset_default_theme", icon='LOOP_BACK')
@@ -1498,6 +1500,10 @@ class StudioLightPanelMixin():
         layout = self.layout
         userpref = context.user_preferences
         lights = self._get_lights(userpref)
+
+        self.draw_light_list(layout, lights)
+
+    def draw_light_list(self, layout, lights):
         if lights:
             flow = layout.column_flow(columns=4)
             for studio_light in lights:
@@ -1569,7 +1575,15 @@ class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
 
         layout.separator()
 
+        layout.prop(system, "edit_solid_light")
         layout.prop(system, "light_ambient")
+
+        layout.operator('wm.studiolight_new', text="Save as Studio light")
+
+        lights = self._get_lights(userpref)
+
+        self.draw_light_list(layout, lights)
+
 
 classes = (
     USERPREF_HT_header,

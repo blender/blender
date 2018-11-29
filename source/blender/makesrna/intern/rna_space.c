@@ -754,8 +754,11 @@ static PointerRNA rna_View3DShading_selected_studio_light_get(PointerRNA *ptr)
 	if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
 		sl = BKE_studiolight_find(shading->matcap, STUDIOLIGHT_FLAG_ALL);
 	}
-	else {
+	else if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_STUDIO) {
 		sl = BKE_studiolight_find(shading->studio_light, STUDIOLIGHT_FLAG_ALL);
+	}
+	else {
+		sl = BKE_studiolight_find(shading->lookdev_light, STUDIOLIGHT_FLAG_ALL);
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_StudioLight, sl);
 }
@@ -805,13 +808,14 @@ static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
 	View3DShading *shading = (View3DShading *)ptr->data;
 	char *dna_storage = shading->studio_light;
 
-	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
+	int flag = STUDIOLIGHT_TYPE_STUDIO;
 	if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
 		flag = STUDIOLIGHT_TYPE_MATCAP;
 		dna_storage = shading->matcap;
 	}
 	else if (shading->type == OB_MATERIAL) {
-		flag = STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE;
+		flag = STUDIOLIGHT_TYPE_WORLD;
+		dna_storage = shading->lookdev_light;
 	}
 	StudioLight *sl = BKE_studiolight_find(dna_storage, flag);
 	if (sl) {
@@ -828,13 +832,14 @@ static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
 	View3DShading *shading = (View3DShading *)ptr->data;
 	char *dna_storage = shading->studio_light;
 
-	int flag = STUDIOLIGHT_ORIENTATIONS_SOLID;
+	int flag = STUDIOLIGHT_TYPE_STUDIO;
 	if (shading->type == OB_SOLID && shading->light == V3D_LIGHTING_MATCAP) {
 		flag = STUDIOLIGHT_TYPE_MATCAP;
 		dna_storage = shading->matcap;
 	}
 	else if (shading->type == OB_MATERIAL) {
-		flag = STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE;
+		flag = STUDIOLIGHT_TYPE_WORLD;
+		dna_storage = shading->lookdev_light;
 	}
 	StudioLight *sl = BKE_studiolight_findindex(value, flag);
 	if (sl) {
@@ -876,8 +881,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 				switch (shading->type) {
 					case OB_SOLID:
 					case OB_TEXTURE:
-						show_studiolight = (
-						        (sl->flag & (STUDIOLIGHT_TYPE_WORLD | STUDIOLIGHT_TYPE_STUDIO)) != 0);
+						show_studiolight = ((sl->flag & STUDIOLIGHT_TYPE_STUDIO) != 0);
 						break;
 
 					case OB_MATERIAL:

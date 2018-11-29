@@ -35,9 +35,11 @@
 #include "BKE_appdir.h"
 #include "BKE_icons.h"
 
+#include "BLI_dynstr.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
 #include "BLI_listbase.h"
+#include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_path_util.h"
@@ -82,7 +84,7 @@ static int last_studiolight_id = 0;
  */
 #define STUDIOLIGHT_LOAD_CACHED_FILES
 
-static const char *STUDIOLIGHT_LIGHTS_FOLDER = "studiolights/light/";
+static const char *STUDIOLIGHT_LIGHTS_FOLDER = "studiolights/studio/";
 static const char *STUDIOLIGHT_WORLD_FOLDER = "studiolights/world/";
 static const char *STUDIOLIGHT_MATCAP_FOLDER = "studiolights/matcap/";
 
@@ -168,13 +170,15 @@ static struct StudioLight *studiolight_create(int flag)
 	sl->free_function = NULL;
 	sl->flag = flag;
 	sl->index = ++last_studiolight_id;
-	if (flag & STUDIOLIGHT_TYPE_MATCAP) {
+	if (flag & STUDIOLIGHT_TYPE_STUDIO) {
+		sl->icon_id_irradiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE);
+	}
+	else if (flag & STUDIOLIGHT_TYPE_MATCAP) {
 		sl->icon_id_matcap = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP);
 		sl->icon_id_matcap_flipped = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_MATCAP_FLIPPED);
 	}
 	else {
 		sl->icon_id_radiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_RADIANCE);
-		sl->icon_id_irradiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE);
 	}
 
 	for (int index = 0; index < 6; index++) {
@@ -183,6 +187,99 @@ static struct StudioLight *studiolight_create(int flag)
 
 	return sl;
 }
+
+#define STUDIOLIGHT_FILE_VERSION 1
+
+#define READ_VAL(type, parser, id, val, lines) do { \
+	for (LinkNode *line = lines; line; line = line->next) { \
+		char *val_str, *str = line->link; \
+		if ((val_str = strstr(str, id " "))) { \
+			val_str += sizeof(id); /* Skip id + spacer. */ \
+			val = parser(val_str); \
+		} \
+	} \
+} while (0)
+
+#define READ_FVAL(id, val, lines) READ_VAL(float, atof, id, val, lines)
+#define READ_IVAL(id, val, lines) READ_VAL(int, atoi, id, val, lines)
+
+#define READ_VEC3(id, val, lines) do { \
+	READ_FVAL(id ".x", val[0], lines); \
+	READ_FVAL(id ".y", val[1], lines); \
+	READ_FVAL(id ".z", val[2], lines); \
+} while (0)
+
+#define READ_SOLIDLIGHT(sl, i, lines) do { \
+	READ_IVAL("light[" STRINGIFY(i) "].flag", sl[i].flag, lines); \
+	READ_FVAL("light[" STRINGIFY(i) "].smooth", sl[i].smooth, lines); \
+	READ_VEC3("light[" STRINGIFY(i) "].col", sl[i].col, lines); \
+	READ_VEC3("light[" STRINGIFY(i) "].spec", sl[i].spec, lines); \
+	READ_VEC3("light[" STRINGIFY(i) "].vec", sl[i].vec, lines); \
+} while (0)
+
+static void studiolight_load_solid_light(StudioLight *sl)
+{
+	LinkNode *lines = BLI_file_read_as_lines(sl->path);
+	if (lines) {
+		READ_VEC3("light_ambient", sl->light_ambient, lines);
+		READ_SOLIDLIGHT(sl->light, 0, lines);
+		READ_SOLIDLIGHT(sl->light, 1, lines);
+		READ_SOLIDLIGHT(sl->light, 2, lines);
+		READ_SOLIDLIGHT(sl->light, 3, lines);
+	}
+	BLI_file_free_lines(lines);
+}
+
+#undef READ_SOLIDLIGHT
+#undef READ_VEC3
+#undef READ_IVAL
+#undef READ_FVAL
+
+#define WRITE_FVAL(str, id, val) (BLI_dynstr_appendf(str, id " %f\n", val))
+#define WRITE_IVAL(str, id, val) (BLI_dynstr_appendf(str, id " %d\n", val))
+
+#define WRITE_VEC3(str, id, val) do { \
+	WRITE_FVAL(str, id ".x", val[0]); \
+	WRITE_FVAL(str, id ".y", val[1]); \
+	WRITE_FVAL(str, id ".z", val[2]); \
+} while (0)
+
+#define WRITE_SOLIDLIGHT(str, sl, i) do { \
+	WRITE_IVAL(str, "light[" STRINGIFY(i) "].flag", sl[i].flag); \
+	WRITE_FVAL(str, "light[" STRINGIFY(i) "].smooth", sl[i].smooth); \
+	WRITE_VEC3(str, "light[" STRINGIFY(i) "].col", sl[i].col); \
+	WRITE_VEC3(str, "light[" STRINGIFY(i) "].spec", sl[i].spec); \
+	WRITE_VEC3(str, "light[" STRINGIFY(i) "].vec", sl[i].vec); \
+} while (0)
+
+static void studiolight_write_solid_light(StudioLight *sl)
+{
+	FILE *fp = BLI_fopen(sl->path, "wb");
+	if (fp) {
+		DynStr *str = BLI_dynstr_new();
+
+		/* Very dumb ascii format. One value per line separated by a space. */
+		WRITE_IVAL(str, "version", STUDIOLIGHT_FILE_VERSION);
+		WRITE_VEC3(str, "light_ambient", sl->light_ambient);
+		WRITE_SOLIDLIGHT(str, sl->light, 0);
+		WRITE_SOLIDLIGHT(str, sl->light, 1);
+		WRITE_SOLIDLIGHT(str, sl->light, 2);
+		WRITE_SOLIDLIGHT(str, sl->light, 3);
+
+		char *cstr = BLI_dynstr_get_cstring(str);
+
+		fwrite(cstr, BLI_dynstr_get_len(str), 1, fp);
+		fclose(fp);
+
+		MEM_freeN(cstr);
+		BLI_dynstr_free(str);
+	}
+}
+
+#undef WRITE_SOLIDLIGHT
+#undef WRITE_VEC3
+#undef WRITE_IVAL
+#undef WRITE_FVAL
 
 static void direction_to_equirect(float r[2], const float dir[3])
 {
@@ -732,6 +829,83 @@ static void studiolight_irradiance_eval(StudioLight *sl, float color[3], const f
 }
 #endif
 
+static float brdf_approx(float spec_color, float roughness, float NV)
+{
+	/* Very rough own approx. We don't need it to be correct, just fast.
+	 * Just simulate fresnel effect with roughness attenuation. */
+	float fresnel = exp2(-8.35f * NV) * (1.0f - roughness);
+	return spec_color * (1.0f - fresnel) + fresnel;
+}
+
+/* NL need to be unclamped. w in [0..1] range. */
+static float wrapped_lighting(float NL, float w)
+{
+	float w_1 = w + 1.0f;
+	return max_ff((NL + w) / (w_1 * w_1), 0.0f);
+}
+
+static float blinn_specular(
+        const float L[3], const float I[3], const float N[3], float R[3], float NL, float roughness, float wrap)
+{
+	float half_dir[3];
+	float wrapped_NL = dot_v3v3(L, R);
+	add_v3_v3v3(half_dir, L, I);
+	normalize_v3(half_dir);
+	float spec_angle = max_ff(dot_v3v3(half_dir, N), 0.0f);
+
+	float gloss = 1.0f - roughness;
+	/* Reduce gloss for smooth light. (simulate bigger light) */
+	gloss *= 1.0f - wrap;
+	float shininess = exp2(10.0f * gloss + 1.0f);
+
+	/* Pi is already divided in the lamp power.
+	 * normalization_factor = (shininess + 8.0) / (8.0 * M_PI) */
+	float normalization_factor = shininess * 0.125f + 1.0f;
+	float spec_light = powf(spec_angle, shininess) * max_ff(NL, 0.0f) * normalization_factor;
+
+	/* Simulate Env. light. */
+	float w = wrap * (1.0 - roughness) + roughness;
+	float spec_env = wrapped_lighting(wrapped_NL, w);
+
+	float w2 = wrap * wrap;
+
+	return spec_light * (1.0 - w2) + spec_env * w2;
+}
+
+/* Keep in sync with the glsl shader function get_world_lighting() */
+static void studiolight_lights_eval(StudioLight *sl, float color[3], const float normal[3])
+{
+	float R[3], I[3] = {0.0f, 0.0f, 1.0f}, N[3] = {normal[0], normal[2], -normal[1]};
+	const float roughness = 0.5f;
+	const float diffuse_color = 0.8f;
+	const float specular_color = brdf_approx(0.05f, roughness, N[2]);
+	float diff_light[3], spec_light[3];
+
+	/* Ambient lighting */
+	copy_v3_v3(diff_light, sl->light_ambient);
+	copy_v3_v3(spec_light, sl->light_ambient);
+
+	reflect_v3_v3v3(R, I, N);
+	for (int i = 0; i < 3; ++i) {
+		SolidLight *light = &sl->light[i];
+		if (light->flag) {
+			/* Diffuse lighting */
+			float NL = dot_v3v3(light->vec, N);
+			float diff = wrapped_lighting(NL, light->smooth);
+			madd_v3_v3fl(diff_light, light->col, diff);
+			/* Specular lighting */
+			float spec = blinn_specular(light->vec, I, N, R, NL, roughness, light->smooth);
+			madd_v3_v3fl(spec_light, light->spec, spec);
+		}
+	}
+
+	/* Multiply result by surface colors. */
+	mul_v3_fl(diff_light, diffuse_color * (1.0 - specular_color));
+	mul_v3_fl(spec_light, specular_color);
+
+	add_v3_v3v3(color, diff_light, spec_light);
+}
+
 static bool studiolight_load_irradiance_equirect_image(StudioLight *sl)
 {
 #ifdef STUDIOLIGHT_LOAD_CACHED_FILES
@@ -819,12 +993,21 @@ static StudioLight *studiolight_add_file(const char *path, int flag)
 {
 	char filename[FILE_MAXFILE];
 	BLI_split_file_part(path, filename, FILE_MAXFILE);
-	if (BLI_path_extension_check_array(filename, imb_ext_image)) {
+
+	if ((((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) && BLI_path_extension_check(filename, ".sl")) ||
+	    BLI_path_extension_check_array(filename, imb_ext_image))
+	{
 		StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | flag);
 		BLI_strncpy(sl->name, filename, FILE_MAXFILE);
 		BLI_strncpy(sl->path, path, FILE_MAXFILE);
-		sl->path_irr_cache = BLI_string_joinN(path, ".irr");
-		sl->path_sh_cache = BLI_string_joinN(path, ".sh2");
+
+		if ((flag & STUDIOLIGHT_TYPE_STUDIO) != 0) {
+			studiolight_load_solid_light(sl);
+		}
+		else {
+			sl->path_irr_cache = BLI_string_joinN(path, ".irr");
+			sl->path_sh_cache = BLI_string_joinN(path, ".sh2");
+		}
 		BLI_addtail(&studiolights, sl);
 		return sl;
 	}
@@ -971,8 +1154,6 @@ static void studiolight_matcap_preview(uint *icon_buffer, StudioLight *sl, bool 
 
 static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
 {
-	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED);
-
 	ITER_PIXELS(uint, icon_buffer, 1,
 	            STUDIOLIGHT_ICON_SIZE,
 	            STUDIOLIGHT_ICON_SIZE)
@@ -988,7 +1169,7 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
 			SWAP(float, normal[1], normal[2]);
 			normal[1] = -normal[1];
 
-			studiolight_spherical_harmonics_eval(sl, color, normal);
+			studiolight_lights_eval(sl, color, normal);
 
 			*pixel = rgb_to_cpack(
 			        linearrgb_to_srgb(color[0]),
@@ -1005,31 +1186,34 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
 /* API */
 void BKE_studiolight_init(void)
 {
-	StudioLight *sl;
-	/* go over the preset folder and add a studiolight for every image with its path */
-	/* order studio lights by name */
-	/* Also reserve icon space for it. */
 	/* Add default studio light */
-	sl = studiolight_create(STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED | STUDIOLIGHT_TYPE_STUDIO);
+	StudioLight * sl = studiolight_create(STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED | STUDIOLIGHT_TYPE_STUDIO);
 	BLI_strncpy(sl->name, "Default", FILE_MAXFILE);
 
-	int i = 0;
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], 1.03271556f, 1.07163882f, 1.11193657f);
-#if STUDIOLIGHT_SH_BANDS > 1
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], -0.00480952f, 0.05290511f, 0.16394117f);
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], -0.29686999f, -0.27378261f, -0.24797194f);
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], 0.47932500f, 0.48242140f, 0.47190312f);
-#endif
-#if STUDIOLIGHT_SH_BANDS > 2
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], -0.00576984f, 0.00504886f, 0.01640534f);
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], 0.15500379f, 0.15415503f, 0.16244425f);
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], -0.02483751f, -0.02245096f, -0.00536885f);
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], 0.11155496f, 0.11005443f, 0.10839636f);
-	copy_v3_fl3(sl->spherical_harmonics_coefs[i++], 0.01363425f, 0.01278363f, -0.00159006f);
-#endif
+	copy_v4_fl4(sl->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
+
+	copy_v4_fl4(sl->light[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
+	copy_v4_fl4(sl->light[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
+	copy_v4_fl4(sl->light[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
+	sl->light[0].flag = 1;
+	sl->light[0].smooth = 0.1;
+
+	copy_v4_fl4(sl->light[1].vec, 0.788218, 0.593482, -0.162765, 0.0);
+	copy_v4_fl4(sl->light[1].col, 0.267115, 0.269928, 0.358840, 1.000000);
+	copy_v4_fl4(sl->light[1].spec, 0.090838, 0.090838, 0.090838, 1.000000);
+	sl->light[1].flag = 1;
+	sl->light[1].smooth = 0.25;
+
+	copy_v4_fl4(sl->light[2].vec, 0.696472, -0.696472, -0.172785, 0.0);
+	copy_v4_fl4(sl->light[2].col, 0.293216, 0.304662, 0.401968, 1.000000);
+	copy_v4_fl4(sl->light[2].spec, 0.069399, 0.020331, 0.020331, 1.000000);
+	sl->light[2].flag = 1;
+	sl->light[2].smooth = 0.5;
 
 	BLI_addtail(&studiolights, sl);
 
+	/* go over the preset folder and add a studiolight for every image with its path */
+	/* Also reserve icon space for it. */
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_LIGHTS_FOLDER, STUDIOLIGHT_TYPE_STUDIO);
 	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_LIGHTS_FOLDER, STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_USER_DEFINED);
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_TYPE_WORLD);
@@ -1161,10 +1345,40 @@ void BKE_studiolight_remove(StudioLight *sl)
 	}
 }
 
-StudioLight *BKE_studiolight_new(const char *path, int orientation)
+StudioLight *BKE_studiolight_load(const char *path, int type)
 {
-	StudioLight *sl = studiolight_add_file(path, orientation | STUDIOLIGHT_USER_DEFINED);
+	StudioLight *sl = studiolight_add_file(path, type | STUDIOLIGHT_USER_DEFINED);
 	return sl;
+}
+
+StudioLight *BKE_studiolight_create(const char *path, const SolidLight light[4], const float light_ambient[3])
+{
+	StudioLight *sl = studiolight_create(STUDIOLIGHT_EXTERNAL_FILE | STUDIOLIGHT_USER_DEFINED | STUDIOLIGHT_TYPE_STUDIO);
+
+	char filename[FILE_MAXFILE];
+	BLI_split_file_part(path, filename, FILE_MAXFILE);
+	BLI_snprintf(sl->path, FILE_MAXFILE, "%s%s", path, ".sl");
+	BLI_snprintf(sl->name, FILE_MAXFILE, "%s%s", filename, ".sl");
+
+	memcpy(sl->light, light, sizeof(*light) * 3);
+	memcpy(sl->light_ambient, light_ambient, sizeof(*light_ambient) * 3);
+
+	studiolight_write_solid_light(sl);
+
+	BLI_addtail(&studiolights, sl);
+	return sl;
+}
+
+/* Only useful for workbench while editing the userprefs. */
+StudioLight *BKE_studiolight_studio_edit_get(void)
+{
+	static StudioLight sl = {0};
+	sl.flag = STUDIOLIGHT_TYPE_STUDIO;
+
+	memcpy(sl.light, U.light, sizeof(*sl.light) * 3);
+	memcpy(sl.light_ambient, U.light_ambient, sizeof(sl.light_ambient) * 3);
+
+	return &sl;
 }
 
 void BKE_studiolight_refresh(void)

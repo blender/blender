@@ -299,7 +299,7 @@ void workbench_material_shgroup_uniform(
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material);
 
 /* workbench_studiolight.c */
-void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
+void studiolight_update_world(WORKBENCH_PrivateData *wpd, StudioLight *sl, WORKBENCH_UBO_World *wd);
 void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_direction[3]);
 bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
 float studiolight_object_shadow_distance(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);

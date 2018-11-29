@@ -628,9 +628,15 @@ static void rna_StudioLights_remove(UserDef *UNUSED(userdef), StudioLight *studi
 	BKE_studiolight_remove(studio_light);
 }
 
-static StudioLight *rna_StudioLights_new(UserDef *UNUSED(userdef), const char *path, int type)
+static StudioLight *rna_StudioLights_load(UserDef *UNUSED(userdef), const char *path, int type)
 {
-	return BKE_studiolight_new(path, type);
+	return BKE_studiolight_load(path, type);
+}
+
+/* TODO: Make it accept arguments. */
+static StudioLight *rna_StudioLights_new(UserDef *userdef, const char *name)
+{
+	return BKE_studiolight_create(name, userdef->light, userdef->light_ambient);
 }
 
 /* StudioLight.name */
@@ -3315,11 +3321,18 @@ static void rna_def_userdef_studiolights(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_ui_text(srna, "Studio Lights", "Collection of studio lights");
 
-	func = RNA_def_function(srna, "new", "rna_StudioLights_new");
-	RNA_def_function_ui_description(func, "Create a new studiolight");
+	func = RNA_def_function(srna, "load", "rna_StudioLights_load");
+	RNA_def_function_ui_description(func, "Load studiolight from file");
 	parm = RNA_def_string(func, "path", NULL, 0, "File Path", "File path where the studio light file can be found");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_enum(func, "type", rna_enum_studio_light_type_items, STUDIOLIGHT_TYPE_WORLD, "Type", "The type for the new studio light");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "studio_light", "StudioLight", "", "Newly created StudioLight");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "new", "rna_StudioLights_new");
+	RNA_def_function_ui_description(func, "Create studiolight from default lighting");
+	parm = RNA_def_string(func, "path", NULL, 0, "Path", "Path to the file that will contain the lighing info (without extension)");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "studio_light", "StudioLight", "", "Newly created StudioLight");
 	RNA_def_function_return(func, parm);
@@ -4295,6 +4308,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "light_ambient");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Ambient Color", "Color of the ambient light that uniformly lit the scene");
+	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
+
+	prop = RNA_def_property(srna, "edit_solid_light", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edit_solid_light", 1);
+	RNA_def_property_ui_text(prop, "Edit Solid Light",
+	                               "View the result of the solid lights in the viewport");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop = RNA_def_property(srna, "use_weight_color_range", PROP_BOOLEAN, PROP_NONE);

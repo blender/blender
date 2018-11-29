@@ -4190,9 +4190,9 @@ class VIEW3D_PT_shading_lighting(Panel):
 
             if shading.light == 'STUDIO':
                 # Not implemented right now
-                # sub.template_icon_view(shading, "studio_light", scale=3)
+                sub.template_icon_view(shading, "studio_light", scale=3)
 
-                # if shading.selected_studio_light.orientation == 'WORLD':
+                # if shading.selected_studio_light.type == 'WORLD':
                 #     col.prop(shading, "studiolight_rotate_z", text="Rotation")
 
                 col = split.column()
@@ -4221,7 +4221,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col = split.column()
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
-                if shading.selected_studio_light.orientation == 'WORLD':
+                if shading.selected_studio_light.type == 'WORLD':
                     split = layout.split(factor=0.9)
                     col = split.column()
                     col.prop(shading, "studiolight_rotate_z", text="Rotation")

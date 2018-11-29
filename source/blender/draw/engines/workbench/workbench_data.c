@@ -40,13 +40,13 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	}
 	else {
 		wpd->studio_light = BKE_studiolight_find(
-		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_TYPE_WORLD);
+		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO);
 	}
 
 	/* If matcaps are missing, use this as fallback. */
 	if (UNLIKELY(wpd->studio_light == NULL)) {
 		wpd->studio_light = BKE_studiolight_find(
-		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_TYPE_WORLD);
+		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO);
 	}
 
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
@@ -79,7 +79,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		zero_v3(wd->background_color_high);
 	}
 
-	studiolight_update_world(wpd->studio_light, wd);
+	studiolight_update_world(wpd, wpd->studio_light, wd);
 
 	copy_v3_v3(wd->object_outline_color, wpd->shading.object_outline_color);
 	wd->object_outline_color[3] = 1.0f;
@@ -157,55 +157,14 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
-	float view_matrix[4][4], view_inv[4][4], rot_matrix[4][4];
+	float view_matrix[4][4];
 	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
-	DRW_viewport_matrix_get(view_inv, DRW_MAT_VIEWINV);
 
 	copy_v3_v3(r_light_direction, scene->display.light_direction);
 	negate_v3(r_light_direction);
 
 	/* Shadow direction. */
 	mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, r_light_direction);
-
-	/* TODO enable when we support studiolight presets. */
-	if (STUDIOLIGHT_TYPE_WORLD_ENABLED(wpd) && false) {
-		axis_angle_to_mat4_single(rot_matrix, 'Y', -wpd->shading.studiolight_rot_z);
-		mul_m4_m4m4(rot_matrix, rot_matrix, view_matrix);
-		swap_v3_v3(rot_matrix[2], rot_matrix[1]);
-		negate_v3(rot_matrix[2]);
-	}
-	else {
-		unit_m4(rot_matrix);
-	}
-
-	/* Studio Lights. */
-	for (int i = 0; i < 4; i++) {
-		WORKBENCH_UBO_Light *light = &wd->lights[i];
-		/* TODO use 4 lights in studiolights prefs. */
-		if (i > 2) {
-			copy_v3_fl3(light->light_direction, 1.0f, 0.0f, 0.0f);
-			copy_v3_fl(light->specular_color, 0.0f);
-			copy_v3_fl(light->diffuse_color, 0.0f);
-			continue;
-		}
-
-		SolidLight *sl = &U.light[i];
-		if (sl->flag) {
-			copy_v3_v3(light->light_direction, sl->vec);
-			mul_mat3_m4_v3(rot_matrix, light->light_direction);
-			/* We should predivide the power by PI but that makes the lights really dim. */
-			copy_v3_v3(light->specular_color, sl->spec);
-			copy_v3_v3(light->diffuse_color, sl->col);
-			light->wrapped = sl->smooth;
-		}
-		else {
-			copy_v3_fl3(light->light_direction, 1.0f, 0.0f, 0.0f);
-			copy_v3_fl(light->specular_color, 0.0f);
-			copy_v3_fl(light->diffuse_color, 0.0f);
-		}
-	}
-
-	copy_v4_v4(wd->ambient_color, U.light_ambient);
 
 	DRW_uniformbuffer_update(wpd->world_ubo, wd);
 }

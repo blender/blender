@@ -148,6 +148,7 @@ typedef struct View3DShading {
 	char pad[7];
 
 	char studio_light[256]; /* FILE_MAXFILE */
+	char lookdev_light[256]; /* FILE_MAXFILE */
 	char matcap[256]; /* FILE_MAXFILE */
 
 	float shadow_intensity;
