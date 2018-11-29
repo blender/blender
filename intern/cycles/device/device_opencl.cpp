@@ -27,7 +27,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
+Device *device_opencl_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background)
 {
 	vector<OpenCLPlatformDevice> usable_devices;
 	OpenCLInfo::get_usable_devices(&usable_devices);
@@ -37,10 +37,10 @@ Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 	const cl_device_type device_type = platform_device.device_type;
 	if(OpenCLInfo::kernel_use_split(platform_name, device_type)) {
 		VLOG(1) << "Using split kernel.";
-		return opencl_create_split_device(info, stats, background);
+		return opencl_create_split_device(info, stats, profiler, background);
 	} else {
 		VLOG(1) << "Using mega kernel.";
-		return opencl_create_mega_device(info, stats, background);
+		return opencl_create_mega_device(info, stats, profiler, background);
 	}
 }
 

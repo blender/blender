@@ -208,8 +208,8 @@ public:
 	      KERNEL_NAME_EVAL(cpu_avx, name), \
 	      KERNEL_NAME_EVAL(cpu_avx2, name)
 
-	CPUDevice(DeviceInfo& info_, Stats &stats_, bool background_)
-	: Device(info_, stats_, background_),
+	CPUDevice(DeviceInfo& info_, Stats &stats_, Profiler &profiler_, bool background_)
+	: Device(info_, stats_, profiler_, background_),
 	  texture_info(this, "__texture_info", MEM_TEXTURE),
 #define REGISTER_KERNEL(name) name ## _kernel(KERNEL_FUNCTIONS(name))
 	  REGISTER_KERNEL(path_trace),
@@ -781,7 +781,7 @@ public:
 
 		KernelGlobals *kg = new ((void*) kgbuffer.device_pointer) KernelGlobals(thread_kernel_globals_init());
 
-		stats.profiler.add_state(&kg->profiler);
+		profiler.add_state(&kg->profiler);
 
 		CPUSplitKernel *split_kernel = NULL;
 		if(use_split_kernel) {
@@ -821,7 +821,7 @@ public:
 			}
 		}
 
-		stats.profiler.remove_state(&kg->profiler);
+		profiler.remove_state(&kg->profiler);
 
 		thread_kernel_globals_free((KernelGlobals*)kgbuffer.device_pointer);
 		kg->~KernelGlobals();
@@ -1065,9 +1065,9 @@ uint64_t CPUSplitKernel::state_buffer_size(device_memory& kernel_globals, device
 	return split_data_buffer_size(kg, num_threads);
 }
 
-Device *device_cpu_create(DeviceInfo& info, Stats &stats, bool background)
+Device *device_cpu_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background)
 {
-	return new CPUDevice(info, stats, background);
+	return new CPUDevice(info, stats, profiler, background);
 }
 
 void device_cpu_info(vector<DeviceInfo>& devices)

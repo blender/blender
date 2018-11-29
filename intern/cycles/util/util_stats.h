@@ -41,8 +41,6 @@ public:
 
 	size_t mem_used;
 	size_t mem_peak;
-
-	Profiler profiler;
 };
 
 CCL_NAMESPACE_END

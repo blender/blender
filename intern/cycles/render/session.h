@@ -149,6 +149,7 @@ public:
 	SessionParams params;
 	TileManager tile_manager;
 	Stats stats;
+	Profiler profiler;
 
 	function<void(RenderTile&)> write_render_tile_cb;
 	function<void(RenderTile&, bool)> update_render_tile_cb;

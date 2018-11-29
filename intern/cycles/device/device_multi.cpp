@@ -45,11 +45,11 @@ public:
 	list<SubDevice> devices;
 	device_ptr unique_key;
 
-	MultiDevice(DeviceInfo& info, Stats &stats, bool background_)
-	: Device(info, stats, background_), unique_key(1)
+	MultiDevice(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_)
+	: Device(info, stats, profiler, background_), unique_key(1)
 	{
 		foreach(DeviceInfo& subinfo, info.multi_devices) {
-			Device *device = Device::create(subinfo, sub_stats_, background);
+			Device *device = Device::create(subinfo, sub_stats_, profiler, background);
 
 			/* Always add CPU devices at the back since GPU devices can change
 			 * host memory pointers, which CPU uses as device pointer. */
@@ -69,7 +69,7 @@ public:
 		vector<string> servers = discovery.get_server_list();
 
 		foreach(string& server, servers) {
-			Device *device = device_network_create(info, stats, server.c_str());
+			Device *device = device_network_create(info, stats, profiler, server.c_str());
 			if(device)
 				devices.push_back(SubDevice(device));
 		}
@@ -381,9 +381,9 @@ protected:
 	Stats sub_stats_;
 };
 
-Device *device_multi_create(DeviceInfo& info, Stats &stats, bool background)
+Device *device_multi_create(DeviceInfo& info, Stats &stats, Profiler& profiler, bool background)
 {
-	return new MultiDevice(info, stats, background);
+	return new MultiDevice(info, stats, profiler, background);
 }
 
 CCL_NAMESPACE_END

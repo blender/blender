@@ -47,13 +47,14 @@ Session::Session(const SessionParams& params_)
   tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
        params.background == false || params.progressive_refine, params.background, params.tile_order,
        max(params.device.multi_devices.size(), 1), params.pixel_size),
-  stats()
+  stats(),
+  profiler()
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
 
 	TaskScheduler::init(params.threads);
 
-	device = Device::create(params.device, stats, params.background);
+	device = Device::create(params.device, stats, profiler, params.background);
 
 	if(params.background && !params.write_render_cb) {
 		buffers = NULL;
@@ -251,7 +252,7 @@ void Session::run_gpu()
 			/* update scene */
 			scoped_timer update_timer;
 			if(update_scene()) {
-				stats.profiler.reset(scene->shaders.size(), scene->objects.size());
+				profiler.reset(scene->shaders.size(), scene->objects.size());
 			}
 			progress.add_skip_time(update_timer, params.background);
 
@@ -588,7 +589,7 @@ void Session::run_cpu()
 			/* update scene */
 			scoped_timer update_timer;
 			if(update_scene()) {
-				stats.profiler.reset(scene->shaders.size(), scene->objects.size());
+				profiler.reset(scene->shaders.size(), scene->objects.size());
 			}
 			progress.add_skip_time(update_timer, params.background);
 
@@ -734,7 +735,7 @@ void Session::run()
 	load_kernels();
 
 	if(params.use_profiling && (params.device.type == DEVICE_CPU)) {
-		stats.profiler.start();
+		profiler.start();
 	}
 
 	/* session thread loop */
@@ -751,7 +752,7 @@ void Session::run()
 			run_cpu();
 	}
 
-	stats.profiler.stop();
+	profiler.stop();
 
 	/* progress update */
 	if(progress.get_cancel())
@@ -1069,7 +1070,7 @@ void Session::collect_statistics(RenderStats *render_stats)
 {
 	scene->collect_statistics(render_stats);
 	if(params.use_profiling && (params.device.type == DEVICE_CPU)) {
-		render_stats->collect_profiling(scene, &stats);
+		render_stats->collect_profiling(scene, profiler);
 	}
 }
 

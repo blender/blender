@@ -236,8 +236,8 @@ public:
 		cuda_error_documentation();
 	}
 
-	CUDADevice(DeviceInfo& info, Stats &stats, bool background_)
-	: Device(info, stats, background_),
+	CUDADevice(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_)
+	: Device(info, stats, profiler, background_),
 	  texture_info(this, "__texture_info", MEM_TEXTURE)
 	{
 		first_error = true;
@@ -2414,9 +2414,9 @@ bool device_cuda_init()
 #endif  /* WITH_CUDA_DYNLOAD */
 }
 
-Device *device_cuda_create(DeviceInfo& info, Stats &stats, bool background)
+Device *device_cuda_create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background)
 {
-	return new CUDADevice(info, stats, background);
+	return new CUDADevice(info, stats, profiler, background);
 }
 
 static CUresult device_cuda_safe_init()

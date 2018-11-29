@@ -72,8 +72,8 @@ void OpenCLDeviceBase::opencl_assert_err(cl_int err, const char* where)
 	}
 }
 
-OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool background_)
-: Device(info, stats, background_),
+OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background_)
+: Device(info, stats, profiler, background_),
   memory_manager(this),
   texture_info(this, "__texture_info", MEM_TEXTURE)
 {

@@ -349,36 +349,36 @@ void Device::draw_pixels(
 	}
 }
 
-Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
+Device *Device::create(DeviceInfo& info, Stats &stats, Profiler &profiler, bool background)
 {
 	Device *device;
 
 	switch(info.type) {
 		case DEVICE_CPU:
-			device = device_cpu_create(info, stats, background);
+			device = device_cpu_create(info, stats, profiler, background);
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:
 			if(device_cuda_init())
-				device = device_cuda_create(info, stats, background);
+				device = device_cuda_create(info, stats, profiler, background);
 			else
 				device = NULL;
 			break;
 #endif
 #ifdef WITH_MULTI
 		case DEVICE_MULTI:
-			device = device_multi_create(info, stats, background);
+			device = device_multi_create(info, stats, profiler, background);
 			break;
 #endif
 #ifdef WITH_NETWORK
 		case DEVICE_NETWORK:
-			device = device_network_create(info, stats, "127.0.0.1");
+			device = device_network_create(info, stats, profiler, "127.0.0.1");
 			break;
 #endif
 #ifdef WITH_OPENCL
 		case DEVICE_OPENCL:
 			if(device_opencl_init())
-				device = device_opencl_create(info, stats, background);
+				device = device_opencl_create(info, stats, profiler, background);
 			else
 				device = NULL;
 			break;
