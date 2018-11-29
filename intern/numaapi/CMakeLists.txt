@@ -17,7 +17,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	./include
+	include
 )
 
 set(INC_SYS

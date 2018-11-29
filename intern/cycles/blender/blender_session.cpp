@@ -501,7 +501,7 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 
 		if(!b_engine.is_preview() && background && print_render_stats) {
 			RenderStats stats;
-			session->scene->collect_statistics(&stats);
+			session->collect_statistics(&stats);
 			printf("Render statistics:\n%s\n", stats.full_report().c_str());
 		}
 

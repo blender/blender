@@ -17,6 +17,9 @@
 #ifndef __RENDER_STATS_H__
 #define __RENDER_STATS_H__
 
+#include "render/scene.h"
+
+#include "util/util_stats.h"
 #include "util/util_string.h"
 #include "util/util_vector.h"
 
@@ -61,6 +64,51 @@ public:
 	vector<NamedSizeEntry> entries;
 };
 
+class NamedNestedSampleStats {
+public:
+	NamedNestedSampleStats();
+	NamedNestedSampleStats(const string& name, uint64_t samples);
+
+	NamedNestedSampleStats& add_entry(const string& name, uint64_t samples);
+
+	/* Updates sum_samples recursively. */
+	void update_sum();
+
+	string full_report(int indent_level = 0, uint64_t total_samples = 0);
+
+	string name;
+
+	/* self_samples contains only the samples that this specific event got,
+	 * while sum_samples also includes the samples of all sub-entries. */
+	uint64_t self_samples, sum_samples;
+
+	vector<NamedNestedSampleStats> entries;
+};
+
+/* Named entry containing both a time-sample count for objects of a type and a
+ * total count of processed items.
+ * This allows to estimate the time spent per item. */
+class NamedSampleCountPair {
+public:
+	NamedSampleCountPair(const ustring& name, uint64_t samples, uint64_t hits);
+
+	ustring name;
+	uint64_t samples;
+	uint64_t hits;
+};
+
+/* Contains statistics about pairs of samples and counts as described above. */
+class NamedSampleCountStats {
+public:
+	NamedSampleCountStats();
+
+	string full_report(int indent_level = 0);
+	void add(const ustring& name, uint64_t samples, uint64_t hits);
+
+	typedef unordered_map<ustring, NamedSampleCountPair, ustringHash> entry_map;
+	entry_map entries;
+};
+
 /* Statistics about mesh in the render database. */
 class MeshStats {
 public:
@@ -95,8 +143,16 @@ public:
 	/* Return full report as string. */
 	string full_report();
 
+	/* Collect kernel sampling information from Stats. */
+	void collect_profiling(Scene *scene, Stats *stats);
+
+	bool has_profiling;
+
 	MeshStats mesh;
 	ImageStats image;
+	NamedNestedSampleStats kernel;
+	NamedSampleCountStats shaders;
+	NamedSampleCountStats objects;
 };
 
 CCL_NAMESPACE_END

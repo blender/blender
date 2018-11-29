@@ -17,6 +17,7 @@ set(SRC
 	util_md5.cpp
 	util_murmurhash.cpp
 	util_path.cpp
+	util_profiling.cpp
 	util_string.cpp
 	util_simd.cpp
 	util_system.cpp
@@ -71,6 +72,7 @@ set(SRC_HEADERS
 	util_optimization.h
 	util_param.h
 	util_path.h
+	util_profiling.h
 	util_progress.h
 	util_projection.h
 	util_queue.h

@@ -335,6 +335,11 @@ uint Object::visibility_for_tracing() const {
 	return trace_visibility;
 }
 
+int Object::get_device_index() const
+{
+	return index;
+}
+
 /* Object Manager */
 
 ObjectManager::ObjectManager()
@@ -348,10 +353,9 @@ ObjectManager::~ObjectManager()
 }
 
 void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state,
-                                                   Object *ob,
-                                                   int object_index)
+                                                   Object *ob)
 {
-	KernelObject& kobject = state->objects[object_index];
+	KernelObject& kobject = state->objects[ob->index];
 	Transform *object_motion_pass = state->object_motion_pass;
 
 	Mesh *mesh = ob->mesh;
@@ -457,13 +461,13 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 			tfm_post = tfm_post * itfm;
 		}
 
-		int motion_pass_offset = object_index*OBJECT_MOTION_PASS_SIZE;
+		int motion_pass_offset = ob->index*OBJECT_MOTION_PASS_SIZE;
 		object_motion_pass[motion_pass_offset + 0] = tfm_pre;
 		object_motion_pass[motion_pass_offset + 1] = tfm_post;
 	}
 	else if(state->need_motion == Scene::MOTION_BLUR) {
 		if(ob->use_motion()) {
-			kobject.motion_offset = state->motion_offset[object_index];
+			kobject.motion_offset = state->motion_offset[ob->index];
 
 			/* Decompose transforms for interpolation. */
 			DecomposedTransform *decomp = state->object_motion + kobject.motion_offset;
@@ -494,7 +498,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 	if(ob->use_holdout) {
 		flag |= SD_OBJECT_HOLDOUT_MASK;
 	}
-	state->object_flag[object_index] = flag;
+	state->object_flag[ob->index] = flag;
 
 	/* Have curves. */
 	if(mesh->num_curves()) {
@@ -538,7 +542,7 @@ void ObjectManager::device_update_object_transform_task(
 		for(int i = 0; i < num_objects; ++i) {
 			const int object_index = start_index + i;
 			Object *ob = state->scene->objects[object_index];
-			device_update_object_transform(state, ob, object_index);
+			device_update_object_transform(state, ob);
 		}
 	}
 }
@@ -593,10 +597,8 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene,
 	 * need some tweaks to make mid-complex scenes optimal.
 	 */
 	if(scene->objects.size() < 64) {
-		int object_index = 0;
 		foreach(Object *ob, scene->objects) {
-			device_update_object_transform(&state, ob, object_index);
-			object_index++;
+			device_update_object_transform(&state, ob);
 			if(progress.get_cancel()) {
 				return;
 			}
@@ -642,6 +644,12 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	if(scene->objects.size() == 0)
 		return;
 
+	/* Assign object IDs. */
+	int index = 0;
+	foreach(Object *object, scene->objects) {
+		object->index = index++;
+	}
+
 	/* set object transform matrices, before applying static transforms */
 	progress.set_status("Updating Objects", "Copying Transformations to device");
 	device_update_transforms(dscene, scene, progress);
@@ -686,26 +694,25 @@ void ObjectManager::device_update_flags(Device *,
 		}
 	}
 
-	int object_index = 0;
 	foreach(Object *object, scene->objects) {
 		if(object->mesh->has_volume) {
-			object_flag[object_index] |= SD_OBJECT_HAS_VOLUME;
-			object_flag[object_index] &= ~SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
+			object_flag[object->index] |= SD_OBJECT_HAS_VOLUME;
+			object_flag[object->index] &= ~SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
 
 			foreach(Attribute& attr, object->mesh->attributes.attributes) {
 				if(attr.element == ATTR_ELEMENT_VOXEL) {
-					object_flag[object_index] |= SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
+					object_flag[object->index] |= SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
 				}
 			}
 		}
 		else {
-			object_flag[object_index] &= ~(SD_OBJECT_HAS_VOLUME|SD_OBJECT_HAS_VOLUME_ATTRIBUTES);
+			object_flag[object->index] &= ~(SD_OBJECT_HAS_VOLUME|SD_OBJECT_HAS_VOLUME_ATTRIBUTES);
 		}
 		if(object->is_shadow_catcher) {
-			object_flag[object_index] |= SD_OBJECT_SHADOW_CATCHER;
+			object_flag[object->index] |= SD_OBJECT_SHADOW_CATCHER;
 		}
 		else {
-			object_flag[object_index] &= ~SD_OBJECT_SHADOW_CATCHER;
+			object_flag[object->index] &= ~SD_OBJECT_SHADOW_CATCHER;
 		}
 
 		if(bounds_valid) {
@@ -714,7 +721,7 @@ void ObjectManager::device_update_flags(Device *,
 					continue;
 				}
 				if(object->bounds.intersects(volume_object->bounds)) {
-					object_flag[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
+					object_flag[object->index] |= SD_OBJECT_INTERSECTS_VOLUME;
 					break;
 				}
 			}
@@ -723,9 +730,8 @@ void ObjectManager::device_update_flags(Device *,
 			/* Not really valid, but can't make more reliable in the case
 			 * of bounds not being up to date.
 			 */
-			object_flag[object_index] |= SD_OBJECT_INTERSECTS_VOLUME;
+			object_flag[object->index] |= SD_OBJECT_INTERSECTS_VOLUME;
 		}
-		++object_index;
 	}
 
 	/* Copy object flag. */
@@ -741,7 +747,6 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
 	KernelObject *kobjects = dscene->objects.data();
 
 	bool update = false;
-	int object_index = 0;
 
 	foreach(Object *object, scene->objects) {
 		Mesh* mesh = object->mesh;
@@ -750,18 +755,16 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
 			uint patch_map_offset = 2*(mesh->patch_table_offset + mesh->patch_table->total_size() -
 			                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) - mesh->patch_offset;
 
-			if(kobjects[object_index].patch_map_offset != patch_map_offset) {
-				kobjects[object_index].patch_map_offset = patch_map_offset;
+			if(kobjects[object->index].patch_map_offset != patch_map_offset) {
+				kobjects[object->index].patch_map_offset = patch_map_offset;
 				update = true;
 			}
 		}
 
-		if(kobjects[object_index].attribute_map_offset != mesh->attr_map_offset) {
-			kobjects[object_index].attribute_map_offset = mesh->attr_map_offset;
+		if(kobjects[object->index].attribute_map_offset != mesh->attr_map_offset) {
+			kobjects[object->index].attribute_map_offset = mesh->attr_map_offset;
 			update = true;
 		}
-
-		object_index++;
 	}
 
 	if(update) {

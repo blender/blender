@@ -22,6 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
 : tile_info_mem(device, "denoising tile info mem", MEM_READ_WRITE),
+  profiler(NULL),
   storage(device),
   buffer(device),
   device(device)

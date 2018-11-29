@@ -60,6 +60,7 @@ public:
 	bool has_volume_decoupled;      /* Decoupled volume shading. */
 	bool has_osl;                   /* Support Open Shading Language. */
 	bool use_split_kernel;          /* Use split or mega kernel. */
+	bool has_profiling;             /* Supports runtime collection of profiling info. */
 	int cpu_threads;
 	vector<DeviceInfo> multi_devices;
 
@@ -75,6 +76,7 @@ public:
 		has_volume_decoupled = false;
 		has_osl = false;
 		use_split_kernel = false;
+		has_profiling = false;
 	}
 
 	bool operator==(const DeviceInfo &info) {

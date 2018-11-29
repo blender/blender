@@ -38,6 +38,7 @@ class Progress;
 class Scene;
 struct Transform;
 struct UpdateObjectTransformState;
+class ObjectManager;
 
 /* Object */
 
@@ -88,6 +89,16 @@ public:
 	 * determined flags which denotes trace-time visibility.
 	 */
 	uint visibility_for_tracing() const;
+
+	/* Returns the index that is used in the kernel for this object. */
+	int get_device_index() const;
+
+protected:
+	/* Specifies the position of the object in scene->objects and
+	 * in the device vectors. Gets set in device_update. */
+	int index;
+
+	friend class ObjectManager;
 };
 
 /* Object Manager */
@@ -123,8 +134,7 @@ public:
 
 protected:
 	void device_update_object_transform(UpdateObjectTransformState *state,
-	                                    Object *ob,
-	                                    const int object_index);
+	                                    Object *ob);
 	void device_update_object_transform_task(UpdateObjectTransformState *state);
 	bool device_update_object_transform_pop_work(
 	        UpdateObjectTransformState *state,

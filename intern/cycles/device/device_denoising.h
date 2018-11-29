@@ -23,6 +23,8 @@
 
 #include "kernel/filter/filter_defines.h"
 
+#include "util/util_profiling.h"
+
 CCL_NAMESPACE_BEGIN
 
 class DenoisingTask {
@@ -50,6 +52,8 @@ public:
 
 	TileInfo *tile_info;
 	device_vector<int> tile_info_mem;
+
+	ProfilingState *profiler;
 
 	int4 rect;
 	int4 filter_area;
