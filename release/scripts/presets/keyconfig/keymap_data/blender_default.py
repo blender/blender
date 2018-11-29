@@ -2471,10 +2471,6 @@ def km_clip(_params):
         ("wm.context_toggle_enum", {"type": 'TAB', "value": 'PRESS'},
          {"properties": [("data_path", 'space_data.mode'), ("value_1", 'TRACKING'), ("value_2", 'MASK')]}),
         ("clip.solve_camera", {"type": 'S', "value": 'PRESS', "shift": True}, None),
-        ("clip.set_solver_keyframe", {"type": 'Q', "value": 'PRESS'},
-         {"properties": [("keyframe", 'KEYFRAME_A')]}),
-        ("clip.set_solver_keyframe", {"type": 'E', "value": 'PRESS'},
-         {"properties": [("keyframe", 'KEYFRAME_B')]}),
         ("clip.prefetch", {"type": 'P', "value": 'PRESS'}, None),
     ])
 
