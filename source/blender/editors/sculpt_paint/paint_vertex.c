@@ -3170,7 +3170,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
-	if (vp->paint.brush->vertexpaint_tool == PAINT_TOOL_SMEAR) {
+	if (vp->paint.brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
 		memcpy(vpd->smear.color_prev, vpd->smear.color_curr, sizeof(uint) * ((Mesh *)ob->data)->totloop);
 	}
 
