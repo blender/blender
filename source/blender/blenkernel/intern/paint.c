@@ -664,11 +664,13 @@ bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
 		return true;
 	}
 
-	if (ELEM(*r_paint, &ts->vpaint->paint, &ts->wpaint->paint)) {
+	if (((VPaint **)r_paint == &ts->vpaint) ||
+	    ((VPaint **)r_paint == &ts->wpaint))
+	{
 		VPaint *data = MEM_callocN(sizeof(*data), __func__);
 		paint = &data->paint;
 	}
-	else if (*r_paint == &ts->sculpt->paint) {
+	else if ((Sculpt **)r_paint == &ts->sculpt) {
 		Sculpt *data = MEM_callocN(sizeof(*data), __func__);
 		paint = &data->paint;
 
@@ -678,11 +680,11 @@ bool BKE_paint_ensure(const ToolSettings *ts, struct Paint **r_paint)
 		/* Make sure at least dyntopo subdivision is enabled */
 		data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
 	}
-	else if (*r_paint == &ts->gp_paint->paint) {
+	else if ((GpPaint **)r_paint == &ts->gp_paint) {
 		GpPaint *data = MEM_callocN(sizeof(*data), __func__);
 		paint = &data->paint;
 	}
-	else if (*r_paint == &ts->uvsculpt->paint) {
+	else if ((UvSculpt **)r_paint == &ts->uvsculpt) {
 		UvSculpt *data = MEM_callocN(sizeof(*data), __func__);
 		paint = &data->paint;
 	}
