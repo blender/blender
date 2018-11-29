@@ -26,7 +26,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-enum ccl_try_align(16) ProfilingEvent : uint32_t {
+enum ProfilingEvent : uint32_t {
 	PROFILING_UNKNOWN,
 	PROFILING_RAY_SETUP,
 	PROFILING_PATH_INTEGRATE,
