@@ -206,7 +206,7 @@ ATOMIC_INLINE float atomic_add_and_fetch_fl(float *p, const float x)
 		oldval = *p;
 		newval = oldval + x;
 		prevval = atomic_cas_uint32((uint32_t *)p, *(uint32_t *)(&oldval), *(uint32_t *)(&newval));
-	} while (UNLIKELY(prevval != *(uint32_t *)(&oldval)));
+	} while (_ATOMIC_UNLIKELY(prevval != *(uint32_t *)(&oldval)));
 
 	return newval;
 }
