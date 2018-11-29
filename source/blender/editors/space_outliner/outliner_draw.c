@@ -295,10 +295,11 @@ static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *p
 	bool extend = (CTX_wm_window(C)->eventstate->ctrl == 0);
 
 	/* Undo button toggle, let function do it. */
-	lc->runtime_flag ^= LAYER_COLLECTION_HAS_VISIBLE_OBJECTS;
+	lc->flag ^= LAYER_COLLECTION_RESTRICT_VIEW;
 
 	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
 
+	DEG_relations_tag_update(CTX_data_main(C));
 	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
@@ -640,16 +641,14 @@ static void outliner_draw_restrictbuts(
 				if ((!lc || !(lc->flag & LAYER_COLLECTION_EXCLUDE)) &&
 				    !(collection->flag & COLLECTION_IS_MASTER))
 				{
-					if (lc && (lc->runtime_flag & LAYER_COLLECTION_HAS_ENABLED_OBJECTS)) {
-						bt = uiDefIconButBitS(
-						        block, UI_BTYPE_ICON_TOGGLE_N, LAYER_COLLECTION_HAS_VISIBLE_OBJECTS, 0, ICON_HIDE_OFF,
-						        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
-						        UI_UNIT_Y, &lc->runtime_flag, 0, 0, 0, 0,
-						        TIP_("Hide collection in viewport (Ctrl to isolate)"));
-						UI_but_func_set(bt, hidebutton_layer_collection_flag_cb, view_layer, lc);
-						UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-						UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
-					}
+					bt = uiDefIconButBitS(
+					        block, UI_BTYPE_ICON_TOGGLE, LAYER_COLLECTION_RESTRICT_VIEW, 0, ICON_HIDE_OFF,
+					        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
+					        UI_UNIT_Y, &lc->flag, 0, 0, 0, 0,
+					        TIP_("Hide collection in viewport (Ctrl to isolate)"));
+					UI_but_func_set(bt, hidebutton_layer_collection_flag_cb, view_layer, lc);
+					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+					UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 
 					PointerRNA collection_ptr;
 					RNA_id_pointer_create(&collection->id, &collection_ptr);
