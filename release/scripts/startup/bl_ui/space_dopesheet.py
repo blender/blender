@@ -352,6 +352,12 @@ class DOPESHEET_MT_view(Menu):
         layout.operator("action.view_selected")
         layout.operator("action.view_frame")
 
+        # Add this to show key-binding (reverse action in dope-sheet).
+        layout.separator()
+        props = layout.operator("wm.context_set_enum", text="Toggle Graph Editor")
+        props.data_path = "area.type"
+        props.value = 'GRAPH_EDITOR'
+
         layout.separator()
         layout.menu("INFO_MT_area")
 
