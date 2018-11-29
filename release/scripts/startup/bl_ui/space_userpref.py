@@ -1552,15 +1552,46 @@ class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
         col.prop(light, "smooth")
         col.prop(light, "direction")
 
+    def draw(self, context):
+        userpref = context.user_preferences
+        lights = self._get_lights(userpref)
+        layout = self.layout
+
+        self.draw_light_list(layout, lights)
+
+
+class USERPREF_PT_studiolight_lights_editor(Panel):
+    bl_label = "Studio Lights Editor"
+    bl_parent_id = "USERPREF_PT_studiolight_lights"
+    bl_space_type = 'USER_PREFERENCES'
+    bl_region_type = 'WINDOW'
+
+    def opengl_light_buttons(self, layout, light):
+
+        col = layout.column()
+        col.active = light.use
+
+        col.prop(light, "use", text="Use Light")
+        col.prop(light, "diffuse_color", text="Diffuse")
+        col.prop(light, "specular_color", text="Specular")
+        col.prop(light, "smooth")
+        col.prop(light, "direction")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.use_property_split = True
-        column = layout.split()
-
         userpref = context.user_preferences
         system = userpref.system
+
+        row = layout.row()
+        row.prop(system, "edit_solid_light", toggle=True)
+        row.operator('wm.studiolight_new', text="Save as Studio light", icon="FILE_TICK")
+
+        layout.separator()
+
+        layout.use_property_split = True
+        column = layout.split()
+        column.active = system.edit_solid_light
 
         light = system.solid_lights[0]
         colsplit = column.split(factor=0.85)
@@ -1575,14 +1606,7 @@ class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
 
         layout.separator()
 
-        layout.prop(system, "edit_solid_light")
         layout.prop(system, "light_ambient")
-
-        layout.operator('wm.studiolight_new', text="Save as Studio light")
-
-        lights = self._get_lights(userpref)
-
-        self.draw_light_list(layout, lights)
 
 
 classes = (
@@ -1600,6 +1624,7 @@ classes = (
     USERPREF_MT_addons_online_resources,
     USERPREF_PT_addons,
     USERPREF_PT_studiolight_lights,
+    USERPREF_PT_studiolight_lights_editor,
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
 )

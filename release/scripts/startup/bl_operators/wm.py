@@ -2480,11 +2480,12 @@ class WM_OT_studiolight_install(Operator):
 
 
 class WM_OT_studiolight_new(Operator):
+    """Create custom studio light from the studio light editor settings"""
     bl_idname = 'wm.studiolight_new'
-    bl_label = "Create Studio Light from default light setup"
+    bl_label = "Create custom Studio light"
 
     filename: StringProperty(
-        name="Filename",
+        name="Name",
         default="StudioLight",
     )
 
