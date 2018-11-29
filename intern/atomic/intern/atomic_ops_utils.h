@@ -66,14 +66,12 @@
 #  define ATOMIC_INLINE static inline __attribute__((always_inline))
 #endif
 
-#ifndef LIKELY
-#  ifdef __GNUC__
-#    define LIKELY(x)       __builtin_expect(!!(x), 1)
-#    define UNLIKELY(x)     __builtin_expect(!!(x), 0)
-#  else
-#    define LIKELY(x)       (x)
-#    define UNLIKELY(x)     (x)
-#  endif
+#ifdef __GNUC__
+#  define _ATOMIC_LIKELY(x)       __builtin_expect(!!(x), 1)
+#  define _ATOMIC_UNLIKELY(x)     __builtin_expect(!!(x), 0)
+#else
+#  define _ATOMIC_LIKELY(x)       (x)
+#  define _ATOMIC_UNLIKELY(x)     (x)
 #endif
 
 #if defined(__SIZEOF_POINTER__)
