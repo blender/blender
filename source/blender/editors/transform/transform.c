@@ -1373,7 +1373,16 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
-							initSelectConstraint(t, t->spacemtx);
+							if (event->shift) {
+								initSelectConstraint(t, t->spacemtx);
+							}
+							else {
+								/* bit hackish... but it prevents mmb select to print the orientation from menu */
+								float mati[3][3];
+								strcpy(t->spacename, "global");
+								unit_m3(mati);
+								initSelectConstraint(t, mati);
+							}
 							postSelectConstraint(t);
 						}
 					}
