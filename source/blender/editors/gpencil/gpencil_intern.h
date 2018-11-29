@@ -157,6 +157,7 @@ typedef struct tGPDprimitive {
 	int tot_edges;                    /* number of polygon edges */
 	int top[2];                       /* first box corner */
 	int bottom[2];                    /* last box corner */
+	int origin[2];                    /* initial box corner */
 	int flag;                         /* flag to determine operations in progress */
 
 	int lock_axis;                    /* lock to viewport axis */

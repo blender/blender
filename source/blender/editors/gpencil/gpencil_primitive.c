@@ -210,13 +210,13 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 	char msg_str[UI_MAX_DRAW_STR];
 
 	if (tgpi->type == GP_STROKE_BOX) {
-		BLI_strncpy(msg_str, IFACE_("Rectangle: ESC/RMB to cancel, LMB set origin, Enter/LMB to confirm, Shift to square"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Rectangle: ESC/RMB to cancel, LMB set origin, Enter/LMB to confirm, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
 	}
 	else if (tgpi->type == GP_STROKE_LINE) {
-		BLI_strncpy(msg_str, IFACE_("Line: ESC/RMB to cancel, LMB set origin, Enter/LMB to confirm"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Line: ESC/RMB to cancel, LMB set origin, Enter/LMB to confirm, Alt to center"), UI_MAX_DRAW_STR);
 	}
 	else {
-		BLI_strncpy(msg_str, IFACE_("Circle: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL to adjust edge number, Shift to square"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Circle: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL to adjust edge number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
 	}
 
 	if (tgpi->type == GP_STROKE_CIRCLE) {
@@ -408,6 +408,9 @@ static void gpencil_primitive_update(bContext *C, wmOperator *op, tGPDprimitive 
 
 static void gpencil_primitive_interaction_begin(tGPDprimitive *tgpi, const wmEvent *event)
 {
+	tgpi->origin[0] = event->mval[0];
+	tgpi->origin[1] = event->mval[1];
+
 	tgpi->top[0] = event->mval[0];
 	tgpi->top[1] = event->mval[1];
 
@@ -671,13 +674,35 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 				/* update position of mouse */
 				tgpi->bottom[0] = event->mval[0];
 				tgpi->bottom[1] = event->mval[1];
+				tgpi->top[0] = tgpi->origin[0];
+				tgpi->top[1] = tgpi->origin[1];
 				if (tgpi->flag == IDLE) {
-					tgpi->top[0] = event->mval[0];
-					tgpi->top[1] = event->mval[1];
+					tgpi->origin[0] = event->mval[0];
+					tgpi->origin[1] = event->mval[1];
 				}
 				/* Keep square if shift key */
 				if (event->shift) {
-					tgpi->bottom[1] = tgpi->top[1] - (tgpi->bottom[0] - tgpi->top[0]);
+					int x = tgpi->bottom[0] - tgpi->origin[0];
+					int y = tgpi->bottom[1] - tgpi->origin[1];
+					int w = abs(x);
+					int h = abs(y);
+					if ((x > 0 && y > 0) || (x < 0 && y < 0)) {
+						if (w > h)
+							tgpi->bottom[1] = tgpi->origin[1] + x;
+						else
+							tgpi->bottom[0] = tgpi->origin[0] + y;
+					}
+					else {
+						if (w > h)
+							tgpi->bottom[1] = tgpi->origin[1] - x;
+						else
+							tgpi->bottom[0] = tgpi->origin[0] - y;
+					}
+				}
+				/* Center primitive if alt key */
+				if (event->alt) {
+					tgpi->top[0] = tgpi->origin[0] - (tgpi->bottom[0] - tgpi->origin[0]);
+					tgpi->top[1] = tgpi->origin[1] - (tgpi->bottom[1] - tgpi->origin[1]);
 				}
 				/* update screen */
 				gpencil_primitive_update(C, op, tgpi);
