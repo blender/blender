@@ -4679,6 +4679,41 @@ static void *do_projectpaint_thread(void *ph_v)
 						float texrgb[3];
 						float mask;
 
+						/* Extra mask for normal, layer stencil, .. */
+						float custom_mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
+
+						/* Mask texture. */
+						if (ps->is_maskbrush) {
+							float texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
+							CLAMP(texmask, 0.0f, 1.0f);
+							custom_mask *= texmask;
+						}
+
+						/* Color texture (alpha used as mask). */
+						if (ps->is_texbrush) {
+							MTex *mtex = &brush->mtex;
+							float samplecos[3];
+							float texrgba[4];
+
+							/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
+							if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+								copy_v3_v3(samplecos, projPixel->worldCoSS);
+							}
+							else {
+								copy_v2_v2(samplecos, projPixel->projCoSS);
+								samplecos[2] = 0.0f;
+							}
+
+							/* note, for clone and smear, we only use the alpha, could be a special function */
+							BKE_brush_sample_tex_3d(ps->scene, brush, samplecos, texrgba, thread_index, pool);
+
+							copy_v3_v3(texrgb, texrgba);
+							custom_mask *= texrgba[3];
+						}
+						else {
+							zero_v3(texrgb);
+						}
+
 						if (ps->do_masking) {
 							/* masking to keep brush contribution to a pixel limited. note we do not do
 							 * a simple max(mask, mask_accum), as this is very sensitive to spacing and
@@ -4687,12 +4722,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							 * Instead we use a formula that adds up but approaches brush_alpha slowly
 							 * and never exceeds it, which gives nice smooth results. */
 							float mask_accum = *projPixel->mask_accum;
-							float max_mask = brush_alpha * falloff * 65535.0f;
-
-							if (ps->is_maskbrush) {
-								float texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
-								max_mask *= texmask;
-							}
+							float max_mask = brush_alpha * custom_mask * falloff * 65535.0f;
 
 							if (brush->flag & BRUSH_ACCUMULATE)
 								mask = mask_accum + max_mask;
@@ -4712,40 +4742,8 @@ static void *do_projectpaint_thread(void *ph_v)
 							}
 						}
 						else {
-							mask = brush_alpha * falloff;
-							if (ps->is_maskbrush) {
-								float texmask = BKE_brush_sample_masktex(ps->scene, ps->brush, projPixel->projCoSS, thread_index, pool);
-								CLAMP(texmask, 0.0f, 1.0f);
-								mask *= texmask;
-							}
+							mask = brush_alpha * custom_mask * falloff;
 						}
-
-						if (ps->is_texbrush) {
-							MTex *mtex = &brush->mtex;
-							float samplecos[3];
-							float texrgba[4];
-
-							/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
-							if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
-								copy_v3_v3(samplecos, projPixel->worldCoSS);
-							}
-							else {
-								copy_v2_v2(samplecos, projPixel->projCoSS);
-								samplecos[2] = 0.0f;
-							}
-
-							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex_3d(ps->scene, brush, samplecos, texrgba, thread_index, pool);
-
-							copy_v3_v3(texrgb, texrgba);
-							mask *= texrgba[3];
-						}
-						else {
-							zero_v3(texrgb);
-						}
-
-						/* extra mask for normal, layer stencil, .. */
-						mask *= ((float)projPixel->mask) * (1.0f / 65535.0f);
 
 						if (mask > 0.0f) {
 
