@@ -292,9 +292,9 @@ def km_window(params):
 
         # Fast editor switching
         *(
-            ("wm.context_set_enum",
+            ("screen.space_type_set_or_cycle",
              {"type": k, "value": 'PRESS', "shift": True},
-             {"properties": [("data_path", 'area.type'), ("value", t)]})
+             {"properties": [("space_type", t)]})
             for k, t in (
                 ('F4', 'CONSOLE'),
                 ('F5', 'VIEW_3D'),
