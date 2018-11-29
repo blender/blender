@@ -803,6 +803,8 @@ static void gp_draw_data_layers(
 	float ink[4];
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		/* verify never thickness is less than 1 */
+		CLAMP_MIN(gpl->thickness, 1.0f);
 		short lthick = gpl->thickness;
 
 		/* apply layer opacity */
