@@ -1320,7 +1320,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 	ot->poll = paint_poll_test;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 /* ************ weight paint operator ********** */
@@ -2450,7 +2450,7 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 	ot->poll = paint_poll_test;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 

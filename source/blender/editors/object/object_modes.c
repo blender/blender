@@ -35,10 +35,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_layer.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -161,7 +162,16 @@ void ED_object_mode_toggle(bContext *C, eObjectMode mode)
 		const char *opstring = object_mode_op_string(mode);
 
 		if (opstring) {
-			WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
+			wmOperatorType *ot = WM_operatortype_find(opstring, false);
+			if (ot->flag & OPTYPE_USE_EVAL_DATA) {
+				/* We need to force refresh of depsgraph after undo step,
+				 * redoing the operator *may* rely on some valid evaluated data. */
+				struct Main *bmain = CTX_data_main(C);
+				Scene *scene = CTX_data_scene(C);
+				ViewLayer *view_layer = CTX_data_view_layer(C);
+				BKE_scene_view_layer_graph_evaluated_ensure(bmain, scene, view_layer);
+			}
+			WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, NULL);
 		}
 	}
 }
