@@ -1059,6 +1059,11 @@ static bool ui_but_event_property_operator_string(
         char *buf, const size_t buf_len)
 {
 	/* context toggle operator names to check... */
+
+	/* This function could use a refactor to generalize button type to operator relationship
+	 * as well as which operators use properties.
+	 * - Campbell
+	 * */
 	const char *ctx_toggle_opnames[] = {
 		"WM_OT_context_toggle",
 		"WM_OT_context_toggle_enum",
@@ -1092,8 +1097,9 @@ static bool ui_but_event_property_operator_string(
 	if ((but->type == UI_BTYPE_BUT_MENU) && (but->block->handle != NULL)) {
 		uiBut *but_parent = but->block->handle->popup_create_vars.but;
 		if ((but->type == UI_BTYPE_BUT_MENU) &&
+		    (but_parent && but_parent->rnaprop) &&
 		    (RNA_property_type(but_parent->rnaprop) == PROP_ENUM) &&
-		    but_parent && (but_parent->menu_create_func == ui_def_but_rna__menu))
+		    (but_parent->menu_create_func == ui_def_but_rna__menu))
 		{
 			prop_enum_value = (int)but->hardmin;
 			ptr = &but_parent->rnapoin;
