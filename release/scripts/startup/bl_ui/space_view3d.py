@@ -340,6 +340,9 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_edit_mesh_edges")
                 layout.menu("VIEW3D_MT_edit_mesh_faces")
                 layout.menu("VIEW3D_MT_uv_map", text="UV")
+            elif mode_string == 'EDIT_CURVE':
+                layout.menu("VIEW3D_MT_edit_curve_ctrlpoints")
+                layout.menu("VIEW3D_MT_edit_curve_segments")
 
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
@@ -3264,7 +3267,6 @@ def draw_curve(self, context):
 
     layout.separator()
 
-    layout.operator("curve.extrude_move")
     layout.operator("curve.spin")
     layout.operator("curve.duplicate_move")
 
@@ -3272,13 +3274,7 @@ def draw_curve(self, context):
 
     layout.operator("curve.split")
     layout.operator("curve.separate")
-    layout.operator("curve.make_segment")
     layout.operator("curve.cyclic_toggle")
-
-    layout.separator()
-
-    layout.menu("VIEW3D_MT_edit_curve_ctrlpoints")
-    layout.menu("VIEW3D_MT_edit_curve_segments")
 
     layout.separator()
 
@@ -3302,6 +3298,14 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
         edit_object = context.edit_object
 
         if edit_object.type == 'CURVE':
+            layout.operator("curve.extrude_move")
+
+            layout.separator()
+
+            layout.operator("curve.make_segment")
+
+            layout.separator()
+
             layout.operator("transform.tilt")
             layout.operator("curve.tilt_clear")
 
@@ -3309,6 +3313,13 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
 
             layout.operator_menu_enum("curve.handle_type_set", "type")
             layout.operator("curve.normals_make_consistent")
+
+            layout.separator()
+
+            layout.operator("curve.smooth")
+            layout.operator("curve.smooth_weight")
+            layout.operator("curve.smooth_radius")
+            layout.operator("curve.smooth_tilt")
 
             layout.separator()
 
@@ -3342,6 +3353,7 @@ class VIEW3D_MT_edit_curve_specials(Menu):
     bl_label = "Curve Context Menu"
 
     def draw(self, context):
+        # TODO(campbell): match mesh vertex menu.
         layout = self.layout
 
         layout.operator("curve.subdivide")
