@@ -45,6 +45,7 @@
 #include "BKE_object.h"
 
 #include "DNA_ID.h"
+#include "DNA_space_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
@@ -1104,6 +1105,7 @@ typedef struct LayerObjectBaseIteratorData {
 static bool object_bases_iterator_is_valid_ex(View3D *v3d, Base *base, const int flag)
 {
 	if (v3d != NULL) {
+		BLI_assert(v3d->spacetype == SPACE_VIEW3D);
 		if ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0) {
 			return false;
 		}
