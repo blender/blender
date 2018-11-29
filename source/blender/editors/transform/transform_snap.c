@@ -994,7 +994,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 
 			uint objects_len = 0;
 			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-			                       t->view_layer, t->view, &objects_len);
+			        t->view_layer, NULL, &objects_len);
 
 			float dist_sq = FLT_MAX;
 			if (ED_uvedit_nearest_uv_multi(t->scene, ima, objects, objects_len, co, &dist_sq, t->tsnap.snapPoint)) {

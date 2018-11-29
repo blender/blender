@@ -1213,9 +1213,12 @@ void initTransDataContainers_FromObjectData(TransInfo *t, Object *obact, Object 
 		bool free_objects = false;
 		if (objects == NULL) {
 			objects = BKE_view_layer_array_from_objects_in_mode(
-			        t->view_layer, t->view, &objects_len, {
+			        t->view_layer,
+			        (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
+			        &objects_len, {
 			            .object_mode = object_mode,
-			            .no_dup_data = true});
+			            .no_dup_data = true,
+			        });
 			free_objects = true;
 		}
 
