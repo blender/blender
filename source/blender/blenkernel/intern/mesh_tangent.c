@@ -45,6 +45,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_report.h"
 
 #include "BLI_strict_flags.h"
@@ -695,6 +696,8 @@ void BKE_mesh_calc_loop_tangents(
         Mesh *me_eval, bool calc_active_tangent,
         const char (*tangent_names)[MAX_NAME], int tangent_names_len)
 {
+	BKE_mesh_runtime_looptri_ensure(me_eval);
+
 	/* TODO(campbell): store in Mesh.runtime to avoid recalculation. */
 	short tangent_mask = 0;
 	BKE_mesh_calc_loop_tangent_ex(

@@ -432,8 +432,7 @@ static TriTessFace *mesh_calc_tri_tessface(
 	            me->totloop, me->totpoly,
 	            looptri);
 
-
-	const float *precomputed_normals = me_eval ? CustomData_get_layer(&me_eval->pdata, CD_NORMAL) : NULL;
+	const float *precomputed_normals = me ? CustomData_get_layer(&me->pdata, CD_NORMAL) : NULL;
 	const bool calculate_normal = precomputed_normals ? false : true;
 
 	for (i = 0; i < tottri; i++) {
@@ -514,11 +513,11 @@ bool RE_bake_pixels_populate_from_objects(
 		tris_high[i] = mesh_calc_tri_tessface(highpoly[i].me, false, NULL);
 
 		me_highpoly[i] = highpoly[i].me;
-		BKE_mesh_tessface_ensure(me_highpoly[i]);
+		BKE_mesh_runtime_looptri_ensure(me_highpoly[i]);
 
-		if (me_highpoly[i]->totface != 0) {
+		if (me_highpoly[i]->runtime.looptris.len != 0) {
 			/* Create a bvh-tree for each highpoly object */
-			BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_FACES, 2);
+			BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_LOOPTRI, 2);
 
 			if (treeData[i].tree == NULL) {
 				printf("Baking: out of memory while creating BHVTree for object \"%s\"\n", highpoly[i].ob->id.name + 2);
