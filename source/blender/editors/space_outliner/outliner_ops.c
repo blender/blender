@@ -105,6 +105,16 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_holdout_clear);
 	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_set);
 	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_clear);
+
+	WM_operatortype_append(OUTLINER_OT_collection_isolate);
+	WM_operatortype_append(OUTLINER_OT_collection_disable);
+	WM_operatortype_append(OUTLINER_OT_collection_enable);
+	WM_operatortype_append(OUTLINER_OT_collection_hide);
+	WM_operatortype_append(OUTLINER_OT_collection_show);
+	WM_operatortype_append(OUTLINER_OT_collection_disable_render);
+	WM_operatortype_append(OUTLINER_OT_collection_enable_render);
+	WM_operatortype_append(OUTLINER_OT_collection_hide_inside);
+	WM_operatortype_append(OUTLINER_OT_collection_show_inside);
 }
 
 void outliner_keymap(wmKeyConfig *keyconf)

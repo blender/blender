@@ -148,6 +148,29 @@ class OUTLINER_MT_collection_view_layer(Menu):
             layout.operator("outliner.collection_holdout_clear")
 
 
+class OUTLINER_MT_collection_visibility(Menu):
+    bl_label = "Visibility"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("outliner.collection_isolate", text="Isolate")
+        layout.operator("outliner.collection_show", text="Show")
+        layout.operator("outliner.collection_hide", text="Hide")
+
+        layout.separator()
+        layout.operator("outliner.collection_show_inside", text="Show All Inside")
+        layout.operator("outliner.collection_hide_inside", text="Hide All Inside")
+
+        layout.separator()
+        layout.operator("outliner.collection_enable", text="Enable in Viewports")
+        layout.operator("outliner.collection_disable", text="Disable in Viewports")
+
+        layout.separator()
+        layout.operator("outliner.collection_enable_render", text="Enable in Render")
+        layout.operator("outliner.collection_disable_render", text="Disable in Render")
+
+
 class OUTLINER_MT_collection(Menu):
     bl_label = "Collection"
 
@@ -176,6 +199,9 @@ class OUTLINER_MT_collection(Menu):
         if space.display_mode == 'VIEW_LAYER':
             layout.separator()
             layout.menu("OUTLINER_MT_collection_view_layer")
+
+        layout.separator()
+        layout.menu("OUTLINER_MT_collection_visibility")
 
         layout.separator()
         layout.operator_menu_enum("outliner.id_operation", "type", text="ID Data")
@@ -301,6 +327,7 @@ classes = (
     OUTLINER_MT_edit_datablocks,
     OUTLINER_MT_collection,
     OUTLINER_MT_collection_new,
+    OUTLINER_MT_collection_visibility,
     OUTLINER_MT_collection_view_layer,
     OUTLINER_MT_object,
     OUTLINER_MT_context,

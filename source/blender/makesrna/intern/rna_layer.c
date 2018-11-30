@@ -196,7 +196,7 @@ int rna_LayerCollection_name_length(PointerRNA *ptr)
 	return strlen(id->name + 2);
 }
 
-static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_LayerCollection_exclude_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	LayerCollection *lc = (LayerCollection *)ptr->data;
@@ -206,6 +206,19 @@ static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), Po
 
 	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
+}
+
+static void rna_LayerCollection_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	LayerCollection *lc = (LayerCollection *)ptr->data;
+	ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
+
+	BKE_layer_collection_sync(scene, view_layer);
+
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+
 	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
 
@@ -273,13 +286,13 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_EXCLUDE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Exclude", "Exclude collection from view layer");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_exclude_update");
 
 	prop = RNA_def_property(srna, "holdout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_HOLDOUT);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Holdout", "Mask out objects in collection from view layer");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_update");
 
 	prop = RNA_def_property(srna, "indirect_only", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_INDIRECT_ONLY);
@@ -287,14 +300,14 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Indirect Only",
 	                         "Objects in collection only contribute indirectly (through shadows and reflections) "
 	                         "in the view layer");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_update");
 
 	prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_RESTRICT_VIEW);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
 	RNA_def_property_ui_text(prop, "Disable Viewport", "Disable collection in viewport for this view layer");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_use_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_update");
 
 	prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "runtime_flag", LAYER_COLLECTION_VISIBLE);

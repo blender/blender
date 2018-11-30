@@ -109,7 +109,8 @@ bool BKE_layer_collection_has_layer_collection(
         struct LayerCollection *lc_parent, struct LayerCollection *lc_child);
 
 void BKE_base_set_visible(struct Scene *scene, struct ViewLayer *view_layer, struct Base *base, bool extend);
-void BKE_layer_collection_set_visible(struct Scene *scene, struct ViewLayer *view_layer, struct LayerCollection *lc, bool extend);
+bool BKE_layer_collection_isolate(struct Scene *scene, struct ViewLayer *view_layer, struct LayerCollection *lc, bool extend);
+bool BKE_layer_collection_set_visible(struct ViewLayer *view_layer, struct LayerCollection *lc, const bool visible, const bool hierarchy);
 
 /* evaluation */
 

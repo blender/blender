@@ -283,10 +283,12 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
-
-	DEG_relations_tag_update(CTX_data_main(C));
 	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+
+	if (BKE_layer_collection_isolate(scene, view_layer, lc, extend)) {
+		DEG_relations_tag_update(CTX_data_main(C));
+	}
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;

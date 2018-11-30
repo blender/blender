@@ -359,23 +359,23 @@ void scene_remove_unused_view_layers(const Depsgraph *depsgraph,
 	scene_cow->view_layers.last = view_layer_eval;
 }
 
-/* Makes it so given view layer only has bases corresponding to a visible
+/* Makes it so given view layer only has bases corresponding to enabled
  * objects. */
-void view_layer_remove_invisible_bases(const Depsgraph *depsgraph,
-                                       ViewLayer *view_layer)
+void view_layer_remove_disabled_bases(const Depsgraph *depsgraph,
+                                      ViewLayer *view_layer)
 {
-	const int base_visible_flag = (depsgraph->mode == DAG_EVAL_VIEWPORT) ?
+	const int base_enabled_flag = (depsgraph->mode == DAG_EVAL_VIEWPORT) ?
 		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
-	ListBase visible_bases = {NULL, NULL};
+	ListBase enabled_bases = {NULL, NULL};
 	for (Base *base = reinterpret_cast<Base *>(view_layer->object_bases.first),
 	          *base_next;
 	     base != NULL;
 	     base = base_next)
 	{
 		base_next = base->next;
-		const bool is_object_visible = (base->flag & base_visible_flag);
-		if (is_object_visible) {
-			BLI_addtail(&visible_bases, base);
+		const bool is_object_enabled = (base->flag & base_enabled_flag);
+		if (is_object_enabled) {
+			BLI_addtail(&enabled_bases, base);
 		}
 		else {
 			if (base == view_layer->basact) {
@@ -384,13 +384,13 @@ void view_layer_remove_invisible_bases(const Depsgraph *depsgraph,
 			MEM_freeN(base);
 		}
 	}
-	view_layer->object_bases = visible_bases;
+	view_layer->object_bases = enabled_bases;
 }
 
 void scene_cleanup_view_layers(const Depsgraph *depsgraph, Scene *scene_cow)
 {
 	scene_remove_unused_view_layers(depsgraph, scene_cow);
-	view_layer_remove_invisible_bases(
+	view_layer_remove_disabled_bases(
 	        depsgraph,
 	        reinterpret_cast<ViewLayer *>(scene_cow->view_layers.first));
 	/* TODO(sergey): Remove objects from collections as well.

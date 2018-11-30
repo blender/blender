@@ -123,12 +123,11 @@ typedef enum {
 /* size constants */
 #define OL_Y_OFFSET 2
 
-#define OL_TOG_HIDEX            (UI_UNIT_X * 4.0f + V2D_SCROLL_WIDTH)
 #define OL_TOG_RESTRICT_SELECTX (UI_UNIT_X * 3.0f + V2D_SCROLL_WIDTH)
 #define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 2.0f + V2D_SCROLL_WIDTH)
 #define OL_TOG_RESTRICT_RENDERX (UI_UNIT_X + V2D_SCROLL_WIDTH)
 
-#define OL_TOGW OL_TOG_HIDEX
+#define OL_TOGW OL_TOG_RESTRICT_SELECTX
 
 #define OL_RNA_COLX         (UI_UNIT_X * 15)
 #define OL_RNA_COL_SIZEX    (UI_UNIT_X * 7.5f)
@@ -328,6 +327,16 @@ void OUTLINER_OT_collection_holdout_set(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_holdout_clear(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_indirect_only_set(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_indirect_only_clear(struct wmOperatorType *ot);
+
+void OUTLINER_OT_collection_isolate(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_show(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_hide(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_show_inside(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_hide_inside(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_enable(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_disable(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_enable_render(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_disable_render(struct wmOperatorType *ot);
 
 /* outliner_utils.c ---------------------------------------------- */
 
