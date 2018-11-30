@@ -62,7 +62,7 @@
 //#define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#	include "PIL_time.h"
+#  include "PIL_time.h"
 #endif
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
@@ -135,7 +135,7 @@ static void print_fvector(float m3[3])
 // long float vector float (*)[3]
 ///////////////////////////
 /* print long vector on console: for debug output */
-DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
+DO_INLINE void print_lfvector(float(*fLongVector)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 	for (i = 0; i < verts; i++) {
@@ -148,11 +148,11 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 DO_INLINE lfVector *create_lfvector(unsigned int verts)
 {
 	/* TODO: check if memory allocation was successful */
-	return  (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
+	return (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
 	// return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
 /* delete long vector */
-DO_INLINE void del_lfvector(float (*fLongVector)[3])
+DO_INLINE void del_lfvector(float(*fLongVector)[3])
 {
 	if (fLongVector != NULL) {
 		MEM_freeN(fLongVector);
@@ -160,12 +160,12 @@ DO_INLINE void del_lfvector(float (*fLongVector)[3])
 	}
 }
 /* copy long vector */
-DO_INLINE void cp_lfvector(float (*to)[3], float (*from)[3], unsigned int verts)
+DO_INLINE void cp_lfvector(float(*to)[3], float(*from)[3], unsigned int verts)
 {
 	memcpy(to, from, verts * sizeof(lfVector));
 }
 /* init long vector with float[3] */
-DO_INLINE void init_lfvector(float (*fLongVector)[3], float vector[3], unsigned int verts)
+DO_INLINE void init_lfvector(float(*fLongVector)[3], float vector[3], unsigned int verts)
 {
 	unsigned int i = 0;
 	for (i = 0; i < verts; i++) {
@@ -173,12 +173,12 @@ DO_INLINE void init_lfvector(float (*fLongVector)[3], float vector[3], unsigned 
 	}
 }
 /* zero long vector with float[3] */
-DO_INLINE void zero_lfvector(float (*to)[3], unsigned int verts)
+DO_INLINE void zero_lfvector(float(*to)[3], unsigned int verts)
 {
 	memset(to, 0.0f, verts * sizeof(lfVector));
 }
 /* multiply long vector with scalar*/
-DO_INLINE void mul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scalar, unsigned int verts)
+DO_INLINE void mul_lfvectorS(float(*to)[3], float(*fLongVector)[3], float scalar, unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -188,7 +188,7 @@ DO_INLINE void mul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scal
 }
 /* multiply long vector with scalar*/
 /* A -= B * float */
-DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scalar, unsigned int verts)
+DO_INLINE void submul_lfvectorS(float(*to)[3], float(*fLongVector)[3], float scalar, unsigned int verts)
 {
 	unsigned int i = 0;
 	for (i = 0; i < verts; i++) {
@@ -196,7 +196,7 @@ DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float s
 	}
 }
 /* dot product for big vector */
-DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
+DO_INLINE float dot_lfvector(float(*fLongVectorA)[3], float(*fLongVectorB)[3], unsigned int verts)
 {
 	long i = 0;
 	float temp = 0.0;
@@ -211,7 +211,7 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
 	return temp;
 }
 /* A = B + C  --> for big vector */
-DO_INLINE void add_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
+DO_INLINE void add_lfvector_lfvector(float(*to)[3], float(*fLongVectorA)[3], float(*fLongVectorB)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -221,7 +221,7 @@ DO_INLINE void add_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], f
 
 }
 /* A = B + C * float --> for big vector */
-DO_INLINE void add_lfvector_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], float bS, unsigned int verts)
+DO_INLINE void add_lfvector_lfvectorS(float(*to)[3], float(*fLongVectorA)[3], float(*fLongVectorB)[3], float bS, unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -231,7 +231,7 @@ DO_INLINE void add_lfvector_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], 
 	}
 }
 /* A = B * float + C * float --> for big vector */
-DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], float aS, float (*fLongVectorB)[3], float bS, unsigned int verts)
+DO_INLINE void add_lfvectorS_lfvectorS(float(*to)[3], float(*fLongVectorA)[3], float aS, float(*fLongVectorB)[3], float bS, unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -240,7 +240,7 @@ DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3], float (*fLongVectorA)[3],
 	}
 }
 /* A = B - C * float --> for big vector */
-DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], float bS, unsigned int verts)
+DO_INLINE void sub_lfvector_lfvectorS(float(*to)[3], float(*fLongVectorA)[3], float(*fLongVectorB)[3], float bS, unsigned int verts)
 {
 	unsigned int i = 0;
 	for (i = 0; i < verts; i++) {
@@ -249,7 +249,7 @@ DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], 
 
 }
 /* A = B - C --> for big vector */
-DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
+DO_INLINE void sub_lfvector_lfvector(float(*to)[3], float(*fLongVectorA)[3], float(*fLongVectorB)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -302,7 +302,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 {
 	int tot = m[0].vcount + m[0].scount;
 	int size = m[0].vcount * 3;
-	float *t = MEM_callocN(sizeof(float) * size*size, "bfmatrix");
+	float *t = MEM_callocN(sizeof(float) * size * size, "bfmatrix");
 	int q, i, j;
 
 	for (q = 0; q < tot; ++q) {
@@ -365,8 +365,8 @@ DO_INLINE void initdiag_fmatrixS(float to[3][3], float aS)
 /* calculate determinant of 3x3 matrix */
 DO_INLINE float det_fmatrix(float m[3][3])
 {
-	return  m[0][0]*m[1][1]*m[2][2] + m[1][0]*m[2][1]*m[0][2] + m[0][1]*m[1][2]*m[2][0] -
-	        m[0][0]*m[1][2]*m[2][1] - m[0][1]*m[1][0]*m[2][2] - m[2][0]*m[1][1]*m[0][2];
+	return m[0][0] * m[1][1] * m[2][2] + m[1][0] * m[2][1] * m[0][2] + m[0][1] * m[1][2] * m[2][0] -
+	       m[0][0] * m[1][2] * m[2][1] - m[0][1] * m[1][0] * m[2][2] - m[2][0] * m[1][1] * m[0][2];
 }
 
 DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
@@ -374,18 +374,18 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 	unsigned int i, j;
 	float d;
 
-	if ((d=det_fmatrix(from)) == 0) {
+	if ((d = det_fmatrix(from)) == 0) {
 		printf("can't build inverse");
 		exit(0);
 	}
-	for (i=0;i<3;i++) {
-		for (j=0;j<3;j++) {
-			int i1=(i+1)%3;
-			int i2=(i+2)%3;
-			int j1=(j+1)%3;
-			int j2=(j+2)%3;
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			int i1 = (i + 1) % 3;
+			int i2 = (i + 2) % 3;
+			int j1 = (j + 1) % 3;
+			int j2 = (j + 2) % 3;
 			/** Reverse indexes i&j to take transpose. */
-			to[j][i] = (from[i1][j1]*from[i2][j2]-from[i1][j2]*from[i2][j1])/d;
+			to[j][i] = (from[i1][j1] * from[i2][j2] - from[i1][j2] * from[i2][j1]) / d;
 			/**
 			 * <pre>
 			 * if (i == j) {
@@ -415,9 +415,9 @@ DO_INLINE void mul_fmatrix_S(float matrix[3][3], float scalar)
 /* STATUS: verified */
 DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][3])
 {
-	to[0] = matrix[0][0]*from[0] + matrix[1][0]*from[1] + matrix[2][0]*from[2];
-	to[1] = matrix[0][1]*from[0] + matrix[1][1]*from[1] + matrix[2][1]*from[2];
-	to[2] = matrix[0][2]*from[0] + matrix[1][2]*from[1] + matrix[2][2]*from[2];
+	to[0] = matrix[0][0] * from[0] + matrix[1][0] * from[1] + matrix[2][0] * from[2];
+	to[1] = matrix[0][1] * from[0] + matrix[1][1] * from[1] + matrix[2][1] * from[2];
+	to[2] = matrix[0][2] * from[0] + matrix[1][2] * from[1] + matrix[2][2] * from[2];
 }
 
 /* 3x3 matrix multiplied by a vector */
@@ -484,9 +484,9 @@ BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], float m[3][3])
 
 BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
 {
-	r[0][0] = 0.0f;		r[1][0] = v[2];		r[2][0] = -v[1];
-	r[0][1] = -v[2];	r[1][1] = 0.0f;		r[2][1] = v[0];
-	r[0][2] = v[1];		r[1][2] = -v[0];	r[2][2] = 0.0f;
+	r[0][0] = 0.0f;     r[1][0] = v[2];     r[2][0] = -v[1];
+	r[0][1] = -v[2];    r[1][1] = 0.0f;     r[2][1] = v[0];
+	r[0][2] = v[1];     r[1][2] = -v[0];    r[2][2] = 0.0f;
 }
 
 BLI_INLINE void madd_m3_m3fl(float r[3][3], float m[3][3], float f)
@@ -567,7 +567,7 @@ DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
 {
 	// TODO bounds checking
-	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount+from[0].scount));
+	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount + from[0].scount));
 }
 
 /* init big matrix */
@@ -576,7 +576,7 @@ DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 {
 	unsigned int i;
 
-	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
+	for (i = 0; i < matrix[0].vcount + matrix[0].scount; i++) {
 		cp_fmatrix(matrix[i].m, m3);
 	}
 }
@@ -591,14 +591,14 @@ DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 	for (i = 0; i < matrix[0].vcount; i++) {
 		cp_fmatrix(matrix[i].m, m3);
 	}
-	for (j = matrix[0].vcount; j < matrix[0].vcount+matrix[0].scount; j++) {
+	for (j = matrix[0].vcount; j < matrix[0].vcount + matrix[0].scount; j++) {
 		cp_fmatrix(matrix[j].m, tmatrix);
 	}
 }
 
 /* SPARSE SYMMETRIC multiply big matrix with long vector*/
 /* STATUS: verified */
-DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
+DO_INLINE void mul_bfmatrix_lfvector(float(*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
 {
 	unsigned int i = 0;
 	unsigned int vcount = from[0].vcount;
@@ -610,7 +610,7 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 	{
 #pragma omp section
 		{
-			for (i = from[0].vcount; i < from[0].vcount+from[0].scount; i++) {
+			for (i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
 				/* This is the lower triangle of the sparse matrix,
 				 * therefore multiplication occurs with transposed submatrices. */
 				muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
@@ -618,7 +618,7 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 		}
 #pragma omp section
 		{
-			for (i = 0; i < from[0].vcount+from[0].scount; i++) {
+			for (i = 0; i < from[0].vcount + from[0].scount; i++) {
 				muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
 			}
 		}
@@ -631,12 +631,12 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 /* SPARSE SYMMETRIC sub big matrix with big matrix*/
 /* A -= B * float + C * float --> for big matrix */
 /* VERIFIED */
-DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, float aS,  fmatrix3x3 *matrix, float bS)
+DO_INLINE void subadd_bfmatrixS_bfmatrixS(fmatrix3x3 *to, fmatrix3x3 *from, float aS,  fmatrix3x3 *matrix, float bS)
 {
 	unsigned int i = 0;
 
 	/* process diagonal elements */
-	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
+	for (i = 0; i < matrix[0].vcount + matrix[0].scount; i++) {
 		subadd_fmatrixS_fmatrixS(to[i].m, from[i].m, aS, matrix[i].m, bS);
 	}
 
@@ -646,27 +646,27 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 // simulator start
 ///////////////////////////////////////////////////////////////////
 
-typedef struct Implicit_Data  {
+typedef struct Implicit_Data {
 	/* inputs */
-	fmatrix3x3 *bigI;			/* identity (constant) */
-	fmatrix3x3 *tfm;			/* local coordinate transform */
-	fmatrix3x3 *M;				/* masses */
-	lfVector *F;				/* forces */
-	fmatrix3x3 *dFdV, *dFdX;	/* force jacobians */
-	int num_blocks;				/* number of off-diagonal blocks (springs) */
+	fmatrix3x3 *bigI;           /* identity (constant) */
+	fmatrix3x3 *tfm;            /* local coordinate transform */
+	fmatrix3x3 *M;              /* masses */
+	lfVector *F;                /* forces */
+	fmatrix3x3 *dFdV, *dFdX;    /* force jacobians */
+	int num_blocks;             /* number of off-diagonal blocks (springs) */
 
 	/* motion state data */
-	lfVector *X, *Xnew;			/* positions */
-	lfVector *V, *Vnew;			/* velocities */
+	lfVector *X, *Xnew;         /* positions */
+	lfVector *V, *Vnew;         /* velocities */
 
 	/* internal solver data */
-	lfVector *B;				/* B for A*dV = B */
-	fmatrix3x3 *A;				/* A for A*dV = B */
+	lfVector *B;                /* B for A*dV = B */
+	fmatrix3x3 *A;              /* A for A*dV = B */
 
-	lfVector *dV;				/* velocity change (solution of A*dV = B) */
-	lfVector *z;				/* target velocity in constrained directions */
-	fmatrix3x3 *S;				/* filtering matrix for constraints */
-	fmatrix3x3 *P, *Pinv;		/* pre-conditioning matrix */
+	lfVector *dV;               /* velocity change (solution of A*dV = B) */
+	lfVector *z;                /* target velocity in constrained directions */
+	fmatrix3x3 *S;              /* filtering matrix for constraints */
+	fmatrix3x3 *P, *Pinv;       /* pre-conditioning matrix */
 } Implicit_Data;
 
 Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
@@ -751,7 +751,7 @@ BLI_INLINE void root_to_world_m3(Implicit_Data *data, int index, float r[3][3], 
 
 DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 {
-	unsigned int i=0;
+	unsigned int i = 0;
 
 	for (i = 0; i < S[0].vcount; i++) {
 		mul_m3_v3(S[i].m, V[S[i].r]);
@@ -762,8 +762,8 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
 	// Solves for unknown X in equation AX=B
-	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
-	float conjgrad_epsilon=0.0001f /* , conjgrad_lasterror=0 */ /* UNUSED */;
+	unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
+	float conjgrad_epsilon = 0.0001f /* , conjgrad_lasterror=0 */ /* UNUSED */;
 	lfVector *q, *d, *tmp, *r;
 	float s, starget, a, s_prev;
 	unsigned int numverts = lA[0].vcount;
@@ -789,13 +789,13 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 	s = dot_lfvector(r, r, numverts);
 	starget = s * sqrtf(conjgrad_epsilon);
 
-	while (s>starget && conjgrad_loopcount < conjgrad_looplimit) {
+	while (s > starget && conjgrad_loopcount < conjgrad_looplimit) {
 		// Mul(q, A, d); // q = A*d;
 		mul_bfmatrix_lfvector(q, lA, d);
 
 		filter(q, S);
 
-		a = s/dot_lfvector(d, q, numverts);
+		a = s / dot_lfvector(d, q, numverts);
 
 		// X = X + d*a;
 		add_lfvector_lfvectorS(ldV, ldV, d, a, numverts);
@@ -807,7 +807,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 		s = dot_lfvector(r, r, numverts);
 
 		//d = r+d*(s/s_prev);
-		add_lfvector_lfvectorS(d, r, d, (s/s_prev), numverts);
+		add_lfvector_lfvectorS(d, r, d, (s / s_prev), numverts);
 
 		filter(d, S);
 
@@ -821,15 +821,15 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 	del_lfvector(r);
 	// printf("W/O conjgrad_loopcount: %d\n", conjgrad_loopcount);
 
-	return conjgrad_loopcount<conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
+	return conjgrad_loopcount < conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
 }
 #endif
 
 static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, ImplicitSolverResult *result)
 {
 	// Solves for unknown X in equation AX=B
-	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
-	float conjgrad_epsilon=0.01f;
+	unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
+	float conjgrad_epsilon = 0.01f;
 
 	unsigned int numverts = lA[0].vcount;
 	lfVector *fB = create_lfvector(numverts);
@@ -846,7 +846,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 	cp_lfvector(fB, lB, numverts);
 	filter(fB, S);
 	bnorm2 = dot_lfvector(fB, fB, numverts);
-	delta_target = conjgrad_epsilon*conjgrad_epsilon * bnorm2;
+	delta_target = conjgrad_epsilon * conjgrad_epsilon * bnorm2;
 
 	/* r = filter(B - A * dV) */
 	mul_bfmatrix_lfvector(AdV, lA, ldV);
@@ -921,7 +921,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 
 	// Take only the diagonal blocks of A
 // #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
-	for (i = 0; i<lA[0].vcount; i++) {
+	for (i = 0; i < lA[0].vcount; i++) {
 		// block diagonalizer
 		cp_fmatrix(P[i].m, lA[i].m);
 		inverse_fmatrix(Pinv[i].m, P[i].m);
@@ -933,9 +933,9 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 // version 1.3
 static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
-	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
+	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
-	float conjgrad_epsilon=0.0001; // 0.2 is dt for steps=5
+	float conjgrad_epsilon = 0.0001; // 0.2 is dt for steps=5
 	lfVector *r = create_lfvector(numverts);
 	lfVector *p = create_lfvector(numverts);
 	lfVector *s = create_lfvector(numverts);
@@ -999,14 +999,14 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 
 	printf("iterations: %d\n", iterations);
 
-	return iterations<conjgrad_looplimit;
+	return iterations < conjgrad_looplimit;
 }
 #endif
 
 // version 1.4
 static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
 {
-	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
+	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
 	lfVector *r = create_lfvector(numverts);
 	lfVector *p = create_lfvector(numverts);
@@ -1065,9 +1065,9 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 	double start = PIL_check_seconds_timer();
 #endif
 
-	tol = (0.01*0.2);
+	tol = (0.01 * 0.2);
 
-	while ((deltaNew > delta0*tol*tol) && (iterations < conjgrad_looplimit))
+	while ((deltaNew > delta0 * tol * tol) && (iterations < conjgrad_looplimit))
 	{
 		iterations++;
 
@@ -1107,7 +1107,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 
 	// printf("iterations: %d\n", iterations);
 
-	return iterations<conjgrad_looplimit;
+	return iterations < conjgrad_looplimit;
 }
 #endif
 
@@ -1120,11 +1120,11 @@ bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
 
 	cp_bfmatrix(data->A, data->M);
 
-	subadd_bfmatrixS_bfmatrixS(data->A, data->dFdV, dt, data->dFdX, (dt*dt));
+	subadd_bfmatrixS_bfmatrixS(data->A, data->dFdV, dt, data->dFdX, (dt * dt));
 
 	mul_bfmatrix_lfvector(dFdXmV, data->dFdX, data->V);
 
-	add_lfvectorS_lfvectorS(data->B, data->F, dt, dFdXmV, (dt*dt), numverts);
+	add_lfvectorS_lfvectorS(data->B, data->F, dt, dFdXmV, (dt * dt), numverts);
 
 #ifdef DEBUG_TIME
 	double start = PIL_check_seconds_timer();
@@ -1406,7 +1406,7 @@ static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3
 }
 
 /* XXX does not support force jacobians yet, since the effector system does not provide them either */
-void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
+void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, const float(*winvec)[3])
 {
 	const float effector_scale = 0.02f;
 	float win[3], nor[3], area;
@@ -1445,7 +1445,7 @@ static void edge_wind_vertex(const float dir[3], float length, float radius, con
 	mul_v3_v3fl(f, wind, density * cross_section);
 }
 
-void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, float radius1, float radius2, const float (*winvec)[3])
+void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, float radius1, float radius2, const float(*winvec)[3])
 {
 	float win[3], dir[3], length;
 	float f[3], dfdx[3][3], dfdv[3][3];
@@ -1462,7 +1462,7 @@ void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, float 
 	add_v3_v3(data->F[v2], f);
 }
 
-void BPH_mass_spring_force_vertex_wind(Implicit_Data *data, int v, float UNUSED(radius), const float (*winvec)[3])
+void BPH_mass_spring_force_vertex_wind(Implicit_Data *data, int v, float UNUSED(radius), const float(*winvec)[3])
 {
 	const float density = 0.01f; /* XXX arbitrary value, corresponds to effect of air density */
 
@@ -1481,7 +1481,7 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 	outerproduct(to, dir, dir);
 	sub_m3_m3m3(to, I, to);
 
-	mul_m3_fl(to, (L/length));
+	mul_m3_fl(to, (L / length));
 	sub_m3_m3m3(to, to, I);
 	mul_m3_fl(to, k);
 }
@@ -1491,10 +1491,10 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, const float vel[3], float rest, float damping)
 {
 	// inner spring damping   vel is the relative velocity  of the endpoints.
-	// 	return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+	//  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
 	mul_fvectorT_fvector(to, dir, dir);
 	sub_fmatrix_fmatrix(to, I, to);
-	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel)/MAX2(length, rest))));
+	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
 }
 #endif
 
@@ -1516,7 +1516,7 @@ BLI_INLINE float fb(float length, float L)
 
 BLI_INLINE float fbderiv(float length, float L)
 {
-	float x = length/L;
+	float x = length / L;
 	float xx = x * x;
 	float xxx = xx * x;
 	return (-46.164f * xxx + 102.579f * xx - 78.166f * x + 23.116f);
@@ -1543,7 +1543,7 @@ BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 		return -cb;
 	}
 	else {
-		return -kb * fbderiv(length, L);
+		return -kb *fbderiv(length, L);
 	}
 }
 
@@ -1558,7 +1558,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 #if 0
 		if (length > L) {
 			if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
-			    ( ((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen ))
+			    ( ((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen))
 			{
 				// cut spring!
 				s->flags |= CSPRING_FLAG_DEACTIVATE;
@@ -1566,7 +1566,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 			}
 		}
 #endif
-		mul_v3_v3fl(r_dir, r_extent, 1.0f/(*r_length));
+		mul_v3_v3fl(r_dir, r_extent, 1.0f / (*r_length));
 	}
 	else {
 		zero_v3(r_dir);
@@ -1803,10 +1803,10 @@ BLI_INLINE void spring_grad_dir(Implicit_Data *data, int i, int j, float edge[3]
 }
 
 BLI_INLINE void spring_hairbend_forces(Implicit_Data *data, int i, int j, int k,
-                                      const float goal[3],
-                                      float stiffness, float damping,
-                                      int q, const float dx[3], const float dv[3],
-                                      float r_f[3])
+                                       const float goal[3],
+                                       float stiffness, float damping,
+                                       int q, const float dx[3], const float dv[3],
+                                       float r_f[3])
 {
 	float edge_ij[3], dir_ij[3];
 	float edge_jk[3], dir_jk[3];
@@ -1852,9 +1852,9 @@ BLI_INLINE void spring_hairbend_forces(Implicit_Data *data, int i, int j, int k,
 
 /* Finite Differences method for estimating the jacobian of the force */
 BLI_INLINE void spring_hairbend_estimate_dfdx(Implicit_Data *data, int i, int j, int k,
-                                             const float goal[3],
-                                             float stiffness, float damping,
-                                             int q, float dfdx[3][3])
+                                              const float goal[3],
+                                              float stiffness, float damping,
+                                              int q, float dfdx[3][3])
 {
 	const float delta = 0.00001f; // TODO find a good heuristic for this
 	float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
@@ -1871,11 +1871,11 @@ BLI_INLINE void spring_hairbend_estimate_dfdx(Implicit_Data *data, int i, int j,
 
 	for (a = 0; a < 3; ++a) {
 		spring_hairbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, dvec_pos[a], dvec_null[a], f);
+		                       q, dvec_pos[a], dvec_null[a], f);
 		copy_v3_v3(dfdx[a], f);
 
 		spring_hairbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, dvec_neg[a], dvec_null[a], f);
+		                       q, dvec_neg[a], dvec_null[a], f);
 		sub_v3_v3(dfdx[a], f);
 
 		for (b = 0; b < 3; ++b) {
@@ -1886,9 +1886,9 @@ BLI_INLINE void spring_hairbend_estimate_dfdx(Implicit_Data *data, int i, int j,
 
 /* Finite Differences method for estimating the jacobian of the force */
 BLI_INLINE void spring_hairbend_estimate_dfdv(Implicit_Data *data, int i, int j, int k,
-                                             const float goal[3],
-                                             float stiffness, float damping,
-                                             int q, float dfdv[3][3])
+                                              const float goal[3],
+                                              float stiffness, float damping,
+                                              int q, float dfdv[3][3])
 {
 	const float delta = 0.00001f; // TODO find a good heuristic for this
 	float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
@@ -1905,11 +1905,11 @@ BLI_INLINE void spring_hairbend_estimate_dfdv(Implicit_Data *data, int i, int j,
 
 	for (a = 0; a < 3; ++a) {
 		spring_hairbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, dvec_null[a], dvec_pos[a], f);
+		                       q, dvec_null[a], dvec_pos[a], f);
 		copy_v3_v3(dfdv[a], f);
 
 		spring_hairbend_forces(data, i, j, k, goal, stiffness, damping,
-		                      q, dvec_null[a], dvec_neg[a], f);
+		                       q, dvec_null[a], dvec_neg[a], f);
 		sub_v3_v3(dfdv[a], f);
 
 		for (b = 0; b < 3; ++b) {
@@ -1922,7 +1922,7 @@ BLI_INLINE void spring_hairbend_estimate_dfdv(Implicit_Data *data, int i, int j,
  * See "Artistic Simulation of Curly Hair" (Pixar technical memo #12-03a)
  */
 bool BPH_mass_spring_force_spring_bending_hair(Implicit_Data *data, int i, int j, int k,
-                                                  const float target[3], float stiffness, float damping)
+                                               const float target[3], float stiffness, float damping)
 {
 	float goal[3];
 	float fj[3], fk[3];

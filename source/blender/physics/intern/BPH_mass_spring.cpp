@@ -152,7 +152,7 @@ static bool collision_response(ClothModifierData *clmd, CollisionModifierData *c
 		return false; /* XXX tested before already? */
 
 	/* only handle static collisions here */
-	if ( collpair->flag & COLLISION_IN_FUTURE )
+	if (collpair->flag & COLLISION_IN_FUTURE)
 		return false;
 
 	/* velocity */
@@ -263,8 +263,8 @@ static void cloth_setup_constraints(ClothModifierData *clmd, ColliderContacts *c
  * collisions*/
 static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothModifierData *clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
 {
-	Cloth *cloth= clmd->clothObject;
-	float (*cos)[3] = (float (*)[3])MEM_callocN(sizeof(float[3]) * cloth->mvert_num, "cos cloth_calc_helper_forces");
+	Cloth *cloth = clmd->clothObject;
+	float(*cos)[3] = (float(*)[3])MEM_callocN(sizeof(float[3]) * cloth->mvert_num, "cos cloth_calc_helper_forces");
 	float *masses = (float *)MEM_callocN(sizeof(float) * cloth->mvert_num, "cos cloth_calc_helper_forces");
 	LinkNode *node;
 	ClothSpring *spring;
@@ -284,8 +284,8 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	}
 
 	steps = 55;
-	for (i=0; i<steps; i++) {
-		for (node=cloth->springs; node; node=node->next) {
+	for (i = 0; i < steps; i++) {
+		for (node = cloth->springs; node; node = node->next) {
 			/* ClothVertex *cv1, *cv2; */ /* UNUSED */
 			int v1, v2;
 			float len, c, l, vec[3];
@@ -325,7 +325,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 
 		/*compute forces*/
 		sub_v3_v3v3(vec, cos[i], cv->tx);
-		mul_v3_fl(vec, cv->mass*dt*20.0f);
+		mul_v3_fl(vec, cv->mass * dt * 20.0f);
 		add_v3_v3(cv->tv, vec);
 		//copy_v3_v3(cv->tx, cos[i]);
 	}
@@ -478,10 +478,10 @@ static void cloth_calc_force(Scene *scene, ClothModifierData *clmd, float UNUSED
 	/* Collect forces and derivatives:  F, dFdX, dFdV */
 	Cloth *cloth = clmd->clothObject;
 	Implicit_Data *data = cloth->implicit;
-	unsigned int i	= 0;
-	float 		drag 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
-	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
-	const MVertTri *tri 	= cloth->tri;
+	unsigned int i  = 0;
+	float drag    = clmd->sim_parms->Cvi * 0.01f;       /* viscosity of air scaled in percent */
+	float gravity[3] = {0.0f, 0.0f, 0.0f};
+	const MVertTri *tri     = cloth->tri;
 	unsigned int mvert_num = cloth->mvert_num;
 	ClothVertex *vert;
 
@@ -521,7 +521,7 @@ static void cloth_calc_force(Scene *scene, ClothModifierData *clmd, float UNUSED
 	/* handle external forces like wind */
 	if (effectors) {
 		/* cache per-vertex forces to avoid redundant calculation */
-		float (*winvec)[3] = (float (*)[3])MEM_callocN(sizeof(float[3]) * mvert_num, "effector forces");
+		float(*winvec)[3] = (float(*)[3])MEM_callocN(sizeof(float[3]) * mvert_num, "effector forces");
 		for (i = 0; i < cloth->mvert_num; i++) {
 			float x[3], v[3];
 			EffectedPoint epoint;
@@ -566,8 +566,8 @@ static void cloth_calc_force(Scene *scene, ClothModifierData *clmd, float UNUSED
 				else
 					BPH_mass_spring_force_vertex_wind(data, i, 1.0f, winvec);
 			}
-		}
 #endif
+		}
 
 		MEM_freeN(winvec);
 	}
@@ -616,7 +616,7 @@ BLI_INLINE LinkNode *hair_spring_next(LinkNode *spring_link)
 static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid, const float cell_scale, const float cell_offset[3], Cloth *cloth, LinkNode *spring_link)
 {
 	Implicit_Data *data = cloth->implicit;
-	LinkNode *next_spring_link = NULL; /* return value */
+	LinkNode *next_spring_link = NULL;     /* return value */
 	ClothSpring *spring1, *spring2, *spring3;
 	// ClothVertex *verts = cloth->verts;
 	// ClothVertex *vert3, *vert4;
@@ -726,7 +726,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 	int mvert_num = cloth->mvert_num;
 	ClothVertex *vert;
 
-	const float fluid_factor = 0.95f; /* blend between PIC and FLIP methods */
+	const float fluid_factor = 0.95f;     /* blend between PIC and FLIP methods */
 	float smoothfac = parms->velocity_smooth;
 	/* XXX FIXME arbitrary factor!!! this should be based on some intuitive value instead,
 	 * like number of hairs per cell and time decay instead of "strength"
@@ -784,16 +784,16 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
 			zero_v3(b);
 
 			offset[axis] = shift * clmd->hair_grid_cellsize;
-			a[(axis+1) % 3] = clmd->hair_grid_max[(axis+1) % 3] - clmd->hair_grid_min[(axis+1) % 3];
-			b[(axis+2) % 3] = clmd->hair_grid_max[(axis+2) % 3] - clmd->hair_grid_min[(axis+2) % 3];
+			a[(axis + 1) % 3] = clmd->hair_grid_max[(axis + 1) % 3] - clmd->hair_grid_min[(axis + 1) % 3];
+			b[(axis + 2) % 3] = clmd->hair_grid_max[(axis + 2) % 3] - clmd->hair_grid_min[(axis + 2) % 3];
 
 			BKE_sim_debug_data_clear_category(clmd->debug_data, "grid velocity");
 			for (j = 0; j < size; ++j) {
 				for (i = 0; i < size; ++i) {
 					float x[3], v[3], gvel[3], gvel_smooth[3], gdensity;
 
-					madd_v3_v3v3fl(x, offset, a, (float)i / (float)(size-1));
-					madd_v3_v3fl(x, b, (float)j / (float)(size-1));
+					madd_v3_v3v3fl(x, offset, a, (float)i / (float)(size - 1));
+					madd_v3_v3fl(x, b, (float)j / (float)(size - 1));
 					zero_v3(v);
 
 					BPH_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
@@ -935,7 +935,7 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
 {
 	ClothSolverResult *sres = clmd->solver_result;
 
-	if (sres->status) { /* already initialized ? */
+	if (sres->status) {     /* already initialized ? */
 		/* error only makes sense for successful iterations */
 		if (result->status == BPH_SOLVER_SUCCESS) {
 			sres->min_error = min_ff(sres->min_error, result->error);
@@ -970,10 +970,10 @@ int BPH_cloth_solve(Depsgraph *depsgraph, Object *ob, float frame, ClothModifier
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	const bool is_hair = (clmd->hairdata != NULL);
 
-	unsigned int i=0;
-	float step=0.0f, tf=clmd->sim_parms->timescale;
+	unsigned int i = 0;
+	float step = 0.0f, tf = clmd->sim_parms->timescale;
 	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = cloth->verts/*, *cv*/;
+	ClothVertex *verts = cloth->verts /*, *cv*/;
 	unsigned int mvert_num = cloth->mvert_num;
 	float dt = clmd->sim_parms->dt * clmd->sim_parms->timescale;
 	Implicit_Data *id = cloth->implicit;

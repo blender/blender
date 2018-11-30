@@ -167,9 +167,9 @@ char *BLI_cpu_brand_string(void)
 	int result[4] = { 0 };
 	__cpuid(result, 0x80000000);
 	if (result[0] >= (int)0x80000004) {
-		__cpuid((int*)(buf + 0), 0x80000002);
-		__cpuid((int*)(buf + 16), 0x80000003);
-		__cpuid((int*)(buf + 32), 0x80000004);
+		__cpuid((int *)(buf + 0), 0x80000002);
+		__cpuid((int *)(buf + 16), 0x80000003);
+		__cpuid((int *)(buf + 32), 0x80000004);
 		char *brand = BLI_strdup(buf);
 		/* TODO(sergey): Make it a bit more presentable by removing trademark. */
 		return brand;
