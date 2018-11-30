@@ -3289,6 +3289,7 @@ def draw_curve(self, context):
     layout.operator("curve.split")
     layout.operator("curve.separate")
     layout.operator("curve.cyclic_toggle")
+    layout.operator_menu_enum("curve.spline_type_set", "type")
 
     layout.separator()
 
