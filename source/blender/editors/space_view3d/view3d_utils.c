@@ -460,7 +460,7 @@ void ED_view3d_camera_lock_init_ex(View3D *v3d, RegionView3D *rv3d, const bool c
 
 void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 {
-	ED_view3d_camera_lock_init_ex(v3d, rv3d, true);
+	ED_view3d_camera_lock_init_ex(v3d, rv3d, false);
 }
 
 /**
