@@ -72,14 +72,14 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
  */
 
 /* convenience looper over ALL driver targets for a given variable (even the unused ones) */
-#define DRIVER_TARGETS_LOOPER(dvar) \
+#define DRIVER_TARGETS_LOOPER_BEGIN(dvar) \
 	{ \
 		DriverTarget *dtar = &dvar->targets[0]; \
 		int tarIndex = 0; \
 		for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++)
 
 /* convenience looper over USED driver targets only */
-#define DRIVER_TARGETS_USED_LOOPER(dvar) \
+#define DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar) \
 	{ \
 		DriverTarget *dtar = &dvar->targets[0]; \
 		int tarIndex = 0; \
@@ -87,7 +87,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 
 /* tidy up for driver targets loopers */
 #define DRIVER_TARGETS_LOOPER_END \
-}
+} ((void)0)
 
 /* ---------------------- */
 

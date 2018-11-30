@@ -405,13 +405,13 @@ void BKE_animdata_merge_copy(
 				DriverVar *dvar;
 
 				for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-					DRIVER_TARGETS_USED_LOOPER(dvar)
+					DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 					{
 						if (dtar->id == src_id) {
 							dtar->id = dst_id;
 						}
 					}
-					DRIVER_TARGETS_LOOPER_END
+					DRIVER_TARGETS_LOOPER_END;
 				}
 			}
 		}
@@ -754,7 +754,7 @@ static void drivers_path_rename_fix(ID *owner_id, ID *ref_id, const char *prefix
 			/* driver variables */
 			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 				/* only change the used targets, since the others will need fixing manually anyway */
-				DRIVER_TARGETS_USED_LOOPER(dvar)
+				DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 				{
 					/* rename RNA path */
 					if (dtar->rna_path && dtar->id)
@@ -769,7 +769,7 @@ static void drivers_path_rename_fix(ID *owner_id, ID *ref_id, const char *prefix
 						}
 					}
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 	}

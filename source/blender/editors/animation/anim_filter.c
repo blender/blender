@@ -1173,12 +1173,12 @@ static bool fcurve_has_errors(FCurve *fcu)
 		/* check variables for other things that need linting... */
 		// TODO: maybe it would be more efficient just to have a quick flag for this?
 		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-			DRIVER_TARGETS_USED_LOOPER(dvar)
+			DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 			{
 				if (dtar->flag & DTAR_FLAG_INVALID)
 					return true;
 			}
-			DRIVER_TARGETS_LOOPER_END
+			DRIVER_TARGETS_LOOPER_END;
 		}
 	}
 

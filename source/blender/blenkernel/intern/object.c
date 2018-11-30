@@ -1528,7 +1528,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 
 			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 				/* all drivers */
-				DRIVER_TARGETS_LOOPER(dvar)
+				DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 				{
 					if (dtar->id) {
 						if ((Object *)dtar->id == target)
@@ -1542,7 +1542,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 						}
 					}
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 	}

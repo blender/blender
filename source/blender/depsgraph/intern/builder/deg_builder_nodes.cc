@@ -956,7 +956,7 @@ void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
 {
 	build_driver_id_property(id, fcurve->rna_path);
 	LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
-		DRIVER_TARGETS_USED_LOOPER(dvar)
+		DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 		{
 			if (dtar->id == NULL) {
 				continue;
@@ -972,7 +972,7 @@ void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
 				build_driver_id_property(&proxy_from->id, dtar->rna_path);
 			}
 		}
-		DRIVER_TARGETS_LOOPER_END
+		DRIVER_TARGETS_LOOPER_END;
 	}
 }
 

@@ -166,7 +166,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
 		/* Fix driver references to invalid ID's */
 		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 			/* only change the used targets, since the others will need fixing manually anyway */
-			DRIVER_TARGETS_USED_LOOPER(dvar)
+			DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 			{
 				/* change the ID's used... */
 				if (dtar->id == src_id) {
@@ -199,7 +199,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
 					}
 				}
 			}
-			DRIVER_TARGETS_LOOPER_END
+			DRIVER_TARGETS_LOOPER_END;
 		}
 	}
 }

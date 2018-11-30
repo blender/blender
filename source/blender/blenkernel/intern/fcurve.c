@@ -1315,7 +1315,7 @@ static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
 {
 	short valid_targets = 0;
 
-	DRIVER_TARGETS_USED_LOOPER(dvar)
+	DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 	{
 		Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
 
@@ -1331,7 +1331,7 @@ static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
 			valid_targets++;
 		}
 	}
-	DRIVER_TARGETS_LOOPER_END
+	DRIVER_TARGETS_LOOPER_END;
 
 	return valid_targets;
 }
@@ -1418,7 +1418,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 
 	/* SECOND PASS: get two location values */
 	/* NOTE: for now, these are all just worldspace */
-	DRIVER_TARGETS_USED_LOOPER(dvar)
+	DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 	{
 		/* get pointer to loc values to store in */
 		Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
@@ -1489,7 +1489,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 			copy_v3_v3(loc1, tmp_loc);
 		}
 	}
-	DRIVER_TARGETS_LOOPER_END
+	DRIVER_TARGETS_LOOPER_END;
 
 
 	/* if we're still here, there should now be two targets to use,
@@ -1674,13 +1674,13 @@ void driver_free_variable(ListBase *variables, DriverVar *dvar)
 	 *   currently, since there may be some lingering RNA paths from
 	 *   previous users needing freeing
 	 */
-	DRIVER_TARGETS_LOOPER(dvar)
+	DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 	{
 		/* free RNA path if applicable */
 		if (dtar->rna_path)
 			MEM_freeN(dtar->rna_path);
 	}
-	DRIVER_TARGETS_LOOPER_END
+	DRIVER_TARGETS_LOOPER_END;
 
 	/* remove the variable from the driver */
 	BLI_freelinkN(variables, dvar);
@@ -1704,13 +1704,13 @@ void driver_variables_copy(ListBase *dst_vars, const ListBase *src_vars)
 
 	for (DriverVar *dvar = dst_vars->first; dvar; dvar = dvar->next) {
 		/* need to go over all targets so that we don't leave any dangling paths */
-		DRIVER_TARGETS_LOOPER(dvar)
+		DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 		{
 			/* make a copy of target's rna path if available */
 			if (dtar->rna_path)
 				dtar->rna_path = MEM_dupallocN(dtar->rna_path);
 		}
-		DRIVER_TARGETS_LOOPER_END
+		DRIVER_TARGETS_LOOPER_END;
 	}
 }
 
@@ -1730,7 +1730,7 @@ void driver_change_variable_type(DriverVar *dvar, int type)
 	/* make changes to the targets based on the defines for these types
 	 * NOTE: only need to make sure the ones we're using here are valid...
 	 */
-	DRIVER_TARGETS_USED_LOOPER(dvar)
+	DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 	{
 		short flags = dvti->target_flags[tarIndex];
 
@@ -1741,7 +1741,7 @@ void driver_change_variable_type(DriverVar *dvar, int type)
 		if ((flags & DTAR_FLAG_ID_OB_ONLY) || (dtar->idtype == 0))
 			dtar->idtype = ID_OB;
 	}
-	DRIVER_TARGETS_LOOPER_END
+	DRIVER_TARGETS_LOOPER_END;
 }
 
 /* Validate driver name (after being renamed) */
