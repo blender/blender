@@ -593,6 +593,24 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	gpencil_primitive_exit(C, op);
 }
 
+/* Helper to square a primitive */
+static void gpencil_primitive_to_square(tGPDprimitive *tgpi, const int x, const int y) {
+	int w = abs(x);
+	int h = abs(y);
+	if ((x > 0 && y > 0) || (x < 0 && y < 0)) {
+		if (w > h)
+			tgpi->bottom[1] = tgpi->origin[1] + x;
+		else
+			tgpi->bottom[0] = tgpi->origin[0] + y;
+	}
+	else {
+		if (w > h)
+			tgpi->bottom[1] = tgpi->origin[1] - x;
+		else
+			tgpi->bottom[0] = tgpi->origin[0] - y;
+	}
+}
+
 /* Modal handler: Events handling during interactive part */
 static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -684,19 +702,20 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 				if (event->shift) {
 					int x = tgpi->bottom[0] - tgpi->origin[0];
 					int y = tgpi->bottom[1] - tgpi->origin[1];
-					int w = abs(x);
-					int h = abs(y);
-					if ((x > 0 && y > 0) || (x < 0 && y < 0)) {
-						if (w > h)
-							tgpi->bottom[1] = tgpi->origin[1] + x;
-						else
-							tgpi->bottom[0] = tgpi->origin[0] + y;
+					if (tgpi->type == GP_STROKE_LINE) {
+						float angle = fabsf(atan2f((float)y, (float)x));
+						if (angle < 0.4f || angle > (M_PI - 0.4f)) {
+							tgpi->bottom[1] = tgpi->origin[1];
+						}
+						else if (angle > (M_PI_2 - 0.4f) && angle < (M_PI_2 + 0.4f)) {
+							tgpi->bottom[0] = tgpi->origin[0];
+						}
+						else {
+							gpencil_primitive_to_square(tgpi, x, y);
+						}
 					}
 					else {
-						if (w > h)
-							tgpi->bottom[1] = tgpi->origin[1] - x;
-						else
-							tgpi->bottom[0] = tgpi->origin[0] - y;
+						gpencil_primitive_to_square(tgpi, x, y);
 					}
 				}
 				/* Center primitive if alt key */
