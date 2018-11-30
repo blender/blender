@@ -106,7 +106,7 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem, int memsize)
 
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 {
-	FileData *fd = (FileData *) bh;
+	FileData *fd = (FileData *)bh;
 	BHead *bhead;
 
 	fprintf(fp, "[\n");
@@ -144,7 +144,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
  */
 LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, int *tot_names)
 {
-	FileData *fd = (FileData *) bh;
+	FileData *fd = (FileData *)bh;
 	LinkNode *names = NULL;
 	BHead *bhead;
 	int tot = 0;
@@ -174,7 +174,7 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype, 
  */
 LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *tot_prev)
 {
-	FileData *fd = (FileData *) bh;
+	FileData *fd = (FileData *)bh;
 	LinkNode *previews = NULL;
 	BHead *bhead;
 	int looking = 0;
@@ -210,11 +210,11 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 					if (prv) {
 						memcpy(new_prv, prv, sizeof(PreviewImage));
 						if (prv->rect[0] && prv->w[0] && prv->h[0]) {
-							unsigned int *rect = NULL;
-							size_t len = new_prv->w[0] * new_prv->h[0] * sizeof(unsigned int);
+							uint *rect = NULL;
+							size_t len = new_prv->w[0] * new_prv->h[0] * sizeof(uint);
 							new_prv->rect[0] = MEM_callocN(len, __func__);
 							bhead = blo_nextbhead(fd, bhead);
-							rect = (unsigned int *)(bhead + 1);
+							rect = (uint *)(bhead + 1);
 							BLI_assert(len == bhead->len);
 							memcpy(new_prv->rect[0], rect, len);
 						}
@@ -227,11 +227,11 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 						}
 
 						if (prv->rect[1] && prv->w[1] && prv->h[1]) {
-							unsigned int *rect = NULL;
-							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(unsigned int);
+							uint *rect = NULL;
+							size_t len = new_prv->w[1] * new_prv->h[1] * sizeof(uint);
 							new_prv->rect[1] = MEM_callocN(len, __func__);
 							bhead = blo_nextbhead(fd, bhead);
-							rect = (unsigned int *)(bhead + 1);
+							rect = (uint *)(bhead + 1);
 							BLI_assert(len == bhead->len);
 							memcpy(new_prv->rect[1], rect, len);
 						}
@@ -270,7 +270,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
  */
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 {
-	FileData *fd = (FileData *) bh;
+	FileData *fd = (FileData *)bh;
 	GSet *gathered = BLI_gset_ptr_new("linkable_groups gh");
 	LinkNode *names = NULL;
 	BHead *bhead;
@@ -302,7 +302,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
  */
 void BLO_blendhandle_close(BlendHandle *bh)
 {
-	FileData *fd = (FileData *) bh;
+	FileData *fd = (FileData *)bh;
 
 	blo_freefiledata(fd);
 }

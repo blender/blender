@@ -98,7 +98,7 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 }
 
 void memfile_chunk_add(
-        MemFile *memfile, const char *buf, unsigned int size,
+        MemFile *memfile, const char *buf, uint size,
         MemFileChunk **compchunk_step)
 {
 	MemFileChunk *curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");

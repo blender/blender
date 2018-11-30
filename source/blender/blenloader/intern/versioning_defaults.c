@@ -182,9 +182,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 				CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
 				curvemapping_initialize(gp_falloff_curve);
 				curvemap_reset(gp_falloff_curve->cm,
-					&gp_falloff_curve->clipr,
-					CURVE_PRESET_GAUSS,
-					CURVEMAP_SLOPE_POSITIVE);
+				               &gp_falloff_curve->clipr,
+				               CURVE_PRESET_GAUSS,
+				               CURVEMAP_SLOPE_POSITIVE);
 			}
 		}
 	}
