@@ -4948,7 +4948,7 @@ def km_generic_tool_annotate(params):
         {"items": (
             ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
         ),
         },
@@ -4962,7 +4962,7 @@ def km_generic_tool_annotate_line(params):
         {"items": (
             ("gpencil.annotate", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
         ),
         },
@@ -4976,7 +4976,7 @@ def km_generic_tool_annotate_polygon(params):
         {"items": (
             ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
         ),
         },
@@ -4990,7 +4990,7 @@ def km_generic_tool_annotate_eraser(params):
         {"items": (
             ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "alt": True},
+            ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
         ),
         },
