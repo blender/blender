@@ -560,16 +560,25 @@ static int node_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
 	if (tweak) {
-		/* prevent initiating the box select if the mouse is over a node */
-		/* this allows box select on empty space, but drag-translate on nodes */
+		/* prevent initiating the box select if the mouse is over a node or
+		 * node socket. this allows box select on empty space, but drag-translate
+		 * on nodes */
 		SpaceNode *snode = CTX_wm_space_node(C);
 		ARegion *ar = CTX_wm_region(C);
-		float mx, my;
+		float mouse[2];
 
-		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
+		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mouse[0], &mouse[1]);
 
-		if (node_under_mouse_tweak(snode->edittree, mx, my))
+		if (node_under_mouse_tweak(snode->edittree, mouse[0], mouse[1])) {
 			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+		}
+
+		bNode *node;
+		bNodeSocket *sock;
+
+		if (node_find_indicated_socket(snode, &node, &sock, mouse, SOCK_IN | SOCK_OUT)) {
+			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+		}
 	}
 
 	return WM_gesture_box_invoke(C, op, event);
