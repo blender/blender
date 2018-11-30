@@ -413,7 +413,7 @@ struct GHashIterator *nodeTypeGetIterator(void);
 #define NODE_TYPES_END \
 	} \
 	BLI_ghashIterator_free(__node_type_iter__); \
-}
+} ((void)0)
 
 struct bNodeSocketType *nodeSocketTypeFind(const char *idname);
 void			nodeRegisterSocketType(struct bNodeSocketType *stype);

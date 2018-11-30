@@ -2565,8 +2565,7 @@ static void write_scene(WriteData *wd, Scene *sce)
 				seq->strip->done = false;
 			}
 			writestruct(wd, DATA, Sequence, 1, seq);
-		}
-		SEQ_END
+		} SEQ_END;
 
 		SEQ_BEGIN(ed, seq)
 		{
@@ -2632,8 +2631,7 @@ static void write_scene(WriteData *wd, Scene *sce)
 			}
 
 			write_sequence_modifiers(wd, &seq->modifiers);
-		}
-		SEQ_END
+		} SEQ_END;
 
 		/* new; meta stack too, even when its nasty restore code */
 		for (MetaStack *ms = ed->metastack.first; ms; ms = ms->next) {

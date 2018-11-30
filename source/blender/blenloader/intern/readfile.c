@@ -5867,8 +5867,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				BLI_listbase_clear(&seq->anims);
 
 				lib_link_sequence_modifiers(fd, sce, &seq->modifiers);
-			}
-			SEQ_END
+			} SEQ_END;
 
 			for (TimeMarker *marker = sce->markers.first; marker; marker = marker->next) {
 				if (marker->camera) {
@@ -6162,8 +6161,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			}
 
 			direct_link_sequence_modifiers(fd, &seq->modifiers);
-		}
-		SEQ_END
+		} SEQ_END;
 
 		/* link metastack, slight abuse of structs here, have to restore pointer to internal part in struct */
 		{
@@ -9744,8 +9742,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 			if (seq->clip) expand_doit(fd, mainvar, seq->clip);
 			if (seq->mask) expand_doit(fd, mainvar, seq->mask);
 			if (seq->sound) expand_doit(fd, mainvar, seq->sound);
-		}
-		SEQ_END
+		} SEQ_END;
 	}
 
 	if (sce->rigidbody_world) {

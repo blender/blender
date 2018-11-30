@@ -940,8 +940,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
 
-			}
-			SEQ_END
+			} SEQ_END;
 		}
 
 		for (screen = bmain->screen.first; screen; screen = screen->id.next) {
@@ -1325,8 +1324,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					copy_v4_fl(data->color, 1.0f);
 					data->shadow_color[3] = 1.0f;
 				}
-			}
-			SEQ_END
+			} SEQ_END;
 		}
 
 		/* Adding "Properties" region to DopeSheet */

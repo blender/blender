@@ -247,8 +247,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 
 			BKE_sequence_modifier_list_copy(seq_iter, seq);
 		}
-	}
-	SEQ_END
+	} SEQ_END;
 
 	BKE_sequence_invalidate_cache(scene, seq);
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

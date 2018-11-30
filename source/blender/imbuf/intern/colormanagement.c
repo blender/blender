@@ -1133,8 +1133,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 			if (seq->strip) {
 				colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
 			}
-		}
-		SEQ_END
+		} SEQ_END;
 	}
 
 	/* ** check input color space settings ** */

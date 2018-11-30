@@ -793,8 +793,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 					}
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 		}
 
@@ -1758,8 +1757,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 			SEQ_BEGIN (sce->ed, seq)
 			{
 				seq->volume = 1.0f;
-			}
-			SEQ_END
+			} SEQ_END;
 		}
 
 		/* particle brush strength factor was changed from int to float */
@@ -2034,8 +2032,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 					if (seq->sat == 0.0f) {
 						seq->sat = 1.0f;
 					}
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 		}
 
@@ -2580,8 +2577,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 				SEQ_BEGIN(scene->ed, seq)
 				{
 					seq->pitch = 1.0f;
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 		}
 

@@ -1976,8 +1976,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 
 				id_us_min(&seq->ipo->id);
 				seq->ipo = NULL;
-			}
-			SEQ_END
+			} SEQ_END;
 		}
 	}
 

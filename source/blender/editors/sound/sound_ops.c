@@ -267,8 +267,7 @@ static void sound_update_animation_flags(Scene *scene)
 	SEQ_BEGIN(scene->ed, seq)
 	{
 		BKE_sequencer_recursive_apply(seq, sound_update_animation_flags_cb, scene);
-	}
-	SEQ_END
+	} SEQ_END;
 
 	fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
 	if (fcu || driven)

@@ -455,8 +455,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						for (SequenceModifierData *smd = seq->modifiers.first; smd; smd = smd->next) {
 							CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
 						}
-					}
-					SEQ_END
+					} SEQ_END;
 				}
 
 				CALLBACK_INVOKE(scene->gpd, IDWALK_CB_USER);

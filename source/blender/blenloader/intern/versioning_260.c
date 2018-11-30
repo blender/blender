@@ -1520,8 +1520,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						MEM_freeN(strip->color_balance);
 						strip->color_balance = NULL;
 					}
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 		}
 	}
@@ -1880,8 +1879,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				else {
 					BKE_sequence_alpha_mode_from_extension(seq);
 				}
-			}
-			SEQ_END
+			} SEQ_END;
 
 			if (scene->r.bake_samples == 0)
 				scene->r.bake_samples = 256;
@@ -2586,8 +2584,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						WipeVars *wv = seq->effectdata;
 						wv->angle = DEG2RADF(wv->angle);
 					}
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 
 			FOREACH_NODETREE_BEGIN(bmain, ntree, id) {

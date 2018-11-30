@@ -918,7 +918,7 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 {
 	const char *idname = NULL;
 
-	NODE_TYPES_BEGIN(ntype)
+	NODE_TYPES_BEGIN(ntype) {
 		/* do an extra poll here, because some int types are used
 		 * for multiple node types, this helps find the desired type
 		 */
@@ -926,7 +926,7 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 			idname = ntype->idname;
 			break;
 		}
-	NODE_TYPES_END
+	} NODE_TYPES_END;
 	if (!idname) {
 		printf("Error: static node type %d undefined\n", type);
 		return NULL;
@@ -3732,23 +3732,23 @@ void init_nodesystem(void)
 void free_nodesystem(void)
 {
 	if (nodetypes_hash) {
-		NODE_TYPES_BEGIN(nt)
+		NODE_TYPES_BEGIN(nt) {
 			if (nt->ext.free) {
 				nt->ext.free(nt->ext.data);
 			}
-		NODE_TYPES_END
+		} NODE_TYPES_END;
 
 		BLI_ghash_free(nodetypes_hash, NULL, node_free_type);
 		nodetypes_hash = NULL;
 	}
 
 	if (nodesockettypes_hash) {
-		NODE_SOCKET_TYPES_BEGIN(st)
+		NODE_SOCKET_TYPES_BEGIN(st) {
 			if (st->ext_socket.free)
 				st->ext_socket.free(st->ext_socket.data);
 			if (st->ext_interface.free)
 				st->ext_interface.free(st->ext_interface.data);
-		NODE_SOCKET_TYPES_END
+		} NODE_SOCKET_TYPES_END;
 
 		BLI_ghash_free(nodesockettypes_hash, NULL, node_free_socket_type);
 		nodesockettypes_hash = NULL;

@@ -631,9 +631,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 							rewrite_path_fixed(seq->strip->dir, visit_cb, absbase, bpath_user_data);
 						}
 					}
-
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 			break;
 		}
