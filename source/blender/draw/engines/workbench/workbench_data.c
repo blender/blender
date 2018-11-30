@@ -161,7 +161,9 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
 
 	copy_v3_v3(r_light_direction, scene->display.light_direction);
-	negate_v3(r_light_direction);
+	SWAP(float, r_light_direction[2], r_light_direction[1]);
+	r_light_direction[2] = -r_light_direction[2];
+	r_light_direction[0] = -r_light_direction[0];
 
 	/* Shadow direction. */
 	mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, r_light_direction);

@@ -4402,6 +4402,7 @@ class VIEW3D_PT_shading_options_shadow(Panel):
         col = layout.column()
         col.prop(scene.display, "light_direction")
         col.prop(scene.display, "shadow_shift")
+        col.prop(scene.display, "shadow_focus")
 
 
 class VIEW3D_PT_shading_options_ssao(Panel):

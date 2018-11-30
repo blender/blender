@@ -858,8 +858,9 @@ void BKE_scene_init(Scene *sce)
 	BKE_view_layer_add(sce, "View Layer");
 
 	/* SceneDisplay */
-	copy_v3_v3(sce->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
-	sce->display.shadow_shift = 0.1;
+	copy_v3_v3(sce->display.light_direction, (float[3]){M_SQRT1_3, M_SQRT1_3, M_SQRT1_3});
+	sce->display.shadow_shift = 0.1f;
+	sce->display.shadow_focus = 0.0f;
 
 	sce->display.matcap_ssao_distance = 0.2f;
 	sce->display.matcap_ssao_attenuation = 1.0f;

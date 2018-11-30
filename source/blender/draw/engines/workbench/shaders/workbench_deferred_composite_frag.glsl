@@ -16,6 +16,7 @@ uniform vec4 viewvecs[3];
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
+uniform float shadowFocus = 1.0;
 
 layout(std140) uniform world_block {
 	WorldData world_data;
@@ -99,7 +100,7 @@ void main()
 	float light_factor = -dot(normal_viewport, world_data.shadow_direction_vs.xyz);
 	/* The step function might be ok for meshes but it's
 	 * clearly not the case for hairs. Do smoothstep in this case. */
-	float shadow_mix = smoothstep(1.0, shadowShift, light_factor);
+	float shadow_mix = smoothstep(shadowFocus, shadowShift, light_factor);
 	shaded_color *= mix(lightMultiplier, shadowMultiplier, shadow_mix);
 #endif
 
