@@ -210,9 +210,9 @@ void DEG_editors_update_pre(struct Main *bmain, struct Scene *scene, bool time);
 
 /* Evaluation Debug ------------------------------ */
 
-void DEG_debug_print_eval(const char* function_name,
-                          const char* object_name,
-                          const void* object_address);
+void DEG_debug_print_eval(const char *function_name,
+                          const char *object_name,
+                          const void *object_address);
 
 void DEG_debug_print_eval_subdata(const char *function_name,
                                   const char *object_name,
@@ -229,9 +229,9 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
                                         const void *subdata_address,
                                         const int subdata_index);
 
-void DEG_debug_print_eval_time(const char* function_name,
-                               const char* object_name,
-                               const void* object_address,
+void DEG_debug_print_eval_time(const char *function_name,
+                               const char *object_name,
+                               const void *object_address,
                                float time);
 
 #ifdef __cplusplus

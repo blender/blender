@@ -479,7 +479,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 		int w, maxw;
 
 		psys_particle_on_dm(ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
-		BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
+		BKE_mesh_orco_verts_transform((Mesh *)ob->data, &orco1, 1, 1);
 		maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 
 		for (w=0; w<maxw; w++) {
@@ -665,7 +665,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
 		float pweight[10];
 
 		psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1,NULL);
-		BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
+		BKE_mesh_orco_verts_transform((Mesh *)ob->data, &orco1, 1, 1);
 		maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 
 		maxd=ptn[maxw-1].dist;
@@ -865,7 +865,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 				dm = finaldm;
 			}
 			else {
-				dm = CDDM_from_mesh((Mesh*)ob->data);
+				dm = CDDM_from_mesh((Mesh *)ob->data);
 			}
 			DM_ensure_tessface(dm);
 
@@ -894,7 +894,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 		for (p=0,pa=psys->particles; p<totpart; p++,pa++) {
 			psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,NULL);
-			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco, 1, 1);
+			BKE_mesh_orco_verts_transform((Mesh *)ob->data, &orco, 1, 1);
 			BLI_kdtree_insert(tree, p, orco);
 		}
 
@@ -910,7 +910,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		if (psys->part->use_modifier_stack)
 			dm = finaldm;
 		else
-			dm= CDDM_from_mesh((Mesh*)ob->data);
+			dm= CDDM_from_mesh((Mesh *)ob->data);
 
 		DM_ensure_tessface(dm);
 
@@ -928,7 +928,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 			for (p=0; p<totvert; p++) {
 				if (orcodata) {
 					copy_v3_v3(co,orcodata[p]);
-					BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co, 1, 1);
+					BKE_mesh_orco_verts_transform((Mesh *)ob->data, &co, 1, 1);
 				}
 				else
 					copy_v3_v3(co,mv[p].co);
@@ -974,23 +974,23 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 				copy_v3_v3(co1, orcodata[mf->v1]);
 				copy_v3_v3(co2, orcodata[mf->v2]);
 				copy_v3_v3(co3, orcodata[mf->v3]);
-				BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co1, 1, 1);
-				BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co2, 1, 1);
-				BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co3, 1, 1);
+				BKE_mesh_orco_verts_transform((Mesh *)ob->data, &co1, 1, 1);
+				BKE_mesh_orco_verts_transform((Mesh *)ob->data, &co2, 1, 1);
+				BKE_mesh_orco_verts_transform((Mesh *)ob->data, &co3, 1, 1);
 				if (mf->v4) {
 					copy_v3_v3(co4, orcodata[mf->v4]);
-					BKE_mesh_orco_verts_transform((Mesh*)ob->data, &co4, 1, 1);
+					BKE_mesh_orco_verts_transform((Mesh *)ob->data, &co4, 1, 1);
 				}
 			}
 			else {
-				v1= (MVert*)dm->getVertData(dm,mf->v1,CD_MVERT);
-				v2= (MVert*)dm->getVertData(dm,mf->v2,CD_MVERT);
-				v3= (MVert*)dm->getVertData(dm,mf->v3,CD_MVERT);
+				v1= (MVert *)dm->getVertData(dm,mf->v1,CD_MVERT);
+				v2= (MVert *)dm->getVertData(dm,mf->v2,CD_MVERT);
+				v3= (MVert *)dm->getVertData(dm,mf->v3,CD_MVERT);
 				copy_v3_v3(co1, v1->co);
 				copy_v3_v3(co2, v2->co);
 				copy_v3_v3(co3, v3->co);
 				if (mf->v4) {
-					v4= (MVert*)dm->getVertData(dm,mf->v4,CD_MVERT);
+					v4= (MVert *)dm->getVertData(dm,mf->v4,CD_MVERT);
 					copy_v3_v3(co4, v4->co);
 				}
 			}

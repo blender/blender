@@ -110,7 +110,7 @@ public:
 			coeffRef(k) = v[k];
 	}
 
-	fVector& operator = (const ctype &v)
+	fVector& operator =(const ctype &v)
 	{
 		for (int k = 0; k < 3; ++k)
 			coeffRef(k) = v[k];
@@ -141,7 +141,7 @@ public:
 				coeffRef(l, k) = v[k][l];
 	}
 
-	fMatrix& operator = (const ctype &v)
+	fMatrix& operator =(const ctype &v)
 	{
 		for (int k = 0; k < 3; ++k)
 			for (int l = 0; l < 3; ++l)
@@ -167,18 +167,18 @@ public:
 	}
 
 	template <typename T>
-	lVector& operator = (T rhs)
+	lVector& operator =(T rhs)
 	{
 		base_t::operator=(rhs);
 		return *this;
 	}
 
-	float* v3(int vertex)
+	float *v3(int vertex)
 	{
 		return &coeffRef(3 * vertex);
 	}
 
-	const float* v3(int vertex) const
+	const float *v3(int vertex) const
 	{
 		return &coeffRef(3 * vertex);
 	}
@@ -244,7 +244,7 @@ typedef Eigen::ConjugateGradient<lMatrix, Eigen::Lower, Eigen::DiagonalPrecondit
 #ifdef USE_EIGEN_CONSTRAINED_CG
 typedef Eigen::ConstrainedConjugateGradient<lMatrix, Eigen::Lower, lMatrix,
                                             Eigen::DiagonalPreconditioner<Scalar> >
-        ConstraintConjGrad;
+    ConstraintConjGrad;
 #endif
 using Eigen::ComputationInfo;
 
@@ -350,9 +350,9 @@ BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], float m[3][3])
 
 BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
 {
-	r[0][0] = 0.0f;		r[1][0] = v[2];		r[2][0] = -v[1];
-	r[0][1] = -v[2];	r[1][1] = 0.0f;		r[2][1] = v[0];
-	r[0][2] = v[1];		r[1][2] = -v[0];	r[2][2] = 0.0f;
+	r[0][0] = 0.0f;     r[1][0] = v[2];     r[2][0] = -v[1];
+	r[0][1] = -v[2];    r[1][1] = 0.0f;     r[2][1] = v[0];
+	r[0][2] = v[1];     r[1][2] = -v[0];    r[2][2] = 0.0f;
 }
 
 BLI_INLINE void madd_m3_m3fl(float r[3][3], float m[3][3], float f)
@@ -422,28 +422,28 @@ struct Implicit_Data {
 	int numverts;
 
 	/* inputs */
-	lMatrix M;					/* masses */
-	lVector F;					/* forces */
-	lMatrix dFdX, dFdV;			/* force jacobians */
+	lMatrix M;                  /* masses */
+	lVector F;                  /* forces */
+	lMatrix dFdX, dFdV;         /* force jacobians */
 
-	fMatrixVector tfm;			/* local coordinate transform */
+	fMatrixVector tfm;          /* local coordinate transform */
 
 	/* motion state data */
-	lVector X, Xnew;			/* positions */
-	lVector V, Vnew;			/* velocities */
+	lVector X, Xnew;            /* positions */
+	lVector V, Vnew;            /* velocities */
 
 	/* internal solver data */
-	lVector B;					/* B for A*dV = B */
-	lMatrix A;					/* A for A*dV = B */
+	lVector B;                  /* B for A*dV = B */
+	lMatrix A;                  /* A for A*dV = B */
 
-	lVector dV;					/* velocity change (solution of A*dV = B) */
-	lVector z;					/* target velocity in constrained directions */
-	lMatrix S;					/* filtering matrix for constraints */
+	lVector dV;                 /* velocity change (solution of A*dV = B) */
+	lVector z;                  /* target velocity in constrained directions */
+	lMatrix S;                  /* filtering matrix for constraints */
 
 	/* temporary constructors */
-	lMatrixCtor iM;				/* masses */
-	lMatrixCtor idFdX, idFdV;	/* force jacobians */
-	lMatrixCtor iS;				/* filtering matrix for constraints */
+	lMatrixCtor iM;             /* masses */
+	lMatrixCtor idFdX, idFdV;   /* force jacobians */
+	lMatrixCtor iS;             /* filtering matrix for constraints */
 };
 
 Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings)
@@ -516,10 +516,10 @@ bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
 	cg.filter() = data->S;
 #endif
 
-	data->A = data->M - dt * data->dFdV - dt*dt * data->dFdX;
+	data->A = data->M - dt * data->dFdV - dt * dt * data->dFdX;
 	cg.compute(data->A);
 
-	data->B = dt * data->F + dt*dt * data->dFdX * data->V;
+	data->B = dt * data->F + dt * dt * data->dFdX * data->V;
 
 #ifdef IMPLICIT_PRINT_SOLVER_INPUT_OUTPUT
 	printf("==== A ====\n");
@@ -786,7 +786,7 @@ static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3
 }
 
 /* XXX does not support force jacobians yet, since the effector system does not provide them either */
-void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
+void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, const float(*winvec)[3])
 {
 	const float effector_scale = 0.02f;
 	float win[3], nor[3], area;
@@ -806,7 +806,7 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 	madd_v3_v3fl(data->F.v3(v3), nor, factor * dot_v3v3(win, nor));
 }
 
-void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float (*winvec)[3])
+void BPH_mass_spring_force_edge_wind(Implicit_Data *data, int v1, int v2, const float(*winvec)[3])
 {
 	const float effector_scale = 0.01;
 	float win[3], dir[3], nor[3], length;
@@ -830,7 +830,7 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 	outerproduct(to, dir, dir);
 	sub_m3_m3m3(to, I, to);
 
-	mul_m3_fl(to, (L/length));
+	mul_m3_fl(to, (L / length));
 	sub_m3_m3m3(to, to, I);
 	mul_m3_fl(to, k);
 }
@@ -840,10 +840,10 @@ BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, fl
 BLI_INLINE void dfdx_damp(float to[3][3], const float dir[3], float length, const float vel[3], float rest, float damping)
 {
 	// inner spring damping   vel is the relative velocity  of the endpoints.
-	// 	return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
+	//  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
 	mul_fvectorT_fvector(to, dir, dir);
 	sub_fmatrix_fmatrix(to, I, to);
-	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel)/MAX2(length, rest))));
+	mul_fmatrix_S(to,  (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
 }
 #endif
 
@@ -862,7 +862,7 @@ BLI_INLINE float fb(float length, float L)
 
 BLI_INLINE float fbderiv(float length, float L)
 {
-	float x = length/L;
+	float x = length / L;
 
 	return (-46.164f * powf(x, 3) + 102.579f * powf(x, 2) - 78.166f * x + 23.116f);
 }
@@ -888,7 +888,7 @@ BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 		return -cb;
 	}
 	else {
-		return -kb * fbderiv(length, L);
+		return -kb *fbderiv(length, L);
 	}
 }
 
@@ -903,7 +903,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 #if 0
 		if (length > L) {
 			if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
-			    ( ((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen ))
+			    ( ((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen))
 			{
 				// cut spring!
 				s->flags |= CSPRING_FLAG_DEACTIVATE;
@@ -911,7 +911,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 			}
 		}
 #endif
-		mul_v3_v3fl(r_dir, r_extent, 1.0f/(*r_length));
+		mul_v3_v3fl(r_dir, r_extent, 1.0f / (*r_length));
 	}
 	else {
 		zero_v3(r_dir);
