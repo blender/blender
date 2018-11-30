@@ -1185,6 +1185,8 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl = BKE_gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
+		/* tag for annotations */
+		p->gpd->flag |= GP_DATA_ANNOTATIONS;
 		p->gpl = BKE_gpencil_layer_addnew(p->gpd, DATA_("Note"), true);
 
 		if (p->custom_color[3])
