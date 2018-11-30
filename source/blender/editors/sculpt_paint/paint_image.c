@@ -1166,7 +1166,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	ot->poll = texture_paint_toggle_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 
