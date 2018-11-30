@@ -780,7 +780,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 						}
 					}
 				}
-			} RNA_END
+			} RNA_END;
 
 			if(used_devices.size() == 1) {
 				params.device = used_devices[0];
