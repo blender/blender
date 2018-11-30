@@ -226,7 +226,7 @@ static void update_typeinfo(Main *bmain, const struct bContext *C, bNodeTreeType
 	if (!bmain)
 		return;
 
-	FOREACH_NODETREE(bmain, ntree, id) {
+	FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 		bNode *node;
 		bNodeSocket *sock;
 
@@ -257,7 +257,7 @@ static void update_typeinfo(Main *bmain, const struct bContext *C, bNodeTreeType
 			if (socktype && STREQ(sock->idname, socktype->idname))
 				node_socket_set_typeinfo(ntree, sock, unregister ? NULL : socktype);
 	}
-	FOREACH_NODETREE_END
+	FOREACH_NODETREE_END;
 }
 
 /* Try to initialize all typeinfo in a node tree.
@@ -2998,13 +2998,13 @@ static void ntree_validate_links(bNodeTree *ntree)
 
 void ntreeVerifyNodes(struct Main *main, struct ID *id)
 {
-	FOREACH_NODETREE(main, ntree, owner_id) {
+	FOREACH_NODETREE_BEGIN(main, ntree, owner_id) {
 		bNode *node;
 
 		for (node = ntree->nodes.first; node; node = node->next)
 			if (node->typeinfo->verifyfunc)
 				node->typeinfo->verifyfunc(ntree, node, id);
-	} FOREACH_NODETREE_END
+	} FOREACH_NODETREE_END;
 }
 
 void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
@@ -3770,7 +3770,7 @@ void free_nodesystem(void)
 
 
 /* -------------------------------------------------------------------- */
-/* NodeTree Iterator Helpers (FOREACH_NODETREE) */
+/* NodeTree Iterator Helpers (FOREACH_NODETREE_BEGIN) */
 
 void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *bmain)
 {

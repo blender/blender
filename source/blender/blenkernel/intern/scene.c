@@ -1940,13 +1940,13 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	if (!use_new_eval && DAG_id_type_tagged(bmain, ID_NT)) {
 		float ctime = BKE_scene_frame_get(scene);
 
-		FOREACH_NODETREE(bmain, ntree, id)
+		FOREACH_NODETREE_BEGIN(bmain, ntree, id)
 		{
 			AnimData *adt = BKE_animdata_from_id(&ntree->id);
 			if (adt && (adt->recalc & ADT_RECALC_ANIM))
 				BKE_animsys_evaluate_animdata(scene, &ntree->id, adt, ctime, 0);
 		}
-		FOREACH_NODETREE_END
+		FOREACH_NODETREE_END;
 	}
 #endif
 

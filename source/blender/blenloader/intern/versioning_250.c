@@ -2700,7 +2700,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 	if (bmain->versionfile < 259 || (bmain->versionfile == 259 && bmain->subversionfile < 2)) {
 		{
 			/* Convert default socket values from bNodeStack */
-			FOREACH_NODETREE(bmain, ntree, id) {
+			FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 				bNode *node;
 				bNodeSocket *sock;
 
@@ -2717,8 +2717,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 					do_versions_socket_default_value_259(sock);
 
 				ntree->update |= NTREE_UPDATE;
-			}
-			FOREACH_NODETREE_END
+			} FOREACH_NODETREE_END;
 		}
 
 		{

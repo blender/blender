@@ -3113,7 +3113,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
 static void customnodes_add_deprecated_data(Main *mainvar)
 {
-	FOREACH_NODETREE(mainvar, ntree, id) {
+	FOREACH_NODETREE_BEGIN(mainvar, ntree, id) {
 		bNodeLink *link, *last_link = ntree->links.last;
 
 		/* only do this for node groups */
@@ -3160,13 +3160,12 @@ static void customnodes_add_deprecated_data(Main *mainvar)
 				break;
 			}
 		}
-	}
-	FOREACH_NODETREE_END
+	} FOREACH_NODETREE_END;
 }
 
 static void customnodes_free_deprecated_data(Main *mainvar)
 {
-	FOREACH_NODETREE(mainvar, ntree, id) {
+	FOREACH_NODETREE_BEGIN(mainvar, ntree, id) {
 		bNodeLink *link, *next_link;
 
 		for (link = ntree->links.first; link; link = next_link) {
@@ -3175,8 +3174,7 @@ static void customnodes_free_deprecated_data(Main *mainvar)
 				nodeRemLink(ntree, link);
 			}
 		}
-	}
-	FOREACH_NODETREE_END
+	} FOREACH_NODETREE_END;
 }
 #endif
 

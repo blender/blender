@@ -2925,16 +2925,16 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 #endif
 
 	/* set node->typeinfo pointers */
-	FOREACH_NODETREE (main, ntree, id) {
+	FOREACH_NODETREE_BEGIN (main, ntree, id) {
 		ntreeSetTypes(NULL, ntree);
-	} FOREACH_NODETREE_END
+	} FOREACH_NODETREE_END;
 
 	/* verify static socket templates */
-	FOREACH_NODETREE (main, ntree, id) {
+	FOREACH_NODETREE_BEGIN (main, ntree, id) {
 		bNode *node;
 		for (node = ntree->nodes.first; node; node = node->next)
 			node_verify_socket_templates(ntree, node);
-	} FOREACH_NODETREE_END
+	} FOREACH_NODETREE_END;
 
 	{
 		bool has_old_groups = false;
@@ -2950,7 +2950,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		}
 
 		if (has_old_groups) {
-			FOREACH_NODETREE (main, ntree, id) {
+			FOREACH_NODETREE_BEGIN (main, ntree, id) {
 				/* updates external links for all group nodes in a tree */
 				bNode *node;
 				for (node = ntree->nodes.first; node; node = node->next) {
@@ -2960,7 +2960,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 							lib_node_do_versions_group_indices(node);
 					}
 				}
-			} FOREACH_NODETREE_END
+			} FOREACH_NODETREE_END;
 		}
 
 		for (bNodeTree *ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
@@ -2981,7 +2981,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		 * so have to clean up all of them ...
 		 */
 
-		FOREACH_NODETREE(main, ntree, id) {
+		FOREACH_NODETREE_BEGIN(main, ntree, id) {
 			if (ntree->flag & NTREE_DO_VERSIONS_CUSTOMNODES_GROUP) {
 				bNode *input_node = NULL, *output_node = NULL;
 				int num_inputs = 0, num_outputs = 0;
@@ -3067,7 +3067,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 				ntree->flag &= ~(NTREE_DO_VERSIONS_CUSTOMNODES_GROUP | NTREE_DO_VERSIONS_CUSTOMNODES_GROUP_CREATE_INTERFACE);
 			}
 		}
-		FOREACH_NODETREE_END
+		FOREACH_NODETREE_END;
 	}
 
 	/* verify all group user nodes */
@@ -3077,10 +3077,10 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 
 	/* make update calls where necessary */
 	{
-		FOREACH_NODETREE(main, ntree, id) {
+		FOREACH_NODETREE_BEGIN(main, ntree, id) {
 			/* make an update call for the tree */
 			ntreeUpdateTree(main, ntree);
-		} FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END;
 	}
 }
 

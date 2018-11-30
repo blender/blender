@@ -2792,7 +2792,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 		 * could be with the current depsgraph design/
 		 */
 		if (idtype == ID_IM) {
-			FOREACH_NODETREE(bmain, ntree, parent_id) {
+			FOREACH_NODETREE_BEGIN(bmain, ntree, parent_id) {
 				if (ntree->type == NTREE_SHADER) {
 					bNode *node;
 					for (node = ntree->nodes.first; node; node = node->next) {
@@ -2802,7 +2802,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 						}
 					}
 				}
-			} FOREACH_NODETREE_END
+			} FOREACH_NODETREE_END;
 		}
 
 		if (idtype == ID_MSK) {

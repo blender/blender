@@ -379,7 +379,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		/* nodes don't use fixed node->id any more, clean up */
-		FOREACH_NODETREE(bmain, ntree, id) {
+		FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
 				bNode *node;
 				for (node = ntree->nodes.first; node; node = node->next) {
@@ -388,7 +388,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					}
 				}
 			}
-		} FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END;
 
 		{
 			bScreen *screen;
@@ -779,7 +779,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "NodePlaneTrackDeformData", "char", "flag")) {
-			FOREACH_NODETREE(bmain, ntree, id) {
+			FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 				if (ntree->type == NTREE_COMPOSIT) {
 					bNode *node;
 					for (node = ntree->nodes.first; node; node = node->next) {
@@ -792,7 +792,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					}
 				}
 			}
-			FOREACH_NODETREE_END
+			FOREACH_NODETREE_END;
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Camera", "GPUDOFSettings", "gpu_dof")) {
@@ -879,7 +879,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 274, 2)) {
-		FOREACH_NODETREE(bmain, ntree, id) {
+		FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 			bNode *node;
 			bNodeSocket *sock;
 
@@ -902,7 +902,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					}
 				}
 			}
-		} FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END;
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 274, 4)) {
@@ -1694,7 +1694,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		/* Fix for T50736, Glare comp node using same var for two different things. */
 		if (!DNA_struct_elem_find(fd->filesdna, "NodeGlare", "char", "star_45")) {
-			FOREACH_NODETREE(bmain, ntree, id) {
+			FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 				if (ntree->type == NTREE_COMPOSIT) {
 					ntreeSetTypes(NULL, ntree);
 					for (bNode *node = ntree->nodes.first; node; node = node->next) {
@@ -1713,7 +1713,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						}
 					}
 				}
-			} FOREACH_NODETREE_END
+			} FOREACH_NODETREE_END;
 		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SurfaceDeformModifierData", "float", "mat[4][4]")) {
@@ -1727,11 +1727,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		FOREACH_NODETREE(bmain, ntree, id) {
+		FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
 				do_versions_compositor_render_passes(ntree);
 			}
-		} FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END;
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 279, 0)) {
@@ -1852,7 +1852,7 @@ void do_versions_after_linking_270(Main *bmain)
 {
 	/* To be added to next subversion bump! */
 	if (!MAIN_VERSION_ATLEAST(bmain, 279, 0)) {
-		FOREACH_NODETREE(bmain, ntree, id) {
+		FOREACH_NODETREE_BEGIN(bmain, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
 				ntreeSetTypes(NULL, ntree);
 				for (bNode *node = ntree->nodes.first; node; node = node->next) {
@@ -1861,7 +1861,7 @@ void do_versions_after_linking_270(Main *bmain)
 					}
 				}
 			}
-		} FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END;
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 279, 2)) {
