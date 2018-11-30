@@ -818,13 +818,13 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			/* variables */
 			writelist(wd, DATA, DriverVar, &driver->variables);
 			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				DRIVER_TARGETS_USED_LOOPER(dvar)
+				DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 				{
 					if (dtar->rna_path) {
 						writedata(wd, DATA, strlen(dtar->rna_path) + 1, dtar->rna_path);
 					}
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 

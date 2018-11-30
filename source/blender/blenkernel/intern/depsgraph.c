@@ -343,7 +343,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 		/* loop over variables to get the target relationships */
 		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 			/* only used targets */
-			DRIVER_TARGETS_USED_LOOPER(dvar)
+			DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 			{
 				if (dtar->id) {
 					/* FIXME: other data types need to be added here so that they can work! */
@@ -369,7 +369,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 					}
 				}
 			}
-			DRIVER_TARGETS_LOOPER_END
+			DRIVER_TARGETS_LOOPER_END;
 		}
 	}
 }

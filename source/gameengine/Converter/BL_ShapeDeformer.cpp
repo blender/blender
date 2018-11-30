@@ -137,14 +137,14 @@ bool BL_ShapeDeformer::LoadShapeDrivers(KX_GameObject* parent)
 
 			DriverVar *dvar;
 			for (dvar = (DriverVar*)fcu->driver->variables.first; dvar; dvar = (DriverVar*)dvar->next) {
-				DRIVER_TARGETS_USED_LOOPER(dvar)
+				DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 				{
 					if (dtar->id) {
 						if ((Object*)dtar->id == arma->GetOrigArmatureObject())
 							dtar->id = (ID*)arma->GetArmatureObject();
 					}
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 	}

@@ -330,7 +330,7 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id), FCurve *fcu, void
 	/* Driver -> Driver Vars (for bbone_in/out) */
 	if (fcu->driver) {
 		for (DriverVar *dvar = fcu->driver->variables.first; dvar; dvar = dvar->next) {
-			DRIVER_TARGETS_LOOPER(dvar)
+			DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 			{
 				if (dtar->rna_path) {
 					dtar->rna_path = replace_bbone_easing_rnapath(dtar->rna_path);

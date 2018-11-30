@@ -265,11 +265,11 @@ static void library_foreach_animationData(LibraryForeachIDData *data, AnimData *
 
 		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 			/* only used targets */
-			DRIVER_TARGETS_USED_LOOPER(dvar)
+			DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
 			{
 				FOREACH_CALLBACK_INVOKE_ID(data, dtar->id, IDWALK_CB_NOP);
 			}
-			DRIVER_TARGETS_LOOPER_END
+			DRIVER_TARGETS_LOOPER_END;
 		}
 	}
 

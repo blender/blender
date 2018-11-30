@@ -2462,7 +2462,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 			DriverVar *dvar;
 
 			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				DRIVER_TARGETS_LOOPER(dvar)
+				DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 				{
 					/* only relink if still used */
 					if (tarIndex < dvar->num_targets)
@@ -2470,7 +2470,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 					else
 						dtar->id = NULL;
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 
@@ -2564,7 +2564,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 			/* relink variables, targets and their paths */
 			link_list(fd, &driver->variables);
 			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				DRIVER_TARGETS_LOOPER(dvar)
+				DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 				{
 					/* only relink the targets being used */
 					if (tarIndex < dvar->num_targets)
@@ -2572,7 +2572,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 					else
 						dtar->rna_path = NULL;
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 
@@ -9082,12 +9082,12 @@ static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
 			DriverVar *dvar;
 
 			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				DRIVER_TARGETS_LOOPER(dvar)
+				DRIVER_TARGETS_LOOPER_BEGIN(dvar)
 				{
 					// TODO: only expand those that are going to get used?
 					expand_doit(fd, mainvar, dtar->id);
 				}
-				DRIVER_TARGETS_LOOPER_END
+				DRIVER_TARGETS_LOOPER_END;
 			}
 		}
 
