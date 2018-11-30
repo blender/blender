@@ -488,7 +488,7 @@ void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph, View3D *v3d, Regi
 
 void ED_view3d_camera_lock_init(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d)
 {
-	ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, true);
+	ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, false);
 }
 
 /**

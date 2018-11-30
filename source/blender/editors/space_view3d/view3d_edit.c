@@ -412,7 +412,7 @@ static void viewops_data_create(
 
 	/* set the view from the camera, if view locking is enabled.
 	 * we may want to make this optional but for now its needed always */
-	ED_view3d_camera_lock_init(depsgraph, vod->v3d, vod->rv3d);
+	ED_view3d_camera_lock_init_ex(depsgraph, vod->v3d, vod->rv3d, false);
 
 	vod->init.dist = rv3d->dist;
 	vod->init.camzoom = rv3d->camzoom;
