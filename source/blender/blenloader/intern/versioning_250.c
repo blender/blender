@@ -2104,7 +2104,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 			for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->r.ffcodecdata.audio_channels = 2;
 				scene->audio.volume = 1.0f;
-				SEQ_BEGIN (scene->ed, seq)
+				SEQ_BEGIN(scene->ed, seq)
 				{
 					seq->pitch = 1.0f;
 				}

@@ -52,7 +52,6 @@
 #include "BLI_callbacks.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
-#include "BLI_threads.h"
 
 /* mostly init functions */
 #include "BKE_appdir.h"
