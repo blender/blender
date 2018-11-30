@@ -743,6 +743,28 @@ static void rna_UserDef_studiolight_spherical_harmonics_coefficients_get(Pointer
 	}
 }
 
+/* StudioLight.solid_lights */
+
+static void rna_UserDef_studiolight_solid_lights_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	rna_iterator_array_begin(iter, sl->light, sizeof(*sl->light), ARRAY_SIZE(sl->light), 0, NULL);
+}
+
+static int rna_UserDef_studiolight_solid_lights_length(PointerRNA *ptr)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	return ARRAY_SIZE(sl->light);
+}
+
+/* StudioLight.light_ambient */
+
+static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *values)
+{
+	StudioLight *sl = (StudioLight *)ptr->data;
+	copy_v3_v3(values, sl->light_ambient);
+}
+
 #else
 
 /* TODO(sergey): This technically belongs to blenlib, but we don't link
@@ -3385,6 +3407,21 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_funcs(prop, "rna_UserDef_studiolight_path_get", "rna_UserDef_studiolight_path_length", NULL);
 	RNA_def_property_ui_text(prop, "Path", "");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "solid_lights", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "light_param", "");
+	RNA_def_property_struct_type(prop, "UserSolidLight");
+	RNA_def_property_collection_funcs(prop, "rna_UserDef_studiolight_solid_lights_begin", "rna_iterator_array_next",
+	                                        "rna_iterator_array_end", "rna_iterator_array_get",
+	                                        "rna_UserDef_studiolight_solid_lights_length", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Solid Lights", "Lights user to display objects in solid draw mode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "light_ambient", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_UserDef_studiolight_light_ambient_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Ambient Color", "Color of the ambient light that uniformly lit the scene");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "path_irr_cache", PROP_STRING, PROP_DIRPATH);

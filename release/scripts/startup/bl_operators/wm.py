@@ -2480,18 +2480,21 @@ class WM_OT_studiolight_install(Operator):
 
 
 class WM_OT_studiolight_new(Operator):
-    """Create custom studio light from the studio light editor settings"""
+    """Save custom studio light from the studio light editor settings"""
     bl_idname = 'wm.studiolight_new'
-    bl_label = "Create custom Studio light"
+    bl_label = "Save custom Studio light"
 
     filename: StringProperty(
         name="Name",
         default="StudioLight",
     )
 
+    ask_overide = False
+
     def execute(self, context):
         import pathlib
         userpref = context.user_preferences
+        wm = context.window_manager
 
         path_studiolights = bpy.utils.user_resource('DATAFILES')
 
@@ -2508,8 +2511,13 @@ class WM_OT_studiolight_new(Operator):
 
         finalpath = str(path_studiolights.joinpath(self.filename));
         if pathlib.Path(finalpath + ".sl").is_file():
-            self.report({'ERROR'}, "File already exists")
-            return {'CANCELLED'}
+            if not self.ask_overide:
+                self.ask_overide = True
+                return wm.invoke_props_dialog(self, width=600)
+            else:
+                for studio_light in userpref.studio_lights:
+                    if studio_light.name == self.filename + ".sl":
+                        bpy.ops.wm.studiolight_uninstall(index=studio_light.index)
 
         userpref.studio_lights.new(path=finalpath)
 
@@ -2524,7 +2532,10 @@ class WM_OT_studiolight_new(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "filename")
+        if self.ask_overide:
+            layout.label(text="Warning, file already exists. Overwrite existing file?")
+        else:
+            layout.prop(self, "filename")
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -2532,6 +2543,7 @@ class WM_OT_studiolight_new(Operator):
 
 
 class WM_OT_studiolight_uninstall(Operator):
+    """Delete Studio Light"""
     bl_idname = 'wm.studiolight_uninstall'
     bl_label = "Uninstall Studio Light"
     index: bpy.props.IntProperty()
@@ -2552,6 +2564,28 @@ class WM_OT_studiolight_uninstall(Operator):
                 if studio_light.path_sh_cache:
                     self._remove_path(pathlib.Path(studio_light.path_sh_cache))
                 userpref.studio_lights.remove(studio_light)
+                return {'FINISHED'}
+        return {'CANCELLED'}
+
+
+class WM_OT_studiolight_copy_settings(Operator):
+    """Copy Studio Light settings to the Studio light editor"""
+    bl_idname = 'wm.studiolight_copy_settings'
+    bl_label = "Copy Studio Light settings"
+    index: bpy.props.IntProperty()
+
+    def execute(self, context):
+        userpref = context.user_preferences
+        system = userpref.system
+        for studio_light in userpref.studio_lights:
+            if studio_light.index == self.index:
+                system.light_ambient = studio_light.light_ambient
+                for sys_light, light in zip(system.solid_lights, studio_light.solid_lights):
+                    sys_light.use = light.use
+                    sys_light.diffuse_color = light.diffuse_color
+                    sys_light.specular_color = light.specular_color
+                    sys_light.smooth = light.smooth
+                    sys_light.direction = light.direction
                 return {'FINISHED'}
         return {'CANCELLED'}
 
@@ -2819,6 +2853,7 @@ classes = (
     WM_OT_studiolight_install,
     WM_OT_studiolight_new,
     WM_OT_studiolight_uninstall,
+    WM_OT_studiolight_copy_settings,
     WM_OT_studiolight_userpref_show,
     WM_OT_tool_set_by_name,
     WM_OT_toolbar,

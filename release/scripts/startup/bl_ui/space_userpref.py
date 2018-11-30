@@ -1516,8 +1516,13 @@ class StudioLightPanelMixin():
         row = box.row()
 
         row.template_icon(layout.icon(studio_light), scale=6.0)
-        op = row.operator('wm.studiolight_uninstall', text="", icon='REMOVE')
+        col = row.column()
+        op = col.operator('wm.studiolight_uninstall', text="", icon='REMOVE')
         op.index = studio_light.index
+
+        if studio_light.type == 'STUDIO':
+            op = col.operator('wm.studiolight_copy_settings', text="", icon='IMPORT')
+            op.index = studio_light.index
 
         box.label(text=studio_light.name)
 
@@ -1535,29 +1540,6 @@ class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
 class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
     bl_label = "Studio Lights"
     sl_type = 'STUDIO'
-
-    @classmethod
-    def poll(cls, context):
-        userpref = context.user_preferences
-        return (userpref.active_section == 'LIGHTS')
-
-    def opengl_light_buttons(self, layout, light):
-
-        col = layout.column()
-        col.active = light.use
-
-        col.prop(light, "use", text="Use Light")
-        col.prop(light, "diffuse_color", text="Diffuse")
-        col.prop(light, "specular_color", text="Specular")
-        col.prop(light, "smooth")
-        col.prop(light, "direction")
-
-    def draw(self, context):
-        userpref = context.user_preferences
-        lights = self._get_lights(userpref)
-        layout = self.layout
-
-        self.draw_light_list(layout, lights)
 
 
 class USERPREF_PT_studiolight_light_editor(Panel):
