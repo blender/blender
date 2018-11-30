@@ -307,8 +307,6 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	LIST_SWAP(addons);
 	LIST_SWAP(user_keymaps);
 
-	DATA_SWAP(light);
-
 	DATA_SWAP(font_path_ui);
 	DATA_SWAP(font_path_ui_mono);
 	DATA_SWAP(keyconfigstr);

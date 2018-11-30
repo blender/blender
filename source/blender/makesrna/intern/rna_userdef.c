@@ -329,7 +329,11 @@ static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, Pointe
 {
 	/* if all lights are off gpu_draw resets them all, [#27627]
 	 * so disallow them all to be disabled */
-	if (U.light[0].flag == 0 && U.light[1].flag == 0 && U.light[2].flag == 0) {
+	if (U.light_param[0].flag == 0 &&
+	    U.light_param[1].flag == 0 &&
+	    U.light_param[2].flag == 0 &&
+	    U.light_param[3].flag == 0)
+	{
 		SolidLight *light = ptr->data;
 		light->flag |= 1;
 	}
@@ -636,7 +640,7 @@ static StudioLight *rna_StudioLights_load(UserDef *UNUSED(userdef), const char *
 /* TODO: Make it accept arguments. */
 static StudioLight *rna_StudioLights_new(UserDef *userdef, const char *name)
 {
-	return BKE_studiolight_create(name, userdef->light, userdef->light_ambient);
+	return BKE_studiolight_create(name, userdef->light_param, userdef->light_ambient);
 }
 
 /* StudioLight.name */
@@ -4300,7 +4304,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* System & OpenGL */
 
 	prop = RNA_def_property(srna, "solid_lights", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "light", "");
+	RNA_def_property_collection_sdna(prop, NULL, "light_param", "");
 	RNA_def_property_struct_type(prop, "UserSolidLight");
 	RNA_def_property_ui_text(prop, "Solid Lights", "Lights user to display objects in solid draw mode");
 

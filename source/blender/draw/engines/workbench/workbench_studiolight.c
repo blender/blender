@@ -54,13 +54,6 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd, StudioLight *studiolig
 	/* Studio Lights. */
 	for (int i = 0; i < 4; i++) {
 		WORKBENCH_UBO_Light *light = &wd->lights[i];
-		/* TODO use 4 lights in studiolights prefs. */
-		if (i > 2) {
-			copy_v3_fl3(light->light_direction, 1.0f, 0.0f, 0.0f);
-			copy_v3_fl(light->specular_color, 0.0f);
-			copy_v3_fl(light->diffuse_color, 0.0f);
-			continue;
-		}
 
 		SolidLight *sl = &studiolight->light[i];
 		if (sl->flag) {

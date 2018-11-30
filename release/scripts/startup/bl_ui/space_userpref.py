@@ -1602,6 +1602,10 @@ class USERPREF_PT_studiolight_lights_editor(Panel):
         self.opengl_light_buttons(colsplit, light)
 
         light = system.solid_lights[2]
+        colsplit = column.split(factor=0.85)
+        self.opengl_light_buttons(colsplit, light)
+
+        light = system.solid_lights[3]
         self.opengl_light_buttons(column, light)
 
         layout.separator()

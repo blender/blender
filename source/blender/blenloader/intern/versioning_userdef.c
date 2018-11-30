@@ -421,20 +421,29 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	 */
 	{
 		/* (keep this block even if it becomes empty). */
-		copy_v4_fl4(userdef->light[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
-		copy_v4_fl4(userdef->light[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
-		copy_v4_fl4(userdef->light[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
-		userdef->light[0].smooth = 0.1;
+		copy_v4_fl4(userdef->light_param[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
+		copy_v4_fl4(userdef->light_param[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
+		copy_v4_fl4(userdef->light_param[0].spec, 0.318547, 0.318547, 0.318547, 1.000000);
+		userdef->light_param[0].flag = 1;
+		userdef->light_param[0].smooth = 0.1;
 
-		copy_v4_fl4(userdef->light[1].vec, 0.788218, 0.593482, -0.162765, 0.0);
-		copy_v4_fl4(userdef->light[1].col, 0.267115, 0.269928, 0.358840, 1.000000);
-		copy_v4_fl4(userdef->light[1].spec, 0.090838, 0.090838, 0.090838, 1.000000);
-		userdef->light[1].smooth = 0.25;
+		copy_v4_fl4(userdef->light_param[1].vec, 0.788218, 0.593482, -0.162765, 0.0);
+		copy_v4_fl4(userdef->light_param[1].col, 0.267115, 0.269928, 0.358840, 1.000000);
+		copy_v4_fl4(userdef->light_param[1].spec, 0.090838, 0.090838, 0.090838, 1.000000);
+		userdef->light_param[1].flag = 1;
+		userdef->light_param[1].smooth = 0.25;
 
-		copy_v4_fl4(userdef->light[2].vec, 0.696472, -0.696472, -0.172785, 0.0);
-		copy_v4_fl4(userdef->light[2].col, 0.293216, 0.304662, 0.401968, 1.000000);
-		copy_v4_fl4(userdef->light[2].spec, 0.069399, 0.020331, 0.020331, 1.000000);
-		userdef->light[2].smooth = 0.5;
+		copy_v4_fl4(userdef->light_param[2].vec, 0.696472, -0.696472, -0.172785, 0.0);
+		copy_v4_fl4(userdef->light_param[2].col, 0.293216, 0.304662, 0.401968, 1.000000);
+		copy_v4_fl4(userdef->light_param[2].spec, 0.069399, 0.020331, 0.020331, 1.000000);
+		userdef->light_param[2].flag = 1;
+		userdef->light_param[2].smooth = 0.4;
+
+		copy_v4_fl4(userdef->light_param[3].vec, 0.021053, -0.989474, 0.143173, 0.0);
+		copy_v4_fl4(userdef->light_param[3].col, 0.0, 0.0, 0.0, 1.0);
+		copy_v4_fl4(userdef->light_param[3].spec, 0.072234, 0.082253, 0.162642, 1.000000);
+		userdef->light_param[3].flag = 1;
+		userdef->light_param[3].smooth = 0.7;
 
 		copy_v4_fl4(userdef->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
 	}
