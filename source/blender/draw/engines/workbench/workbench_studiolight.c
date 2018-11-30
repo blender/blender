@@ -47,7 +47,7 @@ void studiolight_update_world(WORKBENCH_PrivateData *wpd, StudioLight *studiolig
 		unit_m4(rot_matrix);
 	}
 
-	if (U.edit_solid_light) {
+	if (U.edit_studio_light) {
 		studiolight = BKE_studiolight_studio_edit_get();
 	}
 

@@ -1560,8 +1560,8 @@ class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
         self.draw_light_list(layout, lights)
 
 
-class USERPREF_PT_studiolight_lights_editor(Panel):
-    bl_label = "Studio Lights Editor"
+class USERPREF_PT_studiolight_light_editor(Panel):
+    bl_label = "Studio Light Editor"
     bl_parent_id = "USERPREF_PT_studiolight_lights"
     bl_space_type = 'USER_PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1584,14 +1584,14 @@ class USERPREF_PT_studiolight_lights_editor(Panel):
         system = userpref.system
 
         row = layout.row()
-        row.prop(system, "edit_solid_light", toggle=True)
+        row.prop(system, "edit_studio_light", toggle=True)
         row.operator('wm.studiolight_new', text="Save as Studio light", icon="FILE_TICK")
 
         layout.separator()
 
         layout.use_property_split = True
         column = layout.split()
-        column.active = system.edit_solid_light
+        column.active = system.edit_studio_light
 
         light = system.solid_lights[0]
         colsplit = column.split(factor=0.85)
@@ -1628,7 +1628,7 @@ classes = (
     USERPREF_MT_addons_online_resources,
     USERPREF_PT_addons,
     USERPREF_PT_studiolight_lights,
-    USERPREF_PT_studiolight_lights_editor,
+    USERPREF_PT_studiolight_light_editor,
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
 )

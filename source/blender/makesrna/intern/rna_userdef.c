@@ -3488,11 +3488,11 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "UserSolidLight", NULL);
 	RNA_def_struct_sdna(srna, "SolidLight");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
-	RNA_def_struct_ui_text(srna, "Solid Light", "Light used for OpenGL lighting in solid draw mode");
+	RNA_def_struct_ui_text(srna, "Solid Light", "Light used for Studio lighting in solid draw mode");
 
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
-	RNA_def_property_ui_text(prop, "Enabled", "Enable this OpenGL light in solid draw mode");
+	RNA_def_property_ui_text(prop, "Enabled", "Enable this light in solid draw mode");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop = RNA_def_property(srna, "smooth", PROP_FLOAT, PROP_FACTOR);
@@ -3506,7 +3506,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_dir);
-	RNA_def_property_ui_text(prop, "Direction", "Direction that the OpenGL light is shining");
+	RNA_def_property_ui_text(prop, "Direction", "Direction that the light is shining");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop = RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
@@ -4314,10 +4314,10 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ambient Color", "Color of the ambient light that uniformly lit the scene");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
-	prop = RNA_def_property(srna, "edit_solid_light", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "edit_solid_light", 1);
-	RNA_def_property_ui_text(prop, "Edit Solid Light",
-	                               "View the result of the solid lights in the viewport");
+	prop = RNA_def_property(srna, "edit_studio_light", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edit_studio_light", 1);
+	RNA_def_property_ui_text(prop, "Edit Studio Light",
+	                               "View the result of the studio light editor in the viewport");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
 	prop = RNA_def_property(srna, "use_weight_color_range", PROP_BOOLEAN, PROP_NONE);

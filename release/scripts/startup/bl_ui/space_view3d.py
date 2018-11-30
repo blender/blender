@@ -4218,11 +4218,11 @@ class VIEW3D_PT_shading_lighting(Panel):
                 userpref = context.user_preferences
                 system = userpref.system
 
-                if not system.edit_solid_light:
+                if not system.edit_studio_light:
                     sub.scale_y = 0.6  # smaller studiolight preview
                     sub.template_icon_view(shading, "studio_light", scale=3)
                 else:
-                    sub.prop(system, "edit_solid_light", text="Disable Studio Light Edit", icon="NONE", toggle=True)
+                    sub.prop(system, "edit_studio_light", text="Disable Studio Light Edit", icon="NONE", toggle=True)
 
                 col = split.column()
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
