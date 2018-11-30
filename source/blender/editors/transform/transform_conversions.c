@@ -8153,7 +8153,7 @@ void flushTransPaintCurve(TransInfo *t)
 
 static void createTransGPencil(bContext *C, TransInfo *t)
 {
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -8262,6 +8262,9 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 	unit_m3(mtx);
 
 	/* Second Pass: Build transdata array */
+	int totselected = 0;
+	float global_center[3] = { 0.0f, 0.0f, 0.0f };
+
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* only editable and visible layers are considered */
 		if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
@@ -8376,8 +8379,13 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 
 									td->flag = 0;
 
-									if (pt->flag & GP_SPOINT_SELECT)
+									if (pt->flag & GP_SPOINT_SELECT) {
 										td->flag |= TD_SELECTED;
+
+										/* prepare center */
+										add_v3_v3(global_center, &pt->x);
+										totselected++;
+									}
 
 									/* for other transform modes (e.g. shrink-fatten), need to additional data
 									 * but never for scale or mirror
@@ -8435,6 +8443,13 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 			}
 		}
 	}
+
+	/* set global center */
+	CLAMP_MIN(totselected, 1);
+	mul_v3_fl(global_center, 1.0f / totselected);
+	add_v3_v3(global_center, obact->obmat[3]);
+	copy_v3_v3(t->center_global, global_center);
+	t->flag |= T_OVERRIDE_CENTER;
 }
 
 static int countAndCleanTransDataContainer(TransInfo *t)
