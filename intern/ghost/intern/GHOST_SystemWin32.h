@@ -224,9 +224,10 @@ public:
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_WindowWin32 *window, int mouseX, int mouseY, void *data);
 
 	/**
-	 * Informs if the system provides native dialogs (eg. confirm quit)
+	 * Confirms quitting he program when there is just one window left open
+	 * in the application
 	 */
-	virtual bool supportsNativeDialogs(void) { return false; }
+	int confirmQuit(GHOST_IWindow *window) const;
 
 protected:
 	/**
