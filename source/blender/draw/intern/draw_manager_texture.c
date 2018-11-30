@@ -36,6 +36,7 @@ static bool drw_texture_format_supports_framebuffer(GPUTextureFormat format)
 		case GPU_R16F:
 		case GPU_R16I:
 		case GPU_R16UI:
+		case GPU_R16:
 		case GPU_R32F:
 		case GPU_R32UI:
 		case GPU_RG8:

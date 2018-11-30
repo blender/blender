@@ -324,6 +324,7 @@ static uint gpu_get_bytesize(GPUTextureFormat data_type)
 		case GPU_R16UI:
 		case GPU_R16I:
 		case GPU_RG8:
+		case GPU_R16:
 			return 2;
 		case GPU_R8:
 			return 1;
@@ -357,6 +358,7 @@ static GLenum gpu_get_gl_internalformat(GPUTextureFormat format)
 		case GPU_R16UI: return GL_R16UI;
 		case GPU_RG8: return GL_RG8;
 		case GPU_RG16UI: return GL_RG16UI;
+		case GPU_R16: return GL_R16;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
 		case GPU_R11F_G11F_B10F: return GL_R11F_G11F_B10F;
