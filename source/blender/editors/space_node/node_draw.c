@@ -174,11 +174,11 @@ void ED_node_tag_update_nodetree(Main *bmain, bNodeTree *ntree, bNode *node)
 
 	/* look through all datablocks, to support groups */
 	if (do_tag_update) {
-		FOREACH_NODETREE(bmain, tntree, id) {
+		FOREACH_NODETREE_BEGIN(bmain, tntree, id) {
 			/* check if nodetree uses the group */
 			if (ntreeHasTree(tntree, ntree))
 				ED_node_tag_update_id(id);
-		} FOREACH_NODETREE_END
+		} FOREACH_NODETREE_END;
 	}
 
 	if (ntree->type == NTREE_TEXTURE)

@@ -1136,7 +1136,7 @@ static void image_sequence_get_frame_ranges(PointerRNA *ptr, ListBase *frames_al
 		BLI_addtail(&frame_range->frames, frame);
 		MEM_freeN(filename);
 	}
-	RNA_END
+	RNA_END;
 }
 
 static int image_cmp_frame(const void *a, const void *b)

@@ -474,8 +474,7 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
 	{
 		/* handle cache freeing above */
 		BKE_sequence_free_ex(scene, seq, false, do_id_user);
-	}
-	SEQ_END
+	} SEQ_END;
 
 	BLI_freelistN(&ed->metastack);
 

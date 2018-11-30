@@ -90,7 +90,7 @@ void BKE_sequence_iterator_end(SeqIterator *iter);
 #define SEQ_END                                                               \
 		}                                                                     \
 		BKE_sequence_iterator_end(&iter_macro);                               \
-	}
+	} ((void)0)
 
 typedef struct SeqRenderData {
 	struct Main *bmain;

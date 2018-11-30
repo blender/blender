@@ -2986,7 +2986,7 @@ void ED_node_init_butfuncs(void)
 	NodeSocketTypeUndefined.interface_draw_color = node_socket_undefined_interface_draw_color;
 
 	/* node type ui functions */
-	NODE_TYPES_BEGIN(ntype)
+	NODE_TYPES_BEGIN(ntype) {
 		/* default ui functions */
 		ntype->draw_nodetype = node_draw_default;
 		ntype->draw_nodetype_prepare = node_update_default;
@@ -3004,7 +3004,7 @@ void ED_node_init_butfuncs(void)
 
 		/* define update callbacks for socket properties */
 		node_template_properties_update(ntype);
-	NODE_TYPES_END
+	} NODE_TYPES_END;
 
 	/* tree type icons */
 	ntreeType_Composite->ui_icon = ICON_NODE_COMPOSITING;

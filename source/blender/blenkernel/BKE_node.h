@@ -37,7 +37,7 @@
 
 #include "DNA_listBase.h"
 
-/* for FOREACH_NODETREE */
+/* for FOREACH_NODETREE_BEGIN */
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -410,7 +410,7 @@ struct GHashIterator *nodeTypeGetIterator(void);
 #define NODE_TYPES_END \
 	} \
 	BLI_ghashIterator_free(__node_type_iter__); \
-}
+} ((void)0)
 
 struct bNodeSocketType *nodeSocketTypeFind(const char *idname);
 void			nodeRegisterSocketType(struct bNodeSocketType *stype);
@@ -646,17 +646,17 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
  * Examples:
  *
  * \code{.c}
- * FOREACH_NODETREE(bmain, nodetree, id) {
+ * FOREACH_NODETREE_BEGIN(bmain, nodetree, id) {
  *     if (id == nodetree)
  *         printf("This is a linkable node tree");
- * } FOREACH_NODETREE_END
+ * } FOREACH_NODETREE_END;
  *
- * FOREACH_NODETREE(bmain, nodetree, id) {
+ * FOREACH_NODETREE_BEGIN(bmain, nodetree, id) {
  *     if (nodetree->idname == "ShaderNodeTree")
  *         printf("This is a shader node tree);
  *     if (GS(id) == ID_MA)
  *         printf(" and it's owned by a material");
- * } FOREACH_NODETREE_END
+ * } FOREACH_NODETREE_END;
  * \endcode
  *
  * \{
@@ -677,7 +677,7 @@ void BKE_node_tree_iter_init(struct NodeTreeIterStore *ntreeiter, struct Main *b
 bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
                              struct bNodeTree **r_nodetree, struct ID **r_id);
 
-#define FOREACH_NODETREE(bmain, _nodetree, _id) \
+#define FOREACH_NODETREE_BEGIN(bmain, _nodetree, _id) \
 { \
 	struct NodeTreeIterStore _nstore; \
 	bNodeTree *_nodetree; \
@@ -690,7 +690,7 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 #define FOREACH_NODETREE_END \
 		} \
 	} \
-}
+} ((void)0)
 /** \} */
 
 

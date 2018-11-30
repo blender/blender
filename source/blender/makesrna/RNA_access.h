@@ -1141,7 +1141,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 #define RNA_END                                                               \
 		}                                                                     \
 		RNA_property_collection_end(&rna_macro_iter);                         \
-	}
+	} ((void)0)
 
 #define RNA_PROP_BEGIN(sptr, itemptr, prop)                                   \
 	{                                                                         \

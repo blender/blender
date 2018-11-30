@@ -460,8 +460,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 		}
 
 		BLI_array_append(sorted_ntypes, ntype);
-	}
-	NODE_TYPES_END
+	} NODE_TYPES_END;
 
 	qsort(sorted_ntypes, BLI_array_len(sorted_ntypes), sizeof(bNodeType *), ui_node_item_name_compare);
 

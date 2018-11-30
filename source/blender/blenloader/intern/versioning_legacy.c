@@ -1254,8 +1254,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 				{
 					if (seq->type == SEQ_TYPE_IMAGE || seq->type == SEQ_TYPE_MOVIE)
 						seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 
 			sce = sce->id.next;
@@ -2393,8 +2392,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			{
 				if (seq->blend_mode == 0)
 					seq->blend_opacity = 100.0f;
-			}
-			SEQ_END
+			} SEQ_END;
 		}
 	}
 
@@ -2550,8 +2548,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 					if (seq->strip && seq->strip->proxy) {
 						seq->strip->proxy->quality = 90;
 					}
-				}
-				SEQ_END
+				} SEQ_END;
 			}
 
 			sce = sce->id.next;

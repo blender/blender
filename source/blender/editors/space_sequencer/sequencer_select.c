@@ -382,8 +382,8 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 				seq->flag |= SELECT;
 				recurs_sel_seq(seq);
 			}
-		}
-		SEQ_END
+		} SEQ_END;
+
 		{
 			SpaceSeq *sseq = CTX_wm_space_seq(C);
 			if (sseq && sseq->flag & SEQ_MARKER_TRANS) {
