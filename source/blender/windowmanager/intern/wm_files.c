@@ -475,7 +475,8 @@ void wm_file_read_report(bContext *C, Main *bmain)
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C, const bool is_startup_file, const bool reset_app_template)
+static void wm_file_read_post(
+        bContext *C, const bool is_startup_file, const bool is_factory_startup, const bool reset_app_template)
 {
 	bool addons_loaded = false;
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -527,6 +528,9 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	/* important to do before NULL'ing the context */
 	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
+	if (is_factory_startup) {
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_FACTORY_STARTUP_POST);
+	}
 
 #if 1
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
@@ -633,7 +637,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 			}
 		}
 
-		wm_file_read_post(C, false, false);
+		wm_file_read_post(C, false, false, false);
 
 		success = true;
 	}
@@ -736,12 +740,14 @@ static bool wm_app_template_has_userpref(const char *app_template)
 void wm_homefile_read(
         bContext *C, ReportList *reports,
         bool use_factory_settings, bool use_empty_data, bool use_userdef,
-        const char *filepath_startup_override, const char *app_template_override)
+        const char *filepath_startup_override, const char *app_template_override,
+        bool *r_is_factory_startup)
 {
 	Main *bmain = G_MAIN;  /* Context does not always have valid main pointer here... */
 	ListBase wmbase;
 	bool success = false;
 
+	bool filepath_startup_is_factory = true;
 	char filepath_startup[FILE_MAX];
 	char filepath_userdef[FILE_MAX];
 
@@ -761,6 +767,9 @@ void wm_homefile_read(
 	 */
 	bool read_userdef_from_memory = false;
 	eBLOReadSkip skip_flags = use_userdef ? 0 : BLO_READ_SKIP_USERDEF;
+
+	/* True if we load startup.blend from memory or use app-template startup.blend which the user hasn't saved. */
+	bool is_factory_startup = true;
 
 	/* options exclude eachother */
 	BLI_assert((use_factory_settings && filepath_startup_override) == 0);
@@ -787,6 +796,7 @@ void wm_homefile_read(
 	if (!use_factory_settings) {
 		if (cfgdir) {
 			BLI_path_join(filepath_startup, sizeof(filepath_startup), cfgdir, BLENDER_STARTUP_FILE, NULL);
+			filepath_startup_is_factory = false;
 			if (use_userdef) {
 				BLI_path_join(filepath_userdef, sizeof(filepath_startup), cfgdir, BLENDER_USERPREF_FILE, NULL);
 			}
@@ -797,6 +807,7 @@ void wm_homefile_read(
 
 		if (filepath_startup_override) {
 			BLI_strncpy(filepath_startup, filepath_startup_override, FILE_MAX);
+			filepath_startup_is_factory = false;
 		}
 	}
 
@@ -838,7 +849,9 @@ void wm_homefile_read(
 	}
 
 	if ((app_template != NULL) && (app_template[0] != '\0')) {
-		if (!BKE_appdir_app_template_id_search(app_template, app_template_system, sizeof(app_template_system))) {
+		if (!BKE_appdir_app_template_id_search(
+		            app_template, app_template_system, sizeof(app_template_system)))
+		{
 			/* Can safely continue with code below, just warn it's not found. */
 			BKE_reportf(reports, RPT_WARNING, "Application Template '%s' not found.", app_template);
 		}
@@ -850,6 +863,7 @@ void wm_homefile_read(
 		if (!use_factory_settings) {
 			BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template, NULL);
 			BLI_path_join(filepath_startup, sizeof(filepath_startup), app_template_config, BLENDER_STARTUP_FILE, NULL);
+			filepath_startup_is_factory = false;
 			if (BLI_access(filepath_startup, R_OK) != 0) {
 				filepath_startup[0] = '\0';
 			}
@@ -860,6 +874,7 @@ void wm_homefile_read(
 
 		if (filepath_startup[0] == '\0') {
 			BLI_path_join(filepath_startup, sizeof(filepath_startup), app_template_system, BLENDER_STARTUP_FILE, NULL);
+			filepath_startup_is_factory = true;
 
 			/* Update defaults only for system templates. */
 			update_defaults = true;
@@ -881,8 +896,11 @@ void wm_homefile_read(
 				printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", filepath_startup);
 			success = false;
 		}
-		if (success && update_defaults) {
-			BLO_update_defaults_startup_blend(CTX_data_main(C), app_template);
+		if (success) {
+			if (update_defaults) {
+				BLO_update_defaults_startup_blend(CTX_data_main(C), app_template);
+			}
+			is_factory_startup = filepath_startup_is_factory;
 		}
 	}
 
@@ -987,7 +1005,11 @@ void wm_homefile_read(
 	/* start with save preference untitled.blend */
 	G.save_over = 0;
 
-	wm_file_read_post(C, true, reset_app_template);
+	wm_file_read_post(C, true, is_factory_startup, reset_app_template);
+
+	if (r_is_factory_startup) {
+		*r_is_factory_startup = is_factory_startup;
+	}
 }
 
 /** \name WM History File API
@@ -1741,7 +1763,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		app_template = WM_init_state_app_template_get();
 	}
 
-	wm_homefile_read(C, op->reports, use_factory_settings, use_empty_data, use_userdef, filepath, app_template);
+	wm_homefile_read(C, op->reports, use_factory_settings, use_empty_data, use_userdef, filepath, app_template, NULL);
 	if (use_splash) {
 		WM_init_splash(C);
 	}
