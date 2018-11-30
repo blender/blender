@@ -6550,9 +6550,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		else sce->eevee.light_cache = NULL;
 	}
 	else {
-		/* else read the cache from file. */
+		/* else try to read the cache from file. */
+		sce->eevee.light_cache = newdataadr(fd, sce->eevee.light_cache);
 		if (sce->eevee.light_cache) {
-			sce->eevee.light_cache = newdataadr(fd, sce->eevee.light_cache);
 			direct_link_lightcache(fd, sce->eevee.light_cache);
 		}
 	}
