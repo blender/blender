@@ -3125,7 +3125,10 @@ void wm_event_do_handlers(bContext *C)
 
 			/* If press was handled, we don't want to do click. This way
 			 * press in tool keymap can override click in editor keymap.*/
-			if (event->val == KM_PRESS && !wm_action_not_handled(action)) {
+			if (ISMOUSE_BUTTON(event->type) &&
+			    event->val == KM_PRESS &&
+			    !wm_action_not_handled(action))
+			{
 				win->eventstate->check_click = false;
 			}
 
