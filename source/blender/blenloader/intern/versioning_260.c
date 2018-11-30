@@ -344,7 +344,7 @@ static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
 		if (layer->type == CD_MLOOPCOL) {
 			mloopcol = (MLoopCol *)layer->data;
 			for (i = 0; i < me->totloop; i++, mloopcol++) {
-				SWAP(unsigned char, mloopcol->r, mloopcol->b);
+				SWAP(uchar, mloopcol->r, mloopcol->b);
 			}
 		}
 	}
@@ -428,7 +428,7 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
 		}
 
 		/* initialize custom node color */
-		node->color[0] = node->color[1] = node->color[2] = 0.608f;	/* default theme color */
+		node->color[0] = node->color[1] = node->color[2] = 0.608f;  /* default theme color */
 	}
 }
 
@@ -972,7 +972,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					if (act->type == ACT_CAMERA) {
 						bCameraActuator *ba = act->data;
 
-						if (ba->axis == (float) 'x') ba->axis = OB_POSX;
+						if (ba->axis == (float)'x') ba->axis = OB_POSX;
 						else if (ba->axis == (float)'y') ba->axis = OB_POSY;
 						/* don't do an if/else to avoid imediate subversion bump*/
 //						ba->axis=((ba->axis == (float)'x') ? OB_POSX_X : OB_POSY);
@@ -1045,7 +1045,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 			for (md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_Cloth) {
-					ClothModifierData *clmd = (ClothModifierData *) md;
+					ClothModifierData *clmd = (ClothModifierData *)md;
 					if (clmd->sim_parms)
 						clmd->sim_parms->vel_damping = 1.0f;
 				}
@@ -1506,7 +1506,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						ColorBalanceModifierData *cbmd;
 
 						smd = BKE_sequence_modifier_new(seq, NULL, seqModifierType_ColorBalance);
-						cbmd = (ColorBalanceModifierData *) smd;
+						cbmd = (ColorBalanceModifierData *)smd;
 
 						cbmd->color_balance = *strip->color_balance;
 
@@ -1745,7 +1745,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			ScrArea *sa;
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
-				if ( sa->spacetype == SPACE_LOGIC)
+				if (sa->spacetype == SPACE_LOGIC)
 					do_version_logic_264(&sa->regionbase);
 
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
@@ -1954,7 +1954,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		for (cu = bmain->curve.first; cu; cu = cu->id.next) {
 			if (cu->flag & (CU_FRONT | CU_BACK)) {
-				if ( cu->ext1 != 0.0f || cu->ext2 != 0.0f) {
+				if (cu->ext1 != 0.0f || cu->ext2 != 0.0f) {
 					Nurb *nu;
 
 					for (nu = cu->nurb.first; nu; nu = nu->next) {
@@ -2085,7 +2085,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			bNode *node;
 			FOREACH_NODETREE(bmain, ntree, id) {
 				if (id == &ntree->id)
-					continue;	/* already fixed for node groups */
+					continue;   /* already fixed for node groups */
 
 				for (node = ntree->nodes.first; node; node = node->next)
 					nodeUniqueName(ntree, node);
@@ -2454,8 +2454,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						SpaceOops *so = (SpaceOops *)sl;
 
 						if (!ELEM(so->outlinevis, SO_ALL_SCENES, SO_CUR_SCENE, SO_VISIBLE, SO_SELECTED, SO_ACTIVE,
-						                          SO_SAME_TYPE, SO_GROUPS, SO_LIBRARIES, SO_SEQUENCE, SO_DATABLOCKS,
-						                          SO_USERDEF))
+						          SO_SAME_TYPE, SO_GROUPS, SO_LIBRARIES, SO_SEQUENCE, SO_DATABLOCKS,
+						          SO_USERDEF))
 						{
 							so->outlinevis = SO_ALL_SCENES;
 						}

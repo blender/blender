@@ -727,10 +727,10 @@ static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
 		}
 		writestruct_at_address(wd, DATA, PreviewImage, 1, prv_orig, &prv);
 		if (prv.rect[0]) {
-			writedata(wd, DATA, prv.w[0] * prv.h[0] * sizeof(unsigned int), prv.rect[0]);
+			writedata(wd, DATA, prv.w[0] * prv.h[0] * sizeof(uint), prv.rect[0]);
 		}
 		if (prv.rect[1]) {
-			writedata(wd, DATA, prv.w[1] * prv.h[1] * sizeof(unsigned int), prv.rect[1]);
+			writedata(wd, DATA, prv.w[1] * prv.h[1] * sizeof(uint), prv.rect[1]);
 		}
 	}
 }
@@ -3737,7 +3737,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 }
 
 /* preview image, first 2 values are width and height
- * second are an RGBA image (unsigned char)
+ * second are an RGBA image (uchar)
  * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
  */
 static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)

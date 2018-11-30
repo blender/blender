@@ -199,7 +199,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 
 			for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
 				if (space_link->spacetype == SPACE_CLIP) {
-					SpaceClip *space_clip = (SpaceClip *) space_link;
+					SpaceClip *space_clip = (SpaceClip *)space_link;
 					space_clip->flag &= ~SC_MANUAL_CALIBRATION;
 				}
 			}

@@ -399,7 +399,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					SpaceLink *space_link;
 					for (space_link = area->spacedata.first; space_link; space_link = space_link->next) {
 						if (space_link->spacetype == SPACE_CLIP) {
-							SpaceClip *space_clip = (SpaceClip *) space_link;
+							SpaceClip *space_clip = (SpaceClip *)space_link;
 							if (space_clip->mode != SC_MODE_MASKEDIT) {
 								space_clip->mode = SC_MODE_TRACKING;
 							}
@@ -671,7 +671,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 273, 1)) {
-#define	BRUSH_RAKE (1 << 7)
+#define BRUSH_RAKE (1 << 7)
 #define BRUSH_RANDOM_ROTATION (1 << 25)
 
 		Brush *br;
@@ -962,7 +962,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						}
 						case SPACE_IMAGE:
 						{
-							SpaceImage *sima = (SpaceImage *) sl;
+							SpaceImage *sima = (SpaceImage *)sl;
 							sima->iuser.flag |= IMA_SHOW_STEREO;
 							break;
 						}
@@ -1067,7 +1067,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		{
 			bScreen *screen;
-#define RV3D_VIEW_PERSPORTHO	 7
+#define RV3D_VIEW_PERSPORTHO     7
 			for (screen = bmain->screen.first; screen; screen = screen->id.next) {
 				ScrArea *sa;
 				for (sa = screen->areabase.first; sa; sa = sa->next) {
@@ -1096,7 +1096,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		{
 			Lamp *lamp;
-#define LA_YF_PHOTON	5
+#define LA_YF_PHOTON    5
 			for (lamp = bmain->lamp.first; lamp; lamp = lamp->id.next) {
 				if (lamp->type == LA_YF_PHOTON) {
 					lamp->type = LA_LOCAL;

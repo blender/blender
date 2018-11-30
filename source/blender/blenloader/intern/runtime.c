@@ -57,7 +57,7 @@
 
 static int handle_read_msb_int(int handle)
 {
-	unsigned char buf[4];
+	uchar buf[4];
 
 	if (read(handle, buf, 4) != 4)
 		return -1;
