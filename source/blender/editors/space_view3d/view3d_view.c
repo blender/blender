@@ -154,7 +154,7 @@ void ED_view3d_smooth_view_ex(
 	 * we allow camera option locking to initialize the view settings from the camera.
 	 */
 	if (sview->camera == NULL && sview->camera_old == NULL) {
-		ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, true);
+		ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
 	}
 
 	/* store the options we want to end with */
