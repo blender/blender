@@ -24,7 +24,9 @@ flat in float hair_rand;
 
 layout(location=0) out uint objectId;
 layout(location=1) out vec4 diffuseColor;
+#ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
 layout(location=2) out vec4 specularColor;
+#endif
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 #  ifdef WORKBENCH_ENCODE_NORMALS
 layout(location=3) out vec2 normalViewport;
@@ -49,10 +51,6 @@ void main()
 	}
 #else
 	diffuseColor = vec4(materialDiffuseColor.rgb, 0.0);
-#  ifdef STUDIOLIGHT_TYPE_MATCAP
-	specularColor = vec4(materialDiffuseColor.rgb, 0.0);
-
-#  endif
 #endif /* V3D_SHADING_TEXTURE_COLOR */
 
 #ifdef HAIR_SHADER

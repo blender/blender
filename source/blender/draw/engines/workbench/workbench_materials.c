@@ -59,17 +59,8 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
 	}
-	if (SSAO_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SSAO\n");
-	}
-	if (CURVATURE_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_CURVATURE\n");
-		if (U.pixelsize > 1.5f) {
-			BLI_dynstr_appendf(ds, "#define CURVATURE_OFFSET 2\n");
-		}
-		else {
-			BLI_dynstr_appendf(ds, "#define CURVATURE_OFFSET 1\n");
-		}
+	if (SSAO_ENABLED(wpd) || CURVATURE_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define WB_CAVITY\n");
 	}
 	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SPECULAR_HIGHLIGHT\n");
@@ -82,15 +73,6 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	}
 	if (MATCAP_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_MATCAP\n");
-	}
-	if (STUDIOLIGHT_TYPE_WORLD_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_TYPE_WORLD\n");
-	}
-	if (STUDIOLIGHT_TYPE_STUDIO_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_TYPE_STUDIO\n");
-	}
-	if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
-		BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_TYPE_MATCAP\n");
 	}
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
@@ -147,21 +129,15 @@ int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_tex
 	int index = 0;
 	/* 1 bit V3D_SHADING_TEXTURE_COLOR */
 	SET_FLAG_FROM_TEST(index, use_textures, 1 << 0);
-	/* 2 bits FLAT/STUDIO/MATCAP/SCENE */
-	SET_FLAG_FROM_TEST(index, wpd->shading.light, wpd->shading.light << 1);
-	/* 1 bit V3D_SHADING_SPECULAR_HIGHLIGHT */
-	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT, 1 << 3);
-	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 4);
-	SET_FLAG_FROM_TEST(index, SSAO_ENABLED(wpd), 1 << 5);
-	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 6);
-	bool uses_curvature = CURVATURE_ENABLED(wpd);
-	SET_FLAG_FROM_TEST(index, uses_curvature, 1 << 7);
-	SET_FLAG_FROM_TEST(index, uses_curvature && (U.pixelsize > 1.5f), 1 << 8);
-	/* 2 bits STUDIOLIGHT_ORIENTATION */
-	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_TYPE_WORLD, 1 << 9);
-	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_TYPE_MATCAP, 1 << 10);
+	/* 2 bits FLAT/STUDIO/MATCAP + Specular highlight */
+	int ligh_flag = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
+	SET_FLAG_FROM_TEST(index, wpd->shading.light, ligh_flag << 1);
+	/* 3 bits for flags */
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 3);
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_CAVITY, 1 << 4);
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 5);
 	/* 1 bit for hair */
-	SET_FLAG_FROM_TEST(index, is_hair, 1 << 11);
+	SET_FLAG_FROM_TEST(index, is_hair, 1 << 6);
 	return index;
 }
 

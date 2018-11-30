@@ -74,9 +74,8 @@ void main()
 #elif defined(V3D_LIGHTING_MATCAP)
 	bool flipped = world_data.matcap_orientation != 0;
 	vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
-	vec3 object_color = texelFetch(specularBuffer, texel, 0).rgb;
 	vec3 matcap = textureLod(matcapImage, matcap_uv, 0.0).rgb;
-	vec3 shaded_color = matcap * object_color;
+	vec3 shaded_color = matcap * diffuse_color.rgb;
 
 #elif defined(V3D_LIGHTING_STUDIO)
 
@@ -91,15 +90,9 @@ void main()
 #endif
 
 	/* -------- POST EFFECTS --------- */
-#ifdef V3D_SHADING_SSAO
-	vec2 cavity = texelFetch(cavityBuffer, texel, 0).rg;
-	shaded_color *= 1.0 - cavity.x;
-	shaded_color *= 1.0 + cavity.y;
-#endif
-
-#ifdef V3D_SHADING_CURVATURE
-	float curvature = calculate_curvature(objectId, normalBuffer, texel, world_data.curvature_ridge, world_data.curvature_valley);
-	shaded_color *= curvature + 1.0;
+#ifdef WB_CAVITY
+	/* Using UNORM texture so decompress the range */
+	shaded_color *= texelFetch(cavityBuffer, texel, 0).r * CAVITY_BUFFER_RANGE;
 #endif
 
 #ifdef V3D_SHADING_SHADOW

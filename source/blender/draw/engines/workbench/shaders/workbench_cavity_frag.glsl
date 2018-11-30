@@ -3,6 +3,7 @@ out vec4 fragColor;
 uniform sampler2D depthBuffer;
 uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
+uniform usampler2D objectId;
 
 uniform vec2 invertedViewportSize;
 uniform mat4 WinMatrix; /* inverse WinMatrix */
@@ -10,6 +11,7 @@ uniform mat4 WinMatrix; /* inverse WinMatrix */
 uniform vec4 viewvecs[3];
 uniform vec4 ssao_params;
 uniform vec4 ssao_settings;
+uniform vec2 curvature_settings;
 uniform sampler2D ssao_jitter;
 
 layout(std140) uniform samples_block {
@@ -23,7 +25,7 @@ layout(std140) uniform samples_block {
 #define ssao_distance       ssao_settings.x
 #define ssao_factor_cavity  ssao_settings.y
 #define ssao_factor_edge    ssao_settings.z
-#define ssao_attenuation    ssao_settings.a
+#define ssao_attenuation    ssao_settings.w
 
 vec3 get_view_space_from_depth(in vec2 uvcoords, in float depth)
 {
@@ -54,6 +56,9 @@ void main()
 	vec2 screenco = vec2(gl_FragCoord.xy) * invertedViewportSize;
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 
+	float cavity = 0.0, edges = 0.0, curvature = 0.0;
+
+#ifdef USE_CAVITY
 	float depth = texelFetch(depthBuffer, texel, 0).x;
 	vec3 position = get_view_space_from_depth(screenco, depth);
 
@@ -63,8 +68,16 @@ void main()
 		normal_viewport = -normal_viewport;
 	}
 
-	float cavity = 0.0, edges = 0.0;
-	ssao_factors(depth, normal_viewport, position, screenco, cavity, edges);
 
-	fragColor = vec4(cavity, edges, 0.0, 1.0);
+	ssao_factors(depth, normal_viewport, position, screenco, cavity, edges);
+#endif
+
+#ifdef USE_CURVATURE
+	curvature = calculate_curvature(objectId, normalBuffer, texel, curvature_settings.x, curvature_settings.y);
+#endif
+
+	float final_cavity_factor = clamp((1.0 - cavity) * (1.0 + edges) * (1.0 + curvature), 0.0, 4.0);
+
+	/* Using UNORM render target so compress the range. */
+	fragColor = vec4(final_cavity_factor / CAVITY_BUFFER_RANGE);
 }
