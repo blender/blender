@@ -970,7 +970,6 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args, PyObjec
 	for (i = 0; i < 4; i++) {
 		PyObject *v = Vector_CreatePyObject(pa + 3 * i, 3, NULL);
 		PyList_SET_ITEM(list, i, v);
-		Py_DECREF(v);
 	}
 
 	ret = Py_BuildValue("[[ffff]O]", da[0], da[1], da[2], da[3], list);
