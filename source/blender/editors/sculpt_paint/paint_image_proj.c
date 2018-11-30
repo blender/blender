@@ -3076,8 +3076,7 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MLoopTri *
 #endif
 }
 
-static void proj_paint_state_viewport_init(
-        ProjPaintState *ps, const Depsgraph *depsgraph, const char symmetry_flag)
+static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmetry_flag)
 {
 	float mat[3][3];
 	float viewmat[4][4];
@@ -3138,7 +3137,7 @@ static void proj_paint_state_viewport_init(
 			invert_m4_m4(viewinv, viewmat);
 		}
 		else if (ps->source == PROJ_SRC_IMAGE_CAM) {
-			Object *cam_ob_eval = DEG_get_evaluated_object(depsgraph, ps->scene->camera);
+			Object *cam_ob_eval = DEG_get_evaluated_object(ps->depsgraph, ps->scene->camera);
 			CameraParams params;
 
 			/* viewmat & viewinv */
@@ -3852,7 +3851,7 @@ static void project_paint_begin(
 		proj_paint_state_cavity_init(ps);
 	}
 
-	proj_paint_state_viewport_init(ps, CTX_data_depsgraph(C), symmetry_flag);
+	proj_paint_state_viewport_init(ps, symmetry_flag);
 
 	/* calculate vert screen coords
 	 * run this early so we can calculate the x/y resolution of our bucket rect */
