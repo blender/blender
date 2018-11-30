@@ -1412,6 +1412,63 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 }
 
+static int localview_remove_from_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	bool changed = false;
+
+	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+		if (TESTBASE(v3d, base)) {
+			base->local_view_bits &= ~v3d->local_view_uuid;
+			ED_object_base_select(base, BA_DESELECT);
+
+			if (base == BASACT(view_layer)) {
+				view_layer->basact = NULL;
+			}
+			changed = true;
+		}
+	}
+
+	if (changed) {
+		DEG_on_visible_update(bmain, false);
+		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No object selected");
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static bool localview_remove_from_poll(bContext *C)
+{
+	if (CTX_data_edit_object(C) != NULL) {
+		return false;
+	}
+
+	View3D *v3d = CTX_wm_view3d(C);
+	return v3d && v3d->localvd;
+}
+
+void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove from Local View";
+	ot->description = "Move selected objects out of local view";
+	ot->idname = "VIEW3D_OT_localview_remove_from";
+
+	/* api callbacks */
+	ot->exec = localview_remove_from_exec;
+	ot->invoke = WM_operator_confirm;
+	ot->poll = localview_remove_from_poll;
+	ot->flag = OPTYPE_UNDO;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

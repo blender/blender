@@ -596,7 +596,7 @@ class VIEW3D_MT_view(Menu):
 
         layout.operator("view3d.view_all", text="Frame All").center = False
         layout.operator("view3d.view_persportho", text="Perspective/Orthographic")
-        layout.operator("view3d.localview")
+        layout.menu("VIEW3D_MT_view_local")
 
         layout.separator()
 
@@ -624,6 +624,17 @@ class VIEW3D_MT_view(Menu):
         layout.separator()
 
         layout.menu("INFO_MT_area")
+
+
+class VIEW3D_MT_view_local(Menu):
+    bl_label = "Local View"
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+
+        layout.operator("view3d.localview", text="Toggle Local View")
+        layout.operator("view3d.localview_remove_from")
 
 
 class VIEW3D_MT_view_cameras(Menu):
@@ -1723,6 +1734,7 @@ class VIEW3D_MT_object_specials(Menu):
     def draw(self, context):
 
         layout = self.layout
+        view = context.space_data
 
         obj = context.object
         is_eevee = context.scene.render.engine == 'BLENDER_EEVEE'
@@ -1762,7 +1774,6 @@ class VIEW3D_MT_object_specials(Menu):
                 props.header_text = "Camera Lens Scale: %.3f"
 
             if not obj.data.dof_object:
-                view = context.space_data
                 if view and view.camera == obj and view.region_3d.view_perspective == 'CAMERA':
                     props = layout.operator("ui.eyedropper_depth", text="DOF Distance (Pick)")
                 else:
@@ -1771,7 +1782,6 @@ class VIEW3D_MT_object_specials(Menu):
                     props.data_path_item = "data.dof_distance"
                     props.input_scale = 0.02
                     props.header_text = "DOF Distance: %.3f"
-                del view
 
         if obj.type in {'CURVE', 'FONT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1874,7 +1884,11 @@ class VIEW3D_MT_object_specials(Menu):
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_object_parent")
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("object.move_to_collection")
+
+        if view and view.local_view:
+            layout.operator("view3d.localview_remove_from")
+        else:
+            layout.operator("object.move_to_collection")
 
         layout.separator()
 
@@ -5419,6 +5433,7 @@ classes = (
     VIEW3D_MT_uv_map,
     VIEW3D_MT_edit_proportional,
     VIEW3D_MT_view,
+    VIEW3D_MT_view_local,
     VIEW3D_MT_view_cameras,
     VIEW3D_MT_view_navigation,
     VIEW3D_MT_view_align,

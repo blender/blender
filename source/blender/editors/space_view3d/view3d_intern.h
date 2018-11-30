@@ -177,6 +177,7 @@ void VIEW3D_OT_camera_to_view(struct wmOperatorType *ot);
 void VIEW3D_OT_camera_to_view_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_object_as_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
+void VIEW3D_OT_localview_remove_from(struct wmOperatorType *ot);
 
 bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const struct BoundBox *bb, float obmat[4][4]);
 bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);

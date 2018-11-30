@@ -1834,6 +1834,12 @@ static bool move_to_collection_poll(bContext *C)
 		return ED_outliner_collections_editor_poll(C);
 	}
 	else {
+		View3D *v3d = CTX_wm_view3d(C);
+
+		if (v3d && v3d->localvd) {
+			return false;
+		}
+
 		return ED_operator_object_active_editable(C);
 	}
 }
