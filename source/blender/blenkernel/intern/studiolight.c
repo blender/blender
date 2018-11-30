@@ -1376,7 +1376,7 @@ StudioLight *BKE_studiolight_studio_edit_get(void)
 	sl.flag = STUDIOLIGHT_TYPE_STUDIO;
 
 	memcpy(sl.light, U.light, sizeof(*sl.light) * 3);
-	memcpy(sl.light_ambient, U.light_ambient, sizeof(sl.light_ambient) * 3);
+	memcpy(sl.light_ambient, U.light_ambient, sizeof(*sl.light_ambient) * 3);
 
 	return &sl;
 }
