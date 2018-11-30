@@ -3404,17 +3404,24 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = ps->ob;
 
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+	if (scene_eval == NULL || ob_eval == NULL) {
+		return false;
+	}
+
 	/* Workaround for subsurf selection, try the display mesh first */
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
 		ps->me_eval = mesh_create_eval_final_render(
-		             depsgraph, ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE);
+		             depsgraph, scene_eval, ob_eval, scene_eval->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE);
 		ps->me_eval_free = true;
 	}
 	else {
 		ps->me_eval = mesh_get_eval_final(
-		        depsgraph, ps->scene, ps->ob,
-		        ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
+		        depsgraph, scene_eval, ob_eval,
+		        scene_eval->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
 		ps->me_eval_free = false;
 	}
 
