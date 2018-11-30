@@ -733,7 +733,7 @@ static bool wm_app_template_has_userpref(const char *app_template)
  * \param app_template_override: Template to use instead of the template defined in user-preferences.
  * When not-null, this is written into the user preferences.
  */
-int wm_homefile_read(
+void wm_homefile_read(
         bContext *C, ReportList *reports,
         bool use_factory_settings, bool use_empty_data, bool use_userdef,
         const char *filepath_startup_override, const char *app_template_override)
@@ -988,8 +988,6 @@ int wm_homefile_read(
 	G.save_over = 0;
 
 	wm_file_read_post(C, true, reset_app_template);
-
-	return true;
 }
 
 /** \name WM History File API
@@ -1743,15 +1741,11 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		app_template = WM_init_state_app_template_get();
 	}
 
-	if (wm_homefile_read(C, op->reports, use_factory_settings, use_empty_data, use_userdef, filepath, app_template)) {
-		if (use_splash) {
-			WM_init_splash(C);
-		}
-		return OPERATOR_FINISHED;
+	wm_homefile_read(C, op->reports, use_factory_settings, use_empty_data, use_userdef, filepath, app_template);
+	if (use_splash) {
+		WM_init_splash(C);
 	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
+	return OPERATOR_FINISHED;
 }
 
 static int wm_homefile_read_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
