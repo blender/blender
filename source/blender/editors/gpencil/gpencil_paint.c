@@ -2604,7 +2604,7 @@ static void gpencil_draw_apply_event(bContext *C, wmOperator *op, const wmEvent 
 	}
 
 	/* check if alt key is pressed and limit to straight lines */
-	if (p->straight[0] != 0) {
+	if ((p->paintmode != GP_PAINTMODE_ERASER) && (p->straight[0] != 0)) {
 		if (p->straight[0] == 1) {
 			/* horizontal */
 			p->mval[1] = p->straight[1]; /* replace y */
