@@ -70,7 +70,6 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#include "UI_interface.h"
 #include "BKE_context.h"
 
 #include "WM_types.h"

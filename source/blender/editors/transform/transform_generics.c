@@ -1404,9 +1404,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 		t->orientation.index = 0;
 		ARRAY_SET_ITEMS(
-				t->orientation.types,
-				NULL,
-				&t->orientation.user);
+		        t->orientation.types,
+		        NULL,
+		        &t->orientation.user);
 
 		/* Make second orientation local if both are global. */
 		if (t->orientation.user == V3D_MANIP_GLOBAL) {
