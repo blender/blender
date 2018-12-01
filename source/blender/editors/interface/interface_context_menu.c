@@ -394,11 +394,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		const int override_status = RNA_property_static_override_status(ptr, prop, -1);
 		const bool is_overridable = (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE) != 0;
 
+		/* Set the (button_pointer, button_prop) and pointer data for Python access to the hovered ui element. */
+		uiLayoutSetContextFromBut(layout, but);
+
 		/* Keyframes */
 		if (but->flag & UI_BUT_ANIMATED_KEY) {
-			/* Set the (button_pointer, button_prop) and pointer data for Python access to the hovered ui element. */
-			uiLayoutSetContextFromBut(layout, but);
-
 			/* replace/delete keyfraemes */
 			if (is_array_component) {
 				uiItemBooleanO(
