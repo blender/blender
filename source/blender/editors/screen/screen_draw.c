@@ -216,7 +216,7 @@ static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	}
 }
 
-#define CORNER_RESOLUTION 9
+#define CORNER_RESOLUTION 3
 
 static void do_vert_pair(GPUVertBuf *vbo, uint pos, uint *vidx, int corner, int i)
 {
@@ -235,7 +235,7 @@ static void do_vert_pair(GPUVertBuf *vbo, uint pos, uint *vidx, int corner, int 
 	}
 
 	/* Line width is 20% of the entire corner size. */
-	const float line_width = 0.2f;
+	const float line_width = 0.2f; /* Keep in sync with shader */
 	mul_v2_fl(inter, 1.0f - line_width);
 	mul_v2_fl(exter, 1.0f + line_width);
 
@@ -271,15 +271,12 @@ static GPUBatch *batch_screen_edges_get(int *corner_len)
 		uint pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-		GPU_vertbuf_data_alloc(vbo, CORNER_RESOLUTION * 2 * 4 * 8 + 2);
+		GPU_vertbuf_data_alloc(vbo, CORNER_RESOLUTION * 2 * 4 + 2);
 
 		uint vidx = 0;
-		/* Note jitter is applied in the shader. */
-		for (int jit = 0; jit < 8; ++jit) {
-			for (int corner = 0; corner < 4; ++corner) {
-				for (int c = 0; c < CORNER_RESOLUTION; ++c) {
-					do_vert_pair(vbo, pos, &vidx, corner, c);
-				}
+		for (int corner = 0; corner < 4; ++corner) {
+			for (int c = 0; c < CORNER_RESOLUTION; ++c) {
+				do_vert_pair(vbo, pos, &vidx, corner, c);
 			}
 		}
 		/* close the loop */
@@ -398,13 +395,12 @@ void ED_screen_draw_edges(wmWindow *win)
 	glEnable(GL_SCISSOR_TEST);
 
 	UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, col);
-	col[3] = 1.0f / 8.0f;
+	col[3] = 1.0f;
 	corner_scale = U.pixelsize * 8.0f;
 	edge_thickness = corner_scale * 0.21f;
 
 	GPU_blend(true);
 
-	/* Transparent pass (for AA). */
 	GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
 	GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
 	GPU_batch_uniform_1i(batch, "cornerLen", verts_per_corner);
@@ -416,15 +412,6 @@ void ED_screen_draw_edges(wmWindow *win)
 	}
 
 	GPU_blend(false);
-
-	/* Opaque pass. */
-	corner_scale -= 2.0f;
-	edge_thickness = corner_scale * 0.2f;
-	GPU_batch_uniform_1f(batch, "scale", corner_scale);
-
-	for (sa = screen->areabase.first; sa; sa = sa->next) {
-		drawscredge_area(sa, winsize_x, winsize_y, edge_thickness);
-	}
 
 	glDisable(GL_SCISSOR_TEST);
 }
