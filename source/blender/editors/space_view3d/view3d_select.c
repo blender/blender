@@ -925,7 +925,7 @@ static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], sh
 		return;
 
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		paintface_deselect_all_visible(ob, SEL_DESELECT, false);  /* flush selection at the end */
+		paintface_deselect_all_visible(vc->C, ob, SEL_DESELECT, false);  /* flush selection at the end */
 	}
 
 	bm_vertoffs = me->totpoly + 1; /* max index array */
@@ -937,8 +937,7 @@ static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], sh
 
 	EDBM_backbuf_free();
 
-	paintface_flush_flags(ob, SELECT);
-	paintface_tag_select_update(vc->C, ob);
+	paintface_flush_flags(vc->C, ob, SELECT);
 }
 
 #if 0
@@ -2905,8 +2904,7 @@ static void paint_facesel_circle_select(ViewContext *vc, const bool select, cons
 	if (bbsel) {
 		edbm_backbuf_check_and_select_tfaces(me, select ? SEL_OP_ADD : SEL_OP_SUB);
 		EDBM_backbuf_free();
-		paintface_flush_flags(ob, SELECT);
-		paintface_tag_select_update(vc->C, ob);
+		paintface_flush_flags(vc->C, ob, SELECT);
 	}
 }
 

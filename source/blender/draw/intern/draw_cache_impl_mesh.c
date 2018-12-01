@@ -2328,6 +2328,10 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			GPU_BATCH_DISCARD_SAFE(cache->facedot_with_select_id);
 			GPU_BATCH_DISCARD_SAFE(cache->edges_with_select_id);
 			GPU_BATCH_DISCARD_SAFE(cache->verts_with_select_id);
+			/* Paint mode selection */
+			GPU_BATCH_DISCARD_SAFE(cache->overlay_paint_edges);
+			GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
+			GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
 			/* Because visible UVs depends on edit mode selection, discard everything. */
 			mesh_batch_cache_discard_uvedit(cache);
 			break;
