@@ -307,7 +307,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						float dummy[3] = {perimeter, 0.0f, 0.0f};
 						BLI_kdtree_insert(tree, tree_index++, dummy);
 						break;
-						break;
 					}
 					case SIMFACE_NORMAL:
 					{

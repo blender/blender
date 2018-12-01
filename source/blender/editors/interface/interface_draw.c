@@ -628,7 +628,7 @@ void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highligh
 	immAttr3ubv(col, highlight);
 
 	/* back to corner left-top */
-	immVertex2f(pos, minx, roundboxtype & UI_CNR_TOP_LEFT ? maxy - rad : maxy);
+	immVertex2f(pos, minx, (roundboxtype & UI_CNR_TOP_LEFT) ? (maxy - rad) : maxy);
 
 	immEnd();
 	immUnbindProgram();
