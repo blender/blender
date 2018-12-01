@@ -101,8 +101,7 @@
 			BLI_assert(*(id_pp) == old_id); \
 		} \
 		if (old_id && (_flag & IDWALK_RECURSE)) { \
-			if (!BLI_gset_haskey((_data)->ids_handled, old_id)) { \
-				BLI_gset_add((_data)->ids_handled, old_id); \
+			if (BLI_gset_add((_data)->ids_handled, old_id)) { \
 				if (!(callback_return & IDWALK_RET_STOP_RECURSION)) { \
 					BLI_LINKSTACK_PUSH((_data)->ids_todo, old_id); \
 				} \
@@ -320,8 +319,7 @@ static void library_foreach_ID_as_subdata_link(
 	if (flag & IDWALK_RECURSE) {
 		/* Defer handling into main loop, recursively calling BKE_library_foreach_ID_link in IDWALK_RECURSE case is
 		 * troublesome, see T49553. */
-		if (!BLI_gset_haskey(data->ids_handled, id)) {
-			BLI_gset_add(data->ids_handled, id);
+		if (BLI_gset_add(data->ids_handled, id)) {
 			BLI_LINKSTACK_PUSH(data->ids_todo, id);
 		}
 	}

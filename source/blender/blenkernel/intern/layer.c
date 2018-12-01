@@ -681,12 +681,13 @@ static short layer_collection_sync(
 				continue;
 			}
 
-			Base *base = BLI_ghash_lookup(view_layer->object_bases_hash, cob->ob);
-
-			if (base) {
+			void **base_p;
+			Base  *base;
+			if (BLI_ghash_ensure_p(view_layer->object_bases_hash, cob->ob, &base_p)) {
 				/* Move from old base list to new base list. Base might have already
 				 * been moved to the new base list and the first/last test ensure that
 				 * case also works. */
+				base = *base_p;
 				if (!ELEM(base, new_object_bases->first, new_object_bases->last)) {
 					BLI_remlink(&view_layer->object_bases, base);
 					BLI_addtail(new_object_bases, base);
@@ -695,8 +696,8 @@ static short layer_collection_sync(
 			else {
 				/* Create new base. */
 				base = object_base_new(cob->ob);
+				*base_p = base;
 				BLI_addtail(new_object_bases, base);
-				BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
 			}
 
 			int object_restrict = base->object->restrictflag;
