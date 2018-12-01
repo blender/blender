@@ -175,6 +175,8 @@ typedef struct MeshRenderData {
 	BMEditMesh *edit_bmesh;
 	struct EditMeshData *edit_data;
 
+	Mesh *me;
+
 	MVert *mvert;
 	const MEdge *medge;
 	const MLoop *mloop;
@@ -616,6 +618,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 		}
 	}
 	else {
+		rdata->me = me;
+
 		if (types & (MR_DATATYPE_VERT)) {
 			rdata->vert_len = me->totvert;
 			rdata->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
@@ -1360,15 +1364,54 @@ static void mesh_render_data_ensure_edge_visible_bool(MeshRenderData *rdata)
 		edge_visible_bool = rdata->edge_visible_bool =
 		        MEM_callocN(sizeof(*edge_visible_bool) * rdata->edge_len, __func__);
 
+		/* If original index is available, hide edges within the same original poly. */
+		const int *p_origindex = NULL;
+		int *index_table = NULL;
+
+		if (rdata->me != NULL) {
+			p_origindex = CustomData_get_layer(&rdata->me->pdata, CD_ORIGINDEX);
+			if (p_origindex != NULL) {
+				index_table = MEM_malloc_arrayN(sizeof(int), rdata->edge_len, __func__);
+				memset(index_table, -1, sizeof(int) * rdata->edge_len);
+			}
+		}
+
 		for (int i = 0; i < rdata->poly_len; i++) {
 			const MPoly *poly = &rdata->mpoly[i];
+			int p_orig = p_origindex ? p_origindex[i] : ORIGINDEX_NONE;
 
 			if (!(poly->flag & ME_HIDE)) {
 				for (int j = 0; j < poly->totloop; j++) {
 					const MLoop *loop = &rdata->mloop[poly->loopstart + j];
-					edge_visible_bool[loop->e] = true;
+
+					if (p_orig != ORIGINDEX_NONE) {
+						/* Boundary edge is visible. */
+						if (index_table[loop->e] == -1) {
+							index_table[loop->e] = p_orig;
+							edge_visible_bool[loop->e] = true;
+						}
+						/* Edge between two faces with the same original is hidden. */
+						else if (index_table[loop->e] == p_orig) {
+							edge_visible_bool[loop->e] = false;
+						}
+						/* Edge between two different original faces is visible. */
+						else {
+							index_table[loop->e] = -2;
+							edge_visible_bool[loop->e] = true;
+						}
+					}
+					else {
+						if (index_table != NULL) {
+							index_table[loop->e] = -2;
+						}
+						edge_visible_bool[loop->e] = true;
+					}
 				}
 			}
+		}
+
+		if (index_table != NULL) {
+			MEM_freeN(index_table);
 		}
 	}
 }
