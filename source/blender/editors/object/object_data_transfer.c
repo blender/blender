@@ -47,6 +47,7 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -133,13 +134,15 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 	}
 	else if (data_type == DT_TYPE_UV) {
 		Object *ob_src = CTX_data_active_object(C);
-		Scene *scene = CTX_data_scene(C);
 
 		if (ob_src) {
 			Mesh *me_eval;
 			int num_data, i;
 
-			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
+			Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MLOOPUV);
 			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
 			RNA_enum_item_add_separator(&item, &totitem);
@@ -153,13 +156,15 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 	}
 	else if (data_type == DT_TYPE_VCOL) {
 		Object *ob_src = CTX_data_active_object(C);
-		Scene *scene = CTX_data_scene(C);
 
 		if (ob_src) {
 			Mesh *me_eval;
 			int num_data, i;
 
-			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MLOOPCOL);
 			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
 			RNA_enum_item_add_separator(&item, &totitem);
@@ -338,9 +343,9 @@ static bool data_transfer_exec_is_object_valid(
 
 static int data_transfer_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob_src = ED_object_active_context(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
 	ListBase ctx_objects;
 	CollectionPointerLink *ctx_ob_dst;
@@ -404,12 +409,15 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 		}
 
 		if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, reverse_transfer)) {
+			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
 			if (space_transform) {
-				BLI_SPACE_TRANSFORM_SETUP(space_transform, ob_dst, ob_src);
+				Object *ob_dst_eval = DEG_get_evaluated_object(depsgraph, ob_dst);
+				BLI_SPACE_TRANSFORM_SETUP(space_transform, ob_dst_eval, ob_src_eval);
 			}
 
 			if (BKE_object_data_transfer_mesh(
-			        depsgraph, scene, ob_src, ob_dst, data_type, use_create,
+			        depsgraph, scene_eval, ob_src_eval, ob_dst, data_type, use_create,
 			        map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode,
 			        space_transform, use_auto_transform,
 			        max_distance, ray_radius, islands_precision,
@@ -605,9 +613,9 @@ static bool datalayout_transfer_poll(bContext *C)
 
 static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = ED_object_active_context(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	DataTransferModifierData *dtmd;
 
 	dtmd = (DataTransferModifierData *)edit_modifier_property_get(op, ob_act, eModifierType_DataTransfer);
@@ -624,7 +632,9 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 
-		BKE_object_data_transfer_layout(depsgraph, scene, ob_src, ob_dst, dtmd->data_types, use_delete,
+		Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
+		BKE_object_data_transfer_layout(depsgraph, scene_eval, ob_src_eval, ob_dst, dtmd->data_types, use_delete,
 		                                dtmd->layers_select_src, dtmd->layers_select_dst);
 
 		DEG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
@@ -649,12 +659,14 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 			layers_select_dst[fromto_idx] = layers_dst;
 		}
 
+		Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
 		data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, false);
 
 		for (ctx_ob_dst = ctx_objects.first; ctx_ob_dst; ctx_ob_dst = ctx_ob_dst->next) {
 			Object *ob_dst = ctx_ob_dst->ptr.data;
 			if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
-				BKE_object_data_transfer_layout(depsgraph, scene, ob_src, ob_dst, data_type, use_delete,
+				BKE_object_data_transfer_layout(depsgraph, scene_eval, ob_src_eval, ob_dst, data_type, use_delete,
 				                                layers_select_src, layers_select_dst);
 			}
 

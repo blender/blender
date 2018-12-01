@@ -815,10 +815,12 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 	}
 }
 
-void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)
 {
 	/* make new mesh data from the original copy */
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_MESH);
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_MESH);
 	ListBase nurblist = {NULL, NULL};
 
 	BKE_mesh_to_curve_nurblist(me_eval, &nurblist, 0);

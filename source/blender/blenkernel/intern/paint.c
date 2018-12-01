@@ -1408,7 +1408,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 		}
 		else if (ob->type == OB_MESH) {
 			Mesh *me_eval_deform = mesh_get_eval_deform(
-			        depsgraph, DEG_get_evaluated_scene(depsgraph), ob, CD_MASK_BAREMESH);
+			        depsgraph, DEG_get_evaluated_scene(depsgraph), object_eval, CD_MASK_BAREMESH);
 			pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
 		}
 	}

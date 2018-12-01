@@ -60,6 +60,7 @@
 #include "BKE_colortools.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -786,7 +787,10 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
 
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, scene->customdata_mask | CD_MASK_ORIGINDEX);
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, scene->customdata_mask | CD_MASK_ORIGINDEX);
 	if (data.is_init) {
 		data.vert_visit = BLI_BITMAP_NEW(me->totvert, __func__);
 

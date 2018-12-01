@@ -3564,7 +3564,7 @@ static void intersect_dm_quad_weights(const float v1[3], const float v2[3], cons
 }
 
 /** Check intersection with an evaluated mesh. */
-static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh,
+static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, Mesh *mesh,
                                    float *vert_cos,
                                    const float co1[3], const float co2[3],
                                    float *min_d, int *min_face, float *min_w,
@@ -3580,9 +3580,12 @@ static int particle_intersect_mesh(Depsgraph *depsgraph, Scene *scene, Object *o
 	if (mesh == NULL) {
 		psys_disable_all(ob);
 
-		mesh = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+		mesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
 		if (mesh == NULL) {
-			mesh = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+			mesh = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
 		}
 
 		psys_enable_all(ob);

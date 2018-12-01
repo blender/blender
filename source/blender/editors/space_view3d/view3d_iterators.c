@@ -119,7 +119,10 @@ void meshobject_foreachScreenVert(
 	foreachScreenObjectVert_userData data;
 	Mesh *me;
 
-	me = mesh_get_eval_deform(vc->depsgraph, vc->scene, vc->obact, CD_MASK_BAREMESH);
+	Scene *scene_eval = DEG_get_evaluated_scene(vc->depsgraph);
+	Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
+
+	me = mesh_get_eval_deform(vc->depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);
 

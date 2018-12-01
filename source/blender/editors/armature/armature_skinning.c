@@ -53,6 +53,7 @@
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -249,7 +250,7 @@ static void envelope_bone_weighting(
 }
 
 static void add_verts_to_dgroups(
-        ReportList *reports, Depsgraph *depsgraph, Scene *scene, Object *ob, Object *par,
+        ReportList *reports, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, Object *par,
         int heat, const bool mirror)
 {
 	/* This functions implements the automatic computation of vertex group
@@ -375,7 +376,9 @@ static void add_verts_to_dgroups(
 
 	if (wpmode) {
 		/* if in weight paint mode, use final verts from evaluated mesh */
-		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+		Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
 
 		BKE_mesh_foreach_mapped_vert_coords_get(me_eval, verts, mesh->totvert);
 		vertsfilled = 1;

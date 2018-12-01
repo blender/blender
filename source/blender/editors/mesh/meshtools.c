@@ -664,7 +664,10 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 			selme = (Mesh *)ob_iter->data;
 
 			if (selme->totvert == me->totvert) {
-				me_deformed = mesh_get_eval_deform(depsgraph, scene, ob_iter, CD_MASK_BAREMESH);
+				Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+				Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
+
+				me_deformed = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
 
 				if (!me_deformed) {
 					continue;

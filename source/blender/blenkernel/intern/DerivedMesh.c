@@ -2004,6 +2004,10 @@ static void mesh_build_data(
 {
 	BLI_assert(ob->type == OB_MESH);
 
+	/* Evaluated meshes aren't supposed to be created on original instances. If you do,
+	 * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+	BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
 	BKE_object_free_derived_caches(ob);
 	BKE_object_sculpt_modifiers_changed(ob);
 
@@ -2153,9 +2157,6 @@ DerivedMesh *mesh_get_derived_final(
 Mesh *mesh_get_eval_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
-	/* Evaluation meshes on original instances aren't cleaned up properly, causing crashes. */
-	BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
-
 	/* if there's no evaluated mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
@@ -2205,9 +2206,9 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob
 
 	if (!ob->runtime.mesh_deform_eval ||
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
-	    (need_mapping != ob->lastNeedMapping))
+	    (need_mapping && !ob->lastNeedMapping))
 	{
-		mesh_build_data(depsgraph, scene, ob, dataMask, false, need_mapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask | ob->lastDataMask, false, need_mapping || ob->lastNeedMapping);
 	}
 
 	return ob->runtime.mesh_deform_eval;
