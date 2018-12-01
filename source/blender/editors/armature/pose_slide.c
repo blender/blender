@@ -1621,7 +1621,7 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 		BLI_freelistN(&modeData.sel_markers);
 
 	/* updates + notifiers */
-	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, v3d, OB_MODE_POSE, ob) {
+	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
 		poseAnim_mapping_refresh(C, scene, ob);
 	} FOREACH_OBJECT_IN_MODE_END;
 

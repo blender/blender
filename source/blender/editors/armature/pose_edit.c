@@ -744,7 +744,7 @@ static int pose_flip_names_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob)
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob)
 	{
 		bArmature *arm = ob->data;
 		ListBase bones_names = {NULL};
@@ -1329,7 +1329,7 @@ static int pose_flip_quats_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob_iter) {
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
 		bool changed = false;
 		/* loop through all selected pchans, flipping and keying (as needed) */
 		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {

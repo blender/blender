@@ -160,6 +160,7 @@ void BKE_view_layer_selected_editable_objects_iterator_end(BLI_Iterator *iter);
 
 struct ObjectsInModeIteratorData {
 	int object_mode;
+	int object_type;
 	struct ViewLayer *view_layer;
 	struct View3D *v3d;
 	struct Base *base_active;
@@ -226,10 +227,11 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 	ITER_END;                                                                 \
 } ((void)0)
 
-#define FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, _object_mode, _instance) \
+#define FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, _object_type, _object_mode, _instance) \
 { \
 	struct ObjectsInModeIteratorData data_ = {                                \
 		.object_mode = _object_mode,                                          \
+		.object_type = _object_type,                                          \
 		.view_layer = _view_layer,                                            \
 		.v3d = _v3d,                                                          \
 		.base_active = _view_layer->basact,                                   \
@@ -244,20 +246,20 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 } ((void)0)
 
 #define FOREACH_BASE_IN_EDIT_MODE_BEGIN(_view_layer, _v3d, _instance)         \
-	FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, OB_MODE_EDIT, _instance)
+	FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, -1, OB_MODE_EDIT, _instance)
 
 #define FOREACH_BASE_IN_EDIT_MODE_END                                         \
 	FOREACH_BASE_IN_MODE_END
 
-#define FOREACH_OBJECT_IN_MODE_BEGIN(_view_layer, _v3d, _object_mode, _instance) \
-	FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, _object_mode, _base) {      \
+#define FOREACH_OBJECT_IN_MODE_BEGIN(_view_layer, _v3d, _object_type, _object_mode, _instance) \
+	FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, _object_type, _object_mode, _base) {      \
 		Object *_instance = _base->object;
 
 #define FOREACH_OBJECT_IN_MODE_END                                            \
 	} FOREACH_BASE_IN_MODE_END
 
-#define FOREACH_OBJECT_IN_EDIT_MODE_BEGIN(_view_layer, _instance)             \
-	FOREACH_BASE_IN_EDIT_MODE_BEGIN(_view_layer, _base) {                     \
+#define FOREACH_OBJECT_IN_EDIT_MODE_BEGIN(_view_layer, _v3d, _instance)       \
+	FOREACH_BASE_IN_EDIT_MODE_BEGIN(_view_layer, _v3d, _base) {               \
 		Object *_instance = _base->object;
 
 #define FOREACH_OBJECT_IN_EDIT_MODE_END                                       \

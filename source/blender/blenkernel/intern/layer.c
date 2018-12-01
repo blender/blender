@@ -1414,6 +1414,11 @@ void BKE_view_layer_renderable_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 /** \name BKE_view_layer_bases_in_mode_iterator
  * \{ */
 
+static bool base_is_in_mode(struct ObjectsInModeIteratorData *data, Base *base)
+{
+	return (base->object->type == data->object_type) && (base->object->mode & data->object_mode) != 0;
+}
+
 void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	struct ObjectsInModeIteratorData *data = data_in;
@@ -1427,7 +1432,12 @@ void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_
 	iter->data = data_in;
 	iter->current = base;
 
-	if (object_bases_iterator_is_valid(data->v3d, base) == false) {
+	/* default type is active object type */
+	if (data->object_type < 0) {
+		data->object_type = base->object->type;
+	}
+
+	if (object_bases_iterator_is_valid(data->v3d, base) == false || !base_is_in_mode(data, base)) {
 		BKE_view_layer_bases_in_mode_iterator_next(iter);
 	}
 }
@@ -1449,9 +1459,8 @@ void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 	}
 
 	while (base) {
-		if ((base->object->type == data->base_active->object->type) &&
-		    (base != data->base_active) &&
-		    (base->object->mode & data->object_mode) &&
+		if ((base != data->base_active) &&
+		    base_is_in_mode(data, base) &&
 		    object_bases_iterator_is_valid(data->v3d, base))
 		{
 			iter->current = base;

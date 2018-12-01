@@ -356,7 +356,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 			}
 			else if (obact->mode & OB_MODE_POSE) {
-				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob_iter) {
+				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
 					FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN (ob_iter, pchan) {
 						CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
 					} FOREACH_PCHAN_VISIBLE_IN_OBJECT_END;
@@ -375,7 +375,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 			}
 			else if (obact->mode & OB_MODE_POSE) {
-				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_MODE_POSE, ob_iter) {
+				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
 					FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
 						CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
 					} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
