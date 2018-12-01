@@ -622,8 +622,14 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
 	/* Draw into the window framebuffer, in full window coordinates. */
 	wmWindowViewport(win);
+
+	/* We draw on all pixels of the windows so we don't need to clear them before.
+	 * Actually this is only a problem when resizing the window.
+	 * If it becomes a problem we should clear only when window size changes. */
+#if 0
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
+#endif
 
 	/* Blit non-overlapping area regions. */
 	ED_screen_areas_iter(win, screen, sa) {
