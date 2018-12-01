@@ -4381,7 +4381,7 @@ static void ui_numedit_set_active(uiBut *but)
 		/* we can click on the side arrows to increment/decrement,
 		 * or click inside to edit the value directly */
 		int mx = data->window->eventstate->x;
-		int my = data->window->eventstate->x;
+		int my = data->window->eventstate->y;
 		ui_window_to_block(data->region, but->block, &mx, &my);
 
 		if (mx < (but->rect.xmin + handle_width)) {

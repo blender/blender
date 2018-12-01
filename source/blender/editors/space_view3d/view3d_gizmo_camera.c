@@ -224,7 +224,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		        (ca->drawsize * range) :
 		        (scale_matrix * range /
 		         /* Half sensor, intentionally use sensor from camera and not calculated above. */
-		         (0.5f * ((ca->sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_x))));
+		         (0.5f * ((ca->sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_y))));
 
 		WM_gizmo_target_property_def_rna_ptr(widget, gz_prop_type, &camera_ptr, prop, -1);
 	}
