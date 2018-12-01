@@ -306,13 +306,13 @@ static bool view3d_ruler_item_mousemove(
         RulerInfo *ruler_info, RulerItem *ruler_item, const int mval[2],
         const bool do_thickness, const bool do_snap)
 {
-	RulerInteraction *inter = ruler_item->gz.interaction_data;
 	const float eps_bias = 0.0002f;
 	float dist_px = MVAL_MAX_PX_DIST * U.pixelsize;  /* snap dist */
 
 	ruler_info->snap_flag &= ~RULER_SNAP_OK;
 
 	if (ruler_item) {
+		RulerInteraction *inter = ruler_item->gz.interaction_data;
 		float *co = ruler_item->co[inter->co_index];
 		/* restore the initial depth */
 		copy_v3_v3(co, inter->drag_start_co);

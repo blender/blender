@@ -263,7 +263,7 @@ typedef enum eScenePassType {
 	SCE_PASS_SUBSURFACE_DIRECT        = (1 << 28),
 	SCE_PASS_SUBSURFACE_INDIRECT      = (1 << 29),
 	SCE_PASS_SUBSURFACE_COLOR         = (1 << 30),
-	SCE_PASS_ROUGHNESS                = (1 << 31),
+	SCE_PASS_ROUGHNESS                = (1u << 31u),
 } eScenePassType;
 
 #define RE_PASSNAME_COMBINED "Combined"

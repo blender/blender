@@ -148,7 +148,7 @@ void BKE_rigidbody_free_world(Scene *scene)
 void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
 {
 	bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
-	RigidBodyOb *rbo = (ob) ? ob->rigidbody_object : NULL;
+	RigidBodyOb *rbo = ob->rigidbody_object;
 
 	/* sanity check */
 	if (rbo == NULL)

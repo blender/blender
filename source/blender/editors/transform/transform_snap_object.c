@@ -1253,10 +1253,7 @@ static short snap_mesh_polygon(
 			normalize_v3(r_no);
 		}
 
-		if (r_index) {
-			*r_index = nearest.index;
-		}
-
+		*r_index = nearest.index;
 		return elem;
 	}
 
@@ -1355,9 +1352,7 @@ static short snap_mesh_edge_verts_mixed(
 			normalize_v3(r_no);
 		}
 
-		if (r_index) {
-			*r_index = nearest.index;
-		}
+		*r_index = nearest.index;
 	}
 
 	return elem;

@@ -95,7 +95,7 @@ enum {
 	GPU_BATCH_OWNS_VBO = (1 << 0),
 	/* each vbo index gets bit-shifted */
 	GPU_BATCH_OWNS_INSTANCES = (1 << 30),
-	GPU_BATCH_OWNS_INDEX = (1 << 31),
+	GPU_BATCH_OWNS_INDEX = (1u << 31u),
 };
 
 GPUBatch *GPU_batch_create_ex(GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);

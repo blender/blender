@@ -432,7 +432,7 @@ static TriTessFace *mesh_calc_tri_tessface(
 	            me->totloop, me->totpoly,
 	            looptri);
 
-	const float *precomputed_normals = me ? CustomData_get_layer(&me->pdata, CD_NORMAL) : NULL;
+	const float *precomputed_normals = CustomData_get_layer(&me->pdata, CD_NORMAL);
 	const bool calculate_normal = precomputed_normals ? false : true;
 
 	for (i = 0; i < tottri; i++) {

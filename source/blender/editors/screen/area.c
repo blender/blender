@@ -1354,7 +1354,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 	if (ar->winy > 1) ar->sizey = (ar->winy + 0.5f) /  UI_DPI_FAC;
 
 	/* exception for multiple overlapping regions on same spot */
-	if (ar->overlap & (alignment != RGN_ALIGN_FLOAT)) {
+	if (ar->overlap && (alignment != RGN_ALIGN_FLOAT)) {
 		region_overlap_fix(sa, ar);
 	}
 
