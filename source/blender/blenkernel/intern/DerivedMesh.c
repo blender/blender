@@ -2153,6 +2153,9 @@ DerivedMesh *mesh_get_derived_final(
 Mesh *mesh_get_eval_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
+	/* Evaluation meshes on original instances aren't cleaned up properly, causing crashes. */
+	BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
 	/* if there's no evaluated mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
@@ -2163,7 +2166,7 @@ Mesh *mesh_get_eval_final(
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
 	    (need_mapping && !ob->lastNeedMapping))
 	{
-		mesh_build_data(depsgraph, scene, ob, dataMask, false, need_mapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask | ob->lastDataMask, false, need_mapping || ob->lastNeedMapping);
 	}
 
 	if (ob->runtime.mesh_eval) { BLI_assert(!(ob->runtime.mesh_eval->runtime.cd_dirty_vert & CD_MASK_NORMAL)); }

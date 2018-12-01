@@ -66,6 +66,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -1080,11 +1081,12 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 	BLI_assert(me && GS(me->id.name) == ID_ME);
 
 	if (ED_mesh_pick_face(C, ob, mval, &poly_index, size)) {
-		Scene *scene = CTX_data_scene(C);
+		Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 		struct ARegion *ar = CTX_wm_region(C);
 
 		/* derived mesh to find deformed locations */
-		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+		Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 		int v_idx_best = ORIGINDEX_NONE;
 
@@ -1209,8 +1211,11 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 		(*index)--;
 	}
 	else {
+		Scene *scene_eval = DEG_get_evaluated_scene(vc.depsgraph);
+		Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
+
 		/* derived mesh to find deformed locations */
-		Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, vc.scene, ob, CD_MASK_BAREMESH);
+		Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
 		ARegion *ar = vc.ar;
 		RegionView3D *rv3d = ar->regiondata;
 
