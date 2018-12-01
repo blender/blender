@@ -349,13 +349,14 @@ void GeometryExporter::createPolylist(short material_index,
 	int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 	int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
 	for (i = 0; i < num_layers; i++) {
-		if (!this->export_settings->active_uv_only || i == active_uv_index) {
+		int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, i);
+		if (!this->export_settings->active_uv_only || layer_index == active_uv_index) {
 
 			// char *name = CustomData_get_layer_name(&me->ldata, CD_MLOOPUV, i);
 			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
 									makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings->active_uv_only)),
 									2, // this is only until we have optimized UV sets
-									(this->export_settings->active_uv_only) ? 0 : i  // only_active_uv exported -> we have only one set
+									(this->export_settings->active_uv_only) ? 0 : layer_index  // only_active_uv exported -> we have only one set
 									);
 			til.push_back(input3);
 		}
