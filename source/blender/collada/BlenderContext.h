@@ -49,6 +49,8 @@ public:
 	bContext *get_context();
 	Depsgraph *get_depsgraph();
 	Scene *get_scene();
+	Scene *get_evaluated_scene();
+	Object *get_evaluated_object(Object *ob);
 	ViewLayer *get_view_layer();
 	Main *get_main();
 };

@@ -54,6 +54,18 @@ Scene *BlenderContext::get_scene()
 	return scene;
 }
 
+Scene *BlenderContext::get_evaluated_scene()
+{
+	Scene *scene_eval = DEG_get_evaluated_scene(get_depsgraph());
+	return scene_eval;
+}
+
+Object *BlenderContext::get_evaluated_object(Object *ob)
+{
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	return ob_eval;
+}
+
 ViewLayer *BlenderContext::get_view_layer()
 {
 	return view_layer;

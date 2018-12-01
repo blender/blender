@@ -263,7 +263,6 @@ Mesh *bc_get_mesh_copy(
 	bool triangulate)
 {
 	CustomDataMask mask = CD_MASK_MESH;
-	Mesh *mesh = (Mesh *)ob->data;
 	Mesh *tmpmesh = NULL;
 	if (apply_modifiers) {
 #if 0  /* Not supported by new system currently... */
@@ -281,12 +280,13 @@ Mesh *bc_get_mesh_copy(
 		}
 #else
 		Depsgraph *depsgraph = blender_context.get_depsgraph();
-		Scene *scene = blender_context.get_scene();
-		tmpmesh = mesh_get_eval_final(depsgraph, scene, ob, mask);
+		Scene *scene_eval = blender_context.get_evaluated_scene();
+		Object *ob_eval = blender_context.get_evaluated_object(ob);
+		tmpmesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, mask);
 #endif
 	}
 	else {
-		tmpmesh = mesh;
+		tmpmesh = (Mesh *)ob->data;
 	}
 
 	BKE_id_copy_ex(NULL, &tmpmesh->id, (ID **)&tmpmesh,
