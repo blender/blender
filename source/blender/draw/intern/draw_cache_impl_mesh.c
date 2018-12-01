@@ -3549,14 +3549,22 @@ static GPUVertBuf *mesh_create_tri_select_id(
 				}
 			}
 			else {
+				const int *p_origindex = NULL;
+				if (rdata->me != NULL) {
+					p_origindex = CustomData_get_layer(&rdata->me->pdata, CD_ORIGINDEX);
+				}
+
 				for (int i = 0; i < tri_len; i++) {
 					const MLoopTri *mlt = &rdata->mlooptri[i];
 					const int poly_index = mlt->poly;
 					if (!(use_hide && (rdata->mpoly[poly_index].flag & ME_HIDE))) {
-						int select_id;
-						GPU_select_index_get(poly_index + select_id_offset, &select_id);
-						for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-							GPU_vertbuf_attr_set(vbo, attr_id.col, cidx++, &select_id);
+						int orig_index = p_origindex ? p_origindex[poly_index] : poly_index;
+						if (orig_index != ORIGINDEX_NONE) {
+							int select_id;
+							GPU_select_index_get(orig_index + select_id_offset, &select_id);
+							for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
+								GPU_vertbuf_attr_set(vbo, attr_id.col, cidx++, &select_id);
+							}
 						}
 					}
 				}
