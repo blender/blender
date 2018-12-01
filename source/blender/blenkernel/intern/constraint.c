@@ -110,6 +110,7 @@
 static void damptrack_do_transform(float matrix[4][4], const float tarvec[3], int track_axis);
 
 static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bConstraint *con, Object **r_orig_ob);
+static bConstraint *constraint_find_original_for_update(bConstraintOb *cob, bConstraint *con);
 
 /* -------------- Naming -------------- */
 
@@ -2819,8 +2820,18 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		dist = len_v3v3(cob->matrix[3], ct->matrix[3]);
 
 		/* set distance (flag is only set when user demands it) */
-		if (data->dist == 0)
+		if (data->dist == 0) {
 			data->dist = dist;
+
+			/* Write the computed distance back to the master copy if in COW evaluation. */
+			bConstraint *orig_con = constraint_find_original_for_update(cob, con);
+
+			if (orig_con != NULL) {
+				bDistLimitConstraint *orig_data = orig_con->data;
+
+				orig_data->dist = data->dist;
+			}
+		}
 
 		/* check if we're which way to clamp from, and calculate interpolation factor (if needed) */
 		if (data->mode == LIMITDIST_OUTSIDE) {
@@ -2973,17 +2984,12 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			data->orglength = dist;
 
 			/* Write the computed length back to the master copy if in COW evaluation. */
-			if (DEG_is_active(cob->depsgraph)) {
-				Object *orig_ob = NULL;
-				bConstraint *orig_con = constraint_find_original(cob->ob, cob->pchan, con, &orig_ob);
+			bConstraint *orig_con = constraint_find_original_for_update(cob, con);
 
-				if (orig_con != NULL) {
-					bStretchToConstraint *orig_data = orig_con->data;
+			if (orig_con != NULL) {
+				bStretchToConstraint *orig_data = orig_con->data;
 
-					orig_data->orglength = data->orglength;
-
-					DEG_id_tag_update(&orig_ob->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_TRANSFORM);
-				}
+				orig_data->orglength = data->orglength;
 			}
 		}
 
@@ -5138,6 +5144,23 @@ static bConstraint *constraint_find_original(Object *ob, bPoseChannel *pchan, bC
 	}
 
 	return NULL;
+}
+
+static bConstraint *constraint_find_original_for_update(bConstraintOb *cob, bConstraint *con)
+{
+	/* Write the computed distance back to the master copy if in COW evaluation. */
+	if (!DEG_is_active(cob->depsgraph)) {
+		return NULL;
+	}
+
+	Object *orig_ob = NULL;
+	bConstraint *orig_con = constraint_find_original(cob->ob, cob->pchan, con, &orig_ob);
+
+	if (orig_con != NULL) {
+		DEG_id_tag_update(&orig_ob->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_TRANSFORM);
+	}
+
+	return orig_con;
 }
 
 /* -------- Constraints and Proxies ------- */
