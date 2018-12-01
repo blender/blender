@@ -184,11 +184,11 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 	const View3D *v3d = draw_ctx->v3d;
 
 	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
-		const Mesh *me = ob->data;
+		const Mesh *me_orig = DEG_get_original_object(ob)->data;
 		const bool use_wire = (v3d->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
 		const bool use_surface = v3d->overlay.weight_paint_mode_opacity != 0.0f;
-		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+		const bool use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+		const bool use_vert_sel = (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 		struct GPUBatch *geom;
 
 		if (use_surface) {

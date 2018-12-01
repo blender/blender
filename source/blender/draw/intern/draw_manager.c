@@ -192,7 +192,7 @@ bool DRW_object_is_flat_normal(const Object *ob)
 bool DRW_object_use_hide_faces(const struct Object *ob)
 {
 	if (ob->type == OB_MESH) {
-		const Mesh *me = ob->data;
+		const Mesh *me = DEG_get_original_object((Object*)ob)->data;
 
 		switch (ob->mode) {
 			case OB_MODE_TEXTURE_PAINT:

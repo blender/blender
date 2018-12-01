@@ -38,6 +38,8 @@
 
 #include "DNA_mesh_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_paint_texture_vert_glsl[];
 extern char datatoc_paint_texture_frag_glsl[];
@@ -288,10 +290,11 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 	if ((ob->type == OB_MESH) && (draw_ctx->obact == ob)) {
 		/* Get geometry cache */
 		const Mesh *me = ob->data;
+		const Mesh *me_orig = DEG_get_original_object(ob)->data;
 		Scene *scene = draw_ctx->scene;
 		const bool use_surface = draw_ctx->v3d->overlay.texture_paint_mode_opacity != 0.0; //DRW_object_is_mode_shade(ob) == true;
 		const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
-		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+		const bool use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		bool ok = false;
 
 		if (use_surface) {
