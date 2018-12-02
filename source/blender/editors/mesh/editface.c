@@ -89,13 +89,22 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
 		return;
 	}
 
+	Mesh *me_orig = ob_eval->runtime.mesh_orig;
 	Mesh *me_eval = ob_eval->runtime.mesh_eval;
 	bool updated = false;
 
-	if (me_eval != NULL) {
-		/* Mesh polys => Final derived polys */
+	if (me_orig != NULL && me_eval != NULL && me_orig->totpoly == me->totpoly) {
+		/* Update the COW copy of the mesh. */
+		for (i = 0; i < me->totpoly; i++) {
+			me_orig->mpoly[i].flag = me->mpoly[i].flag;
+		}
 
-		if ((index_array = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX))) {
+		/* If the mesh has only deform modifiers, the evaluated mesh shares arrays. */
+		if (me_eval->mpoly == me_orig->mpoly) {
+			updated = true;
+		}
+		/* Mesh polys => Final derived polys */
+		else if ((index_array = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX))) {
 			polys = me_eval->mpoly;
 			totpoly = me_eval->totpoly;
 
