@@ -1200,7 +1200,7 @@ static PointerRNA rna_Particle_field1_get(PointerRNA *ptr)
 
 	/* weak */
 	if (!part->pd)
-		part->pd = object_add_collision_fields(0);
+		part->pd = BKE_partdeflect_new(0);
 
 	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, part->pd);
 }
@@ -1211,7 +1211,7 @@ static PointerRNA rna_Particle_field2_get(PointerRNA *ptr)
 
 	/* weak */
 	if (!part->pd2)
-		part->pd2 = object_add_collision_fields(0);
+		part->pd2 = BKE_partdeflect_new(0);
 
 	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, part->pd2);
 }

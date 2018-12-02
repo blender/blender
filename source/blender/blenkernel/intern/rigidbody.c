@@ -955,7 +955,7 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 	rbw->shared = MEM_callocN(sizeof(*rbw->shared), "RigidBodyWorld_Shared");
 
 	/* set default settings */
-	rbw->effector_weights = BKE_add_effector_weights(NULL);
+	rbw->effector_weights = BKE_effector_add_weights(NULL);
 
 	rbw->ltime = PSFRA;
 

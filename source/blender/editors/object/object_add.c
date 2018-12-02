@@ -587,7 +587,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 			ob->empty_drawtype = OB_SINGLE_ARROW;
 	}
 
-	ob->pd = object_add_collision_fields(type);
+	ob->pd = BKE_partdeflect_new(type);
 
 	DEG_relations_tag_update(CTX_data_main(C));
 

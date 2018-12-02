@@ -3280,7 +3280,7 @@ SoftBody *sbNew(Scene *scene)
 	sb->shared->pointcache = BKE_ptcache_add(&sb->shared->ptcaches);
 
 	if (!sb->effector_weights)
-		sb->effector_weights = BKE_add_effector_weights(NULL);
+		sb->effector_weights = BKE_effector_add_weights(NULL);
 
 	sb->last_frame= MINFRAME-1;
 

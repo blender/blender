@@ -47,8 +47,7 @@ struct ParticleKey;
 struct Depsgraph;
 struct ViewLayer;
 
-struct EffectorWeights *BKE_add_effector_weights(struct Collection *collection);
-struct PartDeflect *object_add_collision_fields(int type);
+struct EffectorWeights *BKE_effector_add_weights(struct Collection *collection);
 
 /* Input to effector code */
 typedef struct EffectedPoint {
@@ -120,7 +119,9 @@ typedef struct EffectorRelation {
 	struct PartDeflect *pd;
 } EffectorRelation;
 
-void free_partdeflect(struct PartDeflect *pd);
+
+struct PartDeflect *BKE_partdeflect_new(int type);
+void                BKE_partdeflect_free(struct PartDeflect *pd);
 
 struct ListBase *BKE_effector_relations_create(
         struct Depsgraph *depsgraph,

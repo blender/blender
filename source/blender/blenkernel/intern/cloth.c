@@ -146,7 +146,7 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->bending_model = CLOTH_BENDING_ANGULAR;
 
 	if (!clmd->sim_parms->effector_weights)
-		clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
+		clmd->sim_parms->effector_weights = BKE_effector_add_weights(NULL);
 
 	if (clmd->point_cache)
 		clmd->point_cache->step = 1;

@@ -1039,7 +1039,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 	/* Using ID_BRUSH i18n context, as we have no physics/dpaint one for now... */
 	dynamicPaintSurface_setUniqueName(surface, CTX_DATA_(BLT_I18NCONTEXT_ID_BRUSH, "Surface"));
 
-	surface->effector_weights = BKE_add_effector_weights(NULL);
+	surface->effector_weights = BKE_effector_add_weights(NULL);
 
 	dynamicPaintSurface_updateType(surface);
 
