@@ -1516,6 +1516,11 @@ void DRW_draw_render_loop_ex(
 
 	drw_engines_draw_scene();
 
+#ifdef __APPLE__
+	/* Fix 3D view being "laggy" on macos. (See T56996) */
+	glFlush();
+#endif
+
 	/* annotations - temporary drawing buffer (3d space) */
 	/* XXX: Or should we use a proper draw/overlay engine for this case? */
 	if (do_annotations) {
