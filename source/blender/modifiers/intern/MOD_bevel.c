@@ -214,7 +214,7 @@ static void bevel_mod_harden_normals(
 							add_v3_v3(cn_wght, cur);
 						}
 						if (!BLI_ghash_haskey(faceHash, lfan_pivot->f)) {
-							recon_face = f;
+							recon_face = lfan_pivot->f;
 							recon_face_count++;
 						}
 						if (!BM_elem_flag_test(e_next, BM_ELEM_TAG) || (e_next == e_org)) {
