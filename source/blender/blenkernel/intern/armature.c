@@ -443,7 +443,7 @@ void equalize_bbone_bezier(float *data, int desired)
 
 /* returns pointer to static array, filled with desired amount of bone->segments elements */
 /* this calculation is done  within unit bone space */
-void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV])
+void BKE_pchan_bbone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
 	bPoseChannel *next, *prev;
 	Bone *bone = pchan->bone;
@@ -734,8 +734,8 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info
 	DualQuat *b_bone_dual_quats = NULL;
 	int a;
 
-	b_bone_spline_setup(pchan, 0, b_bone);
-	b_bone_spline_setup(pchan, 1, b_bone_rest);
+	BKE_pchan_bbone_spline_setup(pchan, 0, b_bone);
+	BKE_pchan_bbone_spline_setup(pchan, 1, b_bone_rest);
 
 	/* allocate b_bone matrices and dual quats */
 	b_bone_mats = MEM_mallocN((1 + bone->segments) * sizeof(Mat4), "BBone defmats");

@@ -1092,7 +1092,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 	glPopMatrix();
 }
 
-/* A partial copy of b_bone_spline_setup(), with just the parts for previewing editmode curve settings
+/* A partial copy of BKE_pchan_bbone_spline_setup(), with just the parts for previewing editmode curve settings
  *
  * This assumes that prev/next bones don't have any impact (since they should all still be in the "straight"
  * position here anyway), and that we can simply apply the bbone settings to get the desired effect...
@@ -1181,7 +1181,7 @@ static void draw_b_bone_boxes(const short dt, bPoseChannel *pchan, EditBone *ebo
 		int a;
 
 		if (pchan) {
-			b_bone_spline_setup(pchan, 0, bbone);
+			BKE_pchan_bbone_spline_setup(pchan, 0, bbone);
 		}
 		else if (ebone) {
 			ebone_spline_preview(ebone, bbone);
@@ -1328,7 +1328,7 @@ static void draw_wire_bone(const short dt, int armflag, int boneflag, short cons
 		length = pchan->bone->length;
 
 		if (segments > 1) {
-			b_bone_spline_setup(pchan, 0, bbones_array);
+			BKE_pchan_bbone_spline_setup(pchan, 0, bbones_array);
 			bbones = bbones_array;
 		}
 	}
