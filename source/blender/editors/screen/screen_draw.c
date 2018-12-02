@@ -25,6 +25,7 @@
 #include "ED_screen.h"
 
 #include "GPU_batch_presets.h"
+#include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
