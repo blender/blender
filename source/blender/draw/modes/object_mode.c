@@ -2862,17 +2862,17 @@ static void OBJECT_draw_scene(void *vedata)
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-	/* This needs to be drawn after the oultine */
 	DRW_draw_pass(stl->g_data->sgl.spot_shapes);
 	DRW_draw_pass(stl->g_data->sgl.bone_solid);
 	DRW_draw_pass(stl->g_data->sgl.bone_wire);
 	DRW_draw_pass(stl->g_data->sgl.bone_outline);
 	DRW_draw_pass(stl->g_data->sgl.non_meshes);
 	DRW_draw_pass(psl->particle);
-	DRW_draw_pass(stl->g_data->sgl.image_empties);
 	DRW_draw_pass(stl->g_data->sgl.bone_axes);
 
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+
+	DRW_draw_pass(stl->g_data->sgl.image_empties);
 
 	if (DRW_state_is_fbo() && outline_calls > 0) {
 		DRW_stats_group_start("Outlines");
