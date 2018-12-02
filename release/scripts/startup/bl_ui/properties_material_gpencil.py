@@ -100,54 +100,47 @@ class MATERIAL_PT_gpencil_slots(Panel):
         layout = self.layout
         gpd = context.gpencil_data
 
-        mat = context.object.active_material
         ob = context.object
         slot = context.material_slot
-        space = context.space_data
 
-        if ob:
-            is_sortable = len(ob.material_slots) > 1
-            rows = 7
-
-            row = layout.row()
-
-            row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
-
-            col = row.column(align=True)
-            col.operator("object.material_slot_add", icon='ADD', text="")
-            col.operator("object.material_slot_remove", icon='REMOVE', text="")
-
-            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
-
-            if is_sortable:
-                col.separator()
-
-                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
-                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-
-                col.separator()
-
-                sub = col.column(align=True)
-                sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
-                sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+        is_sortable = len(ob.material_slots) > 1
+        rows = 7
 
         row = layout.row()
 
-        if ob:
-            row.template_ID(ob, "active_material", new="material.new", live_icon=True)
+        row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
-            if slot:
-                icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
-                row.prop(slot, "link", icon=icon_link, icon_only=True)
+        col = row.column(align=True)
+        col.operator("object.material_slot_add", icon='ADD', text="")
+        col.operator("object.material_slot_remove", icon='REMOVE', text="")
 
-            if gpd.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.operator("gpencil.stroke_change_color", text="Assign")
-                row.operator("gpencil.color_select", text="Select").deselect = False
-                row.operator("gpencil.color_select", text="Deselect").deselect = True
+        col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
 
-        elif mat:
-            row.template_ID(space, "pin_id")
+        if is_sortable:
+            col.separator()
+
+            col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+            col.separator()
+
+            sub = col.column(align=True)
+            sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
+            sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+
+        row = layout.row()
+
+        row.template_ID(ob, "active_material", new="material.new", live_icon=True)
+
+        if slot:
+            icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
+            row.prop(slot, "link", icon=icon_link, icon_only=True)
+
+        if gpd.use_stroke_edit_mode:
+            row = layout.row(align=True)
+            row.operator("gpencil.stroke_change_color", text="Assign")
+            row.operator("gpencil.color_select", text="Select").deselect = False
+            row.operator("gpencil.color_select", text="Deselect").deselect = True
 
 
 # Used as parent for "Stroke" and "Fill" panels

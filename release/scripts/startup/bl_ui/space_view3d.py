@@ -189,7 +189,7 @@ class VIEW3D_HT_header(Header):
                 sub = row.row(align=True)
                 sub.active = tool_settings.use_proportional_edit_objects
                 sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
-                
+
             elif gpd is not None and obj.type == 'GPENCIL':
                 if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode:
                     row = layout.row(align=True)
@@ -5397,30 +5397,29 @@ class TOPBAR_PT_gpencil_materials(Panel):
         layout = self.layout
         ob = context.object
 
-        if ob:
-            is_sortable = len(ob.material_slots) > 1
-            rows = 1
-            if (is_sortable):
-                rows = 10
+        is_sortable = len(ob.material_slots) > 1
+        rows = 1
+        if (is_sortable):
+            rows = 10
 
-            row = layout.row()
+        row = layout.row()
 
-            row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+        row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
-            col = row.column(align=True)
-            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
+        col = row.column(align=True)
+        col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
 
-            if is_sortable:
-                col.separator()
+        if is_sortable:
+            col.separator()
 
-                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
-                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-                col.separator()
+            col.separator()
 
-                sub = col.column(align=True)
-                sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
-                sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
+            sub = col.column(align=True)
+            sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
+            sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
 
 
 classes = (
