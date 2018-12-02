@@ -282,6 +282,10 @@ void gpu_extensions_init(void)
 	{
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
+
+		if (strstr(renderer, "UHD Graphics")) {
+			GG.device |= GPU_DEVICE_INTEL_UHD;
+		}
 	}
 	else if ((strstr(renderer, "Mesa DRI R")) ||
 	         (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
