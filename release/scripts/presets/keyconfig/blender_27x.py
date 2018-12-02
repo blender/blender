@@ -50,6 +50,8 @@ def load():
     keyconfig_data = blender_default.generate_keymaps(
         blender_default.Params(
             select_mouse=kc_prefs.select_mouse,
+            spacebar_action='SEARCH',
+            use_select_all_toggle=True,
             legacy=True,
         ),
     )
