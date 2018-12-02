@@ -96,6 +96,7 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 		BLI_assert(BKE_id_is_in_global_main(&ima->id));
 		BKE_image_signal(G_MAIN, ima, NULL, IMA_SIGNAL_SRC_CHANGE);
 		DEG_id_tag_update(&ima->id, 0);
+		DEG_id_tag_update(&ima->id, DEG_TAG_EDITORS_UPDATE);
 	}
 }
 
@@ -105,6 +106,7 @@ static void rna_Image_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRN
 	BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 	DEG_id_tag_update(&ima->id, 0);
+	DEG_id_tag_update(&ima->id, DEG_TAG_EDITORS_UPDATE);
 }
 
 static void rna_Image_generated_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -118,6 +120,7 @@ static void rna_Image_colormanage_update(Main *bmain, Scene *UNUSED(scene), Poin
 	Image *ima = ptr->id.data;
 	BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
 	DEG_id_tag_update(&ima->id, 0);
+	DEG_id_tag_update(&ima->id, DEG_TAG_EDITORS_UPDATE);
 	WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 }
@@ -148,6 +151,7 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 	if (ptr->id.data) {
 		/* Update material or texture for render preview. */
 		DEG_id_tag_update(ptr->id.data, 0);
+		DEG_id_tag_update(ptr->id.data, DEG_TAG_EDITORS_UPDATE);
 	}
 }
 

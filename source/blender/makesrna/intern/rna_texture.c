@@ -163,6 +163,7 @@ static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *pt
 		Tex *tex = ptr->id.data;
 
 		DEG_id_tag_update(&tex->id, 0);
+		DEG_id_tag_update(&tex->id, DEG_TAG_EDITORS_UPDATE);
 		WM_main_add_notifier(NC_TEXTURE, tex);
 		WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, NULL);
 	}
@@ -190,6 +191,7 @@ static void rna_Texture_nodes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	Tex *tex = ptr->id.data;
 
 	DEG_id_tag_update(&tex->id, 0);
+	DEG_id_tag_update(&tex->id, DEG_TAG_EDITORS_UPDATE);
 	WM_main_add_notifier(NC_TEXTURE | ND_NODES, tex);
 }
 
