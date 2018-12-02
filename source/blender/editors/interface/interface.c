@@ -1198,7 +1198,7 @@ static bool ui_but_event_property_operator_string(
 		}
 
 		/* we have a datapath! */
-		if (data_path || prop_enum_value_id) {
+		if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
 			/* create a property to host the "datapath" property we're sending to the operators */
 			IDProperty *prop_path;
 
