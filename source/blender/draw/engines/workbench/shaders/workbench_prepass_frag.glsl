@@ -1,7 +1,7 @@
 uniform int object_id = 0;
 
-uniform vec4 materialDiffuseColor;
-uniform vec4 materialSpecularColor;
+uniform vec3 materialDiffuseColor;
+uniform float materialMetallic;
 uniform float materialRoughness;
 
 #ifdef V3D_SHADING_TEXTURE_COLOR
@@ -23,9 +23,9 @@ flat in float hair_rand;
 #endif
 
 layout(location=0) out uint objectId;
-layout(location=1) out vec4 diffuseColor;
+layout(location=1) out vec4 colorRoughness;
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-layout(location=2) out vec4 specularColor;
+layout(location=2) out float metallic;
 #endif
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 #  ifdef WORKBENCH_ENCODE_NORMALS
@@ -39,41 +39,37 @@ void main()
 {
 	objectId = uint(object_id);
 
-#ifdef NORMAL_VIEWPORT_PASS_ENABLED
-	vec3 n = (gl_FrontFacing) ? normal_viewport : -normal_viewport;
-	n = normalize(n);
-#endif
-
 #ifdef V3D_SHADING_TEXTURE_COLOR
-	diffuseColor = texture(image, uv_interp);
-	if (diffuseColor.a < ImageTransparencyCutoff) {
+	colorRoughness = texture(image, uv_interp);
+	if (colorRoughness.a < ImageTransparencyCutoff) {
 		discard;
 	}
+	colorRoughness.a = materialRoughness;
 #else
-	diffuseColor = vec4(materialDiffuseColor.rgb, 0.0);
+	colorRoughness = vec4(materialDiffuseColor, materialRoughness);
 #endif /* V3D_SHADING_TEXTURE_COLOR */
+
+#ifdef V3D_LIGHTING_MATCAP
+	/* Encode front facing in color alpha. */
+	colorRoughness.a = float(gl_FrontFacing);
+#endif
 
 #ifdef HAIR_SHADER
 	float hair_color_variation = hair_rand * 0.1;
-	diffuseColor.rgb = clamp(diffuseColor.rgb - hair_color_variation, 0.0, 1.0);
+	colorRoughness = clamp(colorRoughness - hair_color_variation, 0.0, 1.0);
 #endif
 
 #ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	specularColor = vec4(materialSpecularColor.rgb, materialRoughness);
 #  ifdef HAIR_SHADER
-	specularColor.rgb = clamp(specularColor.rgb - hair_color_variation, 0.0, 1.0);
+	metallic = clamp(materialMetallic - hair_color_variation, 0.0, 1.0);
+#  else
+	metallic = materialMetallic;
 #  endif
 #endif
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
-#  ifdef WORKBENCH_ENCODE_NORMALS
-	diffuseColor.a = float(gl_FrontFacing);
-	normalViewport = normal_encode(n);
-#  else /* WORKBENCH_ENCODE_NORMALS */
-	normalViewport = n;
-#  endif /* WORKBENCH_ENCODE_NORMALS */
-#  ifdef HAIR_SHADER
-	diffuseColor.a = 0.5;
-#  endif
-#endif /* NORMAL_VIEWPORT_PASS_ENABLED */
+	vec3 n = (gl_FrontFacing) ? normal_viewport : -normal_viewport;
+	n = normalize(n);
+	normalViewport = workbench_normal_encode(n);
+#endif
 }

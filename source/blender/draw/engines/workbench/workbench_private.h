@@ -53,6 +53,7 @@
 #define STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_TYPE_MATCAP))
 #define SSAO_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_CAVITY) && ((wpd->shading.cavity_type == V3D_SHADING_CAVITY_SSAO) || (wpd->shading.cavity_type == V3D_SHADING_CAVITY_BOTH)))
 #define CURVATURE_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_CAVITY) && ((wpd->shading.cavity_type == V3D_SHADING_CAVITY_CURVATURE) || (wpd->shading.cavity_type == V3D_SHADING_CAVITY_BOTH)))
+#define CAVITY_ENABLED(wpd) (CURVATURE_ENABLED(wpd) || SSAO_ENABLED(wpd))
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 #define GHOST_ENABLED(psl) (!DRW_pass_is_empty(psl->ghost_prepass_pass) || !DRW_pass_is_empty(psl->ghost_prepass_hair_pass))
 
@@ -219,8 +220,10 @@ typedef struct WORKBENCH_EffectInfo {
 } WORKBENCH_EffectInfo;
 
 typedef struct WORKBENCH_MaterialData {
-	float diffuse_color[4];
-	float specular_color[4];
+	float base_color[3];
+	float diffuse_color[3];
+	float specular_color[3];
+	float metallic;
 	float roughness;
 	int object_id;
 	int color_type;
@@ -297,7 +300,8 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_shgroup_uniform(
-        WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob);
+        WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob,
+        const bool use_metallic);
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material);
 
 /* workbench_studiolight.c */

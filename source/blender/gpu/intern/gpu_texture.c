@@ -178,8 +178,8 @@ static void gpu_validate_data_format(GPUTextureFormat tex_format, GPUDataFormat 
 	}
 	else {
 		/* Integer formats */
-		if (ELEM(tex_format, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R16UI, GPU_R32UI)) {
-			if (ELEM(tex_format, GPU_R16UI, GPU_RG16UI, GPU_R32UI)) {
+		if (ELEM(tex_format, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R16UI, GPU_R8UI, GPU_R32UI)) {
+			if (ELEM(tex_format, GPU_R8UI, GPU_R16UI, GPU_RG16UI, GPU_R32UI)) {
 				BLI_assert(data_format == GPU_DATA_UNSIGNED_INT);
 			}
 			else {
@@ -218,8 +218,8 @@ static GPUDataFormat gpu_get_data_format_from_tex_format(GPUTextureFormat tex_fo
 	}
 	else {
 		/* Integer formats */
-		if (ELEM(tex_format, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R16UI, GPU_R32UI)) {
-			if (ELEM(tex_format, GPU_R16UI, GPU_RG16UI, GPU_R32UI)) {
+		if (ELEM(tex_format, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R8UI, GPU_R16UI, GPU_R32UI)) {
+			if (ELEM(tex_format, GPU_R8UI, GPU_R16UI, GPU_RG16UI, GPU_R32UI)) {
 				return GPU_DATA_UNSIGNED_INT;
 			}
 			else {
@@ -260,7 +260,7 @@ static GLenum gpu_get_gl_dataformat(GPUTextureFormat data_type, GPUTextureFormat
 	}
 	else {
 		/* Integer formats */
-		if (ELEM(data_type, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R16UI, GPU_R32UI)) {
+		if (ELEM(data_type, GPU_R8UI, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R16UI, GPU_R32UI)) {
 			*format_flag |= GPU_FORMAT_INTEGER;
 
 			switch (gpu_get_component_count(data_type)) {
@@ -327,6 +327,7 @@ static uint gpu_get_bytesize(GPUTextureFormat data_type)
 		case GPU_R16:
 			return 2;
 		case GPU_R8:
+		case GPU_R8UI:
 			return 1;
 		default:
 			BLI_assert(!"Texture format incorrect or unsupported\n");
@@ -360,6 +361,7 @@ static GLenum gpu_get_gl_internalformat(GPUTextureFormat format)
 		case GPU_RG16UI: return GL_RG16UI;
 		case GPU_R16: return GL_R16;
 		case GPU_R8: return GL_R8;
+		case GPU_R8UI: return GL_R8UI;
 		/* Special formats texture & renderbuffer */
 		case GPU_R11F_G11F_B10F: return GL_R11F_G11F_B10F;
 		case GPU_DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;

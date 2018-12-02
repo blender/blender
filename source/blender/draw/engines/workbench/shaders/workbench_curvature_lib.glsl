@@ -26,12 +26,10 @@ float calculate_curvature(usampler2D objectId, sampler2D normalBuffer, ivec2 tex
 	vec2 normal_left  = texelFetchOffset(normalBuffer, texel, 0, ivec2(-CURVATURE_OFFSET, 0)).rg;
 	vec2 normal_right = texelFetchOffset(normalBuffer, texel, 0, ivec2( CURVATURE_OFFSET, 0)).rg;
 
-#ifdef WORKBENCH_ENCODE_NORMALS
-	normal_up    = normal_decode(normal_up   ).rg;
-	normal_down  = normal_decode(normal_down ).rg;
-	normal_left  = normal_decode(normal_left ).rg;
-	normal_right = normal_decode(normal_right).rg;
-#endif
+	normal_up    = workbench_normal_decode(normal_up   ).rg;
+	normal_down  = workbench_normal_decode(normal_down ).rg;
+	normal_left  = workbench_normal_decode(normal_left ).rg;
+	normal_right = workbench_normal_decode(normal_right).rg;
 
 	float normal_diff = ((normal_up.g - normal_down.g) + (normal_right.r - normal_left.r));
 

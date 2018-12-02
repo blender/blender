@@ -61,13 +61,7 @@ void main()
 #ifdef USE_CAVITY
 	float depth = texelFetch(depthBuffer, texel, 0).x;
 	vec3 position = get_view_space_from_depth(screenco, depth);
-
-	vec4 diffuse_color = texelFetch(colorBuffer, texel, 0);
-	vec3 normal_viewport = normal_decode(texelFetch(normalBuffer, texel, 0).rg);
-	if (diffuse_color.a == 0.0) {
-		normal_viewport = -normal_viewport;
-	}
-
+	vec3 normal_viewport = workbench_normal_decode(texelFetch(normalBuffer, texel, 0).rg);
 
 	ssao_factors(depth, normal_viewport, position, screenco, cavity, edges);
 #endif

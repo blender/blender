@@ -176,7 +176,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 			DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		}
 
-		workbench_material_shgroup_uniform(wpd, grp, material, ob);
+		workbench_material_shgroup_uniform(wpd, grp, material, ob, false);
 		material->shgrp = grp;
 
 		/* Depth */
@@ -444,7 +444,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			                                psl->transparent_accum_pass,
 			                                shader);
 			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
-			workbench_material_shgroup_uniform(wpd, shgrp, material, ob);
+			workbench_material_shgroup_uniform(wpd, shgrp, material, ob, false);
 			DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 			/* Hairs have lots of layer and can rapidly become the most prominent surface.
 			 * So lower their alpha artificially. */

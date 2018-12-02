@@ -9,8 +9,8 @@ uniform float alpha = 0.5;
 uniform vec2 invertedViewportSize;
 uniform vec4 viewvecs[3];
 
-uniform vec4 materialDiffuseColor;
-uniform vec4 materialSpecularColor;
+uniform vec3 materialDiffuseColor;
+uniform vec3 materialSpecularColor;
 uniform float materialRoughness;
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
@@ -40,7 +40,7 @@ void main()
 		discard;
 	}
 #else
-	diffuse_color = materialDiffuseColor;
+	diffuse_color = vec4(materialDiffuseColor, 1.0);
 #endif /* V3D_SHADING_TEXTURE_COLOR */
 
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
@@ -62,7 +62,7 @@ void main()
 
 #elif defined(V3D_LIGHTING_STUDIO)
 	vec3 shaded_color = get_world_lighting(world_data,
-	                                       diffuse_color.rgb, materialSpecularColor.rgb, materialRoughness,
+	                                       diffuse_color.rgb, materialSpecularColor, materialRoughness,
 	                                       nor, I_vs);
 #endif
 
