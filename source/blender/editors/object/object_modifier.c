@@ -149,7 +149,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		}
 		else if (type == eModifierType_Collision) {
 			if (!ob->pd)
-				ob->pd = object_add_collision_fields(0);
+				ob->pd = BKE_partdeflect_new(0);
 
 			ob->pd->deflect = 1;
 		}

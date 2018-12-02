@@ -949,7 +949,7 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 	rbw = MEM_callocN(sizeof(RigidBodyWorld), "RigidBodyWorld");
 
 	/* set default settings */
-	rbw->effector_weights = BKE_add_effector_weights(NULL);
+	rbw->effector_weights = BKE_effector_add_weights(NULL);
 
 	rbw->ltime = PSFRA;
 

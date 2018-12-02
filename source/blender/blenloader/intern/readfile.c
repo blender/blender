@@ -4163,7 +4163,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
 			}
 			else {
-				part->effector_weights = BKE_add_effector_weights(part->eff_group);
+				part->effector_weights = BKE_effector_add_weights(part->eff_group);
 			}
 
 			if (part->dupliweights.first && part->dup_group) {
@@ -4274,7 +4274,7 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 
 	part->effector_weights = newdataadr(fd, part->effector_weights);
 	if (!part->effector_weights)
-		part->effector_weights = BKE_add_effector_weights(part->eff_group);
+		part->effector_weights = BKE_effector_add_weights(part->eff_group);
 
 	link_list(fd, &part->dupliweights);
 
@@ -5167,7 +5167,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
 
 				if (!clmd->sim_parms->effector_weights) {
-					clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
+					clmd->sim_parms->effector_weights = BKE_effector_add_weights(NULL);
 				}
 			}
 
@@ -5202,7 +5202,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 				smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
 				if (!smd->domain->effector_weights)
-					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
+					smd->domain->effector_weights = BKE_effector_add_weights(NULL);
 
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]), 1);
 
@@ -5269,7 +5269,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 						direct_link_pointcache_list(fd, &(surface->ptcaches), &(surface->pointcache), 1);
 
 						if (!(surface->effector_weights = newdataadr(fd, surface->effector_weights)))
-							surface->effector_weights = BKE_add_effector_weights(NULL);
+							surface->effector_weights = BKE_effector_add_weights(NULL);
 					}
 				}
 			}
@@ -5581,7 +5581,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 		sb->effector_weights = newdataadr(fd, sb->effector_weights);
 		if (!sb->effector_weights)
-			sb->effector_weights = BKE_add_effector_weights(NULL);
+			sb->effector_weights = BKE_effector_add_weights(NULL);
 
 		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache, 0);
 	}
@@ -6257,7 +6257,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* set effector weights */
 		rbw->effector_weights = newdataadr(fd, rbw->effector_weights);
 		if (!rbw->effector_weights)
-			rbw->effector_weights = BKE_add_effector_weights(NULL);
+			rbw->effector_weights = BKE_effector_add_weights(NULL);
 
 		/* link cache */
 		direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, false);

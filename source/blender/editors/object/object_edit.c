@@ -1216,7 +1216,7 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob->pd == NULL)
-		ob->pd = object_add_collision_fields(PFIELD_FORCE);
+		ob->pd = BKE_partdeflect_new(PFIELD_FORCE);
 	else if (ob->pd->forcefield == 0)
 		ob->pd->forcefield = PFIELD_FORCE;
 	else

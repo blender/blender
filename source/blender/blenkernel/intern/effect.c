@@ -82,7 +82,7 @@
 #include <string.h>
 #endif // WITH_MOD_FLUID
 
-EffectorWeights *BKE_add_effector_weights(Group *group)
+EffectorWeights *BKE_effector_add_weights(Group *group)
 {
 	EffectorWeights *weights = MEM_callocN(sizeof(EffectorWeights), "EffectorWeights");
 	int i;
@@ -97,7 +97,7 @@ EffectorWeights *BKE_add_effector_weights(Group *group)
 
 	return weights;
 }
-PartDeflect *object_add_collision_fields(int type)
+PartDeflect *BKE_partdeflect_new(int type)
 {
 	PartDeflect *pd;
 
@@ -135,7 +135,7 @@ PartDeflect *object_add_collision_fields(int type)
 /* ***************** PARTICLES ***************** */
 
 /* -------------------------- Effectors ------------------ */
-void free_partdeflect(PartDeflect *pd)
+void BKE_partdeflect_free(PartDeflect *pd)
 {
 	if (!pd) {
 		return;
