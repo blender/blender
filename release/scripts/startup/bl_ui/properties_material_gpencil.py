@@ -102,14 +102,14 @@ class MATERIAL_PT_gpencil_surface(GPMaterialButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        if ob is None:
+        if not (ob and ob.type == 'GPENCIL'):
             return False
 
-        ma = context.object.active_material
-        if ma is None or ma.grease_pencil is None:
+        ma = ob.active_material
+        if not (ma and ma.grease_pencil):
             return False
 
-        return ob.type == 'GPENCIL'
+        return True
 
     def draw_header_preset(self, context):
         MATERIAL_PT_gpencil_material_presets.draw_panel_header(self.layout)
