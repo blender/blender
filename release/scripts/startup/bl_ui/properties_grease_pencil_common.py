@@ -902,6 +902,66 @@ class GreasePencilToolsPanel:
         gpencil_stroke_placement_settings(context, layout)
 
 
+class GreasePencilMaterialsPanel:
+    # Mix-in, use for properties editor and top-bar.
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and ob.type == 'GPENCIL'
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        show_full_ui = (self.bl_space_type == 'PROPERTIES')
+
+        gpd = context.gpencil_data
+
+        ob = context.object
+
+        is_sortable = len(ob.material_slots) > 1
+        rows = 7
+
+        row = layout.row()
+
+        row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+
+        col = row.column(align=True)
+        if show_full_ui:
+            col.operator("object.material_slot_add", icon='ADD', text="")
+            col.operator("object.material_slot_remove", icon='REMOVE', text="")
+
+        col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
+
+        if is_sortable:
+            col.separator()
+
+            col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+            col.separator()
+
+            sub = col.column(align=True)
+            sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
+            sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+
+        if show_full_ui:
+            row = layout.row()
+
+            row.template_ID(ob, "active_material", new="material.new", live_icon=True)
+
+            slot = context.material_slot
+            if slot:
+                icon_link = 'MESH_DATA' if slot.link == 'DATA' else 'OBJECT_DATA'
+                row.prop(slot, "link", icon=icon_link, icon_only=True)
+
+            if gpd.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.operator("gpencil.stroke_change_color", text="Assign")
+                row.operator("gpencil.color_select", text="Select").deselect = False
+                row.operator("gpencil.color_select", text="Deselect").deselect = True
+
+
 class GPENCIL_UL_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
