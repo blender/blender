@@ -940,7 +940,7 @@ static void edbo_compute_bbone_child(bArmature *arm)
 	}
 }
 
-/* A version of b_bone_spline_setup() for previewing editmode curve settings. */
+/* A version of BKE_pchan_bbone_spline_setup() for previewing editmode curve settings. */
 static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_SUBDIV][4][4])
 {
 	BBoneSplineParameters param;
@@ -1043,7 +1043,7 @@ static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_S
 	param.curveOutX = ebone->curveOutX;
 	param.curveOutY = ebone->curveOutY;
 
-	ebone->segments = BKE_compute_b_bone_spline(&param, (Mat4 *)result_array);
+	ebone->segments = BKE_pchan_bbone_spline_compute(&param, (Mat4 *)result_array);
 }
 
 static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pchan)
@@ -1086,7 +1086,7 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 				memcpy(bbones_mat, pchan->runtime.bbone_pose_mats, sizeof(Mat4) * bbone_segments);
 			}
 			else {
-				b_bone_spline_setup(pchan, false, bbones_mat);
+				BKE_pchan_bbone_spline_setup(pchan, false, bbones_mat);
 			}
 
 			for (int i = bbone_segments; i--; bbones_mat++) {

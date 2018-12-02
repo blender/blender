@@ -436,7 +436,7 @@ static void equalize_bbone_bezier(float *data, int desired)
 }
 
 /* Get "next" and "prev" bones - these are used for handle calculations. */
-void BKE_pchan_get_bbone_handles(bPoseChannel *pchan, bPoseChannel **r_prev, bPoseChannel **r_next)
+void BKE_pchan_bbone_handles_get(bPoseChannel *pchan, bPoseChannel **r_prev, bPoseChannel **r_next)
 {
 	if (pchan->bone->bbone_prev_type == BBONE_HANDLE_AUTO) {
 		/* Use connected parent. */
@@ -463,7 +463,7 @@ void BKE_pchan_get_bbone_handles(bPoseChannel *pchan, bPoseChannel **r_prev, bPo
 }
 
 /* Compute B-Bone spline parameters for the given channel. */
-void BKE_pchan_get_bbone_spline_parameters(struct bPoseChannel *pchan, const bool rest, struct BBoneSplineParameters *param)
+void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan, const bool rest, struct BBoneSplineParameters *param)
 {
 	bPoseChannel *next, *prev;
 	Bone *bone = pchan->bone;
@@ -487,7 +487,7 @@ void BKE_pchan_get_bbone_spline_parameters(struct bPoseChannel *pchan, const boo
 		}
 	}
 
-	BKE_pchan_get_bbone_handles(pchan, &prev, &next);
+	BKE_pchan_bbone_handles_get(pchan, &prev, &next);
 
 	/* Find the handle points, since this is inside bone space, the
 	 * first point = (0, 0, 0)
@@ -645,17 +645,17 @@ void BKE_pchan_get_bbone_spline_parameters(struct bPoseChannel *pchan, const boo
 
 /* Fills the array with the desired amount of bone->segments elements.
  * This calculation is done within unit bone space. */
-void b_bone_spline_setup(bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV])
+void BKE_pchan_bbone_spline_setup(bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
 	BBoneSplineParameters param;
 
-	BKE_pchan_get_bbone_spline_parameters(pchan, rest, &param);
+	BKE_pchan_bbone_spline_params_get(pchan, rest, &param);
 
-	pchan->bone->segments = BKE_compute_b_bone_spline(&param, result_array);
+	pchan->bone->segments = BKE_pchan_bbone_spline_compute(&param, result_array);
 }
 
 /* Computes the bezier handle vectors and rolls coming from custom handles. */
-void BKE_compute_b_bone_handles(const BBoneSplineParameters *param, float h1[3], float *r_roll1, float h2[3], float *r_roll2, bool ease, bool offsets)
+void BKE_pchan_bbone_handles_compute(const BBoneSplineParameters *param, float h1[3], float *r_roll1, float h2[3], float *r_roll2, bool ease, bool offsets)
 {
 	float mat3[3][3];
 	float length = param->length;
@@ -756,7 +756,7 @@ void BKE_compute_b_bone_handles(const BBoneSplineParameters *param, float h1[3],
 
 /* Fills the array with the desired amount of bone->segments elements.
  * This calculation is done within unit bone space. */
-int BKE_compute_b_bone_spline(BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV])
+int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
 	float scalemat[4][4], iscalemat[4][4];
 	float mat3[3][3];
@@ -772,7 +772,7 @@ int BKE_compute_b_bone_spline(BBoneSplineParameters *param, Mat4 result_array[MA
 		length *= param->scale[1];
 	}
 
-	BKE_compute_b_bone_handles(param, h1, &roll1, h2, &roll2, true, true);
+	BKE_pchan_bbone_handles_compute(param, h1, &roll1, h2, &roll2, true, true);
 
 	/* Make curve. */
 	CLAMP_MAX(param->segments, MAX_BBONE_SUBDIV);
@@ -858,7 +858,7 @@ static void allocate_bbone_cache(bPoseChannel *pchan, int segments)
 }
 
 /** Compute and cache the B-Bone shape in the channel runtime struct. */
-void BKE_pchan_cache_bbone_segments(bPoseChannel *pchan)
+void BKE_pchan_bbone_segments_cache_compute(bPoseChannel *pchan)
 {
 	bPoseChannelRuntime *runtime = &pchan->runtime;
 	Bone *bone = pchan->bone;
@@ -876,8 +876,8 @@ void BKE_pchan_cache_bbone_segments(bPoseChannel *pchan)
 	DualQuat *b_bone_dual_quats = runtime->bbone_dual_quats;
 	int a;
 
-	b_bone_spline_setup(pchan, false, b_bone);
-	b_bone_spline_setup(pchan, true, b_bone_rest);
+	BKE_pchan_bbone_spline_setup(pchan, false, b_bone);
+	BKE_pchan_bbone_spline_setup(pchan, true, b_bone_rest);
 
 	/* Compute deform matrices. */
 	/* first matrix is the inverse arm_mat, to bring points in local bone space
@@ -901,7 +901,7 @@ void BKE_pchan_cache_bbone_segments(bPoseChannel *pchan)
 }
 
 /** Copy cached B-Bone segments from one channel to another */
-void BKE_pchan_copy_bbone_segments_cache(bPoseChannel *pchan, bPoseChannel *pchan_from)
+void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pchan_from)
 {
 	bPoseChannelRuntime *runtime = &pchan->runtime;
 	bPoseChannelRuntime *runtime_from = &pchan_from->runtime;

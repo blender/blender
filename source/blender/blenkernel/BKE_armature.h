@@ -164,16 +164,26 @@ typedef struct BBoneSplineParameters {
 	float curveInX, curveInY, curveOutX, curveOutY;
 } BBoneSplineParameters;
 
-void BKE_pchan_get_bbone_handles(struct bPoseChannel *pchan, struct bPoseChannel **r_prev, struct bPoseChannel **r_next);
-void BKE_pchan_get_bbone_spline_parameters(struct bPoseChannel *pchan, const bool rest, struct BBoneSplineParameters *r_param);
+void BKE_pchan_bbone_handles_get(
+        struct bPoseChannel *pchan, struct bPoseChannel **r_prev, struct bPoseChannel **r_next);
+void BKE_pchan_bbone_spline_params_get(
+        struct bPoseChannel *pchan, const bool rest, struct BBoneSplineParameters *r_param);
 
-void b_bone_spline_setup(struct bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
+void BKE_pchan_bbone_spline_setup(
+        struct bPoseChannel *pchan, const bool rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
-void BKE_compute_b_bone_handles(const BBoneSplineParameters *param, float h1[3], float *r_roll1, float h2[3], float *r_roll2, bool ease, bool offsets);
-int BKE_compute_b_bone_spline(struct BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV]);
+void BKE_pchan_bbone_handles_compute(
+        const BBoneSplineParameters *param,
+        float h1[3], float *r_roll1,
+        float h2[3], float *r_roll2,
+        bool ease, bool offsets);
+int  BKE_pchan_bbone_spline_compute(
+        struct BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
-void BKE_pchan_cache_bbone_segments(struct bPoseChannel *pchan);
-void BKE_pchan_copy_bbone_segments_cache(struct bPoseChannel *pchan, struct bPoseChannel *pchan_from);
+void BKE_pchan_bbone_segments_cache_compute(
+        struct bPoseChannel *pchan);
+void BKE_pchan_bbone_segments_cache_copy(
+        struct bPoseChannel *pchan, struct bPoseChannel *pchan_from);
 
 /* like EBONE_VISIBLE */
 #define PBONE_VISIBLE(arm, bone) ( \

@@ -326,7 +326,7 @@ static void add_verts_to_dgroups(
 				if ((par->pose) && (pchan = BKE_pose_channel_find_name(par->pose, bone->name))) {
 					if (bone->segments > 1) {
 						segments = bone->segments;
-						b_bone_spline_setup(pchan, true, bbone_array);
+						BKE_pchan_bbone_spline_setup(pchan, true, bbone_array);
 						bbone = bbone_array;
 					}
 				}

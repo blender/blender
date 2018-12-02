@@ -498,7 +498,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			add_relation(bone_done_key, bone_segments_key, "Done -> B-Bone Segments");
 			/* B-Bone shape depends on final position of handle bones. */
 			bPoseChannel *prev, *next;
-			BKE_pchan_get_bbone_handles(pchan, &prev, &next);
+			BKE_pchan_bbone_handles_get(pchan, &prev, &next);
 			if (prev) {
 				OperationKey prev_key(&object->id,
 				                      DEG_NODE_TYPE_BONE,

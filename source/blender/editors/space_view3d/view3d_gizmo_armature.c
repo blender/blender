@@ -59,7 +59,7 @@
 /*
  * TODO(campbell): Current conversion is a approximation (usable not correct),
  * we'll need to take the next/previous bones into account to get the tangent directions.
- * First last matrices from 'b_bone_spline_setup' are close but also not quite accurate
+ * First last matrices from 'BKE_pchan_bbone_spline_setup' are close but also not quite accurate
  * since they're not at either end-points on the curve.
  *
  * Likely we'll need a function especially to get the first/last orientations.

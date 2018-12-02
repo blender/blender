@@ -323,7 +323,7 @@ static void gpencil_add_verts_to_dgroups(
 			{
 				if (bone->segments > 1) {
 					segments = bone->segments;
-					b_bone_spline_setup(pchan, true, bbone_array);
+					BKE_pchan_bbone_spline_setup(pchan, true, bbone_array);
 					bbone = bbone_array;
 				}
 			}
