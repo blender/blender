@@ -227,6 +227,7 @@ def _kmi_props_setattr(kmi_props, attr, value):
 
 
 def keymap_init_from_data(km, km_items, is_modal=False):
+    assert type(km_items) is list
     new_fn = getattr(km.keymap_items, "new_modal" if is_modal else "new")
     for (kmi_idname, kmi_args, kmi_data) in km_items:
         kmi = new_fn(kmi_idname, **kmi_args)
@@ -236,6 +237,7 @@ def keymap_init_from_data(km, km_items, is_modal=False):
             kmi_props_data = kmi_data.get("properties", None)
             if kmi_props_data is not None:
                 kmi_props = kmi.properties
+                assert type(kmi_props_data) is list
                 for attr, value in kmi_props_data:
                     _kmi_props_setattr(kmi_props, attr, value)
 
