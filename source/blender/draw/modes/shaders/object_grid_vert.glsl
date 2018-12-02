@@ -53,10 +53,10 @@ void main()
 
 	/* Used for additional Z axis */
 	if ((gridFlag & CLIP_Z_POS) != 0) {
-		realPos.z = max(realPos.z, 0.0);
+		realPos.z = clamp(realPos.z, 0.0, 1e30);
 	}
 	if ((gridFlag & CLIP_Z_NEG) != 0) {
-		realPos.z = min(-realPos.z, 0.0);
+		realPos.z = clamp(realPos.z, -1e30, 0.0);
 	}
 
 	gl_Position = ViewProjectionMatrix * vec4(realPos, 1.0);
