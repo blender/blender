@@ -1760,7 +1760,7 @@ static bool helpline_poll(bContext *C)
 	return 0;
 }
 
-static void drawHelpline(bContext *C, int x, int y, void *customdata)
+static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 {
 	TransInfo *t = (TransInfo *)customdata;
 

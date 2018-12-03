@@ -308,7 +308,7 @@ static void gp_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
 		SWAP(int, end[0], start[0]);
 		SWAP(int, end[1], start[1]);
 	}
-	
+
 	length[0] = end[0] - start[0];
 	length[1] = end[1] - start[1];
 
@@ -487,7 +487,7 @@ static void gpencil_primitive_exit(bContext *C, wmOperator *op)
 }
 
 /* Init new temporary primitive data */
-static void gpencil_primitive_init(bContext *C, wmOperator *op, const wmEvent *event)
+static void gpencil_primitive_init(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
@@ -555,7 +555,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
 	tGPDprimitive *tgpi = NULL;
 
 	/* initialize operator runtime data */
-	gpencil_primitive_init(C, op, event);
+	gpencil_primitive_init(C, op);
 	tgpi = op->customdata;
 
 	const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
