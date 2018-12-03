@@ -94,9 +94,6 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 		BLI_dynstr_appendf(ds, "#define HAIR_SHADER\n");
 	}
 
-	BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_SH_BANDS %d\n", STUDIOLIGHT_SH_BANDS);
-	BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_SH_MAX_COMPONENTS %d\n", WORKBENCH_SH_DATA_LEN);
-
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;

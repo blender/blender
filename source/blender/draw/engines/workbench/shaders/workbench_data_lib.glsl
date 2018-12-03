@@ -5,7 +5,6 @@ struct LightData {
 };
 
 struct WorldData {
-	vec3 spherical_harmonics_coefs[STUDIOLIGHT_SH_MAX_COMPONENTS];
 	vec4 background_color_low;
 	vec4 background_color_high;
 	vec4 object_outline_color;
