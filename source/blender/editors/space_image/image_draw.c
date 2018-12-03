@@ -549,6 +549,26 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 	}
 }
 
+static void draw_image_buffer_repeated(const bContext *C, SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf *ibuf, float zoomx, float zoomy)
+{
+	const double time_current = PIL_check_seconds_timer();
+
+	const int xmax = ceil(ar->v2d.cur.xmax);
+	const int ymax = ceil(ar->v2d.cur.ymax);
+	const int xmin = floor(ar->v2d.cur.xmin);
+	const int ymin = floor(ar->v2d.cur.ymin);
+
+	for (int x = xmin; x < xmax; x++) {
+		for (int y = ymin; y < ymax; y++) {
+			draw_image_buffer(C, sima, ar, scene, ibuf, x, y, zoomx, zoomy);
+
+			/* only draw until running out of time */
+			if ((PIL_check_seconds_timer() - time_current) > 0.25)
+				return;
+		}
+	}
+}
+
 /* draw uv edit */
 
 /* draw grease pencil */
@@ -699,7 +719,10 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		ED_region_grid_draw(ar, zoomx, zoomy);
 	}
 	else {
-		draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
+		if (sima->flag & SI_DRAW_TILE)
+			draw_image_buffer_repeated(C, sima, ar, scene, ibuf, zoomx, zoomy);
+		else
+			draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 		if (sima->flag & SI_DRAW_METADATA) {
 			int x, y;
