@@ -5646,6 +5646,10 @@ def km_3d_view_tool_gpencil_paint_line(params):
         {"items": [
             ("gpencil.primitive", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("type", 'LINE'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+             {"properties": [("type", 'LINE'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+             {"properties": [("type", 'LINE'), ("wait_for_input", False)]}),
         ]},
     )
 
@@ -5656,6 +5660,10 @@ def km_3d_view_tool_gpencil_paint_box(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("gpencil.primitive", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("type", 'BOX'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+             {"properties": [("type", 'BOX'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("type", 'BOX'), ("wait_for_input", False)]}),
         ]},
     )
@@ -5668,6 +5676,25 @@ def km_3d_view_tool_gpencil_paint_circle(params):
         {"items": [
             ("gpencil.primitive", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("type", 'CIRCLE'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+             {"properties": [("type", 'CIRCLE'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+             {"properties": [("type", 'CIRCLE'), ("wait_for_input", False)]}),
+        ]},
+    )
+
+
+def km_3d_view_tool_gpencil_paint_arc(params):
+    return (
+        "3D View Tool: Gpencil Paint, Arc",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("gpencil.primitive", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("type", 'ARC'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+             {"properties": [("type", 'ARC'), ("wait_for_input", False)]}),
+            ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+             {"properties": [("type", 'ARC'), ("wait_for_input", False)]}),
         ]},
     )
 
@@ -5944,6 +5971,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_gpencil_paint_line(params),
         km_3d_view_tool_gpencil_paint_box(params),
         km_3d_view_tool_gpencil_paint_circle(params),
+        km_3d_view_tool_gpencil_paint_arc(params),
         km_3d_view_tool_gpencil_edit_select(params),
         km_3d_view_tool_gpencil_edit_select_box(params),
         km_3d_view_tool_gpencil_edit_select_circle(params),

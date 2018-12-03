@@ -154,6 +154,8 @@ typedef struct tGPDprimitive {
 	struct bGPDlayer *gpl;            /* layer */
 	struct bGPDframe *gpf;            /* frame */
 	int type;                         /* type of primitive */
+	short cyclic;                       /* cyclic option */
+	short flip;                         /* flip option */
 	int tot_edges;                    /* number of polygon edges */
 	int top[2];                       /* first box corner */
 	int bottom[2];                    /* last box corner */
@@ -369,7 +371,8 @@ enum {
 enum {
 	GP_STROKE_BOX = -1,
 	GP_STROKE_LINE = 1,
-	GP_STROKE_CIRCLE = 2
+	GP_STROKE_CIRCLE = 2,
+	GP_STROKE_ARC = 3
 };
 
 

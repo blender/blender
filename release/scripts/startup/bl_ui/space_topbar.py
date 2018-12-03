@@ -301,7 +301,7 @@ class _draw_left_context_mode:
                 return
 
             is_paint = True
-            if (tool.name in {"Line", "Box", "Circle"}):
+            if (tool.name in {"Line", "Box", "Circle", "Arc"}):
                 is_paint = False
             elif (not tool.has_datablock):
                 return

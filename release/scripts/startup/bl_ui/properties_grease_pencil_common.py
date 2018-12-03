@@ -644,6 +644,7 @@ class GPENCIL_MT_gpencil_draw_specials(Menu):
         layout.operator("gpencil.primitive", text="Line", icon='IPO_CONSTANT').type = 'LINE'
         layout.operator("gpencil.primitive", text="Rectangle", icon='UV_FACESEL').type = 'BOX'
         layout.operator("gpencil.primitive", text="Circle", icon='ANTIALIASED').type = 'CIRCLE'
+        layout.operator("gpencil.primitive", text="Arc", icon='SPHERECURVE').type = 'ARC'
 
 
 class GPENCIL_MT_gpencil_draw_delete(Menu):

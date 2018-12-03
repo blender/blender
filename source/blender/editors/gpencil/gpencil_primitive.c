@@ -84,7 +84,7 @@
 #include "gpencil_intern.h"
 
 #define MIN_EDGES 2
-#define MAX_EDGES 100
+#define MAX_EDGES 128
 
 #define IDLE 0
 #define IN_PROGRESS 1
@@ -168,7 +168,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	/* enable recalculation flag by default */
 	gps->flag |= GP_STROKE_RECALC_CACHES;
 	/* the polygon must be closed, so enabled cyclic */
-	if (tgpi->type != GP_STROKE_LINE) {
+	if (tgpi->type != GP_STROKE_LINE && tgpi->type != GP_STROKE_ARC) {
 		gps->flag |= GP_STROKE_CYCLIC;
 	}
 	else {
@@ -215,11 +215,14 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 	else if (tgpi->type == GP_STROKE_LINE) {
 		BLI_strncpy(msg_str, IFACE_("Line: ESC/RMB to cancel, LMB set origin, Enter/LMB to confirm, Alt to center"), UI_MAX_DRAW_STR);
 	}
+	else if (tgpi->type == GP_STROKE_ARC) {
+		BLI_strncpy(msg_str, IFACE_("Arc: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center, F to flip, C to Close"), UI_MAX_DRAW_STR);
+	}
 	else {
-		BLI_strncpy(msg_str, IFACE_("Circle: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL to adjust edge number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Circle: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
 	}
 
-	if (tgpi->type == GP_STROKE_CIRCLE) {
+	if (tgpi->type == GP_STROKE_CIRCLE || tgpi->type == GP_STROKE_ARC) {
 		if (hasNumInput(&tgpi->num)) {
 			char str_offs[NUM_STR_REP_LEN];
 
@@ -286,6 +289,37 @@ static void gp_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D)
 	points2D[1].y = tgpi->bottom[1];
 }
 
+/* create an arc */
+static void gp_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
+{
+	const int totpoints = tgpi->tot_edges;
+	const float step = M_PI_2 / (float)(totpoints - 1);
+	float length[2];
+	int start[2];
+	int end[2];
+	float a = 0.0f;
+
+	start[0] = tgpi->top[0];
+	start[1] = tgpi->top[1];
+	end[0] = tgpi->bottom[0];
+	end[1] = tgpi->bottom[1];
+
+	if (tgpi->flip) {
+		SWAP(int, end[0], start[0]);
+		SWAP(int, end[1], start[1]);
+	}
+	
+	length[0] = end[0] - start[0];
+	length[1] = end[1] - start[1];
+
+	for (int i = 0; i < totpoints; i++) {
+		tGPspoint *p2d = &points2D[i];
+		p2d->x = (int)(start[0] + sinf(a) * length[0]);
+		p2d->y = (int)(end[1] - cosf(a) * length[1]);
+		a += step;
+	}
+}
+
 /* create a circle */
 static void gp_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
@@ -337,6 +371,13 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 		case GP_STROKE_CIRCLE:
 			gp_primitive_circle(tgpi, points2D);
 			break;
+		case GP_STROKE_ARC:
+			gp_primitive_arc(tgpi, points2D);
+			if (tgpi->cyclic)
+				gps->flag |= GP_STROKE_CYCLIC;
+			else
+				gps->flag &= ~GP_STROKE_CYCLIC;
+			break;
 		default:
 			break;
 	}
@@ -345,7 +386,6 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	for (int i = 0; i < gps->totpoints; i++) {
 		bGPDspoint *pt = &gps->points[i];
 		tGPspoint *p2d = &points2D[i];
-
 
 		/* convert screen-coordinates to 3D coordinates */
 		gp_stroke_convertcoords_tpoint(tgpi->scene, tgpi->ar, tgpi->ob, tgpi->gpl, p2d, NULL, &pt->x);
@@ -447,7 +487,7 @@ static void gpencil_primitive_exit(bContext *C, wmOperator *op)
 }
 
 /* Init new temporary primitive data */
-static void gpencil_primitive_init(bContext *C, wmOperator *op)
+static void gpencil_primitive_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
@@ -482,8 +522,11 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 	/* set parameters */
 	tgpi->type = RNA_enum_get(op->ptr, "type");
 
-	/* if circle set default to 32 */
+	/* set default edge count */
 	if (tgpi->type == GP_STROKE_CIRCLE) {
+		RNA_int_set(op->ptr, "edges", 64);
+	}
+	else if (tgpi->type == GP_STROKE_ARC) {
 		RNA_int_set(op->ptr, "edges", 32);
 	}
 	else if (tgpi->type == GP_STROKE_BOX) {
@@ -512,7 +555,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
 	tGPDprimitive *tgpi = NULL;
 
 	/* initialize operator runtime data */
-	gpencil_primitive_init(C, op);
+	gpencil_primitive_init(C, op, event);
 	tgpi = op->customdata;
 
 	const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
@@ -647,7 +690,6 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 			/* done! */
 			return OPERATOR_FINISHED;
 		}
-
 		case ESCKEY:    /* cancel */
 		case RIGHTMOUSE:
 		{
@@ -661,10 +703,30 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 			/* canceled! */
 			return OPERATOR_CANCELLED;
 		}
+		case CKEY:
+		{
+			if ((event->val == KM_RELEASE) && tgpi->type == GP_STROKE_ARC) {
+				tgpi->cyclic ^= 1;
 
+				/* update screen */
+				gpencil_primitive_update(C, op, tgpi);
+			}
+			break;
+		}
+		case FKEY:
+		{
+			if ((event->val == KM_RELEASE) && tgpi->type == GP_STROKE_ARC) {
+				tgpi->flip ^= 1;
+
+				/* update screen */
+				gpencil_primitive_update(C, op, tgpi);
+			}
+			break;
+		}
+		case PADPLUSKEY:
 		case WHEELUPMOUSE:
 		{
-			if (tgpi->type == GP_STROKE_CIRCLE) {
+			if ((event->val != KM_RELEASE) && (tgpi->type == GP_STROKE_CIRCLE || tgpi->type == GP_STROKE_ARC)) {
 				tgpi->tot_edges = tgpi->tot_edges + 1;
 				CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
 				RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
@@ -674,9 +736,10 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 			}
 			break;
 		}
+		case PADMINUS:
 		case WHEELDOWNMOUSE:
 		{
-			if (tgpi->type == GP_STROKE_CIRCLE) {
+			if ((event->val != KM_RELEASE) && (tgpi->type == GP_STROKE_CIRCLE || tgpi->type == GP_STROKE_ARC)) {
 				tgpi->tot_edges = tgpi->tot_edges - 1;
 				CLAMP(tgpi->tot_edges, MIN_EDGES, MAX_EDGES);
 				RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
@@ -771,6 +834,7 @@ void GPENCIL_OT_primitive(wmOperatorType *ot)
 		{GP_STROKE_BOX, "BOX", 0, "Box", ""},
 		{GP_STROKE_LINE, "LINE", 0, "Line", ""},
 		{GP_STROKE_CIRCLE, "CIRCLE", 0, "Circle", ""},
+		{GP_STROKE_ARC, "ARC", 0, "Arc", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
