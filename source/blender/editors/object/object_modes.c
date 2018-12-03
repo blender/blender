@@ -215,7 +215,8 @@ void ED_object_mode_exit(bContext *C)
 bool ED_object_mode_generic_enter(
         struct bContext *C, eObjectMode object_mode)
 {
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	if (ob == NULL) {
 		return (object_mode == OB_MODE_OBJECT);
 	}

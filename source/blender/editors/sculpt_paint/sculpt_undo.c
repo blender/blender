@@ -141,7 +141,8 @@ static bool sculpt_undo_restore_coords(bContext *C, SculptUndoNode *unode)
 {
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SculptSession *ss = ob->sculpt;
 	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
@@ -258,7 +259,8 @@ static bool sculpt_undo_restore_hidden(
         bContext *C,
         SculptUndoNode *unode)
 {
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	SculptSession *ss = ob->sculpt;
 	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 	int i;
@@ -291,7 +293,8 @@ static bool sculpt_undo_restore_hidden(
 
 static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
 {
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	SculptSession *ss = ob->sculpt;
 	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 	MVert *mvert;
@@ -477,7 +480,8 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 {
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SculptSession *ss = ob->sculpt;
 	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
@@ -640,7 +644,9 @@ static void sculpt_undo_free_list(ListBase *lb)
 #if 0
 static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 {
-	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	SculptUndoNode *unode;
 
 	unode = lb->first;
@@ -1021,7 +1027,8 @@ static bool sculpt_undosys_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && (sa->spacetype == SPACE_VIEW3D)) {
-		Object *obact = CTX_data_active_object(C);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Object *obact = OBACT(view_layer);
 		if (obact && (obact->mode & OB_MODE_SCULPT)) {
 			return true;
 		}
