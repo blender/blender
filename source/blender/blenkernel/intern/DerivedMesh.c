@@ -2157,6 +2157,13 @@ DerivedMesh *mesh_get_derived_final(
 Mesh *mesh_get_eval_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
+	/* This function isn't thread-safe and can't be used during evaluation. */
+	BLI_assert(DEG_debug_is_evaluating(depsgraph) == false);
+
+	/* Evaluated meshes aren't supposed to be created on original instances. If you do,
+	 * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+	BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
 	/* if there's no evaluated mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
@@ -2197,6 +2204,13 @@ DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, 
 #endif
 Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
+	/* This function isn't thread-safe and can't be used during evaluation. */
+	BLI_assert(DEG_debug_is_evaluating(depsgraph) == false);
+
+	/* Evaluated meshes aren't supposed to be created on original instances. If you do,
+	 * they aren't cleaned up properly on mode switch, causing crashes, e.g T58150. */
+	BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */

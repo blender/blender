@@ -291,6 +291,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 	}
 	const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
 	const double start_time = do_time_debug ? PIL_check_seconds_timer() : 0;
+	graph->debug_is_evaluating = true;
 	depsgraph_ensure_view_layer(graph);
 	/* Set up evaluation state. */
 	DepsgraphEvalState state;
@@ -326,6 +327,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 	if (need_free_scheduler) {
 		BLI_task_scheduler_free(task_scheduler);
 	}
+	graph->debug_is_evaluating = false;
 	if (do_time_debug) {
 		printf("Depsgraph updated in %f seconds.\n",
 		       PIL_check_seconds_timer() - start_time);

@@ -237,6 +237,8 @@ void DEG_make_inactive(struct Depsgraph *depsgraph);
 
 /* Evaluation Debug ------------------------------ */
 
+bool DEG_debug_is_evaluating(struct Depsgraph *depsgraph);
+
 void DEG_debug_print_begin(struct Depsgraph *depsgraph);
 
 void DEG_debug_print_eval(struct Depsgraph *depsgraph,
