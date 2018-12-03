@@ -564,6 +564,7 @@ void OBJECT_OT_collection_unlink(wmOperatorType *ot)
 
 static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select objects in the same collection as the active */
 {
+	Scene *scene = CTX_data_scene(C);
 	Collection *collection = CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data;
 
 	if (!collection)
@@ -579,7 +580,8 @@ static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select o
 	}
 	CTX_DATA_END;
 
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
 }
