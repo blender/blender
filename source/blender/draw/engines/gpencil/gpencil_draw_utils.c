@@ -1625,7 +1625,9 @@ void DRW_gpencil_populate_particles(GPENCIL_e_data *e_data, void *vedata)
 		Object *ob = cache_ob->ob;
 		if (cache_ob->is_dup_ob) {
 			GpencilBatchCache *cache = ob->runtime.gpencil_cache;
-			DRW_gpencil_shgroups_create(e_data, vedata, ob, cache, cache_ob);
+			if (cache != NULL) {
+				DRW_gpencil_shgroups_create(e_data, vedata, ob, cache, cache_ob);
+			}
 		}
 	}
 }
