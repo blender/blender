@@ -1087,6 +1087,7 @@ bool BKE_object_data_transfer_ex(
 	bool geom_map_init[DATAMAX] = {0};
 	ListBase lay_map = {NULL};
 	bool changed = false;
+	bool is_modifier = false;
 
 	const bool use_delete = false;  /* We never delete data layers from destination here. */
 
@@ -1099,6 +1100,7 @@ bool BKE_object_data_transfer_ex(
 		/* Never create needed custom layers on passed destination mesh
 		 * (assumed to *not* be ob_dst->data, aka modifier case). */
 		use_create = false;
+		is_modifier = true;
 	}
 	else {
 		me_dst = ob_dst->data;
@@ -1113,7 +1115,17 @@ bool BKE_object_data_transfer_ex(
 
 	/* Get source evaluated mesh.*/
 	me_src_mask |= BKE_object_data_transfer_dttypes_to_cdmask(data_types);
-	me_src = mesh_get_eval_final(depsgraph, scene, ob_src, me_src_mask);
+	if (is_modifier) {
+		me_src = ob_src->runtime.mesh_eval;
+
+		if (me_src == NULL || (me_src_mask & ~ob_src->lastDataMask) != 0) {
+			printf("Data Transfer: source mesh data is not ready - dependency cycle?\n");
+			return changed;
+		}
+	}
+	else {
+		me_src = mesh_get_eval_final(depsgraph, scene, ob_src, me_src_mask);
+	}
 	if (!me_src) {
 		return changed;
 	}

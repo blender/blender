@@ -176,7 +176,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, dtmd->ob_source);
 	}
 
-	if ((result == me_mod || (me->mvert == result->mvert) || (me->medge == result->medge)) &&
+	if (((result == me) || (me->mvert == result->mvert) || (me->medge == result->medge)) &&
 	    (dtmd->data_types & DT_TYPES_AFFECT_MESH))
 	{
 		/* We need to duplicate data here, otherwise setting custom normals, edges' shaprness, etc., could

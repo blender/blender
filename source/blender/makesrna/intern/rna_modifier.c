@@ -312,6 +312,7 @@ const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
@@ -902,7 +903,6 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 	}
 
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	Scene *scene = CTX_data_scene(C);
 
 	/* No active here! */
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
@@ -940,7 +940,10 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 			Mesh *me_eval;
 			int num_data, i;
 
-			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPUV);
+			Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MLOOPUV);
 			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
 			RNA_enum_item_add_separator(&item, &totitem);
@@ -959,7 +962,10 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
 			Mesh *me_eval;
 			int num_data, i;
 
-			me_eval = mesh_get_eval_final(depsgraph, scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
+			Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+			Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, CD_MASK_BAREMESH | CD_MLOOPCOL);
 			num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
 			RNA_enum_item_add_separator(&item, &totitem);
