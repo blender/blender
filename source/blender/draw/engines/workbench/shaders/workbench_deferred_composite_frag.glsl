@@ -26,32 +26,6 @@ void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
-	uint object_id = texelFetch(objectId, texel, 0).r;
-
-	/* TODO separate this into its own shader. */
-#ifndef V3D_SHADING_OBJECT_OUTLINE
-	if (object_id == NO_OBJECT_ID) {
-		fragColor = vec4(background_color(world_data, uv_viewport.y), world_data.background_alpha);
-		return;
-	}
-#else /* !V3D_SHADING_OBJECT_OUTLINE */
-	float object_outline = calculate_object_outline(objectId, texel, object_id);
-
-	if (object_id == NO_OBJECT_ID) {
-		vec3 background = background_color(world_data, uv_viewport.y);
-		if (object_outline == 0.0) {
-			fragColor = vec4(background, world_data.background_alpha);
-		}
-		else {
-			/* Do correct alpha blending. */
-			vec4 background_color = vec4(background, 1.0) * world_data.background_alpha;
-			vec4 outline_color = vec4(world_data.object_outline_color.rgb, 1.0);
-			fragColor = mix(outline_color, background_color, object_outline);
-			fragColor = vec4(fragColor.rgb / max(1e-8, fragColor.a), fragColor.a);
-		}
-		return;
-	}
-#endif /* !V3D_SHADING_OBJECT_OUTLINE */
 
 	vec4 base_color = texelFetch(colorBuffer, texel, 0);
 
@@ -105,6 +79,8 @@ void main()
 #endif
 
 #ifdef V3D_SHADING_OBJECT_OUTLINE
+	uint object_id = texelFetch(objectId, texel, 0).r;
+	float object_outline = calculate_object_outline(objectId, texel, object_id);
 	shaded_color = mix(world_data.object_outline_color.rgb, shaded_color, object_outline);
 #endif
 

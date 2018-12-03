@@ -81,6 +81,7 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *ghost_prepass_fb;
 	struct GPUFrameBuffer *cavity_fb;
 	struct GPUFrameBuffer *composite_fb;
+	struct GPUFrameBuffer *id_clear_fb;
 
 	struct GPUFrameBuffer *effect_fb;
 	struct GPUFrameBuffer *effect_taa_fb;
@@ -118,6 +119,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *shadow_depth_fail_caps_mani_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
+	struct DRWPass *background_pass;
 	struct DRWPass *ghost_resolve_pass;
 	struct DRWPass *effect_aa_pass;
 	struct DRWPass *volume_pass;
@@ -167,6 +169,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUShader *prepass_texture_sh;
 	struct GPUShader *prepass_texture_hair_sh;
 	struct GPUShader *composite_sh;
+	struct GPUShader *background_sh;
 	struct GPUShader *transparent_accum_sh;
 	struct GPUShader *transparent_accum_hair_sh;
 	struct GPUShader *transparent_accum_texture_sh;
