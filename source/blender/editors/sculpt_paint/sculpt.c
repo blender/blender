@@ -5728,7 +5728,7 @@ void ED_object_sculptmode_enter(struct bContext *C, ReportList *reports)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = OBACT;
 	ED_object_sculptmode_enter_ex(bmain, scene, ob, reports);
 }
 
@@ -5781,7 +5781,7 @@ void ED_object_sculptmode_exit_ex(
 void ED_object_sculptmode_exit(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = OBACT;
 	ED_object_sculptmode_exit_ex(scene, ob);
 }
 
