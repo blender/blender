@@ -422,9 +422,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		if (CAVITY_ENABLED(wpd)) {
 			e_data.cavity_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16, &draw_engine_workbench_solid);
 		}
-		if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
-			e_data.metallic_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R8, &draw_engine_workbench_solid);
-		}
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -574,7 +571,7 @@ void workbench_deferred_engine_free(void)
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
 {
 	DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
-	DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.color_buffer_tx);
+	DRW_shgroup_uniform_texture_ref(grp, "materialBuffer", &e_data.color_buffer_tx);
 	if (OBJECT_OUTLINE_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
 	}
@@ -583,9 +580,6 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
 	}
 	if (CAVITY_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "cavityBuffer", &e_data.cavity_buffer_tx);
-	}
-	if (SPECULAR_HIGHLIGHT_ENABLED(wpd)) {
-		DRW_shgroup_uniform_texture_ref(grp, "metallicBuffer", &e_data.metallic_buffer_tx);
 	}
 	if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);

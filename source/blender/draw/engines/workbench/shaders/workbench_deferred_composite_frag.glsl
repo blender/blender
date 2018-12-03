@@ -4,8 +4,7 @@ uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
 
 uniform usampler2D objectId;
-uniform sampler2D colorBuffer;
-uniform sampler2D metallicBuffer;
+uniform sampler2D materialBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
 uniform sampler2D cavityBuffer;
@@ -27,7 +26,8 @@ void main()
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 
-	vec4 base_color = texelFetch(colorBuffer, texel, 0);
+	vec4 material_data = texelFetch(materialBuffer, texel, 0);
+	vec3 base_color = material_data.rgb;
 
 /* Do we need normals */
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
@@ -38,27 +38,28 @@ void main()
 
 	/* -------- SHADING --------- */
 #ifdef V3D_LIGHTING_FLAT
-	vec3 shaded_color = base_color.rgb;
+	vec3 shaded_color = base_color;
 
 #elif defined(V3D_LIGHTING_MATCAP)
-	/* When using matcaps, the basecolor alpha is the backface sign. */
-	normal_viewport = (base_color.a > 0.0) ? normal_viewport : -normal_viewport;
+	/* When using matcaps, the material_data.a is the backface sign. */
+	float flipped_nor = material_data.a;
+	normal_viewport = (flipped_nor > 0.0) ? normal_viewport : -normal_viewport;
 	bool flipped = world_data.matcap_orientation != 0;
 	vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
 	vec3 matcap = textureLod(matcapImage, matcap_uv, 0.0).rgb;
-	vec3 shaded_color = matcap * base_color.rgb;
+	vec3 shaded_color = matcap * base_color;
 
 #elif defined(V3D_LIGHTING_STUDIO)
 
 #  ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	float metallic = texelFetch(metallicBuffer, texel, 0).r;
-	float roughness = base_color.a;
-	vec3 specular_color = mix(vec3(0.05), base_color.rgb, metallic);
-	vec3 diffuse_color = mix(base_color.rgb, vec3(0.0), metallic);
+	float roughness, metallic;
+	workbench_float_pair_decode(material_data.a, roughness, metallic);
+	vec3 specular_color = mix(vec3(0.05), base_color, metallic);
+	vec3 diffuse_color = mix(base_color, vec3(0.0), metallic);
 #  else
 	float roughness = 0.0;
 	vec3 specular_color = vec3(0.0);
-	vec3 diffuse_color = base_color.rgb;
+	vec3 diffuse_color = base_color;
 #  endif
 
 	vec3 shaded_color = get_world_lighting(world_data,
