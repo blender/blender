@@ -416,7 +416,8 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
 
 	arrow->data.range = max - min;
 	arrow->data.min = min;
-	arrow->data.flag |= GIZMO_CUSTOM_RANGE_SET;
+	arrow->data.max = max;
+	arrow->data.is_custom_range_set = true;
 }
 
 /**

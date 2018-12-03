@@ -37,8 +37,6 @@
  * Data for common interactions. Used in gizmo_library_utils.c functions.
  */
 typedef struct GizmoCommonData {
-	int flag;
-
 	float range_fac;      /* factor for arrow min/max distance */
 	float offset;
 
@@ -46,6 +44,8 @@ typedef struct GizmoCommonData {
 	float range;
 	/* min/max value for constrained gizmos */
 	float min, max;
+
+	uint is_custom_range_set : 1;
 } GizmoCommonData;
 
 typedef struct GizmoInteraction {
@@ -61,12 +61,6 @@ typedef struct GizmoInteraction {
 	 * Needed to allow toggling precision on/off without causing jumps */
 	float precision_offset;
 } GizmoInteraction;
-
-/* GizmoCommonData->flag  */
-enum {
-	GIZMO_CUSTOM_RANGE_SET = (1 << 0),
-};
-
 
 float gizmo_offset_from_value(
         GizmoCommonData *data, const float value,

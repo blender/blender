@@ -99,7 +99,7 @@ float gizmo_value_from_offset(
 	}
 
 	/* clamp to custom range */
-	if (data->flag & GIZMO_CUSTOM_RANGE_SET) {
+	if (data->is_custom_range_set) {
 		CLAMP(value, data->min, max);
 	}
 
@@ -124,7 +124,7 @@ void gizmo_property_data_update(
 	float value = WM_gizmo_target_property_float_get(gz, gz_prop);
 
 	if (constrained) {
-		if ((data->flag & GIZMO_CUSTOM_RANGE_SET) == 0) {
+		if (data->is_custom_range_set == false) {
 			float range[2];
 			if (WM_gizmo_target_property_float_range_get(gz, gz_prop, range)) {
 				data->range = range[1] - range[0];
