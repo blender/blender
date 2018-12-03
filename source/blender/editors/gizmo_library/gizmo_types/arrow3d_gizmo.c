@@ -379,7 +379,11 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 		/* Assign incase applying the opetration needs an updated offset
 		 * editmesh bisect needs this. */
 		if (is_prop_valid) {
-			data->offset = WM_gizmo_target_property_float_get(gz, gz_prop);
+			const int transform_flag = RNA_enum_get(arrow->gizmo.ptr, "transform");
+			const bool constrained = (transform_flag & ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED) != 0;
+			const bool inverted = (transform_flag & ED_GIZMO_ARROW_XFORM_FLAG_INVERTED) != 0;
+			const float value = WM_gizmo_target_property_float_get(gz, gz_prop);
+			data->offset = gizmo_offset_from_value(data, value, constrained, inverted);
 		}
 		return;
 	}
