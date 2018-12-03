@@ -175,6 +175,11 @@ typedef struct GizmoGroup {
 	int twtype_prev;
 	int use_twtype_refresh;
 
+	/* Only for view orientation. */
+	struct {
+		float viewinv_m3[3][3];
+	} prev;
+
 	struct wmGizmo *gizmos[MAN_AXIS_LAST];
 } GizmoGroup;
 
@@ -1753,6 +1758,8 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 	ARegion *ar = CTX_wm_region(C);
 	// View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
+	float viewinv_m3[3][3];
+	copy_m3_m4(viewinv_m3, rv3d->viewinv);
 	float idot[3];
 
 	/* when looking through a selected camera, the gizmo can be at the
@@ -1768,9 +1775,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 	gizmo_get_idot(rv3d, idot);
 
 	/* *** set properties for axes *** */
-
-	MAN_ITER_AXES_BEGIN(axis, axis_idx)
-	{
+	MAN_ITER_AXES_BEGIN(axis, axis_idx) {
 		const short axis_type = gizmo_get_axis_type(axis_idx);
 		/* XXX maybe unset _HIDDEN flag on redraw? */
 
@@ -1795,8 +1800,23 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 				WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
 				break;
 		}
+	} MAN_ITER_AXES_END;
+
+	/* Refresh handled above when using view orientation. */
+	if (!equals_m3m3(viewinv_m3, ggd->prev.viewinv_m3)) {
+		{
+			Scene *scene = CTX_data_scene(C);
+			switch (scene->orientation_type) {
+				case V3D_MANIP_VIEW:
+				{
+					WIDGETGROUP_gizmo_refresh(C, gzgroup);
+					break;
+				}
+			}
+		}
+		copy_m3_m4(ggd->prev.viewinv_m3, rv3d->viewinv);
 	}
-	MAN_ITER_AXES_END;
+
 }
 
 static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroupType *gzgt)
