@@ -122,8 +122,8 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup, const char *name,
 	}
 
 	if (location == -1) {
-		if (G.debug & G_DEBUG)
-			fprintf(stderr, "Pass : %s, Uniform '%s' not found!\n", shgroup->pass_parent->name, name);
+		if (G.debug & G_DEBUG_GPU)
+			fprintf(stderr, "Warning: Pass : %s, Uniform '%s' not found!\n", shgroup->pass_parent->name, name);
 		/* Nice to enable eventually, for now eevee uses uniforms that might not exist. */
 		// BLI_assert(0);
 		return;
