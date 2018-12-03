@@ -139,11 +139,6 @@ void DEG_add_object_relation(struct DepsNodeHandle *node_handle,
                              struct Object *object,
                              eDepsObjectComponentType component,
                              const char *description);
-void DEG_add_object_relation_with_customdata(struct DepsNodeHandle *node_handle,
-                                             struct Object *object,
-                                             eDepsObjectComponentType component,
-                                             uint64_t customdata_mask,
-                                             const char *description);
 void DEG_add_bone_relation(struct DepsNodeHandle *handle,
                            struct Object *object,
                            const char *bone_name,
@@ -163,6 +158,7 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
                                         const char *description);
 
 void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, struct ID *id, uint32_t flag);
+void DEG_add_customdata_mask(struct DepsNodeHandle *handle, struct Object *object, uint64_t mask);
 
 struct ID *DEG_get_id_from_handle(struct DepsNodeHandle *node_handle);
 struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);

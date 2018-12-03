@@ -132,15 +132,6 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
-	/* TODO(sergey): Do this flush on CoW object? */
-	foreach (OperationDepsNode *node, graph_->operations) {
-		IDDepsNode *id_node = node->owner->owner;
-		ID *id = id_node->id_orig;
-		if (GS(id->name) == ID_OB) {
-			Object *object = (Object *)id;
-			object->customdata_mask |= node->customdata_mask;
-		}
-	}
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
 		ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);

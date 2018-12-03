@@ -104,6 +104,8 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	id_orig = (ID *)id;
 	eval_flags = 0;
 	previous_eval_flags = 0;
+	customdata_mask = 0;
+	previous_customdata_mask = 0;
 	linked_state = DEG_ID_LINKED_INDIRECTLY;
 	is_directly_visible = true;
 	is_collection_fully_expanded = false;

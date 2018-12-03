@@ -235,6 +235,8 @@ struct DepsgraphNodeBuilder {
 		IDComponentsMask previously_visible_components_mask;
 		/* Special evaluation flag mask from the previous depsgraph. */
 		uint32_t previous_eval_flags;
+		/* Mesh CustomData mask from the previous depsgraph. */
+		uint64_t previous_customdata_mask;
 	};
 
 protected:

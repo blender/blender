@@ -140,9 +140,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 			 * separately. */
 			ComponentKey target_key(&data->tar->id, DEG_NODE_TYPE_GEOMETRY);
 			add_relation(target_key, solver_key, con->name);
-			if (data->tar->type == OB_MESH) {
-				add_customdata_mask(target_key, CD_MASK_MDEFORMVERT);
-			}
+			add_customdata_mask(data->tar, CD_MASK_MDEFORMVERT);
 		}
 		else {
 			/* Standard Object Target. */
@@ -172,9 +170,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 			 * separately. */
 			ComponentKey target_key(&data->poletar->id, DEG_NODE_TYPE_GEOMETRY);
 			add_relation(target_key, solver_key, con->name);
-			if (data->poletar->type == OB_MESH) {
-				add_customdata_mask(target_key, CD_MASK_MDEFORMVERT);
-			}
+			add_customdata_mask(data->poletar, CD_MASK_MDEFORMVERT);
 		}
 		else {
 			ComponentKey target_key(&data->poletar->id, DEG_NODE_TYPE_TRANSFORM);

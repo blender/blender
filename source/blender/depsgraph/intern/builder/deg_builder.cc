@@ -142,6 +142,10 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		if (id_node->eval_flags != id_node->previous_eval_flags) {
 			flag |= DEG_TAG_TRANSFORM | DEG_TAG_GEOMETRY;
 		}
+		/* Tag rebuild if the custom data mask changed. */
+		if (id_node->customdata_mask != id_node->previous_customdata_mask) {
+			flag |= DEG_TAG_GEOMETRY;
+		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			flag |= DEG_TAG_COPY_ON_WRITE;
 			/* This means ID is being added to the dependency graph first

@@ -289,13 +289,16 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
 	return find_node(key) != NULL;
 }
 
-void DepsgraphRelationBuilder::add_customdata_mask(const ComponentKey &key, uint64_t mask)
+void DepsgraphRelationBuilder::add_customdata_mask(Object *object, uint64_t mask)
 {
-	if (mask != 0) {
-		OperationDepsNode *node = find_operation_node(key);
+	if (mask != 0 && object != NULL && object->type == OB_MESH) {
+		DEG::IDDepsNode *id_node = graph_->find_id_node(&object->id);
 
-		if (node != NULL) {
-			node->customdata_mask |= mask;
+		if (id_node == NULL) {
+			BLI_assert(!"ID should always be valid");
+		}
+		else {
+			id_node->customdata_mask |= mask;
 		}
 	}
 }
@@ -828,7 +831,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 			add_relation(parent_key, ob_key, "Vertex Parent");
 
 			/* XXX not sure what this is for or how you could be done properly - lukas */
-			add_customdata_mask(parent_key, CD_MASK_ORIGINDEX);
+			add_customdata_mask(object->parent, CD_MASK_ORIGINDEX);
 
 			ComponentKey transform_key(&object->parent->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(transform_key, ob_key, "Vertex Parent TFM");
@@ -1056,9 +1059,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					 */
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
-					if (ct->tar->type == OB_MESH) {
-						add_customdata_mask(target_key, CD_MASK_MDEFORMVERT);
-					}
+					add_customdata_mask(ct->tar, CD_MASK_MDEFORMVERT);
 				}
 				else if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
 					bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
@@ -1071,7 +1072,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					if (ct->tar->type == OB_MESH && scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
 						bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
 						if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
-							add_customdata_mask(target_key, CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL);
+							add_customdata_mask(ct->tar, CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL);
 						}
 						if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
 							add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);

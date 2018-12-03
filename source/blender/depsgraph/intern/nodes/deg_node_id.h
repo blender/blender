@@ -81,6 +81,10 @@ struct IDDepsNode : public DepsNode {
 	uint32_t eval_flags;
 	uint32_t previous_eval_flags;
 
+	/* Extra customdata mask which needs to be evaluated for the mesh object. */
+	uint64_t customdata_mask;
+	uint64_t previous_customdata_mask;
+
 	eDepsNode_LinkedState_Type linked_state;
 
 	/* Indicates the datablock is visible in the evaluated scene. */

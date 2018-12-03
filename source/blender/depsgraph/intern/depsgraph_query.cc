@@ -122,6 +122,28 @@ uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 	return id_node->eval_flags;
 }
 
+uint64_t DEG_get_customdata_mask_for_object(const Depsgraph *graph, Object *ob)
+{
+	if (graph == NULL) {
+		/* Happens when converting objects to mesh from a python script
+		 * after modifying scene graph.
+		 *
+		 * Currently harmless because it's only called for temporary
+		 * objects which are out of the DAG anyway.
+		 */
+		return 0;
+	}
+
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	const DEG::IDDepsNode *id_node = deg_graph->find_id_node(DEG_get_original_id(&ob->id));
+	if (id_node == NULL) {
+		/* TODO(sergey): Does it mean we need to check set scene? */
+		return 0;
+	}
+
+	return id_node->customdata_mask;
+}
+
 Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
 {
 	const DEG::Depsgraph *deg_graph =

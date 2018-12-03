@@ -156,6 +156,13 @@ typedef struct Object_Runtime {
 	struct GpencilBatchCache *gpencil_cache;
 
 	struct ObjectBBoneDeform *cached_bbone_deformation;
+
+	/* The custom data layer mask that was last used to calculate mesh_eval and mesh_deform_eval. */
+	uint64_t last_data_mask;
+
+	/* Did last modifier stack generation need mapping support? */
+	char last_need_mapping;
+	char pad[7];
 } Object_Runtime;
 
 typedef struct Object {
@@ -236,8 +243,7 @@ typedef struct Object {
 	short nlaflag;				/* used for DopeSheet filtering settings (expanded/collapsed) */
 	short pad[2];
 
-	/* did last modifier stack generation need mapping support? */
-	char lastNeedMapping;  /* bool */
+	char pad12;
 	char duplicator_visibility_flag;
 
 	/* dupli-frame settings */
@@ -293,8 +299,6 @@ typedef struct Object {
 
 	struct DerivedMesh *derivedDeform, *derivedFinal;
 	void *pad7;
-	uint64_t lastDataMask;   /* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
-	uint64_t customdata_mask; /* (extra) custom data layer mask to use for creating derivedmesh, set by depsgraph */
 
 	ListBase pc_ids;
 

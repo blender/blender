@@ -1118,7 +1118,7 @@ bool BKE_object_data_transfer_ex(
 	if (is_modifier) {
 		me_src = ob_src->runtime.mesh_eval;
 
-		if (me_src == NULL || (me_src_mask & ~ob_src->lastDataMask) != 0) {
+		if (me_src == NULL || (me_src_mask & ~ob_src->runtime.last_data_mask) != 0) {
 			printf("Data Transfer: source mesh data is not ready - dependency cycle?\n");
 			return changed;
 		}

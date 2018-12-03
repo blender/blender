@@ -2035,8 +2035,8 @@ static void mesh_build_data(
 	ob->derivedFinal->needsFree = 0;
 	ob->derivedDeform->needsFree = 0;
 #endif
-	ob->lastDataMask = dataMask;
-	ob->lastNeedMapping = need_mapping;
+	ob->runtime.last_data_mask = dataMask;
+	ob->runtime.last_need_mapping = need_mapping;
 
 	if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
 		/* create PBVH immediately (would be created on the fly too,
@@ -2080,7 +2080,7 @@ static CustomDataMask object_get_datamask(const Depsgraph *depsgraph, Object *ob
 {
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	Object *actob = view_layer->basact ? DEG_get_original_object(view_layer->basact->object) : NULL;
-	CustomDataMask mask = ob->customdata_mask;
+	CustomDataMask mask = DEG_get_customdata_mask_for_object(depsgraph, ob);
 
 	if (r_need_mapping) {
 		*r_need_mapping = false;
@@ -2171,10 +2171,11 @@ Mesh *mesh_get_eval_final(
 	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
 	if (!ob->runtime.mesh_eval ||
-	    ((dataMask & ob->lastDataMask) != dataMask) ||
-	    (need_mapping && !ob->lastNeedMapping))
+	    ((dataMask & ob->runtime.last_data_mask) != dataMask) ||
+	    (need_mapping && !ob->runtime.last_need_mapping))
 	{
-		mesh_build_data(depsgraph, scene, ob, dataMask | ob->lastDataMask, false, need_mapping || ob->lastNeedMapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask | ob->runtime.last_data_mask,
+		                false, need_mapping || ob->runtime.last_need_mapping);
 	}
 
 	if (ob->runtime.mesh_eval) { BLI_assert(!(ob->runtime.mesh_eval->runtime.cd_dirty_vert & CD_MASK_NORMAL)); }
@@ -2219,10 +2220,11 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob
 	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
 	if (!ob->runtime.mesh_deform_eval ||
-	    ((dataMask & ob->lastDataMask) != dataMask) ||
-	    (need_mapping && !ob->lastNeedMapping))
+	    ((dataMask & ob->runtime.last_data_mask) != dataMask) ||
+	    (need_mapping && !ob->runtime.last_need_mapping))
 	{
-		mesh_build_data(depsgraph, scene, ob, dataMask | ob->lastDataMask, false, need_mapping || ob->lastNeedMapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask | ob->runtime.last_data_mask,
+		                false, need_mapping || ob->runtime.last_need_mapping);
 	}
 
 	return ob->runtime.mesh_deform_eval;
