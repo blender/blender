@@ -53,6 +53,7 @@
  */
 
 typedef struct SubdivMeshContext {
+	const SubdivToMeshSettings *settings;
 	const Mesh *coarse_mesh;
 	Subdiv *subdiv;
 	Mesh *subdiv_mesh;
@@ -766,6 +767,9 @@ static void subdiv_copy_edge_data(
 		subdiv_edge->crease = 0;
 		subdiv_edge->bweight = 0;
 		subdiv_edge->flag = 0;
+		if (!ctx->settings->use_optimal_display) {
+			subdiv_edge->flag |= ME_EDGERENDER;
+		}
 		if (ctx->edge_origindex != NULL) {
 			ctx->edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
 		}
@@ -777,6 +781,7 @@ static void subdiv_copy_edge_data(
 	                     coarse_edge_index,
 	                     subdiv_edge_index,
 	                     1);
+	subdiv_edge->flag |= ME_EDGERENDER;
 }
 
 static void subdiv_mesh_edge(
@@ -1123,6 +1128,7 @@ Mesh *BKE_subdiv_to_mesh(
 	}
 	/* Initialize subdivion mesh creation context/ */
 	SubdivMeshContext subdiv_context = {0};
+	subdiv_context.settings = settings;
 	subdiv_context.coarse_mesh = coarse_mesh;
 	subdiv_context.subdiv = subdiv;
 	/* Multi-threaded traversal/evaluation. */

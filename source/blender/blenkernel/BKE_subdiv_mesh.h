@@ -45,6 +45,8 @@ typedef struct SubdivToMeshSettings {
 	 * `resolution - 1`.
 	 */
 	int resolution;
+	/* When true, only edges emitted from coarse ones will be displayed. */
+	bool use_optimal_display;
 } SubdivToMeshSettings;
 
 /* Create real hi-res mesh from subdivision, all geometry is "real". */

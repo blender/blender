@@ -130,6 +130,8 @@ static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
 {
 	const int level = subdiv_levels_for_modifier_get(smd, ctx);
 	settings->resolution = (1 << level) + 1;
+	settings->use_optimal_display =
+	        (smd->flags & eSubsurfModifierFlag_ControlEdges);
 }
 
 static Mesh *subdiv_as_mesh(SubsurfModifierData *smd,

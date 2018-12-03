@@ -64,4 +64,6 @@ void BKE_multires_subdiv_mesh_settings_init(
 	const int level = multires_get_level(
 	        scene, object, mmd, use_render_params, ignore_simplify);
 	mesh_settings->resolution = (1 << level) + 1;
+	mesh_settings->use_optimal_display =
+	        (mmd->flags & eMultiresModifierFlag_ControlEdges);
 }
