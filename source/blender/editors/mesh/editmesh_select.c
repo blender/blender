@@ -2570,18 +2570,21 @@ bool EDBM_selectmode_disable(
 /** \name Select Toggle
  * \{ */
 
-void EDBM_deselect_by_material(BMEditMesh *em, const short index, const bool select)
+bool EDBM_deselect_by_material(BMEditMesh *em, const short index, const bool select)
 {
 	BMIter iter;
 	BMFace *efa;
+	bool changed = false;
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
 			continue;
 		if (efa->mat_nr == index) {
+			changed = true;
 			BM_face_select_set(em->bm, efa, select);
 		}
 	}
+	return changed;
 }
 
 void EDBM_select_toggle_all(BMEditMesh *em) /* exported for UV */

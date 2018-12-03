@@ -99,6 +99,35 @@
 
 #include "render_intern.h"  // own include
 
+/**
+ * Object list for material operations.
+ * has exception for pinned object.
+ */
+Object **object_array_for_shading(bContext *C, uint *r_objects_len)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceButs *sbuts = NULL;
+	View3D *v3d = NULL;
+	if (sa->spacetype == SPACE_BUTS) {
+		sbuts = sa->spacedata.first;
+	}
+	else if (sa->spacetype == SPACE_VIEW3D) {
+		v3d = sa->spacedata.first;
+	}
+
+	Object **objects;
+	if (sbuts && sbuts->pinid && GS(sbuts->pinid->name) == ID_OB) {
+		objects = MEM_mallocN(sizeof(*objects), __func__);
+		objects[0] = (Object *)sbuts->pinid;
+		*r_objects_len = 1;
+	}
+	else {
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, v3d, r_objects_len);
+	}
+	return objects;
+}
+
 /********************** material slot operators *********************/
 
 static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -185,13 +214,17 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 
 static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = ED_object_context(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	bool changed_multi = false;
 
-	if (!ob)
-		return OPERATOR_CANCELLED;
-
-	if (ob && ob->actcol > 0) {
+	uint objects_len = 0;
+	Object **objects = object_array_for_shading(C, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		if (ob->actcol <= 0) {
+			continue;
+		}
+		bool changed = false;
 		if (ob->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(ob);
 			BMFace *efa;
@@ -199,8 +232,10 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 			if (em) {
 				BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-					if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+						changed = true;
 						efa->mat_nr = ob->actcol - 1;
+					}
 				}
 			}
 		}
@@ -211,6 +246,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			if (nurbs) {
 				for (nu = nurbs->first; nu; nu = nu->next) {
 					if (ED_curve_nurb_select_check(v3d, nu)) {
+						changed = true;
 						nu->mat_nr = ob->actcol - 1;
 					}
 				}
@@ -221,16 +257,22 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			int i, selstart, selend;
 
 			if (ef && BKE_vfont_select_get(ob, &selstart, &selend)) {
-				for (i = selstart; i <= selend; i++)
+				for (i = selstart; i <= selend; i++) {
+					changed = true;
 					ef->textbufinfo[i].mat_nr = ob->actcol;
+				}
 			}
 		}
+
+		if (changed) {
+			changed_multi = true;
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+		}
 	}
+	MEM_freeN(objects);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
-
-	return OPERATOR_FINISHED;
+	return (changed_multi) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
@@ -250,67 +292,78 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 
 static int material_slot_de_select(bContext *C, bool select)
 {
-	Object *ob = ED_object_context(C);
+	bool changed_multi = false;
 
-	if (!ob)
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = object_array_for_shading(C, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bool changed = false;
 
-	if (ob->type == OB_MESH) {
-		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		if (ob->type == OB_MESH) {
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
 
-		if (em) {
-			EDBM_deselect_by_material(em, ob->actcol - 1, select);
+			if (em) {
+				changed = EDBM_deselect_by_material(em, ob->actcol - 1, select);
+			}
 		}
-	}
-	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
-		ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
-		Nurb *nu;
-		BPoint *bp;
-		BezTriple *bezt;
-		int a;
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+			ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
+			Nurb *nu;
+			BPoint *bp;
+			BezTriple *bezt;
+			int a;
 
-		if (nurbs) {
-			for (nu = nurbs->first; nu; nu = nu->next) {
-				if (nu->mat_nr == ob->actcol - 1) {
-					if (nu->bezt) {
-						a = nu->pntsu;
-						bezt = nu->bezt;
-						while (a--) {
-							if (bezt->hide == 0) {
-								if (select) {
-									bezt->f1 |= SELECT;
-									bezt->f2 |= SELECT;
-									bezt->f3 |= SELECT;
+			if (nurbs) {
+				for (nu = nurbs->first; nu; nu = nu->next) {
+					if (nu->mat_nr == ob->actcol - 1) {
+						if (nu->bezt) {
+							a = nu->pntsu;
+							bezt = nu->bezt;
+							while (a--) {
+								if (bezt->hide == 0) {
+									changed = true;
+									if (select) {
+										bezt->f1 |= SELECT;
+										bezt->f2 |= SELECT;
+										bezt->f3 |= SELECT;
+									}
+									else {
+										bezt->f1 &= ~SELECT;
+										bezt->f2 &= ~SELECT;
+										bezt->f3 &= ~SELECT;
+									}
 								}
-								else {
-									bezt->f1 &= ~SELECT;
-									bezt->f2 &= ~SELECT;
-									bezt->f3 &= ~SELECT;
-								}
+								bezt++;
 							}
-							bezt++;
 						}
-					}
-					else if (nu->bp) {
-						a = nu->pntsu * nu->pntsv;
-						bp = nu->bp;
-						while (a--) {
-							if (bp->hide == 0) {
-								if (select) bp->f1 |= SELECT;
-								else bp->f1 &= ~SELECT;
+						else if (nu->bp) {
+							a = nu->pntsu * nu->pntsv;
+							bp = nu->bp;
+							while (a--) {
+								if (bp->hide == 0) {
+									changed = true;
+									if (select) bp->f1 |= SELECT;
+									else bp->f1 &= ~SELECT;
+								}
+								bp++;
 							}
-							bp++;
 						}
 					}
 				}
 			}
 		}
+
+		if (changed) {
+			changed_multi = true;
+			DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+		}
 	}
 
-	DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+	MEM_freeN(objects);
 
-	return OPERATOR_FINISHED;
+	return (changed_multi) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int material_slot_select_exec(bContext *C, wmOperator *UNUSED(op))

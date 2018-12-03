@@ -202,7 +202,7 @@ bool EDBM_selectmode_disable(struct Scene *scene, struct BMEditMesh *em,
                              const short selectmode_disable,
                              const short selectmode_fallback);
 
-void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const bool select);
+bool EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const bool select);
 
 void EDBM_select_toggle_all(struct BMEditMesh *em);
 
