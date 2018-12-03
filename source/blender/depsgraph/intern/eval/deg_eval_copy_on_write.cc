@@ -854,6 +854,9 @@ static void deg_restore_object_runtime(
 			 * that datablock.
 			 */
 			object->data = mesh_orig;
+
+			/* After that, immediately free the invalidated caches. */
+			BKE_object_free_derived_caches(object);
 		}
 		else {
 			Mesh *mesh_eval = object->runtime.mesh_eval;
