@@ -19,9 +19,10 @@
 
 /* Noise */
 
-float noise(point p, float distortion, float detail, float fac, color Color)
+float noise(point ip, float distortion, float detail, output color Color)
 {
 	point r;
+	point p = ip;
 	int hard = 0;
 
 	if (distortion != 0.0) {
@@ -32,7 +33,7 @@ float noise(point p, float distortion, float detail, float fac, color Color)
 		p += r;
 	}
 
-	fac = noise_turbulence(p, detail, hard);
+	float fac = noise_turbulence(p, detail, hard);
 	
 	Color = color(fac, noise_turbulence(point(p[1], p[0], p[2]), detail, hard),
 		noise_turbulence(point(p[1], p[2], p[0]), detail, hard));
@@ -55,6 +56,6 @@ shader node_noise_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 
-	Fac = noise(p * Scale, Distortion, Detail, Fac, Color);
+	Fac = noise(p * Scale, Distortion, Detail, Color);
 }
 
