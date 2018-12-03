@@ -229,7 +229,7 @@ static bool get_path_local(
  * Is this an install with user files kept together with the Blender executable and its
  * installation files.
  */
-static bool is_portable_install(void)
+bool BKE_appdir_app_is_portable_install(void)
 {
 	/* detect portable install by the existence of config folder */
 	const int ver = BLENDER_VERSION;
@@ -289,7 +289,7 @@ static bool get_path_user(
 	const char *user_base_path;
 
 	/* for portable install, user path is always local */
-	if (is_portable_install()) {
+	if (BKE_appdir_app_is_portable_install()) {
 		return get_path_local(targetpath, targetpath_len, folder_name, subfolder_name, ver);
 	}
 	user_path[0] = '\0';

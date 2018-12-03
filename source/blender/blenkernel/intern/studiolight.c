@@ -1219,13 +1219,22 @@ void BKE_studiolight_init(void)
 	BLI_addtail(&studiolights, sl);
 
 	/* go over the preset folder and add a studiolight for every image with its path */
+	/* for portable installs (where USER and SYSTEM paths are the same), only go over LOCAL datafiles once */
 	/* Also reserve icon space for it. */
+	if (!BKE_appdir_app_is_portable_install()) {
+		studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
+		                                      STUDIOLIGHT_LIGHTS_FOLDER,
+		                                      STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_USER_DEFINED);
+		studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
+		                                      STUDIOLIGHT_WORLD_FOLDER,
+		                                      STUDIOLIGHT_TYPE_WORLD | STUDIOLIGHT_USER_DEFINED);
+		studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,
+		                                      STUDIOLIGHT_MATCAP_FOLDER,
+		                                      STUDIOLIGHT_TYPE_MATCAP | STUDIOLIGHT_USER_DEFINED);
+	}
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_LIGHTS_FOLDER, STUDIOLIGHT_TYPE_STUDIO);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_LIGHTS_FOLDER, STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_USER_DEFINED);
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_TYPE_WORLD);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_TYPE_WORLD | STUDIOLIGHT_USER_DEFINED);
 	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_MATCAP_FOLDER, STUDIOLIGHT_TYPE_MATCAP);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_MATCAP_FOLDER, STUDIOLIGHT_TYPE_MATCAP | STUDIOLIGHT_USER_DEFINED);
 
 	/* sort studio lights on filename. */
 	BLI_listbase_sort(&studiolights, studiolight_cmp);
