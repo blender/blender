@@ -4213,9 +4213,7 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	/* can happen with bad pointcache or physics calculation
 	 * since this becomes geometry, nan's and inf's crash raytrace code.
 	 * better not allow this. */
-	if ((!isfinite(bb->vec[0])) || (!isfinite(bb->vec[1])) || (!isfinite(bb->vec[2])) ||
-	    (!isfinite(bb->vel[0])) || (!isfinite(bb->vel[1])) || (!isfinite(bb->vel[2])) )
-	{
+	if (!is_finite_v3(bb->vec) || !is_finite_v3(bb->vec)) {
 		zero_v3(bb->vec);
 		zero_v3(bb->vel);
 
