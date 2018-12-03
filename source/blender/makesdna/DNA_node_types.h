@@ -221,7 +221,7 @@ typedef struct bNode {
 	 * and replacing all uses with per-instance data.
 	 */
 	short preview_xsize, preview_ysize;	/* reserved size of the preview rect */
-	short pad2[2];
+	short tmp_flag, pad2;   /* Used at runtime when going through the tree. Initialize before use. */
 	struct uiBlock *block;	/* runtime during drawing */
 
 	float ssr_id; /* XXX: eevee only, id of screen space reflection layer, needs to be a float to feed GPU_uniform. */
