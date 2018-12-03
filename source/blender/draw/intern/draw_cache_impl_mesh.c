@@ -72,6 +72,8 @@
 
 #include "draw_cache_impl.h"  /* own include */
 
+// #define USE_BM_MAPPED_LOOPNORMAL
+
 static void mesh_batch_cache_clear(Mesh *me);
 
 /* ---------------------------------------------------------------------- */
@@ -490,6 +492,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		}
 		if (types & MR_DATATYPE_LOOP) {
 			int totloop = bm->totloop;
+#ifdef USE_BM_MAPPED_LOOPNORMAL
 			if (is_auto_smooth) {
 				rdata->loop_normals = MEM_mallocN(sizeof(*rdata->loop_normals) * totloop, __func__);
 				int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
@@ -497,6 +500,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				        bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL,
 				        cd_loop_clnors_offset, false);
 			}
+#endif
 			rdata->loop_len = totloop;
 			bm_ensure_types |= BM_LOOP;
 		}
@@ -1787,9 +1791,17 @@ static void add_overlay_tri_mapped(
 	}
 
 	if (vbo_nor) {
+#ifdef USE_BM_MAPPED_LOOPNORMAL
 		float (*lnors)[3] = rdata->loop_normals;
+#endif
 		for (uint i = 0; i < 3; i++) {
-			const float *nor = (lnors) ? lnors[mlt->tri[i]] : poly_normal;
+			/* We don't have 'l_origindex', so use the polygons normal. */
+#ifdef USE_BM_MAPPED_LOOPNORMAL
+			const int l_orig = l_origindex[mlt->tri[i]];
+			const float *nor = (lnors && (l_orig != ORIGINDEX_NONE)) ? lnors[l_orig] : poly_normal;
+#else
+			const float *nor = poly_normal;
+#endif
 			GPUPackedNormal lnor = GPU_normal_convert_i10_v3(nor);
 			GPU_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
 			GPUPackedNormal vnor = GPU_normal_convert_i10_s3(mvert[mloop[mlt->tri[i]].v].no);
