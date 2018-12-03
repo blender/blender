@@ -175,6 +175,7 @@ struct TaskPool {
 	volatile bool do_work;
 
 	volatile bool is_suspended;
+	bool start_suspended;
 	ListBase suspended_queue;
 	size_t num_suspended;
 
@@ -650,6 +651,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler,
 	pool->do_cancel = false;
 	pool->do_work = false;
 	pool->is_suspended = is_suspended;
+	pool->start_suspended = is_suspended;
 	pool->num_suspended = 0;
 	pool->suspended_queue.first = pool->suspended_queue.last = NULL;
 	pool->run_in_background = is_background;
@@ -855,12 +857,16 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 
 			BLI_condition_notify_all(&scheduler->queue_cond);
 			BLI_mutex_unlock(&scheduler->queue_mutex);
+
+			pool->num_suspended = 0;
 		}
 	}
 
 	pool->do_work = true;
 
 	ASSERT_THREAD_ID(pool->scheduler, pool->thread_id);
+
+	handle_local_queue(tls, pool->thread_id);
 
 	BLI_mutex_lock(&pool->num_mutex);
 
@@ -913,7 +919,15 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 
 	BLI_mutex_unlock(&pool->num_mutex);
 
-	handle_local_queue(tls, pool->thread_id);
+	BLI_assert(tls->num_local_queue == 0);
+}
+
+void BLI_task_pool_work_wait_and_reset(TaskPool *pool)
+{
+	BLI_task_pool_work_and_wait(pool);
+
+	pool->do_work = false;
+	pool->is_suspended = pool->start_suspended;
 }
 
 void BLI_task_pool_cancel(TaskPool *pool)

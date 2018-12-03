@@ -98,6 +98,8 @@ void BLI_task_pool_push_from_thread(TaskPool *pool, TaskRunFunction run,
 
 /* work and wait until all tasks are done */
 void BLI_task_pool_work_and_wait(TaskPool *pool);
+/* work and wait until all tasks are done, then reset to the initial suspended state */
+void BLI_task_pool_work_wait_and_reset(TaskPool *pool);
 /* cancel all tasks, keep worker threads running */
 void BLI_task_pool_cancel(TaskPool *pool);
 
