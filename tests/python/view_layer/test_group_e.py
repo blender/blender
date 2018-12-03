@@ -44,8 +44,8 @@ class UnitTesting(ViewLayerTesting):
         empty = bpy.data.objects.new("Empty", None)
         bpy.context.scene_collection.objects.link(empty)
         layer_collection = bpy.context.layer_collection
-        empty.dupli_type = 'GROUP'
-        empty.dupli_group = group
+        empty.instance_type = 'GROUP'
+        empty.instance_collection = group
 
         # prepare to delete the original object
         # we could just pass an overridden context

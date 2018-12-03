@@ -1123,7 +1123,7 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
         if CyclesButtonsPanel.poll(context) and ob:
             if ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META', 'CAMERA'}:
                 return True
-            if ob.dupli_type == 'COLLECTION' and ob.dupli_group:
+            if ob.instance_type == 'COLLECTION' and ob.instance_collection:
                 return True
             # TODO(sergey): More duplicator types here?
         return False
@@ -1168,7 +1168,7 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
         ob = context.object
         return (CyclesButtonsPanel.poll(context) and
                 ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT'}) or
-                        (ob.dupli_type == 'COLLECTION' and ob.dupli_group)))
+                        (ob.instance_type == 'COLLECTION' and ob.instance_collection)))
 
     def draw(self, context):
         pass
