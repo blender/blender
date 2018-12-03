@@ -68,7 +68,7 @@ class SelectSideOfPlane(Operator):
 
         if context.space_data.type == 'VIEW_3D':
             wm = context.window_manager
-            wm.gizmo_group_type_add(SelectSideOfPlaneGizmoGroup.bl_idname)
+            wm.gizmo_group_type_ensure(SelectSideOfPlaneGizmoGroup.bl_idname)
 
         return {'FINISHED'}
 
@@ -106,7 +106,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         op = cls.my_target_operator(context)
         if op is None:
             wm = context.window_manager
-            wm.gizmo_group_type_remove(SelectSideOfPlaneGizmoGroup.bl_idname)
+            wm.gizmo_group_type_unlink_delayed(SelectSideOfPlaneGizmoGroup.bl_idname)
             return False
         return True
 

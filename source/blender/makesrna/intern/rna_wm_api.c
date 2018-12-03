@@ -138,19 +138,19 @@ static wmGizmoGroupType *wm_gizmogrouptype_find_for_add_remove(ReportList *repor
 	return gzgt;
 }
 
-static void rna_gizmo_group_type_add(ReportList *reports, const char *idname)
+static void rna_gizmo_group_type_ensure(ReportList *reports, const char *idname)
 {
 	wmGizmoGroupType *gzgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
 	if (gzgt != NULL) {
-		WM_gizmo_group_type_add_ptr(gzgt);
+		WM_gizmo_group_type_ensure_ptr(gzgt);
 	}
 }
 
-static void rna_gizmo_group_type_remove(Main *bmain, ReportList *reports, const char *idname)
+static void rna_gizmo_group_type_unlink_delayed(ReportList *reports, const char *idname)
 {
 	wmGizmoGroupType *gzgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
 	if (gzgt != NULL) {
-		WM_gizmo_group_type_remove_ptr(bmain, gzgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 	}
 }
 
@@ -549,15 +549,15 @@ void RNA_api_wm(StructRNA *srna)
 	parm = RNA_def_pointer(func, "timer", "Timer", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "gizmo_group_type_add", "rna_gizmo_group_type_add");
+	func = RNA_def_function(srna, "gizmo_group_type_ensure", "rna_gizmo_group_type_ensure");
 	RNA_def_function_ui_description(func, "Activate an existing widget group (when the persistent option isn't set)");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Gizmo group type name");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "gizmo_group_type_remove", "rna_gizmo_group_type_remove");
-	RNA_def_function_ui_description(func, "De-activate a widget group (when the persistent option isn't set)");
-	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+	func = RNA_def_function(srna, "gizmo_group_type_unlink_delayed", "rna_gizmo_group_type_unlink_delayed");
+	RNA_def_function_ui_description(func, "Unlink a widget group (when the persistent option is set)");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Gizmo group type name");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
