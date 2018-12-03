@@ -126,6 +126,9 @@ typedef struct LayerTypeInfo {
 	 * default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
 
+	/** A function used by mesh validating code, must ensures passed item has valid data. */
+	cd_validate validate;
+
 	/** functions necessary for geometry collapse */
 	bool (*equal)(const void *data1, const void *data2);
 	void (*multiply)(void *data, float fac);
@@ -313,6 +316,30 @@ static void layerInterp_normal(
 	normalize_v3_v3((float *)dest, no);
 }
 
+static bool layerValidate_normal(void *data, const uint totitems, const bool do_fixes)
+{
+	static const float no_default[3] = {0.0f, 0.0f, 1.0f};  /* Z-up default normal... */
+	float (*no)[3] = data;
+	bool has_errors = false;
+
+	for (int i = 0; i < totitems; i++, no++) {
+		if (!is_finite_v3((float *)no)) {
+			has_errors = true;
+			if (do_fixes) {
+				copy_v3_v3((float *)no, no_default);
+			}
+		}
+		else if (!compare_ff(len_squared_v3((float *)no), 1.0f, 1e-6f)) {
+			has_errors = true;
+			if (do_fixes) {
+				normalize_v3((float *)no);
+			}
+		}
+	}
+
+	return has_errors;
+}
+
 static void layerCopyValue_normal(const void *source, void *dest, const int mixmode, const float mixfactor)
 {
 	const float *no_src = source;
@@ -420,6 +447,23 @@ static void layerCopy_propFloat(const void *source, void *dest,
                                 int count)
 {
 	memcpy(dest, source, sizeof(MFloatProperty) * count);
+}
+
+static bool layerValidate_propFloat(void *data, const uint totitems, const bool do_fixes)
+{
+	MFloatProperty *fp = data;
+	bool has_errors = false;
+
+	for (int i = 0; i < totitems; i++, fp++) {
+		if (!isfinite(fp->f)) {
+			if (do_fixes) {
+				fp->f = 0.0f;
+			}
+			has_errors = true;
+		}
+	}
+
+	return has_errors;
 }
 
 static void layerCopy_propInt(const void *source, void *dest,
@@ -908,6 +952,23 @@ static void layerInterp_mloopuv(
 	((MLoopUV *)dest)->flag = flag;
 }
 
+static bool layerValidate_mloopuv(void *data, const uint totitems, const bool do_fixes)
+{
+	MLoopUV *uv = data;
+	bool has_errors = false;
+
+	for (int i = 0; i < totitems; i++, uv++) {
+		if (!is_finite_v2(uv->uv)) {
+			if (do_fixes) {
+				zero_v2(uv->uv);
+			}
+			has_errors = true;
+		}
+	}
+
+	return has_errors;
+}
+
 /* origspace is almost exact copy of mloopuv's, keep in sync */
 static void layerCopyValue_mloop_origspace(const void *source, void *dest,
                                            const int UNUSED(mixmode), const float UNUSED(mixfactor))
@@ -1192,21 +1253,22 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 5: CD_MTFACE */
 	{sizeof(MTFace), "MTFace", 1, N_("UVMap"), layerCopy_tface, NULL, layerInterp_tface, layerSwap_tface,
-	 layerDefault_tface, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_tface},
+	 layerDefault_tface, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_tface},
 	/* 6: CD_MCOL */
 	/* 4 MCol structs per face */
-	{sizeof(MCol) * 4, "MCol", 4, N_("Col"), NULL, NULL, layerInterp_mcol,
-	 layerSwap_mcol, layerDefault_mcol, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_mloopcol},
+	{sizeof(MCol) * 4, "MCol", 4, N_("Col"), NULL, NULL, layerInterp_mcol, layerSwap_mcol,
+	 layerDefault_mcol, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layerMaxNum_mloopcol},
 	/* 7: CD_ORIGINDEX */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_origindex},
 	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float) * 3, "vec3f", 1, NULL, NULL, NULL, layerInterp_normal, NULL, NULL,
-	 NULL, NULL, NULL, NULL, NULL, layerCopyValue_normal},
+	 layerValidate_normal, NULL, NULL, NULL, NULL, NULL, layerCopyValue_normal},
 	/* 9: CD_FACEMAP */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, layerDefault_fmap, NULL},
 	/* 10: CD_PROP_FLT */
-	{sizeof(MFloatProperty), "MFloatProperty", 1, N_("Float"), layerCopy_propFloat, NULL, NULL, NULL},
+	{sizeof(MFloatProperty), "MFloatProperty", 1, N_("Float"), layerCopy_propFloat, NULL, NULL, NULL, NULL,
+	 layerValidate_propFloat},
 	/* 11: CD_PROP_INT */
 	{sizeof(MIntProperty), "MIntProperty", 1, N_("Int"), layerCopy_propInt, NULL, NULL, NULL},
 	/* 12: CD_PROP_STR */
@@ -1221,18 +1283,18 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, N_("UVMap"), NULL, NULL, layerInterp_mloopuv, NULL, NULL,
-	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv,
+	 layerValidate_mloopuv, layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv,
 	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv, NULL, NULL, NULL, layerMaxNum_tface},
 	/* 17: CD_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, N_("Col"), NULL, NULL, layerInterp_mloopcol, NULL,
-	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
+	 layerDefault_mloopcol, NULL, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol, NULL, NULL, NULL, layerMaxNum_mloopcol},
 	/* 18: CD_TANGENT */
 	{sizeof(float) * 4 * 4, "", 0, N_("Tangent"), NULL, NULL, NULL, NULL, NULL},
 	/* 19: CD_MDISPS */
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
 	 layerFree_mdisps, NULL, layerSwap_mdisps, NULL,
-	 NULL, NULL, NULL, NULL, NULL, NULL,
+	 NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	 layerRead_mdisps, layerWrite_mdisps, layerFilesize_mdisps},
 	/* 20: CD_PREVIEW_MCOL */
 	{sizeof(MCol) * 4, "MCol", 4, N_("PreviewCol"), NULL, NULL, layerInterp_mcol,
@@ -1261,12 +1323,12 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 30: CD_CREASE */
 	{sizeof(float), "", 0, N_("SubSurfCrease"), NULL, NULL, layerInterp_bweight},
 	/* 31: CD_ORIGSPACE_MLOOP */
-	{sizeof(OrigSpaceLoop), "OrigSpaceLoop", 1, N_("OS Loop"), NULL, NULL, layerInterp_mloop_origspace, NULL, NULL,
+	{sizeof(OrigSpaceLoop), "OrigSpaceLoop", 1, N_("OS Loop"), NULL, NULL, layerInterp_mloop_origspace, NULL, NULL, NULL,
 	 layerEqual_mloop_origspace, layerMultiply_mloop_origspace, layerInitMinMax_mloop_origspace,
 	 layerAdd_mloop_origspace, layerDoMinMax_mloop_origspace, layerCopyValue_mloop_origspace},
 	/* 32: CD_PREVIEW_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, N_("PreviewLoopCol"), NULL, NULL, layerInterp_mloopcol, NULL,
-	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
+	 layerDefault_mloopcol, NULL, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
 	/* 33: CD_BM_ELEM_PYPTR */
 	{sizeof(void *), "", 1, NULL, layerCopy_bmesh_elem_py_ptr,
@@ -3507,6 +3569,22 @@ bool CustomData_verify_versions(struct CustomData *data, int index)
 	}
 
 	return keeplayer;
+}
+
+/**
+ * Validate and fix data of \a layer, if possible (needs relevant callback in layer's type to be defined).
+ *
+ * \return True if some errors were found.
+ */
+bool CustomData_layer_validate(CustomDataLayer *layer, const uint totitems, const bool do_fixes)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+	if (typeInfo->validate != NULL) {
+		return typeInfo->validate(layer->data, totitems, do_fixes);
+	}
+
+	return false;
 }
 
 /****************************** External Files *******************************/

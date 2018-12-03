@@ -2770,10 +2770,10 @@ bool DM_is_valid(DerivedMesh *dm)
 	bool changed = true;
 
 	is_valid &= BKE_mesh_validate_all_customdata(
-	        dm->getVertDataLayout(dm),
-	        dm->getEdgeDataLayout(dm),
-	        dm->getLoopDataLayout(dm),
-	        dm->getPolyDataLayout(dm),
+	        dm->getVertDataLayout(dm), dm->getNumVerts(dm),
+	        dm->getEdgeDataLayout(dm), dm->getNumEdges(dm),
+	        dm->getLoopDataLayout(dm), dm->getNumLoops(dm),
+	        dm->getPolyDataLayout(dm), dm->getNumPolys(dm),
 	        false,  /* setting mask here isn't useful, gives false positives */
 	        do_verbose, do_fixes, &changed);
 

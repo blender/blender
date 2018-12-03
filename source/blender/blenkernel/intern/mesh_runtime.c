@@ -354,7 +354,10 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
 	}
 
 	is_valid &= BKE_mesh_validate_all_customdata(
-	        &me_eval->vdata, &me_eval->edata, &me_eval->ldata, &me_eval->pdata,
+	        &me_eval->vdata, me_eval->totvert,
+	        &me_eval->edata, me_eval->totedge,
+	        &me_eval->ldata, me_eval->totloop,
+	        &me_eval->pdata, me_eval->totpoly,
 	        false,  /* setting mask here isn't useful, gives false positives */
 	        do_verbose, do_fixes,
 	        &changed);

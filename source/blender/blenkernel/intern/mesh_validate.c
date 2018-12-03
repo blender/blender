@@ -820,7 +820,7 @@ bool BKE_mesh_validate_arrays(
 }
 
 static bool mesh_validate_customdata(
-        CustomData *data, CustomDataMask mask,
+        CustomData *data, CustomDataMask mask, const uint totitems,
         const bool do_verbose, const bool do_fixes,
         bool *r_change)
 {
@@ -859,8 +859,13 @@ static bool mesh_validate_customdata(
 			}
 		}
 
-		if (ok)
+		if (ok) {
+			if (CustomData_layer_validate(layer, totitems, do_fixes)) {
+				PRINT_ERR("\tCustomDataLayer type %d has some invalid data\n", layer->type);
+				has_fixes = do_fixes;
+			}
 			i++;
+		}
 	}
 
 	PRINT_MSG("%s: Finished (is_valid=%d)\n\n", __func__, (int)!has_fixes);
@@ -874,8 +879,10 @@ static bool mesh_validate_customdata(
  * \returns is_valid.
  */
 bool BKE_mesh_validate_all_customdata(
-        CustomData *vdata, CustomData *edata,
-        CustomData *ldata, CustomData *pdata,
+        CustomData *vdata, const uint totvert,
+        CustomData *edata, const uint totedge,
+        CustomData *ldata, const uint totloop,
+        CustomData *pdata, const uint totpoly,
         const bool check_meshmask,
         const bool do_verbose, const bool do_fixes,
         bool *r_change)
@@ -885,10 +892,10 @@ bool BKE_mesh_validate_all_customdata(
 	int tot_uvloop, tot_vcolloop;
 	CustomDataMask mask = check_meshmask ? CD_MASK_MESH : 0;
 
-	is_valid &= mesh_validate_customdata(vdata, mask, do_verbose, do_fixes, &is_change_v);
-	is_valid &= mesh_validate_customdata(edata, mask, do_verbose, do_fixes, &is_change_e);
-	is_valid &= mesh_validate_customdata(ldata, mask, do_verbose, do_fixes, &is_change_l);
-	is_valid &= mesh_validate_customdata(pdata, mask, do_verbose, do_fixes, &is_change_p);
+	is_valid &= mesh_validate_customdata(vdata, mask, totvert, do_verbose, do_fixes, &is_change_v);
+	is_valid &= mesh_validate_customdata(edata, mask, totedge, do_verbose, do_fixes, &is_change_e);
+	is_valid &= mesh_validate_customdata(ldata, mask, totloop, do_verbose, do_fixes, &is_change_l);
+	is_valid &= mesh_validate_customdata(pdata, mask, totpoly, do_verbose, do_fixes, &is_change_p);
 
 	tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
 	tot_vcolloop = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
@@ -931,7 +938,10 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
 	}
 
 	is_valid &= BKE_mesh_validate_all_customdata(
-	        &me->vdata, &me->edata, &me->ldata, &me->pdata,
+	        &me->vdata, me->totvert,
+	        &me->edata, me->totedge,
+	        &me->ldata, me->totloop,
+	        &me->pdata, me->totpoly,
 	        cddata_check_mask,
 	        do_verbose, true,
 	        &changed);
@@ -972,7 +982,10 @@ bool BKE_mesh_is_valid(Mesh *me)
 	bool changed = true;
 
 	is_valid &= BKE_mesh_validate_all_customdata(
-	        &me->vdata, &me->edata, &me->ldata, &me->pdata,
+	        &me->vdata, me->totvert,
+	        &me->edata, me->totedge,
+	        &me->ldata, me->totloop,
+	        &me->pdata, me->totpoly,
 	        false,  /* setting mask here isn't useful, gives false positives */
 	        do_verbose, do_fixes, &changed);
 

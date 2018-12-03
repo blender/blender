@@ -82,6 +82,7 @@ void customData_mask_layers__print(CustomDataMask mask);
 
 typedef void (*cd_interp)(const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
 typedef void (*cd_copy)(const void *source, void *dest, int count);
+typedef bool (*cd_validate)(void *item, const uint totitems, const bool do_fixes);
 
 /**
  * Checks if the layer at physical offset \a layer_n (in data->layers) support math
@@ -398,6 +399,9 @@ void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, const char
 #ifndef NDEBUG
 bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool fallback);
 #endif
+
+/* Layer data validation. */
+bool CustomData_layer_validate(struct CustomDataLayer *layer, const uint totitems, const bool do_fixes);
 
 /* External file storage */
 
