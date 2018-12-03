@@ -138,8 +138,8 @@ static bool sculpt_undo_restore_deformed(
 static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
 {
 	Scene *scene = CTX_data_scene(C);
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = OBACT;
+	Sculpt *sd = scene->toolsettings->sculpt;
 	SculptSession *ss = ob->sculpt;
 	MVert *mvert;
 	int *index;
@@ -254,7 +254,8 @@ static bool sculpt_undo_restore_hidden(
         bContext *C, DerivedMesh *dm,
         SculptUndoNode *unode)
 {
-	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
 	SculptSession *ss = ob->sculpt;
 	int i;
 
@@ -286,7 +287,8 @@ static bool sculpt_undo_restore_hidden(
 
 static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
 {
-	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
 	SculptSession *ss = ob->sculpt;
 	MVert *mvert;
 	float *vmask;
@@ -471,7 +473,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 {
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = OBACT;
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
@@ -637,7 +639,8 @@ static void sculpt_undo_free_list(ListBase *lb)
 #if 0
 static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 {
-	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
 	SculptUndoNode *unode;
 
 	unode = lb->first;
@@ -1015,7 +1018,8 @@ static bool sculpt_undosys_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && (sa->spacetype == SPACE_VIEW3D)) {
-		Object *obact = CTX_data_active_object(C);
+		Scene *scene = CTX_data_scene(C);
+		Object *obact = OBACT;
 		if (obact && (obact->mode & OB_MODE_SCULPT)) {
 			return true;
 		}

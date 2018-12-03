@@ -150,7 +150,8 @@ void ED_object_mode_set(bContext *C, eObjectMode mode)
 	WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &ptr);
 	WM_operator_properties_free(&ptr);
 #else
-	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
 	if (ob == NULL) {
 		return;
 	}
