@@ -103,7 +103,7 @@
  * Object list for material operations.
  * has exception for pinned object.
  */
-Object **object_array_for_shading(bContext *C, uint *r_objects_len)
+static Object **object_array_for_shading(bContext *C, uint *r_objects_len)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceButs *sbuts = NULL;

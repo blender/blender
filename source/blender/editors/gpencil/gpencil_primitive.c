@@ -594,7 +594,8 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 }
 
 /* Helper to square a primitive */
-static void gpencil_primitive_to_square(tGPDprimitive *tgpi, const int x, const int y) {
+static void gpencil_primitive_to_square(tGPDprimitive *tgpi, const int x, const int y)
+{
 	int w = abs(x);
 	int h = abs(y);
 	if ((x > 0 && y > 0) || (x < 0 && y < 0)) {
