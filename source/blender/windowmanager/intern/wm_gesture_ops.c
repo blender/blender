@@ -79,7 +79,7 @@ static void gesture_modal_end(bContext *C, wmOperator *op)
 	}
 }
 
-static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
+static void gesture_modal_state_to_operator(wmOperator *op, int modal_state, bool check_is_set)
 {
 	PropertyRNA *prop;
 
@@ -87,12 +87,12 @@ static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
 		case GESTURE_MODAL_SELECT:
 		case GESTURE_MODAL_DESELECT:
 			if ((prop = RNA_struct_find_property(op->ptr, "deselect"))) {
-				if (!RNA_property_is_set(op->ptr, prop)) {
+				if (!check_is_set || !RNA_property_is_set(op->ptr, prop)) {
 					RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_DESELECT));
 				}
 			}
 			if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
-				if (!RNA_property_is_set(op->ptr, prop)) {
+				if (!check_is_set || !RNA_property_is_set(op->ptr, prop)) {
 					RNA_property_enum_set(op->ptr, prop, (modal_state == GESTURE_MODAL_DESELECT) ? SEL_OP_SUB : SEL_OP_ADD);
 				}
 			}
@@ -100,7 +100,7 @@ static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
 		case GESTURE_MODAL_IN:
 		case GESTURE_MODAL_OUT:
 			if ((prop = RNA_struct_find_property(op->ptr, "zoom_out"))) {
-				if (!RNA_property_is_set(op->ptr, prop)) {
+				if (!check_is_set || !RNA_property_is_set(op->ptr, prop)) {
 					RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_OUT));
 				}
 			}
@@ -171,7 +171,7 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
 		return 0;
 	}
 
-	gesture_modal_state_to_operator(op, gesture->modal_state);
+	gesture_modal_state_to_operator(op, gesture->modal_state, true);
 
 	retval = op->type->exec(C, op);
 	OPERATOR_RETVAL_CHECK(retval);
@@ -331,7 +331,9 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "y", rect->ymin);
 	RNA_int_set(op->ptr, "radius", rect->xmax);
 
-	gesture_modal_state_to_operator(op, gesture->modal_state);
+	/* When 'wait_for_input' is false, use properties to get the selection state.
+	 * typically tool settings. This is done so executing as a mode can select & de-select, see: T58594. */
+	gesture_modal_state_to_operator(op, gesture->modal_state, !gesture->wait_for_input);
 
 	if (op->type->exec) {
 		int retval;
