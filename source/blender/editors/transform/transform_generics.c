@@ -1203,7 +1203,7 @@ void initTransDataContainers_FromObjectData(TransInfo *t, Object *obact, Object 
 	const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
 	const short object_type = obact ? obact->type : -1;
 
-	if ((object_mode & OB_MODE_EDIT) ||
+	if ((object_mode & OB_MODE_EDIT) || (t->options & CTX_GPENCIL_STROKES) ||
 	    ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE)))
 	{
 		if (t->data_container) {
@@ -1236,6 +1236,9 @@ void initTransDataContainers_FromObjectData(TransInfo *t, Object *obact, Object 
 			}
 			else if (object_mode & OB_MODE_POSE) {
 				tc->poseobj = objects[i];
+				tc->use_local_mat = true;
+			}
+			else if (t->options & CTX_GPENCIL_STROKES) {
 				tc->use_local_mat = true;
 			}
 
@@ -1873,22 +1876,6 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 			r_center[1] = t->ar->winy / 2.0f;
 		}
 		r_center[2] = 0.0f;
-	}
-	else if (t->options & CTX_GPENCIL_STROKES) {
-		 /* move cursor in local space */
-		TransData *td = NULL;
-		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			float mat[3][3], imat[3][3];
-
-			td = tc->data;
-			Object *ob = td->ob;
-			if (ob) {
-				sub_v3_v3v3(r_center, r_center, ob->obmat[3]);
-				copy_m3_m4(mat, ob->obmat);
-				invert_m3_m3(imat, mat);
-				mul_m3_v3(imat, r_center);
-			}
-		}
 	}
 }
 

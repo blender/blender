@@ -8262,9 +8262,6 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 	unit_m3(mtx);
 
 	/* Second Pass: Build transdata array */
-	int totselected = 0;
-	float global_center[3] = { 0.0f, 0.0f, 0.0f };
-
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* only editable and visible layers are considered */
 		if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
@@ -8381,10 +8378,6 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 
 									if (pt->flag & GP_SPOINT_SELECT) {
 										td->flag |= TD_SELECTED;
-
-										/* prepare center */
-										add_v3_v3(global_center, &pt->x);
-										totselected++;
 									}
 
 									/* for other transform modes (e.g. shrink-fatten), need to additional data
@@ -8399,24 +8392,18 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 									if ((gps->flag & (GP_STROKE_3DSPACE | GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) == 0) {
 										/* screenspace */
 										td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
-
-										/* apply matrix transformation relative to parent */
-										copy_m3_m4(td->smtx, inverse_diff_mat); /* final position */
-										copy_m3_m4(td->mtx, diff_mat); /* display position */
-										copy_m3_m4(td->axismtx, diff_mat); /* axis orientation */
 									}
 									else {
 										/* configure 2D dataspace points so that they don't play up... */
 										if (gps->flag & (GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) {
 											td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
-											// XXX: matrices may need to be different?
 										}
-
-										/* apply parent transformations */
-										copy_m3_m4(td->smtx, inverse_diff_mat); /* final position */
-										copy_m3_m4(td->mtx, diff_mat);  /* display position */
-										copy_m3_m4(td->axismtx, diff_mat); /* axis orientation */
 									}
+									/* apply parent transformations */
+									copy_m3_m4(td->smtx, inverse_diff_mat); /* final position */
+									copy_m3_m4(td->mtx, diff_mat);  /* display position */
+									copy_m3_m4(td->axismtx, diff_mat); /* axis orientation */
+
 									/* Triangulation must be calculated again, so save the stroke for recalc function */
 									td->extra = gps;
 
@@ -8443,13 +8430,6 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 			}
 		}
 	}
-
-	/* set global center */
-	CLAMP_MIN(totselected, 1);
-	mul_v3_fl(global_center, 1.0f / totselected);
-	add_v3_v3(global_center, obact->obmat[3]);
-	copy_v3_v3(t->center_global, global_center);
-	t->flag |= T_OVERRIDE_CENTER;
 }
 
 static int countAndCleanTransDataContainer(TransInfo *t)
@@ -8525,6 +8505,7 @@ void createTransData(bContext *C, TransInfo *t)
 		t->options |= CTX_GPENCIL_STROKES;
 		t->flag |= T_POINTS;
 
+		initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 		createTransGPencil(C, t);
 		countAndCleanTransDataContainer(t);
 
