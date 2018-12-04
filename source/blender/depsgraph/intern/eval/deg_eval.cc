@@ -73,6 +73,7 @@ static void schedule_children(TaskPool *pool,
 struct DepsgraphEvalState {
 	Depsgraph *graph;
 	bool do_stats;
+	bool is_cow_stage;
 };
 
 static void deg_task_run_func(TaskPool *pool,
@@ -214,6 +215,17 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph,
 	if (node->num_links_pending != 0) {
 		return;
 	}
+	/* During the COW stage only schedule COW nodes. */
+	DepsgraphEvalState *state = (DepsgraphEvalState *)BLI_task_pool_userdata(pool);
+	if (state->is_cow_stage) {
+		if (node->owner->type != DEG_NODE_TYPE_COPY_ON_WRITE) {
+			return;
+		}
+	}
+	else {
+		BLI_assert(node->scheduled || node->owner->type != DEG_NODE_TYPE_COPY_ON_WRITE);
+	}
+	/* Actually schedule the node. */
 	bool is_scheduled = atomic_fetch_and_or_uint8(
 	        (uint8_t *)&node->scheduled, (uint8_t)true);
 	if (!is_scheduled) {
@@ -312,6 +324,12 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 	/* Prepare all nodes for evaluation. */
 	initialize_execution(&state, graph);
 	/* Do actual evaluation now. */
+	/* First, process all Copy-On-Write nodes. */
+	state.is_cow_stage = true;
+	schedule_graph(task_pool, graph);
+	BLI_task_pool_work_wait_and_reset(task_pool);
+	/* After that, process all other nodes. */
+	state.is_cow_stage = false;
 	schedule_graph(task_pool, graph);
 	BLI_task_pool_work_and_wait(task_pool);
 	BLI_task_pool_free(task_pool);

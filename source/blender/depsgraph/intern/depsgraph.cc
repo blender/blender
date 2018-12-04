@@ -405,6 +405,9 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 		rel->flag |= flags;
 		return rel;
 	}
+	/* COW nodes can only depend on other COW nodes. */
+	BLI_assert(to->owner->type != DEG_NODE_TYPE_COPY_ON_WRITE ||
+	           from->owner->type == DEG_NODE_TYPE_COPY_ON_WRITE);
 	/* Create new relation, and add it to the graph. */
 	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	rel->flag |= flags;
