@@ -2348,13 +2348,26 @@ Mesh *mesh_create_eval_final_view(
 	return final;
 }
 
-DerivedMesh *mesh_create_derived_no_deform(
+Mesh *mesh_create_eval_no_deform(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         float (*vertCos)[3], CustomDataMask dataMask)
 {
-	DerivedMesh *final;
+	Mesh *final;
 
-	mesh_calc_modifiers_dm(
+	mesh_calc_modifiers(
+	        depsgraph, scene, ob, vertCos, 0, false, dataMask, -1, false, false,
+	        NULL, &final);
+
+	return final;
+}
+
+Mesh *mesh_create_eval_no_deform_render(
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
+        float (*vertCos)[3], CustomDataMask dataMask)
+{
+	Mesh *final;
+
+	mesh_calc_modifiers(
 	        depsgraph, scene, ob, vertCos, 0, false, dataMask, -1, false, false,
 	        NULL, &final);
 

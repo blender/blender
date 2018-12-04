@@ -504,14 +504,6 @@ DerivedMesh *mesh_create_derived_render(
 
 /* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived(struct Mesh *me, float (*vertCos)[3]);
-DerivedMesh *mesh_create_derived_no_deform(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, float (*vertCos)[3],
-        CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform_render(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, float (*vertCos)[3],
-        CustomDataMask dataMask);
 
 struct Mesh *editbmesh_get_eval_cage(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,

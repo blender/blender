@@ -57,6 +57,8 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "bmesh.h"
 
 #include "../bmesh/bmesh_py_types.h"
@@ -1050,11 +1052,9 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 
 /* return various derived meshes based on requested settings */
 static Mesh *bvh_get_mesh(
-        const char *funcname, struct Scene *scene, Object *ob,
+        const char *funcname, struct Depsgraph *depsgraph, struct Scene *scene, Object *ob,
         bool use_deform, bool use_render, bool use_cage)
 {
-	/* TODO: This doesn't work currently because of missing depsgraph. */
-#if 0
 	/* we only need minimum mesh data for topology and vertex locations */
 	CustomDataMask mask = CD_MASK_BAREMESH;
 
@@ -1067,15 +1067,15 @@ static Mesh *bvh_get_mesh(
 				return NULL;
 			}
 			else {
-				return mesh_create_derived_render(scene, ob, mask);
+				return mesh_create_eval_final_render(depsgraph, scene, ob, mask);
 			}
 		}
 		else {
 			if (use_cage) {
-				return mesh_get_derived_deform(scene, ob, mask);  /* ob->derivedDeform */
+				return mesh_get_eval_deform(depsgraph, scene, ob, mask);  /* ob->derivedDeform */
 			}
 			else {
-				return mesh_get_derived_final(scene, ob, mask);  /* ob->derivedFinal */
+				return mesh_get_eval_final(depsgraph, scene, ob, mask);  /* ob->derivedFinal */
 			}
 		}
 	}
@@ -1088,7 +1088,7 @@ static Mesh *bvh_get_mesh(
 				return NULL;
 			}
 			else {
-				return mesh_create_derived_no_deform_render(scene, ob, NULL, mask);
+				return mesh_create_eval_no_deform_render(depsgraph, scene, ob, NULL, mask);
 			}
 		}
 		else {
@@ -1098,26 +1098,21 @@ static Mesh *bvh_get_mesh(
 				return NULL;
 			}
 			else {
-				return mesh_create_derived_no_deform(scene, ob, NULL, mask);
+				return mesh_create_eval_no_deform(depsgraph, scene, ob, NULL, mask);
 			}
 		}
 	}
-#else
-	UNUSED_VARS(funcname, scene, ob, use_deform, use_render, use_cage);
-#endif
-
-	return NULL;
 }
 
 PyDoc_STRVAR(C_BVHTree_FromObject_doc,
-".. classmethod:: FromObject(object, scene, deform=True, render=False, cage=False, epsilon=0.0)\n"
+".. classmethod:: FromObject(object, depsgraph, deform=True, render=False, cage=False, epsilon=0.0)\n"
 "\n"
 "   BVH tree based on :class:`Object` data.\n"
 "\n"
 "   :arg object: Object data.\n"
 "   :type object: :class:`Object`\n"
-"   :arg scene: Scene data to use for evaluating the mesh.\n"
-"   :type scene: :class:`Scene`\n"
+"   :arg depsgraph: Depsgraph to use for evaluating the mesh.\n"
+"   :type depsgraph: :class:`Depsgraph`\n"
 "   :arg deform: Use mesh with deformations.\n"
 "   :type deform: bool\n"
 "   :arg render: Use render settings.\n"
@@ -1129,10 +1124,11 @@ PYBVH_FROM_GENERIC_EPSILON_DOC
 static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyObject *kwargs)
 {
 	/* note, options here match 'bpy_bmesh_from_object' */
-	const char *keywords[] = {"object", "scene",  "deform", "render", "cage", "epsilon", NULL};
+	const char *keywords[] = {"object", "depsgraph", "deform", "render", "cage", "epsilon", NULL};
 
-	PyObject *py_ob, *py_scene;
+	PyObject *py_ob, *py_depsgraph;
 	Object *ob;
+	struct Depsgraph *depsgraph;
 	struct Scene *scene;
 	Mesh *mesh;
 	bool use_deform = true;
@@ -1149,18 +1145,20 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwargs, (char *)"OO|$O&O&O&f:BVHTree.FromObject", (char **)keywords,
-	        &py_ob, &py_scene,
+	        &py_ob, &py_depsgraph,
 	        PyC_ParseBool, &use_deform,
 	        PyC_ParseBool, &use_render,
 	        PyC_ParseBool, &use_cage,
 	        &epsilon) ||
 	    ((ob = PyC_RNA_AsPointer(py_ob, "Object")) == NULL) ||
-	    ((scene = PyC_RNA_AsPointer(py_scene, "Scene")) == NULL))
+	    ((depsgraph = PyC_RNA_AsPointer(py_depsgraph, "Depsgraph")) == NULL))
 	{
 		return NULL;
 	}
 
-	mesh = bvh_get_mesh("BVHTree", scene, ob, use_deform, use_render, use_cage);
+	scene = DEG_get_evaluated_scene(depsgraph);
+	mesh = bvh_get_mesh("BVHTree", depsgraph, scene, ob, use_deform, use_render, use_cage);
+
 	if (mesh == NULL) {
 		return NULL;
 	}
