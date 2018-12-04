@@ -157,11 +157,12 @@ typedef enum eDepsNode_Type {
 	DEG_NODE_TYPE_CACHE,
 	/* Batch Cache Component - TODO (dfelinto/sergey) rename to make it more generic. */
 	DEG_NODE_TYPE_BATCH_CACHE,
-
 	/* Duplication system. Used to force duplicated objects visible when
 	 * when duplicator is visible.
 	 */
 	DEG_NODE_TYPE_DUPLI,
+	/* Synchronization back to original datablock. */
+	DEG_NODE_TYPE_SYNCHRONIZE,
 
 	/* Total number of meaningful node types. */
 	NUM_DEG_NODE_TYPES,
@@ -170,7 +171,7 @@ const char *nodeTypeAsString(eDepsNode_Type type);
 
 /* Identifiers for common operations (as an enum). */
 typedef enum eDepsOperation_Code {
-	/* Generic Operations. ------------------------------ */
+	/* Generic Operations. -------------------------------------------------- */
 
 	/* Placeholder for operations which don't need special mention */
 	DEG_OPCODE_OPERATION = 0,
@@ -182,16 +183,16 @@ typedef enum eDepsOperation_Code {
 	// XXX: Placeholder while porting depsgraph code
 	DEG_OPCODE_PLACEHOLDER,
 
-	/* Animation, Drivers, etc. ------------------------ */
+	/* Animation, Drivers, etc. --------------------------------------------- */
 	/* NLA + Action */
 	DEG_OPCODE_ANIMATION,
 	/* Driver */
 	DEG_OPCODE_DRIVER,
 
-	/* Object related. --------------------------------- */
+	/* Object related. ------------------------------------------------------ */
 	DEG_OPCODE_OBJECT_BASE_FLAGS,
 
-	/* Transform. -------------------------------------- */
+	/* Transform. ----------------------------------------------------------- */
 	/* Transform entry point - local transforms only */
 	DEG_OPCODE_TRANSFORM_LOCAL,
 	/* Parenting */
@@ -203,25 +204,25 @@ typedef enum eDepsOperation_Code {
 	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
 	DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL,
 
-	/* Rigid body. -------------------------------------- */
+	/* Rigid body. ---------------------------------------------------------- */
 	/* Perform Simulation */
 	DEG_OPCODE_RIGIDBODY_REBUILD,
 	DEG_OPCODE_RIGIDBODY_SIM,
 	/* Copy results to object */
 	DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY,
 
-	/* Geometry. ---------------------------------------- */
+	/* Geometry. ------------------------------------------------------------ */
 
 	/* Evaluate the whole geometry, including modifiers. */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
 	/* Evaluation of a shape key. */
 	DEG_OPCODE_GEOMETRY_SHAPEKEY,
 
-	/* Object data. ------------------------------------- */
+	/* Object data. --------------------------------------------------------- */
 	DEG_OPCODE_LIGHT_PROBE_EVAL,
 	DEG_OPCODE_SPEAKER_EVAL,
 
-	/* Pose. -------------------------------------------- */
+	/* Pose. ---------------------------------------------------------------- */
 	/* Init pose, clear flags, etc. */
 	DEG_OPCODE_POSE_INIT,
 	/* Initialize IK solver related pose stuff. */
@@ -234,7 +235,7 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_POSE_IK_SOLVER,
 	DEG_OPCODE_POSE_SPLINE_IK_SOLVER,
 
-	/* Bone. -------------------------------------------- */
+	/* Bone. ---------------------------------------------------------------- */
 	/* Bone local transforms - entry point */
 	DEG_OPCODE_BONE_LOCAL,
 	/* Pose-space conversion (includes parent + restpose, */
@@ -257,36 +258,39 @@ typedef enum eDepsOperation_Code {
 	/* B-Bone segment shape computation (after DONE) */
 	DEG_OPCODE_BONE_SEGMENTS,
 
-	/* Particles. --------------------------------------- */
+	/* Particles. ----------------------------------------------------------- */
 	/* Particle System evaluation. */
 	DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT,
 	DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 	DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
 
-	/* Point Cache. ------------------------------------- */
+	/* Point Cache. --------------------------------------------------------- */
 	DEG_OPCODE_POINT_CACHE_RESET,
 
-	/* Collections. ------------------------------------- */
+	/* Collections. --------------------------------------------------------- */
 	DEG_OPCODE_VIEW_LAYER_EVAL,
 
-	/* Copy on Write. ------------------------------------ */
+	/* Copy on Write. ------------------------------------------------------- */
 	DEG_OPCODE_COPY_ON_WRITE,
 
-	/* Shading. ------------------------------------------- */
+	/* Shading. ------------------------------------------------------------- */
 	DEG_OPCODE_SHADING,
 	DEG_OPCODE_MATERIAL_UPDATE,
 	DEG_OPCODE_WORLD_UPDATE,
 
-	/* Batch caches. -------------------------------------- */
+	/* Batch caches. -------------------------------------------------------- */
 	DEG_OPCODE_GEOMETRY_SELECT_UPDATE,
 
-	/* Masks. ------------------------------------------ */
+	/* Masks. --------------------------------------------------------------- */
 	DEG_OPCODE_MASK_ANIMATION,
 	DEG_OPCODE_MASK_EVAL,
 
-	/* Movie clips. ------------------------------------ */
+	/* Movie clips. --------------------------------------------------------- */
 	DEG_OPCODE_MOVIECLIP_EVAL,
 	DEG_OPCODE_MOVIECLIP_SELECT_UPDATE,
+
+	/* Synchronization clips. ----------------------------------------------- */
+	DEG_OPCODE_SYNCHRONIZE_TO_ORIGINAL,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;

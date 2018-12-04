@@ -104,6 +104,8 @@ const char *nodeTypeAsString(eDepsNode_Type type)
 		STRINGIFY_TYPE(BATCH_CACHE);
 		/* Duplication. */
 		STRINGIFY_TYPE(DUPLI);
+		/* Synchronization. */
+		STRINGIFY_TYPE(SYNCHRONIZE);
 
 		/* Total number of meaningful node types. */
 		case NUM_DEG_NODE_TYPES: return "SpecialCase";
@@ -180,6 +182,8 @@ const char *operationCodeAsString(eDepsOperation_Code opcode)
 		/* Movie clip. */
 		STRINGIFY_OPCODE(MOVIECLIP_EVAL);
 		STRINGIFY_OPCODE(MOVIECLIP_SELECT_UPDATE);
+		/* Synchronization. */
+		STRINGIFY_OPCODE(SYNCHRONIZE_TO_ORIGINAL);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

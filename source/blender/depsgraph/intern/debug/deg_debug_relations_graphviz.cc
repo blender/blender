@@ -421,6 +421,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEG_NODE_TYPE_OBJECT_FROM_LAYER:
 		case DEG_NODE_TYPE_BATCH_CACHE:
 		case DEG_NODE_TYPE_DUPLI:
+		case DEG_NODE_TYPE_SYNCHRONIZE:
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
 			if (!comp_node->operations.empty()) {

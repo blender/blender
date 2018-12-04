@@ -579,6 +579,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Create ID node for object and begin init. */
 	IDDepsNode *id_node = add_id_node(&object->id);
+	Object *object_cow = get_cow_datablock(object);
 	id_node->linked_state = linked_state;
 	if (object == scene_->camera) {
 		id_node->is_directly_visible = true;
@@ -663,6 +664,13 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 		                   DEG_OPCODE_PLACEHOLDER,
 		                   "Dupli");
 	}
+	/* Syncronization back to original object. */
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_SYNCHRONIZE,
+	                   function_bind(BKE_object_synchronize_to_original,
+	                                 _1,
+	                                 object_cow),
+	                   DEG_OPCODE_SYNCHRONIZE_TO_ORIGINAL);
 }
 
 void DepsgraphNodeBuilder::build_object_flags(

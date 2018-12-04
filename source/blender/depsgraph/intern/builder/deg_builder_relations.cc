@@ -683,6 +683,12 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	}
 	/* Point caches. */
 	build_object_pointcache(object);
+	/* Syncronization back to original object. */
+	OperationKey synchronize_key(&object->id,
+	                             DEG_NODE_TYPE_SYNCHRONIZE,
+	                             DEG_OPCODE_SYNCHRONIZE_TO_ORIGINAL);
+	add_relation(
+	        final_transform_key, synchronize_key, "Synchronize to Original");
 }
 
 void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
@@ -697,6 +703,12 @@ void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
 	                              DEG_NODE_TYPE_OBJECT_FROM_LAYER,
 	                              DEG_OPCODE_OBJECT_BASE_FLAGS);
 	add_relation(view_layer_done_key, object_flags_key, "Base flags flush");
+	/* Syncronization back to original object. */
+	OperationKey synchronize_key(&object->id,
+	                             DEG_NODE_TYPE_SYNCHRONIZE,
+	                             DEG_OPCODE_SYNCHRONIZE_TO_ORIGINAL);
+	add_relation(
+	        object_flags_key, synchronize_key, "Synchronize to Original");
 }
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
@@ -2023,6 +2035,13 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 			}
 		}
 	}
+	/* Syncronization back to original object. */
+	ComponentKey final_geometry_jey(&object->id, DEG_NODE_TYPE_GEOMETRY);
+	OperationKey synchronize_key(&object->id,
+	                             DEG_NODE_TYPE_SYNCHRONIZE,
+	                             DEG_OPCODE_SYNCHRONIZE_TO_ORIGINAL);
+	add_relation(
+	        final_geometry_jey, synchronize_key, "Synchronize to Original");
 }
 
 void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)

@@ -247,7 +247,10 @@ void BKE_object_eval_uber_data(
         struct Scene *scene,
         struct Object *ob);
 
-void BKE_object_eval_boundbox(struct Depsgraph *depsgraph, struct Object *object);
+void BKE_object_eval_boundbox(struct Depsgraph *depsgraph,
+                              struct Object *object);
+void BKE_object_synchronize_to_original(struct Depsgraph *depsgraph,
+                                        struct Object *object);
 
 void BKE_object_eval_ptcache_reset(
         struct Depsgraph *depsgraph,
