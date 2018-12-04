@@ -162,42 +162,6 @@ def module_filesystem_remove(path_base, module_name):
                 os.remove(f_full)
 
 
-class BRUSH_OT_active_index_set(Operator):
-    """Set active sculpt/paint brush from it's number"""
-    bl_idname = "brush.active_index_set"
-    bl_label = "Set Brush Number"
-
-    mode: StringProperty(
-        name="Mode",
-        description="Paint mode to set brush for",
-        maxlen=1024,
-    )
-    index: IntProperty(
-        name="Number",
-        description="Brush number",
-    )
-
-    _attr_dict = {
-        "sculpt": "use_paint_sculpt",
-        "vertex_paint": "use_paint_vertex",
-        "weight_paint": "use_paint_weight",
-        "image_paint": "use_paint_image",
-    }
-
-    def execute(self, context):
-        attr = self._attr_dict.get(self.mode)
-        if attr is None:
-            return {'CANCELLED'}
-
-        toolsettings = context.tool_settings
-        for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
-            if i == self.index:
-                getattr(toolsettings, self.mode).brush = brush
-                return {'FINISHED'}
-
-        return {'CANCELLED'}
-
-
 class WM_OT_context_set_boolean(Operator):
     """Set a context value"""
     bl_idname = "wm.context_set_boolean"
@@ -2798,7 +2762,6 @@ class WM_OT_drop_blend_file(Operator):
         col.operator("wm.append", text="Append...", icon='APPEND_BLEND').filepath = self.filepath
 
 classes = (
-    BRUSH_OT_active_index_set,
     WM_OT_addon_disable,
     WM_OT_addon_enable,
     WM_OT_addon_expand,
