@@ -93,6 +93,8 @@ void BKE_libblock_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r
 void *BKE_libblock_copy(struct Main *bmain, const struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /* "Deprecated" old API. */
 void *BKE_libblock_copy_nolib(const struct ID *id, const bool do_action) ATTR_NONNULL();
+/* Special version. sued by datablock localization. */
+void *BKE_libblock_copy_for_localize(const struct ID *id);
 
 void  BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) ATTR_NONNULL();
 void  BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();

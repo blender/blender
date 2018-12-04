@@ -150,7 +150,7 @@ Lamp *BKE_lamp_localize(Lamp *la)
 	 *
 	 * NOTE: Only possible once nested node trees are fully converted to that too. */
 
-	Lamp *lan = BKE_libblock_copy_nolib(&la->id, false);
+	Lamp *lan = BKE_libblock_copy_for_localize(&la->id);
 
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 

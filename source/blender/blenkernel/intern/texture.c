@@ -476,7 +476,7 @@ Tex *BKE_texture_localize(Tex *tex)
 
 	Tex *texn;
 
-	texn = BKE_libblock_copy_nolib(&tex->id, false);
+	texn = BKE_libblock_copy_for_localize(&tex->id);
 
 	/* image texture: BKE_texture_free also doesn't decrease */
 

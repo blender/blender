@@ -1362,6 +1362,16 @@ void *BKE_libblock_copy_nolib(const ID *id, const bool do_action)
 	return idn;
 }
 
+void *BKE_libblock_copy_for_localize(const ID *id)
+{
+	ID *idn;
+	BKE_libblock_copy_ex(NULL, id, &idn, (LIB_ID_CREATE_NO_MAIN |
+	                                      LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                                      LIB_ID_COPY_ACTIONS |
+	                                      LIB_ID_COPY_NO_ANIMDATA));
+	return idn;
+}
+
 void BKE_library_free(Library *lib)
 {
 	if (lib->packedfile)

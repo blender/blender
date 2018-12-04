@@ -235,7 +235,7 @@ Material *BKE_material_localize(Material *ma)
 	 *
 	 * NOTE: Only possible once nested node trees are fully converted to that too. */
 
-	Material *man = BKE_libblock_copy_nolib(&ma->id, false);
+	Material *man = BKE_libblock_copy_for_localize(&ma->id);
 
 	man->texpaintslot = NULL;
 	man->preview = NULL;

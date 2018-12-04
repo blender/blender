@@ -154,7 +154,7 @@ World *BKE_world_localize(World *wrld)
 
 	World *wrldn;
 
-	wrldn = BKE_libblock_copy_nolib(&wrld->id, false);
+	wrldn = BKE_libblock_copy_for_localize(&wrld->id);
 
 	if (wrld->nodetree)
 		wrldn->nodetree = ntreeLocalize(wrld->nodetree);
