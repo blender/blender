@@ -228,6 +228,13 @@ void gp_stroke_convertcoords_tpoint(
         bGPDlayer *gpl, const struct tGPspoint *point2D,
         float *depth, float out[3]);
 
+/* helper to convert 2d to 3d for primitive. See: D4030 */
+void gp_stroke_convertcoords_tpoint_primitive(
+        struct Scene *scene, struct ARegion *ar,
+        struct Object *ob,
+        bGPDlayer *gpl, const struct tPGPspoint *point2D,
+        float out[3]);
+
 /* Poll Callbacks ------------------------------------ */
 /* gpencil_utils.c */
 

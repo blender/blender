@@ -807,6 +807,41 @@ void gp_stroke_convertcoords_tpoint(
 }
 
 /**
+ * Convert primitive tPGPspoint (temporary 2D/screenspace point data used by GP primitive operators)
+ * to 3D coordinates.
+ *
+ * See: D4030
+ */
+void gp_stroke_convertcoords_tpoint_primitive(
+	Scene *scene, ARegion *ar,
+	Object *ob, bGPDlayer *gpl,
+	const tPGPspoint *point2D,
+	float r_out[3])
+{
+	ToolSettings *ts = scene->toolsettings;
+
+	float mval_f[2] = { point2D->x, point2D->y };
+	float mval_prj[2];
+	float rvec[3], dvec[3];
+	float zfac;
+
+	/* Current method just converts each point in screen-coordinates to
+		* 3D-coordinates using the 3D-cursor as reference.
+		*/
+	ED_gp_get_drawing_reference(scene, ob, gpl, ts->gpencil_v3d_align, rvec);
+	zfac = ED_view3d_calc_zfac(ar->regiondata, rvec, NULL);
+
+	if (ED_view3d_project_float_global(ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+		sub_v2_v2v2(mval_f, mval_prj, mval_f);
+		ED_view3d_win_to_delta(ar, mval_f, dvec, zfac);
+		sub_v3_v3v3(r_out, rvec, dvec);
+	}
+	else {
+		zero_v3(r_out);
+	}
+}
+
+/**
  * Get drawing reference point for conversion or projection of the stroke
  * \param[out] r_vec : Reference point found
  */
