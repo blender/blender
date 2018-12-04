@@ -235,9 +235,21 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
 	}
 	else if (but->rnaprop) {
 		const char *member_id = WM_context_member_from_ptr(C, &but->rnapoin);
+		const char *data_path = RNA_path_from_ID_to_struct(&but->rnapoin);
+		const char *member_id_data_path = member_id;
+		if (data_path) {
+			member_id_data_path = BLI_sprintfN("%s.%s", member_id, data_path);
+		}
 		const char *prop_id = RNA_property_identifier(but->rnaprop);
-		return (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
-		        &um->items, member_id, prop_id, but->rnaindex);
+		bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
+		        &um->items, member_id_data_path, prop_id, but->rnaindex);
+		if (data_path) {
+			MEM_freeN((void *)data_path);
+		}
+		if (member_id != member_id_data_path) {
+			MEM_freeN((void *)member_id_data_path);
+		}
+		return umi;
 	}
 	else if ((mt = UI_but_menutype_get(but))) {
 		return (bUserMenuItem *)ED_screen_user_menu_item_find_menu(
