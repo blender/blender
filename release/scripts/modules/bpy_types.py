@@ -645,7 +645,7 @@ class Gizmo(StructRNA):
 
 # Only defined so operators members can be used by accessing self.order
 # with doc generation 'self.properties.bl_rna.properties' can fail
-class Operator(StructRNA):
+class Operator(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
     def __getattribute__(self, attr):
