@@ -2742,7 +2742,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_ARMATURE:
 		{
-			if (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) {
+			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+			    (v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES))
+			{
 				break;
 			}
 			bArmature *arm = ob->data;
