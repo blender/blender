@@ -126,7 +126,6 @@ if 'cmake' in builder:
     # Prepare CMake options needed to configure cuda binaries compilation, 64bit only.
     if bits == 64:
         cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%s" % ('ON' if build_cubins else 'OFF'))
-        cuda_cmake_options.append("-DCYCLES_CUDA_BINARIES_ARCH=sm_30;sm_35;sm_37;sm_50;sm_52;sm_60;sm_61;sm_70")
         if build_cubins or 'cuda' in targets:
             cuda_cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
 

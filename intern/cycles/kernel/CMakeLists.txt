@@ -343,11 +343,11 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
 	# warn for other versions
-	if(CUDA_VERSION MATCHES "90" OR CUDA_VERSION MATCHES "91")
+	if(CUDA_VERSION MATCHES "90" OR CUDA_VERSION MATCHES "91" OR CUDA_VERSION MATCHES "100")
 	else()
 		message(WARNING
 			"CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
-			"build may succeed but only CUDA 9.0 and 9.1 are officially supported")
+			"build may succeed but only CUDA 9.0, 9.1 and 10.0 are officially supported")
 	endif()
 
 	# build for each arch
@@ -442,6 +442,8 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
 		if(${arch} MATCHES "sm_2.")
 			message(STATUS "CUDA binaries for ${arch} are no longer supported, skipped.")
+		elseif(${arch} MATCHES "sm_7." AND NOT (${CUDA_VERSION} VERSION_GREATER_EQUAL 10.0))
+			message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
 		else()
 			# Compile regular kernel
 			CYCLES_CUDA_KERNEL_ADD(${arch} ${prev_arch} filter "" "${cuda_filter_sources}" FALSE)
