@@ -108,7 +108,7 @@ public:
 
 #if OPENCOLLADA_WITH_ANIMATION_CLIP
 	// Please enable this when building with Collada 1.6.65 or newer (also in DocumentImporter.cpp)
-	bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *AnimationClip);
+	bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *animationClip);
 #endif
 
 	bool writeGeometry(const COLLADAFW::Geometry*);
