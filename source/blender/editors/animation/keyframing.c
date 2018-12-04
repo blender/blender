@@ -1392,7 +1392,12 @@ static short clear_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *a
 		/* return success */
 		ret++;
 	}
-
+	/* In the case last f-curve wes removed need to inform dependency graph
+	 * about relations update, since it needs to get rid of animation operation
+	 * for this datablock. */
+	if (adt->action == NULL) {
+		DEG_relations_tag_update(bmain);
+	}
 	/* return success/failure */
 	return ret;
 }
