@@ -1302,7 +1302,13 @@ short delete_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *act,
 		ret += delete_keyframe_fcurve(adt, fcu, cfra);
 
 	}
-
+	/* In the case last f-curve wes removed need to inform dependency graph
+	 * about relations update, since it needs to get rid of animation operation
+	 * for this datablock. */
+	if (ret && adt->action == NULL) {
+		DEG_id_tag_update_ex(bmain, id, DEG_TAG_COPY_ON_WRITE);
+		DEG_relations_tag_update(bmain);
+	}
 	/* return success/failure */
 	return ret;
 }
@@ -1395,7 +1401,8 @@ static short clear_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *a
 	/* In the case last f-curve wes removed need to inform dependency graph
 	 * about relations update, since it needs to get rid of animation operation
 	 * for this datablock. */
-	if (adt->action == NULL) {
+	if (ret && adt->action == NULL) {
+		DEG_id_tag_update_ex(bmain, id, DEG_TAG_COPY_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 	}
 	/* return success/failure */
