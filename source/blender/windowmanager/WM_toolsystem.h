@@ -82,6 +82,9 @@ void WM_toolsystem_ref_sync_from_context(
 
 void WM_toolsystem_init(struct bContext *C);
 
+int WM_toolsystem_mode_from_spacetype_ex(
+        struct ViewLayer *view_layer, struct ScrArea *sa, int space_type,
+        bool *r_ensure);
 int WM_toolsystem_mode_from_spacetype(
         struct ViewLayer *view_layer, struct ScrArea *sa, int space_type);
 bool WM_toolsystem_key_from_context(

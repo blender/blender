@@ -559,10 +559,12 @@ void WM_toolsystem_init(bContext *C)
 	/* Rely on screen initialization for gizmos. */
 }
 
-int WM_toolsystem_mode_from_spacetype(
-        ViewLayer *view_layer, ScrArea *sa, int spacetype)
+int WM_toolsystem_mode_from_spacetype_ex(
+        ViewLayer *view_layer, ScrArea *sa, int spacetype,
+        bool *r_ensure)
 {
 	int mode = -1;
+	bool ensure = false;
 	switch (spacetype) {
 		case SPACE_VIEW3D:
 		{
@@ -575,21 +577,37 @@ int WM_toolsystem_mode_from_spacetype(
 			else {
 				mode = CTX_MODE_OBJECT;
 			}
+			ensure = true;
 			break;
 		}
 		case SPACE_IMAGE:
 		{
 			SpaceImage *sima = sa->spacedata.first;
 			mode = sima->mode;
+			if (ELEM(mode, SI_MODE_PAINT, SI_MODE_UV)) {
+				ensure = true;
+			}
 			break;
 		}
 		case SPACE_NODE:
 		{
 			mode = 0;
+			ensure = true;
 			break;
 		}
 	}
+	if (r_ensure) {
+		*r_ensure = ensure;
+	}
 	return mode;
+}
+
+int WM_toolsystem_mode_from_spacetype(
+        ViewLayer *view_layer, ScrArea *sa, int spacetype)
+{
+	return WM_toolsystem_mode_from_spacetype_ex(
+	        view_layer, sa, spacetype,
+	        NULL);
 }
 
 bool WM_toolsystem_key_from_context(
@@ -787,6 +805,12 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 					return "Comb";
 			}
 			break;
+		case SPACE_IMAGE:
+			switch (tkey->mode) {
+				case SI_MODE_PAINT:
+					return "Draw";
+			}
+			break;
 	}
 
 	return "Select Box";
@@ -825,11 +849,14 @@ void WM_toolsystem_update_from_context(
         bContext *C, WorkSpace *workspace, ViewLayer *view_layer,
         ScrArea *sa)
 {
+	bool ensure = false;
 	const bToolKey tkey = {
 		.space_type = sa->spacetype,
-		.mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype),
+		.mode = WM_toolsystem_mode_from_spacetype_ex(view_layer, sa, sa->spacetype, &ensure),
 	};
-	toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
+	if (ensure) {
+		toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
+	}
 }
 
 
