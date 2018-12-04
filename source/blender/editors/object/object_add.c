@@ -95,6 +95,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1520,7 +1521,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		return;
 	}
 
-	lb_duplis = object_duplilist(depsgraph, scene, base->object);
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
+	lb_duplis = object_duplilist(depsgraph, scene, object_eval);
 
 	dupli_gh = BLI_ghash_ptr_new(__func__);
 	if (use_hierarchy) {
@@ -1533,7 +1535,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	}
 
 	for (dob = lb_duplis->first; dob; dob = dob->next) {
-		Object *ob_src = dob->ob;
+		Object *ob_src = DEG_get_original_object(dob->ob);
 		Object *ob_dst = ID_NEW_SET(dob->ob, BKE_object_copy(bmain, ob_src));
 		Base *base_dst;
 
@@ -1579,7 +1581,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	}
 
 	for (dob = lb_duplis->first; dob; dob = dob->next) {
-		Object *ob_src = dob->ob;
+		Object *ob_src = DEG_get_original_object(dob->ob);
 		Object *ob_dst = BLI_ghash_lookup(dupli_gh, dob);
 
 		/* Remap new object to itself, and clear again newid pointer of orig object. */
@@ -1663,6 +1665,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	BKE_main_id_clear_newpoins(bmain);
 
 	base->object->transflag &= ~OB_DUPLI;
+	DEG_id_tag_update(&base->object->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
@@ -1704,7 +1707,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 	ot->poll = ED_operator_objectmode;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	RNA_def_boolean(ot->srna, "use_base_parent", 0, "Parent", "Parent newly created objects to the original duplicator");
 	RNA_def_boolean(ot->srna, "use_hierarchy", 0, "Keep Hierarchy", "Maintain parent child relationships");
