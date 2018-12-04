@@ -275,6 +275,12 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
 
 	MenuType *mt = NULL;
 	if (but->optype) {
+		if (drawstr[0] == '\0') {
+			/* Hard code overrides for generic operators. */
+			if (UI_but_is_tool(but)) {
+				RNA_string_get(but->opptr, "name", drawstr);
+			}
+		}
 		ED_screen_user_menu_item_add_operator(
 		        &um->items, drawstr,
 		        but->optype, but->opptr ? but->opptr->data : NULL, but->opcontext);
