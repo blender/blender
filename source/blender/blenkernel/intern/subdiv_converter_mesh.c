@@ -47,6 +47,10 @@
 #include "opensubdiv_capi.h"
 #include "opensubdiv_converter_capi.h"
 
+/* Enable work-around for non-working CPU evaluator when using bilinear scheme.
+ * This forces Catmark scheme with all edges marked as infinitely sharp. */
+#define BUGGY_SIMPLE_SCHEME_WORKAROUND 1
+
 typedef struct ConverterStorage {
 	SubdivSettings settings;
 	const Mesh *mesh;
@@ -78,6 +82,10 @@ typedef struct ConverterStorage {
 static OpenSubdiv_SchemeType get_scheme_type(
         const OpenSubdiv_Converter *converter)
 {
+#if BUGGY_SIMPLE_SCHEME_WORKAROUND
+	(void) converter;
+	return OSD_SCHEME_CATMARK;
+#else
 	ConverterStorage *storage = converter->user_data;
 	if (storage->settings.is_simple) {
 		return OSD_SCHEME_BILINEAR;
@@ -85,6 +93,7 @@ static OpenSubdiv_SchemeType get_scheme_type(
 	else {
 		return OSD_SCHEME_CATMARK;
 	}
+#endif
 }
 
 static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
@@ -161,6 +170,11 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter,
                                 int manifold_edge_index)
 {
 	ConverterStorage *storage = converter->user_data;
+#if BUGGY_SIMPLE_SCHEME_WORKAROUND
+	if (storage->settings.is_simple) {
+		return 10.0f;
+	}
+#endif
 	const int edge_index =
 	        storage->manifold_edge_index_reverse[manifold_edge_index];
 	const MEdge *medge = storage->mesh->medge;
@@ -168,11 +182,15 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter,
 	return edge_crease * edge_crease * 10.0f;
 }
 
-
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
                                      int manifold_vertex_index)
 {
 	ConverterStorage *storage = converter->user_data;
+#if BUGGY_SIMPLE_SCHEME_WORKAROUND
+	if (storage->settings.is_simple) {
+		return true;
+	}
+#endif
 	const int vertex_index =
 	        storage->manifold_vertex_index_reverse[manifold_vertex_index];
 	return BLI_BITMAP_TEST_BOOL(storage->infinite_sharp_vertices_map,
