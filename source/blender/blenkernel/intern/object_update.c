@@ -293,6 +293,18 @@ void BKE_object_synchronize_to_original(Depsgraph *depsgraph, Object *object)
 	copy_m4_m4(object_orig->constinv, object->constinv);
 	object_orig->transflag = object->transflag;
 	object_orig->flag = object->flag;
+
+	/* Copy back error messages from modifiers. */
+	for (ModifierData *md = object->modifiers.first, *md_orig = object_orig->modifiers.first;
+	     md != NULL && md_orig != NULL;
+	     md = md->next, md_orig = md_orig->next)
+	{
+		BLI_assert(md->type == md_orig->type && STREQ(md->name, md_orig->name));
+		MEM_SAFE_FREE(md_orig->error);
+		if (md->error != NULL) {
+			md_orig->error = BLI_strdup(md->error);
+		}
+	}
 }
 
 bool BKE_object_eval_proxy_copy(Depsgraph *depsgraph,
