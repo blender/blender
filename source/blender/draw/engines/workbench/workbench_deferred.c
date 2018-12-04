@@ -403,6 +403,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		const GPUTextureFormat nor_tex_format = NORMAL_ENCODING_ENABLED() ? GPU_RG16 : GPU_RGBA32F;
 		const GPUTextureFormat comp_tex_format = DRW_state_is_image_render() ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
+		const GPUTextureFormat id_tex_format = OBJECT_ID_PASS_ENABLED(wpd) ? GPU_R32UI : GPU_R8;
 
 		e_data.object_id_tx = NULL;
 		e_data.color_buffer_tx = NULL;
@@ -412,8 +413,9 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], comp_tex_format, &draw_engine_workbench_solid);
-		if (OBJECT_ID_PASS_ENABLED(wpd)) {
-			e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_solid);
+
+		if (OBJECT_ID_PASS_ENABLED(wpd) || GPU_unused_fb_slot_workaround()) {
+			e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], id_tex_format, &draw_engine_workbench_solid);
 		}
 		if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], nor_tex_format, &draw_engine_workbench_solid);
