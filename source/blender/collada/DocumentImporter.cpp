@@ -1151,7 +1151,7 @@ bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animat
 #if OPENCOLLADA_WITH_ANIMATION_CLIP
 // Since opencollada 1.6.68
 // called on post-process stage after writeVisualScenes
-bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *AnimationClip)
+bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *animationClip)
 {
 	if (mImportStage == Fetching_Controller_data)
 		return true;
