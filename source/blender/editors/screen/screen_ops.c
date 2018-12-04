@@ -1900,19 +1900,33 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		if (CTX_wm_area(C) != sad->sa1 || sad->sa1 != sad->sa2)
 			return OPERATOR_PASS_THROUGH;
 
-		/* prepare operator state vars */
-		if (sad->gesture_dir == 'n' || sad->gesture_dir == 's') {
+		/* The factor will be close to 1.0f when near the top-left and the bottom-right corners. */
+		const float factor_v = ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy;
+		const float factor_h = ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx;
+		const bool is_left = factor_v < 0.5f;
+		const bool is_bottom = factor_h < 0.5f;
+		const bool is_right = !is_left;
+		const bool is_top = !is_bottom;
+		float factor;
+
+		/* Prepare operator state vars. */
+		if (ELEM(sad->gesture_dir, 'n', 's')) {
 			dir = 'h';
-			RNA_property_float_set(
-			        op->ptr, prop_factor,
-			        ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
+			factor = factor_h;
 		}
 		else {
 			dir = 'v';
-			RNA_property_float_set(
-			        op->ptr, prop_factor,
-			        ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy);
+			factor = factor_v;
 		}
+
+		if ((is_top && is_left) ||
+		    (is_bottom && is_right))
+		{
+			factor = 1.0f - factor;
+		}
+
+		RNA_property_float_set(op->ptr, prop_factor, factor);
+
 		RNA_property_enum_set(op->ptr, prop_dir, dir);
 
 		/* general init, also non-UI case, adds customdata, sets area and defaults */
