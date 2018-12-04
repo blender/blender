@@ -322,6 +322,7 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!clip)
 		return OPERATOR_CANCELLED;
 
+	WM_jobs_kill_type(CTX_wm_manager(C), NULL, WM_JOB_TYPE_CLIP_PREFETCH);
 	BKE_movieclip_reload(CTX_data_main(C), clip);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
