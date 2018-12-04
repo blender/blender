@@ -145,8 +145,6 @@ void main()
 #  ifndef LIGHT_EDGES
 	vec3 nor = get_vertex_nor(v_id[v_n]);
 #  else
-	p_pos[v_n1] = ModelViewProjectionMatrix * vec4(pos[v_n1], 1.0);
-	p_pos[v_n2] = ModelViewProjectionMatrix * vec4(pos[v_n2], 1.0);
 
 	pos[v_n1] = get_vertex_pos(v_id[v_n1]);
 	pos[v_n2] = get_vertex_pos(v_id[v_n2]);
@@ -167,6 +165,12 @@ void main()
 	edgeSharpness.x = force_edge.x ? 1.0 : edgeSharpness.x;
 	edgeSharpness.y = force_edge.y ? 1.0 : edgeSharpness.y;
 	edgeSharpness.z = force_edge.z ? 1.0 : edgeSharpness.z;
+
+	do_edge = greaterThan(edgeSharpness, vec3(0.01));
+	if (!any(do_edge)) {
+		/* Don't generate any fragment. */
+		gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+	}
 
 	vec3 nor = nors[v_n];
 #  endif

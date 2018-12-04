@@ -80,6 +80,12 @@ void main(void)
 	edgeSharpness.x = (forceEdge[0] == 1.0) ? 1.0 : edgeSharpness.x;
 	edgeSharpness.y = (forceEdge[1] == 1.0) ? 1.0 : edgeSharpness.y;
 	edgeSharpness.z = (forceEdge[2] == 1.0) ? 1.0 : edgeSharpness.z;
+
+	do_edge = greaterThan(edgeSharpness, vec3(0.005));
+	if (!any(do_edge)) {
+		/* Don't generate any fragment. */
+		return;
+	}
 #endif
 
 #ifdef SELECT_EDGES
