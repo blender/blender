@@ -1076,7 +1076,7 @@ GPUBatch **DRW_curve_batch_cache_get_surface_shaded(
 
 void DRW_curve_batch_cache_get_wireframes_face_texbuf(
         Curve *cu, CurveCache *ob_curve_cache,
-        GPUTexture **verts_data, GPUTexture **face_indices, int *tri_count)
+        GPUTexture **verts_data, GPUTexture **face_indices, int *tri_count, bool UNUSED(reduce_len))
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 

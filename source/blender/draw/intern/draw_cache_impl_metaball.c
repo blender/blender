@@ -233,7 +233,7 @@ GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(Object *ob, MetaBall *mb,
 }
 
 void DRW_metaball_batch_cache_get_wireframes_face_texbuf(
-        Object *ob, struct GPUTexture **verts_data, struct GPUTexture **face_indices, int *tri_count)
+        Object *ob, struct GPUTexture **verts_data, struct GPUTexture **face_indices, int *tri_count, bool UNUSED(reduce_len))
 {
 	if (!BKE_mball_is_basis(ob)) {
 		*verts_data = NULL;
