@@ -109,8 +109,10 @@ typedef struct tGP_BrushEditData {
 	/* Brush Settings */
 	GP_Sculpt_Settings *settings;
 	GP_Sculpt_Data *gp_brush;
+	GP_Sculpt_Data *gp_brush_old;
 
 	eGP_Sculpt_Types brush_type;
+	eGP_Sculpt_Types brush_type_old;
 	eGP_Sculpt_Flag  flag;
 
 	/* Space Conversion Data */
@@ -119,6 +121,7 @@ typedef struct tGP_BrushEditData {
 
 	/* Is the brush currently painting? */
 	bool is_painting;
+	bool is_weight_mode;
 
 	/* Start of new sculpt stroke */
 	bool first;
@@ -1203,6 +1206,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 	/* store state */
 	gso->settings = gpsculpt_get_settings(scene);
 	gso->gp_brush = gpsculpt_get_brush(scene, is_weight_mode);
+	gso->is_weight_mode = is_weight_mode;
 
 	if (is_weight_mode) {
 		gso->brush_type = gso->settings->weighttype;
@@ -1769,6 +1773,8 @@ static void gpsculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *itempt
 static void gpsculpt_brush_apply_event(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGP_BrushEditData *gso = op->customdata;
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	GP_Sculpt_Settings *gset = &ts->gp_sculpt;
 	PointerRNA itemptr;
 	float mouse[2];
 	int tablet = 0;
@@ -1800,6 +1806,22 @@ static void gpsculpt_brush_apply_event(bContext *C, wmOperator *op, const wmEven
 	}
 	else {
 		RNA_float_set(&itemptr, "pressure", 1.0f);
+	}
+
+	if (!gso->is_weight_mode) {
+		if (event->shift) {
+			gso->gp_brush_old = gso->gp_brush;
+			gso->brush_type_old = gso->brush_type;
+
+			gso->gp_brush = &gset->brush[GP_SCULPT_TYPE_SMOOTH];
+			gso->brush_type = GP_SCULPT_TYPE_SMOOTH;
+		}
+		else {
+			if (gso->gp_brush_old != NULL) {
+				gso->gp_brush = gso->gp_brush_old;
+				gso->brush_type = gso->brush_type_old;
+			}
+		}
 	}
 
 	/* apply */
