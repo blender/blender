@@ -26,9 +26,9 @@ layout(location=0) out uint objectId;
 layout(location=1) out vec4 materialData;
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 #  ifdef WORKBENCH_ENCODE_NORMALS
-layout(location=3) out vec2 normalViewport;
+layout(location=2) out vec2 normalViewport;
 #  else /* WORKBENCH_ENCODE_NORMALS */
-layout(location=3) out vec3 normalViewport;
+layout(location=2) out vec3 normalViewport;
 #  endif /* WORKBENCH_ENCODE_NORMALS */
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
 

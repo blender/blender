@@ -409,7 +409,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		e_data.composite_buffer_tx = NULL;
 		e_data.normal_buffer_tx = NULL;
 		e_data.cavity_buffer_tx = NULL;
-		e_data.metallic_buffer_tx = NULL;
 
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], comp_tex_format, &draw_engine_workbench_solid);
@@ -427,7 +426,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 			GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.color_buffer_tx),
-			GPU_ATTACHMENT_TEXTURE(e_data.metallic_buffer_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.normal_buffer_tx),
 		});
 		GPU_framebuffer_ensure_config(&fbl->cavity_fb, {
