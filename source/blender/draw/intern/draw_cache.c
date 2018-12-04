@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
+#include "BKE_object.h"
 #include "BKE_object_deform.h"
 
 #include "GPU_batch.h"
@@ -46,6 +47,8 @@
 #include "GPU_batch_utils.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "DRW_render.h"
 
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
@@ -3066,6 +3069,9 @@ void DRW_cache_mesh_face_wireframe_get(
         Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
 {
 	BLI_assert(ob->type == OB_MESH);
+
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	reduce_len = reduce_len && !(DRW_state_is_playback() && BKE_object_is_deform_modified(draw_ctx->scene, ob));
 
 	Mesh *me = ob->data;
 	DRW_mesh_batch_cache_get_wireframes_face_texbuf(me, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);

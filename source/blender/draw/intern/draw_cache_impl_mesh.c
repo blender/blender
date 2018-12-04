@@ -2066,6 +2066,7 @@ typedef struct MeshBatchCache {
 	GPUTexture *edges_face_overlay_tx;
 	int edges_face_overlay_tri_count; /* Number of tri in edges_face_overlay(_adj)_tx */
 	int edges_face_overlay_tri_count_low; /* Number of tri that are sure to produce edges. */
+	bool edges_face_reduce_len; /* Has the edges_face_overlay vertbuf has been sorted. */
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
 	 * to minimize data transfer for skinned mesh. */
@@ -4406,6 +4407,7 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 
 	cache->edges_face_overlay_tri_count = vbo->vertex_alloc / 3;
 	cache->edges_face_overlay_tri_count_low = vidx / 3;
+	cache->edges_face_reduce_len = reduce_len;
 
 	BLI_edgehash_free(eh, MEM_freeN);
 	return vbo;
@@ -5103,6 +5105,11 @@ void DRW_mesh_batch_cache_get_wireframes_face_texbuf(
         Mesh *me, GPUTexture **verts_data, GPUTexture **face_indices, int *tri_count, bool reduce_len)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (!cache->edges_face_reduce_len && reduce_len) {
+		GPU_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay);
+		DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
+	}
 
 	if (cache->edges_face_overlay_tx == NULL || cache->pos_in_order_tx == NULL) {
 		const int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;

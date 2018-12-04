@@ -2419,6 +2419,16 @@ bool DRW_state_is_opengl_render(void)
 	return DST.options.is_image_render && !DST.options.is_scene_render;
 }
 
+bool DRW_state_is_playback(void)
+{
+	if (DST.draw_ctx.evil_C != NULL) {
+		struct wmWindowManager *wm = CTX_wm_manager(DST.draw_ctx.evil_C);
+		return ED_screen_animation_playing(wm) != NULL;
+	}
+	return false;
+}
+
+
 /**
  * Should text draw in this mode?
  */
