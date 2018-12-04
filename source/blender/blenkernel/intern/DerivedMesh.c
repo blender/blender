@@ -1151,6 +1151,14 @@ static void add_shapekey_layers(Mesh *me_dst, Mesh *me_src, Object *UNUSED(ob))
 	}
 }
 
+static void mesh_copy_autosmooth(Mesh *me, Mesh *me_orig)
+{
+	if (me_orig->flag & ME_AUTOSMOOTH) {
+		me->flag |= ME_AUTOSMOOTH;
+		me->smoothresh = me_orig->smoothresh;
+	}
+}
+
 static void mesh_calc_modifiers(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, float (*inputVertexCos)[3],
         int useDeform,
@@ -1460,6 +1468,8 @@ static void mesh_calc_modifiers(
 					}
 					deformedVerts = NULL;
 				}
+
+				mesh_copy_autosmooth(me, ob->data);
 			}
 
 			/* create an orco mesh in parallel */
@@ -1693,6 +1703,7 @@ static void editbmesh_calc_modifiers(
 
 	if (r_cage && cageIndex == -1) {
 		*r_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, NULL);
+		mesh_copy_autosmooth(*r_cage, ob->data);
 	}
 
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -1769,6 +1780,8 @@ static void editbmesh_calc_modifiers(
 				me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, 0);
 				ASSERT_IS_VALID_MESH(me);
 
+				mesh_copy_autosmooth(me, ob->data);
+
 				if (deformedVerts) {
 					BKE_mesh_apply_vert_coords(me, deformedVerts);
 				}
@@ -1822,6 +1835,8 @@ static void editbmesh_calc_modifiers(
 					MEM_freeN(deformedVerts);
 					deformedVerts = NULL;
 				}
+
+				mesh_copy_autosmooth(me, ob->data);
 			}
 			me->runtime.deformed_only = false;
 		}
@@ -1843,6 +1858,7 @@ static void editbmesh_calc_modifiers(
 				*r_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(
 				        em, mask,
 				        deformedVerts ? MEM_dupallocN(deformedVerts) : NULL);
+				mesh_copy_autosmooth(*r_cage, ob->data);
 			}
 		}
 	}
@@ -1877,6 +1893,8 @@ static void editbmesh_calc_modifiers(
 		/* this is just a copy of the editmesh, no need to calc normals */
 		*r_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, deformedVerts);
 		deformedVerts = NULL;
+
+		mesh_copy_autosmooth(*r_final, ob->data);
 
 		/* In this case, we should never have weight-modifying modifiers in stack... */
 		if (do_init_statvis) {
@@ -1915,6 +1933,10 @@ static void editbmesh_calc_modifiers(
 	/* same as mesh_calc_modifiers (if using loop normals, poly nors have already been computed). */
 	if (!do_loop_normals) {
 		BKE_mesh_ensure_normals_for_display(*r_final);
+
+		if (r_cage && *r_cage && (*r_cage != *r_final)) {
+			BKE_mesh_ensure_normals_for_display(*r_cage);
+		}
 
 		/* Some modifiers, like datatransfer, may generate those data, we do not want to keep them,
 		 * as they are used by display code when available (i.e. even if autosmooth is disabled). */
