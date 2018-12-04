@@ -1029,7 +1029,7 @@ static void parallel_range_func(
 	}
 }
 
-static void palallel_range_single_thread(const int start, int const stop,
+static void parallel_range_single_thread(const int start, int const stop,
                                          void *userdata,
                                          TaskParallelRangeFunc func,
                                          const ParallelRangeSettings *settings)
@@ -1089,7 +1089,7 @@ void BLI_task_parallel_range(const int start, const int stop,
 	 * do everything from the main thread.
 	 */
 	if (!settings->use_threading) {
-		palallel_range_single_thread(start, stop,
+		parallel_range_single_thread(start, stop,
 		                             userdata,
 		                             func,
 		                             settings);
@@ -1126,7 +1126,7 @@ void BLI_task_parallel_range(const int start, const int stop,
 	                   max_ii(1, (stop - start) / state.chunk_size));
 
 	if (num_tasks == 1) {
-		palallel_range_single_thread(start, stop,
+		parallel_range_single_thread(start, stop,
 		                             userdata,
 		                             func,
 		                             settings);

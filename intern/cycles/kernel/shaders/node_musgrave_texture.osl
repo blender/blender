@@ -26,13 +26,14 @@
  * from "Texturing and Modelling: A procedural approach"
  */
 
-float noise_musgrave_fBm(point p, float H, float lacunarity, float octaves)
+float noise_musgrave_fBm(point ip, float H, float lacunarity, float octaves)
 {
 	float rmd;
 	float value = 0.0;
 	float pwr = 1.0;
 	float pwHL = pow(lacunarity, -H);
 	int i;
+	point p = ip;
 
 	for (i = 0; i < (int)octaves; i++) {
 		value += safe_noise(p, "signed") * pwr;
@@ -54,13 +55,14 @@ float noise_musgrave_fBm(point p, float H, float lacunarity, float octaves)
  * octaves: number of frequencies in the fBm
  */
 
-float noise_musgrave_multi_fractal(point p, float H, float lacunarity, float octaves)
+float noise_musgrave_multi_fractal(point ip, float H, float lacunarity, float octaves)
 {
 	float rmd;
 	float value = 1.0;
 	float pwr = 1.0;
 	float pwHL = pow(lacunarity, -H);
 	int i;
+	point p = ip;
 
 	for (i = 0; i < (int)octaves; i++) {
 		value *= (pwr * safe_noise(p, "signed") + 1.0);
@@ -83,12 +85,13 @@ float noise_musgrave_multi_fractal(point p, float H, float lacunarity, float oct
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_hetero_terrain(point p, float H, float lacunarity, float octaves, float offset)
+float noise_musgrave_hetero_terrain(point ip, float H, float lacunarity, float octaves, float offset)
 {
 	float value, increment, rmd;
 	float pwHL = pow(lacunarity, -H);
 	float pwr = pwHL;
 	int i;
+	point p = ip;
 
 	/* first unscaled octave of function; later octaves are scaled */
 	value = offset + safe_noise(p, "signed");
@@ -118,13 +121,14 @@ float noise_musgrave_hetero_terrain(point p, float H, float lacunarity, float oc
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_hybrid_multi_fractal(point p, float H, float lacunarity,
+float noise_musgrave_hybrid_multi_fractal(point ip, float H, float lacunarity,
                                           float octaves, float offset, float gain)
 {
 	float result, signal, weight, rmd;
 	float pwHL = pow(lacunarity, -H);
 	float pwr = pwHL;
 	int i;
+	point p = ip;
 
 	result = safe_noise(p, "signed") + offset;
 	weight = gain * result;
@@ -156,13 +160,14 @@ float noise_musgrave_hybrid_multi_fractal(point p, float H, float lacunarity,
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_ridged_multi_fractal(point p, float H, float lacunarity,
+float noise_musgrave_ridged_multi_fractal(point ip, float H, float lacunarity,
                                           float octaves, float offset, float gain)
 {
 	float result, signal, weight;
 	float pwHL = pow(lacunarity, -H);
 	float pwr = pwHL;
 	int i;
+	point p = ip;
 
 	signal = offset - fabs(safe_noise(p, "signed"));
 	signal *= signal;

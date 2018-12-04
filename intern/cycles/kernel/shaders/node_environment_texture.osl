@@ -25,8 +25,9 @@ vector environment_texture_direction_to_equirectangular(vector dir)
 	return vector(u, v, 0.0);
 }
 
-vector environment_texture_direction_to_mirrorball(vector dir)
+vector environment_texture_direction_to_mirrorball(vector idir)
 {
+	vector dir = idir;
 	dir[1] -= 1.0;
 
 	float div = 2.0 * sqrt(max(-0.5 * dir[1], 0.0));

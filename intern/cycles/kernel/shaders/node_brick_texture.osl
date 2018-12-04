@@ -19,10 +19,10 @@
 
 /* Brick */
 
-float brick_noise(int n) /* fast integer noise */
+float brick_noise(int ns) /* fast integer noise */
 {
 	int nn;
-	n = (n + 1013) & 2147483647;
+	int n = (ns + 1013) & 2147483647;
 	n = (n >> 13) ^ n;
 	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 2147483647;
 	return 0.5 * ((float)nn / 1073741824.0);
@@ -30,7 +30,7 @@ float brick_noise(int n) /* fast integer noise */
 
 float brick(point p, float mortar_size, float mortar_smooth, float bias,
 	float BrickWidth, float row_height, float offset_amount, int offset_frequency,
-	float squash_amount, int squash_frequency, float tint)
+	float squash_amount, int squash_frequency, output float tint)
 {
 	int bricknum, rownum;
 	float offset = 0.0;

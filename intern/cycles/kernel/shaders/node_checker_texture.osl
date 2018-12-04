@@ -19,11 +19,12 @@
 
 /* Checker */
 
-float checker(point p)
+float checker(point ip)
 {
-	p[0] = (p[0] + 0.000001) * 0.999999;
-	p[1] = (p[1] + 0.000001) * 0.999999;
-	p[2] = (p[2] + 0.000001) * 0.999999;
+	point p;
+	p[0] = (ip[0] + 0.000001) * 0.999999;
+	p[1] = (ip[1] + 0.000001) * 0.999999;
+	p[2] = (ip[2] + 0.000001) * 0.999999;
 	
 	int xi = (int)fabs(floor(p[0]));
 	int yi = (int)fabs(floor(p[1]));
