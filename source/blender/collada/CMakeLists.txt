@@ -25,6 +25,18 @@
 
 remove_strict_flags()
 
+FIND_FILE(_opencollada_with_animation_clip
+      NAMES
+        COLLADAFWAnimationClip.h
+      PATHS
+        ${OPENCOLLADA_INCLUDE_DIRS}
+      NO_DEFAULT_PATH
+    )
+
+IF(_opencollada_with_animation_clip)
+   add_compile_definitions(OPENCOLLADA_WITH_ANIMATION_CLIP)
+ENDIF()
+
 set(INC
 	.
 	../blenkernel
