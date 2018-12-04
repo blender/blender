@@ -4328,7 +4328,6 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 
 	for (int i = 0; i < tri_len; i++) {
 		uint vdata[3] = {0, 0, 0};
-		bool edge_is_real[3];
 		bool face_has_edges = false;
 
 		const MVert *mvert = rdata->mvert;
@@ -4340,15 +4339,20 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
 			const MEdge *ed = &medge[mloop[mlt->tri[j]].e];
 			const uint tri_edge[2]  = {mloop[mlt->tri[j]].v, mloop[mlt->tri[j_next]].v};
-			edge_is_real[j] = (
-			        ((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
-			        ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])));
+
+			if ((((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
+			     ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0]))) &&
+			     (ed->flag & ME_EDGERENDER) != 0)
+			{
+				/* Real edge. */
+				vdata[j] |= (1 << 30);
+			}
 		}
 
-		if (edge_is_real[0] || edge_is_real[1] || edge_is_real[2]) {
+		/* If at least one edge is real. */
+		if (vdata[0] || vdata[1] || vdata[2]) {
 			/* Decide if face has at least a "dominant" edge. */
 
-			/* Try to do the same facing approximation as in the shader. */
 			float fnor[3];
 			if (reduce_len) {
 				normal_tri_v3(fnor,
@@ -4360,19 +4364,21 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 			for (int e = 0; e < 3; e++) {
 				int v0 = mloop[mlt->tri[e]].v;
 				int v1 = mloop[mlt->tri[(e + 1) % 3]].v;
-				vdata[e] = (uint)v0;
-				EdgeAdjacentVerts *eav = BLI_edgehash_lookup(eh, v0, v1);
-				/* Real edge */
-				if (edge_is_real[e]) {
-					vdata[e] |= (1 << 30);
+				/* The only breakage it would cause is drawing issues. */
+				/* BLI_assert(3FFFFFFF > v0); */
+				vdata[e] |= (uint)v0;
+				/* Non-real edge. */
+				if (vdata[e] == 0) {
+					continue;
 				}
+				EdgeAdjacentVerts *eav = BLI_edgehash_lookup(eh, v0, v1);
 				/* If Non Manifold. */
 				if (eav->vert_index[1] == -1) {
 					face_has_edges = true;
 					vdata[e] |= (1u << 31);
 				}
 				/* Search for dominant edge. */
-				if (reduce_len && !face_has_edges && edge_is_real[e]) {
+				if (reduce_len && !face_has_edges) {
 					int v2 = mloop[mlt->tri[(e + 2) % 3]].v;
 					/* Select the right opposite vertex */
 					v2 = (eav->vert_index[1] == v2) ? eav->vert_index[0] : eav->vert_index[1];
