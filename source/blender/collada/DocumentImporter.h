@@ -49,8 +49,6 @@
 #include "MeshImporter.h"
 #include "ImportSettings.h"
 
-
-
 struct bContext;
 
 /** Importer class. */
@@ -106,6 +104,11 @@ public:
 	bool writeAnimation(const COLLADAFW::Animation*);
 
 	bool writeAnimationList(const COLLADAFW::AnimationList*);
+
+#if OPENCOLLADA_WITH_ANIMATION_CLIP
+	// Please enable this when building with Collada 1.6.65 or newer (also in DocumentImporter.cpp)
+	bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *AnimationClip);
+#endif
 
 	bool writeGeometry(const COLLADAFW::Geometry*);
 

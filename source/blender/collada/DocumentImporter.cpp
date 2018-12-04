@@ -1148,6 +1148,19 @@ bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animat
 	return anim_importer.write_animation_list(animationList);
 }
 
+#if OPENCOLLADA_WITH_ANIMATION_CLIP
+// Since opencollada 1.6.68
+// called on post-process stage after writeVisualScenes
+bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *AnimationClip)
+{
+	if (mImportStage == Fetching_Controller_data)
+		return true;
+
+	return true;
+	//return animation_clip_importer.write_animation_clip(animationClip); // TODO: implement import of AnimationClips
+}
+#endif
+
 /** When this method is called, the writer must write the skin controller data.
  * \return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeSkinControllerData(const COLLADAFW::SkinControllerData *skin)

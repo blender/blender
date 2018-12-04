@@ -143,7 +143,7 @@ GHOST_TSuccess GHOST_ContextCGL::getSwapInterval(int &intervalOut)
 
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-		[m_openGLContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
+		[m_openGLContext getValues:&interval forParameter:NSOpenGLCPSwapInterval];
 
 		[pool drain];
 
