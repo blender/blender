@@ -21,9 +21,11 @@ float bayer_dither_noise() {
 
 #ifdef WORKBENCH_ENCODE_NORMALS
 
+#define WB_Normal vec2
+
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-vec3 workbench_normal_decode(vec2 enc)
+vec3 workbench_normal_decode(WB_Normal enc)
 {
 	vec2 fenc = enc.xy * 4.0 - 2.0;
 	float f = dot(fenc, fenc);
@@ -36,7 +38,7 @@ vec3 workbench_normal_decode(vec2 enc)
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-vec2 workbench_normal_encode(vec3 n)
+WB_Normal workbench_normal_encode(vec3 n)
 {
 	float p = sqrt(n.z * 8.0 + 8.0);
 	n.xy = clamp(n.xy / p + 0.5, 0.0, 1.0);
@@ -44,6 +46,7 @@ vec2 workbench_normal_encode(vec3 n)
 }
 
 #else
+#define WB_Normal vec3
 /* Well just do nothing... */
 #  define workbench_normal_encode(a) (a)
 #  define workbench_normal_decode(a) (a)

@@ -17,6 +17,8 @@ uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
 uniform float shadowFocus = 1.0;
 
+uniform vec3 materialSingleColor;
+
 layout(std140) uniform world_block {
 	WorldData world_data;
 };
@@ -26,8 +28,18 @@ void main()
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 
+	float roughness, metallic;
+	vec3 base_color;
+
+#ifndef MATDATA_PASS_ENABLED
+	base_color = materialSingleColor;
+	metallic = 0.0;
+	roughness = 0.5;
+#else
 	vec4 material_data = texelFetch(materialBuffer, texel, 0);
-	vec3 base_color = material_data.rgb;
+	base_color = material_data.rgb;
+	workbench_float_pair_decode(material_data.a, roughness, metallic);
+#endif
 
 /* Do we need normals */
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
@@ -41,9 +53,8 @@ void main()
 	vec3 shaded_color = base_color;
 
 #elif defined(V3D_LIGHTING_MATCAP)
-	/* When using matcaps, the material_data.a is the backface sign. */
-	float flipped_nor = material_data.a;
-	normal_viewport = (flipped_nor > 0.0) ? normal_viewport : -normal_viewport;
+	/* When using matcaps, the metallic is the backface sign. */
+	normal_viewport = (metallic > 0.0) ? normal_viewport : -normal_viewport;
 	bool flipped = world_data.matcap_orientation != 0;
 	vec2 matcap_uv = matcap_uv_compute(I_vs, normal_viewport, flipped);
 	vec3 matcap = textureLod(matcapImage, matcap_uv, 0.0).rgb;
@@ -52,12 +63,10 @@ void main()
 #elif defined(V3D_LIGHTING_STUDIO)
 
 #  ifdef V3D_SHADING_SPECULAR_HIGHLIGHT
-	float roughness, metallic;
-	workbench_float_pair_decode(material_data.a, roughness, metallic);
 	vec3 specular_color = mix(vec3(0.05), base_color, metallic);
 	vec3 diffuse_color = mix(base_color, vec3(0.0), metallic);
 #  else
-	float roughness = 0.0;
+	roughness = 0.0;
 	vec3 specular_color = vec3(0.0);
 	vec3 diffuse_color = base_color;
 #  endif

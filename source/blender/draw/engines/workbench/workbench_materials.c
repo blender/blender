@@ -81,6 +81,12 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	if (MATCAP_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_MATCAP\n");
 	}
+	if (OBJECT_ID_PASS_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define OBJECT_ID_PASS_ENABLED\n");
+	}
+	if (MATDATA_PASS_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define MATDATA_PASS_ENABLED\n");
+	}
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
 	}
@@ -127,21 +133,41 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool
 	return result;
 }
 
-int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
+int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd)
 {
-	/* NOTE: change MAX_SHADERS accordingly when modifying this function. */
+	/* NOTE: change MAX_COMPOSITE_SHADERS accordingly when modifying this function. */
 	int index = 0;
-	/* 1 bit V3D_SHADING_TEXTURE_COLOR */
-	SET_FLAG_FROM_TEST(index, use_textures, 1 << 0);
 	/* 2 bits FLAT/STUDIO/MATCAP + Specular highlight */
-	int ligh_flag = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
-	SET_FLAG_FROM_TEST(index, wpd->shading.light, ligh_flag << 1);
-	/* 3 bits for flags */
-	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 3);
-	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_CAVITY, 1 << 4);
-	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 5);
-	/* 1 bit for hair */
-	SET_FLAG_FROM_TEST(index, is_hair, 1 << 6);
+	index = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_SHADOW, 1 << 2);
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_CAVITY, 1 << 3);
+	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 4);
+	SET_FLAG_FROM_TEST(index, MATDATA_PASS_ENABLED(wpd), 1 << 5);
+	return index;
+}
+
+int workbench_material_get_prepass_shader_index(
+        WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
+{
+	/* NOTE: change MAX_PREPASS_SHADERS accordingly when modifying this function. */
+	int index = 0;
+	SET_FLAG_FROM_TEST(index, is_hair, 1 << 0);
+	SET_FLAG_FROM_TEST(index, MATDATA_PASS_ENABLED(wpd), 1 << 1);
+	SET_FLAG_FROM_TEST(index, OBJECT_ID_PASS_ENABLED(wpd), 1 << 2);
+	SET_FLAG_FROM_TEST(index, NORMAL_VIEWPORT_PASS_ENABLED(wpd), 1 << 3);
+	SET_FLAG_FROM_TEST(index, MATCAP_ENABLED(wpd), 1 << 4);
+	SET_FLAG_FROM_TEST(index, use_textures, 1 << 5);
+	return index;
+}
+
+int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
+{
+	/* NOTE: change MAX_ACCUM_SHADERS accordingly when modifying this function. */
+	int index = 0;
+	/* 2 bits FLAT/STUDIO/MATCAP + Specular highlight */
+	index = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
+	SET_FLAG_FROM_TEST(index, use_textures, 1 << 2);
+	SET_FLAG_FROM_TEST(index, is_hair, 1 << 3);
 	return index;
 }
 
@@ -156,8 +182,12 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *i
 
 void workbench_material_shgroup_uniform(
         WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob,
-        const bool use_metallic)
+        const bool use_metallic, const bool deferred)
 {
+	if (deferred && !MATDATA_PASS_ENABLED(wpd)) {
+		return;
+	}
+
 	if (workbench_material_determine_color_type(wpd, material->ima, ob) == V3D_SHADING_TEXTURE_COLOR) {
 		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
