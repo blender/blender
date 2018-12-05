@@ -1070,6 +1070,7 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->ghost_prepass_hair_pass);
 	}
 
+	GPU_framebuffer_bind(fbl->composite_fb);
 	DRW_draw_pass(psl->background_pass);
 
 	if (wpd->volumes_do) {
