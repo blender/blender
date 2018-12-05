@@ -3897,7 +3897,32 @@ class VIEW3D_MT_shading_ex_pie(Menu):
         else:
             sub = pie.row()
             sub.active = False
-        sub.operator("view3d.toggle_xray", text="Toggle X-Ray", icon='XRAY')
+
+        if False:
+            sub.operator("view3d.toggle_xray", text="Toggle X-Ray", icon='XRAY')
+        else:
+            # XXX, duplicate 'view3d.toggle_xray' logic, so we can see the active item: T58661.
+            if (
+                    (context.mode == 'POSE') or
+                    ((context.mode == 'WEIGHT_PAINT') and (context.active_object.find_armature()))
+            ):
+                pie.prop(view.overlay, "show_bone_select", icon='XRAY')
+            else:
+                xray_active = (
+                    (context.mode == 'EDIT_MESH') or
+                    (view.shading.type in {'SOLID', 'WIREFRAME'})
+                )
+                if xray_active:
+                    sub = pie
+                else:
+                    sub = pie.row()
+                    sub.active = False
+                sub.prop(
+                    view.shading,
+                    "show_xray_wireframe" if (view.shading.type == 'WIREFRAME') else "show_xray",
+                    text="Toggle X-Ray",
+                    icon='XRAY',
+                )
 
         pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
 
