@@ -4248,11 +4248,14 @@ static GPUIndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata, 
 }
 #undef NO_EDGE
 
-static EdgeHash *create_looptri_edge_adjacency_hash(MeshRenderData *rdata)
+static EdgeHash *create_looptri_edge_adjacency_hash(MeshRenderData *rdata, EdgeAdjacentVerts **r_adj_data)
 {
 	const int tri_len = mesh_render_data_looptri_len_get(rdata);
 	/* Create adjacency info in looptri */
 	EdgeHash *eh = BLI_edgehash_new_ex(__func__, tri_len * 3);
+	/* TODO allocate less memory (based on edge count) */
+	EdgeAdjacentVerts *adj_data = MEM_mallocN(tri_len * 3 * sizeof(EdgeAdjacentVerts), __func__);
+	*r_adj_data = adj_data;
 	/* Create edges for each pair of triangles sharing an edge. */
 	for (int i = 0; i < tri_len; i++) {
 		for (int e = 0; e < 3; e++) {
@@ -4277,7 +4280,7 @@ static EdgeHash *create_looptri_edge_adjacency_hash(MeshRenderData *rdata)
 			EdgeAdjacentVerts **eav;
 			bool value_is_init = BLI_edgehash_ensure_p(eh, v1, v2, (void ***)&eav);
 			if (!value_is_init) {
-				*eav = MEM_mallocN(sizeof(**eav), "EdgeAdjacentVerts");
+				*eav = adj_data++;
 				(*eav)->vert_index[0] = v0;
 				(*eav)->vert_index[1] = -1;
 			}
@@ -4313,7 +4316,8 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 	int vidx = 0;
 	int vidx_end = vbo_len_capacity;
 	EdgeHash *eh = NULL;
-	eh = create_looptri_edge_adjacency_hash(rdata);
+	EdgeAdjacentVerts *adj_data = NULL;
+	eh = create_looptri_edge_adjacency_hash(rdata, &adj_data);
 
 	for (int i = 0; i < tri_len; i++) {
 		uint vdata[3] = {0, 0, 0};
@@ -4404,7 +4408,8 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 	cache->edges_face_overlay_tri_count_low = vidx / 3;
 	cache->edges_face_reduce_len = reduce_len;
 
-	BLI_edgehash_free(eh, MEM_freeN);
+	BLI_edgehash_free(eh, NULL);
+	MEM_freeN(adj_data);
 	return vbo;
 }
 
