@@ -344,6 +344,12 @@ void gpu_extensions_init(void)
 	gpu_detect_mip_render_workaround();
 
 	if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
+		printf("\n");
+		printf("GPU: Bypassing workaround detection.\n");
+		printf("GPU: OpenGL indentification strings\n");
+		printf("GPU: vendor: %s\n", vendor);
+		printf("GPU: renderer: %s\n", renderer);
+		printf("GPU: version: %s\n\n", version);
 		GG.mip_render_workaround = true;
 		GG.depth_blitting_workaround = true;
 		GG.unused_fb_slot_workaround = true;
