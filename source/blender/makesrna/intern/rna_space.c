@@ -171,7 +171,7 @@ const EnumPropertyItem rna_enum_space_action_mode_items[] = {
 #define SI_ITEM_VIEW(name, icon) \
 	{SI_MODE_VIEW, "VIEW", icon, name, "View the image"}
 #define SI_ITEM_UV \
-	{SI_MODE_UV, "UV", ICON_GROUP_UVS, "UV Edit", "UV edit in mesh editmode"}
+	{SI_MODE_UV, "UV", ICON_GROUP_UVS, "UV Editor", "UV edit in mesh editmode"}
 #define SI_ITEM_PAINT \
 	{SI_MODE_PAINT, "PAINT", ICON_TPAINT_HLT, "Paint", "2D image painting mode"}
 #define SI_ITEM_MASK \
