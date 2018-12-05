@@ -90,6 +90,7 @@ typedef struct ShrinkwrapTreeData {
 	BVHTree *bvh;
 	BVHTreeFromMesh treeData;
 
+	float (*pnors)[3];
 	float (*clnors)[3];
 	ShrinkwrapBoundaryData *boundary;
 } ShrinkwrapTreeData;

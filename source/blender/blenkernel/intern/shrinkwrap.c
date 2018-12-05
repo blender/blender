@@ -144,6 +144,7 @@ bool BKE_shrinkwrap_init_tree(ShrinkwrapTreeData *data, Mesh *mesh, int shrinkTy
 		}
 
 		if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
+			data->pnors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
 			if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
 				data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
 			}
@@ -1164,7 +1165,11 @@ void BKE_shrinkwrap_compute_smooth_normal(
 			normalize_v3(r_no);
 		}
 	}
-	/* Use the looptri normal if flat. */
+	/* Use the polygon normal if flat. */
+	else if (tree->pnors != NULL) {
+		copy_v3_v3(r_no, tree->pnors[tri->poly]);
+	}
+	/* Finally fallback to the looptri normal. */
 	else {
 		copy_v3_v3(r_no, hit_no);
 	}
