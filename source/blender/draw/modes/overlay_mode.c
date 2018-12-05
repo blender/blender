@@ -265,7 +265,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
 		/* Don't do that in edit Mesh mode, unless there is a modifier preview. */
 		if ((((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) || has_edit_mesh_cage) ||
-			ob->type != OB_MESH)
+		    ob->type != OB_MESH)
 		{
 			const bool is_active = (ob == draw_ctx->obact);
 			const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;

@@ -4399,7 +4399,7 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(
 				GPU_vertbuf_attr_set(vbo, index_id, vidx++, &vdata[e]);
 			}
 			else {
-				GPU_vertbuf_attr_set(vbo, index_id, vidx_end+e, &vdata[e]);
+				GPU_vertbuf_attr_set(vbo, index_id, vidx_end + e, &vdata[e]);
 			}
 		}
 	}
@@ -5128,6 +5128,7 @@ void DRW_mesh_batch_cache_get_wireframes_face_texbuf(
 			if (p_origindex == NULL) {
 				bm_mapped = NULL;
 			}
+			UNUSED_VARS(bm_mapped);
 
 			me_fake = *me->edit_btmesh->mesh_eval_final;
 			me_fake.mat = me->mat;

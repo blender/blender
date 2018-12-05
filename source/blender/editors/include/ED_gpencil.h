@@ -83,7 +83,7 @@ typedef struct tGPspoint {
 
 /* Temporary 'Stroke Point' data (2D / screen-space)
  *
- * Used for primitives. See: D4030 
+ * Used for primitives. See: D4030
  */
 typedef struct tPGPspoint {
 	float x, y;             /* x and y coordinates of cursor (in relative to area) */

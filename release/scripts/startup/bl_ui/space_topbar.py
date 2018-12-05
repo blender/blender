@@ -389,7 +389,7 @@ class _draw_left_context_mode:
             sub = row.row(align=True)
             sub.enabled = tool not in {'GRAB', 'CLONE'}
             sub.prop(brush, "use_pressure_radius", text="")
-            
+
             row = layout.row(align=True)
             row.prop(brush, "strength", slider=True)
             row.prop(brush, "use_pressure_strength", text="")
