@@ -271,8 +271,8 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_OFFICIAL;
 
 #ifdef _WIN32
-		if (strstr(vendor, "Radeon HD 7500M") ||
-		    strstr(vendor, "Radeon HD 7570M"))
+		if (strstr(renderer, "Radeon HD 7500M") ||
+		    strstr(renderer, "Radeon HD 7570M"))
 		{
 			GG.unused_fb_slot_workaround = true;
 		}
