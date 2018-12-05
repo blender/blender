@@ -48,6 +48,15 @@
 
 #ifdef _WIN32
 
+bool win32_silent_chk(bool result)
+{
+	if (!result) {
+		SetLastError(NO_ERROR);
+	}
+
+	return result;
+}
+
 bool win32_chk(bool result, const char *file, int line, const char *text)
 {
 	if (!result) {

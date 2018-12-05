@@ -789,7 +789,10 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		m_hGLRC = ::wglCreateContextAttribsARB(m_hDC, NULL, &(iAttributes[0]));
 	}
 
-	if (!WIN32_CHK(m_hGLRC != NULL)) {
+	/* Silence warnings interpreted as errors by users when trying to get
+	 * a context with version higher than 3.3 Core. */
+	const bool silent = m_contextMajorVersion > 3;
+	if (!WIN32_CHK_SILENT(m_hGLRC != NULL, silent)) {
 		goto error;
 	}
 

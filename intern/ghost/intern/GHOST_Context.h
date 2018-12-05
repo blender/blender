@@ -148,12 +148,15 @@ protected:
 
 #ifdef _WIN32
 bool win32_chk(bool result, const char *file = NULL, int line = 0, const char *text = NULL);
+bool win32_silent_chk(bool result);
 
 #  ifndef NDEBUG
 #    define WIN32_CHK(x) win32_chk((x), __FILE__, __LINE__, #x)
 #  else
 #    define WIN32_CHK(x) win32_chk(x)
 #  endif
+
+#define WIN32_CHK_SILENT(x, silent) ((silent) ? win32_silent_chk(x) : WIN32_CHK(x))
 #endif  /* _WIN32 */
 
 
