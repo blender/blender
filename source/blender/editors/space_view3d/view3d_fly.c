@@ -195,7 +195,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	int xoff, yoff;
 	float x1, x2, y1, y2;
 
-	if (fly->scene->camera) {
+	if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
 		ED_view3d_calc_camera_border(fly->scene, fly->depsgraph, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
 		xoff = viewborder.xmin;
 		yoff = viewborder.ymin;
@@ -297,7 +297,6 @@ enum {
 static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
-
 	rctf viewborder;
 
 	float upvec[3]; /* tmp */
@@ -377,7 +376,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	        (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
 	/* calculate center */
-	if (fly->scene->camera) {
+	if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
 		ED_view3d_calc_camera_border(fly->scene, fly->depsgraph, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
 
 		fly->width = BLI_rctf_size_x(&viewborder);
