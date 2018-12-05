@@ -1518,7 +1518,7 @@ void DRW_draw_render_loop_ex(
 
 #ifdef __APPLE__
 	/* Fix 3D view being "laggy" on macos. (See T56996) */
-	glFlush();
+	GPU_flush();
 #endif
 
 	/* annotations - temporary drawing buffer (3d space) */
@@ -2668,7 +2668,7 @@ void DRW_opengl_context_disable_ex(bool restore)
 #ifdef __APPLE__
 		/* Need to flush before disabling draw context, otherwise it does not
 		 * always finish drawing and viewport can be empty or partially drawn */
-		glFlush();
+		GPU_flush();
 #endif
 
 		if (BLI_thread_is_main() && restore) {
@@ -2705,7 +2705,7 @@ void DRW_opengl_render_context_enable(void *re_gl_context)
 
 void DRW_opengl_render_context_disable(void *re_gl_context)
 {
-	glFlush();
+	GPU_flush();
 	WM_opengl_context_release(re_gl_context);
 	/* TODO get rid of the blocking. */
 	BLI_ticket_mutex_unlock(DST.gl_context_mutex);

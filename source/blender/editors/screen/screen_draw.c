@@ -391,7 +391,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	if (GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
 		/* For some reason, on linux + Intel UHD Graphics 620 the driver
 		 * hangs if we don't flush before this. (See T57455) */
-		glFlush();
+		GPU_flush();
 	}
 
 	GPU_scissor(scissor_rect.xmin,
