@@ -2283,25 +2283,25 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_LaplacianDeform);
 
-	if (!lmd)
+	if (lmd == NULL) {
 		return OPERATOR_CANCELLED;
+	}
+
 	if (lmd->flag & MOD_LAPLACIANDEFORM_BIND) {
-		/* Un-binding happens inside the modifier when it's evaluated. */
 		lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
 	}
 	else {
-		int mode = lmd->modifier.mode;
-
-		/* Force modifier to run, it will call binding routine. */
-		lmd->modifier.mode |= eModifierMode_Realtime;
 		lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
-
-		object_force_modifier_update_for_bind(depsgraph, scene, ob);
-
-		lmd->modifier.mode = mode;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+	const int mode = lmd->modifier.mode;
+	lmd->modifier.mode |= eModifierMode_Realtime;
+	object_force_modifier_update_for_bind(depsgraph, scene, ob);
+	lmd->modifier.mode = mode;
+
+	/* We need DEG_TAG_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
+	DEG_id_tag_update(&ob->id, DEG_TAG_GEOMETRY | DEG_TAG_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	return OPERATOR_FINISHED;
 }
@@ -2345,25 +2345,25 @@ static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_SurfaceDeform);
 
-	if (!smd)
+	if (smd == NULL) {
 		return OPERATOR_CANCELLED;
+	}
+
 	if (smd->flags & MOD_SDEF_BIND) {
-		/* Un-binding happens inside the modifier when it's evaluated. */
 		smd->flags &= ~MOD_SDEF_BIND;
 	}
 	else if (smd->target) {
-		int mode = smd->modifier.mode;
-
-		/* Force modifier to run, it will call binding routine. */
-		smd->modifier.mode |= eModifierMode_Realtime;
 		smd->flags |= MOD_SDEF_BIND;
-
-		object_force_modifier_update_for_bind(depsgraph, scene, ob);
-
-		smd->modifier.mode = mode;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+	const int mode = smd->modifier.mode;
+	smd->modifier.mode |= eModifierMode_Realtime;
+	object_force_modifier_update_for_bind(depsgraph, scene, ob);
+	smd->modifier.mode = mode;
+
+	/* We need DEG_TAG_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
+	DEG_id_tag_update(&ob->id, DEG_TAG_GEOMETRY | DEG_TAG_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	return OPERATOR_FINISHED;
 }
