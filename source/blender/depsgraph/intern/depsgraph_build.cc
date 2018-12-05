@@ -185,6 +185,20 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
 	}
 }
 
+void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
+                                 struct ID *id,
+                                 const char *description)
+{
+	DEG::OperationKey operation_key(
+	        id,
+	        DEG::DEG_NODE_TYPE_GENERIC_DATABLOCK,
+	        DEG::DEG_OPCODE_GENERIC_DATABLOCK_UPDATE);
+	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
+	deg_node_handle->builder->add_node_handle_relation(operation_key,
+	                                                   deg_node_handle,
+	                                                   description);
+}
+
 void DEG_add_special_eval_flag(struct DepsNodeHandle *node_handle,
                                ID *id,
                                uint32_t flag)

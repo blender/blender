@@ -150,6 +150,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	if ((wmd->texmapping == MOD_DISP_MAP_OBJECT) && wmd->map_object != NULL) {
 		DEG_add_object_relation(ctx->node, wmd->map_object, DEG_OB_COMP_TRANSFORM, "Warp Modifier map");
 	}
+	if (wmd->texture != NULL) {
+		DEG_add_generic_id_relation(ctx->node, &wmd->texture->id, "Warp Modifier");
+	}
 }
 
 static void warpModifier_do(

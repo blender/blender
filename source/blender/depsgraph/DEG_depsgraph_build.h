@@ -43,6 +43,7 @@ struct Depsgraph;
 struct CacheFile;
 struct EffectorWeights;
 struct Collection;
+struct ID;
 struct Main;
 struct ModifierData;
 struct Object;
@@ -148,6 +149,11 @@ void DEG_add_object_cache_relation(struct DepsNodeHandle *handle,
                                    struct CacheFile *cache_file,
                                    eDepsObjectComponentType component,
                                    const char *description);
+/* Adds relation from DEG_OPCODE_GENERIC_DATABLOCK_UPDATE of a given ID.
+ * Is used for such entities as textures and images. */
+void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
+                                 struct ID *id,
+                                 const char *description);
 
 /* Adds relations from the given component of a given object to the given node
  * handle AND the component to the point cache component of the node's ID.
