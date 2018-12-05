@@ -1569,17 +1569,23 @@ void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_se
 	BLI_strncpy(new_settings->display_device, settings->display_device, sizeof(new_settings->display_device));
 }
 
-void BKE_color_managed_view_settings_init(ColorManagedViewSettings *settings)
+void BKE_color_managed_view_settings_init(
+        ColorManagedViewSettings *view_settings,
+        const ColorManagedDisplaySettings *display_settings)
 {
-	/* OCIO_TODO: use default view transform here when OCIO is completely integrated
-	 *            and proper versioning stuff is added.
-	 *            for now use NONE to be compatible with all current files
-	 */
-	BLI_strncpy(settings->view_transform, "Default", sizeof(settings->view_transform));
-	BLI_strncpy(settings->look, "None", sizeof(settings->look));
+	struct ColorManagedDisplay *display =
+	        IMB_colormanagement_display_get_named(
+	                display_settings->display_device);
+	BLI_strncpy(
+	        view_settings->view_transform,
+	        IMB_colormanagement_display_get_default_view_transform_name(display),
+	        sizeof(view_settings->view_transform));
+	/* TODO(sergey): Find a way to make look query more reliable with non
+	 * default configuration. */
+	BLI_strncpy(view_settings->look, "None", sizeof(view_settings->look));
 
-	settings->gamma = 1.0f;
-	settings->exposure = 0.0f;
+	view_settings->gamma = 1.0f;
+	view_settings->exposure = 0.0f;
 }
 
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,

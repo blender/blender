@@ -143,6 +143,8 @@ const char *IMB_colormanagement_display_get_indexed_name(int index);
 const char *IMB_colormanagement_display_get_default_name(void);
 struct ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name);
 const char *IMB_colormanagement_display_get_none_name(void);
+const char *IMB_colormanagement_display_get_default_view_transform_name(
+        struct ColorManagedDisplay *display);
 
 /* ** View functions ** */
 int IMB_colormanagement_view_get_named_index(const char *name);

@@ -95,18 +95,26 @@ void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, con
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);
 
-void BKE_color_managed_display_settings_init(struct ColorManagedDisplaySettings *settings);
-void BKE_color_managed_display_settings_copy(struct ColorManagedDisplaySettings *new_settings,
-                                             const struct ColorManagedDisplaySettings *settings);
+void BKE_color_managed_display_settings_init(
+        struct ColorManagedDisplaySettings *settings);
+void BKE_color_managed_display_settings_copy(
+        struct ColorManagedDisplaySettings *new_settings,
+        const struct ColorManagedDisplaySettings *settings);
 
-void BKE_color_managed_view_settings_init(struct ColorManagedViewSettings *settings);
-void BKE_color_managed_view_settings_copy(struct ColorManagedViewSettings *new_settings,
-                                          const struct ColorManagedViewSettings *settings);
+void BKE_color_managed_view_settings_init(
+        struct ColorManagedViewSettings *settings,
+        const struct ColorManagedDisplaySettings *display_settings);
+void BKE_color_managed_view_settings_copy(
+        struct ColorManagedViewSettings *new_settings,
+        const struct ColorManagedViewSettings *settings);
 void BKE_color_managed_view_settings_free(struct ColorManagedViewSettings *settings);
 
-void BKE_color_managed_colorspace_settings_init(struct ColorManagedColorspaceSettings *colorspace_settings);
-void BKE_color_managed_colorspace_settings_copy(struct ColorManagedColorspaceSettings *colorspace_settings,
-                                                const struct ColorManagedColorspaceSettings *settings);
-bool BKE_color_managed_colorspace_settings_equals(const struct ColorManagedColorspaceSettings *settings1,
-                                                  const struct ColorManagedColorspaceSettings *settings2);
+void BKE_color_managed_colorspace_settings_init(
+        struct ColorManagedColorspaceSettings *colorspace_settings);
+void BKE_color_managed_colorspace_settings_copy(
+        struct ColorManagedColorspaceSettings *colorspace_settings,
+        const struct ColorManagedColorspaceSettings *settings);
+bool BKE_color_managed_colorspace_settings_equals(
+        const struct ColorManagedColorspaceSettings *settings1,
+        const struct ColorManagedColorspaceSettings *settings2);
 #endif

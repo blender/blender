@@ -1402,7 +1402,8 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 	im_format->compress = 15;
 
 	BKE_color_managed_display_settings_init(&im_format->display_settings);
-	BKE_color_managed_view_settings_init(&im_format->view_settings);
+	BKE_color_managed_view_settings_init(&im_format->view_settings,
+	                                     &im_format->display_settings);
 }
 
 void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)

@@ -2363,6 +2363,12 @@ const char *IMB_colormanagement_display_get_none_name(void)
 	return colormanage_display_get_default_name();
 }
 
+const char *IMB_colormanagement_display_get_default_view_transform_name(
+        struct ColorManagedDisplay *display)
+{
+	return colormanage_view_get_default_name(display);
+}
+
 /*********************** View functions *************************/
 
 const char *colormanage_view_get_default_name(const ColorManagedDisplay *display)
