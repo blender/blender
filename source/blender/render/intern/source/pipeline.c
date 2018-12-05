@@ -1517,16 +1517,6 @@ static void do_render_seq(Render *re)
 
 	re->i.cfra = cfra;
 
-	if (recurs_depth == 0) {
-		/* otherwise sequencer animation isn't updated */
-		/* TODO(sergey): Currently depsgraph is only used to check whether it is an active
-		 * edit window or not to deal with unkeyed changes. We don't have depsgraph here yet,
-		 * but we also dont' deal with unkeyed changes. But still nice to get proper depsgraph
-		 * within tjhe render pipeline, somehow.
-		 */
-		BKE_animsys_evaluate_all_animation(re->main, NULL, re->scene, (float)cfra); // XXX, was BKE_scene_frame_get(re->scene)
-	}
-
 	recurs_depth++;
 
 	if ((re->r.mode & R_BORDER) && (re->r.mode & R_CROP) == 0) {
@@ -1631,6 +1621,7 @@ static void do_render_all_options(Render *re)
 {
 	Object *camera;
 	bool render_seq = false;
+	int cfra = re->r.cfra;
 
 	re->current_scene_update(re->suh, re->scene);
 
@@ -1641,6 +1632,12 @@ static void do_render_all_options(Render *re)
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
 	BKE_sequencer_all_free_anim_ibufs(re->main, re->r.cfra);
+
+	/* Update for sequencer and compositing animation.
+	 * TODO: ideally we would create a depsgraph with a copy of the scene
+	 * like the render engine, but sequencer and compositing do not (yet?)
+	 * work with copy-on-write. */
+	BKE_animsys_evaluate_all_animation(re->main, NULL, re->scene, (float)cfra);
 
 	if (RE_engine_render(re, 1)) {
 		/* in this case external render overrides all */
