@@ -1880,6 +1880,9 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	 */
 	if (sa && sa->spacetype == SPACE_VIEW3D) {
 		if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
+			ob->mode = OB_MODE_OBJECT;
+			ED_gpencil_setup_modes(C, (bGPdata *)ob->data, 0);
+
 			ViewLayer *view_layer = CTX_data_view_layer(C);
 			BKE_view_layer_base_deselect_all(view_layer);
 			view_layer->basact = NULL;
