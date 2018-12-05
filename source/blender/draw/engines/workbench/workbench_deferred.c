@@ -539,11 +539,11 @@ static void workbench_setup_ghost_framebuffer(WORKBENCH_FramebufferList *fbl)
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
 	e_data.ghost_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_workbench_solid);
+
 	GPU_framebuffer_ensure_config(&fbl->ghost_prepass_fb, {
 		GPU_ATTACHMENT_TEXTURE(e_data.ghost_depth_tx),
-		GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 		GPU_ATTACHMENT_TEXTURE(e_data.color_buffer_tx),
-		GPU_ATTACHMENT_TEXTURE(e_data.metallic_buffer_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 		GPU_ATTACHMENT_TEXTURE(e_data.normal_buffer_tx),
 	});
 }
