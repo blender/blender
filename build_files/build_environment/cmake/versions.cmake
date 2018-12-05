@@ -113,9 +113,9 @@ set(SDL_VERSION 2.0.8)
 set(SDL_URI https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz)
 set(SDL_HASH 3800d705cef742c6a634f202c37f263f)
 
-set(OPENCOLLADA_VERSION v1.6.63)
+set(OPENCOLLADA_VERSION v1.6.68)
 set(OPENCOLLADA_URI https://github.com/KhronosGroup/OpenCOLLADA/archive/${OPENCOLLADA_VERSION}.tar.gz)
-set(OPENCOLLADA_HASH e937c3897b86fc0da53cde97257f5156)
+set(OPENCOLLADA_HASH ee7dae874019fea7be11613d07567493)
 
 set(OPENCOLORIO_VERSION 1.1.0)
 set(OPENCOLORIO_URI https://github.com/imageworks/OpenColorIO/archive/v${OPENCOLORIO_VERSION}.tar.gz)
