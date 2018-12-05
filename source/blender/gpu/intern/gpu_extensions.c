@@ -343,6 +343,12 @@ void gpu_extensions_init(void)
 
 	gpu_detect_mip_render_workaround();
 
+	if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
+		GG.mip_render_workaround = true;
+		GG.depth_blitting_workaround = true;
+		GG.unused_fb_slot_workaround = true;
+	}
+
 	/* df/dy calculation factors, those are dependent on driver */
 	if ((strstr(vendor, "ATI") && strstr(version, "3.3.10750"))) {
 		GG.dfdyfactors[0] = 1.0;
