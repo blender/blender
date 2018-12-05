@@ -42,14 +42,17 @@ class Prefs(bpy.types.KeyConfigPreferences):
 blender_default = bpy.utils.execfile(os.path.join(dirname, "keymap_data", "blender_default.py"))
 
 def load():
+    from bpy import context
     from bl_keymap_utils.io import keyconfig_init_from_data
 
-    kc = bpy.context.window_manager.keyconfigs.new(idname)
+    prefs = context.user_preferences
+    kc = context.window_manager.keyconfigs.new(idname)
     kc_prefs = kc.preferences
 
     keyconfig_data = blender_default.generate_keymaps(
         blender_default.Params(
             select_mouse=kc_prefs.select_mouse,
+            use_mouse_emulate_3_button=prefs.inputs.use_mouse_emulate_3_button,
             spacebar_action='SEARCH',
             use_select_all_toggle=True,
             legacy=True,

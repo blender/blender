@@ -244,6 +244,11 @@ static void rna_userdef_ndof_deadzone_update(Main *UNUSED(bmain), Scene *UNUSED(
 }
 #endif
 
+static void rna_userdef_keyconfig_reload_update(bContext *C, Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_keyconfig_reload(C);
+}
+
 static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -4772,6 +4777,8 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
 	RNA_def_property_ui_text(prop, "Emulate 3 Button Mouse",
 	                         "Emulate Middle Mouse with Alt+Left Mouse (doesn't work with Left Mouse Select option)");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_userdef_keyconfig_reload_update");
 
 	prop = RNA_def_property(srna, "use_emulate_numpad", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
