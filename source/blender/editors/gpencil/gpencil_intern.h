@@ -196,7 +196,7 @@ typedef struct GP_SpaceConversion {
 } GP_SpaceConversion;
 
 bool gp_stroke_inside_circle(
-        const int mval[2], const int UNUSED(mvalo[2]),
+        const float mval[2], const float UNUSED(mvalo[2]),
         int rad, int x0, int y0, int x1, int y1);
 
 void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
@@ -227,13 +227,6 @@ void gp_stroke_convertcoords_tpoint(
         struct Object *ob,
         bGPDlayer *gpl, const struct tGPspoint *point2D,
         float *depth, float out[3]);
-
-/* helper to convert 2d to 3d for primitive. See: D4030 */
-void gp_stroke_convertcoords_tpoint_primitive(
-        struct Scene *scene, struct ARegion *ar,
-        struct Object *ob,
-        bGPDlayer *gpl, const struct tPGPspoint *point2D,
-        float out[3]);
 
 /* Poll Callbacks ------------------------------------ */
 /* gpencil_utils.c */

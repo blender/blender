@@ -113,7 +113,7 @@ static void gp_draw_stroke_buffer(
 	}
 
 	GPUVertFormat *format = immVertexFormat();
-	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	const tGPspoint *pt = points;
 
@@ -123,7 +123,7 @@ static void gp_draw_stroke_buffer(
 		immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 		immUniformColor3fvAlpha(ink, ink[3]);
 		immBegin(GPU_PRIM_POINTS, 1);
-		immVertex2iv(pos, &pt->x);
+		immVertex2fv(pos, &pt->x);
 	}
 	else {
 		float oldpressure = points[0].pressure;
@@ -143,7 +143,7 @@ static void gp_draw_stroke_buffer(
 			if (fabsf(pt->pressure - oldpressure) > 0.2f) {
 				/* need to have 2 points to avoid immEnd assert error */
 				if (draw_points < 2) {
-					immVertex2iv(pos, &(pt - 1)->x);
+					immVertex2fv(pos, &(pt - 1)->x);
 				}
 
 				immEnd();
@@ -154,7 +154,7 @@ static void gp_draw_stroke_buffer(
 
 				/* need to roll-back one point to ensure that there are no gaps in the stroke */
 				if (i != 0) {
-					immVertex2iv(pos, &(pt - 1)->x);
+					immVertex2fv(pos, &(pt - 1)->x);
 					draw_points++;
 				}
 
@@ -162,12 +162,12 @@ static void gp_draw_stroke_buffer(
 			}
 
 			/* now the point we want */
-			immVertex2iv(pos, &pt->x);
+			immVertex2fv(pos, &pt->x);
 			draw_points++;
 		}
 		/* need to have 2 points to avoid immEnd assert error */
 		if (draw_points < 2) {
-			immVertex2iv(pos, &(pt - 1)->x);
+			immVertex2fv(pos, &(pt - 1)->x);
 		}
 	}
 

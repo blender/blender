@@ -174,15 +174,15 @@ static void gp_draw_stroke_buffer_fill(const tGPspoint *points, int totpoints, f
 			/* vertex 1 */
 			pt = &points[tmp_triangles[i][0]];
 			gp_set_tpoint_varying_color(pt, ink, color);
-			immVertex2iv(pos, &pt->x);
+			immVertex2fv(pos, &pt->x);
 			/* vertex 2 */
 			pt = &points[tmp_triangles[i][1]];
 			gp_set_tpoint_varying_color(pt, ink, color);
-			immVertex2iv(pos, &pt->x);
+			immVertex2fv(pos, &pt->x);
 			/* vertex 3 */
 			pt = &points[tmp_triangles[i][2]];
 			gp_set_tpoint_varying_color(pt, ink, color);
-			immVertex2iv(pos, &pt->x);
+			immVertex2fv(pos, &pt->x);
 		}
 
 		immEnd();
@@ -219,7 +219,7 @@ static void gp_draw_stroke_buffer(
 	}
 
 	GPUVertFormat *format = immVertexFormat();
-	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	const tGPspoint *pt = points;
@@ -230,7 +230,7 @@ static void gp_draw_stroke_buffer(
 		immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
 		immBegin(GPU_PRIM_POINTS, 1);
 		gp_set_tpoint_varying_color(pt, ink, color);
-		immVertex2iv(pos, &pt->x);
+		immVertex2fv(pos, &pt->x);
 	}
 	else {
 		float oldpressure = points[0].pressure;
@@ -250,7 +250,7 @@ static void gp_draw_stroke_buffer(
 				/* need to have 2 points to avoid immEnd assert error */
 				if (draw_points < 2) {
 					gp_set_tpoint_varying_color(pt - 1, ink, color);
-					immVertex2iv(pos, &(pt - 1)->x);
+					immVertex2fv(pos, &(pt - 1)->x);
 				}
 
 				immEnd();
@@ -262,7 +262,7 @@ static void gp_draw_stroke_buffer(
 				/* need to roll-back one point to ensure that there are no gaps in the stroke */
 				if (i != 0) {
 					gp_set_tpoint_varying_color(pt - 1, ink, color);
-					immVertex2iv(pos, &(pt - 1)->x);
+					immVertex2fv(pos, &(pt - 1)->x);
 					draw_points++;
 				}
 
@@ -271,13 +271,13 @@ static void gp_draw_stroke_buffer(
 
 			/* now the point we want */
 			gp_set_tpoint_varying_color(pt, ink, color);
-			immVertex2iv(pos, &pt->x);
+			immVertex2fv(pos, &pt->x);
 			draw_points++;
 		}
 		/* need to have 2 points to avoid immEnd assert error */
 		if (draw_points < 2) {
 			gp_set_tpoint_varying_color(pt - 1, ink, color);
-			immVertex2iv(pos, &(pt - 1)->x);
+			immVertex2fv(pos, &(pt - 1)->x);
 		}
 	}
 

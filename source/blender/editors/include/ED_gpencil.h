@@ -73,26 +73,13 @@ struct wmWindowManager;
  * Used as part of the 'stroke cache' used during drawing of new strokes
  */
 typedef struct tGPspoint {
-	int x, y;               /* x and y coordinates of cursor (in relative to area) */
+	float x, y;               /* x and y coordinates of cursor (in relative to area) */
 	float pressure;         /* pressure of tablet at this point */
 	float strength;         /* pressure of tablet at this point for alpha factor */
 	float time;             /* Time relative to stroke start (used when converting to path) */
 	float uv_fac;           /* factor of uv along the stroke */
 	float uv_rot;           /* uv rotation for dor mode */
 } tGPspoint;
-
-/* Temporary 'Stroke Point' data (2D / screen-space)
- *
- * Used for primitives. See: D4030
- */
-typedef struct tPGPspoint {
-	float x, y;             /* x and y coordinates of cursor (in relative to area) */
-	float pressure;         /* pressure of tablet at this point */
-	float strength;         /* pressure of tablet at this point for alpha factor */
-	float time;             /* Time relative to stroke start (used when converting to path) */
-	float uv_fac;           /* factor of uv along the stroke */
-	float uv_rot;           /* uv rotation for dor mode */
-} tPGPspoint;
 
 /* used to sort by zdepth gpencil objects in viewport */
 /* TODO: this could be a system parameter in userprefs screen */

@@ -141,8 +141,8 @@ typedef struct tGPsdata {
 
 	short radius;       /* radius of influence for eraser */
 
-	int mval[2];        /* current mouse-position */
-	int mvalo[2];       /* previous recorded mouse-position */
+	float mval[2];        /* current mouse-position */
+	float mvalo[2];       /* previous recorded mouse-position */
 
 	float pressure;     /* current stylus pressure */
 	float opressure;    /* previous stylus pressure */
@@ -242,10 +242,10 @@ static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 /* Stroke Editing ---------------------------- */
 
 /* check if the current mouse position is suitable for adding a new point */
-static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
+static bool gp_stroke_filtermval(tGPsdata *p, const float mval[2], float pmval[2])
 {
-	int dx = abs(mval[0] - pmval[0]);
-	int dy = abs(mval[1] - pmval[1]);
+	int dx = (int)fabsf(mval[0] - pmval[0]);
+	int dy = (int)fabsf(mval[1] - pmval[1]);
 
 	/* if buffer is empty, just let this go through (i.e. so that dots will work) */
 	if (p->gpd->runtime.sbuffer_size == 0)
@@ -270,13 +270,15 @@ static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 }
 
 /* convert screen-coordinates to buffer-coordinates */
-static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3], float *depth)
+static void gp_stroke_convertcoords(tGPsdata *p, const float mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd = p->gpd;
 
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if (gpencil_project_check(p) && (ED_view3d_autodist_simple(p->ar, mval, out, 0, depth))) {
+		int mval_i[2];
+		round_v2i_v2fl(mval_i, mval);
+		if (gpencil_project_check(p) && (ED_view3d_autodist_simple(p->ar, mval_i, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 * - nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
@@ -284,7 +286,6 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 		else {
 			float mval_prj[2];
 			float rvec[3], dvec[3];
-			float mval_f[2] = {UNPACK2(mval)};
 			float zfac;
 
 			/* Current method just converts each point in screen-coordinates to
@@ -300,7 +301,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			zfac = ED_view3d_calc_zfac(p->ar->regiondata, rvec, NULL);
 
 			if (ED_view3d_project_float_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				sub_v2_v2v2(mval_f, mval_prj, mval_f);
+				float mval_f[2];
+				sub_v2_v2v2(mval_f, mval_prj, mval);
 				ED_view3d_win_to_delta(p->ar, mval_f, dvec, zfac);
 				sub_v3_v3v3(out, rvec, dvec);
 			}
@@ -331,7 +333,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 
 /* add current stroke-point to buffer (returns whether point was successfully added) */
 static short gp_stroke_addpoint(
-        tGPsdata *p, const int mval[2], float pressure, double curtime)
+        tGPsdata *p, const float mval[2], float pressure, double curtime)
 {
 	bGPdata *gpd = p->gpd;
 	tGPspoint *pt;
@@ -345,7 +347,7 @@ static short gp_stroke_addpoint(
 			pt = (tGPspoint *)(gpd->runtime.sbuffer);
 
 			/* store settings */
-			copy_v2_v2_int(&pt->x, mval);
+			copy_v2_v2(&pt->x, mval);
 			pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
 			pt->strength = 1.0f;
 			pt->time = (float)(curtime - p->inittime);
@@ -360,7 +362,7 @@ static short gp_stroke_addpoint(
 			pt = ((tGPspoint *)(gpd->runtime.sbuffer) + 1);
 
 			/* store settings */
-			copy_v2_v2_int(&pt->x, mval);
+			copy_v2_v2(&pt->x, mval);
 			pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
 			pt->strength = 1.0f;
 			pt->time = (float)(curtime - p->inittime);
@@ -381,7 +383,7 @@ static short gp_stroke_addpoint(
 		pt = ((tGPspoint *)(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_size);
 
 		/* store settings */
-		copy_v2_v2_int(&pt->x, mval);
+		copy_v2_v2(&pt->x, mval);
 		pt->pressure = pressure;
 		pt->strength = 1.0f;  /* unused for annotations, but initialise for easier conversions to GP Object */
 
@@ -402,7 +404,7 @@ static short gp_stroke_addpoint(
 		pt = (tGPspoint *)(gpd->runtime.sbuffer);
 
 		/* store settings */
-		copy_v2_v2_int(&pt->x, mval);
+		copy_v2_v2(&pt->x, mval);
 		pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
 		pt->strength = 1.0f;
 		pt->time = (float)(curtime - p->inittime);
@@ -503,7 +505,7 @@ static void gp_stroke_simplify(tGPsdata *p)
 	for (i = 0, j = 0; i < num_points; i++) {
 		if (i - j == 3) {
 			float co[2], pressure, time;
-			int mco[2];
+			float mco[2];
 
 			/* initialize values */
 			co[0] = 0.0f;
@@ -518,8 +520,8 @@ static void gp_stroke_simplify(tGPsdata *p)
 			GP_SIMPLIFY_AVPOINT(j + 3, -0.25f);
 
 			/* set values for adding */
-			mco[0] = (int)co[0];
-			mco[1] = (int)co[1];
+			mco[0] = co[0];
+			mco[1] = co[1];
 
 			/* ignore return values on this... assume to be ok for now */
 			gp_stroke_addpoint(p, mco, pressure, p->inittime + (double)time);
@@ -643,17 +645,17 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 		/* get an array of depths, far depths are blended */
 		if (gpencil_project_check(p)) {
-			int mval[2], mval_prev[2] = { 0 };
+			int mval_i[2], mval_prev[2] = { 0 };
 			int interp_depth = 0;
 			int found_depth = 0;
 
 			depth_arr = MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_size, "depth_points");
 
 			for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_size; i++, ptc++, pt++) {
-				copy_v2_v2_int(mval, &ptc->x);
+				round_v2i_v2fl(mval_i, &ptc->x);
 
-				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr + i) == 0) &&
-				    (i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
+				if ((ED_view3d_autodist_depth(p->ar, mval_i, depth_margin, depth_arr + i) == 0) &&
+				    (i && (ED_view3d_autodist_depth_seg(p->ar, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
 				{
 					interp_depth = true;
 				}
@@ -661,7 +663,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 					found_depth = true;
 				}
 
-				copy_v2_v2_int(mval_prev, mval);
+				copy_v2_v2_int(mval_prev, mval_i);
 			}
 
 			if (found_depth == false) {
@@ -766,10 +768,10 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 	    (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH))
 	{
 		RegionView3D *rv3d = p->ar->regiondata;
-		const int mval[2] = {x, y};
+		const int mval_i[2] = {x, y};
 		float mval_3d[3];
 
-		if (ED_view3d_autodist_simple(p->ar, mval, mval_3d, 0, NULL)) {
+		if (ED_view3d_autodist_simple(p->ar, mval_i, mval_3d, 0, NULL)) {
 			const float depth_mval = view3d_point_depth(rv3d, mval_3d);
 			const float depth_pt   = view3d_point_depth(rv3d, &pt->x);
 
@@ -786,13 +788,15 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 static void gp_stroke_eraser_dostroke(
         tGPsdata *p,
         bGPDframe *gpf, bGPDstroke *gps,
-        const int mval[2], const int mvalo[2],
+        const float mval[2], const float mvalo[2],
         const int radius, const rcti *rect)
 {
 	bGPDspoint *pt1, *pt2;
 	int pc1[2] = {0};
 	int pc2[2] = {0};
 	int i;
+	int mval_i[2];
+	round_v2i_v2fl(mval_i, mval);
 
 	if (gps->totpoints == 0) {
 		/* just free stroke */
@@ -806,7 +810,7 @@ static void gp_stroke_eraser_dostroke(
 			/* do boundbox check first */
 			if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
 				/* only check if point is inside */
-				if (len_v2v2_int(mval, pc1) <= radius) {
+				if (len_v2v2_int(mval_i, pc1) <= radius) {
 					/* free stroke */
 					gp_free_stroke(gpf, gps);
 				}
@@ -857,10 +861,10 @@ static void gp_stroke_eraser_dostroke(
 					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
 						/* Edge is affected - Check individual points now */
-						if (len_v2v2_int(mval, pc1) <= radius) {
+						if (len_v2v2_int(mval_i, pc1) <= radius) {
 							pt1->flag |= GP_SPOINT_TAG;
 						}
-						if (len_v2v2_int(mval, pc2) <= radius) {
+						if (len_v2v2_int(mval_i, pc2) <= radius) {
 							pt2->flag |= GP_SPOINT_TAG;
 						}
 						do_cull = true;

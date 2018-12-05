@@ -260,7 +260,7 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 /* ----------------------- */
 
 /* create a rectangle */
-static void gp_primitive_rectangle(tGPDprimitive *tgpi, tPGPspoint *points2D)
+static void gp_primitive_rectangle(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
 	BLI_assert(tgpi->tot_edges == 4);
 
@@ -278,7 +278,7 @@ static void gp_primitive_rectangle(tGPDprimitive *tgpi, tPGPspoint *points2D)
 }
 
 /* create a line */
-static void gp_primitive_line(tGPDprimitive *tgpi, tPGPspoint *points2D)
+static void gp_primitive_line(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
 	BLI_assert(tgpi->tot_edges == 2);
 
@@ -290,7 +290,7 @@ static void gp_primitive_line(tGPDprimitive *tgpi, tPGPspoint *points2D)
 }
 
 /* create an arc */
-static void gp_primitive_arc(tGPDprimitive *tgpi, tPGPspoint *points2D)
+static void gp_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
 	const int totpoints = tgpi->tot_edges;
 	const float step = M_PI_2 / (float)(totpoints - 1);
@@ -313,7 +313,7 @@ static void gp_primitive_arc(tGPDprimitive *tgpi, tPGPspoint *points2D)
 	length[1] = end[1] - start[1];
 
 	for (int i = 0; i < totpoints; i++) {
-		tPGPspoint *p2d = &points2D[i];
+		tGPspoint *p2d = &points2D[i];
 		p2d->x = (start[0] + sinf(a) * length[0]);
 		p2d->y = (end[1] - cosf(a) * length[1]);
 		a += step;
@@ -321,7 +321,7 @@ static void gp_primitive_arc(tGPDprimitive *tgpi, tPGPspoint *points2D)
 }
 
 /* create a circle */
-static void gp_primitive_circle(tGPDprimitive *tgpi, tPGPspoint *points2D)
+static void gp_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
 {
 	const int totpoints = tgpi->tot_edges;
 	const float step = (2.0f * M_PI) / (float)(totpoints);
@@ -336,7 +336,7 @@ static void gp_primitive_circle(tGPDprimitive *tgpi, tPGPspoint *points2D)
 	radius[1] = fabsf(((tgpi->bottom[1] - tgpi->top[1]) / 2.0f));
 
 	for (int i = 0; i < totpoints; i++) {
-		tPGPspoint *p2d = &points2D[i];
+		tGPspoint *p2d = &points2D[i];
 		p2d->x = (center[0] + cosf(a) * radius[0]);
 		p2d->y = (center[1] + sinf(a) * radius[1]);
 		a += step;
@@ -359,7 +359,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	gps->totpoints = tgpi->tot_edges;
 
 	/* compute screen-space coordinates for points */
-	tPGPspoint *points2D = MEM_callocN(sizeof(tPGPspoint) * tgpi->tot_edges, "gp primitive points2D");
+	tGPspoint *points2D = MEM_callocN(sizeof(tGPspoint) * tgpi->tot_edges, "gp primitive points2D");
 	switch (tgpi->type) {
 		case GP_STROKE_BOX:
 			gp_primitive_rectangle(tgpi, points2D);
@@ -384,10 +384,10 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	/* convert screen-coordinates to 3D coordinates */
 	for (int i = 0; i < gps->totpoints; i++) {
 		bGPDspoint *pt = &gps->points[i];
-		tPGPspoint *p2d = &points2D[i];
+		tGPspoint *p2d = &points2D[i];
 
 		/* convert screen-coordinates to 3D coordinates */
-		gp_stroke_convertcoords_tpoint_primitive(tgpi->scene, tgpi->ar, tgpi->ob, tgpi->gpl, p2d, &pt->x);
+		gp_stroke_convertcoords_tpoint(tgpi->scene, tgpi->ar, tgpi->ob, tgpi->gpl, p2d, NULL, &pt->x);
 
 		pt->pressure = 1.0f;
 		pt->strength = tgpi->brush->gpencil_settings->draw_strength;

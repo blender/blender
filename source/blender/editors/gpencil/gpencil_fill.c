@@ -748,19 +748,21 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 		int depth_margin = 0;
 
 		/* get an array of depths, far depths are blended */
-		int mval[2], mval_prev[2] = { 0 };
+		int mval_prev[2] = { 0 };
 		int interp_depth = 0;
 		int found_depth = 0;
 
 		tgpf->depth_arr = MEM_mallocN(sizeof(float) * totpoints, "depth_points");
 
 		for (i = 0, ptc = tgpf->sbuffer; i < totpoints; i++, ptc++) {
-			copy_v2_v2_int(mval, &ptc->x);
+
+			int mval_i[2];
+			round_v2i_v2fl(mval_i, &ptc->x);
 
 			if ((ED_view3d_autodist_depth(
-			             tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
+			             tgpf->ar, mval_i, depth_margin, tgpf->depth_arr + i) == 0) &&
 			    (i && (ED_view3d_autodist_depth_seg(
-			                   tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
+			                   tgpf->ar, mval_i, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
 			{
 				interp_depth = true;
 			}
@@ -768,7 +770,7 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 				found_depth = true;
 			}
 
-			copy_v2_v2_int(mval_prev, mval);
+			copy_v2_v2_int(mval_prev, mval_i);
 		}
 
 		if (found_depth == false) {

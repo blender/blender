@@ -138,7 +138,7 @@ typedef struct tGP_BrushEditData {
 	/* - position and pressure
 	 * - the *_prev variants are the previous values
 	 */
-	int   mval[2], mval_prev[2];
+	float   mval[2], mval_prev[2];
 	float pressure, pressure_prev;
 
 	/* - effect vector (e.g. 2D/3D translation for grab brush) */
@@ -261,7 +261,9 @@ static float gp_brush_influence_calc(tGP_BrushEditData *gso, const int radius, c
 
 	/* distance fading */
 	if (gp_brush->flag & GP_SCULPT_FLAG_USE_FALLOFF) {
-		float distance = (float)len_v2v2_int(gso->mval, co);
+		int mval_i[2];
+		round_v2i_v2fl(mval_i, gso->mval);
+		float distance = (float)len_v2v2_int(mval_i, co);
 		float fac;
 
 		CLAMP(distance, 0.0f, (float)radius);
@@ -594,7 +596,7 @@ static void gp_brush_calc_midpoint(tGP_BrushEditData *gso)
 		float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
 		float mval_f[2];
-		copy_v2fl_v2i(mval_f, gso->mval);
+		copy_v2_v2(mval_f, gso->mval);
 		float mval_prj[2];
 		float dvec[3];
 
@@ -1435,7 +1437,9 @@ static bool gpsculpt_brush_do_stroke(
 		/* do boundbox check first */
 		if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
 			/* only check if point is inside */
-			if (len_v2v2_int(gso->mval, pc1) <= radius) {
+			int mval_i[2];
+			round_v2i_v2fl(mval_i, gso->mval);
+			if (len_v2v2_int(mval_i, pc1) <= radius) {
 				/* apply operation to this point */
 				changed = apply(gso, gps, 0, radius, pc1);
 			}
