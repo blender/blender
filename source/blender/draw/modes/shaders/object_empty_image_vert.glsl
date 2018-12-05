@@ -24,6 +24,7 @@ void main()
 		(pos + offset) * (size * vec2(aspectX, aspectY)),
 		0.0, 1.0);
 #ifdef USE_WIRE
+	gl_Position.z -= 1e-5;
 	finalColor = vec4(color, 1.0);
 #else
 	texCoord_interp = texCoord;
