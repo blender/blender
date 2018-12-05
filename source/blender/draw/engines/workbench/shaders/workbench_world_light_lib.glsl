@@ -7,14 +7,10 @@ vec4 fast_rcp(vec4 v)
 
 vec3 brdf_approx(vec3 spec_color, float roughness, float NV)
 {
-	/* Treat anything below 2% as shadowing.
-	 * (in other words, makes it possible to completely disable
-	 * specular on a material by setting specular color to black). */
-	float shadowing = clamp(50.0 * spec_color.g, 0.0, 1.0);
 	/* Very rough own approx. We don't need it to be correct, just fast.
 	 * Just simulate fresnel effect with roughness attenuation. */
 	float fresnel = exp2(-8.35 * NV) * (1.0 - roughness);
-	return mix(spec_color, vec3(1.0), fresnel) * shadowing;
+	return mix(spec_color, vec3(1.0), fresnel);
 }
 
 void prep_specular(
