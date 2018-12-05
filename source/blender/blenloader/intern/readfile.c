@@ -10977,34 +10977,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	BLI_ghash_free(loaded_ids, NULL, NULL);
 	loaded_ids = NULL;
 
-	/* test if there are unread libblocks */
-	/* XXX This code block is kept for 2.77, until we are sure it never gets reached anymore. Can be removed later. */
-	for (mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
-		a = set_listbasepointers(mainptr, lbarray);
-		while (a--) {
-			ID *id, *idn = NULL;
-
-			for (id = lbarray[a]->first; id; id = idn) {
-				idn = id->next;
-				if (id->tag & LIB_TAG_READ) {
-					BLI_assert(0);
-					BLI_remlink(lbarray[a], id);
-					blo_reportf_wrap(
-					        basefd->reports, RPT_ERROR,
-					        TIP_("LIB: %s: '%s' unread lib block missing from '%s', parent '%s' - "
-					             "Please file a bug report if you see this message"),
-					        BKE_idcode_to_name(GS(id->name)),
-					        id->name + 2,
-					        mainptr->curlib->filepath,
-					        library_parent_filepath(mainptr->curlib));
-					change_idid_adr(mainlist, basefd, id, NULL);
-
-					MEM_freeN(id);
-				}
-			}
-		}
-	}
-
 	/* do versions, link, and free */
 	Main *main_newid = BKE_main_new();
 	for (mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
