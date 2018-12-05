@@ -2088,6 +2088,11 @@ static void rna_unit_system_update(Main *UNUSED(bmain), Scene *scene, PointerRNA
 	}
 }
 
+static char *rna_UnitSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("unit_settings");
+}
+
 #else
 
 /* Grease Pencil Interpolation tool settings */
@@ -3015,6 +3020,8 @@ static void rna_def_unit_settings(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "UnitSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Unit Settings", "");
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_path_func(srna, "rna_UnitSettings_path");
 
 	/* Units */
 	prop = RNA_def_property(srna, "system", PROP_ENUM, PROP_NONE);
