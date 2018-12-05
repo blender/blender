@@ -299,7 +299,9 @@ void gpu_extensions_init(void)
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 
-		if (strstr(renderer, "UHD Graphics")) {
+		if (strstr(renderer, "UHD Graphics") ||
+		    strstr(renderer, "Kaby Lake GT2"))
+		{
 			GG.device |= GPU_DEVICE_INTEL_UHD;
 		}
 	}
