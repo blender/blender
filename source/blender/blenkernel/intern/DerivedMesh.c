@@ -1618,6 +1618,8 @@ static void mesh_calc_modifiers(
 	BLI_linklist_free((LinkNode *)datamasks, NULL);
 }
 
+
+#ifdef USE_DERIVEDMESH
 static void mesh_calc_modifiers_dm(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, float (*inputVertexCos)[3],
         int useDeform,
@@ -1641,6 +1643,7 @@ static void mesh_calc_modifiers_dm(
 	*r_finaldm = CDDM_from_mesh_ex(final_mesh, CD_DUPLICATE, CD_MASK_MESH);
 	BKE_id_free(NULL, final_mesh);
 }
+#endif
 
 float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *r_numVerts))[3]
 {
