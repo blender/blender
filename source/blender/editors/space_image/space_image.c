@@ -53,6 +53,10 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
 #include "DEG_depsgraph.h"
 
 #include "IMB_imbuf_types.h"
@@ -68,8 +72,6 @@
 #include "ED_transform.h"
 
 #include "BIF_gl.h"
-
-#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -954,6 +956,37 @@ static void image_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID
 	}
 }
 
+/**
+ * \note Used for splitting out a subset of modes is more involved,
+ * The previous non-uv-edit mode is stored so switching back to the
+ * image doesn't always reset the sub-mode.
+ */
+static int image_space_subtype_get(ScrArea *sa)
+{
+	SpaceImage *sima = sa->spacedata.first;
+	return sima->mode == SI_MODE_UV ? SI_MODE_UV : SI_MODE_VIEW;
+}
+
+static void image_space_subtype_set(ScrArea *sa, int value)
+{
+	SpaceImage *sima = sa->spacedata.first;
+	if (value == SI_MODE_UV) {
+		if (sima->mode != SI_MODE_UV) {
+			sima->mode_prev = sima->mode;
+		}
+		sima->mode = value;
+	}
+	else {
+		sima->mode = sima->mode_prev;
+	}
+}
+
+static void image_space_subtype_item_extend(
+        bContext *UNUSED(C), EnumPropertyItem **item, int *totitem)
+{
+	RNA_enum_items_add(item, totitem, rna_enum_space_image_mode_items);
+}
+
 /**************************** spacetype *****************************/
 
 /* only called once, from space/spacetypes.c */
@@ -977,6 +1010,9 @@ void ED_spacetype_image(void)
 	st->context = image_context;
 	st->gizmos = image_widgets;
 	st->id_remap = image_id_remap;
+	st->space_subtype_item_extend = image_space_subtype_item_extend;
+	st->space_subtype_get = image_space_subtype_get;
+	st->space_subtype_set = image_space_subtype_set;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype image region");

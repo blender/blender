@@ -523,7 +523,8 @@ class IMAGE_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        layout.prop(sima, "mode", text="")
+        if sima.mode != 'UV':
+            layout.prop(sima, "ui_mode", text="")
 
         # UV editing.
         if show_uvedit:

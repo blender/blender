@@ -909,8 +909,11 @@ typedef struct SpaceImage {
 	float centx, centy;             /* storage for offset while render drawing */
 
 	char  mode;                     /* view/paint/mask */
+	/* Storage for sub-space types. */
+	char mode_prev;
+
 	char  pin;
-	short pad;
+	char _pad;
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	short lock;
 	char dt_uv; /* UV draw type */
