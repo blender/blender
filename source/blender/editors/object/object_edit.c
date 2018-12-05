@@ -202,7 +202,7 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	PropertyRNA *prop = RNA_def_boolean(ot->srna, "select", false, "Select", "");
+	PropertyRNA *prop = RNA_def_boolean(ot->srna, "select", true, "Select", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
