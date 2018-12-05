@@ -55,6 +55,18 @@ using namespace OCIO_NAMESPACE;
 #  define __func__ __FUNCTION__
 #endif
 
+/* NOTE: This is because OCIO 1.1.0 has a bug which makes default
+ * display to be the one which is first alphabetically.
+ *
+ * Fix has been submitted as a patch
+ *   https://github.com/imageworks/OpenColorIO/pull/638
+ *
+ * For until then we use first usable display instead. */
+#define DEFAULT_DISPLAY_WORKAROUND
+#ifdef DEFAULT_DISPLAY_WORKAROUND
+#  include <mutex>
+#endif
+
 static void OCIO_reportError(const char *err)
 {
 	std::cerr << "OpenColorIO Error: " << err << std::endl;
@@ -197,6 +209,28 @@ int OCIOImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const c
 
 const char *OCIOImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config)
 {
+#ifdef DEFAULT_DISPLAY_WORKAROUND
+	if (getenv("OCIO_ACTIVE_DISPLAYS") == NULL) {
+		const char *active_displays =
+		        (*(ConstConfigRcPtr *) config)->getActiveDisplays();
+		const char *separator_pos = strchr(active_displays, ',');
+		if (separator_pos == NULL) {
+			return active_displays;
+		}
+		static std::string active_display;
+		/* NOTE: Configuration is shared and is never changed during runtime,
+		 * so we only guarantee two threads don't initialize at the same. */
+		static std::mutex mutex;
+		mutex.lock();
+		if (active_display.empty()) {
+			active_display = active_displays;
+			active_display[separator_pos - active_displays] = '\0';
+		}
+		mutex.unlock();
+		return active_display.c_str();
+	}
+#endif
+
 	try {
 		return (*(ConstConfigRcPtr *) config)->getDefaultDisplay();
 	}
@@ -233,6 +267,29 @@ const char *OCIOImpl::configGetDisplay(OCIO_ConstConfigRcPtr *config, int index)
 
 const char *OCIOImpl::configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display)
 {
+#ifdef DEFAULT_DISPLAY_WORKAROUND
+	/* NOTE: We assume that first active view always exists for a default
+	 * display. */
+	if (getenv("OCIO_ACTIVE_VIEWS") == NULL) {
+		const char *active_views =
+		        (*(ConstConfigRcPtr *) config)->getActiveViews();
+		const char *separator_pos = strchr(active_views, ',');
+		if (separator_pos == NULL) {
+			return active_views;
+		}
+		static std::string active_view;
+		/* NOTE: Configuration is shared and is never changed during runtime,
+		 * so we only guarantee two threads don't initialize at the same. */
+		static std::mutex mutex;
+		mutex.lock();
+		if (active_view.empty()) {
+			active_view = active_views;
+			active_view[separator_pos - active_views] = '\0';
+		}
+		mutex.unlock();
+		return active_view.c_str();
+	}
+#endif
 	try {
 		return (*(ConstConfigRcPtr *) config)->getDefaultView(display);
 	}
