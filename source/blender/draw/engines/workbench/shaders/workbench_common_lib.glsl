@@ -53,17 +53,17 @@ WB_Normal workbench_normal_encode(vec3 n)
 #endif /* WORKBENCH_ENCODE_NORMALS */
 
 /* Encoding into the alpha of a RGBA8 UNORM texture. */
-#define TARGET_BITCOUNT 8
-#define METALLIC_BITS 3 /* Metallic channel is less important. */
+#define TARGET_BITCOUNT 8u
+#define METALLIC_BITS 3u /* Metallic channel is less important. */
 #define ROUGHNESS_BITS (TARGET_BITCOUNT - METALLIC_BITS)
 #define TOTAL_BITS (METALLIC_BITS + ROUGHNESS_BITS)
 
 /* Encode 2 float into 1 with the desired precision. */
 float workbench_float_pair_encode(float v1, float v2)
 {
-	const int total_mask = ~(0xFFFFFFFF << TOTAL_BITS);
-	const int v1_mask = ~(0xFFFFFFFF << ROUGHNESS_BITS);
-	const int v2_mask = ~(0xFFFFFFFF << METALLIC_BITS);
+	const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
+	const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
+	const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
 	int iv1 = int(v1 * float(v1_mask));
 	int iv2 = int(v2 * float(v2_mask)) << ROUGHNESS_BITS;
 	return float(iv1 | iv2) * (1.0 / float(total_mask));
@@ -71,10 +71,10 @@ float workbench_float_pair_encode(float v1, float v2)
 
 void workbench_float_pair_decode(float data, out float v1, out float v2)
 {
-	const int total_mask = ~(0xFFFFFFFF << TOTAL_BITS);
-	const int v1_mask = ~(0xFFFFFFFF << ROUGHNESS_BITS);
-	const int v2_mask = ~(0xFFFFFFFF << METALLIC_BITS);
-	int idata = int(data * float(total_mask));
+	const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
+	const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
+	const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
+	uint idata = uint(data * float(total_mask));
 	v1 = float(idata & v1_mask) * (1.0 / float(v1_mask));
 	v2 = float(idata >> ROUGHNESS_BITS) * (1.0 / float(v2_mask));
 }
