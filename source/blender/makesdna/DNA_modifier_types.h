@@ -1539,9 +1539,9 @@ typedef struct LaplacianDeformModifierData {
 
 } LaplacianDeformModifierData;
 
-/* Smooth modifier flags */
+/* Laplacian Deform modifier flags */
 enum {
-	MOD_LAPLACIANDEFORM_BIND = 1,
+	MOD_LAPLACIANDEFORM_BIND = 1 << 0,
 };
 
 /* many of these options match 'solidify' */
