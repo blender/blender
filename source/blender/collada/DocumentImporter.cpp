@@ -1148,7 +1148,7 @@ bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animat
 	return anim_importer.write_animation_list(animationList);
 }
 
-#if OPENCOLLADA_WITH_ANIMATION_CLIP
+#if WITH_OPENCOLLADA_ANIMATION_CLIP
 // Since opencollada 1.6.68
 // called on post-process stage after writeVisualScenes
 bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *animationClip)

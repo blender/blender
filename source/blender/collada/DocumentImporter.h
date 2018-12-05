@@ -105,7 +105,7 @@ public:
 
 	bool writeAnimationList(const COLLADAFW::AnimationList*);
 
-#if OPENCOLLADA_WITH_ANIMATION_CLIP
+#if WITH_OPENCOLLADA_ANIMATION_CLIP
 	// Please enable this when building with Collada 1.6.65 or newer (also in DocumentImporter.cpp)
 	bool writeAnimationClip(const COLLADAFW::AnimationClip *animationClip);
 #endif
