@@ -138,6 +138,9 @@ typedef enum eDepsNode_Type {
 	 * changed in view layer.
 	 */
 	DEG_NODE_TYPE_OBJECT_FROM_LAYER,
+	/* Un-interestying datablock, which is a part of dependency graph, but does
+	 * not have very distinctive update procedure.  */
+	DEG_NODE_TYPE_GENERIC_DATABLOCK,
 
 	/* **** Evaluation-Related Outer Types (with Subdata) **** */
 
@@ -291,6 +294,9 @@ typedef enum eDepsOperation_Code {
 
 	/* Synchronization clips. ----------------------------------------------- */
 	DEG_OPCODE_SYNCHRONIZE_TO_ORIGINAL,
+
+	/* Generic datablock ---------------------------------------------------- */
+	DEG_OPCODE_GENERIC_DATABLOCK_UPDATE,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;

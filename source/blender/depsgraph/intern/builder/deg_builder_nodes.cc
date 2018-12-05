@@ -1534,23 +1534,20 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
 			build_image(texture->ima);
 		}
 	}
-	/* Placeholder so we can add relations and tag ID node for update. */
 	add_operation_node(&texture->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
+	                   DEG_NODE_TYPE_GENERIC_DATABLOCK,
 	                   NULL,
-	                   DEG_OPCODE_PLACEHOLDER);
+	                   DEG_OPCODE_GENERIC_DATABLOCK_UPDATE);
 }
 
 void DepsgraphNodeBuilder::build_image(Image *image) {
 	if (built_map_.checkIsBuiltAndTag(image)) {
 		return;
 	}
-	/* Placeholder so we can add relations and tag ID node for update. */
 	add_operation_node(&image->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
+	                   DEG_NODE_TYPE_GENERIC_DATABLOCK,
 	                   NULL,
-	                   DEG_OPCODE_PLACEHOLDER,
-	                   "Image Eval");
+	                   DEG_OPCODE_GENERIC_DATABLOCK_UPDATE);
 }
 
 void DepsgraphNodeBuilder::build_compositor(Scene *scene)

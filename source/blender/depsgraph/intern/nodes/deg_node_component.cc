@@ -402,6 +402,7 @@ DEG_COMPONENT_NODE_DEFINE(Transform,         TRANSFORM,          ID_RECALC_TRANS
 DEG_COMPONENT_NODE_DEFINE(ObjectFromLayer,   OBJECT_FROM_LAYER,  ID_RECALC);
 DEG_COMPONENT_NODE_DEFINE(Dupli,             DUPLI,              0);
 DEG_COMPONENT_NODE_DEFINE(Synchronize,       SYNCHRONIZE,        0);
+DEG_COMPONENT_NODE_DEFINE(GenericDatablock,  GENERIC_DATABLOCK,  0);
 
 /* Node Types Register =================================== */
 
@@ -426,6 +427,7 @@ void deg_register_component_depsnodes()
 	deg_register_node_typeinfo(&DNTI_OBJECT_FROM_LAYER);
 	deg_register_node_typeinfo(&DNTI_DUPLI);
 	deg_register_node_typeinfo(&DNTI_SYNCHRONIZE);
+	deg_register_node_typeinfo(&DNTI_GENERIC_DATABLOCK);
 }
 
 }  // namespace DEG
