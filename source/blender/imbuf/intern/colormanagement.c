@@ -2570,7 +2570,7 @@ const char *IMB_colormanagement_colorspace_get_indexed_name(int index)
 	return "";
 }
 
-void IMB_colormanagment_colorspace_from_ibuf_ftype(ColorManagedColorspaceSettings *colorspace_settings, ImBuf *ibuf)
+void IMB_colormanagement_colorspace_from_ibuf_ftype(ColorManagedColorspaceSettings *colorspace_settings, ImBuf *ibuf)
 {
 	/* Don't modify non-color data space, it does not change with file type. */
 	ColorSpace *colorspace = colormanage_colorspace_get_named(colorspace_settings->name);

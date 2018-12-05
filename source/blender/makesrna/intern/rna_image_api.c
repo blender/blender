@@ -132,7 +132,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 			if (image->source == IMA_SRC_GENERATED)
 				image->source = IMA_SRC_FILE;
 
-			IMB_colormanagment_colorspace_from_ibuf_ftype(&image->colorspace_settings, ibuf);
+			IMB_colormanagement_colorspace_from_ibuf_ftype(&image->colorspace_settings, ibuf);
 
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}

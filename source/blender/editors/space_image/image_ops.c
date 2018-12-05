@@ -1777,7 +1777,7 @@ static void save_image_post(
 
 			BKE_color_managed_colorspace_settings_copy(&old_colorspace_settings,
 			                                           &ima->colorspace_settings);
-			IMB_colormanagment_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
+			IMB_colormanagement_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
 			if (!BKE_color_managed_colorspace_settings_equals(&old_colorspace_settings,
 			                                                  &ima->colorspace_settings))
 			{

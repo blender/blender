@@ -137,18 +137,18 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *li
 
 void IMB_display_buffer_release(void *cache_handle);
 
-/* ** Display funcrions ** */
+/* ** Display functions ** */
 int IMB_colormanagement_display_get_named_index(const char *name);
 const char *IMB_colormanagement_display_get_indexed_name(int index);
 const char *IMB_colormanagement_display_get_default_name(void);
 struct ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name);
 const char *IMB_colormanagement_display_get_none_name(void);
 
-/* ** View funcrions ** */
+/* ** View functions ** */
 int IMB_colormanagement_view_get_named_index(const char *name);
 const char *IMB_colormanagement_view_get_indexed_name(int index);
 
-/* ** Look funcrions ** */
+/* ** Look functions ** */
 int IMB_colormanagement_look_get_named_index(const char *name);
 const char *IMB_colormanagement_look_get_indexed_name(int index);
 
@@ -157,7 +157,7 @@ int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
 const char *IMB_colormanagement_view_get_default_name(const char *display_name);
 
-void IMB_colormanagment_colorspace_from_ibuf_ftype(struct ColorManagedColorspaceSettings *colorspace_settings, struct ImBuf *ibuf);
+void IMB_colormanagement_colorspace_from_ibuf_ftype(struct ColorManagedColorspaceSettings *colorspace_settings, struct ImBuf *ibuf);
 
 /* ** RNA helper functions ** */
 void IMB_colormanagement_display_items_add(struct EnumPropertyItem **items, int *totitem);
