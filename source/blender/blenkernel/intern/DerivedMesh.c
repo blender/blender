@@ -2079,6 +2079,8 @@ static void editbmesh_build_data(
         struct Depsgraph *depsgraph, Scene *scene,
         Object *obedit, BMEditMesh *em, CustomDataMask dataMask)
 {
+	BLI_assert(em->ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
+
 	BKE_object_free_derived_caches(obedit);
 	BKE_object_sculpt_modifiers_changed(obedit);
 
@@ -2417,6 +2419,17 @@ Mesh *editbmesh_get_eval_cage(
 	}
 
 	return em->mesh_eval_cage;
+}
+
+Mesh *editbmesh_get_eval_cage_from_orig(
+        struct Depsgraph *depsgraph, Scene *scene, Object *obedit, BMEditMesh *UNUSED(em),
+        CustomDataMask dataMask)
+{
+	BLI_assert((obedit->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0);
+	Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+	Object *obedit_eval = (Object *)DEG_get_evaluated_id(depsgraph, &obedit->id);
+	BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
+	return editbmesh_get_eval_cage(depsgraph, scene_eval, obedit_eval, em_eval, dataMask);
 }
 
 /***/
