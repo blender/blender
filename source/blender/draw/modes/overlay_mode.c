@@ -23,8 +23,10 @@
  *  \ingroup draw_engine
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_editmesh.h"
 #include "BKE_object.h"
 
 #include "GPU_shader.h"
@@ -251,8 +253,20 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
 	{
-		/* Don't do that in edit Mesh mode. */
-		if (((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) || ob->type != OB_MESH) {
+		bool has_edit_mesh_cage = false;
+		if (ob->type == OB_MESH) {
+			/* TODO: Should be its own function. */
+			Mesh *me = (Mesh *)ob->data;
+			BMEditMesh *embm = me->edit_btmesh;
+			if (embm) {
+				has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
+			}
+		}
+
+		/* Don't do that in edit Mesh mode, unless there is a modifier preview. */
+		if ((((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) || has_edit_mesh_cage) ||
+			ob->type != OB_MESH)
+		{
 			const bool is_active = (ob == draw_ctx->obact);
 			const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 			const bool all_wires = (stl->g_data->overlay.wireframe_threshold == 1.0f) ||
@@ -295,7 +309,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				DRW_cache_object_face_wireframe_get(ob, &verts, &faceids, &tri_count, reduced_tri_len);
 				if (verts) {
 					float *rim_col = ts.colorWire;
-					if ((ob->base_flag & BASE_SELECTED) != 0) {
+					if (!has_edit_mesh_cage && ((ob->base_flag & BASE_SELECTED) != 0)) {
 						rim_col = (ob == draw_ctx->obact) ? ts.colorActive : ts.colorSelect;
 					}
 					DRWPass *pass = (all_wires) ? psl->face_wireframe_full_pass : psl->face_wireframe_pass;
