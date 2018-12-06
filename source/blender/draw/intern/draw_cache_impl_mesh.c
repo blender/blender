@@ -5122,22 +5122,12 @@ void DRW_mesh_batch_cache_get_wireframes_face_texbuf(
 		const int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;
 
 		/* Hack to show the final result. */
-		BMesh *bm_mapped = NULL;
-		const int *p_origindex = NULL;
 		const bool use_em_final = (
 		        me->edit_btmesh &&
 		        me->edit_btmesh->mesh_eval_final &&
 		        (me->edit_btmesh->mesh_eval_final->runtime.is_original == false));
 		Mesh me_fake;
 		if (use_em_final) {
-			/* Pass in mapped args. */
-			bm_mapped = me->edit_btmesh->bm;
-			p_origindex = CustomData_get_layer(&me->edit_btmesh->mesh_eval_final->pdata, CD_ORIGINDEX);
-			if (p_origindex == NULL) {
-				bm_mapped = NULL;
-			}
-			UNUSED_VARS(bm_mapped);
-
 			me_fake = *me->edit_btmesh->mesh_eval_final;
 			me_fake.mat = me->mat;
 			me_fake.totcol = me->totcol;
@@ -5471,6 +5461,20 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me, bool use_hide)
 		/* create batch from DM */
 		const int datatype =
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOPUV;
+
+		/* Hack to show the final result. */
+		const bool use_em_final = (
+		        me->edit_btmesh &&
+		        me->edit_btmesh->mesh_eval_final &&
+		        (me->edit_btmesh->mesh_eval_final->runtime.is_original == false));
+		Mesh me_fake;
+		if (use_em_final) {
+			me_fake = *me->edit_btmesh->mesh_eval_final;
+			me_fake.mat = me->mat;
+			me_fake.totcol = me->totcol;
+			me = &me_fake;
+		}
+
 		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
 
 		const int mat_len = mesh_render_data_mat_len_get(rdata);
