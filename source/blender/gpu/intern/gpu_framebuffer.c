@@ -424,7 +424,6 @@ static void gpu_framebuffer_update_attachments(GPUFrameBuffer *fb)
 static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuffer *fb)
 {
 	GLenum gl_attachments[GPU_FB_MAX_COLOR_ATTACHMENT];
-	bool fill_empty_slot = false;
 	int dummy_tex = 0;
 
 	BLI_assert(GPU_framebuffer_active_get() == fb);
@@ -435,11 +434,10 @@ static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuff
 
 		if (type >= GPU_FB_COLOR_ATTACHMENT0) {
 			int slot = type - GPU_FB_COLOR_ATTACHMENT0;
-			if (tex != NULL || fill_empty_slot) {
+			if (tex != NULL || (dummy_tex != 0)) {
 				gl_attachments[slot] = convert_attachment_type_to_gl(type);
 
-				if (!fill_empty_slot) {
-					fill_empty_slot = true;
+				if (dummy_tex == 0) {
 					dummy_tex = GPU_texture_opengl_bindcode(tex);
 				}
 			}
@@ -448,22 +446,23 @@ static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuff
 			}
 		}
 		else {
-			fill_empty_slot = false;
 			dummy_tex = 0;
 		}
 
-		if ((fill_empty_slot && tex == NULL) || GPU_FB_ATTACHEMENT_IS_DIRTY(fb->dirty_flag, type)) {
+		if ((dummy_tex != 0) && tex == NULL) {
+			/* Fill empty slot */
+			glFramebufferTexture(GL_FRAMEBUFFER, convert_attachment_type_to_gl(type), dummy_tex, 0);
+		}
+		else if (GPU_FB_ATTACHEMENT_IS_DIRTY(fb->dirty_flag, type)) {
 			if (tex != NULL) {
 				gpu_framebuffer_attachment_attach(&fb->attachments[type], type);
 
 				fb->multisample = (GPU_texture_samples(tex) > 0);
 				fb->width = GPU_texture_width(tex);
 				fb->height = GPU_texture_height(tex);
-
-				fill_empty_slot = dummy_tex != 0;
 			}
 			else {
-				glFramebufferTexture(GL_FRAMEBUFFER, convert_attachment_type_to_gl(type), dummy_tex, 0);
+				gpu_framebuffer_attachment_detach(&fb->attachments[type], type);
 			}
 		}
 	}
