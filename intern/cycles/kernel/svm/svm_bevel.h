@@ -34,6 +34,11 @@ ccl_device_noinline float3 svm_bevel(
 		return sd->N;
 	}
 
+	/* Can't raytrace from shaders like displacement, before BVH exists. */
+	if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
+		return sd->N;
+	}
+
 	/* Don't bevel for blurry indirect rays. */
 	if(state->min_ray_pdf < 8.0f) {
 		return sd->N;
