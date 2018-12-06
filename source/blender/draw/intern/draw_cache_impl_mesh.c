@@ -2730,7 +2730,18 @@ static GPUVertBuf *mesh_batch_cache_get_tri_uv_active(
 
 	if (cache->tri_aligned_uv == NULL) {
 		const MLoopUV *mloopuv = rdata->mloopuv;
-		if (mloopuv == NULL) {
+		int layer_offset;
+		BMEditMesh *embm = rdata->edit_bmesh;
+
+		/* edit mode */
+		if (rdata->edit_bmesh) {
+			BMesh *bm = embm->bm;
+			layer_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+			if (layer_offset == -1) {
+				return NULL;
+			}
+		}
+		else if (mloopuv == NULL) {
 			return NULL;
 		}
 
@@ -2750,14 +2761,8 @@ static GPUVertBuf *mesh_batch_cache_get_tri_uv_active(
 		int vbo_len_used = 0;
 		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
-
-		BMEditMesh *embm = rdata->edit_bmesh;
 		/* get uv's from active UVMap */
 		if (rdata->edit_bmesh) {
-			/* edit mode */
-			BMesh *bm = embm->bm;
-
-			const int layer_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 			for (uint i = 0; i < tri_len; i++) {
 				const BMLoop **bm_looptri = (const BMLoop **)embm->looptris[i];
 				if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
@@ -2785,7 +2790,10 @@ static GPUVertBuf *mesh_batch_cache_get_tri_uv_active(
 
 		vbo_len_used = vidx;
 
-		BLI_assert(vbo_len_capacity == vbo_len_used);
+		if (vbo_len_capacity != vbo_len_used) {
+			GPU_vertbuf_data_resize(vbo, vbo_len_used);
+		}
+
 		UNUSED_VARS_NDEBUG(vbo_len_used);
 	}
 
