@@ -1584,8 +1584,10 @@ void BKE_color_managed_view_settings_init_render(
 	 * default configuration. */
 	BLI_strncpy(view_settings->look, "None", sizeof(view_settings->look));
 
+	view_settings->flag = 0;
 	view_settings->gamma = 1.0f;
 	view_settings->exposure = 0.0f;
+	view_settings->curve_mapping = NULL;
 }
 
 void BKE_color_managed_view_settings_init_default(
