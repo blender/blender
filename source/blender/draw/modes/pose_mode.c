@@ -195,7 +195,9 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	 * and similar functionalities. For now we handle only pose bones. */
 
 	if (ob->type == OB_ARMATURE) {
-		if (draw_ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) {
+		if ((draw_ctx->v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+		    (draw_ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES))
+		{
 			return;
 		}
 		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
