@@ -5563,7 +5563,7 @@ def km_3d_view_tool_edit_curve_tilt(params):
         "3D View Tool: Edit Curve, Tilt",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("transform.tilt", {"type": params.action_tweak, "value": 'ANY'},
+            ("transform.tilt", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("release_confirm", True)]}),
         ]},
     )
