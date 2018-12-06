@@ -57,6 +57,15 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
 	       (me && me->totpoly && me->dvert);
 }
 
+static void tag_object_after_update(Object *object)
+{
+	BLI_assert(object->type == OB_MESH);
+	Mesh *mesh = object->data;
+	DEG_id_tag_update(&mesh->id, DEG_TAG_COPY_ON_WRITE);
+	/* NOTE: Original mesh is used for display, so tag it directly here. */
+	BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Set Vertex Colors Operator
  * \{ */
@@ -98,7 +107,7 @@ static bool vertex_color_set(Object *ob, uint paintcol)
 	/* remove stale me->mcol, will be added later */
 	BKE_mesh_tessface_clear(me);
 
-	DEG_id_tag_update(&me->id, 0);
+	tag_object_after_update(ob);
 
 	return true;
 }
@@ -170,7 +179,7 @@ static bool vertex_paint_from_weight(Object *ob)
 		} while (j < mp->totloop);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	tag_object_after_update(ob);
 
 	return true;
 }
@@ -306,7 +315,7 @@ static bool vertex_color_smooth(Object *ob)
 
 	MEM_freeN(mlooptag);
 
-	DEG_id_tag_update(&me->id, 0);
+	tag_object_after_update(ob);
 
 	return true;
 }
