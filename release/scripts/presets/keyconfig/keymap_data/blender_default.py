@@ -2977,8 +2977,6 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("object.gpencil_add", {"type": 'A', "value": 'PRESS', "shift": True}, None),
         # Vertex group menu
         op_menu("GPENCIL_MT_gpencil_vertex_group", {"type": 'G', "value": 'PRESS', "ctrl": True}),
-        # Toggle edit mode
-        ("gpencil.editmode_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
         # Select mode
         ("gpencil.selectmode_toggle", {"type": 'ONE', "value": 'PRESS'},
          {"properties": [("mode", 0)]}),
