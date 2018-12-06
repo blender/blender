@@ -802,7 +802,7 @@ float ED_view3d_grid_view_scale(
 		}
 	}
 
-	return v3d->grid * grid_scale;
+	return grid_scale;
 }
 
 static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
