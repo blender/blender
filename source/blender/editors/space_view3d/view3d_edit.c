@@ -2734,6 +2734,11 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 			BKE_object_minmax(base_eval->object, min, max, false);
 		}
 	}
+
+	if (center) {
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	}
+
 	if (!changed) {
 		ED_region_tag_redraw(ar);
 		/* TODO - should this be cancel?
@@ -2751,10 +2756,6 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		view3d_from_minmax(C, v3d, ar, min, max, true, smooth_viewtx);
-	}
-
-	if (center) {
-		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 	}
 
 	return OPERATOR_FINISHED;
