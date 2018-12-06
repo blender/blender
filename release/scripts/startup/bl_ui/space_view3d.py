@@ -1747,8 +1747,8 @@ class VIEW3D_MT_object_specials(Menu):
 
         if obj.type == 'MESH':
 
-            layout.operator("object.shade_smooth", text="Smooth Shading")
-            layout.operator("object.shade_flat", text="Flat Shading")
+            layout.operator("object.shade_smooth", text="Shade Smooth")
+            layout.operator("object.shade_flat", text="Shade Flat")
 
             layout.separator()
 
