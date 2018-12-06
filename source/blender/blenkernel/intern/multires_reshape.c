@@ -1163,6 +1163,11 @@ bool multiresModifier_reshapeFromCCG(
 		return false;
 	}
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
+	if (mdisps == NULL) {
+		/* Multires displacement has been removed before current changes were
+		 * applies to all the levels. */
+		return false;
+	}
 	GridPaintMask *grid_paint_mask =
 	        CustomData_get_layer(&coarse_mesh->ldata, CD_GRID_PAINT_MASK);
 	Subdiv *subdiv = subdiv_ccg->subdiv;

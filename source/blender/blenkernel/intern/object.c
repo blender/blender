@@ -425,6 +425,9 @@ static void object_update_from_subsurf_ccg(Object *object)
 	Mesh *mesh_cow = object->runtime.mesh_orig;
 	copy_ccg_data(mesh_cow, mesh_orig, CD_MDISPS);
 	copy_ccg_data(mesh_cow, mesh_orig, CD_GRID_PAINT_MASK);
+	/* Everything is now up-to-date. */
+	subdiv_ccg->dirty.coords = false;
+	subdiv_ccg->dirty.hidden = false;
 }
 
 /* free data derived from mesh, called when mesh changes or is freed */
