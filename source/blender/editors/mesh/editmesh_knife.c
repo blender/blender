@@ -54,8 +54,6 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_report.h"
 
-#include "DEG_depsgraph.h"
-
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
@@ -75,6 +73,9 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "mesh_intern.h"  /* own include */
 
@@ -2601,7 +2602,12 @@ static void knifetool_init_bmbvh(KnifeTool_OpData *kcd)
 {
 	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
-	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(kcd->vc.depsgraph, kcd->em, kcd->scene, NULL);
+	Scene *scene_eval = (Scene *)DEG_get_evaluated_id(kcd->vc.depsgraph, &kcd->scene->id);
+	Object *obedit_eval = (Object *)DEG_get_evaluated_id(kcd->vc.depsgraph, &kcd->em->ob->id);
+	BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
+
+	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(
+	        kcd->vc.depsgraph, em_eval, scene_eval, NULL);
 
 	kcd->bmbvh = BKE_bmbvh_new_from_editmesh(
 	        kcd->em,

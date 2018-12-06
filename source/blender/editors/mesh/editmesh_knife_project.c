@@ -44,6 +44,7 @@
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -67,8 +68,12 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Scene *scene, 
 	bool me_eval_needs_free;
 
 	if (ob->type == OB_MESH || ob->runtime.mesh_eval) {
-		me_eval = (ob->runtime.mesh_eval ?
-		           ob->runtime.mesh_eval : mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH));
+		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+		me_eval = ob_eval->runtime.mesh_eval;
+		if (me_eval == NULL) {
+			Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+			me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_BAREMESH);
+		}
 		me_eval_needs_free = false;
 	}
 	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
