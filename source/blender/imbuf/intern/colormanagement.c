@@ -930,8 +930,8 @@ static OCIO_ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedD
 	return (OCIO_ConstProcessorRcPtr *) display->to_scene_linear;
 }
 
-static void init_default_view_settings(const ColorManagedDisplaySettings *display_settings,
-                                       ColorManagedViewSettings *view_settings)
+static void init_render_view_settings(const ColorManagedDisplaySettings *display_settings,
+                                      ColorManagedViewSettings *view_settings)
 {
 	ColorManagedDisplay *display;
 	ColorManagedView *default_view = NULL;
@@ -2142,7 +2142,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		 * this happens for images which don't want to be displayed with render settings
 		 */
 
-		init_default_view_settings(display_settings,  &default_view_settings);
+		init_render_view_settings(display_settings,  &default_view_settings);
 		applied_view_settings = &default_view_settings;
 	}
 
@@ -3144,7 +3144,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 		applied_view_settings = view_settings;
 	}
 	else {
-		init_default_view_settings(display_settings,  &default_view_settings);
+		init_render_view_settings(display_settings,  &default_view_settings);
 		applied_view_settings = &default_view_settings;
 	}
 
@@ -3445,7 +3445,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSettin
 		 * this happens for images which don't want to be displayed with render settings
 		 */
 
-		init_default_view_settings(display_settings,  &default_view_settings);
+		init_render_view_settings(display_settings,  &default_view_settings);
 		applied_view_settings = &default_view_settings;
 	}
 

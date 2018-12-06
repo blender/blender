@@ -1569,7 +1569,7 @@ void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_se
 	BLI_strncpy(new_settings->display_device, settings->display_device, sizeof(new_settings->display_device));
 }
 
-void BKE_color_managed_view_settings_init(
+void BKE_color_managed_view_settings_init_render(
         ColorManagedViewSettings *view_settings,
         const ColorManagedDisplaySettings *display_settings)
 {
