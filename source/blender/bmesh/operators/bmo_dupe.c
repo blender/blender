@@ -564,6 +564,21 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 						i++;
 					}
 				}
+				/* Full copies of faces may cause overlap. */
+				for (int i = 0; i < elem_array_len; ) {
+					if (elem_array[i]->head.htype == BM_FACE) {
+						BMFace *f_src = (BMFace *)elem_array[i];
+						BMFace *f_dst = BM_face_find_double(f_src);
+						if (f_dst != NULL) {
+							BM_face_kill(bm, f_src);
+							elem_array_len--;
+							elem_array[i] = elem_array[elem_array_len];
+						}
+					}
+					else {
+						i++;
+					}
+				}
 				slot_geom_out->len = elem_array_len;
 			}
 			BMO_op_finish(bm, &extop);

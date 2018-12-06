@@ -2063,6 +2063,40 @@ BMFace *BM_face_exists(BMVert **varr, int len)
 	return NULL;
 }
 
+/**
+ * Check if the face has an exact duplicate (both winding directions).
+ */
+BMFace *BM_face_find_double(BMFace *f)
+{
+	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+	for (BMLoop *l_iter = l_first->radial_next; l_first != l_iter; l_iter = l_iter->radial_next) {
+		if (l_iter->f->len == l_first->f->len) {
+			if (l_iter->v == l_first->v) {
+				BMLoop *l_a = l_first, *l_b = l_iter, *l_b_init = l_iter;
+				do {
+					if (l_a->e != l_b->e) {
+						break;
+					}
+				} while (((void)(l_a = l_a->next), (l_b = l_b->next)) != l_b_init);
+				if (l_b == l_b_init) {
+					return l_iter->f;
+				}
+			}
+			else {
+				BMLoop *l_a = l_first, *l_b = l_iter, *l_b_init = l_iter;
+				do {
+					if (l_a->e != l_b->e) {
+						break;
+					}
+				} while (((void)(l_a = l_a->prev), (l_b = l_b->next)) != l_b_init);
+				if (l_b == l_b_init) {
+					return l_iter->f;
+				}
+			}
+		}
+	}
+	return NULL;
+}
 
 /**
  * Given a set of vertices and edges (\a varr, \a earr), find out if
