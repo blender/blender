@@ -92,6 +92,16 @@ uint GPU_vertformat_attr_add(
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
 int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
 
+/**
+ * This makes the "virtual" attribs with suffixes "0", "1", "2" to access triangle data in the vertex
+ * shader.
+ *
+ * IMPORTANT:
+ * - Call this before creating the vertex buffer and after creating all attributes
+ * - Only first vertex out of 3 has the correct information. Use flat output with GL_FIRST_VERTEX_CONVENTION.
+ **/
+void GPU_vertformat_triple_load(GPUVertFormat *format);
+
 /* format conversion */
 
 typedef struct GPUPackedNormal {
