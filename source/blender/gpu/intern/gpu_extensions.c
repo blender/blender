@@ -272,11 +272,15 @@ void gpu_extensions_init(void)
 
 #ifdef _WIN32
 		if (strstr(version, "4.5.13399") ||
-		    strstr(version, "4.5.13417") ||
-		    strstr(renderer, "Radeon HD 7500M") ||
-		    strstr(renderer, "Radeon HD 7570M") ||
-		    strstr(renderer, "Radeon HD 7600M"))
+		    strstr(version, "4.5.13417"))
 		{
+			/* The renderers include:
+			 *   Mobility Radeon HD 5000;
+			 *   Radeon HD 7500M;
+			 *   Radeon HD 7570M;
+			 *   Radeon HD 7600M;
+			 * And many others... */
+
 			GG.unused_fb_slot_workaround = true;
 		}
 #endif
