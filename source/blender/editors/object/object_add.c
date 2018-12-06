@@ -1923,10 +1923,10 @@ static int convert_exec(bContext *C, wmOperator *op)
 			/* note: get the mesh from the original, not from the copy in some
 			 * cases this doesn't give correct results (when MDEF is used for eg)
 			 */
-			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, newob, CD_MASK_MESH);
-			if (newob->runtime.mesh_eval == me_eval) {
-				newob->runtime.mesh_eval = NULL;
-			}
+			Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+			Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, CD_MASK_MESH);
+			me_eval = BKE_mesh_copy_for_eval(me_eval, false);
 			BKE_mesh_nomain_to_mesh(me_eval, newob->data, newob, CD_MASK_MESH, true);
 			BKE_object_free_modifiers(newob, 0);   /* after derivedmesh calls! */
 		}
