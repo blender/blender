@@ -744,7 +744,7 @@ static void mesh_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNU
 		}
 		BMEditMesh *em = me->edit_btmesh;
 		undomesh_to_editmesh(&elem->data, em, obedit->data);
-		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 	}
 
 	/* The first element is always active */

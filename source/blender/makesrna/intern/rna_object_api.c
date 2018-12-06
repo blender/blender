@@ -114,7 +114,7 @@ static void rna_Object_select_set(
 	}
 
 	Scene *scene = CTX_data_scene(C);
-	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 }
 
@@ -269,7 +269,7 @@ static void rna_Object_shape_key_remove(
 		return;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 
 	RNA_POINTER_INVALIDATE(kb_ptr);

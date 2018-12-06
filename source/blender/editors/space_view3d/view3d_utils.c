@@ -531,7 +531,7 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 
 			ob_update = v3d->camera;
 			while (ob_update) {
-				DEG_id_tag_update(&ob_update->id, OB_RECALC_OB);
+				DEG_id_tag_update(&ob_update->id, ID_RECALC_TRANSFORM);
 				WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, ob_update);
 				ob_update = ob_update->parent;
 			}
@@ -543,7 +543,7 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 			ED_view3d_to_object(depsgraph, v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag | protect_scale_all);
 
-			DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+			DEG_id_tag_update(&v3d->camera->id, ID_RECALC_TRANSFORM);
 			WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, v3d->camera);
 		}
 

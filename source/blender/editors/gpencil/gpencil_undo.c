@@ -115,7 +115,7 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 			}
 		}
 		/* drawing batch cache is dirty now */
-		DEG_id_tag_update(&new_gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&new_gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		new_gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 	}
 

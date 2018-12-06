@@ -869,7 +869,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	DEG_graph_id_tag_update(freestyle_bmain,
 	                        freestyle_depsgraph,
 	                        &ob->id,
-	                        OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	                        ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
 	return ob;
 }

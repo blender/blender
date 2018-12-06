@@ -55,7 +55,7 @@ static void rna_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
@@ -73,7 +73,7 @@ static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene),
 
 	cloth_free_modifier(clmd);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 

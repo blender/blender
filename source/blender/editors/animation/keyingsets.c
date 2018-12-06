@@ -1051,11 +1051,11 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 				Object *ob = (Object *)ksp->id;
 
 				// XXX: only object transforms?
-				DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 				break;
 			}
 			default:
-				DEG_id_tag_update(ksp->id, DEG_TAG_COPY_ON_WRITE);
+				DEG_id_tag_update(ksp->id, ID_RECALC_COPY_ON_WRITE);
 				break;
 		}
 

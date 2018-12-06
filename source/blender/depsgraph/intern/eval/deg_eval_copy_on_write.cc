@@ -930,7 +930,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				 * everything is done by node tree update function which
 				 * only copies socket values.
 				 */
-				const int ignore_flag = (ID_RECALC_DRAW |
+				const int ignore_flag = (ID_RECALC_SHADING |
 				                         ID_RECALC_ANIMATION |
 				                         ID_RECALC_COPY_ON_WRITE);
 				if ((id_cow->recalc & ~ignore_flag) == 0) {

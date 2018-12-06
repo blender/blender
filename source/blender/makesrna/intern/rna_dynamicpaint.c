@@ -99,7 +99,7 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
 
 static void rna_DynamicPaint_redoModifier(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 }
 
 static void rna_DynamicPaintSurfaces_updateFrames(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

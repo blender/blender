@@ -503,7 +503,7 @@ static int poselib_add_exec(bContext *C, wmOperator *op)
 
 	/* store new 'active' pose number */
 	act->active_marker = BLI_listbase_count(&act->markers);
-	DEG_id_tag_update(&act->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -618,7 +618,7 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
 	 * may be being shown in anim editors as active action
 	 */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
-	DEG_id_tag_update(&act->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1106,7 +1106,7 @@ static void poselib_preview_apply(bContext *C, wmOperator *op)
 		 */
 		// FIXME: shouldn't this use the builtin stuff?
 		if ((pld->arm->flag & ARM_DELAYDEFORM) == 0)
-			DEG_id_tag_update(&pld->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			DEG_id_tag_update(&pld->ob->id, ID_RECALC_GEOMETRY);  /* sets recalc flags */
 		else
 			BKE_pose_where_is(CTX_data_depsgraph(C), pld->scene, pld->ob);
 	}
@@ -1613,7 +1613,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 		 * - note: code copied from transform_generics.c -> recalcData()
 		 */
 		if ((arm->flag & ARM_DELAYDEFORM) == 0)
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);  /* sets recalc flags */
 		else
 			BKE_pose_where_is(CTX_data_depsgraph(C), scene, ob);
 	}
@@ -1626,7 +1626,7 @@ static void poselib_preview_cleanup(bContext *C, wmOperator *op)
 		action_set_activemarker(act, marker, NULL);
 
 		/* Update event for pose and deformation children */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 		/* updates */
 		if (IS_AUTOKEY_MODE(scene, NORMAL)) {

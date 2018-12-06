@@ -962,7 +962,7 @@ static void recalcData_objects(TransInfo *t)
 
 			/* old optimize trick... this enforces to bypass the depgraph */
 			if (!(arm->flag & ARM_DELAYDEFORM)) {
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);  /* sets recalc flags */
 				/* transformation of pose may affect IK tree, make sure it is rebuilt */
 				BIK_clear_data(ob->pose);
 			}
@@ -1021,10 +1021,10 @@ static void recalcData_objects(TransInfo *t)
 				/* sets recalc flags fully, instead of flushing existing ones
 				 * otherwise proxies don't function correctly
 				 */
-				DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+				DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 				if (t->flag & T_TEXTURE)
-					DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+					DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 		}
 
@@ -1037,7 +1037,7 @@ static void recalcData_objects(TransInfo *t)
 
 static void recalcData_cursor(TransInfo *t)
 {
-	DEG_id_tag_update(&t->scene->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 /* helper for recalcData() - for sequencer transforms */

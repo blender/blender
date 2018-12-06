@@ -130,10 +130,10 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
 			BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_SELECT);
 		}
 
-		DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
 	}
 	else {
-		DEG_id_tag_update(ob->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(ob->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
@@ -544,7 +544,7 @@ void paintvert_flush_flags(Object *ob)
 
 void paintvert_tag_select_update(struct bContext *C, struct Object *ob)
 {
-	DEG_id_tag_update(ob->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(ob->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 }
 

@@ -551,7 +551,7 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UN
 			if (ob->type == OB_GPENCIL) {
 				bGPdata *gpd = (bGPdata *)ob->data;
 				gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
-				DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+				DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 			}
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -1325,7 +1325,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 
 	if (type) {
 		BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
-		DEG_id_tag_update(ptr->id.data, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(ptr->id.data, ID_RECALC_COPY_ON_WRITE);
 	}
 }
 
@@ -1458,7 +1458,7 @@ static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	}
 	FOREACH_SCENE_OBJECT_END;
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *value)
@@ -1497,7 +1497,7 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA *UNUSE
 	}
 
 	if (me) {
-		DEG_id_tag_update(&me->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&me->id, ID_RECALC_SELECT);
 		WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
 	}
 }
@@ -1515,12 +1515,12 @@ static void object_simplify_update(Object *ob)
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 	}
 
 	for (psys = ob->particlesystem.first; psys; psys = psys->next)
-		psys->recalc |= PSYS_RECALC_CHILD;
+		psys->recalc |= ID_RECALC_PSYS_CHILD;
 
 	if (ob->dup_group) {
 		CollectionObject *cob;
@@ -1724,7 +1724,7 @@ static void rna_EditMesh_update(bContext *C, PointerRNA *UNUSED(ptr))
 	}
 
 	if (me) {
-		DEG_id_tag_update(&me->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
 		WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 	}
 }
@@ -1745,7 +1745,7 @@ static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(
 	Object *ob = OBACT(view_layer);
 
 	if (ob) {
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 	}
 }
@@ -1756,7 +1756,7 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	Object *camera = scene->camera;
 
 	if (camera && (camera->type == OB_CAMERA)) {
-		DEG_id_tag_update(&camera->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&camera->id, ID_RECALC_GEOMETRY);
 	}
 }
 

@@ -477,7 +477,7 @@ static char *rna_Modifier_path(PointerRNA *ptr)
 
 static void rna_Modifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->id.data);
 }
 
@@ -800,7 +800,7 @@ static void rna_CurveModifier_dependency_update(Main *bmain, Scene *scene, Point
 	if (cmd->object != NULL) {
 		Curve *curve = cmd->object->data;
 		if ((curve->flag & CU_PATH) == 0) {
-			DEG_id_tag_update(&curve->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&curve->id, ID_RECALC_GEOMETRY);
 		}
 	}
 }
@@ -813,7 +813,7 @@ static void rna_ArrayModifier_dependency_update(Main *bmain, Scene *scene, Point
 	if (amd->curve_ob != NULL) {
 		Curve *curve = amd->curve_ob->data;
 		if ((curve->flag & CU_PATH) == 0) {
-			DEG_id_tag_update(&curve->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&curve->id, ID_RECALC_GEOMETRY);
 		}
 	}
 }

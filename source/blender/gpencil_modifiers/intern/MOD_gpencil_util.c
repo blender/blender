@@ -193,7 +193,7 @@ void gpencil_apply_modifier_material(
 			copy_v4_v4(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
 
 			BLI_ghash_insert(gh_color, mat->id.name, newmat);
-			DEG_id_tag_update(&newmat->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&newmat->id, ID_RECALC_COPY_ON_WRITE);
 		}
 		/* reasign color index */
 		int idx = BKE_gpencil_get_material_index(ob, newmat);
@@ -211,6 +211,6 @@ void gpencil_apply_modifier_material(
 			mat->preview->flag[ICON_SIZE_ICON] |= PRV_CHANGED;
 			mat->preview->flag[ICON_SIZE_PREVIEW] |= PRV_CHANGED;
 		}
-		DEG_id_tag_update(&mat->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&mat->id, ID_RECALC_COPY_ON_WRITE);
 	}
 }

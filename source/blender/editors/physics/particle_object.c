@@ -193,7 +193,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 	psys_check_boid_data(psys);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 
@@ -241,7 +241,7 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 	BLI_addtail(&psys->targets, pt);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 
@@ -289,7 +289,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 		pt->flag |= PTARGET_CURRENT;
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 
@@ -328,7 +328,7 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlinkbefore(&psys->targets, pt->prev, pt);
 
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 			break;
 		}
@@ -366,7 +366,7 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&psys->targets, pt);
 			BLI_insertlinkafter(&psys->targets, pt->next, pt);
 
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 			break;
 		}
@@ -398,7 +398,7 @@ static int dupliob_refresh_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	psys_check_group_weights(psys->part);
-	DEG_id_tag_update(&psys->part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+	DEG_id_tag_update(&psys->part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, NULL);
 
 	return OPERATOR_FINISHED;
@@ -434,7 +434,7 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlinkbefore(&part->dupliweights, dw->prev, dw);
 
-			DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+			DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, NULL);
 			break;
 		}
@@ -474,7 +474,7 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 			dw->flag |= PART_DUPLIW_CURRENT;
 			BLI_addhead(&part->dupliweights, dw);
 
-			DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+			DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, NULL);
 			break;
 		}
@@ -521,7 +521,7 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 	if (dw)
 		dw->flag |= PART_DUPLIW_CURRENT;
 
-	DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+	DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, NULL);
 
 	return OPERATOR_FINISHED;
@@ -559,7 +559,7 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlinkafter(&part->dupliweights, dw->next, dw);
 
-			DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+			DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, NULL);
 			break;
 		}
@@ -654,7 +654,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 		disconnect_hair(depsgraph, scene, ob, psys);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
@@ -920,7 +920,7 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
@@ -1156,13 +1156,13 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		}
 
 		/* tag for recalc */
-//		psys->recalc |= PSYS_RECALC_RESET;
+//		psys->recalc |= ID_RECALC_PSYS_RESET;
 	}
 
 	#undef PSYS_FROM_FIRST
 	#undef PSYS_FROM_NEXT
 
-	DEG_id_tag_update(&ob_to->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob_to->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob_to);
 	return true;
 }

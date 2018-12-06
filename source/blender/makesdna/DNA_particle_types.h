@@ -306,7 +306,14 @@ typedef struct ParticleSystem {
 	float cfra, tree_frame, bvhtree_frame;
 	int seed, child_seed;
 	int flag, totpart, totunexist, totchild, totcached, totchildcache;
-	short recalc, target_psys, totkeyed, bakespace;
+	/* NOTE: Recalc is one of ID_RECALC_PSYS_ALL flags.
+	 *
+	 * TODO(sergey): Use part->id.recalc instead of this duplicated flag
+	 * somehow. */
+	int recalc;
+	int pad1;
+	short target_psys, totkeyed, bakespace;
+	short pad2;
 
 	char bb_uvname[3][64];					/* billboard uv name, MAX_CUSTOMDATA_LAYER_NAME */
 
@@ -543,15 +550,6 @@ typedef enum eParticleShapeFlag {
 /* part->childtype */
 #define PART_CHILD_PARTICLES	1
 #define PART_CHILD_FACES		2
-
-/* psys->recalc */
-/* starts from (1 << 3) so that the first bits can be ob->recalc */
-#define PSYS_RECALC_REDO   (1 << 3) /* only do pathcache etc */
-#define PSYS_RECALC_RESET  (1 << 4) /* reset everything including pointcache */
-#define PSYS_RECALC_TYPE   (1 << 5) /* handle system type change */
-#define PSYS_RECALC_CHILD  (1 << 6) /* only child settings changed */
-#define PSYS_RECALC_PHYS   (1 << 7) /* physics type changed */
-#define PSYS_RECALC        (PSYS_RECALC_REDO | PSYS_RECALC_RESET | PSYS_RECALC_TYPE | PSYS_RECALC_CHILD | PSYS_RECALC_PHYS)
 
 /* psys->flag */
 #define PSYS_CURRENT		1

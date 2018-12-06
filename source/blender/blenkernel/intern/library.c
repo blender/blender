@@ -787,8 +787,8 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 
 				/* tag grease pencil datablock and disable onion */
 				if (GS(id->name) == ID_GD) {
-					DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
-					DEG_id_tag_update(newid, OB_RECALC_OB | OB_RECALC_DATA);
+					DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+					DEG_id_tag_update(newid, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 					bGPdata *gpd = (bGPdata *)newid;
 					gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
 				}
@@ -979,7 +979,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 	/* flag for full recalc */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ID_IS_LINKED(ob)) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 		}
 	}
 

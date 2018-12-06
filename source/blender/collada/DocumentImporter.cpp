@@ -269,7 +269,7 @@ void DocumentImporter::finish()
 	delete objects_to_scale;
 
 	// update scene
-	DEG_id_tag_update(&sce->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
 }
@@ -406,7 +406,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 	Main *bmain = CTX_data_main(mContext);
 	Object *obn = BKE_object_copy(bmain, source_ob);
-	DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 	BKE_collection_object_add_from(bmain, sce, source_ob, obn);
 
 	if (instance_node) {

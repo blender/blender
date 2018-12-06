@@ -292,7 +292,7 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 		view_layer->basact = base;
 	}
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
@@ -308,7 +308,7 @@ static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *p
 
 	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
@@ -339,7 +339,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				{
 					Object *ob = (Object *)tselem->id;
 					if (ob->type == OB_MBALL) {
-						DEG_id_tag_update(&ob->id, DEG_TAG_GEOMETRY);
+						DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 					}
 					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL); break;
 				}

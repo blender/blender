@@ -242,7 +242,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 			if (!is_never_null) {
 				*id_p = new_id;
 				DEG_id_tag_update_ex(id_remap_data->bmain, id_self,
-				                     DEG_TAG_COPY_ON_WRITE | DEG_TAG_TRANSFORM | DEG_TAG_GEOMETRY);
+				                     ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 			}
 			if (cb_flag & IDWALK_CB_USER) {
 				id_us_min(old_id);
@@ -307,14 +307,14 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *o
 	if (old_ob == NULL) {
 		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis(ob)) {
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 		}
 	}
 	else {
 		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 				break;  /* There is only one basis... */
 			}
 		}

@@ -428,7 +428,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		DEG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
 
 		if (reverse_transfer) {
 			SWAP(Object *, ob_src, ob_dst);
@@ -637,7 +637,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 		BKE_object_data_transfer_layout(depsgraph, scene_eval, ob_src_eval, ob_dst, dtmd->data_types, use_delete,
 		                                dtmd->layers_select_src, dtmd->layers_select_dst);
 
-		DEG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
 	}
 	else {
 		Object *ob_src = ob_act;
@@ -670,7 +670,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 				                                layers_select_src, layers_select_dst);
 			}
 
-			DEG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
 		}
 
 		BLI_freelistN(&ctx_objects);

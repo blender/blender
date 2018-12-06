@@ -90,7 +90,7 @@ static int rigidbody_world_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Full rebuild of DEG! */
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update_ex(bmain, &scene->id, DEG_TAG_TIME);
+	DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_ANIMATION);
 
 	return OPERATOR_FINISHED;
 }
@@ -128,7 +128,7 @@ static int rigidbody_world_remove_exec(bContext *C, wmOperator *op)
 
 	/* Full rebuild of DEG! */
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update_ex(bmain, &scene->id, DEG_TAG_TIME);
+	DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_ANIMATION);
 
 	/* done */
 	return OPERATOR_FINISHED;

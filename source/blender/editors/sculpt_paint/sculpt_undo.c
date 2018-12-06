@@ -501,7 +501,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 		}
 	}
 
-	DEG_id_tag_update(&ob->id, DEG_TAG_SHADING_UPDATE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
 	BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, need_mask);
 
@@ -586,7 +586,7 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 		}
 
 		if (tag_update) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 		else {
 			sculpt_update_object_bounding_box(ob);

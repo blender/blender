@@ -243,12 +243,12 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 static void rna_Object_internal_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_OB);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_TRANSFORM);
 }
 
 static void rna_Object_internal_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_OB);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_TRANSFORM);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
 }
 
@@ -263,7 +263,7 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 {
 	Object *ob = ptr->id.data;
 	BKE_main_collection_sync(bmain);
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 }
@@ -322,7 +322,7 @@ static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 
 void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
 }
 
@@ -361,7 +361,7 @@ static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 
 static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_OB);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_TRANSFORM);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_PARENT, ptr->id.data);
 }

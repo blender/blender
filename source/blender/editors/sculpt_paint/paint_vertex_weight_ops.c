@@ -371,7 +371,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 	BLI_assert(type + 1 >= 0);
 	vc.obact->actdef = type + 1;
 
-	DEG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&vc.obact->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, vc.obact);
 	return OPERATOR_FINISHED;
 }
@@ -702,7 +702,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 			MEM_freeN(vert_cache);
 		}
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
 	else if (ret & OPERATOR_FINISHED) {
@@ -805,7 +805,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 		BKE_mesh_foreach_mapped_vert(me_eval, gradientVertUpdate__mapFunc, &data, MESH_FOREACH_NOP);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	if (is_interactive == false) {

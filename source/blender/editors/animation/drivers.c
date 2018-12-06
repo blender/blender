@@ -944,7 +944,7 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 		if (success) {
 			/* send updates */
 			UI_context_update_anim_flag(C);
-			DEG_id_tag_update(ptr.id.data, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(ptr.id.data, ID_RECALC_COPY_ON_WRITE);
 			DEG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);
 		}
@@ -1126,7 +1126,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 			UI_context_update_anim_flag(C);
 
 			DEG_relations_tag_update(CTX_data_main(C));
-			DEG_id_tag_update(ptr.id.data, OB_RECALC_OB | OB_RECALC_DATA);
+			DEG_id_tag_update(ptr.id.data, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);  // XXX
 

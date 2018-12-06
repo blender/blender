@@ -588,7 +588,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 
 	DEG_relations_tag_update(bmain);
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
@@ -854,12 +854,12 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 		}
 
 		if (from) {
-			DEG_id_tag_update(&from->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 
 	/* Update dependency graph. */
-	DEG_id_tag_update(&data.to->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&data.to->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 

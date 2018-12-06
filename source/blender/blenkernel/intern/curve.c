@@ -5296,7 +5296,7 @@ bool BKE_curve_material_index_validate(Curve *cu)
 	}
 
 	if (!is_valid) {
-		DEG_id_tag_update(&cu->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 		return true;
 	}
 	else {

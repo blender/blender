@@ -152,7 +152,7 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 			ob->pose->proxy_layer = arm->layer;
 	}
 
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, arm);
 }
 
@@ -160,7 +160,7 @@ static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
 	ID *id = ptr->id.data;
 
-	DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -190,20 +190,20 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 			bArmature *arm = (bArmature *)id;
 
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
-				DEG_id_tag_update(id, OB_RECALC_DATA);
+				DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
 			}
 
-			DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
 		}
 		else if (GS(id->name) == ID_OB) {
 			Object *ob = (Object *)id;
 			bArmature *arm = (bArmature *)ob->data;
 
 			if (arm->flag & ARM_HAS_VIZ_DEPS) {
-				DEG_id_tag_update(id, OB_RECALC_DATA);
+				DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
 			}
 
-			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 
@@ -462,7 +462,7 @@ static void rna_Bone_bbone_handle_update(Main *bmain, Scene *scene, PointerRNA *
 
 			if (pchan && pchan->bone == bone) {
 				BKE_pchan_rebuild_bbone_handles(obt->pose, pchan);
-				DEG_id_tag_update(&obt->id, DEG_TAG_COPY_ON_WRITE);
+				DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
 			}
 		}
 	}

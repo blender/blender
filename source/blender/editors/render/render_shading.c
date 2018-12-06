@@ -189,7 +189,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob);
 	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, ob);
@@ -266,7 +266,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (changed) {
 			changed_multi = true;
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 		}
 	}
@@ -356,7 +356,7 @@ static int material_slot_de_select(bContext *C, bool select)
 
 		if (changed) {
 			changed_multi = true;
-			DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 		}
 	}
@@ -422,7 +422,7 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 			if (ob_iter->totcol == ob->totcol) {
 				ob_iter->actcol = ob->actcol;
-				DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_iter);
 			}
 		}
@@ -487,7 +487,7 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
 
 	MEM_freeN(slot_remap);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 
@@ -899,7 +899,7 @@ static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
 
 	EEVEE_lightcache_info_update(&scene->eevee);
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 

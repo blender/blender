@@ -434,7 +434,7 @@ static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		selectend_nurb(obedit, FIRST, true, DESELECT);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		BKE_curve_nurb_vert_active_validate(obedit->data);
 	}
@@ -466,7 +466,7 @@ static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		selectend_nurb(obedit, LAST, true, DESELECT);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		BKE_curve_nurb_vert_active_validate(obedit->data);
 	}
@@ -528,7 +528,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 				break;
 		}
 
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		BKE_curve_nurb_vert_active_validate(cu);
 	}
@@ -582,7 +582,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 
 		if (changed) {
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
@@ -654,7 +654,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 	Object *obedit = basact->object;
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	if (!select) {
@@ -718,7 +718,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -751,7 +751,7 @@ static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 		Object *obedit = objects[ob_index];
 		ListBase *editnurb = object_editcurve_get(obedit);
 		select_adjacent_cp(editnurb, 1, 0, SELECT);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -785,7 +785,7 @@ static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 		Object *obedit = objects[ob_index];
 		ListBase *editnurb = object_editcurve_get(obedit);
 		select_adjacent_cp(editnurb, -1, 0, SELECT);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -883,7 +883,7 @@ static int curve_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		curve_select_more(obedit);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -1080,7 +1080,7 @@ static int curve_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		curve_select_less(obedit);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -1167,7 +1167,7 @@ static int curve_select_random_exec(bContext *C, wmOperator *op)
 		curve_select_random(editnurb, randfac, seed_iter, select);
 		BKE_curve_nurb_vert_active_validate(obedit->data);
 
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -1282,7 +1282,7 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 
 		if (ed_curve_select_nth(obedit->data, &op_params) == true) {
 			changed = true;
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
@@ -1637,7 +1637,7 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
@@ -1890,7 +1890,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 		ED_object_base_activate(C, basact);
 	}
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }

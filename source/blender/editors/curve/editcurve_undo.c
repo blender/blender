@@ -256,7 +256,7 @@ static void curve_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UN
 			continue;
 		}
 		undocurve_to_editcurve(&elem->data, obedit->data, &obedit->shapenr);
-		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 	}
 
 	/* The first element is always active */

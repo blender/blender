@@ -3389,7 +3389,7 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 
 	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
 		/* children or just redo can be calculated without resetting anything */
-		if (psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
+		if (psys->recalc & ID_RECALC_PSYS_REDO || psys->recalc & ID_RECALC_PSYS_CHILD)
 			skip = 1;
 		/* Baked cloth hair has to be checked too, because we don't want to reset */
 		/* particles or cloth in that case -jahka */

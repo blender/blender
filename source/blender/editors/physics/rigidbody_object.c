@@ -125,8 +125,8 @@ bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, Re
 	BKE_collection_object_add(bmain, rbw->group, ob);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&ob->id, OB_RECALC_OB);
-	DEG_id_tag_update(&rbw->group->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+	DEG_id_tag_update(&rbw->group->id, ID_RECALC_COPY_ON_WRITE);
 
 	return true;
 }
@@ -136,7 +136,7 @@ void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 	BKE_rigidbody_remove_object(bmain, scene, ob);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+	DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 }
 
 /* ********************************************** */
@@ -345,7 +345,7 @@ static int rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
 			RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object, &ptr);
 			RNA_enum_set(&ptr, "collision_shape", shape);
 
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 			changed = true;
 		}
@@ -527,7 +527,7 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 			RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object, &ptr);
 			RNA_float_set(&ptr, "mass", mass);
 
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 			changed = true;
 		}

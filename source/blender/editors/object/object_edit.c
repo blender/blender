@@ -182,7 +182,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_layer_collection_sync(scene, view_layer);
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
@@ -248,7 +248,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_layer_collection_sync(scene, view_layer);
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
@@ -295,7 +295,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
 
 	BKE_layer_collection_set_visible(scene, view_layer, lc, extend);
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
@@ -546,7 +546,7 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
-		DEG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 		WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 
@@ -611,7 +611,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 		ok = 1;
 		ED_armature_to_edit(ob->data);
 		/* to ensure all goes in restposition and without striding */
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION); /* XXX: should this be ID_RECALC_GEOMETRY? */
 
 		WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_ARMATURE, scene);
 	}
@@ -641,7 +641,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 	}
 
 	if (ok) {
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 	else {
 		if ((flag & EM_NO_CONTEXT) == 0) {
@@ -921,7 +921,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 	for (base = FIRSTBASE(view_layer); base; base = base->next) {
 		if (base != BASACT(view_layer)) {
 			if (TESTBASELIB(v3d, base)) {
-				DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 
 				if (event == 1) {  /* loc */
 					copy_v3_v3(base->object->loc, ob->loc);
@@ -1000,7 +1000,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
 
-						DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 					}
 				}
 				else if (event == 19) {   /* bevel settings */
@@ -1016,7 +1016,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 						cu1->ext1 = cu->ext1;
 						cu1->ext2 = cu->ext2;
 
-						DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 					}
 				}
 				else if (event == 25) {   /* curve resolution */
@@ -1035,7 +1035,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 							nu = nu->next;
 						}
 
-						DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 					}
 				}
 				else if (event == 21) {
@@ -1051,14 +1051,14 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 							}
 
 							modifier_copyData(md, tmd);
-							DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
+							DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 						}
 					}
 				}
 				else if (event == 22) {
 					/* Copy the constraint channels over */
 					BKE_constraints_copy(&base->object->constraints, &ob->constraints, true);
-					DEG_id_tag_update(&base->object->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_id_tag_update(&base->object->id, ID_RECALC_COPY_ON_WRITE);
 					DEG_relations_tag_update(bmain);
 				}
 				else if (event == 23) {
@@ -1069,7 +1069,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
 					}
 
-					DEG_id_tag_update(&base->object->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_id_tag_update(&base->object->id, ID_RECALC_COPY_ON_WRITE);
 					DEG_relations_tag_update(bmain);
 				}
 				else if (event == 26) {
@@ -1264,7 +1264,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene, bool current_frame_
 		CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 		{
 			if (ob->mpath) {
-				DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+				DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 			}
 		}
 		CTX_DATA_END;
@@ -1399,7 +1399,7 @@ static void object_clear_mpath(Object *ob)
 		ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 
 		/* tag object for copy on write - so removed paths don't still show */
-		DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 	}
 }
 
@@ -1482,7 +1482,7 @@ static int object_update_paths_range_exec(bContext *C, wmOperator *UNUSED(op))
 		ob->avs.path_ef = PEFRA;
 
 		/* tag for updates */
-		DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	}
 	CTX_DATA_END;
@@ -1529,7 +1529,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 			BKE_mesh_smooth_flag_set(ob, !clear);
 
 			BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 			done = true;
@@ -1542,7 +1542,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 				else nu->flag &= ~ME_SMOOTH;
 			}
 
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 			done = true;
@@ -1915,7 +1915,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 	            collection->id.name + 2);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);

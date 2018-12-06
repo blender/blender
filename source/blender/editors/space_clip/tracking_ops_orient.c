@@ -251,7 +251,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	}
 
 	DEG_id_tag_update(&clip->id, 0);
-	DEG_id_tag_update(&object->id, OB_RECALC_OB);
+	DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -499,7 +499,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 	set_axis(depsgraph, scene, object, clip, tracking_object, axis_track, 'X');
 
 	DEG_id_tag_update(&clip->id, 0);
-	DEG_id_tag_update(&object->id, OB_RECALC_OB);
+	DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -574,7 +574,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 	set_axis(depsgraph, scene, object, clip, tracking_object, track, axis == 0 ? 'X' : 'Y');
 
 	DEG_id_tag_update(&clip->id, 0);
-	DEG_id_tag_update(&object->id, OB_RECALC_OB);
+	DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -704,7 +704,7 @@ static int do_set_scale(bContext *C,
 			DEG_id_tag_update(&clip->id, 0);
 
 			if (object)
-				DEG_id_tag_update(&object->id, OB_RECALC_OB);
+				DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
 
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);

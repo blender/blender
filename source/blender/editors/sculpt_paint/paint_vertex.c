@@ -1117,7 +1117,7 @@ static void ed_vwpaintmode_enter_generic(
 	vertex_paint_init_session(depsgraph, scene, ob, mode_flag);
 
 	/* Flush object mode. */
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void ED_object_vpaintmode_enter_ex(
@@ -1205,7 +1205,7 @@ static void ed_vwpaintmode_exit_generic(
 	BKE_object_free_derived_caches(ob);
 
 	/* Flush object mode. */
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void ED_object_vpaintmode_exit_ex(Object *ob)
@@ -2308,7 +2308,7 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 			for (i = 0; i < PSYS_TOT_VG; i++) {
 				if (psys->vgroup[i] == ob->actdef) {
-					psys->recalc |= PSYS_RECALC_RESET;
+					psys->recalc |= ID_RECALC_PSYS_RESET;
 					break;
 				}
 			}
@@ -3187,7 +3187,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 	else {
 		/* Flush changes through DEG. */
-		DEG_id_tag_update(ob->data, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(ob->data, ID_RECALC_COPY_ON_WRITE);
 	}
 }
 

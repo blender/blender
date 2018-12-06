@@ -3674,7 +3674,7 @@ static void posttrans_gpd_clean(bGPdata *gpd)
 #endif
 	}
 	/* set cache flag to dirty */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
 
 static void posttrans_mask_clean(Mask *mask)
@@ -6557,9 +6557,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			// fixme... some of this stuff is not good
 			if (ob) {
 				if (ob->pose || BKE_key_from_object(ob))
-					DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+					DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 				else
-					DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+					DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 			}
 
 			/* 3 cases here for curve cleanups:
@@ -6741,7 +6741,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		 * in pose mode (to use bone orientation matrix), in that case we don't do operations like autokeyframing. */
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 			ob = tc->poseobj;
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 	}
 	else if (t->flag & T_POSE) {
@@ -6786,7 +6786,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
 			if (!canceled && (t->mode != TFM_DUMMY)) {
 				autokeyframe_pose(C, t->scene, ob, t->mode, targetless_ik);
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 			else if (arm->flag & ARM_DELAYDEFORM) {
 				/* TODO(sergey): Armature is already updated by recalcData(), so we
@@ -6794,10 +6794,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				 * possible yet within new dependency graph, and also other contexts
 				 * might need to update their CoW copies.
 				 */
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 			else {
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 
 			if (t->mode != TFM_DUMMY && motionpath_need_update_pose(t->scene, ob)) {
@@ -6855,13 +6855,13 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* pointcache refresh */
 			if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED))
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 			/* Needed for proper updating of "quick cached" dynamics. */
 			/* Creates troubles for moving animated objects without */
 			/* autokey though, probably needed is an anim sys override? */
 			/* Please remove if some other solution is found. -jahka */
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 			/* Set autokey if necessary */
 			if (!canceled) {

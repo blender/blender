@@ -2267,7 +2267,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 						part->draw_as = PART_DRAW_PATH;
 						part->type = PART_HAIR;
-						psys->recalc |= PSYS_RECALC_REDO;
+						psys->recalc |= ID_RECALC_PSYS_REDO;
 
 						part->normfac *= fac;
 						part->randfac *= fac;

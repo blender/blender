@@ -818,12 +818,12 @@ static void import_endjob(void *user_data)
 			/* TODO: is setting active needed? */
 			BKE_view_layer_base_select_and_set_active(view_layer, base);
 
-			DEG_id_tag_update(&lc->collection->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
 			DEG_id_tag_update_ex(data->bmain, &ob->id,
-			                     OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | DEG_TAG_BASE_FLAGS_UPDATE);
+			                     ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION | ID_RECALC_BASE_FLAGS);
 		}
 
-		DEG_id_tag_update(&data->scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+		DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
 		DEG_relations_tag_update(data->bmain);
 	}
 

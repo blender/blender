@@ -2916,10 +2916,10 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
 	int distr=0, alloc=0, skip=0;
 
-	if ((psys->part->childtype && psys->totchild != psys_get_tot_child(sim->scene, psys, use_render_params)) || psys->recalc&PSYS_RECALC_RESET)
+	if ((psys->part->childtype && psys->totchild != psys_get_tot_child(sim->scene, psys, use_render_params)) || psys->recalc&ID_RECALC_PSYS_RESET)
 		alloc=1;
 
-	if (alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT)))
+	if (alloc || psys->recalc&ID_RECALC_PSYS_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT)))
 		distr=1;
 
 	if (distr) {
@@ -3248,7 +3248,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_re
 			pa->flag &= ~PARS_NO_DISP;
 	}
 
-	if (psys->recalc & PSYS_RECALC_RESET) {
+	if (psys->recalc & ID_RECALC_PSYS_RESET) {
 		/* need this for changing subsurf levels */
 		psys_calc_dmcache(sim->ob, sim->psmd->mesh_final, sim->psmd->mesh_original, psys);
 
@@ -3964,7 +3964,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
 		BKE_ptcache_id_time(pid, sim->scene, 0.0f, &startframe, &endframe, NULL);
 
 		/* clear everything on start frame, or when psys needs full reset! */
-		if ((cfra == startframe) || (psys->recalc & PSYS_RECALC_RESET)) {
+		if ((cfra == startframe) || (psys->recalc & ID_RECALC_PSYS_RESET)) {
 			BKE_ptcache_id_reset(sim->scene, pid, PTCACHE_RESET_OUTDATED);
 			BKE_ptcache_validate(cache, startframe);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
@@ -3975,7 +3975,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
 
 /* 1. emit particles and redo particles if needed */
 	oldtotpart = psys->totpart;
-	if (emit_particles(sim, pid, cfra) || psys->recalc & PSYS_RECALC_RESET) {
+	if (emit_particles(sim, pid, cfra) || psys->recalc & ID_RECALC_PSYS_RESET) {
 		distribute_particles(sim, part->from);
 		initialize_all_particles(sim);
 		/* reset only just created particles (on startframe all particles are recreated) */
@@ -4200,7 +4200,7 @@ static void psys_prepare_physics(ParticleSimulationData *sim)
 static int hair_needs_recalc(ParticleSystem *psys)
 {
 	if (!(psys->flag & PSYS_EDITED) && (!psys->edit || !psys->edit->edited) &&
-	    ((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET || (psys->part->flag & PART_HAIR_REGROW && !psys->edit)))
+	    ((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & ID_RECALC_PSYS_RESET || (psys->part->flag & PART_HAIR_REGROW && !psys->edit)))
 	{
 		return 1;
 	}
@@ -4253,7 +4253,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 	/* to verify if we need to restore object afterwards */
 	psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 
-	if (psys->recalc & PSYS_RECALC_RESET)
+	if (psys->recalc & ID_RECALC_PSYS_RESET)
 		psys->totunexist = 0;
 
 	/* setup necessary physics type dependent additional data if it doesn't yet exist */
@@ -4320,10 +4320,10 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 					bool free_unexisting = false;
 
 					/* Particles without dynamics haven't been reset yet because they don't use pointcache */
-					if (psys->recalc & PSYS_RECALC_RESET)
+					if (psys->recalc & ID_RECALC_PSYS_RESET)
 						psys_reset(psys, PSYS_RESET_ALL);
 
-					if (emit_particles(&sim, NULL, cfra) || (psys->recalc & PSYS_RECALC_RESET)) {
+					if (emit_particles(&sim, NULL, cfra) || (psys->recalc & ID_RECALC_PSYS_RESET)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
@@ -4436,7 +4436,7 @@ void BKE_particle_system_eval_init(struct Depsgraph *depsgraph,
 	     psys != NULL;
 	     psys = psys->next)
 	{
-		psys->recalc |= (psys->part->id.recalc & DEG_TAG_PSYS_ALL);
+		psys->recalc |= (psys->part->id.recalc & ID_RECALC_PSYS_ALL);
 	}
 	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 }

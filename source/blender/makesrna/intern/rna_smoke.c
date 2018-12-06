@@ -64,7 +64,7 @@
 
 static void rna_Smoke_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 }
 
 static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -78,7 +78,7 @@ static void rna_Smoke_resetCache(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
 	if (settings->smd && settings->smd->domain)
 		settings->point_cache[0]->flag |= PTCACHE_OUTDATED;
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 }
 
 static void rna_Smoke_cachetype_set(struct PointerRNA *ptr, int value)

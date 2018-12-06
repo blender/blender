@@ -1409,7 +1409,7 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
 			BKE_screen_view3d_scene_sync(sc, scene);
 		}
-		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 	}
 #endif
 

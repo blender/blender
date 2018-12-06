@@ -246,6 +246,6 @@ void ED_gpencil_create_stroke(bContext *C, float mat[4][4])
 	BKE_gpencil_stroke_add_points(gps, data0, 175, mat);
 
 	/* update depsgraph */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 }

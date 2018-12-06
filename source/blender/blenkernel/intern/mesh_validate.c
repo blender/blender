@@ -958,7 +958,7 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
 	        &changed);
 
 	if (changed) {
-		DEG_id_tag_update(&me->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
 		return true;
 	}
 	else {
@@ -1025,7 +1025,7 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
 	}
 
 	if (!is_valid) {
-		DEG_id_tag_update(&me->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
 		return true;
 	}
 	else {

@@ -81,7 +81,7 @@ static void edbm_flag_disable_all_multi(ViewLayer *view_layer, View3D *v3d, cons
 		BMesh *bm_iter = em_iter->bm;
 		if (bm_iter->totvertsel) {
 			EDBM_flag_disable_all(em_iter, hflag);
-			DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
 		}
 	}
 	MEM_freeN(objects);

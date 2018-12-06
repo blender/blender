@@ -150,7 +150,7 @@ static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA 
 
 	/* TODO: this really needs an update guard... */
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 	WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
 }
@@ -497,7 +497,7 @@ static void rna_FCurve_update_eval(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	IdAdtTemplate *iat = (IdAdtTemplate *)ptr->id.data;
 	if (iat && iat->adt && iat->adt->action) {
 		/* action is separate datablock, needs separate tag */
-		DEG_id_tag_update(&iat->adt->action->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&iat->adt->action->id, ID_RECALC_COPY_ON_WRITE);
 	}
 }
 
@@ -611,18 +611,18 @@ static void rna_FModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	FModifier *fcm = (FModifier *)ptr->data;
 	AnimData *adt = BKE_animdata_from_id(id);
 
-	DEG_id_tag_update(id, (GS(id->name) == ID_OB) ? OB_RECALC_OB : OB_RECALC_DATA);
+	DEG_id_tag_update(id, (GS(id->name) == ID_OB) ? ID_RECALC_TRANSFORM : ID_RECALC_GEOMETRY);
 
 	/* tag datablock for time update so that animation is recalculated,
 	 * as FModifiers affect how animation plays...
 	 */
-	DEG_id_tag_update(id, DEG_TAG_TIME);
+	DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 	if (adt != NULL) {
 		adt->recalc |= ADT_RECALC_ANIM;
 
 		if (adt->action != NULL) {
 			/* action is separate datablock, needs separate tag */
-			DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 

@@ -1356,8 +1356,8 @@ static int separate_exec(bContext *C, wmOperator *op)
 		ED_curve_editnurb_free(newob);
 		curve_delete_segments(oldob, v3d, true);
 
-		DEG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* This is the original one. */
-		DEG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* This is the separated one. */
+		DEG_id_tag_update(&oldob->id, ID_RECALC_GEOMETRY);  /* This is the original one. */
+		DEG_id_tag_update(&newob->id, ID_RECALC_GEOMETRY);  /* This is the separated one. */
 
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, oldob->data);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, newob);
@@ -3006,7 +3006,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		BKE_curve_nurb_vert_active_validate(obedit->data);
 	}
@@ -3080,7 +3080,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
-			DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			changed_multi = true;
 		}
@@ -4579,7 +4579,7 @@ bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, 
 
 				ED_curve_deselect_all(((Curve *)ob_iter->data)->editnurb);
 
-				DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+				DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 			}
 			MEM_freeN(objects);
@@ -4678,7 +4678,7 @@ bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, 
 			ED_object_base_activate(C, basact);
 		}
 
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return true;
@@ -5640,7 +5640,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 		ok = 1;
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
-		DEG_id_tag_update(&cu->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&cu->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, &cu->id);
 	}
 	MEM_freeN(objects);
@@ -6534,8 +6534,8 @@ int join_curve_exec(bContext *C, wmOperator *op)
 
 	DEG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 
-	DEG_id_tag_update(&ob_active->id, OB_RECALC_OB | OB_RECALC_DATA);
-	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&ob_active->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

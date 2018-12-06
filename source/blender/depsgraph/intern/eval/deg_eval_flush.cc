@@ -345,10 +345,10 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
 				continue;
 			}
 			switch (comp_node->type) {
-				case DEG_TAG_TRANSFORM:
+				case ID_RECALC_TRANSFORM:
 					invalidate_tagged_evaluated_transform(id_cow);
 					break;
-				case DEG_TAG_GEOMETRY:
+				case ID_RECALC_GEOMETRY:
 					invalidate_tagged_evaluated_geometry(id_cow);
 					break;
 				default:

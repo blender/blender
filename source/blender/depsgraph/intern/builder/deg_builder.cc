@@ -135,24 +135,24 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		if ((id->recalc & ID_RECALC_ALL)) {
 			AnimData *adt = BKE_animdata_from_id(id);
 			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM) != 0) {
-				flag |= DEG_TAG_TIME;
+				flag |= ID_RECALC_ANIMATION;
 			}
 		}
 		/* Tag rebuild if special evaluation flags changed. */
 		if (id_node->eval_flags != id_node->previous_eval_flags) {
-			flag |= DEG_TAG_TRANSFORM | DEG_TAG_GEOMETRY;
+			flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
 		}
 		/* Tag rebuild if the custom data mask changed. */
 		if (id_node->customdata_mask != id_node->previous_customdata_mask) {
-			flag |= DEG_TAG_GEOMETRY;
+			flag |= ID_RECALC_GEOMETRY;
 		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
-			flag |= DEG_TAG_COPY_ON_WRITE;
+			flag |= ID_RECALC_COPY_ON_WRITE;
 			/* This means ID is being added to the dependency graph first
 			 * time, which is similar to "ob-visible-change"
 			 */
 			if (GS(id->name) == ID_OB) {
-				flag |= OB_RECALC_OB | OB_RECALC_DATA;
+				flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
 			}
 		}
 		if (flag != 0) {

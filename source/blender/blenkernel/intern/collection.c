@@ -512,7 +512,7 @@ static bool collection_object_add(Main *bmain, Collection *collection, Object *o
 	}
 
 	if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-		DEG_id_tag_update_ex(bmain, &collection->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update_ex(bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	return true;
@@ -535,7 +535,7 @@ static bool collection_object_remove(Main *bmain, Collection *collection, Object
 		id_us_min(&ob->id);
 	}
 
-	DEG_id_tag_update_ex(bmain, &collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update_ex(bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
 
 	return true;
 }

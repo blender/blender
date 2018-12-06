@@ -921,7 +921,7 @@ void BKE_sculptsession_bm_to_me(Object *ob, bool reorder)
 		sculptsession_bm_to_me_update_data_only(ob, reorder);
 
 		/* ensure the objects evaluated mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 }
 
@@ -1098,7 +1098,7 @@ void BKE_sculpt_update_mesh_elements(
 #else			/* if we wanted to support adding mask data while multi-res painting, we would need to do this */
 				if ((ED_sculpt_mask_layers_ensure(ob, mmd) & ED_SCULPT_MASK_LAYER_CALC_LOOP)) {
 					/* remake the derived mesh */
-					ob->recalc |= OB_RECALC_DATA;
+					ob->recalc |= ID_RECALC_GEOMETRY;
 					BKE_object_handle_update(scene, ob);
 				}
 #endif

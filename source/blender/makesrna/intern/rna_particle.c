@@ -589,16 +589,16 @@ static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 
 		psys->recalc = flag;
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 	else
-		DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA | flag);
+		DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY | flag);
 
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 }
 static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(bmain, scene, ptr, PSYS_RECALC_REDO);
+	particle_recalc(bmain, scene, ptr, ID_RECALC_PSYS_REDO);
 }
 
 static void rna_Particle_redo_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -612,12 +612,12 @@ static void rna_Particle_redo_count(Main *bmain, Scene *scene, PointerRNA *ptr)
 	ParticleSettings *part = (ParticleSettings *)ptr->data;
 	DEG_relations_tag_update(bmain);
 	psys_check_group_weights(part);
-	particle_recalc(bmain, scene, ptr, PSYS_RECALC_REDO);
+	particle_recalc(bmain, scene, ptr, ID_RECALC_PSYS_REDO);
 }
 
 static void rna_Particle_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET);
+	particle_recalc(bmain, scene, ptr, ID_RECALC_PSYS_RESET);
 }
 
 static void rna_Particle_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -635,8 +635,8 @@ static void rna_Particle_change_type(Main *bmain, Scene *UNUSED(scene), PointerR
 		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
 			if (psys->part == part) {
 				psys_changed_type(ob, psys);
-				psys->recalc |= PSYS_RECALC_RESET;
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				psys->recalc |= ID_RECALC_PSYS_RESET;
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 		}
 	}
@@ -647,7 +647,7 @@ static void rna_Particle_change_type(Main *bmain, Scene *UNUSED(scene), PointerR
 
 static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET | PSYS_RECALC_PHYS);
+	particle_recalc(bmain, scene, ptr, ID_RECALC_PSYS_RESET | ID_RECALC_PSYS_PHYS);
 
 	ParticleSettings *part = (ParticleSettings *)ptr->data;
 
@@ -674,14 +674,14 @@ static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerR
 
 static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(bmain, scene, ptr, PSYS_RECALC_CHILD);
+	particle_recalc(bmain, scene, ptr, ID_RECALC_PSYS_CHILD);
 }
 
 static void rna_Particle_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
@@ -724,9 +724,9 @@ static void rna_Particle_target_reset(Main *bmain, Scene *UNUSED(scene), Pointer
 				pt->flag &= ~PTARGET_VALID;
 		}
 
-		psys->recalc = PSYS_RECALC_RESET;
+		psys->recalc = ID_RECALC_PSYS_RESET;
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		DEG_relations_tag_update(bmain);
 	}
 
@@ -740,9 +740,9 @@ static void rna_Particle_target_redo(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 		ParticleTarget *pt = (ParticleTarget *)ptr->data;
 		ParticleSystem *psys = rna_particle_system_for_target(ob, pt);
 
-		psys->recalc = PSYS_RECALC_REDO;
+		psys->recalc = ID_RECALC_PSYS_REDO;
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 	}
 }
@@ -763,7 +763,7 @@ static void rna_Particle_hair_dynamics_update(Main *bmain, Scene *scene, Pointer
 		WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 }
 

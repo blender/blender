@@ -575,7 +575,7 @@ static void correctivesmooth_modifier_do(
 	const bool force_delta_cache_update =
 	        /* XXX, take care! if mesh data its self changes we need to forcefully recalculate deltas */
 	        ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
-	         (((ID *)ob->data)->recalc & ID_RECALC));
+	         (((ID *)ob->data)->recalc & ID_RECALC_ALL));
 
 	bool use_only_smooth = (csmd->flag & MOD_CORRECTIVESMOOTH_ONLY_SMOOTH) != 0;
 	MDeformVert *dvert = NULL;

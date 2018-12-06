@@ -330,7 +330,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 			{
 				ParticleSettings *part = ptr->id.data;
 
-				DEG_id_tag_update(&part->id, OB_RECALC_DATA | PSYS_RECALC_REDO);
+				DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 				WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
 			}
 			default:

@@ -782,7 +782,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Object *ob = view_layer->basact->object;
 		ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 	}
 }
@@ -1117,7 +1117,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 		case B_OBJECTPANELMEDIAN:
 			if (ob) {
 				v3d_editvertex_buts(NULL, v3d, ob, 1.0);
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 			break;
 	}

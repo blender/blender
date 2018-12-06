@@ -2736,7 +2736,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 	}
 
 	if (center) {
-		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	if (!changed) {
@@ -3283,7 +3283,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	}
 
 	if (rv3d->persp == RV3D_CAMOB) {
-		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 	}
 	return OPERATOR_FINISHED;
 }
@@ -3343,7 +3343,7 @@ static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 	border->ymax = 1.0f;
 
 	if (rv3d->persp == RV3D_CAMOB) {
-		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 	}
 	return OPERATOR_FINISHED;
 }
@@ -4802,7 +4802,7 @@ void ED_view3d_cursor3d_update(
 		        mbus, &scene->id, scene, Scene, cursor_location);
 	}
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static int view3d_cursor3d_invoke(bContext *C, wmOperator *op, const wmEvent *event)

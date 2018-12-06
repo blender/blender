@@ -90,7 +90,7 @@ static void rna_Collection_objects_link(Collection *collection, Main *bmain, Rep
 		return;
 	}
 
-	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
@@ -102,7 +102,7 @@ static void rna_Collection_objects_unlink(Collection *collection, Main *bmain, R
 		return;
 	}
 
-	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
@@ -174,7 +174,7 @@ static void rna_Collection_children_link(Collection *collection, Main *bmain, Re
 		return;
 	}
 
-	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &child->id);
 }
@@ -186,7 +186,7 @@ static void rna_Collection_children_unlink(Collection *collection, Main *bmain, 
 		return;
 	}
 
-	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &child->id);
 }
@@ -241,7 +241,7 @@ static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *pt
 	BKE_collection_object_cache_free(collection);
 	BKE_main_collection_sync(bmain);
 
-	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 }

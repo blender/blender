@@ -425,7 +425,7 @@ void BKE_material_resize_id(Main *bmain, ID *id, short totcol, bool do_id_user)
 	}
 	*totcolp = totcol;
 
-	DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 }
 
@@ -444,7 +444,7 @@ void BKE_material_append_id(Main *bmain, ID *id, Material *ma)
 		id_us_plus((ID *)ma);
 		test_all_objects_materials(bmain, id);
 
-		DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 	}
 }
@@ -479,7 +479,7 @@ Material *BKE_material_pop_id(Main *bmain, ID *id, int index_i, bool update_data
 				material_data_index_remove_id(id, index);
 			}
 
-			DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
 			DEG_relations_tag_update(bmain);
 		}
 	}
@@ -507,7 +507,7 @@ void BKE_material_clear_id(Main *bmain, ID *id, bool update_data)
 			material_data_index_clear_id(id);
 		}
 
-		DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 	}
 }
@@ -618,7 +618,7 @@ void BKE_material_resize_object(Main *bmain, Object *ob, const short totcol, boo
 	if (ob->totcol && ob->actcol == 0) ob->actcol = 1;
 	if (ob->actcol > ob->totcol) ob->actcol = ob->totcol;
 
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_GEOMETRY);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 }
 

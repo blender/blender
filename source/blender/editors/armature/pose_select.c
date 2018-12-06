@@ -104,11 +104,11 @@ void ED_pose_bone_select_tag_update(Object *ob)
 
 	if (arm->flag & ARM_HAS_VIZ_DEPS) {
 		/* mask modifier ('armature' mode), etc. */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 
 	/* copy on write tag is needed (for the armature), or else no refresh happens */
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 
@@ -217,7 +217,7 @@ bool ED_armature_pose_select_pick_with_buffer(
 			if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 				if (nearBone == arm->act_bone) {
 					ED_vgroup_select_by_name(ob_act, nearBone->name);
-					DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+					DEG_id_tag_update(&ob_act->id, ID_RECALC_GEOMETRY);
 				}
 			}
 			/* if there are some dependencies for visualizing armature state
@@ -227,11 +227,11 @@ bool ED_armature_pose_select_pick_with_buffer(
 				/* NOTE: ob not ob_act here is intentional - it's the source of the
 				 *       bones being selected  [T37247]
 				 */
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 
 			/* tag armature for copy-on-write update (since act_bone is in armature not object) */
-			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 
@@ -424,10 +424,10 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 		if (ob_prev != ob) {
 			/* weightpaint or mask modifiers need depsgraph updates */
 			if (multipaint || (arm->flag & ARM_HAS_VIZ_DEPS)) {
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 			/* need to tag armature for cow updates, or else selection doesn't update */
-			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 			ob_prev = ob;
 		}
 	}
@@ -1066,14 +1066,14 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 			/* In weightpaint we select the associated vertex group too. */
 			if (is_weight_paint) {
 				ED_vgroup_select_by_name(ob, pchan_mirror_act->name);
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 		}
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 
 		/* Need to tag armature for cow updates, or else selection doesn't update. */
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 	}
 	MEM_freeN(objects);
 

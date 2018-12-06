@@ -182,7 +182,7 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 		}
 
 		/* force copy on write to update database */
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 
 		/* do entire dbase - objects */
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
@@ -313,7 +313,7 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 					}
 				}
 			}
-			DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 		}
 
 		/* Fix all animdata that may refer to this bone - we can't just do the ones attached to objects, since
@@ -447,7 +447,7 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
 		BLI_freelistN(&bones_names);
 
 		/* since we renamed stuff... */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 		/* copied from #rna_Bone_update_renamed */
 		/* redraw view */
@@ -532,7 +532,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 		changed_multi = true;
 
 		/* Since we renamed stuff... */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 		/* Note, notifier might evolve. */
 		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);

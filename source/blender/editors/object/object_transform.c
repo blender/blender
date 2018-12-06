@@ -273,7 +273,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 			ED_autokeyframe_object(C, scene, ob, ks);
 
 			/* tag for updates */
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 		}
 	}
 	CTX_DATA_END;
@@ -379,7 +379,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 			mul_m3_v3(mat, v3);
 		}
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 	}
 	CTX_DATA_END;
 
@@ -699,7 +699,7 @@ static int apply_objects_internal(
 
 		ignore_parent_tx(C, bmain, scene, ob);
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 		changed = true;
 	}
@@ -727,7 +727,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_object_where_is_calc(depsgraph, scene, ob);
 
 		/* update for any children that may get moved */
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 		changed = true;
 	}
@@ -872,7 +872,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 			EDBM_mesh_normals_update(em);
 			tot_change++;
-			DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 		}
 	}
 
@@ -997,7 +997,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
-						DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 					}
 					break;
 				}
@@ -1075,7 +1075,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
-						DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 					}
 					break;
 				}
@@ -1143,7 +1143,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 								}
 							}
 						}
-						DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+						DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 						tot_change++;
 						if (centermode == ORIGIN_TO_GEOMETRY) {
@@ -1196,7 +1196,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					      (ob->transflag | ob_other->transflag) & OB_DUPLICOLLECTION)))
 					{
 						ob_other->flag |= OB_DONE;
-						DEG_id_tag_update(&ob_other->id, OB_RECALC_OB | OB_RECALC_DATA);
+						DEG_id_tag_update(&ob_other->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 						mul_v3_mat3_m4v3(centn, ob_other->obmat, cent); /* omit translation part */
 						add_v3_v3(ob_other->loc, centn);
@@ -1217,7 +1217,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	for (tob = bmain->object.first; tob; tob = tob->id.next) {
 		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT)) {
 			BKE_object_batch_cache_dirty_tag(tob);
-			DEG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
+			DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		}
 	}
 
@@ -1389,7 +1389,7 @@ static void object_orient_to_location(
 
 			object_apply_rotation(ob, final_rot);
 
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 		}
 	}
 }
@@ -1400,7 +1400,7 @@ static void object_transform_axis_target_cancel(bContext *C, wmOperator *op)
 	struct XFormAxisItem *item = xfd->object_data;
 	for (int i = 0; i < xfd->object_data_len; i++, item++) {
 		BKE_object_tfm_restore(item->ob, item->obtfm);
-		DEG_id_tag_update(&item->ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
 	}
 

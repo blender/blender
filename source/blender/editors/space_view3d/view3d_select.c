@@ -443,7 +443,7 @@ static void do_lasso_select_objects(
 	}
 
 	if (changed) {
-		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
 		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, vc->scene);
 	}
 }
@@ -541,7 +541,7 @@ static void do_lasso_select_pose(
 
 	const bool changed_multi = do_pose_tag_select_op_exec(bases, bases_len, sel_op);
 	if (changed_multi) {
-		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
 		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, vc->scene);
 	}
 
@@ -1025,7 +1025,7 @@ static void view3d_lasso_select(
 					break;
 			}
 
-			DEG_id_tag_update(vc->obedit->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(vc->obedit->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc->obedit->data);
 		}
 		FOREACH_OBJECT_IN_MODE_END;
@@ -1150,7 +1150,7 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 	/* undo? */
 	if (changed) {
 		Scene *scene = CTX_data_scene(C);
-		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		return OPERATOR_FINISHED;
 	}
@@ -1719,8 +1719,8 @@ static bool ed_object_select_pick(
 
 								retval = true;
 
-								DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
-								DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+								DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+								DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 								WM_event_add_notifier(C, NC_MOVIECLIP | ND_SELECT, track);
 								WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
@@ -1853,7 +1853,7 @@ static bool ed_object_select_pick(
 			}
 		}
 
-		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	}
 
@@ -2437,7 +2437,7 @@ finally:
 	MEM_freeN(vbuffer);
 
 	if (changed) {
-		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
 		return OPERATOR_FINISHED;
 	}
@@ -2510,7 +2510,7 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 
 	const bool changed_multi = do_pose_tag_select_op_exec(bases, bases_len, sel_op);
 	if (changed_multi) {
-		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
 	}
 
@@ -2546,7 +2546,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
 					vc.em = BKE_editmesh_from_object(vc.obedit);
 					ret |= do_mesh_box_select(&vc, &rect, sel_op);
 					if (ret & OPERATOR_FINISHED) {
-						DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
 						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 					}
 					break;
@@ -2554,28 +2554,28 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
 				case OB_SURF:
 					ret |= do_nurbs_box_select(&vc, &rect, sel_op);
 					if (ret & OPERATOR_FINISHED) {
-						DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
 						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 					}
 					break;
 				case OB_MBALL:
 					ret |= do_meta_box_select(&vc, &rect, sel_op);
 					if (ret & OPERATOR_FINISHED) {
-						DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
 						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 					}
 					break;
 				case OB_ARMATURE:
 					ret |= do_armature_box_select(&vc, &rect, sel_op);
 					if (ret & OPERATOR_FINISHED) {
-						DEG_id_tag_update(&vc.obedit->id, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(&vc.obedit->id, ID_RECALC_SELECT);
 						WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, vc.obedit);
 					}
 					break;
 				case OB_LATTICE:
 					ret |= do_lattice_box_select(&vc, &rect, sel_op);
 					if (ret & OPERATOR_FINISHED) {
-						DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
 						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 					}
 					break;
@@ -3278,7 +3278,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 			if (CTX_data_edit_object(C)) {
 				obedit_circle_select(&vc, select, mval, (float)radius);
-				DEG_id_tag_update(obact->data, DEG_TAG_SELECT_UPDATE);
+				DEG_id_tag_update(obact->data, ID_RECALC_SELECT);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
 			}
 			else if (BKE_paint_select_face_test(obact)) {
@@ -3301,7 +3301,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (object_circle_select(&vc, select, mval, (float)radius)) {
-			DEG_id_tag_update(&vc.scene->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&vc.scene->id, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc.scene);
 		}
 	}

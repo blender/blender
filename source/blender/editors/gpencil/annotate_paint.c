@@ -1883,12 +1883,12 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 			ob->mode = OB_MODE_OBJECT;
 			bGPdata *gpd = (bGPdata *)ob->data;
 			ED_gpencil_setup_modes(C, gpd, 0);
-			DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 			ViewLayer *view_layer = CTX_data_view_layer(C);
 			BKE_view_layer_base_deselect_all(view_layer);
 			view_layer->basact = NULL;
-			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 	}

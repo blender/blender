@@ -582,7 +582,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	if (t->options & CTX_GPENCIL_STROKES) {
 		bGPdata *gpd = ED_gpencil_data_get_active(C);
 		if (gpd) {
-			DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 		}
 		WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 	}

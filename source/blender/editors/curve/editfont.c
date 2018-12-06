@@ -276,7 +276,7 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 		}
 	}
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
 

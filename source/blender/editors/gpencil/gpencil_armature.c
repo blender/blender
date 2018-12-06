@@ -502,7 +502,7 @@ bool ED_gpencil_add_armature_weights(
 			           "Unable to add a new Armature modifier to object");
 			return false;
 		}
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	}
 
 	/* verify armature */
@@ -600,7 +600,7 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 	gpencil_object_vgroup_calc_from_armature(C, ob, ob_arm, mode, ratio, decay);
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;

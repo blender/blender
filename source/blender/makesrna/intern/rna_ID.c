@@ -157,7 +157,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	if (GS(id->name) == ID_OB) {
 		Object *ob = (Object *)id;
 		if (ob->type == OB_MBALL) {
-			DEG_id_tag_update(&ob->id, DEG_TAG_GEOMETRY);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 	}
 }
@@ -404,7 +404,11 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 		/* ensure flag us correct for the type */
 		switch (GS(id->name)) {
 			case ID_OB:
-				if (flag & ~(OB_RECALC_ALL)) {
+				/* TODO(sergey): This is kind of difficult to predict since different
+				 * object types supports different flags. Maybe does not worth checking
+				 * for this at all. Or maybe let dependency graph to return whether
+				 * the tag was valid or not. */
+				if (flag & ~(ID_RECALC_ALL)) {
 					BKE_report(reports, RPT_ERROR, "'Refresh' incompatible with Object ID type");
 					return;
 				}
@@ -536,7 +540,7 @@ static Material *rna_IDMaterials_pop_id(
 		return NULL;
 	}
 
-	DEG_id_tag_update(id, OB_RECALC_DATA);
+	DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 
@@ -547,7 +551,7 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain, bool remove_material_s
 {
 	BKE_material_clear_id(bmain, id, remove_material_slot);
 
-	DEG_id_tag_update(id, OB_RECALC_DATA);
+	DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
 	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
 }
@@ -1154,9 +1158,9 @@ static void rna_def_ID(BlenderRNA *brna)
 	PropertyRNA *prop, *parm;
 
 	static const EnumPropertyItem update_flag_items[] = {
-		{OB_RECALC_OB, "OBJECT", 0, "Object", ""},
-		{OB_RECALC_DATA, "DATA", 0, "Data", ""},
-		{OB_RECALC_TIME, "TIME", 0, "Time", ""},
+		{ID_RECALC_TRANSFORM, "OBJECT", 0, "Object", ""},
+		{ID_RECALC_GEOMETRY, "DATA", 0, "Data", ""},
+		{ID_RECALC_ANIMATION, "TIME", 0, "Time", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

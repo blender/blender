@@ -456,7 +456,7 @@ static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
 
-	DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
+	DEG_id_tag_update(&v3d->camera->id, ID_RECALC_TRANSFORM);
 	rv3d->persp = RV3D_CAMOB;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, v3d->camera);
@@ -541,7 +541,7 @@ static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 		BKE_object_tfm_protected_restore(camera_ob, &obtfm, OB_LOCK_SCALE | OB_LOCK_ROT4D);
 
 		/* notifiers */
-		DEG_id_tag_update(&camera_ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&camera_ob->id, ID_RECALC_TRANSFORM);
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, camera_ob);
 		return OPERATOR_FINISHED;
 	}
@@ -1381,11 +1381,11 @@ static int localview_exec(bContext *C, wmOperator *op)
 
 		/* Unselected objects become selected when exiting. */
 		if (v3d->localvd == NULL) {
-			DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 		else {
-			DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+			DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 		}
 
 		return OPERATOR_FINISHED;
@@ -1431,7 +1431,7 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
 
 	if (changed) {
 		DEG_on_visible_update(bmain, false);
-		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 		return OPERATOR_FINISHED;

@@ -349,7 +349,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	BKE_tracking_dopesheet_tag_update(tracking);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
 	return OPERATOR_FINISHED;
 }
@@ -393,7 +393,7 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			clip->tracking.act_track = track;
 
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-			DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
 			return OPERATOR_PASS_THROUGH;
 		}
@@ -511,7 +511,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 		BKE_tracking_dopesheet_tag_update(tracking);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-		DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
 		return OPERATOR_FINISHED;
 	}
@@ -622,7 +622,7 @@ static int do_lasso_select_marker(bContext *C, const int mcords[][2], const shor
 		BKE_tracking_dopesheet_tag_update(tracking);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-		DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 	}
 
 	return changed;
@@ -765,7 +765,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 		BKE_tracking_dopesheet_tag_update(tracking);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-		DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
 		return OPERATOR_FINISHED;
 	}
@@ -891,7 +891,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	BKE_tracking_dopesheet_tag_update(tracking);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
 	return OPERATOR_FINISHED;
 }
@@ -975,7 +975,7 @@ static int select_grouped_exec(bContext *C, wmOperator *op)
 	BKE_tracking_dopesheet_tag_update(tracking);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
-	DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
 
 	return OPERATOR_FINISHED;
 }

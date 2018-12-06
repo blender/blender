@@ -119,7 +119,7 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	if (pid.cache) {
 		/* Just make sure this wasn't changed. */
@@ -164,7 +164,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 			BKE_ptcache_load_external(&pid);
 		}
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, ob);
 	}
 	else {
@@ -452,7 +452,7 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 			part->pd2->tex = NULL;
 		}
 
-		DEG_id_tag_update(&part->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
+		DEG_id_tag_update(&part->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION | ID_RECALC_PSYS_RESET);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 
 	}
@@ -464,7 +464,7 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 			ob->pd->tex = NULL;
 		}
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 	}
 }
@@ -500,7 +500,7 @@ static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
 static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if (particle_id_check(ptr)) {
-		DEG_id_tag_update((ID *)ptr->id.data, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
+		DEG_id_tag_update((ID *)ptr->id.data, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION | ID_RECALC_PSYS_RESET);
 	}
 	else {
 		Object *ob = (Object *)ptr->id.data;
@@ -519,9 +519,9 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 		DEG_relations_tag_update(bmain);
 
 		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 		else
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 	}
@@ -565,7 +565,7 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 		FOREACH_SCENE_OBJECT_END;
 	}
 	else {
-		DEG_id_tag_update(id, OB_RECALC_DATA | PSYS_RECALC_RESET);
+		DEG_id_tag_update(id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_RESET);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 	}
 }
@@ -574,7 +574,7 @@ static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scen
 {
 	DEG_relations_tag_update(bmain);
 
-	DEG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
+	DEG_id_tag_update((ID *)ptr->id.data, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_RESET);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
@@ -671,7 +671,7 @@ static void rna_CollisionSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -679,7 +679,7 @@ static void rna_softbody_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 {
 	Object *ob = (Object *)ptr->id.data;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 

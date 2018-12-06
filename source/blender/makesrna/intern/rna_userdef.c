@@ -324,7 +324,7 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_WEIGHT_PAINT)
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 
 	rna_userdef_update(bmain, scene, ptr);
@@ -462,7 +462,7 @@ static void rna_userdef_opensubdiv_update(Main *bmain, Scene *UNUSED(scene), Poi
 	     object;
 	     object = object->id.next)
 	{
-		DEG_id_tag_update(&object->id, OB_RECALC_OB);
+		DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
 	}
 }
 

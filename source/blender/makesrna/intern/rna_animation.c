@@ -524,7 +524,7 @@ static NlaTrack *rna_NlaTrack_new(ID *id, AnimData *adt, Main *bmain, bContext *
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update_ex(bmain, id, DEG_TAG_TIME | DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 
 	return new_track;
 }
@@ -544,7 +544,7 @@ static void rna_NlaTrack_remove(ID *id, AnimData *adt, Main *bmain, bContext *C,
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update_ex(bmain, id, DEG_TAG_TIME | DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 }
 
 static PointerRNA rna_NlaTrack_active_get(PointerRNA *ptr)

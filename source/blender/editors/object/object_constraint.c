@@ -1228,9 +1228,9 @@ void ED_object_constraint_update(Main *bmain, Object *ob)
 	object_test_constraints(bmain, ob);
 
 	if (ob->type == OB_ARMATURE)
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
 	else
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 }
 
 static void object_pose_tag_update(Main *bmain, Object *ob)
@@ -1267,14 +1267,14 @@ void ED_object_constraint_tag_update(Main *bmain, Object *ob, bConstraint *con)
 	}
 
 	if (ob->type == OB_ARMATURE)
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
 	else
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 	/* Do Copy-on-Write tag here too, otherwise constraint
 	 * influence/mute buttons in UI have no effect
 	 */
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstraint *con)
@@ -1449,7 +1449,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
 
 		if (prev_ob != ob) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 			prev_ob = ob;
 		}
@@ -1485,7 +1485,7 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		BKE_constraints_free(&ob->constraints);
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 	}
 	CTX_DATA_END;
 
@@ -1536,7 +1536,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 
 			if (prev_ob != ob) {
 				BKE_pose_tag_recalc(bmain, ob->pose);
-				DEG_id_tag_update((ID *)ob, OB_RECALC_DATA);
+				DEG_id_tag_update((ID *)ob, ID_RECALC_GEOMETRY);
 				prev_ob = ob;
 			}
 		}
@@ -1577,7 +1577,7 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (obact != ob) {
 			BKE_constraints_copy(&ob->constraints, &obact->constraints, true);
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 	}
 	CTX_DATA_END;
@@ -1856,10 +1856,10 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 			 * XXX Temp hack until new depsgraph hopefully solves this. */
 			ob->adt->recalc |= ADT_RECALC_ANIM;
 		}
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
 	}
 	else
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_ADDED, ob);
@@ -2100,7 +2100,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 			prev_ob = ob;
 
 			/* Refresh depsgraph. */
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 			/* Note, notifier might evolve. */
 			WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);

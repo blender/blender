@@ -83,7 +83,7 @@ static void rna_fluid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 {
 	Object *ob = ptr->id.data;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 

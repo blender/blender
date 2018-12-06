@@ -504,7 +504,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					Main *bmain = CTX_data_main(C);
 					Scene *scene = CTX_data_scene(C);
 					ED_object_single_user(bmain, scene, (struct Object *)id);
-					DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+					DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 					WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 					DEG_relations_tag_update(bmain);
 				}
@@ -1335,7 +1335,7 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	ob->partype = PAROBJECT;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	ED_undo_push(C, "Modifier convert to real");
 }
@@ -1942,8 +1942,8 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	 * object_test_constraints(ob);
 	 * if (ob->pose) BKE_pose_update_constraint_flags(ob->pose); */
 
-	if (ob->type == OB_ARMATURE) DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
-	else DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+	if (ob->type == OB_ARMATURE) DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
+	else DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 }

@@ -502,7 +502,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 				cu->flag |= CU_PATH | CU_3D;
 		}
 		else {
-			DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 		}
 	}
 	else { /* adding surface */
@@ -512,7 +512,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 			newob = true;
 		}
 		else {
-			DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 		}
 	}
 

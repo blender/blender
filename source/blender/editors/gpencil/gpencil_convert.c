@@ -1395,7 +1395,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

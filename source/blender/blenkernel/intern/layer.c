@@ -861,7 +861,7 @@ void BKE_main_collection_sync_remap(const Main *bmain)
 
 	for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
 		BKE_collection_object_cache_free(collection);
-		DEG_id_tag_update_ex((Main *)bmain, &collection->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update_ex((Main *)bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	BKE_main_collection_sync(bmain);

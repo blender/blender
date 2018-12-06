@@ -131,7 +131,7 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UN
 			if (ob->type == OB_GPENCIL) {
 				bGPdata *gpd = (bGPdata *)ob->data;
 				gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
-				DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+				DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 			}
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -185,11 +185,11 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 	if (!edit)
 		return;
 
-	if (ob) DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	if (ob) DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 	psys_free_path_cache(edit->psys, edit);
-	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
@@ -197,10 +197,10 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 
-	if (ob) DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	if (ob) DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	/* Sync tool setting changes from original to evaluated scenes. */
-	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
@@ -211,7 +211,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	if ((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->object) {
 		Object *ob = pset->object;
 		if (ob) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 		}
 	}
@@ -355,7 +355,7 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 	Object *ob = OBACT(view_layer);
 
 	if (ob) {
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 
 		if (ob->sculpt) {

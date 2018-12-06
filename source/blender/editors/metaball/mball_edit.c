@@ -155,7 +155,7 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		MetaBall *mb = (MetaBall *)obedit->data;
-		DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
 
@@ -384,7 +384,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
-			DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 		}
 	}
@@ -458,7 +458,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 
 		BLI_rng_free(rng);
 
-		DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
 	MEM_freeN(objects);
@@ -761,7 +761,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 						}
 
 						BKE_mball_deselect_all((MetaBall *)ob_iter->data);
-						DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
 						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 					}
 					MEM_freeN(objects);
@@ -789,7 +789,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 
 				mb->lastelem = ml_act;
 
-				DEG_id_tag_update(&mb->id, DEG_TAG_SELECT_UPDATE);
+				DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
 				if (vc.view_layer->basact != base) {

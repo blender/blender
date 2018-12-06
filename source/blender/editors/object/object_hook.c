@@ -617,7 +617,7 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 
 	if (add_hook_object(C, bmain, scene, view_layer, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports)) {
-		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
 		return OPERATOR_FINISHED;
@@ -659,7 +659,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	BLI_remlink(&ob->modifiers, (ModifierData *)hmd);
 	modifier_free((ModifierData *)hmd);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -733,7 +733,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 
 	BKE_object_modifier_hook_reset(ob, hmd);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -783,7 +783,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	sub_v3_v3v3(hmd->cent, scene->cursor.location, ob->obmat[3]);
 	mul_m3_v3(imat, hmd->cent);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -842,7 +842,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	hmd->indexar = indexar;
 	hmd->totindex = tot;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -888,7 +888,7 @@ static int object_hook_select_exec(bContext *C, wmOperator *op)
 	/* select functionality */
 	object_hook_select(ob, hmd);
 
-	DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;

@@ -1392,7 +1392,7 @@ static int uv_select_more_less(bContext *C, const bool select)
 				EDBM_select_less(em, true);
 			}
 
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			continue;
 		}
@@ -1463,7 +1463,7 @@ static int uv_select_more_less(bContext *C, const bool select)
 		if (changed) {
 			/* Select tagged loops. */
 			uv_select_flush_from_tag_loop(sima, scene, obedit, select);
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
@@ -2752,7 +2752,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
-		DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
@@ -2930,7 +2930,7 @@ static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short s
 static void uv_select_tag_update_for_object(Depsgraph *depsgraph, const ToolSettings *ts, Object *obedit)
 {
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
 	}
 	else {
@@ -4106,7 +4106,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_hide(em, swap);
 
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -4176,7 +4176,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 
 	BM_select_history_validate(em->bm);
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
@@ -4230,7 +4230,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
 	/* call the mesh function if we are in mesh sync sel */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_reveal(em, select);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -4320,7 +4320,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
 	/* re-select tagged faces */
 	BM_mesh_elem_hflag_enable_test(em->bm, BM_FACE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;

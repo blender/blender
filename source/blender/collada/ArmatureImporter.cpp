@@ -499,7 +499,7 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
 			ob_arms.push_back(ob_arm);
 		}
 
-		DEG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&ob_arm->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	}
 }
 
@@ -632,7 +632,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo& skin)
 	ED_armature_from_edit(bmain, armature);
 	ED_armature_edit_free(armature);
 
-	DEG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&ob_arm->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 	return ob_arm;
 }

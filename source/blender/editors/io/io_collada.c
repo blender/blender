@@ -579,7 +579,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	import_settings.keep_bind_info = keep_bind_info != 0;
 
 	if (collada_import(C, &import_settings)) {
-		DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_BASE_FLAGS_UPDATE);
+		DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS);
 		return OPERATOR_FINISHED;
 	}
 	else {

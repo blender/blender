@@ -207,7 +207,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
@@ -261,7 +261,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 		/* note, notifier might evolve */
 		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -581,7 +581,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 	BKE_main_free(tmp_bmain);
 
 	/* Update event for pose and deformation children. */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	/* Recalculate paths if any of the bones have paths... */
 	if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
@@ -835,7 +835,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 				BLI_freelistN(&dsources);
 			}
 
-			DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);
 
 			/* note, notifier might evolve */
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
@@ -988,7 +988,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 		}
 
 		/* notifiers and updates */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 	}
 	FOREACH_OBJECT_IN_MODE_END;

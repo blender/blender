@@ -133,7 +133,7 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
 				/* send updates */
 				UI_context_update_anim_flag(C);
 				DEG_relations_tag_update(CTX_data_main(C));
-				DEG_id_tag_update(ddr->ptr.id.data, OB_RECALC_OB | OB_RECALC_DATA);
+				DEG_id_tag_update(ddr->ptr.id.data, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 				WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
 			}
 		}

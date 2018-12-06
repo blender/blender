@@ -5157,7 +5157,7 @@ static bConstraint *constraint_find_original_for_update(bConstraintOb *cob, bCon
 	bConstraint *orig_con = constraint_find_original(cob->ob, cob->pchan, con, &orig_ob);
 
 	if (orig_con != NULL) {
-		DEG_id_tag_update(&orig_ob->id, DEG_TAG_COPY_ON_WRITE | DEG_TAG_TRANSFORM);
+		DEG_id_tag_update(&orig_ob->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM);
 	}
 
 	return orig_con;

@@ -495,13 +495,13 @@ static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
 
 			/* rebuild depsgraph for the new deps, and ensure COW copies get flushed. */
 			DEG_relations_tag_update(bmain);
-			DEG_id_tag_update_ex(bmain, id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
 			if (adt != NULL) {
 				if (adt->action != NULL) {
-					DEG_id_tag_update_ex(bmain, &adt->action->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_COPY_ON_WRITE);
 				}
 				if (adt->tmpact != NULL) {
-					DEG_id_tag_update_ex(bmain, &adt->tmpact->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_COPY_ON_WRITE);
 				}
 			}
 

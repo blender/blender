@@ -4058,7 +4058,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 						            .calc_object_remap = true,
 						        }));
 
-						DEG_id_tag_update(&me->id, OB_RECALC_DATA);
+						DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
 						WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 					}
 
@@ -6048,7 +6048,7 @@ static void sort_bmelem_flag(
 	}
 
 	BM_mesh_remap(em->bm, map[0], map[1], map[2]);
-	DEG_id_tag_update(ob->data, OB_RECALC_DATA);
+	DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	for (j = 3; j--; ) {
@@ -6974,7 +6974,7 @@ static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -7051,7 +7051,7 @@ static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
 	MEM_freeN(objects);

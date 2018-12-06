@@ -259,7 +259,7 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 
 	/* notifiers */
 	bGPdata *gpd = *gpd_ptr;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -308,7 +308,7 @@ static int gp_layer_remove_exec(bContext *C, wmOperator *op)
 	BKE_gpencil_layer_delete(gpd, gpl);
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -348,7 +348,7 @@ static int gp_layer_move_exec(bContext *C, wmOperator *op)
 
 	BLI_assert(ELEM(direction, -1, 0, 1)); /* we use value below */
 	if (BLI_listbase_link_move(&gpd->layers, gpl, direction)) {
-		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	}
 
@@ -399,7 +399,7 @@ static int gp_layer_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	BKE_gpencil_layer_setactive(gpd, new_layer);
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -524,8 +524,8 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd_dst->id, OB_RECALC_OB | OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
-	DEG_id_tag_update(&ob_dst->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob_dst->id, ID_RECALC_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -588,7 +588,7 @@ static int gp_frame_duplicate_exec(bContext *C, wmOperator *op)
 
 	}
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -674,7 +674,7 @@ static int gp_frame_clean_fill_exec(bContext *C, wmOperator *op)
 
 	/* notifiers */
 	if (changed) {
-		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	}
 
@@ -762,7 +762,7 @@ static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
 
 	/* notifiers */
 	if (changed) {
-		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	}
 
@@ -814,7 +814,7 @@ static int gp_hide_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -902,7 +902,7 @@ static int gp_reveal_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -943,7 +943,7 @@ static int gp_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -981,7 +981,7 @@ static int gp_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1054,7 +1054,7 @@ static int gp_isolate_layer_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1119,7 +1119,7 @@ static int gp_merge_layer_exec(bContext *C, wmOperator *op)
 	BLI_ghash_free(gh_frames_cur, NULL, NULL);
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1181,7 +1181,7 @@ static int gp_layer_change_exec(bContext *C, wmOperator *op)
 	BKE_gpencil_layer_setactive(gpd, gpl);
 
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1318,7 +1318,7 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1424,7 +1424,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1466,7 +1466,7 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 	for (short i = 0; i < *totcol; i++) {
 		Material *tmp_ma = give_current_material(ob, i + 1);
 		tmp_ma->gp_style->flag |= GP_STYLE_COLOR_LOCKED;
-		DEG_id_tag_update(&tmp_ma->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	/* loop all selected strokes and unlock any color */
@@ -1484,19 +1484,19 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 					Material *tmp_ma = give_current_material(ob, gps->mat_nr + 1);
 
 					tmp_ma->gp_style->flag &= ~GP_STYLE_COLOR_LOCKED;
-					DEG_id_tag_update(&tmp_ma->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
 				}
 			}
 		}
 	}
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1594,7 +1594,7 @@ static int gpencil_vertex_group_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* notifiers */
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1628,7 +1628,7 @@ static int gpencil_vertex_group_remove_from_exec(bContext *C, wmOperator *UNUSED
 
 	/* notifiers */
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1662,7 +1662,7 @@ static int gpencil_vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* notifiers */
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1695,7 +1695,7 @@ static int gpencil_vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op
 
 	/* notifiers */
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1751,7 +1751,7 @@ static int gpencil_vertex_group_invert_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* notifiers */
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1836,7 +1836,7 @@ static int gpencil_vertex_group_smooth_exec(bContext *C, wmOperator *op)
 
 	/* notifiers */
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED | ND_SPACE_PROPERTIES, NULL);
 
 	return OPERATOR_FINISHED;
@@ -2189,7 +2189,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 		gp_style = ma->gp_style;
 		gp_style->flag |= GP_STYLE_COLOR_LOCKED;
 		gp_style->flag |= GP_STYLE_COLOR_HIDE;
-		DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	/* loop all selected strokes and unlock any color used in active layer */
@@ -2202,7 +2202,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 					continue;
 
 				ma = give_current_material(ob, gps->mat_nr + 1);
-				DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+				DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 
 				gp_style = ma->gp_style;
 				/* unlock/unhide color if not unlocked before */
@@ -2214,13 +2214,13 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -2288,7 +2288,7 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 				continue;
 			else
 				gp_style->flag |= flags;
-			DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 	else {
@@ -2297,15 +2297,15 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 			ma = give_current_material(ob, i + 1);
 			gp_style = ma->gp_style;
 			gp_style->flag &= ~flags;
-			DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 
 	/* notifiers */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
@@ -2354,7 +2354,7 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
 			color = ma->gp_style;
 			if (active_color != color) {
 				color->flag |= GP_STYLE_COLOR_HIDE;
-				DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+				DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 			}
 		}
 	}
@@ -2364,10 +2364,10 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
 	}
 
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -2412,14 +2412,14 @@ static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag &= ~GP_STYLE_COLOR_HIDE;
-		DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -2462,14 +2462,14 @@ static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
 		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag |= GP_STYLE_COLOR_LOCKED;
-		DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -2511,14 +2511,14 @@ static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
 		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag &= ~GP_STYLE_COLOR_LOCKED;
-		DEG_id_tag_update(&ma->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	/* updates */
-	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -2607,7 +2607,7 @@ static int gpencil_color_select_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	/* copy on write tag is needed, or else no refresh happens */
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);

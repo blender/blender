@@ -212,7 +212,7 @@ static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), Po
 
 	BKE_layer_collection_sync(scene, view_layer);
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
 }

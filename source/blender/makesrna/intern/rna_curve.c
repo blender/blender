@@ -640,7 +640,7 @@ static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, PointerRNA *
 	BKE_nurb_free(nu);
 	RNA_POINTER_INVALIDATE(nu_ptr);
 
-	DEG_id_tag_update(&cu->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 
@@ -650,7 +650,7 @@ static void rna_Curve_spline_clear(Curve *cu)
 
 	BKE_nurbList_free(nurbs);
 
-	DEG_id_tag_update(&cu->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 

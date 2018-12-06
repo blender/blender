@@ -61,7 +61,7 @@ static void rna_VectorFont_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 
 	/* update */
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
-	DEG_id_tag_update(&vf->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&vf->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 }
 
 #else

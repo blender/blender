@@ -502,22 +502,61 @@ enum {
 	LIB_TAG_NOT_ALLOCATED     = 1 << 17,
 };
 
-/* WARNING - when adding flags check on PSYS_RECALC */
-enum {
-	/* RESET_AFTER_USE, used by update code (depsgraph). */
-	ID_RECALC_NONE  = 0,
-	/* Generic recalc flag, when nothing else matches. */
-	ID_RECALC       = 1 << 0,
-	/* Per-component update flags. */
-	ID_RECALC_ANIMATION   = 1 << 1,
-	ID_RECALC_DRAW        = 1 << 2,
-	ID_RECALC_DRAW_CACHE  = 1 << 3,
-	ID_RECALC_GEOMETRY    = 1 << 4,
-	ID_RECALC_TRANSFORM   = 1 << 5,
-	ID_RECALC_COPY_ON_WRITE = 1 << 6,
-	/* Special flag to check if SOMETHING was changed. */
-	ID_RECALC_ALL   = (~(int)0),
-};
+/* Tag given ID for an update in all the dependency graphs. */
+typedef enum IDRecalcFlag {
+	/* Individual update tags, this is what ID gets tagged for update with. */
+
+	/* Object transformation changed. */
+	ID_RECALC_TRANSFORM   = (1 << 0),
+	/* Object geometry changed.
+	 *
+	 * When object of armature type gets tagged with this flag, it's pose is
+	 * re-evaluated.
+	 * When object of other type is tagged with this flag it makes the modifier
+	 * stack to be re-evaluated.
+	 * When object data type (mesh, curve, ...) gets tagged with this flag it
+	 * makes all objects which shares this datablock to be updated. */
+	ID_RECALC_GEOMETRY    = (1 << 1),
+	/* Animation or time changed and animation is to be re-evaluated. */
+	ID_RECALC_ANIMATION   = (1 << 2),
+	/* Particle system changed; values are aligned with ID_RECALC_PSYS_xxx. */
+	ID_RECALC_PSYS_REDO   = (1 << 3),  /* Only do pathcache etc */
+	ID_RECALC_PSYS_RESET  = (1 << 4),  /* Reset everything including pointcache. */
+	ID_RECALC_PSYS_YPE   = (1 << 5),  /* Handle system type change. */
+	ID_RECALC_PSYS_CHILD  = (1 << 6),  /* Only child settings changed. */
+	ID_RECALC_PSYS_PHYS   = (1 << 7),  /* Physics type changed. */
+	/* Update copy on write component without flushing down the road. */
+	ID_RECALC_COPY_ON_WRITE = (1 << 8),
+	/* Tag shading components for update. Only parameters of material changed).
+	 */
+	ID_RECALC_SHADING       = (1 << 9),
+	/* Selection of the ID itself or its components (for example, vertices) did
+	 * change, and all the drawing data is to eb updated. */
+	ID_RECALC_SELECT        = (1 << 10),
+	/* Flags on the base did change, and is to be compied onto all the copies of
+	 * corresponding objects. */
+	ID_RECALC_BASE_FLAGS    = (1 << 11),
+	ID_RECALC_POINT_CACHE   = (1 << 12),
+	/* Only inform editors about the change. Is used to force update of editors
+	 * when datablock which is not a part of dependency graph did change.
+	 *
+	 * For example, brush texture did change and the preview is to be
+	 * re-rendered. */
+	ID_RECALC_EDITORS       = (1 << 13),
+
+	/* Aggregate flags, use only for checks on runtime.
+	 * Do NOT use those for tagging. */
+
+	/* Identifies that SOMETHING has been changed in this ID. */
+	ID_RECALC_ALL = ~(0),
+	/* Identifies that something in particle system did change. */
+	ID_RECALC_PSYS_ALL    = (ID_RECALC_PSYS_REDO |
+	                         ID_RECALC_PSYS_RESET |
+	                         ID_RECALC_PSYS_YPE |
+	                         ID_RECALC_PSYS_CHILD |
+	                         ID_RECALC_PSYS_PHYS),
+
+} IDRecalcFlag;
 
 /* To filter ID types (filter_id) */
 /* XXX We cannot put all needed IDs inside an enum...

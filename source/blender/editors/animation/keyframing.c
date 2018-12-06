@@ -165,7 +165,7 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
 		DEG_relations_tag_update(bmain);
 	}
 
-	DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* return the action */
 	return adt->action;
@@ -1178,10 +1178,10 @@ short insert_keyframe(
 
 	if (ret) {
 		if (act != NULL) {
-			DEG_id_tag_update(&act->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
 		}
 		if (adt != NULL && adt->action != NULL && adt->action != act) {
-			DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 
@@ -1306,7 +1306,7 @@ short delete_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *act,
 	 * about relations update, since it needs to get rid of animation operation
 	 * for this datablock. */
 	if (ret && adt->action == NULL) {
-		DEG_id_tag_update_ex(bmain, id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 	}
 	/* return success/failure */
@@ -1402,7 +1402,7 @@ static short clear_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *a
 	 * about relations update, since it needs to get rid of animation operation
 	 * for this datablock. */
 	if (ret && adt->action == NULL) {
-		DEG_id_tag_update_ex(bmain, id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 	}
 	/* return success/failure */
@@ -1731,7 +1731,7 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 				/* delete F-Curve completely */
 				if (can_delete) {
 					ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
-					DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+					DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 					changed = true;
 				}
 			}
@@ -1838,7 +1838,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 		else
 			BKE_reportf(op->reports, RPT_ERROR, "No keyframes removed from Object '%s'", id->name + 2);
 
-		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+		DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 	}
 	CTX_DATA_END;
 

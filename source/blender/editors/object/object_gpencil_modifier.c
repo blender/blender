@@ -102,9 +102,9 @@ GpencilModifierData *ED_object_gpencil_modifier_add(
 
 
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 
 	return new_md;
@@ -158,7 +158,7 @@ bool ED_object_gpencil_modifier_remove(ReportList *reports, Main *bmain, Object 
 		return 0;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 
 	return 1;
@@ -182,7 +182,7 @@ void ED_object_gpencil_modifier_clear(Main *bmain, Object *ob)
 		md = next_md;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 }
 
@@ -225,7 +225,7 @@ static int gpencil_modifier_apply_obdata(
 			return 0;
 		}
 		mti->bakeModifier(bmain, depsgraph, md, ob);
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
@@ -488,7 +488,7 @@ static int gpencil_modifier_move_up_exec(bContext *C, wmOperator *op)
 	if (!md || !ED_object_gpencil_modifier_move_up(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -527,7 +527,7 @@ static int gpencil_modifier_move_down_exec(bContext *C, wmOperator *op)
 	if (!md || !ED_object_gpencil_modifier_move_down(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -570,7 +570,7 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -617,7 +617,7 @@ static int gpencil_modifier_copy_exec(bContext *C, wmOperator *op)
 	if (!md || !ED_object_gpencil_modifier_copy(op->reports, ob, md))
 		return OPERATOR_CANCELLED;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;

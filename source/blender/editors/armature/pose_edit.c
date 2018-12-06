@@ -110,7 +110,7 @@ bool ED_object_posemode_enter_ex(struct Main *bmain, Object *ob)
 			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
 			/* Inform all CoW versions that we changed the mode. */
-			DEG_id_tag_update_ex(bmain, &ob->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
 			ok = true;
 
 			break;
@@ -143,7 +143,7 @@ bool ED_object_posemode_exit_ex(struct Main *bmain, Object *ob)
 		ob->mode &= ~OB_MODE_POSE;
 
 		/* Inform all CoW versions that we changed the mode. */
-		DEG_id_tag_update_ex(bmain, &ob->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
 		ok = true;
 	}
 	return ok;
@@ -257,7 +257,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
 	if (!current_frame_only) {
 		/* Tag armature object for copy on write - so paths will draw/redraw.
 		 * For currently frame only we update evaluated object directly. */
-		DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 	}
 
 	/* Free temporary depsgraph instance */
@@ -442,7 +442,7 @@ static void ED_pose_clear_paths(Object *ob, bool only_selected)
 		ob->pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 
 	/* tag armature object for copy on write - so removed paths don't still show */
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 /* operator callback - wrapper for the backend function  */
@@ -510,7 +510,7 @@ static int pose_update_paths_range_exec(bContext *C, wmOperator *UNUSED(op))
 	ob->pose->avs.path_ef = PEFRA;
 
 	/* tag for updates */
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
 	return OPERATOR_FINISHED;
@@ -728,7 +728,7 @@ static void pose_copy_menu(Scene *scene)
 			BKE_pose_tag_recalc(bmain, ob->pose);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA); // and all its relations
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY); // and all its relations
 
 	BIF_undo_push("Copy Pose Attributes");
 
@@ -760,7 +760,7 @@ static int pose_flip_names_exec(bContext *C, wmOperator *op)
 		BLI_freelistN(&bones_names);
 
 		/* since we renamed stuff... */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 		/* note, notifier might evolve */
 		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -809,7 +809,7 @@ static int pose_autoside_names_exec(bContext *C, wmOperator *op)
 
 		if (ob_prev != ob) {
 			/* since we renamed stuff... */
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 			/* note, notifier might evolve */
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -861,7 +861,7 @@ static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 
 		if (prev_ob != ob) {
 			/* Notifiers and updates. */
-			DEG_id_tag_update((ID *)ob, OB_RECALC_DATA);
+			DEG_id_tag_update((ID *)ob, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 			prev_ob = ob;
@@ -946,7 +946,7 @@ static int pose_armature_layers_showall_exec(bContext *C, wmOperator *op)
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1014,7 +1014,7 @@ static int armature_layers_exec(bContext *C, wmOperator *op)
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1085,7 +1085,7 @@ static int pose_bone_layers_exec(bContext *C, wmOperator *op)
 		if (prev_ob != ob) {
 			/* Note, notifier might evolve. */
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-			DEG_id_tag_update((ID *)ob->data, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update((ID *)ob->data, ID_RECALC_COPY_ON_WRITE);
 			prev_ob = ob;
 		}
 	}
@@ -1229,7 +1229,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 		if (changed) {
 			changed_multi = true;
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
-			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 	MEM_freeN(objects);
@@ -1292,7 +1292,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 		if (changed) {
 			changed_multi = true;
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
-			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 	MEM_freeN(objects);
@@ -1346,7 +1346,7 @@ static int pose_flip_quats_exec(bContext *C, wmOperator *UNUSED(op))
 		if (changed) {
 			changed_multi = true;
 			/* notifiers and updates */
-			DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
 		}
 	} FOREACH_OBJECT_IN_MODE_END;

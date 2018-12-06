@@ -426,8 +426,8 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	/* free temp data */
 	MEM_SAFE_FREE(points2D);
 
-	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 }
 
@@ -478,7 +478,7 @@ static void gpencil_primitive_exit(bContext *C, wmOperator *op)
 		MEM_freeN(tgpi->gpf);
 		MEM_freeN(tgpi);
 	}
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 
 	/* clear pointer */
@@ -576,7 +576,7 @@ static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 	/* update sindicator in header */
 	gpencil_primitive_status_indicators(C, tgpi);
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 
 	/* add a modal handler for this operator */
@@ -628,8 +628,8 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 		}
 	}
 
-	DEG_id_tag_update(&tgpi->gpd->id, DEG_TAG_COPY_ON_WRITE);
-	DEG_id_tag_update(&tgpi->gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);
+	DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 	/* clean up temp data */
 	gpencil_primitive_exit(C, op);

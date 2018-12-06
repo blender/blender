@@ -2077,7 +2077,7 @@ void RE_RenderFreestyleExternal(Render *re)
 				RE_SetView(re, mat);
 
 				/* force correct matrix for scaled cameras */
-				DEG_id_tag_update_ex(re->main, &camera->id, OB_RECALC_OB);
+				DEG_id_tag_update_ex(re->main, &camera->id, ID_RECALC_TRANSFORM);
 			}
 
 			printf("add freestyle\n");

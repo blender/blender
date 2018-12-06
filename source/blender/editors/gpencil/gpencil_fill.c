@@ -1099,7 +1099,7 @@ static void gpencil_fill_exit(bContext *C, wmOperator *op)
 	/* drawing batch cache is dirty now */
 	if ((ob) && (ob->type == OB_GPENCIL) && (ob->data)) {
 		bGPdata *gpd2 = ob->data;
-		DEG_id_tag_update(&gpd2->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&gpd2->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		gpd2->flag |= GP_DATA_CACHE_IS_DIRTY;
 	}
 
@@ -1160,7 +1160,7 @@ static int gpencil_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 
 	gpencil_fill_status_indicators(C, tgpf);
 
-	DEG_id_tag_update(&tgpf->gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&tgpf->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 
 	/* add a modal handler for this operator*/

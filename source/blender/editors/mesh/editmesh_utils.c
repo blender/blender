@@ -174,7 +174,7 @@ bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool
 		}
 
 		if (em->ob) {
-			DEG_id_tag_update(&((Mesh *)em->ob->data)->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&((Mesh *)em->ob->data)->id, ID_RECALC_COPY_ON_WRITE);
 		}
 
 		return false;
@@ -1333,7 +1333,7 @@ void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_d
 {
 	Object *ob = em->ob;
 	/* order of calling isn't important */
-	DEG_id_tag_update(ob->data, OB_RECALC_DATA);
+	DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
 
 	if (do_tessface) {

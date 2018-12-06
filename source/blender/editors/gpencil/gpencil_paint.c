@@ -208,7 +208,7 @@ typedef struct tGPsdata {
 static void gp_update_cache(bGPdata *gpd)
 {
 	if (gpd) {
-		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 		gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 	}
 }
@@ -1710,7 +1710,7 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 	 * Maybe this update can be removed when the new tool system
 	 * will be in place, but while, we need this to keep drawing working.
 	 */
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 

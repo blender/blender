@@ -864,7 +864,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (ob = bmain->object.first; ob; ob = ob->id.next) {
 				for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 					if ((psys->pointcache->flag & PTCACHE_BAKED) == 0) {
-						psys->recalc |= PSYS_RECALC_RESET;
+						psys->recalc |= ID_RECALC_PSYS_RESET;
 					}
 				}
 			}

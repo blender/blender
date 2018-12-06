@@ -199,7 +199,7 @@ static void mball_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UN
 			continue;
 		}
 		undomball_to_editmball(&elem->data, mb);
-		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
 	}
 
 	/* The first element is always active */

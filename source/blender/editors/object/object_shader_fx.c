@@ -99,9 +99,9 @@ ShaderFxData *ED_object_shaderfx_add(ReportList *reports, Main *bmain, Scene *UN
 	BKE_shaderfx_unique_name(&ob->shader_fx, new_fx);
 
 	bGPdata *gpd = ob->data;
-	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 
 	return new_fx;
@@ -155,7 +155,7 @@ bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, Sha
 		return 0;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 
 	return 1;
@@ -179,7 +179,7 @@ void ED_object_shaderfx_clear(Main *bmain, Object *ob)
 		fx = next_fx;
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	DEG_relations_tag_update(bmain);
 }
 
@@ -401,7 +401,7 @@ static int shaderfx_move_up_exec(bContext *C, wmOperator *op)
 	if (!fx || !ED_object_shaderfx_move_up(op->reports, ob, fx))
 		return OPERATOR_CANCELLED;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
@@ -440,7 +440,7 @@ static int shaderfx_move_down_exec(bContext *C, wmOperator *op)
 	if (!fx || !ED_object_shaderfx_move_down(op->reports, ob, fx))
 		return OPERATOR_CANCELLED;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;

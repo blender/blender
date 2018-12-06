@@ -204,7 +204,7 @@ static int collection_new_exec(bContext *C, wmOperator *op)
 	            data.collection,
 	            NULL);
 
-	DEG_id_tag_update(&data.collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&data.collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 
 	outliner_cleanup_tree(soops);
@@ -288,7 +288,7 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 
 	BLI_gset_free(data.collections_to_edit, NULL);
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
@@ -365,7 +365,7 @@ static int collection_objects_select_exec(bContext *C, wmOperator *op)
 	BKE_layer_collection_objects_select(view_layer, layer_collection, deselect);
 
 	Scene *scene = CTX_data_scene(C);
-	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
@@ -505,7 +505,7 @@ static int collection_link_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_gset_free(data.collections_to_edit, NULL);
 
-	DEG_id_tag_update(&active_collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&active_collection->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);

@@ -123,7 +123,7 @@ static void rna_Pose_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 {
 	/* XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK); */
 
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
 }
 
@@ -131,7 +131,7 @@ static void rna_Pose_dependency_update(Main *bmain, Scene *UNUSED(scene), Pointe
 {
 	DEG_relations_tag_update(bmain);
 
-	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	DEG_id_tag_update(ptr->id.data, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
 }
 
@@ -140,7 +140,7 @@ static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	/* XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK); */
 	Object *ob = ptr->id.data;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
 
 	BIK_clear_data(ob->pose);
@@ -253,7 +253,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *UNUSED(scene), Pointer
 
 	object_test_constraints(bmain, ob);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
 }
 
 /* rotation - axis-angle */
@@ -365,7 +365,7 @@ static void rna_Itasc_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 		itasc->maxvel = 100.f;
 	BIK_update_param(ob->pose);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
 static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)

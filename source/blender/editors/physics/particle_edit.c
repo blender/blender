@@ -1385,7 +1385,7 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
 		point->flag &= ~PEP_EDIT_RECALC;
 	}
 
-	DEG_id_tag_update(&ob->id, DEG_TAG_SELECT_UPDATE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
 }
 
 void update_world_cos(Depsgraph *UNUSED(depsgraph), Object *ob, PTCacheEdit *edit)
@@ -2827,7 +2827,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d double particles", totremoved);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2879,7 +2879,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2994,7 +2994,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		recalc_lengths(data.edit);
 	}
 
-	DEG_id_tag_update(&data.ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&data.ob->id, ID_RECALC_GEOMETRY);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -3180,7 +3180,7 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 
 	update_world_cos(CTX_data_depsgraph(C), ob, edit);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
 	return OPERATOR_FINISHED;
 }
@@ -4300,7 +4300,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 				update_world_cos(depsgraph, ob, edit);
 				psys_free_path_cache(NULL, edit);
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 			else {
 				PE_update_object(depsgraph, scene, ob, 1);
@@ -4310,10 +4310,10 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		if (edit->psys) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
 			BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
-			DEG_id_tag_update(&ob->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
 		}
 		else {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 		}
 
@@ -4570,7 +4570,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 		if (removed) {
 			update_world_cos(depsgraph, ob, edit);
 			psys_free_path_cache(NULL, edit);
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 		else {
 			PE_update_object(data.depsgraph, scene, ob, 1);
@@ -4579,10 +4579,10 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 		if (edit->psys) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
 			BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
-			DEG_id_tag_update(&ob->id, DEG_TAG_SELECT_UPDATE);
+			DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
 		}
 		else {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 		}
 
@@ -4854,7 +4854,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	}
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
 	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
@@ -4893,21 +4893,21 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 			psys->edit = NULL;
 			psys->free_edit = NULL;
 
-			psys->recalc |= PSYS_RECALC_RESET;
+			psys->recalc |= ID_RECALC_PSYS_RESET;
 			psys->flag &= ~PSYS_GLOBAL_HAIR;
 			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
 			WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
 	}
 	else { /* some operation might have protected hair from editing so let's clear the flag */
-		psys->recalc |= PSYS_RECALC_RESET;
+		psys->recalc |= ID_RECALC_PSYS_RESET;
 		psys->flag &= ~PSYS_GLOBAL_HAIR;
 		psys->flag &= ~PSYS_EDITED;
 		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 
 	return OPERATOR_FINISHED;
@@ -5025,7 +5025,7 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
 		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
 	}
 	else {
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	}
 

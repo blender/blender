@@ -163,7 +163,7 @@ static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *pt
 		Tex *tex = ptr->id.data;
 
 		DEG_id_tag_update(&tex->id, 0);
-		DEG_id_tag_update(&tex->id, DEG_TAG_EDITORS_UPDATE);
+		DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
 		WM_main_add_notifier(NC_TEXTURE, tex);
 		WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, NULL);
 	}
@@ -191,7 +191,7 @@ static void rna_Texture_nodes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	Tex *tex = ptr->id.data;
 
 	DEG_id_tag_update(&tex->id, 0);
-	DEG_id_tag_update(&tex->id, DEG_TAG_EDITORS_UPDATE);
+	DEG_id_tag_update(&tex->id, ID_RECALC_EDITORS);
 	WM_main_add_notifier(NC_TEXTURE | ND_NODES, tex);
 }
 
@@ -235,12 +235,12 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 		case ID_PA:
 		{
 			MTex *mtex = ptr->data;
-			int recalc = OB_RECALC_DATA;
+			int recalc = ID_RECALC_GEOMETRY;
 
 			if (mtex->mapto & PAMAP_INIT)
-				recalc |= PSYS_RECALC_RESET;
+				recalc |= ID_RECALC_PSYS_RESET;
 			if (mtex->mapto & PAMAP_CHILD)
-				recalc |= PSYS_RECALC_CHILD;
+				recalc |= ID_RECALC_PSYS_CHILD;
 
 			DEG_id_tag_update(id, recalc);
 			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);

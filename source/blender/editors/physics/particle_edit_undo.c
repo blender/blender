@@ -260,7 +260,7 @@ static void particle_undosys_step_decode(struct bContext *C, UndoStep *us_p, int
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	if (edit) {
 		undoptcache_to_editcache(&us->data, edit);
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 	}
 	else {
 		BLI_assert(0);

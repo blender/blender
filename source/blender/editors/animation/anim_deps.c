@@ -78,15 +78,15 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 	adt = BKE_animdata_from_id(id);
 	if (adt) {
 		adt->recalc |= ADT_RECALC_ANIM;
-		DEG_id_tag_update(id, OB_RECALC_TIME);
+		DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 		if (adt->action != NULL) {
-			DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
 		}
 	}
 
 	/* Tag copy on the main object if updating anything directly inside AnimData */
 	if (ELEM(ale->type, ANIMTYPE_ANIMDATA, ANIMTYPE_NLAACTION, ANIMTYPE_NLATRACK, ANIMTYPE_NLACURVE)) {
-		DEG_id_tag_update(id, DEG_TAG_TIME | DEG_TAG_COPY_ON_WRITE);
+		DEG_id_tag_update(id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 		return;
 	}
 
@@ -108,7 +108,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 	else {
 		/* in other case we do standard depsgraph update, ideally
 		 * we'd be calling property update functions here too ... */
-		DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
+		DEG_id_tag_update(id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -124,7 +124,7 @@ void ANIM_id_update(Main *bmain, ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 
 		/* set recalc flags */
-		DEG_id_tag_update_ex(bmain, id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
+		DEG_id_tag_update_ex(bmain, id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION); // XXX or do we want something more restrictive?
 	}
 }
 

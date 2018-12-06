@@ -141,7 +141,7 @@ static void deformVerts(
 	}
 	else {
 		/* no dm before, so recalc particles fully */
-		psys->recalc |= PSYS_RECALC_RESET;
+		psys->recalc |= ID_RECALC_PSYS_RESET;
 	}
 
 	/* make new mesh */
@@ -192,7 +192,7 @@ static void deformVerts(
 	    psmd->mesh_final->totedge != psmd->totdmedge ||
 	    psmd->mesh_final->totface != psmd->totdmface)
 	{
-		psys->recalc |= PSYS_RECALC_RESET;
+		psys->recalc |= ID_RECALC_PSYS_RESET;
 
 		psmd->totdmvert = psmd->mesh_final->totvert;
 		psmd->totdmedge = psmd->mesh_final->totedge;

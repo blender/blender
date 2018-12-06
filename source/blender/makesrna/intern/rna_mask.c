@@ -449,7 +449,7 @@ static void rna_MaskLayer_spline_remove(ID *id, MaskLayer *mask_layer, ReportLis
 
 	RNA_POINTER_INVALIDATE(spline_ptr);
 
-	DEG_id_tag_update(&mask->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 }
 
 static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)

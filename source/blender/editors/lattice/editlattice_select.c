@@ -122,7 +122,7 @@ static int lattice_select_random_exec(bContext *C, wmOperator *op)
 
 		BLI_rng_free(rng);
 
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	}
@@ -214,7 +214,7 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
 		}
 
 		/* TODO, only notify changes */
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -308,7 +308,7 @@ static int lattice_select_more_less(bContext *C, const bool select)
 		MEM_freeN(selpoints);
 
 		changed = true;
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -428,7 +428,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 				}
 				break;
 		}
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -495,7 +495,7 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 		}
 
 		changed = true;
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	MEM_freeN(objects);
@@ -605,7 +605,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool de
 				Object *ob = objects[ob_index];
 				ED_lattice_flags_set(ob, 0);
 
-				DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+				DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 			}
 			MEM_freeN(objects);
@@ -636,7 +636,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool de
 			ED_object_base_activate(C, basact);
 		}
 
-		DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
+		DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
 		return true;
