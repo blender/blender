@@ -204,8 +204,8 @@ class EEVEE_MATERIAL_PT_volume(MaterialButtonsPanel, Panel):
         panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Volume")
 
 
-class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
-    bl_label = "Options"
+class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
+    bl_label = "Settings"
     bl_context = "material"
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
@@ -214,11 +214,10 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         engine = context.engine
         return context.material and (engine in cls.COMPAT_ENGINES)
 
-    def draw(self, context):
+    @staticmethod
+    def draw_shared(self, mat):
         layout = self.layout
         layout.use_property_split = True
-
-        mat = context.material
 
         layout.prop(mat, "blend_method")
 
@@ -236,6 +235,9 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         layout.prop(mat, "refraction_depth")
         layout.prop(mat, "use_sss_translucency")
 
+    def draw(self, context):
+        self.draw_shared(self, context.material)
+
 
 class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
     bl_label = "Viewport Display"
@@ -246,9 +248,8 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
     def poll(cls, context):
         return context.material
 
-    def draw(self, context):
-        mat = context.material
-
+    @staticmethod
+    def draw_shared(self, mat):
         layout = self.layout
         layout.use_property_split = True
 
@@ -256,6 +257,9 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
         col.prop(mat, "diffuse_color", text="Color")
         col.prop(mat, "metallic")
         col.prop(mat, "roughness")
+
+    def draw(self, context):
+        self.draw_shared(self, context.material)
 
 
 classes = (
@@ -265,7 +269,7 @@ classes = (
     EEVEE_MATERIAL_PT_context_material,
     EEVEE_MATERIAL_PT_surface,
     EEVEE_MATERIAL_PT_volume,
-    EEVEE_MATERIAL_PT_options,
+    EEVEE_MATERIAL_PT_settings,
     MATERIAL_PT_viewport,
     MATERIAL_PT_custom_props,
 )

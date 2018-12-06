@@ -54,6 +54,16 @@ class CyclesButtonsPanel:
         return context.engine in cls.COMPAT_ENGINES
 
 
+class CyclesNodeButtonsPanel:
+    bl_space_type = "NODE_EDITOR"
+    bl_region_type = "UI"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.engine in cls.COMPAT_ENGINES
+
+
 def get_device_type(context):
     return context.user_preferences.addons[__package__].preferences.compute_device_type
 
@@ -1668,14 +1678,16 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         return context.material and CyclesButtonsPanel.poll(context)
 
-    def draw(self, context):
+    @staticmethod
+    def draw_shared(self, mat):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        mat = context.material
-
         layout.prop(mat, "pass_index")
+
+    def draw(self, context):
+        self.draw_shared(self, context.material)
 
 
 class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
@@ -1683,16 +1695,12 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
     bl_parent_id = "CYCLES_MATERIAL_PT_settings"
     bl_context = "material"
 
-    @classmethod
-    def poll(cls, context):
-        return context.material and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
+    @staticmethod
+    def draw_shared(self, mat):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        mat = context.material
         cmat = mat.cycles
 
         col = layout.column()
@@ -1700,22 +1708,21 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
         col.prop(cmat, "use_transparent_shadow")
         col.prop(cmat, "displacement_method", text="Displacement Method")
 
+    def draw(self, context):
+        self.draw_shared(self, context.material)
+
 
 class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_parent_id = "CYCLES_MATERIAL_PT_settings"
     bl_context = "material"
 
-    @classmethod
-    def poll(cls, context):
-        return context.material and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
+    @staticmethod
+    def draw_shared(self, context, mat):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        mat = context.material
         cmat = mat.cycles
 
         col = layout.column()
@@ -1724,6 +1731,9 @@ class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
         sub.prop(cmat, "volume_sampling", text="Sampling")
         col.prop(cmat, "volume_interpolation", text="Interpolation")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
+
+    def draw(self, context):
+        self.draw_shared(self, context, context.material)
 
 
 class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
@@ -1959,6 +1969,42 @@ class CYCLES_RENDER_PT_simplify_culling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "distance_cull_margin", text="Distance")
 
 
+class CYCLES_NODE_PT_settings(CyclesNodeButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_category = "Node"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return CyclesNodeButtonsPanel.poll(context) and \
+               snode.tree_type == 'ShaderNodeTree' and snode.id
+
+    def draw(self, context):
+        material = context.space_data.id
+        CYCLES_MATERIAL_PT_settings.draw_shared(self, material)
+
+
+class CYCLES_NODE_PT_settings_surface(CyclesNodeButtonsPanel, Panel):
+    bl_label = "Surface"
+    bl_category = "Node"
+    bl_parent_id = "CYCLES_NODE_PT_settings"
+
+    def draw(self, context):
+        material = context.space_data.id
+        CYCLES_MATERIAL_PT_settings_surface.draw_shared(self, material)
+
+
+class CYCLES_NODE_PT_settings_volume(CyclesNodeButtonsPanel, Panel):
+    bl_label = "Volume"
+    bl_category = "Node"
+    bl_parent_id = "CYCLES_NODE_PT_settings"
+
+    def draw(self, context):
+        material = context.space_data.id
+        CYCLES_MATERIAL_PT_settings_volume.draw_shared(self, context, material)
+
+
 def draw_device(self, context):
     scene = context.scene
     layout = self.layout
@@ -2087,6 +2133,9 @@ classes = (
     CYCLES_MATERIAL_PT_settings_volume,
     CYCLES_RENDER_PT_bake,
     CYCLES_RENDER_PT_debug,
+    CYCLES_NODE_PT_settings,
+    CYCLES_NODE_PT_settings_surface,
+    CYCLES_NODE_PT_settings_volume,
 )
 
 

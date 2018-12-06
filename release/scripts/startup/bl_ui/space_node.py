@@ -27,6 +27,10 @@ from .properties_grease_pencil_common import (
     AnnotationDataPanel,
     GreasePencilToolsPanel,
 )
+from .properties_material import (
+    EEVEE_MATERIAL_PT_settings,
+    MATERIAL_PT_viewport
+)
 
 
 class NODE_HT_header(Header):
@@ -552,6 +556,41 @@ class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
     # toolbar, but which may not necessarily be open
 
 
+class EEVEE_NODE_PT_material_settings(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Node"
+    bl_label = "Settings"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (context.engine in cls.COMPAT_ENGINES) and \
+               snode.tree_type == 'ShaderNodeTree' and snode.id
+
+    def draw(self, context):
+        material = context.space_data.id
+        EEVEE_MATERIAL_PT_settings.draw_shared(self, material)
+
+
+class NODE_PT_material_viewport(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Node"
+    bl_label = "Viewport Display"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return snode.tree_type == 'ShaderNodeTree' and snode.id
+
+    def draw(self, context):
+        material = context.space_data.id
+        MATERIAL_PT_viewport.draw_shared(self, material)
+
+
 def node_draw_tree_view(layout, context):
     pass
 
@@ -574,6 +613,8 @@ classes = (
     NODE_UL_interface_sockets,
     NODE_PT_grease_pencil,
     NODE_PT_grease_pencil_tools,
+    EEVEE_NODE_PT_material_settings,
+    NODE_PT_material_viewport,
 )
 
 
