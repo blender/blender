@@ -91,6 +91,7 @@
 void ED_editors_init(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 
 	if (wm->undo_stack == NULL) {
@@ -122,7 +123,15 @@ void ED_editors_init(bContext *C)
 					ID *data = ob->data;
 					ob->mode = OB_MODE_OBJECT;
 					if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
-						ED_object_mode_toggle(C, mode);
+						if (mode == OB_MODE_EDIT) {
+							ED_object_editmode_enter_ex(bmain, scene, ob, 0);
+						}
+						else if (mode == OB_MODE_POSE) {
+							ED_object_posemode_enter_ex(bmain, ob);
+						}
+						else {
+							ED_object_mode_toggle(C, mode);
+						}
 					}
 				}
 			}
@@ -130,11 +139,8 @@ void ED_editors_init(bContext *C)
 	}
 
 	/* image editor paint mode */
-	{
-		Scene *sce = CTX_data_scene(C);
-		if (sce) {
-			ED_space_image_paint_update(bmain, wm, sce);
-		}
+	if (scene) {
+		ED_space_image_paint_update(bmain, wm, scene);
 	}
 
 	SWAP(int, reports->flag, reports_flag_prev);
