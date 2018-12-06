@@ -356,6 +356,19 @@ void drw_state_set(DRWState state)
 		}
 	}
 
+	/* Provoking Vertex */
+	{
+		int test;
+		if ((test = CHANGED_TO(DRW_STATE_FIRST_VERTEX_CONVENTION))) {
+			if (test == 1) {
+				glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
+			}
+			else {
+				glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
+			}
+		}
+	}
+
 #undef CHANGED_TO
 #undef CHANGED_ANY
 #undef CHANGED_ANY_STORE_VAR
