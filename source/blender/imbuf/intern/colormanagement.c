@@ -930,23 +930,33 @@ static OCIO_ConstProcessorRcPtr *display_to_scene_linear_processor(ColorManagedD
 	return (OCIO_ConstProcessorRcPtr *) display->to_scene_linear;
 }
 
-static void init_render_view_settings(const ColorManagedDisplaySettings *display_settings,
-                                      ColorManagedViewSettings *view_settings)
+void IMB_colormanagement_init_default_view_settings(
+        ColorManagedViewSettings *view_settings,
+        const ColorManagedDisplaySettings *display_settings)
 {
-	ColorManagedDisplay *display;
-	ColorManagedView *default_view = NULL;
-
-	display = colormanage_display_get_named(display_settings->display_device);
-
-	if (display)
-		default_view = colormanage_view_get_default(display);
-
-	if (default_view)
-		BLI_strncpy(view_settings->view_transform, default_view->name, sizeof(view_settings->view_transform));
-	else
+	/* First, try use "Default" view transform of the requested device. */
+	ColorManagedView *default_view = colormanage_view_get_named_for_display(
+	        display_settings->display_device, "Default");
+	/* If that fails, we fall back to the default view transform of the display
+	 * as per OCIO configuration. */
+	if (default_view == NULL) {
+		ColorManagedDisplay *display = colormanage_display_get_named(
+		        display_settings->display_device);
+		if (display != NULL) {
+			default_view = colormanage_view_get_default(display);
+		}
+	}
+	if (default_view != NULL) {
+		BLI_strncpy(view_settings->view_transform,
+		            default_view->name,
+		            sizeof(view_settings->view_transform));
+	}
+	else {
 		view_settings->view_transform[0] = '\0';
-
+	}
+	/* TODO(sergey): Find a way to safely/reliable un-hardcode this. */
 	BLI_strncpy(view_settings->look, "None", sizeof(view_settings->look));
+	/* Initialize rest of the settings. */
 	view_settings->flag = 0;
 	view_settings->gamma = 1.0f;
 	view_settings->exposure = 0.0f;
@@ -2138,11 +2148,10 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		applied_view_settings = view_settings;
 	}
 	else {
-		/* if no view settings were specified, use default display transformation
-		 * this happens for images which don't want to be displayed with render settings
-		 */
-
-		init_render_view_settings(display_settings,  &default_view_settings);
+		/* If no view settings were specified, use default ones, which will
+		 * attempt not to do any extra color correction. */
+		IMB_colormanagement_init_default_view_settings(
+		        &default_view_settings, display_settings);
 		applied_view_settings = &default_view_settings;
 	}
 
@@ -2425,6 +2434,22 @@ ColorManagedView *colormanage_view_get_indexed(int index)
 {
 	/* view transform indices are 1-based */
 	return BLI_findlink(&global_views, index - 1);
+}
+
+ColorManagedView *colormanage_view_get_named_for_display(
+        const char *display_name, const char *name)
+{
+	ColorManagedDisplay *display = colormanage_display_get_named(display_name);
+	if (display == NULL) {
+		return NULL;
+	}
+	LISTBASE_FOREACH(LinkData *, view_link, &display->views) {
+		ColorManagedView *view = view_link->data;
+		if (STRCASEEQ(name, view->name)) {
+			return view;
+		}
+	}
+	return NULL;
 }
 
 int IMB_colormanagement_view_get_named_index(const char *name)
@@ -3144,7 +3169,8 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 		applied_view_settings = view_settings;
 	}
 	else {
-		init_render_view_settings(display_settings,  &default_view_settings);
+		IMB_colormanagement_init_default_view_settings(
+		        &default_view_settings, display_settings);
 		applied_view_settings = &default_view_settings;
 	}
 
@@ -3441,11 +3467,10 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSettin
 		applied_view_settings = view_settings;
 	}
 	else {
-		/* if no view settings were specified, use default display transformation
-		 * this happens for images which don't want to be displayed with render settings
-		 */
-
-		init_render_view_settings(display_settings,  &default_view_settings);
+		/* If no view settings were specified, use default ones, which will
+		 * attempt not to do any extra color correction. */
+		IMB_colormanagement_init_default_view_settings(
+		        &default_view_settings, display_settings);
 		applied_view_settings = &default_view_settings;
 	}
 

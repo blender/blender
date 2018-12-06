@@ -107,6 +107,12 @@ void BKE_color_managed_view_settings_init_render(
         struct ColorManagedViewSettings *settings,
         const struct ColorManagedDisplaySettings *display_settings);
 
+/* Initialize view settings which are best suitable for viewing non-render
+ * images. For example,s movie clips while tracking. */
+void BKE_color_managed_view_settings_init_default(
+        struct ColorManagedViewSettings *settings,
+        const struct ColorManagedDisplaySettings *display_settings);
+
 void BKE_color_managed_view_settings_copy(
         struct ColorManagedViewSettings *new_settings,
         const struct ColorManagedViewSettings *settings);

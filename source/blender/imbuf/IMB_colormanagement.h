@@ -222,6 +222,11 @@ bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const struct bContext *C
 /* Finish GLSL-based display space conversion */
 void IMB_colormanagement_finish_glsl_draw(void);
 
+/* ** View transform ** */
+void IMB_colormanagement_init_default_view_settings(
+        struct ColorManagedViewSettings *view_settings,
+        const struct ColorManagedDisplaySettings *display_settings);
+
 /* Roles */
 enum {
 	COLOR_ROLE_SCENE_LINEAR = 0,

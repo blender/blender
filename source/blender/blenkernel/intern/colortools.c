@@ -1588,6 +1588,14 @@ void BKE_color_managed_view_settings_init_render(
 	view_settings->exposure = 0.0f;
 }
 
+void BKE_color_managed_view_settings_init_default(
+        struct ColorManagedViewSettings *view_settings,
+        const struct ColorManagedDisplaySettings *display_settings)
+{
+	IMB_colormanagement_init_default_view_settings(
+	        view_settings, display_settings);
+}
+
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings)
 {

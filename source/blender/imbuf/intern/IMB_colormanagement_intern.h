@@ -103,6 +103,8 @@ struct ColorManagedView *colormanage_view_get_default(const ColorManagedDisplay 
 struct ColorManagedView *colormanage_view_add(const char *name);
 struct ColorManagedView *colormanage_view_get_indexed(int index);
 struct ColorManagedView *colormanage_view_get_named(const char *name);
+struct ColorManagedView *colormanage_view_get_named_for_display(
+        const char *display_name, const char *name);
 
 struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, bool is_invertible, bool is_data);
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
