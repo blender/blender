@@ -1566,7 +1566,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
 				}
 			}
 		}
-		tool = (max[0] - min[0] >= max[1] - min[1]) ? 'y' : 'x';
+		tool = (max[0] - min[0] >= max[1] - min[1]) ? UV_ALIGN_Y : UV_ALIGN_X;
 	}
 
 	ED_uvedit_center_multi(scene, ima, objects, objects_len, cent, 0);
