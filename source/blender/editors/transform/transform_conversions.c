@@ -2711,9 +2711,15 @@ static void createTransEditVerts(TransInfo *t)
 		if (modifiers_getCageIndex(t->scene, tc->obedit, NULL, 1) != -1) {
 			int totleft = -1;
 			if (modifiers_isCorrectableDeformed(t->scene, tc->obedit)) {
+				/* Use evaluated state because we need b-bone cache. */
+				Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
+				Object *obedit_eval = (Object *)DEG_get_evaluated_id(t->depsgraph, &tc->obedit->id);
+				BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
 				/* check if we can use deform matrices for modifier from the
 				 * start up to stack, they are more accurate than quats */
-				totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(t->depsgraph, t->scene, tc->obedit, em, &defmats, &defcos);
+				totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
+				        t->depsgraph, scene_eval, obedit_eval, em_eval,
+				        &defmats, &defcos);
 			}
 
 			/* if we still have more modifiers, also do crazyspace

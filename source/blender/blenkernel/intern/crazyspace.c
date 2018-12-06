@@ -119,7 +119,7 @@ float (*BKE_crazyspace_get_mapped_editverts(
 	/* now get the cage */
 	vertexcos = MEM_mallocN(sizeof(*vertexcos) * nverts, "vertexcos map");
 
-	me_eval = editbmesh_get_eval_cage(depsgraph, scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
+	me_eval = editbmesh_get_eval_cage_from_orig(depsgraph, scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
 	mesh_get_mapped_verts_coords(me_eval, vertexcos, nverts);
 
