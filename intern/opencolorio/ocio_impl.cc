@@ -213,21 +213,24 @@ const char *OCIOImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config)
 	if (getenv("OCIO_ACTIVE_DISPLAYS") == NULL) {
 		const char *active_displays =
 		        (*(ConstConfigRcPtr *) config)->getActiveDisplays();
-		const char *separator_pos = strchr(active_displays, ',');
-		if (separator_pos == NULL) {
-			return active_displays;
+		if (active_displays[0] != '\0') {
+			const char *separator_pos = strchr(active_displays, ',');
+			if (separator_pos == NULL) {
+				return active_displays;
+			}
+			static std::string active_display;
+			/* NOTE: Configuration is shared and is never changed during
+			 * runtime, so we only guarantee two threads don't initialize at the
+			 * same. */
+			static std::mutex mutex;
+			mutex.lock();
+			if (active_display.empty()) {
+				active_display = active_displays;
+				active_display[separator_pos - active_displays] = '\0';
+			}
+			mutex.unlock();
+			return active_display.c_str();
 		}
-		static std::string active_display;
-		/* NOTE: Configuration is shared and is never changed during runtime,
-		 * so we only guarantee two threads don't initialize at the same. */
-		static std::mutex mutex;
-		mutex.lock();
-		if (active_display.empty()) {
-			active_display = active_displays;
-			active_display[separator_pos - active_displays] = '\0';
-		}
-		mutex.unlock();
-		return active_display.c_str();
 	}
 #endif
 
@@ -273,21 +276,23 @@ const char *OCIOImpl::configGetDefaultView(OCIO_ConstConfigRcPtr *config, const 
 	if (getenv("OCIO_ACTIVE_VIEWS") == NULL) {
 		const char *active_views =
 		        (*(ConstConfigRcPtr *) config)->getActiveViews();
-		const char *separator_pos = strchr(active_views, ',');
-		if (separator_pos == NULL) {
-			return active_views;
+		if (active_views[0] != '\0') {
+			const char *separator_pos = strchr(active_views, ',');
+			if (separator_pos == NULL) {
+				return active_views;
+			}
+			static std::string active_view;
+			/* NOTE: Configuration is shared and is never changed during runtime,
+			* so we only guarantee two threads don't initialize at the same. */
+			static std::mutex mutex;
+			mutex.lock();
+			if (active_view.empty()) {
+				active_view = active_views;
+				active_view[separator_pos - active_views] = '\0';
+			}
+			mutex.unlock();
+			return active_view.c_str();
 		}
-		static std::string active_view;
-		/* NOTE: Configuration is shared and is never changed during runtime,
-		 * so we only guarantee two threads don't initialize at the same. */
-		static std::mutex mutex;
-		mutex.lock();
-		if (active_view.empty()) {
-			active_view = active_views;
-			active_view[separator_pos - active_views] = '\0';
-		}
-		mutex.unlock();
-		return active_view.c_str();
 	}
 #endif
 	try {
