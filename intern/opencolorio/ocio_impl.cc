@@ -64,7 +64,16 @@ using namespace OCIO_NAMESPACE;
  * For until then we use first usable display instead. */
 #define DEFAULT_DISPLAY_WORKAROUND
 #ifdef DEFAULT_DISPLAY_WORKAROUND
+#  include <algorithm>
+#  include <map>
 #  include <mutex>
+#  include <vector>
+#  include <string>
+#  include <set>
+using std::vector;
+using std::set;
+using std::string;
+using std::map;
 #endif
 
 static void OCIO_reportError(const char *err)
@@ -268,30 +277,89 @@ const char *OCIOImpl::configGetDisplay(OCIO_ConstConfigRcPtr *config, int index)
 	return NULL;
 }
 
+#ifdef DEFAULT_DISPLAY_WORKAROUND
+namespace {
+
+void splitStringEnvStyle(vector<string>* tokens, const string& str)
+{
+	tokens->clear();
+	const int len = str.length();
+	int token_start = 0, token_length = 0;
+	for (int i = 0; i < len; ++i) {
+		const char ch = str[i];
+		if (ch != ',' && ch != ':') {
+			/* Append non-separator char to a token. */
+			++token_length;
+		} else {
+			/* Append current token to the list (if any). */
+			if (token_length > 0) {
+				string token = str.substr(token_start, token_length);
+				tokens->push_back(token);
+			}
+			/* Re-set token pointers. */
+			token_start = i + 1;
+			token_length = 0;
+		}
+	}
+	/* Append token which might be at the end of the string. */
+	if (token_length != 0) {
+		string token = str.substr(token_start, token_length);
+		tokens->push_back(token);
+	}
+}
+
+string stringToLower(const string& str) {
+	string lower = str;
+	std::transform(lower.begin(), lower.end(), lower.begin(), tolower);
+	return lower;
+}
+
+}  // namespace
+#endif
+
 const char *OCIOImpl::configGetDefaultView(OCIO_ConstConfigRcPtr *config, const char *display)
 {
 #ifdef DEFAULT_DISPLAY_WORKAROUND
 	/* NOTE: We assume that first active view always exists for a default
 	 * display. */
 	if (getenv("OCIO_ACTIVE_VIEWS") == NULL) {
-		const char *active_views =
-		        (*(ConstConfigRcPtr *) config)->getActiveViews();
-		if (active_views[0] != '\0') {
-			const char *separator_pos = strchr(active_views, ',');
-			if (separator_pos == NULL) {
-				return active_views;
-			}
-			static std::string active_view;
-			/* NOTE: Configuration is shared and is never changed during runtime,
-			* so we only guarantee two threads don't initialize at the same. */
+		ConstConfigRcPtr config_ptr = *((ConstConfigRcPtr *) config);
+		const char *active_views_encoded = config_ptr->getActiveViews();
+		if (active_views_encoded[0] != '\0') {
+			const string display_lower = stringToLower(display);
+			static map<string, string> default_display_views;
 			static std::mutex mutex;
 			mutex.lock();
-			if (active_view.empty()) {
-				active_view = active_views;
-				active_view[separator_pos - active_views] = '\0';
+			/* Check if the view is already known. */
+			map<string, string>::const_iterator it =
+			        default_display_views.find(display_lower);
+			if (it != default_display_views.end()) {
+				mutex.unlock();
+				return it->second.c_str();
+			}
+			/* Active views. */
+			vector<string> active_views;
+			splitStringEnvStyle(&active_views, active_views_encoded);
+			/* Get all views supported by tge display. */
+			set<string> display_views;
+			const int num_display_views = config_ptr->getNumViews(display);
+			for (int view_index = 0;
+			     view_index < num_display_views;
+			     ++view_index)
+			{
+				const char *view = config_ptr->getView(display, view_index);
+				display_views.insert(stringToLower(view));
+			}
+			/* Get first view which is supported by tge display. */
+			for (const string& view : active_views) {
+				const string view_lower = stringToLower(view);
+				if (display_views.find(view_lower) != display_views.end()) {
+					default_display_views[display_lower] = view;
+					mutex.unlock();
+					return default_display_views[display_lower].c_str();
+				}
 			}
 			mutex.unlock();
-			return active_view.c_str();
 		}
 	}
 #endif
