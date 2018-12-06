@@ -52,29 +52,6 @@ using Alembic::Abc::V2fArraySample;
 using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::OC4fGeomParam;
 
-
-typedef std::unordered_map<uint64_t, int> uv_index_map;
-
-static inline uint64_t uv_to_hash_key(Imath::V2f v)
-{
-	/* Convert -0.0f to 0.0f, so bitwise comparison works. */
-	if (v.x == 0.0f) {
-		v.x = 0.0f;
-	}
-	if (v.y == 0.0f) {
-		v.y = 0.0f;
-	}
-
-	/* Pack floats in 64bit. */
-	union {
-		float xy[2];
-		uint64_t key;
-	} tmp;
-	tmp.xy[0] = v.x;
-	tmp.xy[1] = v.y;
-	return tmp.key;
-}
-
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
                     std::vector<uint32_t> &uvidx,
@@ -88,45 +65,59 @@ static void get_uvs(const CDStreamConfig &config,
 
 	const int num_poly = config.totpoly;
 	MPoly *polygons = config.mpoly;
+	MLoop *mloop = config.mloop;
 
 	if (!config.pack_uvs) {
 		int cnt = 0;
 		uvidx.resize(config.totloop);
 		uvs.resize(config.totloop);
 
+		/* Iterate in reverse order to match exported polygons. */
 		for (int i = 0; i < num_poly; ++i) {
 			MPoly &current_poly = polygons[i];
-			MLoopUV *loopuvpoly = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+			MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
 			for (int j = 0; j < current_poly.totloop; ++j, ++cnt) {
-				--loopuvpoly;
+				--loopuv;
 
 				uvidx[cnt] = cnt;
-				uvs[cnt][0] = loopuvpoly->uv[0];
-				uvs[cnt][1] = loopuvpoly->uv[1];
+				uvs[cnt][0] = loopuv->uv[0];
+				uvs[cnt][1] = loopuv->uv[1];
 			}
 		}
 	}
 	else {
-		uv_index_map idx_map;
+		/* Mapping for indexed UVs, deduplicating UV coordinates at vertices. */
+		std::vector<std::vector<uint32_t>> idx_map(config.totvert);
 		int idx_count = 0;
 
 		for (int i = 0; i < num_poly; ++i) {
 			MPoly &current_poly = polygons[i];
-			MLoopUV *loopuvpoly = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+			MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
+			MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
 			for (int j = 0; j < current_poly.totloop; ++j) {
-				loopuvpoly--;
-				Imath::V2f uv(loopuvpoly->uv[0], loopuvpoly->uv[1]);
-				uint64_t k = uv_to_hash_key(uv);
-				uv_index_map::iterator it = idx_map.find(k);
-				if (it == idx_map.end()) {
-					idx_map[k] = idx_count;
-					uvs.push_back(uv);
-					uvidx.push_back(idx_count++);
+				--looppoly;
+				--loopuv;
+
+				Imath::V2f uv(loopuv->uv[0], loopuv->uv[1]);
+				bool found_same = false;
+
+				/* Find UV already in uvs array. */
+				for (uint32_t uv_idx : idx_map[looppoly->v]) {
+					if (uvs[uv_idx] == uv) {
+						found_same = true;
+						uvidx.push_back(uv_idx);
+						break;
+					}
 				}
-				else {
-					uvidx.push_back(it->second);
+
+				/* UV doesn't exists for this vertex, add it. */
+				if (!found_same) {
+					uint32_t uv_idx = idx_count++;
+					idx_map[looppoly->v].push_back(uv_idx);
+					uvidx.push_back(uv_idx);
+					uvs.push_back(uv);
 				}
 			}
 		}
