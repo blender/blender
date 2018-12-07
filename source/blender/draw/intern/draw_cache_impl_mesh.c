@@ -5077,7 +5077,7 @@ GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *me)
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	if (cache->edges_face_overlay == NULL) {
-		const int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;
+		const int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY;
 
 		/* Hack to show the final result. */
 		const bool use_em_final = (
