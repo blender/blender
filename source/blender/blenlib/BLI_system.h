@@ -34,6 +34,18 @@ void BLI_system_backtrace(FILE *fp);
 /* Get CPU brand, result is to be MEM_freeN()-ed. */
 char *BLI_cpu_brand_string(void);
 
+/**
+ * Obtain the hostname from the system.
+ *
+ * This simply determines the host's name, and doesn't do any DNS lookup of any
+ * IP address of the machine. As such, it's only usable for identification
+ * purposes, and not for reachability over a network.
+ *
+ * @param buffer Character buffer to write the hostname into.
+ * @param bufsize Size of the character buffer, including trailing '\0'.
+ */
+void BLI_hostname_get(char *buffer, size_t bufsize);
+
 /* getpid */
 #ifdef WIN32
 #  define BLI_SYSTEM_PID_H <process.h>

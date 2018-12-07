@@ -35,16 +35,6 @@
 #ifndef WIN32
 #  include <unistd.h>
 #else
-#  ifndef NOGDI
-#    define NOGDI
-#  endif
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
-#  endif
-#  include <Windows.h> /* for GetComputerName function */
 #  include <io.h>
 #endif
 
@@ -74,6 +64,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
+#include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_timecode.h"  /* for stamp timecode format */
 #include "BLI_utildefines.h"
@@ -1567,32 +1558,6 @@ typedef struct StampData {
 #undef STAMP_NAME_SIZE
 
 /**
- * Obtain the hostname from the system.
- *
- * This simply determines the host's name, and doesn't do any DNS lookup of any
- * IP address of the machine. As such, it's only usable for identification
- * purposes, and not for reachability over a network.
- *
- * @param buffer Character buffer to write the hostname into.
- * @param bufsize Size of the character buffer, including trailing '\0'.
- */
-static void get_hostname(char *buffer, size_t bufsize)
-{
-#ifndef WIN32
-	if (gethostname(buffer, bufsize-1) < 0) {
-		strncpy(buffer, "-unknown-", bufsize);
-	}
-	/* When gethostname() truncates, it doesn't guarantee the trailing \0. */
-	buffer[bufsize - 1] = '\0';
-#else
-	DWORD bufsize_inout = bufsize;
-	if(!GetComputerName(buffer, &bufsize_inout)) {
-		strncpy(buffer, "-unknown-", bufsize);
-	}
-#endif
-}
-
-/**
  * \param do_prefix: Include a label like "File ", "Date ", etc. in the stamp data strings.
  * \param use_dynamic: Also include data that can change on a per-frame basis.
  */
@@ -1744,7 +1709,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 
 	if (scene->r.stamp & R_STAMP_HOSTNAME) {
 		char hostname[500];    /* sizeof(stamp_data->hostname) minus some bytes for a label. */
-		get_hostname(hostname, sizeof(hostname));
+		BLI_hostname_get(hostname, sizeof(hostname));
 		SNPRINTF(stamp_data->hostname, do_prefix ? "Hostname %s" : "%s", hostname);
 	}
 	else {
