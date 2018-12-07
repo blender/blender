@@ -59,7 +59,6 @@ extern char datatoc_edit_mesh_overlay_geom_edge_glsl[];
 extern char datatoc_edit_mesh_overlay_points_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_facedot_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_facedot_vert_glsl[];
-extern char datatoc_edit_mesh_overlay_ghost_clear_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_mix_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_frag_glsl[];
@@ -70,6 +69,7 @@ extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
+extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 
 /* *********** LISTS *********** */
 typedef struct EDIT_MESH_PassList {
@@ -329,8 +329,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 	}
 	if (!e_data.ghost_clear_depth_sh) {
-		e_data.ghost_clear_depth_sh = DRW_shader_create(datatoc_edit_mesh_overlay_ghost_clear_vert_glsl,
-		                                                NULL, NULL, NULL);
+		e_data.ghost_clear_depth_sh = DRW_shader_create_fullscreen(datatoc_gpu_shader_depth_only_frag_glsl, NULL);
 	}
 
 }

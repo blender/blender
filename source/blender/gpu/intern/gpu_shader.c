@@ -357,12 +357,15 @@ GPUShader *GPU_shader_create_ex(
 	UNUSED_VARS(shname);
 #endif
 
+	/* At least a vertex shader and a fragment shader are required. */
+	BLI_assert((fragcode != NULL) && (vertexcode != NULL));
+
 	if (vertexcode)
 		shader->vertex = glCreateShader(GL_VERTEX_SHADER);
 	if (fragcode)
 		shader->fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	if (geocode)
-		shader->geometry = glCreateShader(GL_GEOMETRY_SHADER_EXT);
+		shader->geometry = glCreateShader(GL_GEOMETRY_SHADER);
 
 	shader->program = glCreateProgram();
 
