@@ -1278,20 +1278,18 @@ void restoreBones(TransDataContainer *tc)
 /* ********************* armature ************** */
 static void createTransArmatureVerts(TransInfo *t)
 {
+	t->data_len_all = 0;
+
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		EditBone *ebo, *eboflip;
 		bArmature *arm = tc->obedit->data;
 		ListBase *edbo = arm->edbo;
-		TransData *td, *td_old;
-		float mtx[3][3], smtx[3][3], bonemat[3][3];
 		bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
-		int total_mirrored = 0, i;
-		int oldtot;
-		BoneInitData *bid = NULL;
+		int total_mirrored = 0;
 
 		tc->data_len = 0;
 		for (ebo = edbo->first; ebo; ebo = ebo->next) {
-			oldtot = tc->data_len;
+			const int data_len_prev = tc->data_len;
 
 			if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
 				if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
@@ -1310,30 +1308,49 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 			}
 
-			if (mirror && (oldtot < tc->data_len)) {
+			if (mirror && (data_len_prev < tc->data_len)) {
 				eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
 				if (eboflip)
 					total_mirrored++;
 			}
 		}
-
 		if (!tc->data_len) {
 			continue;
 		}
 
-		transform_around_single_fallback(t);
+		if (mirror) {
+			BoneInitData *bid = MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData");
+
+			/* trick to terminate iteration */
+			bid[total_mirrored].bone = NULL;
+
+			tc->custom.type.data = bid;
+			tc->custom.type.use_free = true;
+		}
+		t->data_len_all += tc->data_len;
+	}
+
+	transform_around_single_fallback(t);
+	t->data_len_all = -1;
+
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		if (!tc->data_len) {
+			continue;
+		}
+
+		EditBone *ebo, *eboflip;
+		bArmature *arm = tc->obedit->data;
+		ListBase *edbo = arm->edbo;
+		TransData *td, *td_old;
+		float mtx[3][3], smtx[3][3], bonemat[3][3];
+		bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
+		BoneInitData *bid = tc->custom.type.data;
 
 		copy_m3_m4(mtx, tc->obedit->obmat);
 		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 		td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransEditBone");
-
-		if (mirror) {
-			tc->custom.type.data = bid = MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData");
-			tc->custom.type.use_free = true;
-		}
-
-		i = 0;
+		int i = 0;
 
 		for (ebo = edbo->first; ebo; ebo = ebo->next) {
 			td_old = td;
@@ -1500,7 +1517,8 @@ static void createTransArmatureVerts(TransInfo *t)
 
 		if (mirror) {
 			/* trick to terminate iteration */
-			bid[total_mirrored].bone = NULL;
+			BLI_assert(i + 1 == (MEM_allocN_len(bid) / sizeof(*bid)));
+			bid[i].bone = NULL;
 		}
 	}
 }
@@ -1692,27 +1710,22 @@ static void createTransCurveVerts(TransInfo *t)
 #define SEL_F2 (1 << 1)
 #define SEL_F3 (1 << 2)
 
-	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+	t->data_len_all = 0;
 
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		Curve *cu = tc->obedit->data;
-		TransData *td = NULL;
-		Nurb *nu;
+		BLI_assert(cu->editnurb != NULL);
 		BezTriple *bezt;
 		BPoint *bp;
-		float mtx[3][3], smtx[3][3];
 		int a;
 		int count = 0, countsel = 0;
 		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 		View3D *v3d = t->view;
 		short hide_handles = (v3d != NULL) ? ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) : false;
-		ListBase *nurbs;
-
-		/* to be sure */
-		if (cu->editnurb == NULL) return;
 
 		/* count total of vertices, check identical as in 2nd loop for making transdata! */
-		nurbs = BKE_curve_editNurbs_get(cu);
-		for (nu = nurbs->first; nu; nu = nu->next) {
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+		for (Nurb *nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER) {
 				for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 					if (bezt->hide == 0) {
@@ -1744,13 +1757,33 @@ static void createTransCurveVerts(TransInfo *t)
 		else tc->data_len = countsel;
 		tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Curve EditMode)");
 
-		transform_around_single_fallback(t);
+		t->data_len_all += tc->data_len;
+	}
+
+	transform_around_single_fallback(t);
+	t->data_len_all = -1;
+
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		if (tc->data_len == 0) {
+			continue;
+		}
+
+		Curve *cu = tc->obedit->data;
+		BezTriple *bezt;
+		BPoint *bp;
+		int a;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+		View3D *v3d = t->view;
+		short hide_handles = (v3d != NULL) ? ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) : false;
+
+		float mtx[3][3], smtx[3][3];
 
 		copy_m3_m4(mtx, tc->obedit->obmat);
 		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-		td = tc->data;
-		for (nu = nurbs->first; nu; nu = nu->next) {
+		TransData *td = tc->data;
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+		for (Nurb *nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER) {
 				TransData *head, *tail;
 				head = tail = td;
