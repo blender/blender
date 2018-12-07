@@ -585,12 +585,12 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 			                                    DEG_OPCODE_BONE_SEGMENTS);
 			add_relation(from_bone_segments_key,
 			             bone_done_key,
-			             "From Bone Segments -> Bone Done");
+			             "Bone Segments -> Bone Done");
 		}
 		else {
 			add_relation(from_bone_done_key,
 			             bone_done_key,
-			             "From Bone Done -> Bone Done");
+			             "Bone Done -> Bone Done");
 		}
 
 		if (pchan->prop != NULL) {
