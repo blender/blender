@@ -1804,7 +1804,6 @@ static void createTransCurveVerts(TransInfo *t)
 							}
 
 							td++;
-							count++;
 							tail++;
 						}
 
@@ -1842,7 +1841,6 @@ static void createTransCurveVerts(TransInfo *t)
 								}
 
 							td++;
-							count++;
 							tail++;
 						}
 						if (is_prop_edit || bezt_tx & SEL_F3) {
@@ -1873,7 +1871,6 @@ static void createTransCurveVerts(TransInfo *t)
 							}
 
 							td++;
-							count++;
 							tail++;
 						}
 
@@ -1945,7 +1942,6 @@ static void createTransCurveVerts(TransInfo *t)
 							}
 
 							td++;
-							count++;
 							tail++;
 						}
 					}
@@ -2020,7 +2016,6 @@ static void createTransLatticeVerts(TransInfo *t)
 					td->val = NULL;
 
 					td++;
-					count++;
 				}
 			}
 			bp++;
