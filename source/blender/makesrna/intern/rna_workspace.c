@@ -301,7 +301,7 @@ static void rna_def_workspace_tools(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "from_space_image_mode", "rna_WorkSpace_tools_from_space_image_mode");
 	RNA_def_function_ui_description(func, "");
-	parm = RNA_def_enum(func, "mode", rna_enum_space_image_mode_items, 0, "", "");
+	parm = RNA_def_enum(func, "mode", rna_enum_space_image_mode_all_items, 0, "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "create", false, "Create", "");
 	/* return type */

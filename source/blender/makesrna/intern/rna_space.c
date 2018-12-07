@@ -177,7 +177,7 @@ const EnumPropertyItem rna_enum_space_action_mode_items[] = {
 #define SI_ITEM_MASK \
 	{SI_MODE_MASK, "MASK", ICON_MOD_MASK, "Mask", "Mask editing"}
 
-static const EnumPropertyItem rna_enum_space_image_mode_all_items[] = {
+const EnumPropertyItem rna_enum_space_image_mode_all_items[] = {
 	SI_ITEM_VIEW("View", ICON_FILE_IMAGE),
 	SI_ITEM_UV,
 	SI_ITEM_PAINT,
