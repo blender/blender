@@ -849,11 +849,11 @@ void ED_uvedit_pack_islands(Scene *scene, Object *ob, BMesh *bm, bool selected, 
 
 void ED_uvedit_pack_islands_multi(
         Scene *scene, Object **objects, const uint objects_len,
-        bool selected, bool correct_aspect, bool do_rotate)
+        bool selected, bool correct_aspect, bool do_rotate, bool implicit)
 {
 	ParamHandle *handle;
 	handle = construct_param_handle_multi(
-	        scene, objects, objects_len, true, false, selected, correct_aspect);
+	        scene, objects, objects_len, implicit, false, selected, correct_aspect);
 	param_pack(handle, scene->toolsettings->uvcalc_margin, do_rotate);
 	param_flush(handle);
 	param_delete(handle);
@@ -878,7 +878,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	else
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
 
-	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, do_rotate);
+	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, do_rotate, true);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
@@ -1516,7 +1516,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
 
-	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, true);
+	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, true, implicit);
 
 	MEM_freeN(objects);
 
