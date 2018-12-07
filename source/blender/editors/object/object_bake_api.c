@@ -856,7 +856,6 @@ static int bake(
 
 		/* populate highpoly array */
 		for (link = selected_objects->first; link; link = link->next) {
-			TriangulateModifierData *tmd;
 			Object *ob_iter = link->ptr.data;
 
 			if (ob_iter == ob_low)
@@ -865,14 +864,6 @@ static int bake(
 			/* initialize highpoly_data */
 			highpoly[i].ob = ob_iter;
 			highpoly[i].restrict_flag = ob_iter->restrictflag;
-
-			/* triangulating so BVH returns the primitive_id that will be used for rendering */
-			highpoly[i].tri_mod = ED_object_modifier_add(
-			        reports, bmain, scene, highpoly[i].ob,
-			        "TmpTriangulate", eModifierType_Triangulate);
-			tmd = (TriangulateModifierData *)highpoly[i].tri_mod;
-			tmd->quad_method = MOD_TRIANGULATE_QUAD_FIXED;
-			tmd->ngon_method = MOD_TRIANGULATE_NGON_EARCLIP;
 
 			highpoly[i].me = bake_mesh_new_from_object(depsgraph, bmain, scene, highpoly[i].ob);
 			highpoly[i].ob->restrictflag &= ~OB_RESTRICT_RENDER;
@@ -1090,9 +1081,6 @@ cleanup:
 		int i;
 		for (i = 0; i < tot_highpoly; i++) {
 			highpoly[i].ob->restrictflag = highpoly[i].restrict_flag;
-
-			if (highpoly[i].tri_mod)
-				ED_object_modifier_remove(reports, bmain, highpoly[i].ob, highpoly[i].tri_mod);
 
 			if (highpoly[i].me)
 				BKE_libblock_free(bmain, highpoly[i].me);
