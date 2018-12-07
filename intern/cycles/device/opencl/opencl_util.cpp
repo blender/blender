@@ -645,7 +645,7 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 		return true;
 	}
 	if(platform_name == "Apple" && device_type == CL_DEVICE_TYPE_GPU) {
-		return true;
+		return false;
 	}
 	return false;
 }
