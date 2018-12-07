@@ -443,6 +443,9 @@ static void DRW_gpencil_fx_shadow(
 	}
 	ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
 	if ((!fxd->object) && (fxd->flag & FX_SHADOW_USE_OBJECT)) {
+		fxd->runtime.fx_sh = NULL;
+		fxd->runtime.fx_sh_b = NULL;
+		fxd->runtime.fx_sh_c = NULL;
 		return;
 	}
 

@@ -61,6 +61,8 @@ static void initData(ShaderFxData *md)
 
 	ARRAY_SET_ITEMS(gpfx->blur, 5, 5);
 	gpfx->samples = 2;
+
+	gpfx->object = NULL;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
