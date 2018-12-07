@@ -66,14 +66,14 @@ typedef struct MakePrimitiveData {
 
 static Object *make_prim_init(
         bContext *C, const char *idname,
-        const float loc[3], const float rot[3],
+        const float loc[3], const float rot[3], ushort local_view_bits,
         MakePrimitiveData *r_creation_data)
 {
 	Object *obedit = CTX_data_edit_object(C);
 
 	r_creation_data->was_editmode = false;
 	if (obedit == NULL || obedit->type != OB_MESH) {
-		obedit = ED_object_add_type(C, OB_MESH, idname, loc, rot, false);
+		obedit = ED_object_add_type(C, OB_MESH, idname, loc, rot, false, local_view_bits);
 
 		/* create editmode */
 		ED_object_editmode_enter(C, EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
@@ -111,11 +111,14 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Plane"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Plane"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -161,11 +164,14 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Cube"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Cube"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -218,6 +224,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	int cap_end, cap_tri;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
@@ -225,8 +232,10 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	cap_tri = (cap_end == 2);
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Circle"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Circle"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -277,14 +286,17 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const int end_fill_type = RNA_enum_get(op->ptr, "end_fill_type");
 	const bool cap_end = (end_fill_type != 0);
 	const bool cap_tri = (end_fill_type == 2);
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Cylinder"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Cylinder"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -339,14 +351,17 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const int end_fill_type = RNA_enum_get(op->ptr, "end_fill_type");
 	const bool cap_end = (end_fill_type != 0);
 	const bool cap_tri = (end_fill_type == 2);
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Cone"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Cone"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -400,11 +415,14 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Grid"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Grid"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -459,12 +477,15 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	float dia;
 	bool enter_editmode;
+	ushort local_view_bits;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, &enter_editmode, NULL);
+	ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, &enter_editmode, &local_view_bits, NULL);
 
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Suzanne"), loc, rot, &creation_data);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Suzanne"),
+	        loc, rot, local_view_bits, &creation_data);
 	dia = RNA_float_get(op->ptr, "size") / 2.0f;
 	mul_mat3_m4_fl(creation_data.mat, dia);
 
@@ -513,11 +534,14 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Sphere"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Sphere"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {
@@ -568,11 +592,14 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	float loc[3], rot[3];
 	bool enter_editmode;
+	ushort local_view_bits;
 	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
-	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL);
-	obedit = make_prim_init(C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Icosphere"), loc, rot, &creation_data);
+	ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL);
+	obedit = make_prim_init(
+	        C, CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Icosphere"),
+	        loc, rot, local_view_bits, &creation_data);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (calc_uvs) {

@@ -477,13 +477,14 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	Nurb *nu;
 	bool newob = false;
 	bool enter_editmode;
+	ushort local_view_bits;
 	float dia;
 	float loc[3], rot[3];
 	float mat[4][4];
 
 	WM_operator_view3d_unit_defaults(C, op);
 
-	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, NULL))
+	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, &enter_editmode, &local_view_bits, NULL))
 		return OPERATOR_CANCELLED;
 
 	if (!isSurf) { /* adding curve */
@@ -491,7 +492,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 			const char *name = get_curve_defname(type);
 			Curve *cu;
 
-			obedit = ED_object_add_type(C, OB_CURVE, name, loc, rot, true);
+			obedit = ED_object_add_type(C, OB_CURVE, name, loc, rot, true, local_view_bits);
 			newob = true;
 
 			cu = (Curve *)obedit->data;
@@ -507,7 +508,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	else { /* adding surface */
 		if (obedit == NULL || obedit->type != OB_SURF) {
 			const char *name = get_surf_defname(type);
-			obedit = ED_object_add_type(C, OB_SURF, name, loc, rot, true);
+			obedit = ED_object_add_type(C, OB_SURF, name, loc, rot, true, local_view_bits);
 			newob = true;
 		}
 		else {

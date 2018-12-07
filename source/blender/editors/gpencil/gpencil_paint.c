@@ -1815,11 +1815,17 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 				return 0;
 			}
 
-			/* if active object doesn't exist or isn't a GP Object, create one */
-			const float *cur = p->scene->cursor.location;
 			if ((!obact) || (obact->type != OB_GPENCIL)) {
+				View3D *v3d = p->sa->spacedata.first;
+				/* if active object doesn't exist or isn't a GP Object, create one */
+				const float *cur = p->scene->cursor.location;
+
+				ushort local_view_bits = 0;
+				if (v3d->localvd) {
+					local_view_bits = v3d->local_view_uuid;
+				}
 				/* create new default object */
-				obact = ED_add_gpencil_object(C, p->scene, cur);
+				obact = ED_add_gpencil_object(C, p->scene, cur, local_view_bits);
 			}
 			/* assign object after all checks to be sure we have one active */
 			p->ob = obact;
