@@ -195,7 +195,7 @@ static int collection_new_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (!data.collection && (soops->outlinevis == SO_VIEW_LAYER)) {
+	if (data.collection == NULL) {
 		data.collection = BKE_collection_master(scene);
 	}
 
