@@ -47,6 +47,7 @@
 
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
+extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 
 #define USE_DEFERRED_COMPILATION 1
@@ -295,7 +296,9 @@ GPUShader *DRW_shader_create_with_transform_feedback(
         const char *vert, const char *geom, const char *defines,
         const GPUShaderTFBType prim_type, const char **varying_names, const int varying_count)
 {
-	return GPU_shader_create_ex(vert, NULL, geom, NULL, defines,
+	return GPU_shader_create_ex(vert,
+	                            datatoc_gpu_shader_depth_only_frag_glsl,
+	                            geom, NULL, defines,
 	                            prim_type, varying_names, varying_count, __func__);
 }
 
