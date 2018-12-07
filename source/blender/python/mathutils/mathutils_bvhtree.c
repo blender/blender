@@ -1053,17 +1053,18 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 /* return various derived meshes based on requested settings */
 static Mesh *bvh_get_mesh(
         const char *funcname, struct Depsgraph *depsgraph, struct Scene *scene, Object *ob,
-        bool use_deform, bool use_render, bool use_cage)
+        bool use_deform, bool use_cage)
 {
 	/* we only need minimum mesh data for topology and vertex locations */
 	CustomDataMask mask = CD_MASK_BAREMESH;
+	const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 
 	/* Write the display mesh into the dummy mesh */
 	if (use_deform) {
 		if (use_render) {
 			if (use_cage) {
 				PyErr_Format(PyExc_ValueError,
-				             "%s(...): cage arg is unsupported when (render=True)", funcname);
+				             "%s(...): cage arg is unsupported when dependency graph evaluation mode is RENDER", funcname);
 				return NULL;
 			}
 			else {
@@ -1084,7 +1085,7 @@ static Mesh *bvh_get_mesh(
 		if (use_render) {
 			if (use_cage) {
 				PyErr_Format(PyExc_ValueError,
-				             "%s(...): cage arg is unsupported when (render=True)", funcname);
+				             "%s(...): cage arg is unsupported when dependency graph evaluation mode is RENDER", funcname);
 				return NULL;
 			}
 			else {
@@ -1094,7 +1095,7 @@ static Mesh *bvh_get_mesh(
 		else {
 			if (use_cage) {
 				PyErr_Format(PyExc_ValueError,
-				             "%s(...): cage arg is unsupported when (deform=False, render=False)", funcname);
+				             "%s(...): cage arg is unsupported when deform=False and dependency graph evaluation mode is not RENDER", funcname);
 				return NULL;
 			}
 			else {
@@ -1115,16 +1116,14 @@ PyDoc_STRVAR(C_BVHTree_FromObject_doc,
 "   :type depsgraph: :class:`Depsgraph`\n"
 "   :arg deform: Use mesh with deformations.\n"
 "   :type deform: bool\n"
-"   :arg render: Use render settings.\n"
-"   :type render: bool\n"
-"   :arg cage: Use render settings.\n"
+"   :arg cage: Use modifiers cage.\n"
 "   :type cage: bool\n"
 PYBVH_FROM_GENERIC_EPSILON_DOC
 );
 static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyObject *kwargs)
 {
 	/* note, options here match 'bpy_bmesh_from_object' */
-	const char *keywords[] = {"object", "depsgraph", "deform", "render", "cage", "epsilon", NULL};
+	const char *keywords[] = {"object", "depsgraph", "deform", "cage", "epsilon", NULL};
 
 	PyObject *py_ob, *py_depsgraph;
 	Object *ob;
@@ -1132,7 +1131,6 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 	struct Scene *scene;
 	Mesh *mesh;
 	bool use_deform = true;
-	bool use_render = false;
 	bool use_cage = false;
 
 	const MLoopTri *lt;
@@ -1144,10 +1142,9 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 	float epsilon = 0.0f;
 
 	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwargs, (char *)"OO|$O&O&O&f:BVHTree.FromObject", (char **)keywords,
+	        args, kwargs, (char *)"OO|$O&O&f:BVHTree.FromObject", (char **)keywords,
 	        &py_ob, &py_depsgraph,
 	        PyC_ParseBool, &use_deform,
-	        PyC_ParseBool, &use_render,
 	        PyC_ParseBool, &use_cage,
 	        &epsilon) ||
 	    ((ob = PyC_RNA_AsPointer(py_ob, "Object")) == NULL) ||
@@ -1157,7 +1154,7 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 	}
 
 	scene = DEG_get_evaluated_scene(depsgraph);
-	mesh = bvh_get_mesh("BVHTree", depsgraph, scene, ob, use_deform, use_render, use_cage);
+	mesh = bvh_get_mesh("BVHTree", depsgraph, scene, ob, use_deform, use_cage);
 
 	if (mesh == NULL) {
 		return NULL;
