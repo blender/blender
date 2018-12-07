@@ -1,18 +1,12 @@
-#ifndef SELECT_EDGES
 uniform vec3 wireColor;
 uniform vec3 rimColor;
 
 in float facing;
 in vec3 barycentric;
-
-#  ifdef LIGHT_EDGES
 flat in vec3 edgeSharpness;
-#  endif
 
 out vec4 fragColor;
-#endif
 
-float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v3(vec3 v) { return max(v.x, max(v.y, v.z)); }
 
 /* In pixels */
@@ -25,7 +19,6 @@ const float rim_alpha = 0.75;
 
 void main()
 {
-#ifndef SELECT_EDGES
 	vec3 dx = dFdx(barycentric);
 	vec3 dy = dFdy(barycentric);
 	vec3 d = vec3(
@@ -35,11 +28,7 @@ void main()
 	);
 	vec3 dist_to_edge = barycentric / d;
 
-#  ifdef LIGHT_EDGES
 	vec3 fac = abs(dist_to_edge);
-#  else
-	float fac = min_v3(abs(dist_to_edge));
-#  endif
 
 	fac = smoothstep(wireSize + wire_smooth, wireSize, fac);
 
@@ -48,10 +37,5 @@ void main()
 	vec3 final_front_col = mix(rimColor, wireColor, 0.05);
 	fragColor = mix(vec4(rimColor, rim_alpha), vec4(final_front_col, front_alpha), facing_clamped);
 
-#  ifdef LIGHT_EDGES
 	fragColor.a *= max_v3(fac * edgeSharpness);
-#  else
-	fragColor.a *= fac;
-#  endif
-#endif
 }

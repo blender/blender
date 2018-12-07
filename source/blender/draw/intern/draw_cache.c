@@ -696,25 +696,21 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
 }
 
 /* Returns a buffer texture. */
-void DRW_cache_object_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
+GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
-			DRW_cache_mesh_face_wireframe_get(ob, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
-			break;
+			return DRW_cache_mesh_face_wireframe_get(ob);
 		case OB_CURVE:
-			DRW_cache_curve_face_wireframe_get(ob, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
-			break;
+			return DRW_cache_curve_face_wireframe_get(ob);
 		case OB_SURF:
-			DRW_cache_surf_face_wireframe_get(ob, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
-			break;
+			return DRW_cache_surf_face_wireframe_get(ob);
 		case OB_FONT:
-			DRW_cache_text_face_wireframe_get(ob, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
-			break;
+			return DRW_cache_text_face_wireframe_get(ob);
 		case OB_MBALL:
-			DRW_cache_mball_face_wireframe_get(ob, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
-			break;
+			return DRW_cache_mball_face_wireframe_get(ob);
+		default:
+			return NULL;
 	}
 }
 
@@ -3065,16 +3061,12 @@ GPUBatch *DRW_cache_mesh_surface_get(Object *ob, bool use_hide)
 	return DRW_mesh_batch_cache_get_triangles_with_normals(me, use_hide);
 }
 
-void DRW_cache_mesh_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
+GPUBatch *DRW_cache_mesh_face_wireframe_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
 
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	reduce_len = reduce_len && !(DRW_state_is_playback() && BKE_object_is_deform_modified(draw_ctx->scene, ob));
-
 	Mesh *me = ob->data;
-	DRW_mesh_batch_cache_get_wireframes_face_texbuf(me, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
+	return DRW_mesh_batch_cache_get_wireframes_face(me);
 }
 
 GPUBatch *DRW_cache_mesh_loose_edges_get(Object *ob)
@@ -3268,13 +3260,12 @@ GPUBatch *DRW_cache_curve_surface_get(Object *ob)
 	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->runtime.curve_cache);
 }
 
-void DRW_cache_curve_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
+GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
-	DRW_curve_batch_cache_get_wireframes_face_texbuf(cu, ob->runtime.curve_cache, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
+	return DRW_curve_batch_cache_get_wireframes_face(cu, ob->runtime.curve_cache);
 }
 
 /* Return list of batches */
@@ -3300,11 +3291,10 @@ GPUBatch *DRW_cache_mball_surface_get(Object *ob)
 	return DRW_metaball_batch_cache_get_triangles_with_normals(ob);
 }
 
-void DRW_cache_mball_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
+GPUBatch *DRW_cache_mball_face_wireframe_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MBALL);
-	DRW_metaball_batch_cache_get_wireframes_face_texbuf(ob, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
+	return DRW_metaball_batch_cache_get_wireframes_face(ob);
 }
 
 GPUBatch **DRW_cache_mball_surface_shaded_get(
@@ -3340,19 +3330,14 @@ GPUBatch *DRW_cache_text_surface_get(Object *ob)
 	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->runtime.curve_cache);
 }
 
-void DRW_cache_text_face_wireframe_get(
-        Object *ob,
-        struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
+GPUBatch *DRW_cache_text_face_wireframe_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_FONT);
 	struct Curve *cu = ob->data;
 	if (cu->editfont && (cu->flag & CU_FAST)) {
-		*r_vert_tx = NULL;
-		*r_faceid_tx = NULL;
-		*r_tri_count = 0;
-		return;
+		return NULL;
 	}
-	DRW_curve_batch_cache_get_wireframes_face_texbuf(cu, ob->runtime.curve_cache, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
+	return DRW_curve_batch_cache_get_wireframes_face(cu, ob->runtime.curve_cache);
 }
 
 GPUBatch **DRW_cache_text_surface_shaded_get(
@@ -3395,13 +3380,12 @@ GPUBatch *DRW_cache_surf_surface_get(Object *ob)
 	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->runtime.curve_cache);
 }
 
-void DRW_cache_surf_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len)
+GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_SURF);
 
 	struct Curve *cu = ob->data;
-	DRW_curve_batch_cache_get_wireframes_face_texbuf(cu, ob->runtime.curve_cache, r_vert_tx, r_faceid_tx, r_tri_count, reduce_len);
+	return DRW_curve_batch_cache_get_wireframes_face(cu, ob->runtime.curve_cache);
 }
 
 /* Return list of batches */

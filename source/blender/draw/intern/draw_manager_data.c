@@ -1040,7 +1040,7 @@ DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 	DRWShadingGroup *shgroup_new = BLI_mempool_alloc(DST.vmempool->shgroups);
 
 	*shgroup_new = *shgroup;
-	shgroup_new->uniforms = NULL; /* Not sure about that.. Should we copy them instead? */
+	shgroup_new->uniforms = NULL;
 	shgroup_new->calls.first = NULL;
 	shgroup_new->calls.last = NULL;
 

@@ -1,181 +1,81 @@
 
 uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ModelViewMatrix;
-uniform mat4 ProjectionMatrix;
 uniform mat3 NormalMatrix;
 
 uniform vec2 wireStepParam;
-uniform float nearDist;
 
-uniform samplerBuffer vertData;
-uniform usamplerBuffer faceIds;
+vec3 get_edge_sharpness(vec3 wd)
+{
+	bvec3 do_edge = greaterThan(wd, vec3(0.0));
+	bvec3 force_edge = equal(wd, vec3(1.0));
+	wd = clamp(wireStepParam.x * wd + wireStepParam.y, 0.0, 1.0);
+	return clamp(wd * vec3(do_edge) + vec3(force_edge), 0.0, 1.0);
+}
 
-#ifdef USE_SCULPT
+float get_edge_sharpness(float wd)
+{
+	bool do_edge = (wd > 0.0);
+	bool force_edge = (wd == 1.0);
+	wd = (wireStepParam.x * wd + wireStepParam.y);
+	return clamp(wd * float(do_edge) + float(force_edge), 0.0, 1.0);
+}
+
+/* Geometry shader version */
+#if defined(SELECT_EDGES) || defined(USE_SCULPT)
+
 in vec3 pos;
 in vec3 nor;
-#endif
+in float wd; /* wiredata */
 
-float short_to_unit_float(uint s)
-{
-	int value = int(s) & 0x7FFF;
-	if ((s & 0x8000u) != 0u) {
-		value |= ~0x7FFF;
-	}
-	return float(value) / float(0x7FFF);
-}
-
-vec3 get_vertex_nor(uint id)
-{
-	int v_id = int(id) * 5; /* See vertex format for explanation. */
-	/* Fetch compressed normal as float and unpack them. */
-	vec2 data;
-	data.x = texelFetch(vertData, v_id + 3).r;
-	data.y = texelFetch(vertData, v_id + 4).r;
-
-	uvec2 udata = floatBitsToUint(data);
-
-	vec3 nor;
-	nor.x = short_to_unit_float(udata.x & 0xFFFFu);
-	nor.y = short_to_unit_float(udata.x >> 16u);
-	nor.z = short_to_unit_float(udata.y & 0xFFFFu);
-	return nor;
-}
-
-vec3 get_vertex_pos(uint id)
-{
-	int v_id = int(id) * 5; /* See vertex format for explanation. */
-	vec3 pos;
-	pos.x = texelFetch(vertData, v_id).r;
-	pos.y = texelFetch(vertData, v_id + 1).r;
-	pos.z = texelFetch(vertData, v_id + 2).r;
-	return pos;
-}
-
-vec3 get_edge_normal(vec3 n1, vec3 n2, vec3 edge)
-{
-	edge = normalize(edge);
-	vec3 n = n1 + n2;
-	float p = dot(edge, n);
-	return normalize(n - p * edge);
-}
-
-float get_edge_sharpness(vec3 fnor, vec3 vnor)
-{
-	float sharpness = abs(dot(fnor, vnor));
-	return smoothstep(wireStepParam.x, wireStepParam.y, sharpness);
-}
-
-#ifdef USE_GEOM_SHADER
-
-#  ifdef LIGHT_EDGES
-out vec3 obPos;
-out vec3 vNor;
-out float forceEdge;
-#  endif
-out float facingOut; /* abs(facing) > 1.0 if we do edge */
+out float facing_g;
+out float edgeSharpness_g;
 
 void main()
 {
 #  ifndef USE_SCULPT
-	uint v_id = texelFetch(faceIds, gl_VertexID).r;
-
-	bool do_edge = (v_id & (1u << 30u)) != 0u;
-	bool force_edge = (v_id & (1u << 31u)) != 0u;
-	v_id = (v_id << 2u) >> 2u;
-
-	vec3 pos = get_vertex_pos(v_id);
-	vec3 nor = get_vertex_nor(v_id);
+	edgeSharpness_g = get_edge_sharpness(wd);
 #  else
-	const bool do_edge = true;
-	const bool force_edge = false;
+	/* TODO approximation using normals. */
+	edgeSharpness_g = 1.0;
 #  endif
-
-	facingOut = normalize(NormalMatrix * nor).z;
-	facingOut += (do_edge) ? ((facingOut > 0.0) ? 2.0 : -2.0) : 0.0;
 
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-#  ifdef LIGHT_EDGES
-	obPos = pos;
-	vNor = nor;
-	forceEdge = float(force_edge); /* meh, could try to also encode it in facingOut */
-#  endif
+	facing_g = normalize(NormalMatrix * nor).z;
 }
 
-#else /* USE_GEOM_SHADER */
+#else /* SELECT_EDGES */
 
-#  ifdef LIGHT_EDGES
-flat out vec3 edgeSharpness;
-#  endif
+/* Consecutive pos of the nth vertex
+ * Only valid for first vertex in the triangle.
+ * Assuming GL_FRIST_VERTEX_CONVENTION. */
+in vec3 pos0;
+in vec3 pos1;
+in vec3 pos2;
+in float wd0; /* wiredata */
+in float wd1;
+in float wd2;
+in vec3 nor;
+
 out float facing;
 out vec3 barycentric;
+flat out vec3 edgeSharpness;
 
 void main()
 {
-	int v_0 = (gl_VertexID / 3) * 3;
 	int v_n = gl_VertexID % 3;
-	int v_n1 = (gl_VertexID + 1) % 3;
-	int v_n2 = (gl_VertexID + 2) % 3;
 
-	/* Getting the same positions for each of the 3 verts. */
-	uvec3 v_id;
-	v_id.x = texelFetch(faceIds, v_0).r;
-	v_id.y = texelFetch(faceIds, v_0 + 1).r;
-	v_id.z = texelFetch(faceIds, v_0 + 2).r;
+	barycentric = vec3(equal(ivec3(2, 0, 1), ivec3(v_n)));
 
-	bvec3 do_edge, force_edge;
-	do_edge.x = (v_id.x & (1u << 30u)) != 0u;
-	do_edge.y = (v_id.y & (1u << 30u)) != 0u;
-	do_edge.z = (v_id.z & (1u << 30u)) != 0u;
-	force_edge.x = (v_id.x & (1u << 31u)) != 0u;
-	force_edge.y = (v_id.y & (1u << 31u)) != 0u;
-	force_edge.z = (v_id.z & (1u << 31u)) != 0u;
-	v_id = (v_id << 2u) >> 2u;
+	vec3 wb = vec3(wd0, wd1, wd2);
+	edgeSharpness = get_edge_sharpness(wb);
 
-	vec3 pos[3];
-	vec4 p_pos[3];
+	/* Don't generate any fragment if there is no edge to draw. */
+	vec3 pos = (!any(greaterThan(edgeSharpness, vec3(0.04))) && (v_n == 0)) ? pos1 : pos0;
 
-	pos[v_n] = get_vertex_pos(v_id[v_n]);
-	gl_Position = p_pos[v_n] = ModelViewProjectionMatrix * vec4(pos[v_n], 1.0);
-
-	bvec3 bary = equal(ivec3(0, 1, 2), ivec3(v_n1));
-	/* This is equivalent to component wise : (do_edge ? bary : 1.0) */
-	barycentric = vec3(lessThanEqual(ivec3(do_edge), ivec3(bary)));
-
-#  ifndef LIGHT_EDGES
-	vec3 nor = get_vertex_nor(v_id[v_n]);
-#  else
-
-	pos[v_n1] = get_vertex_pos(v_id[v_n1]);
-	pos[v_n2] = get_vertex_pos(v_id[v_n2]);
-
-	vec3 edges[3];
-	edges[0] = pos[1] - pos[0];
-	edges[1] = pos[2] - pos[1];
-	edges[2] = pos[0] - pos[2];
-	vec3 fnor = normalize(cross(edges[0], -edges[2]));
-
-	vec3 nors[3];
-	nors[0] = get_vertex_nor(v_id.x);
-	nors[1] = get_vertex_nor(v_id.y);
-	nors[2] = get_vertex_nor(v_id.z);
-	edgeSharpness.x = get_edge_sharpness(fnor, get_edge_normal(nors[0], nors[1], edges[0]));
-	edgeSharpness.y = get_edge_sharpness(fnor, get_edge_normal(nors[1], nors[2], edges[1]));
-	edgeSharpness.z = get_edge_sharpness(fnor, get_edge_normal(nors[2], nors[0], edges[2]));
-	edgeSharpness.x = force_edge.x ? 1.0 : edgeSharpness.x;
-	edgeSharpness.y = force_edge.y ? 1.0 : edgeSharpness.y;
-	edgeSharpness.z = force_edge.z ? 1.0 : edgeSharpness.z;
-
-	do_edge = greaterThan(edgeSharpness, vec3(0.01));
-	if (!any(do_edge)) {
-		/* Don't generate any fragment. */
-		gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
-	}
-
-	vec3 nor = nors[v_n];
-#  endif
+	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
 	facing = normalize(NormalMatrix * nor).z;
 }
 
-#endif /* USE_GEOM_SHADER */
+#endif /* SELECT_EDGES */

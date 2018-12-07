@@ -218,55 +218,89 @@ GPUIndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(Li
 }
 
 typedef struct DRWDisplistWireThunk {
-	uint index_id, vidx;
-	short dl_type;
+	uint wd_id, pos_id, nor_id, vidx, ofs;
+	const DispList *dl;
 	GPUVertBuf *vbo;
 } DRWDisplistWireThunk;
 
 static void set_overlay_wires_tri_indices(void *thunk, uint v1, uint v2, uint v3)
 {
 	DRWDisplistWireThunk *dwt = (DRWDisplistWireThunk *)thunk;
-	/* Tag real edges. */
-	v1 |= (1 << 30);
-	v2 |= (1 << 30);
-	v3 |= (1 << 30);
-	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v1);
-	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v2);
-	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v3);
+	const DispList *dl = dwt->dl;
+	uint indices[3] = {v1, v2, v3};
+	const bool ndata_is_single = dl->type == DL_INDEX3;
+
+	for (int i = 0; i < 3; ++i) {
+		uint v = indices[i] - dwt->ofs;
+		/* TODO: Compute sharpness. For now, only tag real egdes. */
+		uchar sharpness = 0xFF;
+		short short_no[3];
+		const float(*verts)[3] = (float(*)[3])dl->verts;
+		const float(*nors)[3] = (float(*)[3])dl->nors;
+		normal_float_to_short_v3(short_no, nors[(ndata_is_single) ? 0 : v]);
+		GPU_vertbuf_attr_set(dwt->vbo, dwt->wd_id, dwt->vidx, &sharpness);
+		GPU_vertbuf_attr_set(dwt->vbo, dwt->pos_id, dwt->vidx, verts[v]);
+		GPU_vertbuf_attr_set(dwt->vbo, dwt->nor_id, dwt->vidx, short_no);
+		dwt->vidx++;
+	}
 }
 
 static void set_overlay_wires_quad_tri_indices(void *thunk, uint v1, uint v2, uint v3)
 {
 	DRWDisplistWireThunk *dwt = (DRWDisplistWireThunk *)thunk;
-	/* Tag real edges. */
-	v2 |= (1 << 30);
-	v3 |= (1 << 30);
-	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v1);
-	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v2);
-	GPU_vertbuf_attr_set(dwt->vbo, dwt->index_id, dwt->vidx++, &v3);
+	const DispList *dl = dwt->dl;
+	uint indices[3] = {v1, v2, v3};
+	const bool ndata_is_single = dl->type == DL_INDEX3;
+
+	for (int i = 0; i < 3; ++i) {
+		uint v = indices[i] - dwt->ofs;
+		/* TODO: Compute sharpness. For now, only tag real egdes. */
+		uchar sharpness = (i == 0) ? 0x00 : 0xFF;
+		short short_no[3];
+		const float(*verts)[3] = (float(*)[3])dl->verts;
+		const float(*nors)[3] = (float(*)[3])dl->nors;
+		normal_float_to_short_v3(short_no, nors[(ndata_is_single) ? 0 : v]);
+		GPU_vertbuf_attr_set(dwt->vbo, dwt->wd_id, dwt->vidx, &sharpness);
+		GPU_vertbuf_attr_set(dwt->vbo, dwt->pos_id, dwt->vidx, verts[v]);
+		GPU_vertbuf_attr_set(dwt->vbo, dwt->nor_id, dwt->vidx, short_no);
+		dwt->vidx++;
+	}
 }
 
-GPUVertBuf *DRW_displist_create_edges_overlay_texture_buf(ListBase *lb)
+GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb)
 {
-	GPUVertFormat format = {0};
-	uint index_id = GPU_vertformat_attr_add(&format, "index", GPU_COMP_U32, 1, GPU_FETCH_INT);
-	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+	static DRWDisplistWireThunk thunk;
+	static GPUVertFormat format = {0};
+	if (format.attr_len == 0) {
+		thunk.wd_id  = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		thunk.pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		thunk.nor_id = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		GPU_vertformat_triple_load(&format);
+	}
 
-	GPU_vertbuf_data_alloc(vbo, curve_render_surface_tri_len_get(lb) * 3);
+	thunk.vbo = GPU_vertbuf_create_with_format(&format);
 
-	DRWDisplistWireThunk thunk = {.index_id = index_id, .vbo = vbo, .vidx = 0};
+	int vert_len = curve_render_surface_tri_len_get(lb) * 3;
+	GPU_vertbuf_data_alloc(thunk.vbo, vert_len);
 
-	int ofs = 0;
+	thunk.vidx = 0;
+	thunk.ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
-		thunk.dl_type = dl->type;
+		thunk.dl = dl;
+		BKE_displist_normals_add(lb);
+
 		/* TODO consider non-manifold edges correctly. */
 		displist_indexbufbuilder_set(set_overlay_wires_tri_indices,
 		                             set_overlay_wires_quad_tri_indices,
-		                             &thunk, dl, ofs);
-		ofs += dl_vert_len(dl);
+		                             &thunk, dl, thunk.ofs);
+		thunk.ofs += dl_vert_len(dl);
 	}
 
-	return vbo;
+	if (thunk.vidx < vert_len) {
+		GPU_vertbuf_data_resize(thunk.vbo, thunk.vidx);
+	}
+
+	return GPU_batch_create_ex(GPU_PRIM_TRIS, thunk.vbo, NULL, GPU_BATCH_OWNS_VBO);
 }
 
 

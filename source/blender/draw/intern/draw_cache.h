@@ -58,8 +58,7 @@ struct GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob);
 struct GPUBatch **DRW_cache_object_surface_material_get(
         struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
-void DRW_cache_object_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len);
+struct GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob);
 
 /* Empties */
 struct GPUBatch *DRW_cache_plain_axes_get(void);
@@ -153,8 +152,7 @@ struct GPUBatch **DRW_cache_mesh_surface_shaded_get(
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
 struct GPUBatch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob, bool use_hide);
 struct GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
-void DRW_cache_mesh_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len);
+struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);
 
 void DRW_cache_mesh_sculpt_coords_ensure(struct Object *ob);
 
@@ -164,8 +162,7 @@ struct GPUBatch **DRW_cache_curve_surface_shaded_get(
         struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct GPUBatch *DRW_cache_curve_surface_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_wire_get(struct Object *ob);
-void DRW_cache_curve_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len);
+struct GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob);
 /* edit-mode */
 struct GPUBatch *DRW_cache_curve_edge_normal_get(struct Object *ob, float normal_size);
 struct GPUBatch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
@@ -176,8 +173,7 @@ struct GPUBatch *DRW_cache_text_edge_wire_get(struct Object *ob);
 struct GPUBatch *DRW_cache_text_surface_get(struct Object *ob);
 struct GPUBatch **DRW_cache_text_surface_shaded_get(
         struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
-void DRW_cache_text_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len);
+struct GPUBatch *DRW_cache_text_face_wireframe_get(Object *ob);
 /* edit-mode */
 struct GPUBatch *DRW_cache_text_cursor_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_text_select_overlay_get(struct Object *ob);
@@ -186,8 +182,7 @@ struct GPUBatch *DRW_cache_text_select_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_surf_surface_get(struct Object *ob);
 struct GPUBatch **DRW_cache_surf_surface_shaded_get(
         struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
-void DRW_cache_surf_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len);
+struct GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob);
 
 /* Lattice */
 struct GPUBatch *DRW_cache_lattice_verts_get(struct Object *ob);
@@ -210,7 +205,6 @@ struct GPUBatch *DRW_cache_particles_get_prim(int type);
 /* Metaball */
 struct GPUBatch *DRW_cache_mball_surface_get(struct Object *ob);
 struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
-void DRW_cache_mball_face_wireframe_get(
-        Object *ob, struct GPUTexture **r_vert_tx, struct GPUTexture **r_faceid_tx, int *r_tri_count, bool reduce_len);
+struct GPUBatch *DRW_cache_mball_face_wireframe_get(Object *ob);
 
 #endif /* __DRAW_CACHE_H__ */
