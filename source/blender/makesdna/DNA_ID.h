@@ -522,7 +522,7 @@ typedef enum IDRecalcFlag {
 	/* Particle system changed; values are aligned with ID_RECALC_PSYS_xxx. */
 	ID_RECALC_PSYS_REDO   = (1 << 3),  /* Only do pathcache etc */
 	ID_RECALC_PSYS_RESET  = (1 << 4),  /* Reset everything including pointcache. */
-	ID_RECALC_PSYS_YPE   = (1 << 5),  /* Handle system type change. */
+	ID_RECALC_PSYS_TYPE   = (1 << 5),  /* Handle system type change. */
 	ID_RECALC_PSYS_CHILD  = (1 << 6),  /* Only child settings changed. */
 	ID_RECALC_PSYS_PHYS   = (1 << 7),  /* Physics type changed. */
 	/* Update copy on write component without flushing down the road. */
@@ -552,7 +552,7 @@ typedef enum IDRecalcFlag {
 	/* Identifies that something in particle system did change. */
 	ID_RECALC_PSYS_ALL    = (ID_RECALC_PSYS_REDO |
 	                         ID_RECALC_PSYS_RESET |
-	                         ID_RECALC_PSYS_YPE |
+	                         ID_RECALC_PSYS_TYPE |
 	                         ID_RECALC_PSYS_CHILD |
 	                         ID_RECALC_PSYS_PHYS),
 

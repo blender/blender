@@ -168,7 +168,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
 			break;
 		case ID_RECALC_PSYS_REDO:
 		case ID_RECALC_PSYS_RESET:
-		case ID_RECALC_PSYS_YPE:
+		case ID_RECALC_PSYS_TYPE:
 		case ID_RECALC_PSYS_CHILD:
 		case ID_RECALC_PSYS_PHYS:
 			if (id_type == ID_PA) {
@@ -592,7 +592,7 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
 		case ID_RECALC_ANIMATION: return "ANIMATION";
 		case ID_RECALC_PSYS_REDO: return "PSYS_REDO";
 		case ID_RECALC_PSYS_RESET: return "PSYS_RESET";
-		case ID_RECALC_PSYS_YPE: return "PSYS_TYPE";
+		case ID_RECALC_PSYS_TYPE: return "PSYS_TYPE";
 		case ID_RECALC_PSYS_CHILD: return "PSYS_CHILD";
 		case ID_RECALC_PSYS_PHYS: return "PSYS_PHYS";
 		case ID_RECALC_PSYS_ALL: return "PSYS_ALL";
