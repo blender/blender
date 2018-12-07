@@ -385,6 +385,10 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	if (!fast_mode) {
 		DRW_shgroup_uniform_bool_copy(*r_face_shgrp, "isXray", xray);
 	}
+	else {
+		/* To be able to use triple load. */
+		DRW_shgroup_state_enable(*r_face_shgrp, DRW_STATE_FIRST_VERTEX_CONVENTION);
+	}
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
 	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
@@ -571,13 +575,10 @@ static void edit_mesh_add_ob_to_pass(
         DRWShadingGroup *facefill_shgrp)
 {
 	struct GPUBatch *geo_ovl_tris, *geo_ovl_verts, *geo_ovl_lnor, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
-	struct GPUTexture *data_texture;
 	ToolSettings *tsettings = scene->toolsettings;
 
-	DRW_cache_mesh_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts, &data_texture);
+	DRW_cache_mesh_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
 
-	face_shgrp = DRW_shgroup_create_sub(face_shgrp);
-	DRW_shgroup_uniform_texture(face_shgrp, "dataBuffer", data_texture);
 	DRW_shgroup_call_add(face_shgrp, geo_ovl_tris, ob->obmat);
 
 	DRW_shgroup_call_add(ledges_shgrp, geo_ovl_ledges, ob->obmat);

@@ -10,8 +10,6 @@ uniform ivec4 dataMask = ivec4(0xFF);
 
 uniform float ofs = 1e-5;
 
-uniform isamplerBuffer dataBuffer;
-
 in vec3 pos;
 #ifdef VERTEX_FACING
 in vec3 vnor;
@@ -43,6 +41,13 @@ void main()
 
 #else /* EDGE_FIX */
 
+/* Consecutive data of the nth vertex.
+ * Only valid for first vertex in the triangle.
+ * Assuming GL_FRIST_VERTEX_CONVENTION. */
+in ivec4 data0;
+in ivec4 data1;
+in ivec4 data2;
+
 flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
 flat out vec4 faceColor;
@@ -66,11 +71,10 @@ void main()
 	barycentric = vec3(equal(ivec3(0, 1, 2), ivec3(vidx)));
 
 	/* Edge */
-	ivec4 vData[3], data = ivec4(0);
+	ivec4 vData[3] = ivec4[3](data0, data1, data2);
 	ivec3 eflag;
 	for (int v = 0; v < 3; ++v) {
-		data = texelFetch(dataBuffer, v_0 + v);
-		vData[v] = data & dataMask;
+		vData[v] = vData[v] & dataMask;
 		flag[v] = eflag[v] = vData[v].y | (vData[v].x << 8);
 		edgesCrease[v] = vData[v].z / 255.0;
 		edgesBweight[v] = vData[v].w / 255.0;
@@ -87,7 +91,7 @@ void main()
 		faceColor = colorFace;
 
 #  ifdef VERTEX_SELECTION
-	vertexColor = EDIT_MESH_vertex_color(vData[vidx].x).rgb;
+	vertexColor = EDIT_MESH_vertex_color(data0.x).rgb;
 #  endif
 #  ifdef VERTEX_FACING
 	vec4 vPos = ModelViewMatrix * vec4(pos, 1.0);

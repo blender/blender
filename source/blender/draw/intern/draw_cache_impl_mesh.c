@@ -62,7 +62,6 @@
 #include "GPU_batch_presets.h"
 #include "GPU_draw.h"
 #include "GPU_material.h"
-#include "GPU_texture.h"
 
 #include "DRW_render.h"
 
@@ -2008,8 +2007,6 @@ typedef struct MeshBatchCache {
 	GPUIndexBuf *triangles_in_order;
 	GPUIndexBuf *ledges_in_order;
 
-	GPUTexture *pos_in_order_tx; /* Depending on pos_in_order */
-
 	GPUBatch *all_verts;
 	GPUBatch *all_edges;
 	GPUBatch *all_triangles;
@@ -2054,10 +2051,6 @@ typedef struct MeshBatchCache {
 
 	GPUVertBuf *edges_face_overlay_data;
 	GPUBatch *edges_face_overlay;
-	GPUTexture *edges_face_overlay_tx;
-	int edges_face_overlay_tri_count; /* Number of tri in edges_face_overlay(_adj)_tx */
-	int edges_face_overlay_tri_count_low; /* Number of tri that are sure to produce edges. */
-	bool edges_face_reduce_len; /* Has the edges_face_overlay vertbuf has been sorted. */
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
 	 * to minimize data transfer for skinned mesh. */
@@ -2075,7 +2068,6 @@ typedef struct MeshBatchCache {
 	GPUVertBuf *ed_tri_pos;
 	GPUVertBuf *ed_tri_nor; /* LoopNor, VertNor */
 	GPUVertBuf *ed_tri_data;
-	GPUTexture *ed_tri_data_tx;
 	GPUIndexBuf *ed_tri_verts;
 
 	GPUVertBuf *ed_ledge_pos;
@@ -2320,8 +2312,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			GPU_VERTBUF_DISCARD_SAFE(cache->ed_edge_pos);
 			GPU_VERTBUF_DISCARD_SAFE(cache->ed_vert_pos);
 			GPU_INDEXBUF_DISCARD_SAFE(cache->ed_tri_verts);
-			DRW_TEXTURE_FREE_SAFE(cache->ed_tri_data_tx);
-
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_triangles);
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
@@ -2417,7 +2407,6 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GPU_BATCH_DISCARD_SAFE(cache->all_triangles);
 
 	GPU_VERTBUF_DISCARD_SAFE(cache->pos_in_order);
-	DRW_TEXTURE_FREE_SAFE(cache->pos_in_order_tx);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edges_in_order);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->triangles_in_order);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->ledges_in_order);
@@ -2438,7 +2427,6 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
-	DRW_TEXTURE_FREE_SAFE(cache->ed_tri_data_tx);
 
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
@@ -2471,7 +2459,6 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	GPU_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay_data);
 	GPU_BATCH_DISCARD_SAFE(cache->edges_face_overlay);
-	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
 
 	mesh_batch_cache_discard_shaded_tri(cache);
 
@@ -3726,6 +3713,7 @@ static GPUVertFormat *edit_mesh_overlay_data_format(uint *r_data_id)
 	static uint data_id;
 	if (format_flag.attr_len == 0) {
 		data_id = GPU_vertformat_attr_add(&format_flag, "data", GPU_COMP_U8, 4, GPU_FETCH_INT);
+		GPU_vertformat_triple_load(&format_flag);
 	}
 	*r_data_id = data_id;
 	return &format_flag;
@@ -3835,10 +3823,6 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 			GPU_vertbuf_data_resize(vbo_data, vbo_len_used);
 		}
 	}
-
-	/* Upload data early because we need to create the texture for it. */
-	GPU_vertbuf_use(vbo_data);
-	cache->ed_tri_data_tx = GPU_texture_create_from_vertbuf(vbo_data);
 }
 
 static void mesh_batch_cache_create_overlay_ledge_buffers(
@@ -5192,17 +5176,6 @@ GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles(Mesh *me)
 	}
 
 	return cache->overlay_triangles;
-}
-
-GPUTexture *DRW_mesh_batch_cache_get_overlay_data_tex(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->ed_tri_data_tx == NULL) {
-		mesh_batch_cache_create_overlay_batches(me);
-	}
-
-	return cache->ed_tri_data_tx;
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)
