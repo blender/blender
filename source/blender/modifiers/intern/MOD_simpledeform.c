@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 #include "bmesh.h"
@@ -186,7 +188,8 @@ static void simpleDeform_bend(const float factor, const int axis, const float dc
 
 /* simple deform modifier */
 static void SimpleDeformModifier_do(
-        SimpleDeformModifierData *smd, struct Object *ob, struct Mesh *mesh,
+        SimpleDeformModifierData *smd, const ModifierEvalContext *ctx,
+        struct Object *ob, struct Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	const float base_limit[2] = {0.0f, 0.0f};
@@ -227,9 +230,9 @@ static void SimpleDeformModifier_do(
 	smd->limit[0] = min_ff(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
 
 	/* Calculate matrixs do convert between coordinate spaces */
-	if (smd->origin) {
+	if (smd->origin != NULL) {
 		transf = &tmp_transf;
-		BLI_SPACE_TRANSFORM_SETUP(transf, ob, smd->origin);
+		BLI_SPACE_TRANSFORM_SETUP(transf, ob, DEG_get_evaluated_object(ctx->depsgraph, smd->origin));
 	}
 
 	/* Update limits if needed */
@@ -394,7 +397,7 @@ static void deformVerts(
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 	}
 
-	SimpleDeformModifier_do(sdmd, ctx->object, mesh_src, vertexCos, numVerts);
+	SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
@@ -416,7 +419,7 @@ static void deformVertsEM(
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 	}
 
-	SimpleDeformModifier_do(sdmd, ctx->object, mesh_src, vertexCos, numVerts);
+	SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);

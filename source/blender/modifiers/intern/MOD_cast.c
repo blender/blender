@@ -48,6 +48,8 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 static void initData(ModifierData *md)
@@ -105,7 +107,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 }
 
 static void sphere_do(
-        CastModifierData *cmd, Object *ob, Mesh *mesh,
+        CastModifierData *cmd, const ModifierEvalContext *ctx,
+        Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
@@ -128,7 +131,7 @@ static void sphere_do(
 	if (type == MOD_CAST_TYPE_CYLINDER)
 		flag &= ~MOD_CAST_Z;
 
-	ctrl_ob = cmd->object;
+	ctrl_ob = DEG_get_evaluated_object(ctx->depsgraph, cmd->object);
 
 	/* spherify's center is {0, 0, 0} (the ob's own center in its local
 	 * space), by default, but if the user defined a control object,
@@ -226,7 +229,8 @@ static void sphere_do(
 }
 
 static void cuboid_do(
-        CastModifierData *cmd, Object *ob, Mesh *mesh,
+        CastModifierData *cmd, const ModifierEvalContext *ctx,
+        Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
@@ -244,7 +248,7 @@ static void cuboid_do(
 
 	flag = cmd->flag;
 
-	ctrl_ob = cmd->object;
+	ctrl_ob = DEG_get_evaluated_object(ctx->depsgraph, cmd->object);
 
 	/* now we check which options the user wants */
 
@@ -437,10 +441,10 @@ static void deformVerts(
 	}
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-		cuboid_do(cmd, ctx->object, mesh_src, vertexCos, numVerts);
+		cuboid_do(cmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 	}
 	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-		sphere_do(cmd, ctx->object, mesh_src, vertexCos, numVerts);
+		sphere_do(cmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 	}
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
@@ -459,10 +463,10 @@ static void deformVertsEM(
 	BLI_assert(mesh_src->totvert == numVerts);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-		cuboid_do(cmd, ctx->object, mesh_src, vertexCos, numVerts);
+		cuboid_do(cmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 	}
 	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-		sphere_do(cmd, ctx->object, mesh_src, vertexCos, numVerts);
+		sphere_do(cmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 	}
 
 	if (mesh_src != mesh) {

@@ -42,6 +42,8 @@
 #include "BKE_mesh.h"
 #include "BKE_deform.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 
@@ -193,13 +195,16 @@ static bool polygons_check_flip(
 }
 
 static void normalEditModifier_do_radial(
-        NormalEditModifierData *enmd, Object *ob, Mesh *mesh,
+        NormalEditModifierData *enmd, const ModifierEvalContext *ctx,
+        Object *ob, Mesh *mesh,
         short (*clnors)[2], float (*loopnors)[3], float (*polynors)[3],
         const short mix_mode, const float mix_factor, const float mix_limit,
         MDeformVert *dvert, const int defgrp_index, const bool use_invert_vgroup,
         MVert *mvert, const int num_verts, MEdge *medge, const int num_edges,
         MLoop *mloop, const int num_loops, MPoly *mpoly, const int num_polys)
 {
+	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, enmd->target);
+
 	const bool do_polynors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
 	int i;
 
@@ -209,7 +214,7 @@ static void normalEditModifier_do_radial(
 
 	BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)num_verts, __func__);
 
-	generate_vert_coordinates(mesh, ob, enmd->target, enmd->offset, num_verts, cos, size);
+	generate_vert_coordinates(mesh, ob, ob_target, enmd->offset, num_verts, cos, size);
 
 	/**
 	 * size gives us our spheroid coefficients ``(A, B, C)``.
@@ -294,13 +299,16 @@ static void normalEditModifier_do_radial(
 }
 
 static void normalEditModifier_do_directional(
-        NormalEditModifierData *enmd, Object *ob, Mesh *mesh,
+        NormalEditModifierData *enmd, const ModifierEvalContext *ctx,
+        Object *ob, Mesh *mesh,
         short (*clnors)[2], float (*loopnors)[3], float (*polynors)[3],
         const short mix_mode, const float mix_factor, const float mix_limit,
         MDeformVert *dvert, const int defgrp_index, const bool use_invert_vgroup,
         MVert *mvert, const int num_verts, MEdge *medge, const int num_edges,
         MLoop *mloop, const int num_loops, MPoly *mpoly, const int num_polys)
 {
+	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, enmd->target);
+
 	const bool do_polynors_fix = (enmd->flag & MOD_NORMALEDIT_NO_POLYNORS_FIX) == 0;
 	const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
@@ -313,7 +321,7 @@ static void normalEditModifier_do_directional(
 	float mat[4][4];
 
 	invert_m4_m4(mat, ob->obmat);
-	mul_m4_m4m4(mat, mat, enmd->target->obmat);
+	mul_m4_m4m4(mat, mat, ob_target->obmat);
 	copy_v3_v3(target_co, mat[3]);
 
 	if (use_parallel_normals) {
@@ -328,7 +336,7 @@ static void normalEditModifier_do_directional(
 	}
 	else {
 		float (*cos)[3] = MEM_malloc_arrayN((size_t)num_verts, sizeof(*cos), __func__);
-		generate_vert_coordinates(mesh, ob, enmd->target, NULL, num_verts, cos, NULL);
+		generate_vert_coordinates(mesh, ob, ob_target, NULL, num_verts, cos, NULL);
 
 		BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)num_verts, __func__);
 		MLoop *ml;
@@ -380,7 +388,8 @@ static bool is_valid_target(NormalEditModifierData *enmd)
 	return false;
 }
 
-static Mesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, Mesh *mesh)
+static Mesh *normalEditModifier_do(
+        NormalEditModifierData *enmd, const ModifierEvalContext *ctx, Object *ob, Mesh *mesh)
 {
 	const bool use_invert_vgroup = ((enmd->flag & MOD_NORMALEDIT_INVERT_VGROUP) != 0);
 	const bool use_current_clnors = !((enmd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
@@ -474,13 +483,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, Mes
 
 	if (enmd->mode == MOD_NORMALEDIT_MODE_RADIAL) {
 		normalEditModifier_do_radial(
-		            enmd, ob, result, clnors, loopnors, polynors,
+		            enmd, ctx, ob, result, clnors, loopnors, polynors,
 		            enmd->mix_mode, enmd->mix_factor, enmd->mix_limit, dvert, defgrp_index, use_invert_vgroup,
 		            mvert, num_verts, medge, num_edges, mloop, num_loops, mpoly, num_polys);
 	}
 	else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
 		normalEditModifier_do_directional(
-		            enmd, ob, result, clnors, loopnors, polynors,
+		            enmd, ctx, ob, result, clnors, loopnors, polynors,
 		            enmd->mix_mode, enmd->mix_factor, enmd->mix_limit, dvert, defgrp_index, use_invert_vgroup,
 		            mvert, num_verts, medge, num_edges, mloop, num_loops, mpoly, num_polys);
 	}
@@ -542,7 +551,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-	return normalEditModifier_do((NormalEditModifierData *)md, ctx->object, mesh);
+	return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {

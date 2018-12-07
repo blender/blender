@@ -49,6 +49,7 @@
 #include "BKE_mesh.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 #include "MEM_guardedalloc.h"
@@ -245,6 +246,8 @@ static Mesh *applyModifier(
 	MEdge *medge_orig, *med_orig, *med_new, *med_new_firstloop, *medge_new;
 	MVert *mvert_new, *mvert_orig, *mv_orig, *mv_new, *mv_new_base;
 
+	Object *ob_axis = DEG_get_evaluated_object(ctx->depsgraph, ltmd->ob_axis);
+
 	ScrewVertConnect *vc, *vc_tmp, *vert_connect = NULL;
 
 	const char mpoly_flag = (ltmd->flag & MOD_SCREW_SMOOTH_SHADING) ? ME_SMOOTH : 0;
@@ -270,10 +273,10 @@ static Mesh *applyModifier(
 
 	axis_vec[ltmd->axis] = 1.0f;
 
-	if (ltmd->ob_axis) {
+	if (ob_axis != NULL) {
 		/* calc the matrix relative to the axis object */
 		invert_m4_m4(mtx_tmp_a, ctx->object->obmat);
-		copy_m4_m4(mtx_tx_inv, ltmd->ob_axis->obmat);
+		copy_m4_m4(mtx_tx_inv, ob_axis->obmat);
 		mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 
 		/* calc the axis vec */
@@ -508,7 +511,7 @@ static Mesh *applyModifier(
 			med_new = medge_new;
 			mv_new = mvert_new;
 
-			if (ltmd->ob_axis) {
+			if (ob_axis != NULL) {
 				/*mtx_tx is initialized early on */
 				for (i = 0; i < totvert; i++, mv_new++, mv_orig++, vc++) {
 					vc->co[0] = mv_new->co[0] = mv_orig->co[0];
@@ -839,7 +842,7 @@ static Mesh *applyModifier(
 		/* Rotation Matrix */
 		step_angle = (angle / (float)(step_tot - (!close))) * (float)step;
 
-		if (ltmd->ob_axis) {
+		if (ob_axis != NULL) {
 			axis_angle_normalized_to_mat3(mat3, axis_vec, step_angle);
 		}
 		else {
@@ -871,7 +874,7 @@ static Mesh *applyModifier(
 			/* only need to set these if using non cleared memory */
 			/*mv_new->mat_nr = mv_new->flag = 0;*/
 
-			if (ltmd->ob_axis) {
+			if (ob_axis != NULL) {
 				sub_v3_v3(mv_new->co, mtx_tx[3]);
 
 				mul_m4_v3(mat, mv_new->co);
@@ -1098,7 +1101,7 @@ static Mesh *applyModifier(
 		Mesh *result_prev = result;
 		result = mesh_remove_doubles_on_axis(
 		        result, mvert_new, totvert, step_tot,
-		        axis_vec, ltmd->ob_axis ? mtx_tx[3] : NULL, ltmd->merge_dist);
+		        axis_vec, ob_axis != NULL ? mtx_tx[3] : NULL, ltmd->merge_dist);
 		if (result != result_prev) {
 			result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 		}

@@ -166,6 +166,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	/* Only used to check wehther we are operating on org data or not... */
 	Mesh *me = ctx->object->data;
 
+	Object *ob_source = DEG_get_evaluated_object(ctx->depsgraph, dtmd->ob_source);
+
 	const bool invert_vgroup = (dtmd->flags & MOD_DATATRANSFER_INVERT_VGROUP) != 0;
 
 	const float max_dist = (dtmd->flags & MOD_DATATRANSFER_MAP_MAXDIST) ? dtmd->map_max_distance : FLT_MAX;
@@ -174,7 +176,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	SpaceTransform *space_transform = (dtmd->flags & MOD_DATATRANSFER_OBSRC_TRANSFORM) ? &space_transform_data : NULL;
 
 	if (space_transform) {
-		BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, dtmd->ob_source);
+		BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
 	}
 
 	if (((result == me) || (me->mvert == result->mvert) || (me->medge == result->medge)) &&
@@ -194,7 +196,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	BKE_reports_init(&reports, RPT_STORE);
 
 	/* Note: no islands precision for now here. */
-	BKE_object_data_transfer_ex(ctx->depsgraph, scene, dtmd->ob_source, ctx->object, result, dtmd->data_types, false,
+	BKE_object_data_transfer_ex(ctx->depsgraph, scene, ob_source, ctx->object, result, dtmd->data_types, false,
 	                     dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode,
 	                     space_transform, false, max_dist, dtmd->map_ray_radius, 0.0f,
 	                     dtmd->layers_select_src, dtmd->layers_select_dst,
@@ -206,7 +208,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
 		modifier_setError((ModifierData *)dtmd, "Enable 'Auto Smooth' option in mesh settings");
 	}
-	else if (result->totvert > HIGH_POLY_WARNING || ((Mesh *)(dtmd->ob_source->data))->totvert > HIGH_POLY_WARNING) {
+	else if (result->totvert > HIGH_POLY_WARNING || ((Mesh *)(ob_source->data))->totvert > HIGH_POLY_WARNING) {
 		modifier_setError(md, "You are using a rather high poly as source or destination, computation might be slow");
 	}
 

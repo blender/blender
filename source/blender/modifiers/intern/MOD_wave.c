@@ -157,7 +157,7 @@ static bool dependsOnNormals(ModifierData *md)
 
 static void waveModifier_do(
         WaveModifierData *md,
-        Depsgraph *depsgraph,
+        const ModifierEvalContext *ctx,
         Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
@@ -165,7 +165,7 @@ static void waveModifier_do(
 	MVert *mvert = NULL;
 	MDeformVert *dvert;
 	int defgrp_index;
-	float ctime = DEG_get_ctime(depsgraph);
+	float ctime = DEG_get_ctime(ctx->depsgraph);
 	float minfac = (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
 	float (*tex_co)[3] = NULL;
@@ -177,11 +177,11 @@ static void waveModifier_do(
 		mvert = mesh->mvert;
 	}
 
-	if (wmd->objectcenter) {
+	if (wmd->objectcenter != NULL) {
 		float mat[4][4];
 		/* get the control object's location in local coordinates */
 		invert_m4_m4(ob->imat, ob->obmat);
-		mul_m4_m4m4(mat, ob->imat, wmd->objectcenter->obmat);
+		mul_m4_m4m4(mat, ob->imat, DEG_get_evaluated_object(ctx->depsgraph, wmd->objectcenter)->obmat);
 
 		wmd->startx = mat[3][0];
 		wmd->starty = mat[3][1];
@@ -205,11 +205,12 @@ static void waveModifier_do(
 		}
 	}
 
-	if (mesh != NULL && wmd->texture) {
+	Tex *tex_target = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &wmd->texture->id);
+	if (mesh != NULL && tex_target != NULL) {
 		tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co), "waveModifier_do tex_co");
-		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ob, mesh, vertexCos, tex_co);
+		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
 
-		MOD_init_texture(depsgraph, wmd->texture);
+		MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
 	}
 
 	if (lifefac != 0.0f) {
@@ -279,11 +280,11 @@ static void waveModifier_do(
 				amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
 
 				/*apply texture*/
-				if (wmd->texture) {
-					Scene *scene = DEG_get_evaluated_scene(depsgraph);
+				if (tex_target) {
+					Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 					TexResult texres;
 					texres.nor = NULL;
-					BKE_texture_get_value(scene, wmd->texture, tex_co[i], &texres, false);
+					BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
 					amplit *= texres.tin;
 				}
 
@@ -329,7 +330,7 @@ static void deformVerts(
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 	}
 
-	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
+	waveModifier_do(wmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
@@ -351,7 +352,7 @@ static void deformVertsEM(
 		mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 	}
 
-	waveModifier_do(wmd, ctx->depsgraph, ctx->object, mesh_src, vertexCos, numVerts);
+	waveModifier_do(wmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);

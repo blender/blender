@@ -402,7 +402,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	}
 
 	/* Get our target object. */
-	obr = wmd->proximity_ob_target;
+	obr = DEG_get_evaluated_object(ctx->depsgraph, wmd->proximity_ob_target);
 	if (obr == NULL) {
 		return mesh;
 	}

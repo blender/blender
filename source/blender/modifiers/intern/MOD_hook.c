@@ -49,6 +49,8 @@
 #include "BKE_deform.h"
 #include "BKE_colortools.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "MOD_util.h"
@@ -252,10 +254,12 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
 }
 
 static void deformVerts_do(
-        HookModifierData *hmd, Object *ob, Mesh *mesh,
+        HookModifierData *hmd, const ModifierEvalContext *ctx,
+        Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
+	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, hmd->object);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
 	float dmat[4][4];
 	int i, *index_pt;
 	struct HookData_cb hd;
@@ -295,11 +299,11 @@ static void deformVerts_do(
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
 		/* bone target if there's a matching pose-channel */
-		mul_m4_m4m4(dmat, hmd->object->obmat, pchan->pose_mat);
+		mul_m4_m4m4(dmat, ob_target->obmat, pchan->pose_mat);
 	}
 	else {
 		/* just object target */
-		copy_m4_m4(dmat, hmd->object->obmat);
+		copy_m4_m4(dmat, ob_target->obmat);
 	}
 	invert_m4_m4(ob->imat, ob->obmat);
 	mul_m4_series(hd.mat, ob->imat, dmat, hmd->parentinv);
@@ -356,7 +360,7 @@ static void deformVerts(
 	HookModifierData *hmd = (HookModifierData *)md;
 	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
 
-	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
+	deformVerts_do(hmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
@@ -371,7 +375,7 @@ static void deformVertsEM(
 	HookModifierData *hmd = (HookModifierData *)md;
 	Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
 
-	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
+	deformVerts_do(hmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);

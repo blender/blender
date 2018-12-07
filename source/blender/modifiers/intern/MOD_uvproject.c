@@ -125,6 +125,7 @@ typedef struct Projector {
 
 static Mesh *uvprojectModifier_do(
         UVProjectModifierData *umd,
+        const ModifierEvalContext *ctx,
         Object *ob, Mesh *mesh)
 {
 	float (*coords)[3], (*co)[3];
@@ -141,11 +142,14 @@ static Mesh *uvprojectModifier_do(
 	float scay = umd->scaley ? umd->scaley : 1.0f;
 	int free_uci = 0;
 
-	for (i = 0; i < umd->num_projectors; ++i)
-		if (umd->projectors[i])
-			projectors[num_projectors++].ob = umd->projectors[i];
+	for (i = 0; i < umd->num_projectors; ++i) {
+		if (umd->projectors[i] != NULL) {
+			projectors[num_projectors++].ob = DEG_get_evaluated_object(ctx->depsgraph, umd->projectors[i]);
+		}
+	}
 
-	if (num_projectors == 0) return mesh;
+	if (num_projectors == 0)
+		return mesh;
 
 	/* make sure there are UV Maps available */
 
@@ -317,7 +321,7 @@ static Mesh *applyModifier(
 	Mesh *result;
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 
-	result = uvprojectModifier_do(umd, ctx->object, mesh);
+	result = uvprojectModifier_do(umd, ctx, ctx->object, mesh);
 
 	return result;
 }

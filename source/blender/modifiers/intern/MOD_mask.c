@@ -54,6 +54,7 @@
 #include "BKE_deform.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -137,7 +138,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	/* if mode is to use selected armature bones, aggregate the bone groups */
 	if (mmd->mode == MOD_MASK_MODE_ARM) { /* --- using selected bones --- */
-		Object *oba = mmd->ob_arm;
+		Object *oba = DEG_get_evaluated_object(ctx->depsgraph, mmd->ob_arm);
 		bPoseChannel *pchan;
 		bDeformGroup *def;
 		bool *bone_select_array;

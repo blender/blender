@@ -118,7 +118,7 @@ static void deformVerts(
 	int defgrp_index = -1;
 	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
-	shrinkwrapModifier_deform(swmd, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+	shrinkwrapModifier_deform(swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);
@@ -138,7 +138,7 @@ static void deformVertsEM(
 	int defgrp_index = -1;
 	MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
-	shrinkwrapModifier_deform(swmd, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+	shrinkwrapModifier_deform(swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
 
 	if (!ELEM(mesh_src, NULL, mesh)) {
 		BKE_id_free(NULL, mesh_src);

@@ -295,7 +295,7 @@ static void meshdeformModifier_do(
 
 	static int recursive_bind_sentinel = 0;
 
-	if (!mmd->object || (!mmd->bindcagecos && !mmd->bindfunc))
+	if (mmd->object == NULL || (mmd->bindcagecos == NULL && mmd->bindfunc == NULL))
 		return;
 
 	/* Get cage mesh.
@@ -308,21 +308,23 @@ static void meshdeformModifier_do(
 	 *
 	 * We'll support this case once granular dependency graph is landed.
 	 */
-	cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(mmd->object, &free_cagemesh);
+	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, mmd->object);
+	cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, &free_cagemesh);
+#if 0  /* This shall not be needed if we always get evaluated target object... */
 	if (cagemesh == NULL && mmd->bindcagecos == NULL && ob == DEG_get_original_object(ob)) {
 		/* Special case, binding happens outside of depsgraph evaluation, so we can build our own
 		 * target mesh if needed. */
 		cagemesh = mesh_create_eval_final_view(ctx->depsgraph, DEG_get_input_scene(ctx->depsgraph), mmd->object, 0);
 		free_cagemesh = cagemesh != NULL;
 	}
-
+#endif
 	if (cagemesh == NULL) {
 		modifier_setError(md, "Cannot get mesh from cage object");
 		return;
 	}
 
 	/* compute matrices to go in and out of cage object space */
-	invert_m4_m4(imat, mmd->object->obmat);
+	invert_m4_m4(imat, ob_target->obmat);
 	mul_m4_m4m4(cagemat, imat, ob->obmat);
 	mul_m4_m4m4(cmat, mmd->bindmat, cagemat);
 	invert_m4_m4(iobmat, cmat);

@@ -51,6 +51,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -85,6 +86,7 @@ static Mesh *doBiscetOnMirrorPlane(
         MirrorModifierData *mmd,
         Object *ob,
         const Mesh *mesh,
+        Object *mirror_ob,
         int axis,
         float mirrormat[4][4])
 {
@@ -114,10 +116,10 @@ static Mesh *doBiscetOnMirrorPlane(
 	float plane_no[3];
 	copy_v3_v3(plane_no, mirrormat[axis]);
 
-	if (mmd->mirror_ob) {
+	if (mirror_ob != NULL) {
 		float tmp[4][4];
 		invert_m4_m4(tmp, ob->obmat);
-		mul_m4_m4m4(tmp, tmp, mmd->mirror_ob->obmat);
+		mul_m4_m4m4(tmp, tmp, mirror_ob->obmat);
 
 		copy_v3_v3(plane_no, tmp[axis]);
 		copy_v3_v3(plane_co, tmp[3]);
@@ -151,6 +153,7 @@ static Mesh *doBiscetOnMirrorPlane(
 
 static Mesh *doMirrorOnAxis(
 	MirrorModifierData *mmd,
+	const ModifierEvalContext *ctx,
 	Object *ob,
 	const Mesh *mesh,
 	int axis)
@@ -178,13 +181,14 @@ static Mesh *doMirrorOnAxis(
 	unit_m4(mtx);
 	mtx[axis][axis] = -1.0f;
 
-	if (mmd->mirror_ob) {
+	Object *mirror_ob = DEG_get_evaluated_object(ctx->depsgraph, mmd->mirror_ob);
+	if (mirror_ob != NULL) {
 		float tmp[4][4];
 		float itmp[4][4];
 
 		/* tmp is a transform from coords relative to the object's own origin,
 		 * to coords relative to the mirror object origin */
-		invert_m4_m4(tmp, mmd->mirror_ob->obmat);
+		invert_m4_m4(tmp, mirror_ob->obmat);
 		mul_m4_m4m4(tmp, tmp, ob->obmat);
 
 		/* itmp is the reverse transform back to origin-relative coordinates */
@@ -200,7 +204,7 @@ static Mesh *doMirrorOnAxis(
 
 	Mesh *mesh_bisect = NULL;
 	if (do_bisect) {
-		mesh_bisect = doBiscetOnMirrorPlane(mmd, ob, mesh, axis, mtx);
+		mesh_bisect = doBiscetOnMirrorPlane(mmd, ob, mesh, mirror_ob, axis, mtx);
 		mesh = mesh_bisect;
 	}
 
@@ -382,18 +386,18 @@ static Mesh *doMirrorOnAxis(
 }
 
 static Mesh *mirrorModifier__doMirror(
-        MirrorModifierData *mmd,
+        MirrorModifierData *mmd, const ModifierEvalContext *ctx,
         Object *ob, Mesh *mesh)
 {
 	Mesh *result = mesh;
 
 	/* check which axes have been toggled and mirror accordingly */
 	if (mmd->flag & MOD_MIR_AXIS_X) {
-		result = doMirrorOnAxis(mmd, ob, result, 0);
+		result = doMirrorOnAxis(mmd, ctx, ob, result, 0);
 	}
 	if (mmd->flag & MOD_MIR_AXIS_Y) {
 		Mesh *tmp = result;
-		result = doMirrorOnAxis(mmd, ob, result, 1);
+		result = doMirrorOnAxis(mmd, ctx, ob, result, 1);
 		if (tmp != mesh) {
 			/* free intermediate results */
 			BKE_id_free(NULL, tmp);
@@ -401,7 +405,7 @@ static Mesh *mirrorModifier__doMirror(
 	}
 	if (mmd->flag & MOD_MIR_AXIS_Z) {
 		Mesh *tmp = result;
-		result = doMirrorOnAxis(mmd, ob, result, 2);
+		result = doMirrorOnAxis(mmd, ctx, ob, result, 2);
 		if (tmp != mesh) {
 			/* free intermediate results */
 			BKE_id_free(NULL, tmp);
@@ -418,7 +422,7 @@ static Mesh *applyModifier(
 	Mesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
-	result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
+	result = mirrorModifier__doMirror(mmd, ctx, ctx->object, mesh);
 
 	if (result != mesh) {
 		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

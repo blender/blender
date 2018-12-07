@@ -176,15 +176,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	Mesh *mesh_other;
 	bool mesh_other_free;
 
-	if (!bmd->object) {
+	if (bmd->object == NULL) {
 		return result;
 	}
 
-	Object *ob_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_eval, &mesh_other_free);
+	Object *other = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(other, &mesh_other_free);
 	if (mesh_other) {
 		Object *object = ctx->object;
-		Object *other = bmd->object;
 
 		/* when one of objects is empty (has got no faces) we could speed up
 		 * calculation a bit returning one of objects' derived meshes (or empty one)
@@ -266,6 +265,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 						short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
 
 						/* Using original (not evaluated) object here since we are writing to it. */
+						/* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
 						BKE_material_remap_object_calc(ctx->object, other, material_remap);
 
 						BMFace *efa;

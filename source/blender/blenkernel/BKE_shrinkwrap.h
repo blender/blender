@@ -105,7 +105,8 @@ void BKE_shrinkwrap_free_tree(struct ShrinkwrapTreeData *data);
 
 /* Implementation of the Shrinkwrap modifier */
 void shrinkwrapModifier_deform(
-        struct ShrinkwrapModifierData *smd, struct Scene *scene, struct Object *ob, struct Mesh *mesh,
+        struct ShrinkwrapModifierData *smd, const struct ModifierEvalContext *ctx,
+        struct Scene *scene, struct Object *ob, struct Mesh *mesh,
         struct MDeformVert *dvert, const int defgrp_index, float (*vertexCos)[3], int numVerts);
 
 /*

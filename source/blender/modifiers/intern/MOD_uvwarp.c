@@ -40,6 +40,8 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 
 
@@ -167,8 +169,8 @@ static Mesh *applyModifier(
 	}
 
 	/* make sure anything moving UVs is available */
-	matrix_from_obj_pchan(mat_src, umd->object_src, umd->bone_src);
-	matrix_from_obj_pchan(mat_dst, umd->object_dst, umd->bone_dst);
+	matrix_from_obj_pchan(mat_src, DEG_get_evaluated_object(ctx->depsgraph, umd->object_src), umd->bone_src);
+	matrix_from_obj_pchan(mat_dst, DEG_get_evaluated_object(ctx->depsgraph, umd->object_dst), umd->bone_dst);
 
 	invert_m4_m4(imat_dst, mat_dst);
 	mul_m4_m4m4(warp_mat, imat_dst, mat_src);

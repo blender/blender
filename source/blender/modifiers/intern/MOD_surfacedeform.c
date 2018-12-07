@@ -1125,13 +1125,16 @@ static void surfacedeformModifier_do(
 		return;
 	}
 
-	target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(smd->target, &free_target);
+	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, smd->target);
+	target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, &free_target);
+#if 0  /* Should not be needed anymore since we always get that mesh from eval object ? */
 	if (target == NULL && smd->verts == NULL && ob == DEG_get_original_object(ob)) {
 		/* Special case, binding happens outside of depsgraph evaluation, so we can build our own
 		 * target mesh if needed. */
 		target = mesh_create_eval_final_view(ctx->depsgraph, DEG_get_input_scene(ctx->depsgraph), smd->target, 0);
 		free_target = target != NULL;
 	}
+#endif
 	if (!target) {
 		modifier_setError(md, "No valid target mesh");
 		return;
@@ -1152,7 +1155,7 @@ static void surfacedeformModifier_do(
 		float tmp_mat[4][4];
 
 		invert_m4_m4(tmp_mat, ob->obmat);
-		mul_m4_m4m4(smd->mat, tmp_mat, smd->target->obmat);
+		mul_m4_m4m4(smd->mat, tmp_mat, ob_target->obmat);
 
 		if (!surfacedeformBind(smd, vertexCos, numverts, tnumpoly, tnumverts, target)) {
 			smd->flags &= ~MOD_SDEF_BIND;
@@ -1223,7 +1226,7 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 
-	return !smd->target && !(smd->verts && !(smd->flags & MOD_SDEF_BIND));
+	return smd->target == NULL && !(smd->verts != NULL && !(smd->flags & MOD_SDEF_BIND));
 }
 
 ModifierTypeInfo modifierType_SurfaceDeform = {

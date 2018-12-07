@@ -160,7 +160,6 @@ static void warpModifier_do(
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	Object *ob = ctx->object;
-	Depsgraph *depsgraph = ctx->depsgraph;
 	float obinv[4][4];
 	float mat_from[4][4];
 	float mat_from_inv[4][4];
@@ -196,8 +195,8 @@ static void warpModifier_do(
 
 	invert_m4_m4(obinv, ob->obmat);
 
-	mul_m4_m4m4(mat_from, obinv, wmd->object_from->obmat);
-	mul_m4_m4m4(mat_to, obinv, wmd->object_to->obmat);
+	mul_m4_m4m4(mat_from, obinv, DEG_get_evaluated_object(ctx->depsgraph, wmd->object_from)->obmat);
+	mul_m4_m4m4(mat_to, obinv, DEG_get_evaluated_object(ctx->depsgraph, wmd->object_to)->obmat);
 
 	invert_m4_m4(tmat, mat_from); // swap?
 	mul_m4_m4m4(mat_final, tmat, mat_to);
@@ -218,11 +217,12 @@ static void warpModifier_do(
 	}
 	weight = strength;
 
-	if (mesh != NULL && wmd->texture) {
+	Tex *tex_target = (Tex *)DEG_get_evaluated_id(ctx->depsgraph, &wmd->texture->id);
+	if (mesh != NULL && tex_target != NULL) {
 		tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co), "warpModifier_do tex_co");
-		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ob, mesh, vertexCos, tex_co);
+		MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
 
-		MOD_init_texture(depsgraph, wmd->texture);
+		MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
 	}
 
 	for (i = 0; i < numVerts; i++) {
@@ -279,7 +279,7 @@ static void warpModifier_do(
 				struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 				TexResult texres;
 				texres.nor = NULL;
-				BKE_texture_get_value(scene, wmd->texture, tex_co[i], &texres, false);
+				BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
 				fac *= texres.tin;
 			}
 
