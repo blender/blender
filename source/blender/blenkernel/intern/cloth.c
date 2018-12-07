@@ -804,7 +804,6 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, Mesh *mesh, fl
 	if ( !cloth_build_springs ( clmd, mesh ) ) {
 		cloth_free_modifier ( clmd );
 		modifier_setError(&(clmd->modifier), "Cannot build springs");
-		printf("cloth_free_modifier cloth_build_springs\n");
 		return 0;
 	}
 
