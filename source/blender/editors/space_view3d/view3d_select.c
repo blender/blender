@@ -1308,41 +1308,17 @@ static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits15, const
 	return hits5;
 }
 
-/* we want a select buffer with bones, if there are... */
-/* so check three selection levels and compare */
+/**
+ * Populate a select buffer with objects and bones, if there are any.
+ * Checks three selection levels and compare.
+ */
 static int mixed_bones_object_selectbuffer(
-        ViewContext *vc, unsigned int *buffer, const int mval[2],
-        bool use_cycle, bool enumerate, bool use_scene_lock, eV3DSelectObjectFilter select_filter,
-        bool *r_do_nearest)
+        ViewContext *vc, unsigned int *buffer, const int mval[2], eV3DSelectObjectFilter select_filter,
+        bool do_nearest)
 {
 	rcti rect;
 	int hits15, hits9 = 0, hits5 = 0;
 	bool has_bones15 = false, has_bones9 = false, has_bones5 = false;
-	static int last_mval[2] = {-100, -100};
-	bool do_nearest = false;
-	View3D *v3d = vc->v3d;
-
-	/* define if we use solid nearest select or not */
-	if (use_cycle) {
-		if (v3d->shading.type > OB_WIRE) {
-			do_nearest = true;
-			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
-				do_nearest = false;
-			}
-		}
-		copy_v2_v2_int(last_mval, mval);
-	}
-	else {
-		if (v3d->shading.type > OB_WIRE) {
-			do_nearest = true;
-		}
-	}
-
-	if (r_do_nearest) {
-		*r_do_nearest = do_nearest;
-	}
-
-	do_nearest = do_nearest && !enumerate;
 
 	const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
 	int hits = 0;
@@ -1393,8 +1369,42 @@ static int mixed_bones_object_selectbuffer(
 
 finally:
 	view3d_opengl_select_cache_end();
+	return hits;
+}
 
-	if (use_scene_lock && (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK)) {
+static int mixed_bones_object_selectbuffer_extended(
+        ViewContext *vc, unsigned int *buffer, const int mval[2], eV3DSelectObjectFilter select_filter,
+        bool use_cycle, bool enumerate, bool *r_do_nearest)
+{
+	static int last_mval[2] = {-100, -100};
+	bool do_nearest = false;
+	View3D *v3d = vc->v3d;
+
+	/* define if we use solid nearest select or not */
+	if (use_cycle) {
+		if (v3d->shading.type > OB_WIRE) {
+			do_nearest = true;
+			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
+				do_nearest = false;
+			}
+		}
+		copy_v2_v2_int(last_mval, mval);
+	}
+	else {
+		if (v3d->shading.type > OB_WIRE) {
+			do_nearest = true;
+		}
+	}
+
+	if (r_do_nearest) {
+		*r_do_nearest = do_nearest;
+	}
+
+	do_nearest = do_nearest && !enumerate;
+
+	int hits = mixed_bones_object_selectbuffer(vc, buffer, mval, select_filter, do_nearest);
+
+	if (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
 		const bool is_pose_mode = (
 		        (vc->obact && vc->obact->mode & OB_MODE_POSE) ||
 		        (select_filter == VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK));
@@ -1508,18 +1518,15 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	ViewContext vc;
 	Base *basact = NULL;
 	unsigned int buffer[MAXPICKBUF];
-	int hits;
-	bool do_nearest;
 
 	/* setup view context for argument to callbacks */
 	view3d_operator_needs_opengl(C);
 
 	ED_view3d_viewcontext_init(C, &vc);
 
-	hits = mixed_bones_object_selectbuffer(
-	        &vc, buffer, mval,
-	        false, false, false, VIEW3D_SELECT_FILTER_NOP,
-	        &do_nearest);
+	const bool do_nearest = (vc.v3d->shading.type > OB_WIRE);
+	const int hits = mixed_bones_object_selectbuffer(
+	        &vc, buffer, mval, VIEW3D_SELECT_FILTER_NOP, do_nearest);
 
 	if (hits > 0) {
 		const bool has_bones = selectbuffer_has_bones(buffer, hits);
@@ -1648,9 +1655,9 @@ static bool ed_object_select_pick(
 		/* if objects have posemode set, the bones are in the same selection buffer */
 		const eV3DSelectObjectFilter select_filter = (
 		        (object == false) ? ED_view3d_select_filter_from_mode(scene, vc.obact) : VIEW3D_SELECT_FILTER_NOP);
-		hits = mixed_bones_object_selectbuffer(
-		        &vc, buffer, mval,
-		        true, enumerate, (object == false), select_filter,
+		hits = mixed_bones_object_selectbuffer_extended(
+		        &vc, buffer, mval, select_filter,
+		        true, enumerate,
 		        &do_nearest);
 
 		// TIMEIT_END(select_time);
