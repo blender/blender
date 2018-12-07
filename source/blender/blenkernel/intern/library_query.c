@@ -407,6 +407,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				CALLBACK_INVOKE(scene->world, IDWALK_CB_USER);
 				CALLBACK_INVOKE(scene->set, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(scene->clip, IDWALK_CB_USER);
+				CALLBACK_INVOKE(scene->r.bake.cage_object, IDWALK_CB_NOP);
 				if (scene->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
 					library_foreach_ID_as_subdata_link((ID **)&scene->nodetree, callback, user_data, flag, &data);

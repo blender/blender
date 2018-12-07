@@ -1815,7 +1815,7 @@ class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
             sub.prop(cbk, "use_cage", text="Cage")
             if cbk.use_cage:
                 sub.prop(cbk, "cage_extrusion", text="Extrusion")
-                sub.prop_search(cbk, "cage_object", scene, "objects", text="Cage Object")
+                sub.prop(cbk, "cage_object", text="Cage Object")
             else:
                 sub.prop(cbk, "cage_extrusion", text="Ray Distance")
 

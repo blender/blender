@@ -6174,6 +6174,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 				lib_link_view_layer(fd, sce->id.lib, view_layer);
 			}
 
+			if (sce->r.bake.cage_object) {
+				sce->r.bake.cage_object = newlibadr(fd, sce->id.lib, sce->r.bake.cage_object);
+			}
+
 #ifdef USE_SETSCENE_CHECK
 			if (sce->set != NULL) {
 				/* link flag for scenes with set would be reset later,
@@ -10020,6 +10024,10 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 
 	if (sce->master_collection) {
 		expand_collection(fd, mainvar, sce->master_collection);
+	}
+
+	if (sce->r.bake.cage_object) {
+		expand_doit(fd, mainvar, sce->r.bake.cage_object);
 	}
 }
 

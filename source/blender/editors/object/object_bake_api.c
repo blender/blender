@@ -1358,7 +1358,9 @@ static void bake_set_props(wmOperator *op, Scene *scene)
 
 	prop = RNA_struct_find_property(op->ptr, "cage_object");
 	if (!RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_string_set(op->ptr, prop, bake->cage);
+		if (bake->cage_object) {
+			RNA_property_string_set(op->ptr, prop, bake->cage_object->id.name + 2);
+		}
 	}
 
 	prop = RNA_struct_find_property(op->ptr, "normal_space");

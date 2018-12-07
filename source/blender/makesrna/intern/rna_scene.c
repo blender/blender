@@ -3753,10 +3753,10 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Bake Data", "Bake data for a Scene data-block");
 	RNA_def_struct_path_func(srna, "rna_BakeSettings_path");
 
-	prop = RNA_def_property(srna, "cage_object", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "cage");
+	prop = RNA_def_property(srna, "cage_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Cage Object", "Object to use as cage "
 	                         "instead of calculating the cage from the active object with cage extrusion");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
