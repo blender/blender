@@ -469,6 +469,7 @@ void free_hair(Object *object, ParticleSystem *psys, int dynamics)
 	if (psys->clmd) {
 		if (dynamics) {
 			modifier_free((ModifierData *)psys->clmd);
+			psys->clmd = NULL;
 			PTCacheID pid;
 			BKE_ptcache_id_from_particles(&pid, object, psys);
 			BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
