@@ -518,7 +518,8 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			/* Pose requires the B-Bone shape. */
 			add_relation(bone_segments_key,
 			             pose_done_key,
-			             "PoseEval Result-Bone Link");
+			             "PoseEval Result-Bone Link",
+						 DEPSREL_FLAG_GODMODE);
 			add_relation(bone_segments_key,
 			             pose_cleanup_key,
 			             "Cleanup dependency");
@@ -575,7 +576,10 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 		add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
 		add_relation(
 		        bone_done_key, pose_cleanup_key, "Bone Done -> Pose Cleanup");
-		add_relation(bone_done_key, pose_done_key, "Bone Done -> Pose Done");
+		add_relation(bone_done_key,
+		            pose_done_key,
+		            "Bone Done -> Pose Done",
+		            DEPSREL_FLAG_GODMODE);
 
 		/* Make sure bone in the proxy is not done before it's FROM is done. */
 		if (pchan->bone && pchan->bone->segments > 1) {
@@ -585,7 +589,8 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 			                                    DEG_OPCODE_BONE_SEGMENTS);
 			add_relation(from_bone_segments_key,
 			             bone_done_key,
-			             "Bone Segments -> Bone Done");
+			             "Bone Segments -> Bone Done",
+			             DEPSREL_FLAG_GODMODE);
 		}
 		else {
 			add_relation(from_bone_done_key,
