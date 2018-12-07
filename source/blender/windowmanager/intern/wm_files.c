@@ -607,7 +607,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		Main *bmain = CTX_data_main(C);
 
 		/* when loading startup.blend's, we can be left with a blank path */
-		if (BKE_main_blendfile_path(bmain)) {
+		if (BKE_main_blendfile_path(bmain)[0] != '\0') {
 			G.save_over = 1;
 		}
 		else {
