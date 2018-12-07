@@ -1188,9 +1188,6 @@ static bool view3d_localview_init(
 				if (TESTBASE(v3d, base)) {
 					BKE_object_minmax(base->object, min, max, false);
 					base->local_view_bits |= local_view_bit;
-					/* Technically we should leave for Depsgraph to handle this.
-					   But it is harmless to do it here, and it seems to be necessary. */
-					base->object->base_local_view_bits = base->local_view_bits;
 					ok = true;
 				}
 			}
