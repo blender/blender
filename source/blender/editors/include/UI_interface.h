@@ -240,6 +240,8 @@ enum {
 	UI_BUT_HAS_SHORTCUT      = (1 << 23), /* Button has shortcut text. */
 
 	UI_BUT_ICON_REVERSE      = (1 << 24), /* Reverse order of consecutive off/on icons */
+
+	UI_BUT_ANIMATED_CHANGED  = (1 << 25), /* Value is animated, but the current value differs from the animated one. */
 };
 
 /* scale fixed button widths by this to account for DPI */

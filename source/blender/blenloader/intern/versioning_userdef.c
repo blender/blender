@@ -97,6 +97,11 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		copy_v4_v4_char(btheme->tuserpref.navigation_bar, U_theme_default.tuserpref.navigation_bar);
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 36)) {
+		copy_v4_v4_char(btheme->tui.wcol_state.inner_changed, U_theme_default.tui.wcol_state.inner_changed);
+		copy_v4_v4_char(btheme->tui.wcol_state.inner_changed_sel, U_theme_default.tui.wcol_state.inner_changed_sel);
+	}
+
 #undef USER_VERSION_ATLEAST
 }
 

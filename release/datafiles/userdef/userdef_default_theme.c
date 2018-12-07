@@ -228,6 +228,8 @@ const bTheme U_theme_default = {
 			.inner_driven_sel = RGBA(0x9900e6ff),
 			.inner_overridden = RGBA(0x19c3c300),
 			.inner_overridden_sel = RGBA(0x118f8f00),
+			.inner_changed = RGBA(0xcc7529ff),
+			.inner_changed_sel = RGBA(0xe6852dff),
 			.blend = 0.5f,
 		},
 		.widget_emboss = RGBA(0x00000005),

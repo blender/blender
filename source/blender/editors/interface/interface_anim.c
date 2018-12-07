@@ -76,6 +76,7 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 	bool special;
 
 	but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
+	but->drawflag &= ~UI_BUT_ANIMATED_CHANGED;
 
 	/* NOTE: "special" is reserved for special F-Curves stored on the animation data
 	 *        itself (which are used to animate properties of the animation data).
@@ -96,6 +97,9 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 
 			if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 				but->flag |= UI_BUT_ANIMATED_KEY;
+
+			if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, cfra))
+				but->drawflag |= UI_BUT_ANIMATED_CHANGED;
 		}
 		else {
 			but->flag |= UI_BUT_DRIVEN;

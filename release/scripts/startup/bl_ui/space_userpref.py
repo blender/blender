@@ -754,6 +754,8 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui_state, "inner_key_sel")
             colsub.row().prop(ui_state, "inner_overridden")
             colsub.row().prop(ui_state, "inner_overridden_sel")
+            colsub.row().prop(ui_state, "inner_changed")
+            colsub.row().prop(ui_state, "inner_changed_sel")
 
             col.separator()
             col.separator()

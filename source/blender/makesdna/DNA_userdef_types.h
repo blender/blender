@@ -148,6 +148,8 @@ typedef struct uiWidgetStateColors {
 	char inner_driven_sel[4];
 	char inner_overridden[4];
 	char inner_overridden_sel[4];
+	char inner_changed[4];
+	char inner_changed_sel[4];
 	float blend, pad;
 } uiWidgetStateColors;
 

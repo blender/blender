@@ -146,7 +146,7 @@ typedef struct uiWidgetType {
 	/* converted colors for state */
 	uiWidgetColors wcol;
 
-	void (*state)(struct uiWidgetType *, int state);
+	void (*state)(struct uiWidgetType *, int state, int drawflag);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*text)(uiFontStyle *, uiWidgetColors *, uiBut *, rcti *);
@@ -2231,7 +2231,7 @@ static void widget_active_color(char cp[3])
 }
 
 /* copy colors from theme, and set changes in it based on state */
-static void widget_state(uiWidgetType *wt, int state)
+static void widget_state(uiWidgetType *wt, int state, int drawflag)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
 
@@ -2249,8 +2249,9 @@ static void widget_state(uiWidgetType *wt, int state)
 
 	if (state & UI_SELECT) {
 		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
-
-		if (state & UI_BUT_ANIMATED_KEY)
+		if (drawflag & UI_BUT_ANIMATED_CHANGED)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_changed_sel, wcol_state->blend);
+		else if (state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_key_sel, wcol_state->blend);
 		else if (state & UI_BUT_ANIMATED)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_anim_sel, wcol_state->blend);
@@ -2265,7 +2266,9 @@ static void widget_state(uiWidgetType *wt, int state)
 			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
-		if (state & UI_BUT_ANIMATED_KEY)
+		if (drawflag & UI_BUT_ANIMATED_CHANGED)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_changed, wcol_state->blend);
+		else if (state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_key, wcol_state->blend);
 		else if (state & UI_BUT_ANIMATED)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_anim, wcol_state->blend);
@@ -2303,19 +2306,21 @@ static void widget_state(uiWidgetType *wt, int state)
 }
 
 /* sliders use special hack which sets 'item' as inner when drawing filling */
-static void widget_state_numslider(uiWidgetType *wt, int state)
+static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
 	float blend = wcol_state->blend - 0.2f; /* XXX special tweak to make sure that bar will still be visible */
 
 	/* call this for option button */
-	widget_state(wt, state);
+	widget_state(wt, state, drawflag);
 
 	/* now, set the inner-part so that it reflects state settings too */
 	/* TODO: maybe we should have separate settings for the blending colors used for this case? */
 	if (state & UI_SELECT) {
 
-		if (state & UI_BUT_ANIMATED_KEY)
+		if (drawflag & UI_BUT_ANIMATED_CHANGED)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_changed_sel, blend);
+		else if (state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_key_sel, blend);
 		else if (state & UI_BUT_ANIMATED)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_anim_sel, blend);
@@ -2328,7 +2333,9 @@ static void widget_state_numslider(uiWidgetType *wt, int state)
 			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
-		if (state & UI_BUT_ANIMATED_KEY)
+		if (drawflag & UI_BUT_ANIMATED_CHANGED)
+			widget_state_blend(wt->wcol.item, wcol_state->inner_changed, blend);
+		else if (state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_key, blend);
 		else if (state & UI_BUT_ANIMATED)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_anim, blend);
@@ -2340,12 +2347,12 @@ static void widget_state_numslider(uiWidgetType *wt, int state)
 }
 
 /* labels use theme colors for text */
-static void widget_state_option_menu(uiWidgetType *wt, int state)
+static void widget_state_option_menu(uiWidgetType *wt, int state, int drawflag)
 {
 	bTheme *btheme = UI_GetTheme(); /* XXX */
 
 	/* call this for option button */
-	widget_state(wt, state);
+	widget_state(wt, state, drawflag);
 
 	/* if not selected we get theme from menu back */
 	if (state & UI_SELECT)
@@ -2355,19 +2362,19 @@ static void widget_state_option_menu(uiWidgetType *wt, int state)
 }
 
 
-static void widget_state_nothing(uiWidgetType *wt, int UNUSED(state))
+static void widget_state_nothing(uiWidgetType *wt, int UNUSED(state), int UNUSED(drawflag))
 {
 	wt->wcol = *(wt->wcol_theme);
 }
 
 /* special case, button that calls pulldown */
-static void widget_state_pulldown(uiWidgetType *wt, int UNUSED(state))
+static void widget_state_pulldown(uiWidgetType *wt, int UNUSED(state), int UNUSED(drawflag))
 {
 	wt->wcol = *(wt->wcol_theme);
 }
 
 /* special case, pie menu items */
-static void widget_state_pie_menu_item(uiWidgetType *wt, int state)
+static void widget_state_pie_menu_item(uiWidgetType *wt, int state, int UNUSED(drawflag))
 {
 	wt->wcol = *(wt->wcol_theme);
 
@@ -2399,7 +2406,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt, int state)
 }
 
 /* special case, menu items */
-static void widget_state_menu_item(uiWidgetType *wt, int state)
+static void widget_state_menu_item(uiWidgetType *wt, int state, int UNUSED(drawflag))
 {
 	wt->wcol = *(wt->wcol_theme);
 
@@ -3393,7 +3400,8 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 	ui_but_v3_get(but, col);
 
-	if (state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_OVERRIDEN | UI_BUT_REDALERT)) {
+	if ((state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_OVERRIDEN | UI_BUT_REDALERT)) ||
+	    (but->drawflag & UI_BUT_ANIMATED_CHANGED)) {
 		/* draw based on state - color for keyed etc */
 		widgetbase_draw(&wtb, wcol);
 
@@ -3642,18 +3650,18 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 }
 
 /* labels use Editor theme colors for text */
-static void widget_state_label(uiWidgetType *wt, int state)
+static void widget_state_label(uiWidgetType *wt, int state, int drawflag)
 {
 	if (state & UI_BUT_LIST_ITEM) {
 		/* Override default label theme's colors. */
 		bTheme *btheme = UI_GetTheme();
 		wt->wcol_theme = &btheme->tui.wcol_list_item;
 		/* call this for option button */
-		widget_state(wt, state);
+		widget_state(wt, state, drawflag);
 	}
 	else {
 		/* call this for option button */
-		widget_state(wt, state);
+		widget_state(wt, state, drawflag);
 		if (state & UI_SELECT)
 			UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
 		else
@@ -4314,13 +4322,14 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 	if (wt) {
 		//rcti disablerect = *rect; /* rect gets clipped smaller for text */
-		int roundboxalign, state;
+		int roundboxalign, state, drawflag;
 		bool disabled = false;
 
 		roundboxalign = widget_roundbox_set(but, rect);
 
 		/* Mask out flags re-used for local state. */
 		state = but->flag & ~UI_STATE_FLAGS_ALL;
+		drawflag = but->drawflag;
 
 		if (state & UI_SELECT_DRAW) {
 			state |= UI_SELECT;
@@ -4352,7 +4361,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		if (disabled)
 			ui_widget_color_disabled(wt);
 
-		wt->state(wt, state);
+		wt->state(wt, state, drawflag);
 		if (wt->custom)
 			wt->custom(but, &wt->wcol, rect, state, roundboxalign);
 		else if (wt->draw)
@@ -4366,7 +4375,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
 				uiWidgetType wt_back = *wt;
 				uiWidgetType *wt_temp = widget_type(UI_WTYPE_MENU_ITEM);
-				wt_temp->state(wt_temp, state);
+				wt_temp->state(wt_temp, state, drawflag);
 				copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 				wt->wcol.inner[3] = 128;
 				wt->wcol.roundness = 0.5f;
@@ -4415,7 +4424,7 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
 	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
-	wt->state(wt, 0);
+	wt->state(wt, 0, 0);
 	if (block)
 		wt->draw(&wt->wcol, rect, block->flag, block->direction);
 	else
@@ -4489,7 +4498,7 @@ void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, r
 		ui_draw_popover_back_impl(wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect,  mval_origin);
 	}
 	else {
-		wt->state(wt, 0);
+		wt->state(wt, 0, 0);
 		wt->draw(&wt->wcol, rect, 0, 0);
 	}
 
@@ -4641,7 +4650,7 @@ void ui_draw_widget_back_color(
 	}
 
 	rcti rect_copy = *rect;
-	wt->state(wt, 0);
+	wt->state(wt, 0, 0);
 	if (color) {
 		rgba_float_to_uchar((unsigned char *)wt->wcol.inner, color);
 	}
@@ -4655,7 +4664,7 @@ void ui_draw_widget_back(uiWidgetTypeEnum type, bool use_shadow, const rcti *rec
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)
 {
 	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
-	wt->state(wt, 0);
+	wt->state(wt, 0, 0);
 	/* wt->draw ends up using same function to draw the tooltip as menu_back */
 	wt->draw(&wt->wcol, rect, 0, 0);
 }
@@ -4668,7 +4677,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	rcti _rect = *rect;
 	char *cpoin = NULL;
 
-	wt->state(wt, state);
+	wt->state(wt, state, 0);
 	wt->draw(&wt->wcol, rect, 0, 0);
 
 	UI_fontstyle_set(fstyle);
@@ -4748,7 +4757,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
 
 	/* drawing button background */
-	wt->state(wt, state);
+	wt->state(wt, state, 0);
 	wt->draw(&wt->wcol, rect, 0, 0);
 
 	/* draw icon in rect above the space reserved for the label */

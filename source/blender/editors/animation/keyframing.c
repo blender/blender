@@ -2242,6 +2242,20 @@ bool fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
 	return false;
 }
 
+/* Returns whether the current value of a given property differs from the interpolated value. */
+bool fcurve_is_changed(PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float frame)
+{
+	PathResolvedRNA anim_rna;
+	anim_rna.ptr = ptr;
+	anim_rna.prop = prop;
+	anim_rna.prop_index = fcu->array_index;
+
+	float fcurve_val = calculate_fcurve(&anim_rna, fcu, frame);
+	float cur_val = setting_get_rna_value(NULL, &ptr, prop, fcu->array_index, false);
+
+	return !compare_ff_relative(fcurve_val, cur_val, FLT_EPSILON, 64);
+}
+
 /* Checks whether an Action has a keyframe for a given frame
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */

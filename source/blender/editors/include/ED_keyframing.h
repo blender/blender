@@ -360,6 +360,12 @@ bool autokeyframe_cfra_can_key(struct Scene *scene, struct ID *id);
  */
 bool fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
 
+/* Lesser Keyframe Checking API call:
+ * - Returns whether the current value of a given property differs from the interpolated value.
+ * - Used for button drawing.
+ */
+bool fcurve_is_changed(struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float frame);
+
 /* Main Keyframe Checking API call:
  * Checks whether a keyframe exists for the given ID-block one the given frame.
  * - It is recommended to call this method over the other keyframe-checkers directly,
