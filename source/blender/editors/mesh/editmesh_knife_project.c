@@ -178,7 +178,7 @@ void MESH_OT_knife_project(wmOperatorType *ot)
 	ot->poll = ED_operator_editmesh_region_view3d;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_USE_EVAL_DATA;
 
 	/* parameters */
 	RNA_def_boolean(ot->srna, "cut_through", false, "Cut through", "Cut through all faces, not just visible ones");
