@@ -2848,6 +2848,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 	else if (ob_eval && (ob_eval->type == OB_GPENCIL)) {
 		ok |= BKE_gpencil_data_minmax(ob_eval, gpd, min, max);
+		/* if no strokes, use object location */
+		if ((ob_eval) && (!ok)) {
+			copy_v3_v3(min, ob_eval->obmat[3]);
+			copy_v3_v3(max, ob_eval->obmat[3]);
+			ok = true;
+		}
 	}
 	else if (is_face_map) {
 		ok = WM_gizmomap_minmax(ar->gizmo_map, true, true, min, max);
