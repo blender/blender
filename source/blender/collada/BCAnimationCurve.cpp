@@ -69,7 +69,7 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
 	switch (this->curve_key.get_animation_type()) {
 	case BC_ANIMATION_TYPE_BONE:
 	{
-		bArmature * arm = (bArmature *)ob->data;
+		bArmature *arm = (bArmature *)ob->data;
 		RNA_id_pointer_create(&arm->id, &id_ptr);
 	}
 	break;
@@ -86,13 +86,13 @@ void BCAnimationCurve::init_pointer_rna(Object *ob)
 	break;
 	case BC_ANIMATION_TYPE_CAMERA:
 	{
-		Camera * camera = (Camera *)ob->data;
+		Camera *camera = (Camera *)ob->data;
 		RNA_id_pointer_create(&camera->id, &id_ptr);
 	}
 	break;
 	case BC_ANIMATION_TYPE_LIGHT:
 	{
-		Lamp * lamp = (Lamp *)ob->data;
+		Lamp *lamp = (Lamp *)ob->data;
 		RNA_id_pointer_create(&lamp->id, &id_ptr);
 	}
 	break;
@@ -188,7 +188,7 @@ const std::string BCAnimationCurve::get_animation_name(Object *ob) const
 
 		case BC_ANIMATION_TYPE_MATERIAL:
 		{
-			Material * ma = give_current_material(ob, this->curve_key.get_subindex() + 1);
+			Material *ma = give_current_material(ob, this->curve_key.get_subindex() + 1);
 			name = id_name(ob) + "-" + id_name(ma) + "-material";
 		}
 		break;

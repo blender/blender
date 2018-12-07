@@ -1187,7 +1187,8 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
 void BKE_studiolight_init(void)
 {
 	/* Add default studio light */
-	StudioLight * sl = studiolight_create(STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED | STUDIOLIGHT_TYPE_STUDIO);
+	StudioLight *sl = studiolight_create(
+	        STUDIOLIGHT_INTERNAL | STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED | STUDIOLIGHT_TYPE_STUDIO);
 	BLI_strncpy(sl->name, "Default", FILE_MAXFILE);
 
 	copy_v4_fl4(sl->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);

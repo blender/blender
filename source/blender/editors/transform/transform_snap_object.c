@@ -162,7 +162,7 @@ static void bm_mesh_minmax(BMesh *bm, float r_min[3], float r_max[3])
 {
 	INIT_MINMAX(r_min, r_max);
 	BMIter iter;
-	BMVert * v;
+	BMVert *v;
 
 	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
 		minmax_v3v3_v3(r_min, r_max, v->co);

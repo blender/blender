@@ -1168,7 +1168,7 @@ void armature_deform_verts(
 	 *
 	 * TODO(sergey): Make this code robust somehow when there are dependency
 	 * cycles involved. */
-	ObjectBBoneDeform * bbone_deform =
+	ObjectBBoneDeform *bbone_deform =
 	        BKE_armature_cached_bbone_deformation_get(armOb);
 	if (bbone_deform == NULL || bbone_deform->pdef_info_array == NULL) {
 		fprintf(stderr,

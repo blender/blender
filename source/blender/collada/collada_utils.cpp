@@ -1314,7 +1314,7 @@ static bNodeSocket *bc_group_add_output_socket(bNodeTree *ntree, bNode *from_nod
 
 void bc_make_group(bContext *C, bNodeTree *ntree, std::map<std::string, bNode *> nmap)
 {
-	bNode * gnode = node_group_make_from_selected(C, ntree, "ShaderNodeGroup", "ShaderNodeTree");
+	bNode *gnode = node_group_make_from_selected(C, ntree, "ShaderNodeGroup", "ShaderNodeTree");
 	bNodeTree *gtree = (bNodeTree *)gnode->id;
 
 	bc_group_add_input_socket(gtree, nmap["main"], 0, "Diffuse");
