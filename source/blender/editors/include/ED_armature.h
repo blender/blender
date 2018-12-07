@@ -238,7 +238,6 @@ struct Object *ED_pose_object_from_context(struct bContext *C);
 
 /* meshlaplacian.c */
 void ED_mesh_deform_bind_callback(
-        struct Scene *scene,
         struct MeshDeformModifierData *mmd,
         struct Mesh *cagemesh,
         float *vertexcos, int totvert, float cagemat[4][4]);

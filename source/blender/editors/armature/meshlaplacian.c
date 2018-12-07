@@ -1427,7 +1427,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 	EIG_linear_solver_delete(context);
 }
 
-static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierData *mmd, MeshDeformBind *mdb)
+static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBind *mdb)
 {
 	MDefBindInfluence *inf;
 	MDefInfluence *mdinf;
@@ -1578,7 +1578,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 }
 
 void ED_mesh_deform_bind_callback(
-        Scene *scene, MeshDeformModifierData *mmd, Mesh *cagemesh,
+        MeshDeformModifierData *mmd, Mesh *cagemesh,
         float *vertexcos, int totvert, float cagemat[4][4])
 {
 	MeshDeformBind mdb;
@@ -1606,7 +1606,7 @@ void ED_mesh_deform_bind_callback(
 		mul_v3_m4v3(mdb.vertexcos[a], mdb.cagemat, vertexcos + a * 3);
 
 	/* solve */
-	harmonic_coordinates_bind(scene, mmd, &mdb);
+	harmonic_coordinates_bind(mmd, &mdb);
 
 	/* assign bind variables */
 	mmd->bindcagecos = (float *)mdb.cagecos;
