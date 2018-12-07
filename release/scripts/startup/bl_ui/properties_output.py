@@ -205,6 +205,8 @@ class RENDER_PT_stamp(RenderOutputButtonsPanel, Panel):
         col.prop(rd, "use_stamp_frame_range", text="Frame Range")
         col = flow.column()
         col.prop(rd, "use_stamp_memory", text="Memory")
+        col = flow.column()
+        col.prop(rd, "use_stamp_hostname", text="Hostname")
 
         col = flow.column()
         col.prop(rd, "use_stamp_camera", text="Camera")

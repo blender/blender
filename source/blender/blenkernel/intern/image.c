@@ -35,6 +35,16 @@
 #ifndef WIN32
 #  include <unistd.h>
 #else
+#  ifndef NOGDI
+#    define NOGDI
+#  endif
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  include <Windows.h> /* for GetComputerName function */
 #  include <io.h>
 #endif
 
@@ -1545,6 +1555,7 @@ typedef struct StampData {
 	char strip[STAMP_NAME_SIZE];
 	char rendertime[STAMP_NAME_SIZE];
 	char memory[STAMP_NAME_SIZE];
+	char hostname[512];
 
 	/* Custom fields are used to put extra meta information header from render
 	 * engine to the result image.
@@ -1554,6 +1565,32 @@ typedef struct StampData {
 	ListBase custom_fields;
 } StampData;
 #undef STAMP_NAME_SIZE
+
+/**
+ * Obtain the hostname from the system.
+ *
+ * This simply determines the host's name, and doesn't do any DNS lookup of any
+ * IP address of the machine. As such, it's only usable for identification
+ * purposes, and not for reachability over a network.
+ *
+ * @param buffer Character buffer to write the hostname into.
+ * @param bufsize Size of the character buffer, including trailing '\0'.
+ */
+static void get_hostname(char *buffer, size_t bufsize)
+{
+#ifndef WIN32
+	if (gethostname(buffer, bufsize-1) < 0) {
+		strncpy(buffer, "-unknown-", bufsize);
+	}
+	/* When gethostname() truncates, it doesn't guarantee the trailing \0. */
+	buffer[bufsize - 1] = '\0';
+#else
+	DWORD bufsize_inout = bufsize;
+	if(!GetComputerName(buffer, &bufsize_inout)) {
+		strncpy(buffer, "-unknown-", bufsize);
+	}
+#endif
+}
 
 /**
  * \param do_prefix: Include a label like "File ", "Date ", etc. in the stamp data strings.
@@ -1704,6 +1741,16 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	else {
 		stamp_data->frame_range[0] = '\0';
 	}
+
+	if (scene->r.stamp & R_STAMP_HOSTNAME) {
+		char hostname[500];    /* sizeof(stamp_data->hostname) minus some bytes for a label. */
+		get_hostname(hostname, sizeof(hostname));
+		SNPRINTF(stamp_data->hostname, do_prefix ? "Hostname %s" : "%s", hostname);
+	}
+	else {
+		stamp_data->hostname[0] = '\0';
+	}
+
 }
 
 /* Will always add prefix. */
@@ -1782,6 +1829,12 @@ static void stampdata_from_template(StampData *stamp_data,
 	}
 	else {
 		stamp_data->memory[0] = '\0';
+	}
+	if (scene->r.stamp & R_STAMP_HOSTNAME) {
+		SNPRINTF(stamp_data->hostname, "Hostname %s", stamp_data_template->hostname);
+	}
+	else {
+		stamp_data->hostname[0] = '\0';
 	}
 }
 
@@ -1910,7 +1963,22 @@ void BKE_image_stamp_buf(
 		y -= BUFF_MARGIN_Y * 2;
 	}
 
-	/* Top left corner, below File, Date, Memory, Rendertime */
+	/* Top left corner, below File, Date, Rendertime, Memory */
+	if (TEXT_SIZE_CHECK(stamp_data.hostname, w, h)) {
+		y -= h;
+
+		/* and space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
+		                  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
+
+		BLF_position(mono, x, y + y_ofs, 0.0);
+		BLF_draw_buffer(mono, stamp_data.hostname, BLF_DRAW_STR_DUMMY_MAX);
+
+		/* the extra pixel for background. */
+		y -= BUFF_MARGIN_Y * 2;
+	}
+
+	/* Top left corner, below File, Date, Memory, Rendertime, Hostname */
 	BLF_enable(mono, BLF_WORD_WRAP);
 	if (TEXT_SIZE_CHECK_WORD_WRAP(stamp_data.note, w, h)) {
 		y -= h;
@@ -2091,6 +2159,7 @@ void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCall
 	CALL(strip, "Strip");
 	CALL(rendertime, "RenderTime");
 	CALL(memory, "Memory");
+	CALL(hostname, "Hostname");
 
 	LISTBASE_FOREACH(StampDataCustomField *, custom_field, &stamp_data->custom_fields) {
 		if (noskip || custom_field->value[0]) {
