@@ -174,8 +174,10 @@ struct BlendThumbnail *BKE_main_thumbnail_from_imbuf(struct Main *bmain, struct 
 struct ImBuf *BKE_main_thumbnail_to_imbuf(struct Main *bmain, struct BlendThumbnail *data);
 void BKE_main_thumbnail_create(struct Main *bmain);
 
-const char *BKE_main_blendfile_path(const struct Main *bmain) ATTR_NONNULL();
-const char *BKE_main_blendfile_path_from_global(void);
+const char *BKE_main_blendfile_path(const struct Main *bmain)
+	ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_main_blendfile_path_from_global(void)
+	ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 
 void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const int tag, const bool value);
 void BKE_main_id_tag_listbase(struct ListBase *lb, const int tag, const bool value);
