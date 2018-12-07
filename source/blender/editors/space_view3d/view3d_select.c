@@ -1312,7 +1312,7 @@ static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits15, const
 /* so check three selection levels and compare */
 static int mixed_bones_object_selectbuffer(
         ViewContext *vc, unsigned int *buffer, const int mval[2],
-        bool use_cycle, bool enumerate, eV3DSelectObjectFilter select_filter,
+        bool use_cycle, bool enumerate, bool use_scene_lock, eV3DSelectObjectFilter select_filter,
         bool *r_do_nearest)
 {
 	rcti rect;
@@ -1394,7 +1394,7 @@ static int mixed_bones_object_selectbuffer(
 finally:
 	view3d_opengl_select_cache_end();
 
-	if (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+	if (use_scene_lock && (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK)) {
 		const bool is_pose_mode = (
 		        (vc->obact && vc->obact->mode & OB_MODE_POSE) ||
 		        (select_filter == VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK));
@@ -1518,7 +1518,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 
 	hits = mixed_bones_object_selectbuffer(
 	        &vc, buffer, mval,
-	        false, false, VIEW3D_SELECT_FILTER_NOP,
+	        false, false, false, VIEW3D_SELECT_FILTER_NOP,
 	        &do_nearest);
 
 	if (hits > 0) {
@@ -1650,7 +1650,7 @@ static bool ed_object_select_pick(
 		        (object == false) ? ED_view3d_select_filter_from_mode(scene, vc.obact) : VIEW3D_SELECT_FILTER_NOP);
 		hits = mixed_bones_object_selectbuffer(
 		        &vc, buffer, mval,
-		        true, enumerate, select_filter,
+		        true, enumerate, (object == false), select_filter,
 		        &do_nearest);
 
 		// TIMEIT_END(select_time);
