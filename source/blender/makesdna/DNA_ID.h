@@ -522,27 +522,26 @@ typedef enum IDRecalcFlag {
 	/* Particle system changed; values are aligned with ID_RECALC_PSYS_xxx. */
 	ID_RECALC_PSYS_REDO   = (1 << 3),  /* Only do pathcache etc */
 	ID_RECALC_PSYS_RESET  = (1 << 4),  /* Reset everything including pointcache. */
-	ID_RECALC_PSYS_TYPE   = (1 << 5),  /* Handle system type change. */
-	ID_RECALC_PSYS_CHILD  = (1 << 6),  /* Only child settings changed. */
-	ID_RECALC_PSYS_PHYS   = (1 << 7),  /* Physics type changed. */
+	ID_RECALC_PSYS_CHILD  = (1 << 5),  /* Only child settings changed. */
+	ID_RECALC_PSYS_PHYS   = (1 << 6),  /* Physics type changed. */
 	/* Update copy on write component without flushing down the road. */
-	ID_RECALC_COPY_ON_WRITE = (1 << 8),
+	ID_RECALC_COPY_ON_WRITE = (1 << 7),
 	/* Tag shading components for update. Only parameters of material changed).
 	 */
-	ID_RECALC_SHADING       = (1 << 9),
+	ID_RECALC_SHADING       = (1 << 8),
 	/* Selection of the ID itself or its components (for example, vertices) did
 	 * change, and all the drawing data is to eb updated. */
-	ID_RECALC_SELECT        = (1 << 10),
+	ID_RECALC_SELECT        = (1 << 9),
 	/* Flags on the base did change, and is to be compied onto all the copies of
 	 * corresponding objects. */
-	ID_RECALC_BASE_FLAGS    = (1 << 11),
-	ID_RECALC_POINT_CACHE   = (1 << 12),
+	ID_RECALC_BASE_FLAGS    = (1 << 10),
+	ID_RECALC_POINT_CACHE   = (1 << 11),
 	/* Only inform editors about the change. Is used to force update of editors
 	 * when datablock which is not a part of dependency graph did change.
 	 *
 	 * For example, brush texture did change and the preview is to be
 	 * re-rendered. */
-	ID_RECALC_EDITORS       = (1 << 13),
+	ID_RECALC_EDITORS       = (1 << 12),
 
 	/* Aggregate flags, use only for checks on runtime.
 	 * Do NOT use those for tagging. */
@@ -552,7 +551,6 @@ typedef enum IDRecalcFlag {
 	/* Identifies that something in particle system did change. */
 	ID_RECALC_PSYS_ALL    = (ID_RECALC_PSYS_REDO |
 	                         ID_RECALC_PSYS_RESET |
-	                         ID_RECALC_PSYS_TYPE |
 	                         ID_RECALC_PSYS_CHILD |
 	                         ID_RECALC_PSYS_PHYS),
 
