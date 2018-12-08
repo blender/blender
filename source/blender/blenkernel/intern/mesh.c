@@ -662,6 +662,8 @@ static Mesh *mesh_new_nomain_from_template_ex(
 	me_dst->totloop = loops_len;
 	me_dst->totpoly = polys_len;
 
+	me_dst->cd_flag = me_src->cd_flag;
+
 	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, CD_CALLOC, verts_len);
 	CustomData_copy(&me_src->edata, &me_dst->edata, mask, CD_CALLOC, edges_len);
 	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, CD_CALLOC, loops_len);
