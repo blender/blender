@@ -54,6 +54,7 @@ typedef struct GPUIndexBuf {
 	uint base_index;
 #endif
 	uint32_t ibo_id; /* 0 indicates not yet sent to VRAM */
+	void *data; /* non-NULL indicates not yet sent to VRAM */
 	bool use_prim_restart;
 } GPUIndexBuf;
 

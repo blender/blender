@@ -119,10 +119,6 @@ void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 	/* catch any unnecessary use */
 	assert(verts->vertex_alloc != v_len || verts->data == NULL);
 #endif
-	/* only create the buffer the 1st time */
-	if (verts->vbo_id == 0) {
-		verts->vbo_id = GPU_buf_alloc();
-	}
 	/* discard previous data if any */
 	if (verts->data) {
 		MEM_freeN(verts->data);
@@ -260,6 +256,10 @@ static void VertBuffer_upload_data(GPUVertBuf *verts)
 
 void GPU_vertbuf_use(GPUVertBuf *verts)
 {
+	/* only create the buffer the 1st time */
+	if (verts->vbo_id == 0) {
+		verts->vbo_id = GPU_buf_alloc();
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	if (verts->dirty) {
 		VertBuffer_upload_data(verts);

@@ -260,6 +260,7 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 #endif
 	elem->index_len = builder->index_len;
 	elem->use_prim_restart = builder->use_prim_restart;
+	elem->ibo_id = 0; /* Created at first use. */
 
 #if GPU_TRACK_INDEX_RANGE
 	uint range = index_range(builder->data, builder->index_len, &elem->min_index, &elem->max_index);
@@ -284,31 +285,40 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 	elem->gl_index_type = convert_index_type_to_gl(elem->index_type);
 #endif
 
-	if (elem->ibo_id == 0) {
-		elem->ibo_id = GPU_buf_alloc();
-	}
-	/* send data to GPU */
-	/* GL_ELEMENT_ARRAY_BUFFER changes the state of the last VAO bound,
-	 * so we use the GL_ARRAY_BUFFER here to create a buffer without
-	 * interfering in the VAO state. */
-	glBindBuffer(GL_ARRAY_BUFFER, elem->ibo_id);
-	glBufferData(GL_ARRAY_BUFFER, GPU_indexbuf_size_get(elem), builder->data, GL_STATIC_DRAW);
-
-	/* discard builder (one-time use) */
-	MEM_freeN(builder->data);
+	/* Transfer data ownership to GPUIndexBuf.
+	 * It will be uploaded upon first use. */
+	elem->data = builder->data;
 	builder->data = NULL;
 	/* other fields are safe to leave */
 }
 
+static void indexbuf_upload_data(GPUIndexBuf *elem)
+{
+	/* send data to GPU */
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, GPU_indexbuf_size_get(elem), elem->data, GL_STATIC_DRAW);
+	/* No need to keep copy of data in system memory. */
+	MEM_freeN(elem->data);
+	elem->data = NULL;
+}
+
 void GPU_indexbuf_use(GPUIndexBuf *elem)
 {
+	if (elem->ibo_id == 0) {
+		elem->ibo_id = GPU_buf_alloc();
+	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->ibo_id);
+	if (elem->data != NULL) {
+		indexbuf_upload_data(elem);
+	}
 }
 
 void GPU_indexbuf_discard(GPUIndexBuf *elem)
 {
 	if (elem->ibo_id) {
 		GPU_buf_free(elem->ibo_id);
+	}
+	if (elem->data) {
+		MEM_freeN(elem->data);
 	}
 	MEM_freeN(elem);
 }
