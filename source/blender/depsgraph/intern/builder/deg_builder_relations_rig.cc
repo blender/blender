@@ -519,7 +519,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			add_relation(bone_segments_key,
 			             pose_done_key,
 			             "PoseEval Result-Bone Link",
-						 DEPSREL_FLAG_GODMODE);
+			             DEPSREL_FLAG_GODMODE);
 			add_relation(bone_segments_key,
 			             pose_cleanup_key,
 			             "Cleanup dependency");

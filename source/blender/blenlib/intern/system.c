@@ -181,14 +181,14 @@ char *BLI_cpu_brand_string(void)
 void BLI_hostname_get(char *buffer, size_t bufsize)
 {
 #ifndef WIN32
-	if (gethostname(buffer, bufsize-1) < 0) {
+	if (gethostname(buffer, bufsize - 1) < 0) {
 		BLI_strncpy(buffer, "-unknown-", bufsize);
 	}
 	/* When gethostname() truncates, it doesn't guarantee the trailing \0. */
 	buffer[bufsize - 1] = '\0';
 #else
 	DWORD bufsize_inout = bufsize;
-	if(!GetComputerName(buffer, &bufsize_inout)) {
+	if (!GetComputerName(buffer, &bufsize_inout)) {
 		strncpy(buffer, "-unknown-", bufsize);
 	}
 #endif

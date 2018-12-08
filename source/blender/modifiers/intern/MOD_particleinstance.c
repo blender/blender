@@ -499,7 +499,7 @@ static Mesh *applyModifier(
 					const int ml_index = (ml - mloop);
 					if (mloopcols_index != NULL) {
 						const int part_index = vert_part_index[ml->v];
-						store_float_in_vcol(&mloopcols_index[ml_index], (float)part_index / (float)(psys->totpart-1));
+						store_float_in_vcol(&mloopcols_index[ml_index], (float)part_index / (float)(psys->totpart - 1));
 					}
 					if (mloopcols_value != NULL) {
 						const float part_value = vert_part_value[ml->v];
