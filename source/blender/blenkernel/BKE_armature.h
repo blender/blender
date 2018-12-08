@@ -128,9 +128,26 @@ void BKE_pchan_apply_mat4(struct bPoseChannel *pchan, float mat[4][4], bool use_
 void BKE_pchan_to_mat4(struct bPoseChannel *pchan, float chan_mat[4][4]);
 void BKE_pchan_calc_mat(struct bPoseChannel *pchan);
 
-/* Get the "pchan to pose" transform matrix. These matrices apply the effects of
+/* Simple helper, computes the offset bone matrix. */
+void BKE_get_offset_bone_mat(struct Bone *bone, float offs_bone[4][4]);
+
+/* Transformation inherited from the parent bone. These matrices apply the effects of
  * HINGE/NO_SCALE/NO_LOCAL_LOCATION options over the pchan loc/rot/scale transformations. */
-void BKE_pchan_to_pose_mat(struct bPoseChannel *pchan, float rotscale_mat[4][4], float loc_mat[4][4]);
+typedef struct BoneParentTransform {
+	float rotscale_mat[4][4];	/* parent effect on rotation & scale pose channels */
+	float loc_mat[4][4];		/* parent effect on location pose channel */
+} BoneParentTransform;
+
+/* Matrix-like algebra operations on the transform */
+void BKE_clear_bone_parent_transform(struct BoneParentTransform *bpt);
+void BKE_invert_bone_parent_transform(struct BoneParentTransform *bpt);
+void BKE_combine_bone_parent_transform(const struct BoneParentTransform *in1, const struct BoneParentTransform *in2, struct BoneParentTransform *result);
+
+void BKE_apply_bone_parent_transform(const struct BoneParentTransform *bpt, const float inmat[4][4], float outmat[4][4]);
+
+/* Get the current parent transformation for the given pose bone. */
+void BKE_pchan_to_parent_transform(struct bPoseChannel *pchan, struct BoneParentTransform *r_bpt);
+void BKE_calc_bone_parent_transform(int bone_flag, const float offs_bone[4][4], const float parent_arm_mat[4][4], const float parent_pose_mat[4][4], struct BoneParentTransform *r_bpt);
 
 /* Rotation Mode Conversions - Used for PoseChannels + Objects... */
 void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode);

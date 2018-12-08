@@ -1459,9 +1459,8 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
 }
 
 /* Simple helper, computes the offset bone matrix.
- *     offs_bone = yoffs(b-1) + root(b) + bonemat(b).
- * Not exported, as it is only used in this file currently... */
-static void get_offset_bone_mat(Bone *bone, float offs_bone[4][4])
+ *     offs_bone = yoffs(b-1) + root(b) + bonemat(b). */
+void BKE_get_offset_bone_mat(Bone *bone, float offs_bone[4][4])
 {
 	BLI_assert(bone->parent != NULL);
 
@@ -1492,7 +1491,7 @@ static void get_offset_bone_mat(Bone *bone, float offs_bone[4][4])
  *       pose-channel into its local space (i.e. 'visual'-keyframing).
  *       (note: I don't understand that, so I keep it :p --mont29).
  */
-void BKE_pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[4][4], float loc_mat[4][4])
+void BKE_pchan_to_parent_transform(bPoseChannel *pchan, BoneParentTransform *r_bpt)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
@@ -1505,77 +1504,121 @@ void BKE_pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[4][4], float 
 	if (parchan) {
 		float offs_bone[4][4];
 		/* yoffs(b-1) + root(b) + bonemat(b). */
-		get_offset_bone_mat(bone, offs_bone);
+		BKE_get_offset_bone_mat(bone, offs_bone);
 
+		BKE_calc_bone_parent_transform(bone->flag, offs_bone, parbone->arm_mat, parchan->pose_mat, r_bpt);
+	}
+	else {
+		BKE_calc_bone_parent_transform(bone->flag, bone->arm_mat, NULL, NULL, r_bpt);
+	}
+}
+
+/* Compute the parent transform using data decoupled from specific data structures.
+ *
+ * bone_flag: Bone->flag containing settings
+ * offs_bone: delta from parent to current arm_mat (or just arm_mat if no parent)
+ * parent_arm_mat, parent_pose_mat: arm_mat and pose_mat of parent, or NULL
+ * r_bpt: OUTPUT parent transform */
+void BKE_calc_bone_parent_transform(int bone_flag, const float offs_bone[4][4], const float parent_arm_mat[4][4], const float parent_pose_mat[4][4], BoneParentTransform *r_bpt)
+{
+	if (parent_pose_mat) {
 		/* Compose the rotscale matrix for this bone. */
-		if ((bone->flag & BONE_HINGE) && (bone->flag & BONE_NO_SCALE)) {
+		if ((bone_flag & BONE_HINGE) && (bone_flag & BONE_NO_SCALE)) {
 			/* Parent rest rotation and scale. */
-			mul_m4_m4m4(rotscale_mat, parbone->arm_mat, offs_bone);
+			mul_m4_m4m4(r_bpt->rotscale_mat, parent_arm_mat, offs_bone);
 		}
-		else if (bone->flag & BONE_HINGE) {
+		else if (bone_flag & BONE_HINGE) {
 			/* Parent rest rotation and pose scale. */
 			float tmat[4][4], tscale[3];
 
 			/* Extract the scale of the parent pose matrix. */
-			mat4_to_size(tscale, parchan->pose_mat);
+			mat4_to_size(tscale, parent_pose_mat);
 			size_to_mat4(tmat, tscale);
 
 			/* Applies the parent pose scale to the rest matrix. */
-			mul_m4_m4m4(tmat, tmat, parbone->arm_mat);
+			mul_m4_m4m4(tmat, tmat, parent_arm_mat);
 
-			mul_m4_m4m4(rotscale_mat, tmat, offs_bone);
+			mul_m4_m4m4(r_bpt->rotscale_mat, tmat, offs_bone);
 		}
-		else if (bone->flag & BONE_NO_SCALE) {
+		else if (bone_flag & BONE_NO_SCALE) {
 			/* Parent pose rotation and rest scale (i.e. no scaling). */
 			float tmat[4][4];
-			copy_m4_m4(tmat, parchan->pose_mat);
+			copy_m4_m4(tmat, parent_pose_mat);
 			normalize_m4(tmat);
-			mul_m4_m4m4(rotscale_mat, tmat, offs_bone);
+			mul_m4_m4m4(r_bpt->rotscale_mat, tmat, offs_bone);
 		}
 		else
-			mul_m4_m4m4(rotscale_mat, parchan->pose_mat, offs_bone);
+			mul_m4_m4m4(r_bpt->rotscale_mat, parent_pose_mat, offs_bone);
 
 		/* Compose the loc matrix for this bone. */
 		/* NOTE: That version does not modify bone's loc when HINGE/NO_SCALE options are set. */
 
 		/* In this case, use the object's space *orientation*. */
-		if (bone->flag & BONE_NO_LOCAL_LOCATION) {
+		if (bone_flag & BONE_NO_LOCAL_LOCATION) {
 			/* XXX I'm sure that code can be simplified! */
 			float bone_loc[4][4], bone_rotscale[3][3], tmat4[4][4], tmat3[3][3];
 			unit_m4(bone_loc);
-			unit_m4(loc_mat);
+			unit_m4(r_bpt->loc_mat);
 			unit_m4(tmat4);
 
-			mul_v3_m4v3(bone_loc[3], parchan->pose_mat, offs_bone[3]);
+			mul_v3_m4v3(bone_loc[3], parent_pose_mat, offs_bone[3]);
 
 			unit_m3(bone_rotscale);
-			copy_m3_m4(tmat3, parchan->pose_mat);
+			copy_m3_m4(tmat3, parent_pose_mat);
 			mul_m3_m3m3(bone_rotscale, tmat3, bone_rotscale);
 
 			copy_m4_m3(tmat4, bone_rotscale);
-			mul_m4_m4m4(loc_mat, bone_loc, tmat4);
+			mul_m4_m4m4(r_bpt->loc_mat, bone_loc, tmat4);
 		}
 		/* Those flags do not affect position, use plain parent transform space! */
-		else if (bone->flag & (BONE_HINGE | BONE_NO_SCALE)) {
-			mul_m4_m4m4(loc_mat, parchan->pose_mat, offs_bone);
+		else if (bone_flag & (BONE_HINGE | BONE_NO_SCALE)) {
+			mul_m4_m4m4(r_bpt->loc_mat, parent_pose_mat, offs_bone);
 		}
 		/* Else (i.e. default, usual case), just use the same matrix for rotation/scaling, and location. */
 		else
-			copy_m4_m4(loc_mat, rotscale_mat);
+			copy_m4_m4(r_bpt->loc_mat, r_bpt->rotscale_mat);
 	}
 	/* Root bones. */
 	else {
 		/* Rotation/scaling. */
-		copy_m4_m4(rotscale_mat, pchan->bone->arm_mat);
+		copy_m4_m4(r_bpt->rotscale_mat, offs_bone);
 		/* Translation. */
-		if (pchan->bone->flag & BONE_NO_LOCAL_LOCATION) {
+		if (bone_flag & BONE_NO_LOCAL_LOCATION) {
 			/* Translation of arm_mat, without the rotation. */
-			unit_m4(loc_mat);
-			copy_v3_v3(loc_mat[3], pchan->bone->arm_mat[3]);
+			unit_m4(r_bpt->loc_mat);
+			copy_v3_v3(r_bpt->loc_mat[3], offs_bone[3]);
 		}
 		else
-			copy_m4_m4(loc_mat, rotscale_mat);
+			copy_m4_m4(r_bpt->loc_mat, r_bpt->rotscale_mat);
 	}
+}
+
+void BKE_clear_bone_parent_transform(struct BoneParentTransform *bpt)
+{
+	unit_m4(bpt->rotscale_mat);
+	unit_m4(bpt->loc_mat);
+}
+
+void BKE_invert_bone_parent_transform(struct BoneParentTransform *bpt)
+{
+	invert_m4(bpt->rotscale_mat);
+	invert_m4(bpt->loc_mat);
+}
+
+void BKE_combine_bone_parent_transform(const struct BoneParentTransform *in1, const struct BoneParentTransform *in2, struct BoneParentTransform *result)
+{
+	mul_m4_m4m4(result->rotscale_mat, in1->rotscale_mat, in2->rotscale_mat);
+	mul_m4_m4m4(result->loc_mat, in1->loc_mat, in2->loc_mat);
+}
+
+void BKE_apply_bone_parent_transform(const struct BoneParentTransform *bpt, const float inmat[4][4], float outmat[4][4])
+{
+	/* in case inmat == outmat */
+	float tmploc[3];
+	copy_v3_v3(tmploc, inmat[3]);
+
+	mul_m4_m4m4(outmat, bpt->rotscale_mat, inmat);
+	mul_v3_m4v3(outmat[3], bpt->loc_mat, tmploc);
 }
 
 /* Convert Pose-Space Matrix to Bone-Space Matrix.
@@ -1583,31 +1626,20 @@ void BKE_pchan_to_pose_mat(bPoseChannel *pchan, float rotscale_mat[4][4], float 
  *       pose-channel into its local space (i.e. 'visual'-keyframing) */
 void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
 {
-	float rotscale_mat[4][4], loc_mat[4][4], inmat_[4][4];
+	BoneParentTransform bpt;
 
-	/* Security, this allows to call with inmat == outmat! */
-	copy_m4_m4(inmat_, inmat);
-
-	BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
-	invert_m4(rotscale_mat);
-	invert_m4(loc_mat);
-
-	mul_m4_m4m4(outmat, rotscale_mat, inmat_);
-	mul_v3_m4v3(outmat[3], loc_mat, inmat_[3]);
+	BKE_pchan_to_parent_transform(pchan, &bpt);
+	BKE_invert_bone_parent_transform(&bpt);
+	BKE_apply_bone_parent_transform(&bpt, inmat, outmat);
 }
 
 /* Convert Bone-Space Matrix to Pose-Space Matrix. */
 void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
 {
-	float rotscale_mat[4][4], loc_mat[4][4], inmat_[4][4];
+	BoneParentTransform bpt;
 
-	/* Security, this allows to call with inmat == outmat! */
-	copy_m4_m4(inmat_, inmat);
-
-	BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
-
-	mul_m4_m4m4(outmat, rotscale_mat, inmat_);
-	mul_v3_m4v3(outmat[3], loc_mat, inmat_[3]);
+	BKE_pchan_to_parent_transform(pchan, &bpt);
+	BKE_apply_bone_parent_transform(&bpt, inmat, outmat);
 }
 
 /* Convert Pose-Space Location to Bone-Space Location
@@ -1917,7 +1949,7 @@ void BKE_armature_where_is_bone(Bone *bone, Bone *prevbone, const bool use_recur
 	if (prevbone) {
 		float offs_bone[4][4];
 		/* yoffs(b-1) + root(b) + bonemat(b) */
-		get_offset_bone_mat(bone, offs_bone);
+		BKE_get_offset_bone_mat(bone, offs_bone);
 
 		/* Compose the matrix for this bone  */
 		mul_m4_m4m4(bone->arm_mat, prevbone->arm_mat, offs_bone);

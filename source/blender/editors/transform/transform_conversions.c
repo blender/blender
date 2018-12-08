@@ -677,22 +677,22 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
-	/* New code, using "generic" BKE_pchan_to_pose_mat(). */
+	/* New code, using "generic" BKE_pchan_to_parent_transform(). */
 	{
-		float rotscale_mat[4][4], loc_mat[4][4];
+		BoneParentTransform bpt;
 		float rpmat[3][3];
 
-		BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
+		BKE_pchan_to_parent_transform(pchan, &bpt);
 		if (t->mode == TFM_TRANSLATION)
-			copy_m3_m4(pmat, loc_mat);
+			copy_m3_m4(pmat, bpt.loc_mat);
 		else
-			copy_m3_m4(pmat, rotscale_mat);
+			copy_m3_m4(pmat, bpt.rotscale_mat);
 
 		/* Grrr! Exceptional case: When translating pose bones that are either Hinge or NoLocal,
 		 * and want align snapping, we just need both loc_mat and rotscale_mat.
 		 * So simply always store rotscale mat in td->ext, and always use it to apply rotations...
 		 * Ugly to need such hacks! :/ */
-		copy_m3_m4(rpmat, rotscale_mat);
+		copy_m3_m4(rpmat, bpt.rotscale_mat);
 
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
