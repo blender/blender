@@ -204,21 +204,21 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	View3D *v3d = draw_ctx->v3d;
 
-	if ((!stl->g_data->show_overlays) ||
+	if ((!pd->show_overlays) ||
 	    (ob->dt < OB_WIRE) ||
 	    (!DRW_object_is_renderable(ob) && (ob->dt != OB_WIRE)))
 	{
 		return;
 	}
 
-	if (DRW_object_is_renderable(ob) && stl->g_data->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
+	if (DRW_object_is_renderable(ob) && pd->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
 		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			DRW_shgroup_call_add(pd->face_orientation_shgrp, geom, ob->obmat);
 		}
 	}
 
-	if ((stl->g_data->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
+	if ((pd->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
 	    (v3d->shading.type == OB_WIRE) ||
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
@@ -239,7 +239,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 		{
 			const bool is_active = (ob == draw_ctx->obact);
 			const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
-			const bool all_wires = (stl->g_data->overlay.wireframe_threshold == 1.0f) ||
+			const bool all_wires = (pd->overlay.wireframe_threshold == 1.0f) ||
 			                       (ob->dtx & OB_DRAW_ALL_EDGES);
 			const bool is_wire = (ob->dt < OB_SOLID);
 			const int stencil_mask = (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF;
@@ -255,6 +255,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				/* Avoid losing flat objects when in ortho views (see T56549) */
 				struct GPUBatch *geom = DRW_cache_object_wire_outline_get(ob);
 				if (geom) {
+					shgrp = pd->flat_wires;
 					shgrp = DRW_shgroup_create_sub(shgrp);
 					DRW_shgroup_stencil_mask(shgrp, stencil_mask);
 					DRW_shgroup_call_object_add(shgrp, geom, ob);
@@ -274,7 +275,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 						static float params[2] = {1.2f, 1.0f}; /* Parameters for all wires */
 						DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", (all_wires)
 						                                                 ? params
-						                                                 : stl->g_data->wire_step_param, 1);
+						                                                 : pd->wire_step_param, 1);
 					}
 					else {
 						DRW_shgroup_stencil_mask(shgrp, stencil_mask);
@@ -299,7 +300,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				}
 			}
 			else if ((ob->dtx & OB_DRAWXRAY) && shgrp != NULL) {
-				stl->g_data->ghost_stencil_test = true;
+				pd->ghost_stencil_test = true;
 			}
 		}
 	}
