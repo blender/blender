@@ -284,14 +284,14 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 	elem->gl_index_type = convert_index_type_to_gl(elem->index_type);
 #endif
 
-	if (elem->vbo_id == 0) {
-		elem->vbo_id = GPU_buf_alloc();
+	if (elem->ibo_id == 0) {
+		elem->ibo_id = GPU_buf_alloc();
 	}
 	/* send data to GPU */
 	/* GL_ELEMENT_ARRAY_BUFFER changes the state of the last VAO bound,
 	 * so we use the GL_ARRAY_BUFFER here to create a buffer without
 	 * interfering in the VAO state. */
-	glBindBuffer(GL_ARRAY_BUFFER, elem->vbo_id);
+	glBindBuffer(GL_ARRAY_BUFFER, elem->ibo_id);
 	glBufferData(GL_ARRAY_BUFFER, GPU_indexbuf_size_get(elem), builder->data, GL_STATIC_DRAW);
 
 	/* discard builder (one-time use) */
@@ -302,13 +302,13 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 
 void GPU_indexbuf_use(GPUIndexBuf *elem)
 {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->ibo_id);
 }
 
 void GPU_indexbuf_discard(GPUIndexBuf *elem)
 {
-	if (elem->vbo_id) {
-		GPU_buf_free(elem->vbo_id);
+	if (elem->ibo_id) {
+		GPU_buf_free(elem->ibo_id);
 	}
 	MEM_freeN(elem);
 }
