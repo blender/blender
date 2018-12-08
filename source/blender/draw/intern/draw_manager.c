@@ -1018,6 +1018,10 @@ static void drw_engines_cache_populate(Object *ob)
 		}
 	}
 
+	/* TODO: in the future it would be nice to generate once for all viewports.
+	 * But we need threaded DRW manager first. */
+	drw_batch_cache_generate_requested(ob);
+
 	/* ... and clearing it here too because theses draw data are
 	 * from a mempool and must not be free individually by depsgraph. */
 	drw_drawdata_unlink_dupli((ID *)ob);

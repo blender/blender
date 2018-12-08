@@ -74,6 +74,7 @@
 
 static void mesh_batch_cache_clear(Mesh *me);
 
+
 /* ---------------------------------------------------------------------- */
 
 /** \name Mesh/BMesh Interface (direct access to basic data).
@@ -989,7 +990,6 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 }
 
 /** \} */
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -3617,59 +3617,64 @@ static GPUVertBuf *mesh_create_tri_select_id(
 	return vbo;
 }
 
+static void mesh_create_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo)
+{
+	static GPUVertFormat format = { 0 };
+	static struct { uint pos, nor; } attr_id;
+	if (format.attr_len == 0) {
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+	}
+
+	GPU_vertbuf_init_with_format(vbo, &format);
+	const int vbo_len_capacity = mesh_render_data_verts_len_get_maybe_mapped(rdata);
+	GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
+
+	if (rdata->mapped.use == false) {
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter iter;
+			BMVert *eve;
+			uint i;
+
+			BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
+				static short no_short[4];
+				normal_float_to_short_v3(no_short, eve->no);
+
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, i, eve->co);
+				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, no_short);
+			}
+			BLI_assert(i == vbo_len_capacity);
+		}
+		else {
+			for (int i = 0; i < vbo_len_capacity; i++) {
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, i, rdata->mvert[i].co);
+				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, rdata->mvert[i].no); /* XXX actually reading 4 shorts */
+			}
+		}
+	}
+	else {
+		const MVert *mvert = rdata->mapped.me_cage->mvert;
+		const int *v_origindex = rdata->mapped.v_origindex;
+		for (int i = 0; i < vbo_len_capacity; i++) {
+			const int v_orig = v_origindex[i];
+			if (v_orig != ORIGINDEX_NONE) {
+				const MVert *mv = &mvert[i];
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, i, mv->co);
+				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, mv->no); /* XXX actually reading 4 shorts */
+			}
+		}
+	}
+}
+
 static GPUVertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
 
 	if (cache->pos_in_order == NULL) {
-		static GPUVertFormat format = { 0 };
-		static struct { uint pos, nor; } attr_id;
-		if (format.attr_len == 0) {
-			/* Normal is padded so that the vbo can be used as a buffer texture */
-			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-			attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		}
-
-		GPUVertBuf *vbo = cache->pos_in_order = GPU_vertbuf_create_with_format(&format);
-		const int vbo_len_capacity = mesh_render_data_verts_len_get_maybe_mapped(rdata);
-		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
-
-		if (rdata->mapped.use == false) {
-			if (rdata->edit_bmesh) {
-				BMesh *bm = rdata->edit_bmesh->bm;
-				BMIter iter;
-				BMVert *eve;
-				uint i;
-
-				BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-					static short no_short[4];
-					normal_float_to_short_v3(no_short, eve->no);
-
-					GPU_vertbuf_attr_set(vbo, attr_id.pos, i, eve->co);
-					GPU_vertbuf_attr_set(vbo, attr_id.nor, i, no_short);
-				}
-				BLI_assert(i == vbo_len_capacity);
-			}
-			else {
-				for (int i = 0; i < vbo_len_capacity; i++) {
-					GPU_vertbuf_attr_set(vbo, attr_id.pos, i, rdata->mvert[i].co);
-					GPU_vertbuf_attr_set(vbo, attr_id.nor, i, rdata->mvert[i].no); /* XXX actually reading 4 shorts */
-				}
-			}
-		}
-		else {
-			const MVert *mvert = rdata->mapped.me_cage->mvert;
-			const int *v_origindex = rdata->mapped.v_origindex;
-			for (int i = 0; i < vbo_len_capacity; i++) {
-				const int v_orig = v_origindex[i];
-				if (v_orig != ORIGINDEX_NONE) {
-					const MVert *mv = &mvert[i];
-					GPU_vertbuf_attr_set(vbo, attr_id.pos, i, mv->co);
-					GPU_vertbuf_attr_set(vbo, attr_id.nor, i, mv->no); /* XXX actually reading 4 shorts */
-				}
-			}
-		}
+		cache->pos_in_order = GPU_vertbuf_create(GPU_USAGE_STATIC);
+		mesh_create_pos_and_nor(rdata, cache->pos_in_order);
 	}
 
 	return cache->pos_in_order;
@@ -4970,18 +4975,7 @@ GPUBatch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
 GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->all_verts == NULL) {
-		/* create batch from DM */
-		MeshRenderData *rdata = mesh_render_data_create(me, MR_DATATYPE_VERT);
-
-		cache->all_verts = GPU_batch_create(
-		        GPU_PRIM_POINTS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache), NULL);
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->all_verts;
+	return DRW_batch_request(&cache->all_verts);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
@@ -6009,6 +6003,40 @@ void DRW_mesh_cache_uvedit(
 	else {
 		*facedots = NULL;
 	}
+}
+
+/** \} */
+
+
+/* ---------------------------------------------------------------------- */
+
+/** \name Grouped batch generation
+ * \{ */
+
+void DRW_mesh_batch_cache_create_requested(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = (Mesh *)ob->data;
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	/* Init batches and request VBOs & IBOs */
+	if (DRW_batch_requested(cache->all_verts, GPU_PRIM_POINTS)) {
+		DRW_vbo_request(cache->all_verts, &cache->pos_in_order);
+	}
+
+	/* Generate MeshRenderData flags */
+	int mr_flag = 0;
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->pos_in_order, MR_DATATYPE_VERT);
+
+	MeshRenderData *rdata = mesh_render_data_create(me, mr_flag);
+
+	/* Generate VBOs */
+	if (DRW_vbo_requested(cache->pos_in_order)) {
+		mesh_create_pos_and_nor(rdata, cache->pos_in_order);
+	}
+
+	mesh_render_data_free(rdata);
 }
 
 /** \} */

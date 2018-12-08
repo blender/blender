@@ -124,6 +124,8 @@ void DRW_mesh_weight_state_copy(struct DRW_MeshWeightState *wstate_dst, const st
 bool DRW_mesh_weight_state_compare(const struct DRW_MeshWeightState *a, const struct DRW_MeshWeightState *b);
 
 /* Mesh */
+void DRW_mesh_batch_cache_create_requested(struct Object *ob);
+
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         struct Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
@@ -212,5 +214,16 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_inner_points(
         struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
 struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(
         struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
+
+/* Common */
+#define DRW_ADD_FLAG_FROM_VBO_REQUEST(flag, vbo, value) (flag |= DRW_vbo_requested(vbo) ? value : 0)
+#define DRW_ADD_FLAG_FROM_IBO_REQUEST(flag, ibo, value) (flag |= DRW_ibo_requested(ibo) ? value : 0)
+
+struct GPUBatch *DRW_batch_request(struct GPUBatch **batch);
+bool DRW_batch_requested(struct GPUBatch *batch, int prim_type);
+void DRW_ibo_request(struct GPUBatch *batch, struct GPUIndexBuf **ibo);
+bool DRW_ibo_requested(struct GPUIndexBuf *ibo);
+void DRW_vbo_request(struct GPUBatch *batch, struct GPUVertBuf **vbo);
+bool DRW_vbo_requested(struct GPUVertBuf *vbo);
 
 #endif /* __DRAW_CACHE_IMPL_H__ */
