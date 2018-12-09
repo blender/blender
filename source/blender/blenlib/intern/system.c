@@ -32,12 +32,12 @@
 #include "MEM_guardedalloc.h"
 
 /* for backtrace and gethostname/GetComputerName */
-#if defined(__linux__) || defined(__APPLE__)
-#  include <execinfo.h>
-#  include <unistd.h>
-#elif defined(WIN32)
+#if defined(WIN32)
 #  include <windows.h>
 #  include <dbghelp.h>
+#else
+#  include <execinfo.h>
+#  include <unistd.h>
 #endif
 
 int BLI_cpu_support_sse2(void)
