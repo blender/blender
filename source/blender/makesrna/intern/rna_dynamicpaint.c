@@ -158,10 +158,15 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 }
 
-static void rna_DynamicPaint_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_DynamicPaint_reset_dependency(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	DEG_relations_tag_update(bmain);
+}
+
+static void rna_DynamicPaintSurface_reset_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
-	DEG_relations_tag_update(bmain);
+	rna_DynamicPaint_reset_dependency(bmain, scene, ptr);
 }
 
 static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)
@@ -429,7 +434,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "brush_group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush Collection", "Only use brush objects from this collection");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_reset_dependency");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurface_reset_dependency");
 
 
 	/*
