@@ -948,6 +948,22 @@ static MeshRenderData *mesh_render_data_create_ex(
 	return rdata;
 }
 
+/* Warning replace mesh pointer. */
+#define MBC_GET_FINAL_MESH(mesh) do { \
+	/* Hack to show the final result. */ \
+	const bool use_em_final = ( \
+	        (mesh)->edit_btmesh && \
+	        (mesh)->edit_btmesh->mesh_eval_final && \
+	        ((mesh)->edit_btmesh->mesh_eval_final->runtime.is_original == false)); \
+	Mesh me_fake; \
+	if (use_em_final) { \
+		me_fake = *(mesh)->edit_btmesh->mesh_eval_final; \
+		me_fake.mat = (mesh)->mat; \
+		me_fake.totcol = (mesh)->totcol; \
+		(mesh) = &me_fake; \
+	} \
+} while (0)
+
 static void mesh_render_data_free(MeshRenderData *rdata)
 {
 	if (rdata->is_orco_allocated) {
@@ -2001,13 +2017,27 @@ bool DRW_mesh_weight_state_compare(const struct DRW_MeshWeightState *a, const st
  * \{ */
 
 typedef struct MeshBatchCache {
-	GPUVertBuf *pos_in_order;
+	/* Vert buffers. */
+	GPUVertBuf *pos_and_nor;
+
+	/* Tesselated: (all verts specified for each triangles).
+	 * Indices does not match the CPU data structure's. */
+	struct {
+		GPUVertBuf *pos_and_nor;
+
+		GPUVertBuf *wireframe_data;
+	} tess;
+
+	GPUBatch *all_verts;
+
+	GPUBatch *face_wireframe; /* Triangles for object mode wireframe. */
+
+	/* Indices buffers. */
 	GPUIndexBuf *edges_in_order;
 	GPUIndexBuf *edges_adjacency; /* Store edges with adjacent vertices. */
 	GPUIndexBuf *triangles_in_order;
 	GPUIndexBuf *ledges_in_order;
 
-	GPUBatch *all_verts;
 	GPUBatch *all_edges;
 	GPUBatch *all_triangles;
 
@@ -2049,8 +2079,6 @@ typedef struct MeshBatchCache {
 
 	GPUBatch *edge_detection;
 
-	GPUVertBuf *edges_face_overlay_data;
-	GPUBatch *edges_face_overlay;
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
 	 * to minimize data transfer for skinned mesh. */
@@ -2406,7 +2434,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GPU_BATCH_DISCARD_SAFE(cache->all_edges);
 	GPU_BATCH_DISCARD_SAFE(cache->all_triangles);
 
-	GPU_VERTBUF_DISCARD_SAFE(cache->pos_in_order);
+	GPU_VERTBUF_DISCARD_SAFE(cache->pos_and_nor);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edges_in_order);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->triangles_in_order);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->ledges_in_order);
@@ -2457,8 +2485,9 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edges_adjacency);
 	GPU_BATCH_DISCARD_SAFE(cache->edge_detection);
 
-	GPU_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay_data);
-	GPU_BATCH_DISCARD_SAFE(cache->edges_face_overlay);
+	GPU_VERTBUF_DISCARD_SAFE(cache->tess.wireframe_data);
+	GPU_VERTBUF_DISCARD_SAFE(cache->tess.pos_and_nor);
+	GPU_BATCH_DISCARD_SAFE(cache->face_wireframe);
 
 	mesh_batch_cache_discard_shaded_tri(cache);
 
@@ -2795,106 +2824,164 @@ static GPUVertBuf *mesh_batch_cache_get_tri_uv_active(
 	return cache->tri_aligned_uv;
 }
 
-static GPUVertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
-        MeshRenderData *rdata, const bool use_hide,
-        GPUVertBuf **r_vbo)
+static void mesh_create_pos_and_nor_tess(MeshRenderData *rdata, GPUVertBuf *vbo, bool use_hide)
 {
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
+	static GPUVertFormat format = { 0 };
+	static struct { uint pos, nor; } attr_id;
+	if (format.attr_len == 0) {
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		GPU_vertformat_triple_load(&format);
+	}
 
-	if (*r_vbo == NULL) {
-		static GPUVertFormat format = { 0 };
-		static struct { uint pos, nor; } attr_id;
-		if (format.attr_len == 0) {
-			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-			attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-			GPU_vertformat_triple_load(&format);
-		}
+	GPU_vertbuf_init_with_format(vbo, &format);
 
-		const int tri_len = mesh_render_data_looptri_len_get_maybe_mapped(rdata);
+	const int tri_len = mesh_render_data_looptri_len_get_maybe_mapped(rdata);
+	const int vbo_len_capacity = tri_len * 3;
+	int vbo_len_used = 0;
+	GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
-		GPUVertBuf *vbo = *r_vbo = GPU_vertbuf_create_with_format(&format);
+	GPUVertBufRaw pos_step, nor_step;
+	GPU_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
+	GPU_vertbuf_attr_get_raw_data(vbo, attr_id.nor, &nor_step);
 
-		const int vbo_len_capacity = tri_len * 3;
-		int vbo_len_used = 0;
-		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
+	if (rdata->mapped.use == false) {
+		float (*lnors)[3] = rdata->loop_normals;
+		if (rdata->edit_bmesh) {
+			GPUPackedNormal *pnors_pack, *vnors_pack;
 
-		GPUVertBufRaw pos_step, nor_step;
-		GPU_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
-		GPU_vertbuf_attr_get_raw_data(vbo, attr_id.nor, &nor_step);
+			if (lnors == NULL) {
+				mesh_render_data_ensure_poly_normals_pack(rdata);
+				mesh_render_data_ensure_vert_normals_pack(rdata);
 
-		if (rdata->mapped.use == false) {
-			float (*lnors)[3] = rdata->loop_normals;
-			if (rdata->edit_bmesh) {
-				GPUPackedNormal *pnors_pack, *vnors_pack;
+				pnors_pack = rdata->poly_normals_pack;
+				vnors_pack = rdata->vert_normals_pack;
+			}
 
-				if (lnors == NULL) {
-					mesh_render_data_ensure_poly_normals_pack(rdata);
-					mesh_render_data_ensure_vert_normals_pack(rdata);
+			for (int i = 0; i < tri_len; i++) {
+				const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
+				const BMFace *bm_face = bm_looptri[0]->f;
 
-					pnors_pack = rdata->poly_normals_pack;
-					vnors_pack = rdata->vert_normals_pack;
+				/* use_hide always for edit-mode */
+				if (BM_elem_flag_test(bm_face, BM_ELEM_HIDDEN)) {
+					continue;
 				}
 
-				for (int i = 0; i < tri_len; i++) {
-					const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
-					const BMFace *bm_face = bm_looptri[0]->f;
+				if (lnors) {
+					for (uint t = 0; t < 3; t++) {
+						const float *nor = lnors[BM_elem_index_get(bm_looptri[t])];
+						*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_v3(nor);
+					}
+				}
+				else if (BM_elem_flag_test(bm_face, BM_ELEM_SMOOTH)) {
+					for (uint t = 0; t < 3; t++) {
+						*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = vnors_pack[BM_elem_index_get(bm_looptri[t]->v)];
+					}
+				}
+				else {
+					const GPUPackedNormal *snor_pack = &pnors_pack[BM_elem_index_get(bm_face)];
+					for (uint t = 0; t < 3; t++) {
+						*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = *snor_pack;
+					}
+				}
 
-					/* use_hide always for edit-mode */
-					if (BM_elem_flag_test(bm_face, BM_ELEM_HIDDEN)) {
-						continue;
+				/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
+				if (rdata->edit_data && rdata->edit_data->vertexCos) {
+					for (uint t = 0; t < 3; t++) {
+						int vidx = BM_elem_index_get(bm_looptri[t]->v);
+						const float *pos = rdata->edit_data->vertexCos[vidx];
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), pos);
 					}
-
-					if (lnors) {
-						for (uint t = 0; t < 3; t++) {
-							const float *nor = lnors[BM_elem_index_get(bm_looptri[t])];
-							*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_v3(nor);
-						}
-					}
-					else if (BM_elem_flag_test(bm_face, BM_ELEM_SMOOTH)) {
-						for (uint t = 0; t < 3; t++) {
-							*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = vnors_pack[BM_elem_index_get(bm_looptri[t]->v)];
-						}
-					}
-					else {
-						const GPUPackedNormal *snor_pack = &pnors_pack[BM_elem_index_get(bm_face)];
-						for (uint t = 0; t < 3; t++) {
-							*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = *snor_pack;
-						}
-					}
-
-					/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
-					if (rdata->edit_data && rdata->edit_data->vertexCos) {
-						for (uint t = 0; t < 3; t++) {
-							int vidx = BM_elem_index_get(bm_looptri[t]->v);
-							const float *pos = rdata->edit_data->vertexCos[vidx];
-							copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), pos);
-						}
-					}
-					else {
-						for (uint t = 0; t < 3; t++) {
-							copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), bm_looptri[t]->v->co);
-						}
+				}
+				else {
+					for (uint t = 0; t < 3; t++) {
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), bm_looptri[t]->v->co);
 					}
 				}
 			}
-			else {
-				if (lnors == NULL) {
-					/* Use normals from vertex. */
-					mesh_render_data_ensure_poly_normals_pack(rdata);
+		}
+		else {
+			if (lnors == NULL) {
+				/* Use normals from vertex. */
+				mesh_render_data_ensure_poly_normals_pack(rdata);
+			}
+
+			for (int i = 0; i < tri_len; i++) {
+				const MLoopTri *mlt = &rdata->mlooptri[i];
+				const MPoly *mp = &rdata->mpoly[mlt->poly];
+
+				if (use_hide && (mp->flag & ME_HIDE)) {
+					continue;
 				}
 
-				for (int i = 0; i < tri_len; i++) {
-					const MLoopTri *mlt = &rdata->mlooptri[i];
-					const MPoly *mp = &rdata->mpoly[mlt->poly];
+				const uint vtri[3] = {
+					rdata->mloop[mlt->tri[0]].v,
+					rdata->mloop[mlt->tri[1]].v,
+					rdata->mloop[mlt->tri[2]].v,
+				};
 
-					if (use_hide && (mp->flag & ME_HIDE)) {
-						continue;
+				if (lnors) {
+					for (uint t = 0; t < 3; t++) {
+						const float *nor = lnors[mlt->tri[t]];
+						*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_v3(nor);
 					}
+				}
+				else if (mp->flag & ME_SMOOTH) {
+					for (uint t = 0; t < 3; t++) {
+						const MVert *mv = &rdata->mvert[vtri[t]];
+						*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_s3(mv->no);
+					}
+				}
+				else {
+					const GPUPackedNormal *pnors_pack = &rdata->poly_normals_pack[mlt->poly];
+					for (uint t = 0; t < 3; t++) {
+						*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = *pnors_pack;
+					}
+				}
 
+				for (uint t = 0; t < 3; t++) {
+					const MVert *mv = &rdata->mvert[vtri[t]];
+					copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mv->co);
+				}
+			}
+		}
+	}
+	else {
+		/* Note: mapped doesn't support lnors yet. */
+		BMesh *bm = rdata->edit_bmesh->bm;
+		Mesh *me_cage = rdata->mapped.me_cage;
+
+		/* TODO(campbell): unlike non-mapped modes we don't generate these on demand, just use if they exist.
+		 * this seems like a low priority TODO since mapped meshes typically
+		 * use the final mesh evaluated mesh for showing faces. */
+		const float (*lnors)[3] = CustomData_get_layer(&me_cage->ldata, CD_NORMAL);
+
+		/* TODO(campbell): this is quite an expensive operation for something
+		 * that's not used unless 'normal' display option is enabled. */
+		if (!CustomData_has_layer(&me_cage->pdata, CD_NORMAL)) {
+			/* TODO(campbell): this is quite an expensive operation for something
+			 * that's not used unless 'normal' display option is enabled. */
+			BKE_mesh_ensure_normals_for_display(me_cage);
+		}
+		const float (*polynors)[3] = CustomData_get_layer(&me_cage->pdata, CD_NORMAL);
+
+		const MVert *mvert = rdata->mapped.me_cage->mvert;
+		const MLoop *mloop = rdata->mapped.me_cage->mloop;
+		const MPoly *mpoly = rdata->mapped.me_cage->mpoly;
+
+		const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me_cage);
+		for (int i = 0; i < tri_len; i++) {
+			const MLoopTri *mlt = &mlooptri[i];
+			const int p_orig = rdata->mapped.p_origindex[mlt->poly];
+			if (p_orig != ORIGINDEX_NONE) {
+				/* Assume 'use_hide' */
+				BMFace *efa = BM_face_at_index(bm, p_orig);
+				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+					const MPoly *mp = &mpoly[mlt->poly];
 					const uint vtri[3] = {
-						rdata->mloop[mlt->tri[0]].v,
-						rdata->mloop[mlt->tri[1]].v,
-						rdata->mloop[mlt->tri[2]].v,
+						mloop[mlt->tri[0]].v,
+						mloop[mlt->tri[1]].v,
+						mloop[mlt->tri[2]].v,
 					};
 
 					if (lnors) {
@@ -2905,97 +2992,44 @@ static GPUVertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 					}
 					else if (mp->flag & ME_SMOOTH) {
 						for (uint t = 0; t < 3; t++) {
-							const MVert *mv = &rdata->mvert[vtri[t]];
+							const MVert *mv = &mvert[vtri[t]];
 							*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_s3(mv->no);
 						}
 					}
 					else {
-						const GPUPackedNormal *pnors_pack = &rdata->poly_normals_pack[mlt->poly];
+						/* we don't have cached 'rdata->poly_normals_pack'. */
+						const GPUPackedNormal pnor = GPU_normal_convert_i10_v3(polynors[mlt->poly]);
 						for (uint t = 0; t < 3; t++) {
-							*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = *pnors_pack;
+							*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = pnor;
 						}
 					}
 
 					for (uint t = 0; t < 3; t++) {
-						const MVert *mv = &rdata->mvert[vtri[t]];
+						const MVert *mv = &mvert[vtri[t]];
 						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mv->co);
 					}
 				}
 			}
 		}
-		else {
-			/* Note: mapped doesn't support lnors yet. */
-			BMesh *bm = rdata->edit_bmesh->bm;
-			Mesh *me_cage = rdata->mapped.me_cage;
+	}
 
-			/* TODO(campbell): unlike non-mapped modes we don't generate these on demand, just use if they exist.
-			 * this seems like a low priority TODO since mapped meshes typically
-			 * use the final mesh evaluated mesh for showing faces. */
-			const float (*lnors)[3] = CustomData_get_layer(&me_cage->ldata, CD_NORMAL);
+	vbo_len_used = GPU_vertbuf_raw_used(&pos_step);
+	BLI_assert(vbo_len_used == GPU_vertbuf_raw_used(&nor_step));
 
-			/* TODO(campbell): this is quite an expensive operation for something
-			 * that's not used unless 'normal' display option is enabled. */
-			if (!CustomData_has_layer(&me_cage->pdata, CD_NORMAL)) {
-				/* TODO(campbell): this is quite an expensive operation for something
-				 * that's not used unless 'normal' display option is enabled. */
-				BKE_mesh_ensure_normals_for_display(me_cage);
-			}
-			const float (*polynors)[3] = CustomData_get_layer(&me_cage->pdata, CD_NORMAL);
+	if (vbo_len_capacity != vbo_len_used) {
+		GPU_vertbuf_data_resize(vbo, vbo_len_used);
+	}
+}
 
-			const MVert *mvert = rdata->mapped.me_cage->mvert;
-			const MLoop *mloop = rdata->mapped.me_cage->mloop;
-			const MPoly *mpoly = rdata->mapped.me_cage->mpoly;
+static GPUVertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
+        MeshRenderData *rdata, const bool use_hide,
+        GPUVertBuf **r_vbo)
+{
+	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
 
-			const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me_cage);
-			for (int i = 0; i < tri_len; i++) {
-				const MLoopTri *mlt = &mlooptri[i];
-				const int p_orig = rdata->mapped.p_origindex[mlt->poly];
-				if (p_orig != ORIGINDEX_NONE) {
-					/* Assume 'use_hide' */
-					BMFace *efa = BM_face_at_index(bm, p_orig);
-					if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-						const MPoly *mp = &mpoly[mlt->poly];
-						const uint vtri[3] = {
-							mloop[mlt->tri[0]].v,
-							mloop[mlt->tri[1]].v,
-							mloop[mlt->tri[2]].v,
-						};
-
-						if (lnors) {
-							for (uint t = 0; t < 3; t++) {
-								const float *nor = lnors[mlt->tri[t]];
-								*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_v3(nor);
-							}
-						}
-						else if (mp->flag & ME_SMOOTH) {
-							for (uint t = 0; t < 3; t++) {
-								const MVert *mv = &mvert[vtri[t]];
-								*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = GPU_normal_convert_i10_s3(mv->no);
-							}
-						}
-						else {
-							/* we don't have cached 'rdata->poly_normals_pack'. */
-							const GPUPackedNormal pnor = GPU_normal_convert_i10_v3(polynors[mlt->poly]);
-							for (uint t = 0; t < 3; t++) {
-								*((GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step)) = pnor;
-							}
-						}
-
-						for (uint t = 0; t < 3; t++) {
-							const MVert *mv = &mvert[vtri[t]];
-							copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mv->co);
-						}
-					}
-				}
-			}
-		}
-
-		vbo_len_used = GPU_vertbuf_raw_used(&pos_step);
-		BLI_assert(vbo_len_used == GPU_vertbuf_raw_used(&nor_step));
-
-		if (vbo_len_capacity != vbo_len_used) {
-			GPU_vertbuf_data_resize(vbo, vbo_len_used);
-		}
+	if (*r_vbo == NULL) {
+		*r_vbo = GPU_vertbuf_create(GPU_USAGE_STATIC);
+		mesh_create_pos_and_nor_tess(rdata, *r_vbo, use_hide);
 	}
 	return *r_vbo;
 }
@@ -3672,12 +3706,12 @@ static GPUVertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
 
-	if (cache->pos_in_order == NULL) {
-		cache->pos_in_order = GPU_vertbuf_create(GPU_USAGE_STATIC);
-		mesh_create_pos_and_nor(rdata, cache->pos_in_order);
+	if (cache->pos_and_nor == NULL) {
+		cache->pos_and_nor = GPU_vertbuf_create(GPU_USAGE_STATIC);
+		mesh_create_pos_and_nor(rdata, cache->pos_and_nor);
 	}
 
-	return cache->pos_in_order;
+	return cache->pos_and_nor;
 }
 
 static GPUVertFormat *edit_mesh_overlay_pos_format(uint *r_pos_id)
@@ -4311,20 +4345,18 @@ static EdgeHash *create_looptri_edge_adjacency_hash(MeshRenderData *rdata, EdgeA
 	return eh;
 }
 
-static GPUVertBuf *mesh_batch_cache_create_edges_wireframe_data(MeshRenderData *rdata, MeshBatchCache *cache)
+static void mesh_create_wireframe_data_tess(MeshRenderData *rdata, GPUVertBuf *vbo)
 {
-	if (cache->edges_face_overlay_data != NULL) {
-		return cache->edges_face_overlay_data;
+	static uint data_id;
+	static GPUVertFormat format = {0};
+	if (format.attr_len == 0) {
+		data_id = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		GPU_vertformat_triple_load(&format);
 	}
 
+	GPU_vertbuf_init_with_format(vbo, &format);
+
 	const int tri_len = mesh_render_data_looptri_len_get(rdata);
-
-	GPUVertFormat format = {0};
-	uint index_id = GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-	GPU_vertformat_triple_load(&format);
-
-	GPUVertBuf *vbo = cache->edges_face_overlay_data = GPU_vertbuf_create_with_format(&format);
-
 	int vbo_len_capacity = tri_len * 3;
 	GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
@@ -4399,13 +4431,12 @@ static GPUVertBuf *mesh_batch_cache_create_edges_wireframe_data(MeshRenderData *
 		}
 
 		for (int e = 0; e < 3; e++) {
-			GPU_vertbuf_attr_set(vbo, index_id, vidx++, &vdata[e]);
+			GPU_vertbuf_attr_set(vbo, data_id, vidx++, &vdata[e]);
 		}
 	}
 
 	BLI_edgehash_free(eh, NULL);
 	MEM_freeN(adj_data);
-	return vbo;
 }
 
 static GPUIndexBuf *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
@@ -5069,33 +5100,7 @@ GPUBatch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me, bool *r_is_manifold)
 GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->edges_face_overlay == NULL) {
-		const int options = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY;
-
-		/* Hack to show the final result. */
-		const bool use_em_final = (
-		        me->edit_btmesh &&
-		        me->edit_btmesh->mesh_eval_final &&
-		        (me->edit_btmesh->mesh_eval_final->runtime.is_original == false));
-		Mesh me_fake;
-		if (use_em_final) {
-			me_fake = *me->edit_btmesh->mesh_eval_final;
-			me_fake.mat = me->mat;
-			me_fake.totcol = me->totcol;
-			me = &me_fake;
-		}
-
-		MeshRenderData *rdata = mesh_render_data_create(me, options);
-
-		cache->edges_face_overlay = GPU_batch_create(
-		        GPU_PRIM_TRIS, mesh_batch_cache_create_edges_wireframe_data(rdata, cache), NULL);
-		GPU_batch_vertbuf_add(cache->edges_face_overlay, mesh_batch_cache_get_tri_pos_and_normals_final(rdata, cache, false));
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->edges_face_overlay;
+	return DRW_batch_request(&cache->face_wireframe);
 }
 
 static void mesh_batch_cache_create_overlay_batches(Mesh *me)
@@ -6017,23 +6022,42 @@ void DRW_mesh_batch_cache_create_requested(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
 
+	const bool use_hide = false; /* TODO */
+
 	Mesh *me = (Mesh *)ob->data;
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	/* Init batches and request VBOs & IBOs */
 	if (DRW_batch_requested(cache->all_verts, GPU_PRIM_POINTS)) {
-		DRW_vbo_request(cache->all_verts, &cache->pos_in_order);
+		DRW_vbo_request(cache->all_verts, &cache->pos_and_nor);
+	}
+	if (DRW_batch_requested(cache->face_wireframe, GPU_PRIM_TRIS)) {
+		DRW_vbo_request(cache->face_wireframe, &cache->tess.wireframe_data);
+		DRW_vbo_request(cache->face_wireframe, &cache->tess.pos_and_nor);
 	}
 
 	/* Generate MeshRenderData flags */
 	int mr_flag = 0;
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->pos_in_order, MR_DATATYPE_VERT);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->pos_and_nor, MR_DATATYPE_VERT);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->tess.pos_and_nor, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_POLY);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->tess.wireframe_data, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
+
+	Mesh *me_original = me;
+	MBC_GET_FINAL_MESH(me);
+
+	UNUSED_VARS(me_original);
 
 	MeshRenderData *rdata = mesh_render_data_create(me, mr_flag);
 
 	/* Generate VBOs */
-	if (DRW_vbo_requested(cache->pos_in_order)) {
-		mesh_create_pos_and_nor(rdata, cache->pos_in_order);
+	if (DRW_vbo_requested(cache->pos_and_nor)) {
+		mesh_create_pos_and_nor(rdata, cache->pos_and_nor);
+	}
+	if (DRW_vbo_requested(cache->tess.wireframe_data)) {
+		mesh_create_wireframe_data_tess(rdata, cache->tess.wireframe_data);
+	}
+	if (DRW_vbo_requested(cache->tess.pos_and_nor)) {
+		mesh_create_pos_and_nor_tess(rdata, cache->tess.pos_and_nor, use_hide);
 	}
 
 	mesh_render_data_free(rdata);
