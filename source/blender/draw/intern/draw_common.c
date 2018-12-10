@@ -87,6 +87,10 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_FACE_DOT, ts.colorFaceDot);
 	UI_GetThemeColor4fv(TH_BACK, ts.colorBackground);
 
+	/* Custom median color to slightly affect the edit mesh colors. */
+	interp_v4_v4v4(ts.colorEditMeshMiddle, ts.colorVertexSelect, ts.colorWireEdit, 0.35f);
+	copy_v3_fl(ts.colorEditMeshMiddle, dot_v3v3(ts.colorEditMeshMiddle, (float[3]){0.3333f, 0.3333f, 0.3333f})); /* Desaturate */
+
 #ifdef WITH_FREESTYLE
 	UI_GetThemeColor4fv(TH_FREESTYLE_EDGE_MARK, ts.colorEdgeFreestyle);
 	UI_GetThemeColor4fv(TH_FREESTYLE_FACE_MARK, ts.colorFaceFreestyle);

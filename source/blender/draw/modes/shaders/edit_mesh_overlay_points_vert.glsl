@@ -38,8 +38,10 @@ void main()
 		? normalize(vPos.xyz)
 		: vec3(0.0, 0.0, 1.0);
 	float facing = dot(view_vec, view_normal);
+	facing = 1.0 - abs(facing) * 0.4;
 
-	finalColor.a *= 1.0 - abs(facing) * 0.4;
+	finalColor = mix(colorEditMeshMiddle, finalColor, facing);
+	finalColor.a = 1.0;
 #endif
 
 	if ((data.x & VERTEX_EXISTS) == 0) {

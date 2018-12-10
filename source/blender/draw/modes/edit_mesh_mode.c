@@ -360,12 +360,14 @@ static DRWPass *edit_mesh_create_overlay_pass(
 		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", edge_width_scale, 1);
 		DRW_shgroup_state_enable(*r_lverts_shgrp, DRW_STATE_WRITE_DEPTH);
+		DRW_shgroup_state_disable(*r_lverts_shgrp, DRW_STATE_BLEND);
 
 		*r_verts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
 		DRW_shgroup_uniform_block(*r_verts_shgrp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(*r_verts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_float(*r_verts_shgrp, "edgeScale", edge_width_scale, 1);
 		DRW_shgroup_state_enable(*r_verts_shgrp, DRW_STATE_WRITE_DEPTH);
+		DRW_shgroup_state_disable(*r_verts_shgrp, DRW_STATE_BLEND);
 	}
 
 	if ((tsettings->selectmode & SCE_SELECT_FACE) != 0) {

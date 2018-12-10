@@ -36,6 +36,7 @@ layout(std140) uniform globalsBlock {
 	vec4 colorLampNoAlpha;
 
 	vec4 colorBackground;
+	vec4 colorEditMeshMiddle;
 
 	vec4 colorHandleFree;
 	vec4 colorHandleAuto;

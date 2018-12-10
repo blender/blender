@@ -144,7 +144,7 @@ void main()
 #endif
 
 #ifdef VERTEX_FACING
-	FragColor.a *= 1.0 - abs(facing) * 0.4;
+	FragColor.rgb = mix(colorEditMeshMiddle.rgb, FragColor.rgb, 1.0 - abs(facing) * 0.4);
 #endif
 
 	/* don't write depth if not opaque */
