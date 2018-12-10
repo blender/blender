@@ -164,17 +164,16 @@ BLI_INLINE void flush_handle_component_node(IDDepsNode *id_node,
 		return;
 	}
 	comp_node->custom_flags = COMPONENT_STATE_DONE;
-	/* Tag all required operations in component for update.  */
-	foreach (OperationDepsNode *op, comp_node->operations) {
-		/* We don't want to flush tags in "upstream" direction for
-		 * certain types of operations.
-		 *
-		 * TODO(sergey): Need a more generic solution for this.
-		 */
-		if (op->opcode == DEG_OPCODE_PARTICLE_SETTINGS_EVAL) {
-			continue;
+	/* Tag all required operations in component for update, unless this is a
+	 * special component where we don't want all operations to be tagged.
+	 *
+	 * TODO(sergey): Make this a more generic solution. */
+	if (comp_node->type != DEG_NODE_TYPE_PARTICLE_SETTINGS &&
+	    comp_node->type != DEG_NODE_TYPE_PARTICLE_SYSTEM)
+	{
+		foreach (OperationDepsNode *op, comp_node->operations) {
+			op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 		}
-		op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 	}
 	/* when some target changes bone, we might need to re-run the
 	 * whole IK solver, otherwise result might be unpredictable.

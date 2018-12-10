@@ -1847,6 +1847,12 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 		             "Particle Texture",
 		             DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY);
 	}
+	if (check_id_has_anim_component(&part->id)) {
+		ComponentKey animation_key(&part->id, DEG_NODE_TYPE_ANIMATION);
+		add_relation(animation_key,
+		             particle_settings_eval_key,
+		             "Particle Settings Animation");
+	}
 }
 
 void DepsgraphRelationBuilder::build_particle_system_visualization_object(
