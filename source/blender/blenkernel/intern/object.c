@@ -2516,7 +2516,10 @@ void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
 
 	INIT_MINMAX(min, max);
 
-	BKE_mesh_minmax(me_eval, min, max);
+	if (!BKE_mesh_minmax(me_eval, min, max)) {
+		zero_v3(min);
+		zero_v3(max);
+	}
 
 	if (ob->bb == NULL) {
 		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");

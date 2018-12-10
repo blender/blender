@@ -922,7 +922,10 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
 		float min[3], max[3];
 
 		INIT_MINMAX(min, max);
-		BKE_mesh_minmax(me, min, max);
+		if (!BKE_mesh_minmax(me, min, max)) {
+			min[0] = min[1] = min[2] = -1.0f;
+			max[0] = max[1] = max[2] = 1.0f;
+		}
 
 		if (ob->bb == NULL) {
 			ob->bb = MEM_mallocN(sizeof(*ob->bb), __func__);
