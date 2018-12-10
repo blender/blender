@@ -2434,9 +2434,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
-	{
-		/* Versioning code until next subversion bump goes here. */
-
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 36)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "curvature_ridge_factor")) {
 			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -2503,5 +2501,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			BKE_rigidbody_objects_collection_validate(scene, rbw);
 			BKE_rigidbody_constraints_collection_validate(scene, rbw);
 		}
+	}
+
+	{
+		/* Versioning code until next subversion bump goes here. */
+
 	}
 }
