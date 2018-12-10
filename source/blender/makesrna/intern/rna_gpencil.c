@@ -1487,6 +1487,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_SHOW_ONIONSKINS);
+	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_ui_text(prop, "Onion Skins", "Show ghosts of the keyframes before and after the current frame");
 	RNA_def_property_update(prop, NC_SCREEN | NC_SCENE | ND_TOOLSETTINGS | ND_DATA | NC_GPENCIL, "rna_GPencil_update");
 
