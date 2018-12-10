@@ -89,7 +89,6 @@ bool ED_rigidbody_constraint_add(Main *bmain, Scene *scene, Object *ob, int type
 	}
 	/* make rigidbody constraint settings */
 	ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);
-	ob->rigidbody_constraint->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
 	/* add constraint to rigid body constraint group */
 	BKE_collection_object_add(bmain, rbw->constraints, ob);

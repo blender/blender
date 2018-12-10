@@ -66,6 +66,10 @@ struct RigidBodyWorld *BKE_rigidbody_create_world(struct Scene *scene);
 struct RigidBodyOb *BKE_rigidbody_create_object(struct Scene *scene, struct Object *ob, short type);
 struct RigidBodyCon *BKE_rigidbody_create_constraint(struct Scene *scene, struct Object *ob, short type);
 
+/* Ensure newly set collections' objects all have required data. */
+void BKE_rigidbody_objects_collection_validate(struct Scene *scene, struct RigidBodyWorld *rbw);
+void BKE_rigidbody_constraints_collection_validate(struct Scene *scene, struct RigidBodyWorld *rbw);
+
 /* copy */
 struct RigidBodyWorld *BKE_rigidbody_world_copy(struct RigidBodyWorld *rbw, const int flag);
 void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw);

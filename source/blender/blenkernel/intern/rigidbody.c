@@ -1069,6 +1069,7 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 
 	/* flag cache as outdated */
 	BKE_rigidbody_cache_reset(rbw);
+	rbo->flag |= (RBO_FLAG_NEEDS_VALIDATE | RBO_FLAG_NEEDS_RESHAPE);
 
 	/* return this object */
 	return rbo;
@@ -1099,6 +1100,7 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 
 	rbc->flag |= RBC_FLAG_ENABLED;
 	rbc->flag |= RBC_FLAG_DISABLE_COLLISIONS;
+	rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
 	rbc->spring_type = RBC_SPRING_TYPE2;
 
@@ -1142,6 +1144,35 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 	/* return this object */
 	return rbc;
 }
+
+void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw)
+{
+	if (rbw->group != NULL) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
+		{
+			if (object->type != OB_MESH || object->rigidbody_object != NULL) {
+				continue;
+			}
+			object->rigidbody_object = BKE_rigidbody_create_object(scene, object, RBO_TYPE_ACTIVE);
+		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+	}
+}
+
+void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw)
+{
+	if (rbw->constraints != NULL) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, object)
+		{
+			if (object->rigidbody_constraint != NULL) {
+				continue;
+			}
+			object->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, object, RBC_TYPE_FIXED);
+		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+	}
+}
+
 
 /* ************************************** */
 /* Utilities API */
@@ -1395,7 +1426,10 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph, Scene *scene, Rigi
 			/* update transformation matrix of the object so we don't get a frame of lag for simple animations */
 			BKE_object_where_is_calc(depsgraph, scene, ob);
 
+			/* TODO remove this whole block once we are sure we never get NULL rbo here anymore. */
+			/* This cannot be done in CoW evaluation context anymore... */
 			if (rbo == NULL) {
+				BLI_assert(!"CoW object part of RBW object collection without RB object data, should not happen.\n");
 				/* Since this object is included in the sim group but doesn't have
 				 * rigid body settings (perhaps it was added manually), add!
 				 * - assume object to be active? That is the default for newly added settings...
@@ -1426,8 +1460,8 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph, Scene *scene, Rigi
 					// XXX: we assume that this can only get applied for active/passive shapes that will be included as rigidbodies
 					RB_body_set_collision_shape(rbo->shared->physics_object, rbo->shared->physics_shape);
 				}
-				rbo->flag &= ~(RBO_FLAG_NEEDS_VALIDATE | RBO_FLAG_NEEDS_RESHAPE);
 			}
+			rbo->flag &= ~(RBO_FLAG_NEEDS_VALIDATE | RBO_FLAG_NEEDS_RESHAPE);
 
 			/* update simulation object... */
 			rigidbody_update_sim_ob(depsgraph, scene, rbw, ob, rbo);
@@ -1446,7 +1480,10 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph, Scene *scene, Rigi
 		/* update transformation matrix of the object so we don't get a frame of lag for simple animations */
 		BKE_object_where_is_calc(depsgraph, scene, ob);
 
+		/* TODO remove this whole block once we are sure we never get NULL rbo here anymore. */
+		/* This cannot be done in CoW evaluation context anymore... */
 		if (rbc == NULL) {
+			BLI_assert(!"CoW object part of RBW constraints collection without RB constraint data, should not happen.\n");
 			/* Since this object is included in the group but doesn't have
 			 * constraint settings (perhaps it was added manually), add!
 			 */
@@ -1464,8 +1501,8 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph, Scene *scene, Rigi
 			else if (rbc->flag & RBC_FLAG_NEEDS_VALIDATE) {
 				rigidbody_validate_sim_constraint(rbw, ob, false);
 			}
-			rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
 		}
+		rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
 	}
 	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }

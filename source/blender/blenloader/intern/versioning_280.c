@@ -83,6 +83,7 @@
 #include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
+#include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
@@ -2489,6 +2490,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				dir[2] = -dir[2];
 				dir[0] = -dir[0];
 			}
+		}
+
+		/* Ensure we get valid rigidbody object/constraint data in relevant collections' objects. */
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			RigidBodyWorld *rbw = scene->rigidbody_world;
+
+			if (rbw == NULL) {
+				continue;
+			}
+
+			BKE_rigidbody_objects_collection_validate(scene, rbw);
+			BKE_rigidbody_constraints_collection_validate(scene, rbw);
 		}
 	}
 }

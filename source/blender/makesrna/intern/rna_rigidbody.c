@@ -149,6 +149,22 @@ static void rna_RigidBodyWorld_split_impulse_set(PointerRNA *ptr, bool value)
 #endif
 }
 
+static void rna_RigidBodyWorld_objects_collection_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
+
+	BKE_rigidbody_objects_collection_validate(scene, rbw);
+	rna_RigidBodyWorld_reset(bmain, scene, ptr);
+}
+
+static void rna_RigidBodyWorld_constraints_collection_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
+
+	BKE_rigidbody_constraints_collection_validate(scene, rbw);
+	rna_RigidBodyWorld_reset(bmain, scene, ptr);
+}
+
 /* ******************************** */
 
 static void rna_RigidBodyOb_reset(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -773,13 +789,13 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "group");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Collection", "Collection containing objects participating in this simulation");
-	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
+	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_objects_collection_update");
 
 	prop = RNA_def_property(srna, "constraints", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Constraints", "Collection containing rigid body constraint objects");
-	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
+	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_constraints_collection_update");
 
 	/* booleans */
 	prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
