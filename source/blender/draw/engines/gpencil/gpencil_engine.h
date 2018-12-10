@@ -385,6 +385,8 @@ struct tGPencilObjectCache *gpencil_object_cache_add(
         struct tGPencilObjectCache *cache_array, struct Object *ob,
         int *gp_cache_size, int *gp_cache_used);
 
+bool DRW_gpencil_onion_active(struct bGPdata *gpd);
+
 /* shading groups cache functions */
 struct GpencilBatchGroup *gpencil_group_cache_add(
 	struct GpencilBatchGroup *cache_array,

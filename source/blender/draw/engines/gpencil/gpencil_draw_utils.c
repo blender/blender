@@ -366,6 +366,20 @@ static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(
 	return grp;
 }
 
+/* check if some onion is enabled */
+bool DRW_gpencil_onion_active(bGPdata *gpd)
+{
+	if ((gpd->flag & GP_DATA_SHOW_ONIONSKINS) == 0) {
+		return false;
+	}
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		if (gpl->onion_flag & GP_LAYER_ONIONSKIN) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* create shading group for strokes */
 DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass, GPUShader *shader, Object *ob,
@@ -1499,7 +1513,8 @@ void DRW_gpencil_populate_datablock(
 
 	bGPDframe *derived_gpf = NULL;
 	const bool main_onion = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
-	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && main_onion;
+	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) &&
+		main_onion && DRW_gpencil_onion_active(gpd);
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
 	const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
 
@@ -1585,8 +1600,7 @@ void DRW_gpencil_populate_datablock(
 
 		/* draw onion skins */
 		if (!ID_IS_LINKED(&gpd->id)) {
-			if ((gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
-			    (do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
+			if ((do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
 			    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) &&
 			    (!cache_ob->is_dup_ob) && (gpd->id.us <= 1))
 			{
