@@ -232,45 +232,45 @@ void BKE_splineik_execute_tree(
 void BKE_pose_eval_init(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob);
+        struct Object *object);
 
 void BKE_pose_eval_init_ik(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob);
+        struct Object *object);
 
 void BKE_pose_eval_bone(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob,
+        struct Object *object,
         int pchan_index);
 
 void BKE_pose_constraints_evaluate(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob,
+        struct Object *object,
         int pchan_index);
 
 void BKE_pose_bone_done(
         struct Depsgraph *depsgraph,
-        struct Object *ob,
+        struct Object *object,
         int pchan_index);
 
 void BKE_pose_eval_bbone_segments(
         struct Depsgraph *depsgraph,
-        struct Object *ob,
+        struct Object *object,
         int pchan_index);
 
 void BKE_pose_iktree_evaluate(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob,
+        struct Object *object,
         int rootchan_index);
 
 void BKE_pose_splineik_evaluate(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob,
+        struct Object *object,
         int rootchan_index);
 
 void BKE_pose_eval_done(
@@ -280,7 +280,7 @@ void BKE_pose_eval_done(
 void BKE_pose_eval_cleanup(
         struct Depsgraph *depsgraph,
         struct Scene *scene,
-        struct Object *ob);
+        struct Object *object);
 
 void BKE_pose_eval_proxy_init(struct Depsgraph *depsgraph,
                               struct Object *object);

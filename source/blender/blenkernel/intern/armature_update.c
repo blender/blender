@@ -618,35 +618,35 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph,
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
                            Scene *scene,
-                           Object *ob)
+                           Object *object)
 {
-	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
-	BLI_assert(ob->type == OB_ARMATURE);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+	BLI_assert(object->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	bArmature *arm = (bArmature *)ob->data;
-	if (arm->flag & ARM_RESTPOS) {
+	bArmature *armature = (bArmature *)object->data;
+	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
 	/* construct the IK tree (standard IK) */
-	BIK_initialize_tree(depsgraph, scene, ob, ctime);
+	BIK_initialize_tree(depsgraph, scene, object, ctime);
 	/* construct the Spline IK trees
 	 * - this is not integrated as an IK plugin, since it should be able
-	 *   to function in conjunction with standard IK
-	 */
-	BKE_pose_splineik_init_tree(scene, ob, ctime);
+	 *   to function in conjunction with standard IK.  */
+	BKE_pose_splineik_init_tree(scene, object, ctime);
 }
 
 void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
                         Scene *scene,
-                        Object *ob,
+                        Object *object,
                         int pchan_index)
 {
-	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
+	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	DEG_debug_print_eval_subdata(
-	        depsgraph, __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
-	BLI_assert(ob->type == OB_ARMATURE);
-	bArmature *arm = (bArmature *)ob->data;
-	if (arm->edbo || (arm->flag & ARM_RESTPOS)) {
+	        depsgraph, __func__, object->id.name, object,
+	        "pchan", pchan->name, pchan);
+	BLI_assert(object->type == OB_ARMATURE);
+	bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo || (armature->flag & ARM_RESTPOS)) {
 		Bone *bone = pchan->bone;
 		if (bone) {
 			copy_m4_m4(pchan->pose_mat, bone->arm_mat);
@@ -655,9 +655,8 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
 		}
 	}
 	else {
-		/* TODO(sergey): Currently if there are constraints full transform is being
-		 * evaluated in BKE_pose_constraints_evaluate.
-		 */
+		/* TODO(sergey): Currently if there are constraints full transform is
+		 * being evaluated in BKE_pose_constraints_evaluate. */
 		if (pchan->constraints.first == NULL) {
 			if (pchan->flag & POSE_IKTREE || pchan->flag & POSE_IKSPLINE) {
 				/* pass */
@@ -666,7 +665,7 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
 				if ((pchan->flag & POSE_DONE) == 0) {
 					/* TODO(sergey): Use time source node for time. */
 					float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-					BKE_pose_where_is_bone(depsgraph, scene, ob, pchan, ctime, 1);
+					BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, 1);
 				}
 			}
 		}
@@ -675,14 +674,15 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
 
 void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
                                    Scene *scene,
-                                   Object *ob,
+                                   Object *object,
                                    int pchan_index)
 {
-	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
+	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	DEG_debug_print_eval_subdata(
-	        depsgraph, __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
-	bArmature *arm = (bArmature *)ob->data;
-	if (arm->flag & ARM_RESTPOS) {
+	        depsgraph, __func__, object->id.name, object,
+	        "pchan", pchan->name, pchan);
+	bArmature *armature = (bArmature *)object->data;
+	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
 	else if (pchan->flag & POSE_IKTREE || pchan->flag & POSE_IKSPLINE) {
@@ -691,24 +691,24 @@ void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
 	else {
 		if ((pchan->flag & POSE_DONE) == 0) {
 			float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-			BKE_pose_where_is_bone(depsgraph, scene, ob, pchan, ctime, 1);
+			BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, 1);
 		}
 	}
 }
 
 void BKE_pose_bone_done(struct Depsgraph *depsgraph,
-                        struct Object *ob,
+                        struct Object *object,
                         int pchan_index)
 {
-	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
+	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	float imat[4][4];
 	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
 	if (pchan->bone) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
 	}
-	bArmature *arm = (bArmature *)ob->data;
-	if (DEG_is_active(depsgraph) && arm->edbo == NULL) {
+	bArmature *armature = (bArmature *)object->data;
+	if (DEG_is_active(depsgraph) && armature->edbo == NULL) {
 		bPoseChannel *pchan_orig = pchan->orig_pchan;
 		copy_m4_m4(pchan_orig->pose_mat, pchan->pose_mat);
 		copy_m4_m4(pchan_orig->chan_mat, pchan->chan_mat);
@@ -722,15 +722,15 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph,
 }
 
 void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
-                                  struct Object *ob,
+                                  struct Object *object,
                                   int pchan_index)
 {
-	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
+	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
 	if (pchan->bone != NULL && pchan->bone->segments > 1) {
 		BKE_pchan_bbone_segments_cache_compute(pchan);
-		bArmature *arm = (bArmature *)ob->data;
-		if (DEG_is_active(depsgraph) && arm->edbo == NULL) {
+		bArmature *armature = (bArmature *)object->data;
+		if (DEG_is_active(depsgraph) && armature->edbo == NULL) {
 			BKE_pchan_bbone_segments_cache_copy(pchan->orig_pchan, pchan);
 		}
 	}
@@ -738,37 +738,39 @@ void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
 
 void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
                               Scene *scene,
-                              Object *ob,
+                              Object *object,
                               int rootchan_index)
 {
-	bPoseChannel *rootchan = pose_pchan_get_indexed(ob, rootchan_index);
+	bPoseChannel *rootchan = pose_pchan_get_indexed(object, rootchan_index);
 	DEG_debug_print_eval_subdata(
-	        depsgraph, __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
-	BLI_assert(ob->type == OB_ARMATURE);
+	        depsgraph, __func__, object->id.name, object,
+	        "rootchan", rootchan->name, rootchan);
+	BLI_assert(object->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	bArmature *arm = (bArmature *)ob->data;
-	if (arm->flag & ARM_RESTPOS) {
+	bArmature *armature = (bArmature *)object->data;
+	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
-	BIK_execute_tree(depsgraph, scene, ob, rootchan, ctime);
+	BIK_execute_tree(depsgraph, scene, object, rootchan, ctime);
 }
 
 void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
                                 Scene *scene,
-                                Object *ob,
+                                Object *object,
                                 int rootchan_index)
 
 {
-	bPoseChannel *rootchan = pose_pchan_get_indexed(ob, rootchan_index);
+	bPoseChannel *rootchan = pose_pchan_get_indexed(object, rootchan_index);
 	DEG_debug_print_eval_subdata(
-	        depsgraph, __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
-	BLI_assert(ob->type == OB_ARMATURE);
+	        depsgraph, __func__, object->id.name, object,
+	        "rootchan", rootchan->name, rootchan);
+	BLI_assert(object->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	bArmature *arm = (bArmature *)ob->data;
-	if (arm->flag & ARM_RESTPOS) {
+	bArmature *armature = (bArmature *)object->data;
+	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
-	BKE_splineik_execute_tree(depsgraph, scene, ob, rootchan, ctime);
+	BKE_splineik_execute_tree(depsgraph, scene, object, rootchan, ctime);
 }
 
 /* Common part for both original and proxy armatrues. */
