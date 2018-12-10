@@ -981,8 +981,8 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	immUniform1f("dash_width", 20.0f);
 	immUniform1f("dash_factor", 0.5f);
 
-	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
-	for (fcu = sipo->ghostCurves.first; fcu; fcu = fcu->next) {
+	/* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */
+	for (fcu = sipo->runtime.ghost_curves.first; fcu; fcu = fcu->next) {
 		/* set whatever color the curve has set
 		 * - this is set by the function which creates these
 		 * - draw with a fixed opacity of 2

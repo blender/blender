@@ -345,7 +345,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 	int filter;
 
 	/* free existing ghost curves */
-	free_fcurves(&sipo->ghostCurves);
+	free_fcurves(&sipo->runtime.ghost_curves);
 
 	/* sanity check */
 	if (start >= end) {
@@ -396,7 +396,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 		gcu->color[2] = fcu->color[2] - 0.07f;
 
 		/* store new ghost curve */
-		BLI_addtail(&sipo->ghostCurves, gcu);
+		BLI_addtail(&sipo->runtime.ghost_curves, gcu);
 
 		/* restore driver */
 		fcu->driver = driver;
@@ -463,11 +463,11 @@ static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 	sipo = (SpaceIpo *)ac.sl;
 
 	/* if no ghost curves, don't do anything */
-	if (BLI_listbase_is_empty(&sipo->ghostCurves))
+	if (BLI_listbase_is_empty(&sipo->runtime.ghost_curves)) {
 		return OPERATOR_CANCELLED;
-
+	}
 	/* free ghost curves */
-	free_fcurves(&sipo->ghostCurves);
+	free_fcurves(&sipo->runtime.ghost_curves);
 
 	/* update this editor only */
 	ED_area_tag_redraw(CTX_wm_area(C));

@@ -179,8 +179,9 @@ static void graph_free(SpaceLink *sl)
 		MEM_freeN(si->ads);
 	}
 
-	if (si->ghostCurves.first)
-		free_fcurves(&si->ghostCurves);
+	if (si->runtime.ghost_curves.first) {
+		free_fcurves(&si->runtime.ghost_curves);
+	}
 }
 
 
@@ -208,7 +209,7 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 	SpaceIpo *sipon = MEM_dupallocN(sl);
 
 	/* clear or remove stuff from old */
-	BLI_duplicatelist(&sipon->ghostCurves, &((SpaceIpo *)sl)->ghostCurves);
+	BLI_duplicatelist(&sipon->runtime.ghost_curves, &((SpaceIpo *)sl)->runtime.ghost_curves);
 	sipon->ads = MEM_dupallocN(sipon->ads);
 
 	return (SpaceLink *)sipon;
@@ -585,7 +586,7 @@ static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, 
 			switch (wmn->data) {
 				case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing)  */
 				case ND_OB_SELECT:
-					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
+					sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);
 					break;
 
@@ -598,7 +599,7 @@ static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, 
 			switch (wmn->data) {
 				case ND_BONE_SELECT:    /* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_BONE_ACTIVE:
-					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
+					sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);
 					break;
 				case ND_TRANSFORM:
@@ -612,7 +613,7 @@ static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, 
 		case NC_NODE:
 			if (wmn->action == NA_SELECTED) {
 				/* selection changed, so force refresh to flush (needs flag set to do syncing) */
-				sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
+				sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
 				ED_area_tag_refresh(sa);
 			}
 			break;
@@ -621,7 +622,7 @@ static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, 
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_WINDOW:
-			if (sipo->flag & SIPO_TEMP_NEEDCHANSYNC) {
+			if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
 				/* force redraw/refresh after undo/redo - prevents "black curve" problem */
 				ED_area_tag_refresh(sa);
 			}
@@ -778,9 +779,9 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	/* update the state of the animchannels in response to changes from the data they represent
 	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
 	 */
-	if (sipo->flag & SIPO_TEMP_NEEDCHANSYNC) {
+	if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
 		ANIM_sync_animchannels_to_data(C);
-		sipo->flag &= ~SIPO_TEMP_NEEDCHANSYNC;
+		sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
 		ED_area_tag_redraw(sa);
 	}
 

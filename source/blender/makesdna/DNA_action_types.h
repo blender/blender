@@ -692,6 +692,11 @@ typedef enum eDopeSheet_Flag {
 
 
 
+typedef struct SpaceAction_Runtime {
+	char flag;
+	char _pad0[7];
+} SpaceAction_Runtime;
+
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
 	struct SpaceLink *next, *prev;
@@ -716,6 +721,8 @@ typedef struct SpaceAction {
 	char autosnap;              /* automatic keyframe snapping mode   */
 	char cache_display;         /* (eTimeline_Cache_Flag) */
 	char _pad1[6];
+
+	SpaceAction_Runtime runtime;
 } SpaceAction;
 
 /* SpaceAction flag */
@@ -738,8 +745,6 @@ typedef enum eSAction_Flag {
 	SACTION_NODRAWGCOLORS = (1 << 7),
 	/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1 << 8),
-	/* temporary flag to force channel selections to be synced with main */
-	SACTION_TEMP_NEEDCHANSYNC = (1 << 9),
 	/* don't perform realtime updates */
 	SACTION_NOREALTIMEUPDATES = (1 << 10),
 	/* move markers as well as keyframes */
@@ -749,6 +754,13 @@ typedef enum eSAction_Flag {
 	/* show extremes */
 	SACTION_SHOW_EXTREMES = (1 << 13),
 } eSAction_Flag;
+
+
+/* SpaceAction_Runtime.flag */
+typedef enum eSAction_Runtime_Flag {
+	/** Temporary flag to force channel selections to be synced with main */
+	SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
+} eSAction_Runtime_Flag;
 
 /* SpaceAction Mode Settings */
 typedef enum eAnimEdit_Context {

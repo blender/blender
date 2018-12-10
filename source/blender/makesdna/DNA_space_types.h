@@ -358,6 +358,14 @@ typedef enum eSpaceOutliner_Search_Flags {
 /** \name Graph Editor
  * \{ */
 
+typedef struct SpaceIpo_Runtime {
+	/** #eGraphEdit_Runtime_Flag */
+	char flag;
+	char _pad[7];
+	/** Sampled snapshots of F-Curves used as in-session guides */
+	ListBase ghost_curves;
+} SpaceIpo_Runtime;
+
 /* 'Graph' Editor (formerly known as the IPO Editor) */
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
@@ -371,8 +379,6 @@ typedef struct SpaceIpo {
 
 	struct bDopeSheet *ads; /* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
 
-	ListBase ghostCurves;   /* sampled snapshots of F-Curves used as in-session guides */
-
 	short mode;             /* mode for the Graph editor (eGraphEdit_Mode) */
 	short autosnap;         /* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
 	int flag;               /* settings for Graph editor (eGraphEdit_Flag) */
@@ -381,6 +387,8 @@ typedef struct SpaceIpo {
 	float cursorVal;        /* cursor value (y-value, x-value is current frame) */
 	int around;             /* pivot point for transforms */
 	int pad;
+
+	SpaceIpo_Runtime runtime;
 } SpaceIpo;
 
 
@@ -408,8 +416,6 @@ typedef enum eGraphEdit_Flag {
 	SIPO_NODRAWCURSOR         = (1 << 8),
 	/* only show handles of selected keyframes */
 	SIPO_SELVHANDLESONLY      = (1 << 9),
-	/* temporary flag to force channel selections to be synced with main */
-	SIPO_TEMP_NEEDCHANSYNC    = (1 << 10),
 	/* don't perform realtime updates */
 	SIPO_NOREALTIMEUPDATES    = (1 << 11),
 	/* don't draw curves with AA ("beauty-draw") for performance */
@@ -428,6 +434,11 @@ typedef enum eGraphEdit_Mode {
 	/* drivers only */
 	SIPO_MODE_DRIVERS = 1,
 } eGraphEdit_Mode;
+
+typedef enum eGraphEdit_Runtime_Flag {
+	/** Temporary flag to force channel selections to be synced with main. */
+	SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC        = (1 << 0),
+} eGraphEdit_Runtime_Flag;
 
 /** \} */
 
