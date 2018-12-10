@@ -92,7 +92,7 @@ void mask_edge_flag(int v, ivec3 eflag)
 
 	/* Only shade the edge that we are currently drawing.
 	 * (fix corner bleeding) */
-	flag = eflag & ~EDGE_VERTEX_EXISTS;
+	flag = eflag;
 	flag[vaf] &= ~EDGE_EXISTS;
 	flag[v]   &= ~EDGE_EXISTS;
 }
