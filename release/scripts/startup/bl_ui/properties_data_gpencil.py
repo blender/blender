@@ -240,18 +240,14 @@ class DATA_PT_gpencil_onionpanel(Panel):
     def poll(cls, context):
         return bool(context.active_gpencil_layer)
 
-    @staticmethod
-    def draw_header(self, context):
-        self.layout.prop(context.gpencil_data, "use_onion_skinning", text="")
-
     def draw(self, context):
         gpd = context.gpencil_data
 
         layout = self.layout
         layout.use_property_split = True
-        layout.enabled = gpd.use_onion_skinning and gpd.users <= 1
+        layout.enabled = gpd.users <= 1
 
-        if gpd.use_onion_skinning and gpd.users > 1:
+        if gpd.users > 1:
             layout.label(text="Multiuser datablock not supported", icon='ERROR')
 
         GreasePencilOnionPanel.draw_settings(layout, gpd)

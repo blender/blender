@@ -855,7 +855,6 @@ class GreasePencilOnionPanel:
         layout.prop(gp, "use_ghosts_always", text="View In Render")
 
         col = layout.column(align=True)
-        col.active = gp.use_onion_skinning
         col.prop(gp, "use_onion_fade", text="Fade")
         if hasattr(gp, "use_onion_loop"):  # XXX
             sub = layout.column()
@@ -995,7 +994,6 @@ class GPENCIL_UL_layer(UIList):
                 icon='ONIONSKIN_ON' if gpl.use_onion_skinning else 'ONIONSKIN_OFF',
                 emboss=False,
             )
-            subrow.active = gpd.use_onion_skinning
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(

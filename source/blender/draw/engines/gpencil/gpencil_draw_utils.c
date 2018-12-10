@@ -369,9 +369,6 @@ static DRWShadingGroup *DRW_gpencil_shgroup_fill_create(
 /* check if some onion is enabled */
 bool DRW_gpencil_onion_active(bGPdata *gpd)
 {
-	if ((gpd->flag & GP_DATA_SHOW_ONIONSKINS) == 0) {
-		return false;
-	}
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		if (gpl->onion_flag & GP_LAYER_ONIONSKIN) {
 			return true;
