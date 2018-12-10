@@ -622,7 +622,7 @@ static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, 
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_WINDOW:
-			if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
+			if (sipo->runtime.flag & (SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC | SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR)) {
 				/* force redraw/refresh after undo/redo - prevents "black curve" problem */
 				ED_area_tag_refresh(sa);
 			}
@@ -782,6 +782,15 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC) {
 		ANIM_sync_animchannels_to_data(C);
 		sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
+		ED_area_tag_redraw(sa);
+	}
+
+	/* We could check 'SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR', but color is recalculated anyway. */
+	if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR) {
+		sipo->runtime.flag &= ~SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
+#if 0	/* Done below. */
+		graph_refresh_fcurve_colors(C);
+#endif
 		ED_area_tag_redraw(sa);
 	}
 

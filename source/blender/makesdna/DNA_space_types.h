@@ -438,6 +438,8 @@ typedef enum eGraphEdit_Mode {
 typedef enum eGraphEdit_Runtime_Flag {
 	/** Temporary flag to force channel selections to be synced with main. */
 	SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC        = (1 << 0),
+	/** Temporary flag to force fcurves to recalculate colors. */
+	SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR  = (1 << 1),
 } eGraphEdit_Runtime_Flag;
 
 /** \} */
