@@ -911,6 +911,8 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         split.active = cycles_view_layer.use_denoising
 
         layout = layout.column(align=True)
+        layout.prop(cycles_view_layer, "denoising_radius", text="Radius")
+        layout.prop(cycles_view_layer, "denoising_strength", slider=True, text="Strength")
         layout.prop(cycles_view_layer, "denoising_feature_strength", slider=True, text="Feature Strength")
         layout.prop(cycles_view_layer, "denoising_relative_pca")
 
