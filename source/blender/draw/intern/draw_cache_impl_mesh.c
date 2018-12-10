@@ -1715,9 +1715,6 @@ static bool add_edit_tri_mapped(
 	const int *v_origindex = rdata->mapped.v_origindex;
 	const int *e_origindex = rdata->mapped.e_origindex;
 
-	uchar fflag;
-	uchar vflag;
-
 	if (elb) {
 		for (int i = 0; i < 3; ++i) {
 			const int v_orig = v_origindex[mloop[mlt->tri[i]].v];
@@ -1750,21 +1747,17 @@ static bool add_edit_tri_mapped(
 	}
 
 	if (vbo_data) {
-		fflag = mesh_render_data_looptri_flag(rdata, efa);
+		EdgeDrawAttr eattr[3] = {{0}}; /* Importantly VFLAG_VERTEX_EXISTS is not set. */
+		uchar fflag = mesh_render_data_looptri_flag(rdata, efa);
 		for (uint i = 0; i < 3; i++) {
 			const int i_next = (i + 1) % 3;
 			const int i_prev = (i + 2) % 3;
 			const int v_orig = v_origindex[mloop[mlt->tri[i]].v];
 			if (v_orig != ORIGINDEX_NONE) {
 				BMVert *v = BM_vert_at_index(bm, v_orig);
-				vflag = mesh_render_data_vertex_flag(rdata, v);
-			}
-			else {
-				/* Importantly VFLAG_VERTEX_EXISTS is not set. */
-				vflag = 0;
+				eattr[i].v_flag |= mesh_render_data_vertex_flag(rdata, v);
 			}
 			/* Opposite edge to the vertex at 'i'. */
-			EdgeDrawAttr eattr = {0};
 			const int e_idx = mloop[mlt->tri[i_next]].e;
 			const int e_orig = e_origindex[e_idx];
 			if (e_orig != ORIGINDEX_NONE) {
@@ -1775,11 +1768,20 @@ static bool add_edit_tri_mapped(
 				        ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])));
 				if (is_edge_real) {
 					BMEdge *eed = BM_edge_at_index(bm, e_orig);
-					mesh_render_data_edge_flag(rdata, eed, &eattr);
+					mesh_render_data_edge_flag(rdata, eed, &eattr[i]);
+					/* Set vertex selected if both original verts are selected. */
+					if (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) &&
+					    BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))
+					{
+						eattr[i_next].v_flag |= VFLAG_VERTEX_SELECTED;
+						eattr[i_prev].v_flag |= VFLAG_VERTEX_SELECTED;
+					}
 				}
 			}
-			eattr.v_flag = fflag | vflag;
-			GPU_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
+		}
+		for (uint i = 0; i < 3; i++) {
+			eattr[i].v_flag |= fflag;
+			GPU_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr[i]);
 		}
 	}
 
