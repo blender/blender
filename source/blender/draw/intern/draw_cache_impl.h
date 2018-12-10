@@ -67,8 +67,8 @@ void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu, struct CurveCache *ob_curve_cache);
 struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(
         struct Curve *cu, struct CurveCache *ob_curve_cache, float normal_size);
-struct GPUBatch *DRW_curve_batch_cache_get_overlay_edges(struct Curve *cu);
-struct GPUBatch *DRW_curve_batch_cache_get_overlay_verts(struct Curve *cu, bool handles);
+struct GPUBatch *DRW_curve_batch_cache_get_edit_edges(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu, bool handles);
 
 struct GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(
         struct Curve *cu, struct CurveCache *ob_curve_cache);
@@ -83,8 +83,8 @@ struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(struct Object *ob,
 struct GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(struct Object *ob);
 
 /* Curve (Font) */
-struct GPUBatch *DRW_curve_batch_cache_get_overlay_cursor(struct Curve *cu);
-struct GPUBatch *DRW_curve_batch_cache_get_overlay_select(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_edit_cursor(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_edit_select(struct Curve *cu);
 
 /* DispList */
 struct GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(struct ListBase *lb);
@@ -98,7 +98,7 @@ struct GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb);
 /* Lattice */
 struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool use_weight, const int actdef);
 struct GPUBatch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
-struct GPUBatch *DRW_lattice_batch_cache_get_overlay_verts(struct Lattice *lt);
+struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 
 /* Vertex Group Selection and display options */
 struct DRW_MeshWeightState {
@@ -146,14 +146,14 @@ struct GPUBatch *DRW_mesh_batch_cache_get_points_with_normals(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_fancy_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edge_detection(struct Mesh *me, bool *r_is_manifold);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles_nor(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles_lnor(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_verts(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_edges(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_edges_nor(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_verts(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_overlay_facedots(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles_nor(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles_lnor(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_edges(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_edges_nor(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_verts(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(struct Mesh *me);
 /* edit-mesh selection (use generic function for faces) */
 struct GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(struct Mesh *me, uint select_id_offset);
 struct GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me, uint select_id_offset);

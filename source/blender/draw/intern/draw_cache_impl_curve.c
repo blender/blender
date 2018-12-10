@@ -804,7 +804,7 @@ static GPUBatch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, C
  * \{ */
 
 
-static GPUBatch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, CurveBatchCache *cache)
+static GPUBatch *curve_batch_cache_get_edit_select(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
 	if (cache->text.select == NULL) {
@@ -879,7 +879,7 @@ static GPUBatch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, Cu
 	return cache->text.select;
 }
 
-static GPUBatch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, CurveBatchCache *cache)
+static GPUBatch *curve_batch_cache_get_edit_cursor(CurveRenderData *rdata, CurveBatchCache *cache)
 {
 	BLI_assert(rdata->types & CU_DATATYPE_TEXT_SELECT);
 	if (cache->text.cursor == NULL) {
@@ -953,7 +953,7 @@ GPUBatch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve_
 	return cache->normal.batch;
 }
 
-GPUBatch *DRW_curve_batch_cache_get_overlay_edges(Curve *cu)
+GPUBatch *DRW_curve_batch_cache_get_edit_edges(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -964,7 +964,7 @@ GPUBatch *DRW_curve_batch_cache_get_overlay_edges(Curve *cu)
 	return cache->overlay.edges;
 }
 
-GPUBatch *DRW_curve_batch_cache_get_overlay_verts(Curve *cu, bool handles)
+GPUBatch *DRW_curve_batch_cache_get_edit_verts(Curve *cu, bool handles)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
@@ -1056,14 +1056,14 @@ GPUBatch *DRW_curve_batch_cache_get_wireframes_face(Curve *cu, CurveCache *ob_cu
 /** \name Public Object/Font API
  * \{ */
 
-GPUBatch *DRW_curve_batch_cache_get_overlay_select(Curve *cu)
+GPUBatch *DRW_curve_batch_cache_get_edit_select(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
 	if (cache->text.select == NULL) {
 		CurveRenderData *rdata = curve_render_data_create(cu, NULL, CU_DATATYPE_TEXT_SELECT);
 
-		curve_batch_cache_get_overlay_select(rdata, cache);
+		curve_batch_cache_get_edit_select(rdata, cache);
 
 		curve_render_data_free(rdata);
 	}
@@ -1071,14 +1071,14 @@ GPUBatch *DRW_curve_batch_cache_get_overlay_select(Curve *cu)
 	return cache->text.select;
 }
 
-GPUBatch *DRW_curve_batch_cache_get_overlay_cursor(Curve *cu)
+GPUBatch *DRW_curve_batch_cache_get_edit_cursor(Curve *cu)
 {
 	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
 	if (cache->text.cursor == NULL) {
 		CurveRenderData *rdata = curve_render_data_create(cu, NULL, CU_DATATYPE_TEXT_SELECT);
 
-		curve_batch_cache_get_overlay_cursor(rdata, cache);
+		curve_batch_cache_get_edit_cursor(rdata, cache);
 
 		curve_render_data_free(rdata);
 	}

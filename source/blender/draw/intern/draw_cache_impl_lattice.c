@@ -567,7 +567,7 @@ GPUBatch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
 	return cache->all_verts;
 }
 
-GPUBatch *DRW_lattice_batch_cache_get_overlay_verts(Lattice *lt)
+GPUBatch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 

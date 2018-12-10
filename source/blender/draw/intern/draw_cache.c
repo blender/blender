@@ -2998,40 +2998,13 @@ GPUBatch *DRW_cache_mesh_surface_overlay_get(Object *ob)
 	return DRW_mesh_batch_cache_get_all_triangles(me);
 }
 
-void DRW_cache_mesh_wire_overlay_get(
-        Object *ob,
-        GPUBatch **r_tris, GPUBatch **r_ledges, GPUBatch **r_lverts)
-{
-	BLI_assert(ob->type == OB_MESH);
-
-	Mesh *me = ob->data;
-
-	*r_tris = DRW_mesh_batch_cache_get_overlay_triangles(me);
-	*r_ledges = DRW_mesh_batch_cache_get_overlay_loose_edges(me);
-	*r_lverts = DRW_mesh_batch_cache_get_overlay_loose_verts(me);
-}
-
-void DRW_cache_mesh_normals_overlay_get(
-        Object *ob,
-        GPUBatch **r_tris, GPUBatch **r_tris_lnor, GPUBatch **r_ledges, GPUBatch **r_lverts)
-{
-	BLI_assert(ob->type == OB_MESH);
-
-	Mesh *me = ob->data;
-
-	*r_tris = DRW_mesh_batch_cache_get_overlay_triangles_nor(me);
-	*r_tris_lnor = DRW_mesh_batch_cache_get_overlay_triangles_lnor(me);
-	*r_ledges = DRW_mesh_batch_cache_get_overlay_loose_edges_nor(me);
-	*r_lverts = DRW_mesh_batch_cache_get_overlay_loose_verts(me);
-}
-
 GPUBatch *DRW_cache_face_centers_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
 
-	return DRW_mesh_batch_cache_get_overlay_facedots(me);
+	return DRW_mesh_batch_cache_get_edit_facedots(me);
 }
 
 GPUBatch *DRW_cache_mesh_wire_outline_get(Object *ob)
@@ -3238,7 +3211,7 @@ GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
 	BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF));
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_overlay_edges(cu);
+	return DRW_curve_batch_cache_get_edit_edges(cu);
 }
 
 GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob, bool handles)
@@ -3246,7 +3219,7 @@ GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob, bool handles)
 	BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF));
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_overlay_verts(cu, handles);
+	return DRW_curve_batch_cache_get_edit_verts(cu, handles);
 }
 
 GPUBatch *DRW_cache_curve_surface_get(Object *ob)
@@ -3352,14 +3325,14 @@ GPUBatch *DRW_cache_text_cursor_overlay_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_FONT);
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_overlay_cursor(cu);
+	return DRW_curve_batch_cache_get_edit_cursor(cu);
 }
 
 GPUBatch *DRW_cache_text_select_overlay_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_FONT);
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_overlay_select(cu);
+	return DRW_curve_batch_cache_get_edit_select(cu);
 }
 
 /** \} */
@@ -3429,7 +3402,7 @@ GPUBatch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 	BLI_assert(ob->type == OB_LATTICE);
 
 	struct Lattice *lt = ob->data;
-	return DRW_lattice_batch_cache_get_overlay_verts(lt);
+	return DRW_lattice_batch_cache_get_edit_verts(lt);
 }
 
 /** \} */
@@ -3758,6 +3731,8 @@ void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
 		batch->verts[0] = *vbo;
 	}
 	else {
+		/* HACK: bypass assert */
+		(*vbo)->vertex_len = batch->verts[0]->vertex_len;
 		GPU_batch_vertbuf_add(batch, *vbo);
 	}
 }
