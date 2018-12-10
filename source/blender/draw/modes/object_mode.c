@@ -93,6 +93,7 @@ extern char datatoc_object_grid_vert_glsl[];
 extern char datatoc_object_empty_image_frag_glsl[];
 extern char datatoc_object_empty_image_vert_glsl[];
 extern char datatoc_object_lightprobe_grid_vert_glsl[];
+extern char datatoc_object_loose_points_frag_glsl[];
 extern char datatoc_object_particle_prim_vert_glsl[];
 extern char datatoc_object_particle_dot_vert_glsl[];
 extern char datatoc_object_particle_dot_frag_glsl[];
@@ -306,6 +307,7 @@ static struct {
 	GPUShader *part_prim_sh;
 	GPUShader *part_axis_sh;
 	GPUShader *lightprobe_grid_sh;
+	GPUShader *loose_points_sh;
 	float camera_pos[3];
 	float screenvecs[3][4];
 	float grid_settings[5];
@@ -457,6 +459,9 @@ static void OBJECT_engine_init(void *vedata)
 		/* Lightprobes */
 		e_data.lightprobe_grid_sh = DRW_shader_create(
 		        datatoc_object_lightprobe_grid_vert_glsl, NULL, datatoc_gpu_shader_flat_id_frag_glsl, NULL);
+
+		/* Loose Points */
+		e_data.loose_points_sh = DRW_shader_create_3D(datatoc_object_loose_points_frag_glsl, NULL);
 	}
 
 	{
@@ -686,6 +691,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.part_axis_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_dot_sh);
 	DRW_SHADER_FREE_SAFE(e_data.lightprobe_grid_sh);
+	DRW_SHADER_FREE_SAFE(e_data.loose_points_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const int *ofs, GPUShader *sh)
@@ -710,6 +716,7 @@ static DRWShadingGroup *shgroup_points(DRWPass *pass, const float col[4], GPUSha
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
+	DRW_shgroup_uniform_vec4(grp, "innerColor", ts.colorEditMeshMiddle, 1);
 
 	return grp;
 }
@@ -1192,11 +1199,15 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->wire_active = shgroup_wire(sgl->non_meshes, ts.colorActive, sh);
 
 		/* Points (loose points) */
-		sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+		sh = e_data.loose_points_sh;
 		sgl->points = shgroup_points(sgl->non_meshes, ts.colorWire, sh);
 		sgl->points_select = shgroup_points(sgl->non_meshes, ts.colorSelect, sh);
 		sgl->points_transform = shgroup_points(sgl->non_meshes, ts.colorTransform, sh);
 		sgl->points_active = shgroup_points(sgl->non_meshes, ts.colorActive, sh);
+		DRW_shgroup_state_disable(sgl->points, DRW_STATE_BLEND);
+		DRW_shgroup_state_disable(sgl->points_select, DRW_STATE_BLEND);
+		DRW_shgroup_state_disable(sgl->points_transform, DRW_STATE_BLEND);
+		DRW_shgroup_state_disable(sgl->points_active, DRW_STATE_BLEND);
 
 		/* Metaballs Handles */
 		sgl->mball_handle = shgroup_instance_mball_handles(sgl->non_meshes);
