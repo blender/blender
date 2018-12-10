@@ -1623,8 +1623,35 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
+	/* Exception for launching via spacebar */
+	if (event->type == SPACEKEY) {
+		bool ok = true;
+		ScrArea *sa = CTX_wm_area(C);
+		if (sa) {
+			if (sa->spacetype == SPACE_CONSOLE) {
+				/* So we can use the shortcut in the console. */
+				ok = false;
+			}
+			else if (sa->spacetype == SPACE_TEXT) {
+				/* So we can use the spacebar in the text editor. */
+				ok = false;
+			}
+		}
+		else {
+			Object *editob = CTX_data_edit_object(C);
+			if (editob && editob->type == OB_FONT) {
+				/* So we can use the spacebar for entering text. */
+				ok = false;
+			}
+		}
+		if (!ok) {
+			return OPERATOR_PASS_THROUGH;
+		}
+	}
+
+
 	struct SearchPopupInit_Data data = {
 		.size = {
 		    UI_searchbox_size_x() * 2,
@@ -1637,26 +1664,6 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 	return OPERATOR_INTERFACE;
 }
 
-/* op->poll */
-static bool wm_search_menu_poll(bContext *C)
-{
-	if (CTX_wm_window(C) == NULL) {
-		return 0;
-	}
-	else {
-		ScrArea *sa = CTX_wm_area(C);
-		if (sa) {
-			if (sa->spacetype == SPACE_CONSOLE) return 0;  /* XXX - so we can use the shortcut in the console */
-			if (sa->spacetype == SPACE_TEXT) return 0;     /* XXX - so we can use the spacebar in the text editor */
-		}
-		else {
-			Object *editob = CTX_data_edit_object(C);
-			if (editob && editob->type == OB_FONT) return 0;  /* XXX - so we can use the spacebar for entering text */
-		}
-	}
-	return 1;
-}
-
 static void WM_OT_search_menu(wmOperatorType *ot)
 {
 	ot->name = "Search Menu";
@@ -1665,7 +1672,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 
 	ot->invoke = wm_search_menu_invoke;
 	ot->exec = wm_search_menu_exec;
-	ot->poll = wm_search_menu_poll;
+	ot->poll = WM_operator_winactive;
 }
 
 static int wm_call_menu_exec(bContext *C, wmOperator *op)
