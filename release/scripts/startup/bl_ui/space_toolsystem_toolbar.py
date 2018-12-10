@@ -97,7 +97,7 @@ class _defs_view3d_generic:
                 "Measure distance and angles.\n"
                 "\u2022 {} anywhere for new measurement.\n"
                 "\u2022 Drag ruler segment to measure an angle.\n"
-                "\u2022 Drag ruler outside the view to remove.\n"
+                "\u2022 Click on one end of the ruler to remove.\n"
                 "\u2022 Ctrl to snap.\n"
                 "\u2022 Shift to measure surface thickness"
             ).format(
