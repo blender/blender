@@ -2490,6 +2490,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+#ifdef WITH_BULLET
 		/* Ensure we get valid rigidbody object/constraint data in relevant collections' objects. */
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			RigidBodyWorld *rbw = scene->rigidbody_world;
@@ -2501,6 +2502,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			BKE_rigidbody_objects_collection_validate(scene, rbw);
 			BKE_rigidbody_constraints_collection_validate(scene, rbw);
 		}
+#endif
 	}
 
 	{

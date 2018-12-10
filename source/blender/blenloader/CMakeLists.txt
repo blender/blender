@@ -88,6 +88,10 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
+if(WITH_BULLET)
+	add_definitions(-DWITH_BULLET)
+endif()
+
 if(WITH_ALEMBIC)
 	list(APPEND INC
 		../alembic
