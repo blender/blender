@@ -170,7 +170,7 @@ static void action_free(SpaceLink *UNUSED(sl))
 static void action_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceAction *saction = sa->spacedata.first;
-	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+	saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
@@ -413,7 +413,7 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 				}
 				else if (wmn->action == NA_SELECTED) {
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);
 				}
 			}
@@ -421,7 +421,7 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 		case NC_ANIMATION:
 			/* for NLA tweakmode enter/exit, need complete refresh */
 			if (wmn->data == ND_NLA_ACTCHANGE) {
-				saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+				saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 				ED_area_tag_refresh(sa);
 			}
 			/* autocolor only really needs to change when channels are added/removed, or previously hidden stuff appears
@@ -443,7 +443,7 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_OB_SELECT:
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);
 					break;
 
@@ -456,7 +456,7 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_BONE_SELECT:    /* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_BONE_ACTIVE:
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);
 					break;
 				case ND_TRANSFORM:
@@ -483,7 +483,7 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 		case NC_NODE:
 			if (wmn->action == NA_SELECTED) {
 				/* selection changed, so force refresh to flush (needs flag set to do syncing) */
-				saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+				saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 				ED_area_tag_refresh(sa);
 			}
 			break;
@@ -493,13 +493,13 @@ static void action_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_SPACE_CHANGED:
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);
 					break;
 			}
 			break;
 		case NC_WINDOW:
-			if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
+			if (saction->runtime.flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
 				/* force redraw/refresh after undo/redo - [#28962] */
 				ED_area_tag_refresh(sa);
 			}
@@ -598,14 +598,14 @@ static void action_refresh(const bContext *C, ScrArea *sa)
 	/* update the state of the animchannels in response to changes from the data they represent
 	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
 	 */
-	if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
+	if (saction->runtime.flag & SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC) {
 		ARegion *ar;
 
 		/* Perform syncing of channel state incl. selection
 		 * Active action setting also occurs here (as part of anim channel filtering in anim_filter.c)
 		 */
 		ANIM_sync_animchannels_to_data(C);
-		saction->flag &= ~SACTION_TEMP_NEEDCHANSYNC;
+		saction->runtime.flag &= ~SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 
 		/* Tag everything for redraw
 		 * - Regions (such as header) need to be manually tagged for redraw too

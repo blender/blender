@@ -1385,7 +1385,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 	}
 
 	/* recalculate extents of channel list */
-	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+	saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 
 /* Space Graph Editor */
@@ -1403,7 +1403,7 @@ static void rna_SpaceGraphEditor_display_mode_update(Main *UNUSED(bmain), Scene 
 static bool rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 {
 	SpaceIpo *sipo = (SpaceIpo *)(ptr->data);
-	return (BLI_listbase_is_empty(&sipo->ghostCurves) == false);
+	return (BLI_listbase_is_empty(&sipo->runtime.ghost_curves) == false);
 }
 
 static void rna_SpaceConsole_rect_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

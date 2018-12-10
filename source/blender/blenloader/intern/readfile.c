@@ -6859,7 +6859,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					/* force recalc of list of channels (i.e. includes calculating F-Curve colors)
 					 * thus preventing the "black curves" problem post-undo
 					 */
-					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
+					sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC;
 				}
 				else if (sl->spacetype == SPACE_BUTS) {
 					SpaceButs *sbuts = (SpaceButs *)sl;
@@ -6890,7 +6890,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					/* force recalc of list of channels, potentially updating the active action
 					 * while we're at it (as it can only be updated that way) [#28962]
 					 */
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 				}
 				else if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
@@ -7259,7 +7259,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceIpo *sipo = (SpaceIpo *)sl;
 
 				sipo->ads = newdataadr(fd, sipo->ads);
-				BLI_listbase_clear(&sipo->ghostCurves);
+				BLI_listbase_clear(&sipo->runtime.ghost_curves);
 			}
 			else if (sl->spacetype == SPACE_NLA) {
 				SpaceNla *snla = (SpaceNla *)sl;

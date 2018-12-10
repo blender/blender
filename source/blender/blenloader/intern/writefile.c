@@ -2897,10 +2897,10 @@ static void write_screen(WriteData *wd, bScreen *sc)
 			}
 			else if (sl->spacetype == SPACE_IPO) {
 				SpaceIpo *sipo = (SpaceIpo *)sl;
-				ListBase tmpGhosts = sipo->ghostCurves;
+				ListBase tmpGhosts = sipo->runtime.ghost_curves;
 
 				/* temporarily disable ghost curves when saving */
-				sipo->ghostCurves.first = sipo->ghostCurves.last = NULL;
+				BLI_listbase_clear(&sipo->runtime.ghost_curves);
 
 				writestruct(wd, DATA, SpaceIpo, 1, sl);
 				if (sipo->ads) {
@@ -2908,7 +2908,7 @@ static void write_screen(WriteData *wd, bScreen *sc)
 				}
 
 				/* reenable ghost curves */
-				sipo->ghostCurves = tmpGhosts;
+				sipo->runtime.ghost_curves = tmpGhosts;
 			}
 			else if (sl->spacetype == SPACE_BUTS) {
 				writestruct(wd, DATA, SpaceButs, 1, sl);

@@ -932,8 +932,8 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 
-	/* the ghost curves are simply sampled F-Curves stored in sipo->ghostCurves */
-	for (fcu = sipo->ghostCurves.first; fcu; fcu = fcu->next) {
+	/* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */
+	for (fcu = sipo->runtime.ghost_curves.first; fcu; fcu = fcu->next) {
 		/* set whatever color the curve has set
 		 * - this is set by the function which creates these
 		 * - draw with a fixed opacity of 2
