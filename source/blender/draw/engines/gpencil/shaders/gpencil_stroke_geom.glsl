@@ -45,6 +45,22 @@ float getZdepth(vec4 point)
 	/* in front by default */
 	return 0.000001;
 }
+
+/* check equality but with a small tolerance */
+bool is_equal(vec4 p1, vec4 p2)
+{
+	float limit = 0.0001;
+	float x = abs(p1.x - p2.x);
+	float y = abs(p1.y - p2.y);
+	float z = abs(p1.z - p2.z);
+
+	if ((x < limit) && (y < limit) && (z < limit)) {
+		return true;
+	}
+	
+	return false;
+}
+
 void main(void)
 {
 	float MiterLimit = 0.75;
@@ -143,7 +159,7 @@ void main(void)
 	}
 
 	/* generate the start endcap (alpha < 0 used as endcap flag)*/
-	if ((P0 == P2) && (color_type == GPENCIL_COLOR_SOLID)){
+	if (is_equal(P0,P2) && (color_type == GPENCIL_COLOR_SOLID)){
 		mTexCoord = vec2(2, 1);
 		mColor = vec4(finalColor[1].rgb, finalColor[1].a * -1.0) ;
 		vec2 svn1 =  normalize(sp1 - sp2) * length_a * 4.0;
@@ -183,7 +199,7 @@ void main(void)
 	EmitVertex();
 
 	/* generate the end endcap (alpha < 0 used as endcap flag)*/
-	if ((P1 == P3) && (color_type == GPENCIL_COLOR_SOLID)){
+	if (is_equal(P1,P3) && (color_type == GPENCIL_COLOR_SOLID) && (finaluvdata[2].x > 0)){
 		mTexCoord = vec2(finaluvdata[2].x, 2);
 		mColor = vec4(finalColor[2].rgb, finalColor[2].a * -1.0) ;
 		uvfac = finaluvdata[2].x;
