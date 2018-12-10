@@ -640,13 +640,16 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
                         Object *object,
                         int pchan_index)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	DEG_debug_print_eval_subdata(
 	        depsgraph, __func__, object->id.name, object,
 	        "pchan", pchan->name, pchan);
 	BLI_assert(object->type == OB_ARMATURE);
-	bArmature *armature = (bArmature *)object->data;
-	if (armature->edbo || (armature->flag & ARM_RESTPOS)) {
+	if (armature->flag & ARM_RESTPOS) {
 		Bone *bone = pchan->bone;
 		if (bone) {
 			copy_m4_m4(pchan->pose_mat, bone->arm_mat);
@@ -677,11 +680,14 @@ void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
                                    Object *object,
                                    int pchan_index)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	DEG_debug_print_eval_subdata(
 	        depsgraph, __func__, object->id.name, object,
 	        "pchan", pchan->name, pchan);
-	bArmature *armature = (bArmature *)object->data;
 	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
@@ -700,6 +706,10 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph,
                         struct Object *object,
                         int pchan_index)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	float imat[4][4];
 	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
@@ -707,7 +717,6 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph,
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
 	}
-	bArmature *armature = (bArmature *)object->data;
 	if (DEG_is_active(depsgraph) && armature->edbo == NULL) {
 		bPoseChannel *pchan_orig = pchan->orig_pchan;
 		copy_m4_m4(pchan_orig->pose_mat, pchan->pose_mat);
@@ -725,12 +734,15 @@ void BKE_pose_eval_bbone_segments(struct Depsgraph *depsgraph,
                                   struct Object *object,
                                   int pchan_index)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
 	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
 	if (pchan->bone != NULL && pchan->bone->segments > 1) {
 		BKE_pchan_bbone_segments_cache_compute(pchan);
-		bArmature *armature = (bArmature *)object->data;
-		if (DEG_is_active(depsgraph) && armature->edbo == NULL) {
+		if (DEG_is_active(depsgraph)) {
 			BKE_pchan_bbone_segments_cache_copy(pchan->orig_pchan, pchan);
 		}
 	}
@@ -741,13 +753,16 @@ void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
                               Object *object,
                               int rootchan_index)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPoseChannel *rootchan = pose_pchan_get_indexed(object, rootchan_index);
 	DEG_debug_print_eval_subdata(
 	        depsgraph, __func__, object->id.name, object,
 	        "rootchan", rootchan->name, rootchan);
 	BLI_assert(object->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	bArmature *armature = (bArmature *)object->data;
 	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
@@ -760,13 +775,16 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
                                 int rootchan_index)
 
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPoseChannel *rootchan = pose_pchan_get_indexed(object, rootchan_index);
 	DEG_debug_print_eval_subdata(
 	        depsgraph, __func__, object->id.name, object,
 	        "rootchan", rootchan->name, rootchan);
 	BLI_assert(object->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	bArmature *armature = (bArmature *)object->data;
 	if (armature->flag & ARM_RESTPOS) {
 		return;
 	}
@@ -843,6 +861,10 @@ void BKE_pose_eval_proxy_copy_bone(
         Object *object,
         int pchan_index)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
