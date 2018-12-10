@@ -489,6 +489,11 @@ static void rna_FCurve_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	rna_FCurve_update_data_ex((FCurve *)ptr->data);
 }
 
+static void rna_FCurve_update_data_relations(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	DEG_relations_tag_update(bmain);
+}
+
 /* RNA update callback for F-Curves to indicate that there are copy-on-write tagging/flushing needed
  * (e.g. for properties that affect how animation gets evaluated)
  */
@@ -1969,14 +1974,14 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	                              "rna_FCurve_RnaPath_set");
 	RNA_def_property_ui_text(prop, "Data Path", "RNA Path to property affected by F-Curve");
 	/* XXX need an update callback for this to that animation gets evaluated */
-	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+	RNA_def_property_update(prop, NC_ANIMATION, "rna_FCurve_update_data_relations");
 
 	/* called 'index' when given as function arg */
 	prop = RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index",
 	                         "Index to the specific property affected by F-Curve if applicable");
 	/* XXX need an update callback for this so that animation gets evaluated */
-	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+	RNA_def_property_update(prop, NC_ANIMATION, "rna_FCurve_update_data_relations");
 
 	/* Color */
 	prop = RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
