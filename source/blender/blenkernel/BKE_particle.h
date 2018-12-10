@@ -464,9 +464,12 @@ float psys_get_current_display_percentage(struct ParticleSystem *psys, const boo
 
 struct Depsgraph;
 
+void BKE_particle_settings_eval_reset(
+        struct Depsgraph *depsgraph,
+        struct ParticleSettings *particle_settings);
+
 void BKE_particle_system_eval_init(struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
-                                   struct Object *ob);
+                                   struct Object *object);
 
 #endif
 

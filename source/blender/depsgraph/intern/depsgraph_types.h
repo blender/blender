@@ -149,7 +149,8 @@ typedef enum eDepsNode_Type {
 	/* Bone Component - Child/Subcomponent of Pose */
 	DEG_NODE_TYPE_BONE,
 	/* Particle Systems Component */
-	DEG_NODE_TYPE_EVAL_PARTICLES,
+	DEG_NODE_TYPE_PARTICLE_SYSTEM,
+	DEG_NODE_TYPE_PARTICLE_SETTINGS,
 	/* Material Shading Component */
 	DEG_NODE_TYPE_SHADING,
 	DEG_NODE_TYPE_SHADING_PARAMETERS,
@@ -261,11 +262,15 @@ typedef enum eDepsOperation_Code {
 	/* B-Bone segment shape computation (after DONE) */
 	DEG_OPCODE_BONE_SEGMENTS,
 
-	/* Particles. ----------------------------------------------------------- */
-	/* Particle System evaluation. */
-	DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT,
+	/* Particle System. ----------------------------------------------------- */
+	DEG_OPCODE_PARTICLE_SYSTEM_INIT,
 	DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
+	DEG_OPCODE_PARTICLE_SYSTEM_DONE,
+
+	/* Particle Settings. --------------------------------------------------- */
+	DEG_OPCODE_PARTICLE_SETTINGS_INIT,
 	DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
+	DEG_OPCODE_PARTICLE_SETTINGS_RESET,
 
 	/* Point Cache. --------------------------------------------------------- */
 	DEG_OPCODE_POINT_CACHE_RESET,

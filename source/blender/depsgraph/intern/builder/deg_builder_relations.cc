@@ -410,7 +410,8 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
 		}
 		if (relation->psys) {
 			if (relation->ob != object) {
-				ComponentKey eff_key(&relation->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES);
+				ComponentKey eff_key(&relation->ob->id,
+				                     DEG_NODE_TYPE_PARTICLE_SYSTEM);
 				add_relation(eff_key, key, name);
 				/* TODO: remove this when/if EVAL_PARTICLES is sufficient
 				 * for up to date particles.
@@ -420,7 +421,7 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
 			}
 			else if (relation->psys != psys) {
 				OperationKey eff_key(&relation->ob->id,
-				                     DEG_NODE_TYPE_EVAL_PARTICLES,
+				                     DEG_NODE_TYPE_PARTICLE_SYSTEM,
 				                     DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 				                     relation->psys->name);
 				add_relation(eff_key, key, name);
@@ -661,7 +662,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	build_object_data(object);
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
-		build_particles(object);
+		build_particle_systems(object);
 	}
 	/* Proxy object to copy from. */
 	if (object->proxy_from != NULL) {
@@ -1692,16 +1693,21 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 	}
 }
 
-void DepsgraphRelationBuilder::build_particles(Object *object)
+void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 {
 	TimeSourceKey time_src_key;
 	OperationKey obdata_ubereval_key(&object->id,
 	                                 DEG_NODE_TYPE_GEOMETRY,
 	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 	OperationKey eval_init_key(&object->id,
-	                           DEG_NODE_TYPE_EVAL_PARTICLES,
-	                           DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
-
+	                           DEG_NODE_TYPE_PARTICLE_SYSTEM,
+	                           DEG_OPCODE_PARTICLE_SYSTEM_INIT);
+	OperationKey eval_done_key(&object->id,
+	                           DEG_NODE_TYPE_PARTICLE_SYSTEM,
+	                           DEG_OPCODE_PARTICLE_SYSTEM_DONE);
+	ComponentKey eval_key(&object->id, DEG_NODE_TYPE_PARTICLE_SYSTEM);
+	ComponentKey point_cache_key(&object->id, DEG_NODE_TYPE_POINT_CACHE);
+	add_relation(eval_key, point_cache_key, "Particle Point Cache");
 	/* Particle systems. */
 	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		ParticleSettings *part = psys->part;
@@ -1714,16 +1720,17 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 
 		/* This particle system. */
 		OperationKey psys_key(&object->id,
-		                      DEG_NODE_TYPE_EVAL_PARTICLES,
+		                      DEG_NODE_TYPE_PARTICLE_SYSTEM,
 		                      DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 		                      psys->name);
 
 		/* Update particle system when settings changes. */
 		OperationKey particle_settings_key(&part->id,
-		                                   DEG_NODE_TYPE_PARAMETERS,
+		                                   DEG_NODE_TYPE_PARTICLE_SETTINGS,
 		                                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
 		add_relation(particle_settings_key, eval_init_key, "Particle Settings Change");
 		add_relation(eval_init_key, psys_key, "Init -> PSys");
+		add_relation(psys_key, eval_done_key, "PSys -> Done");
 		/* TODO(sergey): Currently particle update is just a placeholder,
 		 * hook it to the ubereval node so particle system is getting updated
 		 * on playback.
@@ -1777,18 +1784,16 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 					/* Make sure object's relations are all built.  */
 					build_object(NULL, part->dup_ob);
 					/* Build relation for the particle visualization. */
-					build_particles_visualization_object(object,
-					                                     psys,
-					                                     part->dup_ob);
+					build_particle_system_visualization_object(
+					        object,  psys, part->dup_ob);
 				}
 				break;
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
 					build_collection(NULL, NULL, part->dup_group);
 					LISTBASE_FOREACH (CollectionObject *, go, &part->dup_group->gobject) {
-						build_particles_visualization_object(object,
-						                                     psys,
-						                                     go->ob);
+						build_particle_system_visualization_object(
+						        object, psys, go->ob);
 					}
 				}
 				break;
@@ -1802,7 +1807,7 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 	 * is implemented.
 	 */
 	ComponentKey transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
-	add_relation(transform_key, obdata_ubereval_key, "Partcile Eval");
+	add_relation(transform_key, obdata_ubereval_key, "Particle Eval");
 }
 
 void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
@@ -1812,15 +1817,45 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 	}
 	/* Animation data relations. */
 	build_animdata(&part->id);
+	OperationKey particle_settings_init_key(&part->id,
+	                                        DEG_NODE_TYPE_PARTICLE_SETTINGS,
+	                                        DEG_OPCODE_PARTICLE_SETTINGS_INIT);
+	OperationKey particle_settings_eval_key(&part->id,
+	                                        DEG_NODE_TYPE_PARTICLE_SETTINGS,
+	                                        DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+	OperationKey particle_settings_reset_key(
+	        &part->id,
+	        DEG_NODE_TYPE_PARTICLE_SETTINGS,
+	        DEG_OPCODE_PARTICLE_SETTINGS_RESET);
+	add_relation(particle_settings_init_key,
+	             particle_settings_eval_key,
+	             "Particle Settings Init Order");
+	add_relation(particle_settings_reset_key,
+	             particle_settings_eval_key,
+	             "Particle Settings Reset");
+	/* Texture slots. */
+	for (int mtex_index = 0; mtex_index < MAX_MTEX; ++mtex_index) {
+		MTex *mtex = part->mtex[mtex_index];
+		if (mtex == NULL || mtex->tex == NULL) {
+			continue;
+		}
+		build_texture(mtex->tex);
+		ComponentKey texture_key(&mtex->tex->id,
+		                         DEG_NODE_TYPE_GENERIC_DATABLOCK);
+		add_relation(texture_key,
+		             particle_settings_reset_key,
+		             "Particle Texture",
+		             DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY);
+	}
 }
 
-void DepsgraphRelationBuilder::build_particles_visualization_object(
+void DepsgraphRelationBuilder::build_particle_system_visualization_object(
         Object *object,
         ParticleSystem *psys,
         Object *draw_object)
 {
 	OperationKey psys_key(&object->id,
-	                      DEG_NODE_TYPE_EVAL_PARTICLES,
+	                      DEG_NODE_TYPE_PARTICLE_SYSTEM,
 	                      DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 	                      psys->name);
 	OperationKey obdata_ubereval_key(&object->id,
@@ -2285,6 +2320,12 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
 	/* texture's nodetree */
 	build_nodetree(texture->nodetree);
 	build_nested_nodetree(&texture->id, texture->nodetree);
+	if (check_id_has_anim_component(&texture->id)) {
+		ComponentKey animation_key(&texture->id, DEG_NODE_TYPE_ANIMATION);
+		ComponentKey datablock_key(&texture->id,
+		                           DEG_NODE_TYPE_GENERIC_DATABLOCK);
+		add_relation(animation_key, datablock_key, "Datablock Animation");
+	}
 }
 
 void DepsgraphRelationBuilder::build_compositor(Scene *scene)

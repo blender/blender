@@ -392,7 +392,8 @@ DEG_COMPONENT_NODE_DEFINE(CopyOnWrite,       COPY_ON_WRITE,      ID_RECALC_COPY_
 DEG_COMPONENT_NODE_DEFINE(Geometry,          GEOMETRY,           ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(LayerCollections,  LAYER_COLLECTIONS,  0);
 DEG_COMPONENT_NODE_DEFINE(Parameters,        PARAMETERS,         0);
-DEG_COMPONENT_NODE_DEFINE(Particles,         EVAL_PARTICLES,     ID_RECALC_GEOMETRY);
+DEG_COMPONENT_NODE_DEFINE(Particles,         PARTICLE_SYSTEM,    ID_RECALC_GEOMETRY);
+DEG_COMPONENT_NODE_DEFINE(ParticleSettings,  PARTICLE_SETTINGS,  0);
 DEG_COMPONENT_NODE_DEFINE(PointCache,        POINT_CACHE,        0);
 DEG_COMPONENT_NODE_DEFINE(Pose,              EVAL_POSE,          ID_RECALC_GEOMETRY);
 DEG_COMPONENT_NODE_DEFINE(Proxy,             PROXY,              ID_RECALC_GEOMETRY);
@@ -417,7 +418,8 @@ void deg_register_component_depsnodes()
 	deg_register_node_typeinfo(&DNTI_GEOMETRY);
 	deg_register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
 	deg_register_node_typeinfo(&DNTI_PARAMETERS);
-	deg_register_node_typeinfo(&DNTI_EVAL_PARTICLES);
+	deg_register_node_typeinfo(&DNTI_PARTICLE_SYSTEM);
+	deg_register_node_typeinfo(&DNTI_PARTICLE_SETTINGS);
 	deg_register_node_typeinfo(&DNTI_POINT_CACHE);
 	deg_register_node_typeinfo(&DNTI_PROXY);
 	deg_register_node_typeinfo(&DNTI_EVAL_POSE);

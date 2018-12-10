@@ -4427,16 +4427,25 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_system_eval_init(struct Depsgraph *depsgraph,
-                                   Scene *scene,
-                                   Object *ob)
+void BKE_particle_settings_eval_reset(
+        struct Depsgraph *depsgraph,
+        ParticleSettings *particle_settings)
 {
-	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
-	for (ParticleSystem *psys = ob->particlesystem.first;
+	DEG_debug_print_eval(depsgraph,
+	                     __func__,
+	                     particle_settings->id.name,
+	                     particle_settings);
+	particle_settings->id.recalc |= ID_RECALC_PSYS_RESET;
+}
+
+void BKE_particle_system_eval_init(struct Depsgraph *depsgraph,
+                                   Object *object)
+{
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+	for (ParticleSystem *psys = object->particlesystem.first;
 	     psys != NULL;
 	     psys = psys->next)
 	{
 		psys->recalc |= (psys->part->id.recalc & ID_RECALC_PSYS_ALL);
 	}
-	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 }

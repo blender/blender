@@ -177,10 +177,10 @@ void depsgraph_tag_to_component_opcode(const ID *id,
 				 *   but we can survive for now with single exception here.
 				 *   Particles needs reconsideration anyway,
 				 */
-				*component_type = DEG_NODE_TYPE_PARAMETERS;
+				*component_type = DEG_NODE_TYPE_PARTICLE_SYSTEM;
 			}
 			else {
-				*component_type = DEG_NODE_TYPE_EVAL_PARTICLES;
+				*component_type = DEG_NODE_TYPE_PARTICLE_SYSTEM;
 			}
 			break;
 		case ID_RECALC_COPY_ON_WRITE:

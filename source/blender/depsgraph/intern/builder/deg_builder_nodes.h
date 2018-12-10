@@ -190,7 +190,7 @@ struct DepsgraphNodeBuilder {
 	                            int pchan_index,
 	                            bool is_object_visible);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Object *object, bool is_object_visible);
+	void build_particle_systems(Object *object, bool is_object_visible);
 	void build_particle_settings(ParticleSettings *part);
 	void build_animdata(ID *id);
 	void build_animdata_nlastrip_targets(ListBase *strips);

@@ -640,7 +640,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	build_animdata(&object->id);
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
-		build_particles(object, is_visible);
+		build_particle_systems(object, is_visible);
 	}
 	/* Proxy object to copy from. */
 	if (object->proxy_from != NULL) {
@@ -1109,8 +1109,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 	}
 }
 
-void DepsgraphNodeBuilder::build_particles(Object *object,
-                                           bool is_object_visible)
+void DepsgraphNodeBuilder::build_particle_systems(Object *object,
+                                                  bool is_object_visible)
 {
 	/**
 	 * Particle Systems Nodes
@@ -1128,25 +1128,22 @@ void DepsgraphNodeBuilder::build_particles(Object *object,
 	 */
 	/* Component for all particle systems. */
 	ComponentDepsNode *psys_comp =
-	        add_component_node(&object->id, DEG_NODE_TYPE_EVAL_PARTICLES);
+	        add_component_node(&object->id, DEG_NODE_TYPE_PARTICLE_SYSTEM);
 
-	/* TODO(sergey): Need to get COW of PSYS. */
-	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *ob_cow = get_cow_datablock(object);
-
-	add_operation_node(psys_comp,
-	                   function_bind(BKE_particle_system_eval_init,
-	                                 _1,
-	                                 scene_cow,
-	                                 ob_cow),
-	                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
+	OperationDepsNode *op_node;
+	op_node = add_operation_node(psys_comp,
+	                             function_bind(BKE_particle_system_eval_init,
+	                                           _1,
+	                                           ob_cow),
+	                             DEG_OPCODE_PARTICLE_SYSTEM_INIT);
+	op_node->set_as_entry();
 	/* Build all particle systems. */
 	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		ParticleSettings *part = psys->part;
 		/* Build particle settings operations.
 		 *
-		 * NOTE: The call itself ensures settings are only build once.
-		 */
+		 * NOTE: The call itself ensures settings are only build once.  */
 		build_particle_settings(part);
 		/* Particle system evaluation. */
 		add_operation_node(psys_comp,
@@ -1170,19 +1167,49 @@ void DepsgraphNodeBuilder::build_particles(Object *object,
 				break;
 		}
 	}
+	op_node = add_operation_node(psys_comp,
+	                             NULL,
+	                             DEG_OPCODE_PARTICLE_SYSTEM_DONE);
+	op_node->set_as_exit();
 }
 
-void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {
-	if (built_map_.checkIsBuiltAndTag(part)) {
+void DepsgraphNodeBuilder::build_particle_settings(
+        ParticleSettings *particle_settings) {
+	if (built_map_.checkIsBuiltAndTag(particle_settings)) {
 		return;
 	}
+	/* Make sure we've got proper copied ID pointer. */
+	add_id_node(&particle_settings->id);
+	ParticleSettings *particle_settings_cow =
+	        get_cow_datablock(particle_settings);
 	/* Animation data. */
-	build_animdata(&part->id);
+	build_animdata(&particle_settings->id);
 	/* Parameters change. */
-	add_operation_node(&part->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+	OperationDepsNode *op_node;
+	op_node = add_operation_node(&particle_settings->id,
+	                             DEG_NODE_TYPE_PARTICLE_SETTINGS,
+	                             NULL,
+	                             DEG_OPCODE_PARTICLE_SETTINGS_INIT);
+	op_node->set_as_entry();
+	add_operation_node(&particle_settings->id,
+	                   DEG_NODE_TYPE_PARTICLE_SETTINGS,
+	                   function_bind(BKE_particle_settings_eval_reset,
+	                                 _1,
+	                                 particle_settings_cow),
+	                   DEG_OPCODE_PARTICLE_SETTINGS_RESET);
+	op_node = add_operation_node(&particle_settings->id,
+	                             DEG_NODE_TYPE_PARTICLE_SETTINGS,
+	                             NULL,
+	                             DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
+	op_node->set_as_exit();
+	/* Texture slots. */
+	for (int mtex_index = 0; mtex_index < MAX_MTEX; ++mtex_index) {
+		MTex *mtex = particle_settings->mtex[mtex_index];
+		if (mtex == NULL || mtex->tex == NULL) {
+			continue;
+		}
+		build_texture(mtex->tex);
+	}
 }
 
 /* Shapekeys */

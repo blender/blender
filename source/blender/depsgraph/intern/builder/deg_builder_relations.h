@@ -252,11 +252,11 @@ struct DepsgraphRelationBuilder
 	void build_driver_variables(ID *id, FCurve *fcurve);
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Object *object);
+	void build_particle_systems(Object *object);
 	void build_particle_settings(ParticleSettings *part);
-	void build_particles_visualization_object(Object *object,
-	                                          ParticleSystem *psys,
-	                                          Object *draw_object);
+	void build_particle_system_visualization_object(Object *object,
+	                                                ParticleSystem *psys,
+	                                                Object *draw_object);
 	void build_ik_pose(Object *object,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con,
