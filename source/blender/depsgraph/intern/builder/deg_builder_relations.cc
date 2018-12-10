@@ -1627,7 +1627,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 			/* Geometry must be known to create the rigid body. RBO_MESH_BASE uses the non-evaluated
 			 * mesh, so then the evaluation is unnecessary. */
-			if (object->rigidbody_object->mesh_source != RBO_MESH_BASE) {
+			if (object->rigidbody_object != NULL && object->rigidbody_object->mesh_source != RBO_MESH_BASE) {
 				ComponentKey geom_key(&object->id, DEG_NODE_TYPE_GEOMETRY);
 				add_relation(geom_key, init_key, "Object Geom Eval -> Rigidbody Rebuild");
 			}
