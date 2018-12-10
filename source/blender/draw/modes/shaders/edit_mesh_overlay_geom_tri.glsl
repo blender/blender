@@ -9,7 +9,7 @@ layout(triangles) in;
  * triangle. Order is important.
  * TODO diagram
  */
-layout(triangle_strip, max_vertices=12) out;
+layout(triangle_strip, max_vertices=11) out;
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
