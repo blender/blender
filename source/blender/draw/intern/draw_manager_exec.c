@@ -282,33 +282,6 @@ void drw_state_set(DRWState state)
 		}
 	}
 
-	/* Line Stipple */
-	{
-		int test;
-		if (CHANGED_ANY_STORE_VAR(
-		        DRW_STATE_STIPPLE_2 | DRW_STATE_STIPPLE_3 | DRW_STATE_STIPPLE_4,
-		        test))
-		{
-			if (test) {
-				if ((state & DRW_STATE_STIPPLE_2) != 0) {
-					setlinestyle(2);
-				}
-				else if ((state & DRW_STATE_STIPPLE_3) != 0) {
-					setlinestyle(3);
-				}
-				else if ((state & DRW_STATE_STIPPLE_4) != 0) {
-					setlinestyle(4);
-				}
-				else {
-					BLI_assert(0);
-				}
-			}
-			else {
-				setlinestyle(0);
-			}
-		}
-	}
-
 	/* Stencil */
 	{
 		DRWState test;

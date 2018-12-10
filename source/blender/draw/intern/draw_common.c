@@ -370,7 +370,6 @@ DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct GPUBatch *ge
 	DRW_shgroup_uniform_float(grp, "size", size, 1);
 	DRW_shgroup_uniform_float(grp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
 	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
-	DRW_shgroup_state_enable(grp, DRW_STATE_STIPPLE_3);
 
 	return grp;
 }

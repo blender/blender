@@ -283,9 +283,9 @@ typedef enum {
 	DRW_STATE_CULL_FRONT    = (1 << 9),
 	DRW_STATE_WIRE          = (1 << 10),
 	DRW_STATE_POINT         = (1 << 11),
-	DRW_STATE_STIPPLE_2     = (1 << 12),
-	DRW_STATE_STIPPLE_3     = (1 << 13),
-	DRW_STATE_STIPPLE_4     = (1 << 14),
+	/* DRW_STATE_STIPPLE_2     = (1 << 12), */ /* Not used */
+	/* DRW_STATE_STIPPLE_3     = (1 << 13), */ /* Not used */
+	/* DRW_STATE_STIPPLE_4     = (1 << 14), */ /* Not used */
 	DRW_STATE_BLEND         = (1 << 15),
 	DRW_STATE_ADDITIVE      = (1 << 16),
 	DRW_STATE_MULTIPLY      = (1 << 17),
