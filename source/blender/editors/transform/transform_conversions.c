@@ -6518,7 +6518,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		ob = ac.obact;
 
-		if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
+		if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
 			short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
