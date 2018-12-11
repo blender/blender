@@ -38,6 +38,7 @@
 
 #include "edit_mesh_mode_intern.h" /* own include */
 
+#include "BKE_editmesh.h"
 #include "BKE_object.h"
 
 #include "BLI_dynstr.h"
@@ -135,17 +136,14 @@ typedef struct EDIT_MESH_PrivateData {
 	DRWShadingGroup *vnormals_shgrp;
 	DRWShadingGroup *lnormals_shgrp;
 
-	DRWShadingGroup *face_overlay_shgrp;
-	DRWShadingGroup *verts_overlay_shgrp;
-	DRWShadingGroup *ledges_overlay_shgrp;
-	DRWShadingGroup *lverts_overlay_shgrp;
-	DRWShadingGroup *facedot_overlay_shgrp;
+	DRWShadingGroup *face_shgrp;
+	DRWShadingGroup *face_cage_shgrp;
 
-	DRWShadingGroup *face_occluded_shgrp;
-	DRWShadingGroup *verts_occluded_shgrp;
-	DRWShadingGroup *ledges_occluded_shgrp;
-	DRWShadingGroup *lverts_occluded_shgrp;
-	DRWShadingGroup *facedot_occluded_shgrp;
+	DRWShadingGroup *verts_shgrp;
+	DRWShadingGroup *ledges_shgrp;
+	DRWShadingGroup *lverts_shgrp;
+	DRWShadingGroup *facedot_shgrp;
+
 	DRWShadingGroup *facefill_occluded_shgrp;
 
 	int data_mask[4];
@@ -337,7 +335,8 @@ static void EDIT_MESH_engine_init(void *vedata)
 static DRWPass *edit_mesh_create_overlay_pass(
         float *face_alpha, float *edge_width_scale, int *data_mask, bool do_edges, bool xray,
         DRWState statemod,
-        DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_verts_shgrp, DRWShadingGroup **r_ledges_shgrp,
+        DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_face_cage_shgrp,
+        DRWShadingGroup **r_verts_shgrp, DRWShadingGroup **r_ledges_shgrp,
         DRWShadingGroup **r_lverts_shgrp, DRWShadingGroup **r_facedot_shgrp)
 {
 	GPUShader *tri_sh, *ledge_sh;
@@ -391,6 +390,9 @@ static DRWPass *edit_mesh_create_overlay_pass(
 		/* To be able to use triple load. */
 		DRW_shgroup_state_enable(*r_face_shgrp, DRW_STATE_FIRST_VERTEX_CONVENTION);
 	}
+	/* Cage geom needs to be offseted to avoid Z-fighting. */
+	*r_face_cage_shgrp = DRW_shgroup_create_sub(*r_face_shgrp);
+	DRW_shgroup_state_enable(*r_face_cage_shgrp, DRW_STATE_OFFSET_NEGATIVE);
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
 	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
@@ -526,22 +528,24 @@ static void EDIT_MESH_cache_init(void *vedata)
 		psl->edit_face_overlay = edit_mesh_create_overlay_pass(
 		        &face_mod, &stl->g_data->edge_width_scale, stl->g_data->data_mask, stl->g_data->do_edges, false,
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
-		        &stl->g_data->face_overlay_shgrp,
-		        &stl->g_data->verts_overlay_shgrp,
-		        &stl->g_data->ledges_overlay_shgrp,
-		        &stl->g_data->lverts_overlay_shgrp,
-		        &stl->g_data->facedot_overlay_shgrp);
+		        &stl->g_data->face_shgrp,
+		        &stl->g_data->face_cage_shgrp,
+		        &stl->g_data->verts_shgrp,
+		        &stl->g_data->ledges_shgrp,
+		        &stl->g_data->lverts_shgrp,
+		        &stl->g_data->facedot_shgrp);
 	}
 	else {
 		/* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
 		psl->edit_face_occluded = edit_mesh_create_overlay_pass(
 		        &zero, &stl->g_data->edge_width_scale, stl->g_data->data_mask, stl->g_data->do_edges, true,
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
-		        &stl->g_data->face_occluded_shgrp,
-		        &stl->g_data->verts_occluded_shgrp,
-		        &stl->g_data->ledges_occluded_shgrp,
-		        &stl->g_data->lverts_occluded_shgrp,
-		        &stl->g_data->facedot_occluded_shgrp);
+		        &stl->g_data->face_shgrp,
+		        &stl->g_data->face_cage_shgrp,
+		        &stl->g_data->verts_shgrp,
+		        &stl->g_data->ledges_shgrp,
+		        &stl->g_data->lverts_shgrp,
+		        &stl->g_data->facedot_shgrp);
 
 		/* however we loose the front faces value (because we need the depth of occluded wires and
 		 * faces are alpha blended ) so we recover them in a new pass. */
@@ -569,15 +573,25 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 static void edit_mesh_add_ob_to_pass(
         Scene *scene, Object *ob,
-        DRWShadingGroup *face_shgrp,
-        DRWShadingGroup *verts_shgrp,
-        DRWShadingGroup *ledges_shgrp,
-        DRWShadingGroup *lverts_shgrp,
+        EDIT_MESH_PrivateData *g_data,
         DRWShadingGroup *facedot_shgrp,
         DRWShadingGroup *facefill_shgrp)
 {
 	struct GPUBatch *geom_tris, *geom_verts, *geom_ledges, *geom_ledges_nor, *geom_lverts, *geom_fcenter;
 	ToolSettings *tsettings = scene->toolsettings;
+
+	bool has_edit_mesh_cage = false;
+	/* TODO: Should be its own function. */
+	Mesh *me = (Mesh *)ob->data;
+	BMEditMesh *embm = me->edit_btmesh;
+	if (embm) {
+		has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
+	}
+
+	DRWShadingGroup *face_shgrp = (has_edit_mesh_cage) ? g_data->face_cage_shgrp : g_data->face_shgrp;
+	DRWShadingGroup *verts_shgrp = g_data->verts_shgrp;
+	DRWShadingGroup *ledges_shgrp = g_data->ledges_shgrp;
+	DRWShadingGroup *lverts_shgrp = g_data->lverts_shgrp;
 
 	geom_tris = DRW_mesh_batch_cache_get_edit_triangles(ob->data);
 	geom_ledges = DRW_mesh_batch_cache_get_edit_loose_edges(ob->data);
@@ -671,22 +685,14 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 			if (stl->g_data->do_zbufclip) {
 				edit_mesh_add_ob_to_pass(
-				        scene, ob,
-				        stl->g_data->face_occluded_shgrp,
-				        stl->g_data->verts_occluded_shgrp,
-				        stl->g_data->ledges_occluded_shgrp,
-				        stl->g_data->lverts_occluded_shgrp,
-				        stl->g_data->facedot_occluded_shgrp,
+				        scene, ob, stl->g_data,
+				        stl->g_data->facedot_shgrp,
 				        (stl->g_data->do_faces) ? stl->g_data->facefill_occluded_shgrp : NULL);
 			}
 			else {
 				edit_mesh_add_ob_to_pass(
-				        scene, ob,
-				        stl->g_data->face_overlay_shgrp,
-				        stl->g_data->verts_overlay_shgrp,
-				        stl->g_data->ledges_overlay_shgrp,
-				        stl->g_data->lverts_overlay_shgrp,
-				        (show_face_dots) ? stl->g_data->facedot_overlay_shgrp : NULL,
+				        scene, ob, stl->g_data,
+				        (show_face_dots) ? stl->g_data->facedot_shgrp : NULL,
 				        NULL);
 			}
 
