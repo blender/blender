@@ -454,7 +454,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
 		if(${arch} MATCHES "sm_2.")
 			message(STATUS "CUDA binaries for ${arch} are no longer supported, skipped.")
-		elseif(${arch} MATCHES "sm_7." AND (${CUDA_VERSION} VERSION_LESS 10.0))
+		elseif(${arch} MATCHES "sm_7." AND (${CUDA_VERSION} LESS 100) AND (NOT DEFINED CUDA10_NVCC_EXECUTABLE))
 			message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
 		else()
 			# Compile regular kernel
