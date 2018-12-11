@@ -1772,6 +1772,8 @@ bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime) { return 
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
 void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime) {}
 void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime) {}
+void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
+void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
 
 #if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic pop

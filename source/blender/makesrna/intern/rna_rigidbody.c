@@ -151,19 +151,15 @@ static void rna_RigidBodyWorld_split_impulse_set(PointerRNA *ptr, bool value)
 
 static void rna_RigidBodyWorld_objects_collection_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-#ifdef WITH_BULLET
 	RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
 	BKE_rigidbody_objects_collection_validate(scene, rbw);
-#endif
 	rna_RigidBodyWorld_reset(bmain, scene, ptr);
 }
 
 static void rna_RigidBodyWorld_constraints_collection_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-#ifdef WITH_BULLET
 	RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
 	BKE_rigidbody_constraints_collection_validate(scene, rbw);
-#endif
 	rna_RigidBodyWorld_reset(bmain, scene, ptr);
 }
 
