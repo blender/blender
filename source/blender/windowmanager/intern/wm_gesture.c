@@ -53,6 +53,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
+#include "GPU_state.h"
 
 #include "BIF_glutil.h"
 
@@ -418,7 +419,7 @@ void wm_gesture_draw(wmWindow *win)
 {
 	wmGesture *gt = (wmGesture *)win->gesture.first;
 
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 	for (; gt; gt = gt->next) {
 		/* all in subwindow space */
 		wmViewport(&gt->winrct);

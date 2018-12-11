@@ -182,7 +182,7 @@ void DRW_draw_cursor(void)
 			RegionView3D *rv3d = ar->regiondata;
 
 			/* Draw nice Anti Aliased cursor. */
-			glLineWidth(1.0f);
+			GPU_line_width(1.0f);
 			glEnable(GL_BLEND);
 			glEnable(GL_LINE_SMOOTH);
 

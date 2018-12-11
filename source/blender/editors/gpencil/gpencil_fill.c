@@ -70,6 +70,7 @@
 #include "GPU_draw.h"
 #include "GPU_matrix.h"
 #include "GPU_framebuffer.h"
+#include "GPU_state.h"
 
 #include "UI_interface.h"
 
@@ -151,7 +152,7 @@ static void gp_draw_basic_stroke(
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
 	/* draw stroke curve */
-	glLineWidth(1.0f);
+	GPU_line_width(1.0f);
 	immBeginAtMost(GPU_PRIM_LINE_STRIP, totpoints + cyclic_add);
 	const bGPDspoint *pt = points;
 
