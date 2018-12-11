@@ -20,9 +20,9 @@ if(WIN32)
 		set(PTHREAD_XCFLAGS /MD)
 
 		if(MSVC14) # vs2015 has timespec
-			set(PTHREAD_CPPFLAGS "/I. /DHAVE_PTW32_CONFIG_H /D_TIMESPEC_DEFINED ")
+			set(PTHREAD_CPPFLAGS "/I. /DHAVE_CONFIG_H /D_TIMESPEC_DEFINED ")
 		else() # everything before doesn't
-			set(PTHREAD_CPPFLAGS "/I. /DHAVE_PTW32_CONFIG_H ")
+			set(PTHREAD_CPPFLAGS "/I. /DHAVE_CONFIG_H ")
 		endif()
 
 		set(PTHREADS_BUILD cd ${BUILD_DIR}/pthreads/src/external_pthreads/ && cd && nmake VC /e CPPFLAGS=${PTHREAD_CPPFLAGS} /e XCFLAGS=${PTHREAD_XCFLAGS} /e XLIBS=/NODEFAULTLIB:msvcr)
@@ -30,17 +30,17 @@ if(WIN32)
 		ExternalProject_Add(external_pthreads
 			URL ${PTHREADS_URI}
 			DOWNLOAD_DIR ${DOWNLOAD_DIR}
-			URL_HASH SHA512=${PTHREADS_SHA512}
+			URL_HASH MD5=${PTHREADS_HASH}
 			PREFIX ${BUILD_DIR}/pthreads
 			CONFIGURE_COMMAND echo .
-			PATCH_COMMAND ${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/pthreads/src/external_pthreads < ${PATCH_DIR}/pthreads.diff
 			BUILD_COMMAND ${PTHREADS_BUILD}
 			INSTALL_COMMAND COMMAND
-				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC2.dll ${LIBDIR}/pthreads/lib/pthreadVC2.dll &&
-				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC2${LIBEXT} ${LIBDIR}/pthreads/lib/pthreadVC2${LIBEXT} &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC3.dll ${LIBDIR}/pthreads/lib/pthreadVC3.dll &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC3${LIBEXT} ${LIBDIR}/pthreads/lib/pthreadVC3${LIBEXT} &&
 				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthread.h ${LIBDIR}/pthreads/inc/pthread.h &&
 				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/sched.h ${LIBDIR}/pthreads/inc/sched.h &&
-				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/semaphore.h ${LIBDIR}/pthreads/inc/semaphore.h
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/semaphore.h ${LIBDIR}/pthreads/inc/semaphore.h &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/_ptw32.h ${LIBDIR}/pthreads/inc/_ptw32.h
 			INSTALL_DIR ${LIBDIR}/pthreads
 		)
 

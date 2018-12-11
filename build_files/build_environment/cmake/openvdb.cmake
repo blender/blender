@@ -55,7 +55,7 @@ if(WIN32)
 	# needs to link pthreads due to it being a blosc dependency
 	set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
 		-DOPENEXR_NAMESPACE_VERSIONING=OFF
-		-DEXTRA_LIBS:FILEPATH=${LIBDIR}/pthreads/lib/pthreadVC2.lib
+		-DEXTRA_LIBS:FILEPATH=${LIBDIR}/pthreads/lib/pthreadVC3.lib
 	)
 	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "4")
 		set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
