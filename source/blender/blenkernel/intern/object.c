@@ -4048,6 +4048,18 @@ bool BKE_object_modifier_update_subframe(
 	return false;
 }
 
+
+void BKE_object_type_set_empty_for_versioning(Object *ob)
+{
+	ob->type = OB_EMPTY;
+	ob->data = NULL;
+	if (ob->pose) {
+		BKE_pose_free_ex(ob->pose, false);
+		ob->pose = NULL;
+	}
+	ob->mode = OB_MODE_OBJECT;
+}
+
 bool BKE_image_empty_visible_in_view3d(const Object *ob, const RegionView3D *rv3d)
 {
 	int visibility_flag = ob->empty_image_visibility_flag;
