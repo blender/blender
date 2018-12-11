@@ -134,6 +134,49 @@ uint GPU_texture_memory_usage_get(void)
 
 /* -------------------------------- */
 
+static const char *gl_enum_to_str(GLenum e)
+{
+#define ENUM_TO_STRING(e) [GL_##e] = STRINGIFY_ARG(e)
+	static const char *enum_strings[] = {
+		ENUM_TO_STRING(TEXTURE_2D),
+		ENUM_TO_STRING(TEXTURE_2D_ARRAY),
+		ENUM_TO_STRING(TEXTURE_1D),
+		ENUM_TO_STRING(TEXTURE_1D_ARRAY),
+		ENUM_TO_STRING(TEXTURE_3D),
+		ENUM_TO_STRING(TEXTURE_2D_MULTISAMPLE),
+		ENUM_TO_STRING(RGBA32F),
+		ENUM_TO_STRING(RGBA16F),
+		ENUM_TO_STRING(RGBA16),
+		ENUM_TO_STRING(RG32F),
+		ENUM_TO_STRING(RGB16F),
+		ENUM_TO_STRING(RG16F),
+		ENUM_TO_STRING(RG16I),
+		ENUM_TO_STRING(RG16),
+		ENUM_TO_STRING(RGBA8),
+		ENUM_TO_STRING(RGBA8UI),
+		ENUM_TO_STRING(R32F),
+		ENUM_TO_STRING(R32UI),
+		ENUM_TO_STRING(R32I),
+		ENUM_TO_STRING(R16F),
+		ENUM_TO_STRING(R16I),
+		ENUM_TO_STRING(R16UI),
+		ENUM_TO_STRING(RG8),
+		ENUM_TO_STRING(RG16UI),
+		ENUM_TO_STRING(R16),
+		ENUM_TO_STRING(R8),
+		ENUM_TO_STRING(R8UI),
+		ENUM_TO_STRING(R11F_G11F_B10F),
+		ENUM_TO_STRING(DEPTH24_STENCIL8),
+		ENUM_TO_STRING(DEPTH32F_STENCIL8),
+		ENUM_TO_STRING(DEPTH_COMPONENT32F),
+		ENUM_TO_STRING(DEPTH_COMPONENT24),
+		ENUM_TO_STRING(DEPTH_COMPONENT16),
+	};
+#undef ENUM_TO_STRING
+
+	return enum_strings[e];
+}
+
 static int gpu_get_component_count(GPUTextureFormat format)
 {
 	switch (format) {
@@ -600,11 +643,20 @@ GPUTexture *GPU_texture_create_nD(
 	float *rescaled_pixels = NULL;
 	bool valid = gpu_texture_try_alloc(tex, proxy, internalformat, data_format, data_type, tex->components, can_rescale,
 	                                   pixels, &rescaled_pixels);
+
+	if (G.debug & G_DEBUG_GPU || !valid) {
+
+		printf("GPUTexture: create : %s, %s, w : %d, h : %d, d : %d, comp : %d\n",
+		       gl_enum_to_str(tex->target), gl_enum_to_str(internalformat), w, h, d, tex->components);
+	}
+
 	if (!valid) {
-		if (err_out)
-			BLI_snprintf(err_out, 256, "GPUTexture: texture alloc failed");
-		else
-			fprintf(stderr, "GPUTexture: texture alloc failed. Not enough Video Memory.");
+		if (err_out) {
+			BLI_snprintf(err_out, 256, "GPUTexture: texture alloc failed\n");
+		}
+		else {
+			fprintf(stderr, "GPUTexture: texture alloc failed. Likely not enough Video Memory.\n");
+		}
 		GPU_texture_free(tex);
 		return NULL;
 	}
