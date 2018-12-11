@@ -33,6 +33,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 
 #include "BKE_object.h"
 #include "BKE_unit.h"
@@ -1037,11 +1038,18 @@ static bool view3d_ruler_poll(bContext *C)
 	return true;
 }
 
-static int view3d_ruler_add_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
+
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)))
+	{
+		BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
+		return OPERATOR_CANCELLED;
+	}
 
 	wmGizmoMap *gzmap = ar->gizmo_map;
 	wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
