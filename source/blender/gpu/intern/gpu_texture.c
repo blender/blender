@@ -138,6 +138,7 @@ static const char *gl_enum_to_str(GLenum e)
 {
 #define ENUM_TO_STRING(e) [GL_##e] = STRINGIFY_ARG(e)
 	static const char *enum_strings[] = {
+		ENUM_TO_STRING(TEXTURE_CUBE_MAP),
 		ENUM_TO_STRING(TEXTURE_2D),
 		ENUM_TO_STRING(TEXTURE_2D_ARRAY),
 		ENUM_TO_STRING(TEXTURE_1D),
@@ -762,6 +763,13 @@ static GPUTexture *GPU_texture_cube_create(
 			fprintf(stderr, "GPUTexture: texture create failed\n");
 		GPU_texture_free(tex);
 		return NULL;
+	}
+
+	if (G.debug & G_DEBUG_GPU) {
+		printf("GPUTexture: create : %s, %s, w : %d, h : %d, d : %d, comp : %d, size : %.2f MiB\n",
+		       gl_enum_to_str(tex->target), gl_enum_to_str(internalformat),
+		       w, w, d, tex->components,
+		       gpu_texture_memory_footprint_compute(tex) / 1048576.0f);
 	}
 
 	gpu_texture_memory_footprint_add(tex);
