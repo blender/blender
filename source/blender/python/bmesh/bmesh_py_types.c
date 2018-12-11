@@ -37,8 +37,10 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_mesh_runtime.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "bmesh.h"
 
@@ -919,7 +921,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 }
 
 PyDoc_STRVAR(bpy_bmesh_from_object_doc,
-".. method:: from_object(object, scene, deform=True, render=False, cage=False, face_normals=True)\n"
+".. method:: from_object(object, depsgraph, deform=True, cage=False, face_normals=True)\n"
 "\n"
 "   Initialize this bmesh from existing object datablock (currently only meshes are supported).\n"
 "\n"
@@ -927,8 +929,6 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
 "   :type object: :class:`Object`\n"
 "   :arg deform: Apply deformation modifiers.\n"
 "   :type deform: boolean\n"
-"   :arg render: Use render settings.\n"
-"   :type render: boolean\n"
 "   :arg cage: Get the mesh as a deformed cage.\n"
 "   :type cage: boolean\n"
 "   :arg face_normals: Calculate face normals.\n"
@@ -936,32 +936,29 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
 );
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
-	/* TODO: This doesn't work currently because of missing depsgraph. */
-#if 0
-	static const char *kwlist[] = {"object", "scene", "deform", "render", "cage", "face_normals", NULL};
+	static const char *kwlist[] = {"object", "depsgraph", "deform", "cage", "face_normals", NULL};
 	PyObject *py_object;
-	PyObject *py_scene;
-	Object *ob;
-	struct Scene *scene;
+	PyObject *py_depsgraph;
+	Object *ob, *ob_eval;
+	struct Depsgraph *depsgraph;
+	struct Scene *scene_eval;
+	Mesh *me_eval;
 	BMesh *bm;
 	bool use_deform = true;
-	bool use_render = false;
 	bool use_cage   = false;
 	bool use_fnorm  = true;
-	DerivedMesh *dm;
 	const int mask = CD_MASK_BMESH;
 
 	BPY_BM_CHECK_OBJ(self);
 
 	if (!PyArg_ParseTupleAndKeywords(
-	        args, kw, "OO|O&O&O&O&:from_object", (char **)kwlist,
-	        &py_object, &py_scene,
+	        args, kw, "OO|O&O&O&:from_object", (char **)kwlist,
+	        &py_object, &py_depsgraph,
 	        PyC_ParseBool, &use_deform,
-	        PyC_ParseBool, &use_render,
 	        PyC_ParseBool, &use_cage,
 	        PyC_ParseBool, &use_fnorm) ||
-	    !(ob    = PyC_RNA_AsPointer(py_object, "Object")) ||
-	    !(scene = PyC_RNA_AsPointer(py_scene,  "Scene")))
+	    !(ob        = PyC_RNA_AsPointer(py_object, "Object")) ||
+	    !(depsgraph = PyC_RNA_AsPointer(py_depsgraph,  "Depsgraph")))
 	{
 		return NULL;
 	}
@@ -972,52 +969,47 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 		return NULL;
 	}
 
+	const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
+	scene_eval = DEG_get_evaluated_scene(depsgraph);
+	ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
 	/* Write the display mesh into the dummy mesh */
 	if (use_deform) {
 		if (use_render) {
 			if (use_cage) {
 				PyErr_SetString(PyExc_ValueError,
-				                "from_object(...): cage arg is unsupported when (render=True)");
+				                "from_object(...): cage arg is unsupported when dependency graph evaluation mode is RENDER");
 				return NULL;
 			}
 			else {
-				dm = mesh_create_derived_render(scene, ob, mask);
+				me_eval = mesh_create_eval_final_render(depsgraph, scene_eval, ob_eval, mask);
 			}
 		}
 		else {
 			if (use_cage) {
-				dm = mesh_get_derived_deform(scene, ob, mask);  /* ob->derivedDeform */
+				me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, mask);
 			}
 			else {
-				dm = mesh_get_derived_final(scene, ob, mask);  /* ob->derivedFinal */
+				me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, mask);
 			}
 		}
 	}
 	else {
 		/* !use_deform */
-		if (use_render) {
-			if (use_cage) {
-				PyErr_SetString(PyExc_ValueError,
-				                "from_object(...): cage arg is unsupported when (render=True)");
-				return NULL;
-			}
-			else {
-				dm = mesh_create_derived_no_deform_render(scene, ob, NULL, mask);
-			}
+		if (use_cage) {
+			PyErr_SetString(PyExc_ValueError,
+			                "from_object(...): cage arg is unsupported when deform=False");
+			return NULL;
+		}
+		else if (use_render) {
+			me_eval = mesh_create_eval_no_deform_render(depsgraph, scene_eval, ob, NULL, mask);
 		}
 		else {
-			if (use_cage) {
-				PyErr_SetString(PyExc_ValueError,
-				                "from_object(...): cage arg is unsupported when (deform=False, render=False)");
-				return NULL;
-			}
-			else {
-				dm = mesh_create_derived_no_deform(scene, ob, NULL, mask);
-			}
+			me_eval = mesh_create_eval_no_deform(depsgraph, scene_eval, ob, NULL, mask);
 		}
 	}
 
-	if (dm == NULL) {
+	if (me_eval == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "from_object(...): Object '%s' has no usable mesh data", ob->id.name + 2);
 		return NULL;
@@ -1025,15 +1017,12 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
 	bm = self->bm;
 
-	DM_to_bmesh_ex(dm, bm, use_fnorm);
-
-	dm->release(dm);
+	BM_mesh_bm_from_me(
+	        bm, me_eval, (&(struct BMeshFromMeshParams){
+	            .calc_face_normal = use_fnorm
+	        }));
 
 	Py_RETURN_NONE;
-#else
-	UNUSED_VARS(self, args, kw);
-#endif
-	return NULL;
 }
 
 
