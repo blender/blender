@@ -1710,9 +1710,9 @@ void RGBToBWNode::constant_fold(const ConstantFolder& folder)
 void RGBToBWNode::compile(SVMCompiler& compiler)
 {
 	compiler.add_node(NODE_CONVERT,
-	                 NODE_CONVERT_CF,
-	                 compiler.stack_assign(inputs[0]),
-	                 compiler.stack_assign(outputs[0]));
+	                  NODE_CONVERT_CF,
+	                  compiler.stack_assign(inputs[0]),
+	                  compiler.stack_assign(outputs[0]));
 }
 
 void RGBToBWNode::compile(OSLCompiler& compiler)

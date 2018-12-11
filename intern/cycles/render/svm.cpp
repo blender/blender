@@ -243,6 +243,7 @@ int SVMCompiler::stack_assign(ShaderInput *input)
 	if(input->stack_offset == SVM_STACK_INVALID) {
 		if(input->link) {
 			/* linked to output -> use output offset */
+			assert(input->link->stack_offset != SVM_STACK_INVALID);
 			input->stack_offset = input->link->stack_offset;
 		}
 		else {
@@ -408,31 +409,20 @@ uint SVMCompiler::attribute_standard(ustring name)
 	return (std)? attribute(std): attribute(name);
 }
 
-bool SVMCompiler::node_skip_input(ShaderNode * /*node*/, ShaderInput *input)
-{
-	/* nasty exception .. */
-	if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->special_type == SHADER_SPECIAL_TYPE_BUMP)
-		return true;
-
-	return false;
-}
-
 void SVMCompiler::find_dependencies(ShaderNodeSet& dependencies,
                                     const ShaderNodeSet& done,
                                     ShaderInput *input,
                                     ShaderNode *skip_node)
 {
 	ShaderNode *node = (input->link)? input->link->parent: NULL;
-
 	if(node != NULL &&
 	   done.find(node) == done.end() &&
 	   node != skip_node &&
 	   dependencies.find(node) == dependencies.end())
 	{
-		foreach(ShaderInput *in, node->inputs)
-			if(!node_skip_input(node, in))
-				find_dependencies(dependencies, done, in, skip_node);
-
+		foreach(ShaderInput *in, node->inputs) {
+			find_dependencies(dependencies, done, in, skip_node);
+		}
 		dependencies.insert(node);
 	}
 }
@@ -479,18 +469,19 @@ void SVMCompiler::generate_svm_nodes(const ShaderNodeSet& nodes,
 			if(!done_flag[node->id]) {
 				bool inputs_done = true;
 
-				foreach(ShaderInput *input, node->inputs)
-					if(!node_skip_input(node, input))
-						if(input->link && !done_flag[input->link->parent->id])
-							inputs_done = false;
-
+				foreach(ShaderInput *input, node->inputs) {
+					if(input->link && !done_flag[input->link->parent->id]) {
+						inputs_done = false;
+					}
+				}
 				if(inputs_done) {
 					generate_node(node, done);
 					done.insert(node);
 					done_flag[node->id] = true;
 				}
-				else
+				else {
 					nodes_done = false;
+				}
 			}
 		}
 	} while(!nodes_done);
@@ -501,7 +492,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node,
 {
 	/* execute dependencies for closure */
 	foreach(ShaderInput *in, node->inputs) {
-		if(!node_skip_input(node, in) && in->link) {
+		if(in->link != NULL) {
 			ShaderNodeSet dependencies;
 			find_dependencies(dependencies, state->nodes_done, in);
 			generate_svm_nodes(dependencies, state);
