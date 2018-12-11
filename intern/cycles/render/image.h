@@ -23,6 +23,7 @@
 #include "util/util_image.h"
 #include "util/util_string.h"
 #include "util/util_thread.h"
+#include "util/util_unique_ptr.h"
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -145,8 +146,7 @@ private:
 	vector<Image*> images[IMAGE_DATA_NUM_TYPES];
 	void *osl_texture_system;
 
-	bool file_load_image_generic(Image *img,
-	                             ImageInput **in);
+	bool file_load_image_generic(Image *img, unique_ptr<ImageInput> *in);
 
 	template<TypeDesc::BASETYPE FileFormat,
 	         typename StorageType,

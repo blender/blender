@@ -504,7 +504,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 				socket_type = "NodeSocketString";
 				data_type = BL::NodeSocket::type_STRING;
 				if(param->validdefault)
-					default_string = param->sdefault[0];
+					default_string = param->sdefault[0].string();
 			}
 			else
 				continue;
