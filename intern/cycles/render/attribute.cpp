@@ -663,7 +663,7 @@ void AttributeRequestSet::add(AttributeRequestSet& reqs)
 
 void AttributeRequestSet::add_standard(ustring name)
 {
-	if(!name) {
+	if(name.empty()) {
 		return;
 	}
 
