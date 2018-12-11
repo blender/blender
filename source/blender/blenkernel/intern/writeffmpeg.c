@@ -543,6 +543,9 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	/* Set up the codec context */
 
 	c = st->codec;
+	c->thread_count = 0;
+	c->thread_type = FF_THREAD_FRAME;
+
 	c->codec_id = codec_id;
 	c->codec_type = AVMEDIA_TYPE_VIDEO;
 
@@ -703,6 +706,9 @@ static AVStream *alloc_audio_stream(FFMpegContext *context, RenderData *rd, int 
 	st->id = 1;
 
 	c = st->codec;
+	c->thread_count = 0;
+	c->thread_type = FF_THREAD_FRAME;
+
 	c->codec_id = codec_id;
 	c->codec_type = AVMEDIA_TYPE_AUDIO;
 
