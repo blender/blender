@@ -877,7 +877,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 
 #ifdef WITH_INPUT_NDOF
 /* draw center and axis of rotation for ongoing 3D mouse navigation */
-static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
+static void draw_rotation_guide(const RegionView3D *rv3d)
 {
 	float o[3];    /* center of rotation */
 	float end[3];  /* endpoints for drawing */
@@ -1245,6 +1245,16 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
+
+#ifdef WITH_INPUT_NDOF
+	if ((U.ndof_flag & NDOF_SHOW_GUIDE) &&
+	    ((rv3d->viewlock & RV3D_LOCKED) == 0) &&
+	    (rv3d->persp != RV3D_CAMOB))
+	{
+		/* TODO: draw something else (but not this) during fly mode */
+		draw_rotation_guide(rv3d);
+	}
+#endif
 
 	/* correct projection matrix */
 	ED_region_pixelspace(ar);
