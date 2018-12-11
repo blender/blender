@@ -246,6 +246,7 @@ int SVMCompiler::stack_assign(ShaderInput *input)
 	if(input->stack_offset == SVM_STACK_INVALID) {
 		if(input->link) {
 			/* linked to output -> use output offset */
+			assert(input->link->stack_offset != SVM_STACK_INVALID);
 			input->stack_offset = input->link->stack_offset;
 		}
 		else {
