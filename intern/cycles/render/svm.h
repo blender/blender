@@ -188,8 +188,6 @@ protected:
 	int stack_size(SocketType::Type type);
 	void stack_clear_users(ShaderNode *node, ShaderNodeSet& done);
 
-	bool node_skip_input(ShaderNode *node, ShaderInput *input);
-
 	/* single closure */
 	void find_dependencies(ShaderNodeSet& dependencies,
 	                       const ShaderNodeSet& done,
