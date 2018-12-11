@@ -912,6 +912,9 @@ static int gizmo_ruler_invoke(
 		copy_v3_v3(inter->drag_start_co, ruler_item_pick->co[inter->co_index]);
 	}
 
+	/* Should always be true. */
+	inter->inside_region = BLI_rcti_isect_pt_v(&ar->winrct, &event->x);
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
