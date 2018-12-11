@@ -99,7 +99,7 @@ static uint memory_usage;
 static uint gpu_texture_memory_footprint_compute(GPUTexture *tex)
 {
 	int samp = max_ii(tex->samples, 1);
-	switch (tex->target) {
+	switch (tex->target_base) {
 		case GL_TEXTURE_1D:
 			return tex->bytesize * tex->w * samp;
 		case GL_TEXTURE_1D_ARRAY:
@@ -607,8 +607,6 @@ GPUTexture *GPU_texture_create_nD(
 	GLenum data_format = gpu_get_gl_dataformat(tex_format, &tex->format_flag);
 	GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
 
-	gpu_texture_memory_footprint_add(tex);
-
 	/* Generate Texture object */
 	tex->bindcode = GPU_tex_alloc();
 
@@ -645,9 +643,10 @@ GPUTexture *GPU_texture_create_nD(
 	                                   pixels, &rescaled_pixels);
 
 	if (G.debug & G_DEBUG_GPU || !valid) {
-
-		printf("GPUTexture: create : %s, %s, w : %d, h : %d, d : %d, comp : %d\n",
-		       gl_enum_to_str(tex->target), gl_enum_to_str(internalformat), w, h, d, tex->components);
+		printf("GPUTexture: create : %s, %s, w : %d, h : %d, d : %d, comp : %d, size : %.2f MiB\n",
+		       gl_enum_to_str(tex->target), gl_enum_to_str(internalformat),
+		       w, h, d, tex->components,
+		       gpu_texture_memory_footprint_compute(tex) / 1048576.0f);
 	}
 
 	if (!valid) {
@@ -656,10 +655,14 @@ GPUTexture *GPU_texture_create_nD(
 		}
 		else {
 			fprintf(stderr, "GPUTexture: texture alloc failed. Likely not enough Video Memory.\n");
+			fprintf(stderr, "Current texture memory usage : %.2f MiB.\n",
+			                gpu_texture_memory_footprint_compute(tex) / 1048576.0f);
 		}
 		GPU_texture_free(tex);
 		return NULL;
 	}
+
+	gpu_texture_memory_footprint_add(tex);
 
 	/* Upload Texture */
 	const float *pix = (rescaled_pixels) ? rescaled_pixels : pixels;
@@ -749,8 +752,6 @@ static GPUTexture *GPU_texture_cube_create(
 	GLenum data_format = gpu_get_gl_dataformat(tex_format, &tex->format_flag);
 	GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
 
-	gpu_texture_memory_footprint_add(tex);
-
 	/* Generate Texture object */
 	tex->bindcode = GPU_tex_alloc();
 
@@ -762,6 +763,8 @@ static GPUTexture *GPU_texture_cube_create(
 		GPU_texture_free(tex);
 		return NULL;
 	}
+
+	gpu_texture_memory_footprint_add(tex);
 
 	glBindTexture(tex->target, tex->bindcode);
 
