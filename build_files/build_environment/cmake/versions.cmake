@@ -41,9 +41,9 @@ set(BLOSC_VERSION 1.14.4)
 set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.tar.gz)
 set(BLOSC_HASH e80dfc71e4cba03b8d01ed0876547ffe)
 
-set(PTHREADS_VERSION 2-9-1)
-set(PTHREADS_URI ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-${PTHREADS_VERSION}-release.tar.gz)
-set(PTHREADS_SHA512 9c06e85310766834370c3dceb83faafd397da18a32411ca7645c8eb6b9495fea54ca2872f4a3e8d83cb5fdc5dea7f3f0464be5bb9af3222a6534574a184bd551)
+set(PTHREADS_VERSION 3.0.0)
+set(PTHREADS_URI http://sourceforge.mirrorservice.org/p/pt/pthreads4w/pthreads4w-code-v${PTHREADS_VERSION}.zip)
+set(PTHREADS_HASH f3bf81bb395840b3446197bcf4ecd653)
 
 set(ILMBASE_VERSION 2.3.0)
 if (WIN32)

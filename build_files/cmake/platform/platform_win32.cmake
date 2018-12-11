@@ -225,7 +225,7 @@ if(NOT JPEG_FOUND)
 endif()
 
 set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
-set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
+set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC3.lib)
 
 set(FREETYPE ${LIBDIR}/freetype)
 set(FREETYPE_INCLUDE_DIRS

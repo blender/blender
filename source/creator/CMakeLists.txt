@@ -785,7 +785,7 @@ elseif(WIN32)
 
 	if(MSVC)
 		install(
-			FILES ${LIBDIR}/pthreads/lib/pthreadVC2.dll
+			FILES ${LIBDIR}/pthreads/lib/pthreadVC3.dll
 			DESTINATION "."
 		)
 	endif()
