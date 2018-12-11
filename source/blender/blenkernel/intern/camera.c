@@ -71,7 +71,7 @@ void BKE_camera_init(Camera *cam)
 	cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 	cam->clipsta = 0.1f;
 	cam->clipend = 1000.0f;
-	cam->drawsize = 0.5f;
+	cam->drawsize = 1.0f;
 	cam->ortho_scale = 6.0;
 	cam->flag |= CAM_SHOWPASSEPARTOUT;
 	cam->passepartalpha = 0.5f;
@@ -378,7 +378,7 @@ void BKE_camera_view_frame_ex(
 		facy = 0.5f * camera->ortho_scale * r_asp[1] * scale[1];
 		r_shift[0] = camera->shiftx * camera->ortho_scale * scale[0];
 		r_shift[1] = camera->shifty * camera->ortho_scale * scale[1];
-		depth = do_clip ? -((camera->clipsta * scale[2]) + 0.1f) : -(drawsize * 2.0f) * scale[2];
+		depth = do_clip ? -((camera->clipsta * scale[2]) + 0.1f) : -drawsize * scale[2];
 
 		*r_drawsize = 0.5f * camera->ortho_scale;
 	}
@@ -400,7 +400,7 @@ void BKE_camera_view_frame_ex(
 		}
 		else {
 			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
-			*r_drawsize = drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
+			*r_drawsize = (drawsize / 2.0f) / ((scale[0] + scale[1] + scale[2]) / 3.0f);
 			depth = *r_drawsize * camera->lens / (-half_sensor) * scale[2];
 			fac = *r_drawsize;
 			scale_x = scale[0];

@@ -137,13 +137,6 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	PointerRNA camera_ptr;
 	float dir[3];
 
-	const float ob_scale_inv[3] = {
-		1.0f / len_v3(ob->obmat[0]),
-		1.0f / len_v3(ob->obmat[1]),
-		1.0f / len_v3(ob->obmat[2]),
-	};
-	const float ob_scale_uniform_inv = (ob_scale_inv[0] + ob_scale_inv[1] + ob_scale_inv[2]) / 3.0f;
-
 	RNA_pointer_create(&ca->id, &RNA_Camera, ca, &camera_ptr);
 
 	negate_v3_v3(dir, ob->obmat[2]);
@@ -194,7 +187,13 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 			scale_matrix = ca->ortho_scale * 0.5f;
 		}
 		else {
-			scale_matrix = ca->drawsize / ob_scale_uniform_inv;
+			const float ob_scale_inv[3] = {
+				1.0f / len_v3(ob->obmat[0]),
+				1.0f / len_v3(ob->obmat[1]),
+				1.0f / len_v3(ob->obmat[2]),
+			};
+			const float ob_scale_uniform_inv = (ob_scale_inv[0] + ob_scale_inv[1] + ob_scale_inv[2]) / 3.0f;
+			scale_matrix = (ca->drawsize * 0.5f) / ob_scale_uniform_inv;
 		}
 		mul_v3_fl(widget->matrix_basis[0], scale_matrix);
 		mul_v3_fl(widget->matrix_basis[1], scale_matrix);
@@ -221,7 +220,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 		ED_gizmo_arrow3d_set_range_fac(
 		        widget, is_ortho ?
-		        ((range / scale_matrix) * ca->drawsize) :
+		        ((range / ca->ortho_scale) * ca->drawsize) :
 		        (scale_matrix * range /
 		         /* Half sensor, intentionally use sensor from camera and not calculated above. */
 		         (0.5f * ((sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_y))));

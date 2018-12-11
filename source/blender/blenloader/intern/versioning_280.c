@@ -2505,6 +2505,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 #endif
 	}
 
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 37)) {
+		for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
+			ca->drawsize *= 2.0f;
+		}
+	}
+
 	{
 		/* Versioning code until next subversion bump goes here. */
 

@@ -47,18 +47,6 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-static float rna_Camera_draw_size_get(PointerRNA *ptr)
-{
-	Camera *cam = ptr->id.data;
-	return cam->drawsize * 2.0f;
-}
-
-static void rna_Camera_draw_size_set(PointerRNA *ptr, float value)
-{
-	Camera *cam = ptr->id.data;
-	cam->drawsize = value / 2.0f;
-}
-
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
 	Camera *cam = ptr->id.data;
@@ -514,11 +502,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
 	prop = RNA_def_property(srna, "display_size", PROP_FLOAT, PROP_DISTANCE);
-#if 0
 	RNA_def_property_float_sdna(prop, NULL, "drawsize");
-#else
-	RNA_def_property_float_funcs(prop, "rna_Camera_draw_size_get", "rna_Camera_draw_size_set", NULL);
-#endif
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.01f, 1000.0f);
 	RNA_def_property_ui_range(prop, 0.01, 100, 1, 2);
