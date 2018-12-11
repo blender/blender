@@ -163,29 +163,28 @@ void DRW_globals_update(void)
 
 	DRW_uniformbuffer_update(globals_ubo, &ts);
 
-	ColorBand ramp = {0};
-	float *colors;
-	int col_size;
+	if (!globals_ramp) {
+		ColorBand ramp = {0};
+		float *colors;
+		int col_size;
 
-	ramp.tot = 3;
-	ramp.data[0].a = 1.0f;
-	ramp.data[0].b = 1.0f;
-	ramp.data[0].pos = 0.0f;
-	ramp.data[1].a = 1.0f;
-	ramp.data[1].g = 1.0f;
-	ramp.data[1].pos = 0.5f;
-	ramp.data[2].a = 1.0f;
-	ramp.data[2].r = 1.0f;
-	ramp.data[2].pos = 1.0f;
+		ramp.tot = 3;
+		ramp.data[0].a = 1.0f;
+		ramp.data[0].b = 1.0f;
+		ramp.data[0].pos = 0.0f;
+		ramp.data[1].a = 1.0f;
+		ramp.data[1].g = 1.0f;
+		ramp.data[1].pos = 0.5f;
+		ramp.data[2].a = 1.0f;
+		ramp.data[2].r = 1.0f;
+		ramp.data[2].pos = 1.0f;
 
-	BKE_colorband_evaluate_table_rgba(&ramp, &colors, &col_size);
+		BKE_colorband_evaluate_table_rgba(&ramp, &colors, &col_size);
 
-	if (globals_ramp) {
-		GPU_texture_free(globals_ramp);
+		globals_ramp = GPU_texture_create_1D(col_size, GPU_RGBA8, colors, NULL);
+
+		MEM_freeN(colors);
 	}
-	globals_ramp = GPU_texture_create_1D(col_size, GPU_RGBA8, colors, NULL);
-
-	MEM_freeN(colors);
 
 	/* Weight Painting color ramp texture */
 	bool user_weight_ramp = (U.flag & USER_CUSTOM_RANGE) != 0;
