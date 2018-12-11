@@ -40,6 +40,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -1819,6 +1820,49 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 
 }
 
+static void WIDGETGROUP_gizmo_invoke_prepare(
+        const bContext *C, wmGizmoGroup *gzgroup, wmGizmo *gz)
+{
+
+	/* Support shift click to constrain axis. */
+	GizmoGroup *ggd = gzgroup->customdata;
+	const int axis_idx = BLI_array_findindex(ggd->gizmos, ARRAY_SIZE(ggd->gizmos), &gz);
+	int axis = -1;
+	switch (axis_idx) {
+		case MAN_AXIS_TRANS_X:
+		case MAN_AXIS_TRANS_Y:
+		case MAN_AXIS_TRANS_Z:
+			axis = axis_idx - MAN_AXIS_TRANS_X; break;
+		case MAN_AXIS_SCALE_X:
+		case MAN_AXIS_SCALE_Y:
+		case MAN_AXIS_SCALE_Z:
+			axis = axis_idx - MAN_AXIS_SCALE_X; break;
+	}
+
+	if (axis != -1) {
+		wmWindow *win = CTX_wm_window(C);
+		/* Swap single axis for two-axis constraint. */
+		bool flip = win->eventstate->shift;
+		BLI_assert(axis_idx != -1);
+		const short axis_type = gizmo_get_axis_type(axis_idx);
+		if (axis_type != MAN_AXES_ROTATE) {
+			wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
+			PointerRNA *ptr = &gzop->ptr;
+			PropertyRNA *prop_constraint_axis = RNA_struct_find_property(ptr, "constraint_axis");
+			if (prop_constraint_axis) {
+				bool constraint[3] = {false};
+				constraint[axis] = true;
+				if (flip) {
+					for (int i = 0; i < ARRAY_SIZE(constraint); i++) {
+						constraint[i] = !constraint[i];
+					}
+				}
+				RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint);
+			}
+		}
+	}
+}
+
 static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroupType *gzgt)
 {
 	if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
@@ -1846,6 +1890,7 @@ void TRANSFORM_GGT_gizmo(wmGizmoGroupType *gzgt)
 	gzgt->refresh = WIDGETGROUP_gizmo_refresh;
 	gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
 	gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
+	gzgt->invoke_prepare = WIDGETGROUP_gizmo_invoke_prepare;
 
 	static const EnumPropertyItem rna_enum_gizmo_items[] = {
 		{SCE_GIZMO_SHOW_TRANSLATE, "TRANSLATE", 0, "Move", ""},
