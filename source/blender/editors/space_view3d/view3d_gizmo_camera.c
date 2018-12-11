@@ -221,7 +221,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 		ED_gizmo_arrow3d_set_range_fac(
 		        widget, is_ortho ?
-		        (ca->drawsize * range) :
+		        ((range / scale_matrix) * ca->drawsize) :
 		        (scale_matrix * range /
 		         /* Half sensor, intentionally use sensor from camera and not calculated above. */
 		         (0.5f * ((sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_y))));
