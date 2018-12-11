@@ -212,9 +212,6 @@ int SVMCompiler::stack_find_offset(int size)
 			while(i >= offset)
 				active_stack.users[i--] = 1;
 
-			if (offset == 255) {
-				abort();
-			}
 			return offset;
 		}
 	}
