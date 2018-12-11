@@ -378,7 +378,7 @@ void BKE_camera_view_frame_ex(
 		facy = 0.5f * camera->ortho_scale * r_asp[1] * scale[1];
 		r_shift[0] = camera->shiftx * camera->ortho_scale * scale[0];
 		r_shift[1] = camera->shifty * camera->ortho_scale * scale[1];
-		depth = do_clip ? -((camera->clipsta * scale[2]) + 0.1f) : -drawsize * camera->ortho_scale * scale[2];
+		depth = do_clip ? -((camera->clipsta * scale[2]) + 0.1f) : -(drawsize * 2.0f) * scale[2];
 
 		*r_drawsize = 0.5f * camera->ortho_scale;
 	}
