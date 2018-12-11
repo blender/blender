@@ -3809,8 +3809,8 @@ static void mesh_create_edit_tris_and_verts(
 			if (p_orig != ORIGINDEX_NONE) {
 				BMFace *efa = BM_face_at_index(bm, p_orig);
 				if (add_edit_tri_mapped(rdata, vbo_pos_nor, vbo_lnor, vbo_data, elbp,
-					                    attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
-					                    efa, mlt, polynors, loopnors, tri_len_used))
+				                        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
+				                        efa, mlt, polynors, loopnors, tri_len_used))
 				{
 					tri_len_used += 3;
 				}

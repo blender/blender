@@ -3401,7 +3401,8 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	ui_but_v3_get(but, col);
 
 	if ((state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_OVERRIDEN | UI_BUT_REDALERT)) ||
-	    (but->drawflag & UI_BUT_ANIMATED_CHANGED)) {
+	    (but->drawflag & UI_BUT_ANIMATED_CHANGED))
+	{
 		/* draw based on state - color for keyed etc */
 		widgetbase_draw(&wtb, wcol);
 

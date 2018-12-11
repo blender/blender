@@ -868,7 +868,7 @@ static void DRW_shgroup_empty_image(
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
 
-	if (!BKE_image_empty_visible_in_view3d(ob, rv3d))
+	if (!BKE_object_empty_image_is_visible_in_view3d(ob, rv3d))
 		return;
 
 	GPUTexture *tex = ob->data ?

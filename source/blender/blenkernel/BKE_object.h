@@ -351,7 +351,7 @@ bool BKE_object_modifier_update_subframe(
 
 void BKE_object_type_set_empty_for_versioning(struct Object *ob);
 
-bool BKE_image_empty_visible_in_view3d(const struct Object *ob, const struct RegionView3D *rv3d);
+bool BKE_object_empty_image_is_visible_in_view3d(const struct Object *ob, const struct RegionView3D *rv3d);
 
 #ifdef __cplusplus
 }
