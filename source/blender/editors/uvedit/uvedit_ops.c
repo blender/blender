@@ -4105,9 +4105,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_hide(em, swap);
-
-		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		EDBM_update_generic(em, true, false);
 
 		return OPERATOR_FINISHED;
 	}
@@ -4230,8 +4228,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
 	/* call the mesh function if we are in mesh sync sel */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_reveal(em, select);
-		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		EDBM_update_generic(em, true, false);
 
 		return OPERATOR_FINISHED;
 	}
