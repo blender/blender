@@ -122,9 +122,7 @@ void GPU_line_width(float width)
 	float max_size = GPU_max_line_width();
 	float final_size = width * U.pixelsize;
 	/* Fix opengl errors on certain platform / drivers. */
-	if (max_size < final_size) {
-		final_size = max_size;
-	}
+	CLAMP(final_size, 1.0f, max_size);
 	glLineWidth(final_size);
 }
 
