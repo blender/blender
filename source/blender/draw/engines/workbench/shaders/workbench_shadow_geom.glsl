@@ -55,20 +55,19 @@ void main()
 	vec3 v12 = vData[2].pos - vData[1].pos;
 	vec3 v13 = vData[3].pos - vData[1].pos;
 
-#ifdef DEGENERATE_THRESHOLD
-	vec3 v20 = vData[0].pos - vData[2].pos;
-	vec3 v23 = vData[3].pos - vData[2].pos;
+	vec3 n1 = cross(v12, v10);
+	vec3 n2 = cross(v13, v12);
 
-	vec4 edges_lensqr = vec4(len_sqr(v10), len_sqr(v13), len_sqr(v20), len_sqr(v23));
-	bvec4 degen_edges = lessThan(edges_lensqr, vec4(DEGENERATE_THRESHOLD));
+#ifdef DEGENERATE_THRESHOLD
+	/* Check if area is null */
+	vec2 faces_area = vec2(len_sqr(n1), len_sqr(n2));
+	bvec2 degen_faces = lessThan(abs(faces_area), vec2(DEGENERATE_THRESHOLD));
 
 	/* Both triangles are degenerate, abort. */
-	if (any(degen_edges.xz) && any(degen_edges.yw))
+	if (all(degen_faces))
 		return;
 #endif
 
-	vec3 n1 = cross(v12, v10);
-	vec3 n2 = cross(v13, v12);
 	vec2 facing = vec2(dot(n1, lightDirection),
 	                   dot(n2, lightDirection));
 
@@ -81,15 +80,15 @@ void main()
 #  ifndef DOUBLE_MANIFOLD
 	/* If the mesh is known to be manifold and we don't use double count,
 	 * only create an quad if the we encounter a facing geom. */
-	if ((any(degen_edges.xz) && backface.y) ||
-		(any(degen_edges.yw) && backface.x))
+	if ((degen_faces.x && backface.y) ||
+	    (degen_faces.y && backface.x))
 		return;
 #  endif
 
 	/* If one of the 2 triangles is degenerate, replace edge by a non-manifold one. */
-	backface.x = (any(degen_edges.xz)) ? !backface.y : backface.x;
-	backface.y = (any(degen_edges.yw)) ? !backface.x : backface.y;
-	is_manifold = (any(degen_edges)) ? false : is_manifold;
+	backface.x = (degen_faces.x) ? !backface.y : backface.x;
+	backface.y = (degen_faces.y) ? !backface.x : backface.y;
+	is_manifold = (any(degen_faces)) ? false : is_manifold;
 #endif
 
 	/* If both faces face the same direction it's not an outline edge. */
