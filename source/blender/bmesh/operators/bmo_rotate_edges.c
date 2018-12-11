@@ -262,7 +262,7 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	if (is_simple) {
-		bm_rotate_edges_simple(bm, op, use_ccw, check_flag);
+		bm_rotate_edges_simple(bm, op, check_flag, use_ccw);
 	}
 	else {
 		bm_rotate_edges_shared(bm, op, check_flag, use_ccw, edges_len);
