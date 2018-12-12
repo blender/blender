@@ -2005,21 +2005,17 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	bool ok = false;
 
 	if (tc->obedit) {
-		if (ED_object_editmode_calc_active_center(tc->obedit, select_only, r_center)) {
+		if (ED_object_calc_active_center_for_editmode(tc->obedit, select_only, r_center)) {
 			mul_m4_v3(tc->obedit->obmat, r_center);
 			ok = true;
 		}
 	}
 	else if (t->flag & T_POSE) {
 		ViewLayer *view_layer = t->view_layer;
-		Object *ob = OBACT(view_layer);
-		if (ob) {
-			bPoseChannel *pchan = BKE_pose_channel_active(ob);
-			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
-				copy_v3_v3(r_center, pchan->pose_head);
-				mul_m4_v3(ob->obmat, r_center);
-				ok = true;
-			}
+		Object *ob = OBACT(view_layer) ;
+		if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
+			mul_m4_v3(ob->obmat, r_center);
+			ok = true;
 		}
 	}
 	else if (t->options & CTX_PAINT_CURVE) {

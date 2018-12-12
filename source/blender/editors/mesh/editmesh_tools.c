@@ -7367,7 +7367,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 				new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
 				view3d_operator_needs_opengl(C);
 				if (EDBM_select_pick(C, event->mval, false, false, false)) {
-					ED_object_editmode_calc_active_center(obedit, false, target);  /* Point to newly selected active. */
+					ED_object_calc_active_center_for_editmode(obedit, false, target);  /* Point to newly selected active. */
 					add_v3_v3(target, obedit->loc);
 					ret = OPERATOR_RUNNING_MODAL;
 				}
@@ -7412,7 +7412,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 						break;
 
 					case V3D_AROUND_ACTIVE:
-						if (!ED_object_editmode_calc_active_center(obedit, false, target)) {
+						if (!ED_object_calc_active_center_for_editmode(obedit, false, target)) {
 							zero_v3(target);
 						}
 						add_v3_v3(target, obedit->loc);

@@ -755,44 +755,11 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
  *
  * Note: this could be exported to be a generic function.
  * see: calculateCenterActive
-**/
+ */
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	Object *obedit = CTX_data_edit_object(C);
-
-	if (obedit) {
-		if (ED_object_editmode_calc_active_center(obedit, select_only, r_center)) {
-			mul_m4_v3(obedit->obmat, r_center);
-			return true;
-		}
-	}
-	else {
-		Object *ob = CTX_data_active_object(C);
-		if (ob) {
-			Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-			if (ob->mode & OB_MODE_POSE) {
-				bPoseChannel *pchan = BKE_pose_channel_active(ob_eval);
-				if (pchan) {
-					if (!select_only || (pchan->bone->flag & BONE_SELECTED)) {
-						copy_v3_v3(r_center, pchan->pose_head);
-						mul_m4_v3(ob_eval->obmat, r_center);
-						return true;
-					}
-				}
-			}
-			else {
-
-				if (!select_only || (ob_eval->flag & SELECT)) {
-					copy_v3_v3(r_center, ob_eval->obmat[3]);
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
+	Object *ob = CTX_data_active_object(C);
+	return ED_object_calc_active_center(ob, select_only, r_center);
 }
 
 static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))

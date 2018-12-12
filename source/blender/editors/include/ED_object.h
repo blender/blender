@@ -71,6 +71,14 @@ struct Object *ED_object_context(struct bContext *C);               /* context.o
 struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
 void ED_hide_collections_menu_draw(const struct bContext *C, struct uiLayout *layout);
 
+/* object_utils.c */
+bool ED_object_calc_active_center_for_editmode(
+        struct Object *obedit, const bool select_only, float r_center[3]);
+bool ED_object_calc_active_center_for_posemode(
+        struct Object *ob, const bool select_only, float r_center[3]);
+bool ED_object_calc_active_center(
+        struct Object *ob, const bool select_only, float r_center[3]);
+
 /* object_ops.c */
 void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
@@ -134,9 +142,6 @@ bool ED_object_editmode_exit(struct bContext *C, int flag);
 bool ED_object_editmode_enter_ex(struct Main *bmain, struct Scene *scene, struct Object *ob, int flag);
 bool ED_object_editmode_enter(struct bContext *C, int flag);
 bool ED_object_editmode_load(struct Main *bmain, struct Object *obedit);
-
-bool ED_object_editmode_calc_active_center(struct Object *obedit, const bool select_only, float r_center[3]);
-
 
 void ED_object_vpaintmode_enter_ex(
         struct Main *bmain, struct Depsgraph *depsgraph, struct wmWindowManager *wm,
