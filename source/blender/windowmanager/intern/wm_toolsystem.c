@@ -922,7 +922,14 @@ void WM_toolsystem_ref_properties_init_for_keymap(
 	if (tref->properties != NULL) {
 		IDProperty *prop = IDP_GetPropertyFromGroup(tref->properties, ot->idname);
 		if (prop) {
-			IDP_MergeGroup(dst_ptr->data, prop, true);
+			/* Important key-map items properties don't get overwritten by the tools.
+			 * - When a key-map item doesn't set a property, the tool-systems is used.
+			 * - When it does, it overrides the tool-system.
+			 *
+			 * This way the default action can be to follow the top-bar tool-settings &
+			 * modifier keys can be used to perform different actions that aren't clobbered here.
+			 */
+			IDP_MergeGroup(dst_ptr->data, prop, false);
 		}
 	}
 }

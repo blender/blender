@@ -235,8 +235,7 @@ def _template_items_tool_select(params, operator, cursor_operator):
 def _template_items_tool_select_actions(operator, *, type, value):
     kmi_args = {"type": type, "value": value}
     return [
-        (operator, kmi_args,
-         {"properties": [("mode", 'SET')]}),
+        (operator, kmi_args, None),
         (operator, {**kmi_args, "shift": True},
          {"properties": [("mode", 'ADD')]}),
         (operator, {**kmi_args, "ctrl": True},
@@ -5135,9 +5134,9 @@ def km_3d_view_tool_object_select_circle(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("deselect", False)]}),
+             {"properties": [("wait_for_input", False)]}),
             ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("deselect", True)]}),
+             {"properties": [("wait_for_input", False), ("deselect", True)]}),
         ]},
     )
 
