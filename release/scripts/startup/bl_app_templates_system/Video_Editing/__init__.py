@@ -29,7 +29,6 @@ def load_handler(dummy):
         if area.type == 'FILE_BROWSER':
             space = area.spaces.active
             params = space.params
-            params.directory = os.path.expanduser("~")
             params.use_filter_folder = True
 
 def register():
