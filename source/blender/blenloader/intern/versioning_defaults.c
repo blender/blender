@@ -42,6 +42,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_appdir.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_keyconfig.h"
@@ -121,6 +122,18 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 						/* grease pencil settings */
 						v3d->vertex_opacity = 1.0f;
 						v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
+						break;
+					}
+					case SPACE_FILE:
+					{
+						SpaceFile *sfile = (SpaceFile *)sl;
+						if (sfile->params) {
+							const char *dir_default = BKE_appdir_folder_default();
+							if (dir_default) {
+								STRNCPY(sfile->params->dir, dir_default);
+							}
+						}
+						break;
 					}
 				}
 			}
