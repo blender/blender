@@ -3534,6 +3534,54 @@ bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
 	return 0;
 }
 
+bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask mask)
+{
+	/* Keyboard. */
+	if (mask & EVT_TYPE_MASK_KEYBOARD) {
+		if (ISKEYBOARD(event_type)) {
+			return true;
+		}
+	}
+	else if (mask & EVT_TYPE_MASK_KEYBOARD_MODIFIER) {
+		if (ISKEYMODIFIER(event_type)) {
+			return true;
+		}
+	}
+
+	/* Mouse. */
+	if (mask & EVT_TYPE_MASK_MOUSE) {
+		if (ISMOUSE(event_type)) {
+			return true;
+		}
+	}
+	else if (mask & EVT_TYPE_MASK_MOUSE_WHEEL) {
+		if (ISMOUSE_WHEEL(event_type)) {
+			return true;
+		}
+	}
+	else if (mask & EVT_TYPE_MASK_MOUSE_GESTURE) {
+		if (ISMOUSE_GESTURE(event_type)) {
+			return true;
+		}
+	}
+
+	/* Tweak. */
+	if (mask & EVT_TYPE_MASK_TWEAK) {
+		if (ISTWEAK(event_type)) {
+			return true;
+		}
+	}
+
+	/* Action Zone. */
+	if (mask & EVT_TYPE_MASK_ACTIONZONE) {
+		if (IS_EVENT_ACTIONZONE(event_type)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /* ********************* ghost stuff *************** */
 
 static int convert_key(GHOST_TKey key)

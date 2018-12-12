@@ -3830,8 +3830,7 @@ static int ui_do_but_HOTKEYEVT(
 		ED_region_tag_redraw(data->region);
 
 		if (event->val == KM_PRESS) {
-			if (ISHOTKEY(event->type)) {
-
+			if (ISHOTKEY(event->type) && (event->type != ESCKEY)) {
 				if (WM_key_event_string(event->type, false)[0])
 					ui_but_value_set(but, event->type);
 				else

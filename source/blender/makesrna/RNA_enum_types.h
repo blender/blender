@@ -116,6 +116,7 @@ extern const EnumPropertyItem rna_enum_motionpath_bake_location_items[];
 
 extern const EnumPropertyItem rna_enum_event_value_items[];
 extern const EnumPropertyItem rna_enum_event_type_items[];
+extern const EnumPropertyItem rna_enum_event_type_mask_items[];
 extern const EnumPropertyItem rna_enum_operator_return_items[];
 extern const EnumPropertyItem rna_enum_operator_property_tags[];
 

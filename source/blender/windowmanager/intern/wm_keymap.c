@@ -64,7 +64,6 @@
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 
-
 struct wmKeyMapItemFind_Params {
 	bool (*filter_fn)(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data);
 	void *user_data;
@@ -1415,21 +1414,29 @@ char *WM_key_event_operator_string(
 	return NULL;
 }
 
-static bool kmi_filter_is_visible_hotkey(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data)
+static bool kmi_filter_is_visible_type_mask(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data)
 {
-	return (ISHOTKEY(kmi->type) && kmi_filter_is_visible(km, kmi, user_data));
+	short *mask_pair = user_data;
+	return ((WM_event_type_mask_test(kmi->type, mask_pair[0]) == true) &&
+	        (WM_event_type_mask_test(kmi->type, mask_pair[1]) == false) &&
+	        kmi_filter_is_visible(km, kmi, user_data));
 }
 
+/**
+ * \param include_mask, exclude_mask: Event types to include/exclude when looking up keys (#eEventType_Mask).
+ */
 wmKeyMapItem *WM_key_event_operator(
-        const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const bool is_hotkey,
+        const bContext *C, const char *opname, int opcontext, IDProperty *properties,
+        const short include_mask, const short exclude_mask,
         wmKeyMap **r_keymap)
 {
+	short user_data_mask[2] = {include_mask, exclude_mask};
+	bool use_mask = (include_mask != EVT_TYPE_MASK_ALL) || (exclude_mask != 0);
 	return wm_keymap_item_find(
 	        C, opname, opcontext, properties, true,
 	        &(struct wmKeyMapItemFind_Params){
-	            .filter_fn = is_hotkey ? kmi_filter_is_visible_hotkey : kmi_filter_is_visible,
-	            .user_data = NULL,
+	            .filter_fn = use_mask ? kmi_filter_is_visible_type_mask : kmi_filter_is_visible,
+	            .user_data = use_mask ? user_data_mask : NULL,
 	        },
 	        r_keymap);
 }

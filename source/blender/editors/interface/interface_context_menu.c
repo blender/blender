@@ -96,7 +96,10 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 	uiStyle *style = UI_style_get_dpi();
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 
-	kmi = WM_key_event_operator(C, but->optype->idname, but->opcontext, prop, true, &km);
+	kmi = WM_key_event_operator(
+	        C, but->optype->idname, but->opcontext, prop,
+	        EVT_TYPE_MASK_HOTKEY_INCLUDE, EVT_TYPE_MASK_HOTKEY_EXCLUDE,
+	        &km);
 	BLI_assert(kmi != NULL);
 
 	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
@@ -202,7 +205,10 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 	wmKeyMapItem *kmi;
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 
-	kmi = WM_key_event_operator(C, but->optype->idname, but->opcontext, prop, true, &km);
+	kmi = WM_key_event_operator(
+	        C, but->optype->idname, but->opcontext, prop,
+	        EVT_TYPE_MASK_HOTKEY_INCLUDE, EVT_TYPE_MASK_HOTKEY_EXCLUDE,
+	        &km);
 	BLI_assert(kmi != NULL);
 
 	WM_keymap_remove_item(km, kmi);
@@ -708,7 +714,10 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		int w = uiLayoutGetWidth(layout);
 		wmKeyMap *km;
 		/* We want to know if this op has a shortcut, be it hotkey or not. */
-		wmKeyMapItem *kmi = WM_key_event_operator(C, but->optype->idname, but->opcontext, prop, false, &km);
+		wmKeyMapItem *kmi = WM_key_event_operator(
+		        C, but->optype->idname, but->opcontext, prop,
+		        EVT_TYPE_MASK_ALL, 0,
+		        &km);
 
 		/* We do have a shortcut, but only keyboard ones are editable that way... */
 		if (kmi) {

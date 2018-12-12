@@ -44,6 +44,7 @@
 #include "UI_interface.h"
 
 #include "wm_cursors.h"
+#include "wm_event_types.h"
 
 #include "rna_internal.h"  /* own include */
 
@@ -371,14 +372,15 @@ static PointerRNA rna_KeyConfig_find_item_from_operator(
         const char *idname,
         int opcontext,
         PointerRNA *properties,
-        bool is_hotkey,
+        int include_mask, int exclude_mask,
         PointerRNA *km_ptr)
 {
 	char idname_bl[OP_MAX_TYPENAME];
 	WM_operator_bl_idname(idname_bl, idname);
 
 	wmKeyMap *km = NULL;
-	wmKeyMapItem *kmi = WM_key_event_operator(C, idname_bl, opcontext, properties->data, (bool)is_hotkey, &km);
+	wmKeyMapItem *kmi = WM_key_event_operator(
+	        C, idname_bl, opcontext, properties->data, include_mask, exclude_mask, &km);
 	PointerRNA kmi_ptr;
 	RNA_pointer_create(&wm->id, &RNA_KeyMap, km, km_ptr);
 	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &kmi_ptr);
@@ -972,7 +974,8 @@ void RNA_api_keyconfigs(StructRNA *srna)
 	RNA_def_property_enum_items(parm, rna_enum_operator_context_items);
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
-	RNA_def_boolean(func, "is_hotkey", 0, "Hotkey", "Event is not a modifier");
+	RNA_def_enum_flag(func, "include", rna_enum_event_type_mask_items, EVT_TYPE_MASK_ALL, "Include", "");
+	RNA_def_enum_flag(func, "exclude", rna_enum_event_type_mask_items, 0, "Exclude", "");
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_OUTPUT);
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");

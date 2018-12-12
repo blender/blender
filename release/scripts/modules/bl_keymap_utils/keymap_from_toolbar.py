@@ -131,7 +131,6 @@ def generate(context, space_type):
     if use_release_confirm or use_tap_reset:
         kmi_toolbar = wm.keyconfigs.find_item_from_operator(
             idname="wm.toolbar",
-            is_hotkey=True,
         )[1]
         kmi_toolbar_type = None if not kmi_toolbar else kmi_toolbar.type
         if use_tap_reset and kmi_toolbar_type is not None:
@@ -151,7 +150,7 @@ def generate(context, space_type):
                 context='INVOKE_REGION_WIN',
                 # properties={"name": item.text},
                 properties=kmi_hack_properties,
-                is_hotkey=True,
+                include={'KEYBOARD'},
             )[1]
             if kmi_found:
                 use_tap_reset = False
@@ -184,7 +183,7 @@ def generate(context, space_type):
                 context='INVOKE_REGION_WIN',
                 # properties={"name": item.text},
                 properties=kmi_hack_properties,
-                is_hotkey=True,
+                include={'KEYBOARD'},
             )[1]
 
             if kmi_found is None:
@@ -205,7 +204,7 @@ def generate(context, space_type):
                             idname="paint.brush_select",
                             context='INVOKE_REGION_WIN',
                             properties=kmi_hack_brush_select_properties,
-                            is_hotkey=True,
+                            include={'KEYBOARD'},
                         )[1]
                     else:
                         print("Unsupported mode:", mode)
@@ -220,7 +219,7 @@ def generate(context, space_type):
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname=item.operator,
                 context='INVOKE_REGION_WIN',
-                is_hotkey=True,
+                include={'KEYBOARD'},
             )[1]
         elif item.keymap is not None:
             km = keyconf.keymaps.get(item.keymap[0])
@@ -235,7 +234,7 @@ def generate(context, space_type):
                         idname=kmi_first.idname,
                         # properties=kmi_first.properties,  # prevents matches, don't use.
                         context='INVOKE_REGION_WIN',
-                        is_hotkey=True,
+                        include={'KEYBOARD'},
                     )[1]
                 else:
                     kmi_found = None
