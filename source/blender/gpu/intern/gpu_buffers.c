@@ -341,7 +341,7 @@ static void gpu_pbvh_grid_fill_fast_buffer(GPU_PBVH_Buffers *buffers, int totgri
 		GPU_indexbuf_init_ex(&elb, GPU_PRIM_TRI_STRIP, 5 * totgrid, INT_MAX, true);
 		uint vbo_index_offset = 0;
 		for (int i = 0; i < totgrid; i++) {
-			uint grid_indices[4];
+			uint grid_indices[4] = {0, 0, 0, 0};
 			for (int j = 0; j < gridsize - 1; j++) {
 				for (int k = 0; k < gridsize - 1; k++) {
 					const bool is_row_start = (k == 0);
