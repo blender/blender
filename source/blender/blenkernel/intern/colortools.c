@@ -960,8 +960,8 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap, float 
  *
  * Use in conjunction with #curvemapping_set_black_white_ex
  *
- * \param black Use instead of cumap->black
- * \param bwmul Use instead of cumap->bwmul
+ * \param black: Use instead of cumap->black
+ * \param bwmul: Use instead of cumap->bwmul
  */
 void curvemapping_evaluate_premulRGBF_ex(
         const CurveMapping *cumap, float vecout[3], const float vecin[3],

@@ -105,9 +105,9 @@ struct BufferLineAccumulator {
 	 * at dist_min from the target pt. This way the loop can be canceled as soon as it runs
 	 * out of the buffer rect, because no pixels further along the line can contribute.
 	 *
-	 * \param x, y  Start location in the buffer
-	 * \param num  Total steps in the loop
-	 * \param v, dv  Vertical offset in sector space, for line offset perpendicular to the loop axis
+	 * \param x, y: Start location in the buffer
+	 * \param num: Total steps in the loop
+	 * \param v, dv: Vertical offset in sector space, for line offset perpendicular to the loop axis
 	 */
 	static float *init_buffer_iterator(MemoryBuffer *input, const float source[2], const float co[2],
 	                                   float dist_min, float dist_max,

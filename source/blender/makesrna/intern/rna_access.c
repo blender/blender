@@ -4673,16 +4673,16 @@ static bool rna_path_parse_array_index(const char **path, PointerRNA *ptr, Prope
  *
  * \note All parameters besides \a ptr and \a path are optional.
  *
- * \param ptr The root of given RNA path.
- * \param path The RNA path.
- * \param r_ptr The final RNA data holding the last property in \a path.
- * \param r_prop The final property of \a r_ptr, from \a path.
- * \param r_index The final index in the \a r_prop, if defined by \a path.
- * \param r_item_ptr Only valid for Pointer and Collection, return the actual value of the pointer,
+ * \param ptr: The root of given RNA path.
+ * \param path: The RNA path.
+ * \param r_ptr: The final RNA data holding the last property in \a path.
+ * \param r_prop: The final property of \a r_ptr, from \a path.
+ * \param r_index: The final index in the \a r_prop, if defined by \a path.
+ * \param r_item_ptr: Only valid for Pointer and Collection, return the actual value of the pointer,
  *                   or of the collection item. Mutually exclusive with \a eval_pointer option.
- * \param r_elements A list of \a PropertyElemRNA items
+ * \param r_elements: A list of \a PropertyElemRNA items
  *                   (pairs of \a PointerRNA, \a PropertyRNA that represent the whole given \a path).
- * \param eval_pointer If \a true, and \a path leads to a Pointer property, or an item in a Collection property,
+ * \param eval_pointer: If \a true, and \a path leads to a Pointer property, or an item in a Collection property,
  *                     \a r_ptr will be set to the value of that property, and \a r_prop will be NULL.
  *                     Mutually exclusive with \a r_item_ptr.
  * \return \a true on success, \a false if the path is somehow invalid.
@@ -4903,7 +4903,7 @@ bool RNA_path_resolve_property_full(PointerRNA *ptr, const char *path, PointerRN
  * This is a convenience method to avoid logic errors and ugly syntax, it combines both \a RNA_path_resolve and
  * \a RNA_path_resolve_property in a single call.
  * \note Assumes all pointers provided are valid.
- * \param r_item_pointer The final Pointer or Collection item value. You must check for its validity before use!
+ * \param r_item_pointer: The final Pointer or Collection item value. You must check for its validity before use!
  * \return True only if both a valid pointer and property are found after resolving the path
  */
 bool RNA_path_resolve_property_and_item_pointer(
@@ -4923,7 +4923,7 @@ bool RNA_path_resolve_property_and_item_pointer(
  * This is a convenience method to avoid logic errors and ugly syntax, it combines both \a RNA_path_resolve_full and
  * \a RNA_path_resolve_property_full in a single call.
  * \note Assumes all pointers provided are valid.
- * \param r_item_pointer The final Pointer or Collection item value. You must check for its validity before use!
+ * \param r_item_pointer: The final Pointer or Collection item value. You must check for its validity before use!
  * \return True only if both a valid pointer and property are found after resolving the path
  */
 bool RNA_path_resolve_property_and_item_pointer_full(
@@ -7630,7 +7630,7 @@ static bool rna_property_override_operation_apply(
  * with respect to given restrictive sets of properties.
  * If requested, will generate needed new property overrides, and/or restore values from reference.
  *
- * \param r_report_flags If given, will be set with flags matching actions taken by the function on \a ptr_local.
+ * \param r_report_flags: If given, will be set with flags matching actions taken by the function on \a ptr_local.
  *
  * \return True if _resulting_ \a ptr_local does match \a ptr_reference.
  */

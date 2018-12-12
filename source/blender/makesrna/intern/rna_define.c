@@ -1444,7 +1444,7 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
  * For floats this is (step * UI_PRECISION_FLOAT_SCALE), why? - nobody knows.
  * For ints, whole values are used.
  *
- * \param precision The number of zeros to show
+ * \param precision: The number of zeros to show
  * (as a whole number - common range is 1 - 6), see UI_PRECISION_FLOAT_MAX
  */
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)

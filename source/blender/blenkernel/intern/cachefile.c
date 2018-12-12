@@ -114,7 +114,7 @@ void BKE_cachefile_free(CacheFile *cache_file)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_cachefile_copy_data(
         Main *UNUSED(bmain), CacheFile *cache_file_dst, const CacheFile *UNUSED(cache_file_src), const int UNUSED(flag))

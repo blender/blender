@@ -111,9 +111,9 @@ GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_
 
 /**
  * Create dynamic UBO from parameters
- * Return NULL if failed to create or if \param inputs is empty.
+ * Return NULL if failed to create or if \param inputs: is empty.
  *
- * \param inputs ListBase of BLI_genericNodeN(GPUInput)
+ * \param inputs: ListBase of BLI_genericNodeN(GPUInput)
  */
 GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_out[256])
 {

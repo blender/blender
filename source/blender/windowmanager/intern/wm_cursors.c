@@ -209,7 +209,7 @@ void WM_cursor_wait(bool val)
 }
 
 /**
- * \param bounds can be NULL
+ * \param bounds: can be NULL
  */
 void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 {

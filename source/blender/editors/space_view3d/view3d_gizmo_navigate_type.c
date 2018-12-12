@@ -88,7 +88,7 @@ struct AxisDrawInfo {
 
 #ifndef USE_AXIS_FONT
 /**
- * \param viewmat_local_unit is typically the 'rv3d->viewmatob'
+ * \param viewmat_local_unit: is typically the 'rv3d->viewmatob'
  * copied into a 3x3 matrix and normalized.
  */
 static void draw_xyz_wire(

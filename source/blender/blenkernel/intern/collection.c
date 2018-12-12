@@ -187,7 +187,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_collection_copy_data(
         Main *bmain, Collection *collection_dst, const Collection *collection_src, const int flag)
@@ -692,7 +692,7 @@ static void collection_missing_parents_remove(Collection *collection)
  *
  * \note caller must ensure BKE_main_collection_sync_remap() is called afterwards!
  *
- * \param collection may be \a NULL, in which case whole \a bmain database of collections is checked.
+ * \param collection: may be \a NULL, in which case whole \a bmain database of collections is checked.
  */
 void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
 {

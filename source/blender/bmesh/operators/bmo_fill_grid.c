@@ -216,7 +216,7 @@ static void barycentric_weights_v2_grid_cache(
 /**
  * This may be useful outside the bmesh operator.
  *
- * \param v_grid  2d array of verts, all boundary verts must be set, we fill in the middle.
+ * \param v_grid: 2d array of verts, all boundary verts must be set, we fill in the middle.
  */
 static void bm_grid_fill_array(
         BMesh *bm, BMVert **v_grid, const uint xtot, unsigned const int ytot,

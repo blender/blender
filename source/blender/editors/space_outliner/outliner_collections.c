@@ -822,9 +822,9 @@ void OUTLINER_OT_collection_indirect_only_clear(wmOperatorType *ot)
 }
 
 /**
- * Populates the \param objects ListBase with all the outliner selected objects
+ * Populates the \param objects: ListBase with all the outliner selected objects
  * We store it as (Object *)LinkData->data
- * \param objects expected to be empty
+ * \param objects: expected to be empty
  */
 void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
 {

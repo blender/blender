@@ -62,13 +62,13 @@ std::string get_id_name(const ID * const id)
 }
 
 /**
- * @brief get_object_dag_path_name returns the name under which the object
+ * \brief get_object_dag_path_name returns the name under which the object
  *  will be exported in the Alembic file. It is of the form
  *  "[../grandparent/]parent/object" if dupli_parent is NULL, or
  *  "dupli_parent/[../grandparent/]parent/object" otherwise.
- * @param ob
- * @param dupli_parent
- * @return
+ * \param ob:
+ * \param dupli_parent:
+ * \return
  */
 std::string get_object_dag_path_name(const Object * const ob, Object *dupli_parent)
 {

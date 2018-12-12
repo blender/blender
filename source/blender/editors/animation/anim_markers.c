@@ -127,12 +127,12 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 /**
  * Apply some transformation to markers after the fact
  *
- * \param markers List of markers to affect - this may or may not be the scene markers list, so don't assume anything
- * \param scene Current scene (for getting current frame)
- * \param mode (TfmMode) transform mode that this transform is for
- * \param value From the transform code, this is ``t->vec[0]``
+ * \param markers: List of markers to affect - this may or may not be the scene markers list, so don't assume anything
+ * \param scene: Current scene (for getting current frame)
+ * \param mode: (TfmMode) transform mode that this transform is for
+ * \param value: From the transform code, this is ``t->vec[0]``
  * (which is delta transform for grab/extend, and scale factor for scale)
- * \param side (B/L/R) for 'extend' functionality, which side of current frame to use
+ * \param side: (B/L/R) for 'extend' functionality, which side of current frame to use
  */
 int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, float value, char side)
 {
@@ -596,7 +596,7 @@ static bool ed_markers_poll_markers_exist(bContext *C)
  * "custom"/third-tier invoke() callback supplied as the last arg (which would normally
  * be the operator's invoke() callback elsewhere)
  *
- * \param invoke_func "standard" invoke function that operator would otherwise have used.
+ * \param invoke_func: "standard" invoke function that operator would otherwise have used.
  * If NULL, the operator's standard exec()
  * callback will be called instead in the appropriate places.
  */

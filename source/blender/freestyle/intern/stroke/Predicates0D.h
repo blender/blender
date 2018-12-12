@@ -70,7 +70,7 @@ public:
 	}
 
 	/*! The () operator. Must be overload by inherited classes.
-	 *  \param it
+	 *  \param it:
 	 *    The Interface0DIterator pointing onto the Interface0D at which we wish to evaluate the predicate.
 	 *  \return true if the condition is satisfied, false otherwise.
 	 */
@@ -115,9 +115,9 @@ public:
 
 	/*! The () operator. Must be overload by inherited classes.
 	 *  It evaluates a relation between 2 Interface0D.
-	 *  \param inter1
+	 *  \param inter1:
 	 *    The first Interface0D.
-	 *  \param inter2
+	 *  \param inter2:
 	 *    The second Interface0D.
 	 *  \return true or false.
 	 */

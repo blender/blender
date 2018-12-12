@@ -47,7 +47,7 @@ int BKE_idcode_to_index(const short idcode);
 /**
  * Return an ID code and steps the index forward 1.
  *
- * \param index start as 0.
+ * \param index: start as 0.
  * \return the code, 0 when all codes have been returned.
  */
 short BKE_idcode_iter_step(int *index);

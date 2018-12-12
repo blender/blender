@@ -168,14 +168,14 @@ static int additional_slen_offset;
 
 /**
  * Add type \c str to struct indexed by \c len, if it was not yet found.
- * \param str char
- * \param len int
+ * \param str: char
+ * \param len: int
  */
 static int add_type(const char *str, int len);
 
 /**
  * Add variable \c str to
- * \param str
+ * \param str:
  */
 static int add_name(const char *str);
 

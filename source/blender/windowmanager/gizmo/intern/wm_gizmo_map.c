@@ -258,8 +258,8 @@ bool WM_gizmomap_minmax(
 /**
  * Creates and returns idname hash table for (visible) gizmos in \a gzmap
  *
- * \param poll  Polling function for excluding gizmos.
- * \param data  Custom data passed to \a poll
+ * \param poll: Polling function for excluding gizmos.
+ * \param data: Custom data passed to \a poll
  *
  * TODO(campbell): this uses unreliable order,
  * best we use an iterator function instead of a hash.

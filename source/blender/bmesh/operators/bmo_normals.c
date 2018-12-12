@@ -191,10 +191,10 @@ static int recalc_face_normals_find_index(BMesh *bm, BMFace **faces, const int f
  * Given an array of faces, recalculate their normals.
  * this functions assumes all faces in the array are connected by edges.
  *
- * \param bm
- * \param faces  Array of connected faces.
- * \param faces_len  Length of \a faces
- * \param oflag  Flag to check before doing the actual face flipping.
+ * \param bm:
+ * \param faces: Array of connected faces.
+ * \param faces_len: Length of \a faces
+ * \param oflag: Flag to check before doing the actual face flipping.
  */
 static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int faces_len, const short oflag)
 {

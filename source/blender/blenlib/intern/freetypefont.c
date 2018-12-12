@@ -419,7 +419,7 @@ static int check_freetypefont(PackedFile *pf)
  * Construct a new VFontData structure from
  * Freetype font data in a PackedFile.
  *
- * \param pf The font data.
+ * \param pf: The font data.
  * \retval A new VFontData structure, or NULL
  * if unable to load.
  */

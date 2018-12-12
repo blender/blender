@@ -966,9 +966,9 @@ void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const s
  *
  * This takes the angle with sin/cos applied so we can avoid calculating it in some cases.
  *
- * \param axis rotation axis (must be normalized).
- * \param angle_sin sin(angle)
- * \param angle_cos cos(angle)
+ * \param axis: rotation axis (must be normalized).
+ * \param angle_sin: sin(angle)
+ * \param angle_cos: cos(angle)
  */
 void axis_angle_normalized_to_mat3_ex(float mat[3][3], const float axis[3],
                                       const float angle_sin, const float angle_cos)

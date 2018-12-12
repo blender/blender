@@ -420,11 +420,11 @@ bool ABC_export(
 /**
  * Generates an AbcObjectReader for this Alembic object and its children.
  *
- * \param object The Alembic IObject to visit.
- * \param readers The created AbcObjectReader * will be appended to this vector.
- * \param settings Import settings, not used directly but passed to the
+ * \param object: The Alembic IObject to visit.
+ * \param readers: The created AbcObjectReader * will be appended to this vector.
+ * \param settings: Import settings, not used directly but passed to the
  *                 AbcObjectReader subclass constructors.
- * \param r_assign_as_parent Return parameter, contains a list of reader
+ * \param r_assign_as_parent: Return parameter, contains a list of reader
  *                 pointers, whose parent pointer should still be set.
  *                 This is filled when this call to visit_object() didn't create
  *                 a reader that should be the parent.

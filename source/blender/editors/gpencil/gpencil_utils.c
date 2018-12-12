@@ -427,12 +427,12 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(
 /**
  * Check whether a given stroke segment is inside a circular brush
  *
- * \param mval     The current screen-space coordinates (midpoint) of the brush
- * \param mvalo    The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
- * \param rad      The radius of the brush
+ * \param mval: The current screen-space coordinates (midpoint) of the brush
+ * \param mvalo: The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
+ * \param rad: The radius of the brush
  *
- * \param x0, y0   The screen-space x and y coordinates of the start of the stroke segment
- * \param x1, y1   The screen-space x and y coordinates of the end of the stroke segment
+ * \param x0, y0: The screen-space x and y coordinates of the start of the stroke segment
+ * \param x1, y1: The screen-space x and y coordinates of the end of the stroke segment
  */
 bool gp_stroke_inside_circle(
         const float mval[2], const float UNUSED(mvalo[2]),

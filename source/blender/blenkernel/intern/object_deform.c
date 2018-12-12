@@ -70,7 +70,7 @@ static Lattice *object_defgroup_lattice_get(ID *id)
  *
  * Use it when you remove or reorder vgroups in the object.
  *
- * \param map an array mapping old indices to new indices.
+ * \param map: an array mapping old indices to new indices.
  */
 void BKE_object_defgroup_remap_update_users(Object *ob, int *map)
 {

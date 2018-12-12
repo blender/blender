@@ -178,7 +178,7 @@ enum {
  */
 
 /**
- * \param tag_only so we can call this from an operator */
+ * \param tag_only: so we can call this from an operator */
 void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool tag_only)
 {
 #ifdef USE_WALKER

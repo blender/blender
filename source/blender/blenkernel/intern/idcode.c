@@ -165,7 +165,7 @@ const char *BKE_idcode_to_name(short idcode)
 /**
  * Convert a name into an idcode (ie. ID_SCE)
  *
- * \param name The name to convert.
+ * \param name: The name to convert.
  * \return The code for the name, or 0 if invalid.
  */
 short BKE_idcode_from_name(const char *name)
@@ -348,7 +348,7 @@ const char *BKE_idcode_to_translation_context(short idcode)
 /**
  * Return an ID code and steps the index forward 1.
  *
- * \param index start as 0.
+ * \param index: start as 0.
  * \return the code, 0 when all codes have been returned.
  */
 short BKE_idcode_iter_step(int *index)

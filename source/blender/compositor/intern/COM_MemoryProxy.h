@@ -73,7 +73,7 @@ public:
 
 	/**
 	 * \brief set the ExecutionGroup that can be scheduled to calculate a certain chunk.
-	 * \param group the ExecutionGroup to set
+	 * \param group: the ExecutionGroup to set
 	 */
 	void setExecutor(ExecutionGroup *executor) { this->m_executor = executor; }
 
@@ -84,7 +84,7 @@ public:
 
 	/**
 	 * \brief set the WriteBufferOperation that is responsible for writing to this MemoryProxy
-	 * \param operation
+	 * \param operation:
 	 */
 	void setWriteBufferOperation(WriteBufferOperation *operation) { this->m_writeBufferOperation = operation; }
 

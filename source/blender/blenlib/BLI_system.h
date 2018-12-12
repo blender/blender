@@ -41,8 +41,8 @@ char *BLI_cpu_brand_string(void);
  * IP address of the machine. As such, it's only usable for identification
  * purposes, and not for reachability over a network.
  *
- * @param buffer Character buffer to write the hostname into.
- * @param bufsize Size of the character buffer, including trailing '\0'.
+ * \param buffer: Character buffer to write the hostname into.
+ * \param bufsize: Size of the character buffer, including trailing '\0'.
  */
 void BLI_hostname_get(char *buffer, size_t bufsize);
 

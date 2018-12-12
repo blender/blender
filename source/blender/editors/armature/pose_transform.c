@@ -311,10 +311,10 @@ static void set_pose_keys(Object *ob)
 /**
  * Perform paste pose, for a single bone.
  *
- * \param ob Object where bone to paste to lives
- * \param chan Bone that pose to paste comes from
- * \param selOnly Only paste on selected bones
- * \param flip Flip on x-axis
+ * \param ob: Object where bone to paste to lives
+ * \param chan: Bone that pose to paste comes from
+ * \param selOnly: Only paste on selected bones
+ * \param flip: Flip on x-axis
  * \return Whether the bone that we pasted to if we succeeded
  */
 static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bool selOnly, const bool flip)

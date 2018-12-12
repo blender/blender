@@ -103,7 +103,7 @@ public:
 	}
 
 	/*! The operator ().
-	 *  \param iter
+	 *  \param iter:
 	 *    An Interface0DIterator pointing onto the point at which we wish to evaluate the function.
 	 *  \return the result of the function of type T.
 	 */

@@ -613,7 +613,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
 
 
 /** set all props to their default,
- * \param do_update Only update un-initialized props.
+ * \param do_update: Only update un-initialized props.
  *
  * \note, there's nothing specific to operators here.
  * this could be made a general function.

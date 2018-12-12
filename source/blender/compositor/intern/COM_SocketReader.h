@@ -58,10 +58,10 @@ protected:
 	/**
 	 * \brief calculate a single pixel
 	 * \note this method is called for non-complex
-	 * \param result is a float[4] array to store the result
-	 * \param x the x-coordinate of the pixel to calculate in image space
-	 * \param y the y-coordinate of the pixel to calculate in image space
-	 * \param inputBuffers chunks that can be read by their ReadBufferOperation.
+	 * \param result: is a float[4] array to store the result
+	 * \param x: the x-coordinate of the pixel to calculate in image space
+	 * \param y: the y-coordinate of the pixel to calculate in image space
+	 * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
 	 */
 	virtual void executePixelSampled(float /*output*/[4],
 	                                 float /*x*/,
@@ -71,11 +71,11 @@ protected:
 	/**
 	 * \brief calculate a single pixel
 	 * \note this method is called for complex
-	 * \param result is a float[4] array to store the result
-	 * \param x the x-coordinate of the pixel to calculate in image space
-	 * \param y the y-coordinate of the pixel to calculate in image space
-	 * \param inputBuffers chunks that can be read by their ReadBufferOperation.
-	 * \param chunkData chunk specific data a during execution time.
+	 * \param result: is a float[4] array to store the result
+	 * \param x: the x-coordinate of the pixel to calculate in image space
+	 * \param y: the y-coordinate of the pixel to calculate in image space
+	 * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+	 * \param chunkData: chunk specific data a during execution time.
 	 */
 	virtual void executePixel(float output[4], int x, int y, void * /*chunkData*/) {
 		executePixelSampled(output, x, y, COM_PS_NEAREST);
@@ -84,12 +84,12 @@ protected:
 	/**
 	 * \brief calculate a single pixel using an EWA filter
 	 * \note this method is called for complex
-	 * \param result is a float[4] array to store the result
-	 * \param x the x-coordinate of the pixel to calculate in image space
-	 * \param y the y-coordinate of the pixel to calculate in image space
-	 * \param dx
-	 * \param dy
-	 * \param inputBuffers chunks that can be read by their ReadBufferOperation.
+	 * \param result: is a float[4] array to store the result
+	 * \param x: the x-coordinate of the pixel to calculate in image space
+	 * \param y: the y-coordinate of the pixel to calculate in image space
+	 * \param dx:
+	 * \param dy:
+	 * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
 	 */
 	virtual void executePixelFiltered(float /*output*/[4],
 	                                  float /*x*/, float /*y*/,

@@ -168,9 +168,9 @@ bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
  * Setup motion paths for the given data.
  * \note Only used when explicitly calculating paths on bones which may/may not be consider already
  *
- * \param scene Current scene (for frame ranges, etc.)
- * \param ob Object to add paths for (must be provided)
- * \param pchan Posechannel to add paths for (optional; if not provided, object-paths are assumed)
+ * \param scene: Current scene (for frame ranges, etc.)
+ * \param ob: Object to add paths for (must be provided)
+ * \param pchan: Posechannel to add paths for (optional; if not provided, object-paths are assumed)
  */
 bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Object *ob, bPoseChannel *pchan)
 {

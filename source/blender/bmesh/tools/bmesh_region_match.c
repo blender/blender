@@ -1374,7 +1374,7 @@ static void bm_vert_fasthash_destroy(
 /**
  * Take a face-region and return a list of matching face-regions.
  *
- * \param faces_region  A single, contiguous face-region.
+ * \param faces_region: A single, contiguous face-region.
  * \return  A list of matching null-terminated face-region arrays.
  */
 int BM_mesh_region_match(

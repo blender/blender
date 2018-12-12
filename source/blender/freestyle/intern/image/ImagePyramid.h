@@ -62,11 +62,11 @@ public:
 
 	virtual GrayImage *getLevel(int l);
 	/*! Returns the pixel x,y using bilinear interpolation.
-	 *  \param x
+	 *  \param x:
 	 *    the abscissa specified in the finest level coordinate system
-	 *  \param y
+	 *  \param y:
 	 *    the ordinate specified in the finest level coordinate system
-	 *  \param level
+	 *  \param level:
 	 *    the level from which we want the pixel to be evaluated
 	 */
 	virtual float pixel(int x, int y, int level=0);

@@ -1424,7 +1424,7 @@ static bool bm_ray_cast_cb_elem_not_in_face_check(BMFace *f, void *user_data)
  * Check if \a p is visible (not clipped, not occluded by another face).
  * s in screen projection of p.
  *
- * \param ele_test  Optional vert/edge/face to use when \a p is on the surface of the geometry,
+ * \param ele_test: Optional vert/edge/face to use when \a p is on the surface of the geometry,
  * intersecting faces matching this face (or connected when an vert/edge) will be ignored.
  */
 static bool point_is_visible(
@@ -3012,7 +3012,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
 }
 
 /**
- * \param use_tag  When set, tag all faces inside the polylines.
+ * \param use_tag: When set, tag all faces inside the polylines.
  */
 void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_through)
 {

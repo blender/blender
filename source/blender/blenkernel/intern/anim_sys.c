@@ -268,7 +268,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 
 /**
  * Make a copy of the given AnimData - to be used when copying datablocks.
- * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  * \return The copied animdata.
  */
 AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
@@ -309,7 +309,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 }
 
 /**
- * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  * \return true is succesfully copied.
  */
 bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
@@ -425,8 +425,8 @@ void BKE_animdata_merge_copy(
 /**
  * Helper heuristic for determining if a path is compatible with the basepath
  *
- * \param path Full RNA-path from some data (usually an F-Curve) to compare
- * \param basepath Shorter path fragment to look for
+ * \param path: Full RNA-path from some data (usually an F-Curve) to compare
+ * \param basepath: Shorter path fragment to look for
  * \return Whether there is a match
  */
 static bool animpath_matches_basepath(const char path[], const char basepath[])
@@ -598,9 +598,9 @@ void BKE_animdata_separate_by_basepath(
  * such drivers by rerouting all paths through the active object instead so that
  * they will get picked up by the dependency system.
  *
- * \param C Context pointer - for getting active data
+ * \param C: Context pointer - for getting active data
  * \param[in,out] ptr RNA pointer for property's datablock. May be modified as result of path remapping.
- * \param prop RNA definition of property to add for
+ * \param prop: RNA definition of property to add for
  * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
  */
 char *BKE_animdata_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *prop, char *base_path)

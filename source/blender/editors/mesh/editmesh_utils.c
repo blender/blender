@@ -991,12 +991,12 @@ static BMVert *cache_mirr_intptr_as_bmvert(intptr_t *index_lookup, int index)
 #define BM_SEARCH_MAXDIST_MIRR 0.00002f
 #define BM_CD_LAYER_ID "__mirror_index"
 /**
- * \param em  Editmesh.
- * \param use_self  Allow a vertex to point to its self (middle verts).
- * \param use_select  Restrict to selected verts.
- * \param use_topology  Use topology mirror.
- * \param maxdist  Distance for close point test.
- * \param r_index  Optional array to write into, as an alternative to a customdata layer (length of total verts).
+ * \param em: Editmesh.
+ * \param use_self: Allow a vertex to point to its self (middle verts).
+ * \param use_select: Restrict to selected verts.
+ * \param use_topology: Use topology mirror.
+ * \param maxdist: Distance for close point test.
+ * \param r_index: Optional array to write into, as an alternative to a customdata layer (length of total verts).
  */
 void EDBM_verts_mirror_cache_begin_ex(
         BMEditMesh *em, const int axis, const bool use_self, const bool use_select,

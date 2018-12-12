@@ -1996,7 +1996,7 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
 }
 
 /**
- * \param select_only only get active center from data being transformed.
+ * \param select_only: only get active center from data being transformed.
  */
 bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 {

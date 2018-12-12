@@ -66,10 +66,10 @@ private:
 public:
 	/**
 	 * \brief constructor with opencl device
-	 * \param context
-	 * \param device
-	 * \param program
-	 * \param vendorID
+	 * \param context:
+	 * \param device:
+	 * \param program:
+	 * \param vendorID:
 	 */
 	OpenCLDevice(cl_context context, cl_device_id device, cl_program program, cl_int vendorId);
 
@@ -90,13 +90,13 @@ public:
 
 	/**
 	 * \brief execute a WorkPackage
-	 * \param work the WorkPackage to execute
+	 * \param work: the WorkPackage to execute
 	 */
 	void execute(WorkPackage *work);
 
 	/**
 	 * \brief determine an image format
-	 * \param memorybuffer
+	 * \param memorybuffer:
 	 */
 	static const cl_image_format *determineImageFormat(MemoryBuffer *memoryBuffer);
 

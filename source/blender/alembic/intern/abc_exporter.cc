@@ -140,8 +140,8 @@ static bool object_type_is_exportable(Scene *scene, Object *ob)
 /**
  * Returns whether this object should be exported into the Alembic file.
  *
- * \param settings export settings, used for options like 'selected only'.
- * \param ob the object's base in question.
+ * \param settings: export settings, used for options like 'selected only'.
+ * \param ob: the object's base in question.
  * \param is_duplicated: Normally false; true when the object is instanced
  * into the scene by a dupli-object (e.g. part of a dupligroup).
  * This ignores selection and layer visibility,

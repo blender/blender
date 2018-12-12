@@ -690,7 +690,7 @@ void WM_gizmo_properties_sanitize(PointerRNA *ptr, const bool no_context)
 
 
 /** set all props to their default,
- * \param do_update Only update un-initialized props.
+ * \param do_update: Only update un-initialized props.
  *
  * \note, there's nothing specific to gizmos here.
  * this could be made a general function.

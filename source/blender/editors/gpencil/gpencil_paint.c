@@ -503,9 +503,9 @@ static void gp_brush_angle(bGPdata *gpd, Brush *brush, tGPspoint *pt, const floa
  *
  *   A----B-----C------D
  *
- * \param p	    Temp data
- * \param inf    Influence factor
- * \param idx	Index of the last point (need minimum 3 points in the array)
+ * \param p: Temp data
+ * \param inf: Influence factor
+ * \param idx: Index of the last point (need minimum 3 points in the array)
  */
 static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
 {

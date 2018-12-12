@@ -456,7 +456,7 @@ static void wm_confirm_quit(bContext *C)
  * still cancel via the confirmation popup. Also, this may not quit Blender
  * immediately, but rather schedule the closing.
  *
- * \param win The window to show the confirmation popup/window in.
+ * \param win: The window to show the confirmation popup/window in.
  */
 void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 {

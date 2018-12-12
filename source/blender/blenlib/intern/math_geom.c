@@ -361,9 +361,9 @@ void closest_to_line_segment_v3(float r_close[3], const float p[3], const float 
 /**
  * Find the closest point on a plane.
  *
- * \param r_close  Return coordinate
- * \param plane  The plane to test against.
- * \param pt  The point to find the nearest of
+ * \param r_close: Return coordinate
+ * \param plane: The plane to test against.
+ * \param pt: The point to find the nearest of
  *
  * \note non-unit-length planes are supported.
  */
@@ -486,7 +486,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
  * Check if \a p is inside the 2x planes defined by ``(v1, v2, v3)``
  * where the 3x points define 2x planes.
  *
- * \param axis_ref used when v1,v2,v3 form a line and to check if the corner is concave/convex.
+ * \param axis_ref: used when v1,v2,v3 form a line and to check if the corner is concave/convex.
  *
  * \note the distance from \a v1 & \a v3 to \a v2 doesnt matter
  * (it just defines the planes).
@@ -2020,11 +2020,11 @@ bool isect_point_planes_v3_negated(
 /**
  * Intersect line/plane.
  *
- * \param r_isect_co The intersection point.
- * \param l1 The first point of the line.
- * \param l2 The second point of the line.
- * \param plane_co A point on the plane to intersect with.
- * \param plane_no The direction of the plane (does not need to be normalized).
+ * \param r_isect_co: The intersection point.
+ * \param l1: The first point of the line.
+ * \param l2: The second point of the line.
+ * \param plane_co: A point on the plane to intersect with.
+ * \param plane_no: The direction of the plane (does not need to be normalized).
  *
  * \note #line_plane_factor_v3() shares logic.
  */
@@ -3106,8 +3106,8 @@ bool clip_segment_v3_plane_n(
  * This matrix can be applied to vectors so their 'z' axis runs along \a normal.
  * In practice it means you can use x,y as 2d coords. \see
  *
- * \param r_mat The matrix to return.
- * \param normal A unit length vector.
+ * \param r_mat: The matrix to return.
+ * \param normal: A unit length vector.
  */
 void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 {

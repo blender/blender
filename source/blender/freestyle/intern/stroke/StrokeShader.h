@@ -93,7 +93,7 @@ public:
 	}
 
 	/*! The shading method. This method must be overloaded by inherited classes.
-	 *  \param ioStroke
+	 *  \param ioStroke:
 	 *    The stroke we wish to shade. this Stroke is modified by the Shader (which typically
 	 *    modifies the Stroke's attribute's values such as Color, Thickness, Geometry...)
 	 */

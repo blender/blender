@@ -144,7 +144,7 @@ int text_check_format_len(TextLine *line, unsigned int len)
  * Fill the string with formatting constant,
  * advancing \a str_p and \a fmt_p
  *
- * \param len length in bytes of \a fmt_p to fill.
+ * \param len: length in bytes of \a fmt_p to fill.
  */
 void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len)
 {

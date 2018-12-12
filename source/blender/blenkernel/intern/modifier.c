@@ -471,7 +471,7 @@ bool modifiers_isParticleEnabled(Object *ob)
 /**
  * Check whether is enabled.
  *
- * \param scene Current scene, may be NULL, in which case isDisabled callback of the modifier is never called.
+ * \param scene: Current scene, may be NULL, in which case isDisabled callback of the modifier is never called.
  */
 bool modifier_isEnabled(const struct Scene *scene, ModifierData *md, int required_mode)
 {

@@ -247,12 +247,12 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_de
  * Split a face along two vertices. returns the newly made face, and sets
  * the \a r_l member to a loop in the newly created edge.
  *
- * \param bm The bmesh
- * \param f the original face
- * \param l_a, l_b  Loops of this face, their vertices define
+ * \param bm: The bmesh
+ * \param f: the original face
+ * \param l_a, l_b: Loops of this face, their vertices define
  * the split edge to be created (must be differ and not can't be adjacent in the face).
- * \param r_l pointer which will receive the BMLoop for the split edge in the new face
- * \param example Edge used for attributes of splitting edge, if non-NULL
+ * \param r_l: pointer which will receive the BMLoop for the split edge in the new face
+ * \param example: Edge used for attributes of splitting edge, if non-NULL
  * \param no_double: Use an existing edge if found
  *
  * \return Pointer to the newly created face representing one side of the split
@@ -327,13 +327,13 @@ BMFace *BM_face_split(
  *
  * Like BM_face_split, but with an edge split by \a n intermediate points with given coordinates.
  *
- * \param bm The bmesh
- * \param f the original face
- * \param l_a, l_b vertices which define the split edge, must be different
- * \param cos Array of coordinates for intermediate points
- * \param n Length of \a cos (must be > 0)
- * \param r_l pointer which will receive the BMLoop for the first split edge (from \a l_a) in the new face
- * \param example Edge used for attributes of splitting edge, if non-NULL
+ * \param bm: The bmesh
+ * \param f: the original face
+ * \param l_a, l_b: Vertices which define the split edge, must be different
+ * \param cos: Array of coordinates for intermediate points
+ * \param n: Length of \a cos (must be > 0)
+ * \param r_l: pointer which will receive the BMLoop for the first split edge (from \a l_a) in the new face
+ * \param example: Edge used for attributes of splitting edge, if non-NULL
  *
  * \return Pointer to the newly created face representing one side of the split
  * if the split is successful (and the original original face will be the
@@ -422,13 +422,13 @@ BMFace *BM_face_split_n(
  * both collapse a vertex and return a new edge.
  * Except this takes a factor and merges custom data.
  *
- * \param bm The bmesh
- * \param e_kill The edge to collapse
- * \param v_kill The vertex  to collapse into the edge
- * \param fac The factor along the edge
- * \param join_faces When true the faces around the vertex will be joined
+ * \param bm: The bmesh
+ * \param e_kill: The edge to collapse
+ * \param v_kill: The vertex  to collapse into the edge
+ * \param fac: The factor along the edge
+ * \param join_faces: When true the faces around the vertex will be joined
  * otherwise collapse the vertex by merging the 2 edges this vert touches into one.
- * \param kill_degenerate_faces Removes faces with less than 3 verts after collapsing.
+ * \param kill_degenerate_faces: Removes faces with less than 3 verts after collapsing.
  *
  * \returns The New Edge
  */
@@ -580,10 +580,10 @@ BMVert *BM_edge_collapse(
  *                 r_e                e
  * </pre>
  *
- * \param e  The edge to split.
- * \param v  One of the vertices in \a e and defines the "from" end of the splitting operation,
+ * \param e: The edge to split.
+ * \param v: One of the vertices in \a e and defines the "from" end of the splitting operation,
  * the new vertex will be \a fac of the way from \a v to the other end.
- * \param r_e  The newly created edge.
+ * \param r_e: The newly created edge.
  * \return  The new vertex.
  */
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
@@ -703,7 +703,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 /**
  * \brief Split an edge multiple times evenly
  *
- * \param r_varr  Optional array, verts in between (v1 -> v2)
+ * \param r_varr: Optional array, verts in between (v1 -> v2)
  */
 BMVert  *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr)
 {
@@ -857,8 +857,8 @@ bool BM_edge_rotate_check(BMEdge *e)
  * 1) does the newly forms edge form a flipped face (compare with previous cross product)
  * 2) does the newly formed edge cause a zero area corner (or close enough to be almost zero)
  *
- * \param e The edge to test rotation.
- * \param l1,l2 are the loops of the proposed verts to rotate too and should
+ * \param e: The edge to test rotation.
+ * \param l1, l2: are the loops of the proposed verts to rotate too and should
  * be the result of calling #BM_edge_calc_rotate
  */
 bool BM_edge_rotate_check_degenerate(BMEdge *e, BMLoop *l1, BMLoop *l2)

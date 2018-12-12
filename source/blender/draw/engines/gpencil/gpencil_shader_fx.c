@@ -82,9 +82,9 @@ static bool effect_is_active(bGPdata *gpd, ShaderFxData *fx, bool is_render)
 
 /**
  * Get normal of draw using one stroke of visible layer
- * \param gpd        GP datablock
- * \param r_point    Point on plane
- * \param r_normal   Normal vector
+ * \param gpd: GP datablock
+ * \param r_point: Point on plane
+ * \param r_normal: Normal vector
  */
 static bool get_normal_vector(bGPdata *gpd, float r_point[3], float r_normal[3])
 {

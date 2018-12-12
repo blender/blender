@@ -84,17 +84,17 @@ public:
 	}
 
 	/*! Builds a partial-storing image.
-	 *  \param w
+	 *  \param w:
 	 *    The width of the complete image
-	 *  \param h
+	 *  \param h:
 	 *    The height of the complete image
-	 *  \param sw
+	 *  \param sw:
 	 *    The width of the rectangle that will actually be stored.
-	 *  \param sh
+	 *  \param sh:
 	 *    The height of the rectangle that will actually be stored.
-	 *  \param ox
+	 *  \param ox:
 	 *    The x-abscissa of the origin of the rectangle that will actually be stored.
-	 *  \param oy
+	 *  \param oy:
 	 *    The x-abscissa of the origin of the rectangle that will actually be stored.
 	 */
 	FrsImage(unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy)
@@ -138,22 +138,22 @@ public:
 	virtual float pixel(unsigned x, unsigned y) const = 0;
 
 	/*! Sets the array.
-	 *  \param array
+	 *  \param array:
 	 *    The array containing the values we wish to store.
 	 *    Its size is sw*sh.
-	 *  \param width
+	 *  \param width:
 	 *    The width of the complete image
-	 *  \param height
+	 *  \param height:
 	 *    The height of the complete image
-	 *  \param sw
+	 *  \param sw:
 	 *    The width of the rectangle that will actually be stored.
-	 *  \param sh
+	 *  \param sh:
 	 *    The height of the rectangle that will actually be stored.
-	 *  \param ox
+	 *  \param ox:
 	 *    The x-abscissa of the origin of the rectangle that will actually be stored.
-	 *  \param oy
+	 *  \param oy:
 	 *    The x-abscissa of the origin of the rectangle that will actually be stored.
-	 *  \param copy
+	 *  \param copy:
 	 *    If true, the array is copied, otherwise the pointer is copied
 	 */
 	virtual void setArray(float *array, unsigned width, unsigned height, unsigned sw, unsigned sh,
@@ -208,16 +208,16 @@ public:
 	}
 
 	/*! Builds an RGB partial image from the useful part buffer.
-	 *  \param rgb
+	 *  \param rgb:
 	 *    The array of size 3*sw*sh containing the RGB values of the sw*sh pixels we need to stored.
 	 *    These sw*sh pixels constitute a rectangular part of a bigger RGB image containing w*h pixels.
-	 *  \param w
+	 *  \param w:
 	 *    The width of the complete image
-	 *  \param h
+	 *  \param h:
 	 *    The height of the complete image
-	 *  \param sw
+	 *  \param sw:
 	 *    The width of the part of the image we want to store and work on
-	 *  \param sh
+	 *  \param sh:
 	 *    The height of the part of the image we want to store and work on
 	 */
 	RGBImage(float *rgb, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy)
@@ -341,16 +341,16 @@ public:
 	}
 
 	/*! Builds a partial image from the useful part buffer.
-	 *  \param lvl
+	 *  \param lvl:
 	 *    The array of size sw*sh containing the gray values of the sw*sh pixels we need to stored.
 	 *    These sw*sh pixels constitute a rectangular part of a bigger gray image containing w*h pixels.
-	 *  \param w
+	 *  \param w:
 	 *    The width of the complete image
-	 *  \param h
+	 *  \param h:
 	 *    The height of the complete image
-	 *  \param sw
+	 *  \param sw:
 	 *    The width of the part of the image we want to store and work on
-	 *  \param sh
+	 *  \param sh:
 	 *    The height of the part of the image we want to store and work on
 	 */
 	GrayImage(float *lvl, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy)

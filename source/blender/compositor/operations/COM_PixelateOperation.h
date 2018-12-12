@@ -41,7 +41,7 @@ private:
 public:
 	/**
 	 * \brief PixelateOperation
-	 * \param dataType the datatype to create this operator for (saves datatype conversions)
+	 * \param dataType: the datatype to create this operator for (saves datatype conversions)
 	 */
 	PixelateOperation(DataType dataType);
 
@@ -57,10 +57,10 @@ public:
 
 	/**
 	 * \brief executePixel
-	 * \param output result
-	 * \param x x-coordinate
-	 * \param y y-coordinate
-	 * \param sampler sampler
+	 * \param output: result
+	 * \param x: x-coordinate
+	 * \param y: y-coordinate
+	 * \param sampler: sampler
 	 */
 	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };

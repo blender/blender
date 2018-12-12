@@ -93,7 +93,7 @@ public:
 	virtual void ProcessCreaseEdge(WXEdge *iEdge);
 
 	/*! Sets the minimum angle for detecting crease edges
-	 *  \param angle
+	 *  \param angle:
 	 *    The angular threshold in degrees (between 0 and 180) for detecting crease edges. An edge is considered
 	 *    a crease edge if the angle between two faces sharing the edge is smaller than the given threshold.
 	 */
@@ -125,7 +125,7 @@ public:
 	virtual void postProcessSuggestiveContourShape(WXShape *iShape);
 	virtual void postProcessSuggestiveContourFace(WXFace *iFace);
 	/*! Sets the minimal derivative of the radial curvature for suggestive contours
-	 *  \param dkr
+	 *  \param dkr:
 	 *    The minimal derivative of the radial curvature
 	 */
 	inline void setSuggestiveContourKrDerivativeEpsilon(float dkr)
@@ -190,7 +190,7 @@ public:
 	}
 
 	/*! Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
-	 *  \param r
+	 *  \param r:
 	 *    The radius of the sphere expressed as a ratio of the mean edge size
 	 */
 	inline void setSphereRadius(float r)

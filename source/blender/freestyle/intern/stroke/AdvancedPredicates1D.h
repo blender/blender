@@ -52,10 +52,10 @@ class DensityLowerThanUP1D : public UnaryPredicate1D
 {
 public:
 	/*! Builds the functor.
-	 *  \param threshold
+	 *  \param threshold:
 	 *    The value of the threshold density.
 	 *    Any Interface1D having a density lower than this threshold will match.
-	 *  \param sigma
+	 *  \param sigma:
 	 *    The sigma value defining the density evaluation window size used in the DensityF0D functor.
 	 */
 	DensityLowerThanUP1D(double threshold, double sigma = 2)

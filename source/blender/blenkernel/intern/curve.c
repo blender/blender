@@ -197,7 +197,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_curve_copy_data(Main *bmain, Curve *cu_dst, const Curve *cu_src, const int flag)
 {
@@ -1366,9 +1366,9 @@ void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int r
 }
 
 /**
- * \param coord_array Has to be 3 * 4 * pntsu * resolu in size and zero-ed
- * \param tilt_array   set when non-NULL
- * \param radius_array set when non-NULL
+ * \param coord_array: Has to be 3 * 4 * pntsu * resolu in size and zero-ed
+ * \param tilt_array: set when non-NULL
+ * \param radius_array: set when non-NULL
  */
 void BKE_nurb_makeCurve(
         const Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array,

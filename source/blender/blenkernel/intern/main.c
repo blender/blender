@@ -215,8 +215,8 @@ void BKE_main_relations_free(Main *bmain)
 /**
  * Generates a raw .blend file thumbnail data from given image.
  *
- * \param bmain If not NULL, also store generated data in this Main.
- * \param img ImBuf image to generate thumbnail data from.
+ * \param bmain: If not NULL, also store generated data in this Main.
+ * \param img: ImBuf image to generate thumbnail data from.
  * \return The generated .blend file raw thumbnail data.
  */
 BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
@@ -246,8 +246,8 @@ BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
 /**
  * Generates an image from raw .blend file thumbnail \a data.
  *
- * \param bmain Use this bmain->blen_thumb data if given \a data is NULL.
- * \param data Raw .blend file thumbnail data.
+ * \param bmain: Use this bmain->blen_thumb data if given \a data is NULL.
+ * \param data: Raw .blend file thumbnail data.
  * \return An ImBuf from given data, or NULL if invalid.
  */
 ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)

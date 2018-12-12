@@ -36,9 +36,9 @@
 #include "bmesh_edgesplit.h"  /* own include */
 
 /**
- * \param use_verts  Use flagged verts instead of edges.
- * \param tag_only  Only split tagged edges.
- * \param copy_select  Copy selection history.
+ * \param use_verts: Use flagged verts instead of edges.
+ * \param tag_only: Only split tagged edges.
+ * \param copy_select: Copy selection history.
  */
 void BM_mesh_edgesplit(
         BMesh *bm,

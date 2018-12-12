@@ -184,10 +184,10 @@ static bool test_env_path(char *path, const char *envvar)
  * Constructs in \a targetpath the name of a directory relative to a version-specific
  * subdirectory in the parent directory of the Blender executable.
  *
- * \param targetpath  String to return path
- * \param folder_name  Optional folder name within version-specific directory
- * \param subfolder_name  Optional subfolder name within folder_name
- * \param ver  To construct name of version-specific directory within bprogdir
+ * \param targetpath: String to return path
+ * \param folder_name: Optional folder name within version-specific directory
+ * \param subfolder_name: Optional subfolder name within folder_name
+ * \param ver: To construct name of version-specific directory within bprogdir
  * \return true if such a directory exists.
  */
 static bool get_path_local(
@@ -275,10 +275,10 @@ static bool get_path_environment(
  * Returns the path of a folder within the user-files area.
  *
  *
- * \param targetpath  String to return path
- * \param folder_name  default name of folder within user area
- * \param subfolder_name  optional name of subfolder within folder
-  * \param ver  Blender version, used to construct a subdirectory name
+ * \param targetpath: String to return path
+ * \param folder_name: default name of folder within user area
+ * \param subfolder_name: optional name of subfolder within folder
+  * \param ver: Blender version, used to construct a subdirectory name
  * \return true if it was able to construct such a path.
  */
 static bool get_path_user(
@@ -316,10 +316,10 @@ static bool get_path_user(
 /**
  * Returns the path of a folder within the Blender installation directory.
  *
- * \param targetpath  String to return path
- * \param folder_name  default name of folder within installation area
- * \param subfolder_name  optional name of subfolder within folder
- * \param ver  Blender version, used to construct a subdirectory name
+ * \param targetpath: String to return path
+ * \param folder_name: default name of folder within installation area
+ * \param subfolder_name: optional name of subfolder within folder
+ * \param ver: Blender version, used to construct a subdirectory name
  * \return  true if it was able to construct such a path.
  */
 static bool get_path_system(
@@ -544,9 +544,9 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
  * the name to its 8.3 version to prevent problems with
  * spaces and stuff. Final result is returned in fullname.
  *
- * \param fullname The full path and full name of the executable
+ * \param fullname: The full path and full name of the executable
  * (must be FILE_MAX minimum)
- * \param name The name of the executable (usually argv[0]) to be checked
+ * \param name: The name of the executable (usually argv[0]) to be checked
  */
 static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
@@ -772,10 +772,10 @@ void BKE_appdir_app_templates(ListBase *templates)
  *
  * Also make sure the temp dir has a trailing slash
  *
- * \param fullname The full path to the temporary temp directory
- * \param basename The full path to the persistent temp directory (may be NULL)
- * \param maxlen The size of the fullname buffer
- * \param userdir Directory specified in user preferences
+ * \param fullname: The full path to the temporary temp directory
+ * \param basename: The full path to the persistent temp directory (may be NULL)
+ * \param maxlen: The size of the fullname buffer
+ * \param userdir: Directory specified in user preferences
  */
 static void where_is_temp(char *fullname, char *basename, const size_t maxlen, char *userdir)
 {

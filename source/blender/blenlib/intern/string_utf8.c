@@ -515,7 +515,7 @@ int BLI_str_utf8_size_safe(const char *p)
 /* was g_utf8_get_char */
 /**
  * BLI_str_utf8_as_unicode:
- * \param p a pointer to Unicode character encoded as UTF-8
+ * \param p: a pointer to Unicode character encoded as UTF-8
  *
  * Converts a sequence of bytes encoded as UTF-8 to a Unicode character.
  * If \a p does not point to a valid UTF-8 encoded character, results are
@@ -677,8 +677,8 @@ size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
 /* was g_utf8_find_prev_char */
 /**
  * BLI_str_find_prev_char_utf8:
- * \param str pointer to the beginning of a UTF-8 encoded string
- * \param p pointer to some position within \a str
+ * \param str: pointer to the beginning of a UTF-8 encoded string
+ * \param p: pointer to some position within \a str
  *
  * Given a position \a p with a UTF-8 encoded string \a str, find the start
  * of the previous UTF-8 character starting before. \a p Returns %NULL if no
@@ -703,8 +703,8 @@ char *BLI_str_find_prev_char_utf8(const char *str, const char *p)
 /* was g_utf8_find_next_char */
 /**
  * BLI_str_find_next_char_utf8:
- * \param p a pointer to a position within a UTF-8 encoded string
- * \param end a pointer to the byte following the end of the string,
+ * \param p: a pointer to a position within a UTF-8 encoded string
+ * \param end: a pointer to the byte following the end of the string,
  * or %NULL to indicate that the string is nul-terminated.
  *
  * Finds the start of the next UTF-8 character in the string after \a p
@@ -735,7 +735,7 @@ char *BLI_str_find_next_char_utf8(const char *p, const char *end)
 /* was g_utf8_prev_char */
 /**
  * BLI_str_prev_char_utf8:
- * \param p a pointer to a position within a UTF-8 encoded string
+ * \param p: a pointer to a position within a UTF-8 encoded string
  *
  * Finds the previous UTF-8 character in the string before \a p
  *

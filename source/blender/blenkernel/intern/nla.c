@@ -162,8 +162,8 @@ void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user)
 /**
  * Copy NLA strip
  *
- * \param use_same_action When true, the existing action is used (instead of being duplicated)
- * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \param use_same_action: When true, the existing action is used (instead of being duplicated)
+ * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  */
 NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_action, const int flag)
 {
@@ -212,7 +212,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_ac
 
 /**
  * Copy a single NLA Track.
- * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  */
 NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_actions, const int flag)
 {
@@ -241,7 +241,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain, NlaTrack *nlt, const bool use_same_acti
 
 /**
  * Copy all NLA data.
- * \param flag Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
+ * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_library.h
  */
 void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src, const int flag)
 {

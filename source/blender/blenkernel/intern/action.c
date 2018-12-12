@@ -127,7 +127,7 @@ void BKE_action_free(bAction *act)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_action_copy_data(Main *UNUSED(bmain), bAction *act_dst, const bAction *act_src, const int UNUSED(flag))
 {
@@ -534,7 +534,7 @@ const char *BKE_pose_ikparam_get_name(bPose *pose)
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
  *
- * \param dst  Should be freed already, makes entire duplicate.
+ * \param dst: Should be freed already, makes entire duplicate.
  */
 void BKE_pose_copy_data_ex(bPose **dst, const bPose *src, const int flag, const bool copy_constraints)
 {

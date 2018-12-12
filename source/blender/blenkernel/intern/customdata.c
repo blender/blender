@@ -2404,7 +2404,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
  * This only applies to item types that may store several sub-item data (e.g. corner data [UVs, VCol, ...] of
  * tessellated faces).
  *
- * \param corner_indices A mapping 'new_index -> old_index' of sub-item data.
+ * \param corner_indices: A mapping 'new_index -> old_index' of sub-item data.
  */
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices)
 {
@@ -3262,7 +3262,7 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
 }
 
 /**
- * \param use_default_init initializes data which can't be copied,
+ * \param use_default_init: initializes data which can't be copied,
  * typically you'll want to use this if the BM_xxx create function
  * is called with BM_CREATE_SKIP_CD flag
  */
@@ -3374,11 +3374,11 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
 /**
  * Prepare given custom data for file writing.
  *
- * \param data the customdata to tweak for .blend file writing (modified in place).
- * \param r_write_layers contains a reduced set of layers to be written to file, use it with writestruct_at_address()
+ * \param data: the customdata to tweak for .blend file writing (modified in place).
+ * \param r_write_layers: contains a reduced set of layers to be written to file, use it with writestruct_at_address()
  *                       (caller must free it if != \a write_layers_buff).
- * \param write_layers_buff an optional buffer for r_write_layers (to avoid allocating it).
- * \param write_layers_size the size of pre-allocated \a write_layer_buff.
+ * \param write_layers_buff: an optional buffer for r_write_layers (to avoid allocating it).
+ * \param write_layers_size: the size of pre-allocated \a write_layer_buff.
  *
  * \warning After this func has ran, given custom data is no more valid from Blender PoV (its totlayer is invalid).
  *          This func shall always be called with localized data (as it is in write_meshes()).

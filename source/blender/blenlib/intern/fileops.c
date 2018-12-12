@@ -550,12 +550,12 @@ static char *strip_last_slash(const char *dir)
  * prefixing it with startto, recursively scanning subdirectories, and invoking the specified
  * callbacks for files and subdirectories found as appropriate.
  *
- * \param startfrom  Top-level source path.
- * \param startto  Top-level destination path.
- * \param callback_dir_pre  Optional, to be invoked before entering a subdirectory, can return
+ * \param startfrom: Top-level source path.
+ * \param startto: Top-level destination path.
+ * \param callback_dir_pre: Optional, to be invoked before entering a subdirectory, can return
  *                          RecursiveOp_Callback_StopRecurs to skip the subdirectory.
- * \param callback_file  Optional, to be invoked on each file found.
- * \param callback_dir_post  optional, to be invoked after leaving a subdirectory.
+ * \param callback_file: Optional, to be invoked on each file found.
+ * \param callback_dir_post: optional, to be invoked after leaving a subdirectory.
  * \return
  */
 static int recursive_operation(const char *startfrom, const char *startto,

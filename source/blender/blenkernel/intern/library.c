@@ -373,7 +373,7 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
  *
  * \note Always set ID->newid pointer in case it gets duplicated...
  *
- * \param lib_local Special flag used when making a whole library's content local, it needs specific handling.
+ * \param lib_local: Special flag used when making a whole library's content local, it needs specific handling.
  *
  * \return true if the block can be made local.
  */
@@ -525,11 +525,11 @@ static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **i
  *
  * \note Usercount of new copy is always set to 1.
  *
- * \param bmain Main database, may be NULL only if LIB_ID_CREATE_NO_MAIN is specified.
- * \param id Source datablock.
- * \param r_newid Pointer to new (copied) ID pointer.
- * \param flag Set of copy options, see DNA_ID.h enum for details (leave to zero for default, full copy).
- * \param test If set, do not do any copy, just test whether copy is supported.
+ * \param bmain: Main database, may be NULL only if LIB_ID_CREATE_NO_MAIN is specified.
+ * \param id: Source datablock.
+ * \param r_newid: Pointer to new (copied) ID pointer.
+ * \param flag: Set of copy options, see DNA_ID.h enum for details (leave to zero for default, full copy).
+ * \param test: If set, do not do any copy, just test whether copy is supported.
  * \return False when copying that ID type is not supported, true otherwise.
  */
 /* XXX TODO remove test thing, *all* IDs should be copyable that way! */
@@ -1240,7 +1240,7 @@ void BKE_libblock_init_empty(ID *id)
 
 /** Generic helper to create a new empty datablock of given type in given \a bmain database.
  *
- * \param name can be NULL, in which case we get default name for this ID type. */
+ * \param name: can be NULL, in which case we get default name for this ID type. */
 void *BKE_id_new(Main *bmain, const short type, const char *name)
 {
 	BLI_assert(bmain != NULL);
@@ -1257,7 +1257,7 @@ void *BKE_id_new(Main *bmain, const short type, const char *name)
 
 /** Generic helper to create a new temporary empty datablock of given type, *outside* of any Main database.
  *
- * \param name can be NULL, in which case we get default name for this ID type. */
+ * \param name: can be NULL, in which case we get default name for this ID type. */
 void *BKE_id_new_nomain(const short type, const char *name)
 {
 	if (name == NULL) {
@@ -1714,10 +1714,10 @@ static void library_make_local_copying_check(ID *id, GSet *loop_tags, MainIDRela
 
 /** Make linked datablocks local.
  *
- * \param bmain Almost certainly global main.
- * \param lib If not NULL, only make local datablocks from this library.
- * \param untagged_only If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
- * \param set_fake If true, set fake user on all localized datablocks (except group and objects ones).
+ * \param bmain: Almost certainly global main.
+ * \param lib: If not NULL, only make local datablocks from this library.
+ * \param untagged_only: If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
+ * \param set_fake: If true, set fake user on all localized datablocks (except group and objects ones).
  */
 /* Note: Old (2.77) version was simply making (tagging) datablocks as local, without actually making any check whether
  * they were also indirectly used or not...
@@ -2138,7 +2138,7 @@ void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
  *
  * \note Result is unique to a given ID type in a given Main database.
  *
- * \param name An allocated string of minimal length MAX_ID_FULL_NAME, will be filled with generated string.
+ * \param name: An allocated string of minimal length MAX_ID_FULL_NAME, will be filled with generated string.
  */
 void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
 {
@@ -2162,7 +2162,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
  *
  * \note Result is unique to a given ID type in a given Main database.
  *
- * \param name An allocated string of minimal length MAX_ID_FULL_NAME_UI, will be filled with generated string.
+ * \param name: An allocated string of minimal length MAX_ID_FULL_NAME_UI, will be filled with generated string.
  */
 void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const ID *id)
 {

@@ -421,11 +421,11 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 /**
  * Main face creation function
  *
- * \param bm  The mesh
- * \param verts  A sorted array of verts size of len
- * \param edges  A sorted array of edges size of len
- * \param len  Length of the face
- * \param create_flag  Options for creating the face
+ * \param bm: The mesh
+ * \param verts: A sorted array of verts size of len
+ * \param edges: A sorted array of edges size of len
+ * \param len: Length of the face
+ * \param create_flag: Options for creating the face
  */
 BMFace *BM_face_create(
         BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
@@ -2396,7 +2396,7 @@ void bmesh_kernel_vert_separate(
  *
  * Any edges which failed to split off in #bmesh_kernel_vert_separate will be merged back into the original edge.
  *
- * \param edges_separate
+ * \param edges_separate:
  * A list-of-lists, each list is from a single original edge (the first edge is the original),
  * Check for duplicates (not just with the first) but between all.
  * This is O(n2) but radial edges are very rarely >2 and almost never >~10.

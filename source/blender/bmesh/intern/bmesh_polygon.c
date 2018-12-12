@@ -950,7 +950,7 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
  * It uses polyfill for the ngons splitting, and
  * the beautify operator when use_beauty is true.
  *
- * \param r_faces_new if non-null, must be an array of BMFace pointers,
+ * \param r_faces_new: if non-null, must be an array of BMFace pointers,
  * with a length equal to (f->len - 3). It will be filled with the new
  * triangles (not including the original triangle).
  *
@@ -1393,7 +1393,7 @@ void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
 
 /**
  * \brief BM_mesh_calc_tessellation get the looptris and its number from a certain bmesh
- * \param looptris
+ * \param looptris:
  *
  * \note \a looptris Must be pre-allocated to at least the size of given by: poly_to_tri_count
  */

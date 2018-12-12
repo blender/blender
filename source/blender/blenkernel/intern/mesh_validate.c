@@ -1363,8 +1363,8 @@ void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
 /**
  * Calculate edges from polygons
  *
- * \param mesh  The mesh to add edges into
- * \param update  When true create new edges co-exist
+ * \param mesh: The mesh to add edges into
+ * \param update: When true create new edges co-exist
  */
 void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 {
@@ -1473,7 +1473,7 @@ void BKE_mesh_calc_edges_loose(Mesh *mesh)
 /**
  * Calculate/create edges from tessface data
  *
- * \param mesh  The mesh to add edges into
+ * \param mesh: The mesh to add edges into
  */
 
 void BKE_mesh_calc_edges_tessface(Mesh *mesh)

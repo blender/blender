@@ -2582,7 +2582,7 @@ static bool ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 }
 
 /**
- * \param x  Screen space cursor location - #wmEvent.x
+ * \param x: Screen space cursor location - #wmEvent.x
  *
  * \note ``but->block->aspect`` is used here, so drawing button style is getting scaled too.
  */
@@ -6905,7 +6905,7 @@ static bool ui_but_find_select_in_enum__cmp(const uiBut *but_a, const uiBut *but
 /**
  * Finds the pressed button in an aligned row (typically an expanded enum).
  *
- * \param direction  Use when there may be multiple buttons pressed.
+ * \param direction: Use when there may be multiple buttons pressed.
  */
 uiBut *ui_but_find_select_in_enum(uiBut *but, int direction)
 {

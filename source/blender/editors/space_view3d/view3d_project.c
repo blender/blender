@@ -361,13 +361,13 @@ bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float 
  * In orthographic view the resulting ray_normal will match the view vector.
  * This version also returns the ray_co point of the ray on window plane, useful to fix precision
  * issues esp. with ortho view, where default ray_start is set rather far away.
- * \param ar The region (used for the window width and height).
- * \param v3d The 3d viewport (used for near clipping value).
- * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param r_ray_co The world-space point where the ray intersects the window plane.
- * \param r_ray_normal The normalized world-space direction of towards mval.
- * \param r_ray_start The world-space starting point of the ray.
- * \param do_clip_planes Optionally clip the start of the ray by the view clipping planes.
+ * \param ar: The region (used for the window width and height).
+ * \param v3d: The 3d viewport (used for near clipping value).
+ * \param mval: The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_co: The world-space point where the ray intersects the window plane.
+ * \param r_ray_normal: The normalized world-space direction of towards mval.
+ * \param r_ray_start: The world-space starting point of the ray.
+ * \param do_clip_planes: Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray_clipped_ex(
@@ -392,12 +392,12 @@ bool ED_view3d_win_to_ray_clipped_ex(
  * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
  * ray_start is clipped by the view near limit so points in front of it are always in view.
  * In orthographic view the resulting ray_normal will match the view vector.
- * \param ar The region (used for the window width and height).
- * \param v3d The 3d viewport (used for near clipping value).
- * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param r_ray_start The world-space point where the ray intersects the window plane.
- * \param r_ray_normal The normalized world-space direction of towards mval.
- * \param do_clip_planes Optionally clip the start of the ray by the view clipping planes.
+ * \param ar: The region (used for the window width and height).
+ * \param v3d: The 3d viewport (used for near clipping value).
+ * \param mval: The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_start: The world-space point where the ray intersects the window plane.
+ * \param r_ray_normal: The normalized world-space direction of towards mval.
+ * \param do_clip_planes: Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray_clipped(
@@ -411,10 +411,10 @@ bool ED_view3d_win_to_ray_clipped(
 /**
  * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
  * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
- * \param ar The region (used for the window width and height).
- * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param r_ray_start The world-space point where the ray intersects the window plane.
- * \param r_ray_normal The normalized world-space direction of towards mval.
+ * \param ar: The region (used for the window width and height).
+ * \param mval: The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_start: The world-space point where the ray intersects the window plane.
+ * \param r_ray_normal: The normalized world-space direction of towards mval.
  *
  * \note Ignores view near/far clipping, to take this into account use #ED_view3d_win_to_ray_clipped.
  */
@@ -429,9 +429,9 @@ void ED_view3d_win_to_ray(
 /**
  * Calculate a normalized 3d direction vector from the viewpoint towards a global location.
  * In orthographic view the resulting vector will match the view vector.
- * \param rv3d The region (used for the window width and height).
- * \param coord The world-space location.
- * \param vec The resulting normalized vector.
+ * \param rv3d: The region (used for the window width and height).
+ * \param coord: The world-space location.
+ * \param vec: The resulting normalized vector.
  */
 void ED_view3d_global_to_vector(const RegionView3D *rv3d, const float coord[3], float vec[3])
 {
@@ -491,10 +491,10 @@ bool view3d_get_view_aligned_coordinate(ARegion *ar, float fp[3], const int mval
 
 /**
  * Calculate a 3d location from 2d window coordinates.
- * \param ar The region (used for the window width and height).
- * \param depth_pt The reference location used to calculate the Z depth.
- * \param mval The area relative location (such as event->mval converted to floats).
- * \param r_out The resulting world-space location.
+ * \param ar: The region (used for the window width and height).
+ * \param depth_pt: The reference location used to calculate the Z depth.
+ * \param mval: The area relative location (such as event->mval converted to floats).
+ * \param r_out: The resulting world-space location.
  */
 void ED_view3d_win_to_3d(
         const View3D *v3d, const ARegion *ar,
@@ -586,9 +586,9 @@ bool ED_view3d_win_to_3d_on_plane_int(
  * Calculate a 3d difference vector from 2d window offset.
  * note that ED_view3d_calc_zfac() must be called first to determine
  * the depth used to calculate the delta.
- * \param ar The region (used for the window width and height).
- * \param mval The area relative 2d difference (such as event->mval[0] - other_x).
- * \param out The resulting world-space delta.
+ * \param ar: The region (used for the window width and height).
+ * \param mval: The area relative 2d difference (such as event->mval[0] - other_x).
+ * \param out: The resulting world-space delta.
  */
 void ED_view3d_win_to_delta(const ARegion *ar, const float mval[2], float out[3], const float zfac)
 {
@@ -609,9 +609,9 @@ void ED_view3d_win_to_delta(const ARegion *ar, const float mval[2], float out[3]
  * Since far clip can be a very large value resulting in numeric precision issues,
  * the origin in this case is close to zero coordinate.
  *
- * \param ar The region (used for the window width and height).
- * \param mval The area relative 2d location (such as event->mval converted to floats).
- * \param out The resulting normalized world-space direction vector.
+ * \param ar: The region (used for the window width and height).
+ * \param mval: The area relative 2d location (such as event->mval converted to floats).
+ * \param out: The resulting normalized world-space direction vector.
  */
 void ED_view3d_win_to_origin(const ARegion *ar, const float mval[2], float out[3])
 {
@@ -643,9 +643,9 @@ void ED_view3d_win_to_origin(const ARegion *ar, const float mval[2], float out[3
  * for perspective view, get the vector direction to
  * the mouse cursor as a normalized vector.
  *
- * \param ar The region (used for the window width and height).
- * \param mval The area relative 2d location (such as event->mval converted to floats).
- * \param out The resulting normalized world-space direction vector.
+ * \param ar: The region (used for the window width and height).
+ * \param mval: The area relative 2d location (such as event->mval converted to floats).
+ * \param out: The resulting normalized world-space direction vector.
  */
 void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3])
 {
@@ -670,12 +670,12 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
  * ray_start and ray_end are clipped by the view near and far limits
  * so points along this line are always in view.
  * In orthographic view all resulting segments will be parallel.
- * \param ar The region (used for the window width and height).
- * \param v3d The 3d viewport (used for near and far clipping range).
- * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param r_ray_start The world-space starting point of the segment.
- * \param r_ray_end The world-space end point of the segment.
- * \param do_clip_planes Optionally clip the ray by the view clipping planes.
+ * \param ar: The region (used for the window width and height).
+ * \param v3d: The 3d viewport (used for near and far clipping range).
+ * \param mval: The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_start: The world-space starting point of the segment.
+ * \param r_ray_end: The world-space end point of the segment.
+ * \param do_clip_planes: Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
 bool ED_view3d_win_to_segment_clipped(

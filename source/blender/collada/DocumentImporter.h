@@ -82,7 +82,7 @@ public:
 	/**
 	 * This method will be called if an error in the loading process occurred and the loader cannot
 	 * continue to load. The writer should undo all operations that have been performed.
-	 * \param errorMessage A message containing information about the error that occurred.
+	 * \param errorMessage: A message containing information about the error that occurred.
 	 */
 	void cancel(const COLLADAFW::String& errorMessage);
 

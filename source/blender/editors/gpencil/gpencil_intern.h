@@ -487,9 +487,9 @@ struct GP_EditableStrokes_Iter {
  * stopping on each usable layer + stroke pair (i.e. gpl and gps)
  * to perform some operations on the stroke.
  *
- * \param gpl  The identifier to use for the layer of the stroke being processed.
+ * \param gpl: The identifier to use for the layer of the stroke being processed.
  *                    Choose a suitable value to avoid name clashes.
- * \param gps The identifier to use for current stroke being processed.
+ * \param gps: The identifier to use for current stroke being processed.
  *                    Choose a suitable value to avoid name clashes.
  */
 #define GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)                           \

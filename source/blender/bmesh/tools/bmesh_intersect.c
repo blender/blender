@@ -971,7 +971,7 @@ static int isect_bvhtree_point_v3(
  * Intersect tessellated faces
  * leaving the resulting edges tagged.
  *
- * \param test_fn Return value: -1: skip, 0: tree_a, 1: tree_b (use_self == false)
+ * \param test_fn: Return value: -1: skip, 0: tree_a, 1: tree_b (use_self == false)
  * \param boolean_mode -1: no-boolean, 0: intersection... see #BMESH_ISECT_BOOLEAN_ISECT.
  * \return true if the mesh is changed (intersections cut or faces removed from boolean).
  */

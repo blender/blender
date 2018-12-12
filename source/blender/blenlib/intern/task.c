@@ -1263,10 +1263,10 @@ BLI_INLINE int task_parallel_listbasecalc_chunk_size(const int num_threads)
 /**
  * This function allows to parallelize for loops over ListBase items.
  *
- * \param listbase The double linked list to loop over.
- * \param userdata Common userdata passed to all instances of \a func.
- * \param func Callback function.
- * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ * \param listbase: The double linked list to loop over.
+ * \param userdata: Common userdata passed to all instances of \a func.
+ * \param func: Callback function.
+ * \param use_threading: If \a true, actually split-execute loop in threads, else just do a sequential forloop
  *                      (allows caller to use any kind of test to switch on parallelization or not).
  *
  * \note There is no static scheduling here, since it would need another full loop over items to count them...

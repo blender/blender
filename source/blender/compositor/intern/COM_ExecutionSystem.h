@@ -147,8 +147,8 @@ public:
 	 * \brief Create a new ExecutionSystem and initialize it with the
 	 * editingtree.
 	 *
-	 * \param editingtree [bNodeTree *]
-	 * \param rendering [true false]
+	 * \param editingtree: [bNodeTree *]
+	 * \param rendering: [true false]
 	 */
 	ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
 	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,

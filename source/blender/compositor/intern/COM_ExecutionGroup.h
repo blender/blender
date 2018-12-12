@@ -181,7 +181,7 @@ private:
 	// methods
 	/**
 	 * \brief check whether parameter operation can be added to the execution group
-	 * \param operation the operation to be added
+	 * \param operation: the operation to be added
 	 */
 	bool canContainOperation(NodeOperation *operation);
 
@@ -210,9 +210,9 @@ private:
 	/**
 	 * \brief try to schedule a specific chunk.
 	 * \note scheduling succeeds when all input requirements are met and the chunks hasn't been scheduled yet.
-	 * \param graph
-	 * \param xChunk
-	 * \param yChunk
+	 * \param graph:
+	 * \param xChunk:
+	 * \param yChunk:
 	 * \return [true:false]
 	 * true: package(s) are scheduled
 	 * false: scheduling is deferred (depending workpackages are scheduled)
@@ -223,8 +223,8 @@ private:
 	 * \brief try to schedule a specific area.
 	 * \note Check if a certain area is available, when not available this are will be checked.
 	 * \note This method is called from other ExecutionGroup's.
-	 * \param graph
-	 * \param rect
+	 * \param graph:
+	 * \param rect:
 	 * \return [true:false]
 	 * true: package(s) are scheduled
 	 * false: scheduling is deferred (depending workpackages are scheduled)
@@ -233,16 +233,16 @@ private:
 
 	/**
 	 * \brief add a chunk to the WorkScheduler.
-	 * \param chunknumber
+	 * \param chunknumber:
 	 */
 	bool scheduleChunk(unsigned int chunkNumber);
 
 	/**
 	 * \brief determine the area of interest of a certain input area
 	 * \note This method only evaluates a single ReadBufferOperation
-	 * \param input the input area
-	 * \param readOperation The ReadBufferOperation where the area needs to be evaluated
-	 * \param output the area needed of the ReadBufferOperation. Result
+	 * \param input: the input area
+	 * \param readOperation: The ReadBufferOperation where the area needs to be evaluated
+	 * \param output: the area needed of the ReadBufferOperation. Result
 	 */
 	void determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
@@ -256,8 +256,8 @@ public:
 	 * \brief add an operation to this ExecutionGroup
 	 * \note this method will add input of the operations recursively
 	 * \note this method can create multiple ExecutionGroup's
-	 * \param system
-	 * \param operation
+	 * \param system:
+	 * \param operation:
 	 * \return True if the operation was successfully added
 	 */
 	bool addOperation(NodeOperation *operation);
@@ -272,19 +272,19 @@ public:
 
 	/**
 	 * \brief set whether this ExecutionGroup is an output
-	 * \param isOutput
+	 * \param isOutput:
 	 */
 	void setOutputExecutionGroup(int isOutput) { this->m_isOutput = isOutput; }
 
 	/**
 	 * \brief determine the resolution of this ExecutionGroup
-	 * \param resolution
+	 * \param resolution:
 	 */
 	void determineResolution(unsigned int resolution[2]);
 
 	/**
 	 * \brief set the resolution of this executiongroup
-	 * \param resolution
+	 * \param resolution:
 	 */
 	void setResolution(unsigned int resolution[2]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
 
@@ -325,7 +325,7 @@ public:
 	/**
 	 * \brief get all inputbuffers needed to calculate an chunk
 	 * \note all inputbuffers must be executed
-	 * \param chunkNumber the chunk to be calculated
+	 * \param chunkNumber: the chunk to be calculated
 	 * \return (MemoryBuffer **) the inputbuffers
 	 */
 	MemoryBuffer **getInputBuffersCPU();
@@ -333,23 +333,23 @@ public:
 	/**
 	 * \brief get all inputbuffers needed to calculate an chunk
 	 * \note all inputbuffers must be executed
-	 * \param chunkNumber the chunk to be calculated
+	 * \param chunkNumber: the chunk to be calculated
 	 * \return (MemoryBuffer **) the inputbuffers
 	 */
 	MemoryBuffer **getInputBuffersOpenCL(int chunkNumber);
 
 	/**
 	 * \brief allocate the outputbuffer of a chunk
-	 * \param chunkNumber the number of the chunk in the ExecutionGroup
-	 * \param rect the rect of that chunk
+	 * \param chunkNumber: the number of the chunk in the ExecutionGroup
+	 * \param rect: the rect of that chunk
 	 * \see determineChunkRect
 	 */
 	MemoryBuffer *allocateOutputBuffer(int chunkNumber, rcti *rect);
 
 	/**
 	 * \brief after a chunk is executed the needed resources can be freed or unlocked.
-	 * \param chunknumber
-	 * \param memorybuffers
+	 * \param chunknumber:
+	 * \param memorybuffers:
 	 */
 	void finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers);
 
@@ -372,7 +372,7 @@ public:
 	 * After determining the order of the chunks the chunks will be scheduled
 	 *
 	 * \see ViewerOperation
-	 * \param system
+	 * \param system:
 	 */
 	void execute(ExecutionSystem *system);
 
@@ -380,7 +380,7 @@ public:
 	 * \brief this method determines the MemoryProxy's where this execution group depends on.
 	 * \note After this method determineDependingAreaOfInterest can be called to determine
 	 * \note the area of the MemoryProxy.creator that has to be executed.
-	 * \param memoryProxies result
+	 * \param memoryProxies: result
 	 */
 	void determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies);
 

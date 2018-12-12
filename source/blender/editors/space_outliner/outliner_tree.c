@@ -213,7 +213,7 @@ void outliner_cleanup_tree(SpaceOops *soops)
  * Free \a element and its sub-tree and remove its link in \a parent_subtree.
  *
  * \note Does not remove the TreeStoreElem of \a element!
- * \param parent_subtree Subtree of the parent element, so the list containing \a element.
+ * \param parent_subtree: Subtree of the parent element, so the list containing \a element.
  */
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
 {

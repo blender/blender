@@ -61,7 +61,7 @@ class ConstantThicknessShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
-	 *  \param thickness
+	 *  \param thickness:
 	 *    The thickness that must be assigned to the stroke.
 	 */
 	ConstantThicknessShader(float thickness) : StrokeShader()
@@ -121,9 +121,9 @@ class IncreasingThicknessShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
-	 *  \param iThicknessMin
+	 *  \param iThicknessMin:
 	 *    The first thickness value.
-	 *  \param iThicknessMax
+	 *  \param iThicknessMax:
 	 *    The second thickness value.
 	 */
 	IncreasingThicknessShader(float iThicknessMin, float iThicknessMax) : StrokeShader()
@@ -161,11 +161,11 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param iThicknessMin
+	 *  \param iThicknessMin:
 	 *    The first thickness value.
-	 *  \param iThicknessMax
+	 *  \param iThicknessMax:
 	 *    The second thickness value.
-	 *  \param iRatio
+	 *  \param iRatio:
 	 *    The ration thickness/length we don't want to exceed.
 	 */
 	ConstrainedIncreasingThicknessShader(float iThicknessMin, float iThicknessMax, float iRatio) : StrokeShader()
@@ -233,9 +233,9 @@ public:
 	ThicknessNoiseShader();
 
 	/*! Builds a Thickness Noise Shader
-	 *    \param iAmplitude
+	 *    \param iAmplitude:
 	 *      The amplitude of the noise signal
-	 *    \param iPeriod
+	 *    \param iPeriod:
 	 *      The period of the noise signal
 	 */
 	ThicknessNoiseShader(float iAmplitude, float iPeriod);
@@ -261,13 +261,13 @@ class ConstantColorShader : public StrokeShader
 {
 public:
 	/*! Builds the shader from a user-specified color.
-	 *  \param iR
+	 *  \param iR:
 	 *    The red component
-	 *  \param iG
+	 *  \param iG:
 	 *    The green component
-	 *  \param iB
+	 *  \param iB:
 	 *    The blue component
-	 *  \param iAlpha
+	 *  \param iAlpha:
 	 *    The alpha value
 	 */
 	ConstantColorShader(float iR, float iG, float iB, float iAlpha = 1.0f) : StrokeShader()
@@ -303,21 +303,21 @@ private:
 
 public:
 	/*! Builds the shader from 2 user-specified colors.
-	 *  \param iRm
+	 *  \param iRm:
 	 *    The first color red component
-	 *  \param iGm
+	 *  \param iGm:
 	 *    The first color green component
-	 *  \param iBm
+	 *  \param iBm:
 	 *    The first color blue component
-	 *  \param iAlpham
+	 *  \param iAlpham:
 	 *    The first color alpha value
-	 *  \param iRM
+	 *  \param iRM:
 	 *    The second color red component
-	 *  \param iGM
+	 *  \param iGM:
 	 *    The second color green component
-	 *  \param iBM
+	 *  \param iBM:
 	 *    The second color blue component
-	 *  \param iAlphaM
+	 *  \param iAlphaM:
 	 *    The second color alpha value
 	 */
 	IncreasingColorShader(float iRm, float iGm, float iBm, float iAlpham,
@@ -379,9 +379,9 @@ public:
 	ColorNoiseShader();
 
 	/*! Builds a Color Noise Shader
-	 *    \param iAmplitude
+	 *    \param iAmplitude:
 	 *      The amplitude of the noise signal
-	 *    \param iPeriod
+	 *    \param iPeriod:
 	 *      The period of the noise signal
 	 */
 	ColorNoiseShader(float iAmplitude, float iPeriod);
@@ -409,7 +409,7 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param iAmount
+	 *  \param iAmount:
 	 *    The stretching amount value.
 	 */
 	BackboneStretcherShader(float iAmount = 2.0f) : StrokeShader()
@@ -437,7 +437,7 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param sampling
+	 *  \param sampling:
 	 *    The sampling to use for the stroke resampling
 	 */
 	SamplingShader(float sampling) : StrokeShader()
@@ -488,7 +488,7 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param error
+	 *  \param error:
 	 *    The error we're allowing for the approximation.
 	 *    This error is the max distance allowed between the new curve and the original geometry.
 	 */
@@ -519,7 +519,7 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param iError
+	 *  \param iError:
 	 *    The error we want our polygonal approximation to have with respect to the original geometry.
 	 *    The smaller, the closer the new stroke to the orinal one.
 	 *    This error corresponds to the maximum distance between the new stroke and the old one.
@@ -552,7 +552,7 @@ private:
 
 public:
 	/*! Builds a Guiding Lines shader
-	 *    \param iOffset
+	 *    \param iOffset:
 	 *      The line that replaces the stroke is initially in the middle of the initial stroke "bbox".
 	 *      iOffset is the value of the displacement which is applied to this line along its normal.
 	 */
@@ -577,7 +577,7 @@ class TipRemoverShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
-	 *  \param tipLength
+	 *  \param tipLength:
 	 *    The length of the piece of stroke we want to remove at each extremity.
 	 */
 	TipRemoverShader (real tipLength);
@@ -609,7 +609,7 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param mtex
+	 *  \param mtex:
 	 *    The blender texture to use.
 	 */
 	BlenderTextureShader(MTex *mtex) : StrokeShader()
@@ -619,7 +619,7 @@ public:
 	}
 
 	/*! Builds the shader.
-	 *  \param nodetree
+	 *  \param nodetree:
 	 *    A node tree (of new shading nodes) to define textures.
 	 */
 	BlenderTextureShader(bNodeTree *nodetree) : StrokeShader()
@@ -648,7 +648,7 @@ private:
 
 public:
 	/*! Builds the shader.
-	 *  \param id
+	 *  \param id:
 	 *    The number of the preset to use.
 	 */
 	StrokeTextureStepShader(float step) : StrokeShader()
