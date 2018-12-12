@@ -949,20 +949,19 @@ static MeshRenderData *mesh_render_data_create_ex(
 }
 
 /* Warning replace mesh pointer. */
-#define MBC_GET_FINAL_MESH(mesh) do { \
+#define MBC_GET_FINAL_MESH(me) \
 	/* Hack to show the final result. */ \
-	const bool use_em_final = ( \
-	        (mesh)->edit_btmesh && \
-	        (mesh)->edit_btmesh->mesh_eval_final && \
-	        ((mesh)->edit_btmesh->mesh_eval_final->runtime.is_original == false)); \
-	Mesh me_fake; \
-	if (use_em_final) { \
-		me_fake = *(mesh)->edit_btmesh->mesh_eval_final; \
-		me_fake.mat = (mesh)->mat; \
-		me_fake.totcol = (mesh)->totcol; \
-		(mesh) = &me_fake; \
-	} \
-} while (0)
+	const bool _use_em_final = ( \
+	        (me)->edit_btmesh && \
+	        (me)->edit_btmesh->mesh_eval_final && \
+	        ((me)->edit_btmesh->mesh_eval_final->runtime.is_original == false)); \
+	Mesh _me_fake; \
+	if (_use_em_final) { \
+		_me_fake = *(me)->edit_btmesh->mesh_eval_final; \
+		_me_fake.mat = (me)->mat; \
+		_me_fake.totcol = (me)->totcol; \
+		(me) = &_me_fake; \
+	} ((void)0)
 
 static void mesh_render_data_free(MeshRenderData *rdata)
 {
