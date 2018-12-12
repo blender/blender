@@ -42,6 +42,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
 #include "DNA_ID.h"
@@ -513,6 +514,10 @@ static bool collection_object_add(Main *bmain, Collection *collection, Object *o
 
 	if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
 		DEG_id_tag_update_ex(bmain, &collection->id, ID_RECALC_COPY_ON_WRITE);
+	}
+
+	if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+		BKE_rigidbody_main_collection_object_add(bmain, collection, ob);
 	}
 
 	return true;

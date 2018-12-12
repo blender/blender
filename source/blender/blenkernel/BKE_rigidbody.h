@@ -37,9 +37,11 @@
 struct RigidBodyWorld;
 struct RigidBodyOb;
 
+struct Collection;
 struct Depsgraph;
-struct Scene;
+struct Main;
 struct Object;
+struct Scene;
 
 /* -------------- */
 /* Memory Management */
@@ -69,6 +71,9 @@ struct RigidBodyCon *BKE_rigidbody_create_constraint(struct Scene *scene, struct
 /* Ensure newly set collections' objects all have required data. */
 void BKE_rigidbody_objects_collection_validate(struct Scene *scene, struct RigidBodyWorld *rbw);
 void BKE_rigidbody_constraints_collection_validate(struct Scene *scene, struct RigidBodyWorld *rbw);
+
+/* Ensure object added to collection gets RB data if that collection is a RB one. */
+void BKE_rigidbody_main_collection_object_add(struct Main *bmain, struct Collection *collection, struct Object *object);
 
 /* copy */
 struct RigidBodyWorld *BKE_rigidbody_world_copy(struct RigidBodyWorld *rbw, const int flag);

@@ -61,6 +61,7 @@
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -1173,6 +1174,23 @@ void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld 
 	}
 }
 
+void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collection, Object *object)
+{
+	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		RigidBodyWorld *rbw = scene->rigidbody_world;
+
+		if (rbw == NULL) {
+			continue;
+		}
+
+		if (rbw->group == collection && object->type == OB_MESH && object->rigidbody_object == NULL) {
+			object->rigidbody_object = BKE_rigidbody_create_object(scene, object, RBO_TYPE_ACTIVE);
+		}
+		if (rbw->constraints == collection && object->rigidbody_constraint == NULL) {
+			object->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, object, RBC_TYPE_FIXED);
+		}
+	}
+}
 
 /* ************************************** */
 /* Utilities API */
