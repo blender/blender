@@ -719,6 +719,8 @@ void GPENCIL_draw_scene(void *ved)
 	Object *obact = draw_ctx->obact;
 	const bool playing = stl->storage->is_playing;
 	const bool is_render = stl->storage->is_render;
+	bGPdata *gpd_act = (obact) && (obact->type == OB_GPENCIL) ? (bGPdata *)obact->data : NULL;
+	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd_act);
 
 	/* paper pass to display a comfortable area to draw over complex scenes with geometry */
 	if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
@@ -875,7 +877,7 @@ void GPENCIL_draw_scene(void *ved)
 				}
 			}
 			/* edit points */
-			if ((!is_render) && (!playing)) {
+			if ((!is_render) && (!playing) && (is_edit)) {
 				DRW_draw_pass(psl->edit_pass);
 			}
 		}

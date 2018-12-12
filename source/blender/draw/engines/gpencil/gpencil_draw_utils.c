@@ -1387,28 +1387,32 @@ static void DRW_gpencil_shgroups_create(
 			}
 			case eGpencilBatchGroupType_Edit:
 			{
-				const int len = elm->vertex_idx - start_edit;
-				/* use always the same group */
-				DRW_shgroup_call_range_add(
-				        stl->g_data->shgrps_edit_point,
-				        cache->b_edit.batch,
-				        (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
-				        start_edit, len);
+				if (stl->g_data->shgrps_edit_point) {
+					const int len = elm->vertex_idx - start_edit;
+					/* use always the same group */
+					DRW_shgroup_call_range_add(
+						stl->g_data->shgrps_edit_point,
+						cache->b_edit.batch,
+						(!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
+						start_edit, len);
 
-				start_edit = elm->vertex_idx;
+					start_edit = elm->vertex_idx;
+				}
 				break;
 			}
 			case eGpencilBatchGroupType_Edlin:
 			{
-				const int len = elm->vertex_idx - start_edlin;
-				/* use always the same group */
-				DRW_shgroup_call_range_add(
-				        stl->g_data->shgrps_edit_line,
-				        cache->b_edlin.batch,
-				        (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
-				        start_edlin, len);
+				if (stl->g_data->shgrps_edit_line) {
+					const int len = elm->vertex_idx - start_edlin;
+					/* use always the same group */
+					DRW_shgroup_call_range_add(
+						stl->g_data->shgrps_edit_line,
+						cache->b_edlin.batch,
+						(!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
+						start_edlin, len);
 
-				start_edlin = elm->vertex_idx;
+					start_edlin = elm->vertex_idx;
+				}
 				break;
 			}
 			default:
