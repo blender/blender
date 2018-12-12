@@ -153,7 +153,7 @@ void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
  *
  * \note BGR format (i.e. 0xBBGGRR)...
  *
- * \param x color.
+ * \param x: color.
  */
 void imm_cpack(uint x)
 {
@@ -177,11 +177,11 @@ static void imm_draw_circle(
  * Draw a circle outline with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
  *
- * \param shdr_pos The vertex attribute number for position.
- * \param x Horizontal center.
- * \param y Vertical center.
- * \param radius The circle's radius.
- * \param nsegments The number of segments to use in drawing (more = smoother).
+ * \param shdr_pos: The vertex attribute number for position.
+ * \param x: Horizontal center.
+ * \param y: Vertical center.
+ * \param rad: The circle's radius.
+ * \param nsegments: The number of segments to use in drawing (more = smoother).
  */
 void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
@@ -192,11 +192,11 @@ void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float rad, int nse
  * Draw a filled circle with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
  *
- * \param shdr_pos The vertex attribute number for position.
- * \param x Horizontal center.
- * \param y Vertical center.
- * \param radius The circle's radius.
- * \param nsegments The number of segments to use in drawing (more = smoother).
+ * \param shdr_pos: The vertex attribute number for position.
+ * \param x: Horizontal center.
+ * \param y: Vertical center.
+ * \param rad: The circle's radius.
+ * \param nsegments: The number of segments to use in drawing (more = smoother).
  */
 void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
@@ -269,8 +269,8 @@ static void imm_draw_disk_partial(
  * \param pos: The vertex attribute number for position.
  * \param x: Horizontal center.
  * \param y: Vertical center.
- * \param radius_inner: The inner circle's radius.
- * \param radius_outer: The outer circle's radius (can be zero).
+ * \param rad_inner: The inner circle's radius.
+ * \param rad_outer: The outer circle's radius (can be zero).
  * \param nsegments: The number of segments to use in drawing (more = smoother).
  * \param start: Specifies the starting angle, in degrees, of the disk portion.
  * \param sweep: Specifies the sweep angle, in degrees, of the disk portion.
@@ -307,11 +307,11 @@ void imm_draw_circle_fill_3d(uint pos, float x, float y, float rad, int nsegment
 /**
  * Draw a lined box.
  *
- * \param pos The vertex attribute number for position.
- * \param x1 left.
- * \param y1 bottom.
- * \param x2 right.
- * \param y2 top.
+ * \param pos: The vertex attribute number for position.
+ * \param x1: left.
+ * \param y1: bottom.
+ * \param x2: right.
+ * \param y2: top.
  */
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)
 {
@@ -392,13 +392,13 @@ void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3])
  * Draw a cylinder. Replacement for gluCylinder.
  * _warning_ : Slow, better use it only if you no other choices.
  *
- * \param pos The vertex attribute number for position.
- * \param nor The vertex attribute number for normal.
- * \param base Specifies the radius of the cylinder at z = 0.
- * \param top Specifies the radius of the cylinder at z = height.
- * \param height Specifies the height of the cylinder.
- * \param slices Specifies the number of subdivisions around the z axis.
- * \param stacks Specifies the number of subdivisions along the z axis.
+ * \param pos: The vertex attribute number for position.
+ * \param nor: The vertex attribute number for normal.
+ * \param base: Specifies the radius of the cylinder at z = 0.
+ * \param top: Specifies the radius of the cylinder at z = height.
+ * \param height: Specifies the height of the cylinder.
+ * \param slices: Specifies the number of subdivisions around the z axis.
+ * \param stacks: Specifies the number of subdivisions along the z axis.
  */
 void imm_draw_cylinder_fill_normal_3d(
         uint pos, uint nor, float base, float top, float height, int slices, int stacks)

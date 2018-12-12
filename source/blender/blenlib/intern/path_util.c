@@ -80,10 +80,10 @@ static bool BLI_path_is_abs(const char *name);
  * Looks for a sequence of decimal digits in string, preceding any filename extension,
  * returning the integer value if found, or 0 if not.
  *
- * \param string  String to scan.
- * \param head  Optional area to return copy of part of string prior to digits, or before dot if no digits.
- * \param tail  Optional area to return copy of part of string following digits, or from dot if no digits.
- * \param numlen  Optional to return number of digits found.
+ * \param string: String to scan.
+ * \param head: Optional area to return copy of part of string prior to digits, or before dot if no digits.
+ * \param tail: Optional area to return copy of part of string following digits, or from dot if no digits.
+ * \param r_num_len: Optional to return number of digits found.
  */
 int BLI_stringdec(const char *string, char *head, char *tail, ushort *r_num_len)
 {

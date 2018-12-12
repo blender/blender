@@ -121,7 +121,7 @@ wmGizmo *WM_gizmo_new_ptr(
 }
 
 /**
- * \param gt: Must be valid,
+ * \param name: Must be a valid gizmo type name,
  * if you need to check it exists use #WM_gizmo_new_ptr
  * because callers of this function don't NULL check the return value.
  */
@@ -150,8 +150,6 @@ static void gizmo_init(wmGizmo *gz)
 
 /**
  * Register \a gizmo.
- *
- * \param name: name used to create a unique idname for \a gizmo in \a gzgroup
  *
  * \note Not to be confused with type registration from RNA.
  */
@@ -357,12 +355,6 @@ void WM_gizmo_set_line_width(wmGizmo *gz, const float line_width)
 	gz->line_width = line_width;
 }
 
-/**
- * Set gizmo rgba colors.
- *
- * \param col  Normal state color.
- * \param col_hi  Highlighted state color.
- */
 void WM_gizmo_get_color(const wmGizmo *gz, float color[4])
 {
 	copy_v4_v4(color, gz->color);

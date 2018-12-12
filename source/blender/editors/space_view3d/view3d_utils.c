@@ -1333,7 +1333,6 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
 
 /**
  * Set the RegionView3D members from an objects transformation and optionally lens.
- * \param depsgraph The depsgraph to get the evaluated object for the lens calculation.
  * \param ob The object to set the view to.
  * \param ofs The view offset to be set, normally from RegionView3D.ofs.
  * \param quat The view rotation to be set, quaternion normally from RegionView3D.viewquat.

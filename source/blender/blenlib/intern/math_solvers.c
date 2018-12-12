@@ -189,7 +189,6 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
  * \param userdata Data for the callbacks.
  * \param epsilon Desired precision.
  * \param max_iterations Limit on the iterations.
- * \param max_corrections Limit on the number of times the correction callback can fire before giving up.
  * \param trace Enables logging to console.
  * \param x_init Initial solution vector.
  * \param result Final result.

@@ -211,7 +211,6 @@ typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Obj
  *
  * \param sctx: Snap context to store data.
  * \param snap_select : from enum eSnapSelect.
- * \param obedit : Object Edited to use its coordinates of BMesh(if any) to do the snapping.
  */
 static void iter_snap_objects(
         SnapObjectContext *sctx,
@@ -2281,13 +2280,11 @@ static void sanp_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, flo
  *
  * \param sctx: Snap context to store data.
  * \param snapdata: struct generated in `get_snapdata`.
- * \param snap_select : from enum eSnapSelect.
- * \param use_object_edit_cage : Uses the coordinates of BMesh(if any) to do the snapping.
+ * \param params: Parameters for control snap behavior.
  *
  * Read/Write Args
  * ---------------
  *
- * \param ray_depth: maximum depth allowed for r_co, elements deeper than this value will be ignored.
  * \param dist_px: Maximum threshold distance (in pixels).
  *
  * Output Args
@@ -2669,7 +2666,7 @@ bool ED_transform_snap_object_project_view3d_ex(
  * Given a 2D region value, snap to vert/edge/face.
  *
  * \param sctx: Snap context.
- * \param mval_fl: Screenspace coordinate.
+ * \param mval: Screenspace coordinate.
  * \param dist_px: Maximum distance to snap (in pixels).
  * \param r_co: hit location.
  * \param r_no: hit normal (optional).

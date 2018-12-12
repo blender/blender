@@ -1322,13 +1322,13 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4
  * Find the final derived mesh tessface for a particle, from its original tessface index.
  * This is slow and can be optimized but only for many lookups.
  *
- * \param dm_final final DM, it may not have the same topology as original mesh.
- * \param dm_deformed deformed-only DM, it has the exact same topology as original mesh.
- * \param findex_orig the input tessface index.
- * \param fw face weights (position of the particle inside the \a findex_orig tessface).
- * \param poly_nodes may be NULL, otherwise an array of linked list, one for each final DM polygon, containing all
- *                   its tessfaces indices.
- * \return the DM tessface index.
+ * \param mesh_final: Final mesh, it may not have the same topology as original mesh.
+ * \param mesh_original: Original mesh, use for accessing #MPoly to #MFace mapping.
+ * \param findex_orig: The input tessface index.
+ * \param fw: Face weights (position of the particle inside the \a findex_orig tessface).
+ * \param poly_nodes: May be NULL, otherwise an array of linked list,
+ * one for each final \a mesh_final polygon, containing all its tessfaces indices.
+ * \return The \a mesh_final tessface index.
  */
 int psys_particle_dm_face_lookup(
         Mesh *mesh_final, Mesh *mesh_original,

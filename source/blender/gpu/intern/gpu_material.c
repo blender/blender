@@ -242,7 +242,8 @@ GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material)
 
 /**
  * Create dynamic UBO from parameters
- * \param ListBase of BLI_genericNodeN(GPUInput)
+ *
+ * \param inputs: Items are #LinkData, data is #GPUInput (`BLI_genericNodeN(GPUInput)`).
  */
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 {
