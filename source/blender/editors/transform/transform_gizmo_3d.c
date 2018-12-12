@@ -454,6 +454,17 @@ static void gizmo_get_axis_constraint(const int axis_idx, bool r_axis[3])
 
 /* **************** Preparation Stuff **************** */
 
+static void reset_tw_center(struct TransformBounds *tbounds)
+{
+	INIT_MINMAX(tbounds->min, tbounds->max);
+	zero_v3(tbounds->center);
+
+	for (int i = 0; i < 3; i++) {
+		tbounds->axis_min[i] = +FLT_MAX;
+		tbounds->axis_max[i] = -FLT_MAX;
+	}
+}
+
 /* transform widget center calc helper for below */
 static void calc_tw_center(struct TransformBounds *tbounds, const float co[3])
 {
@@ -757,8 +768,7 @@ int ED_transform_calc_gizmo_stats(
 	}
 
 	/* transform widget centroid/center */
-	INIT_MINMAX(tbounds->min, tbounds->max);
-	zero_v3(tbounds->center);
+	reset_tw_center(tbounds);
 
 	copy_m3_m4(tbounds->axis, rv3d->twmat);
 	if (params->use_local_axis && (ob && ob->mode & OB_MODE_EDIT)) {
@@ -768,11 +778,6 @@ int ED_transform_calc_gizmo_stats(
 		invert_m3(diff_mat);
 		mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
 		normalize_m3(tbounds->axis);
-	}
-
-	for (int i = 0; i < 3; i++) {
-		tbounds->axis_min[i] = +FLT_MAX;
-		tbounds->axis_max[i] = -FLT_MAX;
 	}
 
 	if (is_gp_edit) {
@@ -832,219 +837,240 @@ int ED_transform_calc_gizmo_stats(
 
 		ob = obedit;
 		if (obedit->type == OB_MESH) {
-			BMEditMesh *em = BKE_editmesh_from_object(obedit);
-			BMEditSelection ese;
-			float vec[3] = {0, 0, 0};
+			FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
+				BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+				BMesh *bm = em_iter->bm;
 
-			/* USE LAST SELECT WITH ACTIVE */
-			if ((pivot_point == V3D_AROUND_ACTIVE) && BM_select_history_active_get(em->bm, &ese)) {
-				BM_editselection_center(&ese, vec);
-				calc_tw_center(tbounds, vec);
-				totsel = 1;
-			}
-			else {
-				FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
-					BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
-					BMesh *bm = em_iter->bm;
+				if (bm->totvertsel == 0) {
+					continue;
+				}
 
-					if (bm->totvertsel == 0) {
-						continue;
-					}
+				BMVert *eve;
+				BMIter iter;
 
-					BMVert *eve;
-					BMIter iter;
+				float mat_local[4][4];
+				if (use_mat_local) {
+					mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+				}
 
-					float mat_local[4][4];
-					if (use_mat_local) {
-						mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
-					}
-
-					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-							if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-								calc_tw_center_with_matrix(tbounds, eve->co, use_mat_local, mat_local);
-								totsel++;
-							}
+				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+							calc_tw_center_with_matrix(tbounds, eve->co, use_mat_local, mat_local);
+							totsel++;
 						}
 					}
-				} FOREACH_EDIT_OBJECT_END();
+				}
+			} FOREACH_EDIT_OBJECT_END();
+
+			/* Around active, only if there is a selection. The active
+			 * element itself does not have to be selected. */
+			if ((pivot_point == V3D_AROUND_ACTIVE) && totsel) {
+				BMEditMesh *em = BKE_editmesh_from_object(obedit);
+				BMEditSelection ese;
+
+				if (BM_select_history_active_get(em->bm, &ese)) {
+					float vec[3] = {0, 0, 0};
+					BM_editselection_center(&ese, vec);
+					reset_tw_center(tbounds);
+					calc_tw_center(tbounds, vec);
+					totsel = 1;
+				}
 			}
 		} /* end editmesh */
 		else if (obedit->type == OB_ARMATURE) {
-			bArmature *arm = obedit->data;
-			EditBone *ebo;
+			FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
+				bArmature *arm = ob_iter->data;
 
-			if ((pivot_point == V3D_AROUND_ACTIVE) && (ebo = arm->act_edbone)) {
-				/* doesn't check selection or visibility intentionally */
-				if (ebo->flag & BONE_TIPSEL) {
-					calc_tw_center(tbounds, ebo->tail);
-					totsel++;
+				float mat_local[4][4];
+				if (use_mat_local) {
+					mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
 				}
-				if ((ebo->flag & BONE_ROOTSEL) ||
-				    ((ebo->flag & BONE_TIPSEL) == false))  /* ensure we get at least one point */
-				{
-					calc_tw_center(tbounds, ebo->head);
-					totsel++;
-				}
-				protectflag_to_drawflags_ebone(rv3d, ebo);
-			}
-			else {
-				FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
-					arm = ob_iter->data;
-
-					float mat_local[4][4];
-					if (use_mat_local) {
-						mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
-					}
-					for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
-						if (EBONE_VISIBLE(arm, ebo)) {
-							if (ebo->flag & BONE_TIPSEL) {
-								calc_tw_center_with_matrix(tbounds, ebo->tail, use_mat_local, mat_local);
-								totsel++;
-							}
-							if ((ebo->flag & BONE_ROOTSEL) &&
-							    /* don't include same point multiple times */
-							    ((ebo->flag & BONE_CONNECTED) &&
-							     (ebo->parent != NULL) &&
-							     (ebo->parent->flag & BONE_TIPSEL) &&
-							     EBONE_VISIBLE(arm, ebo->parent)) == 0)
-							{
-								calc_tw_center_with_matrix(tbounds, ebo->head, use_mat_local, mat_local);
-								totsel++;
-							}
-							if (ebo->flag & BONE_SELECTED) {
-								protectflag_to_drawflags_ebone(rv3d, ebo);
-							}
+				for (EditBone *ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+					if (EBONE_VISIBLE(arm, ebo)) {
+						if (ebo->flag & BONE_TIPSEL) {
+							calc_tw_center_with_matrix(tbounds, ebo->tail, use_mat_local, mat_local);
+							totsel++;
+						}
+						if ((ebo->flag & BONE_ROOTSEL) &&
+							/* don't include same point multiple times */
+							((ebo->flag & BONE_CONNECTED) &&
+							 (ebo->parent != NULL) &&
+							 (ebo->parent->flag & BONE_TIPSEL) &&
+							 EBONE_VISIBLE(arm, ebo->parent)) == 0)
+						{
+							calc_tw_center_with_matrix(tbounds, ebo->head, use_mat_local, mat_local);
+							totsel++;
+						}
+						if (ebo->flag & BONE_SELECTED) {
+							protectflag_to_drawflags_ebone(rv3d, ebo);
 						}
 					}
-				} FOREACH_EDIT_OBJECT_END();
+				}
+			} FOREACH_EDIT_OBJECT_END();
+
+			/* Around active, only if there is a selection. The active
+			 * element itself does not have to be selected. */
+			if ((pivot_point == V3D_AROUND_ACTIVE) && totsel) {
+				bArmature *arm = obedit->data;
+				EditBone *ebo = arm->act_edbone;
+
+				if (ebo) {
+					reset_tw_center(tbounds);
+					rv3d->twdrawflag = 0xFFFF;
+					totsel = 0;
+
+					if (ebo->flag & BONE_TIPSEL) {
+						calc_tw_center(tbounds, ebo->tail);
+						totsel++;
+					}
+					if ((ebo->flag & BONE_ROOTSEL) ||
+						((ebo->flag & BONE_TIPSEL) == false))  /* ensure we get at least one point */
+					{
+						calc_tw_center(tbounds, ebo->head);
+						totsel++;
+					}
+					protectflag_to_drawflags_ebone(rv3d, ebo);
+				}
 			}
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-			Curve *cu = obedit->data;
-			float center[3];
+			FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
+				Curve *cu = ob_iter->data;
+				Nurb *nu;
+				BezTriple *bezt;
+				BPoint *bp;
+				ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-			if ((pivot_point == V3D_AROUND_ACTIVE) && ED_curve_active_center(cu, center)) {
-				calc_tw_center(tbounds, center);
-				totsel++;
-			}
-			else {
-				FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
-					cu = ob_iter->data;
-					Nurb *nu;
-					BezTriple *bezt;
-					BPoint *bp;
-					ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+				float mat_local[4][4];
+				if (use_mat_local) {
+					mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+				}
 
-					float mat_local[4][4];
-					if (use_mat_local) {
-						mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
-					}
-
-					nu = nurbs->first;
-					while (nu) {
-						if (nu->type == CU_BEZIER) {
-							bezt = nu->bezt;
-							a = nu->pntsu;
-							while (a--) {
-								/* exceptions
-								 * if handles are hidden then only check the center points.
-								 * If the center knot is selected then only use this as the center point.
-								 */
-								if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
-									if (bezt->f2 & SELECT) {
-										calc_tw_center_with_matrix(tbounds, bezt->vec[1], use_mat_local, mat_local);
-										totsel++;
-									}
-								}
-								else if (bezt->f2 & SELECT) {
+				nu = nurbs->first;
+				while (nu) {
+					if (nu->type == CU_BEZIER) {
+						bezt = nu->bezt;
+						a = nu->pntsu;
+						while (a--) {
+							/* exceptions
+							 * if handles are hidden then only check the center points.
+							 * If the center knot is selected then only use this as the center point.
+							 */
+							if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
+								if (bezt->f2 & SELECT) {
 									calc_tw_center_with_matrix(tbounds, bezt->vec[1], use_mat_local, mat_local);
 									totsel++;
 								}
-								else {
-									if (bezt->f1 & SELECT) {
-										const float *co = bezt->vec[(pivot_point == V3D_AROUND_LOCAL_ORIGINS) ? 1 : 0];
-										calc_tw_center_with_matrix(tbounds, co, use_mat_local, mat_local);
-										totsel++;
-									}
-									if (bezt->f3 & SELECT) {
-										const float *co = bezt->vec[(pivot_point == V3D_AROUND_LOCAL_ORIGINS) ? 1 : 2];
-										calc_tw_center_with_matrix(tbounds, co, use_mat_local, mat_local);
-										totsel++;
-									}
-								}
-								bezt++;
 							}
-						}
-						else {
-							bp = nu->bp;
-							a = nu->pntsu * nu->pntsv;
-							while (a--) {
-								if (bp->f1 & SELECT) {
-									calc_tw_center_with_matrix(tbounds, bp->vec, use_mat_local, mat_local);
+							else if (bezt->f2 & SELECT) {
+								calc_tw_center_with_matrix(tbounds, bezt->vec[1], use_mat_local, mat_local);
+								totsel++;
+							}
+							else {
+								if (bezt->f1 & SELECT) {
+									const float *co = bezt->vec[(pivot_point == V3D_AROUND_LOCAL_ORIGINS) ? 1 : 0];
+									calc_tw_center_with_matrix(tbounds, co, use_mat_local, mat_local);
 									totsel++;
 								}
-								bp++;
+								if (bezt->f3 & SELECT) {
+									const float *co = bezt->vec[(pivot_point == V3D_AROUND_LOCAL_ORIGINS) ? 1 : 2];
+									calc_tw_center_with_matrix(tbounds, co, use_mat_local, mat_local);
+									totsel++;
+								}
 							}
+							bezt++;
 						}
-						nu = nu->next;
 					}
-				} FOREACH_EDIT_OBJECT_END();
+					else {
+						bp = nu->bp;
+						a = nu->pntsu * nu->pntsv;
+						while (a--) {
+							if (bp->f1 & SELECT) {
+								calc_tw_center_with_matrix(tbounds, bp->vec, use_mat_local, mat_local);
+								totsel++;
+							}
+							bp++;
+						}
+					}
+					nu = nu->next;
+				}
+			} FOREACH_EDIT_OBJECT_END();
+
+			/* Around active, only if there is a selection. The active
+			 * element itself does not have to be selected. */
+			if ((pivot_point == V3D_AROUND_ACTIVE) && totsel) {
+				Curve *cu = obedit->data;
+				float center[3];
+
+				if (ED_curve_active_center(cu, center)) {
+					reset_tw_center(tbounds);
+					calc_tw_center(tbounds, center);
+					totsel = 1;
+				}
 			}
 		}
 		else if (obedit->type == OB_MBALL) {
-			MetaBall *mb = (MetaBall *)obedit->data;
-			MetaElem *ml;
+			FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
+				MetaBall *mb = (MetaBall *)ob_iter->data;
 
-			if ((pivot_point == V3D_AROUND_ACTIVE) && (ml = mb->lastelem)) {
-				calc_tw_center(tbounds, &ml->x);
-				totsel++;
-			}
-			else {
-				FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
-					mb = (MetaBall *)ob_iter->data;
+				float mat_local[4][4];
+				if (use_mat_local) {
+					mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+				}
 
-					float mat_local[4][4];
-					if (use_mat_local) {
-						mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+				for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
+					if (ml->flag & SELECT) {
+						calc_tw_center_with_matrix(tbounds, &ml->x, use_mat_local, mat_local);
+						totsel++;
 					}
+				}
+			} FOREACH_EDIT_OBJECT_END();
 
-					for (ml = mb->editelems->first; ml; ml = ml->next) {
-						if (ml->flag & SELECT) {
-							calc_tw_center_with_matrix(tbounds, &ml->x, use_mat_local, mat_local);
-							totsel++;
-						}
-					}
-				} FOREACH_EDIT_OBJECT_END();
+			/* Around active, only if there is a selection. The active
+			 * element itself does not have to be selected. */
+			if ((pivot_point == V3D_AROUND_ACTIVE) && totsel) {
+				MetaBall *mb = (MetaBall *)obedit->data;
+				MetaElem *ml = mb->lastelem;
+
+				if (ml) {
+					reset_tw_center(tbounds);
+					calc_tw_center(tbounds, &ml->x);
+					totsel = 1;
+				}
 			}
 		}
 		else if (obedit->type == OB_LATTICE) {
-			Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
-			BPoint *bp;
+			FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
+				Lattice *lt = ((Lattice *)ob_iter->data)->editlatt->latt;
+				BPoint *bp = lt->def;
+				a = lt->pntsu * lt->pntsv * lt->pntsw;
 
-			if ((pivot_point == V3D_AROUND_ACTIVE) && (bp = BKE_lattice_active_point_get(lt))) {
-				calc_tw_center(tbounds, bp->vec);
-				totsel++;
-			}
-			else {
-				FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) {
-					lt = ((Lattice *)ob_iter->data)->editlatt->latt;
-					bp = lt->def;
-					a = lt->pntsu * lt->pntsv * lt->pntsw;
+				float mat_local[4][4];
+				if (use_mat_local) {
+					mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+				}
 
-					float mat_local[4][4];
-					if (use_mat_local) {
-						mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+				while (a--) {
+					if (bp->f1 & SELECT) {
+						calc_tw_center_with_matrix(tbounds, bp->vec, use_mat_local, mat_local);
+						totsel++;
 					}
+					bp++;
+				}
+			} FOREACH_EDIT_OBJECT_END();
 
-					while (a--) {
-						if (bp->f1 & SELECT) {
-							calc_tw_center_with_matrix(tbounds, bp->vec, use_mat_local, mat_local);
-							totsel++;
-						}
-						bp++;
-					}
-				} FOREACH_EDIT_OBJECT_END();
+			/* Around active, only if there is a selection. The active
+			 * element itself does not have to be selected. */
+			if ((pivot_point == V3D_AROUND_ACTIVE) && totsel) {
+				Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+				BPoint *bp = BKE_lattice_active_point_get(lt);
+
+				if (bp) {
+					reset_tw_center(tbounds);
+					calc_tw_center(tbounds, bp->vec);
+					totsel = 1;
+				}
 			}
 		}
 
@@ -1062,22 +1088,19 @@ int ED_transform_calc_gizmo_stats(
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the gizmo mode, could be mixed
-		bool ok = false;
 
-		if ((pivot_point == V3D_AROUND_ACTIVE) && (pchan = BKE_pose_channel_active(ob))) {
-			/* doesn't check selection or visibility intentionally */
-			Bone *bone = pchan->bone;
-			if (bone) {
+		totsel = count_set_pose_transflags(ob, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
+
+		if (totsel) {
+			if ((pivot_point == V3D_AROUND_ACTIVE) &&
+			    (pchan = BKE_pose_channel_active(ob)))
+			{
+				/* Doesn't check selection or visibility of the active bone intentionally. */
 				calc_tw_center(tbounds, pchan->pose_head);
 				protectflag_to_drawflags_pchan(rv3d, pchan);
 				totsel = 1;
-				ok = true;
 			}
-		}
-		else {
-			totsel = count_set_pose_transflags(ob, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
-
-			if (totsel) {
+			else {
 				/* use channels to get stats */
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					Bone *bone = pchan->bone;
@@ -1086,11 +1109,8 @@ int ED_transform_calc_gizmo_stats(
 						protectflag_to_drawflags_pchan(rv3d, pchan);
 					}
 				}
-				ok = true;
 			}
-		}
 
-		if (ok) {
 			mul_v3_fl(tbounds->center, 1.0f / (float)totsel);   // centroid!
 			mul_m4_v3(ob->obmat, tbounds->center);
 			mul_m4_v3(ob->obmat, tbounds->min);
