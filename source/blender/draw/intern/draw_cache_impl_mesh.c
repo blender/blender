@@ -264,6 +264,8 @@ enum {
 	MR_DATATYPE_DVERT      = 1 << 7,
 	MR_DATATYPE_LOOPCOL    = 1 << 8,
 	MR_DATATYPE_LOOPUV     = 1 << 9,
+	MR_DATATYPE_LOOSE_VERT = 1 << 10,
+	MR_DATATYPE_LOOSE_EDGE = 1 << 11,
 };
 
 /**
@@ -543,8 +545,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 			rdata->tri_len = tottri;
 		}
 
-		if (types & MR_DATATYPE_OVERLAY) {
-			rdata->loose_vert_len = rdata->loose_edge_len = 0;
+		if (types & MR_DATATYPE_LOOSE_VERT) {
+			BLI_assert(types & MR_DATATYPE_VERT);
+			rdata->loose_vert_len = 0;
 
 			{
 				int *lverts = MEM_mallocN(rdata->vert_len * sizeof(int), __func__);
@@ -561,24 +564,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 				rdata->loose_verts = MEM_reallocN(lverts, rdata->loose_vert_len * sizeof(int));
 			}
 
-			{
-				int *ledges = MEM_mallocN(rdata->edge_len * sizeof(int), __func__);
-				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
-				for (int i = 0; i < bm->totedge; i++) {
-					const BMEdge *eed = BM_edge_at_index(bm, i);
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-						/* Loose edge */
-						if (eed->l == NULL || !bm_edge_has_visible_face(eed)) {
-							ledges[rdata->loose_edge_len++] = i;
-						}
-					}
-				}
-				rdata->loose_edges = MEM_reallocN(ledges, rdata->loose_edge_len * sizeof(int));
-			}
-
 			if (rdata->mapped.supported) {
 				Mesh *me_cage = embm->mesh_eval_cage;
-				rdata->mapped.loose_vert_len = rdata->mapped.loose_edge_len = 0;
+				rdata->mapped.loose_vert_len = 0;
 
 				if (rdata->loose_vert_len) {
 					int *lverts = MEM_mallocN(me_cage->totvert * sizeof(int), __func__);
@@ -597,6 +585,31 @@ static MeshRenderData *mesh_render_data_create_ex(
 					}
 					rdata->mapped.loose_verts = MEM_reallocN(lverts, rdata->mapped.loose_vert_len * sizeof(int));
 				}
+			}
+		}
+
+		if (types & MR_DATATYPE_LOOSE_EDGE) {
+			BLI_assert(types & MR_DATATYPE_EDGE);
+			rdata->loose_edge_len = 0;
+
+			{
+				int *ledges = MEM_mallocN(rdata->edge_len * sizeof(int), __func__);
+				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
+				for (int i = 0; i < bm->totedge; i++) {
+					const BMEdge *eed = BM_edge_at_index(bm, i);
+					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+						/* Loose edge */
+						if (eed->l == NULL || !bm_edge_has_visible_face(eed)) {
+							ledges[rdata->loose_edge_len++] = i;
+						}
+					}
+				}
+				rdata->loose_edges = MEM_reallocN(ledges, rdata->loose_edge_len * sizeof(int));
+			}
+
+			if (rdata->mapped.supported) {
+				Mesh *me_cage = embm->mesh_eval_cage;
+				rdata->mapped.loose_edge_len = 0;
 
 				if (rdata->loose_edge_len) {
 					int *ledges = MEM_mallocN(me_cage->totedge * sizeof(int), __func__);
@@ -5809,11 +5822,11 @@ void DRW_mesh_batch_cache_create_requested(Object *ob)
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->tess.wireframe_data, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
 
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.data, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_OVERLAY);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.data_ledges, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.data_lverts, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.data_ledges, MR_DATATYPE_LOOSE_EDGE | MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.data_lverts, MR_DATATYPE_LOOSE_VERT | MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_OVERLAY);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_ledges, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
-	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_lverts, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_ledges, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOSE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_OVERLAY);
+	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_lverts, MR_DATATYPE_VERT | MR_DATATYPE_LOOSE_VERT | MR_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_data_facedots, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.lnor, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_edit_flag, cache->ibo.edit_verts, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI);
