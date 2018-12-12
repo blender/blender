@@ -1194,6 +1194,12 @@ static void layerDefault_mvert_skin(void *data, int count)
 	}
 }
 
+static void layerCopy_mvert_skin(const void *source, void *dest,
+                                 int count)
+{
+	memcpy(dest, source, sizeof (MVertSkin) * count);
+}
+
 static void layerInterp_mvert_skin(
         const void **sources, const float *weights,
         const float *UNUSED(sub_weights),
@@ -1342,7 +1348,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(GridPaintMask), "GridPaintMask", 1, NULL, layerCopy_grid_paint_mask,
 	 layerFree_grid_paint_mask, NULL, NULL, NULL},
 	/* 36: CD_MVERT_SKIN */
-	{sizeof(MVertSkin), "MVertSkin", 1, NULL, NULL, NULL,
+	{sizeof(MVertSkin), "MVertSkin", 1, NULL, layerCopy_mvert_skin, NULL,
 	 layerInterp_mvert_skin, NULL, layerDefault_mvert_skin},
 	/* 37: CD_FREESTYLE_EDGE */
 	{sizeof(FreestyleEdge), "FreestyleEdge", 1, NULL, NULL, NULL, NULL, NULL, NULL},

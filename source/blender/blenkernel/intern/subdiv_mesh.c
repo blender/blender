@@ -1032,6 +1032,41 @@ static void points_for_loose_edges_interpolation_get(
 	}
 }
 
+static void subdiv_mesh_vertex_of_loose_edge_interpolate(
+        SubdivMeshContext *ctx,
+        const MEdge *coarse_edge,
+        const float u,
+        const int subdiv_vertex_index)
+{
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	if (u == 0.0f) {
+		CustomData_copy_data(&coarse_mesh->vdata,
+		                     &subdiv_mesh->vdata,
+		                     coarse_edge->v1,
+		                     subdiv_vertex_index,
+		                     1);
+	}
+	else if (u == 1.0f) {
+		CustomData_copy_data(&coarse_mesh->vdata,
+		                     &subdiv_mesh->vdata,
+		                     coarse_edge->v2,
+		                     subdiv_vertex_index,
+		                     1);
+	}
+	else {
+		BLI_assert(u > 0.0f);
+		BLI_assert(u < 1.0f);
+		const float interpolation_weights[2] = {1.0f - u, u};
+		const int coarse_vertex_indices[2] = {coarse_edge->v1, coarse_edge->v2};
+		CustomData_interp(&coarse_mesh->vdata,
+		                  &subdiv_mesh->vdata,
+		                  coarse_vertex_indices,
+		                  interpolation_weights, NULL,
+		                  2, subdiv_vertex_index);
+	}
+}
+
 static void subdiv_mesh_vertex_of_loose_edge(
         const struct SubdivForeachContext *foreach_context,
         void *UNUSED(tls),
@@ -1055,6 +1090,10 @@ static void subdiv_mesh_vertex_of_loose_edge(
 	float weights[4];
 	key_curve_position_weights(u, weights, KEY_BSPLINE);
 
+	/* Interpolate custom data. */
+	subdiv_mesh_vertex_of_loose_edge_interpolate(
+	        ctx, coarse_edge, u, subdiv_vertex_index);
+	/* Initialize  */
 	MVert *subdiv_vertex = &subdiv_mvert[subdiv_vertex_index];
 	interp_v3_v3v3v3v3(subdiv_vertex->co,
 	                   points[0],
@@ -1064,11 +1103,12 @@ static void subdiv_mesh_vertex_of_loose_edge(
 	                   weights);
 	/* Reset flags and such. */
 	subdiv_vertex->flag = 0;
+	/* TODO(sergey): This matches old behavior, but we can as well interpolate
+	 * it. Maybe even using vertex varying attributes. */
 	subdiv_vertex->bweight = 0.0f;
-	/* Reset normal. */
-	subdiv_vertex->no[0] = 0.0f;
-	subdiv_vertex->no[1] = 0.0f;
-	subdiv_vertex->no[2] = 1.0f;
+	/* Reset normal, initialize it in a similar way as edit mode does for a
+	 * vertices adjacent to a loose edges. */
+	normal_float_to_short_v3(subdiv_vertex->no, subdiv_vertex->co);
 }
 
 /* =============================================================================

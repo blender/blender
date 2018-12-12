@@ -859,6 +859,7 @@ static Mesh *subdivide_base(Mesh *orig)
 	for (i = 0, totsubd = 0; i < totorigedge; i++) {
 		edge_subd[i] += calc_edge_subdivisions(origvert, orignode,
 		                                       &origedge[i], degree);
+		BLI_assert(edge_subd[i] >= 0);
 		totsubd += edge_subd[i];
 	}
 
