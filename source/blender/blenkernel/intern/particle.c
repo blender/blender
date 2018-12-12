@@ -1433,11 +1433,11 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4
  * Find the final derived mesh tessface for a particle, from its original tessface index.
  * This is slow and can be optimized but only for many lookups.
  *
- * \param dm_final final DM, it may not have the same topology as original mesh.
- * \param dm_deformed deformed-only DM, it has the exact same topology as original mesh.
- * \param findex_orig the input tessface index.
- * \param fw face weights (position of the particle inside the \a findex_orig tessface).
- * \param poly_nodes may be NULL, otherwise an array of linked list, one for each final DM polygon, containing all
+ * \param dm_final: final DM, it may not have the same topology as original mesh.
+ * \param dm_deformed: deformed-only DM, it has the exact same topology as original mesh.
+ * \param findex_orig: the input tessface index.
+ * \param fw: face weights (position of the particle inside the \a findex_orig tessface).
+ * \param poly_nodes: may be NULL, otherwise an array of linked list, one for each final DM polygon, containing all
  *                   its tessfaces indices.
  * \return the DM tessface index.
  */
@@ -3374,7 +3374,7 @@ void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_particlesettings_copy_data(
         Main *UNUSED(bmain), ParticleSettings *part_dst, const ParticleSettings *part_src, const int UNUSED(flag))

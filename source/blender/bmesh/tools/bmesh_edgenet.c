@@ -444,8 +444,8 @@ static LinkNode *bm_edgenet_path_calc_best(
  * \note New faces currently don't have their normals calculated and are flipped randomly.
  *       The caller needs to flip faces correctly.
  *
- * \param bm  The mesh to operate on.
- * \param use_edge_tag  Only fill tagged edges.
+ * \param bm: The mesh to operate on.
+ * \param use_edge_tag: Only fill tagged edges.
  */
 void BM_mesh_edgenet(
         BMesh *bm,

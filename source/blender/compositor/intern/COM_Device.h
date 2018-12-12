@@ -51,7 +51,7 @@ public:
 
 	/**
 	 * \brief execute a WorkPackage
-	 * \param work the WorkPackage to execute
+	 * \param work: the WorkPackage to execute
 	 */
 	virtual void execute(WorkPackage *work) = 0;
 

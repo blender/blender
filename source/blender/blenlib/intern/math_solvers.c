@@ -41,7 +41,7 @@
 /**
  * \brief Compute the eigen values and/or vectors of given 3D symmetric (aka adjoint) matrix.
  *
- * \param m3 the 3D symmetric matrix.
+ * \param m3: the 3D symmetric matrix.
  * \return r_eigen_values the computed eigen values (NULL if not needed).
  * \return r_eigen_vectors the computed eigen vectors (NULL if not needed).
  */
@@ -63,7 +63,7 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3], float r_eigen_values[3
 /**
  * \brief Compute the SVD (Singular Values Decomposition) of given 3D  matrix (m3 = USV*).
  *
- * \param m3 the matrix to decompose.
+ * \param m3: the matrix to decompose.
  * \return r_U the computed left singular vector of \a m3 (NULL if not needed).
  * \return r_S the computed singular values of \a m3 (NULL if not needed).
  * \return r_V the computed right singular vector of \a m3 (NULL if not needed).
@@ -82,7 +82,7 @@ void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3
  *
  * Ignores a[0] and c[count-1]. Uses the Thomas algorithm, e.g. see wiki.
  *
- * \param r_x output vector, may be shared with any of the input ones
+ * \param r_x: output vector, may be shared with any of the input ones
  * \return true if success
  */
 bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
@@ -130,7 +130,7 @@ bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const
 /**
  * \brief Solve a possibly cyclic tridiagonal system using the Sherman-Morrison formula.
  *
- * \param r_x output vector, may be shared with any of the input ones
+ * \param r_x: output vector, may be shared with any of the input ones
  * \return true if success
  */
 bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)

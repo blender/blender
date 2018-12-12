@@ -96,11 +96,11 @@ static void covariance_m_vn_ex_task_cb(
 /**
  * \brief Compute the covariance matrix of given set of nD coordinates.
  *
- * \param n the dimension of the vectors (and hence, of the covariance matrix to compute).
- * \param cos_vn the nD points to compute covariance from.
- * \param nbr_cos_vn the number of nD coordinates in cos_vn.
- * \param center the center (or mean point) of cos_vn. If NULL, it is assumed cos_vn is already centered.
- * \param use_sample_correction whether to apply sample correction
+ * \param n: the dimension of the vectors (and hence, of the covariance matrix to compute).
+ * \param cos_vn: the nD points to compute covariance from.
+ * \param nbr_cos_vn: the number of nD coordinates in cos_vn.
+ * \param center: the center (or mean point) of cos_vn. If NULL, it is assumed cos_vn is already centered.
+ * \param use_sample_correction: whether to apply sample correction
  *                              (i.e. get 'sample varince' instead of 'population variance').
  * \return r_covmat the computed covariance matrix.
  */
@@ -133,8 +133,8 @@ void BLI_covariance_m_vn_ex(
 /**
  * \brief Compute the covariance matrix of given set of 3D coordinates.
  *
- * \param cos_v3 the 3D points to compute covariance from.
- * \param nbr_cos_v3 the number of 3D coordinates in cos_v3.
+ * \param cos_v3: the 3D points to compute covariance from.
+ * \param nbr_cos_v3: the number of 3D coordinates in cos_v3.
  * \return r_covmat the computed covariance matrix.
  * \return r_center the computed center (mean) of 3D points (may be NULL).
  */

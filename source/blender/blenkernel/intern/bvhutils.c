@@ -499,9 +499,9 @@ BVHTree *bvhtree_from_editmesh_verts(
 
 /**
  * Builds a bvh tree where nodes are the given vertices (note: does not copy given mverts!).
- * \param vert_allocated if true, vert freeing will be done when freeing data.
- * \param verts_mask if not null, true elements give which vert to add to BVH tree.
- * \param verts_num_active if >= 0, number of active verts to add to BVH tree (else will be computed from mask).
+ * \param vert_allocated: if true, vert freeing will be done when freeing data.
+ * \param verts_mask: if not null, true elements give which vert to add to BVH tree.
+ * \param verts_num_active: if >= 0, number of active verts to add to BVH tree (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_verts_ex(
         BVHTreeFromMesh *data, const MVert *vert, const int verts_num, const bool vert_allocated,
@@ -651,9 +651,10 @@ BVHTree *bvhtree_from_editmesh_edges(
 
 /**
  * Builds a bvh tree where nodes are the given edges .
- * \param vert/edge_allocated if true, elem freeing will be done when freeing data.
- * \param edges_mask if not null, true elements give which vert to add to BVH tree.
- * \param edges_num_active if >= 0, number of active edges to add to BVH tree (else will be computed from mask).
+ * \param vert, vert_allocated: If true, elem freeing will be done when freeing data.
+ * \param edge, edge_allocated: If true, elem freeing will be done when freeing data.
+ * \param edges_mask: if not null, true elements give which vert to add to BVH tree.
+ * \param edges_num_active: if >= 0, number of active edges to add to BVH tree (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_edges_ex(
         BVHTreeFromMesh *data,

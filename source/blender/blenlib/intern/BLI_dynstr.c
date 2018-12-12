@@ -108,8 +108,8 @@ BLI_INLINE void *dynstr_alloc(DynStr *__restrict ds, size_t size)
 /**
  * Append a c-string to a DynStr.
  *
- * \param ds The DynStr to append to.
- * \param cstr The c-string to append.
+ * \param ds: The DynStr to append to.
+ * \param cstr: The c-string to append.
  */
 void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
 {
@@ -131,9 +131,9 @@ void BLI_dynstr_append(DynStr *__restrict ds, const char *cstr)
 /**
  * Append a length clamped c-string to a DynStr.
  *
- * \param ds The DynStr to append to.
- * \param cstr The c-string to append.
- * \param len The maximum length of the c-string to copy.
+ * \param ds: The DynStr to append to.
+ * \param cstr: The c-string to append.
+ * \param len: The maximum length of the c-string to copy.
  */
 void BLI_dynstr_nappend(DynStr *__restrict ds, const char *cstr, int len)
 {
@@ -209,8 +209,8 @@ void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, v
 /**
  * Append a c-string to a DynStr, but with formatting like printf.
  *
- * \param ds The DynStr to append to.
- * \param format The printf format string to use.
+ * \param ds: The DynStr to append to.
+ * \param format: The printf format string to use.
  */
 void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ...)
 {
@@ -271,7 +271,7 @@ void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ..
 /**
  * Find the length of a DynStr.
  *
- * \param ds The DynStr of interest.
+ * \param ds: The DynStr of interest.
  * \return The length of \a ds.
  */
 int BLI_dynstr_get_len(DynStr *ds)
@@ -308,7 +308,7 @@ void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict rets)
  * <i> The returned c-string should be freed
  * using MEM_freeN. </i>
  *
- * \param ds The DynStr of interest.
+ * \param ds: The DynStr of interest.
  * \return The contents of \a ds as a c-string.
  */
 char *BLI_dynstr_get_cstring(DynStr *ds)
@@ -321,7 +321,7 @@ char *BLI_dynstr_get_cstring(DynStr *ds)
 /**
  * Clear the DynStr
  *
- * \param ds The DynStr to clear.
+ * \param ds: The DynStr to clear.
  */
 void BLI_dynstr_clear(DynStr *ds)
 {
@@ -344,7 +344,7 @@ void BLI_dynstr_clear(DynStr *ds)
 /**
  * Free the DynStr
  *
- * \param ds The DynStr to free.
+ * \param ds: The DynStr to free.
  */
 void BLI_dynstr_free(DynStr *ds)
 {

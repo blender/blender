@@ -52,7 +52,7 @@ class DensityF0D : public UnaryFunction0D<double>
 {
 public:
 	/*! Builds the functor from the gaussian sigma value.
-	 *  \param sigma
+	 *  \param sigma:
 	 *    sigma indicates the x value for which the gaussian function is 0.5. It leads to the window size value.
 	 *    (the larger, the smoother)
 	 */
@@ -111,9 +111,9 @@ private:
 public:
 	/*! Builds the functor from name of the
 	 *  Map that must be read.
-	 *  \param iMapName
+	 *  \param iMapName:
 	 *    The name of the map.
-	 *  \param level
+	 *  \param level:
 	 *    The level of the pyramid from which the pixel must be read.
 	 */
 	ReadMapPixelF0D(const char *iMapName, int level) : UnaryFunction0D<float>()
@@ -142,9 +142,9 @@ private:
 
 public:
 	/*! Builds the functor
-	 *  \param nOrientation
+	 *  \param nOrientation:
 	 *    The integer belonging to [0,4] indicating the orientation (E,NE,N,NW) we are interested in.
-	 *  \param level
+	 *  \param level:
 	 *    The level of the pyramid from which the pixel must be read.
 	 */
 	ReadSteerableViewMapPixelF0D(unsigned nOrientation, int level) : UnaryFunction0D<float>()
@@ -172,7 +172,7 @@ private:
 
 public:
 	/*! Builds the functor
-	 *  \param level
+	 *  \param level:
 	 *    The level of the pyramid from which the pixel must be read.
 	 */
 	ReadCompleteViewMapPixelF0D(int level) : UnaryFunction0D<float>()
@@ -200,7 +200,7 @@ private:
 
 public:
 	/*! Builds the functor
-	 *  \param level
+	 *  \param level:
 	 *    The level of the pyramid from which the pixel must be read.
 	 */
 	GetViewMapGradientNormF0D(int level) : UnaryFunction0D<float>()

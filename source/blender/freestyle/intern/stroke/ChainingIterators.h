@@ -162,13 +162,13 @@ public:
 	void *py_c_it;
 
 	/*! Builds a Chaining Iterator from the first ViewEdge used for iteration and its orientation.
-	 *  \param iRestrictToSelection
+	 *  \param iRestrictToSelection:
 	 *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or not.
-	 *  \param iRestrictToUnvisited
+	 *  \param iRestrictToUnvisited:
 	 *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
-	 *  \param begin
+	 *  \param begin:
 	 *    The ViewEdge from which to start the chain.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    The direction to follow to explore the graph. If true, the direction indicated by the first ViewEdge is used.
 	 */
 	ChainingIterator(bool iRestrictToSelection = true, bool iRestrictToUnvisited = true, ViewEdge *begin = NULL,
@@ -205,7 +205,7 @@ public:
 
 	/*! This method iterates over the potential next ViewEdges and returns the one that will be followed next.
 	 *  returns the next ViewEdge to follow or 0 when the end of the chain is reached.
-	 *  \param it
+	 *  \param it:
 	 *    The iterator over the ViewEdges adjacent to the end vertex of the current ViewEdge.
 	 *    The Adjacency iterator reflects the restriction rules by only iterating over the valid ViewEdges.
 	 */
@@ -262,11 +262,11 @@ class ChainSilhouetteIterator : public ChainingIterator
 {
 public:
 	/*! Builds a ChainSilhouetteIterator from the first ViewEdge used for iteration and its orientation.
-	 *  \param iRestrictToSelection
+	 *  \param iRestrictToSelection:
 	 *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or not.
-	 *  \param begin
+	 *  \param begin:
 	 *    The ViewEdge from where to start the iteration.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex of begin.
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */
@@ -317,13 +317,13 @@ protected:
 
 public:
 	/*! Builds a ChainPredicateIterator from a starting ViewEdge and its orientation.
-	 *  \param iRestrictToSelection
+	 *  \param iRestrictToSelection:
 	 *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or not.
-	 *  \param iRestrictToUnvisited
+	 *  \param iRestrictToUnvisited:
 	 *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
-	 *  \param begin
+	 *  \param begin:
 	 *    The ViewEdge from where to start the iteration.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex of begin.
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */
@@ -337,17 +337,17 @@ public:
 
 	/*! Builds a ChainPredicateIterator from a unary predicate, a binary predicate, a starting ViewEdge and
 	 *  its orientation.
-	 *  \param iRestrictToSelection
+	 *  \param iRestrictToSelection:
 	 *    Indicates whether to force the chaining to stay within the set of selected ViewEdges or not.
-	 *  \param iRestrictToUnvisited
+	 *  \param iRestrictToUnvisited:
 	 *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
-	 *  \param upred
+	 *  \param upred:
 	 *    The unary predicate that the next ViewEdge must satisfy.
-	 *  \param bpred
+	 *  \param bpred:
 	 *    The binary predicate that the next ViewEdge must satisfy together with the actual pointed ViewEdge.
-	 *  \param begin
+	 *  \param begin:
 	 *    The ViewEdge from where to start the iteration.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex of begin.
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */

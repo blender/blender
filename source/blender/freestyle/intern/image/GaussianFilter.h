@@ -65,16 +65,16 @@ public:
 
 	/*! Returns the value for pixel x,y of image "map" after a gaussian blur, made using the sigma value.
 	 *  The sigma value determines the mask size (~ 2 x sigma).
-	 *  \param map
+	 *  \param map:
 	 *    The image we wish to work on. The Map template must implement the following methods:
 	 *    - float pixel(unsigned int x,unsigned int y) const;
 	 *    - unsigned width() const;
 	 *    - unsigned height() const;
-	 *  \param x
+	 *  \param x:
 	 *    The abscissa of the pixel where we want to evaluate the gaussian blur.
-	 *  \param y
+	 *  \param y:
 	 *    The ordinate of the pixel where we want to evaluate the gaussian blur.
-	 *  \param sigma
+	 *  \param sigma:
 	 *    The sigma value of the gaussian function.
 	 */
 	template<class Map>

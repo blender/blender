@@ -925,8 +925,8 @@ void curvemapping_evaluateRGBF(const CurveMapping *cumap, float vecout[3], const
  *
  * Use in conjunction with #curvemapping_set_black_white_ex
  *
- * \param black Use instead of cumap->black
- * \param bwmul Use instead of cumap->bwmul
+ * \param black: Use instead of cumap->black
+ * \param bwmul: Use instead of cumap->bwmul
  */
 void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap, float vecout[3], const float vecin[3],
                                          const float black[3], const float bwmul[3])

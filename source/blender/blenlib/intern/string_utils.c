@@ -55,10 +55,10 @@
  * Foo.001 -> "Foo", 1
  * Returning the length of "Foo"
  *
- * \param left  Where to return copy of part preceding delim
- * \param nr  Where to return value of numeric suffix
- * \param name  String to split
- * \param delim  Delimiter character
+ * \param left: Where to return copy of part preceding delim
+ * \param nr: Where to return value of numeric suffix
+ * \param name: String to split
+ * \param delim: Delimiter character
  * \return  Length of \a left
  */
 size_t BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
@@ -142,9 +142,9 @@ void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, cons
 /**
  * Finds the best possible flipped (left/right) name. For renaming; check for unique names afterwards.
  *
- * \param r_name flipped name, assumed to be a pointer to a string of at least \a name_len size.
- * \param from_name original name, assumed to be a pointer to a string of at least \a name_len size.
- * \param strip_number If set, remove number extensions.
+ * \param r_name: flipped name, assumed to be a pointer to a string of at least \a name_len size.
+ * \param from_name: original name, assumed to be a pointer to a string of at least \a name_len size.
+ * \param strip_number: If set, remove number extensions.
  */
 void BLI_string_flip_side_name(char *r_name, const char *from_name, const bool strip_number, const size_t name_len)
 {
@@ -275,12 +275,12 @@ void BLI_string_flip_side_name(char *r_name, const char *from_name, const bool s
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),
  * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
  *
- * \param unique_check  Return true if name is not unique
- * \param arg  Additional arg to unique_check--meaning is up to caller
- * \param defname  To initialize name if latter is empty
- * \param delim  Delimits numeric suffix in name
- * \param name  Name to be ensured unique
- * \param name_len  Maximum length of name area
+ * \param unique_check: Return true if name is not unique
+ * \param arg: Additional arg to unique_check--meaning is up to caller
+ * \param defname: To initialize name if latter is empty
+ * \param delim: Delimits numeric suffix in name
+ * \param name: Name to be ensured unique
+ * \param name_len: Maximum length of name area
  * \return true if there if the name was changed
  */
 bool BLI_uniquename_cb(
@@ -359,12 +359,12 @@ static bool uniquename_unique_check(void *arg, const char *name)
  * Ensures that the specified block has a unique name within the containing list,
  * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
  *
- * \param list  List containing the block
- * \param vlink  The block to check the name for
- * \param defname  To initialize block name if latter is empty
- * \param delim  Delimits numeric suffix in name
- * \param name_offs  Offset of name within block structure
- * \param name_len  Maximum length of name area
+ * \param list: List containing the block
+ * \param vlink: The block to check the name for
+ * \param defname: To initialize block name if latter is empty
+ * \param delim: Delimits numeric suffix in name
+ * \param name_offs: Offset of name within block structure
+ * \param name_len: Maximum length of name area
  */
 bool BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim, int name_offs, size_t name_len)
 {

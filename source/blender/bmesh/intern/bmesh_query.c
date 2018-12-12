@@ -1573,8 +1573,8 @@ float BM_loop_calc_face_normal_safe(const BMLoop *l, float r_normal[3])
  *
  * Calculate the normal at this loop corner or fallback to the face normal on straight lines.
  *
- * \param l The loop to calculate the normal at
- * \param r_normal Resulting normal
+ * \param l: The loop to calculate the normal at
+ * \param r_normal: Resulting normal
  * \return The length of the cross product (double the area).
  */
 float BM_loop_calc_face_normal(const BMLoop *l, float r_normal[3])
@@ -1596,8 +1596,8 @@ float BM_loop_calc_face_normal(const BMLoop *l, float r_normal[3])
  *
  * Calculate the direction a loop is pointing.
  *
- * \param l The loop to calculate the direction at
- * \param r_dir Resulting direction
+ * \param l: The loop to calculate the direction at
+ * \param r_dir: Resulting direction
  */
 void BM_loop_calc_face_direction(const BMLoop *l, float r_dir[3])
 {
@@ -1620,8 +1620,8 @@ void BM_loop_calc_face_direction(const BMLoop *l, float r_dir[3])
  * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
  * This vector always points inward into the face.
  *
- * \param l The loop to calculate the tangent at
- * \param r_tangent Resulting tangent
+ * \param l: The loop to calculate the tangent at
+ * \param r_tangent: Resulting tangent
  */
 void BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3])
 {
@@ -1743,10 +1743,10 @@ float BM_edge_calc_face_angle_signed(const BMEdge *e)
  * This vector always points inward into the face.
  *
  * \brief BM_edge_calc_face_tangent
- * \param e
- * \param e_loop The loop to calculate the tangent at,
+ * \param e:
+ * \param e_loop: The loop to calculate the tangent at,
  * used to get the face and winding direction.
- * \param r_tangent The loop corner tangent to set
+ * \param r_tangent: The loop corner tangent to set
  */
 
 void BM_edge_calc_face_tangent(const BMEdge *e, const BMLoop *e_loop, float r_tangent[3])
@@ -2246,8 +2246,8 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
  * \note Its possible there are more than one overlapping faces,
  * in this case the first one found will be returned.
  *
- * \param varr  Array of unordered verts.
- * \param len  \a varr array length.
+ * \param varr: Array of unordered verts.
+ * \param len: \a varr array length.
  * \return The face or NULL.
  */
 
@@ -2294,8 +2294,8 @@ BMFace *BM_face_exists_overlap(BMVert **varr, const int len)
  * there is a face that uses vertices only from this list
  * (that the face is a subset or made from the vertices given).
  *
- * \param varr  Array of unordered verts.
- * \param len  varr array length.
+ * \param varr: Array of unordered verts.
+ * \param len: varr array length.
  */
 bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
 {
@@ -2504,16 +2504,16 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 /**
  * Calculate isolated groups of faces with optional filtering.
  *
- * \param bm  the BMesh.
- * \param r_groups_array  Array of ints to fill in, length of bm->totface
+ * \param bm: the BMesh.
+ * \param r_groups_array: Array of ints to fill in, length of bm->totface
  *        (or when hflag_test is set, the number of flagged faces).
- * \param r_group_index  index, length pairs into \a r_groups_array, size of return value
+ * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
  *        int pairs: (array_start, array_length).
- * \param filter_fn  Filter the edge-loops or vert-loops we step over (depends on \a htype_step).
- * \param user_data  Optional user data for \a filter_fn, can be NULL.
- * \param hflag_test  Optional flag to test faces,
+ * \param filter_fn: Filter the edge-loops or vert-loops we step over (depends on \a htype_step).
+ * \param user_data: Optional user data for \a filter_fn, can be NULL.
+ * \param hflag_test: Optional flag to test faces,
  *        use to exclude faces from the calculation, 0 for all faces.
- * \param htype_step  BM_VERT to walk over face-verts, BM_EDGE to walk over faces edges
+ * \param htype_step: BM_VERT to walk over face-verts, BM_EDGE to walk over faces edges
  *        (having both set is supported too).
  * \return The number of groups found.
  */
@@ -2660,15 +2660,15 @@ int BM_mesh_calc_face_groups(
 /**
  * Calculate isolated groups of edges with optional filtering.
  *
- * \param bm  the BMesh.
- * \param r_groups_array  Array of ints to fill in, length of bm->totedge
+ * \param bm: the BMesh.
+ * \param r_groups_array: Array of ints to fill in, length of bm->totedge
  *        (or when hflag_test is set, the number of flagged edges).
- * \param r_group_index  index, length pairs into \a r_groups_array, size of return value
+ * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
  *        int pairs: (array_start, array_length).
- * \param filter_fn  Filter the edges or verts we step over (depends on \a htype_step)
+ * \param filter_fn: Filter the edges or verts we step over (depends on \a htype_step)
  *        as to which types we deal with.
- * \param user_data  Optional user data for \a filter_fn, can be NULL.
- * \param hflag_test  Optional flag to test edges,
+ * \param user_data: Optional user data for \a filter_fn, can be NULL.
+ * \param hflag_test: Optional flag to test edges,
  *        use to exclude edges from the calculation, 0 for all edges.
  * \return The number of groups found.
  *

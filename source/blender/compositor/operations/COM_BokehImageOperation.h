@@ -90,18 +90,18 @@ private:
 	/**
 	 * \brief determine the coordinate of a flap cornder
 	 *
-	 * \param r result in bokehimage space are stored [x,y]
-	 * \param flapNumber the flap number to calculate
-	 * \param distance the lens distance is used to simulate lens shifts
+	 * \param r: result in bokehimage space are stored [x,y]
+	 * \param flapNumber: the flap number to calculate
+	 * \param distance: the lens distance is used to simulate lens shifts
 	 */
 	void detemineStartPointOfFlap(float r[2], int flapNumber, float distance);
 
 	/**
 	 * \brief Determine if a coordinate is inside the bokeh image
 	 *
-	 * \param distance the distance that will be used. This parameter is modified a bit to mimic lens shifts
-	 * \param x the x coordinate of the pixel to evaluate
-	 * \param y the y coordinate of the pixel to evaluate
+	 * \param distance: the distance that will be used. This parameter is modified a bit to mimic lens shifts
+	 * \param x: the x coordinate of the pixel to evaluate
+	 * \param y: the y coordinate of the pixel to evaluate
 	 * \return float range 0..1 0 is completely outside
 	 */
 	float isInsideBokeh(float distance, float x, float y);
@@ -125,14 +125,14 @@ public:
 
 	/**
 	 * \brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS, COM_BLUR_BOKEH_PIXELS]
-	 * \param resolution
-	 * \param preferredResolution
+	 * \param resolution:
+	 * \param preferredResolution:
 	 */
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 	/**
 	 * \brief set the node data
-	 * \param data
+	 * \param data:
 	 */
 	void setData(NodeBokehImage *data) { this->m_data = data; }
 

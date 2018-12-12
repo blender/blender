@@ -148,11 +148,11 @@ public:
 	/*! Loads an image map. The map will be scaled (without preserving the ratio in order to fit the actual
 	 *  canvas size.).
 	 *  The image must be a gray values image...
-	 *  \param iFileName
+	 *  \param iFileName:
 	 *    The name of the image file
-	 *  \param iMapName
+	 *  \param iMapName:
 	 *    The name that will be used to access this image
-	 *  \param iNbLevels
+	 *  \param iNbLevels:
 	 *    The number of levels in the map pyramid. (default = 4).
 	 *    If iNbLevels == 0, the complete pyramid is built.
 	 */
@@ -160,13 +160,13 @@ public:
 
 	/*! Reads a pixel value in a map.
 	 *  Returns a value between 0 and 1.
-	 *  \param iMapName
+	 *  \param iMapName:
 	 *    The name of the map
-	 *  \param level
+	 *  \param level:
 	 *    The level of the pyramid from which the pixel must be read.
-	 *  \param x
+	 *  \param x:
 	 *    The abscissa of the desired pixel specified in level0 coordinate system. The origin is the lower left corner.
-	 *  \param y
+	 *  \param y:
 	 *    The ordinate of the desired pixel specified in level0 coordinate system. The origin is the lower left corner.
 	 */
 	float readMapPixel(const char *iMapName, int level, int x, int y);

@@ -344,7 +344,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 /**
  * Use to free ID references within runtime data (stored outside of DNA)
  *
- * \param new_id may be NULL to unlink \a old_id.
+ * \param new_id: may be NULL to unlink \a old_id.
  */
 void ED_spacedata_id_remap(struct ScrArea *sa, struct SpaceLink *sl, ID *old_id, ID *new_id)
 {

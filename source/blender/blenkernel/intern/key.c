@@ -160,7 +160,7 @@ Key *BKE_key_add(Main *bmain, ID *id)    /* common function */
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_key_copy_data(Main *UNUSED(bmain), Key *key_dst, const Key *key_src, const int UNUSED(flag))
 {
@@ -1492,9 +1492,9 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
  * \note sorting is a problematic side effect in some cases,
  * better only do this explicitly by having its own function,
  *
- * \param key The key datablock to add to.
- * \param name Optional name for the new keyblock.
- * \param do_force always use ctime even for relative keys.
+ * \param key: The key datablock to add to.
+ * \param name: Optional name for the new keyblock.
+ * \param do_force: always use ctime even for relative keys.
  */
 KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force)
 {
@@ -1800,11 +1800,11 @@ void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
 /**
  * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
  *
- * \param kb the KeyBlock to use to compute normals.
- * \param mesh the Mesh to apply keyblock to.
- * \param r_vertnors if non-NULL, an array of vectors, same length as number of vertices.
- * \param r_polynors if non-NULL, an array of vectors, same length as number of polygons.
- * \param r_loopnors if non-NULL, an array of vectors, same length as number of loops.
+ * \param kb: the KeyBlock to use to compute normals.
+ * \param mesh: the Mesh to apply keyblock to.
+ * \param r_vertnors: if non-NULL, an array of vectors, same length as number of vertices.
+ * \param r_polynors: if non-NULL, an array of vectors, same length as number of polygons.
+ * \param r_loopnors: if non-NULL, an array of vectors, same length as number of loops.
  */
 void BKE_keyblock_mesh_calc_normals(
         struct KeyBlock *kb, struct Mesh *mesh,
@@ -2049,7 +2049,7 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, float (*ofs)[3])
  * the object's active shape index, the 'frame' value in case of absolute keys, etc.
  * Note indices are expected in real values (not 'fake' shapenr +1 ones).
  *
- * \param org_index if < 0, current object's active shape will be used as skey to move.
+ * \param org_index: if < 0, current object's active shape will be used as skey to move.
  * \return true if something was done, else false.
  */
 bool BKE_keyblock_move(Object *ob, int org_index, int new_index)

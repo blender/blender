@@ -949,7 +949,7 @@ public:
 	/*! Returns an iterator over the FEdge points, pointing to the first point. The difference with verticesBegin()
 	 *  is that here we can iterate over points of the FEdge at a any given sampling.
 	 *  Indeed, for each iteration, a virtual point is created.
-	 *  \param t
+	 *  \param t:
 	 *    The sampling with which we want to iterate over points of this FEdge.
 	 */
 	virtual inline Interface0DIterator pointsBegin(float t = 0.0f);
@@ -957,7 +957,7 @@ public:
 	/*! Returns an iterator over the FEdge points, pointing after the last point. The difference with verticesEnd()
 	 * is that here we can iterate over points of the FEdge at a any given sampling.
 	 *  Indeed, for each iteration, a virtual point is created.
-	 *  \param t
+	 *  \param t:
 	 *    The sampling with which we want to iterate over points of this FEdge.
 	 */
 	virtual inline Interface0DIterator pointsEnd(float t = 0.0f);

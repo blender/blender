@@ -63,8 +63,8 @@ public:
 	 *
 	 * \note this method is called when conversion is needed.
 	 *
-	 * \param link the NodeLink what needs conversion
-	 * \param system the ExecutionSystem to add the conversion to.
+	 * \param link: the NodeLink what needs conversion
+	 * \param system: the ExecutionSystem to add the conversion to.
 	 * \see NodeLink - a link between two sockets
 	 */
 	static NodeOperation *convertDataType(NodeOperationOutput *from, NodeOperationInput *to);
@@ -75,8 +75,8 @@ public:
 	 * \note Conversion logic is implemented in this method
 	 * \see InputSocketResizeMode for the possible conversions.
 	 *
-	 * \param link the NodeLink what needs conversion
-	 * \param system the ExecutionSystem to add the conversion to.
+	 * \param link: the NodeLink what needs conversion
+	 * \param system: the ExecutionSystem to add the conversion to.
 	 * \see NodeLink - a link between two sockets
 	 */
 	static void convertResolution(NodeOperationBuilder &builder, NodeOperationOutput *fromSocket, NodeOperationInput *toSocket);

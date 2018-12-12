@@ -713,8 +713,8 @@ void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
  *
  * See glaDefine2DArea for an explanation of why this function uses integers.
  *
- * \param screen_rect The screen rectangle to be used for 2D drawing.
- * \param world_rect The world rectangle that the 2D area represented
+ * \param screen_rect: The screen rectangle to be used for 2D drawing.
+ * \param world_rect: The world rectangle that the 2D area represented
  * by \a screen_rect is supposed to represent. If NULL it is assumed the
  * world has a 1 to 1 mapping to the screen.
  */

@@ -123,8 +123,8 @@ void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
  * Use with extreme care!,
  * properties, customdata etc - must be compatible.
  *
- * \param op  Operator to assign the type to.
- * \param ot  OperatorType to assign.
+ * \param op: Operator to assign the type to.
+ * \param ot: OperatorType to assign.
  */
 void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 {

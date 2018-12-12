@@ -58,7 +58,7 @@
 /**
  * helper to find edge for edge_rip,
  *
- * \param inset is used so we get some useful distance
+ * \param inset: is used so we get some useful distance
  * when comparing multiple edges that meet at the same
  * point and would result in the same distance.
  */

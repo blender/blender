@@ -451,9 +451,9 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
 }
 
 /**
- * \param normal_proj  Optional normal thats used to project the scanfill verts into 2d coords.
+ * \param normal_proj: Optional normal thats used to project the scanfill verts into 2d coords.
  * Pass this along if known since it saves time calculating the normal.
- * \param flipnormal  Flip the normal (same as passing \a normal_proj negated)
+ * \param flipnormal: Flip the normal (same as passing \a normal_proj negated)
  */
 void BKE_displist_fill(ListBase *dispbase, ListBase *to, const float normal_proj[3], const bool flipnormal)
 {

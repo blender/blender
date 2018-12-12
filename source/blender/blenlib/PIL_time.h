@@ -53,7 +53,7 @@ long int PIL_check_seconds_timer_i(void);
 
 /**
  * Platform-independent sleep function.
- * \param ms Number of milliseconds to sleep
+ * \param ms: Number of milliseconds to sleep
  */
 void    PIL_sleep_ms(int ms);
 

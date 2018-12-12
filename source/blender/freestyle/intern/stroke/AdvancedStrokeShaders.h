@@ -41,13 +41,13 @@ class CalligraphicShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
-	 *  \param iMinThickness
+	 *  \param iMinThickness:
 	 *    The minimum thickness in the direction perpandicular to the main direction.
-	 *  \param iMaxThickness
+	 *  \param iMaxThickness:
 	 *    The maximum thickness in the main direction.
-	 *  \param iOrientation
+	 *  \param iOrientation:
 	 *    The 2D vector giving the main direction.
-	 *  \param clamp
+	 *  \param clamp:
 	 *    Tells ???
 	 */
 	CalligraphicShader(real iMinThickness, real iMaxThickness, const Vec2f &iOrientation, bool clamp);
@@ -74,15 +74,15 @@ class SpatialNoiseShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
-	 *  \param iAmount
+	 *  \param iAmount:
 	 *    The amplitude of the noise.
-	 *  \param ixScale
+	 *  \param ixScale:
 	 *    The noise frequency
-	 *  \param nbOctave
+	 *  \param nbOctave:
 	 *    The number of octaves
-	 *  \param smooth
+	 *  \param smooth:
 	 *    If you want the noise to be smooth
-	 *  \param pureRandom
+	 *  \param pureRandom:
 	 *    If you don't want any coherence
 	 */
 	SpatialNoiseShader(float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom);
@@ -112,21 +112,21 @@ class SmoothingShader : public StrokeShader
 {
 public:
 	/*! Builds the shader.
-	 *  \param iNbIteration
+	 *  \param iNbIteration:
 	 *    The number of iterations. (400)
-	 *  \param iFactorPoint
+	 *  \param iFactorPoint:
 	 *    0
-	 *  \param ifactorCurvature
+	 *  \param ifactorCurvature:
 	 *    0
-	 *  \param iFactorCurvatureDifference
+	 *  \param iFactorCurvatureDifference:
 	 *    0.2
-	 *  \param iAnisoPoint
+	 *  \param iAnisoPoint:
 	 *    0
-	 *  \param iAnisNormal
+	 *  \param iAnisNormal:
 	 *    0
-	 *  \param iAnisoCurvature
+	 *  \param iAnisoCurvature:
 	 *    0
-	 *  \param icarricatureFactor
+	 *  \param icarricatureFactor:
 	 *    1
 	 */
 	SmoothingShader(int iNbIteration, real iFactorPoint, real ifactorCurvature, real iFactorCurvatureDifference,

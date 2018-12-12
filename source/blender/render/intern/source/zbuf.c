@@ -1037,9 +1037,9 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
  * This is one of the z buffer fill functions called in zbufclip() and
  * zbufwireclip().
  *
- * \param v1 [4 floats, world coordinates] first vertex
- * \param v2 [4 floats, world coordinates] second vertex
- * \param v3 [4 floats, world coordinates] third vertex
+ * \param v1: [4 floats, world coordinates] first vertex
+ * \param v2: [4 floats, world coordinates] second vertex
+ * \param v3: [4 floats, world coordinates] third vertex
  */
 
 /* WATCH IT: zbuffillGLinv4 and zbuffillGL4 are identical except for a 2 lines,
@@ -1292,9 +1292,9 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr,
  * This is one of the z buffer fill functions called in zbufclip() and
  * zbufwireclip().
  *
- * \param v1 [4 floats, world coordinates] first vertex
- * \param v2 [4 floats, world coordinates] second vertex
- * \param v3 [4 floats, world coordinates] third vertex
+ * \param v1: [4 floats, world coordinates] first vertex
+ * \param v2: [4 floats, world coordinates] second vertex
+ * \param v3: [4 floats, world coordinates] third vertex
  */
 
 /* now: filling two Z values, the closest and 2nd closest */
@@ -1592,11 +1592,11 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
  * Sets lambda: flag, and parametrize the clipping of vertices in
  * viewspace coordinates. lambda = -1 means no clipping, lambda in [0, 1] means a clipping.
  * Note: uses globals.
- * \param v1 start coordinate s
- * \param v2 target coordinate t
- * \param b2
- * \param b3
- * \param a index for coordinate (x, y, or z)
+ * \param v1: start coordinate s
+ * \param v2: target coordinate t
+ * \param b2:
+ * \param b3:
+ * \param a: index for coordinate (x, y, or z)
  */
 
 static void clippyra(float *lambda, float *v1, float *v2, int *b2, int *b3, int a, float clipcrop)
@@ -1652,11 +1652,11 @@ static void clippyra(float *lambda, float *v1, float *v2, int *b2, int *b3, int 
  * vertex list of this face.
  *
  *
- * \param v1 start coordinate s
- * \param v2 target coordinate t
- * \param b1
- * \param b2
- * \param clve vertex vector.
+ * \param v1: start coordinate s
+ * \param v2: target coordinate t
+ * \param b1:
+ * \param b2:
+ * \param clve: vertex vector.
  */
 
 static void makevertpyra(float *vez, float *lambda, float **trias, float *v1, float *v2, int *b1, int *clve)

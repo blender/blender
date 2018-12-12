@@ -687,7 +687,7 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
  * \{ */
 
 /**
- * \param rect optional for picking (can be NULL).
+ * \param rect: optional for picking (can be NULL).
  */
 void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rcti *rect)
 {

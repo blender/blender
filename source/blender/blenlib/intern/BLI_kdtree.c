@@ -420,7 +420,7 @@ static void add_nearest(KDTreeNearest *ptn, uint *found, uint n, int index,
  * Find n nearest returns number of points found, with results in nearest.
  * Normal is optional, but if given will limit results to points in normal direction from co.
  *
- * \param r_nearest  An array of nearest, sized at least \a n.
+ * \param r_nearest: An array of nearest, sized at least \a n.
  */
 int BLI_kdtree_find_nearest_n__normal(
         const KDTree *tree, const float co[3], const float nor[3],

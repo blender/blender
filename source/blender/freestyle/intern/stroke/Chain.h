@@ -82,17 +82,17 @@ public:
 	}
 
 	/*! Adds a ViewEdge at the end of the chain
-	 *  \param iViewEdge
+	 *  \param iViewEdge:
 	 *    The ViewEdge that must be added.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    The orientation with which this ViewEdge must be processed.
 	 */
 	void push_viewedge_back(ViewEdge *iViewEdge, bool orientation);
 
 	/*! Adds a ViewEdge at the beginning of the chain
-	 *  \param iViewEdge
+	 *  \param iViewEdge:
 	 *    The ViewEdge that must be added.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    The orientation with which this ViewEdge must be processed.
 	 */
 	void push_viewedge_front(ViewEdge *iViewEdge, bool orientation);

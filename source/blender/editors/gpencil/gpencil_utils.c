@@ -397,12 +397,12 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(
 /**
  * Check whether a given stroke segment is inside a circular brush
  *
- * \param mval     The current screen-space coordinates (midpoint) of the brush
- * \param mvalo    The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
- * \param rad      The radius of the brush
+ * \param mval: The current screen-space coordinates (midpoint) of the brush
+ * \param mvalo: The previous screen-space coordinates (midpoint) of the brush (NOT CURRENTLY USED)
+ * \param rad: The radius of the brush
  *
- * \param x0, y0   The screen-space x and y coordinates of the start of the stroke segment
- * \param x1, y1   The screen-space x and y coordinates of the end of the stroke segment
+ * \param x0, y0: The screen-space x and y coordinates of the start of the stroke segment.
+ * \param x1, y1: The screen-space x and y coordinates of the end of the stroke segment.
  */
 bool gp_stroke_inside_circle(const int mval[2], const int UNUSED(mvalo[2]),
                              int rad, int x0, int y0, int x1, int y1)
@@ -558,8 +558,8 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 /**
  * Convert point to parent space
  *
- * \param pt         Original point
- * \param diff_mat   Matrix with the difference between original parent matrix
+ * \param pt: Original point
+ * \param diff_mat: Matrix with the difference between original parent matrix
  * \param[out] r_pt  Pointer to new point after apply matrix
  */
 void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt)
@@ -769,10 +769,10 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen
 
 /**
  * Apply smooth to stroke point
- * \param gps              Stroke to smooth
- * \param i                Point index
- * \param inf              Amount of smoothing to apply
- * \param affect_pressure  Apply smoothing to pressure values too?
+ * \param gps: Stroke to smooth
+ * \param i: Point index
+ * \param inf: Amount of smoothing to apply
+ * \param affect_pressure: Apply smoothing to pressure values too?
  */
 bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 {
@@ -851,9 +851,9 @@ bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 
 /**
 * Apply smooth for strength to stroke point
-* \param gps              Stroke to smooth
-* \param i                Point index
-* \param inf              Amount of smoothing to apply
+* \param gps: Stroke to smooth
+* \param i: Point index
+* \param inf: Amount of smoothing to apply
 */
 bool gp_smooth_stroke_strength(bGPDstroke *gps, int i, float inf)
 {
@@ -889,9 +889,9 @@ bool gp_smooth_stroke_strength(bGPDstroke *gps, int i, float inf)
 
 /**
 * Apply smooth for thickness to stroke point (use pressure)
-* \param gps              Stroke to smooth
-* \param i                Point index
-* \param inf              Amount of smoothing to apply
+* \param gps: Stroke to smooth
+* \param i: Point index
+* \param inf: Amount of smoothing to apply
 */
 bool gp_smooth_stroke_thickness(bGPDstroke *gps, int i, float inf)
 {
@@ -927,8 +927,8 @@ bool gp_smooth_stroke_thickness(bGPDstroke *gps, int i, float inf)
 
 /**
  * Subdivide a stroke once, by adding a point half way between each pair of existing points
- * \param gps           Stroke data
- * \param new_totpoints Total number of points (after subdividing)
+ * \param gps: Stroke data
+ * \param new_totpoints: Total number of points (after subdividing)
  */
 void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 {
@@ -960,8 +960,8 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 
 /**
  * Add randomness to stroke
- * \param gps           Stroke data
- * \param brush         Brush data
+ * \param gps: Stroke data
+ * \param brush: Brush data
  */
 void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
 {

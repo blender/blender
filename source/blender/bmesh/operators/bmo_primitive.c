@@ -823,10 +823,10 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 /**
  * Fills first available UVmap with grid-like UVs for all faces OpFlag-ged by given flag.
  *
- * \param bm The BMesh to operate on
- * \param x_segments The x-resolution of the grid
- * \param y_segments The y-resolution of the grid
- * \param oflag The flag to check faces with.
+ * \param bm: The BMesh to operate on
+ * \param x_segments: The x-resolution of the grid
+ * \param y_segments: The y-resolution of the grid
+ * \param oflag: The flag to check faces with.
  */
 void BM_mesh_calc_uvs_grid(
         BMesh *bm, const uint x_segments, const uint y_segments,
@@ -1159,8 +1159,8 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
 /**
  * Fills first available UVmap with spherical projected UVs for all faces OpFlag-ged by given flag.
  *
- * \param bm The BMesh to operate on
- * \param oflag The flag to check faces with.
+ * \param bm: The BMesh to operate on
+ * \param oflag: The flag to check faces with.
  */
 void BM_mesh_calc_uvs_sphere(
         BMesh *bm,
@@ -1365,10 +1365,10 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 /**
  * Fills first available UVmap with 2D projected UVs for all faces OpFlag-ged by given flag.
  *
- * \param bm The BMesh to operate on.
- * \param mat The transform matrix applied to the created circle.
- * \param radius The size of the circle.
- * \param oflag The flag to check faces with.
+ * \param bm: The BMesh to operate on.
+ * \param mat: The transform matrix applied to the created circle.
+ * \param radius: The size of the circle.
+ * \param oflag: The flag to check faces with.
  */
 void BM_mesh_calc_uvs_circle(
         BMesh *bm, float mat[4][4], const float radius,
@@ -1530,13 +1530,13 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 /**
  * Fills first available UVmap with cylinder/cone-like UVs for all faces OpFlag-ged by given flag.
  *
- * \param bm The BMesh to operate on.
- * \param mat The transform matrix applied to the created cone/cylinder.
- * \param radius_top The size of the top end of the cone/cylinder.
- * \param radius_bottom The size of the bottom end of the cone/cylinder.
- * \param segments The number of subdivisions in the sides of the cone/cylinder.
- * \param cap_ends Whether the ends of the cone/cylinder are filled or not.
- * \param oflag The flag to check faces with.
+ * \param bm: The BMesh to operate on.
+ * \param mat: The transform matrix applied to the created cone/cylinder.
+ * \param radius_top: The size of the top end of the cone/cylinder.
+ * \param radius_bottom: The size of the bottom end of the cone/cylinder.
+ * \param segments: The number of subdivisions in the sides of the cone/cylinder.
+ * \param cap_ends: Whether the ends of the cone/cylinder are filled or not.
+ * \param oflag: The flag to check faces with.
  */
 void BM_mesh_calc_uvs_cone(
         BMesh *bm, float mat[4][4],
@@ -1696,8 +1696,8 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
  * \note Expects tagged faces to be six quads.
  * \note Caller must order faces for correct alignment.
  *
- * \param bm The BMesh to operate on.
- * \param oflag The flag to check faces with.
+ * \param bm: The BMesh to operate on.
+ * \param oflag: The flag to check faces with.
  */
 void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag)
 {

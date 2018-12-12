@@ -82,27 +82,27 @@ public:
 	double ComputeWeight(const Vec2d& dir, unsigned iNOrientation);
 
 	/*! Returns the number of the SVM to which a direction belongs to.
-	 *  \param dir
+	 *  \param dir:
 	 *    The direction
 	 */
 	unsigned getSVMNumber(const Vec2f& dir);
 
 	/*! Returns the number of the SVM to which a FEdge belongs most.
-	 *  \param id
+	 *  \param id:
 	 *    The First element of the Id struct of the FEdge we're interested in.
 	 */
 	unsigned getSVMNumber(unsigned id);
 
 	/*! Builds _nbOrientations+1 pyramids of images from the _nbOrientations+1 base images of the steerable viewmap.
-	 *  \param steerableBases
+	 *  \param steerableBases:
 	 *    The _nbOrientations+1 images constituting the basis for the steerable pyramid.
-	 *  \param copy
+	 *  \param copy:
 	 *    If false, the data is not duplicated, and Canvas deals with the memory management of these
 	 *    _nbOrientations+1 images. If true, data is copied, and it's up to the caller to delete the images.
-	 *  \param iNbLevels
+	 *  \param iNbLevels:
 	 *    The number of levels desired for each pyramid.
 	 *    If iNbLevels == 0, the complete pyramid is built.
-	 *  \param iSigma
+	 *  \param iSigma:
 	 *    The sigma that will be used for the gaussian blur
 	 */
 	void buildImagesPyramids(GrayImage **steerableBases, bool copy = false, unsigned iNbLevels = 4,
@@ -110,7 +110,7 @@ public:
 
 	/*! Reads a pixel value in one of the VewMap density steerable pyramids.
 	 *  Returns a value between 0 and 1.
-	 *  \param iOrientation
+	 *  \param iOrientation:
 	 *    the number telling which orientation we need to check.
 	 *    There are _nbOrientations+1 oriented ViewMaps:
 	 *    0 -> the ViewMap containing every horizontal lines
@@ -118,11 +118,11 @@ public:
 	 *    2 -> the ViewMap containing every vertical lines
 	 *    3 -> the ViewMap containing every lines whose orientation is around 3PI/4
 	 *    4 -> the complete ViewMap
-	 *  \param iLevel
+	 *  \param iLevel:
 	 *    The level of the pyramid we want to read
-	 *  \param x
+	 *  \param x:
 	 *    The abscissa of the desired pixel specified in level0 coordinate system. The origin is the lower left corner.
-	 *  \param y
+	 *  \param y:
 	 *    The ordinate of the desired pixel specified in level0 coordinate system. The origin is the lower left corner.
 	 */
 	float readSteerableViewMapPixel(unsigned iOrientation, int iLevel, int x, int y);

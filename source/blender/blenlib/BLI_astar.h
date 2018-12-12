@@ -90,10 +90,10 @@ void BLI_astar_solution_free(BLI_AStarSolution *as_solution);
  * Callback computing the current cost (distance) to next node, and the estimated overall cost to destination node
  * (A* expects this estimation to always be less or equal than actual shortest path from next node to destination one).
  *
- * \param link the graph link between current node and next one.
- * \param node_idx_curr current node index.
- * \param node_idx_next next node index.
- * \param node_idx_dst destination node index.
+ * \param link: the graph link between current node and next one.
+ * \param node_idx_curr: current node index.
+ * \param node_idx_next: next node index.
+ * \param node_idx_dst: destination node index.
  */
 typedef float (*astar_f_cost)(BLI_AStarGraph *as_graph, BLI_AStarSolution *as_solution, BLI_AStarGNLink *link,
                               const int node_idx_curr, const int node_idx_next, const int node_idx_dst);

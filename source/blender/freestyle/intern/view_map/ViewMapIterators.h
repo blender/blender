@@ -417,9 +417,9 @@ class ViewEdgeIterator : public Iterator
 {
 public:
 	/*! Builds a ViewEdgeIterator from a starting ViewEdge and its orientation.
-	 *  \param begin
+	 *  \param begin:
 	 *    The ViewEdge from where to start the iteration.
-	 *  \param orientation
+	 *  \param orientation:
 	 *    If true, we'll look for the next ViewEdge among the ViewEdges that surround the ending ViewVertex of begin.
 	 *    If false, we'll search over the ViewEdges surrounding the ending ViewVertex of begin.
 	 */

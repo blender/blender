@@ -65,7 +65,7 @@ public:
 	////////////////////////////////////////////////
 
 	/*! Selects the ViewEdges of the ViewMap verifying a specified condition.
-	 *  \param pred The predicate expressing this condition
+	 *  \param pred: The predicate expressing this condition
 	 */
 	static int select(UnaryPredicate1D& pred);
 
@@ -73,11 +73,11 @@ public:
 	 *  Each ViewEdge of the current list starts a new chain. The chaining operator then iterates over the ViewEdges
 	 *  of the ViewMap using the user specified iterator.
 	 *  This operator only iterates using the increment operator and is therefore unidirectional.
-	 *  \param it
+	 *  \param it:
 	 *           The iterator on the ViewEdges of the ViewMap. It contains the chaining rule.
-	 *  \param pred
+	 *  \param pred:
 	 *           The predicate on the ViewEdge that expresses the stopping condition.
-	 *  \param modifier
+	 *  \param modifier:
 	 *           A function that takes a ViewEdge as argument and that is used to modify the processed ViewEdge
 	 *           state (the timestamp incrementation is a typical illustration of such a modifier)
 	 */
@@ -89,9 +89,9 @@ public:
 	 *  This operator only iterates using the increment operator and is therefore unidirectional.
 	 *  This chaining operator is different from the previous one because it doesn't take any modifier as argument.
 	 *  Indeed, the time stamp (insuring that a ViewEdge is processed one time) is automatically managed in this case.
-	 *  \param it
+	 *  \param it:
 	 *           The iterator on the ViewEdges of the ViewMap. It contains the chaining rule.
-	 *  \param pred
+	 *  \param pred:
 	 *           The predicate on the ViewEdge that expresses the stopping condition.
 	 */
 	static int chain(ViewEdgeInternal::ViewEdgeIterator& it, UnaryPredicate1D& pred);
@@ -104,9 +104,9 @@ public:
 	 *  be told to chain only edges that belong to the selection or not to process twice a ViewEdge during the chaining.
 	 *  Each time a ViewEdge is added to a chain, its chaining time stamp is incremented. This allows you to keep track
 	 *  of the number of chains to which a ViewEdge belongs to.
-	 *  \param it
+	 *  \param it:
 	 *           The ChainingIterator on the ViewEdges of the ViewMap. It contains the chaining rule.
-	 *  \param pred
+	 *  \param pred:
 	 *           The predicate on the ViewEdge that expresses the stopping condition.
 	 */
 	static int bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred);
@@ -121,7 +121,7 @@ public:
 	 *  told to chain only edges that belong to the selection or not to process twice a ViewEdge during the chaining.
 	 *  Each time a ViewEdge is added to a chain, its chaining time stamp is incremented. This allows you to keep track
 	 *  of the number of chains to which a ViewEdge belongs to.
-	 *  \param it
+	 *  \param it:
 	 *           The ChainingIterator on the ViewEdges of the ViewMap. It contains the chaining rule.
 	 */
 	static int bidirectionalChain(ChainingIterator& it);
@@ -133,11 +133,11 @@ public:
 	 *  This allows chains overlapping rather than chains partitioning.
 	 *  The first point of the initial chain is the first point of one of the resulting chains.
 	 *  The splitting ends when no more chain can start.
-	 *  \param startingPred
+	 *  \param startingPred:
 	 *           The predicate on a point that expresses the starting condition
-	 *  \param stoppingPred
+	 *  \param stoppingPred:
 	 *           The predicate on a point that expresses the stopping condition
-	 *  \param sampling
+	 *  \param sampling:
 	 *           The resolution used to sample the chain for the predicates evaluation. (The chain is not actually
 	 *           resampled, a virtual point only progresses along the curve using this resolution)
 	 */
@@ -147,9 +147,9 @@ public:
 	 *  The points of each chain are processed (with a specified sampling) sequentially and each time a user
 	 *  specified condition is verified, the chain is split into two chains.
 	 *  The resulting set of chains is a partition of the initial chain
-	 *  \param pred
+	 *  \param pred:
 	 *           The predicate on a point that expresses the splitting condition
-	 *  \param sampling
+	 *  \param sampling:
 	 *           The resolution used to sample the chain for the predicate evaluation. (The chain is not actually
 	 *           resampled, a virtual point only progresses along the curve using this resolution)
 	 */
@@ -160,14 +160,14 @@ public:
 	 *  function. The chain is split in two at this point and the two new chains are processed in the same way.
 	 *  The recursivity level is controlled through a predicate 1D that expresses a stopping condition
 	 *  on the chain that is about to be processed.
-	 *  \param func
+	 *  \param func:
 	 *           The Unary Function evaluated at each point of the chain.
 	 *           The splitting point is the point minimizing this function
-	 *  \param pred
+	 *  \param pred:
 	 *           The Unary Predicate ex pressing the recursivity stopping condition.
 	 *           This predicate is evaluated for each curve before it actually gets split.
 	 *           If pred(chain) is true, the curve won't be split anymore.
-	 *  \param sampling
+	 *  \param sampling:
 	 *           The resolution used to sample the chain for the predicates evaluation. (The chain is not actually
 	 *           resampled, a virtual point only progresses along the curve using this resolution)
 	 */
@@ -180,19 +180,19 @@ public:
 	 *  A point that doesn't verify the 0D predicate won't be candidate in realizing the min.
 	 *  The recursivity level is controlled through a predicate 1D that expresses a stopping condition
 	 *  on the chain that is about to be processed.
-	 *  \param func
+	 *  \param func:
 	 *           The Unary Function evaluated at each point of the chain.
 	 *           The splitting point is the point minimizing this function
-	 *  \param pred0d
+	 *  \param pred0d:
 	 *           The Unary Predicate 0D used to select the candidate points where the split can occur.
 	 *           For example, it is very likely that would rather have your chain splitting around its middle point
 	 *           than around one of its extremities. A 0D predicate working on the curvilinear abscissa allows
 	 *           to add this kind of constraints.
-	 *  \param pred
+	 *  \param pred:
 	 *           The Unary Predicate ex pressing the recursivity stopping condition.
 	 *           This predicate is evaluated for each curve before it actually gets split.
 	 *           If pred(chain) is true, the curve won't be split anymore.
-	 *  \param sampling
+	 *  \param sampling:
 	 *           The resolution used to sample the chain for the predicates evaluation. (The chain is not actually
 	 *           resampled, a virtual point only progresses along the curve using this resolution)
 	 */
@@ -200,16 +200,16 @@ public:
 	                          float sampling = 0.0f);
 
 	/*! Sorts the current set of chains (or viewedges) according to the comparison predicate given as argument.
-	 *  \param pred
+	 *  \param pred:
 	 *           The binary predicate used for the comparison
 	 */
 	static int sort(BinaryPredicate1D& pred);
 
 	/*! Creates and shades the strokes from the current set of chains.
 	 *  A predicate can be specified to make a selection pass on the chains.
-	 *  \param pred
+	 *  \param pred:
 	 *           The predicate that a chain must verify in order to be transform as a stroke
-	 *  \param shaders
+	 *  \param shaders:
 	 *           The list of shaders used to shade the strokes
 	 */
 	static int create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders);

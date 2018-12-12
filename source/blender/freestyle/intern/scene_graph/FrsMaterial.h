@@ -45,19 +45,19 @@ public:
 
 	/*! Builds a Material from its line, diffuse, ambiant, specular, emissive
 	 *  colors, a shininess coefficient and line color priority.
-	 *    \param iLine
+	 *    \param iLine:
 	 *      A 4 element float-array containing the line color.
-	 *    \param iDiffuse
+	 *    \param iDiffuse:
 	 *      A 4 element float-array containing the diffuse color.
-	 *    \param iAmbiant
+	 *    \param iAmbiant:
 	 *      A 4 element float-array containing the ambiant color.
-	 *    \param iSpecular
+	 *    \param iSpecular:
 	 *      A 4 element float-array containing the specular color.
-	 *    \param iEmission
+	 *    \param iEmission:
 	 *      A 4 element float-array containing the emissive color.
-	 *    \param iShininess
+	 *    \param iShininess:
 	 *      The shininess coefficient.
-	 *    \param iPriority
+	 *    \param iPriority:
 	 *      The line color priority.
 	 */
 	inline FrsMaterial(const float *iLine, const float *iDiffuse, const float *iAmbiant, const float *iSpecular,
@@ -232,73 +232,73 @@ public:
 	}
 
 	/*! Sets the line color.
-	 *    \param r
+	 *    \param r:
 	 *      Red component
-	 *    \param g
+	 *    \param g:
 	 *      Green component
-	 *    \param b
+	 *    \param b:
 	 *     Blue component
-	 *    \param a
+	 *    \param a:
 	 *      Alpha component
 	 */
 	inline void setLine(const float r, const float g, const float b, const float a);
 
 	/*! Sets the diffuse color.
-	 *    \param r
+	 *    \param r:
 	 *      Red component
-	 *    \param g
+	 *    \param g:
 	 *      Green component
-	 *    \param b
+	 *    \param b:
 	 *     Blue component
-	 *    \param a
+	 *    \param a:
 	 *      Alpha component
 	 */
 	inline void setDiffuse(const float r, const float g, const float b, const float a);
 
 	/*! Sets the specular color.
-	 *    \param r
+	 *    \param r:
 	 *      Red component
-	 *    \param g
+	 *    \param g:
 	 *      Green component
-	 *    \param b
+	 *    \param b:
 	 *     Blue component
-	 *    \param a
+	 *    \param a:
 	 *      Alpha component
 	 */
 	inline void setSpecular(const float r, const float g, const float b, const float a);
 
 	/*! Sets the ambiant color.
-	 *    \param r
+	 *    \param r:
 	 *      Red component
-	 *    \param g
+	 *    \param g:
 	 *      Green component
-	 *    \param b
+	 *    \param b:
 	 *     Blue component
-	 *    \param a
+	 *    \param a:
 	 *      Alpha component
 	 */
 	inline void setAmbient(const float r, const float g, const float b, const float a);
 
 	/*! Sets the emissive color.
-	 *    \param r
+	 *    \param r:
 	 *      Red component
-	 *    \param g
+	 *    \param g:
 	 *      Green component
-	 *    \param b
+	 *    \param b:
 	 *     Blue component
-	 *    \param a
+	 *    \param a:
 	 *      Alpha component
 	 */
 	inline void setEmission(const float r, const float g, const float b, const float a);
 
 	/*! Sets the shininess.
-	 *    \param s
+	 *    \param s:
 	 *      Shininess
 	 */
 	inline void setShininess(const float s);
 
 	/*! Sets the line color priority.
-	 *    \param priority
+	 *    \param priority:
 	 *      Priority
 	 */
 	inline void setPriority(const int priority);

@@ -45,8 +45,8 @@ private:
 public:
 	/**
 	 * constructor
-	 * \param group the ExecutionGroup
-	 * \param chunkNumber the number of the chunk
+	 * \param group: the ExecutionGroup
+	 * \param chunkNumber: the number of the chunk
 	 */
 	WorkPackage(ExecutionGroup *group, unsigned int chunkNumber);
 

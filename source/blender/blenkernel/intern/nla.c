@@ -161,7 +161,7 @@ void BKE_nla_tracks_free(ListBase *tracks)
 /**
  * Copy NLA strip
  *
- * \param use_same_action When true, the existing action is used (instead of being duplicated)
+ * \param use_same_action: When true, the existing action is used (instead of being duplicated)
  */
 NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_action)
 {

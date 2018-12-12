@@ -638,7 +638,7 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 /**
  * Create physics sim representation of object given RigidBody settings
  *
- * \param rebuild Even if an instance already exists, replace it
+ * \param rebuild: Even if an instance already exists, replace it
  */
 static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool rebuild)
 {
@@ -765,7 +765,7 @@ static void rigidbody_constraint_set_limits(RigidBodyCon *rbc, void (*set_limits
 /**
  * Create physics sim representation of constraint given rigid body constraint settings
  *
- * \param rebuild Even if an instance already exists, replace it
+ * \param rebuild: Even if an instance already exists, replace it
  */
 static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, bool rebuild)
 {
@@ -1137,7 +1137,7 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 
 /* Get RigidBody world for the given scene, creating one if needed
  *
- * \param scene Scene to find active Rigid Body world for
+ * \param scene: Scene to find active Rigid Body world for
  */
 RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
 {
@@ -1338,7 +1338,7 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 /**
  * Updates and validates world, bodies and shapes.
  *
- * \param rebuild Rebuild entire simulation
+ * \param rebuild: Rebuild entire simulation
  */
 static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {

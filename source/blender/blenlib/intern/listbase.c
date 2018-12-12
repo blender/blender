@@ -795,7 +795,7 @@ void BLI_listbase_reverse(ListBase *lb)
 }
 
 /**
- * \param vlink Link to make first.
+ * \param vlink: Link to make first.
  */
 void BLI_listbase_rotate_first(ListBase *lb, void *vlink)
 {
@@ -811,7 +811,7 @@ void BLI_listbase_rotate_first(ListBase *lb, void *vlink)
 }
 
 /**
- * \param vlink Link to make last.
+ * \param vlink: Link to make last.
  */
 void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
 {
