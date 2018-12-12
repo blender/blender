@@ -289,7 +289,7 @@ class SubdivisionSet(Operator):
                         for _ in range(level):
                             bpy.ops.object.multires_subdivide(modifier="Multires")
                 else:
-                    mod = obj.modifiers.new("Subsurf", 'SUBSURF')
+                    mod = obj.modifiers.new("Subdivision", 'SUBSURF')
                     mod.levels = level
             except:
                 self.report({'WARNING'},
