@@ -300,6 +300,9 @@ def km_window(params):
              {"type": k, "value": 'PRESS', "shift": True},
              {"properties": [("space_type", t)]})
             for k, t in (
+                ('F1', 'FILE_BROWSER'),
+                ('F2', 'CLIP_EDITOR'),
+                ('F3', 'NODE_EDITOR'),
                 ('F4', 'CONSOLE'),
                 ('F5', 'VIEW_3D'),
                 ('F6', 'GRAPH_EDITOR'),
