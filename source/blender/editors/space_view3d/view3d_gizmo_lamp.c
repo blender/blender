@@ -30,6 +30,8 @@
 #include "BKE_context.h"
 #include "BKE_object.h"
 
+#include "DEG_depsgraph.h"
+
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 
@@ -154,6 +156,9 @@ static void gizmo_area_lamp_prop_matrix_set(
 	else {
 		la->area_size = len_v3(matrix[0]);
 	}
+
+	DEG_id_tag_update(&la->id, ID_RECALC_COPY_ON_WRITE);
+	WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 
 static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
