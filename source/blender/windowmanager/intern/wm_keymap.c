@@ -64,6 +64,12 @@
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 
+
+struct wmKeyMapItemFind_Params {
+	bool (*filter_fn)(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data);
+	void *user_data;
+};
+
 /******************************* Keymap Item **********************************
  * Item in a keymap, that maps from an event to an operator or modal map item */
 
@@ -1141,7 +1147,8 @@ char *WM_modalkeymap_operator_items_to_string_buf(
 
 static wmKeyMapItem *wm_keymap_item_find_handlers(
         const bContext *C, ListBase *handlers, const char *opname, int UNUSED(opcontext),
-        IDProperty *properties, const bool is_strict, const bool is_hotkey,
+        IDProperty *properties, const bool is_strict,
+        const struct wmKeyMapItemFind_Params *params,
         wmKeyMap **r_keymap)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -1156,15 +1163,13 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 		if (keymap && WM_keymap_poll((bContext *)C, keymap)) {
 			for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 				/* skip disabled keymap items [T38447] */
-				if (kmi->flag & KMI_INACTIVE)
+				if (kmi->flag & KMI_INACTIVE) {
 					continue;
+				}
+
+				bool kmi_match = false;
 
 				if (STREQ(kmi->idname, opname) && WM_key_event_string(kmi->type, false)[0]) {
-					if (is_hotkey) {
-						if (!ISHOTKEY(kmi->type))
-							continue;
-					}
-
 					if (properties) {
 						/* example of debugging keymaps */
 #if 0
@@ -1179,8 +1184,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 #endif
 
 						if (kmi->ptr && IDP_EqualsProperties_ex(properties, kmi->ptr->data, is_strict)) {
-							if (r_keymap) *r_keymap = keymap;
-							return kmi;
+							kmi_match = true;
 						}
 						/* Debug only, helps spotting mismatches between menu entries and shortcuts! */
 						else if (G.debug & G_DEBUG_WM) {
@@ -1219,8 +1223,16 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 						}
 					}
 					else {
-						if (r_keymap) *r_keymap = keymap;
-						return kmi;
+						kmi_match = true;
+					}
+
+					if (kmi_match) {
+						if ((params == NULL) || params->filter_fn(keymap, kmi, params->user_data)) {
+							if (r_keymap) {
+								*r_keymap = keymap;
+							}
+							return kmi;
+						}
 					}
 				}
 			}
@@ -1234,7 +1246,8 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 
 static wmKeyMapItem *wm_keymap_item_find_props(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const bool is_strict, const bool is_hotkey,
+        IDProperty *properties, const bool is_strict,
+        const struct wmKeyMapItemFind_Params *params,
         wmKeyMap **r_keymap)
 {
 	wmWindow *win = CTX_wm_window(C);
@@ -1245,15 +1258,15 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 	/* look into multiple handler lists to find the item */
 	if (win) {
 		found = wm_keymap_item_find_handlers(
-		        C, &win->modalhandlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+		        C, &win->modalhandlers, opname, opcontext, properties, is_strict, params, r_keymap);
 		if (found == NULL) {
 			found = wm_keymap_item_find_handlers(
-			        C, &win->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+			        C, &win->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
 		}
 	}
 
 	if (sa && found == NULL)
-		found = wm_keymap_item_find_handlers(C, &sa->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+		found = wm_keymap_item_find_handlers(C, &sa->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
 
 	if (found == NULL) {
 		if (ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
@@ -1262,7 +1275,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 					ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
 				if (ar)
-					found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+					found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
 			}
 		}
 		else if (ELEM(opcontext, WM_OP_EXEC_REGION_CHANNELS, WM_OP_INVOKE_REGION_CHANNELS)) {
@@ -1270,18 +1283,18 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 				ar = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
 
 			if (ar)
-				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
 		}
 		else if (ELEM(opcontext, WM_OP_EXEC_REGION_PREVIEW, WM_OP_INVOKE_REGION_PREVIEW)) {
 			if (!(ar && ar->regiontype == RGN_TYPE_PREVIEW))
 				ar = BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
 
 			if (ar)
-				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
 		}
 		else {
 			if (ar)
-				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
 		}
 	}
 
@@ -1290,7 +1303,8 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 
 static wmKeyMapItem *wm_keymap_item_find(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const bool is_hotkey, bool is_strict,
+        IDProperty *properties, bool is_strict,
+        const struct wmKeyMapItemFind_Params *params,
         wmKeyMap **r_keymap)
 {
 	wmKeyMapItem *found;
@@ -1304,7 +1318,7 @@ static wmKeyMapItem *wm_keymap_item_find(
 		is_strict = is_strict && ((ot->flag & OPTYPE_MACRO) == 0);
 	}
 
-	found = wm_keymap_item_find_props(C, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+	found = wm_keymap_item_find_props(C, opname, opcontext, properties, is_strict, params, r_keymap);
 
 	/* This block is *only* useful in one case: when op uses an enum menu in its prop member
 	 * (then, we want to rerun a comparison with that 'prop' unset). Note this remains brittle,
@@ -1327,8 +1341,7 @@ static wmKeyMapItem *wm_keymap_item_find(
 				/* for operator that has enum menu, unset it so its value does not affect comparison result */
 				RNA_property_unset(&opptr, ot->prop);
 
-				found = wm_keymap_item_find_props(C, opname, opcontext, properties_temp,
-				                                  is_strict, is_hotkey, r_keymap);
+				found = wm_keymap_item_find_props(C, opname, opcontext, properties_temp, is_strict, params, r_keymap);
 			}
 
 			IDP_FreeProperty(properties_temp);
@@ -1349,7 +1362,7 @@ static wmKeyMapItem *wm_keymap_item_find(
 				RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
 				WM_operator_properties_default(&opptr, true);
 
-				kmi = wm_keymap_item_find_props(C, opname, opcontext, properties_default, is_strict, is_hotkey, &km);
+				kmi = wm_keymap_item_find_props(C, opname, opcontext, properties_default, is_strict, params, &km);
 				if (kmi) {
 					char kmi_str[128];
 					WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
@@ -1381,8 +1394,7 @@ char *WM_key_event_operator_string(
         IDProperty *properties, const bool is_strict,
         char *result, const int result_len)
 {
-	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, false, is_strict, NULL);
-
+	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, is_strict, NULL, NULL);
 	if (kmi) {
 		WM_keymap_item_to_string(kmi, false, result, result_len);
 		return result;
@@ -1391,12 +1403,24 @@ char *WM_key_event_operator_string(
 	return NULL;
 }
 
+static bool kmi_is_hotkey(const wmKeyMap *UNUSED(km), const wmKeyMapItem *kmi, void *UNUSED(user_data))
+{
+	return ISHOTKEY(kmi->type);
+}
+
 wmKeyMapItem *WM_key_event_operator(
         const bContext *C, const char *opname, int opcontext,
         IDProperty *properties, const bool is_hotkey,
         wmKeyMap **r_keymap)
 {
-	return wm_keymap_item_find(C, opname, opcontext, properties, is_hotkey, true, r_keymap);
+	return wm_keymap_item_find(
+	        C, opname, opcontext, properties, true,
+	        (is_hotkey == false) ? NULL :
+	        &(struct wmKeyMapItemFind_Params){
+	            .filter_fn = kmi_is_hotkey,
+	            .user_data = NULL,
+	        },
+	        r_keymap);
 }
 
 bool WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
