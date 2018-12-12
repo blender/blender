@@ -1169,7 +1169,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 
 				bool kmi_match = false;
 
-				if (STREQ(kmi->idname, opname) && WM_key_event_string(kmi->type, false)[0]) {
+				if (STREQ(kmi->idname, opname)) {
 					if (properties) {
 						/* example of debugging keymaps */
 #if 0
@@ -1389,12 +1389,24 @@ static wmKeyMapItem *wm_keymap_item_find(
 	return found;
 }
 
+static bool kmi_filter_is_visible(const wmKeyMap *UNUSED(km), const wmKeyMapItem *kmi, void *UNUSED(user_data))
+{
+	return ((WM_key_event_string(kmi->type, false)[0] != '\0') &&
+	        (IS_EVENT_ACTIONZONE(kmi->type) == false));
+}
+
 char *WM_key_event_operator_string(
         const bContext *C, const char *opname, int opcontext,
         IDProperty *properties, const bool is_strict,
         char *result, const int result_len)
 {
-	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, is_strict, NULL, NULL);
+	wmKeyMapItem *kmi = wm_keymap_item_find(
+	        C, opname, opcontext, properties, is_strict,
+	        &(struct wmKeyMapItemFind_Params){
+	            .filter_fn = kmi_filter_is_visible,
+	            .user_data = NULL,
+	        },
+	        NULL);
 	if (kmi) {
 		WM_keymap_item_to_string(kmi, false, result, result_len);
 		return result;
@@ -1403,9 +1415,9 @@ char *WM_key_event_operator_string(
 	return NULL;
 }
 
-static bool kmi_is_hotkey(const wmKeyMap *UNUSED(km), const wmKeyMapItem *kmi, void *UNUSED(user_data))
+static bool kmi_filter_is_visible_hotkey(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data)
 {
-	return ISHOTKEY(kmi->type);
+	return (ISHOTKEY(kmi->type) && kmi_filter_is_visible(km, kmi, user_data));
 }
 
 wmKeyMapItem *WM_key_event_operator(
@@ -1415,9 +1427,8 @@ wmKeyMapItem *WM_key_event_operator(
 {
 	return wm_keymap_item_find(
 	        C, opname, opcontext, properties, true,
-	        (is_hotkey == false) ? NULL :
 	        &(struct wmKeyMapItemFind_Params){
-	            .filter_fn = kmi_is_hotkey,
+	            .filter_fn = is_hotkey ? kmi_filter_is_visible_hotkey : kmi_filter_is_visible,
 	            .user_data = NULL,
 	        },
 	        r_keymap);
