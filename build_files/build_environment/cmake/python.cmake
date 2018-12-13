@@ -147,6 +147,7 @@ if(MSVC)
 		#COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/xxlimited${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/xxlimited${PYTHON_POSTFIX}.pyd
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libssl-1_1${SSL_POSTFIX}.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libssl-1_1${SSL_POSTFIX}.dll
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libcrypto-1_1${SSL_POSTFIX}.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libcrypto-1_1${SSL_POSTFIX}.dll
+		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/sqlite3${PYTHON_POSTFIX}.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/sqlite3${PYTHON_POSTFIX}.dll
 		COMMAND ${CMAKE_COMMAND} -E chdir "${BUILD_DIR}/python/src/external_python/redist" ${CMAKE_COMMAND} -E tar "cfvz" "${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz" "."
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/
 		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz
