@@ -439,7 +439,7 @@ struct uiBlock {
 	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
 	ColorPickerData color_pickers; /* XXX, only accessed by color picker templates */
 
-	bool color_profile;         /* color profile for correcting linear colors for display */
+	bool is_color_gamma_picker; /* Block for color picker with gamma baked in. */
 
 	char display_device[64]; /* display device name used to display this block,
 	                          * used by color widgets to transform colors from/to scene linear
@@ -477,7 +477,6 @@ extern void ui_hsvcircle_vals_from_pos(
         const float mx, const float my);
 extern void ui_hsvcircle_pos_from_vals(struct uiBut *but, const rcti *rect, float *hsv, float *xpos, float *ypos);
 extern void ui_hsvcube_pos_from_vals(struct uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp);
-bool ui_but_is_colorpicker_display_space(struct uiBut *but);
 
 extern void ui_but_string_get_ex(
         uiBut *but, char *str, const size_t maxlen,
@@ -516,7 +515,6 @@ extern void ui_block_bounds_calc(uiBlock *block);
 extern struct ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block);
 void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3]);
 void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3]);
-void ui_block_cm_to_display_space_range(uiBlock *block, float *min, float *max);
 
 /* interface_regions.c */
 
@@ -610,6 +608,11 @@ void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3]);
 void ui_rgb_to_color_picker_v(const float rgb[3], float r_cp[3]);
 void ui_color_picker_to_rgb_v(const float r_cp[3], float rgb[3]);
 void ui_color_picker_to_rgb(float r_cp0, float r_cp1, float r_cp2, float *r, float *g, float *b);
+
+bool ui_but_is_color_gamma(uiBut *but);
+
+void ui_scene_linear_to_color_picker_space(uiBut *but, float rgb[3]);
+void ui_color_picker_to_scene_linear_space(uiBut *but, float rgb[3]);
 
 uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 ColorPicker *ui_block_colorpicker_create(struct uiBlock *block);

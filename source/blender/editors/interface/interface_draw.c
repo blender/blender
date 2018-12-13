@@ -1404,14 +1404,11 @@ static void ui_draw_colorband_handle(
 
 void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *rect)
 {
-	struct ColorManagedDisplay *display = NULL;
+	struct ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
 	uint pos_id, col_id;
 
 	ColorBand *coba = (ColorBand *)(but->editcoba ? but->editcoba : but->poin);
 	if (coba == NULL) return;
-
-	if (but->block->color_profile)
-		display = ui_block_cm_display_get(but->block);
 
 	float x1 = rect->xmin;
 	float sizex = rect->xmax - x1;

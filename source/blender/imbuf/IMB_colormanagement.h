@@ -96,6 +96,9 @@ void IMB_colormanagement_scene_linear_to_colorspace_v3(float pixel[3], struct Co
 
 void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, int height, int channels, struct ColorSpace *colorspace, bool predivide);
 
+void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3]);
+void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3]);
+
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], struct ColorManagedDisplay *display);
 void IMB_colormanagement_display_to_scene_linear_v3(float pixel[3], struct ColorManagedDisplay *display);
 

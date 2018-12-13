@@ -2992,18 +2992,19 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
 	block->evil_C = (void *)C;  /* XXX */
 
 	if (scn) {
-		block->color_profile = true;
-
 		/* store display device name, don't lookup for transformations yet
 		 * block could be used for non-color displays where looking up for transformation
 		 * would slow down redraw, so only lookup for actual transform when it's indeed
 		 * needed
 		 */
-		BLI_strncpy(block->display_device, scn->display_settings.display_device, sizeof(block->display_device));
+		STRNCPY(block->display_device, scn->display_settings.display_device);
 
 		/* copy to avoid crash when scene gets deleted with ui still open */
 		block->unit = MEM_mallocN(sizeof(scn->unit), "UI UnitSettings");
 		memcpy(block->unit, &scn->unit, sizeof(scn->unit));
+	}
+	else {
+		STRNCPY(block->display_device, IMB_colormanagement_display_get_default_name());
 	}
 
 	BLI_strncpy(block->name, name, sizeof(block->name));
@@ -3293,20 +3294,6 @@ void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3])
 	struct ColorManagedDisplay *display = ui_block_cm_display_get(block);
 
 	IMB_colormanagement_display_to_scene_linear_v3(pixel, display);
-}
-
-void ui_block_cm_to_display_space_range(uiBlock *block, float *min, float *max)
-{
-	struct ColorManagedDisplay *display = ui_block_cm_display_get(block);
-	float pixel[3];
-
-	copy_v3_fl(pixel, *min);
-	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
-	*min = min_fff(UNPACK3(pixel));
-
-	copy_v3_fl(pixel, *max);
-	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
-	*max = max_fff(UNPACK3(pixel));
 }
 
 static uiBut *ui_but_alloc(const eButType type)

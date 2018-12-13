@@ -2581,23 +2581,16 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
 	ColorPicker *cpicker = but->custom_data;
-	const float *hsv_ptr = cpicker->color_data;
-	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
-	bool color_profile = ui_but_is_colorpicker_display_space(but);
+	float rgb[3], hsv[3], rgb_center[3];
+	bool is_color_gamma = ui_but_is_color_gamma(but);
 
-	/* color */
+	/* Initialize for compatibility. */
+	copy_v3_v3(hsv, cpicker->color_data);
+
+	/* Compute current hue. */
 	ui_but_v3_get(but, rgb);
-
-	/* since we use compat functions on both 'hsv' and 'hsvo', they need to be initialized */
-	hsvo[0] = hsv[0] = hsv_ptr[0];
-	hsvo[1] = hsv[1] = hsv_ptr[1];
-	hsvo[2] = hsv[2] = hsv_ptr[2];
-
-	if (color_profile)
-		ui_block_cm_to_display_space_v3(but->block, rgb);
-
+	ui_scene_linear_to_color_picker_space(but, rgb);
 	ui_rgb_to_color_picker_compat_v(rgb, hsv);
-	copy_v3_v3(hsvo, hsv);
 
 	CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
 
@@ -2611,7 +2604,13 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 			hsv[2] = 0.5f;
 	}
 
-	ui_color_picker_to_rgb(0.0f, 0.0f, hsv[2], colcent, colcent + 1, colcent + 2);
+	const float hsv_center[3] = {0.0f, 0.0f, hsv[2]};
+	ui_color_picker_to_rgb_v(hsv_center, rgb_center);
+	ui_scene_linear_to_color_picker_space(but, rgb_center);
+
+	if (!is_color_gamma) {
+		ui_block_cm_to_display_space_v3(but->block, rgb_center);
+	}
 
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -2620,19 +2619,27 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 	immBegin(GPU_PRIM_TRI_FAN, tot + 2);
-	immAttr3fv(color, colcent);
+	immAttr3fv(color, rgb_center);
 	immVertex2f(pos, centx, centy);
 
 	float ang = 0.0f;
 	for (int a = 0; a <= tot; a++, ang += radstep) {
 		float si = sinf(ang);
 		float co = cosf(ang);
+		float hsv_ang[3];
+		float rgb_ang[3];
 
-		ui_hsvcircle_vals_from_pos(hsv, hsv + 1, rect, centx + co * radius, centy + si * radius);
+		ui_hsvcircle_vals_from_pos(hsv_ang, hsv_ang + 1, rect, centx + co * radius, centy + si * radius);
+		hsv_ang[2] = hsv[2];
 
-		ui_color_picker_to_rgb_v(hsv, col);
+		ui_color_picker_to_rgb_v(hsv_ang, rgb_ang);
+		ui_color_picker_to_scene_linear_space(but, rgb_ang);
 
-		immAttr3fv(color, col);
+		if (!is_color_gamma) {
+			ui_block_cm_to_display_space_v3(but->block, rgb_ang);
+		}
+
+		immAttr3fv(color, rgb_ang);
 		immVertex2f(pos, centx + co * radius, centy + si * radius);
 	}
 	immEnd();
@@ -2656,8 +2663,13 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	GPU_line_smooth(false);
 
 	/* cursor */
+	copy_v3_v3(hsv, cpicker->color_data);
+	ui_but_v3_get(but, rgb);
+	ui_scene_linear_to_color_picker_space(but, rgb);
+	ui_rgb_to_color_picker_compat_v(rgb, hsv);
+
 	float xpos, ypos;
-	ui_hsvcircle_pos_from_vals(but, rect, hsvo, &xpos, &ypos);
+	ui_hsvcircle_pos_from_vals(but, rect, hsv, &xpos, &ypos);
 	ui_hsv_cursor(xpos, ypos);
 }
 
@@ -2812,18 +2824,6 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	immUnbindProgram();
 }
 
-bool ui_but_is_colorpicker_display_space(uiBut *but)
-{
-	bool color_profile = but->block->color_profile;
-
-	if (but->rnaprop) {
-		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = false;
-	}
-
-	return color_profile;
-}
-
 void ui_hsvcube_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float *xp, float *yp)
 {
 	float x = 0.0f, y = 0.0f;
@@ -2865,15 +2865,12 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	ColorPicker *cpicker = but->custom_data;
 	float *hsv = cpicker->color_data;
 	float hsv_n[3];
-	bool use_display_colorspace = ui_but_is_colorpicker_display_space(but);
 
+	/* Initialize for compatibility. */
 	copy_v3_v3(hsv_n, hsv);
 
 	ui_but_v3_get(but, rgb);
-
-	if (use_display_colorspace)
-		ui_block_cm_to_display_space_v3(but->block, rgb);
-
+	ui_scene_linear_to_color_picker_space(but, rgb);
 	rgb_to_hsv_compat_v(rgb, hsv_n);
 
 	ui_draw_gradient(rect, hsv_n, but->a1, 1.0f);
@@ -2901,15 +2898,9 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	const float rad = wcol->roundness * BLI_rcti_size_x(rect);
 	float x, y;
 	float rgb[3], hsv[3], v;
-	bool color_profile = but->block->color_profile;
-
-	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-		color_profile = false;
 
 	ui_but_v3_get(but, rgb);
-
-	if (color_profile)
-		ui_block_cm_to_display_space_v3(but->block, rgb);
+	ui_scene_linear_to_color_picker_space(but, rgb);
 
 	if (but->a1 == UI_GRAD_L_ALT)
 		rgb_to_hsl_v(rgb, hsv);
@@ -2920,9 +2911,6 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	/* map v from property range to [0,1] */
 	if (but->a1 == UI_GRAD_V_ALT) {
 		float min = but->softmin, max = but->softmax;
-		if (color_profile) {
-			ui_block_cm_to_display_space_range(but->block, &min, &max);
-		}
 		v = (v - min) / (max - min);
 	}
 
@@ -3378,15 +3366,11 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 {
 	uiWidgetBase wtb;
 	float rad, col[4];
-	bool color_profile = but->block->color_profile;
 
 	col[3] = 1.0f;
 
 	if (but->rnaprop) {
 		BLI_assert(but->rnaindex == -1);
-
-		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-			color_profile = false;
 
 		if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4) {
 			col[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
@@ -3415,7 +3399,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		round_box_edges(&wtb, roundboxalign, rect, rad);
 	}
 
-	if (color_profile)
+	if (!ui_but_is_color_gamma(but))
 		ui_block_cm_to_display_space_v3(but->block, col);
 
 	rgba_float_to_uchar((unsigned char *)wcol->inner, col);

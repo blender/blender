@@ -34,7 +34,7 @@ roles:
   default_sequencer: sRGB
 
   # Color spaces for color picking and texture painting (not internally supported yet)
-  color_picking: Raw
+  color_picking: sRGB
   texture_paint: Raw
 
   # Non-color data

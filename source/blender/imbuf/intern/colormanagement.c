@@ -130,7 +130,14 @@ static struct global_glsl_state {
 	/* Container for GLSL state needed for OCIO module. */
 	struct OCIO_GLSLDrawState *ocio_glsl_state;
 	struct OCIO_GLSLDrawState *transform_ocio_glsl_state;
-} global_glsl_state;
+} global_glsl_state = {NULL};
+
+static struct global_color_picking_state {
+	/* Cached processor for color picking conversion. */
+	OCIO_ConstProcessorRcPtr *processor_to;
+	OCIO_ConstProcessorRcPtr *processor_from;
+	bool failed;
+} global_color_picking_state = {NULL};
 
 /*********************** Color managed cache *************************/
 
@@ -698,6 +705,15 @@ void colormanagement_exit(void)
 
 	if (global_glsl_state.transform_ocio_glsl_state)
 		OCIO_freeOGLState(global_glsl_state.transform_ocio_glsl_state);
+
+	if (global_color_picking_state.processor_to)
+		OCIO_processorRelease(global_color_picking_state.processor_to);
+
+	if (global_color_picking_state.processor_from)
+		OCIO_processorRelease(global_color_picking_state.processor_from);
+
+	memset(&global_glsl_state, 0, sizeof(global_glsl_state));
+	memset(&global_color_picking_state, 0, sizeof(global_color_picking_state));
 
 	colormanage_free_config();
 }
@@ -1908,6 +1924,54 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 			OCIO_processorApply(processor, img);
 
 		OCIO_PackedImageDescRelease(img);
+	}
+}
+
+void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3])
+{
+	if (!global_color_picking_state.processor_to && !global_color_picking_state.failed) {
+		/* Create processor if none exists. */
+		BLI_mutex_lock(&processor_lock);
+
+		if (!global_color_picking_state.processor_to && !global_color_picking_state.failed) {
+			global_color_picking_state.processor_to =
+				create_colorspace_transform_processor(global_role_scene_linear,
+				                                      global_role_color_picking);
+
+			if (!global_color_picking_state.processor_to) {
+				global_color_picking_state.failed = true;
+			}
+		}
+
+		BLI_mutex_unlock(&processor_lock);
+	}
+
+	if (global_color_picking_state.processor_to) {
+		OCIO_processorApplyRGB(global_color_picking_state.processor_to, pixel);
+	}
+}
+
+void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
+{
+	if (!global_color_picking_state.processor_from && !global_color_picking_state.failed) {
+		/* Create processor if none exists. */
+		BLI_mutex_lock(&processor_lock);
+
+		if (!global_color_picking_state.processor_from && !global_color_picking_state.failed) {
+			global_color_picking_state.processor_from =
+				create_colorspace_transform_processor(global_role_color_picking,
+				                                      global_role_scene_linear);
+
+			if (!global_color_picking_state.processor_from) {
+				global_color_picking_state.failed = true;
+			}
+		}
+
+		BLI_mutex_unlock(&processor_lock);
+	}
+
+	if (global_color_picking_state.processor_from) {
+		OCIO_processorApplyRGB(global_color_picking_state.processor_from, pixel);
 	}
 }
 
