@@ -85,7 +85,7 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 	}
 
 	vedata->render_depth_tx = DRW_texture_pool_query_2D(
-	        size[0], size[1], GPU_DEPTH24_STENCIL8,
+	        size[0], size[1], GPU_DEPTH_COMPONENT24,
 	        &draw_engine_gpencil_type);
 	vedata->render_color_tx = DRW_texture_pool_query_2D(
 	        size[0], size[1], GPU_RGBA32F,
