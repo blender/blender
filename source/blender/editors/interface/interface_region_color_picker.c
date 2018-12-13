@@ -188,26 +188,23 @@ static void ui_update_color_picker_buts_rgb(
 			UI_but_flag_disable(bt, UI_BUT_UNDO);
 		}
 		else if (STREQ(bt->str, "Hex: ")) {
-			float rgb_gamma[3];
-			unsigned char rgb_gamma_uchar[3];
+			float rgb_hex[3];
+			unsigned char rgb_hex_uchar[3];
 			double intpart;
 			char col[16];
 
 			/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
-
-			copy_v3_v3(rgb_gamma, rgb);
-
-			if (!block->is_color_gamma_picker) {
-				/* make a display version, for Hex code */
-				ui_block_cm_to_display_space_v3(block, rgb_gamma);
+			copy_v3_v3(rgb_hex, rgb);
+			if (from_but && !ui_but_is_color_gamma(from_but)) {
+				IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex);
 			}
 
-			if (rgb_gamma[0] > 1.0f) rgb_gamma[0] = modf(rgb_gamma[0], &intpart);
-			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
-			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
+			if (rgb_hex[0] > 1.0f) rgb_hex[0] = modf(rgb_hex[0], &intpart);
+			if (rgb_hex[1] > 1.0f) rgb_hex[1] = modf(rgb_hex[1], &intpart);
+			if (rgb_hex[2] > 1.0f) rgb_hex[2] = modf(rgb_hex[2], &intpart);
 
-			rgb_float_to_uchar(rgb_gamma_uchar, rgb_gamma);
-			BLI_snprintf(col, sizeof(col), "%02X%02X%02X", UNPACK3_EX((uint), rgb_gamma_uchar, ));
+			rgb_float_to_uchar(rgb_hex_uchar, rgb_hex);
+			BLI_snprintf(col, sizeof(col), "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
 
 			strcpy(bt->poin, col);
 		}
@@ -287,9 +284,8 @@ static void ui_colorpicker_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexc
 	hex_to_rgb(hexcol, rgb, rgb + 1, rgb + 2);
 
 	/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
-	if (!but->block->is_color_gamma_picker) {
-		/* so we need to linearise it for Blender */
-		ui_block_cm_to_scene_linear_v3(but->block, rgb);
+	if (!ui_but_is_color_gamma(but)) {
+		IMB_colormanagement_srgb_to_scene_linear_v3(rgb);
 	}
 
 	ui_update_color_picker_buts_rgb(NULL, but->block, cpicker, rgb);
@@ -546,21 +542,18 @@ static void ui_block_colorpicker(
 		rgba[3] = 1.0f;
 	}
 
-	/* Hex color is in display space. This should actually be sRGB without any view
-	 * transform, as most other applications would expect this. */
-	float rgb_gamma[3];
-	unsigned char rgb_gamma_uchar[3];
+	/* Hex color is in sRGB space. */
+	float rgb_hex[3];
+	unsigned char rgb_hex_uchar[3];
 
-	if (block->is_color_gamma_picker) {
-		copy_v3_v3(rgb_gamma, rgba);
-	}
-	else {
-		copy_v3_v3(rgb_gamma, rgba);
-		ui_block_cm_to_display_space_v3(block, rgb_gamma);
+	copy_v3_v3(rgb_hex, rgba);
+
+	if (!ui_but_is_color_gamma(from_but)) {
+		IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex);
 	}
 
-	rgb_float_to_uchar(rgb_gamma_uchar, rgb_gamma);
-	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", UNPACK3_EX((uint), rgb_gamma_uchar, ));
+	rgb_float_to_uchar(rgb_hex_uchar, rgb_hex);
+	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
 
 	yco = -3.0f * UI_UNIT_Y;
 	bt = uiDefBut(

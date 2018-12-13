@@ -514,7 +514,6 @@ extern void ui_block_bounds_calc(uiBlock *block);
 
 extern struct ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block);
 void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3]);
-void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3]);
 
 /* interface_regions.c */
 

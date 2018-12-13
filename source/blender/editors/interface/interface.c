@@ -3289,13 +3289,6 @@ void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3])
 	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
 }
 
-void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3])
-{
-	struct ColorManagedDisplay *display = ui_block_cm_display_get(block);
-
-	IMB_colormanagement_display_to_scene_linear_v3(pixel, display);
-}
-
 static uiBut *ui_but_alloc(const eButType type)
 {
 	switch (type) {

@@ -64,6 +64,8 @@
 #include "BKE_unit.h"
 #include "BKE_paint.h"
 
+#include "IMB_colormanagement.h"
+
 #include "ED_screen.h"
 #include "ED_undo.h"
 
@@ -5313,7 +5315,7 @@ static int ui_do_but_COLOR(
 
 						if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
 							RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
-							ui_block_cm_to_scene_linear_v3(but->block, target);
+							IMB_colormanagement_srgb_to_scene_linear_v3(target);
 						}
 						else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
 							RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
@@ -5326,7 +5328,7 @@ static int ui_do_but_COLOR(
 						}
 						else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
 							RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
-							ui_block_cm_to_display_space_v3(but->block, color);
+							IMB_colormanagement_scene_linear_to_srgb_v3(color);
 							BKE_brush_color_set(scene, brush, color);
 						}
 					}

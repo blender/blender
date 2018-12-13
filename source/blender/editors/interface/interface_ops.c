@@ -53,6 +53,8 @@
 #include "BKE_screen.h"
 #include "BKE_text.h" /* for UI_OT_reports_to_text */
 
+#include "IMB_colormanagement.h"
+
 #include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
@@ -1507,13 +1509,13 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
 			if (!gamma)
-				ui_block_cm_to_display_space_v3(but->block, color);
+				IMB_colormanagement_scene_linear_to_srgb_v3(color);
 			RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
 			RNA_property_update(C, &but->rnapoin, but->rnaprop);
 		}
 		else if (RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
 			if (gamma)
-				ui_block_cm_to_scene_linear_v3(but->block, color);
+				IMB_colormanagement_srgb_to_scene_linear_v3(color);
 			RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
 			RNA_property_update(C, &but->rnapoin, but->rnaprop);
 		}
