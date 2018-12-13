@@ -138,6 +138,8 @@ typedef struct GPENCIL_Storage {
 	int tonemapping;
 	short multisamples;
 
+	short framebuffer_flag; /* flag what framebuffer need to create */
+
 	int blend_mode;
 	int clamp_layer;
 	float blend_opacity;
@@ -158,6 +160,12 @@ typedef struct GPENCIL_Storage {
 
 	Object *camera; /* camera pointer for render mode */
 } GPENCIL_Storage;
+
+typedef enum eGpencilFramebuffer_Flag {
+	GP_FRAMEBUFFER_MULTISAMPLE = (1 << 0),
+	GP_FRAMEBUFFER_BASIC       = (1 << 1),
+	GP_FRAMEBUFFER_DRAW        = (1 << 2),
+} eGpencilFramebuffer_Flag;
 
 typedef struct GPENCIL_StorageList {
 	struct GPENCIL_Storage *storage;
