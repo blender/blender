@@ -32,6 +32,7 @@
 #include "util/util_string.h"
 #include "util/util_time.h"
 #include "util/util_transform.h"
+#include "util/util_unique_ptr.h"
 #include "util/util_version.h"
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
@@ -92,7 +93,7 @@ static bool write_render(const uchar *pixels, int w, int h, int channels)
 	string msg = string_printf("Writing image %s", options.output_path.c_str());
 	session_print(msg);
 
-	ImageOutput *out = ImageOutput::create(options.output_path);
+	unique_ptr<ImageOutput> out = unique_ptr<ImageOutput>(ImageOutput::create(options.output_path));
 	if(!out) {
 		return false;
 	}
@@ -110,7 +111,6 @@ static bool write_render(const uchar *pixels, int w, int h, int channels)
 		AutoStride);
 
 	out->close();
-	delete out;
 
 	return true;
 }
