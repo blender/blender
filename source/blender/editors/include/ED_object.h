@@ -69,7 +69,7 @@ struct uiLayout;
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
 struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
-void ED_hide_collections_menu_draw(const struct bContext *C, struct uiLayout *layout);
+void ED_collection_hide_menu_draw(const struct bContext *C, struct uiLayout *layout);
 
 /* object_utils.c */
 bool ED_object_calc_active_center_for_editmode(

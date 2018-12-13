@@ -1171,7 +1171,7 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
 /* GP Object Stuff */
 
 /* Helper function to create new OB_GPENCIL Object */
-Object *ED_add_gpencil_object(bContext *C, Scene *UNUSED(scene), const float loc[3], ushort local_view_bits)
+Object *ED_gpencil_add_object(bContext *C, Scene *UNUSED(scene), const float loc[3], ushort local_view_bits)
 {
 	float rot[3] = {0.0f};
 

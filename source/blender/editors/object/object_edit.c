@@ -303,7 +303,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
 
 #define COLLECTION_INVALID_INDEX -1
 
-void ED_hide_collections_menu_draw(const bContext *C, uiLayout *layout)
+void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	LayerCollection *lc_scene = view_layer->layer_collections.first;
@@ -358,7 +358,7 @@ static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEv
 	uiPopupMenu *pup = UI_popup_menu_begin(C, title, ICON_GROUP);
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
-	ED_hide_collections_menu_draw(C, layout);
+	ED_collection_hide_menu_draw(C, layout);
 
 	UI_popup_menu_end(C, pup);
 

@@ -1172,7 +1172,7 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
 
 static void hide_collections_menu_draw(const bContext *C, Menu *menu)
 {
-	ED_hide_collections_menu_draw(C, menu->layout);
+	ED_collection_hide_menu_draw(C, menu->layout);
 }
 
 void view3d_buttons_register(ARegionType *art)
