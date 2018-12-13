@@ -517,9 +517,7 @@ static bool collection_object_add(Main *bmain, Collection *collection, Object *o
 	}
 
 	if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-#ifdef WITH_BULLET
 		BKE_rigidbody_main_collection_object_add(bmain, collection, ob);
-#endif
 	}
 
 	return true;

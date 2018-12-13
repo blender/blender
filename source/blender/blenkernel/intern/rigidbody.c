@@ -1792,6 +1792,7 @@ void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime
 void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime) {}
 void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
 void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw) {}
+void BKE_rigidbody_main_collection_object_add(Main *bmain, Collection *collection, Object *object) {}
 
 #if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic pop
