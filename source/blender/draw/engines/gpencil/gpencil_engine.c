@@ -90,7 +90,7 @@ void DRW_gpencil_multisample_ensure(GPENCIL_Data *vedata, int rect_w, int rect_h
 				}
 				if (txl->multisample_depth == NULL) {
 					txl->multisample_depth = GPU_texture_create_2D_multisample(
-					        rect_w, rect_h, GPU_DEPTH24_STENCIL8, NULL, samples, NULL);
+					        rect_w, rect_h, GPU_DEPTH_COMPONENT24, NULL, samples, NULL);
 				}
 				GPU_framebuffer_ensure_config(
 				        &fbl->multisample_fb, {
@@ -120,7 +120,8 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		}
 
 		/* temp textures */
-		e_data.temp_depth_tx_a = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH24_STENCIL8,
+		e_data.temp_depth_tx_a = DRW_texture_pool_query_2D(
+			size[0], size[1], GPU_DEPTH_COMPONENT24,
 			&draw_engine_gpencil_type);
 		e_data.temp_color_tx_a = DRW_texture_pool_query_2D(size[0], size[1], fb_format,
 			&draw_engine_gpencil_type);
@@ -131,7 +132,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		        });
 
 		e_data.temp_depth_tx_b = DRW_texture_pool_query_2D(
-		        size[0], size[1], GPU_DEPTH24_STENCIL8,
+		        size[0], size[1], GPU_DEPTH_COMPONENT24,
 		        &draw_engine_gpencil_type);
 		e_data.temp_color_tx_b = DRW_texture_pool_query_2D(
 		        size[0], size[1], fb_format,
@@ -144,7 +145,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 
 		/* used for rim and shadow FX effects */
 		e_data.temp_depth_tx_fx = DRW_texture_pool_query_2D(
-		        size[0], size[1], GPU_DEPTH24_STENCIL8,
+		        size[0], size[1], GPU_DEPTH_COMPONENT24,
 		        &draw_engine_gpencil_type);
 		e_data.temp_color_tx_fx = DRW_texture_pool_query_2D(
 		        size[0], size[1], fb_format,
@@ -157,7 +158,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 
 		/* background framebuffer to speed up drawing process (always 16 bits) */
 		e_data.background_depth_tx = DRW_texture_pool_query_2D(
-		        size[0], size[1], GPU_DEPTH24_STENCIL8,
+		        size[0], size[1], GPU_DEPTH_COMPONENT24,
 		        &draw_engine_gpencil_type);
 		e_data.background_color_tx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_RGBA32F,
@@ -166,7 +167,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		        &fbl->background_fb, {
 		            GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
 		            GPU_ATTACHMENT_TEXTURE(e_data.background_color_tx)
-		        });
+			});
 	}
 }
 
