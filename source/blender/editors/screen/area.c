@@ -1813,6 +1813,13 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		SpaceLink *sl;
 		/* store sa->type->exit callback */
 		void *sa_exit = sa->type ? sa->type->exit : NULL;
+		/* When the user switches between space-types from the type-selector,
+		 * changing the header-type is jarring (especially when using Ctrl-MouseWheel).
+		 *
+		 * However, add-on install for example -forces the header to the top which shouldn't
+		 * be applied back to the previous space type when closing - see: T57724
+		 */
+		const bool sync_header_alignment = (sa->flag & AREA_FLAG_TEMP_TYPE) == 0;
 		int header_alignment = ED_area_header_alignment(sa);
 
 		/* in some cases (opening temp space) we don't want to
@@ -1865,10 +1872,12 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 
 
 			/* Sync header alignment. */
-			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->regiontype == RGN_TYPE_HEADER) {
-					ar->alignment = header_alignment;
-					break;
+			if (sync_header_alignment) {
+				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar->regiontype == RGN_TYPE_HEADER) {
+						ar->alignment = header_alignment;
+						break;
+					}
 				}
 			}
 		}
