@@ -1009,6 +1009,14 @@ class TOPBAR_MT_workspace_menu(Menu):
         layout.operator("workspace.reorder_to_front", text="Reorder to Front", icon='TRIA_LEFT_BAR')
         layout.operator("workspace.reorder_to_back", text="Reorder to Back", icon='TRIA_RIGHT_BAR')
 
+        layout.separator()
+
+        # For key binding discoverability.
+        props = layout.operator("screen.workspace_cycle", text="Previous Workspace")
+        props.direction = 'PREV'
+        props = layout.operator("screen.workspace_cycle", text="Next Workspace")
+        props.direction = 'NEXT'
+
 
 class TOPBAR_PT_active_tool(Panel):
     bl_space_type = 'PROPERTIES'
