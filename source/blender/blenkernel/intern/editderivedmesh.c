@@ -154,12 +154,12 @@ static void emDM_ensurePolyCenters(EditDerivedBMesh *bmdm)
 			BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 			BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-				BM_face_calc_center_mean_vcos(bm, efa, polyCos[i], vertexCos);
+				BM_face_calc_center_median_vcos(bm, efa, polyCos[i], vertexCos);
 			}
 		}
 		else {
 			BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-				BM_face_calc_center_mean(efa, polyCos[i]);
+				BM_face_calc_center_median(efa, polyCos[i]);
 			}
 		}
 

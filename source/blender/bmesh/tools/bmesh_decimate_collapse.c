@@ -100,7 +100,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 		double plane_db[4];
 		Quadric q;
 
-		BM_face_calc_center_mean(f, center);
+		BM_face_calc_center_median(f, center);
 		copy_v3db_v3fl(plane_db, f->no);
 		plane_db[3] = -dot_v3db_v3fl(plane_db, center);
 

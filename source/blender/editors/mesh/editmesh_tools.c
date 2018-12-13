@@ -4981,7 +4981,7 @@ static void sort_bmelem_flag(
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
 					float co[3];
-					BM_face_calc_center_mean(fa, co);
+					BM_face_calc_center_median(fa, co);
 					mul_m4_v3(mat, co);
 
 					pb[i] = false;
@@ -5049,7 +5049,7 @@ static void sort_bmelem_flag(
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
 					float co[3];
-					BM_face_calc_center_mean(fa, co);
+					BM_face_calc_center_median(fa, co);
 
 					pb[i] = false;
 					sb[affected[2]].org_idx = i;

@@ -3631,7 +3631,7 @@ static void draw_em_indices(BMEditMesh *em)
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_face_calc_center_mean(f, pos);
+				BM_face_calc_center_median(f, pos);
 				numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
 				view3d_cached_text_draw_add(pos, numstr, numstr_len, 0, txt_flag, col);
 			}

@@ -1217,7 +1217,7 @@ static BMFace *skin_hole_target_face(BMesh *bm, Frame *frame)
 		}
 
 		/* Nearest test */
-		BM_face_calc_center_mean(f, poly_center);
+		BM_face_calc_center_median(f, poly_center);
 		dist = len_v3v3(frame_center, poly_center);
 		if (dist < best_center_dist) {
 			center_target_face = f;

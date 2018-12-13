@@ -269,7 +269,7 @@ void BM_mesh_wireframe(
 
 			if (verts_relfac) {
 				if (use_relative_offset) {
-					verts_relfac[i] = BM_vert_calc_mean_tagged_edge_length(v_src);
+					verts_relfac[i] = BM_vert_calc_median_tagged_edge_length(v_src);
 				}
 				else {
 					verts_relfac[i] = 1.0f;
@@ -315,7 +315,7 @@ void BM_mesh_wireframe(
 			verts_pos[i] = NULL;
 		}
 
-		/* conflicts with BM_vert_calc_mean_tagged_edge_length */
+		/* conflicts with BM_vert_calc_median_tagged_edge_length */
 		if (use_relative_offset == false) {
 			BM_elem_flag_disable(v_src, BM_ELEM_TAG);
 		}

@@ -155,7 +155,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 
 				case SIMFACE_COPLANAR:
 					/* compute the center of the polygon */
-					BM_face_calc_center_mean(f_ext[i].f, f_ext[i].c);
+					BM_face_calc_center_median(f_ext[i].f, f_ext[i].c);
 
 					/* compute the plane distance */
 					f_ext[i].d = dot_v3v3(f_ext[i].f->no, f_ext[i].c);

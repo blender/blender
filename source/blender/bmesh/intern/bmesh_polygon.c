@@ -108,7 +108,7 @@ static float bm_face_calc_poly_normal_vertex_cos(
 /**
  * \brief COMPUTE POLY CENTER (BMFace)
  */
-static void bm_face_calc_poly_center_mean_vertex_cos(
+static void bm_face_calc_poly_center_median_vertex_cos(
         const BMFace *f, float r_cent[3],
         float const (*vertexCos)[3])
 {
@@ -585,7 +585,7 @@ void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
 /**
  * computes the center of a face, using the mean average
  */
-void BM_face_calc_center_mean(const BMFace *f, float r_cent[3])
+void BM_face_calc_center_median(const BMFace *f, float r_cent[3])
 {
 	const BMLoop *l_iter, *l_first;
 
@@ -602,7 +602,7 @@ void BM_face_calc_center_mean(const BMFace *f, float r_cent[3])
  * computes the center of a face, using the mean average
  * weighted by edge length
  */
-void BM_face_calc_center_mean_weighted(const BMFace *f, float r_cent[3])
+void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3])
 {
 	const BMLoop *l_iter;
 	const BMLoop *l_first;
@@ -880,7 +880,7 @@ float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, fl
 }
 
 /* exact same as 'BM_face_calc_normal' but accepts vertex coords */
-void BM_face_calc_center_mean_vcos(
+void BM_face_calc_center_median_vcos(
         const BMesh *bm, const BMFace *f, float r_cent[3],
         float const (*vertexCos)[3])
 {
@@ -888,7 +888,7 @@ void BM_face_calc_center_mean_vcos(
 	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
 	(void)bm;
 
-	bm_face_calc_poly_center_mean_vertex_cos(f, r_cent, vertexCos);
+	bm_face_calc_poly_center_median_vertex_cos(f, r_cent, vertexCos);
 }
 
 /**
@@ -1103,7 +1103,7 @@ void BM_face_triangulate(
 		}
 
 		if (cd_loop_mdisp_offset != -1) {
-			BM_face_calc_center_mean(f, f_center);
+			BM_face_calc_center_median(f, f_center);
 		}
 
 		/* loop over calculated triangles and create new geometry */
@@ -1175,7 +1175,7 @@ void BM_face_triangulate(
 
 			if (cd_loop_mdisp_offset != -1) {
 				float f_new_center[3];
-				BM_face_calc_center_mean(f_new, f_new_center);
+				BM_face_calc_center_median(f_new, f_new_center);
 				BM_face_interp_multires_ex(bm, f_new, f, f_new_center, f_center, cd_loop_mdisp_offset);
 			}
 		}
