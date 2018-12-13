@@ -1597,6 +1597,14 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* set up dependencies between these operations and other builtin nodes --------------- */
 
+	/* effectors */
+	ListBase *relations = deg_build_effector_relations(graph_, rbw->effector_weights->group);
+	LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
+		ComponentKey eff_key(&relation->ob->id, DEG_NODE_TYPE_TRANSFORM);
+		add_relation(eff_key, init_key, "RigidBody Field");
+		// FIXME add relations so pointache is marked as outdated when effectors are modified
+	}
+
 	/* time dependency */
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, init_key, "TimeSrc -> Rigidbody Reset/Rebuild (Optional)");
