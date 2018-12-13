@@ -64,36 +64,31 @@ void DRW_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
 /* Curve */
-struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu, struct CurveCache *ob_curve_cache);
-struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(
-        struct Curve *cu, struct CurveCache *ob_curve_cache, float normal_size);
+void DRW_curve_batch_cache_create_requested(struct Object *ob);
+
+struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_edges(struct Curve *cu);
 struct GPUBatch *DRW_curve_batch_cache_get_edit_verts(struct Curve *cu, bool handles);
 
-struct GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(
-        struct Curve *cu, struct CurveCache *ob_curve_cache);
+struct GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *cu);
 struct GPUBatch **DRW_curve_batch_cache_get_surface_shaded(
-        struct Curve *cu, struct CurveCache *ob_curve_cache,
-        struct GPUMaterial **gpumat_array, uint gpumat_array_len);
-struct GPUBatch *DRW_curve_batch_cache_get_wireframes_face(struct Curve *cu, struct CurveCache *ob_curve_cache);
+        struct Curve *cu, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+struct GPUBatch *DRW_curve_batch_cache_get_wireframes_face(struct Curve *cu);
 
 /* Metaball */
 struct GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
 struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(struct Object *ob, struct MetaBall *mb, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(struct Object *ob);
 
-/* Curve (Font) */
-struct GPUBatch *DRW_curve_batch_cache_get_edit_cursor(struct Curve *cu);
-struct GPUBatch *DRW_curve_batch_cache_get_edit_select(struct Curve *cu);
-
 /* DispList */
-struct GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(struct ListBase *lb);
-struct GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(struct ListBase *lb);
+struct GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(struct ListBase *lb, struct GPUVertBuf *vbo);
+struct GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(struct ListBase *lb, struct GPUIndexBuf *vbo);
 struct GPUIndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(
         struct ListBase *lb, uint gpumat_array_len);
 struct GPUBatch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(
         struct ListBase *lb, uint gpumat_array_len);
-struct GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb);
+struct GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb, struct GPUVertBuf *vbo);
 
 /* Lattice */
 struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool use_weight, const int actdef);
@@ -218,6 +213,10 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(
 /* Common */
 #define DRW_ADD_FLAG_FROM_VBO_REQUEST(flag, vbo, value) (flag |= DRW_vbo_requested(vbo) ? value : 0)
 #define DRW_ADD_FLAG_FROM_IBO_REQUEST(flag, ibo, value) (flag |= DRW_ibo_requested(ibo) ? value : 0)
+
+/* Test and assign NULL if test fails */
+#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? v : NULL))
+#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? v : NULL))
 
 struct GPUBatch *DRW_batch_request(struct GPUBatch **batch);
 bool DRW_batch_requested(struct GPUBatch *batch, int prim_type);

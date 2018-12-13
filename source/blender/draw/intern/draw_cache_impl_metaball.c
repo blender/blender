@@ -143,7 +143,7 @@ static GPUVertBuf *mball_batch_cache_get_pos_and_normals(Object *ob, MetaBallBat
 {
 	if (cache->pos_nor_in_order == NULL) {
 		ListBase *lb = &ob->runtime.curve_cache->disp;
-		cache->pos_nor_in_order = DRW_displist_vertbuf_calc_pos_with_normals(lb);
+		cache->pos_nor_in_order = DRW_displist_vertbuf_calc_pos_with_normals(lb, NULL);
 	}
 	return cache->pos_nor_in_order;
 }
@@ -167,7 +167,7 @@ GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(Object *ob)
 		cache->batch = GPU_batch_create_ex(
 		        GPU_PRIM_TRIS,
 		        mball_batch_cache_get_pos_and_normals(ob, cache),
-		        DRW_displist_indexbuf_calc_triangles_in_order(lb),
+		        DRW_displist_indexbuf_calc_triangles_in_order(lb, NULL),
 		        GPU_BATCH_OWNS_INDEX);
 	}
 
@@ -204,7 +204,7 @@ GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(Object *ob)
 
 	if (cache->face_wire.batch == NULL) {
 		ListBase *lb = &ob->runtime.curve_cache->disp;
-		cache->face_wire.batch = DRW_displist_create_edges_overlay_batch(lb);
+		cache->face_wire.batch = DRW_displist_create_edges_overlay_batch(lb, NULL);
 	}
 
 	return cache->face_wire.batch;

@@ -156,7 +156,7 @@ struct GPUBatch *DRW_cache_curve_surface_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_wire_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_face_wireframe_get(Object *ob);
 /* edit-mode */
-struct GPUBatch *DRW_cache_curve_edge_normal_get(struct Object *ob, float normal_size);
+struct GPUBatch *DRW_cache_curve_edge_normal_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_edge_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_curve_vert_overlay_get(struct Object *ob, bool handles);
 

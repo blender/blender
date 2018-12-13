@@ -2070,7 +2070,7 @@ typedef struct MeshBatchCache {
 	struct {
 		/* Contains indices to unique edit vertices to not
 		 * draw the same vert multiple times (because of tesselation). */
-		GPUIndexBuf *edit_verts;
+		GPUIndexBuf *edit_verts_points;
 	} ibo;
 
 	struct {
@@ -3747,10 +3747,6 @@ static GPUVertFormat *edit_mesh_facedot_format(uint *r_pos_id, uint *r_nor_flag_
 	return &format_facedots;
 }
 
-/* Test and assign NULL if test fails */
-#define TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? v : NULL))
-#define TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? v : NULL))
-
 static void mesh_create_edit_tris_and_verts(
         MeshRenderData *rdata,
         GPUVertBuf *vbo_data, GPUVertBuf *vbo_pos_nor, GPUVertBuf *vbo_lnor, GPUIndexBuf *ibo_verts)
@@ -3768,23 +3764,23 @@ static void mesh_create_edit_tris_and_verts(
 	GPUVertFormat *lnor_format = edit_mesh_lnor_format(&attr_id.lnor);
 
 	/* Positions & Vert Normals */
-	if (TEST_ASSIGN_VBO(vbo_pos_nor)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor)) {
 		GPU_vertbuf_init_with_format(vbo_pos_nor, pos_nor_format);
 		GPU_vertbuf_data_alloc(vbo_pos_nor, verts_tri_len);
 	}
 	/* Overlay data */
-	if (TEST_ASSIGN_VBO(vbo_data)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_data)) {
 		GPU_vertbuf_init_with_format(vbo_data, data_format);
 		GPU_vertbuf_data_alloc(vbo_data, verts_tri_len);
 	}
 	/* Loop Normals */
-	if (TEST_ASSIGN_VBO(vbo_lnor)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_lnor)) {
 		GPU_vertbuf_init_with_format(vbo_lnor, lnor_format);
 		GPU_vertbuf_data_alloc(vbo_lnor, verts_tri_len);
 	}
 	/* Verts IBO */
 	GPUIndexBufBuilder elb, *elbp = NULL;
-	if (TEST_ASSIGN_IBO(ibo_verts)) {
+	if (DRW_TEST_ASSIGN_IBO(ibo_verts)) {
 		elbp = &elb;
 		GPU_indexbuf_init(elbp, GPU_PRIM_POINTS, points_len, verts_tri_len);
 		/* Clear tag */
@@ -3861,12 +3857,12 @@ static void mesh_create_edit_loose_edges(
 	GPUVertFormat *data_format = edit_mesh_data_format(&attr_id.data);
 
 	/* Positions & Vert Normals */
-	if (TEST_ASSIGN_VBO(vbo_pos_nor_ledges)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor_ledges)) {
 		GPU_vertbuf_init_with_format(vbo_pos_nor_ledges, pos_nor_format);
 		GPU_vertbuf_data_alloc(vbo_pos_nor_ledges, verts_ledges_len);
 	}
 	/* Overlay data */
-	if (TEST_ASSIGN_VBO(vbo_data_ledges)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_data_ledges)) {
 		GPU_vertbuf_init_with_format(vbo_data_ledges, data_format);
 		GPU_vertbuf_data_alloc(vbo_data_ledges, verts_ledges_len);
 	}
@@ -3913,12 +3909,12 @@ static void mesh_create_edit_loose_verts(
 	GPUVertFormat *data_format = edit_mesh_data_format(&attr_id.data);
 
 	/* Positions & Vert Normals */
-	if (TEST_ASSIGN_VBO(vbo_pos_nor_lverts)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor_lverts)) {
 		GPU_vertbuf_init_with_format(vbo_pos_nor_lverts, pos_nor_format);
 		GPU_vertbuf_data_alloc(vbo_pos_nor_lverts, verts_lverts_len);
 	}
 	/* Overlay data */
-	if (TEST_ASSIGN_VBO(vbo_data_lverts)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_data_lverts)) {
 		GPU_vertbuf_init_with_format(vbo_data_lverts, data_format);
 		GPU_vertbuf_data_alloc(vbo_data_lverts, verts_lverts_len);
 	}
@@ -3961,7 +3957,7 @@ static void mesh_create_edit_facedots(
 	struct { uint fdot_pos, fdot_nor_flag; } attr_id;
 	GPUVertFormat *facedot_format = edit_mesh_facedot_format(&attr_id.fdot_pos, &attr_id.fdot_nor_flag);
 
-	if (TEST_ASSIGN_VBO(vbo_pos_nor_data_facedots)) {
+	if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor_data_facedots)) {
 		GPU_vertbuf_init_with_format(vbo_pos_nor_data_facedots, facedot_format);
 		GPU_vertbuf_data_alloc(vbo_pos_nor_data_facedots, verts_facedot_len);
 		/* TODO(fclem): Maybe move data generation to mesh_render_data_create() */
@@ -5788,7 +5784,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob)
 		DRW_vbo_request(cache->batch.edit_triangles, &cache->edit.data);
 	}
 	if (DRW_batch_requested(cache->batch.edit_vertices, GPU_PRIM_POINTS)) {
-		DRW_ibo_request(cache->batch.edit_vertices, &cache->ibo.edit_verts);
+		DRW_ibo_request(cache->batch.edit_vertices, &cache->ibo.edit_verts_points);
 		DRW_vbo_request(cache->batch.edit_vertices, &cache->edit.pos_nor);
 		DRW_vbo_request(cache->batch.edit_vertices, &cache->edit.data);
 	}
@@ -5801,7 +5797,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob)
 		DRW_vbo_request(cache->batch.edit_loose_verts, &cache->edit.data_lverts);
 	}
 	if (DRW_batch_requested(cache->batch.edit_triangles_nor, GPU_PRIM_POINTS)) {
-		DRW_ibo_request(cache->batch.edit_triangles_nor, &cache->ibo.edit_verts);
+		DRW_ibo_request(cache->batch.edit_triangles_nor, &cache->ibo.edit_verts_points);
 		DRW_vbo_request(cache->batch.edit_triangles_nor, &cache->edit.pos_nor);
 	}
 	if (DRW_batch_requested(cache->batch.edit_triangles_lnor, GPU_PRIM_POINTS)) {
@@ -5829,7 +5825,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob)
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_lverts, MR_DATATYPE_VERT | MR_DATATYPE_LOOSE_VERT | MR_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.pos_nor_data_facedots, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_OVERLAY);
 	DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_edit_flag, cache->edit.lnor, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI | MR_DATATYPE_OVERLAY);
-	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_edit_flag, cache->ibo.edit_verts, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI);
+	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_edit_flag, cache->ibo.edit_verts_points, MR_DATATYPE_VERT | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI);
 
 	Mesh *me_original = me;
 	MBC_GET_FINAL_MESH(me);
@@ -5864,10 +5860,10 @@ void DRW_mesh_batch_cache_create_requested(Object *ob)
 	if (DRW_vbo_requested(cache->edit.data) ||
 	    DRW_vbo_requested(cache->edit.pos_nor) ||
 	    DRW_vbo_requested(cache->edit.lnor) ||
-	    DRW_ibo_requested(cache->ibo.edit_verts))
+	    DRW_ibo_requested(cache->ibo.edit_verts_points))
 	{
 		mesh_create_edit_tris_and_verts(rdata, cache->edit.data, cache->edit.pos_nor,
-		                                       cache->edit.lnor, cache->ibo.edit_verts);
+		                                       cache->edit.lnor, cache->ibo.edit_verts_points);
 	}
 	if (DRW_vbo_requested(cache->edit.data_ledges) || DRW_vbo_requested(cache->edit.pos_nor_ledges)) {
 		mesh_create_edit_loose_edges(rdata, cache->edit.data_ledges, cache->edit.pos_nor_ledges);

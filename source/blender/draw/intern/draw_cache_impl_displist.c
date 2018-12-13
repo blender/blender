@@ -125,7 +125,7 @@ static void displist_indexbufbuilder_set(
 	}
 }
 
-GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
+GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb, GPUVertBuf *vbo)
 {
 	static GPUVertFormat format = { 0 };
 	static struct { uint pos, nor; } attr_id;
@@ -135,7 +135,12 @@ GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 	}
 
-	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+	if (vbo == NULL) {
+		vbo = GPU_vertbuf_create_with_format(&format);
+	}
+	else {
+		GPU_vertbuf_init_with_format(vbo, &format);
+	}
 	GPU_vertbuf_data_alloc(vbo, curve_render_surface_vert_len_get(lb));
 
 	BKE_displist_normals_add(lb);
@@ -166,7 +171,7 @@ GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 	return vbo;
 }
 
-GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
+GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb, GPUIndexBuf *ibo)
 {
 	const int tri_len = curve_render_surface_tri_len_get(lb);
 	const int vert_len = curve_render_surface_vert_len_get(lb);
@@ -182,7 +187,13 @@ GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 		ofs += dl_vert_len(dl);
 	}
 
-	return GPU_indexbuf_build(&elb);
+	if (ibo != NULL) {
+		GPU_indexbuf_build_in_place(&elb, ibo);
+	}
+	else {
+		ibo = GPU_indexbuf_build(&elb);
+	}
+	return ibo;
 }
 
 GPUIndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)
@@ -267,7 +278,7 @@ static void set_overlay_wires_quad_tri_indices(void *thunk, uint v1, uint v2, ui
 	}
 }
 
-GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb)
+GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb, GPUVertBuf *vbo)
 {
 	static DRWDisplistWireThunk thunk;
 	static GPUVertFormat format = {0};
@@ -278,7 +289,13 @@ GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb)
 		GPU_vertformat_triple_load(&format);
 	}
 
-	thunk.vbo = GPU_vertbuf_create_with_format(&format);
+	if (vbo == NULL) {
+		thunk.vbo = GPU_vertbuf_create_with_format(&format);
+	}
+	else {
+		GPU_vertbuf_init_with_format(vbo, &format);
+		thunk.vbo = vbo;
+	}
 
 	int vert_len = curve_render_surface_tri_len_get(lb) * 3;
 	GPU_vertbuf_data_alloc(thunk.vbo, vert_len);
@@ -300,7 +317,12 @@ GPUBatch *DRW_displist_create_edges_overlay_batch(ListBase *lb)
 		GPU_vertbuf_data_resize(thunk.vbo, thunk.vidx);
 	}
 
-	return GPU_batch_create_ex(GPU_PRIM_TRIS, thunk.vbo, NULL, GPU_BATCH_OWNS_VBO);
+	if (vbo == NULL) {
+		return GPU_batch_create_ex(GPU_PRIM_TRIS, thunk.vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	else {
+		return NULL;
+	}
 }
 
 
