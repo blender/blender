@@ -117,6 +117,7 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_mempool.h"
+#include "BLI_ghash.h"
 
 #include "BLT_translation.h"
 
@@ -177,7 +178,6 @@
 #include "RE_engine.h"
 
 #include "readfile.h"
-
 
 #include <errno.h>
 
@@ -246,21 +246,6 @@
 #  define DEBUG_PRINTF(...)
 #endif
 
-/***/
-
-typedef struct OldNew {
-	const void *old;
-	void *newp;
-	int nr;
-} OldNew;
-
-typedef struct OldNewMap {
-	OldNew *entries;
-	int nentries, entriessize;
-	bool sorted;
-	int lasthit;
-} OldNewMap;
-
 
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
@@ -306,49 +291,126 @@ static const char *library_parent_filepath(Library *lib)
 	return lib->parent ? lib->parent->filepath : "<direct>";
 }
 
+
+/* ************** OldNewMap ******************* */
+
+typedef struct OldNew {
+	const void *oldp;
+	void *newp;
+	/* `nr` is "user count" for data, and ID code for libdata. */
+	int nr;
+} OldNew;
+
+typedef struct OldNewMap {
+	/* Array that stores the actual entries. */
+	OldNew *entries;
+	int nentries;
+	/* Hashmap that stores indices into the `entries` array. */
+	int32_t *map;
+
+	int capacity_exp;
+} OldNewMap;
+
+#define ENTRIES_CAPACITY(onm) (1 << (onm)->capacity_exp)
+#define MAP_CAPACITY(onm) (1 << ((onm)->capacity_exp + 1))
+#define SLOT_MASK(onm) (MAP_CAPACITY(onm) - 1)
+#define DEFAULT_SIZE_EXP 6
+#define PERTURB_SHIFT 5
+
+/* based on the probing algorithm used in Python dicts. */
+#define ITER_SLOTS(onm, KEY, SLOT_NAME, INDEX_NAME) \
+	uint32_t hash = BLI_ghashutil_ptrhash(KEY); \
+	uint32_t mask = SLOT_MASK(onm); \
+	uint perturb = hash; \
+	int SLOT_NAME = mask & hash; \
+	int INDEX_NAME = onm->map[SLOT_NAME]; \
+	for (;;SLOT_NAME = mask & ((5 * SLOT_NAME) + 1 + perturb), perturb >>= PERTURB_SHIFT, INDEX_NAME = onm->map[SLOT_NAME])
+
+static void oldnewmap_insert_index_in_map(OldNewMap *onm, const void *ptr, int index)
+{
+	ITER_SLOTS(onm, ptr, slot, stored_index) {
+		if (stored_index == -1) {
+			onm->map[slot] = index;
+			break;
+		}
+	}
+}
+
+static void oldnewmap_insert_or_replace(OldNewMap *onm, OldNew entry)
+{
+	ITER_SLOTS(onm, entry.oldp, slot, index) {
+		if (index == -1) {
+			onm->entries[onm->nentries] = entry;
+			onm->map[slot] = onm->nentries;
+			onm->nentries++;
+			break;
+		}
+		else if (onm->entries[index].oldp == entry.oldp) {
+			onm->entries[index] = entry;
+			break;
+		}
+	}
+}
+
+static OldNew *oldnewmap_lookup_entry(const OldNewMap *onm, const void *addr)
+{
+	ITER_SLOTS(onm, addr, slot, index) {
+		if (index >= 0) {
+			OldNew *entry = &onm->entries[index];
+			if (entry->oldp == addr) {
+				return entry;
+			}
+		}
+		else {
+			return NULL;
+		}
+	}
+}
+
+static void oldnewmap_clear_map(OldNewMap *onm)
+{
+	memset(onm->map, 0xFF, MAP_CAPACITY(onm) * sizeof(*onm->map));
+}
+
+static void oldnewmap_increase_size(OldNewMap *onm)
+{
+	onm->capacity_exp++;
+	onm->entries = MEM_reallocN(onm->entries, sizeof(*onm->entries) * ENTRIES_CAPACITY(onm));
+	onm->map = MEM_reallocN(onm->map, sizeof(*onm->map) * MAP_CAPACITY(onm));
+	oldnewmap_clear_map(onm);
+	for (int i = 0; i < onm->nentries; i++) {
+		oldnewmap_insert_index_in_map(onm, onm->entries[i].oldp, i);
+	}
+}
+
+
+/* Public OldNewMap API */
+
 static OldNewMap *oldnewmap_new(void)
 {
 	OldNewMap *onm = MEM_callocN(sizeof(*onm), "OldNewMap");
 
-	onm->entriessize = 1024;
-	onm->entries = MEM_malloc_arrayN(onm->entriessize, sizeof(*onm->entries), "OldNewMap.entries");
+	onm->capacity_exp = DEFAULT_SIZE_EXP;
+	onm->entries = MEM_malloc_arrayN(ENTRIES_CAPACITY(onm), sizeof(*onm->entries), "OldNewMap.entries");
+	onm->map = MEM_malloc_arrayN(MAP_CAPACITY(onm), sizeof(*onm->map), "OldNewMap.map");
+	oldnewmap_clear_map(onm);
 
 	return onm;
 }
 
-static int verg_oldnewmap(const void *v1, const void *v2)
-{
-	const struct OldNew *x1 = v1, *x2 = v2;
-
-	if (x1->old > x2->old) return 1;
-	else if (x1->old < x2->old) return -1;
-	return 0;
-}
-
-
-static void oldnewmap_sort(FileData *fd)
-{
-	BLI_assert(fd->libmap->sorted == false);
-	qsort(fd->libmap->entries, fd->libmap->nentries, sizeof(OldNew), verg_oldnewmap);
-	fd->libmap->sorted = 1;
-}
-
-/* nr is zero for data, and ID code for libdata */
 static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
 {
-	OldNew *entry;
-
 	if (oldaddr == NULL || newaddr == NULL) return;
 
-	if (UNLIKELY(onm->nentries == onm->entriessize)) {
-		onm->entriessize *= 2;
-		onm->entries = MEM_reallocN(onm->entries, sizeof(*onm->entries) * onm->entriessize);
+	if (UNLIKELY(onm->nentries == ENTRIES_CAPACITY(onm))) {
+		oldnewmap_increase_size(onm);
 	}
 
-	entry = &onm->entries[onm->nentries++];
-	entry->old = oldaddr;
-	entry->newp = newaddr;
-	entry->nr = nr;
+	OldNew entry;
+	entry.oldp = oldaddr;
+	entry.newp = newaddr;
+	entry.nr = nr;
+	oldnewmap_insert_or_replace(onm, entry);
 }
 
 void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
@@ -356,125 +418,28 @@ void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void 
 	oldnewmap_insert(onm, oldaddr, newaddr, nr);
 }
 
-/**
- * Do a full search (no state).
- *
- * \param lasthit: Use as a reference position to avoid a full search
- * from either end of the array, giving more efficient lookups.
- *
- * \note This would seem an ideal case for hash or btree lookups.
- * However the data is written in-order, using the \a lasthit will normally avoid calling this function.
- * Creating a btree/hash structure adds overhead for the common-case to optimize the corner-case
- * (since most entries will never be retrieved).
- * So just keep full lookups as a fall-back.
- */
-static int oldnewmap_lookup_entry_full(const OldNewMap *onm, const void *addr, int lasthit)
-{
-	const int nentries = onm->nentries;
-	const OldNew *entries = onm->entries;
-	int i;
-
-	/* search relative to lasthit where possible */
-	if (lasthit >= 0 && lasthit < nentries) {
-
-		/* search forwards */
-		i = lasthit;
-		while (++i != nentries) {
-			if (entries[i].old == addr) {
-				return i;
-			}
-		}
-
-		/* search backwards */
-		i = lasthit + 1;
-		while (i--) {
-			if (entries[i].old == addr) {
-				return i;
-			}
-		}
-	}
-	else {
-		/* search backwards (full) */
-		i = nentries;
-		while (i--) {
-			if (entries[i].old == addr) {
-				return i;
-			}
-		}
-	}
-
-	return -1;
-}
-
 static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool increase_users)
 {
-	int i;
-
-	if (addr == NULL) return NULL;
-
-	if (onm->lasthit < onm->nentries - 1) {
-		OldNew *entry = &onm->entries[++onm->lasthit];
-
-		if (entry->old == addr) {
-			if (increase_users)
-				entry->nr++;
-			return entry->newp;
-		}
-	}
-
-	i = oldnewmap_lookup_entry_full(onm, addr, onm->lasthit);
-	if (i != -1) {
-		OldNew *entry = &onm->entries[i];
-		BLI_assert(entry->old == addr);
-		onm->lasthit = i;
-		if (increase_users)
-			entry->nr++;
-		return entry->newp;
-	}
-
-	return NULL;
+	OldNew *entry = oldnewmap_lookup_entry(onm, addr);
+	if (entry == NULL) return NULL;
+	if (increase_users) entry->nr++;
+	return entry->newp;
 }
 
-/* for libdata, nr has ID code, no increment */
+/* for libdata, OldNew.nr has ID code, no increment */
 static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
 {
-	if (addr == NULL) {
-		return NULL;
-	}
+	if (addr == NULL) return NULL;
 
-	/* lasthit works fine for non-libdata, linking there is done in same sequence as writing */
-	if (onm->sorted) {
-		const OldNew entry_s = {.old = addr};
-		OldNew *entry = bsearch(&entry_s, onm->entries, onm->nentries, sizeof(OldNew), verg_oldnewmap);
-		if (entry) {
-			ID *id = entry->newp;
-
-			if (id && (!lib || id->lib)) {
-				return id;
-			}
-		}
-	}
-	else {
-		/* note, this can be a bottle neck when loading some files */
-		const int i = oldnewmap_lookup_entry_full(onm, addr, -1);
-		if (i != -1) {
-			OldNew *entry = &onm->entries[i];
-			ID *id = entry->newp;
-			BLI_assert(entry->old == addr);
-			if (id && (!lib || id->lib)) {
-				return id;
-			}
-		}
-	}
-
+	ID *id = oldnewmap_lookup_and_inc(onm, addr, false);
+	if (id == NULL) return NULL;
+	if (!lib || id->lib) return id;
 	return NULL;
 }
 
 static void oldnewmap_free_unused(OldNewMap *onm)
 {
-	int i;
-
-	for (i = 0; i < onm->nentries; i++) {
+	for (int i = 0; i < onm->nentries; i++) {
 		OldNew *entry = &onm->entries[i];
 		if (entry->nr == 0) {
 			MEM_freeN(entry->newp);
@@ -485,15 +450,24 @@ static void oldnewmap_free_unused(OldNewMap *onm)
 
 static void oldnewmap_clear(OldNewMap *onm)
 {
+	onm->capacity_exp = DEFAULT_SIZE_EXP;
+	oldnewmap_clear_map(onm);
 	onm->nentries = 0;
-	onm->lasthit = 0;
 }
 
 static void oldnewmap_free(OldNewMap *onm)
 {
 	MEM_freeN(onm->entries);
+	MEM_freeN(onm->map);
 	MEM_freeN(onm);
 }
+
+#undef ENTRIES_CAPACITY
+#undef MAP_CAPACITY
+#undef SLOT_MASK
+#undef DEFAULT_SIZE_EXP
+#undef PERTURB_SHIFT
+#undef ITER_SLOTS
 
 /***/
 
@@ -1486,31 +1460,6 @@ static void *newdataadr(FileData *fd, const void *adr)      /* only direct datab
 	return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
-/* This is a special version of newdataadr() which allows us to keep lasthit of
- * map unchanged. In certain cases this makes file loading time significantly
- * faster.
- *
- * Use this function in cases like restoring pointer from one list element to
- * another list element, but keep lasthit value so we can continue restoring
- * pointers efficiently.
- *
- * Example of this could be found in direct_link_fcurves() which restores the
- * fcurve group pointer and keeps lasthit optimal for linking all further
- * fcurves.
- */
-static void *newdataadr_ex(FileData *fd, const void *adr, bool increase_lasthit)        /* only direct databocks */
-{
-	if (increase_lasthit) {
-		return newdataadr(fd, adr);
-	}
-	else {
-		int lasthit = fd->datamap->lasthit;
-		void *newadr = newdataadr(fd, adr);
-		fd->datamap->lasthit = lasthit;
-		return newadr;
-	}
-}
-
 static void *newdataadr_no_us(FileData *fd, const void *adr)        /* only direct databocks */
 {
 	return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
@@ -1593,12 +1542,7 @@ static void *newlibadr_real_us(FileData *fd, const void *lib, const void *adr)  
 
 static void change_idid_adr_fd(FileData *fd, const void *old, void *new)
 {
-	int i;
-
-	/* use a binary search if we have a sorted libmap, for now it's not needed. */
-	BLI_assert(fd->libmap->sorted == false);
-
-	for (i = 0; i < fd->libmap->nentries; i++) {
+	for (int i = 0; i < fd->libmap->nentries; i++) {
 		OldNew *entry = &fd->libmap->entries[i];
 
 		if (old == entry->newp && entry->nr == ID_ID) {
@@ -2669,7 +2613,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		fcu->rna_path = newdataadr(fd, fcu->rna_path);
 
 		/* group */
-		fcu->grp = newdataadr_ex(fd, fcu->grp, false);
+		fcu->grp = newdataadr(fd, fcu->grp);
 
 		/* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
 		 * but also means that another method for "reviving disabled F-Curves" exists
@@ -8865,8 +8809,6 @@ static void do_versions_after_linking(Main *main)
 
 static void lib_link_all(FileData *fd, Main *main)
 {
-	oldnewmap_sort(fd);
-
 	lib_link_id(fd, main);
 
 	/* No load UI for undo memfiles */
