@@ -3591,3 +3591,90 @@ void GPENCIL_OT_stroke_split(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+static int gp_stroke_smooth_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	const int repeat = RNA_int_get(op->ptr, "repeat");
+	float factor = RNA_float_get(op->ptr, "factor");
+	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
+	const bool smooth_position = RNA_boolean_get(op->ptr, "smooth_position");
+	const bool smooth_thickness = RNA_boolean_get(op->ptr, "smooth_thickness");
+	const bool smooth_strength = RNA_boolean_get(op->ptr, "smooth_strength");
+	const bool smooth_uv = RNA_boolean_get(op->ptr, "smooth_uv");
+
+	/* sanity checks */
+	if (ELEM(NULL, gpd))
+		return OPERATOR_CANCELLED;
+
+	/* Go through each editable + selected stroke */
+	GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)
+	{
+		if (gps->flag & GP_STROKE_SELECT) {
+			if (factor > 0.0f) {
+				for (int r = 0; r < repeat; r++) {
+					for (int i = 0; i < gps->totpoints; i++) {
+						bGPDspoint *pt = &gps->points[i];
+						if ((only_selected) && ((pt->flag & GP_SPOINT_SELECT) == 0)) {
+							continue;
+						}
+
+						/* perform smoothing */
+						if (smooth_position) {
+							BKE_gpencil_smooth_stroke(gps, i, factor);
+						}
+						if (smooth_strength) {
+							BKE_gpencil_smooth_stroke_strength(gps, i, factor);
+						}
+						if (smooth_thickness) {
+							/* thickness need to repeat process several times */
+							for (int r2 = 0; r2 < r * 10; r2++) {
+								BKE_gpencil_smooth_stroke_thickness(gps, i, factor);
+							}
+						}
+						if (smooth_uv) {
+							BKE_gpencil_smooth_stroke_uv(gps, i, factor);
+						}
+					}
+				}
+			}
+		}
+	}
+	GP_EDITABLE_STROKES_END(gpstroke_iter);
+
+	/* notifiers */
+	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_stroke_smooth(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Smooth Stroke";
+	ot->idname = "GPENCIL_OT_stroke_smooth";
+	ot->description = "Smooth selected strokes";
+
+	/* api callbacks */
+	ot->exec = gp_stroke_smooth_exec;
+	ot->poll = gp_active_layer_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	prop = RNA_def_int(ot->srna, "repeat", 1, 1, 10, "Repeat", "", 1, 5);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 2.0f, "Factor", "", 0.0f, 2.0f);
+	RNA_def_boolean(ot->srna, "only_selected", true, "Selected Points",
+		"Smooth only selected points in the stroke");
+	RNA_def_boolean(ot->srna, "smooth_position", true, "Position", "");
+	RNA_def_boolean(ot->srna, "smooth_thickness", true, "Thickness", "");
+	RNA_def_boolean(ot->srna, "smooth_strength", false, "Strength", "");
+	RNA_def_boolean(ot->srna, "smooth_uv", false, "UV", "");
+
+}

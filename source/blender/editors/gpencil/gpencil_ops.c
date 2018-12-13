@@ -308,6 +308,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_stroke_simplify_fixed);
 	WM_operatortype_append(GPENCIL_OT_stroke_separate);
 	WM_operatortype_append(GPENCIL_OT_stroke_split);
+	WM_operatortype_append(GPENCIL_OT_stroke_smooth);
 
 	WM_operatortype_append(GPENCIL_OT_brush_presets_create);
 
