@@ -15,19 +15,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Daniel Dunbar, Joseph Eagar
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/blenlib/intern/edgehash.c
  *  \ingroup bli
  *
- * An (edge -> pointer) chaining hash table.
+ * An (edge -> pointer) hash table.
  * Using unordered int-pairs as keys.
  *
- * \note Based on 'BLI_ghash.c', which is a more generalized hash-table
- * make sure these stay in sync.
+ * \note The API matches BLI_ghash.c, but the implementation is different.
  */
 
 #include <stdlib.h>
@@ -38,373 +35,288 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
-#include "BLI_mempool.h"
 #include "BLI_strict_flags.h"
 
-/**************inlined code************/
-static const uint _ehash_hashsizes[] = {
-	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209,
-	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169,
-	4194319, 8388617, 16777259, 33554467, 67108879, 134217757,
-	268435459
-};
+typedef struct _EdgeHash_Edge Edge;
+typedef struct _EdgeHash_Entry EdgeHashEntry;
 
-/* internal flag to ensure sets values aren't used */
-#ifndef NDEBUG
-#  define EDGEHASH_FLAG_IS_SET (1 << 8)
-#  define IS_EDGEHASH_ASSERT(eh) BLI_assert((eh->flag & EDGEHASH_FLAG_IS_SET) == 0)
-// #  define IS_EDGESET_ASSERT(es) BLI_assert((es->flag & EDGEHASH_FLAG_IS_SET) != 0)
-#else
-#  define IS_EDGEHASH_ASSERT(eh)
-// #  define IS_EDGESET_ASSERT(es)
-#endif
+typedef struct EdgeHash {
+	EdgeHashEntry *entries;
+	int32_t *map;
+	uint32_t slot_mask;
+	uint capacity_exp;
+	uint length;
+	uint dummy_count;
+} EdgeHash;
 
-/* ensure v0 is smaller */
-#define EDGE_ORD(v0, v1)            \
-	if (v0 > v1) {                  \
-		SWAP(uint, v0, v1); \
-	} (void)0
-
-/***/
-
-typedef struct EdgeEntry {
-	struct EdgeEntry *next;
-	uint v0, v1;
-	void *val;
-} EdgeEntry;
-
-struct EdgeHash {
-	EdgeEntry **buckets;
-	BLI_mempool *epool;
-	uint nbuckets, nentries;
-	uint cursize, flag;
-};
-
+typedef struct EdgeSet {
+	Edge *entries;
+	int32_t *map;
+	uint32_t slot_mask;
+	uint capacity_exp;
+	uint length;
+} EdgeSet;
 
 /* -------------------------------------------------------------------- */
-/* EdgeHash API */
+/** \name Internal Helper Macros & Defines
+ * \{ */
 
+#define ENTRIES_CAPACITY(container) (uint)(1 << (container)->capacity_exp)
+#define MAP_CAPACITY(container) (uint)(1 << ((container)->capacity_exp + 1))
+#define CLEAR_MAP(container) memset(container->map, 0xFF, sizeof(int32_t) * MAP_CAPACITY(container))
+#define UPDATE_SLOT_MASK(container) (container)->slot_mask = MAP_CAPACITY(container) - 1
+#define PERTURB_SHIFT 5
+
+#define ITER_SLOTS(CONTAINER, EDGE, SLOT, INDEX) \
+    uint32_t hash = calc_edge_hash(EDGE); \
+    uint32_t mask = (CONTAINER)->slot_mask; \
+    uint32_t perturb = hash; \
+    int32_t *map = (CONTAINER)->map; \
+    uint32_t SLOT = mask & hash; \
+    int INDEX = map[SLOT]; \
+    for (;;SLOT = mask & ((5 * SLOT) + 1 + perturb), perturb >>= PERTURB_SHIFT, INDEX = map[SLOT])
+
+#define SLOT_EMPTY -1
+#define SLOT_DUMMY -2
+
+#define CAPACITY_EXP_DEFAULT 3
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Edge API
+ * \{ */
+
+BLI_INLINE uint32_t calc_edge_hash(Edge edge)
+{
+	return (edge.v_low << 8) ^ edge.v_high;
+}
+
+BLI_INLINE Edge init_edge(uint v0, uint v1)
+{
+	Edge edge;
+	if (v0 < v1) {
+		edge.v_low = v0;
+		edge.v_high = v1;
+	}
+	else {
+		edge.v_low = v1;
+		edge.v_high = v0;
+	}
+	return edge;
+}
+
+BLI_INLINE bool edges_equal(Edge e1, Edge e2)
+{
+	return memcmp(&e1, &e2, sizeof(Edge)) == 0;
+}
+
+static uint calc_capacity_exp_for_reserve(uint reserve)
+{
+	uint result = 1;
+	while (reserve >>= 1) result++;
+	return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Internal Utility API
  * \{ */
 
-/**
- * Compute the hash and get the bucket-index.
- */
-BLI_INLINE uint edgehash_bucket_index(EdgeHash *eh, uint v0, uint v1)
+#define EH_INDEX_HAS_EDGE(eh, index, edge) (index) >= 0 && edges_equal((edge), (eh)->entries[index].edge)
+
+static void edgehash_free_values(EdgeHash *eh, EdgeHashFreeFP free_value)
 {
-	BLI_assert(v0 < v1);
-
-	return ((v0 * 65) ^ (v1 * 31)) % eh->nbuckets;
-}
-
-/**
- * Check if the number of items in the GHash is large enough to require more buckets.
- */
-BLI_INLINE bool edgehash_test_expand_buckets(const uint nentries, const uint nbuckets)
-{
-	return (nentries > nbuckets * 3);
-}
-
-/**
- * Expand buckets to the next size up.
- */
-BLI_INLINE void edgehash_resize_buckets(EdgeHash *eh, const uint nbuckets)
-{
-	EdgeEntry **buckets_old = eh->buckets;
-	EdgeEntry **buckets_new;
-	const uint nbuckets_old = eh->nbuckets;
-	uint i;
-
-	BLI_assert(eh->nbuckets != nbuckets);
-
-	eh->nbuckets = nbuckets;
-	buckets_new = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-
-	for (i = 0; i < nbuckets_old; i++) {
-		for (EdgeEntry *e = buckets_old[i], *e_next; e; e = e_next) {
-			const unsigned bucket_index = edgehash_bucket_index(eh, e->v0, e->v1);
-			e_next = e->next;
-			e->next = buckets_new[bucket_index];
-			buckets_new[bucket_index] = e;
+	if (free_value) {
+		for (uint i = 0; i < eh->length; i++) {
+			free_value(eh->entries[i].value);
 		}
 	}
-
-	eh->buckets = buckets_new;
-	MEM_freeN(buckets_old);
 }
 
-/**
- * Increase initial bucket size to match a reserved amount.
- */
-BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const uint nentries_reserve)
+BLI_INLINE void edgehash_insert_index(EdgeHash *eh, Edge edge, uint entry_index)
 {
-	while (edgehash_test_expand_buckets(nentries_reserve, eh->nbuckets)) {
-		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
-	}
-}
-
-/**
- * Internal lookup function.
- * Takes a \a bucket_index argument to avoid calling #edgehash_bucket_index multiple times.
- */
-BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(
-        EdgeHash *eh, uint v0, uint v1,
-        const uint bucket_index)
-{
-	EdgeEntry *e;
-	BLI_assert(v0 < v1);
-	for (e = eh->buckets[bucket_index]; e; e = e->next) {
-		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
-			return e;
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (index == SLOT_EMPTY) {
+			eh->map[slot] = (int32_t)entry_index;
+			break;
 		}
 	}
-	return NULL;
 }
 
-/**
- * Internal lookup function, returns previous entry of target one too.
- * Takes bucket_index argument to avoid calling #edgehash_bucket_index multiple times.
- * Useful when modifying buckets somehow (like removing an entry...).
- */
-BLI_INLINE EdgeEntry *edgehash_lookup_entry_prev_ex(
-        EdgeHash *eh, uint v0, uint v1,
-        EdgeEntry **r_e_prev, const uint bucket_index)
+BLI_INLINE EdgeHashEntry *edgehash_insert_at_slot(EdgeHash *eh, uint slot, Edge edge, void *value)
 {
-	BLI_assert(v0 < v1);
-	for (EdgeEntry *e_prev = NULL, *e = eh->buckets[bucket_index]; e; e_prev = e, e = e->next) {
-		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
-			*r_e_prev = e_prev;
-			return e;
+	EdgeHashEntry *entry = &eh->entries[eh->length];
+	entry->edge = edge;
+	entry->value = value;
+	eh->map[slot] = (int32_t)eh->length;
+	eh->length++;
+	return entry;
+}
+
+BLI_INLINE bool edgehash_ensure_can_insert(EdgeHash *eh)
+{
+	if (UNLIKELY(ENTRIES_CAPACITY(eh) <= eh->length + eh->dummy_count)) {
+		eh->capacity_exp++;
+		UPDATE_SLOT_MASK(eh);
+		eh->dummy_count = 0;
+		eh->entries = MEM_reallocN(eh->entries, sizeof(EdgeHashEntry) * ENTRIES_CAPACITY(eh));
+		eh->map = MEM_reallocN(eh->map, sizeof(int32_t) * MAP_CAPACITY(eh));
+		CLEAR_MAP(eh);
+		for (uint i = 0; i < eh->length; i++) {
+			edgehash_insert_index(eh, eh->entries[i].edge, i);
+		}
+		return true;
+	}
+	return false;
+}
+
+BLI_INLINE EdgeHashEntry *edgehash_insert(EdgeHash *eh, Edge edge, void *value)
+{
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (index == SLOT_EMPTY) {
+			return edgehash_insert_at_slot(eh, slot, edge, value);
+		}
+		else if (index == SLOT_DUMMY) {
+			eh->dummy_count--;
+			return edgehash_insert_at_slot(eh, slot, edge, value);
 		}
 	}
-
-	*r_e_prev = NULL;
-	return NULL;
 }
 
-/**
- * Internal lookup function. Only wraps #edgehash_lookup_entry_ex
- */
-BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, uint v0, uint v1)
+BLI_INLINE EdgeHashEntry *edgehash_lookup_entry(EdgeHash *eh, uint v0, uint v1)
 {
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
-	return edgehash_lookup_entry_ex(eh, v0, v1, bucket_index);
-}
+	Edge edge = init_edge(v0, v1);
 
-
-static EdgeHash *edgehash_new(const char *info,
-                              const uint nentries_reserve,
-                              const uint entry_size)
-{
-	EdgeHash *eh = MEM_mallocN(sizeof(*eh), info);
-
-	eh->nbuckets = _ehash_hashsizes[0];  /* eh->cursize */
-	eh->nentries = 0;
-	eh->cursize = 0;
-	eh->flag = 0;
-
-	/* if we have reserved the number of elements that this hash will contain */
-	if (nentries_reserve) {
-		edgehash_buckets_reserve(eh, nentries_reserve);
-	}
-
-	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-	eh->epool = BLI_mempool_create(entry_size, nentries_reserve, 512, BLI_MEMPOOL_NOP);
-
-	return eh;
-}
-
-/**
- * Internal insert function.
- * Takes a \a bucket_index argument to avoid calling #edgehash_bucket_index multiple times.
- */
-BLI_INLINE void edgehash_insert_ex(
-        EdgeHash *eh, uint v0, uint v1, void *val,
-        const uint bucket_index)
-{
-	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
-
-	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
-	IS_EDGEHASH_ASSERT(eh);
-
-	/* this helps to track down errors with bad edge data */
-	BLI_assert(v0 < v1);
-	BLI_assert(v0 != v1);
-
-	e->next = eh->buckets[bucket_index];
-	e->v0 = v0;
-	e->v1 = v1;
-	e->val = val;
-	eh->buckets[bucket_index] = e;
-
-	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
-		edgehash_resize_buckets(eh, _ehash_hashsizes[++eh->cursize]);
-	}
-}
-
-/**
- * Insert function that doesn't set the value (use for EdgeSet)
- */
-BLI_INLINE void edgehash_insert_ex_keyonly(
-        EdgeHash *eh, uint v0, uint v1,
-        const uint bucket_index)
-{
-	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
-
-	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
-
-	/* this helps to track down errors with bad edge data */
-	BLI_assert(v0 < v1);
-	BLI_assert(v0 != v1);
-
-	e->next = eh->buckets[bucket_index];
-	e->v0 = v0;
-	e->v1 = v1;
-	eh->buckets[bucket_index] = e;
-
-	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
-		edgehash_resize_buckets(eh, _ehash_hashsizes[++eh->cursize]);
-	}
-}
-
-/**
- * Insert function that doesn't set the value (use for EdgeSet)
- */
-BLI_INLINE void edgehash_insert_ex_keyonly_entry(
-        EdgeHash *eh, uint v0, uint v1,
-        const uint bucket_index,
-        EdgeEntry *e)
-{
-	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
-
-	/* this helps to track down errors with bad edge data */
-	BLI_assert(v0 < v1);
-	BLI_assert(v0 != v1);
-
-	e->next = eh->buckets[bucket_index];
-	e->v0 = v0;
-	e->v1 = v1;
-	/* intentionally leave value unset */
-	eh->buckets[bucket_index] = e;
-
-	if (UNLIKELY(edgehash_test_expand_buckets(++eh->nentries, eh->nbuckets))) {
-		edgehash_resize_buckets(eh, _ehash_hashsizes[++eh->cursize]);
-	}
-}
-
-BLI_INLINE void edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *val)
-{
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
-	edgehash_insert_ex(eh, v0, v1, val, bucket_index);
-}
-
-/**
- * Remove the entry and return it, caller must free from eh->epool.
- */
-BLI_INLINE EdgeEntry *edgehash_remove_ex(
-        EdgeHash *eh, uint v0, uint v1,
-        EdgeHashFreeFP valfreefp,
-        const uint bucket_index)
-{
-	EdgeEntry *e_prev;
-	EdgeEntry *e = edgehash_lookup_entry_prev_ex(eh, v0, v1, &e_prev, bucket_index);
-
-	BLI_assert(v0 < v1);
-
-	if (e) {
-		EdgeEntry *e_next = e->next;
-
-		if (valfreefp) {
-			valfreefp(e->val);
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (EH_INDEX_HAS_EDGE(eh, index, edge)) {
+			return &eh->entries[index];
 		}
-
-		if (e_prev) {
-			e_prev->next = e_next;
+		else if (index == SLOT_EMPTY) {
+			return NULL;
 		}
-		else {
-			eh->buckets[bucket_index] = e_next;
-		}
-
-		eh->nentries--;
-		return e;
 	}
-
-	return e;
 }
 
-/**
- * Run free callbacks for freeing entries.
- */
-static void edgehash_free_cb(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+BLI_INLINE void edgehash_change_index(EdgeHash *eh, Edge edge, int new_index)
 {
-	uint i;
-
-	BLI_assert(valfreefp);
-
-	for (i = 0; i < eh->nbuckets; i++) {
-		EdgeEntry *e;
-
-		for (e = eh->buckets[i]; e; ) {
-			EdgeEntry *e_next = e->next;
-
-			valfreefp(e->val);
-
-			e = e_next;
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (EH_INDEX_HAS_EDGE(eh, index, edge)) {
+			eh->map[slot] = new_index;
+			break;
 		}
 	}
 }
 
 /** \} */
 
-
-/** \name Public API
+/* -------------------------------------------------------------------- */
+/** \name Edge Hash API
  * \{ */
 
-/* Public API */
-
-EdgeHash *BLI_edgehash_new_ex(const char *info,
-                              const uint nentries_reserve)
+EdgeHash *BLI_edgehash_new_ex(const char *info, const uint reserve)
 {
-	return edgehash_new(info,
-	                    nentries_reserve,
-	                    sizeof(EdgeEntry));
+	EdgeHash *eh = MEM_mallocN(sizeof(EdgeHash), info);
+	eh->capacity_exp = calc_capacity_exp_for_reserve(reserve);
+	UPDATE_SLOT_MASK(eh);
+	eh->length = 0;
+	eh->dummy_count = 0;
+	eh->entries = MEM_calloc_arrayN(sizeof(EdgeHashEntry), ENTRIES_CAPACITY(eh), "eh entries");
+	eh->map = MEM_malloc_arrayN(sizeof(int32_t), MAP_CAPACITY(eh), "eh map");
+	CLEAR_MAP(eh);
+	return eh;
 }
 
 EdgeHash *BLI_edgehash_new(const char *info)
 {
-	return BLI_edgehash_new_ex(info, 0);
+	return BLI_edgehash_new_ex(info, 1 << CAPACITY_EXP_DEFAULT);
+}
+
+void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP free_value)
+{
+	edgehash_free_values(eh, free_value);
+	MEM_freeN(eh->map);
+	MEM_freeN(eh->entries);
+	MEM_freeN(eh);
+}
+
+void BLI_edgehash_print(EdgeHash *eh)
+{
+	printf("Edgehash at %p:\n", eh);
+	printf("  Map:\n");
+	for (uint i = 0; i < MAP_CAPACITY(eh); i++) {
+		int index = eh->map[i];
+		printf("    %u: %d", i, index);
+		if (index >= 0) {
+			EdgeHashEntry entry = eh->entries[index];
+			printf(" -> (%u, %u) -> %p", entry.edge.v_low, entry.edge.v_high, entry.value);
+		}
+		printf("\n");
+	}
+	printf("  Entries:\n");
+	for (uint i = 0; i < ENTRIES_CAPACITY(eh); i++) {
+		if (i == eh->length) printf("    **** below is rest capacity ****\n");
+		EdgeHashEntry entry = eh->entries[i];
+		printf("    %u: (%u, %u) -> %p\n", i, entry.edge.v_low, entry.edge.v_high, entry.value);
+
+	}
 }
 
 /**
  * Insert edge (\a v0, \a v1) into hash with given value, does
  * not check for duplicates.
  */
-void BLI_edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *val)
+void BLI_edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *value)
 {
-	edgehash_insert(eh, v0, v1, val);
+	edgehash_ensure_can_insert(eh);
+	Edge edge = init_edge(v0, v1);
+	edgehash_insert(eh, edge, value);
 }
 
 /**
  * Assign a new value to a key that may already be in edgehash.
  */
-bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *val)
+bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *value)
 {
-	IS_EDGEHASH_ASSERT(eh);
+	Edge edge = init_edge(v0, v1);
 
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (EH_INDEX_HAS_EDGE(eh, index, edge)) {
+			eh->entries[index].value = value;
+			return false;
+		}
+		else if (index == SLOT_EMPTY) {
+			if (edgehash_ensure_can_insert(eh)) {
+				edgehash_insert(eh, edge, value);
+			}
+			else {
+				edgehash_insert_at_slot(eh, slot, edge, value);
+			}
+			return true;
+		}
+	}
+}
 
-	EdgeEntry *e = edgehash_lookup_entry_ex(eh, v0, v1, bucket_index);
-	if (e) {
-		e->val = val;
-		return false;
-	}
-	else {
-		edgehash_insert_ex(eh, v0, v1, val, bucket_index);
-		return true;
-	}
+/**
+ * A version of #BLI_edgehash_lookup which accepts a fallback argument.
+ */
+void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *default_value)
+{
+	EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
+	return entry ? entry->value : default_value;
+}
+
+/**
+ * Return value for given edge (\a v0, \a v1), or NULL if
+ * if key does not exist in hash. (If need exists
+ * to differentiate between key-value being NULL and
+ * lack of key then see BLI_edgehash_lookup_p().
+ */
+void *BLI_edgehash_lookup(EdgeHash *eh, uint v0, uint v1)
+{
+	EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
+	return entry ? entry->value : NULL;
 }
 
 /**
@@ -413,9 +325,8 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *val)
  */
 void **BLI_edgehash_lookup_p(EdgeHash *eh, uint v0, uint v1)
 {
-	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
-	IS_EDGEHASH_ASSERT(eh);
-	return e ? &e->val : NULL;
+	EdgeHashEntry *entry = edgehash_lookup_entry(eh, v0, v1);
+	return entry ? &entry->value : NULL;
 }
 
 /**
@@ -432,43 +343,25 @@ void **BLI_edgehash_lookup_p(EdgeHash *eh, uint v0, uint v1)
  * \returns true when the value didn't need to be added.
  * (when false, the caller _must_ initialize the value).
  */
-bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_val)
+bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_value)
 {
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
-	EdgeEntry *e = edgehash_lookup_entry_ex(eh, v0, v1, bucket_index);
-	const bool haskey = (e != NULL);
+	Edge edge = init_edge(v0, v1);
 
-	if (!haskey) {
-		e = BLI_mempool_alloc(eh->epool);
-		edgehash_insert_ex_keyonly_entry(eh, v0, v1, bucket_index, e);
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (EH_INDEX_HAS_EDGE(eh, index, edge)) {
+			*r_value = &eh->entries[index].value;
+			return true;
+		}
+		else if (index == SLOT_EMPTY) {
+			if (edgehash_ensure_can_insert(eh)) {
+				edgehash_insert(eh, edge, NULL);
+			}
+			else {
+				*r_value = &edgehash_insert_at_slot(eh, slot, edge, NULL)->value;
+			}
+			return false;
+		}
 	}
-
-	*r_val = &e->val;
-	return haskey;
-}
-
-/**
- * Return value for given edge (\a v0, \a v1), or NULL if
- * if key does not exist in hash. (If need exists
- * to differentiate between key-value being NULL and
- * lack of key then see BLI_edgehash_lookup_p().
- */
-void *BLI_edgehash_lookup(EdgeHash *eh, uint v0, uint v1)
-{
-	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
-	IS_EDGEHASH_ASSERT(eh);
-	return e ? e->val : NULL;
-}
-
-/**
- * A version of #BLI_edgehash_lookup which accepts a fallback argument.
- */
-void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *val_default)
-{
-	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
-	IS_EDGEHASH_ASSERT(eh);
-	return e ? e->val : val_default;
 }
 
 /**
@@ -478,18 +371,12 @@ void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *val_defa
  * \param valfreefp: Optional callback to free the value.
  * \return true if \a key was removed from \a eh.
  */
-bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP valfreefp)
+bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP free_value)
 {
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
-	EdgeEntry *e = edgehash_remove_ex(eh, v0, v1, valfreefp, bucket_index);
-	if (e) {
-		BLI_mempool_free(eh->epool, e);
-		return true;
-	}
-	else {
-		return false;
-	}
+	uint old_length = eh->length;
+	void *value = BLI_edgehash_popkey(eh, v0, v1);
+	if (free_value && value) free_value(value);
+	return old_length > eh->length;
 }
 
 /* same as above but return the value,
@@ -502,17 +389,23 @@ bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP valfreef
  */
 void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
 {
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
-	EdgeEntry *e = edgehash_remove_ex(eh, v0, v1, NULL, bucket_index);
-	IS_EDGEHASH_ASSERT(eh);
-	if (e) {
-		void *val = e->val;
-		BLI_mempool_free(eh->epool, e);
-		return val;
-	}
-	else {
-		return NULL;
+	Edge edge = init_edge(v0, v1);
+
+	ITER_SLOTS(eh, edge, slot, index) {
+		if (EH_INDEX_HAS_EDGE(eh, index, edge)) {
+			void *value = eh->entries[index].value;
+			eh->length--;
+			eh->dummy_count++;
+			eh->map[slot] = SLOT_DUMMY;
+			eh->entries[index] = eh->entries[eh->length];
+			if ((uint)index < eh->length) {
+				edgehash_change_index(eh, eh->entries[index].edge, index);
+			}
+			return value;
+		}
+		else if (index == SLOT_EMPTY) {
+			return NULL;
+		}
 	}
 }
 
@@ -521,7 +414,7 @@ void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
  */
 bool BLI_edgehash_haskey(EdgeHash *eh, uint v0, uint v1)
 {
-	return (edgehash_lookup_entry(eh, v0, v1) != NULL);
+	return edgehash_lookup_entry(eh, v0, v1) != NULL;
 }
 
 /**
@@ -529,71 +422,34 @@ bool BLI_edgehash_haskey(EdgeHash *eh, uint v0, uint v1)
  */
 int BLI_edgehash_len(EdgeHash *eh)
 {
-	return (int)eh->nentries;
+	return (int)eh->length;
 }
 
 /**
  * Remove all edges from hash.
  */
-void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP valfreefp,
-                           const uint nentries_reserve)
+void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint UNUSED(reserve))
 {
-	if (valfreefp)
-		edgehash_free_cb(eh, valfreefp);
-
-	eh->nbuckets = _ehash_hashsizes[0];  /* eh->cursize */
-	eh->nentries = 0;
-	eh->cursize = 0;
-
-	if (nentries_reserve) {
-		edgehash_buckets_reserve(eh, nentries_reserve);
-	}
-
-	MEM_freeN(eh->buckets);
-	eh->buckets = MEM_callocN(eh->nbuckets * sizeof(*eh->buckets), "eh buckets");
-
-	BLI_mempool_clear_ex(eh->epool, nentries_reserve ? (int)nentries_reserve : -1);
+	/* TODO: handle reserve */
+	edgehash_free_values(eh, free_value);
+	eh->length = 0;
+	eh->dummy_count = 0;
+	eh->capacity_exp = CAPACITY_EXP_DEFAULT;
+	CLEAR_MAP(eh);
 }
 
 /**
  * Wraps #BLI_edgehash_clear_ex with zero entries reserved.
  */
-void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
+void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP free_value)
 {
-	BLI_edgehash_clear_ex(eh, valfreefp, 0);
-}
-
-void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
-{
-	BLI_assert((int)eh->nentries == BLI_mempool_len(eh->epool));
-
-	if (valfreefp)
-		edgehash_free_cb(eh, valfreefp);
-
-	BLI_mempool_destroy(eh->epool);
-
-	MEM_freeN(eh->buckets);
-	MEM_freeN(eh);
-}
-
-
-void BLI_edgehash_flag_set(EdgeHash *eh, uint flag)
-{
-	eh->flag |= flag;
-}
-
-void BLI_edgehash_flag_clear(EdgeHash *eh, uint flag)
-{
-	eh->flag &= ~flag;
+	BLI_edgehash_clear_ex(eh, free_value, 0);
 }
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-/* EdgeHash Iterator API */
-
-/** \name Iterator API
+/** \name Edge Hash Iterator API
  * \{ */
 
 /**
@@ -603,7 +459,7 @@ void BLI_edgehash_flag_clear(EdgeHash *eh, uint flag)
  */
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 {
-	EdgeHashIterator *ehi = MEM_mallocN(sizeof(*ehi), "eh iter");
+	EdgeHashIterator *ehi = MEM_mallocN(sizeof(EdgeHashIterator), __func__);
 	BLI_edgehashIterator_init(ehi, eh);
 	return ehi;
 }
@@ -618,37 +474,9 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
  */
 void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh)
 {
-	ehi->eh = eh;
-	ehi->curEntry = NULL;
-	ehi->curBucket = UINT_MAX;  /* wraps to zero */
-	if (eh->nentries) {
-		do {
-			ehi->curBucket++;
-			if (UNLIKELY(ehi->curBucket == ehi->eh->nbuckets)) {
-				break;
-			}
-
-			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
-		} while (!ehi->curEntry);
-	}
-}
-
-/**
- * Steps the iterator to the next index.
- */
-void BLI_edgehashIterator_step(EdgeHashIterator *ehi)
-{
-	if (ehi->curEntry) {
-		ehi->curEntry = ehi->curEntry->next;
-		while (!ehi->curEntry) {
-			ehi->curBucket++;
-			if (UNLIKELY(ehi->curBucket == ehi->eh->nbuckets)) {
-				break;
-			}
-
-			ehi->curEntry = ehi->eh->buckets[ehi->curBucket];
-		}
-	}
+	ehi->entries = eh->entries;
+	ehi->length = eh->length;
+	ehi->index = 0;
 }
 
 /**
@@ -663,43 +491,71 @@ void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* EdgeSet API */
-
-/* Use edgehash API to give 'set' functionality */
-
-/** \name EdgeSet Functions
+/** \name EdgeSet API
+ *
+ * Use edgehash API to give 'set' functionality
  * \{ */
-EdgeSet *BLI_edgeset_new_ex(const char *info,
-                                  const uint nentries_reserve)
+
+#define ES_INDEX_HAS_EDGE(es, index, edge) (index) >= 0 && edges_equal((edge), (es)->entries[index])
+
+EdgeSet *BLI_edgeset_new_ex(const char *info, const uint reserve)
 {
-	EdgeSet *es = (EdgeSet *)edgehash_new(info,
-	                                      nentries_reserve,
-	                                      sizeof(EdgeEntry) - sizeof(void *));
-#ifndef NDEBUG
-	((EdgeHash *)es)->flag |= EDGEHASH_FLAG_IS_SET;
-#endif
+	EdgeSet *es = MEM_mallocN(sizeof(EdgeSet), info);
+	es->capacity_exp = calc_capacity_exp_for_reserve(reserve);
+	UPDATE_SLOT_MASK(es);
+	es->length = 0;
+	es->entries = MEM_malloc_arrayN(sizeof(Edge), ENTRIES_CAPACITY(es), "es entries");
+	es->map = MEM_malloc_arrayN(sizeof(int32_t), MAP_CAPACITY(es), "es map");
+	CLEAR_MAP(es);
 	return es;
 }
 
 EdgeSet *BLI_edgeset_new(const char *info)
 {
-	return BLI_edgeset_new_ex(info, 0);
+	return BLI_edgeset_new_ex(info, 1 << CAPACITY_EXP_DEFAULT);
+}
+
+void BLI_edgeset_free(EdgeSet *es)
+{
+	MEM_freeN(es->entries);
+	MEM_freeN(es->map);
+	MEM_freeN(es);
 }
 
 int BLI_edgeset_len(EdgeSet *es)
 {
-	return (int)((EdgeHash *)es)->nentries;
+	return (int)es->length;
 }
 
-/**
- * Adds the key to the set (no checks for unique keys!).
- * Matching #BLI_edgehash_insert
- */
-void BLI_edgeset_insert(EdgeSet *es, uint v0, uint v1)
+static void edgeset_insert_index(EdgeSet *es, Edge edge, uint entry_index)
 {
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index((EdgeHash *)es, v0, v1);
-	edgehash_insert_ex_keyonly((EdgeHash *)es, v0, v1, bucket_index);
+	ITER_SLOTS(es, edge, slot, index) {
+		if (index == SLOT_EMPTY) {
+			es->map[slot] = (int)entry_index;
+			break;
+		}
+	}
+}
+
+BLI_INLINE void edgeset_ensure_can_insert(EdgeSet *es)
+{
+	if (UNLIKELY(ENTRIES_CAPACITY(es) <= es->length)) {
+		es->capacity_exp++;
+		UPDATE_SLOT_MASK(es);
+		es->entries = MEM_reallocN(es->entries, sizeof(Edge) * ENTRIES_CAPACITY(es));
+		es->map = MEM_reallocN(es->map, sizeof(int32_t) * MAP_CAPACITY(es));
+		CLEAR_MAP(es);
+		for (uint i = 0; i < es->length; i++) {
+			edgeset_insert_index(es, es->entries[i], i);
+		}
+	}
+}
+
+BLI_INLINE void edgeset_insert_at_slot(EdgeSet *es, uint slot, Edge edge)
+{
+	es->entries[es->length] = edge;
+	es->map[slot] = (int)es->length;
+	es->length++;
 }
 
 /**
@@ -710,73 +566,63 @@ void BLI_edgeset_insert(EdgeSet *es, uint v0, uint v1)
  */
 bool BLI_edgeset_add(EdgeSet *es, uint v0, uint v1)
 {
-	EDGE_ORD(v0, v1);
-	const uint bucket_index = edgehash_bucket_index((EdgeHash *)es, v0, v1);
+	edgeset_ensure_can_insert(es);
+	Edge edge = init_edge(v0, v1);
 
-	EdgeEntry *e = edgehash_lookup_entry_ex((EdgeHash *)es, v0, v1, bucket_index);
-	if (e) {
-		return false;
+	ITER_SLOTS(es, edge, slot, index) {
+		if (ES_INDEX_HAS_EDGE(es, index, edge)) {
+			return false;
+		}
+		else if (index == SLOT_EMPTY) {
+			edgeset_insert_at_slot(es, slot, edge);
+			return true;
+		}
 	}
-	else {
-		edgehash_insert_ex_keyonly((EdgeHash *)es, v0, v1, bucket_index);
-		return true;
+}
+
+/**
+ * Adds the key to the set (no checks for unique keys!).
+ * Matching #BLI_edgehash_insert
+ */
+void BLI_edgeset_insert(EdgeSet *es, uint v0, uint v1)
+{
+	edgeset_ensure_can_insert(es);
+	Edge edge = init_edge(v0, v1);
+
+	ITER_SLOTS(es, edge, slot, index) {
+		if (index == SLOT_EMPTY) {
+			edgeset_insert_at_slot(es, slot, edge);
+			return;
+		}
 	}
 }
 
 bool BLI_edgeset_haskey(EdgeSet *es, uint v0, uint v1)
 {
-	return (edgehash_lookup_entry((EdgeHash *)es, v0, v1) != NULL);
-}
+	Edge edge = init_edge(v0, v1);
 
-
-void BLI_edgeset_free(EdgeSet *es)
-{
-	BLI_edgehash_free((EdgeHash *)es, NULL);
-}
-
-void BLI_edgeset_flag_set(EdgeSet *es, uint flag)
-{
-	((EdgeHash *)es)->flag |= flag;
-}
-
-void BLI_edgeset_flag_clear(EdgeSet *es, uint flag)
-{
-	((EdgeHash *)es)->flag &= ~flag;
-}
-
-/** \} */
-
-/** \name Debugging & Introspection
- * \{ */
-#ifdef DEBUG
-
-/**
- * Measure how well the hash function performs
- * (1.0 is approx as good as random distribution).
- */
-double BLI_edgehash_calc_quality(EdgeHash *eh)
-{
-	uint64_t sum = 0;
-	uint i;
-
-	if (eh->nentries == 0)
-		return -1.0;
-
-	for (i = 0; i < eh->nbuckets; i++) {
-		uint64_t count = 0;
-		EdgeEntry *e;
-		for (e = eh->buckets[i]; e; e = e->next) {
-			count += 1;
+	ITER_SLOTS(es, edge, slot, index) {
+		if (ES_INDEX_HAS_EDGE(es, index, edge)) {
+			return true;
 		}
-		sum += count * (count + 1);
+		else if (index == SLOT_EMPTY) {
+			return false;
+		}
 	}
-	return ((double)sum * (double)eh->nbuckets /
-	        ((double)eh->nentries * (eh->nentries + 2 * eh->nbuckets - 1)));
-}
-double BLI_edgeset_calc_quality(EdgeSet *es)
-{
-	return BLI_edgehash_calc_quality((EdgeHash *)es);
 }
 
-#endif
+EdgeSetIterator *BLI_edgesetIterator_new(EdgeSet *es)
+{
+	EdgeSetIterator *esi = MEM_mallocN(sizeof(EdgeSetIterator), __func__);
+	esi->edges = es->entries;
+	esi->length = es->length;
+	esi->index = 0;
+	return esi;
+}
+
+void BLI_edgesetIterator_free(EdgeSetIterator *esi)
+{
+	MEM_freeN(esi);
+}
+
 /** \} */
