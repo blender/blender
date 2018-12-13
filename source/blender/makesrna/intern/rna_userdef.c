@@ -3796,6 +3796,17 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	                         "Otherwise menus, etc will always be top to bottom, left to right, "
 	                         "no matter opening direction");
 
+	static const EnumPropertyItem header_align_default_items[] = {
+		{0, "TOP", 0, "Top", ""},
+		{USER_HEADER_BOTTOM, "BOTTOM", 0, "Bottom", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	prop = RNA_def_property(srna, "header_align_default", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, header_align_default_items);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
+	RNA_def_property_ui_text(prop, "Header Position", "Default header position for new space-types");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "use_mouse_depth_navigate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DEPTH_NAVIGATE);
 	RNA_def_property_ui_text(prop, "Auto Depth",

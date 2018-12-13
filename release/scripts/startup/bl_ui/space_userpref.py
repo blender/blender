@@ -194,6 +194,11 @@ class USERPREF_PT_interface(Panel):
         sub.prop(view, "pie_menu_confirm")
         col.separator()
 
+        col.label(text="Header:")
+        sub = col.split()
+        sub.label(text="Default Position")
+        sub.row().prop(view, "header_align_default", expand=True)
+
         col.prop(view, "show_splash")
 
         col.label(text="Warnings:")

@@ -73,6 +73,7 @@ static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 
 	BLI_addtail(&spref->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
+	/* Ignore user preference "USER_HEADER_BOTTOM" here (always show bottom for new types). */
 	ar->alignment = RGN_ALIGN_BOTTOM;
 
 	/* main region */

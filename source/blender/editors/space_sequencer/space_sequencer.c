@@ -130,7 +130,7 @@ static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	BLI_addtail(&sseq->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_TOP;
+	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
 	/* buttons/list view */
 	ar = MEM_callocN(sizeof(ARegion), "buttons for sequencer");

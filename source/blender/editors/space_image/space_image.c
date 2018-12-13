@@ -190,7 +190,7 @@ static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sce
 
 	BLI_addtail(&simage->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_TOP;
+	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
 	/* buttons/list view */
 	ar = MEM_callocN(sizeof(ARegion), "buttons for image");

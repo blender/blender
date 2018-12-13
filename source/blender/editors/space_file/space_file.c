@@ -81,6 +81,7 @@ static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 	ar = MEM_callocN(sizeof(ARegion), "header for file");
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
+	/* Ignore user preference "USER_HEADER_BOTTOM" here (always show top for new types). */
 	ar->alignment = RGN_ALIGN_TOP;
 
 	/* Tools region */

@@ -2515,7 +2515,8 @@ int ED_area_header_alignment_or_fallback(const ScrArea *area, int fallback)
 
 int ED_area_header_alignment(const ScrArea *area)
 {
-	return ED_area_header_alignment_or_fallback(area, RGN_ALIGN_TOP);
+	return ED_area_header_alignment_or_fallback(
+	        area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP);
 }
 
 /**

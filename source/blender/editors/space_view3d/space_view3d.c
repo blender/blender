@@ -370,7 +370,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_TOP;
+	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
 	/* tool shelf */
 	ar = MEM_callocN(sizeof(ARegion), "toolshelf for view3d");

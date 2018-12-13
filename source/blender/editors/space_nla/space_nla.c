@@ -115,7 +115,7 @@ static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
 
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_TOP;
+	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
 	/* channel list region */
 	ar = MEM_callocN(sizeof(ARegion), "channel list for nla");

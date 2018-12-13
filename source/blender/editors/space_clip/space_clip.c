@@ -248,7 +248,7 @@ static SpaceLink *clip_new(const ScrArea *sa, const Scene *scene)
 
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_TOP;
+	ar->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
 	/* tools view */
 	ar = MEM_callocN(sizeof(ARegion), "tools for clip");
