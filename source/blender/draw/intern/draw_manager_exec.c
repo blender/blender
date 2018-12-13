@@ -348,7 +348,8 @@ void drw_state_set(DRWState state)
 		if (CHANGED_ANY_STORE_VAR(
 		        DRW_STATE_OFFSET_POSITIVE |
 		        DRW_STATE_OFFSET_NEGATIVE,
-		        test)) {
+		        test))
+		{
 			if (test) {
 				glEnable(GL_POLYGON_OFFSET_FILL);
 				/* Stencil Write */

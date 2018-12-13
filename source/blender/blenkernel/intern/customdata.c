@@ -1197,7 +1197,7 @@ static void layerDefault_mvert_skin(void *data, int count)
 static void layerCopy_mvert_skin(const void *source, void *dest,
                                  int count)
 {
-	memcpy(dest, source, sizeof (MVertSkin) * count);
+	memcpy(dest, source, sizeof(MVertSkin) * count);
 }
 
 static void layerInterp_mvert_skin(

@@ -878,11 +878,11 @@ int ED_transform_calc_gizmo_stats(
 							totsel++;
 						}
 						if ((ebo->flag & BONE_ROOTSEL) &&
-							/* don't include same point multiple times */
-							((ebo->flag & BONE_CONNECTED) &&
-							 (ebo->parent != NULL) &&
-							 (ebo->parent->flag & BONE_TIPSEL) &&
-							 EBONE_VISIBLE(arm, ebo->parent)) == 0)
+						    /* don't include same point multiple times */
+						    ((ebo->flag & BONE_CONNECTED) &&
+						     (ebo->parent != NULL) &&
+						     (ebo->parent->flag & BONE_TIPSEL) &&
+						     EBONE_VISIBLE(arm, ebo->parent)) == 0)
 						{
 							calc_tw_center_with_matrix(tbounds, ebo->head, use_mat_local, mat_local);
 							totsel++;
@@ -1303,8 +1303,8 @@ void drawDial3d(const TransInfo *t)
 		mat_basis[2][3] = -dot_v3v3(mat_basis[2], mat_basis[3]);
 
 		if (ED_view3d_win_to_3d_on_plane(
-		        t->ar, mat_basis[2], (float[2]){UNPACK2(t->mouse.imval)},
-		        false, mat_basis[1]))
+		            t->ar, mat_basis[2], (float[2]){UNPACK2(t->mouse.imval)},
+		            false, mat_basis[1]))
 		{
 			sub_v3_v3(mat_basis[1], mat_basis[3]);
 			normalize_v3(mat_basis[1]);
