@@ -155,7 +155,7 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Internal Utilities
+/** \name Internal Object Utilities
  * \{ */
 
 static void object_deselect_all_visible(ViewLayer *view_layer, View3D *v3d)
@@ -179,6 +179,12 @@ static void object_deselect_all_except(ViewLayer *view_layer, Base *b)   /* dese
 		}
 	}
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Edit-Mesh Utilities
+ * \{ */
 
 static void edbm_backbuf_check_and_select_verts(BMEditMesh *em, const eSelectOp sel_op)
 {
@@ -766,61 +772,46 @@ static void do_lasso_select_lattice(ViewContext *vc, const int mcords[][2], shor
 	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
-static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2])
+static void do_lasso_select_armature__doSelectBone(
+        void *userData, EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2])
 {
 	LassoSelectUserData *data = userData;
 	bArmature *arm = data->vc->obedit->data;
 	if (EBONE_VISIBLE(arm, ebone)) {
-		bool is_point_done = false;
-		int points_proj_tot = 0;
+		int is_ignore_flag = 0;
+		int is_inside_flag = 0;
 
-		/* project head location to screenspace */
 		if (screen_co_a[0] != IS_CLIPPED) {
-			points_proj_tot++;
-			const bool is_select = ebone->flag & BONE_ROOTSEL;
-			const bool is_inside = (
-			        BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
-			        BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_a), INT_MAX));
-			const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
-			if (sel_op_result != -1) {
-				if (sel_op_result == 0 || EBONE_SELECTABLE(arm, ebone)) {
-					SET_FLAG_FROM_TEST(ebone->flag, sel_op_result, BONE_ROOTSEL);
-				}
+			if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_a), INT_MAX))
+			{
+				is_inside_flag |= BONESEL_ROOT;
 			}
-			is_point_done |= is_inside;
+		}
+		else {
+			is_ignore_flag |= BONESEL_ROOT;
 		}
 
-		/* project tail location to screenspace */
 		if (screen_co_b[0] != IS_CLIPPED) {
-			points_proj_tot++;
-			const bool is_select = ebone->flag & BONE_TIPSEL;
-			const bool is_inside = (
-			        BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
-			        BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_b), INT_MAX));
-			const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
-			if (sel_op_result != -1) {
-				if (sel_op_result == 0 || EBONE_SELECTABLE(arm, ebone)) {
-					SET_FLAG_FROM_TEST(ebone->flag, sel_op_result, BONE_TIPSEL);
-				}
+			if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
+				BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_b), INT_MAX))
+			{
+				is_inside_flag |= BONESEL_TIP;
 			}
-			is_point_done |= is_inside;
+		}
+		else {
+			is_ignore_flag |= BONESEL_TIP;
 		}
 
-		/* if one of points selected, we skip the bone itself */
-		if ((is_point_done == false) && (points_proj_tot == 2)) {
-			const bool is_select = ebone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			const bool is_inside = BLI_lasso_is_edge_inside(
-			        data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX);
-			const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
-			if (sel_op_result != -1) {
-				if (sel_op_result == 0 || EBONE_SELECTABLE(arm, ebone)) {
-					SET_FLAG_FROM_TEST(ebone->flag, sel_op_result, (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL));
-				}
-			}
-			data->is_changed = true;
+		if (is_inside_flag == (BONE_ROOTSEL | BONE_TIPSEL) ||
+		    BLI_lasso_is_edge_inside(
+		            data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX))
+		{
+			is_inside_flag |= BONESEL_BONE;
 		}
 
-		data->is_changed |= is_point_done;
+
+		ebone->temp.i = is_inside_flag | (is_ignore_flag >> 16);
 	}
 }
 
@@ -839,12 +830,15 @@ static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], sho
 		ED_armature_edit_deselect_all_visible(vc->obedit);
 	}
 
+	bArmature *arm = vc->obedit->data;
+
+	ED_armature_ebone_listbase_temp_clear(arm->edbo);
+
 	armature_foreachScreenBone(vc, do_lasso_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
+	data.is_changed = ED_armature_edit_select_op_from_tagged(vc->obedit->data, sel_op);
+
 	if (data.is_changed) {
-		bArmature *arm = vc->obedit->data;
-		ED_armature_edit_sync_selection(arm->edbo);
-		ED_armature_edit_validate_active(arm);
 		WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, vc->obedit);
 	}
 }
@@ -2415,8 +2409,7 @@ static int do_armature_box_select(
         ViewContext *vc,
         const rcti *rect, const eSelectOp sel_op)
 {
-	/* TODO(campbell): Full support for seleciton operations for edit bones. */
-	const bool select = sel_op == SEL_OP_ADD;
+	bool changed = false;
 	int a;
 
 	unsigned int buffer[MAXPICKBUF];
@@ -2429,88 +2422,45 @@ static int do_armature_box_select(
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc->view_layer, vc->v3d, &objects_len);
 
-	/* clear flag we use to detect point was affected */
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
-		bArmature *arm = obedit->data;
-		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			ebone->flag &= ~BONE_DONE;
-		}
-	}
-
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		ED_armature_edit_deselect_all_visible_multi(objects, objects_len);
+		changed = true;
+	}
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		obedit->id.tag &= ~LIB_TAG_DOIT;
+
+		bArmature *arm = obedit->data;
+		ED_armature_ebone_listbase_temp_clear(arm->edbo);
 	}
 
 	/* first we only check points inside the border */
 	for (a = 0; a < hits; a++) {
-		int index = buffer[(4 * a) + 3];
-		if (index != -1) {
-			if ((index & 0xFFFF0000) == 0) {
+		int select_id = buffer[(4 * a) + 3];
+		if (select_id != -1) {
+			if ((select_id & 0xFFFF0000) == 0) {
 				continue;
 			}
 
 			EditBone *ebone;
-			ED_armature_object_and_ebone_from_select_buffer(objects, objects_len, index, &ebone);
-			if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
-				if (index & BONESEL_TIP) {
-					ebone->flag |= BONE_DONE;
-					if (select) ebone->flag |= BONE_TIPSEL;
-					else ebone->flag &= ~BONE_TIPSEL;
-				}
-
-				if (index & BONESEL_ROOT) {
-					ebone->flag |= BONE_DONE;
-					if (select) ebone->flag |= BONE_ROOTSEL;
-					else ebone->flag &= ~BONE_ROOTSEL;
-				}
-			}
-		}
-	}
-
-	/* now we have to flush tag from parents... */
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects[ob_index];
-		bArmature *arm = obedit->data;
-		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-				if (ebone->parent->flag & BONE_DONE) {
-					ebone->flag |= BONE_DONE;
-				}
-			}
-		}
-	}
-
-	/* only select/deselect entire bones when no points where in the rect */
-	for (a = 0; a < hits; a++) {
-		int index = buffer[(4 * a) + 3];
-		if (index != -1) {
-			if (index & BONESEL_BONE) {
-				EditBone *ebone;
-				ED_armature_object_and_ebone_from_select_buffer(objects, objects_len, index, &ebone);
-				if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
-					if (!(ebone->flag & BONE_DONE)) {
-						if (select) {
-							ebone->flag |= (BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
-						}
-						else {
-							ebone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
-						}
-					}
-				}
-			}
+			Object *obedit = ED_armature_object_and_ebone_from_select_buffer(objects, objects_len, select_id, &ebone);
+			ebone->temp.i |= select_id & BONESEL_ANY;
+			obedit->id.tag |= LIB_TAG_DOIT;
 		}
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
-		bArmature *arm = obedit->data;
-		ED_armature_edit_sync_selection(arm->edbo);
+		if (obedit->id.tag & LIB_TAG_DOIT) {
+			obedit->id.tag &= ~LIB_TAG_DOIT;
+			changed |= ED_armature_edit_select_op_from_tagged(obedit->data, sel_op);
+		}
 	}
 
 	MEM_freeN(objects);
 
-	return hits > 0 ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return (hits > 0 || changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 /**
