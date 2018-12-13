@@ -94,6 +94,9 @@ BLI_INLINE uint32_t calc_edge_hash(Edge edge)
 
 BLI_INLINE Edge init_edge(uint v0, uint v1)
 {
+	/* If there are use cases where we need this it could be removed (or flag to allow),
+	 * for now this helps avoid incorrect usage (creating degenerate geometry). */
+	BLI_assert(v0 != v1);
 	Edge edge;
 	if (v0 < v1) {
 		edge.v_low = v0;
