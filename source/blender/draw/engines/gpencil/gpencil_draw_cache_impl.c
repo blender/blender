@@ -452,7 +452,7 @@ void DRW_gpencil_get_edit_geom(struct GpencilBatchCacheElem *be, bGPDstroke *gps
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Object *ob = draw_ctx->obact;
 	bGPdata *gpd = ob->data;
-	bool is_weight_paint = (gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE);
+	const bool is_weight_paint = (gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE);
 
 	int vgindex = ob->actdef - 1;
 	if (!BLI_findlink(&ob->defbase, vgindex)) {
@@ -550,7 +550,7 @@ void DRW_gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be, bGPDstroke *gp
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Object *ob = draw_ctx->obact;
 	bGPdata *gpd = ob->data;
-	bool is_weight_paint = (gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE);
+	const bool is_weight_paint = (gpd) && (gpd->flag & GP_DATA_STROKE_WEIGHTMODE);
 
 	int vgindex = ob->actdef - 1;
 	if (!BLI_findlink(&ob->defbase, vgindex)) {
