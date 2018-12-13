@@ -271,13 +271,12 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 					shgrp = (is_sculpt_mode) ? pd->sculpt_wires : pd->face_wires;
 					shgrp = DRW_shgroup_create_sub(shgrp);
 
-					if ((DRW_state_is_select() || DRW_state_is_depth())) {
-						static float params[2] = {1.2f, 1.0f}; /* Parameters for all wires */
-						DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", (all_wires)
-						                                                 ? params
-						                                                 : pd->wire_step_param, 1);
-					}
-					else {
+					static float all_wires_params[2] = {0.0f, 10.0f}; /* Parameters for all wires */
+					DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", (all_wires)
+					                                                 ? all_wires_params
+					                                                 : pd->wire_step_param, 1);
+
+					if (!(DRW_state_is_select() || DRW_state_is_depth())) {
 						DRW_shgroup_stencil_mask(shgrp, stencil_mask);
 						DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
 						DRW_shgroup_uniform_vec3(shgrp, "rimColor", rim_col, 1);
