@@ -123,9 +123,9 @@ void BlenderSync::sync_recalc(BL::Depsgraph& b_depsgraph)
 		/* Object */
 		else if(b_id.is_a(&RNA_Object)) {
 			BL::Object b_ob(b_id);
-			const bool updated_geometry = !b_update->is_dirty_geometry();
+			const bool updated_geometry = b_update->is_updated_geometry();
 
-			if(!b_update->is_dirty_transform()) {
+			if(b_update->is_updated_transform()) {
 				object_map.set_recalc(b_ob);
 				light_map.set_recalc(b_ob);
 			}
