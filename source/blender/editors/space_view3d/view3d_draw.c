@@ -515,6 +515,11 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 		immUnbindProgram();
 	}
 
+	/* When overlays are disabled, only show camera outline & passepartout. */
+	if (v3d->flag2 & V3D_RENDER_OVERRIDE) {
+		return;
+	}
+
 	/* And now, the dashed lines! */
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -537,7 +542,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 		imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
 	}
 
-	/* border */
+	/* Render Border. */
 	if (scene->r.mode & R_BORDER) {
 		float x3, y3, x4, y4;
 
@@ -664,7 +669,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 	/* end dashed lines */
 
 	/* camera name - draw in highlighted text color */
-	if (ca && (ca->flag & CAM_SHOWNAME)) {
+	if (ca && ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) && (ca->flag & CAM_SHOWNAME)) {
 		UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 		BLF_draw_default(
 		        x1i, y1i - (0.7f * U.widget_unit), 0.0f,
