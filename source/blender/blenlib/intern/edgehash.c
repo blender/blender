@@ -63,8 +63,8 @@ typedef struct EdgeSet {
 
 #define ENTRIES_CAPACITY(container) (uint)(1 << (container)->capacity_exp)
 #define MAP_CAPACITY(container) (uint)(1 << ((container)->capacity_exp + 1))
-#define CLEAR_MAP(container) memset(container->map, 0xFF, sizeof(int32_t) * MAP_CAPACITY(container))
-#define UPDATE_SLOT_MASK(container) (container)->slot_mask = MAP_CAPACITY(container) - 1
+#define CLEAR_MAP(container) memset((container)->map, 0xFF, sizeof(int32_t) * MAP_CAPACITY(container))
+#define UPDATE_SLOT_MASK(container) { (container)->slot_mask = MAP_CAPACITY(container) - 1; } ((void)0)
 #define PERTURB_SHIFT 5
 
 #define ITER_SLOTS(CONTAINER, EDGE, SLOT, INDEX) \
@@ -127,7 +127,7 @@ static uint calc_capacity_exp_for_reserve(uint reserve)
 /** \name Internal Utility API
  * \{ */
 
-#define EH_INDEX_HAS_EDGE(eh, index, edge) (index) >= 0 && edges_equal((edge), (eh)->entries[index].edge)
+#define EH_INDEX_HAS_EDGE(eh, index, edge) ((index) >= 0 && edges_equal((edge), (eh)->entries[index].edge))
 
 static void edgehash_free_values(EdgeHash *eh, EdgeHashFreeFP free_value)
 {

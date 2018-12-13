@@ -122,7 +122,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
 	return data;
 }
 
-#define GET_CD_DATA(me, data) (me->edit_btmesh ? &me->edit_btmesh->bm->data : &me->data)
+#define GET_CD_DATA(me, data) ((me)->edit_btmesh ? &(me)->edit_btmesh->bm->data : &(me)->data)
 static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 {
 	const int type = layer->type;

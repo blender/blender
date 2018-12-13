@@ -116,7 +116,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 
 		/* create multiframe framebuffer for AA */
 		if ((stl->storage->framebuffer_flag & GP_FRAMEBUFFER_MULTISAMPLE) &&
-			(stl->storage->multisamples > 0))
+		    (stl->storage->multisamples > 0))
 		{
 			DRW_gpencil_multisample_ensure(vedata, size[0], size[1]);
 		}
