@@ -1521,7 +1521,7 @@ static void outliner_draw_iconrow(
 				active = tree_element_type_active(C, scene, view_layer, soops, te, tselem, OL_SETSEL_NONE, false);
 			}
 
-			if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+			if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION, TSE_R_LAYER)) {
 				outliner_draw_iconrow_doit(block, te, fstyle, xmax, offsx, ys, alpha_fac, active, 1);
 			}
 			else {
