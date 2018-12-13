@@ -91,7 +91,7 @@ struct BMesh *BKE_mesh_to_bmesh(
         const bool add_key_index, const struct BMeshCreateParams *params);
 
 struct Mesh *BKE_mesh_from_bmesh_nomain(struct BMesh *bm, const struct BMeshToMeshParams *params);
-struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm, int64_t cd_mask_extra);
+struct Mesh *BKE_mesh_from_bmesh_for_eval_nomain(struct BMesh *bm, const int64_t cd_mask_extra);
 
 struct Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
         struct BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3]);
