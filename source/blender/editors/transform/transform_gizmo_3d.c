@@ -1007,21 +1007,41 @@ int ED_transform_calc_gizmo_stats(
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		bPoseChannel *pchan;
-		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the gizmo mode, could be mixed
+		invert_m4_m4(ob->imat, ob->obmat);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_mode(
+		        view_layer, v3d, &objects_len, {.object_mode = OB_MODE_POSE});
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob_iter = objects[ob_index];
+			const bool use_mat_local = (ob_iter != ob);
+			bPoseChannel *pchan;
 
-		totsel = count_set_pose_transflags(ob, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
+			/* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
+			const int mode = TFM_ROTATION;
+
+			const int totsel_iter = count_set_pose_transflags(ob_iter, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
+
+			if (totsel_iter) {
+				float mat_local[4][4];
+				if (use_mat_local) {
+					mul_m4_m4m4(mat_local, ob_iter->imat, ob_iter->obmat);
+				}
+
+				/* use channels to get stats */
+				for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+					Bone *bone = pchan->bone;
+					if (bone && (bone->flag & BONE_TRANSFORM)) {
+						calc_tw_center(tbounds, pchan->pose_head);
+						calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
+						protectflag_to_drawflags_pchan(rv3d, pchan);
+					}
+				}
+				totsel += totsel_iter;
+			}
+		}
+		MEM_freeN(objects);
 
 		if (totsel) {
-			/* use channels to get stats */
-			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-				Bone *bone = pchan->bone;
-				if (bone && (bone->flag & BONE_TRANSFORM)) {
-					calc_tw_center(tbounds, pchan->pose_head);
-					protectflag_to_drawflags_pchan(rv3d, pchan);
-				}
-			}
-
 			mul_v3_fl(tbounds->center, 1.0f / (float)totsel);   // centroid!
 			mul_m4_v3(ob->obmat, tbounds->center);
 			mul_m4_v3(ob->obmat, tbounds->min);
