@@ -3016,7 +3016,6 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 /* helper to smooth */
 static void gp_smooth_stroke(bContext *C, wmOperator *op)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	const int repeat = RNA_int_get(op->ptr, "repeat");
 	float factor = RNA_float_get(op->ptr, "factor");
 	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
