@@ -61,9 +61,13 @@ WB_Normal workbench_normal_encode(vec3 n)
 /* Encode 2 float into 1 with the desired precision. */
 float workbench_float_pair_encode(float v1, float v2)
 {
-	const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
-	const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
-	const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
+	// const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
+	// const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
+	// const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
+	/* Same as above because some compiler are dumb af. and think we use mediump int.  */
+	const uint total_mask = 0xFFu;
+	const uint v1_mask = 0x1Fu;
+	const uint v2_mask = 0x7u;
 	int iv1 = int(v1 * float(v1_mask));
 	int iv2 = int(v2 * float(v2_mask)) << ROUGHNESS_BITS;
 	return float(iv1 | iv2) * (1.0 / float(total_mask));
@@ -71,9 +75,13 @@ float workbench_float_pair_encode(float v1, float v2)
 
 void workbench_float_pair_decode(float data, out float v1, out float v2)
 {
-	const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
-	const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
-	const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
+	// const uint total_mask = ~(0xFFFFFFFFu << TOTAL_BITS);
+	// const uint v1_mask = ~(0xFFFFFFFFu << ROUGHNESS_BITS);
+	// const uint v2_mask = ~(0xFFFFFFFFu << METALLIC_BITS);
+	/* Same as above because some compiler are dumb af. and think we use mediump int.  */
+	const uint total_mask = 0xFFu;
+	const uint v1_mask = 0x1Fu;
+	const uint v2_mask = 0x7u;
 	uint idata = uint(data * float(total_mask));
 	v1 = float(idata & v1_mask) * (1.0 / float(v1_mask));
 	v2 = float(idata >> ROUGHNESS_BITS) * (1.0 / float(v2_mask));
