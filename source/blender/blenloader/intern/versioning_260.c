@@ -1388,7 +1388,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							SpaceClip *sclip = (SpaceClip *)sl;
 
 							if (sclip->around == 0) {
-								sclip->around = V3D_AROUND_CENTER_MEAN;
+								sclip->around = V3D_AROUND_CENTER_MEDIAN;
 							}
 						}
 					}

@@ -4049,9 +4049,9 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 void MESH_OT_poke(wmOperatorType *ot)
 {
 	static const EnumPropertyItem poke_center_modes[] = {
-		{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED", 0, "Weighted Mean", "Weighted Mean Face Center"},
-		{BMOP_POKE_MEAN, "MEAN", 0, "Mean", "Mean Face Center"},
-		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face Bounds Center"},
+		{BMOP_POKE_MEDIAN_WEIGHTED, "MEDIAN_WEIGHTED", 0, "Weighted Median", "Weighted median face center"},
+		{BMOP_POKE_MEDIAN, "MEDIAN", 0, "Median", "Mean face center"},
+		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face bounds center"},
 		{0, NULL, 0, NULL, NULL}};
 
 
@@ -4069,7 +4069,7 @@ void MESH_OT_poke(wmOperatorType *ot)
 
 	RNA_def_float_distance(ot->srna, "offset", 0.0f, -1e3f, 1e3f, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
 	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
-	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEAN_WEIGHTED,
+	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEDIAN_WEIGHTED,
 	             "Poke Center", "Poke Face Center Calculation");
 }
 
