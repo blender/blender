@@ -539,24 +539,30 @@ static bool edbm_shortest_path_pick_ex(
         Scene *scene, Object *obedit, const struct PathSelectParams *op_params,
         BMElem *ele_src, BMElem *ele_dst)
 {
+	bool ok = false;
 
 	if (ELEM(NULL, ele_src, ele_dst) || (ele_src->head.htype != ele_dst->head.htype)) {
 		/* pass */
 	}
 	else if (ele_src->head.htype == BM_VERT) {
 		mouse_mesh_shortest_path_vert(scene, obedit, op_params, (BMVert *)ele_src, (BMVert *)ele_dst);
-		return true;
+		ok = true;
 	}
 	else if (ele_src->head.htype == BM_EDGE) {
 		mouse_mesh_shortest_path_edge(scene, obedit, op_params, (BMEdge *)ele_src, (BMEdge *)ele_dst);
-		return true;
+		ok = true;
 	}
 	else if (ele_src->head.htype == BM_FACE) {
 		mouse_mesh_shortest_path_face(scene, obedit, op_params, (BMFace *)ele_src, (BMFace *)ele_dst);
-		return true;
+		ok = true;
 	}
 
-	return false;
+	if (ok) {
+		DEG_id_tag_update(obedit->data, ID_RECALC_SELECT);
+		WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
+	}
+
+	return ok;
 }
 
 static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op);
