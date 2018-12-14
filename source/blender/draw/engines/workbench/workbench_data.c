@@ -55,13 +55,14 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
 	wd->background_alpha = (DRW_state_is_image_render() && scene->r.alphamode == R_ALPHAPREMUL) ? 0.0f : 1.0f;
 
-	if (!v3d || ((v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD) &&
-	    (scene->world != NULL)))
+	if ((scene->world != NULL) &&
+	    (!v3d || (v3d && ((v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD) ||
+	                      (v3d->shading.type == OB_RENDER)))))
 	{
 		copy_v3_v3(wd->background_color_low, &scene->world->horr);
 		copy_v3_v3(wd->background_color_high, &scene->world->horr);
 	}
-	else if (v3d->shading.background_type == V3D_SHADING_BACKGROUND_VIEWPORT) {
+	else if (v3d && (v3d->shading.background_type == V3D_SHADING_BACKGROUND_VIEWPORT)) {
 		copy_v3_v3(wd->background_color_low, v3d->shading.background_color);
 		copy_v3_v3(wd->background_color_high, v3d->shading.background_color);
 	}
