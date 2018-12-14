@@ -223,6 +223,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
 	{
+		const bool is_edit_mode = BKE_object_is_in_editmode(ob);
 		bool has_edit_mesh_cage = false;
 		if (ob->type == OB_MESH) {
 			/* TODO: Should be its own function. */
@@ -234,7 +235,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 		}
 
 		/* Don't do that in edit Mesh mode, unless there is a modifier preview. */
-		if ((((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) || has_edit_mesh_cage) ||
+		if ((((ob != draw_ctx->object_edit) && !is_edit_mode) || has_edit_mesh_cage) ||
 		    ob->type != OB_MESH)
 		{
 			const bool is_active = (ob == draw_ctx->obact);
@@ -265,7 +266,9 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				struct GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
 				if (geom || is_sculpt_mode) {
 					float *rim_col = ts.colorWire;
-					if (!is_sculpt_mode && !has_edit_mesh_cage && ((ob->base_flag & BASE_SELECTED) != 0)) {
+					if (!is_edit_mode && !is_sculpt_mode && !has_edit_mesh_cage &&
+					    ((ob->base_flag & BASE_SELECTED) != 0))
+					{
 						rim_col = (ob == draw_ctx->obact) ? ts.colorActive : ts.colorSelect;
 					}
 					shgrp = (is_sculpt_mode) ? pd->sculpt_wires : pd->face_wires;

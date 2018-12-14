@@ -878,9 +878,11 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 	 * note: no theme yet for 'colindex' */
 	int theme_id = is_edit ? TH_WIRE_EDIT : TH_WIRE;
 
-	if (//(scene->obedit == NULL) &&
-	    ((G.moving & G_TRANSFORM_OBJ) != 0) &&
-	    ((ob->base_flag & BASE_SELECTED) != 0))
+	if (is_edit) {
+		/* fallback to TH_WIRE */
+	}
+	else if (((G.moving & G_TRANSFORM_OBJ) != 0) &&
+	         ((ob->base_flag & BASE_SELECTED) != 0))
 	{
 		theme_id = TH_TRANSFORM;
 	}
