@@ -3854,7 +3854,7 @@ def km_mesh(params):
         *_template_items_proportional_editing(connected=True),
     ])
 
-    if params.use_mouse_emulate_3_button:
+    if params.use_mouse_emulate_3_button and params.select_mouse == 'LEFTMOUSE':
         items.extend([
             ("mesh.loop_select", {"type": params.select_mouse, "value": 'DOUBLE_CLICK'},
              {"properties": [("extend", False), ("deselect", False), ("toggle", False)]}),
