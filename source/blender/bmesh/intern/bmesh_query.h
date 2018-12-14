@@ -132,7 +132,7 @@ float   BM_vert_calc_edge_angle(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NO
 float   BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_vert_calc_shell_factor(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 float   BM_vert_calc_shell_factor_ex(const BMVert *v, const float no[3], const char hflag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float   BM_vert_calc_mean_tagged_edge_length(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+float   BM_vert_calc_median_tagged_edge_length(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 BMLoop *BM_face_find_shortest_loop(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMLoop *BM_face_find_longest_loop(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

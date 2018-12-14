@@ -1529,7 +1529,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 		 * this isn't useful as a global center for absolute grid snapping
 		 * since its not based on the position of the selection. */
 		if (t->around == V3D_AROUND_CURSOR) {
-			const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CENTER_MEAN);
+			const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CENTER_MEDIAN);
 			center_global = cd->global;
 		}
 

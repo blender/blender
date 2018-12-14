@@ -828,7 +828,7 @@ void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;
-		BM_face_calc_center_mean(efa, r_center);
+		BM_face_calc_center_median(efa, r_center);
 	}
 }
 

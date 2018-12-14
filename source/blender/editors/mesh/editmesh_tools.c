@@ -4647,9 +4647,9 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 void MESH_OT_poke(wmOperatorType *ot)
 {
 	static const EnumPropertyItem poke_center_modes[] = {
-		{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED", 0, "Weighted Mean", "Weighted Mean Face Center"},
-		{BMOP_POKE_MEAN, "MEAN", 0, "Mean", "Mean Face Center"},
-		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face Bounds Center"},
+		{BMOP_POKE_MEDIAN_WEIGHTED, "MEDIAN_WEIGHTED", 0, "Weighted Median", "Weighted median face center"},
+		{BMOP_POKE_MEDIAN, "MEDIAN", 0, "Median", "Mean face center"},
+		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face bounds center"},
 		{0, NULL, 0, NULL, NULL}};
 
 
@@ -4667,7 +4667,7 @@ void MESH_OT_poke(wmOperatorType *ot)
 
 	RNA_def_float_distance(ot->srna, "offset", 0.0f, -1e3f, 1e3f, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
 	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
-	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEAN_WEIGHTED,
+	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEDIAN_WEIGHTED,
 	             "Poke Center", "Poke Face Center Calculation");
 }
 
@@ -5710,7 +5710,7 @@ static void sort_bmelem_flag(
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
 					float co[3];
-					BM_face_calc_center_mean(fa, co);
+					BM_face_calc_center_median(fa, co);
 					mul_m4_v3(mat, co);
 
 					pb[i] = false;
@@ -5776,7 +5776,7 @@ static void sort_bmelem_flag(
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
 					float co[3];
-					BM_face_calc_center_mean(fa, co);
+					BM_face_calc_center_median(fa, co);
 
 					pb[i] = false;
 					sb[affected[2]].org_idx = i;
@@ -7400,7 +7400,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 						break;
 					}
 
-					case V3D_AROUND_CENTER_MEAN:
+					case V3D_AROUND_CENTER_MEDIAN:
 					{
 						bmesh_selected_verts_center_calc(bm, target);
 						add_v3_v3(target, obedit->loc);

@@ -2046,7 +2046,7 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
 		case V3D_AROUND_CENTER_BOUNDS:
 			calculateCenterBound(t, r_center);
 			break;
-		case V3D_AROUND_CENTER_MEAN:
+		case V3D_AROUND_CENTER_MEDIAN:
 			calculateCenterMedian(t, r_center);
 			break;
 		case V3D_AROUND_CURSOR:

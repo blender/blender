@@ -67,7 +67,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		BM_face_calc_center_mean_weighted(f, faces_center[i]);
+		BM_face_calc_center_median_weighted(f, faces_center[i]);
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
@@ -101,7 +101,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 			/* keep original face data (else we 'move' the face) */
 #if 0
 			BM_face_normal_update(f);
-			BM_face_calc_center_mean_weighted(f, f_center);
+			BM_face_calc_center_median_weighted(f, f_center);
 #endif
 
 			plane_from_point_normal_v3(plane, faces_center[i], f->no);

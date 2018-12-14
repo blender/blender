@@ -658,7 +658,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 		}
 		MEM_freeN(objects);
 
-		if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEAN) {
+		if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN) {
 			mul_v3_fl(centroid, 1.0f / (float)global_transverts_tot);
 			copy_v3_v3(cursor, centroid);
 		}
@@ -709,7 +709,7 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 			return false;
 		}
 
-		if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEAN) {
+		if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN) {
 			mul_v3_fl(centroid, 1.0f / (float)count);
 			copy_v3_v3(cursor, centroid);
 		}

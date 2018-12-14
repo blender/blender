@@ -1963,8 +1963,8 @@ static BMOpDefine bmo_wireframe_def = {
 };
 
 static BMO_FlagSet bmo_enum_poke_center_mode[] = {
-	{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED"},
-	{BMOP_POKE_MEAN, "MEAN"},
+	{BMOP_POKE_MEDIAN_WEIGHTED, "MEAN_WEIGHTED"},
+	{BMOP_POKE_MEDIAN, "MEAN"},
 	{BMOP_POKE_BOUNDS, "BOUNDS"},
 	{0, NULL},
 };

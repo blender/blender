@@ -1191,7 +1191,7 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(
 {
 	static const EnumPropertyItem pivot_items[] = {
 		{V3D_AROUND_CENTER_BOUNDS, "CENTER", ICON_PIVOT_BOUNDBOX, "Bounding Box Center", ""},
-		{V3D_AROUND_CENTER_MEAN, "MEDIAN", ICON_PIVOT_MEDIAN, "Median Point", ""},
+		{V3D_AROUND_CENTER_MEDIAN, "MEDIAN", ICON_PIVOT_MEDIAN, "Median Point", ""},
 		{V3D_AROUND_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "2D Cursor", ""},
 		{V3D_AROUND_LOCAL_ORIGINS, "INDIVIDUAL_ORIGINS", ICON_PIVOT_INDIVIDUAL,
 		            "Individual Origins", "Pivot around each selected island's own median point"},
@@ -4084,7 +4084,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		{V3D_AROUND_CENTER_BOUNDS, "BOUNDING_BOX_CENTER", ICON_PIVOT_BOUNDBOX, "Bounding Box Center", ""},
 		{V3D_AROUND_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "2D Cursor", ""},
 		{V3D_AROUND_LOCAL_ORIGINS, "INDIVIDUAL_ORIGINS", ICON_PIVOT_INDIVIDUAL, "Individual Centers", ""},
-		/*{V3D_AROUND_CENTER_MEAN, "MEDIAN_POINT", 0, "Median Point", ""}, */
+		/*{V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", 0, "Median Point", ""}, */
 		/*{V3D_AROUND_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""}, */
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -4992,7 +4992,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{V3D_AROUND_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "2D Cursor", "Pivot around the 2D cursor"},
 		{V3D_AROUND_LOCAL_ORIGINS, "INDIVIDUAL_ORIGINS", ICON_CENTER_ONLY,
 		            "Individual Origins", "Pivot around each object's own origin"},
-		{V3D_AROUND_CENTER_MEAN, "MEDIAN_POINT", ICON_PIVOT_MEDIAN, "Median Point",
+		{V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", ICON_PIVOT_MEDIAN, "Median Point",
 		               "Pivot around the median point of selected objects"},
 		{0, NULL, 0, NULL, NULL}
 	};

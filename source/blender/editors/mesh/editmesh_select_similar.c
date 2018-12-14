@@ -159,7 +159,7 @@ static void face_pos_direction_worldspace_scaled_get(Object *ob, BMFace *face, f
 	copy_v3_v3(r_dir, face->no);
 	normalize_v3(r_dir);
 
-	BM_face_calc_center_mean(face, center);
+	BM_face_calc_center_median(face, center);
 	mul_m4_v3(ob->obmat, center);
 
 	distance = dot_v3v3(r_dir, center);

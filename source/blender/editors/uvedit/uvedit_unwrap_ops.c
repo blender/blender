@@ -1071,7 +1071,7 @@ static void uv_map_transform_calc_center_median(BMEditMesh *em, float r_center[3
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			float center[3];
-			BM_face_calc_center_mean(efa, center);
+			BM_face_calc_center_median(efa, center);
 			add_v3_v3(r_center, center);
 			center_accum_num += 1;
 		}
@@ -1099,7 +1099,7 @@ static void uv_map_transform_center(
 			mid_v3_v3v3(r_center, bounds[0], bounds[1]);
 			break;
 		}
-		case V3D_AROUND_CENTER_MEAN:
+		case V3D_AROUND_CENTER_MEDIAN:
 		{
 			uv_map_transform_calc_center_median(em, r_center);
 			break;

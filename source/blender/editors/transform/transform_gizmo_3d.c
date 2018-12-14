@@ -1163,7 +1163,7 @@ static void gizmo_prepare_mat(
 			break;
 		}
 		case V3D_AROUND_LOCAL_ORIGINS:
-		case V3D_AROUND_CENTER_MEAN:
+		case V3D_AROUND_CENTER_MEDIAN:
 			copy_v3_v3(rv3d->twmat[3], tbounds->center);
 			break;
 		case V3D_AROUND_CURSOR:

@@ -662,7 +662,7 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->autokey_mode = U.autokey_mode;
 
 
-	sce->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
+	sce->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEDIAN;
 	sce->toolsettings->snap_mode = SCE_SNAP_MODE_INCREMENT;
 	sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
 	sce->toolsettings->snap_uv_mode = SCE_SNAP_MODE_INCREMENT;

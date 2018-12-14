@@ -488,7 +488,7 @@ enum {
 	/* center of the bounding box */
 	V3D_AROUND_CENTER_BOUNDS	= 0,
 	/* center from the sum of all points divided by the total */
-	V3D_AROUND_CENTER_MEAN		= 3,
+	V3D_AROUND_CENTER_MEDIAN    = 3,
 	/* pivot around the 2D/3D cursor */
 	V3D_AROUND_CURSOR			= 1,
 	/* pivot around each items own origin */

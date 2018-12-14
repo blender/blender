@@ -1262,10 +1262,10 @@ bool EDBM_unified_findnearest_from_raycast(
 					if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) == false) {
 						float point[3];
 						if (coords) {
-							BM_face_calc_center_mean_vcos(bm, f, point, coords);
+							BM_face_calc_center_median_vcos(bm, f, point, coords);
 						}
 						else {
-							BM_face_calc_center_mean(f, point);
+							BM_face_calc_center_median(f, point);
 						}
 						mul_m4_v3(obedit->obmat, point);
 						float depth;
@@ -1830,7 +1830,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 					float cent[3];
 					float co[2], tdist;
 
-					BM_face_calc_center_mean(f, cent);
+					BM_face_calc_center_median(f, cent);
 					if (ED_view3d_project_float_object(
 					            vc.ar, cent, co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 					{

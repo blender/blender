@@ -1860,7 +1860,7 @@ float BM_vert_calc_shell_factor_ex(const BMVert *v, const float no[3], const cha
  * \note quite an obscure function.
  * used in bmesh operators that have a relative scale options,
  */
-float BM_vert_calc_mean_tagged_edge_length(const BMVert *v)
+float BM_vert_calc_median_tagged_edge_length(const BMVert *v)
 {
 	BMIter iter;
 	BMEdge *e;

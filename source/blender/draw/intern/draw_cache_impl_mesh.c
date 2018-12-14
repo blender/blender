@@ -1928,7 +1928,7 @@ static bool add_edit_facedot(
 			copy_v3_v3(pnor, rdata->edit_data->polyNos[poly]);
 		}
 		else {
-			BM_face_calc_center_mean(efa, center);
+			BM_face_calc_center_median(efa, center);
 			copy_v3_v3(pnor, efa->no);
 		}
 		selected = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? true : false;

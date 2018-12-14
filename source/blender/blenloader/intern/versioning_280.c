@@ -1407,7 +1407,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
+				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEDIAN;
 			}
 		}
 

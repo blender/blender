@@ -131,7 +131,7 @@
 static void transform_around_single_fallback(TransInfo *t)
 {
 	if ((t->data_len_all == 1) &&
-	    (ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEAN, V3D_AROUND_ACTIVE)) &&
+	    (ELEM(t->around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN, V3D_AROUND_ACTIVE)) &&
 	    (ELEM(t->mode, TFM_RESIZE, TFM_ROTATION, TFM_TRACKBALL)))
 	{
 		t->around = V3D_AROUND_LOCAL_ORIGINS;

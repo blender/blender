@@ -160,7 +160,7 @@ void ED_armature_origin_set(Main *bmain, Object *ob, float cursor[3], int center
 		mul_m4_v3(ob->imat, cent);
 	}
 	else {
-		if (around == V3D_AROUND_CENTER_MEAN) {
+		if (around == V3D_AROUND_CENTER_MEDIAN) {
 			int total = 0;
 			zero_v3(cent);
 			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {

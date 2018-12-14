@@ -1333,9 +1333,9 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 		float f_center[3];
 		float (*faces_center)[3] = BLI_array_alloca(faces_center, totface);
 
-		BM_face_calc_center_mean(f_new, f_center);
+		BM_face_calc_center_median(f_new, f_center);
 		for (i = 0; i < totface; i++) {
-			BM_face_calc_center_mean(faces[i], faces_center[i]);
+			BM_face_calc_center_median(faces[i], faces_center[i]);
 		}
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);

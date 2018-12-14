@@ -462,7 +462,7 @@ const EnumPropertyItem rna_enum_transform_pivot_items_full[] = {
 	{V3D_AROUND_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "3D Cursor", "Pivot around the 3D cursor"},
 	{V3D_AROUND_LOCAL_ORIGINS, "INDIVIDUAL_ORIGINS", ICON_PIVOT_INDIVIDUAL,
 	            "Individual Origins", "Pivot around each object's own origin"},
-	{V3D_AROUND_CENTER_MEAN, "MEDIAN_POINT", ICON_PIVOT_MEDIAN, "Median Point",
+	{V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", ICON_PIVOT_MEDIAN, "Median Point",
 	               "Pivot around the median point of selected objects"},
 	{V3D_AROUND_ACTIVE, "ACTIVE_ELEMENT", ICON_PIVOT_ACTIVE, "Active Element", "Pivot around active object"},
 	{0, NULL, 0, NULL, NULL}

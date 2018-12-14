@@ -6114,7 +6114,7 @@ static void slide_origdata_interp_data_vert(
 		BMLoop *l;
 
 		BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {
-			BM_face_calc_center_mean(l->f, faces_center[j]);
+			BM_face_calc_center_median(l->f, faces_center[j]);
 		}
 
 		BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {
@@ -6124,7 +6124,7 @@ static void slide_origdata_interp_data_vert(
 			BMLoop *l_other;
 			int j_other;
 
-			BM_face_calc_center_mean(f_copy, f_copy_center);
+			BM_face_calc_center_median(f_copy, f_copy_center);
 
 			BM_ITER_ELEM_INDEX (l_other, &liter_other, sv->v, BM_LOOPS_OF_VERT, j_other) {
 				BM_face_interp_multires_ex(

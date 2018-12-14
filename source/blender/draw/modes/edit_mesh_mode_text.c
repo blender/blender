@@ -345,7 +345,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 
 			BM_ITER_MESH_INDEX(f, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-					BM_face_calc_center_mean(f, v1);
+					BM_face_calc_center_median(f, v1);
 					mul_m4_v3(ob->obmat, v1);
 
 					numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);

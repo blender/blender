@@ -2335,7 +2335,7 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEAN && count) {
+	if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEDIAN && count) {
 		mul_v3_fl(centroid, 1.0f / (float)count);
 		copy_v3_v3(cursor, centroid);
 	}

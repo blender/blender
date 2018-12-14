@@ -104,8 +104,8 @@ enum {
 
 /* Poke face center calculation */
 enum {
-	BMOP_POKE_MEAN_WEIGHTED = 0,
-	BMOP_POKE_MEAN,
+	BMOP_POKE_MEDIAN_WEIGHTED = 0,
+	BMOP_POKE_MEDIAN,
 	BMOP_POKE_BOUNDS
 };
 

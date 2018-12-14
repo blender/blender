@@ -53,11 +53,11 @@ void  BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_plane[3]) ATTR
 void  BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
 void  BM_face_calc_tangent_auto(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
 void  BM_face_calc_center_bounds(const BMFace *f, float center[3]) ATTR_NONNULL();
-void  BM_face_calc_center_mean(const BMFace *f, float center[3]) ATTR_NONNULL();
-void  BM_face_calc_center_mean_vcos(
+void  BM_face_calc_center_median(const BMFace *f, float center[3]) ATTR_NONNULL();
+void  BM_face_calc_center_median_vcos(
         const BMesh *bm, const BMFace *f, float r_cent[3],
         float const (*vertexCos)[3]) ATTR_NONNULL();
-void  BM_face_calc_center_mean_weighted(const BMFace *f, float center[3]) ATTR_NONNULL();
+void  BM_face_calc_center_median_weighted(const BMFace *f, float center[3]) ATTR_NONNULL();
 
 void BM_face_calc_bounds_expand(const BMFace *f, float min[3], float max[3]);
 
