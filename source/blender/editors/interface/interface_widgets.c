@@ -2606,7 +2606,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 
 	const float hsv_center[3] = {0.0f, 0.0f, hsv[2]};
 	ui_color_picker_to_rgb_v(hsv_center, rgb_center);
-	ui_scene_linear_to_color_picker_space(but, rgb_center);
+	ui_color_picker_to_scene_linear_space(but, rgb_center);
 
 	if (!is_color_gamma) {
 		ui_block_cm_to_display_space_v3(but->block, rgb_center);
