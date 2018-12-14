@@ -5779,6 +5779,42 @@ def km_3d_view_tool_edit_gpencil_to_sphere(params):
     )
 
 
+def km_3d_view_tool_sculpt_gpencil_select(params):
+    return (
+        "3D View Tool: Sculpt Gpencil, Select",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select(params, "gpencil.select", "view3d.cursor3d")},
+    )
+
+
+def km_3d_view_tool_sculpt_gpencil_select_box(params):
+    return (
+        "3D View Tool: Sculpt Gpencil, Select Box",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select_actions("gpencil.select_box", type=params.tool_tweak, value='ANY')},
+    )
+
+
+def km_3d_view_tool_sculpt_gpencil_select_circle(params):
+    return (
+        "3D View Tool: Sculpt Gpencil, Select Circle",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("gpencil.select_circle", {"type": params.tool_tweak, "value": 'ANY'}, None),
+            ("gpencil.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("deselect", True)]}),
+        ]},
+    )
+
+
+def km_3d_view_tool_sculpt_gpencil_select_lasso(params):
+    return (
+        "3D View Tool: Sculpt Gpencil, Select Lasso",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": _template_items_tool_select_actions("gpencil.select_lasso", type=params.tool_tweak, value='ANY')},
+    )
+
+
 # ------------------------------------------------------------------------------
 # Full Configuration
 
@@ -5990,6 +6026,10 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_gpencil_bend(params),
         km_3d_view_tool_edit_gpencil_shear(params),
         km_3d_view_tool_edit_gpencil_to_sphere(params),
+        km_3d_view_tool_sculpt_gpencil_select(params),
+        km_3d_view_tool_sculpt_gpencil_select_box(params),
+        km_3d_view_tool_sculpt_gpencil_select_circle(params),
+        km_3d_view_tool_sculpt_gpencil_select_lasso(params),
     ]
 
 # ------------------------------------------------------------------------------
