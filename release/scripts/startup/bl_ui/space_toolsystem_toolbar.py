@@ -78,7 +78,7 @@ class _defs_view3d_generic:
                 "Set the cursor location, drag to transform"
             ),
             icon="ops.generic.cursor",
-            keymap=(),
+            keymap="3D View Tool: Cursor",
             draw_settings=draw_settings,
         )
 
@@ -108,7 +108,7 @@ class _defs_view3d_generic:
             description=description,
             icon="ops.view3d.ruler",
             widget="VIEW3D_GGT_ruler",
-            keymap=(),
+            keymap="3D View Tool: Measure",
         )
 
 
@@ -208,7 +208,7 @@ class _defs_transform:
             icon="ops.transform.translate",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.translate",
-            keymap=(),
+            keymap="3D View Tool: Move",
         )
 
     @ToolDef.from_fn
@@ -219,7 +219,7 @@ class _defs_transform:
             icon="ops.transform.rotate",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.rotate",
-            keymap=(),
+            keymap="3D View Tool: Rotate",
         )
 
     @ToolDef.from_fn
@@ -230,7 +230,7 @@ class _defs_transform:
             icon="ops.transform.resize",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.resize",
-            keymap=(),
+            keymap="3D View Tool: Scale",
         )
 
     @ToolDef.from_fn
@@ -259,7 +259,7 @@ class _defs_transform:
             ),
             icon="ops.transform.transform",
             widget="TRANSFORM_GGT_gizmo",
-            keymap=(),
+            keymap="3D View Tool: Transform",
             draw_settings=draw_settings,
         )
 
@@ -274,7 +274,7 @@ class _defs_view3d_select:
             text="Select",
             icon="ops.generic.select",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Select",
             draw_settings=draw_settings,
         )
 
@@ -287,7 +287,7 @@ class _defs_view3d_select:
             text="Select Box",
             icon="ops.generic.select_box",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Select Box",
             draw_settings=draw_settings,
         )
 
@@ -320,7 +320,7 @@ class _defs_view3d_select:
             text="Select Circle",
             icon="ops.generic.select_circle",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Select Circle",
             draw_settings=draw_settings,
             draw_cursor=draw_cursor,
         )
@@ -993,7 +993,7 @@ class _defs_image_uv_select:
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Select Lasso",
             draw_settings=draw_settings,
         )
 

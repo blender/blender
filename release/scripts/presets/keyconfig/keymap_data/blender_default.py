@@ -5100,9 +5100,9 @@ def km_node_editor_tool_links_cut(params):
 
 
 
-def km_3d_view_tool_object_cursor(params):
+def km_3d_view_tool_cursor(params):
     return (
-        "3D View Tool: Object, Cursor",
+        "3D View Tool: Cursor",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("view3d.cursor3d", {"type": params.tool_mouse, "value": 'PRESS'}, None),
@@ -5112,25 +5112,25 @@ def km_3d_view_tool_object_cursor(params):
     )
 
 
-def km_3d_view_tool_object_select(params):
+def km_3d_view_tool_select(params):
     return (
-        "3D View Tool: Object, Select",
+        "3D View Tool: Select",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "view3d.select", "view3d.cursor3d")},
     )
 
 
-def km_3d_view_tool_object_select_box(params):
+def km_3d_view_tool_select_box(params):
     return (
-        "3D View Tool: Object, Select Box",
+        "3D View Tool: Select Box",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select_actions("view3d.select_box", type=params.tool_tweak, value='ANY')},
     )
 
 
-def km_3d_view_tool_object_select_circle(params):
+def km_3d_view_tool_select_circle(params):
     return (
-        "3D View Tool: Object, Select Circle",
+        "3D View Tool: Select Circle",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("view3d.select_circle", {"type": params.tool_mouse, "value": 'PRESS'},
@@ -5141,17 +5141,17 @@ def km_3d_view_tool_object_select_circle(params):
     )
 
 
-def km_3d_view_tool_object_select_lasso(params):
+def km_3d_view_tool_select_lasso(params):
     return (
-        "3D View Tool: Object, Select Lasso",
+        "3D View Tool: Select Lasso",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select_actions("view3d.select_lasso", type=params.tool_tweak, value='ANY')},
     )
 
 
-def km_3d_view_tool_object_transform(params):
+def km_3d_view_tool_transform(params):
     return (
-        "3D View Tool: Object, Transform",
+        "3D View Tool: Transform",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.from_gizmo", {"type": params.tool_tweak, "value": 'ANY'}, None),
@@ -5159,9 +5159,9 @@ def km_3d_view_tool_object_transform(params):
     )
 
 
-def km_3d_view_tool_object_move(params):
+def km_3d_view_tool_move(params):
     return (
-        "3D View Tool: Object, Move",
+        "3D View Tool: Move",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.translate", {"type": params.tool_tweak, "value": 'ANY'},
@@ -5170,9 +5170,9 @@ def km_3d_view_tool_object_move(params):
     )
 
 
-def km_3d_view_tool_object_rotate(params):
+def km_3d_view_tool_rotate(params):
     return (
-        "3D View Tool: Object, Rotate",
+        "3D View Tool: Rotate",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.rotate", {"type": params.tool_tweak, "value": 'ANY'},
@@ -5181,9 +5181,9 @@ def km_3d_view_tool_object_rotate(params):
     )
 
 
-def km_3d_view_tool_object_scale(params):
+def km_3d_view_tool_scale(params):
     return (
-        "3D View Tool: Object, Scale",
+        "3D View Tool: Scale",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("transform.resize", {"type": params.tool_tweak, "value": 'ANY'},
@@ -5192,9 +5192,9 @@ def km_3d_view_tool_object_scale(params):
     )
 
 
-def km_3d_view_tool_object_measure(params):
+def km_3d_view_tool_measure(params):
     return (
-        "3D View Tool: Object, Measure",
+        "3D View Tool: Measure",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("view3d.ruler_add", {"type": params.tool_tweak, "value": 'ANY'}, None),
@@ -5928,16 +5928,16 @@ def generate_keymaps(params=None):
         km_node_editor_tool_select_box(params),
         km_node_editor_tool_select_lasso(params),
         km_node_editor_tool_links_cut(params),
-        km_3d_view_tool_object_cursor(params),
-        km_3d_view_tool_object_select(params),
-        km_3d_view_tool_object_select_box(params),
-        km_3d_view_tool_object_select_circle(params),
-        km_3d_view_tool_object_select_lasso(params),
-        km_3d_view_tool_object_transform(params),
-        km_3d_view_tool_object_move(params),
-        km_3d_view_tool_object_rotate(params),
-        km_3d_view_tool_object_scale(params),
-        km_3d_view_tool_object_measure(params),
+        km_3d_view_tool_cursor(params),
+        km_3d_view_tool_select(params),
+        km_3d_view_tool_select_box(params),
+        km_3d_view_tool_select_circle(params),
+        km_3d_view_tool_select_lasso(params),
+        km_3d_view_tool_transform(params),
+        km_3d_view_tool_move(params),
+        km_3d_view_tool_rotate(params),
+        km_3d_view_tool_scale(params),
+        km_3d_view_tool_measure(params),
         km_3d_view_tool_pose_breakdowner(params),
         km_3d_view_tool_pose_push(params),
         km_3d_view_tool_pose_relax(params),
