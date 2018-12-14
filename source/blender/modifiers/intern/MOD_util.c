@@ -50,6 +50,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 
 #include "BKE_modifier.h"
 
@@ -190,8 +191,9 @@ Mesh *MOD_deform_mesh_eval_get(
 		else {
 			/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
 			 * we really need a copy here. Maybe the CoW ob->data can be directly used. */
+			Mesh *mesh_prior_modifiers = BKE_object_get_pre_modified_mesh(ob);
 			BKE_id_copy_ex(
-			        NULL, ob->data, (ID **)&mesh,
+			        NULL, &mesh_prior_modifiers->id, (ID **)&mesh,
 			        (LIB_ID_CREATE_NO_MAIN |
 			         LIB_ID_CREATE_NO_USER_REFCOUNT |
 			         LIB_ID_CREATE_NO_DEG_TAG |
