@@ -246,7 +246,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 			/* Don't enable compositing nodes. */
 			if (scene->nodetree) {
-				ntreeFreeTree(scene->nodetree);
+				ntreeFreeNestedTree(scene->nodetree);
 				MEM_freeN(scene->nodetree);
 				scene->nodetree = NULL;
 				scene->use_nodes = false;

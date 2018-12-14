@@ -139,7 +139,7 @@ void BKE_linestyle_free(FreestyleLineStyle *linestyle)
 
 	/* is no lib link block, but linestyle extension */
 	if (linestyle->nodetree) {
-		ntreeFreeTree(linestyle->nodetree);
+		ntreeFreeNestedTree(linestyle->nodetree);
 		MEM_freeN(linestyle->nodetree);
 		linestyle->nodetree = NULL;
 	}

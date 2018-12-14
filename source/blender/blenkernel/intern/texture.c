@@ -205,7 +205,7 @@ void BKE_texture_free(Tex *tex)
 
 	/* is no lib link block, but texture extension */
 	if (tex->nodetree) {
-		ntreeFreeTree(tex->nodetree);
+		ntreeFreeNestedTree(tex->nodetree);
 		MEM_freeN(tex->nodetree);
 		tex->nodetree = NULL;
 	}

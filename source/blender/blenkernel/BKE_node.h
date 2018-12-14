@@ -332,6 +332,8 @@ struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char 
 
 /* copy/free funcs, need to manage ID users */
 void              ntreeFreeTree(struct bNodeTree *ntree);
+/* Free tree which is owned byt another datablock. */
+void              ntreeFreeNestedTree(struct bNodeTree *ntree);
 void BKE_node_tree_copy_data(struct Main *bmain, struct bNodeTree *ntree_dst, const struct bNodeTree *ntree_src, const int flag);
 struct bNodeTree *ntreeCopyTree_ex(const struct bNodeTree *ntree, struct Main *bmain, const bool do_id_user);
 struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntree);
@@ -343,6 +345,7 @@ void              ntreeUserDecrefID(struct bNodeTree *ntree);
 struct bNodeTree *ntreeFromID(const struct ID *id);
 
 void              ntreeMakeLocal(struct Main *bmain, struct bNodeTree *ntree, bool id_in_mainlist, const bool lib_local);
+void              ntreeFreeLocalTree(struct bNodeTree *ntree);
 struct bNode     *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);

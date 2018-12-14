@@ -1870,8 +1870,24 @@ void ntreeFreeTree(bNodeTree *ntree)
 	if (ntree->duplilock)
 		BLI_mutex_free(ntree->duplilock);
 
-	/* if ntree is not part of library, free the libblock data explicitly */
-	if (ntree->id.tag & LIB_TAG_NO_MAIN) {
+	if (ntree->id.tag & LIB_TAG_LOCALIZED) {
+		BKE_libblock_free_data(&ntree->id, true);
+	}
+}
+
+void ntreeFreeNestedTree(bNodeTree *ntree)
+{
+	ntreeFreeTree(ntree);
+	BKE_libblock_free_data(&ntree->id, true);
+}
+
+void ntreeFreeLocalTree(bNodeTree *ntree)
+{
+	if (ntree->id.tag & LIB_TAG_LOCALIZED) {
+		ntreeFreeTree(ntree);
+	}
+	else {
+		ntreeFreeTree(ntree);
 		BKE_libblock_free_data(&ntree->id, true);
 	}
 }

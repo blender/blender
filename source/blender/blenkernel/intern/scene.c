@@ -470,7 +470,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 
 	/* is no lib link block, but scene extension */
 	if (sce->nodetree) {
-		ntreeFreeTree(sce->nodetree);
+		ntreeFreeNestedTree(sce->nodetree);
 		MEM_freeN(sce->nodetree);
 		sce->nodetree = NULL;
 	}

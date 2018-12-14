@@ -68,7 +68,7 @@ void BKE_world_free(World *wrld)
 
 	/* is no lib link block, but world extension */
 	if (wrld->nodetree) {
-		ntreeFreeTree(wrld->nodetree);
+		ntreeFreeNestedTree(wrld->nodetree);
 		MEM_freeN(wrld->nodetree);
 		wrld->nodetree = NULL;
 	}

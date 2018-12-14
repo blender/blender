@@ -177,7 +177,7 @@ void BKE_lamp_free(Lamp *la)
 
 	/* is no lib link block, but lamp extension */
 	if (la->nodetree) {
-		ntreeFreeTree(la->nodetree);
+		ntreeFreeNestedTree(la->nodetree);
 		MEM_freeN(la->nodetree);
 		la->nodetree = NULL;
 	}

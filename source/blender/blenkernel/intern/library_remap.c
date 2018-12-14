@@ -679,19 +679,13 @@ void BKE_libblock_relink_to_newid(ID *id)
 
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
-	/* NOTE: We set pointers to NULL so subsequent call of this function doesn't
-	 * cause double-free.
-	 * This is mainly to prevent crazy behavior of ntreeFreeTree() which does
-	 * call BKE_libblock_free_data() for nodetrees outside of bmain. */
 	if (id->properties) {
 		IDP_FreeProperty_ex(id->properties, do_id_user);
 		MEM_freeN(id->properties);
-		id->properties = NULL;
 	}
 
 	if (id->override_static) {
 		BKE_override_static_free(&id->override_static);
-		id->override_static = NULL;
 	}
 
 	/* XXX TODO remove animdata handling from each type's freeing func, and do it here, like for copy! */

@@ -99,7 +99,7 @@ void BKE_material_free(Material *ma)
 
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeNestedTree(ma->nodetree);
 		MEM_freeN(ma->nodetree);
 		ma->nodetree = NULL;
 	}
@@ -1373,7 +1373,7 @@ void clear_matcopybuf(void)
 void free_matcopybuf(void)
 {
 	if (matcopybuf.nodetree) {
-		ntreeFreeTree(matcopybuf.nodetree);
+		ntreeFreeLocalTree(matcopybuf.nodetree);
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree = NULL;
 	}
@@ -1406,7 +1406,7 @@ void paste_matcopybuf(Main *bmain, Material *ma)
 	GPU_material_free(&ma->gpumaterial);
 
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeNestedTree(ma->nodetree);
 		MEM_freeN(ma->nodetree);
 	}
 

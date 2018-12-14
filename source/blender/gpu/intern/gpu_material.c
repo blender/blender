@@ -714,7 +714,7 @@ GPUMaterial *GPU_material_from_nodetree(
 
 	/* Only free after GPU_pass_shader_get where GPUUniformBuffer
 	 * read data from the local tree. */
-	ntreeFreeTree(localtree);
+	ntreeFreeLocalTree(localtree);
 	MEM_freeN(localtree);
 
 	/* note that even if building the shader fails in some way, we still keep
