@@ -3969,6 +3969,7 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 
 		if (changed) {
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			DEG_id_tag_update(obedit->data, 0);
 		}
 	}
 	MEM_freeN(objects);
