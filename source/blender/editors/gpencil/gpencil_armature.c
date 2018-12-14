@@ -528,6 +528,10 @@ static bool gpencil_generate_weights_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
+	if (ob == NULL) {
+		return false;
+	}
+
 	if (ob->type != OB_GPENCIL) {
 		return false;
 	}
