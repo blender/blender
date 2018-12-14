@@ -1980,7 +1980,8 @@ class CYCLES_NODE_PT_settings(CyclesNodeButtonsPanel, Panel):
     def poll(cls, context):
         snode = context.space_data
         return CyclesNodeButtonsPanel.poll(context) and \
-               snode.tree_type == 'ShaderNodeTree' and snode.id
+               snode.tree_type == 'ShaderNodeTree' and snode.id and \
+               snode.id.bl_rna.identifier == 'Material'
 
     def draw(self, context):
         material = context.space_data.id

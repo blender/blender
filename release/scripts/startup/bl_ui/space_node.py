@@ -567,7 +567,8 @@ class EEVEE_NODE_PT_material_settings(Panel):
     def poll(cls, context):
         snode = context.space_data
         return (context.engine in cls.COMPAT_ENGINES) and \
-               snode.tree_type == 'ShaderNodeTree' and snode.id
+               snode.tree_type == 'ShaderNodeTree' and snode.id and \
+               snode.id.bl_rna.identifier == 'Material'
 
     def draw(self, context):
         material = context.space_data.id
@@ -584,7 +585,8 @@ class NODE_PT_material_viewport(Panel):
     @classmethod
     def poll(cls, context):
         snode = context.space_data
-        return snode.tree_type == 'ShaderNodeTree' and snode.id
+        return snode.tree_type == 'ShaderNodeTree' and snode.id and \
+               snode.id.bl_rna.identifier == 'Material'
 
     def draw(self, context):
         material = context.space_data.id
