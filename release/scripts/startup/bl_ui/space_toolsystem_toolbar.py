@@ -300,7 +300,7 @@ class _defs_view3d_select:
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Select Lasso",
             draw_settings=draw_settings,
         )
 
@@ -993,7 +993,7 @@ class _defs_image_uv_select:
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
-            keymap="3D View Tool: Select Lasso",
+            keymap=(),
             draw_settings=draw_settings,
         )
 
