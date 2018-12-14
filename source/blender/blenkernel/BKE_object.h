@@ -221,6 +221,10 @@ void BKE_object_tfm_protected_restore(
         const ObjectTfmProtectedChannels *obtfm,
         const short protectflag);
 
+
+void BKE_object_eval_reset(
+        struct Object *ob_eval);
+
 /* Dependency graph evaluation callbacks. */
 void BKE_object_eval_local_transform(
         struct Depsgraph *depsgraph,
