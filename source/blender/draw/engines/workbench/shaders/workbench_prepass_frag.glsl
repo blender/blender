@@ -6,6 +6,7 @@ uniform float materialRoughness;
 
 uniform sampler2D image;
 uniform float ImageTransparencyCutoff = 0.1;
+uniform bool imageSrgb;
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
@@ -39,6 +40,9 @@ void main()
 	color = texture(image, uv_interp);
 	if (color.a < ImageTransparencyCutoff) {
 		discard;
+	}
+	if (imageSrgb) {
+		color = srgb_to_linearrgb(color);
 	}
 #  else
 	color.rgb = materialDiffuseColor;

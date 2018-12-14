@@ -4,6 +4,8 @@
 
 #include "BIF_gl.h"
 
+#include "BKE_image.h"
+
 #include "BLI_dynstr.h"
 #include "BLI_hash.h"
 
@@ -189,8 +191,12 @@ void workbench_material_shgroup_uniform(
 	}
 
 	if (workbench_material_determine_color_type(wpd, material->ima, ob) == V3D_SHADING_TEXTURE_COLOR) {
+		ImBuf *ibuf = BKE_image_acquire_ibuf(material->ima, NULL, NULL);
+		const bool do_color_correction = (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0);
+		BKE_image_release_ibuf(material->ima, ibuf, NULL);
 		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
+		DRW_shgroup_uniform_bool_copy(grp, "imageSrgb", do_color_correction);
 	}
 	else {
 		DRW_shgroup_uniform_vec3(grp, "materialDiffuseColor", (use_metallic) ? material->base_color : material->diffuse_color, 1);

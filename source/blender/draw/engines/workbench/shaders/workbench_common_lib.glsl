@@ -141,3 +141,21 @@ vec2 matcap_uv_compute(vec3 I, vec3 N, bool flipped)
 	}
 	return matcap_uv * 0.496 + 0.5;
 }
+
+float srgb_to_linearrgb(float c)
+{
+	if (c < 0.04045)
+		return (c < 0.0) ? 0.0 : c * (1.0 / 12.92);
+	else
+		return pow((c + 0.055) * (1.0 / 1.055), 2.4);
+}
+
+vec4 srgb_to_linearrgb(vec4 col_from)
+{
+	vec4 col_to;
+	col_to.r = srgb_to_linearrgb(col_from.r);
+	col_to.g = srgb_to_linearrgb(col_from.g);
+	col_to.b = srgb_to_linearrgb(col_from.b);
+	col_to.a = col_from.a;
+	return col_to;
+}
