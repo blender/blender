@@ -68,11 +68,10 @@ void BIF_clearTransformOrientation(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	ListBase *transform_orientations = &scene->transform_spaces;
-	View3D *v3d = CTX_wm_view3d(C);
 
 	BLI_freelistN(transform_orientations);
 
-	if (v3d && scene->orientation_type == V3D_MANIP_CUSTOM) {
+	if (scene->orientation_type == V3D_MANIP_CUSTOM) {
 		scene->orientation_type = V3D_MANIP_GLOBAL; /* fallback to global */
 		scene->orientation_index_custom = -1;
 	}
