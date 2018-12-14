@@ -845,7 +845,7 @@ static int bake(
 			}
 
 			/* We need to restore object->data to a non-modifier-evaluated state. */
-			BKE_object_free_derivedderived_caches(ob_low_eval);
+			BKE_object_free_derived_caches(ob_low_eval);
 			me_cage = bake_mesh_new_from_object(depsgraph, bmain, scene, ob_low_eval);
 			RE_bake_pixels_populate(me_cage, pixel_array_low, num_pixels, &bake_images, uv_layer);
 		}
