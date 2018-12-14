@@ -4648,7 +4648,7 @@ void MESH_OT_poke(wmOperatorType *ot)
 {
 	static const EnumPropertyItem poke_center_modes[] = {
 		{BMOP_POKE_MEDIAN_WEIGHTED, "MEDIAN_WEIGHTED", 0, "Weighted Median", "Weighted median face center"},
-		{BMOP_POKE_MEDIAN, "MEDIAN", 0, "Median", "Mean face center"},
+		{BMOP_POKE_MEDIAN, "MEDIAN", 0, "Median", "Median face center"},
 		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face bounds center"},
 		{0, NULL, 0, NULL, NULL}};
 
