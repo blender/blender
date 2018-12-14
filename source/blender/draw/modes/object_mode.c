@@ -827,14 +827,12 @@ static DRWShadingGroup *shgroup_theme_id_to_point_or(
 	}
 }
 
-static void image_calc_aspect(Image *ima, ImageUser *iuser, float r_image_aspect[2])
+static void image_calc_aspect(Image *ima, const int size[2], float r_image_aspect[2])
 {
 	float ima_x, ima_y;
 	if (ima) {
-		int w, h;
-		BKE_image_get_size(ima, iuser, &w, &h);
-		ima_x = w;
-		ima_y = h;
+		ima_x = size[0];
+		ima_y = size[1];
 	}
 	else {
 		/* if no image, make it a 1x1 empty square, honor scale & offset */
@@ -871,12 +869,24 @@ static void DRW_shgroup_empty_image(
 	if (!BKE_object_empty_image_is_visible_in_view3d(ob, rv3d))
 		return;
 
-	GPUTexture *tex = ob->data ?
-	        GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f) :
-	        NULL;
+	/* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead, see: T59347 */
+	int size[2] = {0};
+
+	GPUTexture *tex = NULL;
+
+	if (ob->data != NULL) {
+		tex = GPU_texture_from_blender(ob->data, ob->iuser, GL_TEXTURE_2D, false, 0.0f);
+		if (tex) {
+			size[0] = GPU_texture_width(tex);
+			size[1] = GPU_texture_height(tex);
+		}
+	}
+
+	CLAMP_MIN(size[0], 1);
+	CLAMP_MIN(size[1], 1);
 
 	float image_aspect[2];
-	image_calc_aspect(ob->data, ob->iuser, image_aspect);
+	image_calc_aspect(ob->data, size, image_aspect);
 
 	/* OPTI(fclem) We need sorting only for transparent images. If an image as no alpha channel and
 	 * ob->col[3] == 1.0f,  we could remove it from the sorting pass. */
