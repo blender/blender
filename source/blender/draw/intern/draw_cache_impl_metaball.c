@@ -207,9 +207,15 @@ GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(Object *ob)
 
 	if (cache->face_wire.batch == NULL) {
 		ListBase *lb = &ob->runtime.curve_cache->disp;
-		GPUVertBuf *vbo = MEM_callocN(sizeof(GPUVertBuf), __func__);
-		DRW_displist_vertbuf_create_wireframe_data_tess(lb, vbo);
-		cache->face_wire.batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+
+		GPUVertBuf *vbo_pos_nor = MEM_callocN(sizeof(GPUVertBuf), __func__);
+		GPUVertBuf *vbo_wireframe_data = MEM_callocN(sizeof(GPUVertBuf), __func__);
+
+		DRW_displist_vertbuf_create_pos_and_nor_and_uv_tess(lb, vbo_pos_nor, NULL);
+		DRW_displist_vertbuf_create_wireframe_data_tess(lb, vbo_wireframe_data);
+
+		cache->face_wire.batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo_pos_nor, NULL, GPU_BATCH_OWNS_VBO);
+		GPU_batch_vertbuf_add_ex(cache->face_wire.batch, vbo_wireframe_data, true);
 	}
 
 	return cache->face_wire.batch;

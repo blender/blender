@@ -899,6 +899,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 		DRW_vbo_request(cache->batch.curves, &cache->ordered.curves_pos);
 	}
 	if (DRW_batch_requested(cache->batch.wire_triangles, GPU_PRIM_TRIS)) {
+		DRW_vbo_request(cache->batch.wire_triangles, &cache->tess.pos_nor);
 		DRW_vbo_request(cache->batch.wire_triangles, &cache->tess.wireframe_data);
 	}
 
