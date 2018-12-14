@@ -109,6 +109,7 @@
 #include "BKE_library_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -517,6 +518,31 @@ static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **i
 	return IDWALK_RET_NOP;
 }
 
+static void id_copy_clear_runtime_if_needed(ID *id, int UNUSED(flag))
+{
+	if (id == NULL) {
+		return;
+	}
+	/* TODO(sergey): Think of having a flag which will allow to share runtime
+	 * fields of the ID.*/
+	switch ((ID_Type)GS(id->name)) {
+		case ID_OB:
+		{
+			Object *object = (Object *)id;
+			BKE_object_runtime_reset(object);
+			break;
+		}
+		case ID_ME:
+		{
+			Mesh *mesh = (Mesh *)id;
+			BKE_mesh_runtime_reset(mesh);
+			break;
+		}
+		default:
+			break;
+	}
+}
+
 /**
  * Generic entry point for copying a datablock (new API).
  *
@@ -681,6 +707,8 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
 	else {
 		(*r_newid)->lib = id->lib;
 	}
+
+	id_copy_clear_runtime_if_needed(*r_newid, flag);
 
 	return true;
 }
