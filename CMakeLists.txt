@@ -47,6 +47,13 @@ endif()
 
 cmake_minimum_required(VERSION 3.5)
 
+# Prever LEGACY OpenGL to eb compatible with all the existing releases and
+# platforms which don't hare GLVND yet. Only do it if preference was not set
+# externally.
+if(NOT DEFINED OpenGL_GL_PREFERENCE)
+	set(OpenGL_GL_PREFERENCE "LEGACY")
+endif()
+
 if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN TRUE)
 else()
@@ -1042,7 +1049,7 @@ if(WITH_SYSTEM_GLES)
 endif()
 
 if(WITH_GL_PROFILE_COMPAT OR WITH_GL_PROFILE_CORE)
-	list(APPEND BLENDER_GL_LIBRARIES "${OPENGL_gl_LIBRARY}")
+	list(APPEND BLENDER_GL_LIBRARIES "${OPENGL_LIBRARIES}")
 
 elseif(WITH_GL_PROFILE_ES20)
 	if(WITH_SYSTEM_GLES)
