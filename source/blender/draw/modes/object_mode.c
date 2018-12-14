@@ -2271,7 +2271,7 @@ static void DRW_shgroup_relationship_lines(
         Object *ob)
 {
 	if (ob->parent && DRW_object_is_visible_in_active_context(ob->parent)) {
-		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->parent->obmat[3]);
+		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->orig);
 		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 	}
 
