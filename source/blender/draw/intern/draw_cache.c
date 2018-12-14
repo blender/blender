@@ -3718,8 +3718,10 @@ void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
 	}
 	else {
 		/* HACK: bypass assert */
+		int vbo_vert_len = (*vbo)->vertex_len;
 		(*vbo)->vertex_len = batch->verts[0]->vertex_len;
 		GPU_batch_vertbuf_add(batch, *vbo);
+		(*vbo)->vertex_len = vbo_vert_len;
 	}
 }
 
