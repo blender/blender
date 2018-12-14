@@ -301,17 +301,21 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
     }                                                                         \
 } ((void)0)
 
-#define FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, _instance)         \
+#define FOREACH_OBJECT_FLAG_BEGIN(scene, _view_layer, _v3d, flag, _instance)  \
 {                                                                             \
 	IteratorBeginCb func_begin;                                               \
 	IteratorCb func_next, func_end;                                           \
 	void *data_in;                                                            \
+	struct ObjectsVisibleIteratorData data_ = {                               \
+		.view_layer = _view_layer,                                            \
+		.v3d = _v3d,                                                          \
+	};                                                                        \
 	                                                                          \
 	if (flag == SELECT) {                                                     \
 	    func_begin = &BKE_view_layer_selected_objects_iterator_begin;         \
 	    func_next = &BKE_view_layer_selected_objects_iterator_next;           \
 	    func_end = &BKE_view_layer_selected_objects_iterator_end;             \
-	    data_in = (view_layer);                                               \
+	    data_in = &data_;                                                     \
 	}                                                                         \
 	else {                                                                    \
 	    func_begin = BKE_scene_objects_iterator_begin;                        \
