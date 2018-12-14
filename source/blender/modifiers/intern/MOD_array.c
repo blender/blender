@@ -279,7 +279,6 @@ static void mesh_merge_transform(
 	MEdge *me;
 	MLoop *ml;
 	MPoly *mp;
-	MDeformVert *dvert;
 
 	CustomData_copy_data(&cap_mesh->vdata, &result->vdata, 0, cap_verts_index, cap_nverts);
 	CustomData_copy_data(&cap_mesh->edata, &result->edata, 0, cap_edges_index, cap_nedges);
@@ -295,9 +294,8 @@ static void mesh_merge_transform(
 	}
 
 	/* remap the vertex groups if necessary */
-	dvert = result->dvert + cap_verts_index;
-	if (dvert != NULL) {
-		BKE_object_defgroup_index_map_apply(dvert, cap_nverts, remap, remap_len);
+	if (result->dvert != NULL) {
+		BKE_object_defgroup_index_map_apply(&result->dvert[cap_verts_index], cap_nverts, remap, remap_len);
 	}
 
 	/* adjust cap edge vertex indices */
