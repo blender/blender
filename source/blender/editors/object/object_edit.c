@@ -1615,8 +1615,8 @@ static const EnumPropertyItem *object_mode_set_itemsf(
 			    (input->value == OB_MODE_PARTICLE_EDIT && use_mode_particle_edit) ||
 			    (ELEM(input->value, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT,
 			          OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
-			    (ELEM(input->value, OB_MODE_GPENCIL_EDIT, OB_MODE_GPENCIL_PAINT,
-			          OB_MODE_GPENCIL_SCULPT, OB_MODE_GPENCIL_WEIGHT) && (ob->type == OB_GPENCIL)) ||
+			    (ELEM(input->value, OB_MODE_EDIT_GPENCIL, OB_MODE_PAINT_GPENCIL,
+			          OB_MODE_SCULPT_GPENCIL, OB_MODE_WEIGHT_GPENCIL) && (ob->type == OB_GPENCIL)) ||
 			    (input->value == OB_MODE_OBJECT))
 			{
 				RNA_enum_item_add(&item, &totitem, input);
@@ -1674,7 +1674,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 
 	/* by default the operator assume is a mesh, but if gp object change mode */
 	if ((ob != NULL) && (ob->type == OB_GPENCIL) && (mode == OB_MODE_EDIT)) {
-		mode = OB_MODE_GPENCIL_EDIT;
+		mode = OB_MODE_EDIT_GPENCIL;
 	}
 
 	if (!ob || !ED_object_mode_compat_test(ob, mode))

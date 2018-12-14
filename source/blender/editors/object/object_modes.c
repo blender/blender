@@ -74,13 +74,13 @@ static const char *object_mode_op_string(eObjectMode mode)
 		return "PARTICLE_OT_particle_edit_toggle";
 	if (mode == OB_MODE_POSE)
 		return "OBJECT_OT_posemode_toggle";
-	if (mode == OB_MODE_GPENCIL_EDIT)
+	if (mode == OB_MODE_EDIT_GPENCIL)
 		return "GPENCIL_OT_editmode_toggle";
-	if (mode == OB_MODE_GPENCIL_PAINT)
+	if (mode == OB_MODE_PAINT_GPENCIL)
 		return "GPENCIL_OT_paintmode_toggle";
-	if (mode == OB_MODE_GPENCIL_SCULPT)
+	if (mode == OB_MODE_SCULPT_GPENCIL)
 		return "GPENCIL_OT_sculptmode_toggle";
-	if (mode == OB_MODE_GPENCIL_WEIGHT)
+	if (mode == OB_MODE_WEIGHT_GPENCIL)
 		return "GPENCIL_OT_weightmode_toggle";
 	return NULL;
 }
@@ -119,8 +119,8 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
 					return true;
 				break;
 			case OB_GPENCIL:
-				if (mode & (OB_MODE_EDIT | OB_MODE_GPENCIL_EDIT | OB_MODE_GPENCIL_PAINT |
-				            OB_MODE_GPENCIL_SCULPT | OB_MODE_GPENCIL_WEIGHT))
+				if (mode & (OB_MODE_EDIT | OB_MODE_EDIT_GPENCIL | OB_MODE_PAINT_GPENCIL |
+				            OB_MODE_SCULPT_GPENCIL | OB_MODE_WEIGHT_GPENCIL))
 				{
 					return true;
 				}

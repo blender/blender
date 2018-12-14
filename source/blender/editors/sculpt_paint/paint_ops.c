@@ -118,7 +118,7 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
 		br = BKE_brush_copy(bmain, br);
 	}
 	else {
-		br = BKE_brush_add(bmain, "Brush", OB_MODE_GPENCIL_PAINT);
+		br = BKE_brush_add(bmain, "Brush", OB_MODE_PAINT_GPENCIL);
 		id_us_min(&br->id);  /* fake user only */
 	}
 

@@ -123,10 +123,10 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
 			case CTX_MODE_PAINT_TEXTURE:        km_id = "Image Paint"; break;
 			case CTX_MODE_PARTICLE:             km_id = "Particle"; break;
 			case CTX_MODE_OBJECT:               km_id = "Object Mode"; break;
-			case CTX_MODE_GPENCIL_PAINT:        km_id = "Grease Pencil Stroke Paint Mode"; break;
-			case CTX_MODE_GPENCIL_EDIT:         km_id = "Grease Pencil Stroke Edit Mode"; break;
-			case CTX_MODE_GPENCIL_SCULPT:		km_id = "Grease Pencil Stroke Sculpt Mode"; break;
-			case CTX_MODE_GPENCIL_WEIGHT:       km_id = "Grease Pencil Stroke Weight Mode"; break;
+			case CTX_MODE_PAINT_GPENCIL:        km_id = "Grease Pencil Stroke Paint Mode"; break;
+			case CTX_MODE_EDIT_GPENCIL:         km_id = "Grease Pencil Stroke Edit Mode"; break;
+			case CTX_MODE_SCULPT_GPENCIL:		km_id = "Grease Pencil Stroke Sculpt Mode"; break;
+			case CTX_MODE_WEIGHT_GPENCIL:       km_id = "Grease Pencil Stroke Weight Mode"; break;
 		}
 	}
 	else if (sl->spacetype == SPACE_IMAGE) {

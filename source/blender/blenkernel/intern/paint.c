@@ -226,7 +226,7 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 					return &ts->wpaint->paint;
 				case OB_MODE_TEXTURE_PAINT:
 					return &ts->imapaint.paint;
-				case OB_MODE_GPENCIL_PAINT:
+				case OB_MODE_PAINT_GPENCIL:
 					return &ts->gp_paint->paint;
 				case OB_MODE_EDIT:
 					if (ts->use_uv_sculpt)
@@ -337,7 +337,7 @@ ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
 				return PAINT_MODE_VERTEX;
 			case CTX_MODE_PAINT_WEIGHT:
 				return PAINT_MODE_WEIGHT;
-			case CTX_MODE_GPENCIL_PAINT:
+			case CTX_MODE_PAINT_GPENCIL:
 				return PAINT_MODE_GPENCIL;
 			case CTX_MODE_PAINT_TEXTURE:
 				return PAINT_MODE_TEXTURE_3D;
@@ -389,7 +389,7 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
 	}
 	else if (paint == &ts->gp_paint->paint) {
 		paint->runtime.tool_offset = offsetof(Brush, gpencil_tool);
-		paint->runtime.ob_mode = OB_MODE_GPENCIL_PAINT;
+		paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL;
 	}
 	else if (paint == &ts->uvsculpt->paint) {
 		/* We don't use these yet. */

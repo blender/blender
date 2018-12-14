@@ -196,7 +196,7 @@ def generate(context, space_type):
                         'VERTEX_PAINT': "vertex_tool",
                         'WEIGHT_PAINT': "weight_tool",
                         'TEXTURE_PAINT': "image_tool",
-                        'GPENCIL_PAINT': "gpencil_tool",
+                        'PAINT_GPENCIL': "gpencil_tool",
                     }.get(mode, None)
                     if attr is not None:
                         setattr(kmi_hack_brush_select_properties, attr, item.data_block)

@@ -120,7 +120,7 @@ class VIEW3D_HT_header(Header):
         scene = context.scene
 
         # Orientation
-        if object_mode in {'OBJECT', 'EDIT', 'POSE', 'GPENCIL_EDIT'}:
+        if object_mode in {'OBJECT', 'EDIT', 'POSE', 'EDIT_GPENCIL'}:
             orientation = scene.transform_orientation
             current_orientation = scene.current_orientation
 
@@ -148,7 +148,7 @@ class VIEW3D_HT_header(Header):
             show_snap = True
         else:
             if object_mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
-                                   'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
+                                   'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
                 show_snap = True
             else:
 
@@ -217,7 +217,7 @@ class VIEW3D_HT_header(Header):
                 sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         # Pivot
-        if object_mode in {'OBJECT', 'EDIT', 'POSE', 'GPENCIL_EDIT', 'GPENCIL_SCULPT'}:
+        if object_mode in {'OBJECT', 'EDIT', 'POSE', 'EDIT_GPENCIL', 'SCULPT_GPENCIL'}:
             pivot_point = tool_settings.transform_pivot_point
             act_pivot_point = bpy.types.ToolSettings.bl_rna.properties["transform_pivot_point"].enum_items[pivot_point]
             row = layout.row(align=True)
@@ -227,7 +227,7 @@ class VIEW3D_HT_header(Header):
                 text="",
             )
         # grease pencil
-        if object_mode == 'GPENCIL_PAINT':
+        if object_mode == 'PAINT_GPENCIL':
             origin = tool_settings.gpencil_stroke_placement_view3d
             gp_origin = tool_settings.bl_rna.properties['gpencil_stroke_placement_view3d'].enum_items[origin]
 
@@ -239,7 +239,7 @@ class VIEW3D_HT_header(Header):
                 icon=or_icon,
             )
 
-        if object_mode in {'GPENCIL_PAINT', 'GPENCIL_SCULPT'}:
+        if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
             lock = tool_settings.gpencil_sculpt.lock_axis
             gp_lock = tool_settings.gpencil_sculpt.bl_rna.properties["lock_axis"].enum_items[lock]
 
@@ -302,13 +302,13 @@ class VIEW3D_MT_editor_menus(Menu):
         obj = context.active_object
         mode_string = context.mode
         edit_object = context.edit_object
-        gp_edit = obj and obj.mode in {'GPENCIL_EDIT', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}
+        gp_edit = obj and obj.mode in {'EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}
 
         layout.menu("VIEW3D_MT_view")
 
         # Select Menu
         if gp_edit:
-            if mode_string not in {'GPENCIL_PAINT', 'GPENCIL_WEIGHT'}:
+            if mode_string not in {'PAINT_GPENCIL', 'WEIGHT_GPENCIL'}:
                 layout.menu("VIEW3D_MT_select_gpencil")
         elif mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             mesh = obj.data
@@ -335,11 +335,11 @@ class VIEW3D_MT_editor_menus(Menu):
             layout.menu("TOPBAR_MT_edit_armature_add", text="Add")
 
         if gp_edit:
-            if obj and obj.mode == 'GPENCIL_PAINT':
+            if obj and obj.mode == 'PAINT_GPENCIL':
                 layout.menu("VIEW3D_MT_paint_gpencil")
-            elif obj and obj.mode == 'GPENCIL_EDIT':
+            elif obj and obj.mode == 'EDIT_GPENCIL':
                 layout.menu("VIEW3D_MT_edit_gpencil")
-            elif obj and obj.mode == 'GPENCIL_WEIGHT':
+            elif obj and obj.mode == 'WEIGHT_GPENCIL':
                 layout.menu("VIEW3D_MT_weight_gpencil")
 
         elif edit_object:
@@ -5147,10 +5147,10 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
     def draw_header(self, context):
         layout = self.layout
         layout.label(text={
-            'GPENCIL_PAINT': "Draw Grease Pencil",
-            'GPENCIL_EDIT': "Edit Grease Pencil",
-            'GPENCIL_SCULPT': "Sculpt Grease Pencil",
-            'GPENCIL_WEIGHT': "Weight Grease Pencil",
+            'PAINT_GPENCIL': "Draw Grease Pencil",
+            'EDIT_GPENCIL': "Edit Grease Pencil",
+            'SCULPT_GPENCIL': "Sculpt Grease Pencil",
+            'WEIGHT_GPENCIL': "Weight Grease Pencil",
             'OBJECT': "Grease Pencil",
         }[context.mode])
 
@@ -5174,14 +5174,14 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
         sub.active = overlay.use_gpencil_paper
         sub.prop(overlay, "gpencil_paper_opacity", text="Fade 3D Objects", slider=True)
 
-        if context.object.mode == 'GPENCIL_PAINT':
+        if context.object.mode == 'PAINT_GPENCIL':
             row = col.row()
             row.prop(overlay, "use_gpencil_fade_layers", text="")
             sub = row.row()
             sub.active = overlay.use_gpencil_fade_layers
             sub.prop(overlay, "gpencil_fade_layer", text="Fade Layers", slider=True)
 
-        if context.object.mode in {'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
+        if context.object.mode in {'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
             layout.prop(overlay, "use_gpencil_edit_lines", text="Edit Lines")
             layout.prop(overlay, "use_gpencil_multiedit_line_only", text="Show Edit Lines only in multiframe")
             layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
@@ -5404,7 +5404,7 @@ class VIEW3D_MT_gpencil_sculpt_specials(Menu):
         layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
         layout.operator("gpencil.stroke_simplify", text="Simplify Adaptative")
 
-        if context.mode == 'GPENCIL_WEIGHT':
+        if context.mode == 'WEIGHT_GPENCIL':
             layout.separator()
             layout.menu("VIEW3D_MT_gpencil_autoweights")
 

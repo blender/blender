@@ -1719,7 +1719,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 
 		/* reset the icon */
 		if ((ob != NULL) &&
-		    (ob->mode & OB_MODE_GPENCIL_PAINT) &&
+		    (ob->mode & OB_MODE_PAINT_GPENCIL) &&
 		    (br->gpencil_settings != NULL))
 		{
 			switch (br->gpencil_settings->icon_id) {

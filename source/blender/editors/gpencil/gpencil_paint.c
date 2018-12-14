@@ -1650,7 +1650,7 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 	Paint *paint = &ts->gp_paint->paint;
 	Brush *brush_old = paint->brush;
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
-		if ((brush->ob_mode == OB_MODE_GPENCIL_PAINT) &&
+		if ((brush->ob_mode == OB_MODE_PAINT_GPENCIL) &&
 		    (brush->gpencil_tool == GPAINT_TOOL_ERASE))
 		{
 			/* save first eraser to use later if no default */
@@ -2794,7 +2794,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 			p->gpd->flag &= ~GP_DATA_STROKE_WEIGHTMODE;
 			/* set workspace mode */
 			ob->restore_mode = ob->mode;
-			ob->mode = OB_MODE_GPENCIL_PAINT;
+			ob->mode = OB_MODE_PAINT_GPENCIL;
 			/* redraw mode on screen */
 			WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 		}

@@ -1577,7 +1577,7 @@ void DRW_gpencil_populate_datablock(
 			opacity = opacity * v3d->overlay.xray_alpha_bone;
 		}
 		/* fade no active layers */
-		if ((overlay) && (draw_ctx->object_mode == OB_MODE_GPENCIL_PAINT) &&
+		if ((overlay) && (draw_ctx->object_mode == OB_MODE_PAINT_GPENCIL) &&
 		    (v3d->gp_flag & V3D_GP_FADE_NOACTIVE_LAYERS) &&
 		    (draw_ctx->obact) && (draw_ctx->obact == ob) &&
 		    (gpl != gpl_active))

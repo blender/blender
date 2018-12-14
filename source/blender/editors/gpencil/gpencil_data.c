@@ -1555,8 +1555,8 @@ static bool gpencil_vertex_group_poll(bContext *C)
 	if ((ob) && (ob->type == OB_GPENCIL)) {
 		if (!ID_IS_LINKED(ob) && !ID_IS_LINKED(ob->data) && ob->defbase.first) {
 			if (ELEM(ob->mode,
-			         OB_MODE_GPENCIL_EDIT,
-			         OB_MODE_GPENCIL_SCULPT))
+			         OB_MODE_EDIT_GPENCIL,
+			         OB_MODE_SCULPT_GPENCIL))
 			{
 				return true;
 			}
@@ -1572,7 +1572,7 @@ static bool gpencil_vertex_group_weight_poll(bContext *C)
 
 	if ((ob) && (ob->type == OB_GPENCIL)) {
 		if (!ID_IS_LINKED(ob) && !ID_IS_LINKED(ob->data) && ob->defbase.first) {
-			if (ob->mode == OB_MODE_GPENCIL_WEIGHT) {
+			if (ob->mode == OB_MODE_WEIGHT_GPENCIL) {
 				return true;
 			}
 		}

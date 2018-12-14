@@ -342,7 +342,7 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
 		if (slot_index != brush->gpencil_tool) {
 			return false;
 		}
-		mode = OB_MODE_GPENCIL_PAINT;
+		mode = OB_MODE_PAINT_GPENCIL;
 	}
 
 	return brush->ob_mode & mode;

@@ -181,7 +181,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList 
 			Object *obact = CTX_data_active_object(C);
 			if (obact && (obact->type == OB_GPENCIL)) {
 				/* set cursor */
-				if (ELEM(obact->mode, OB_MODE_GPENCIL_PAINT, OB_MODE_GPENCIL_SCULPT, OB_MODE_GPENCIL_WEIGHT)) {
+				if (ELEM(obact->mode, OB_MODE_PAINT_GPENCIL, OB_MODE_SCULPT_GPENCIL, OB_MODE_WEIGHT_GPENCIL)) {
 					ED_gpencil_toggle_brush_cursor(C, true, NULL);
 				}
 				else {

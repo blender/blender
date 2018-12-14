@@ -194,7 +194,7 @@ Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name)
 {
 	Brush *brush;
 	Paint *paint = &ts->gp_paint->paint;
-	brush = BKE_brush_add(bmain, name, OB_MODE_GPENCIL_PAINT);
+	brush = BKE_brush_add(bmain, name, OB_MODE_PAINT_GPENCIL);
 
 	BKE_paint_brush_set(paint, brush);
 	id_us_min(&brush->id);

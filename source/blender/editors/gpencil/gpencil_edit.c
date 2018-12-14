@@ -172,7 +172,7 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
 	}
 	/* set mode */
 	if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
-		mode = OB_MODE_GPENCIL_EDIT;
+		mode = OB_MODE_EDIT_GPENCIL;
 	}
 	else {
 		mode = OB_MODE_OBJECT;
@@ -301,7 +301,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 	gpd->flag ^= GP_DATA_STROKE_PAINTMODE;
 	/* set mode */
 	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
-		mode = OB_MODE_GPENCIL_PAINT;
+		mode = OB_MODE_PAINT_GPENCIL;
 	}
 	else {
 		mode = OB_MODE_OBJECT;
@@ -316,7 +316,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 		ob->mode = mode;
 	}
 
-	if (mode == OB_MODE_GPENCIL_PAINT) {
+	if (mode == OB_MODE_PAINT_GPENCIL) {
 		/* be sure we have brushes */
 		BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
 		Paint *paint = &ts->gp_paint->paint;
@@ -400,7 +400,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 	gpd->flag ^= GP_DATA_STROKE_SCULPTMODE;
 	/* set mode */
 	if (gpd->flag & GP_DATA_STROKE_SCULPTMODE) {
-		mode = OB_MODE_GPENCIL_SCULPT;
+		mode = OB_MODE_SCULPT_GPENCIL;
 	}
 	else {
 		mode = OB_MODE_OBJECT;
@@ -488,7 +488,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 	gpd->flag ^= GP_DATA_STROKE_WEIGHTMODE;
 	/* set mode */
 	if (gpd->flag & GP_DATA_STROKE_WEIGHTMODE) {
-		mode = OB_MODE_GPENCIL_WEIGHT;
+		mode = OB_MODE_WEIGHT_GPENCIL;
 	}
 	else {
 		mode = OB_MODE_OBJECT;

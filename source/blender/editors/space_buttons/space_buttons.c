@@ -258,13 +258,13 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 			case CTX_MODE_OBJECT:
 				ARRAY_SET_ITEMS(contexts, ".objectmode");
 				break;
-			case CTX_MODE_GPENCIL_PAINT:
+			case CTX_MODE_PAINT_GPENCIL:
 				ARRAY_SET_ITEMS(contexts, ".greasepencil_paint");
 				break;
-			case CTX_MODE_GPENCIL_SCULPT:
+			case CTX_MODE_SCULPT_GPENCIL:
 				ARRAY_SET_ITEMS(contexts, ".greasepencil_sculpt");
 				break;
-			case CTX_MODE_GPENCIL_WEIGHT:
+			case CTX_MODE_WEIGHT_GPENCIL:
 				ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
 				break;
 		}
@@ -290,16 +290,16 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 	 * workspace->tools_space_type because this value is not available
 	 */
 	switch (mode) {
-		case CTX_MODE_GPENCIL_PAINT:
+		case CTX_MODE_PAINT_GPENCIL:
 			ARRAY_SET_ITEMS(contexts, ".greasepencil_paint");
 			break;
-		case CTX_MODE_GPENCIL_SCULPT:
+		case CTX_MODE_SCULPT_GPENCIL:
 			ARRAY_SET_ITEMS(contexts, ".greasepencil_sculpt");
 			break;
-		case CTX_MODE_GPENCIL_WEIGHT:
+		case CTX_MODE_WEIGHT_GPENCIL:
 			ARRAY_SET_ITEMS(contexts, ".greasepencil_weight");
 			break;
-		case CTX_MODE_GPENCIL_EDIT:
+		case CTX_MODE_EDIT_GPENCIL:
 			ARRAY_SET_ITEMS(contexts, ".greasepencil_edit");
 			break;
 	}

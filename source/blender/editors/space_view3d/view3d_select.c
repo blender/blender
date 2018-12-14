@@ -1849,9 +1849,9 @@ static bool ed_object_select_pick(
 			{
 				/* set cursor */
 				if (ELEM(basact->object->mode,
-				         OB_MODE_GPENCIL_PAINT,
-				         OB_MODE_GPENCIL_SCULPT,
-				         OB_MODE_GPENCIL_WEIGHT))
+				         OB_MODE_PAINT_GPENCIL,
+				         OB_MODE_SCULPT_GPENCIL,
+				         OB_MODE_WEIGHT_GPENCIL))
 				{
 					ED_gpencil_toggle_brush_cursor(C, true, NULL);
 				}

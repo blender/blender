@@ -145,12 +145,12 @@ class TOPBAR_HT_lower_bar(Header):
                 # if tool.has_datablock:
                 #     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
                 pass
-            elif tool_mode == 'GPENCIL_PAINT':
+            elif tool_mode == 'PAINT_GPENCIL':
                 if (tool is not None) and tool.has_datablock:
                     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
-            elif tool_mode == 'GPENCIL_SCULPT':
+            elif tool_mode == 'SCULPT_GPENCIL':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_sculpt", category="")
-            elif tool_mode == 'GPENCIL_WEIGHT':
+            elif tool_mode == 'WEIGHT_GPENCIL':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
         elif tool_space_type == 'IMAGE_EDITOR':
             if tool_mode == 'PAINT':
@@ -199,7 +199,7 @@ class TOPBAR_HT_lower_bar(Header):
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
             elif tool_mode == 'OBJECT':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
-            elif tool_mode in {'GPENCIL_PAINT', 'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
+            elif tool_mode in {'PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL'}:
                 # Grease pencil layer.
                 gpl = context.active_gpencil_layer
                 if gpl and gpl.info is not None:
@@ -296,7 +296,7 @@ class _draw_left_context_mode:
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
         @staticmethod
-        def GPENCIL_PAINT(context, layout, tool):
+        def PAINT_GPENCIL(context, layout, tool):
             if tool is None:
                 return
 
@@ -376,7 +376,7 @@ class _draw_left_context_mode:
                 draw_color_selector()
 
         @staticmethod
-        def GPENCIL_SCULPT(context, layout, tool):
+        def SCULPT_GPENCIL(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
             tool_settings = context.tool_settings
@@ -399,7 +399,7 @@ class _draw_left_context_mode:
                 row.prop(brush, "direction", expand=True, text="")
 
         @staticmethod
-        def GPENCIL_WEIGHT(context, layout, tool):
+        def WEIGHT_GPENCIL(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
             tool_settings = context.tool_settings

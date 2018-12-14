@@ -174,14 +174,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			const char *name = workspace->id.name + 2;
 
 			if (STREQ(name, "Drawing")) {
-				workspace->object_mode = OB_MODE_GPENCIL_PAINT;
+				workspace->object_mode = OB_MODE_PAINT_GPENCIL;
 			}
 		}
 		/* set object in drawing mode */
 		for (Object *object = bmain->object.first; object; object = object->id.next) {
 			if (object->type == OB_GPENCIL) {
 				bGPdata *gpd = (bGPdata *)object->data;
-				object->mode = OB_MODE_GPENCIL_PAINT;
+				object->mode = OB_MODE_PAINT_GPENCIL;
 				gpd->flag |= GP_DATA_STROKE_PAINTMODE;
 				break;
 			}
