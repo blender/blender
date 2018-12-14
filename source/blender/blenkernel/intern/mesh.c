@@ -701,7 +701,8 @@ Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 	int flags = (LIB_ID_CREATE_NO_MAIN |
 	             LIB_ID_CREATE_NO_USER_REFCOUNT |
 	             LIB_ID_CREATE_NO_DEG_TAG |
-	             LIB_ID_COPY_NO_PREVIEW);
+	             LIB_ID_COPY_NO_PREVIEW |
+	             LIB_ID_COPY_RUNTIME);
 
 	if (reference) {
 		flags |= LIB_ID_COPY_CD_REFERENCE;

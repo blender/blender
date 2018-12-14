@@ -518,13 +518,14 @@ static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **i
 	return IDWALK_RET_NOP;
 }
 
-static void id_copy_clear_runtime_if_needed(ID *id, int UNUSED(flag))
+static void id_copy_clear_runtime_if_needed(ID *id, int flag)
 {
 	if (id == NULL) {
 		return;
 	}
-	/* TODO(sergey): Think of having a flag which will allow to share runtime
-	 * fields of the ID.*/
+	if (flag & LIB_ID_COPY_RUNTIME) {
+		return;
+	}
 	switch ((ID_Type)GS(id->name)) {
 		case ID_OB:
 		{
