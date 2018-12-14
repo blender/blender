@@ -35,7 +35,7 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_curve.h"
-
+#include "BKE_displist.h"
 #include "BKE_font.h"
 
 #include "GPU_batch.h"
@@ -105,21 +105,22 @@ static void curve_render_wire_verts_edges_len_get(
 	BLI_assert(r_vert_len || r_edge_len);
 	int vert_len = 0;
 	int edge_len = 0;
-	*r_curve_len = 0;
+	int curve_len = 0;
 	for (const BevList *bl = ob_curve_cache->bev.first; bl; bl = bl->next) {
 		if (bl->nr > 0) {
 			const bool is_cyclic = bl->poly != -1;
-			/* Curve */
-			*r_curve_len += 1;
-
-			/* verts */
+			edge_len += (is_cyclic) ? bl->nr : bl->nr - 1;
 			vert_len += bl->nr;
-
-			/* edges */
-			edge_len += bl->nr;
-			if (!is_cyclic) {
-				edge_len -= 1;
-			}
+			curve_len += 1;
+		}
+	}
+	for (const DispList *dl = ob_curve_cache->disp.first; dl; dl = dl->next) {
+		if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
+			BLI_assert(dl->parts == 1);
+			const bool is_cyclic = dl->type == DL_POLY;
+			edge_len += (is_cyclic) ? dl->nr : dl->nr - 1;
+			vert_len += dl->nr;
+			curve_len += 1;
 		}
 	}
 	if (r_vert_len) {
@@ -127,6 +128,9 @@ static void curve_render_wire_verts_edges_len_get(
 	}
 	if (r_edge_len) {
 		*r_edge_len = edge_len;
+	}
+	if (r_curve_len) {
+		*r_curve_len = curve_len;
 	}
 }
 
@@ -345,7 +349,6 @@ static void curve_cd_calc_used_gpu_layers(int *cd_layers, struct GPUMaterial **g
 
 typedef struct CurveBatchCache {
 	struct {
-		/* Split by normals if necessary. */
 		GPUVertBuf *pos_nor;
 		GPUVertBuf *curves_pos;
 	} ordered;
@@ -570,6 +573,13 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
 			GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, bevp->vec);
 		}
 	}
+	for (const DispList *dl = rdata->ob_curve_cache->disp.first; dl; dl = dl->next) {
+		if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
+			for (int i = 0; i < dl->nr; v_idx++, i++) {
+				GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, &((float(*)[3])dl->verts)[i]);
+			}
+		}
+	}
 	BLI_assert(v_idx == vert_len);
 }
 
@@ -601,7 +611,19 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
 		GPU_indexbuf_add_primitive_restart(&elb);
 		v_idx += bl->nr;
 	}
-
+	for (const DispList *dl = rdata->ob_curve_cache->disp.first; dl; dl = dl->next) {
+		if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
+			const bool is_cyclic = dl->type == DL_POLY;
+			if (is_cyclic) {
+				GPU_indexbuf_add_generic_vert(&elb, v_idx + (dl->nr - 1));
+			}
+			for (int i = 0; i < dl->nr; i++) {
+				GPU_indexbuf_add_generic_vert(&elb, v_idx + i);
+			}
+			GPU_indexbuf_add_primitive_restart(&elb);
+			v_idx += dl->nr;
+		}
+	}
 	GPU_indexbuf_build_in_place(&elb, ibo_curve_lines);
 }
 
@@ -1002,10 +1024,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 #ifdef DEBUG
 	/* Make sure all requested batches have been setup. */
 	for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
-		GPUBatch **batch = (GPUBatch **)&cache->batch;
-		if (batch[i] != NULL) {
-			BLI_assert(batch[i]->verts[0] != NULL);
-		}
+		BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
 	}
 #endif
 

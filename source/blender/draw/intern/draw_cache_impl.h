@@ -119,7 +119,7 @@ void DRW_mesh_weight_state_copy(struct DRW_MeshWeightState *wstate_dst, const st
 bool DRW_mesh_weight_state_compare(const struct DRW_MeshWeightState *a, const struct DRW_MeshWeightState *b);
 
 /* Mesh */
-void DRW_mesh_batch_cache_create_requested(struct Object *ob);
+void DRW_mesh_batch_cache_create_requested(struct Object *ob, struct Mesh *me);
 
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         struct Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,

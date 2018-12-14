@@ -2682,7 +2682,21 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		}
 		case OB_SURF:
+		{
+			if (hide_object_extra) {
+				break;
+			}
+			struct GPUBatch *geom = DRW_cache_surf_edge_wire_get(ob);
+			if (geom == NULL) {
+				break;
+			}
+			if (theme_id == TH_UNDEFINED) {
+				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+			}
+			DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
+			DRW_shgroup_call_object_add(shgroup, geom, ob);
 			break;
+		}
 		case OB_LATTICE:
 		{
 			if (ob != draw_ctx->object_edit && !BKE_object_is_in_editmode(ob)) {

@@ -5761,13 +5761,11 @@ void DRW_mesh_cache_uvedit(
 /** \name Grouped batch generation
  * \{ */
 
-void DRW_mesh_batch_cache_create_requested(Object *ob)
+/* Can be called for any surface type. Mesh *me is the final mesh. */
+void DRW_mesh_batch_cache_create_requested(Object *UNUSED(ob), Mesh *me)
 {
-	BLI_assert(ob->type == OB_MESH);
-
 	const bool use_hide = false; /* TODO */
 
-	Mesh *me = (Mesh *)ob->data;
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	/* Init batches and request VBOs & IBOs */
