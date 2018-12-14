@@ -830,6 +830,13 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
 {
 	const TransInfo *t = op->customdata;
 	switch (value) {
+		case TFM_MODAL_CANCEL:
+		{
+			if ((t->flag & T_RELEASE_CONFIRM) && ISMOUSE(t->launch_event)) {
+				return false;
+			}
+			break;
+		}
 		case TFM_MODAL_PROPSIZE:
 		case TFM_MODAL_PROPSIZE_UP:
 		case TFM_MODAL_PROPSIZE_DOWN:
