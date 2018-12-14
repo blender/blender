@@ -1149,10 +1149,6 @@ void BM_mesh_elem_hflag_enable_test(
 
 	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
 
-	if (hflag & BM_ELEM_SELECT) {
-		BM_select_history_clear(bm);
-	}
-
 	/* note, better not attempt a fast path for selection as done with de-select
 	 * because hidden geometry and different selection modes can give different results,
 	 * we could of course check for no hidden faces and then use quicker method but its not worth it. */
