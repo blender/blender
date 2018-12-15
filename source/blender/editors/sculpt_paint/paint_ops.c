@@ -124,7 +124,8 @@ static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_paint_brush_set(paint, br);
 
-	/* TODO init grease pencil specific data */
+	/* init grease pencil specific data */
+	BKE_brush_init_gpencil_settings(br);
 
 	return OPERATOR_FINISHED;
 }
