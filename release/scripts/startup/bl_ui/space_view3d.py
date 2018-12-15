@@ -2662,6 +2662,11 @@ class VIEW3D_MT_pose_apply(Menu):
         layout.operator("pose.armature_apply")
         layout.operator("pose.visual_transform_apply")
 
+        layout.separator()
+
+        props = layout.operator("object.assign_property_defaults")
+        props.process_bones = True
+
 
 class VIEW3D_MT_pose_specials(Menu):
     bl_label = "Pose Context Menu"

@@ -404,7 +404,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		const PropertySubType subtype = RNA_property_subtype(prop);
 		bool is_anim = RNA_property_animateable(ptr, prop);
 		bool is_editable = RNA_property_editable(ptr, prop);
-		/*bool is_idprop = RNA_property_is_idprop(prop);*/ /* XXX does not work as expected, not strictly needed */
+		bool is_idprop = RNA_property_is_idprop(prop);
 		bool is_set = RNA_property_is_set(ptr, prop);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
@@ -641,6 +641,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		if (is_editable /*&& is_idprop*/ && is_set) {
 			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Unset"),
 			        ICON_NONE, "UI_OT_unset_property_button");
+		}
+
+		if (is_idprop && !is_array_component && ELEM(type, PROP_INT, PROP_FLOAT)) {
+			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Value as Default"),
+			        ICON_NONE, "UI_OT_assign_default_button");
+
+			uiItemS(layout);
 		}
 
 		if (is_array_component) {

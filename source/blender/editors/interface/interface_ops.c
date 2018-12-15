@@ -301,6 +301,58 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
 }
 
+/* Assign Value as Default Button Operator ------------------------ */
+
+static bool assign_default_button_poll(bContext *C)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+
+	if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
+		PropertyType type = RNA_property_type(prop);
+
+		return RNA_property_is_idprop(prop) && !RNA_property_array_check(prop) && ELEM(type, PROP_INT, PROP_FLOAT);
+	}
+
+	return false;
+}
+
+static int assign_default_button_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+
+	/* try to reset the nominated setting to its default value */
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+
+	/* if there is a valid property that is editable... */
+	if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
+		if (RNA_property_assign_default(&ptr, prop))
+			return operator_button_property_finish(C, &ptr, prop);
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+static void UI_OT_assign_default_button(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Assign Value as Default";
+	ot->idname = "UI_OT_assign_default_button";
+	ot->description = "Set this property's current value as the new default";
+
+	/* callbacks */
+	ot->poll = assign_default_button_poll;
+	ot->exec = assign_default_button_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+}
+
 /* Unset Property Button Operator ------------------------ */
 
 static int unset_property_button_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1557,6 +1609,7 @@ void ED_operatortypes_ui(void)
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_copy_python_command_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
+	WM_operatortype_append(UI_OT_assign_default_button);
 	WM_operatortype_append(UI_OT_unset_property_button);
 	WM_operatortype_append(UI_OT_override_type_set_button);
 	WM_operatortype_append(UI_OT_override_remove_button);

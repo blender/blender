@@ -1052,6 +1052,12 @@ rna_value = StringProperty(
     maxlen=1024,
 )
 
+rna_default = StringProperty(
+    name="Default Value",
+    description="Default value of the property. Important for NLA mixing",
+    maxlen=1024,
+)
+
 rna_property = StringProperty(
     name="Property Name",
     description="Property name edit",
@@ -1089,6 +1095,7 @@ class WM_OT_properties_edit(Operator):
     data_path: rna_path
     property: rna_property
     value: rna_value
+    default: rna_default
     min: rna_min
     max: rna_max
     use_soft_limits: rna_use_soft_limits
@@ -1107,6 +1114,28 @@ class WM_OT_properties_edit(Operator):
             "hard_range": (self.min, self.max),
         }
 
+    def get_value_eval(self):
+        try:
+            value_eval = eval(self.value)
+            # assert else None -> None, not "None", see [#33431]
+            assert(type(value_eval) in {str, float, int, bool, tuple, list})
+        except:
+            value_eval = self.value
+
+        return value_eval
+
+
+    def get_default_eval(self):
+        try:
+            default_eval = eval(self.default)
+            # assert else None -> None, not "None", see [#33431]
+            assert(type(default_eval) in {str, float, int, bool, tuple, list})
+        except:
+            default_eval = self.default
+
+        return default_eval
+
+
     def execute(self, context):
         from rna_prop_ui import (
             rna_idprop_ui_prop_get,
@@ -1124,12 +1153,8 @@ class WM_OT_properties_edit(Operator):
             self.report({'ERROR'}, "Direct execution not supported")
             return {'CANCELLED'}
 
-        try:
-            value_eval = eval(value)
-            # assert else None -> None, not "None", see [#33431]
-            assert(type(value_eval) in {str, float, int, bool, tuple, list})
-        except:
-            value_eval = value
+        value_eval = self.get_value_eval()
+        default_eval = self.get_default_eval()
 
         # First remove
         item = eval("context.%s" % data_path)
@@ -1159,6 +1184,8 @@ class WM_OT_properties_edit(Operator):
         if prop_type in {float, int}:
             prop_ui["min"] = prop_type(self.min)
             prop_ui["max"] = prop_type(self.max)
+            if type(default_eval) in {float, int} and default_eval != 0:
+                prop_ui["default"] = prop_type(default_eval)
 
             if self.use_soft_limits:
                 prop_ui["soft_min"] = prop_type(self.soft_min)
@@ -1223,12 +1250,23 @@ class WM_OT_properties_edit(Operator):
         exec_str = "item.is_property_overridable_static('[\"%s\"]')" % (self.property)
         self.is_overridable_static = bool(eval(exec_str))
 
+        # default default value
+        prop_type = type(self.get_value_eval())
+        if prop_type in {int,float}:
+            self.default = str(prop_type(0))
+        else:
+            self.default = ""
+
         # setup defaults
         prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # don't create
         if prop_ui:
             self.min = prop_ui.get("min", -1000000000)
             self.max = prop_ui.get("max", 1000000000)
             self.description = prop_ui.get("description", "")
+
+            defval = prop_ui.get("default", None)
+            if defval is not None:
+                self.default = str(defval)
 
             self.soft_min = prop_ui.get("soft_min", self.min)
             self.soft_max = prop_ui.get("soft_max", self.max)
@@ -1275,6 +1313,11 @@ class WM_OT_properties_edit(Operator):
         layout = self.layout
         layout.prop(self, "property")
         layout.prop(self, "value")
+
+        row = layout.row()
+        row.enabled = type(self.get_value_eval()) in {int,float}
+        row.prop(self, "default")
+
         row = layout.row(align=True)
         row.prop(self, "min")
         row.prop(self, "max")
