@@ -1043,7 +1043,7 @@ static BLI_bitmap *loose_verts_map_get(
         int *r_loose_vert_num)
 {
 	BLI_bitmap *loose_verts_mask = BLI_BITMAP_NEW(verts_num, __func__);
-	BLI_BITMAP_SET_ALL(loose_verts_mask, true, verts_num);
+	BLI_bitmap_set_all(loose_verts_mask, true, verts_num);
 
 	const MEdge *e = medge;
 	int num_linked_verts = 0;

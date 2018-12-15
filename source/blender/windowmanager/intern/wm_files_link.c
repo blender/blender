@@ -270,7 +270,7 @@ static void wm_link_do(
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
 				 * This avoids trying to link same item with other libraries to come. */
-				BLI_BITMAP_SET_ALL(item->libraries, false, lapp_data->num_libraries);
+				BLI_bitmap_set_all(item->libraries, false, lapp_data->num_libraries);
 				item->new_id = new_id;
 			}
 		}
@@ -633,7 +633,7 @@ static void lib_relocate_do(
 				/* Note that non-linkable IDs (like e.g. shapekeys) are also explicitly linked here... */
 				BLI_remlink(lbarray[lba_idx], id);
 				item = wm_link_append_data_item_add(lapp_data, id->name + 2, idcode, id);
-				BLI_BITMAP_SET_ALL(item->libraries, true, lapp_data->num_libraries);
+				BLI_bitmap_set_all(item->libraries, true, lapp_data->num_libraries);
 
 #ifdef PRINT_DEBUG
 				printf("\tdatablock to seek for: %s\n", id->name);

@@ -62,6 +62,7 @@ set(SRC
 	intern/array_store_utils.c
 	intern/array_utils.c
 	intern/astar.c
+	intern/bitmap.c
 	intern/bitmap_draw_2d.c
 	intern/boxpack_2d.c
 	intern/buffer.c

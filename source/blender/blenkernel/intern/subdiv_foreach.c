@@ -288,7 +288,7 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv,
 	/* Calculate number of geometry in the result subdivision mesh. */
 	subdiv_foreach_ctx_count(ctx);
 	/* Re-set maps which were used at this step. */
-	BLI_BITMAP_SET_ALL(ctx->coarse_edges_used_map, false, coarse_mesh->totedge);
+	BLI_bitmap_set_all(ctx->coarse_edges_used_map, false, coarse_mesh->totedge);
 	ctx->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
 }
 

@@ -1336,7 +1336,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(
 				for (tindex = 0; tindex < num_trees; tindex++) {
 					MeshElemMap *isld = island_store.islands[tindex];
 					int num_verts_active = 0;
-					BLI_BITMAP_SET_ALL(verts_active, false, (size_t)num_verts_src);
+					BLI_bitmap_set_all(verts_active, false, (size_t)num_verts_src);
 					for (i = 0; i < isld->count; i++) {
 						mp_src = &polys_src[isld->indices[i]];
 						for (lidx_src = mp_src->loopstart; lidx_src < mp_src->loopstart + mp_src->totloop; lidx_src++) {
@@ -1370,7 +1370,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(
 
 				for (tindex = 0; tindex < num_trees; tindex++) {
 					int num_looptri_active = 0;
-					BLI_BITMAP_SET_ALL(looptri_active, false, (size_t)num_looptri_src);
+					BLI_bitmap_set_all(looptri_active, false, (size_t)num_looptri_src);
 					for (i = 0; i < num_looptri_src; i++) {
 						mp_src = &polys_src[looptri_src[i].poly];
 						if (island_store.items_to_islands[mp_src->loopstart] == tindex) {

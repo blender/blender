@@ -275,7 +275,7 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 			BLI_assert(!md->hidden);
 
 			md->hidden = BLI_BITMAP_NEW(gridarea, "MDisps.hidden initialize");
-			BLI_BITMAP_SET_ALL(md->hidden, true, gridarea);
+			BLI_bitmap_set_all(md->hidden, true, gridarea);
 		}
 	}
 
