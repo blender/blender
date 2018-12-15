@@ -6275,6 +6275,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		if (sce->toolsettings->gp_sculpt.cur_falloff) {
 			direct_link_curvemapping(fd, sce->toolsettings->gp_sculpt.cur_falloff);
 		}
+		/* relink grease pencil primitive curve */
+		sce->toolsettings->gp_sculpt.cur_primitive = newdataadr(fd, sce->toolsettings->gp_sculpt.cur_primitive);
+		if (sce->toolsettings->gp_sculpt.cur_primitive) {
+			direct_link_curvemapping(fd, sce->toolsettings->gp_sculpt.cur_primitive);
+		}
 	}
 
 	if (sce->ed) {

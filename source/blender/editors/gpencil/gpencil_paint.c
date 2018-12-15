@@ -1066,7 +1066,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 						}
 						last_valid = i;
 					}
-					/* invalidate any point other point, to interpolate between
+					/* invalidate any other point, to interpolate between
 					 * first and last contact in an imaginary line between them */
 					for (i = 0; i < gpd->runtime.sbuffer_size; i++) {
 						if ((i != first_valid) && (i != last_valid)) {

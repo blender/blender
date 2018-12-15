@@ -252,6 +252,9 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 
 	tGPspoint *points = gpd->runtime.sbuffer;
 	int totpoints = gpd->runtime.sbuffer_size;
+	/* if cyclic needs more vertex */
+	int cyclic_add = (gpd->runtime.sbuffer_sflag & GP_STROKE_CYCLIC) ? 1 : 0;
+	int totvertex = totpoints + cyclic_add + 2;
 
 	static GPUVertFormat format = { 0 };
 	static uint pos_id, color_id, thickness_id, uvdata_id;
@@ -263,11 +266,11 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 	}
 
 	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-	GPU_vertbuf_data_alloc(vbo, totpoints + 2);
+	GPU_vertbuf_data_alloc(vbo, totvertex);
 
 	/* draw stroke curve */
 	const tGPspoint *tpt = points;
-	bGPDspoint pt, pt2;
+	bGPDspoint pt, pt2, pt3;
 	int idx = 0;
 
 	/* get origin to reproject point */
@@ -281,19 +284,22 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
-			if (totpoints > 1) {
-				ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt2);
+			if (gpd->runtime.sbuffer_sflag & GP_STROKE_CYCLIC && totpoints > 2) {
+				ED_gpencil_tpoint_to_point(ar, origin, &points[totpoints - 1], &pt2);
 				gpencil_set_stroke_point(
-				        vbo, &pt2, idx,
-				        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+					vbo, &pt2, idx,
+					pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+				idx++;
 			}
 			else {
+				ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt2);
 				gpencil_set_stroke_point(
-				        vbo, &pt, idx,
-				        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+					vbo, &pt2, idx,
+					pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+				idx++;
 			}
-			idx++;
 		}
+
 		/* set point */
 		gpencil_set_stroke_point(
 		        vbo, &pt, idx,
@@ -302,16 +308,27 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 	}
 
 	/* last adjacency point (not drawn) */
-	if (totpoints > 2) {
+	if (gpd->runtime.sbuffer_sflag & GP_STROKE_CYCLIC && totpoints > 2) {
+		/* draw line to first point to complete the cycle */
+		ED_gpencil_tpoint_to_point(ar, origin, &points[0], &pt2);
+		gpencil_set_stroke_point(
+			vbo, &pt2, idx,
+			pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+		idx++;
+		/* now add adjacency point (not drawn) */
+		ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt3);
+		gpencil_set_stroke_point(
+			vbo, &pt3, idx,
+			pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+		idx++;
+	}
+	/* last adjacency point (not drawn) */
+	else {
 		ED_gpencil_tpoint_to_point(ar, origin, &points[totpoints - 2], &pt2);
 		gpencil_set_stroke_point(
-		        vbo, &pt2, idx,
-		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
-	}
-	else {
-		gpencil_set_stroke_point(
-		        vbo, &pt, idx,
-		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+			vbo, &pt2, idx,
+			pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+		idx++;
 	}
 
 	return GPU_batch_create_ex(GPU_PRIM_LINE_STRIP_ADJ, vbo, NULL, GPU_BATCH_OWNS_VBO);
@@ -361,6 +378,42 @@ GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
 		        vbo, &pt, idx,
 		        pos_id, color_id, thickness_id, uvdata_id,
 		        thickness, gpd->runtime.scolor);
+		idx++;
+	}
+
+	return GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+}
+
+/* create batch geometry data for current buffer control point shader */
+GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(bGPdata *gpd)
+{
+	bGPDcontrolpoint *cps = gpd->runtime.cp_points;
+	int totpoints = gpd->runtime.tot_cp_points;
+
+	static GPUVertFormat format = { 0 };
+	static uint pos_id, color_id, size_id;
+	if (format.attr_len == 0) {
+		pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		size_id = GPU_vertformat_attr_add(&format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+		color_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+	}
+
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, totpoints);
+
+	int idx = 0;
+	for (int i = 0; i < gpd->runtime.tot_cp_points; i++) {
+		bGPDcontrolpoint *cp = &cps[i];
+		float color[4];
+		copy_v3_v3(color, cp->color);
+		color[3] = 0.5f;
+		GPU_vertbuf_attr_set(vbo, color_id, idx, color);
+
+		/* scale size */
+		float size = cp->size * 0.8f;
+		GPU_vertbuf_attr_set(vbo, size_id, idx, &size);
+
+		GPU_vertbuf_attr_set(vbo, pos_id, idx, &cp->x);
 		idx++;
 	}
 

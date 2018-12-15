@@ -48,6 +48,13 @@ struct MDeformVert;
 /* ***************************************** */
 /* GP Stroke Points */
 
+/* 'Control Point' data for primitives and curves */
+typedef struct bGPDcontrolpoint {
+	float x, y, z;          /* x and y coordinates of control point */
+	float color[4];         /* point color */
+	int size;               /* radius */
+} bGPDcontrolpoint;
+
 /* Grease-Pencil Annotations - 'Stroke Point'
  * -> Coordinates may either be 2d or 3d depending on settings at the time
  * -> Coordinates of point on stroke, in proportions of window size
@@ -345,6 +352,10 @@ typedef struct bGPdata_Runtime {
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
 	char pad_[6];
+
+	int tot_cp_points;                 /* number of control-points for stroke */
+	char pad1_[4];
+	bGPDcontrolpoint *cp_points;       /* array of control-points for stroke */
 } bGPdata_Runtime;
 
 /* grid configuration */

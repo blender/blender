@@ -188,6 +188,7 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
 	ts->gp_interpolate.custom_ipo = curvemapping_copy(ts->gp_interpolate.custom_ipo);
 	/* duplicate Grease Pencil multiframe fallof */
 	ts->gp_sculpt.cur_falloff = curvemapping_copy(ts->gp_sculpt.cur_falloff);
+	ts->gp_sculpt.cur_primitive = curvemapping_copy(ts->gp_sculpt.cur_primitive);
 	return ts;
 }
 
@@ -225,6 +226,9 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
 	/* free Grease Pencil multiframe falloff curve */
 	if (toolsettings->gp_sculpt.cur_falloff) {
 		curvemapping_free(toolsettings->gp_sculpt.cur_falloff);
+	}
+	if (toolsettings->gp_sculpt.cur_primitive) {
+		curvemapping_free(toolsettings->gp_sculpt.cur_primitive);
 	}
 
 	MEM_freeN(toolsettings);
@@ -697,6 +701,14 @@ void BKE_scene_init(Scene *sce)
 	curvemap_reset(gp_falloff_curve->cm,
 		&gp_falloff_curve->clipr,
 		CURVE_PRESET_GAUSS,
+		CURVEMAP_SLOPE_POSITIVE);
+
+	sce->toolsettings->gp_sculpt.cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+	CurveMapping *gp_primitive_curve = sce->toolsettings->gp_sculpt.cur_primitive;
+	curvemapping_initialize(gp_primitive_curve);
+	curvemap_reset(gp_primitive_curve->cm,
+		&gp_primitive_curve->clipr,
+		CURVE_PRESET_BELL,
 		CURVEMAP_SLOPE_POSITIVE);
 
 	sce->physics_settings.gravity[0] = 0.0f;

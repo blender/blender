@@ -2555,6 +2555,10 @@ static void write_scene(WriteData *wd, Scene *sce)
 	if (tos->gp_sculpt.cur_falloff) {
 		write_curvemapping(wd, tos->gp_sculpt.cur_falloff);
 	}
+	/* write grease-pencil primitive curve to file */
+	if (tos->gp_sculpt.cur_primitive) {
+		write_curvemapping(wd, tos->gp_sculpt.cur_primitive);
+	}
 
 	write_paint(wd, &tos->imapaint.paint);
 

@@ -1430,63 +1430,6 @@ void ED_gp_draw_interpolation(const bContext *C, tGPDinterpolate *tgpi, const in
 	glDisable(GL_BLEND);
 }
 
-/* draw interpolate strokes (used only while operator is running) */
-void ED_gp_draw_primitives(const bContext *C, tGPDprimitive *tgpi, const int type)
-{
-	tGPDdraw tgpw;
-	ARegion *ar = CTX_wm_region(C);
-	RegionView3D *rv3d = ar->regiondata;
-
-	/* if idle, do not draw */
-	if (tgpi->flag == 0) {
-		return;
-	}
-
-	Object *obact = CTX_data_active_object(C);
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-
-	float color[4];
-	UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, color);
-	color[3] = 0.6f;
-	int dflag = 0;
-	/* if 3d stuff, enable flags */
-	if (type == REGION_DRAW_POST_VIEW) {
-		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
-	}
-
-	tgpw.rv3d = rv3d;
-	tgpw.depsgraph = depsgraph;
-	tgpw.ob = obact;
-	tgpw.gpd = tgpi->gpd;
-	tgpw.offsx = 0;
-	tgpw.offsy = 0;
-	tgpw.winx = tgpi->ar->winx;
-	tgpw.winy = tgpi->ar->winy;
-	tgpw.dflag = dflag;
-
-	/* turn on alpha-blending */
-	GPU_blend(true);
-	/* calculate parent position */
-	ED_gpencil_parent_location(depsgraph, obact, tgpi->gpd, tgpi->gpl, tgpw.diff_mat);
-	if (tgpi->gpf) {
-		tgpw.gps = tgpi->gpf->strokes.first;
-		if (tgpw.gps->totpoints > 0) {
-			tgpw.gpl = tgpi->gpl;
-			tgpw.gpf = tgpi->gpf;
-			tgpw.t_gpf = tgpi->gpf;
-
-			tgpw.lthick = tgpi->gpl->line_change;
-			tgpw.opacity = 1.0;
-			copy_v4_v4(tgpw.tintcolor, color);
-			tgpw.onion = true;
-			tgpw.custonion = true;
-
-			gp_draw_strokes(&tgpw);
-		}
-	}
-	GPU_blend(false);
-}
-
 /* wrapper to draw strokes for filling operator */
 void ED_gp_draw_fill(tGPDdraw *tgpw)
 {

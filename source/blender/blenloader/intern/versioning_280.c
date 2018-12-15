@@ -2516,6 +2516,21 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		/* Grease pencil primitive curve */
+		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_primitive")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
+				if ((gset) && (gset->cur_primitive == NULL)) {
+					gset->cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+					curvemapping_initialize(gset->cur_primitive);
+					curvemap_reset(gset->cur_primitive->cm,
+						&gset->cur_primitive->clipr,
+						CURVE_PRESET_BELL,
+						CURVEMAP_SLOPE_POSITIVE);
+				}
+			}
+		}
 	}
 
 	{

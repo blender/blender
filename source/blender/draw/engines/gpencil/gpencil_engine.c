@@ -289,6 +289,9 @@ static void GPENCIL_engine_free(void)
 	GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_fill);
 	MEM_SAFE_FREE(e_data.batch_buffer_fill);
 
+	GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_ctrlpoint);
+	MEM_SAFE_FREE(e_data.batch_buffer_ctrlpoint);
+
 	GPU_BATCH_DISCARD_SAFE(e_data.batch_grid);
 	MEM_SAFE_FREE(e_data.batch_grid);
 

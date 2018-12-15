@@ -1035,6 +1035,7 @@ typedef struct GP_Sculpt_Settings {
 	int weighttype;               /* eGP_Sculpt_Types (weight paint) */
 	char pad[4];
 	struct CurveMapping *cur_falloff; /* multiframe edit falloff effect by frame */
+	struct CurveMapping *cur_primitive; /* Curve used for primitve tools */
 } GP_Sculpt_Settings;
 
 /* GP_Sculpt_Settings.flag */
@@ -1053,6 +1054,8 @@ typedef enum eGP_Sculpt_SettingsFlag {
 	GP_SCULPT_SETT_FLAG_FRAME_FALLOFF = (1 << 5),
 	/* apply brush to uv data */
 	GP_SCULPT_SETT_FLAG_APPLY_UV = (1 << 6),
+	/* apply primitve curve */
+	GP_SCULPT_SETT_FLAG_PRIMITIVE_CURVE = (1 << 7),
 } eGP_Sculpt_SettingsFlag;
 
 /* Settings for GP Interpolation Operators */

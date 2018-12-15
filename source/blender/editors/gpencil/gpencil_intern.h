@@ -138,6 +138,7 @@ typedef struct tGPDinterpolate {
 
 /* Temporary primitive operation data */
 typedef struct tGPDprimitive {
+	struct Main *bmain;               /* main database pointer */
 	struct Depsgraph *depsgraph;
 	struct wmWindow *win;             /* window where painting originated */
 	struct Scene *scene;              /* current scene from context */
@@ -154,25 +155,34 @@ typedef struct tGPDprimitive {
 	struct bGPDlayer *gpl;            /* layer */
 	struct bGPDframe *gpf;            /* frame */
 	int type;                         /* type of primitive */
-	short cyclic;                       /* cyclic option */
-	short flip;                         /* flip option */
+	int orign_type;                   /* original type of primitive */
+	bool curve;                       /* type of primitive is a curve */
+	short flip;                       /* flip option */
+	tGPspoint *points;                /* array of data-points for stroke */
+	int point_count;                  /* number of edges allocated */
+	int tot_stored_edges;             /* stored number of polygon edges */
 	int tot_edges;                    /* number of polygon edges */
-	int top[2];                       /* first box corner */
-	int bottom[2];                    /* last box corner */
-	int origin[2];                    /* initial box corner */
+	float origin[2];                  /* initial box corner */
+	float start[2];                   /* first box corner */
+	float end[2];                     /* last box corner */
+	float midpoint[2];                /* midpoint box corner */
+	float cp1[2];                     /* first control point */
+	float cp2[2];                     /* second control point */
+	int sel_cp;                       /* flag to determine control point is selected */
 	int flag;                         /* flag to determine operations in progress */
+	float mval[2];                    /* recorded mouse-position */
+	float mvalo[2];                   /* previous recorded mouse-position */
 
 	int lock_axis;                    /* lock to viewport axis */
+	struct RNG *rng;
 
 	NumInput num;                     /* numeric input */
-	void *draw_handle_3d;             /* handle for drawing strokes while operator is running 3d stuff */
 } tGPDprimitive;
 
 
 /* Modal Operator Drawing Callbacks ------------------------ */
 
 void ED_gp_draw_interpolation(const struct bContext *C, struct tGPDinterpolate *tgpi, const int type);
-void ED_gp_draw_primitives(const struct bContext *C, struct tGPDprimitive *tgpi, const int type);
 void ED_gp_draw_fill(struct tGPDdraw *tgpw);
 
 /* ***************************************************** */
@@ -369,7 +379,8 @@ enum {
 	GP_STROKE_BOX = -1,
 	GP_STROKE_LINE = 1,
 	GP_STROKE_CIRCLE = 2,
-	GP_STROKE_ARC = 3
+	GP_STROKE_ARC = 3,
+	GP_STROKE_CURVE = 4
 };
 
 
