@@ -491,6 +491,10 @@ bool ED_gpencil_add_armature_weights(
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
+	if (ob == NULL) {
+		return false;
+	}
+
 	/* if no armature modifier, add a new one */
 	GpencilModifierData *md = BKE_gpencil_modifiers_findByType(ob, eGpencilModifierType_Armature);
 	if (md == NULL) {
