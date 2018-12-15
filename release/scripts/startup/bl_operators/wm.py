@@ -1219,6 +1219,10 @@ class WM_OT_properties_edit(Operator):
 
         item = eval("context.%s" % data_path)
 
+        # retrieve overridable static
+        exec_str = "item.is_property_overridable_static('[\"%s\"]')" % (self.property)
+        self.is_overridable_static = bool(eval(exec_str))
+
         # setup defaults
         prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # don't create
         if prop_ui:
