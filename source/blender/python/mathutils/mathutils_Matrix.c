@@ -2550,7 +2550,7 @@ static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
 		}
 
 		/* copy matrix back */
-		memcpy(mat1->matrix, mat, mat1->num_row * mat1->num_col);
+		memcpy(mat1->matrix, mat, (mat1->num_row * mat1->num_col) * sizeof(float));
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
