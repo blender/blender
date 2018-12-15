@@ -57,7 +57,7 @@ bool is_equal(vec4 p1, vec4 p2)
 	if ((x < limit) && (y < limit) && (z < limit)) {
 		return true;
 	}
-	
+
 	return false;
 }
 

@@ -1229,10 +1229,10 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				}
 
 				if ((gpd->runtime.sbuffer_size >= 3) &&
-					(gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
-					((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0) &&
-					((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0) &&
-					(gp_style->flag & GP_STYLE_FILL_SHOW))
+				    (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
+				    ((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0) &&
+				    ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0) &&
+				    (gp_style->flag & GP_STYLE_FILL_SHOW))
 				{
 					/* if not solid, fill is simulated with solid color */
 					if (gpd->runtime.bfill_style > 0) {
@@ -1262,9 +1262,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 
 	/* control points */
 	if ((overlay) && (gpd->runtime.tot_cp_points > 0) &&
-		((gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
-		((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) &&
-		((v3d->gizmo_flag & V3D_GIZMO_HIDE_TOOL) == 0))
+	    ((gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
+	    ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) &&
+	    ((v3d->gizmo_flag & V3D_GIZMO_HIDE_TOOL) == 0))
 	{
 
 		DRWShadingGroup *shgrp = DRW_shgroup_create(

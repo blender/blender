@@ -1021,7 +1021,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			depth_arr = MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_size, "depth_points");
 
 			for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_size; i++, ptc++, pt++) {
-				
+
 				round_v2i_v2fl(mval_i, &ptc->x);
 
 				if ((ED_view3d_autodist_depth(p->ar, mval_i, depth_margin, depth_arr + i) == 0) &&

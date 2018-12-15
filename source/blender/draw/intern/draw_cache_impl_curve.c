@@ -990,7 +990,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 	}
 
 	if (DRW_vbo_requested(cache->tess.pos_nor) ||
-		DRW_vbo_requested(cache->tess.uv))
+	    DRW_vbo_requested(cache->tess.uv))
 	{
 		DRW_displist_vertbuf_create_pos_and_nor_and_uv_tess(lb, cache->tess.pos_nor, cache->tess.uv);
 	}

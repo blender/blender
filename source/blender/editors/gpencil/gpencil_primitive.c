@@ -284,7 +284,8 @@ static bool gpencil_primitive_add_poll(bContext *C)
 }
 
 /* Allocate memory to stroke, adds MAX_EDGES on every call */
-static void gpencil_primitive_allocate_memory(tGPDprimitive *tgpi) {
+static void gpencil_primitive_allocate_memory(tGPDprimitive *tgpi)
+{
 	tgpi->point_count += (tgpi->type == GP_STROKE_BOX) ? (MAX_EDGES * 4 + 1) : (MAX_EDGES + 1);
 	bGPDstroke *gpsf = tgpi->gpf->strokes.first;
 	gpsf->points = MEM_reallocN(gpsf->points, sizeof(bGPDspoint) * tgpi->point_count);
@@ -332,8 +333,9 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	gps->flag |= GP_STROKE_RECALC_CACHES;
 	gps->flag &= ~GP_STROKE_SELECT;
 	/* the polygon must be closed, so enabled cyclic */
-	if (ELEM(tgpi->type,GP_STROKE_BOX ,GP_STROKE_CIRCLE))
+	if (ELEM(tgpi->type, GP_STROKE_BOX, GP_STROKE_CIRCLE)) {
 		gps->flag |= GP_STROKE_CYCLIC;
+	}
 
 	gps->flag |= GP_STROKE_3DSPACE;
 
@@ -360,10 +362,12 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 /* add new segment to curve */
 static void gpencil_primitive_add_segment(tGPDprimitive *tgpi)
 {
-	if(tgpi->tot_stored_edges > 0)
+	if (tgpi->tot_stored_edges > 0) {
 		tgpi->tot_stored_edges += (tgpi->tot_edges - 1);
-	else
+	}
+	else {
 		tgpi->tot_stored_edges += tgpi->tot_edges;
+	}
 	gpencil_primitive_allocate_memory(tgpi);
 }
 
@@ -537,7 +541,7 @@ static void gp_primitive_arc(tGPDprimitive *tgpi, tGPspoint *points2D)
 
 	corner[0] = midpoint[0] - (cp1[0] - midpoint[0]);
 	corner[1] = midpoint[1] - (cp1[1] - midpoint[1]);
-	
+
 	for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
 		tGPspoint *p2d = &points2D[i];
 		p2d->x = corner[0] + (end[0] - corner[0]) * sinf(a) + (start[0] - corner[0]) * cosf(a);
@@ -662,7 +666,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 			gp_primitive_bezier(tgpi, points2D);
 		default:
 			break;
-		}
+	}
 
 	/* convert screen-coordinates to 3D coordinates */
 	gp_session_validatebuffer(tgpi);
@@ -687,14 +691,17 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
 		/* need to restore the original projection settings before packing up */
 		view3d_region_operator_needs_opengl(tgpi->win, tgpi->ar);
-		ED_view3d_autodist_init(tgpi->depsgraph, tgpi->ar, tgpi->v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+		ED_view3d_autodist_init(
+		        tgpi->depsgraph, tgpi->ar, tgpi->v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
 
 		depth_arr = MEM_mallocN(sizeof(float) * gps->totpoints, "depth_points");
 		tGPspoint *ptc = &points2D[0];
 		for (i = 0; i < gps->totpoints; i++, ptc++) {
 			round_v2i_v2fl(mval_i, &ptc->x);
-			if ((ED_view3d_autodist_depth(tgpi->ar, mval_i, depth_margin, depth_arr + i) == 0) &&
-				(i && (ED_view3d_autodist_depth_seg(tgpi->ar, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
+			if ((ED_view3d_autodist_depth(
+			             tgpi->ar, mval_i, depth_margin, depth_arr + i) == 0) &&
+			    (i && (ED_view3d_autodist_depth_seg(
+			                   tgpi->ar, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
 			{
 				interp_depth = true;
 			}
@@ -724,7 +731,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 			}
 			else {
 				if ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) ||
-					(ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))
+				    (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))
 				{
 					int first_valid = 0;
 					int last_valid = 0;
@@ -791,7 +798,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
 		/* apply jitter to position */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_jitter > 0.0f))
+		    (brush->gpencil_settings->draw_jitter > 0.0f))
 		{
 			float jitter;
 
@@ -803,7 +810,8 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 				jitter = brush->gpencil_settings->draw_jitter;
 			}
 
-			const float exfactor = (brush->gpencil_settings->draw_jitter + 2.0f) * (brush->gpencil_settings->draw_jitter + 2.0f); /* exponential value */
+			/* exponential value */
+			const float exfactor = SQUARE(brush->gpencil_settings->draw_jitter + 2.0f);
 			const float rnd = BLI_rng_get_float(tgpi->rng);
 			const float fac = rnd * exfactor * jitter;
 			if (rnd > 0.5f) {
@@ -816,7 +824,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
 		/* apply randomness to pressure */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_press > 0.0f))
+		    (brush->gpencil_settings->draw_random_press > 0.0f))
 		{
 			float rnd = BLI_rng_get_float(tgpi->rng);
 			if (rnd > 0.5f) {
@@ -833,12 +841,12 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 			strength *= curvef * brush->gpencil_settings->draw_sensitivity;
 			strength *= brush->gpencil_settings->draw_strength;
 		}
-		
+
 		CLAMP(strength, GPENCIL_STRENGTH_MIN, 1.0f);
 
 		/* apply randomness to color strength */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_strength > 0.0f))
+		    (brush->gpencil_settings->draw_random_strength > 0.0f))
 		{
 			const float rnd = BLI_rng_get_float(tgpi->rng);
 			if (rnd > 0.5f) {
@@ -1036,10 +1044,12 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 	/* set parameters */
 	tgpi->type = RNA_enum_get(op->ptr, "type");
 
-	if(ELEM(tgpi->type, GP_STROKE_ARC, GP_STROKE_CURVE))
+	if (ELEM(tgpi->type, GP_STROKE_ARC, GP_STROKE_CURVE)) {
 		tgpi->curve = true;
-	else
+	}
+	else {
 		tgpi->curve = false;
+	}
 
 	/* set default edge count */
 	switch (tgpi->type) {
@@ -1175,7 +1185,7 @@ static void gpencil_primitive_edit_event_handling(bContext *C, wmOperator *op, w
 			move = MOVE_ENDS;
 			WM_cursor_modal_set(win, BC_NSEW_SCROLLCURSOR);
 		}
-		else if(tgpi->curve) {
+		else if (tgpi->curve) {
 			move = MOVE_CP;
 			WM_cursor_modal_set(win, BC_HANDCURSOR);
 		}
@@ -1215,7 +1225,7 @@ static void gpencil_primitive_edit_event_handling(bContext *C, wmOperator *op, w
 				}
 				/* update screen */
 				gpencil_primitive_update(C, op, tgpi);
-			}			
+			}
 			break;
 		}
 		case LEFTMOUSE:
@@ -1244,8 +1254,8 @@ static void gpencil_primitive_edit_event_handling(bContext *C, wmOperator *op, w
 		case MKEY:
 		{
 			if ((event->val == KM_PRESS) &&
-				(tgpi->curve) &&
-				(tgpi->orign_type == GP_STROKE_ARC))
+			    (tgpi->curve) &&
+			    (tgpi->orign_type == GP_STROKE_ARC))
 			{
 				tgpi->flip ^= 1;
 				gp_primitive_update_cps(tgpi);
@@ -1273,7 +1283,7 @@ static void gpencil_primitive_move(tGPDprimitive *tgpi)
 {
 	float move[2];
 	sub_v2_v2v2(move, tgpi->mval, tgpi->mvalo);
-	
+
 	bGPDstroke *gps = tgpi->gpf->strokes.first;
 	tGPspoint *points2D = tgpi->points;
 
@@ -1417,7 +1427,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 		case CKEY: /* curve mode */
 		{
 			if ((event->val == KM_PRESS) &&
-				(tgpi->orign_type == GP_STROKE_CURVE))
+			    (tgpi->orign_type == GP_STROKE_CURVE))
 			{
 				switch (tgpi->type) {
 					case GP_STROKE_CURVE:
@@ -1464,7 +1474,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 					float y = tgpi->end[1] - tgpi->origin[1];
 					if (tgpi->type == GP_STROKE_LINE || tgpi->curve) {
 						float angle = fabsf(atan2f(y, x));
-						if (angle < 0.4f || angle >(M_PI - 0.4f)) {
+						if (angle < 0.4f || angle > (M_PI - 0.4f)) {
 							tgpi->end[1] = tgpi->origin[1];
 						}
 						else if (angle > (M_PI_2 - 0.4f) && angle < (M_PI_2 + 0.4f)) {

@@ -1076,7 +1076,6 @@ class _defs_gpencil_paint:
             widget=None,
             keymap=(),
         )
-		
 
     @ToolDef.from_fn
     def curve():
@@ -1086,7 +1085,7 @@ class _defs_gpencil_paint:
             cursor='CROSSHAIR',
             widget=None,
             keymap=(),
-        )		
+        )
 
 class _defs_gpencil_edit:
     @ToolDef.from_fn
