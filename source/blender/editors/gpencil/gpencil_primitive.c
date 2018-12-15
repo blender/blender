@@ -415,26 +415,26 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 		else {
 			if (tgpi->flag == IN_PROGRESS) {
 				BLI_snprintf(
-					status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, (int)tgpi->tot_edges,
-					tgpi->start[0], tgpi->start[1], tgpi->end[0], tgpi->end[1]);
+				        status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, tgpi->tot_edges,
+				        (int)tgpi->start[0], (int)tgpi->start[1], (int)tgpi->end[0], (int)tgpi->end[1]);
 			}
 			else {
 				BLI_snprintf(
-					status_str, sizeof(status_str), "%s: %d (%d, %d)", msg_str, (int)tgpi->tot_edges,
-					tgpi->end[0], tgpi->end[1]);
+				        status_str, sizeof(status_str), "%s: %d (%d, %d)", msg_str, tgpi->tot_edges,
+				        (int)tgpi->end[0], (int)tgpi->end[1]);
 			}
 		}
 	}
 	else {
 		if (tgpi->flag == IN_PROGRESS) {
 			BLI_snprintf(
-				status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, (int)tgpi->tot_edges,
-				tgpi->start[0], tgpi->start[1], tgpi->end[0], tgpi->end[1]);
+			        status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, tgpi->tot_edges,
+			        (int)tgpi->start[0], (int)tgpi->start[1], (int)tgpi->end[0], (int)tgpi->end[1]);
 		}
 		else {
 			BLI_snprintf(
-				status_str, sizeof(status_str), "%s: (%d, %d)", msg_str,
-				tgpi->end[0], tgpi->end[1]);
+			        status_str, sizeof(status_str), "%s: (%d, %d)", msg_str,
+			        (int)tgpi->end[0], (int)tgpi->end[1]);
 		}
 	}
 	ED_workspace_status_text(C, status_str);
@@ -1366,6 +1366,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 				/* done! */
 				return OPERATOR_FINISHED;
 			}
+			ATTR_FALLTHROUGH;
 		}
 		case ESCKEY:
 		{
