@@ -2020,130 +2020,362 @@ NlaEvalStrip *nlastrips_ctime_get_strip(Depsgraph *depsgraph, ListBase *list, Li
 
 /* ---------------------- */
 
-/* find an NlaEvalChannel that matches the given criteria
- * - ptr and prop are the RNA data to find a match for
- */
-static NlaEvalChannel *nlaevalchan_find_match(ListBase *channels, const PathResolvedRNA *prna)
+/* Initialize a valid mask, allocating memory if necessary. */
+static void nlavalidmask_init(NlaValidMask *mask, int bits)
 {
-	NlaEvalChannel *nec;
-
-	/* sanity check */
-	if (channels == NULL)
-		return NULL;
-
-	/* loop through existing channels, checking for a channel which affects the same property */
-	for (nec = channels->first; nec; nec = nec->next) {
-		/* - comparing the PointerRNA's is done by comparing the pointers
-		 *   to the actual struct the property resides in, since that all the
-		 *   other data stored in PointerRNA cannot allow us to definitively
-		 *   identify the data
-		 */
-		if ((nec->rna.ptr.data == prna->ptr.data) && (nec->rna.prop == prna->prop) && ELEM(nec->rna.prop_index, -1, prna->prop_index))
-			return nec;
+	if (BLI_BITMAP_SIZE(bits) > sizeof(mask->buffer)) {
+		mask->ptr = BLI_BITMAP_NEW(bits, "NlaValidMask");
 	}
-
-	/* not found */
-	return NULL;
+	else {
+		mask->ptr = mask->buffer;
+	}
 }
 
-/* initialise default value for NlaEvalChannel, so that it doesn't blend things wrong */
-static float nlaevalchan_init_value(PathResolvedRNA *rna)
+/* Free allocated memory for the mask. */
+static void nlavalidmask_free(NlaValidMask *mask)
 {
-	PointerRNA *ptr = &rna->ptr;
-	PropertyRNA *prop = rna->prop;
-	int index = rna->prop_index;
+	if (mask->ptr != mask->buffer) {
+		MEM_freeN(mask->ptr);
+	}
+}
+
+/* ---------------------- */
+
+/* Hashing functions for NlaEvalChannelKey. */
+static uint nlaevalchan_keyhash(const void *ptr)
+{
+	const NlaEvalChannelKey *key = ptr;
+	uint hash = BLI_ghashutil_ptrhash(key->ptr.data);
+	return hash ^ BLI_ghashutil_ptrhash(key->prop);
+}
+
+static bool nlaevalchan_keycmp(const void *a, const void *b)
+{
+	const NlaEvalChannelKey *A = a;
+	const NlaEvalChannelKey *B = b;
+
+	return (BLI_ghashutil_ptrcmp(A->ptr.data, B->ptr.data) ||
+	        BLI_ghashutil_ptrcmp(A->prop, B->prop));
+}
+
+/* ---------------------- */
+
+/* Allocate a new blending value snapshot for the channel. */
+static NlaEvalChannelSnapshot *nlaevalchan_snapshot_new(NlaEvalChannel *nec)
+{
+	int length = nec->base_snapshot.length;
+
+	size_t byte_size = sizeof(NlaEvalChannelSnapshot) + sizeof(float) * length;
+	NlaEvalChannelSnapshot *nec_snapshot = MEM_callocN(byte_size, "NlaEvalChannelSnapshot");
+
+	nec_snapshot->channel = nec;
+	nec_snapshot->length = length;
+
+	return nec_snapshot;
+}
+
+/* Free a channel's blending value snapshot. */
+static void nlaevalchan_snapshot_free(NlaEvalChannelSnapshot *nec_snapshot)
+{
+	BLI_assert(!nec_snapshot->is_base);
+
+	MEM_freeN(nec_snapshot);
+}
+
+/* Copy all data in the snapshot. */
+static void nlaevalchan_snapshot_copy(NlaEvalChannelSnapshot *dst, const NlaEvalChannelSnapshot *src)
+{
+	BLI_assert(dst->channel == src->channel);
+
+	memcpy(dst->values, src->values, sizeof(float) * dst->length);
+}
+
+/* ---------------------- */
+
+/* Initialize a blending state snapshot structure. */
+static void nlaeval_snapshot_init(NlaEvalSnapshot *snapshot, NlaEvalData *nlaeval, NlaEvalSnapshot *base)
+{
+	snapshot->base = base;
+	snapshot->size = MAX2(16, nlaeval->num_channels);
+	snapshot->channels = MEM_callocN(sizeof(*snapshot->channels) * snapshot->size, "NlaEvalSnapshot::channels");
+}
+
+/* Retrieve the individual channel snapshot. */
+static NlaEvalChannelSnapshot *nlaeval_snapshot_get(NlaEvalSnapshot *snapshot, int index)
+{
+	return (index < snapshot->size) ? snapshot->channels[index] : NULL;
+}
+
+/* Ensure at least this number of slots exists. */
+static void nlaeval_snapshot_ensure_size(NlaEvalSnapshot *snapshot, int size)
+{
+	if (size > snapshot->size) {
+		snapshot->size *= 2;
+		CLAMP_MIN(snapshot->size, size);
+		CLAMP_MIN(snapshot->size, 16);
+
+		size_t byte_size = sizeof(*snapshot->channels) * snapshot->size;
+		snapshot->channels = MEM_recallocN_id(snapshot->channels, byte_size, "NlaEvalSnapshot::channels");
+	}
+}
+
+/* Retrieve the address of a slot in the blending state snapshot for this channel (may realloc). */
+static NlaEvalChannelSnapshot **nlaeval_snapshot_ensure_slot(NlaEvalSnapshot *snapshot, NlaEvalChannel *nec)
+{
+	nlaeval_snapshot_ensure_size(snapshot, nec->owner->num_channels);
+	return &snapshot->channels[nec->index];
+}
+
+/* Retrieve the blending snapshot for the specified channel, with fallback to base. */
+static NlaEvalChannelSnapshot *nlaeval_snapshot_find_channel(NlaEvalSnapshot *snapshot, NlaEvalChannel *nec)
+{
+	while (snapshot != NULL) {
+		NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_get(snapshot, nec->index);
+		if (nec_snapshot != NULL) {
+			return nec_snapshot;
+		}
+		snapshot = snapshot->base;
+	}
+
+	return &nec->base_snapshot;
+}
+
+/* Retrieve or create the channel value snapshot, copying from the other snapshot (or default values) */
+static NlaEvalChannelSnapshot *nlaeval_snapshot_ensure_channel(NlaEvalSnapshot *snapshot, NlaEvalChannel *nec)
+{
+	NlaEvalChannelSnapshot **slot = nlaeval_snapshot_ensure_slot(snapshot, nec);
+
+	if (*slot == NULL) {
+		NlaEvalChannelSnapshot *base_snapshot, *nec_snapshot;
+
+		nec_snapshot = nlaevalchan_snapshot_new(nec);
+		base_snapshot = nlaeval_snapshot_find_channel(snapshot->base, nec);
+
+		nlaevalchan_snapshot_copy(nec_snapshot, base_snapshot);
+
+		*slot = nec_snapshot;
+	}
+
+	return *slot;
+}
+
+/* Free all memory owned by this blending snapshot structure. */
+static void nlaeval_snapshot_free_data(NlaEvalSnapshot *snapshot)
+{
+	if (snapshot->channels != NULL) {
+		for (int i = 0; i < snapshot->size; i++) {
+			NlaEvalChannelSnapshot *nec_snapshot = snapshot->channels[i];
+			if (nec_snapshot != NULL) {
+				nlaevalchan_snapshot_free(nec_snapshot);
+			}
+		}
+
+		MEM_freeN(snapshot->channels);
+	}
+
+	snapshot->base = NULL;
+	snapshot->size = 0;
+	snapshot->channels = NULL;
+}
+
+/* ---------------------- */
+
+/* Free memory owned by this evaluation channel. */
+static void nlaevalchan_free_data(NlaEvalChannel *nec)
+{
+	nlavalidmask_free(&nec->valid);
+}
+
+/* Initialize a full NLA evaluation state structure. */
+static void nlaeval_init(NlaEvalData *nlaeval)
+{
+	memset(nlaeval, 0, sizeof(*nlaeval));
+
+	nlaeval->path_hash = BLI_ghash_str_new("NlaEvalData::path_hash");
+	nlaeval->key_hash = BLI_ghash_new(nlaevalchan_keyhash, nlaevalchan_keycmp, "NlaEvalData::key_hash");
+}
+
+static void nlaeval_free(NlaEvalData *nlaeval)
+{
+	/* Delete base snapshot - its channels are part of NlaEvalChannel and shouldn't be freed. */
+	MEM_SAFE_FREE(nlaeval->base_snapshot.channels);
+
+	/* Delete result snapshot. */
+	nlaeval_snapshot_free_data(&nlaeval->eval_snapshot);
+
+	/* Delete channels. */
+	for (NlaEvalChannel *nec = nlaeval->channels.first; nec; nec = nec->next) {
+		nlaevalchan_free_data(nec);
+	}
+
+	BLI_freelistN(&nlaeval->channels);
+	BLI_ghash_free(nlaeval->path_hash, NULL, NULL);
+	BLI_ghash_free(nlaeval->key_hash, NULL, NULL);
+}
+
+/* ---------------------- */
+
+static int nlaevalchan_validate_index(NlaEvalChannel *nec, int index)
+{
+	if (nec->is_array) {
+		if (index >= 0 && index < nec->base_snapshot.length) {
+			return index;
+		}
+
+		return -1;
+	}
+	else {
+		return 0;
+	}
+}
+
+/* Initialise default values for NlaEvalChannel from the property data. */
+static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
+{
+	PointerRNA *ptr = &nec->key.ptr;
+	PropertyRNA *prop = nec->key.prop;
+	int length = nec->base_snapshot.length;
 
 	/* NOTE: while this doesn't work for all RNA properties as default values aren't in fact
 	 * set properly for most of them, at least the common ones (which also happen to get used
 	 * in NLA strips a lot, e.g. scale) are set correctly.
 	 */
-	switch (RNA_property_type(prop)) {
-		case PROP_BOOLEAN:
-			if (RNA_property_array_check(prop))
-				return (float)RNA_property_boolean_get_default_index(ptr, prop, index);
-			else
-				return (float)RNA_property_boolean_get_default(ptr, prop);
-		case PROP_INT:
-			if (RNA_property_array_check(prop))
-				return (float)RNA_property_int_get_default_index(ptr, prop, index);
-			else
-				return (float)RNA_property_int_get_default(ptr, prop);
-		case PROP_FLOAT:
-			if (RNA_property_array_check(prop))
-				return RNA_property_float_get_default_index(ptr, prop, index);
-			else
-				return RNA_property_float_get_default(ptr, prop);
-		case PROP_ENUM:
-			return (float)RNA_property_enum_get_default(ptr, prop);
-		default:
-			return 0.0f;
+	if (RNA_property_array_check(prop)) {
+		BLI_assert(length == RNA_property_array_length(ptr, prop));
+		bool *tmp_bool;
+		int *tmp_int;
+
+		switch (RNA_property_type(prop)) {
+			case PROP_BOOLEAN:
+				tmp_bool = MEM_malloc_arrayN(sizeof(*tmp_bool), length, __func__);
+				RNA_property_boolean_get_default_array(ptr, prop, tmp_bool);
+				for (int i = 0; i < length; i++) {
+					r_values[i] = (float)tmp_bool[i];
+				}
+				MEM_freeN(tmp_bool);
+				break;
+			case PROP_INT:
+				tmp_int = MEM_malloc_arrayN(sizeof(*tmp_int), length, __func__);
+				RNA_property_int_get_default_array(ptr, prop, tmp_int);
+				for (int i = 0; i < length; i++) {
+					r_values[i] = (float)tmp_int[i];
+				}
+				MEM_freeN(tmp_int);
+				break;
+			case PROP_FLOAT:
+				RNA_property_float_get_default_array(ptr, prop, r_values);
+				break;
+			default:
+				memset(r_values, 0, sizeof(float) * length);
+		}
+	}
+	else {
+		BLI_assert(length == 1);
+
+		switch (RNA_property_type(prop)) {
+			case PROP_BOOLEAN:
+				*r_values = (float)RNA_property_boolean_get_default(ptr, prop);
+				break;
+			case PROP_INT:
+				*r_values = (float)RNA_property_int_get_default(ptr, prop);
+				break;
+			case PROP_FLOAT:
+				*r_values = RNA_property_float_get_default(ptr, prop);
+				break;
+			case PROP_ENUM:
+				*r_values = (float)RNA_property_enum_get_default(ptr, prop);
+				break;
+			default:
+				*r_values = 0.0f;
+		}
 	}
 }
 
-/* verify that an appropriate NlaEvalChannel for this F-Curve exists */
-static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, FCurve *fcu, bool *newChan)
+/* Verify that an appropriate NlaEvalChannel for this property exists. */
+static NlaEvalChannel *nlaevalchan_verify_key(NlaEvalData *nlaeval, const char *path, NlaEvalChannelKey *key)
 {
-	NlaEvalChannel *nec;
-	PathResolvedRNA rna;
+	/* Look it up in the key hash. */
+	NlaEvalChannel **p_key_nec;
+	NlaEvalChannelKey **p_key;
+	bool found_key = BLI_ghash_ensure_p_ex(nlaeval->key_hash, key, (void***)&p_key, (void***)&p_key_nec);
 
-	/* sanity checks */
-	if (channels == NULL)
-		return NULL;
-
-	/* get RNA pointer+property info from F-Curve for more convenient handling */
-	if (!animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &rna)) {
-		return NULL;
+	if (found_key) {
+		return *p_key_nec;
 	}
 
-	/* try to find a match */
-	nec = nlaevalchan_find_match(channels, &rna);
+	/* Create the channel. */
+	bool is_array = RNA_property_array_check(key->prop);
+	int length = is_array ? RNA_property_array_length(&key->ptr, key->prop) : 1;
 
-	/* allocate a new struct for this if none found */
-	if (nec == NULL) {
-		nec = MEM_callocN(sizeof(NlaEvalChannel), "NlaEvalChannel");
-		BLI_addtail(channels, nec);
+	NlaEvalChannel *nec = MEM_callocN(sizeof(NlaEvalChannel) + sizeof(float) * length, "NlaEvalChannel");
 
-		/* store property links for writing to the property later */
-		nec->rna = rna;
+	/* Initialize the channel. */
+	nec->rna_path = path;
+	nec->key = *key;
 
-		/* store parameters for use with write_orig_anim_rna */
-		nec->rna_path = fcu->rna_path;
+	nec->owner = nlaeval;
+	nec->index = nlaeval->num_channels++;
+	nec->is_array = is_array;
 
-		/* initialise value using default value of property [#35856] */
-		nec->value = nlaevalchan_init_value(&rna);
-		*newChan = true;
-	}
-	else
-		*newChan = false;
+	nlavalidmask_init(&nec->valid, length);
 
-	/* we can now return */
+	nec->base_snapshot.channel = nec;
+	nec->base_snapshot.length = length;
+	nec->base_snapshot.is_base = true;
+
+	nlaevalchan_get_default_values(nec, nec->base_snapshot.values);
+
+	/* Store channel in data structures. */
+	BLI_addtail(&nlaeval->channels, nec);
+
+	*nlaeval_snapshot_ensure_slot(&nlaeval->base_snapshot, nec) = &nec->base_snapshot;
+
+	*p_key_nec = nec;
+	*p_key = &nec->key;
+
 	return nec;
 }
 
-static float nla_blend_value(int blendmode, float old_value, float value, float inf);
-
-/* accumulate (i.e. blend) the given value on to the channel it affects */
-static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, float value, bool newChan)
+/* Verify that an appropriate NlaEvalChannel for this path exists. */
+static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval, const char *path)
 {
-	NlaStrip *strip = nes->strip;
-	short blendmode = strip->blendmode;
-	float inf = strip->influence;
-
-	/* for replace blend mode, and if this is the first strip,
-	 * just replace the value regardless of the influence */
-	if (newChan && blendmode == NLASTRIP_MODE_REPLACE) {
-		nec->value = value;
-		return;
+	if (path == NULL) {
+		return NULL;
 	}
 
-	/* if this is being performed as part of transition evaluation, incorporate
-	 * an additional weighting factor for the influence
-	 */
-	if (nes->strip_mode == NES_TIME_TRANSITION_END)
-		inf *= nes->strip_time;
+	/* Lookup the path in the path based hash. */
+	NlaEvalChannel **p_path_nec;
+	bool found_path = BLI_ghash_ensure_p(nlaeval->path_hash, (void*)path, (void***)&p_path_nec);
 
-	nec->value = nla_blend_value(blendmode, nec->value, value, inf);
+	if (found_path) {
+		return *p_path_nec;
+	}
+
+	/* Resolve the property and look it up in the key hash. */
+	NlaEvalChannelKey key;
+
+	if (!RNA_path_resolve_property(ptr, path, &key.ptr, &key.prop)) {
+		/* Report failure to resolve the path. */
+		if (G.debug & G_DEBUG) {
+			printf("Animato: Invalid path. ID = '%s',  '%s'\n",
+			       (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>", path);
+		}
+
+		/* Cache NULL result. */
+		*p_path_nec = NULL;
+		return NULL;
+	}
+
+	NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, path, &key);
+
+	if (nec->rna_path == NULL) {
+		nec->rna_path = path;
+	}
+
+	return *p_path_nec = nec;
 }
+
+/* ---------------------- */
 
 /* accumulate the old and new values of a channel according to mode and influence */
 static float nla_blend_value(int blendmode, float old_value, float value, float inf)
@@ -2214,36 +2446,84 @@ static bool nla_invert_blend_value(int blend_mode, float old_value, float target
 	}
 }
 
-/* accumulate the results of a temporary buffer with the results of the full-buffer */
-static void nlaevalchan_buffers_accumulate(ListBase *channels, ListBase *tmp_buffer, NlaEvalStrip *nes)
+/* Data about the current blend mode. */
+typedef struct NlaBlendData {
+	NlaEvalSnapshot *snapshot;
+	int mode;
+	float influence;
+} NlaBlendData;
+
+/* Accumulate (i.e. blend) the given value on to the channel it affects. */
+static bool nlaeval_blend_value(NlaBlendData *blend, NlaEvalChannel *nec, int array_index, float value)
 {
-	NlaEvalChannel *nec, *necn, *necd;
+	if (nec == NULL) {
+		return false;
+	}
 
-	/* optimize - abort if no channels */
-	if (BLI_listbase_is_empty(tmp_buffer))
-		return;
+	int index = nlaevalchan_validate_index(nec, array_index);
 
-	/* accumulate results in tmp_channels buffer to the accumulation buffer */
-	for (nec = tmp_buffer->first; nec; nec = necn) {
-		/* get pointer to next channel in case we remove the current channel from the temp-buffer */
-		necn = nec->next;
+	if (index < 0) {
+		if (G.debug & G_DEBUG) {
+			ID *id = nec->key.ptr.id.data;
+			printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d\n",
+			       id ? (id->name + 2) : "<No ID>", nec->rna_path, array_index, nec->base_snapshot.length);
+		}
 
-		/* try to find an existing matching channel for this setting in the accumulation buffer */
-		necd = nlaevalchan_find_match(channels, &nec->rna);
+		return false;
+	}
 
-		/* if there was a matching channel already in the buffer, accumulate to it,
-		 * otherwise, add the current channel to the buffer for efficiency
-		 */
-		if (necd)
-			nlaevalchan_accumulate(necd, nes, 0, nec->value);
-		else {
-			BLI_remlink(tmp_buffer, nec);
-			BLI_addtail(channels, nec);
+	BLI_BITMAP_ENABLE(nec->valid.ptr, index);
+
+	NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_ensure_channel(blend->snapshot, nec);
+
+	nec_snapshot->values[index] = nla_blend_value(blend->mode, nec_snapshot->values[index], value, blend->influence);
+
+	return true;
+}
+
+/* Blend the specified snapshots into the target, and free the input snapshots. */
+static void nlaeval_snapshot_mix_and_free(NlaEvalData *nlaeval, NlaEvalSnapshot *out, NlaEvalSnapshot *in1, NlaEvalSnapshot *in2, float alpha)
+{
+	BLI_assert(in1->base == out && in2->base == out);
+
+	nlaeval_snapshot_ensure_size(out, nlaeval->num_channels);
+
+	for (int i = 0; i < nlaeval->num_channels; i++) {
+		NlaEvalChannelSnapshot *c_in1 = nlaeval_snapshot_get(in1, i);
+		NlaEvalChannelSnapshot *c_in2 = nlaeval_snapshot_get(in2, i);
+
+		if (c_in1 || c_in2) {
+			NlaEvalChannelSnapshot *c_out = out->channels[i];
+
+			/* Steal the entry from one of the input snapshots. */
+			if (c_out == NULL) {
+				if (c_in1 != NULL) {
+					c_out = c_in1;
+					in1->channels[i] = NULL;
+				}
+				else {
+					c_out = c_in2;
+					in2->channels[i] = NULL;
+				}
+			}
+
+			if (c_in1 == NULL) {
+				c_in1 = nlaeval_snapshot_find_channel(in1->base, c_out->channel);
+			}
+			if (c_in2 == NULL) {
+				c_in2 = nlaeval_snapshot_find_channel(in2->base, c_out->channel);
+			}
+
+			out->channels[i] = c_out;
+
+			for (int j = 0; j < c_out->length; j++) {
+				c_out->values[j] = c_in1->values[j] * (1.0f - alpha) + c_in2->values[j] * alpha;
+			}
 		}
 	}
 
-	/* free temp-channels that haven't been assimilated into the buffer */
-	BLI_freelistN(tmp_buffer);
+	nlaeval_snapshot_free_data(in1);
+	nlaeval_snapshot_free_data(in2);
 }
 
 /* ---------------------- */
@@ -2304,7 +2584,7 @@ static void nlaeval_fmodifiers_split_stacks(ListBase *list1, ListBase *list2)
 /* ---------------------- */
 
 /* evaluate action-clip strip */
-static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+static void nlastrip_evaluate_actionclip(PointerRNA *ptr, NlaEvalData *channels, ListBase *modifiers, NlaEvalStrip *nes, NlaEvalSnapshot *snapshot)
 {
 	FModifierStackStorage *storage;
 	ListBase tmp_modifiers = {NULL, NULL};
@@ -2330,11 +2610,15 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 	storage = evaluate_fmodifiers_storage_new(&tmp_modifiers);
 	evaltime = evaluate_time_fmodifiers(storage, &tmp_modifiers, NULL, 0.0f, strip->strip_time);
 
+	NlaBlendData blend = {
+	    .snapshot = snapshot,
+	    .mode = strip->blendmode,
+	    .influence = strip->influence,
+	};
+
 	/* evaluate all the F-Curves in the action, saving the relevant pointers to data that will need to be used */
 	for (fcu = strip->act->curves.first; fcu; fcu = fcu->next) {
-		NlaEvalChannel *nec;
 		float value = 0.0f;
-		bool newChan;
 
 		/* check if this curve should be skipped */
 		if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))
@@ -2352,13 +2636,12 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 		 */
 		evaluate_value_fmodifiers(storage, &tmp_modifiers, fcu, &value, strip->strip_time);
 
-
 		/* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
 		 * stored in this channel if it has been used already
 		 */
-		nec = nlaevalchan_verify(ptr, channels, fcu, &newChan);
-		if (nec)
-			nlaevalchan_accumulate(nec, nes, value, newChan);
+		NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
+
+		nlaeval_blend_value(&blend, nec, fcu->array_index, value);
 	}
 
 	/* free temporary storage */
@@ -2370,10 +2653,10 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, ListBase *channels, Li
 
 /* evaluate transition strip */
 static void nlastrip_evaluate_transition(
-        Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+        Depsgraph *depsgraph, PointerRNA *ptr, NlaEvalData *channels, ListBase *modifiers, NlaEvalStrip *nes, NlaEvalSnapshot *snapshot)
 {
-	ListBase tmp_channels = {NULL, NULL};
 	ListBase tmp_modifiers = {NULL, NULL};
+	NlaEvalSnapshot snapshot1, snapshot2;
 	NlaEvalStrip tmp_nes;
 	NlaStrip *s1, *s2;
 
@@ -2410,16 +2693,17 @@ static void nlastrip_evaluate_transition(
 	/* first strip */
 	tmp_nes.strip_mode = NES_TIME_TRANSITION_START;
 	tmp_nes.strip = s1;
-	nlastrip_evaluate(depsgraph, ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
+	nlaeval_snapshot_init(&snapshot1, channels, snapshot);
+	nlastrip_evaluate(depsgraph, ptr, channels, &tmp_modifiers, &tmp_nes, &snapshot1);
 
 	/* second strip */
 	tmp_nes.strip_mode = NES_TIME_TRANSITION_END;
 	tmp_nes.strip = s2;
-	nlastrip_evaluate(depsgraph, ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
-
+	nlaeval_snapshot_init(&snapshot2, channels, snapshot);
+	nlastrip_evaluate(depsgraph, ptr, channels, &tmp_modifiers, &tmp_nes, &snapshot2);
 
 	/* accumulate temp-buffer and full-buffer, using the 'real' strip */
-	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
+	nlaeval_snapshot_mix_and_free(channels, snapshot, &snapshot1, &snapshot2, nes->strip_time);
 
 	/* unlink this strip's modifiers from the parent's modifiers again */
 	nlaeval_fmodifiers_split_stacks(&nes->strip->modifiers, modifiers);
@@ -2427,7 +2711,7 @@ static void nlastrip_evaluate_transition(
 
 /* evaluate meta-strip */
 static void nlastrip_evaluate_meta(
-        Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+        Depsgraph *depsgraph, PointerRNA *ptr, NlaEvalData *channels, ListBase *modifiers, NlaEvalStrip *nes, NlaEvalSnapshot *snapshot)
 {
 	ListBase tmp_modifiers = {NULL, NULL};
 	NlaStrip *strip = nes->strip;
@@ -2453,7 +2737,7 @@ static void nlastrip_evaluate_meta(
 	 * - there's no need to use a temporary buffer (as it causes issues [T40082])
 	 */
 	if (tmp_nes) {
-		nlastrip_evaluate(depsgraph, ptr, channels, &tmp_modifiers, tmp_nes);
+		nlastrip_evaluate(depsgraph, ptr, channels, &tmp_modifiers, tmp_nes, snapshot);
 
 		/* free temp eval-strip */
 		MEM_freeN(tmp_nes);
@@ -2464,7 +2748,7 @@ static void nlastrip_evaluate_meta(
 }
 
 /* evaluates the given evaluation strip */
-void nlastrip_evaluate(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+void nlastrip_evaluate(Depsgraph *depsgraph, PointerRNA *ptr, NlaEvalData *channels, ListBase *modifiers, NlaEvalStrip *nes, NlaEvalSnapshot *snapshot)
 {
 	NlaStrip *strip = nes->strip;
 
@@ -2479,13 +2763,13 @@ void nlastrip_evaluate(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels
 	/* actions to take depend on the type of strip */
 	switch (strip->type) {
 		case NLASTRIP_TYPE_CLIP: /* action-clip */
-			nlastrip_evaluate_actionclip(ptr, channels, modifiers, nes);
+			nlastrip_evaluate_actionclip(ptr, channels, modifiers, nes, snapshot);
 			break;
 		case NLASTRIP_TYPE_TRANSITION: /* transition */
-			nlastrip_evaluate_transition(depsgraph, ptr, channels, modifiers, nes);
+			nlastrip_evaluate_transition(depsgraph, ptr, channels, modifiers, nes, snapshot);
 			break;
 		case NLASTRIP_TYPE_META: /* meta */
-			nlastrip_evaluate_meta(depsgraph, ptr, channels, modifiers, nes);
+			nlastrip_evaluate_meta(depsgraph, ptr, channels, modifiers, nes, snapshot);
 			break;
 
 		default: /* do nothing */
@@ -2497,10 +2781,8 @@ void nlastrip_evaluate(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels
 }
 
 /* write the accumulated settings to */
-void nladata_flush_channels(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *channels)
+void nladata_flush_channels(Depsgraph *depsgraph, PointerRNA *ptr, NlaEvalData *channels, NlaEvalSnapshot *snapshot)
 {
-	NlaEvalChannel *nec;
-
 	/* sanity checks */
 	if (channels == NULL)
 		return;
@@ -2508,12 +2790,97 @@ void nladata_flush_channels(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *cha
 	const bool is_active_depsgraph = DEG_is_active(depsgraph);
 
 	/* for each channel with accumulated values, write its value on the property it affects */
-	for (nec = channels->first; nec; nec = nec->next) {
-		animsys_write_rna_setting(&nec->rna, nec->value);
-		if (is_active_depsgraph) {
-			animsys_write_orig_anim_rna(ptr, nec->rna_path, nec->rna.prop_index, nec->value);
+	for (NlaEvalChannel *nec = channels->channels.first; nec; nec = nec->next) {
+		NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_find_channel(snapshot, nec);
+
+		PathResolvedRNA rna = { nec->key.ptr, nec->key.prop, -1 };
+
+		for (int i = 0; i < nec_snapshot->length; i++) {
+			if (BLI_BITMAP_TEST(nec->valid.ptr, i)) {
+				float value = nec_snapshot->values[i];
+				if (nec->is_array) {
+					rna.prop_index = i;
+				}
+				animsys_write_rna_setting(&rna, value);
+				if (is_active_depsgraph) {
+					animsys_write_orig_anim_rna(ptr, nec->rna_path, rna.prop_index, value);
+				}
+			}
 		}
 	}
+}
+
+/* ---------------------- */
+
+static void nla_eval_domain_action(PointerRNA *ptr, NlaEvalData *channels, bAction *act, GSet *touched_actions)
+{
+	if (!BLI_gset_add(touched_actions, act)) {
+		return;
+	}
+
+	for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
+		/* check if this curve should be skipped */
+		if (fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED))
+			continue;
+		if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED))
+			continue;
+
+		NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path);
+
+		if (nec != NULL) {
+			int idx = nlaevalchan_validate_index(nec, fcu->array_index);
+
+			if (idx >= 0) {
+				BLI_BITMAP_ENABLE(nec->valid.ptr, idx);
+			}
+		}
+	}
+}
+
+static void nla_eval_domain_strips(PointerRNA *ptr, NlaEvalData *channels, ListBase *strips, GSet *touched_actions)
+{
+	for (NlaStrip *strip = strips->first; strip; strip = strip->next) {
+		/* check strip's action */
+		if (strip->act) {
+			nla_eval_domain_action(ptr, channels, strip->act, touched_actions);
+		}
+
+		/* check sub-strips (if metas) */
+		nla_eval_domain_strips(ptr, channels, &strip->strips, touched_actions);
+	}
+}
+
+/**
+ * Ensure that all channels touched by any of the actions in enabled tracks exist.
+ * This is necessary to ensure that evaluation result depends only on current frame.
+ */
+static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, AnimData *adt)
+{
+	GSet *touched_actions = BLI_gset_ptr_new(__func__);
+
+	if (adt->action) {
+		nla_eval_domain_action(ptr, channels, adt->action, touched_actions);
+	}
+
+	/* NLA Data - Animation Data for Strips */
+	for (NlaTrack *nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		/* solo and muting are mutually exclusive... */
+		if (adt->flag & ADT_NLA_SOLO_TRACK) {
+			/* skip if there is a solo track, but this isn't it */
+			if ((nlt->flag & NLATRACK_SOLO) == 0)
+				continue;
+			/* else - mute doesn't matter */
+		}
+		else {
+			/* no solo tracks - skip track if muted */
+			if (nlt->flag & NLATRACK_MUTED)
+				continue;
+		}
+
+		nla_eval_domain_strips(ptr, channels, &nlt->strips, touched_actions);
+	}
+
+	BLI_gset_free(touched_actions, NULL);
 }
 
 /* ---------------------- */
@@ -2523,8 +2890,9 @@ void nladata_flush_channels(Depsgraph *depsgraph, PointerRNA *ptr, ListBase *cha
  *
  * \param[out] echannels Evaluation channels with calculated values
  * \param[out] r_context If not NULL, data about the currently edited strip is stored here and excluded from value calculation.
+ * \return false if NLA evaluation isn't actually applicable
  */
-static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, PointerRNA *ptr, AnimData *adt, float ctime, NlaKeyframingContext *r_context)
+static bool animsys_evaluate_nla(Depsgraph *depsgraph, NlaEvalData *echannels, PointerRNA *ptr, AnimData *adt, float ctime, NlaKeyframingContext *r_context)
 {
 	NlaTrack *nlt;
 	short track_index = 0;
@@ -2630,35 +2998,28 @@ static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, Poin
 				/* These setting combinations require no data from strips below, so exit immediately. */
 				if ((nes == NULL) || (dummy_strip->blendmode == NLASTRIP_MODE_REPLACE && dummy_strip->influence == 1.0f)) {
 					BLI_freelistN(&estrips);
-					return;
+					return true;
 				}
 			}
 		}
 		else {
 			/* special case - evaluate as if there isn't any NLA data */
-			/* TODO: this is really just a stop-gap measure... */
-			if (G.debug & G_DEBUG) printf("NLA Eval: Stopgap for active action on NLA Stack - no strips case\n");
-
-			if (r_context == NULL) {
-				animsys_evaluate_action(depsgraph, ptr, adt->action, ctime);
-			}
-
 			BLI_freelistN(&estrips);
-			return;
+			return false;
 		}
 	}
 
 	/* only continue if there are strips to evaluate */
 	if (BLI_listbase_is_empty(&estrips))
-		return;
-
+		return true;
 
 	/* 2. for each strip, evaluate then accumulate on top of existing channels, but don't set values yet */
 	for (nes = estrips.first; nes; nes = nes->next)
-		nlastrip_evaluate(depsgraph, ptr, echannels, NULL, nes);
+		nlastrip_evaluate(depsgraph, ptr, echannels, NULL, nes, &echannels->eval_snapshot);
 
 	/* 3. free temporary evaluation data that's not used elsewhere */
 	BLI_freelistN(&estrips);
+	return true;
 }
 
 /* NLA Evaluation function (mostly for use through do_animdata)
@@ -2667,19 +3028,28 @@ static void animsys_evaluate_nla(Depsgraph *depsgraph, ListBase *echannels, Poin
  */
 static void animsys_calculate_nla(Depsgraph *depsgraph, PointerRNA *ptr, AnimData *adt, float ctime)
 {
-	ListBase echannels = {NULL, NULL};
+	NlaEvalData echannels;
 
-	/* TODO: need to zero out all channels used, otherwise we have problems with threadsafety
-	 * and also when the user jumps between different times instead of moving sequentially... */
+	nlaeval_init(&echannels);
 
 	/* evaluate the NLA stack, obtaining a set of values to flush */
-	animsys_evaluate_nla(depsgraph, &echannels, ptr, adt, ctime, NULL);
+	if (animsys_evaluate_nla(depsgraph, &echannels, ptr, adt, ctime, NULL)) {
+		/* reset any channels touched by currently inactive actions to default value */
+		animsys_evaluate_nla_domain(ptr, &echannels, adt);
 
-	/* flush effects of accumulating channels in NLA to the actual data they affect */
-	nladata_flush_channels(depsgraph, ptr, &echannels);
+		/* flush effects of accumulating channels in NLA to the actual data they affect */
+		nladata_flush_channels(depsgraph, ptr, &echannels, &echannels.eval_snapshot);
+	}
+	else {
+		/* special case - evaluate as if there isn't any NLA data */
+		/* TODO: this is really just a stop-gap measure... */
+		if (G.debug & G_DEBUG) printf("NLA Eval: Stopgap for active action on NLA Stack - no strips case\n");
+
+		animsys_evaluate_action(depsgraph, ptr, adt->action, ctime);
+	}
 
 	/* free temp data */
-	BLI_freelistN(&echannels);
+	nlaeval_free(&echannels);
 }
 
 /* ---------------------- */
@@ -2713,6 +3083,7 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 		ctx = MEM_callocN(sizeof(*ctx), "NlaKeyframingContext");
 		ctx->adt = adt;
 
+		nlaeval_init(&ctx->nla_channels);
 		animsys_evaluate_nla(depsgraph, &ctx->nla_channels, ptr, adt, ctime, ctx);
 
 		BLI_assert(ELEM(ctx->strip.act, NULL, adt->action));
@@ -2757,16 +3128,19 @@ bool BKE_animsys_nla_remap_keyframe_value(struct NlaKeyframingContext *context, 
 	}
 
 	/* Find the evaluation channel for the NLA stack below current strip. */
-	PathResolvedRNA rna = { .ptr = *prop_ptr, .prop = prop, .prop_index = index };
-	NlaEvalChannel *nec = nlaevalchan_find_match(&context->nla_channels, &rna);
+	NlaEvalChannelKey key = { .ptr = *prop_ptr, .prop = prop };
+	NlaEvalData *nlaeval = &context->nla_channels;
+	NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, NULL, &key);
+	int real_index = nlaevalchan_validate_index(nec, index);
 
-	/* Replace strips ignore influence when they are the first to modify this channel. */
-	if (nec == NULL && blend_mode == NLASTRIP_MODE_REPLACE) {
+	if (real_index < 0) {
 		return true;
 	}
 
-	/* Invert the effect of blending modes. */
-	float old_value = nec ? nec->value : nlaevalchan_init_value(&rna);
+	/* Invert the blending operation to compute the desired key value. */
+	NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_find_channel(&nlaeval->eval_snapshot, nec);
+
+	float old_value = nec_snapshot->values[real_index];
 
 	return nla_invert_blend_value(blend_mode, old_value, *r_value, influence, r_value);
 }
@@ -2778,7 +3152,7 @@ void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
 {
 	for (NlaKeyframingContext *ctx = cache->first; ctx; ctx = ctx->next) {
 		MEM_SAFE_FREE(ctx->eval_strip);
-		BLI_freelistN(&ctx->nla_channels);
+		nlaeval_free(&ctx->nla_channels);
 	}
 
 	BLI_freelistN(cache);
