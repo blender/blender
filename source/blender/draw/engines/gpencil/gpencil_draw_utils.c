@@ -73,7 +73,9 @@ static void gpencil_calc_vertex(
 {
 	Object *ob = cache_ob->ob;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	bGPDframe *gpf = NULL;
+	const bool main_onion = draw_ctx->v3d != NULL ? (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
+	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) &&
+		main_onion && DRW_gpencil_onion_active(gpd);
 
 	const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
 
@@ -81,28 +83,41 @@ static void gpencil_calc_vertex(
 	cache_ob->tot_triangles = 0;
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		bGPDframe *init_gpf = NULL;
+		const bool is_onion = ((do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN));
 		if (gpl->flag & GP_LAYER_HIDE) {
 			continue;
 		}
 
-		/* verify time modifiers */
-		if ((time_remap) && (!stl->storage->simplify_modif)) {
-			int remap_cfra = BKE_gpencil_time_modifier(
-			        draw_ctx->depsgraph, draw_ctx->scene, ob, gpl, cfra_eval,
-			        stl->storage->is_render);
-			gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
+		/* if onion skin need to count all frames of the layer */
+		if (is_onion) {
+			init_gpf = gpl->actframe;
 		}
 		else {
-			gpf = gpl->actframe;
+			/* verify time modifiers */
+			if ((time_remap) && (!stl->storage->simplify_modif)) {
+				int remap_cfra = BKE_gpencil_time_modifier(
+					draw_ctx->depsgraph, draw_ctx->scene, ob, gpl, cfra_eval,
+					stl->storage->is_render);
+				init_gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
+			}
+			else {
+				init_gpf = gpl->actframe;
+			}
 		}
 
-		if (gpf == NULL) {
+		if (init_gpf == NULL) {
 			continue;
 		}
 
-		for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-			cache_ob->tot_vertex += gps->totpoints + 3;
-			cache_ob->tot_triangles += gps->totpoints - 1;
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+				cache_ob->tot_vertex += gps->totpoints + 3;
+				cache_ob->tot_triangles += gps->totpoints - 1;
+			}
+			if (!is_onion) {
+				break;
+			}
 		}
 	}
 
