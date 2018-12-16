@@ -347,6 +347,7 @@ class _draw_left_context_mode:
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
                 row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
+                row.prop(gp_settings, "use_occlude_eraser", text="", icon='XRAY')
                 if gp_settings.eraser_mode == 'SOFT':
                     row = layout.row(align=True)
                     row.prop(gp_settings, "pen_strength", slider=True)

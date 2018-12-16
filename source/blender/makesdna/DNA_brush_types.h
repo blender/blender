@@ -123,6 +123,8 @@ typedef enum eGPDbrush_Flag {
 	GP_BRUSH_MATERIAL_PINNED = (1 << 13),
 	/* Do not show fill color while drawing (no lasso mode) */
 	GP_BRUSH_DISSABLE_LASSO = (1 << 14),
+	/* Do not erase strokes oLcluded */
+	GP_BRUSH_OCCLUDE_ERASER = (1 << 15),
 } eGPDbrush_Flag;
 
 /* BrushGpencilSettings->gp_fill_draw_mode */

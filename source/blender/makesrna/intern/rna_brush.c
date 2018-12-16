@@ -1227,6 +1227,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_DISSABLE_LASSO);
 	RNA_def_property_ui_text(prop, "Show Lasso", "Do not draw fill color while drawing the stroke");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
+	prop = RNA_def_property(srna, "use_occlude_eraser", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_OCCLUDE_ERASER);
+	RNA_def_property_ui_text(prop, "Occlude Eraser",
+		"Erase only strokes visible and not occluded");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 }
 
 static void rna_def_brush(BlenderRNA *brna)

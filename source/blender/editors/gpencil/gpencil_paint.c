@@ -116,7 +116,6 @@ typedef enum eGP_StrokeAdd_Result {
 typedef enum eGPencil_PaintFlags {
 	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),    /* operator just started */
 	GP_PAINTFLAG_STROKEADDED    = (1 << 1),
-	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2),
 	GP_PAINTFLAG_SELECTMASK     = (1 << 3),
 	GP_PAINTFLAG_HARD_ERASER    = (1 << 4),
 	GP_PAINTFLAG_STROKE_ERASER  = (1 << 5),
@@ -1200,9 +1199,19 @@ static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
 static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, const int x, const int y)
 {
 	Object *obact = (Object *)p->ownerPtr.data;
+	Brush *brush = p->brush;
+	Brush *eraser = p->eraser;
+	BrushGpencilSettings *gp_settings = NULL;
 
-	if ((p->sa->spacetype == SPACE_VIEW3D) &&
-	    (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH))
+	if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+		gp_settings = brush->gpencil_settings;
+	}
+	else if ((eraser != NULL) & (eraser->gpencil_tool == GPAINT_TOOL_ERASE)) {
+		gp_settings = eraser->gpencil_settings;
+	}
+
+	if ((gp_settings != NULL) && (p->sa->spacetype == SPACE_VIEW3D) &&
+	    (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER))
 	{
 		RegionView3D *rv3d = p->ar->regiondata;
 		bGPDlayer *gpl = p->gpl;
@@ -1550,13 +1559,16 @@ static void gp_stroke_doeraser(tGPsdata *p)
 	Brush *eraser = p->eraser;
 	bool use_pressure = false;
 	float press = 1.0f;
+	BrushGpencilSettings *gp_settings = NULL;
 
 	/* detect if use pressure in eraser */
 	if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
 		use_pressure = (bool)(brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE);
+		gp_settings = brush->gpencil_settings;
 	}
 	else if ((eraser != NULL) & (eraser->gpencil_tool == GPAINT_TOOL_ERASE)) {
 		use_pressure = (bool)(eraser->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE);
+		gp_settings = eraser->gpencil_settings;
 	}
 	if (use_pressure) {
 		press = p->pressure;
@@ -1570,7 +1582,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
 	rect.ymax = p->mval[1] + calc_radius;
 
 	if (p->sa->spacetype == SPACE_VIEW3D) {
-		if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
+		if ((gp_settings != NULL) && (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
 			View3D *v3d = p->sa->spacedata.first;
 			view3d_region_operator_needs_opengl(p->win, p->ar);
 			ED_view3d_autodist_init(p->depsgraph, p->ar, v3d, 0);
@@ -2063,23 +2075,10 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 	p->paintmode = paintmode;
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		p->gpd->runtime.sbuffer_sflag |= GP_STROKE_ERASER;
-
-		/* check if we should respect depth while erasing */
-		if (p->sa->spacetype == SPACE_VIEW3D) {
-			if (p->gpl->flag & GP_LAYER_NO_XRAY) {
-				p->flags |= GP_PAINTFLAG_V3D_ERASER_DEPTH;
-			}
-		}
 	}
 	else {
 		/* disable eraser flags - so that we can switch modes during a session */
 		p->gpd->runtime.sbuffer_sflag &= ~GP_STROKE_ERASER;
-
-		if (p->sa->spacetype == SPACE_VIEW3D) {
-			if (p->gpl->flag & GP_LAYER_NO_XRAY) {
-				p->flags &= ~GP_PAINTFLAG_V3D_ERASER_DEPTH;
-			}
-		}
 	}
 
 	/* set special fill stroke mode */
