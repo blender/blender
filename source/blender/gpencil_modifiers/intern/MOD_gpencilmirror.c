@@ -83,26 +83,28 @@ static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstro
 	float clear[3] = { 0.0f, 0.0f, 0.0f };
 	clear[axis] = 1.0f;
 
-	float origin[3];
+	float ob_origin[3];
 	float mirror_origin[3];
+	float pt_origin[3];
 
-	copy_v3_v3(origin, ob->loc);
+	copy_v3_v3(ob_origin, ob->loc);
 	/* only works with current axis */
-	mul_v3_v3(origin, clear);
+	mul_v3_v3(ob_origin, clear);
 	zero_v3(mirror_origin);
 
 	if (mmd->object) {
-		copy_v3_v3(mirror_origin, mmd->object->loc);
-		mul_v3_v3(mirror_origin, clear);
-		sub_v3_v3(origin, mirror_origin);
-	}
-	/* clear other axis */
-	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-		add_v3_v3(&pt->x, origin);
-		mul_v3_v3(&pt->x, factor);
-		add_v3_v3(&pt->x, mirror_origin);
+		mul_v3_v3v3(mirror_origin, mmd->object->loc, clear);
 	}
 
+	/* clear other axis */
+	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+		mul_v3_v3(&pt->x, factor);
+		if (mmd->object) {
+			sub_v3_v3v3(pt_origin, ob_origin, mirror_origin);
+			mul_v3_fl(pt_origin, -2.0f);
+			add_v3_v3(&pt->x, pt_origin);
+		}
+	}
 }
 
 /* Generic "generateStrokes" callback */
