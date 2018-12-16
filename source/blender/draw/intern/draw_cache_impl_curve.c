@@ -909,7 +909,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 			memset(cache->surf_per_mat[i], 0, sizeof(*cache->surf_per_mat[i]));
 		}
 	}
-	cache->cd_used = cache->cd_needed;
+	if ((cache->cd_used & cache->cd_needed) != cache->cd_needed) {
+		cache->cd_used |= cache->cd_needed;
+		cache->cd_needed = 0;
+	}
 
 	/* Init batches and request VBOs & IBOs */
 	if (DRW_batch_requested(cache->batch.surfaces, GPU_PRIM_TRIS)) {
@@ -1021,14 +1024,14 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 		curve_create_edit_curves_nor(rdata, cache->edit.curves_nor);
 	}
 
+	curve_render_data_free(rdata);
+
 #ifdef DEBUG
 	/* Make sure all requested batches have been setup. */
 	for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); ++i) {
 		BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
 	}
 #endif
-
-	curve_render_data_free(rdata);
 }
 
 /** \} */
