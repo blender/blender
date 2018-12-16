@@ -153,9 +153,6 @@ enum {
 	CAM_SHOW_BG_IMAGE       = (1 << 10),
 };
 
-/* yafray: dof sampling switch */
-/* #define CAM_YF_NO_QMC	512 */ /* deprecated */
-
 /* Sensor fit */
 enum {
 	CAMERA_SENSOR_FIT_AUTO  = 0,

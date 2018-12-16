@@ -1306,8 +1306,8 @@ enum {
 
 /* Remesh modifier */
 typedef enum eRemeshModifierFlags {
-	MOD_REMESH_FLOOD_FILL     = 1,
-	MOD_REMESH_SMOOTH_SHADING = 2,
+	MOD_REMESH_FLOOD_FILL     = (1 << 0),
+	MOD_REMESH_SMOOTH_SHADING = (1 << 1),
 } RemeshModifierFlags;
 
 typedef enum eRemeshModifierMode {

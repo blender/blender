@@ -179,14 +179,14 @@ typedef struct Material {
 
 /* flag */
 		/* for render */
-#define MA_IS_USED		1
+#define MA_IS_USED      (1 << 0)
 		/* for dopesheet */
-#define MA_DS_EXPAND	2
+#define MA_DS_EXPAND    (1 << 1)
 		/* for dopesheet (texture stack expander)
 		 * NOTE: this must have the same value as other texture stacks,
 		 * otherwise anim-editors will not read correctly
 		 */
-#define MA_DS_SHOW_TEXS	4
+#define MA_DS_SHOW_TEXS (1 << 2)
 
 /* ramps */
 #define MA_RAMP_BLEND		0
@@ -209,47 +209,46 @@ typedef struct Material {
 #define MA_RAMP_LINEAR      17
 
 /* texco */
-#define TEXCO_ORCO		1
-#define TEXCO_REFL		2
-#define TEXCO_NORM		4
-#define TEXCO_GLOB		8
-#define TEXCO_UV		16
-#define TEXCO_OBJECT	32
-#define TEXCO_LAVECTOR	64
-#define TEXCO_VIEW		128
-#define TEXCO_STICKY_	256  // DEPRECATED
-#define TEXCO_OSA		512
-#define TEXCO_WINDOW	1024
-#define NEED_UV			2048
-#define TEXCO_TANGENT	4096
+#define TEXCO_ORCO      (1 << 0)
+#define TEXCO_REFL      (1 << 1)
+#define TEXCO_NORM      (1 << 2)
+#define TEXCO_GLOB      (1 << 3)
+#define TEXCO_UV        (1 << 4)
+#define TEXCO_OBJECT    (1 << 5)
+#define TEXCO_LAVECTOR  (1 << 6)
+#define TEXCO_VIEW      (1 << 7)
+#define TEXCO_STICKY_   (1 << 8)  // DEPRECATED
+#define TEXCO_OSA       (1 << 9)
+#define TEXCO_WINDOW    (1 << 10)
+#define NEED_UV         (1 << 11)
+#define TEXCO_TANGENT   (1 << 12)
 	/* still stored in vertex->accum, 1 D */
-#define TEXCO_STRAND	8192
-#define TEXCO_PARTICLE	8192 /* strand is used for normal materials, particle for halo materials */
-#define TEXCO_STRESS	16384
-#define TEXCO_SPEED		32768
+#define TEXCO_STRAND    (1 << 13)
+#define TEXCO_PARTICLE  (1 << 13) /* strand is used for normal materials, particle for halo materials */
+#define TEXCO_STRESS    (1 << 14)
+#define TEXCO_SPEED     (1 << 15)
 
 /* mapto */
-#define MAP_COL			1
-#define MAP_ALPHA		128
+#define MAP_COL			(1 << 0)
+#define MAP_ALPHA		(1 << 7)
 
 /* pmapto */
 /* init */
-#define MAP_PA_INIT		31
-#define MAP_PA_TIME		1
-#define MAP_PA_LIFE		2
-#define MAP_PA_DENS		4
-#define MAP_PA_SIZE		8
-#define MAP_PA_LENGTH	16
+#define MAP_PA_INIT     ((1 << 5) - 1)
+#define MAP_PA_TIME     (1 << 0)
+#define MAP_PA_LIFE     (1 << 1)
+#define MAP_PA_DENS     (1 << 2)
+#define MAP_PA_SIZE     (1 << 3)
+#define MAP_PA_LENGTH   (1 << 4)
 /* reset */
-#define MAP_PA_IVEL		32
+#define MAP_PA_IVEL     (1 << 5)
 /* physics */
-#define MAP_PA_PVEL		64
+#define MAP_PA_PVEL     (1 << 6)
 /* path cache */
-#define MAP_PA_CACHE	912
-#define MAP_PA_CLUMP	128
-#define MAP_PA_KINK		256
-#define MAP_PA_ROUGH	512
-#define MAP_PA_FREQ		1024
+#define MAP_PA_CLUMP    (1 << 7)
+#define MAP_PA_KINK     (1 << 8)
+#define MAP_PA_ROUGH    (1 << 9)
+#define MAP_PA_FREQ     (1 << 10)
 
 /* pr_type */
 #define MA_FLAT			0

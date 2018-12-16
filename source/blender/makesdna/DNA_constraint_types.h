@@ -890,10 +890,10 @@ typedef enum eStretchTo_Flags {
 } eStretchTo_Flags;
 
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
-#define 	CONSTRAINT_RB_BALL		1
-#define 	CONSTRAINT_RB_HINGE		2
-#define 	CONSTRAINT_RB_CONETWIST 4
-#define 	CONSTRAINT_RB_VEHICLE	11
-#define 	CONSTRAINT_RB_GENERIC6DOF 12
+#define CONSTRAINT_RB_BALL      1
+#define CONSTRAINT_RB_HINGE     2
+#define CONSTRAINT_RB_CONETWIST 4
+#define CONSTRAINT_RB_VEHICLE   11
+#define CONSTRAINT_RB_GENERIC6DOF 12
 
 #endif

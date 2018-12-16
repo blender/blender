@@ -97,14 +97,14 @@ typedef struct World {
 /* **************** WORLD ********************* */
 
 /* mode */
-#define WO_MIST	               1
-//#define WO_STARS               2 /* deprecated */
-/*#define WO_DOF                 4*/
-//#define WO_ACTIVITY_CULLING	   8 /* deprecated */
-//#define WO_ENV_LIGHT   		  16
-//#define WO_DBVT_CULLING		  32 /* deprecated */
-#define WO_AMB_OCC   		  64
-//#define WO_INDIRECT_LIGHT	  128
+#define WO_MIST                (1 << 0)
+//#define WO_STARS               (1 << 1) /* deprecated */
+/*#define WO_DOF                 (1 << 2)*/
+//#define WO_ACTIVITY_CULLING      (1 << 3) /* deprecated */
+//#define WO_ENV_LIGHT            (1 << 4)
+//#define WO_DBVT_CULLING         (1 << 5) /* deprecated */
+#define WO_AMB_OCC            (1 << 6)
+//#define WO_INDIRECT_LIGHT   (1 << 7)
 
 enum {
 	WO_MIST_QUADRATIC          = 0,

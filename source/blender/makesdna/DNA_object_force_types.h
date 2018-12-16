@@ -319,29 +319,29 @@ typedef struct SoftBody {
 
 
 /* pd->flag: various settings */
-#define PFIELD_USEMAX			1
-/*#define PDEFLE_DEFORM			2*/			/*UNUSED*/
-#define PFIELD_GUIDE_PATH_ADD	4			/* TODO: do_versions for below */
-#define PFIELD_PLANAR			8			/* used for do_versions */
-#define PDEFLE_KILL_PART		16
-#define PFIELD_POSZ				32			/* used for do_versions */
-#define PFIELD_TEX_OBJECT		64
-#define PFIELD_GLOBAL_CO		64			/* used for turbulence */
-#define PFIELD_TEX_2D			128
-#define PFIELD_MULTIPLE_SPRINGS	128			/* used for harmonic force */
-#define PFIELD_USEMIN			256
-#define PFIELD_USEMAXR			512
-#define PFIELD_USEMINR			1024
-#define PFIELD_TEX_ROOTCO		2048
-#define PFIELD_SURFACE			(1<<12)		/* used for do_versions */
-#define PFIELD_VISIBILITY		(1<<13)
-#define PFIELD_DO_LOCATION		(1<<14)
-#define PFIELD_DO_ROTATION		(1<<15)
-#define PFIELD_GUIDE_PATH_WEIGHT (1<<16)	/* apply curve weights */
-#define PFIELD_SMOKE_DENSITY    (1<<17)		/* multiply smoke force by density */
-#define PFIELD_GRAVITATION		(1<<18)             /* used for (simple) force */
-#define PFIELD_CLOTH_USE_CULLING (1<<19)	/* Enable cloth collision side detection based on normal. */
-#define PFIELD_CLOTH_USE_NORMAL (1<<20)		/* Replace collision direction with collider normal. */
+#define PFIELD_USEMAX           (1 << 0)
+/*#define PDEFLE_DEFORM         (1 << 1)*/      /*UNUSED*/
+#define PFIELD_GUIDE_PATH_ADD   (1 << 2)        /* TODO: do_versions for below */
+#define PFIELD_PLANAR           (1 << 3)        /* used for do_versions */
+#define PDEFLE_KILL_PART        (1 << 4)
+#define PFIELD_POSZ             (1 << 5)        /* used for do_versions */
+#define PFIELD_TEX_OBJECT       (1 << 6)
+#define PFIELD_GLOBAL_CO        (1 << 6)        /* used for turbulence */
+#define PFIELD_TEX_2D           (1 << 7)
+#define PFIELD_MULTIPLE_SPRINGS (1 << 7)        /* used for harmonic force */
+#define PFIELD_USEMIN           (1 << 8)
+#define PFIELD_USEMAXR          (1 << 9)
+#define PFIELD_USEMINR          (1 << 10)
+#define PFIELD_TEX_ROOTCO       (1 << 11)
+#define PFIELD_SURFACE          (1 << 12)       /* used for do_versions */
+#define PFIELD_VISIBILITY       (1 << 13)
+#define PFIELD_DO_LOCATION      (1 << 14)
+#define PFIELD_DO_ROTATION      (1 << 15)
+#define PFIELD_GUIDE_PATH_WEIGHT (1 << 16)      /* apply curve weights */
+#define PFIELD_SMOKE_DENSITY    (1 << 17)       /* multiply smoke force by density */
+#define PFIELD_GRAVITATION      (1 << 18)             /* used for (simple) force */
+#define PFIELD_CLOTH_USE_CULLING (1<< 19)       /* Enable cloth collision side detection based on normal. */
+#define PFIELD_CLOTH_USE_NORMAL (1 << 20)       /* Replace collision direction with collider normal. */
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0
@@ -366,22 +366,22 @@ typedef struct SoftBody {
 #define PFIELD_Z_NEG	2
 
 /* pointcache->flag */
-#define PTCACHE_BAKED				1
-#define PTCACHE_OUTDATED			2
-#define PTCACHE_SIMULATION_VALID	4
-#define PTCACHE_BAKING				8
-//#define PTCACHE_BAKE_EDIT			16
-//#define PTCACHE_BAKE_EDIT_ACTIVE	32
-#define PTCACHE_DISK_CACHE			64
-//#define PTCACHE_QUICK_CACHE		128  /* removed since 2.64 - [#30974], could be added back in a more useful way */
-#define PTCACHE_FRAMES_SKIPPED		256
-#define PTCACHE_EXTERNAL			512
-#define PTCACHE_READ_INFO			1024
+#define PTCACHE_BAKED               (1 << 0)
+#define PTCACHE_OUTDATED            (1 << 1)
+#define PTCACHE_SIMULATION_VALID    (1 << 2)
+#define PTCACHE_BAKING              (1 << 3)
+//#define PTCACHE_BAKE_EDIT         (1 << 4)
+//#define PTCACHE_BAKE_EDIT_ACTIVE  (1 << 5)
+#define PTCACHE_DISK_CACHE          (1 << 6)
+//#define PTCACHE_QUICK_CACHE       (1 << 7)  /* removed since 2.64 - [#30974], could be added back in a more useful way */
+#define PTCACHE_FRAMES_SKIPPED      (1 << 8)
+#define PTCACHE_EXTERNAL            (1 << 9)
+#define PTCACHE_READ_INFO           (1 << 10)
 /* don't use the filename of the blendfile the data is linked from (write a local cache) */
-#define PTCACHE_IGNORE_LIBPATH		2048
+#define PTCACHE_IGNORE_LIBPATH      (1 << 11)
 /* high resolution cache is saved for smoke for backwards compatibility, so set this flag to know it's a "fake" cache */
-#define PTCACHE_FAKE_SMOKE			(1<<12)
-#define PTCACHE_IGNORE_CLEAR		(1<<13)
+#define PTCACHE_FAKE_SMOKE          (1 << 12)
+#define PTCACHE_IGNORE_CLEAR        (1 << 13)
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258
