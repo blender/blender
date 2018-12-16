@@ -1523,7 +1523,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 			int *auto_layer_is_srgb;
 			int auto_layer_count;
 			struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
-			        ob, gpumat_array, materials_len, use_hide,
+			        ob, gpumat_array, materials_len,
 			        &auto_layer_names,
 			        &auto_layer_is_srgb,
 			        &auto_layer_count);

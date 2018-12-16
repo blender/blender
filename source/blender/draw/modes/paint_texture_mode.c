@@ -300,9 +300,9 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 		if (use_surface) {
 			if (me->mloopuv != NULL) {
 				if (use_material_slots || use_face_sel) {
-					struct GPUBatch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob, use_face_sel) : NULL;
+					struct GPUBatch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
 					if ((me->totcol == 0) || (geom_array == NULL)) {
-						struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob, use_face_sel);
+						struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob);
 						DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
 						ok = true;
 					}
@@ -329,7 +329,7 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (!ok) {
-				struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob, use_face_sel);
+				struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob);
 				DRW_shgroup_call_add(stl->g_data->shgroup_fallback, geom, ob->obmat);
 			}
 		}

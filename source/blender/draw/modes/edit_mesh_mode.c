@@ -662,7 +662,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (do_occlude_wire) {
-				geom = DRW_cache_mesh_surface_get(ob, false);
+				geom = DRW_cache_mesh_surface_get(ob);
 				DRW_shgroup_call_add(stl->g_data->depth_shgrp_hidden_wire, geom, ob->obmat);
 			}
 

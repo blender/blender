@@ -1917,6 +1917,8 @@ void DRW_render_object_iter(
 			DST.dupli_source = data_.dupli_object_current;
 			DST.ob_state = NULL;
 			callback(vedata, ob, engine, depsgraph);
+
+			drw_batch_cache_generate_requested(ob);
 		}
 	}
 	DEG_OBJECT_ITER_END

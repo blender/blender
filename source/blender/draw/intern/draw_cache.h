@@ -53,10 +53,9 @@ struct GPUBatch *DRW_cache_screenspace_circle_get(void);
 struct GPUBatch *DRW_cache_object_wire_outline_get(struct Object *ob);
 struct GPUBatch *DRW_cache_object_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_object_surface_get(struct Object *ob);
-struct GPUBatch *DRW_cache_object_surface_get_ex(struct Object *ob, bool use_hide);
 struct GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob);
 struct GPUBatch **DRW_cache_object_surface_material_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
 struct GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob);
 
@@ -129,7 +128,7 @@ struct GPUBatch *DRW_cache_mesh_surface_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_face_centers_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edge_detection_get(struct Object *ob, bool *r_is_manifold);
-struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob, bool use_hide);
+struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_loose_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob, struct ToolSettings *ts, bool paint_mode);
 struct GPUBatch *DRW_cache_mesh_surface_vert_colors_get(struct Object *ob);
@@ -140,9 +139,9 @@ struct GPUBatch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool 
 struct GPUBatch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
 struct GPUBatch **DRW_cache_mesh_surface_shaded_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len, bool use_hide,
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
-struct GPUBatch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob, bool use_hide);
+struct GPUBatch **DRW_cache_mesh_surface_texpaint_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_face_wireframe_get(struct Object *ob);
 

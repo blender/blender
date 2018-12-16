@@ -157,10 +157,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 		}
 	}
 
-	const bool is_active = (ob == draw_ctx->obact);
-	const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
-
-	struct GPUBatch *geom = DRW_cache_object_surface_get_ex(ob, use_hide);
+	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
 		/* Depth Prepass */
