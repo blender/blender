@@ -87,7 +87,7 @@
           <ThemeWidgetColors
             outline="#666666"
             inner="#2f2f2fff"
-            inner_sel="#5680c2ff"
+            inner_sel="#333333ff"
             item="#80b1ffff"
             text="#dddddd"
             text_sel="#ffffff"
@@ -132,8 +132,8 @@
           <ThemeWidgetColors
             outline="#b8b8b8"
             inner="#d3d3d3ff"
-            inner_sel="#5680c2ff"
-            item="#999999ff"
+            inner_sel="#333333ff"
+            item="#80b1ffff"
             text="#1a1a1a"
             text_sel="#ffffff"
             show_shaded="FALSE"
