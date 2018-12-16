@@ -842,8 +842,8 @@ typedef enum eObjectSolver_Flags {
 } eObjectSolver_Flags;
 
 /* Rigid-Body Constraint */
-#define CONSTRAINT_DRAW_PIVOT 0x40
-#define 	CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
+#define CONSTRAINT_DRAW_PIVOT (1 << 6)
+#define CONSTRAINT_DISABLE_LINKED_COLLISION (1 << 7)
 
 /* ObjectSolver Constraint -> flag */
 typedef enum eStretchTo_Flags {
@@ -852,10 +852,10 @@ typedef enum eStretchTo_Flags {
 } eStretchTo_Flags;
 
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
-#define 	CONSTRAINT_RB_BALL		1
-#define 	CONSTRAINT_RB_HINGE		2
-#define 	CONSTRAINT_RB_CONETWIST 4
-#define 	CONSTRAINT_RB_VEHICLE	11
-#define 	CONSTRAINT_RB_GENERIC6DOF 12
+#define CONSTRAINT_RB_BALL      1
+#define CONSTRAINT_RB_HINGE     2
+#define CONSTRAINT_RB_CONETWIST 4
+#define CONSTRAINT_RB_VEHICLE   11
+#define CONSTRAINT_RB_GENERIC6DOF 12
 
 #endif

@@ -353,15 +353,15 @@ typedef struct ColorMapping {
 #define TEX_MINKOVSKY		6
 
 /* imaflag */
-#define TEX_INTERPOL	1
-#define TEX_USEALPHA	2
-#define TEX_MIPMAP		4
-#define TEX_IMAROT		16
-#define TEX_CALCALPHA	32
-#define TEX_NORMALMAP	2048
-#define TEX_GAUSS_MIP	4096
-#define TEX_FILTER_MIN	8192
-#define TEX_DERIVATIVEMAP	16384
+#define TEX_INTERPOL	(1 << 0)
+#define TEX_USEALPHA	(1 << 1)
+#define TEX_MIPMAP		(1 << 2)
+#define TEX_IMAROT		(1 << 4)
+#define TEX_CALCALPHA	(1 << 5)
+#define TEX_NORMALMAP	(1 << 11)
+#define TEX_GAUSS_MIP	(1 << 12)
+#define TEX_FILTER_MIN	(1 << 13)
+#define TEX_DERIVATIVEMAP	(1 << 14)
 
 /* texfilter */
 // TXF_BOX -> blender's old texture filtering method
@@ -372,27 +372,27 @@ typedef struct ColorMapping {
 
 /* imaflag unused, only for version check */
 #ifdef DNA_DEPRECATED_ALLOW
-#define TEX_FIELDS_		8
-#define TEX_ANIMCYCLIC_	64
-#define TEX_ANIM5_		128
-#define TEX_ANTIALI_	256
-#define TEX_ANTISCALE_	512
-#define TEX_STD_FIELD_	1024
+#define TEX_FIELDS_		(1 << 3)
+#define TEX_ANIMCYCLIC_	(1 << 6)
+#define TEX_ANIM5_		(1 << 7)
+#define TEX_ANTIALI_	(1 << 8)
+#define TEX_ANTISCALE_	(1 << 9)
+#define TEX_STD_FIELD_	(1 << 10)
 #endif
 
 /* flag */
-#define TEX_COLORBAND		1
-#define TEX_FLIPBLEND		2
-#define TEX_NEGALPHA		4
-#define TEX_CHECKER_ODD		8
-#define TEX_CHECKER_EVEN	16
-#define TEX_PRV_ALPHA		32
-#define TEX_PRV_NOR			64
-#define TEX_REPEAT_XMIR		128
-#define TEX_REPEAT_YMIR		256
-#define TEX_FLAG_MASK		( TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR )
-#define TEX_DS_EXPAND		512
-#define TEX_NO_CLAMP		1024
+#define TEX_COLORBAND       (1 << 0)
+#define TEX_FLIPBLEND       (1 << 1)
+#define TEX_NEGALPHA        (1 << 2)
+#define TEX_CHECKER_ODD     (1 << 3)
+#define TEX_CHECKER_EVEN    (1 << 4)
+#define TEX_PRV_ALPHA       (1 << 5)
+#define TEX_PRV_NOR         (1 << 6)
+#define TEX_REPEAT_XMIR     (1 << 7)
+#define TEX_REPEAT_YMIR     (1 << 8)
+#define TEX_FLAG_MASK       (TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR)
+#define TEX_DS_EXPAND       (1 << 9)
+#define TEX_NO_CLAMP        (1 << 10)
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1
@@ -476,22 +476,22 @@ typedef struct ColorMapping {
 #define PROJ_Z			3
 
 /* texflag */
-#define MTEX_RGBTOINT		1
-#define MTEX_STENCIL		2
-#define MTEX_NEGATIVE		4
-#define MTEX_ALPHAMIX		8
-#define MTEX_VIEWSPACE		16
-#define MTEX_DUPLI_MAPTO	32
-#define MTEX_OB_DUPLI_ORIG	64
-#define MTEX_COMPAT_BUMP	128
-#define MTEX_3TAP_BUMP		256
-#define MTEX_5TAP_BUMP		512
-#define MTEX_BUMP_OBJECTSPACE	1024
-#define MTEX_BUMP_TEXTURESPACE	2048
-/* #define MTEX_BUMP_FLIPPED 	4096 */ /* UNUSED */
-#define MTEX_TIPS				4096  /* should use with_freestyle flag?  */
-#define MTEX_BICUBIC_BUMP		8192
-#define MTEX_MAPTO_BOUNDS		16384
+#define MTEX_RGBTOINT		(1 << 0)
+#define MTEX_STENCIL		(1 << 1)
+#define MTEX_NEGATIVE		(1 << 2)
+#define MTEX_ALPHAMIX		(1 << 3)
+#define MTEX_VIEWSPACE		(1 << 4)
+#define MTEX_DUPLI_MAPTO	(1 << 5)
+#define MTEX_OB_DUPLI_ORIG	(1 << 6)
+#define MTEX_COMPAT_BUMP	(1 << 7)
+#define MTEX_3TAP_BUMP		(1 << 8)
+#define MTEX_5TAP_BUMP		(1 << 9)
+#define MTEX_BUMP_OBJECTSPACE	(1 << 10)
+#define MTEX_BUMP_TEXTURESPACE	(1 << 11)
+/* #define MTEX_BUMP_FLIPPED 	(1 << 12) */ /* UNUSED */
+#define MTEX_TIPS				(1 << 12)  /* should use with_freestyle flag?  */
+#define MTEX_BICUBIC_BUMP		(1 << 13)
+#define MTEX_MAPTO_BOUNDS		(1 << 14)
 
 /* blendtype */
 #define MTEX_BLEND		0

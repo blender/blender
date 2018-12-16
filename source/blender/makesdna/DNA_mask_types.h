@@ -172,13 +172,13 @@ enum {
 
 
 /* ob->restrictflag */
-#define MASK_RESTRICT_VIEW      1
-#define MASK_RESTRICT_SELECT    2
-#define MASK_RESTRICT_RENDER    4
+#define MASK_RESTRICT_VIEW      (1 << 0)
+#define MASK_RESTRICT_SELECT    (1 << 1)
+#define MASK_RESTRICT_RENDER    (1 << 2)
 
 /* SpaceClip->mask_draw_flag */
-#define MASK_DRAWFLAG_SMOOTH    1
-#define MASK_DRAWFLAG_OVERLAY   2
+#define MASK_DRAWFLAG_SMOOTH    (1 << 0)
+#define MASK_DRAWFLAG_OVERLAY   (1 << 1)
 
 /* copy of eSpaceImage_UVDT */
 /* SpaceClip->mask_draw_type */

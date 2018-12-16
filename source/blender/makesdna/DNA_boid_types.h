@@ -52,17 +52,17 @@ typedef enum eBoidRuleType {
 } eBoidRuleType;
 
 /* boidrule->flag */
-#define BOIDRULE_CURRENT		1
-#define BOIDRULE_IN_AIR			4
-#define BOIDRULE_ON_LAND		8
+#define BOIDRULE_CURRENT        (1 << 0)
+#define BOIDRULE_IN_AIR         (1 << 2)
+#define BOIDRULE_ON_LAND        (1 << 3)
 typedef struct BoidRule {
 	struct BoidRule *next, *prev;
 	int type, flag;
 	char name[32];
 } BoidRule;
-#define BRULE_GOAL_AVOID_PREDICT	1
-#define BRULE_GOAL_AVOID_ARRIVE		2
-#define BRULE_GOAL_AVOID_SIGNAL		4
+#define BRULE_GOAL_AVOID_PREDICT    (1 << 0)
+#define BRULE_GOAL_AVOID_ARRIVE     (1 << 1)
+#define BRULE_GOAL_AVOID_SIGNAL     (1 << 2)
 typedef struct BoidRuleGoalAvoid {
 	BoidRule rule;
 	struct Object *ob;
@@ -72,14 +72,14 @@ typedef struct BoidRuleGoalAvoid {
 	/* signals */
 	int signal_id, channels;
 } BoidRuleGoalAvoid;
-#define BRULE_ACOLL_WITH_BOIDS		1
-#define BRULE_ACOLL_WITH_DEFLECTORS	2
+#define BRULE_ACOLL_WITH_BOIDS      (1 << 0)
+#define BRULE_ACOLL_WITH_DEFLECTORS (1 << 1)
 typedef struct BoidRuleAvoidCollision {
 	BoidRule rule;
 	int options;
 	float look_ahead;
 } BoidRuleAvoidCollision;
-#define BRULE_LEADER_IN_LINE		1
+#define BRULE_LEADER_IN_LINE        (1 << 0)
 typedef struct BoidRuleFollowLeader {
 	BoidRule rule;
 	struct Object *ob;
@@ -210,16 +210,16 @@ typedef struct BoidSettings {
 } BoidSettings;
 
 /* boidsettings->options */
-#define BOID_ALLOW_FLIGHT	1
-#define BOID_ALLOW_LAND		2
-#define BOID_ALLOW_CLIMB	4
+#define BOID_ALLOW_FLIGHT   (1 << 0)
+#define BOID_ALLOW_LAND     (1 << 1)
+#define BOID_ALLOW_CLIMB    (1 << 2)
 
 /* boidrule->options */
-//#define BOID_RULE_FOLLOW_LINE	1		/* follow leader */
-//#define BOID_RULE_PREDICT		2		/* goal/avoid */
-//#define BOID_RULE_ARRIVAL		4		/* goal */
-//#define BOID_RULE_LAND			8		/* goal */
-//#define BOID_RULE_WITH_BOIDS	16		/* avoid collision */
-//#define BOID_RULE_WITH_DEFLECTORS	32	/* avoid collision */
+//#define BOID_RULE_FOLLOW_LINE     (1 << 0)        /* follow leader */
+//#define BOID_RULE_PREDICT         (1 << 1)        /* goal/avoid */
+//#define BOID_RULE_ARRIVAL         (1 << 2)        /* goal */
+//#define BOID_RULE_LAND            (1 << 3)        /* goal */
+//#define BOID_RULE_WITH_BOIDS      (1 << 4)        /* avoid collision */
+//#define BOID_RULE_WITH_DEFLECTORS (1 << 5)    /* avoid collision */
 
 #endif

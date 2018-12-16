@@ -48,9 +48,9 @@ typedef struct CurveMapPoint {
 
 /* curvepoint->flag */
 enum {
-	CUMA_SELECT = 1,
-	CUMA_HANDLE_VECTOR = 2,
-	CUMA_HANDLE_AUTO_ANIM = 4,
+	CUMA_SELECT = (1 << 0),
+	CUMA_HANDLE_VECTOR = (1 << 1),
+	CUMA_HANDLE_AUTO_ANIM = (1 << 2),
 };
 
 typedef struct CurveMap {
@@ -85,10 +85,10 @@ typedef struct CurveMapping {
 } CurveMapping;
 
 /* cumapping->flag */
-#define CUMA_DO_CLIP			1
-#define CUMA_PREMULLED			2
-#define CUMA_DRAW_CFRA			4
-#define CUMA_DRAW_SAMPLE		8
+#define CUMA_DO_CLIP            (1 << 0)
+#define CUMA_PREMULLED          (1 << 1)
+#define CUMA_DRAW_CFRA          (1 << 2)
+#define CUMA_DRAW_SAMPLE        (1 << 3)
 
 /* cumapping->preset */
 typedef enum eCurveMappingPreset {

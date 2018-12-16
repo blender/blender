@@ -209,25 +209,25 @@ typedef struct Material {
 
 /* **************** GAME PROPERTIES ********************* */
 // Blend Transparency Options - alpha_blend /* match GPU_material::GPUBlendMode */
-#define GEMAT_SOLID		0 /* GPU_BLEND_SOLID */
-#define GEMAT_ADD		1 /* GPU_BLEND_ADD */
-#define	GEMAT_ALPHA		2 /* GPU_BLEND_ALPHA */
-#define GEMAT_CLIP		4 /* GPU_BLEND_CLIP */
-#define	GEMAT_ALPHA_SORT	8 /* GPU_BLEND_ALPHA_SORT */
-#define	GEMAT_ALPHA_TO_COVERAGE	16 /* GPU_BLEND_ALPHA_TO_COVERAGE */
+#define GEMAT_SOLID             0 /* GPU_BLEND_SOLID */
+#define GEMAT_ADD               (1 << 0) /* GPU_BLEND_ADD */
+#define GEMAT_ALPHA             (1 << 1) /* GPU_BLEND_ALPHA */
+#define GEMAT_CLIP              (1 << 2) /* GPU_BLEND_CLIP */
+#define GEMAT_ALPHA_SORT        (1 << 3) /* GPU_BLEND_ALPHA_SORT */
+#define GEMAT_ALPHA_TO_COVERAGE (1 << 4) /* GPU_BLEND_ALPHA_TO_COVERAGE */
 
 // Game Options - flag
-#define GEMAT_BACKCULL 		16 /* KX_BACKCULL */
-#define GEMAT_SHADED		32 /* KX_LIGHT */
-#define GEMAT_TEXT		64 /* RAS_RENDER_3DPOLYGON_TEXT */
-#define	GEMAT_NOPHYSICS		128
-#define GEMAT_INVISIBLE 	256
+#define GEMAT_BACKCULL      (1 << 4) /* KX_BACKCULL */
+#define GEMAT_SHADED        (1 << 5) /* KX_LIGHT */
+#define GEMAT_TEXT          (1 << 6) /* RAS_RENDER_3DPOLYGON_TEXT */
+#define GEMAT_NOPHYSICS     (1 << 7)
+#define GEMAT_INVISIBLE     (1 << 8)
 
 // Face Orientation Options - face_orientation
-#define GEMAT_NORMAL		0
-#define GEMAT_HALO		512  /* BILLBOARD_SCREENALIGNED  */
-#define GEMAT_BILLBOARD		1024 /* BILLBOARD_AXISALIGNED */
-#define GEMAT_SHADOW		2048 /* SHADOW */
+#define GEMAT_NORMAL        0
+#define GEMAT_HALO          (1 << 9)  /* BILLBOARD_SCREENALIGNED  */
+#define GEMAT_BILLBOARD     (1 << 10) /* BILLBOARD_AXISALIGNED */
+#define GEMAT_SHADOW        (1 << 11) /* SHADOW */
 
 // Use Textures - not defined directly in the UI
 #define GEMAT_TEX		4096 /* KX_TEX */
@@ -249,59 +249,59 @@ typedef struct Material {
 
 /* flag */
 		/* for render */
-#define MA_IS_USED		1
+#define MA_IS_USED      (1 << 0)
 		/* for dopesheet */
-#define MA_DS_EXPAND	2
+#define MA_DS_EXPAND    (1 << 1)
 		/* for dopesheet (texture stack expander)
 		 * NOTE: this must have the same value as other texture stacks,
 		 * otherwise anim-editors will not read correctly
 		 */
-#define MA_DS_SHOW_TEXS	4
+#define MA_DS_SHOW_TEXS (1 << 2)
 
 /* mode (is int) */
-#define MA_TRACEBLE		1
-#define MA_SHADOW		2
-#define MA_SHLESS		4
-#define MA_WIRE			8			/* deprecated */
-#define MA_VERTEXCOL	16
-#define MA_HALO_SOFT	16
-#define MA_HALO			32			/* deprecated */
-#define MA_ZTRANSP		64
-#define MA_VERTEXCOLP	128
-#define MA_ZINV			256
-#define MA_HALO_RINGS	256
-#define MA_ENV			512
-#define MA_HALO_LINES	512
-#define MA_ONLYSHADOW	1024
-#define MA_HALO_XALPHA	1024
-#define MA_STAR			0x800
-#define MA_FACETEXTURE	0x800
-#define MA_HALOTEX		0x1000
-#define MA_HALOPUNO		0x2000
-#define MA_ONLYCAST		0x2000
-#define MA_NOMIST		0x4000
-#define MA_HALO_SHADE	0x4000
-#define MA_HALO_FLARE	0x8000
-#define MA_TRANSP		0x10000
-#define MA_RAYTRANSP	0x20000
-#define MA_RAYMIRROR	0x40000
-#define MA_SHADOW_TRA	0x80000
-#define MA_RAMP_COL		0x100000
-#define MA_RAMP_SPEC	0x200000
-#define MA_RAYBIAS		0x400000
-#define MA_FULL_OSA		0x800000
-#define MA_TANGENT_STR	0x1000000
-#define MA_SHADBUF		0x2000000
+#define MA_TRACEBLE     (1 << 0)
+#define MA_SHADOW       (1 << 1)
+#define MA_SHLESS       (1 << 2)
+#define MA_WIRE         (1 << 3)            /* deprecated */
+#define MA_VERTEXCOL    (1 << 4)
+#define MA_HALO_SOFT    (1 << 4)
+#define MA_HALO         (1 << 5)            /* deprecated */
+#define MA_ZTRANSP      (1 << 6)
+#define MA_VERTEXCOLP   (1 << 7)
+#define MA_ZINV         (1 << 8)
+#define MA_HALO_RINGS   (1 << 8)
+#define MA_ENV          (1 << 9)
+#define MA_HALO_LINES   (1 << 9)
+#define MA_ONLYSHADOW   (1 << 10)
+#define MA_HALO_XALPHA  (1 << 10)
+#define MA_STAR         (1 << 11)
+#define MA_FACETEXTURE  (1 << 11)
+#define MA_HALOTEX      (1 << 12)
+#define MA_HALOPUNO     (1 << 13)
+#define MA_ONLYCAST     (1 << 13)
+#define MA_NOMIST       (1 << 14)
+#define MA_HALO_SHADE   (1 << 14)
+#define MA_HALO_FLARE   (1 << 15)
+#define MA_TRANSP       (1 << 16)
+#define MA_RAYTRANSP    (1 << 17)
+#define MA_RAYMIRROR    (1 << 18)
+#define MA_SHADOW_TRA   (1 << 19)
+#define MA_RAMP_COL     (1 << 20)
+#define MA_RAMP_SPEC    (1 << 21)
+#define MA_RAYBIAS      (1 << 22)
+#define MA_FULL_OSA     (1 << 23)
+#define MA_TANGENT_STR  (1 << 24)
+#define MA_SHADBUF      (1 << 25)
 		/* note; we drop MA_TANGENT_STR later to become tangent_u */
-#define MA_TANGENT_V	0x4000000
+#define MA_TANGENT_V    (1 << 26)
 /* qdn: a bit clumsy this, tangents needed for normal maps separated from shading */
-#define MA_NORMAP_TANG	0x8000000
-#define MA_GROUP_NOLAY	0x10000000
-#define MA_FACETEXTURE_ALPHA	0x20000000
-#define MA_STR_B_UNITS	0x40000000
-#define MA_STR_SURFDIFF 0x80000000
+#define MA_NORMAP_TANG  (1 << 27)
+#define MA_GROUP_NOLAY  (1 << 28)
+#define MA_FACETEXTURE_ALPHA    (1 << 29)
+#define MA_STR_B_UNITS  (1 << 30)
+#define MA_STR_SURFDIFF (1 << 31u)
 
-#define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
+#define MA_MODE_MASK    (((1 << 31u) - 1) & ~(1 << 28u)) /* all valid mode bits */
 #define MA_MODE_PIPELINE	(MA_TRANSP | MA_ZTRANSP | MA_RAYTRANSP \
 				 | MA_TRACEBLE | MA_FULL_OSA | MA_ENV | MA_ZINV \
 				 | MA_ONLYCAST | MA_SHADBUF)
@@ -373,78 +373,77 @@ typedef struct Material {
 #define MA_RAMP_LINEAR      17
 
 /* texco */
-#define TEXCO_ORCO		1
-#define TEXCO_REFL		2
-#define TEXCO_NORM		4
-#define TEXCO_GLOB		8
-#define TEXCO_UV		16
-#define TEXCO_OBJECT	32
-#define TEXCO_LAVECTOR	64
-#define TEXCO_VIEW		128
-#define TEXCO_STICKY_	256  // DEPRECATED
-#define TEXCO_OSA		512
-#define TEXCO_WINDOW	1024
-#define NEED_UV			2048
-#define TEXCO_TANGENT	4096
+#define TEXCO_ORCO      (1 << 0)
+#define TEXCO_REFL      (1 << 1)
+#define TEXCO_NORM      (1 << 2)
+#define TEXCO_GLOB      (1 << 3)
+#define TEXCO_UV        (1 << 4)
+#define TEXCO_OBJECT    (1 << 5)
+#define TEXCO_LAVECTOR  (1 << 6)
+#define TEXCO_VIEW      (1 << 7)
+#define TEXCO_STICKY_   (1 << 8)  // DEPRECATED
+#define TEXCO_OSA       (1 << 9)
+#define TEXCO_WINDOW    (1 << 10)
+#define NEED_UV         (1 << 11)
+#define TEXCO_TANGENT   (1 << 12)
 	/* still stored in vertex->accum, 1 D */
-#define TEXCO_STRAND	8192
-#define TEXCO_PARTICLE	8192 /* strand is used for normal materials, particle for halo materials */
-#define TEXCO_STRESS	16384
-#define TEXCO_SPEED		32768
+#define TEXCO_STRAND    (1 << 13)
+#define TEXCO_PARTICLE  (1 << 13) /* strand is used for normal materials, particle for halo materials */
+#define TEXCO_STRESS    (1 << 14)
+#define TEXCO_SPEED     (1 << 15)
 
 /* mapto */
-#define MAP_COL			1
-#define MAP_NORM		2
-#define MAP_COLSPEC		4
-#define MAP_COLMIR		8
-#define MAP_VARS		(0xFFF0)
-#define MAP_REF			16
-#define MAP_SPEC		32
-#define MAP_EMIT		64
-#define MAP_ALPHA		128
-#define MAP_HAR			256
-#define MAP_RAYMIRR		512
-#define MAP_TRANSLU		1024
-#define MAP_AMB			2048
-#define MAP_DISPLACE	4096
-#define MAP_WARP		8192
-// #define MAP_LAYER		16384		/* unused */
+#define MAP_COL         (1 << 0)
+#define MAP_NORM        (1 << 1)
+#define MAP_COLSPEC     (1 << 2)
+#define MAP_COLMIR      (1 << 3)
+#define MAP_VARS        (((1 << 16) - 1) & ~((1 << 4) - 1))
+#define MAP_REF         (1 << 4)
+#define MAP_SPEC        (1 << 5)
+#define MAP_EMIT        (1 << 6)
+#define MAP_ALPHA       (1 << 7)
+#define MAP_HAR         (1 << 8)
+#define MAP_RAYMIRR     (1 << 9)
+#define MAP_TRANSLU     (1 << 10)
+#define MAP_AMB         (1 << 11)
+#define MAP_DISPLACE    (1 << 12)
+#define MAP_WARP        (1 << 13)
+// #define MAP_LAYER    (1 << 14)       /* unused */
 
 /* volume mapto - reuse definitions for now - a bit naughty! */
-#define MAP_DENSITY				128
-#define MAP_EMISSION			64
-#define MAP_EMISSION_COL		1
-#define MAP_SCATTERING			16
-#define MAP_TRANSMISSION_COL	8
-#define MAP_REFLECTION_COL		4
-#define MAP_REFLECTION			32
+#define MAP_DENSITY             (1 << 7)
+#define MAP_EMISSION            (1 << 6)
+#define MAP_EMISSION_COL        (1 << 0)
+#define MAP_SCATTERING          (1 << 4)
+#define MAP_TRANSMISSION_COL    (1 << 3)
+#define MAP_REFLECTION_COL      (1 << 2)
+#define MAP_REFLECTION          (1 << 5)
 
 
 /* mapto for halo */
-//#define MAP_HA_COL		1
-//#define MAP_HA_ALPHA	128
-//#define MAP_HA_HAR		256
-//#define MAP_HA_SIZE		2
-//#define MAP_HA_ADD		64
+//#define MAP_HA_COL        (1 << 0)
+//#define MAP_HA_ALPHA      (1 << 7)
+//#define MAP_HA_HAR        (1 << 8)
+//#define MAP_HA_SIZE       (1 << 1)
+//#define MAP_HA_ADD        (1 << 6)
 
 /* pmapto */
 /* init */
-#define MAP_PA_INIT		31
-#define MAP_PA_TIME		1
-#define MAP_PA_LIFE		2
-#define MAP_PA_DENS		4
-#define MAP_PA_SIZE		8
-#define MAP_PA_LENGTH	16
+#define MAP_PA_INIT     ((1 << 5) - 1)
+#define MAP_PA_TIME     (1 << 0)
+#define MAP_PA_LIFE     (1 << 1)
+#define MAP_PA_DENS     (1 << 2)
+#define MAP_PA_SIZE     (1 << 3)
+#define MAP_PA_LENGTH   (1 << 4)
 /* reset */
-#define MAP_PA_IVEL		32
+#define MAP_PA_IVEL     (1 << 5)
 /* physics */
-#define MAP_PA_PVEL		64
+#define MAP_PA_PVEL     (1 << 6)
 /* path cache */
-#define MAP_PA_CACHE	912
-#define MAP_PA_CLUMP	128
-#define MAP_PA_KINK		256
-#define MAP_PA_ROUGH	512
-#define MAP_PA_FREQ		1024
+#define MAP_PA_CLUMP    (1 << 7)
+#define MAP_PA_KINK     (1 << 8)
+#define MAP_PA_ROUGH    (1 << 9)
+#define MAP_PA_FREQ     (1 << 10)
 
 /* pr_type */
 #define MA_FLAT			0

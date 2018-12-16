@@ -84,11 +84,11 @@ typedef struct RenderSlot {
 } RenderSlot;
 
 /* iuser->flag */
-#define	IMA_ANIM_ALWAYS		1
-#define IMA_ANIM_REFRESHED	2
-/* #define IMA_DO_PREMUL	4 */
-#define IMA_NEED_FRAME_RECALC	8
-#define IMA_SHOW_STEREO		16
+#define IMA_ANIM_ALWAYS         (1 << 0)
+#define IMA_ANIM_REFRESHED      (1 << 1)
+/* #define IMA_DO_PREMUL        (1 << 2) */
+#define IMA_NEED_FRAME_RECALC   (1 << 3)
+#define IMA_SHOW_STEREO         (1 << 4)
 
 enum {
 	TEXTARGET_TEXTURE_2D = 0,
@@ -184,20 +184,20 @@ enum {
 };
 
 /* Image.tpageflag */
-#define IMA_TILES			1
-#define IMA_TWINANIM		2
-#define IMA_COLCYCLE		4	/* Depreciated */
-#define IMA_MIPMAP_COMPLETE 8   /* all mipmap levels in OpenGL texture set? */
-#define IMA_CLAMP_U			16
-#define IMA_CLAMP_V			32
-#define IMA_TPAGE_REFRESH	64
-#define IMA_GLBIND_IS_DATA	128 /* opengl image texture bound as non-color data */
+#define IMA_TILES           (1 << 0)
+#define IMA_TWINANIM        (1 << 1)
+#define IMA_COLCYCLE        (1 << 2)    /* Depreciated */
+#define IMA_MIPMAP_COMPLETE (1 << 3)   /* all mipmap levels in OpenGL texture set? */
+#define IMA_CLAMP_U         (1 << 4)
+#define IMA_CLAMP_V         (1 << 5)
+#define IMA_TPAGE_REFRESH   (1 << 6)
+#define IMA_GLBIND_IS_DATA  (1 << 7) /* opengl image texture bound as non-color data */
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 
 /* render */
-#define IMA_MAX_RENDER_TEXT		512
-#define IMA_MAX_RENDER_SLOT		8
+#define IMA_MAX_RENDER_TEXT     (1 << 9)
+#define IMA_MAX_RENDER_SLOT     (1 << 3)
 
 /* gen_flag */
 #define IMA_GEN_FLOAT		1
