@@ -3032,6 +3032,14 @@ GPUBatch *DRW_cache_mesh_surface_get(Object *ob)
 	return DRW_mesh_batch_cache_get_triangles_with_normals(me);
 }
 
+GPUBatch *DRW_cache_mesh_wire_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MESH);
+
+	Mesh *me = ob->data;
+	return DRW_mesh_batch_cache_get_wire_loops(me);
+}
+
 GPUBatch *DRW_cache_mesh_face_wireframe_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
@@ -3150,14 +3158,6 @@ GPUBatch *DRW_cache_mesh_verts_get(Object *ob)
 
 	Mesh *me = ob->data;
 	return DRW_mesh_batch_cache_get_all_verts(me);
-}
-
-GPUBatch *DRW_cache_mesh_edges_paint_overlay_get(Object *ob, bool use_wire, bool use_sel)
-{
-	BLI_assert(ob->type == OB_MESH);
-
-	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_weight_overlay_edges(me, use_wire, use_sel, use_sel);
 }
 
 GPUBatch *DRW_cache_mesh_faces_weight_overlay_get(Object *ob)

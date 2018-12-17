@@ -163,12 +163,12 @@ static void PAINT_VERTEX_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (use_face_sel || use_wire) {
-			geom = DRW_cache_mesh_edges_paint_overlay_get(ob, use_wire, use_face_sel);
+			geom = DRW_cache_mesh_wire_get(ob);
 			DRW_shgroup_call_add(stl->g_data->lwire_shgrp, geom, ob->obmat);
 		}
 
 		if (use_face_sel) {
-			geom = DRW_cache_mesh_faces_weight_overlay_get(ob);
+			geom = DRW_cache_mesh_surface_get(ob);
 			DRW_shgroup_call_add(stl->g_data->face_shgrp, geom, ob->obmat);
 		}
 	}

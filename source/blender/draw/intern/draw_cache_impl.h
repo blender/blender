@@ -126,7 +126,7 @@ struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_edges(struct Mesh *me, bool use_wire, bool use_sel, bool use_hide);
+struct GPUBatch *DRW_mesh_batch_cache_get_wire_loops(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_faces(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);

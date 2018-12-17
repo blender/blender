@@ -197,7 +197,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (use_face_sel || use_wire) {
-			geom = DRW_cache_mesh_edges_paint_overlay_get(ob, use_wire, use_face_sel);
+			geom = DRW_cache_mesh_wire_get(ob);
 			DRW_shgroup_call_add(stl->g_data->lwire_shgrp, geom, ob->obmat);
 		}
 
