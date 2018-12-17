@@ -77,6 +77,7 @@ const char *screen_context_dir[] = {
 	"selected_objects", "selected_bases",
 	"editable_objects", "editable_bases",
 	"selected_editable_objects", "selected_editable_bases",
+	"objects_in_mode", "objects_in_mode_unique_data",
 	"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
 	"visible_pose_bones", "selected_pose_bones", "selected_pose_bones_from_active_object",
 	"active_bone", "active_pose_bone",
@@ -241,6 +242,30 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
 			}
+		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+		return 1;
+	}
+	else if (CTX_data_equals(member, "objects_in_mode")) {
+		if (obact && (obact->mode != OB_MODE_OBJECT)) {
+			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
+				CTX_data_id_list_add(result, &ob_iter->id);
+			} FOREACH_OBJECT_IN_MODE_END;
+		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+		return 1;
+	}
+	else if (CTX_data_equals(member, "objects_in_mode_unique_data")) {
+		if (obact && (obact->mode != OB_MODE_OBJECT)) {
+			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
+				ob_iter->id.tag |= LIB_TAG_DOIT;
+			} FOREACH_OBJECT_IN_MODE_END;
+			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
+				if (ob_iter->id.tag & LIB_TAG_DOIT) {
+					ob_iter->id.tag &= ~LIB_TAG_DOIT;
+					CTX_data_id_list_add(result, &ob_iter->id);
+				}
+			} FOREACH_OBJECT_IN_MODE_END;
 		}
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;

@@ -1014,8 +1014,8 @@ context_type_map = {
     "gpencil_data": ("GreasePencel", False),
     "gpencil_data_owner": ("ID", False),
     "image_paint_object": ("Object", False),
-    "light": ("Light", False),
     "lattice": ("Lattice", False),
+    "light": ("Light", False),
     "lightprobe": ("LightProbe", False),
     "line_style": ("FreestyleLineStyle", False),
     "material": ("Material", False),
@@ -1023,6 +1023,8 @@ context_type_map = {
     "mesh": ("Mesh", False),
     "meta_ball": ("MetaBall", False),
     "object": ("Object", False),
+    "objects_in_mode": ("Object", True),
+    "objects_in_mode_unique_data": ("Object", True),
     "particle_edit_object": ("Object", False),
     "particle_settings": ("ParticleSettings", False),
     "particle_system": ("ParticleSystem", False),
@@ -1054,6 +1056,7 @@ context_type_map = {
     "texture_user_property": ("Property", False),
     "uv_sculpt_object": ("Object", False),
     "vertex_paint_object": ("Object", False),
+    "view_layer": ("ViewLayer", False),
     "visible_bases": ("ObjectBase", True),
     "visible_bones": ("EditBone", True),
     "visible_gpencil_layers": ("GPencilLayer", True),
@@ -1061,7 +1064,6 @@ context_type_map = {
     "visible_pose_bones": ("PoseBone", True),
     "weight_paint_object": ("Object", False),
     "world": ("World", False),
-    "view_layer": ("ViewLayer", False),
 }
 
 
