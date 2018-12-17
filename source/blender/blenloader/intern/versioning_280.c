@@ -2729,7 +2729,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 
 		for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
-			mat->blend_flag &= (
+			mat->blend_flag &= ~(
 			        MA_BL_FLAG_DEPRECATED_2);
 		}
 	}

@@ -450,10 +450,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 
 		copy_v4_fl4(userdef->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
 
-		userdef->flag &= (
+		userdef->flag &= ~(
 		        USER_FLAG_DEPRECATED_4);
 
-		userdef->uiflag &= (
+		userdef->uiflag &= ~(
 		        USER_UIFLAG_DEPRECATED_8 |
 		        USER_UIFLAG_DEPRECATED_12 |
 		        USER_UIFLAG_DEPRECATED_22);
