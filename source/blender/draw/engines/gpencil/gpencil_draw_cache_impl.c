@@ -404,10 +404,8 @@ GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(bGPdata *gpd)
 	int idx = 0;
 	for (int i = 0; i < gpd->runtime.tot_cp_points; i++) {
 		bGPDcontrolpoint *cp = &cps[i];
-		float color[4];
-		copy_v3_v3(color, cp->color);
-		color[3] = 0.8f;
-		GPU_vertbuf_attr_set(vbo, color_id, idx, color);
+
+		GPU_vertbuf_attr_set(vbo, color_id, idx, cp->color);
 
 		/* scale size */
 		float size = cp->size * 0.8f;
