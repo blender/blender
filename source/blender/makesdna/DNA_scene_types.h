@@ -1330,7 +1330,8 @@ typedef struct ToolSettings {
 	float select_thresh;
 
 	/* Auto-Keying Mode */
-	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
+	short autokey_flag;	/* defines in DNA_userdef_types.h */
+	char  autokey_mode;
 	char keyframe_type;                 /* keyframe type (see DNA_curve_types.h) */
 
 	/* Multires */
@@ -1350,13 +1351,15 @@ typedef struct ToolSettings {
 	char snap_uv_mode;
 	char snap_flag;
 	char snap_target;
-	short proportional, prop_mode;
+	char snap_force_increment_flag;
+
+
+	char proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char proportional_mask; /* proportional edit, mask editing */
 	char proportional_action; /* proportional edit, action editor */
 	char proportional_fcurve; /* proportional edit, graph editor */
 	char lock_markers; /* lock marker editing */
-	char pad4[5];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
@@ -1364,7 +1367,7 @@ typedef struct ToolSettings {
 	char vgroupsubset; /* subset selection filter in wpaint */
 
 	/* UV painting */
-	char _pad2[2];
+	char _pad2[1];
 	char use_uv_sculpt;
 	char uv_sculpt_settings;
 	char uv_sculpt_tool;
@@ -1906,6 +1909,13 @@ enum {
 #define SCE_SNAP_MODE_GRID      (1 << 5)
 #define SCE_SNAP_MODE_NODE_X    (1 << 6)
 #define SCE_SNAP_MODE_NODE_Y    (1 << 7)
+
+/** #ToolSettings.snap_force_increment_flag */
+enum {
+	SCE_SNAP_FORCE_INCREMENT_TRANSLATE  = (1 << 0),
+	SCE_SNAP_FORCE_INCREMENT_ROTATE     = (1 << 1),
+	SCE_SNAP_FORCE_INCREMENT_SCALE      = (1 << 2),
+};
 
 /* ToolSettings.selectmode */
 #define SCE_SELECT_VERTEX	(1 << 0) /* for mesh */

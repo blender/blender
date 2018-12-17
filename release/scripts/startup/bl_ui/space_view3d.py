@@ -5225,6 +5225,12 @@ class VIEW3D_PT_snapping(Panel):
             col.prop(tool_settings, "use_snap_grid_absolute")
 
         if snap_elements != {'INCREMENT'}:
+            col.label(text="Affect")
+            row = col.row(align=True)
+            row.prop(tool_settings, "use_snap_force_increment_translate", text="Move")
+            row.prop(tool_settings, "use_snap_force_increment_rotate", text="Rotate")
+            row.prop(tool_settings, "use_snap_force_increment_scale", text="Scale")
+
             col.label(text="Target")
             row = col.row(align=True)
             row.prop(tool_settings, "snap_target", expand=True)

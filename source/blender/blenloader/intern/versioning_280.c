@@ -2737,5 +2737,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	{
 		/* Versioning code until next subversion bump goes here. */
 
+		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "snap_force_increment_flag")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				scene->toolsettings->snap_force_increment_flag =
+					SCE_SNAP_FORCE_INCREMENT_ROTATE | SCE_SNAP_FORCE_INCREMENT_SCALE;
+			}
+		}
 	}
 }

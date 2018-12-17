@@ -137,6 +137,21 @@ bool activeSnap(const TransInfo *t)
 	       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
 }
 
+static bool doForceIncrementSnap(const TransInfo *t)
+{
+	const ToolSettings *ts = t->settings;
+	if (t->mode == TFM_TRANSLATION) {
+		return ts->snap_force_increment_flag & SCE_SNAP_FORCE_INCREMENT_TRANSLATE;
+	}
+	if (t->mode == TFM_ROTATION) {
+		return ts->snap_force_increment_flag & SCE_SNAP_FORCE_INCREMENT_ROTATE;
+	}
+	if (t->mode == TFM_RESIZE) {
+		return ts->snap_force_increment_flag & SCE_SNAP_FORCE_INCREMENT_SCALE;
+	}
+	return false;
+}
+
 void drawSnapping(const struct bContext *C, TransInfo *t)
 {
 	unsigned char col[4], selectedCol[4], activeCol[4];
@@ -405,8 +420,10 @@ void applyGridAbsolute(TransInfo *t)
 
 void applySnapping(TransInfo *t, float *vec)
 {
-	if (t->tsnap.project && t->tsnap.mode == SCE_SNAP_MODE_FACE) {
-		/* Each Trans Data already makes the snap to face */
+	/* Each Trans Data already makes the snap to face */
+	if (doForceIncrementSnap(t) ||
+	    (t->tsnap.project && t->tsnap.mode == SCE_SNAP_MODE_FACE))
+	{
 		return;
 	}
 
@@ -1450,8 +1467,8 @@ void snapGridIncrement(TransInfo *t, float *val)
 
 	/* only do something if using absolute or incremental grid snapping
 	 * and there is no valid snap point */
-	if (!(t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) ||
-	    validSnap(t))
+	if ((!(t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) ||
+	    validSnap(t)) && !doForceIncrementSnap(t))
 	{
 		return;
 	}
@@ -1494,7 +1511,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 	const float *asp = use_aspect ? t->aspect : asp_local;
 	int i;
 
-	BLI_assert(t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID));
+	BLI_assert((t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) || doForceIncrementSnap(t));
 	BLI_assert(max_index <= 2);
 
 	/* Early bailing out if no need to snap */

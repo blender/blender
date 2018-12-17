@@ -2478,6 +2478,26 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Project onto Self", "Snap onto itself (Edit Mode Only)");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+	prop = RNA_def_property(srna, "use_snap_force_increment_translate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_force_increment_flag", SCE_SNAP_FORCE_INCREMENT_TRANSLATE);
+	RNA_def_property_ui_text(prop, "Resctrict Translation",
+	                         "Translate uses the snapping modes, otherwise use increment snapping");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+	prop = RNA_def_property(srna, "use_snap_force_increment_rotate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_force_increment_flag", SCE_SNAP_FORCE_INCREMENT_ROTATE);
+	RNA_def_property_boolean_default(prop, false);
+	RNA_def_property_ui_text(prop, "Resctrict Rotate",
+	                         "Rotate uses the snapping modes, otherwise use increment snapping");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
+	prop = RNA_def_property(srna, "use_snap_force_increment_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_force_increment_flag", SCE_SNAP_FORCE_INCREMENT_SCALE);
+	RNA_def_property_boolean_default(prop, false);
+	RNA_def_property_ui_text(prop, "Resctrict Scale",
+	                         "Scale uses the snapping modes, otherwise use increment snapping");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
 	prop = RNA_def_property(srna, "use_gizmo_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gizmo_flag");
 	RNA_def_property_enum_items(prop, rna_enum_gizmo_items);
