@@ -352,6 +352,8 @@ void drw_state_set(DRWState state)
 		{
 			if (test) {
 				glEnable(GL_POLYGON_OFFSET_FILL);
+				glEnable(GL_POLYGON_OFFSET_LINE);
+				glEnable(GL_POLYGON_OFFSET_POINT);
 				/* Stencil Write */
 				if ((state & DRW_STATE_OFFSET_POSITIVE) != 0) {
 					glPolygonOffset(1.0f, 1.0f);
@@ -365,6 +367,8 @@ void drw_state_set(DRWState state)
 			}
 			else {
 				glDisable(GL_POLYGON_OFFSET_FILL);
+				glDisable(GL_POLYGON_OFFSET_LINE);
+				glDisable(GL_POLYGON_OFFSET_POINT);
 			}
 		}
 	}
