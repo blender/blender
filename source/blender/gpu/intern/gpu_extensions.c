@@ -307,6 +307,8 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_OFFICIAL;
 
 		if (strstr(renderer, "UHD Graphics") ||
+		    /* Not UHD but affected by the same bugs. */
+		    strstr(renderer, "HD Graphics 530") ||
 		    strstr(renderer, "Kaby Lake GT2"))
 		{
 			GG.device |= GPU_DEVICE_INTEL_UHD;
