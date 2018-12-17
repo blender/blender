@@ -403,7 +403,7 @@
         bundle_solid="#c8c8c8"
         camera_path="#000000"
         skin_root="#b44d4d"
-        view_overlay="#808080"
+        view_overlay="#000000"
         transform="#ffffff"
         frame_current="#60c040"
         paint_curve_handle="#7fff7f7f"
