@@ -503,33 +503,26 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 			const Mesh *me = ob->data;
 			if (me->mloopuv) {
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
-				struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
-				struct GPUBatch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
-				if (materials_len > 0 && geom_array) {
-					for (int i = 0; i < materials_len; i++) {
-						if (geom_array[i] == NULL) {
-							continue;
-						}
+				struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
+				for (int i = 0; i < materials_len; i++) {
+					Material *mat = give_current_material(ob, i + 1);
+					Image *image;
+					ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
+					/* use OB_SOLID when no texture could be determined */
 
-						Material *mat = give_current_material(ob, i + 1);
-						Image *image;
-						ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
+					int color_type = wpd->shading.color_type;
+					if (color_type == V3D_SHADING_TEXTURE_COLOR) {
 						/* use OB_SOLID when no texture could be determined */
-
-						int color_type = wpd->shading.color_type;
-						if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-							/* use OB_SOLID when no texture could be determined */
-							if (image == NULL) {
-								color_type = V3D_SHADING_MATERIAL_COLOR;
-							}
+						if (image == NULL) {
+							color_type = V3D_SHADING_MATERIAL_COLOR;
 						}
-
-						material = get_or_create_material_data(vedata, ob, mat, image, color_type);
-						DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
-						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}
-					is_drawn = true;
+
+					material = get_or_create_material_data(vedata, ob, mat, image, color_type);
+					DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
+					DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 				}
+				is_drawn = true;
 			}
 		}
 

@@ -323,6 +323,17 @@ static void mesh_cd_layers_type_merge(
 	}
 }
 
+static void mesh_cd_calc_active_uv_layer(
+        const Mesh *me, ushort cd_lused[CD_NUMTYPES])
+{
+	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
+
+	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+	if (layer != -1) {
+		cd_lused[CD_MLOOPUV] |= (1 << layer);
+	}
+}
+
 static void mesh_cd_calc_used_gpu_layers(
         const Mesh *me, uchar cd_vused[CD_NUMTYPES], ushort cd_lused[CD_NUMTYPES],
         struct GPUMaterial **gpumat_array, int gpumat_array_len)
@@ -2624,84 +2635,6 @@ void DRW_mesh_batch_cache_free(Mesh *me)
 }
 
 /* GPUBatch cache usage. */
-
-static GPUVertBuf *mesh_batch_cache_get_tri_uv_active(
-        MeshRenderData *rdata, MeshBatchCache *cache)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPUV));
-
-
-	if (cache->tri_aligned_uv == NULL) {
-		const MLoopUV *mloopuv = rdata->mloopuv;
-		int layer_offset;
-		BMEditMesh *embm = rdata->edit_bmesh;
-
-		/* edit mode */
-		if (rdata->edit_bmesh) {
-			BMesh *bm = embm->bm;
-			layer_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-			if (layer_offset == -1) {
-				return NULL;
-			}
-		}
-		else if (mloopuv == NULL) {
-			return NULL;
-		}
-
-		uint vidx = 0;
-
-		static GPUVertFormat format = { 0 };
-		static struct { uint uv; } attr_id;
-		if (format.attr_len == 0) {
-			attr_id.uv = GPU_vertformat_attr_add(&format, "uv", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-		}
-
-		const int tri_len = mesh_render_data_looptri_len_get(rdata);
-
-		GPUVertBuf *vbo = cache->tri_aligned_uv = GPU_vertbuf_create_with_format(&format);
-
-		const int vbo_len_capacity = tri_len * 3;
-		int vbo_len_used = 0;
-		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
-
-		/* get uv's from active UVMap */
-		if (rdata->edit_bmesh) {
-			for (uint i = 0; i < tri_len; i++) {
-				const BMLoop **bm_looptri = (const BMLoop **)embm->looptris[i];
-				if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
-					continue;
-				}
-				for (uint t = 0; t < 3; t++) {
-					const BMLoop *loop = bm_looptri[t];
-					const int index = BM_elem_index_get(loop);
-					if (index != -1) {
-						const float *elem = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(loop, layer_offset))->uv;
-						GPU_vertbuf_attr_set(vbo, attr_id.uv, vidx++, elem);
-					}
-				}
-			}
-		}
-		else {
-			/* object mode */
-			for (int i = 0; i < tri_len; i++) {
-				const MLoopTri *mlt = &rdata->mlooptri[i];
-				GPU_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[0]].uv);
-				GPU_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[1]].uv);
-				GPU_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[2]].uv);
-			}
-		}
-
-		vbo_len_used = vidx;
-
-		if (vbo_len_capacity != vbo_len_used) {
-			GPU_vertbuf_data_resize(vbo, vbo_len_used);
-		}
-
-		UNUSED_VARS_NDEBUG(vbo_len_used);
-	}
-
-	return cache->tri_aligned_uv;
-}
 
 static void mesh_create_pos_and_nor_tess(MeshRenderData *rdata, GPUVertBuf *vbo, bool use_hide)
 {
@@ -5155,12 +5088,11 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	BLI_assert(gpumat_array_len == cache->mat_len);
-
 	uchar cd_vneeded[CD_NUMTYPES] = {0};
 	ushort cd_lneeded[CD_NUMTYPES] = {0};
 	mesh_cd_calc_used_gpu_layers(me, cd_vneeded, cd_lneeded, gpumat_array, gpumat_array_len);
+
+	BLI_assert(gpumat_array_len == cache->mat_len);
 
 	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
 	                                              cd_vneeded, cd_lneeded);
@@ -5175,48 +5107,50 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
 		                                           &cache->auto_layer_is_srgb,
 		                                           &cache->auto_layer_len);
 	}
-
 	if (auto_layer_names) {
 		*auto_layer_names = cache->auto_layer_names;
 		*auto_layer_is_srgb = cache->auto_layer_is_srgb;
 		*auto_layer_count = cache->auto_layer_len;
 	}
-
 	for (int i = 0; i < cache->mat_len; ++i) {
 		DRW_batch_request(&cache->surf_per_mat[i]);
 	}
 	return cache->surf_per_mat;
 }
 
+static void texpaint_request_active_uv(MeshBatchCache *cache, Mesh *me)
+{
+	uchar cd_vneeded[CD_NUMTYPES] = {0};
+	ushort cd_lneeded[CD_NUMTYPES] = {0};
+	mesh_cd_calc_active_uv_layer(me, cd_lneeded);
+	if (cd_lneeded[CD_MLOOPUV] == 0) {
+		/* This should not happen. */
+		BLI_assert(!"No uv layer available in texpaint, but batches requested anyway!");
+	}
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
+	                                              cd_vneeded, cd_lneeded);
+	if (cd_overlap == false) {
+		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
+		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
+		                          cd_vneeded, cd_lneeded);
+	}
+}
+
 GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	UNUSED_VARS(cache);
-	/* TODO */
-	return NULL;
+	texpaint_request_active_uv(cache, me);
+	for (int i = 0; i < cache->mat_len; ++i) {
+		DRW_batch_request(&cache->surf_per_mat[i]);
+	}
+	return cache->surf_per_mat;
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->texpaint_triangles_single == NULL) {
-		/* create batch from DM */
-		const int datatype =
-		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOPUV;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-
-		GPUVertBuf *vbo = mesh_batch_cache_get_tri_pos_and_normals_final(rdata, cache, false);
-
-		cache->texpaint_triangles_single = GPU_batch_create(
-		        GPU_PRIM_TRIS, vbo, NULL);
-		GPUVertBuf *vbo_uv = mesh_batch_cache_get_tri_uv_active(rdata, cache);
-		if (vbo_uv) {
-			GPU_batch_vertbuf_add(cache->texpaint_triangles_single, vbo_uv);
-		}
-		mesh_render_data_free(rdata);
-	}
-	return cache->texpaint_triangles_single;
+	texpaint_request_active_uv(cache, me);
+	return DRW_batch_request(&cache->batch.surface);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(Mesh *me)
@@ -5799,12 +5733,12 @@ void DRW_mesh_batch_cache_create_requested(Object *UNUSED(ob), Mesh *me)
 				}
 			}
 		}
+		/* We can't discard batches at this point as they have been
+		 * referenced for drawing. Just clear them in place. */
 		for (int i = 0; i < cache->mat_len; ++i) {
-			/* We can't discard batches at this point as they have been
-			 * referenced for drawing. Just clear them in place. */
-			GPU_batch_clear(cache->surf_per_mat[i]);
-			memset(cache->surf_per_mat[i], 0, sizeof(*cache->surf_per_mat[i]));
+			GPU_BATCH_CLEAR_SAFE(cache->surf_per_mat[i]);
 		}
+		GPU_BATCH_CLEAR_SAFE(cache->batch.surface);
 
 		mesh_cd_layers_type_merge(cache->cd_vused, cache->cd_lused,
 		                          cache->cd_vneeded, cache->cd_lneeded);
@@ -5818,6 +5752,10 @@ void DRW_mesh_batch_cache_create_requested(Object *UNUSED(ob), Mesh *me)
 	if (DRW_batch_requested(cache->batch.surface, GPU_PRIM_TRIS)) {
 		DRW_ibo_request(cache->batch.surface, &cache->ibo.surface_tris);
 		DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_pos_nor);
+		/* For paint overlay. Active layer should have been queried. */
+		if (cache->cd_lused[CD_MLOOPUV] != 0) {
+			DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_uv_tan);
+		}
 	}
 	if (DRW_batch_requested(cache->batch.all_verts, GPU_PRIM_POINTS)) {
 		DRW_vbo_request(cache->batch.all_verts, &cache->ordered.pos_nor);

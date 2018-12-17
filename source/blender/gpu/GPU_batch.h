@@ -197,6 +197,13 @@ void gpu_batch_exit(void);
 	} \
 } while (0)
 
+#define GPU_BATCH_CLEAR_SAFE(batch) do { \
+	if (batch != NULL) { \
+		GPU_batch_clear(batch); \
+		memset(batch, 0, sizeof(*(batch))); \
+	} \
+} while (0)
+
 #define GPU_BATCH_DISCARD_ARRAY_SAFE(_batch_array, _len) do { \
 	if (_batch_array != NULL) { \
 		BLI_assert(_len > 0); \
