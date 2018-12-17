@@ -927,7 +927,7 @@ class LoadBackgroundImage(LoadImageAsEmpty, Operator):
 
     def set_settings(self, context, obj):
         obj.empty_image_depth = 'BACK'
-        obj.show_empty_image_back = False
+        obj.empty_image_side = 'FRONT'
 
         if context.space_data.type == 'VIEW_3D':
             if not context.space_data.region_3d.is_perspective:

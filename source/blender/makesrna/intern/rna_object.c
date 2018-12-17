@@ -2511,9 +2511,16 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display in Orthographic Mode", "Display image in orthographic mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-	prop = RNA_def_property(srna, "show_empty_image_back", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "empty_image_visibility_flag", OB_EMPTY_IMAGE_HIDE_BACK);
-	RNA_def_property_ui_text(prop, "Display Back Side", "Display empty image even when viewed from the back");
+	static EnumPropertyItem prop_empty_image_side_items[] = {
+		{0, "DOUBLE_SIDED", 0, "Both", ""},
+		{OB_EMPTY_IMAGE_HIDE_BACK, "FRONT", 0, "Front", ""},
+		{OB_EMPTY_IMAGE_HIDE_FRONT, "BACK", 0, "Back", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	prop = RNA_def_property(srna, "empty_image_side", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "empty_image_visibility_flag");
+	RNA_def_property_enum_items(prop, prop_empty_image_side_items);
+	RNA_def_property_ui_text(prop, "Empty Image Side", "Show front/back side");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	/* render */
