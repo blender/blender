@@ -1424,7 +1424,7 @@ void ED_view3d_draw_offscreen(
 	/* set flags */
 	G.f |= G_RENDER_OGL;
 
-	if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
+	{
 		/* free images which can have changed on frame-change
 		 * warning! can be slow so only free animated images - campbell */
 		GPU_free_images_anim(G.main);  /* XXX :((( */
@@ -1678,9 +1678,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {
 		v3d.flag2 |= V3D_SHOW_ANNOTATION;
-	}
-	if (draw_flags & V3D_OFSDRAW_USE_SOLID_TEX) {
-		v3d.flag2 |= V3D_SOLID_TEX;
 	}
 
 	v3d.shading.background_type = V3D_SHADING_BACKGROUND_WORLD;

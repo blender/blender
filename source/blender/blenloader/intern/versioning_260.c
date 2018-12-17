@@ -767,7 +767,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	if (bmain->versionfile < 260 || (bmain->versionfile == 260 && bmain->subversionfile < 6)) {
 		Scene *sce;
 		MovieClip *clip;
-		bScreen *sc;
 
 		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 			do_versions_image_settings_2_60(sce);
@@ -781,19 +780,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				settings->default_minimum_correlation = 0.75;
 				settings->default_pattern_size = 11;
 				settings->default_search_size = 51;
-			}
-		}
-
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-			ScrArea *sa;
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				SpaceLink *sl;
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D *)sl;
-						v3d->flag2 &= ~V3D_RENDER_SHADOW;
-					}
-				}
 			}
 		}
 
@@ -1726,6 +1712,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 			SEQ_BEGIN (scene->ed, seq)
 			{
+				enum { SEQ_MAKE_PREMUL = (1 << 6) };
 				if (seq->flag & SEQ_MAKE_PREMUL) {
 					seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
 				}
@@ -2411,6 +2398,11 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			Sculpt *sd = scene->toolsettings->sculpt;
 
 			if (sd) {
+				enum {
+					SCULPT_SYMM_X = (1 << 0),
+					SCULPT_SYMM_Y = (1 << 1),
+					SCULPT_SYMM_Z = (1 << 2),
+				};
 				int symmetry_flags = sd->flags & 7;
 
 				if (symmetry_flags & SCULPT_SYMM_X)

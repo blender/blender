@@ -454,8 +454,7 @@ enum {
 
 	/* Only works with ED_view3d_draw_offscreen_imbuf_simple(). */
 	V3D_OFSDRAW_USE_GPENCIL      = (1 << 1),
-	V3D_OFSDRAW_USE_SOLID_TEX    = (1 << 2),
-	V3D_OFSDRAW_USE_CAMERA_DOF   = (1 << 3),
+	V3D_OFSDRAW_USE_CAMERA_DOF   = (1 << 2),
 };
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(

@@ -58,7 +58,7 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
             col.row().prop(ob, "empty_image_depth", text="Depth", expand=True)
             col.prop(ob, "show_empty_image_orthographic", text="Display Orthographic")
             col.prop(ob, "show_empty_image_perspective", text="Display Perspective")
-            col.prop(ob, "show_empty_image_backside", text="Display Backside")
+            col.prop(ob, "show_empty_image_back", text="Display Back")
 
 
 classes = (

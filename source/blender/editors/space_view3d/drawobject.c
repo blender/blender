@@ -73,14 +73,8 @@ static bool check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 	if (G.f & G_BACKBUFSEL)
 		return false;
 
-	if ((vd->flag & V3D_ZBUF_SELECT) == 0)
-		return true;
-
 	/* if its drawing textures with zbuf sel, then don't draw dots */
 	if (dt == OB_TEXTURE && vd->shading.type == OB_TEXTURE)
-		return false;
-
-	if ((vd->shading.type >= OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX))
 		return false;
 
 	return true;

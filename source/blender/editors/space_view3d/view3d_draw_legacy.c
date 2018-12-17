@@ -893,9 +893,7 @@ CustomDataMask ED_view3d_datamask(const Scene *UNUSED(scene), const View3D *v3d)
 	CustomDataMask mask = 0;
 	const int drawtype = view3d_effective_drawtype(v3d);
 
-	if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL) ||
-	    ((drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
-	{
+	if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL)) {
 		mask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 
 		if (drawtype == OB_MATERIAL)

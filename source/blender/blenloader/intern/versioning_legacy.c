@@ -799,6 +799,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		 * takes a lot more work to calculate.
 		 */
 		for (me = bmain->mesh.first; me; me = me->id.next) {
+			enum {
+				ME_SMESH = (1 << 6),
+				ME_SUBSURF = (1 << 7),
+			};
 			if (me->flag & ME_SMESH) {
 				me->flag &= ~ME_SMESH;
 				me->flag |= ME_SUBSURF;
@@ -871,8 +875,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 		/* Make sure that old subsurf meshes don't have zero subdivision level for rendering */
 		for (me = bmain->mesh.first; me; me = me->id.next) {
-			if ((me->flag & ME_SUBSURF) && (me->subdivr == 0))
+			enum { ME_SUBSURF = (1 << 7) };
+			if ((me->flag & ME_SUBSURF) && (me->subdivr == 0)) {
 				me->subdivr = me->subdiv;
+			}
 		}
 
 		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
@@ -1222,11 +1228,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D *)sl;
-						v3d->flag |= V3D_ZBUF_SELECT;
-					}
-					else if (sl->spacetype == SPACE_TEXT) {
+					if (sl->spacetype == SPACE_TEXT) {
 						SpaceText *st = (SpaceText *)sl;
 						if (st->tabnumber == 0)
 							st->tabnumber = 2;
@@ -1337,6 +1339,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			else if (ob->type == OB_MESH) {
 				Mesh *me = blo_do_versions_newlibadr(fd, lib, ob->data);
 
+				enum {
+					ME_SUBSURF = (1 << 7),
+					ME_OPT_EDGES = (1 << 8),
+				};
+
 				if ((me->flag & ME_SUBSURF)) {
 					SubsurfModifierData *smd = (SubsurfModifierData *)modifier_new(eModifierType_Subsurf);
 
@@ -1349,6 +1356,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 						smd->modifier.mode |= 1;
 					if (me->subdivr != 0)
 						smd->modifier.mode |= 2;
+
 					if (me->flag & ME_OPT_EDGES)
 						smd->flags |= eSubsurfModifierFlag_ControlEdges;
 
@@ -1650,9 +1658,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 
 		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
+			enum {
+				R_THREADS = (1 << 19),
+			};
 			if (sce->toolsettings->select_thresh == 0.0f)
 				sce->toolsettings->select_thresh = 0.01f;
-
 			if (sce->r.threads == 0) {
 				if (sce->r.mode & R_THREADS)
 					sce->r.threads = 2;
@@ -1810,15 +1820,21 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 			}
 			for (tex = bmain->tex.first; tex; tex = tex->id.next) {
+				enum {
+					TEX_ANIMCYCLIC = (1 << 6),
+					TEX_ANIM5 = (1 << 7),
+				};
+
 				if (tex->type == TEX_IMAGE && tex->ima) {
 					ima = blo_do_versions_newlibadr(fd, lib, tex->ima);
-					if (tex->imaflag & TEX_ANIM5_)
+					if (tex->imaflag & TEX_ANIM5) {
 						ima->source = IMA_SRC_MOVIE;
+					}
 				}
 				tex->iuser.frames = tex->frames;
 				tex->iuser.offset = tex->offset;
 				tex->iuser.sfra = tex->sfra;
-				tex->iuser.cycl = (tex->imaflag & TEX_ANIMCYCLIC_) != 0;
+				tex->iuser.cycl = (tex->imaflag & TEX_ANIMCYCLIC) != 0;
 			}
 			for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 				if (sce->nodetree)

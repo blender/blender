@@ -157,35 +157,35 @@ typedef struct Image {
 
 /* Image.flag */
 enum {
-	// IMA_FIELDS              = (1 << 0),
-	// IMA_STD_FIELD           = (1 << 1),
+	IMA_FLAG_DEPRECATED_0   = (1 << 0),  /* cleared */
+	IMA_FLAG_DEPRECATED_1   = (1 << 1),  /* cleared */
 #ifdef DNA_DEPRECATED
-	IMA_DO_PREMUL           = (1 << 2),  /* deprecated, should not be used */
+	IMA_DO_PREMUL           = (1 << 2),
 #endif
-	//IMA_REFLECT             = (1 << 4), /* deprecated */
+	IMA_FLAG_DEPRECATED_4   = (1 << 4),  /* cleared */
 	IMA_NOCOLLECT           = (1 << 5),
-	//IMA_DONE_TAG          = (1 << 6),  // UNUSED
+	IMA_FLAG_DEPRECATED_6   = (1 << 6),  /* cleared */
 	IMA_OLD_PREMUL          = (1 << 7),
-	// IMA_CM_PREDIVIDE     = (1 << 8),  /* deprecated, should not be used */
+	IMA_FLAG_DEPRECATED_8   = (1 << 8),  /* cleared */
 	IMA_USED_FOR_RENDER     = (1 << 9),
 	IMA_USER_FRAME_IN_RANGE = (1 << 10), /* for image user, but these flags are mixed */
 	IMA_VIEW_AS_RENDER      = (1 << 11),
 	IMA_IGNORE_ALPHA        = (1 << 12),
 	IMA_DEINTERLACE         = (1 << 13),
 	IMA_USE_VIEWS           = (1 << 14),
-	// IMA_IS_STEREO        = (1 << 15), /* deprecated */
-	// IMA_IS_MULTIVIEW     = (1 << 16), /* deprecated */
+	IMA_FLAG_DEPRECATED_15  = (1 << 15),  /* cleared */
+	IMA_FLAG_DEPRECATED_16  = (1 << 16),  /* cleared */
 };
 
 /* Image.tpageflag */
-//#define IMA_TILES			(1 << 0) /* Deprecated */
-//#define IMA_TWINANIM		(1 << 1) /* Deprecated */
-#define IMA_COLCYCLE		(1 << 2)	/* Deprecated */
-#define IMA_MIPMAP_COMPLETE (1 << 3)   /* all mipmap levels in OpenGL texture set? */
-//#define IMA_CLAMP_U		(1 << 4) /* Deprecated */
-//#define IMA_CLAMP_V		(1 << 5) /* Deprecated */
-#define IMA_TPAGE_REFRESH	(1 << 6)
-#define IMA_GLBIND_IS_DATA	(1 << 7) /* opengl image texture bound as non-color data */
+#define IMA_TPAGEFLAG_DEPRECATED_0      (1 << 0)  /* cleared */
+#define IMA_TPAGEFLAG_DEPRECATED_1      (1 << 1)  /* cleared */
+#define IMA_TPAGEFLAG_DEPRECATED_2      (1 << 2)  /* cleared */
+#define IMA_MIPMAP_COMPLETE             (1 << 3)  /* all mipmap levels in OpenGL texture set? */
+#define IMA_TPAGEFLAG_DEPRECATED_4      (1 << 4)  /* cleared */
+#define IMA_TPAGEFLAG_DEPRECATED_5      (1 << 5)  /* cleared */
+#define IMA_TPAGE_REFRESH               (1 << 6)
+#define IMA_GLBIND_IS_DATA              (1 << 7) /* opengl image texture bound as non-color data */
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 

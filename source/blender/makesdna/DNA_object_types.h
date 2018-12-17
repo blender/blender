@@ -421,8 +421,9 @@ enum {
 };
 
 /* (short) transflag */
-/* flags 1 and 2 were unused or relics from past features */
 enum {
+	OB_TRANSFLAG_DEPRECATED_0 = 1 << 0,
+	OB_TRANSFLAG_DEPRECATED_1 = 1 << 1,
 	OB_NEG_SCALE        = 1 << 2,
 	OB_DUPLIFRAMES      = 1 << 3,
 	OB_DUPLIVERTS       = 1 << 4,
@@ -537,8 +538,10 @@ enum {
 
 #define OB_FROMDUPLI        (1 << 9)
 #define OB_DONE             (1 << 10)  /* unknown state, clear before use */
-/* #define OB_RADIO            (1 << 11) */  /* deprecated */
-/* #define OB_FROMGROUP        (1 << 12) */  /* deprecated */
+#ifdef DNA_DEPRECATED_ALLOW
+#  define OB_FLAG_DEPRECATED_11        (1 << 11)  /* cleared */
+#  define OB_FLAG_DEPRECATED_12        (1 << 12)  /* cleared */
+#endif
 
 /* controller state */
 #define OB_MAX_STATES       30
@@ -556,7 +559,9 @@ enum {
 /* ob->shapeflag */
 enum {
 	OB_SHAPE_LOCK       = 1 << 0,
-	// OB_SHAPE_TEMPLOCK   = 1 << 1,  /* deprecated */
+#ifdef DNA_DEPRECATED_ALLOW
+	OB_SHAPE_FLAG_DEPRECATED_1   = 1 << 1,  /* cleared */
+#endif
 	OB_SHAPE_EDIT_MODE  = 1 << 2,
 };
 
@@ -604,11 +609,11 @@ enum {
 #define OB_EMPTY_IMAGE_DEPTH_FRONT 1
 #define OB_EMPTY_IMAGE_DEPTH_BACK 2
 
-/* ob->empty_image_visibility_flag */
+/** #Object.empty_image_visibility_flag */
 enum {
-	OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE  = 1 << 0,
-	OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC = 1 << 1,
-	OB_EMPTY_IMAGE_VISIBLE_BACKSIDE     = 1 << 2,
+	OB_EMPTY_IMAGE_HIDE_PERSPECTIVE  = 1 << 0,
+	OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC = 1 << 1,
+	OB_EMPTY_IMAGE_HIDE_BACK         = 1 << 2,
 };
 
 #define MAX_DUPLI_RECUR 8

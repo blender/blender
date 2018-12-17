@@ -375,7 +375,6 @@ class USERPREF_PT_system_general(Panel):
         col.row().prop(system, "audio_device", expand=False)
         sub = col.column()
         sub.active = system.audio_device not in {'NONE', 'Null'}
-        #sub.prop(system, "use_preview_images")
         sub.prop(system, "audio_channels", text="Channels")
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
         sub.prop(system, "audio_sample_rate", text="Sample Rate")
@@ -1096,8 +1095,6 @@ class USERPREF_PT_input(Panel):
         if inputs.view_zoom_method in {'DOLLY', 'CONTINUE'}:
             sub.row().prop(inputs, "view_zoom_axis", expand=True)
             sub.prop(inputs, "invert_mouse_zoom", text="Invert Mouse Zoom Direction")
-
-        #sub.prop(inputs, "use_mouse_mmb_paste")
 
         # layout.separator()
 

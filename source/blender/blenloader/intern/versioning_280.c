@@ -1796,6 +1796,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
+							enum { V3D_SHOW_MODE_SHADE_OVERRIDE = (1 << 15), };
 							View3D *v3d = (View3D *)sl;
 							float alpha = v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE ? 0.0f : 0.8f;
 							float alpha_full = v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE ? 0.0f : 1.0f;
@@ -2181,6 +2182,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
+						enum { V3D_OCCLUDE_WIRE = (1 << 14) };
 						View3D *v3d = (View3D *)sl;
 						if (v3d->flag2 & V3D_OCCLUDE_WIRE) {
 							v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_OCCLUDE_WIRE;
@@ -2230,15 +2232,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-			ob->empty_image_visibility_flag = (
-			        OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE |
-			        OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC |
-			        OB_EMPTY_IMAGE_VISIBLE_BACKSIDE);
-		}
-
-
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 30)) {
@@ -2530,6 +2523,214 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						CURVEMAP_SLOPE_POSITIVE);
 				}
 			}
+		}
+	}
+
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 38)) {
+		if (DNA_struct_elem_find(fd->filesdna, "Object", "char", "empty_image_visibility_flag")) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				ob->empty_image_visibility_flag ^= (
+				        OB_EMPTY_IMAGE_HIDE_PERSPECTIVE |
+				        OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC |
+				        OB_EMPTY_IMAGE_HIDE_BACK);
+			}
+		}
+
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+					switch (sl->spacetype) {
+						case SPACE_IMAGE:
+						{
+							SpaceImage *sima = (SpaceImage *)sl;
+							sima->flag &= ~(
+							        SI_FLAG_DEPRECATED_0 |
+							        SI_FLAG_DEPRECATED_1 |
+							        SI_FLAG_DEPRECATED_3 |
+							        SI_FLAG_DEPRECATED_6 |
+							        SI_FLAG_DEPRECATED_7 |
+							        SI_FLAG_DEPRECATED_8 |
+							        SI_FLAG_DEPRECATED_17 |
+							        SI_FLAG_DEPRECATED_18 |
+							        SI_FLAG_DEPRECATED_23 |
+							        SI_FLAG_DEPRECATED_24);
+							break;
+						}
+						case SPACE_VIEW3D:
+						{
+							View3D *v3d = (View3D *)sl;
+							v3d->flag &= ~(
+							        V3D_FLAG_DEPRECATED_0 |
+							        V3D_FLAG_DEPRECATED_1 |
+							        V3D_FLAG_DEPRECATED_10 |
+							        V3D_FLAG_DEPRECATED_12);
+							v3d->flag2 &= ~(
+							        V3D_FLAG2_DEPRECATED_3 |
+							        V3D_FLAG2_DEPRECATED_6 |
+							        V3D_FLAG2_DEPRECATED_12 |
+							        V3D_FLAG2_DEPRECATED_13 |
+							        V3D_FLAG2_DEPRECATED_14 |
+							        V3D_FLAG2_DEPRECATED_15);
+							break;
+						}
+						case SPACE_OUTLINER:
+						{
+							SpaceOops *so = (SpaceOops *)sl;
+							so->filter &= ~(
+							        SO_FILTER_DEPRECATED_1 |
+							        SO_FILTER_DEPRECATED_5 |
+							        SO_FILTER_DEPRECATED_12);
+							so->storeflag &= ~(
+							        SO_TREESTORE_DEPRECATED_1);
+							break;
+						}
+						case SPACE_FILE:
+						{
+							SpaceFile *sfile = (SpaceFile *)sl;
+							if (sfile->params) {
+								sfile->params->flag &= ~(
+								        FILE_PARAMS_FLAG_DEPRECATED_1 |
+								        FILE_PARAMS_FLAG_DEPRECATED_6 |
+								        FILE_PARAMS_FLAG_DEPRECATED_9);
+							}
+							break;
+						}
+						case SPACE_NODE:
+						{
+							SpaceNode *snode = (SpaceNode *)sl;
+							snode->flag &= ~(
+							        SNODE_FLAG_DEPRECATED_6 |
+							        SNODE_FLAG_DEPRECATED_10 |
+							        SNODE_FLAG_DEPRECATED_11);
+							break;
+						}
+						case SPACE_BUTS:
+						{
+							SpaceButs *sbuts = (SpaceButs *)sl;
+							sbuts->flag &= ~(
+							        SB_FLAG_DEPRECATED_2 |
+							        SB_FLAG_DEPRECATED_3);
+							break;
+						}
+						case SPACE_NLA:
+						{
+							SpaceNla *snla = (SpaceNla *)sl;
+							snla->flag &= ~(
+							        SNLA_FLAG_DEPRECATED_0 |
+							        SNLA_FLAG_DEPRECATED_1 |
+							        SNLA_FLAG_DEPRECATED_3);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			scene->r.mode &= ~(
+			        R_MODE_DEPRECATED_1 |
+			        R_MODE_DEPRECATED_2 |
+			        R_MODE_DEPRECATED_3 |
+			        R_MODE_DEPRECATED_4 |
+			        R_MODE_DEPRECATED_5 |
+			        R_MODE_DEPRECATED_6 |
+			        R_MODE_DEPRECATED_7 |
+			        R_MODE_DEPRECATED_8 |
+			        R_MODE_DEPRECATED_10 |
+			        R_MODE_DEPRECATED_13 |
+			        R_MODE_DEPRECATED_16 |
+			        R_MODE_DEPRECATED_17 |
+			        R_MODE_DEPRECATED_18 |
+			        R_MODE_DEPRECATED_19 |
+			        R_MODE_DEPRECATED_20 |
+			        R_MODE_DEPRECATED_21 |
+			        R_MODE_DEPRECATED_27);
+
+			scene->r.scemode &= ~(
+			        R_SCEMODE_DEPRECATED_8 |
+			        R_SCEMODE_DEPRECATED_11 |
+			        R_SCEMODE_DEPRECATED_13 |
+			        R_SCEMODE_DEPRECATED_16 |
+			        R_SCEMODE_DEPRECATED_17 |
+			        R_SCEMODE_DEPRECATED_19);
+
+			if (scene->toolsettings->sculpt) {
+				scene->toolsettings->sculpt->flags &= ~(
+				        SCULPT_FLAG_DEPRECATED_0 |
+				        SCULPT_FLAG_DEPRECATED_1 |
+				        SCULPT_FLAG_DEPRECATED_2);
+			}
+
+			if (scene->ed) {
+				Sequence *seq;
+				SEQ_BEGIN (scene->ed, seq)
+				{
+					seq->flag &= ~(
+					        SEQ_FLAG_DEPRECATED_6 |
+					        SEQ_FLAG_DEPRECATED_18 |
+					        SEQ_FLAG_DEPRECATED_19 |
+					        SEQ_FLAG_DEPRECATED_21);
+					if (seq->type == SEQ_TYPE_SPEED) {
+						SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
+						s->flags &= ~(
+						        SEQ_SPEED_DEPRECATED_1);
+					}
+				} SEQ_END;
+			}
+		}
+
+		for (World *world = bmain->world.first; world; world = world->id.next) {
+			world->flag &= ~(
+			        WO_MODE_DEPRECATED_1 |
+			        WO_MODE_DEPRECATED_2 |
+			        WO_MODE_DEPRECATED_3 |
+			        WO_MODE_DEPRECATED_4 |
+			        WO_MODE_DEPRECATED_5 |
+			        WO_MODE_DEPRECATED_7);
+		}
+
+		for (Image *image = bmain->image.first; image; image = image->id.next) {
+			image->flag &= ~(
+			        IMA_FLAG_DEPRECATED_0 |
+			        IMA_FLAG_DEPRECATED_1 |
+			        IMA_FLAG_DEPRECATED_4 |
+			        IMA_FLAG_DEPRECATED_6 |
+			        IMA_FLAG_DEPRECATED_8 |
+			        IMA_FLAG_DEPRECATED_15 |
+			        IMA_FLAG_DEPRECATED_16);
+			image->tpageflag &= ~(
+			        IMA_TPAGEFLAG_DEPRECATED_0 |
+			        IMA_TPAGEFLAG_DEPRECATED_1 |
+			        IMA_TPAGEFLAG_DEPRECATED_2 |
+			        IMA_TPAGEFLAG_DEPRECATED_4 |
+			        IMA_TPAGEFLAG_DEPRECATED_5);
+		}
+
+		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			ob->flag &= ~(
+			        OB_FLAG_DEPRECATED_11 |
+			        OB_FLAG_DEPRECATED_12);
+			ob->transflag &= ~(
+			        OB_TRANSFLAG_DEPRECATED_0 |
+			        OB_TRANSFLAG_DEPRECATED_1);
+			ob->shapeflag &= ~OB_SHAPE_FLAG_DEPRECATED_1;
+		}
+
+		for (Mesh *me = bmain->mesh.first; me; me = me->id.next) {
+			me->flag &= ~(
+			        ME_FLAG_DEPRECATED_0 |
+			        ME_FLAG_DEPRECATED_1 |
+			        ME_FLAG_DEPRECATED_3 |
+			        ME_FLAG_DEPRECATED_4 |
+			        ME_FLAG_DEPRECATED_6 |
+			        ME_FLAG_DEPRECATED_7 |
+			        ME_FLAG_DEPRECATED_8);
+		}
+
+		for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
+			mat->blend_flag &= (
+			        MA_BL_FLAG_DEPRECATED_2);
 		}
 	}
 

@@ -1387,7 +1387,7 @@ static void material_transparent(
 		DRW_shgroup_uniform_float(*shgrp, "roughness", rough_p, 1);
 	}
 
-	const bool use_prepass = ((ma->blend_flag & MA_BL_HIDE_BACKSIDE) != 0);
+	const bool use_prepass = ((ma->blend_flag & MA_BL_HIDE_BACKFACE) != 0);
 
 	DRWState all_state = (
 	        DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK |
@@ -1442,14 +1442,10 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 	const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
 	const bool is_active = (ob == draw_ctx->obact);
 	const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
-#if 0
-	const bool is_sculpt_mode_draw = is_sculpt_mode && (draw_ctx->v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0;
-#else
 	/* For now just force fully shaded with eevee when supported. */
 	const bool is_sculpt_mode_draw =
 	        is_sculpt_mode &&
 	        ((ob->sculpt && ob->sculpt->pbvh) && (BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES));
-#endif
 	const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
 	const bool is_default_mode_shader = is_sculpt_mode;
 

@@ -1624,41 +1624,37 @@ typedef struct Scene {
 #define SCER_SHOW_SUBFRAME	(1<<3)
 
 /* RenderData.mode */
-#define R_OSA           (1 << 0)
-/* #define R_SHADOW     (1 << 1) */
-/* #define R_GAMMA      (1 << 2) */
-/* #define R_ORTHO      (1 << 3) */
-/* #define R_ENVMAP     (1 << 4) */
-/* #define R_EDGE       (1 << 5) */
-/* #define R_FIELDS     (1 << 6) */
-/*#define R_FIELDSTILL  (1 << 7) */
-/*#define R_RADIO       (1 << 8) */ /* deprecated */
-#define R_BORDER        (1 << 9)
-#define R_PANORAMA      (1 << 10) /* deprecated */
-#define R_CROP          (1 << 11)
-		/* Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
-#define R_NO_CAMERA_SWITCH  (1 << 12)
-/* #define R_ODDFIELD       (1 << 13) */
-#define R_MBLUR         (1 << 14)
+#define R_OSA                   (1 << 0)
+#define R_MODE_DEPRECATED_1     (1 << 1)  /* cleared */
+#define R_MODE_DEPRECATED_2     (1 << 2)  /* cleared */
+#define R_MODE_DEPRECATED_3     (1 << 3)  /* cleared */
+#define R_MODE_DEPRECATED_4     (1 << 4)  /* cleared */
+#define R_MODE_DEPRECATED_5     (1 << 5)  /* cleared */
+#define R_MODE_DEPRECATED_6     (1 << 6)  /* cleared */
+#define R_MODE_DEPRECATED_7     (1 << 7)  /* cleared */
+#define R_MODE_DEPRECATED_8     (1 << 8)  /* cleared */
+#define R_BORDER                (1 << 9)
+#define R_MODE_DEPRECATED_10    (1 << 10)  /* cleared */
+#define R_CROP                  (1 << 11)
+/* Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
+#define R_NO_CAMERA_SWITCH      (1 << 12)
+#define R_MODE_DEPRECATED_13    (1 << 13)  /* cleared */
+#define R_MBLUR                 (1 << 14)
 		/* unified was here */
-/* #define R_RAYTRACE      (1 << 16) */
-		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
-/* #define R_GAUSS          (1 << 17) */
-		/* fbuf obsolete... */
-/*#define R_FBUF            (1 << 18)*/
-		/* threads obsolete... is there for old files, now use for autodetect threads */
-#define R_THREADS       (1 << 19)
-		/* Use the same flag for autothreads */
-#define R_FIXED_THREADS     (1 << 19)
+#define R_MODE_DEPRECATED_16    (1 << 16)  /* cleared */
+#define R_MODE_DEPRECATED_17    (1 << 17)  /* cleared */
+#define R_MODE_DEPRECATED_18    (1 << 18)  /* cleared */
+#define R_MODE_DEPRECATED_19    (1 << 19)  /* cleared */
+#define R_FIXED_THREADS         (1 << 19)
 
-/* #define R_SPEED              (1 << 20) */
-/* #define R_SSS                (1 << 21) */
-#define R_NO_OVERWRITE      (1 << 22)  /* skip existing files */
-#define R_TOUCH             (1 << 23)  /* touch files before rendering */
-#define R_SIMPLIFY          (1 << 24)
-#define R_EDGE_FRS          (1 << 25) /* R_EDGE reserved for Freestyle */
-#define R_PERSISTENT_DATA   (1 << 26) /* keep data around for re-render */
-/* #define R_USE_WS_SHADING (1 << 27) */ /* use world space interpretation of lighting data */
+#define R_MODE_DEPRECATED_20    (1 << 20)  /* cleared */
+#define R_MODE_DEPRECATED_21    (1 << 21)  /* cleared */
+#define R_NO_OVERWRITE          (1 << 22)  /* skip existing files */
+#define R_TOUCH                 (1 << 23)  /* touch files before rendering */
+#define R_SIMPLIFY              (1 << 24)
+#define R_EDGE_FRS              (1 << 25) /* R_EDGE reserved for Freestyle */
+#define R_PERSISTENT_DATA       (1 << 26) /* keep data around for re-render */
+#define R_MODE_DEPRECATED_27    (1 << 27)  /* cleared */
 
 /* RenderData.seq_flag */
 enum {
@@ -1685,30 +1681,30 @@ enum {
 #define R_FILTER_MITCH	6
 #define R_FILTER_FAST_GAUSS	7
 
-/* RenderData.scemode (int now) */
-#define R_DOSEQ             (1 << 0)
-#define R_BG_RENDER         (1 << 1)
+/* RenderData.scemode */
+#define R_DOSEQ                 (1 << 0)
+#define R_BG_RENDER             (1 << 1)
 		/* passepartout is camera option now, keep this for backward compatibility */
-#define R_PASSEPARTOUT		(1 << 2)
-#define R_BUTS_PREVIEW		(1 << 3)
-#define R_EXTENSION			(1 << 4)
-#define R_MATNODE_PREVIEW	(1 << 5)
-#define R_DOCOMP			(1 << 6)
-#define R_COMP_CROP			(1 << 7)
-/* #define R_FREE_IMAGE		(1 << 8) */
-#define R_SINGLE_LAYER		(1 << 9)
-#define R_EXR_TILE_FILE		(1 << 10)
-/* #define R_COMP_FREE			(1 << 11) */
-#define R_NO_IMAGE_LOAD		(1 << 12)
-/* #define R_NO_TEX			(1 << 13) */
-#define R_NO_FRAME_UPDATE	(1 << 14)
-#define R_FULL_SAMPLE		(1 << 15)
-/* #define R_DEPRECATED		(1 << 16) */
-/* #define R_RECURS_PROTECTION	(1 << 17) */
-#define R_TEXNODE_PREVIEW	(1 << 18)
-/* #define R_VIEWPORT_PREVIEW	(1 << 19) */
-#define R_EXR_CACHE_FILE	(1 << 20)
-#define R_MULTIVIEW			(1 << 21)
+#define R_PASSEPARTOUT          (1 << 2)
+#define R_BUTS_PREVIEW          (1 << 3)
+#define R_EXTENSION             (1 << 4)
+#define R_MATNODE_PREVIEW       (1 << 5)
+#define R_DOCOMP                (1 << 6)
+#define R_COMP_CROP             (1 << 7)
+#define R_SCEMODE_DEPRECATED_8  (1 << 8)  /* cleared */
+#define R_SINGLE_LAYER          (1 << 9)
+#define R_EXR_TILE_FILE         (1 << 10)
+#define R_SCEMODE_DEPRECATED_11 (1 << 11)  /* cleared */
+#define R_NO_IMAGE_LOAD         (1 << 12)
+#define R_SCEMODE_DEPRECATED_13 (1 << 13)  /* cleared */
+#define R_NO_FRAME_UPDATE       (1 << 14)
+#define R_FULL_SAMPLE           (1 << 15)
+#define R_SCEMODE_DEPRECATED_16 (1 << 16)  /* cleared */
+#define R_SCEMODE_DEPRECATED_17 (1 << 17)  /* cleared */
+#define R_TEXNODE_PREVIEW       (1 << 18)
+#define R_SCEMODE_DEPRECATED_19 (1 << 19)  /* cleared */
+#define R_EXR_CACHE_FILE        (1 << 20)
+#define R_MULTIVIEW             (1 << 21)
 
 /* RenderData.stamp */
 #define R_STAMP_TIME 	(1 << 0)
@@ -2031,16 +2027,14 @@ typedef enum ePaintSymmetryFlags {
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum eSculptFlags {
-#ifdef DNA_DEPRECATED
-	/* deprecated, part of paint struct symmetry_flags now */
-	SCULPT_SYMM_X = (1 << 0),
-	SCULPT_SYMM_Y = (1 << 1),
-	SCULPT_SYMM_Z = (1 << 2),
-#endif
+	SCULPT_FLAG_DEPRECATED_0 = (1 << 0),  /* cleared */
+	SCULPT_FLAG_DEPRECATED_1 = (1 << 1),  /* cleared */
+	SCULPT_FLAG_DEPRECATED_2 = (1 << 2),  /* cleared */
 
 	SCULPT_LOCK_X = (1 << 3),
 	SCULPT_LOCK_Y = (1 << 4),
 	SCULPT_LOCK_Z = (1 << 5),
+
 	/* deprecated, part of paint struct symmetry_flags now */
 	SCULPT_SYMMETRY_FEATHER = (1 << 6),
 

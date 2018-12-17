@@ -421,10 +421,8 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		userdef->flag &= ~USER_LMOUSESELECT;
 	}
 
-	/**
-	 * Include next version bump.
-	 */
-	{
+	if (!USER_VERSION_ATLEAST(280, 38)) {
+
 		/* (keep this block even if it becomes empty). */
 		copy_v4_fl4(userdef->light_param[0].vec, -0.580952, 0.228571, 0.781185, 0.0);
 		copy_v4_fl4(userdef->light_param[0].col, 0.900000, 0.900000, 0.900000, 1.000000);
@@ -451,6 +449,21 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		userdef->light_param[3].smooth = 0.7;
 
 		copy_v4_fl4(userdef->light_ambient, 0.025000, 0.025000, 0.025000, 1.000000);
+
+		userdef->flag &= (
+		        USER_FLAG_DEPRECATED_4);
+
+		userdef->uiflag &= (
+		        USER_UIFLAG_DEPRECATED_8 |
+		        USER_UIFLAG_DEPRECATED_12 |
+		        USER_UIFLAG_DEPRECATED_22);
+	}
+
+	/**
+	 * Include next version bump.
+	 */
+	{
+		/* (keep this block even if it becomes empty). */
 	}
 
 	if (userdef->pixelsize == 0.0f)

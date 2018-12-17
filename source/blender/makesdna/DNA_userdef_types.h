@@ -721,7 +721,7 @@ typedef enum eUserPref_Flag {
 	USER_FLAG_NUMINPUT_ADVANCED = (1 << 1),
 	USER_FLAG_DEPRECATED_2	= (1 << 2),  /* cleared */
 	USER_FLAG_DEPRECATED_3	= (1 << 3),  /* cleared */
-/*	USER_SCENEGLOBAL         = (1 << 4), deprecated */
+	USER_FLAG_DEPRECATED_4  = (1 << 4),  /* cleared */
 	USER_TRACKBALL			= (1 << 5),
 	USER_FLAG_DEPRECATED_6	= (1 << 6),  /* cleared */
 	USER_FLAG_DEPRECATED_7	= (1 << 7),  /* cleared */
@@ -779,36 +779,36 @@ typedef enum eWalkNavigation_Flag {
 /* UserDef.uiflag */
 typedef enum eUserpref_UI_Flag {
 	/* flags 0 and 1 were old flags (for autokeying) that aren't used anymore */
-	USER_WHEELZOOMDIR		= (1 << 2),
-	USER_FILTERFILEEXTS		= (1 << 3),
-	USER_DRAWVIEWINFO		= (1 << 4),
-	USER_PLAINMENUS			= (1 << 5),
-	USER_LOCK_CURSOR_ADJUST	= (1 << 6),
-	USER_HEADER_BOTTOM		= (1 << 7),
-	USER_ALLWINCODECS		= (1 << 8),
-	USER_MENUOPENAUTO		= (1 << 9),
-	USER_DEPTH_CURSOR		= (1 << 10),
-	USER_AUTOPERSP     		= (1 << 11),
-	/* USER_LOCKAROUND     	= (1 << 12), */  /* DEPRECATED */
-	USER_GLOBALUNDO     	= (1 << 13),
-	USER_ORBIT_SELECTION	= (1 << 14),
-	USER_DEPTH_NAVIGATE     = (1 << 15),
-	USER_HIDE_DOT			= (1 << 16),
-	USER_SHOW_GIZMO_AXIS	= (1 << 17),
-	USER_SHOW_VIEWPORTNAME	= (1 << 18),
-	USER_CAM_LOCK_NO_PARENT	= (1 << 19),
-	USER_ZOOM_TO_MOUSEPOS	= (1 << 20),
-	USER_SHOW_FPS			= (1 << 21),
-	USER_MMB_PASTE			= (1 << 22),
-	USER_MENUFIXEDORDER		= (1 << 23),
-	USER_CONTINUOUS_MOUSE	= (1 << 24),
-	USER_ZOOM_INVERT		= (1 << 25),
-	USER_ZOOM_HORIZ			= (1 << 26), /* for CONTINUE and DOLLY zoom */
-	USER_SPLASH_DISABLE		= (1 << 27),
-	USER_HIDE_RECENT		= (1 << 28),
-	USER_SHOW_THUMBNAILS	= (1 << 29),
-	USER_QUIT_PROMPT		= (1 << 30),
-	USER_HIDE_SYSTEM_BOOKMARKS = (1u << 31)
+	USER_WHEELZOOMDIR           = (1 << 2),
+	USER_FILTERFILEEXTS         = (1 << 3),
+	USER_DRAWVIEWINFO           = (1 << 4),
+	USER_PLAINMENUS             = (1 << 5),
+	USER_LOCK_CURSOR_ADJUST     = (1 << 6),
+	USER_HEADER_BOTTOM          = (1 << 7),
+	USER_UIFLAG_DEPRECATED_8    = (1 << 8),  /* cleared */
+	USER_MENUOPENAUTO           = (1 << 9),
+	USER_DEPTH_CURSOR           = (1 << 10),
+	USER_AUTOPERSP              = (1 << 11),
+	USER_UIFLAG_DEPRECATED_12   = (1 << 12),  /* cleared */
+	USER_GLOBALUNDO             = (1 << 13),
+	USER_ORBIT_SELECTION        = (1 << 14),
+	USER_DEPTH_NAVIGATE         = (1 << 15),
+	USER_HIDE_DOT               = (1 << 16),
+	USER_SHOW_GIZMO_AXIS        = (1 << 17),
+	USER_SHOW_VIEWPORTNAME      = (1 << 18),
+	USER_CAM_LOCK_NO_PARENT     = (1 << 19),
+	USER_ZOOM_TO_MOUSEPOS       = (1 << 20),
+	USER_SHOW_FPS               = (1 << 21),
+	USER_UIFLAG_DEPRECATED_22   = (1 << 22),  /* cleared */
+	USER_MENUFIXEDORDER         = (1 << 23),
+	USER_CONTINUOUS_MOUSE       = (1 << 24),
+	USER_ZOOM_INVERT            = (1 << 25),
+	USER_ZOOM_HORIZ             = (1 << 26), /* for CONTINUE and DOLLY zoom */
+	USER_SPLASH_DISABLE         = (1 << 27),
+	USER_HIDE_RECENT            = (1 << 28),
+	USER_SHOW_THUMBNAILS        = (1 << 29),
+	USER_QUIT_PROMPT            = (1 << 30),
+	USER_HIDE_SYSTEM_BOOKMARKS  = (1u << 31)
 } eUserpref_UI_Flag;
 
 /* UserDef.uiflag2 */
