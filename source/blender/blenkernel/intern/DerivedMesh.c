@@ -1507,7 +1507,7 @@ static void mesh_calc_modifiers(
 				mesh_set_only_copy(me_orco_cloth, nextmask | CD_MASK_ORIGINDEX);
 
 				me_next = modwrap_applyModifier(md, &mectx_orco, me_orco_cloth);
-				ASSERT_IS_VALID_DM(me_next);
+				ASSERT_IS_VALID_MESH(me_next);
 
 				if (me_next) {
 					/* if the modifier returned a new mesh, release the old one */
