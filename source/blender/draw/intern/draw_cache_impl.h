@@ -95,29 +95,6 @@ struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool 
 struct GPUBatch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
 struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 
-/* Vertex Group Selection and display options */
-struct DRW_MeshWeightState {
-	int defgroup_active;
-	int defgroup_len;
-
-	short flags;
-	char alert_mode;
-
-	/* Set of all selected bones for Multipaint. */
-	bool *defgroup_sel; /* [defgroup_len] */
-	int   defgroup_sel_count;
-};
-
-/* DRW_MeshWeightState.flags */
-enum {
-	DRW_MESH_WEIGHT_STATE_MULTIPAINT          = (1 << 0),
-	DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE      = (1 << 1),
-};
-
-void DRW_mesh_weight_state_clear(struct DRW_MeshWeightState *wstate);
-void DRW_mesh_weight_state_copy(struct DRW_MeshWeightState *wstate_dst, const struct DRW_MeshWeightState *wstate_src);
-bool DRW_mesh_weight_state_compare(const struct DRW_MeshWeightState *a, const struct DRW_MeshWeightState *b);
-
 /* Mesh */
 void DRW_mesh_batch_cache_create_requested(struct Object *ob, struct Mesh *me);
 
@@ -127,11 +104,9 @@ struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_wire_loops(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_faces(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, const struct DRW_MeshWeightState *wstate);
+struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide, uint select_id_offset);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me, bool use_hide);

@@ -197,7 +197,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		struct GPUBatch *geom;
 
 		if (use_surface) {
-			geom = DRW_cache_mesh_surface_weights_get(ob, draw_ctx->scene->toolsettings, true);
+			geom = DRW_cache_mesh_surface_weights_get(ob);
 			DRW_shgroup_call_add(stl->g_data->fweights_shgrp, geom, ob->obmat);
 		}
 

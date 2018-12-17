@@ -3040,47 +3040,12 @@ GPUBatch *DRW_cache_mesh_loose_edges_get(Object *ob)
 	return DRW_mesh_batch_cache_get_loose_edges_with_normals(me);
 }
 
-GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob, ToolSettings *ts, bool paint_mode)
+GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-
-	/* Extract complete vertex weight group selection state and mode flags. */
-	struct DRW_MeshWeightState wstate;
-	memset(&wstate, 0, sizeof(wstate));
-
-	wstate.defgroup_active = ob->actdef - 1;
-	wstate.defgroup_len = BLI_listbase_count(&ob->defbase);
-
-	wstate.alert_mode = ts->weightuser;
-
-	if (paint_mode && ts->multipaint) {
-		/* Multipaint needs to know all selected bones, not just the active group.
-		 * This is actually a relatively expensive operation, but caching would be difficult. */
-		wstate.defgroup_sel = BKE_object_defgroup_selected_get(ob, wstate.defgroup_len, &wstate.defgroup_sel_count);
-
-		if (wstate.defgroup_sel_count > 1) {
-			wstate.flags |= DRW_MESH_WEIGHT_STATE_MULTIPAINT | (ts->auto_normalize ? DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE : 0);
-
-			if (me->editflag & ME_EDIT_MIRROR_X) {
-				BKE_object_defgroup_mirror_selection(
-				        ob, wstate.defgroup_len, wstate.defgroup_sel, wstate.defgroup_sel, &wstate.defgroup_sel_count);
-			}
-		}
-		/* With only one selected bone Multipaint reverts to regular mode. */
-		else {
-			wstate.defgroup_sel_count = 0;
-			MEM_SAFE_FREE(wstate.defgroup_sel);
-		}
-	}
-
-	/* Generate the weight data using the selection. */
-	GPUBatch *batch = DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, &wstate);
-
-	DRW_mesh_weight_state_clear(&wstate);
-
-	return batch;
+	return DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me);
 }
 
 GPUBatch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
@@ -3142,22 +3107,6 @@ GPUBatch *DRW_cache_mesh_verts_get(Object *ob)
 
 	Mesh *me = ob->data;
 	return DRW_mesh_batch_cache_get_all_verts(me);
-}
-
-GPUBatch *DRW_cache_mesh_faces_weight_overlay_get(Object *ob)
-{
-	BLI_assert(ob->type == OB_MESH);
-
-	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_weight_overlay_faces(me);
-}
-
-GPUBatch *DRW_cache_mesh_verts_weight_overlay_get(Object *ob)
-{
-	BLI_assert(ob->type == OB_MESH);
-
-	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_weight_overlay_verts(me);
 }
 
 void DRW_cache_mesh_sculpt_coords_ensure(Object *ob)

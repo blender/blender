@@ -129,14 +129,12 @@ struct GPUBatch *DRW_cache_mesh_edge_detection_get(struct Object *ob, bool *r_is
 struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_wire_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_loose_edges_get(struct Object *ob);
-struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob, struct ToolSettings *ts, bool paint_mode);
+struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_vert_colors_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edges_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edges_paint_overlay_get(struct Object *ob, bool use_wire, bool use_sel);
-struct GPUBatch *DRW_cache_mesh_faces_weight_overlay_get(struct Object *ob);
-struct GPUBatch *DRW_cache_mesh_verts_weight_overlay_get(struct Object *ob);
 struct GPUBatch **DRW_cache_mesh_surface_shaded_get(
         struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
