@@ -198,8 +198,7 @@ Mesh *MOD_deform_mesh_eval_get(
 			         LIB_ID_CREATE_NO_USER_REFCOUNT |
 			         LIB_ID_CREATE_NO_DEG_TAG |
 			         LIB_ID_COPY_NO_PREVIEW |
-			         LIB_ID_COPY_CD_REFERENCE |
-			         LIB_ID_COPY_RUNTIME),
+			         LIB_ID_COPY_CD_REFERENCE),
 			        false);
 			mesh->runtime.deformed_only = 1;
 		}

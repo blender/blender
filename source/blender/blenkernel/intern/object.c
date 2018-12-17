@@ -3582,6 +3582,17 @@ void BKE_object_runtime_reset(Object *object)
 	memset(&object->runtime, 0, sizeof(object->runtime));
 }
 
+/* Reset all pointers which we don't want to be shared when copying the object. */
+void BKE_object_runtime_reset_on_copy(Object *object)
+{
+	Object_Runtime *runtime = &object->runtime;
+	runtime->mesh_eval = NULL;
+	runtime->mesh_deform_eval = NULL;
+	runtime->curve_cache = NULL;
+	runtime->gpencil_cache = NULL;
+	runtime->cached_bbone_deformation = NULL;
+}
+
 /*
  * Find an associated Armature object
  */

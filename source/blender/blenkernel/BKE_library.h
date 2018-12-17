@@ -81,7 +81,6 @@ enum {
 	LIB_ID_COPY_CACHES             = 1 << 18,  /* Copy runtime data caches. */
 	LIB_ID_COPY_NO_ANIMDATA        = 1 << 19,  /* Don't copy id->adt, used by ID datablock localization routines. */
 	LIB_ID_COPY_CD_REFERENCE       = 1 << 20,  /* Mesh: Reference CD data layers instead of doing real copy. */
-	LIB_ID_COPY_RUNTIME            = 1 << 21,  /* Copy ID's runtime field (for example. object->runtime). */
 
 	/* XXX Hackish/not-so-nice specific behaviors needed for some corner cases.
 	 *     Ideally we should not have those, but we need them for now... */
