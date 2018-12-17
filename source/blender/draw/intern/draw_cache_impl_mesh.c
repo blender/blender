@@ -5612,7 +5612,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const int mode = CTX_data_mode_enum_ex(draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
 	const bool use_hide = false; /* TODO */
-	bool use_face_sel;
+	bool use_face_sel = false;
 
 	/* Tex paint face select */
 	if ((mode == CTX_MODE_PAINT_TEXTURE) && (ob->type == OB_MESH) && (draw_ctx->obact == ob)) {
