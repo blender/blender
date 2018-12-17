@@ -53,6 +53,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 
@@ -3345,7 +3346,7 @@ static void mesh_create_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo)
 	static struct { uint pos, nor; } attr_id;
 	if (format.attr_len == 0) {
 		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 	}
 
 	GPU_vertbuf_init_with_format(vbo, &format);
@@ -3359,19 +3360,22 @@ static void mesh_create_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo)
 			BMVert *eve;
 			uint i;
 
-			BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-				static short no_short[4];
-				normal_float_to_short_v3(no_short, eve->no);
+			mesh_render_data_ensure_vert_normals_pack(rdata);
+			GPUPackedNormal *vnor = rdata->vert_normals_pack;
 
+			BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 				GPU_vertbuf_attr_set(vbo, attr_id.pos, i, eve->co);
-				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, no_short);
+				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, &vnor[i]);
 			}
 			BLI_assert(i == vbo_len_capacity);
 		}
 		else {
 			for (int i = 0; i < vbo_len_capacity; i++) {
+				const MVert *mv = &rdata->mvert[i];
+				GPUPackedNormal vnor_pack = GPU_normal_convert_i10_s3(mv->no);
+				vnor_pack.w = (mv->flag & ME_HIDE) ? -1 : ((mv->flag & SELECT) ? 1 : 0);
 				GPU_vertbuf_attr_set(vbo, attr_id.pos, i, rdata->mvert[i].co);
-				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, rdata->mvert[i].no);
+				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, &vnor_pack);
 			}
 		}
 	}
@@ -3382,8 +3386,10 @@ static void mesh_create_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo)
 			const int v_orig = v_origindex[i];
 			if (v_orig != ORIGINDEX_NONE) {
 				const MVert *mv = &mvert[i];
+				GPUPackedNormal vnor_pack = GPU_normal_convert_i10_s3(mv->no);
+				vnor_pack.w = (mv->flag & ME_HIDE) ? -1 : ((mv->flag & SELECT) ? 1 : 0);
 				GPU_vertbuf_attr_set(vbo, attr_id.pos, i, mv->co);
-				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, mv->no);
+				GPU_vertbuf_attr_set(vbo, attr_id.nor, i, &vnor_pack);
 			}
 		}
 	}
@@ -3471,7 +3477,7 @@ static void mesh_create_loop_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo,
 						*pnor = GPU_normal_convert_i10_s3(mvert[mloop->v].no);
 					}
 					if (use_face_sel) {
-						pnor->w = (mpoly->flag & ME_FACE_SEL) ? 1 : 0;
+						pnor->w = (mpoly->flag & ME_HIDE) ? -1 : ((mpoly->flag & ME_FACE_SEL) ? 1 : 0);
 					}
 				}
 			}
@@ -4297,42 +4303,6 @@ static void mesh_create_wireframe_data_tess(MeshRenderData *rdata, GPUVertBuf *v
 	MEM_freeN(adj_data);
 }
 
-static GPUIndexBuf *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
-
-	if (cache->triangles_in_order == NULL) {
-		const int vert_len = mesh_render_data_verts_len_get(rdata);
-		const int tri_len = mesh_render_data_looptri_len_get(rdata);
-
-		GPUIndexBufBuilder elb;
-		GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tri_len, vert_len);
-
-		if (rdata->edit_bmesh) {
-			for (int i = 0; i < tri_len; i++) {
-				const BMLoop **ltri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
-				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
-					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						GPU_indexbuf_add_generic_vert(&elb, BM_elem_index_get(ltri[tri_corner]->v));
-					}
-				}
-			}
-		}
-		else {
-			for (int i = 0; i < tri_len; i++) {
-				const MLoopTri *mlt = &rdata->mlooptri[i];
-				for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-					GPU_indexbuf_add_generic_vert(&elb, mlt->tri[tri_corner]);
-				}
-			}
-		}
-		cache->triangles_in_order = GPU_indexbuf_build(&elb);
-	}
-
-	return cache->triangles_in_order;
-}
-
-
 static GPUIndexBuf *mesh_batch_cache_get_loose_edges(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
@@ -4575,6 +4545,12 @@ static GPUVertBuf *mesh_create_vert_pos_with_overlay_data(
 /** \name Public API
  * \{ */
 
+GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	return DRW_batch_request(&cache->batch.all_verts);
+}
+
 GPUBatch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
@@ -4592,25 +4568,6 @@ GPUBatch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 	}
 
 	return cache->all_edges;
-}
-
-GPUBatch *DRW_mesh_batch_cache_get_all_triangles(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->all_triangles == NULL) {
-		/* create batch from DM */
-		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-
-		cache->all_triangles = GPU_batch_create(
-		        GPU_PRIM_TRIS, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
-		        mesh_batch_cache_get_triangles_in_order(rdata, cache));
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->all_triangles;
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
@@ -4762,12 +4719,6 @@ GPUBatch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
 	}
 
 	return cache->points_with_normals;
-}
-
-GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	return DRW_batch_request(&cache->batch.all_verts);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
@@ -5611,11 +5562,13 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const int mode = CTX_data_mode_enum_ex(draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
-	const bool use_hide = false; /* TODO */
+	const bool is_paint_mode = ELEM(mode, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
+	const bool use_hide = (ob->type == OB_MESH) && ((is_paint_mode && (ob == draw_ctx->obact)) ||
+	                                               ((mode == CTX_MODE_EDIT_MESH) && BKE_object_is_in_editmode(ob)));
 	bool use_face_sel = false;
 
 	/* Tex paint face select */
-	if ((mode == CTX_MODE_PAINT_TEXTURE) && (ob->type == OB_MESH) && (draw_ctx->obact == ob)) {
+	if (is_paint_mode && (ob->type == OB_MESH) && (draw_ctx->obact == ob)) {
 		const Mesh *me_orig = DEG_get_original_object(ob)->data;
 		use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 	}

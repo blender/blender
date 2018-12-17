@@ -1,5 +1,5 @@
 
-flat in int finalFlag;
+flat in vec4 finalColor;
 out vec4 fragColor;
 
 #define VERTEX_SELECTED (1 << 0)
@@ -7,10 +7,6 @@ out vec4 fragColor;
 
 void main()
 {
-	if (bool(finalFlag & VERTEX_HIDE)) {
-		discard;
-	}
-
 	vec2 centered = gl_PointCoord - vec2(0.5);
 	float dist_squared = dot(centered, centered);
 	const float rad_squared = 0.25;
@@ -22,5 +18,5 @@ void main()
 		discard;
 	}
 
-	fragColor = bool(finalFlag & VERTEX_SELECTED) ? colSel : colUnsel;
+	fragColor = finalColor;
 }

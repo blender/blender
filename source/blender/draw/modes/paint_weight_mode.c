@@ -45,12 +45,15 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
 
 extern struct GPUTexture *globals_weight_ramp; /* draw_common.c */
 
+extern char datatoc_paint_face_vert_glsl[];
 extern char datatoc_paint_weight_vert_glsl[];
 extern char datatoc_paint_weight_frag_glsl[];
 extern char datatoc_paint_wire_vert_glsl[];
 extern char datatoc_paint_wire_frag_glsl[];
 extern char datatoc_paint_vert_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
+
+extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* *********** LISTS *********** */
 
@@ -109,7 +112,9 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 	}
 
 	if (!e_data.face_overlay_shader) {
-		e_data.face_overlay_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+		e_data.face_overlay_shader = DRW_shader_create(
+		        datatoc_paint_face_vert_glsl, NULL,
+		        datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
 	}
 
 	if (!e_data.vert_overlay_shader) {
@@ -150,7 +155,7 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 	{
 		psl->wire_overlay = DRW_pass_create(
 		        "Wire Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
 
 		stl->g_data->lwire_shgrp = DRW_shgroup_create(e_data.wire_overlay_shader, psl->wire_overlay);
 		DRW_shgroup_uniform_block(stl->g_data->lwire_shgrp, "globalsBlock", globals_ubo);
@@ -170,7 +175,7 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 	{
 		psl->vert_overlay = DRW_pass_create(
 		        "Vert Mask Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
 
 		stl->g_data->vert_shgrp = DRW_shgroup_create(e_data.vert_overlay_shader, psl->vert_overlay);
 		DRW_shgroup_uniform_block(stl->g_data->vert_shgrp, "globalsBlock", globals_ubo);
@@ -202,12 +207,12 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (use_face_sel) {
-			geom = DRW_cache_mesh_faces_weight_overlay_get(ob);
+			geom = DRW_cache_mesh_surface_get(ob);
 			DRW_shgroup_call_add(stl->g_data->face_shgrp, geom, ob->obmat);
 		}
 
 		if (use_vert_sel) {
-			geom = DRW_cache_mesh_verts_weight_overlay_get(ob);
+			geom = DRW_cache_mesh_verts_get(ob);
 			DRW_shgroup_call_add(stl->g_data->vert_shgrp, geom, ob->obmat);
 		}
 	}
@@ -228,6 +233,7 @@ static void PAINT_WEIGHT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.weight_face_shader);
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
 	DRW_SHADER_FREE_SAFE(e_data.vert_overlay_shader);
+	DRW_SHADER_FREE_SAFE(e_data.face_overlay_shader);
 }
 
 static const DrawEngineDataSize PAINT_WEIGHT_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_WEIGHT_Data);

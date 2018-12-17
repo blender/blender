@@ -351,6 +351,7 @@ static void PAINT_TEXTURE_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.image_sh);
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
+	DRW_SHADER_FREE_SAFE(e_data.face_overlay_shader);
 }
 
 static const DrawEngineDataSize PAINT_TEXTURE_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_TEXTURE_Data);

@@ -2992,22 +2992,6 @@ GPUBatch *DRW_cache_single_vert_get(void)
 /** \name Meshes
  * \{ */
 
-GPUBatch *DRW_cache_mesh_surface_overlay_get(Object *ob)
-{
-	BLI_assert(ob->type == OB_MESH);
-	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_all_triangles(me);
-}
-
-GPUBatch *DRW_cache_face_centers_get(Object *ob)
-{
-	BLI_assert(ob->type == OB_MESH);
-
-	Mesh *me = ob->data;
-
-	return DRW_mesh_batch_cache_get_edit_facedots(me);
-}
-
 GPUBatch *DRW_cache_mesh_wire_outline_get(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);

@@ -130,7 +130,6 @@ struct GPUBatch *DRW_mesh_batch_cache_get_wire_loops(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_faces(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_all_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, const struct DRW_MeshWeightState *wstate);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);

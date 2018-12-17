@@ -124,8 +124,6 @@ struct GPUBatch *DRW_cache_bone_dof_sphere_get(void);
 struct GPUBatch *DRW_cache_bone_dof_lines_get(void);
 
 /* Meshes */
-struct GPUBatch *DRW_cache_mesh_surface_overlay_get(struct Object *ob);
-struct GPUBatch *DRW_cache_face_centers_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob);
