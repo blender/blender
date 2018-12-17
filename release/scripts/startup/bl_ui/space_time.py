@@ -28,7 +28,7 @@ class TIME_HT_header(Header):
         layout = self.layout
 
         scene = context.scene
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
         screen = context.screen
         userprefs = context.user_preferences
 
@@ -82,15 +82,15 @@ class TIME_HT_header(Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
-        if toolsettings.use_keyframe_insert_auto:
-            row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
+        row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
+        if tool_settings.use_keyframe_insert_auto:
+            row.prop(tool_settings, "use_keyframe_insert_keyingset", text="", toggle=True)
 
             if screen.is_animation_playing and not userprefs.edit.use_keyframe_insert_available:
                 subsub = row.row(align=True)
-                subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
+                subsub.prop(tool_settings, "use_record_with_nla", toggle=True)
 
-        layout.prop(toolsettings, "keyframe_type", text="", icon_only=True)
+        layout.prop(tool_settings, "keyframe_type", text="", icon_only=True)
 
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
@@ -232,10 +232,10 @@ class TIME_MT_autokey(Menu):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
-        layout.prop_enum(toolsettings, "auto_keying_mode", 'ADD_REPLACE_KEYS')
-        layout.prop_enum(toolsettings, "auto_keying_mode", 'REPLACE_KEYS')
+        layout.prop_enum(tool_settings, "auto_keying_mode", 'ADD_REPLACE_KEYS')
+        layout.prop_enum(tool_settings, "auto_keying_mode", 'REPLACE_KEYS')
 
 
 def marker_menu_generic(layout):
@@ -266,8 +266,8 @@ def marker_menu_generic(layout):
     layout.operator("screen.marker_jump", text="Jump to Previous Marker").next = False
 
     layout.separator()
-    ts = context.tool_settings
-    layout.prop(ts, "lock_markers")
+    tool_settings = context.tool_settings
+    layout.prop(tool_settings, "lock_markers")
 
 
 classes = (

@@ -36,7 +36,7 @@ class VIEW3D_HT_header(Header):
         view = context.space_data
         # mode_string = context.mode
         obj = context.active_object
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
@@ -51,7 +51,7 @@ class VIEW3D_HT_header(Header):
             mode = obj.mode
             # Particle edit
             if mode == 'PARTICLE_EDIT':
-                row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
+                row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
             if ((view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
@@ -61,26 +61,26 @@ class VIEW3D_HT_header(Header):
             # Proportional editing
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
                 row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+                if tool_settings.proportional_edit != 'DISABLED':
+                    row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
             elif mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+                if tool_settings.proportional_edit != 'DISABLED':
+                    row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
             elif mode == 'OBJECT':
                 row = layout.row(align=True)
-                row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
-                if toolsettings.use_proportional_edit_objects:
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                row.prop(tool_settings, "use_proportional_edit_objects", icon_only=True)
+                if tool_settings.use_proportional_edit_objects:
+                    row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
         else:
             # Proportional editing
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
                 row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+                if tool_settings.proportional_edit != 'DISABLED':
+                    row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
         show_snap = False
@@ -97,29 +97,29 @@ class VIEW3D_HT_header(Header):
                         show_snap = True
 
         if show_snap:
-            snap_element = toolsettings.snap_element
+            snap_element = tool_settings.snap_element
             row = layout.row(align=True)
-            row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", icon_only=True)
+            row.prop(tool_settings, "use_snap", text="")
+            row.prop(tool_settings, "snap_element", icon_only=True)
             if snap_element == 'INCREMENT':
-                row.prop(toolsettings, "use_snap_grid_absolute", text="")
+                row.prop(tool_settings, "use_snap_grid_absolute", text="")
             else:
-                row.prop(toolsettings, "snap_target", text="")
+                row.prop(tool_settings, "snap_target", text="")
                 if obj:
                     if mode == 'EDIT':
-                        row.prop(toolsettings, "use_snap_self", text="")
+                        row.prop(tool_settings, "use_snap_self", text="")
                     if mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
-                        row.prop(toolsettings, "use_snap_align_rotation", text="")
+                        row.prop(tool_settings, "use_snap_align_rotation", text="")
 
             if snap_element == 'VOLUME':
-                row.prop(toolsettings, "use_snap_peel_object", text="")
+                row.prop(tool_settings, "use_snap_peel_object", text="")
             elif snap_element == 'FACE':
-                row.prop(toolsettings, "use_snap_project", text="")
+                row.prop(tool_settings, "use_snap_project", text="")
 
         # AutoMerge editing
         if obj:
             if (mode == 'EDIT' and obj.type == 'MESH'):
-                layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
+                layout.prop(tool_settings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
 
         # OpenGL render
         row = layout.row(align=True)
@@ -2032,8 +2032,8 @@ class VIEW3D_MT_sculpt(Menu):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        sculpt = toolsettings.sculpt
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
 
         layout.menu("VIEW3D_MT_undo_redo")
 
@@ -2467,7 +2467,7 @@ class VIEW3D_MT_edit_mesh(Menu):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         layout.menu("VIEW3D_MT_undo_redo")
 
@@ -2510,7 +2510,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.prop(toolsettings, "use_mesh_automerge")
+        layout.prop(tool_settings, "use_mesh_automerge")
         layout.menu("VIEW3D_MT_edit_proportional")
 
         layout.separator()
@@ -3279,7 +3279,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
     bl_label = "GPencil"
 
     def draw(self, context):
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         layout = self.layout
 
@@ -3298,7 +3298,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.separator()
 
         layout.operator("gpencil.brush_paint", text="Sculpt Strokes").wait_for_input = True
-        layout.prop_menu_enum(toolsettings.gpencil_sculpt, "tool", text="Sculpt Brush")
+        layout.prop_menu_enum(tool_settings.gpencil_sculpt, "tool", text="Sculpt Brush")
 
         layout.separator()
 
@@ -3920,42 +3920,42 @@ class VIEW3D_PT_etch_a_ton(Panel):
 
     def draw_header(self, context):
         layout = self.layout
-        toolsettings = context.scene.tool_settings
+        tool_settings = context.scene.tool_settings
 
-        layout.prop(toolsettings, "use_bone_sketching", text="")
+        layout.prop(tool_settings, "use_bone_sketching", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.scene.tool_settings
+        tool_settings = context.scene.tool_settings
 
         col = layout.column()
 
-        col.prop(toolsettings, "use_etch_quick")
-        col.prop(toolsettings, "use_etch_overdraw")
+        col.prop(tool_settings, "use_etch_quick")
+        col.prop(tool_settings, "use_etch_overdraw")
 
         col.separator()
 
-        col.prop(toolsettings, "etch_convert_mode")
+        col.prop(tool_settings, "etch_convert_mode")
 
-        if toolsettings.etch_convert_mode == 'LENGTH':
-            col.prop(toolsettings, "etch_length_limit")
-        elif toolsettings.etch_convert_mode == 'ADAPTIVE':
-            col.prop(toolsettings, "etch_adaptive_limit")
-        elif toolsettings.etch_convert_mode == 'FIXED':
-            col.prop(toolsettings, "etch_subdivision_number")
-        elif toolsettings.etch_convert_mode == 'RETARGET':
-            col.prop(toolsettings, "etch_template")
-            col.prop(toolsettings, "etch_roll_mode")
+        if tool_settings.etch_convert_mode == 'LENGTH':
+            col.prop(tool_settings, "etch_length_limit")
+        elif tool_settings.etch_convert_mode == 'ADAPTIVE':
+            col.prop(tool_settings, "etch_adaptive_limit")
+        elif tool_settings.etch_convert_mode == 'FIXED':
+            col.prop(tool_settings, "etch_subdivision_number")
+        elif tool_settings.etch_convert_mode == 'RETARGET':
+            col.prop(tool_settings, "etch_template")
+            col.prop(tool_settings, "etch_roll_mode")
 
             col.separator()
 
             colsub = col.column(align=True)
-            colsub.prop(toolsettings, "use_etch_autoname")
+            colsub.prop(tool_settings, "use_etch_autoname")
             sub = colsub.column(align=True)
-            sub.enabled = not toolsettings.use_etch_autoname
-            sub.prop(toolsettings, "etch_number")
-            sub.prop(toolsettings, "etch_side")
+            sub.enabled = not tool_settings.use_etch_autoname
+            sub.prop(tool_settings, "etch_number")
+            sub.prop(tool_settings, "etch_side")
 
         col.separator()
 

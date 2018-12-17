@@ -119,14 +119,14 @@ class SEQUENCER_HT_header(Header):
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             gpd = context.gpencil_data
-            toolsettings = context.tool_settings
+            tool_settings = context.tool_settings
 
             # Proportional editing
             if gpd and gpd.use_stroke_edit_mode:
                 row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                row.prop(tool_settings, "proportional_edit", icon_only=True)
+                if tool_settings.proportional_edit != 'DISABLED':
+                    row.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         row = layout.row(align=True)
         row.operator("render.opengl", text="", icon='RENDER_STILL').sequencer = True

@@ -114,7 +114,7 @@ class DOPESHEET_HT_header(Header):
         layout = self.layout
 
         st = context.space_data
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
@@ -158,10 +158,10 @@ class DOPESHEET_HT_header(Header):
                 row.prop(st.dopesheet, "use_multi_word_filter", text="")
 
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_proportional_action",
+        row.prop(tool_settings, "use_proportional_action",
                  text="", icon_only=True)
-        if toolsettings.use_proportional_action:
-            row.prop(toolsettings, "proportional_edit_falloff",
+        if tool_settings.use_proportional_action:
+            row.prop(tool_settings, "proportional_edit_falloff",
                      text="", icon_only=True)
 
         # Grease Pencil mode doesn't need snapping, as it's frame-aligned only

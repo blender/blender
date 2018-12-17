@@ -43,7 +43,7 @@ class NODE_HT_header(Header):
         snode = context.space_data
         snode_id = snode.id
         id_from = snode.id_from
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
@@ -123,10 +123,10 @@ class NODE_HT_header(Header):
 
         # Snap
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_snap", text="")
-        row.prop(toolsettings, "snap_node_element", icon_only=True)
-        if toolsettings.snap_node_element != 'GRID':
-            row.prop(toolsettings, "snap_target", text="")
+        row.prop(tool_settings, "use_snap", text="")
+        row.prop(tool_settings, "snap_node_element", icon_only=True)
+        if tool_settings.snap_node_element != 'GRID':
+            row.prop(tool_settings, "snap_target", text="")
 
         row = layout.row(align=True)
         row.operator("node.clipboard_copy", text="", icon='COPYDOWN')

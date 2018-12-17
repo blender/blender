@@ -27,21 +27,21 @@ class UnifiedPaintPanel:
 
     @staticmethod
     def paint_settings(context):
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         if context.sculpt_object:
-            return toolsettings.sculpt
+            return tool_settings.sculpt
         elif context.vertex_paint_object:
-            return toolsettings.vertex_paint
+            return tool_settings.vertex_paint
         elif context.weight_paint_object:
-            return toolsettings.weight_paint
+            return tool_settings.weight_paint
         elif context.image_paint_object:
-            if (toolsettings.image_paint and toolsettings.image_paint.detect_data()):
-                return toolsettings.image_paint
+            if (tool_settings.image_paint and tool_settings.image_paint.detect_data()):
+                return tool_settings.image_paint
 
             return None
         elif context.particle_edit_object:
-            return toolsettings.particle_edit
+            return tool_settings.particle_edit
 
         return None
 

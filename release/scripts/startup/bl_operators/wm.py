@@ -171,10 +171,10 @@ class BRUSH_OT_active_index_set(Operator):
         if attr is None:
             return {'CANCELLED'}
 
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
         for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
             if i == self.index:
-                getattr(toolsettings, self.mode).brush = brush
+                getattr(tool_settings, self.mode).brush = brush
                 return {'FINISHED'}
 
         return {'CANCELLED'}

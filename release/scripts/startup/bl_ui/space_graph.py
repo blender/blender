@@ -29,7 +29,7 @@ class GRAPH_HT_header(Header):
         from .space_dopesheet import dopesheet_filter
 
         layout = self.layout
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         st = context.space_data
 
@@ -50,10 +50,10 @@ class GRAPH_HT_header(Header):
 
         row = layout.row(align=True)
 
-        row.prop(toolsettings, "use_proportional_fcurve",
+        row.prop(tool_settings, "use_proportional_fcurve",
                  text="", icon_only=True)
-        if toolsettings.use_proportional_fcurve:
-            row.prop(toolsettings, "proportional_edit_falloff",
+        if tool_settings.use_proportional_fcurve:
+            row.prop(tool_settings, "proportional_edit_falloff",
                      text="", icon_only=True)
 
         layout.prop(st, "auto_snap", text="")

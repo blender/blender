@@ -889,28 +889,28 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        toolsettings = context.tool_settings.image_paint
-        return context.image_paint_object and not toolsettings.detect_data()
+        tool_settings = context.tool_settings.image_paint
+        return context.image_paint_object and not tool_settings.detect_data()
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings.image_paint
+        tool_settings = context.tool_settings.image_paint
 
         col = layout.column()
         col.label("Missing Data", icon='ERROR')
-        if toolsettings.missing_uvs:
+        if tool_settings.missing_uvs:
             col.separator()
             col.label("Missing UVs", icon='INFO')
             col.label("Unwrap the mesh in edit mode or generate a simple UV layer")
             col.operator("paint.add_simple_uvs")
 
-        if toolsettings.mode == 'MATERIAL':
-            if toolsettings.missing_materials:
+        if tool_settings.mode == 'MATERIAL':
+            if tool_settings.missing_materials:
                 col.separator()
                 col.label("Missing Materials", icon='INFO')
                 col.label("Add a material and paint slot below")
                 col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
-            elif toolsettings.missing_texture:
+            elif tool_settings.missing_texture:
                 ob = context.active_object
                 mat = ob.active_material
 
@@ -924,23 +924,23 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
                     col.label("Add a material and paint slot below")
                     col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
 
-        elif toolsettings.mode == 'IMAGE':
-            if toolsettings.missing_texture:
+        elif tool_settings.mode == 'IMAGE':
+            if tool_settings.missing_texture:
                 col.separator()
                 col.label("Missing Canvas", icon='INFO')
                 col.label("Add or assign a canvas image below")
                 col.label("Canvas Image:")
                 # todo this should be combinded into a single row
-                col.template_ID(toolsettings, "canvas", open="image.open")
+                col.template_ID(tool_settings, "canvas", open="image.open")
                 col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
 
-        if toolsettings.missing_stencil:
+        if tool_settings.missing_stencil:
             col.separator()
             col.label("Missing Stencil", icon='INFO')
             col.label("Add or assign a stencil image below")
             col.label("Stencil Image:")
             # todo this should be combinded into a single row
-            col.template_ID(toolsettings, "stencil_image", open="image.open")
+            col.template_ID(tool_settings, "stencil_image", open="image.open")
             col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
 
 
@@ -955,7 +955,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
         settings = self.paint_settings(context)
         brush = settings.brush
 
@@ -998,7 +998,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             row = col.row(align=True)
 
-            ups = toolsettings.unified_paint_settings
+            ups = tool_settings.unified_paint_settings
             if ((ups.use_unified_size and ups.use_locked_size) or
                     ((not ups.use_unified_size) and brush.use_locked_size)):
                 self.prop_unified_size(row, context, brush, "use_locked_size", icon='LOCKED')
@@ -1148,8 +1148,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             col.prop(brush, "use_projected")
 
             col = layout.column()
-            col.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
-            col.prop(toolsettings, "use_multipaint", text="Multi-Paint")
+            col.prop(tool_settings, "use_auto_normalize", text="Auto Normalize")
+            col.prop(tool_settings, "use_multipaint", text="Multi-Paint")
 
         # Vertex Paint Mode #
         elif context.vertex_paint_object and brush:
@@ -1307,8 +1307,8 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        ipaint = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
         ob = context.active_object
         mesh = ob.data
 
@@ -1591,8 +1591,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        sculpt = toolsettings.sculpt
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
         settings = self.paint_settings(context)
         brush = settings.brush
 
@@ -1633,8 +1633,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         layout = self.layout
         # scene = context.scene
 
-        toolsettings = context.tool_settings
-        sculpt = toolsettings.sculpt
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
         capabilities = sculpt.brush.sculpt_capabilities
 
         col = layout.column(align=True)
@@ -1763,8 +1763,8 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
-        wpaint = toolsettings.weight_paint
+        tool_settings = context.tool_settings
+        wpaint = tool_settings.weight_paint
         draw_vpaint_symmetry(layout, wpaint)
 
 
@@ -1807,7 +1807,7 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         col = layout.column()
 
@@ -1822,8 +1822,8 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
-        vpaint = toolsettings.vertex_paint
+        tool_settings = context.tool_settings
+        vpaint = tool_settings.vertex_paint
         draw_vpaint_symmetry(layout, vpaint)
 
 
@@ -1839,8 +1839,8 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        ipaint = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
 
         col = layout.column()
         row = col.split(align=True, percentage=0.55)
@@ -1861,8 +1861,8 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        ipaint = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -1884,8 +1884,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        ipaint = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
 
         col = layout.column()
 

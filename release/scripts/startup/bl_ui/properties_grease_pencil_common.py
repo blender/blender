@@ -33,30 +33,30 @@ def gpencil_stroke_placement_settings(context, layout):
     else:
         propname = "gpencil_stroke_placement_view2d"
 
-    ts = context.tool_settings
+    tool_settings = context.tool_settings
 
     col = layout.column(align=True)
 
     col.label(text="Stroke Placement:")
 
     row = col.row(align=True)
-    row.prop_enum(ts, propname, 'VIEW')
-    row.prop_enum(ts, propname, 'CURSOR')
+    row.prop_enum(tool_settings, propname, 'VIEW')
+    row.prop_enum(tool_settings, propname, 'CURSOR')
 
     if context.space_data.type == 'VIEW_3D':
         row = col.row(align=True)
-        row.prop_enum(ts, propname, 'SURFACE')
-        row.prop_enum(ts, propname, 'STROKE')
+        row.prop_enum(tool_settings, propname, 'SURFACE')
+        row.prop_enum(tool_settings, propname, 'STROKE')
 
         row = col.row(align=False)
-        row.active = getattr(ts, propname) in {'SURFACE', 'STROKE'}
-        row.prop(ts, "use_gpencil_stroke_endpoints")
+        row.active = getattr(tool_settings, propname) in {'SURFACE', 'STROKE'}
+        row.prop(tool_settings, "use_gpencil_stroke_endpoints")
 
         if context.scene.tool_settings.gpencil_stroke_placement_view3d == 'CURSOR':
             row = col.row(align=True)
             row.label("Lock axis:")
             row = col.row(align=True)
-            row.prop(ts.gpencil_sculpt, "lockaxis", expand=True)
+            row.prop(tool_settings.gpencil_sculpt, "lockaxis", expand=True)
 
 
 def gpencil_active_brush_settings_simple(context, layout):
@@ -313,12 +313,20 @@ class GreasePencilBrushPanel:
 
         row = layout.row()
         col = row.column()
-        ts = context.scene.tool_settings
-        if len(ts.gpencil_brushes) >= 2:
+        tool_settings = context.scene.tool_settings
+        if len(tool_settings.gpencil_brushes) >= 2:
             brows = 3
         else:
             brows = 2
-        col.template_list("GPENCIL_UL_brush", "", ts, "gpencil_brushes", ts.gpencil_brushes, "active_index", rows=brows)
+        col.template_list(
+            "GPENCIL_UL_brush",
+            "",
+            tool_settings,
+            "gpencil_brushes",
+            tool_settings.gpencil_brushes,
+            "active_index",
+            rows=brows,
+        )
 
         col = row.column()
 
@@ -328,7 +336,7 @@ class GreasePencilBrushPanel:
         sub.menu("GPENCIL_MT_brush_specials", icon='DOWNARROW_HLT', text="")
         brush = context.active_gpencil_brush
         if brush:
-            if len(ts.gpencil_brushes) > 1:
+            if len(tool_settings.gpencil_brushes) > 1:
                 col.separator()
                 sub = col.column(align=True)
                 sub.operator("gpencil.brush_move", icon='TRIA_UP', text="").type = 'UP'
