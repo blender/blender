@@ -406,7 +406,7 @@ GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(bGPdata *gpd)
 		bGPDcontrolpoint *cp = &cps[i];
 		float color[4];
 		copy_v3_v3(color, cp->color);
-		color[3] = 0.5f;
+		color[3] = 0.8f;
 		GPU_vertbuf_attr_set(vbo, color_id, idx, color);
 
 		/* scale size */
