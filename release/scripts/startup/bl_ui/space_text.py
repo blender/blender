@@ -310,8 +310,8 @@ class TEXT_MT_edit(Menu):
         layout.separator()
 
         layout.operator("text.cut")
-        layout.operator("text.copy")
-        layout.operator("text.paste")
+        layout.operator("text.copy", icon='COPYDOWN')
+        layout.operator("text.paste", icon='PASTEDOWN')
         layout.operator("text.duplicate_line")
 
         layout.separator()
