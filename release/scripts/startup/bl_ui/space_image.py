@@ -49,8 +49,8 @@ class BrushButtonsPanel(UnifiedPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        toolsettings = context.tool_settings.image_paint
-        return toolsettings.brush
+        tool_settings = context.tool_settings.image_paint
+        return tool_settings.brush
 
 
 class IMAGE_MT_view(Menu):
@@ -61,8 +61,8 @@ class IMAGE_MT_view(Menu):
 
         sima = context.space_data
         uv = sima.uv_editor
-        toolsettings = context.tool_settings
-        paint = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        paint = tool_settings.image_paint
 
         show_uvedit = sima.show_uvedit
         show_render = sima.show_render
@@ -74,13 +74,13 @@ class IMAGE_MT_view(Menu):
 
         layout.prop(sima, "use_realtime_update")
         if show_uvedit:
-            layout.prop(toolsettings, "show_uv_local_view")
+            layout.prop(tool_settings, "show_uv_local_view")
 
         layout.prop(uv, "show_metadata")
 
         if paint.brush and (context.image_paint_object or sima.mode == 'PAINT'):
             layout.prop(uv, "show_texpaint")
-            layout.prop(toolsettings, "show_uv_local_view", text="Show Same Material")
+            layout.prop(tool_settings, "show_uv_local_view", text="Show Same Material")
 
         layout.separator()
 
@@ -169,8 +169,8 @@ class IMAGE_MT_brush(Menu):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
-        settings = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        settings = tool_settings.image_paint
         brush = settings.brush
 
         ups = context.tool_settings.unified_paint_settings
@@ -351,14 +351,14 @@ class IMAGE_MT_uvs(Menu):
 
         sima = context.space_data
         uv = sima.uv_editor
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         layout.prop(uv, "use_snap_to_pixels")
         layout.prop(uv, "lock_bounds")
 
         layout.separator()
 
-        layout.prop(toolsettings, "use_uv_sculpt")
+        layout.prop(tool_settings, "use_uv_sculpt")
 
         layout.separator()
 
@@ -403,11 +403,11 @@ class IMAGE_MT_uvs_select_mode(Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         # Do smart things depending on whether uv_select_sync is on.
 
-        if toolsettings.use_uv_select_sync:
+        if tool_settings.use_uv_select_sync:
             props = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
             props.value = "(True, False, False)"
             props.data_path = "tool_settings.mesh_select_mode"
@@ -514,7 +514,7 @@ class IMAGE_HT_header(Header):
         sima = context.space_data
         ima = sima.image
         iuser = sima.image_user
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         show_render = sima.show_render
         show_uvedit = sima.show_uvedit
@@ -530,12 +530,12 @@ class IMAGE_HT_header(Header):
         if show_uvedit:
             uvedit = sima.uv_editor
 
-            layout.prop(toolsettings, "use_uv_select_sync", text="")
+            layout.prop(tool_settings, "use_uv_select_sync", text="")
 
-            if toolsettings.use_uv_select_sync:
+            if tool_settings.use_uv_select_sync:
                 layout.template_edit_mode_selection()
             else:
-                layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
+                layout.prop(tool_settings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", icon_only=True)
 
         MASK_MT_editor_menus.draw_collapsible(context, layout)
@@ -561,17 +561,17 @@ class IMAGE_HT_header(Header):
 
             # Snap.
             row = layout.row(align=True)
-            row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_uv_element", icon_only=True)
-            if toolsettings.snap_uv_element != 'INCREMENT':
-                row.prop(toolsettings, "snap_target", text="")
+            row.prop(tool_settings, "use_snap", text="")
+            row.prop(tool_settings, "snap_uv_element", icon_only=True)
+            if tool_settings.snap_uv_element != 'INCREMENT':
+                row.prop(tool_settings, "snap_target", text="")
 
             row = layout.row(align=True)
-            row.prop(toolsettings, "proportional_edit", icon_only=True)
-            # if toolsettings.proportional_edit != 'DISABLED':
+            row.prop(tool_settings, "proportional_edit", icon_only=True)
+            # if tool_settings.proportional_edit != 'DISABLED':
             sub = row.row(align=True)
-            sub.active = toolsettings.proportional_edit != 'DISABLED'
-            sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+            sub.active = tool_settings.proportional_edit != 'DISABLED'
+            sub.prop(tool_settings, "proportional_edit_falloff", icon_only=True)
 
         if show_uvedit or show_maskedit:
             layout.prop(sima, "pivot_point", icon_only=True)
@@ -867,8 +867,8 @@ class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
+        tool_settings = context.tool_settings.image_paint
+        brush = tool_settings.brush
         tex_slot = brush.texture_slot
         tex_slot_mask = brush.mask_texture_slot
 
@@ -931,8 +931,8 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
+        tool_settings = context.tool_settings.image_paint
+        brush = tool_settings.brush
 
         col = layout.column()
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
@@ -967,8 +967,8 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
+        tool_settings = context.tool_settings.image_paint
+        brush = tool_settings.brush
 
         col = layout.column()
 
@@ -1024,7 +1024,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
             col.separator()
 
-        col.prop(toolsettings, "input_samples")
+        col.prop(tool_settings, "input_samples")
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
@@ -1036,8 +1036,8 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
+        tool_settings = context.tool_settings.image_paint
+        brush = tool_settings.brush
 
         layout.template_curve_mapping(brush, "curve")
 
@@ -1060,8 +1060,8 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        ipaint = toolsettings.image_paint
+        tool_settings = context.tool_settings
+        ipaint = tool_settings.image_paint
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -1079,8 +1079,8 @@ class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
+        tool_settings = context.tool_settings.image_paint
+        brush = tool_settings.brush
 
         if brush is None:  # unlikely but can happen.
             layout.label(text="Brush Unset")
@@ -1088,9 +1088,9 @@ class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
 
         col = layout.column(align=True)
 
-        col.prop(toolsettings, "show_brush")
+        col.prop(tool_settings, "show_brush")
         sub = col.column()
-        sub.active = toolsettings.show_brush
+        sub.active = tool_settings.show_brush
         sub.prop(brush, "cursor_color_add", text="")
 
         col.separator()
@@ -1116,8 +1116,8 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        uvsculpt = toolsettings.uv_sculpt
+        tool_settings = context.tool_settings
+        uvsculpt = tool_settings.uv_sculpt
         brush = uvsculpt.brush
 
         layout.template_curve_mapping(brush, "curve")
@@ -1146,8 +1146,8 @@ class IMAGE_PT_uv_sculpt(Panel):
         from .properties_paint_common import UnifiedPaintPanel
         layout = self.layout
 
-        toolsettings = context.tool_settings
-        uvsculpt = toolsettings.uv_sculpt
+        tool_settings = context.tool_settings
+        uvsculpt = tool_settings.uv_sculpt
         brush = uvsculpt.brush
 
         if not self.is_popover:
@@ -1163,12 +1163,12 @@ class IMAGE_PT_uv_sculpt(Panel):
                 UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
         col = layout.column()
-        col.prop(toolsettings, "uv_sculpt_lock_borders")
-        col.prop(toolsettings, "uv_sculpt_all_islands")
+        col.prop(tool_settings, "uv_sculpt_lock_borders")
+        col.prop(tool_settings, "uv_sculpt_all_islands")
 
-        col.prop(toolsettings, "uv_sculpt_tool")
-        if toolsettings.uv_sculpt_tool == 'RELAX':
-            col.prop(toolsettings, "uv_relax_method")
+        col.prop(tool_settings, "uv_sculpt_tool")
+        if tool_settings.uv_sculpt_tool == 'RELAX':
+            col.prop(tool_settings, "uv_relax_method")
 
         col.prop(uvsculpt, "show_brush")
 

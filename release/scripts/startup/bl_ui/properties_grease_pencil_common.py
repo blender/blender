@@ -33,7 +33,7 @@ def gpencil_stroke_placement_settings(context, layout):
     else:
         propname = "annotation_stroke_placement_view2d"
 
-    ts = context.tool_settings
+    tool_settings = context.tool_settings
 
     col = layout.column(align=True)
 

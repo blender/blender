@@ -87,7 +87,7 @@ ToolDef = namedtuple(
         "data_block",
         # Optional primary operator (for introspection only).
         "operator",
-        # Optional draw settings (operator options, toolsettings).
+        # Optional draw settings (operator options, tool_settings).
         "draw_settings",
         # Optional draw cursor.
         "draw_cursor",

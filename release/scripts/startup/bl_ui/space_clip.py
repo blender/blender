@@ -231,7 +231,7 @@ class CLIP_HT_header(Header):
     def _draw_masking(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
         sc = context.space_data
         clip = sc.clip
 
@@ -249,10 +249,10 @@ class CLIP_HT_header(Header):
             layout.prop(sc, "pivot_point", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(toolsettings, "use_proportional_edit_mask", text="", icon_only=True)
+            row.prop(tool_settings, "use_proportional_edit_mask", text="", icon_only=True)
             sub = row.row(align=True)
-            sub.active = toolsettings.use_proportional_edit_mask
-            sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+            sub.active = tool_settings.use_proportional_edit_mask
+            sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
 
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")

@@ -31,7 +31,7 @@ class GRAPH_HT_header(Header):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
 
         st = context.space_data
 
@@ -68,10 +68,10 @@ class GRAPH_HT_header(Header):
         layout.prop(st, "auto_snap", text="")
 
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_proportional_fcurve", text="", icon_only=True)
+        row.prop(tool_settings, "use_proportional_fcurve", text="", icon_only=True)
         sub = row.row(align=True)
-        sub.active = toolsettings.use_proportional_fcurve
-        sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+        sub.active = tool_settings.use_proportional_fcurve
+        sub.prop(tool_settings, "proportional_edit_falloff", text="", icon_only=True)
 
         layout.prop(st, "pivot_point", icon_only=True)
 

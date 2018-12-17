@@ -5010,20 +5010,20 @@ class VIEW3D_PT_pivot_point(Panel):
     bl_ui_units_x = 8
 
     def draw(self, context):
-        toolsettings = context.tool_settings
+        tool_settings = context.tool_settings
         obj = context.active_object
         mode = context.mode
 
         layout = self.layout
         col = layout.column()
         col.label(text="Pivot Point")
-        col.prop(toolsettings, "transform_pivot_point", expand=True)
+        col.prop(tool_settings, "transform_pivot_point", expand=True)
 
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
             col.separator()
 
             col.prop(
-                toolsettings,
+                tool_settings,
                 "use_transform_pivot_point_align",
                 text="Only Origins",
             )
@@ -5035,36 +5035,36 @@ class VIEW3D_PT_snapping(Panel):
     bl_label = "Snapping"
 
     def draw(self, context):
-        toolsettings = context.tool_settings
-        snap_elements = toolsettings.snap_elements
+        tool_settings = context.tool_settings
+        snap_elements = tool_settings.snap_elements
         obj = context.active_object
         object_mode = 'OBJECT' if obj is None else obj.mode
 
         layout = self.layout
         col = layout.column()
         col.label(text="Snapping")
-        col.prop(toolsettings, "snap_elements", expand=True)
+        col.prop(tool_settings, "snap_elements", expand=True)
 
         col.separator()
         if 'INCREMENT' in snap_elements:
-            col.prop(toolsettings, "use_snap_grid_absolute")
+            col.prop(tool_settings, "use_snap_grid_absolute")
 
         if snap_elements != {'INCREMENT'}:
             col.label(text="Target")
             row = col.row(align=True)
-            row.prop(toolsettings, "snap_target", expand=True)
+            row.prop(tool_settings, "snap_target", expand=True)
 
             if obj:
                 if object_mode == 'EDIT':
-                    col.prop(toolsettings, "use_snap_self")
+                    col.prop(tool_settings, "use_snap_self")
                 if object_mode in {'OBJECT', 'POSE', 'EDIT'}:
-                    col.prop(toolsettings, "use_snap_align_rotation")
+                    col.prop(tool_settings, "use_snap_align_rotation")
 
             if 'FACE' in snap_elements:
-                col.prop(toolsettings, "use_snap_project")
+                col.prop(tool_settings, "use_snap_project")
 
             if 'VOLUME' in snap_elements:
-                col.prop(toolsettings, "use_snap_peel_object")
+                col.prop(tool_settings, "use_snap_peel_object")
 
 
 class VIEW3D_PT_transform_orientations(Panel):
@@ -5098,26 +5098,26 @@ class VIEW3D_PT_gpencil_origin(Panel):
 
     def draw(self, context):
         layout = self.layout
-        ts = context.tool_settings
+        tool_settings = context.tool_settings
         gpd = context.gpencil_data
 
         layout.label(text="Stroke Placement")
 
         row = layout.row()
         col = row.column()
-        col.prop(ts, "gpencil_stroke_placement_view3d", expand=True)
+        col.prop(tool_settings, "gpencil_stroke_placement_view3d", expand=True)
 
-        if ts.gpencil_stroke_placement_view3d == 'SURFACE':
+        if tool_settings.gpencil_stroke_placement_view3d == 'SURFACE':
             row = layout.row()
             row.label(text="Offset")
             row = layout.row()
             row.prop(gpd, "zdepth_offset", text="")
 
-        if ts.gpencil_stroke_placement_view3d == 'STROKE':
+        if tool_settings.gpencil_stroke_placement_view3d == 'STROKE':
             row = layout.row()
             row.label(text="Target")
             row = layout.row()
-            row.prop(ts, "gpencil_stroke_snap_mode", expand=True)
+            row.prop(tool_settings, "gpencil_stroke_snap_mode", expand=True)
 
 
 class VIEW3D_PT_gpencil_lock(Panel):
