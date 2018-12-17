@@ -1476,15 +1476,15 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        ts = context.scene.tool_settings
-        settings = ts.gpencil_paint
+        tool_settings = context.scene.tool_settings
+        gpencil_paint = tool_settings.gpencil_paint
 
         row = layout.row()
         col = row.column()
-        col.template_ID_preview(settings, "brush", new="brush.add_gpencil", rows=3, cols=8)
+        col.template_ID_preview(gpencil_paint, "brush", new="brush.add_gpencil", rows=3, cols=8)
 
         col = row.column()
-        brush = context.active_gpencil_brush
+        brush = gpencil_paint.brush
 
         sub = col.column(align=True)
         sub.operator("gpencil.brush_presets_create", icon='HELP', text="")
@@ -1551,7 +1551,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool != 'ERASE'
 
     def draw_header_preset(self, context):
@@ -1563,7 +1563,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
 
         if brush is not None:
@@ -1587,11 +1587,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool == 'DRAW'
 
     def draw_header(self, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         self.layout.prop(gp_settings, "use_settings_stabilizer", text="")
 
@@ -1601,7 +1601,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         layout.active = gp_settings.use_settings_stabilizer
 
@@ -1617,11 +1617,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool != 'ERASE'
 
     def draw_header(self, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         self.layout.prop(gp_settings, "use_settings_postprocess", text="")
 
@@ -1631,7 +1631,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         layout.active = gp_settings.use_settings_postprocess
 
@@ -1656,11 +1656,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool != 'ERASE'
 
     def draw_header(self, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         self.layout.prop(gp_settings, "use_settings_random", text="")
 
@@ -1670,7 +1670,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         layout.active = gp_settings.use_settings_random
 
@@ -1691,7 +1691,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool != 'ERASE'
 
     @staticmethod
@@ -1709,7 +1709,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
 
         layout.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True)
@@ -1725,7 +1725,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
 
         layout.template_curve_mapping(gp_settings, "curve_strength", brush=True)
@@ -1741,7 +1741,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        brush = context.active_gpencil_brush
+        brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
 
         layout.template_curve_mapping(gp_settings, "curve_jitter", brush=True)

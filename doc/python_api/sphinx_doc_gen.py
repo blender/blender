@@ -984,7 +984,6 @@ context_type_map = {
     # context_member: (RNA type, is_collection)
     "active_base": ("ObjectBase", False),
     "active_bone": ("EditBone", False),
-    "active_gpencil_brush": ("GPencilSculptBrush", False),
     "active_gpencil_frame": ("GreasePencilLayer", True),
     "active_gpencil_layer": ("GPencilLayer", True),
     "active_node": ("Node", False),

@@ -86,7 +86,7 @@ const char *screen_context_dir[] = {
 	"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
 	"gpencil_data", "gpencil_data_owner", /* grease pencil data */
 	"visible_gpencil_layers", "editable_gpencil_layers", "editable_gpencil_strokes",
-	"active_gpencil_layer", "active_gpencil_frame", "active_gpencil_brush",
+	"active_gpencil_layer", "active_gpencil_frame",
 	"active_operator", "selected_editable_fcurves",
 	NULL};
 
@@ -576,14 +576,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl);
 				return 1;
 			}
-		}
-	}
-	else if (CTX_data_equals(member, "active_gpencil_brush")) {
-		Brush *brush = BKE_paint_brush(&scene->toolsettings->gp_paint->paint);
-
-		if (brush) {
-			CTX_data_pointer_set(result, &scene->id, &RNA_Brush, brush);
-			return 1;
 		}
 	}
 	else if (CTX_data_equals(member, "active_gpencil_frame")) {

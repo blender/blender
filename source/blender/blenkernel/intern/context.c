@@ -1218,11 +1218,6 @@ bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C)
 	return ctx_data_pointer_get(C, "active_gpencil_layer");
 }
 
-Brush *CTX_data_active_gpencil_brush(const bContext *C)
-{
-	return ctx_data_pointer_get(C, "active_gpencil_brush");
-}
-
 bGPDframe *CTX_data_active_gpencil_frame(const bContext *C)
 {
 	return ctx_data_pointer_get(C, "active_gpencil_frame");

@@ -643,7 +643,7 @@ class AddPresetGpencilBrush(AddPresetBase, Operator):
     preset_menu = "VIEW3D_PT_gpencil_brush_presets"
 
     preset_defines = [
-        "brush = bpy.context.active_gpencil_brush",
+        "brush = bpy.context.tool_settings.gpencil_paint.brush",
         "settings = brush.gpencil_settings"
     ]
 
