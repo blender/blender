@@ -1136,7 +1136,15 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	WM_cursor_modal_restore(win);
 
 	/* insert keyframes as required... */
-	gpf = BKE_gpencil_layer_getframe(tgpi->gpl, tgpi->cframe, GP_GETFRAME_ADD_NEW);
+	short add_frame_mode;
+	if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
+		add_frame_mode = GP_GETFRAME_ADD_COPY;
+	}
+	else {
+		add_frame_mode = GP_GETFRAME_ADD_NEW;
+	}
+
+	gpf = BKE_gpencil_layer_getframe(tgpi->gpl, tgpi->cframe, add_frame_mode);
 
 	/* prepare stroke to get transferred */
 	gps = tgpi->gpf->strokes.first;
