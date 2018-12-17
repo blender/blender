@@ -122,7 +122,7 @@ void ED_editors_init(bContext *C)
 				if (ob->type != OB_GPENCIL) {
 					ID *data = ob->data;
 					ob->mode = OB_MODE_OBJECT;
-					if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
+					if ((ob->type == obact->type) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
 						if (mode == OB_MODE_EDIT) {
 							ED_object_editmode_enter_ex(bmain, scene, ob, 0);
 						}
