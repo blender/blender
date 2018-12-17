@@ -222,6 +222,11 @@ static void rna_Mesh_update_gpu_tag(Mesh *mesh)
 	BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
 }
 
+static void rna_Mesh_count_selected_items(Mesh *mesh, int r_count[3])
+{
+	BKE_mesh_count_selected_items(mesh, r_count);
+}
+
 
 #else
 
@@ -332,6 +337,11 @@ void RNA_api_mesh(StructRNA *srna)
 	                                "invalid indices corrected (to default 0)");
 	parm = RNA_def_boolean(func, "result", 0, "Result", "");
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "count_selected_items", "rna_Mesh_count_selected_items ");
+	RNA_def_function_ui_description(func, "Return the number of selected items (vert, edge, face)");
+	parm = RNA_def_int_vector(func, "result", 3, NULL, 0, INT_MAX, "Result", NULL, 0, INT_MAX);
+	RNA_def_function_output(func, parm);
 }
 
 #endif
