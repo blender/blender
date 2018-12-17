@@ -750,8 +750,8 @@ static void curve_create_edit_data_and_handles(
 					GPU_indexbuf_add_point_vert(elbp_verts, vbo_len_used + 1);
 				}
 				if (elbp_lines) {
-					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 0, vbo_len_used + 1);
-					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 0, vbo_len_used + 2);
+					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 0);
+					GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 2);
 				}
 				if (vbo_data) {
 					char vflag[3] = {
