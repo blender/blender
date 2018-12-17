@@ -357,7 +357,7 @@ bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_value)
 		}
 		else if (index == SLOT_EMPTY) {
 			if (edgehash_ensure_can_insert(eh)) {
-				edgehash_insert(eh, edge, NULL);
+				*r_value = &edgehash_insert(eh, edge, NULL)->value;
 			}
 			else {
 				*r_value = &edgehash_insert_at_slot(eh, slot, edge, NULL)->value;
