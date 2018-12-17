@@ -2842,8 +2842,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 
 		if ((ob_eval) && (ok)) {
-			add_v3_v3(min, ob_eval->obmat[3]);
-			add_v3_v3(max, ob_eval->obmat[3]);
+			mul_m4_v3(ob_eval->obmat, min);
+			mul_m4_v3(ob_eval->obmat, max);
 		}
 	}
 	else if (ob_eval && (ob_eval->type == OB_GPENCIL)) {
