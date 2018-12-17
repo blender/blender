@@ -740,7 +740,7 @@ static int bake(
 		}
 	}
 	else {
-		/* when saving extenally always use the size specified in the UI */
+		/* when saving externally always use the size specified in the UI */
 
 		num_pixels = (size_t)width * (size_t)height * bake_images.size;
 
