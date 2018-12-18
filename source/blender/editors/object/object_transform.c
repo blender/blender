@@ -1288,6 +1288,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 
 /* When using multiple objects, apply their relative rotational offset to the active object. */
 #define USE_RELATIVE_ROTATION
+#define USE_RENDER_OVERRIDE
 
 struct XFormAxisItem {
 	Object *ob;
@@ -1338,6 +1339,13 @@ static void object_transform_axis_target_free_data(wmOperator *op)
 {
 	struct XFormAxisData *xfd = op->customdata;
 	struct XFormAxisItem *item = xfd->object_data;
+
+#ifdef USE_RENDER_OVERRIDE
+	if (xfd->vc.rv3d->depths) {
+		xfd->vc.rv3d->depths->damaged = true;
+	}
+#endif
+
 	for (int i = 0; i < xfd->object_data_len; i++, item++) {
 		MEM_freeN(item->obtfm);
 	}
@@ -1417,12 +1425,22 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 		return OPERATOR_PASS_THROUGH;
 	}
 
+
+#ifdef USE_RENDER_OVERRIDE
+	int flag2_prev = vc.v3d->flag2;
+	vc.v3d->flag2 |= V3D_RENDER_OVERRIDE;
+#endif
+
 	ED_view3d_autodist_init(vc.depsgraph, vc.ar, vc.v3d, 0);
 
 	if (vc.rv3d->depths != NULL) {
 		vc.rv3d->depths->damaged = true;
 	}
 	ED_view3d_depth_update(vc.ar);
+
+#ifdef USE_RENDER_OVERRIDE
+	vc.v3d->flag2 = flag2_prev;
+#endif
 
 	if (vc.rv3d->depths == NULL) {
 		BKE_report(op->reports, RPT_WARNING, "Unable to access depth buffer, using view plane");
