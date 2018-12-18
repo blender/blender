@@ -97,26 +97,26 @@ typedef struct SceneStatsFmt {
 
 static bool stats_mesheval(Mesh *me_eval, int sel, int totob, SceneStats *stats)
 {
-	int totvert, totedge, totface, totloop;
-
-	if (me_eval) {
-		totvert = me_eval->totvert;
-		totedge = me_eval->totedge;
-		totface = me_eval->totpoly;
-		totloop = me_eval->totloop;
-
-		stats->totvert += totvert * totob;
-		stats->totedge += totedge * totob;
-		stats->totface += totface * totob;
-		stats->tottri  += poly_to_tri_count(totface, totloop) * totob;
-
-		if (sel) {
-			stats->totvertsel += totvert;
-			stats->totfacesel += totface;
-		}
-		return true;
+	if (me_eval == NULL) {
+		return false;
 	}
-	return false;
+
+	int totvert, totedge, totface, totloop;
+	totvert = me_eval->totvert;
+	totedge = me_eval->totedge;
+	totface = me_eval->totpoly;
+	totloop = me_eval->totloop;
+
+	stats->totvert += totvert * totob;
+	stats->totedge += totedge * totob;
+	stats->totface += totface * totob;
+	stats->tottri  += poly_to_tri_count(totface, totloop) * totob;
+
+	if (sel) {
+		stats->totvertsel += totvert;
+		stats->totfacesel += totface;
+	}
+	return true;
 }
 
 static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
