@@ -1024,14 +1024,13 @@ int ED_transform_calc_gizmo_stats(
 			if (totsel_iter) {
 				float mat_local[4][4];
 				if (use_mat_local) {
-					mul_m4_m4m4(mat_local, ob_iter->imat, ob_iter->obmat);
+					mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
 				}
 
 				/* use channels to get stats */
 				for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
 					Bone *bone = pchan->bone;
 					if (bone && (bone->flag & BONE_TRANSFORM)) {
-						calc_tw_center(tbounds, pchan->pose_head);
 						calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
 						protectflag_to_drawflags_pchan(rv3d, pchan);
 					}
