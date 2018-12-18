@@ -3427,13 +3427,13 @@ static void mesh_create_loop_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo,
 
 			for (int a = 0; a < poly_len; a++, mpoly++) {
 				const MLoop *mloop = rdata->mloop + mpoly->loopstart;
-				const float *lnors = (rdata->loop_normals) ? rdata->loop_normals[mpoly->loopstart] : NULL;
+				const float (*lnors)[3] = (rdata->loop_normals) ? &rdata->loop_normals[mpoly->loopstart] : NULL;
 				const GPUPackedNormal *fnor = (mpoly->flag & ME_SMOOTH) ? NULL : &rdata->poly_normals_pack[a];
 				for (int b = 0; b < mpoly->totloop; b++, mloop++) {
 					copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop->v].co);
 					GPUPackedNormal *pnor = (GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step);
 					if (lnors) {
-						*pnor = GPU_normal_convert_i10_v3(lnors);
+						*pnor = GPU_normal_convert_i10_v3(lnors[b]);
 					}
 					else if (fnor) {
 						*pnor = *fnor;
@@ -3461,7 +3461,7 @@ static void mesh_create_loop_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo,
 
 		for (int a = 0; a < poly_len; a++, mpoly++) {
 			const MLoop *mloop = rdata->mloop + mpoly->loopstart;
-			const float *lnors = (rdata->loop_normals) ? rdata->loop_normals[mpoly->loopstart] : NULL;
+			const float (*lnors)[3] = (rdata->loop_normals) ? &rdata->loop_normals[mpoly->loopstart] : NULL;
 			const GPUPackedNormal *fnor = (mpoly->flag & ME_SMOOTH) ? NULL : &rdata->poly_normals_pack[a];
 			if (p_origindex[a] == ORIGINDEX_NONE) {
 				continue;
@@ -3470,7 +3470,7 @@ static void mesh_create_loop_pos_and_nor(MeshRenderData *rdata, GPUVertBuf *vbo,
 				copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop->v].co);
 				GPUPackedNormal *pnor = (GPUPackedNormal *)GPU_vertbuf_raw_step(&nor_step);
 				if (lnors) {
-					*pnor = GPU_normal_convert_i10_v3(lnors);
+					*pnor = GPU_normal_convert_i10_v3(lnors[b]);
 				}
 				else if (fnor) {
 					*pnor = *fnor;
