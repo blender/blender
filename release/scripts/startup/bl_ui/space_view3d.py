@@ -4547,6 +4547,9 @@ class VIEW3D_PT_shading_options(Panel):
             )
 
             col = layout.column()
+
+            col.prop(shading, "show_backface_culling")
+
             row = col.row()
             row.active = not shading.show_xray
             row.prop(shading, "show_cavity")
@@ -4766,13 +4769,9 @@ class VIEW3D_PT_overlay_geometry(Panel):
         col = layout.column(align=True)
         col.active = display_all
 
-        split = col.split()
-        sub = split.column(align=True)
-        sub.prop(overlay, "show_backface_culling")
+        col.prop(overlay, "show_face_orientation")
 
-        sub = split.column(align=True)
-        #sub.prop(overlay, "show_onion_skins")
-        sub.prop(overlay, "show_face_orientation")
+        # sub.prop(overlay, "show_onion_skins")
 
 
 class VIEW3D_PT_overlay_motion_tracking(Panel):

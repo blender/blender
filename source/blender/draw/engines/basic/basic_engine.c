@@ -160,7 +160,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 
 	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
-		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
+		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
 		/* Depth Prepass */
 		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
 	}

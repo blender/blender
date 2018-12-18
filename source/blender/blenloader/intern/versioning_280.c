@@ -2743,5 +2743,24 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					SCE_SNAP_TRANSFORM_MODE_TRANSLATE;
 			}
 		}
+
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+					switch (sl->spacetype) {
+						case SPACE_VIEW3D:
+						{
+							enum { V3D_BACKFACE_CULLING = (1 << 10) };
+							View3D *v3d = (View3D *)sl;
+							if (v3d->flag2 & V3D_BACKFACE_CULLING) {
+								v3d->flag2 &= ~V3D_BACKFACE_CULLING;
+								v3d->shading.flag |= V3D_SHADING_BACKFACE_CULLING;
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 }
