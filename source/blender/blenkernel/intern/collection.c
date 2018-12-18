@@ -683,8 +683,9 @@ static void collection_missing_parents_remove(Collection *collection)
 {
 	for (CollectionParent *parent = collection->parents.first, *parent_next; parent != NULL; parent = parent_next) {
 		parent_next = parent->next;
-
-		if (!collection_find_child(parent->collection, collection)) {
+		if ((parent->collection == NULL) ||
+		    !collection_find_child(parent->collection, collection))
+		{
 			BLI_freelinkN(&collection->parents, parent);
 		}
 	}

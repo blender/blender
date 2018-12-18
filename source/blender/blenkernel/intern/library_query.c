@@ -747,6 +747,9 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				for (CollectionChild *child = collection->children.first; child; child = child->next) {
 					CALLBACK_INVOKE(child->collection, IDWALK_CB_USER);
 				}
+				for (CollectionParent *parent = collection->parents.first; parent; parent = parent->next) {
+					CALLBACK_INVOKE(parent->collection, IDWALK_CB_NOP);
+				}
 				break;
 			}
 
