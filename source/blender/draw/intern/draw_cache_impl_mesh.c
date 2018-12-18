@@ -1164,7 +1164,7 @@ static const char *mesh_render_data_tangent_layer_uuid_get(const MeshRenderData 
 	return rdata->cd.uuid.tangent[layer];
 }
 
-static int mesh_render_data_verts_len_get(const MeshRenderData *rdata)
+static int UNUSED_FUNCTION(mesh_render_data_verts_len_get)(const MeshRenderData *rdata)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_VERT);
 	return rdata->vert_len;
@@ -2026,6 +2026,7 @@ typedef struct MeshBatchCache {
 		/* Indices to verts. */
 		GPUIndexBuf *surf_tris;
 		GPUIndexBuf *edges_lines;
+		GPUIndexBuf *edges_adj_lines;
 		/* Indices to vloops. */
 		GPUIndexBuf *loops_tris;
 		GPUIndexBuf *loops_lines;
@@ -2050,6 +2051,7 @@ typedef struct MeshBatchCache {
 		/* Common display / Other */
 		GPUBatch *all_verts;
 		GPUBatch *all_edges;
+		GPUBatch *edge_detection;
 		GPUBatch *wire_loops; /* Loops around faces. */
 		GPUBatch *wire_triangles; /* Triangles for object mode wireframe. */
 	} batch;
@@ -3891,95 +3893,119 @@ static void mesh_create_edit_facedots(
 /* Indices */
 
 #define NO_EDGE INT_MAX
-static GPUIndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata, MeshBatchCache *cache)
+static void mesh_create_edges_adjacency_lines(
+        MeshRenderData *rdata, GPUIndexBuf *ibo, bool *r_is_manifold, const bool use_hide)
 {
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI));
+	const MLoopTri *mlooptri;
+	const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
+	const int tri_len = mesh_render_data_looptri_len_get_maybe_mapped(rdata);
 
-	if (cache->edges_adjacency == NULL) {
-		const int vert_len = mesh_render_data_verts_len_get(rdata);
-		const int tri_len = mesh_render_data_looptri_len_get(rdata);
+	*r_is_manifold = true;
 
-		cache->is_manifold = true;
+	/* Allocate max but only used indices are sent to GPU. */
+	GPUIndexBufBuilder elb;
+	GPU_indexbuf_init(&elb, GPU_PRIM_LINES_ADJ, tri_len * 3, vert_len);
 
-		/* Allocate max but only used indices are sent to GPU. */
-		GPUIndexBufBuilder elb;
-		GPU_indexbuf_init(&elb, GPU_PRIM_LINES_ADJ, tri_len * 3, vert_len);
-
-		EdgeHash *eh = BLI_edgehash_new_ex(__func__, tri_len * 3);
-		/* Create edges for each pair of triangles sharing an edge. */
-		for (int i = 0; i < tri_len; i++) {
-			for (int e = 0; e < 3; e++) {
-				uint v0, v1, v2;
-				if (rdata->edit_bmesh) {
-					const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
-					if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
-						break;
-					}
-					v0 = BM_elem_index_get(bm_looptri[e]->v);
-					v1 = BM_elem_index_get(bm_looptri[(e + 1) % 3]->v);
-					v2 = BM_elem_index_get(bm_looptri[(e + 2) % 3]->v);
-				}
-				else {
-					const MLoop *mloop = rdata->mloop;
-					const MLoopTri *mlt = rdata->mlooptri + i;
-					v0 = mloop[mlt->tri[e]].v;
-					v1 = mloop[mlt->tri[(e + 1) % 3]].v;
-					v2 = mloop[mlt->tri[(e + 2) % 3]].v;
-				}
-				bool inv_indices = (v1 > v2);
-				void **pval;
-				bool value_is_init = BLI_edgehash_ensure_p(eh, v1, v2, &pval);
-				int v_data = POINTER_AS_INT(*pval);
-				if (!value_is_init || v_data == NO_EDGE) {
-					/* Save the winding order inside the sign bit. Because the
-					 * edgehash sort the keys and we need to compare winding later. */
-					int value = (int)v0 + 1; /* Int 0 cannot be signed */
-					*pval = POINTER_FROM_INT((inv_indices) ? -value : value);
-				}
-				else {
-					/* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
-					*pval = POINTER_FROM_INT(NO_EDGE);
-					bool inv_opposite = (v_data < 0);
-					uint v_opposite = (uint)abs(v_data) - 1;
-
-					if (inv_opposite == inv_indices) {
-						/* Don't share edge if triangles have non matching winding. */
-						GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
-						GPU_indexbuf_add_line_adj_verts(&elb, v_opposite, v1, v2, v_opposite);
-						cache->is_manifold = false;
-					}
-					else {
-						GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v_opposite);
-					}
-				}
-			}
-		}
-		/* Create edges for remaning non manifold edges. */
-		EdgeHashIterator *ehi;
-		for (ehi = BLI_edgehashIterator_new(eh);
-		     BLI_edgehashIterator_isDone(ehi) == false;
-		     BLI_edgehashIterator_step(ehi))
-		{
-			uint v1, v2;
-			int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
-			if (v_data == NO_EDGE) {
-				continue;
-			}
-			BLI_edgehashIterator_getKey(ehi, &v1, &v2);
-			uint v0 = (uint)abs(v_data) - 1;
-			if (v_data < 0) { /* inv_opposite  */
-				SWAP(uint, v1, v2);
-			}
-			GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
-			cache->is_manifold = false;
-		}
-		BLI_edgehashIterator_free(ehi);
-		BLI_edgehash_free(eh, NULL);
-
-		cache->edges_adjacency = GPU_indexbuf_build(&elb);
+	if (rdata->mapped.use) {
+		Mesh *me_cage = rdata->mapped.me_cage;
+		mlooptri = BKE_mesh_runtime_looptri_ensure(me_cage);
+	}
+	else {
+		mlooptri = rdata->mlooptri;
 	}
 
-	return cache->edges_adjacency;
+	EdgeHash *eh = BLI_edgehash_new_ex(__func__, tri_len * 3);
+	/* Create edges for each pair of triangles sharing an edge. */
+	for (int i = 0; i < tri_len; i++) {
+		for (int e = 0; e < 3; e++) {
+			uint v0, v1, v2;
+			if (rdata->mapped.use) {
+				const MLoop *mloop = rdata->mloop;
+				const MLoopTri *mlt = mlooptri + i;
+				const int p_orig = rdata->mapped.p_origindex[mlt->poly];
+				if (p_orig != ORIGINDEX_NONE) {
+					BMesh *bm = rdata->edit_bmesh->bm;
+					BMFace *efa = BM_face_at_index(bm, p_orig);
+					/* Assume 'use_hide' */
+					if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+						break;
+					}
+				}
+				v0 = mloop[mlt->tri[e]].v;
+				v1 = mloop[mlt->tri[(e + 1) % 3]].v;
+				v2 = mloop[mlt->tri[(e + 2) % 3]].v;
+			}
+			else if (rdata->edit_bmesh) {
+				const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
+				if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
+					break;
+				}
+				v0 = BM_elem_index_get(bm_looptri[e]->v);
+				v1 = BM_elem_index_get(bm_looptri[(e + 1) % 3]->v);
+				v2 = BM_elem_index_get(bm_looptri[(e + 2) % 3]->v);
+			}
+			else {
+				const MLoop *mloop = rdata->mloop;
+				const MLoopTri *mlt = mlooptri + i;
+				const MPoly *mp = &rdata->mpoly[mlt->poly];
+				if (use_hide && (mp->flag & ME_HIDE)) {
+					break;
+				}
+				v0 = mloop[mlt->tri[e]].v;
+				v1 = mloop[mlt->tri[(e + 1) % 3]].v;
+				v2 = mloop[mlt->tri[(e + 2) % 3]].v;
+			}
+			bool inv_indices = (v1 > v2);
+			void **pval;
+			bool value_is_init = BLI_edgehash_ensure_p(eh, v1, v2, &pval);
+			int v_data = POINTER_AS_INT(*pval);
+			if (!value_is_init || v_data == NO_EDGE) {
+				/* Save the winding order inside the sign bit. Because the
+				 * edgehash sort the keys and we need to compare winding later. */
+				int value = (int)v0 + 1; /* Int 0 bm_looptricannot be signed */
+				*pval = POINTER_FROM_INT((inv_indices) ? -value : value);
+			}
+			else {
+				/* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
+				*pval = POINTER_FROM_INT(NO_EDGE);
+				bool inv_opposite = (v_data < 0);
+				uint v_opposite = (uint)abs(v_data) - 1;
+
+				if (inv_opposite == inv_indices) {
+					/* Don't share edge if triangles have non matching winding. */
+					GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
+					GPU_indexbuf_add_line_adj_verts(&elb, v_opposite, v1, v2, v_opposite);
+					*r_is_manifold = false;
+				}
+				else {
+					GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v_opposite);
+				}
+			}
+		}
+	}
+	/* Create edges for remaning non manifold edges. */
+	EdgeHashIterator *ehi;
+	for (ehi = BLI_edgehashIterator_new(eh);
+	     BLI_edgehashIterator_isDone(ehi) == false;
+	     BLI_edgehashIterator_step(ehi))
+	{
+		uint v1, v2;
+		int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
+		if (v_data == NO_EDGE) {
+			continue;
+		}
+		BLI_edgehashIterator_getKey(ehi, &v1, &v2);
+		uint v0 = (uint)abs(v_data) - 1;
+		if (v_data < 0) { /* inv_opposite  */
+			SWAP(uint, v1, v2);
+		}
+		GPU_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
+		*r_is_manifold = false;
+	}
+	BLI_edgehashIterator_free(ehi);
+	BLI_edgehash_free(eh, NULL);
+
+	GPU_indexbuf_build_in_place(&elb, ibo);
 }
 #undef NO_EDGE
 
@@ -4516,23 +4542,13 @@ GPUBatch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me, bool *r_is_manifold)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
-	if (cache->edge_detection == NULL) {
-		const int options = MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;
-
-		MeshRenderData *rdata = mesh_render_data_create(me, options);
-
-		cache->edge_detection = GPU_batch_create_ex(
-		        GPU_PRIM_LINES_ADJ, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
-		        mesh_batch_cache_get_edges_adjacency(rdata, cache), 0);
-
-		mesh_render_data_free(rdata);
-	}
-
 	if (r_is_manifold) {
+		/* Even if is_manifold is not correct (not updated),
+		 * the default (not manifold) is just the worst case. */
 		*r_is_manifold = cache->is_manifold;
 	}
 
-	return cache->edge_detection;
+	return DRW_batch_request(&cache->batch.edge_detection);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(Mesh *me)
@@ -5353,6 +5369,10 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 		DRW_ibo_request(cache->batch.all_edges, &cache->ibo.edges_lines);
 		DRW_vbo_request(cache->batch.all_edges, &cache->ordered.pos_nor);
 	}
+	if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {
+		DRW_ibo_request(cache->batch.edge_detection, &cache->ibo.edges_adj_lines);
+		DRW_vbo_request(cache->batch.edge_detection, &cache->ordered.pos_nor);
+	}
 	if (DRW_batch_requested(cache->batch.surface_weights, GPU_PRIM_TRIS)) {
 		DRW_ibo_request(cache->batch.surface_weights, &cache->ibo.surf_tris);
 		DRW_vbo_request(cache->batch.surface_weights, &cache->ordered.pos_nor);
@@ -5436,6 +5456,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.loops_tris, MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.loops_lines, MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_lines, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
+	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_adj_lines, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI);
 	for (int i = 0; i < cache->mat_len; ++i) {
 		DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
 	}
@@ -5483,6 +5504,9 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	}
 	if (DRW_ibo_requested(cache->ibo.edges_lines)) {
 		mesh_create_edges_lines(rdata, cache->ibo.edges_lines, use_hide);
+	}
+	if (DRW_ibo_requested(cache->ibo.edges_adj_lines)) {
+		mesh_create_edges_adjacency_lines(rdata, cache->ibo.edges_adj_lines, &cache->is_manifold, use_hide);
 	}
 	if (DRW_ibo_requested(cache->ibo.surf_tris)) {
 		mesh_create_surf_tris(rdata, cache->ibo.surf_tris, use_hide);
