@@ -3124,9 +3124,11 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
 	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 	const float fac_expand = RNA_float_get(op->ptr, "expand");
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_ctx = ED_object_context(C);
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len,
+	                                                                         ob_ctx->mode);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 
