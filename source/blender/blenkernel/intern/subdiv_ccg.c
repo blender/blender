@@ -1186,3 +1186,18 @@ void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
 	 */
 	subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
 }
+
+void BKE_subdiv_ccg_topology_counters(
+        const SubdivCCG *subdiv_ccg,
+        int *r_num_vertices, int *r_num_edges,
+        int *r_num_faces, int *r_num_loops)
+{
+	const int num_grids = subdiv_ccg->num_grids;
+	const int grid_size = subdiv_ccg->grid_size;
+	const int grid_area = grid_size * grid_size;
+	const int num_edges_per_grid = 2 * (grid_size * (grid_size - 1));
+	*r_num_vertices = num_grids * grid_area;
+	*r_num_edges = num_grids * num_edges_per_grid;
+	*r_num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
+	*r_num_loops = *r_num_faces * 4;
+}

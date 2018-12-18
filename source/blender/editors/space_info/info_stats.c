@@ -58,6 +58,7 @@
 #include "BKE_object.h"
 #include "BKE_gpencil.h"
 #include "BKE_scene.h"
+#include "BKE_subdiv_ccg.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -102,10 +103,17 @@ static bool stats_mesheval(Mesh *me_eval, int sel, int totob, SceneStats *stats)
 	}
 
 	int totvert, totedge, totface, totloop;
-	totvert = me_eval->totvert;
-	totedge = me_eval->totedge;
-	totface = me_eval->totpoly;
-	totloop = me_eval->totloop;
+	if (me_eval->runtime.subdiv_ccg != NULL) {
+		const SubdivCCG *subdiv_ccg = me_eval->runtime.subdiv_ccg;
+		BKE_subdiv_ccg_topology_counters(
+		        subdiv_ccg, &totvert, &totedge, &totface, &totloop);
+	}
+	else {
+		totvert = me_eval->totvert;
+		totedge = me_eval->totedge;
+		totface = me_eval->totpoly;
+		totloop = me_eval->totloop;
+	}
 
 	stats->totvert += totvert * totob;
 	stats->totedge += totedge * totob;

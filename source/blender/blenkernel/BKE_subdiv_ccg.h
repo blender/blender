@@ -246,4 +246,10 @@ void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
                                          struct CCGFace **effected_faces,
                                          int num_effected_faces);
 
+/* Get geometry counters at the current subdivision level. */
+void BKE_subdiv_ccg_topology_counters(
+        const SubdivCCG *subdiv_ccg,
+        int *r_num_vertices, int *r_num_edges,
+        int *r_num_faces, int *r_num_loops);
+
 #endif  /* __BKE_SUBDIV_CCG_H__ */
