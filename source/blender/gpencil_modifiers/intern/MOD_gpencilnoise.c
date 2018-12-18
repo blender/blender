@@ -147,10 +147,12 @@ static void deformStroke(
 			pt1 = &gps->points[i - 1];
 		}
 		else {
+			int prev_idx = i - 1;
+			CLAMP_MIN(prev_idx, 0);
 			if (gps->dvert) {
-				dvert = &gps->dvert[i - 1];
+				dvert = &gps->dvert[prev_idx];
 			}
-			pt0 = &gps->points[i - 1];
+			pt0 = &gps->points[prev_idx];
 			pt1 = &gps->points[i];
 
 		}
