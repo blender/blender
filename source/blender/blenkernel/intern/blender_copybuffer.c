@@ -98,7 +98,7 @@ bool BKE_copybuffer_read(Main *bmain_dst, const char *libname, ReportList *repor
 	/* Here appending/linking starts. */
 	Main *mainl = BLO_library_link_begin(bmain_dst, &bh, libname);
 	BLO_library_link_copypaste(mainl, bh);
-	BLO_library_link_end(mainl, &bh, 0, NULL, NULL, NULL);
+	BLO_library_link_end(mainl, &bh, 0, NULL, NULL, NULL, NULL);
 	/* Mark all library linked objects to be updated. */
 	BKE_main_lib_objects_recalc_all(bmain_dst);
 	IMB_colormanagement_check_file_config(bmain_dst);
@@ -121,6 +121,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);  /* may be NULL. */
 	Main *mainl = NULL;
 	Library *lib;
 	BlendHandle *bh;
@@ -145,7 +146,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 
 	BLO_library_link_copypaste(mainl, bh);
 
-	BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer);
+	BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer, v3d);
 
 	/* mark all library linked objects to be updated */
 	BKE_main_lib_objects_recalc_all(bmain);

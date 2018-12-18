@@ -210,7 +210,8 @@ static WMLinkAppendDataItem *wm_link_append_data_item_add(
 }
 
 static void wm_link_do(
-        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, ViewLayer *view_layer)
+        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain,
+        Scene *scene, ViewLayer *view_layer, const View3D *v3d)
 {
 	Main *mainl;
 	BlendHandle *bh;
@@ -262,7 +263,9 @@ static void wm_link_do(
 				continue;
 			}
 
-			new_id = BLO_library_link_named_part_ex(mainl, &bh, item->idcode, item->name, flag, bmain, scene, view_layer);
+			new_id = BLO_library_link_named_part_ex(
+			        mainl, &bh, item->idcode, item->name, flag, bmain,
+			        scene, view_layer, v3d);
 
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
@@ -272,7 +275,7 @@ static void wm_link_do(
 			}
 		}
 
-		BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer);
+		BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer, v3d);
 		BLO_blendhandle_close(bh);
 	}
 }
@@ -449,7 +452,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* XXX We'd need re-entrant locking on Main for this to work... */
 	/* BKE_main_lock(bmain); */
 
-	wm_link_do(lapp_data, op->reports, bmain, scene, view_layer);
+	wm_link_do(lapp_data, op->reports, bmain, scene, view_layer, CTX_wm_view3d(C));
 
 	/* BKE_main_unlock(bmain); */
 
@@ -647,7 +650,7 @@ static void lib_relocate_do(
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
 	/* We do not want any instantiation here! */
-	wm_link_do(lapp_data, reports, bmain, NULL, NULL);
+	wm_link_do(lapp_data, reports, bmain, NULL, NULL, NULL);
 
 	BKE_main_lock(bmain);
 

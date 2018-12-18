@@ -10268,7 +10268,8 @@ static Collection *get_collection_active(
 }
 
 static void add_loose_objects_to_scene(
-        Main *mainvar, Main *bmain, Scene *scene, ViewLayer *view_layer, Library *lib, const short flag)
+        Main *mainvar, Main *bmain,
+        Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *lib, const short flag)
 {
 	const bool is_link = (flag & FILE_LINK) != 0;
 
@@ -10296,6 +10297,11 @@ static void add_loose_objects_to_scene(
 				Collection *active_collection = get_collection_active(bmain, scene, view_layer, FILE_ACTIVE_COLLECTION);
 				BKE_collection_object_add(bmain, active_collection, ob);
 				Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+				if (v3d != NULL) {
+					base->local_view_bits |= v3d->local_view_uuid;
+				}
+
 				BKE_scene_object_base_flag_sync_from_base(base);
 
 				if (flag & FILE_AUTOSELECT) {
@@ -10316,7 +10322,8 @@ static void add_loose_objects_to_scene(
 }
 
 static void add_collections_to_scene(
-        Main *mainvar, Main *bmain, Scene *scene, ViewLayer *view_layer, Library *UNUSED(lib), const short flag)
+        Main *mainvar, Main *bmain,
+        Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *UNUSED(lib), const short flag)
 {
 	Collection *active_collection = get_collection_active(bmain, scene, view_layer, FILE_ACTIVE_COLLECTION);
 
@@ -10333,6 +10340,10 @@ static void add_collections_to_scene(
 
 				BKE_collection_object_add(bmain, active_collection, ob);
 				Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+				if (v3d != NULL) {
+					base->local_view_bits |= v3d->local_view_uuid;
+				}
 
 				if (base->flag & BASE_SELECTABLE) {
 					base->flag |= BASE_SELECTED;
@@ -10428,7 +10439,8 @@ static ID *link_named_part(
 	return id;
 }
 
-static void link_object_postprocess(ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag)
+static void link_object_postprocess(
+        ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, const View3D *v3d, const int flag)
 {
 	if (scene) {
 		/* link to scene */
@@ -10443,6 +10455,11 @@ static void link_object_postprocess(ID *id, Main *bmain, Scene *scene, ViewLayer
 		BKE_collection_object_add(bmain, collection, ob);
 		base = BKE_view_layer_base_find(view_layer, ob);
 		BKE_scene_object_base_flag_sync_from_base(base);
+
+		/* Link at active local view (view3d if available in context. */
+		if (v3d != NULL) {
+			base->local_view_bits |= v3d->local_view_uuid;
+		}
 
 		if (flag & FILE_AUTOSELECT) {
 			if (base->flag & BASE_SELECTABLE) {
@@ -10491,12 +10508,12 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 
 static ID *link_named_part_ex(
         Main *mainl, FileData *fd, const short idcode, const char *name, const int flag,
-        Main *bmain, Scene *scene, ViewLayer *view_layer)
+        Main *bmain, Scene *scene, ViewLayer *view_layer, const View3D *v3d)
 {
 	ID *id = link_named_part(mainl, fd, idcode, name, flag);
 
 	if (id && (GS(id->name) == ID_OB)) {    /* loose object: give a base */
-		link_object_postprocess(id, bmain, scene, view_layer, flag);
+		link_object_postprocess(id, bmain, scene, view_layer, v3d, flag);
 	}
 	else if (id && (GS(id->name) == ID_GR)) {
 		/* tag as needing to be instantiated or linked */
@@ -10537,10 +10554,10 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcod
 ID *BLO_library_link_named_part_ex(
         Main *mainl, BlendHandle **bh,
         const short idcode, const char *name, const int flag,
-        Main *bmain, Scene *scene, ViewLayer *view_layer)
+        Main *bmain, Scene *scene, ViewLayer *view_layer, const View3D *v3d)
 {
 	FileData *fd = (FileData *)(*bh);
-	return link_named_part_ex(mainl, fd, idcode, name, flag, bmain, scene, view_layer);
+	return link_named_part_ex(mainl, fd, idcode, name, flag, bmain, scene, view_layer, v3d);
 }
 
 static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *id, ID **r_id)
@@ -10653,7 +10670,9 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
 }
 
 /* scene and v3d may be NULL. */
-static void library_link_end(Main *mainl, FileData **fd, const short flag, Main *bmain, Scene *scene, ViewLayer *view_layer)
+static void library_link_end(
+        Main *mainl, FileData **fd, const short flag, Main *bmain,
+        Scene *scene, ViewLayer *view_layer, const View3D *v3d)
 {
 	Main *mainvar;
 	Library *curlib;
@@ -10711,8 +10730,8 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Main 
 	 * Only directly linked objects & collections are instantiated by `BLO_library_link_named_part_ex()` & co,
 	 * here we handle indirect ones and other possible edge-cases. */
 	if (scene) {
-		add_collections_to_scene(mainvar, bmain, scene, view_layer, curlib, flag);
-		add_loose_objects_to_scene(mainvar, bmain, scene, view_layer, curlib, flag);
+		add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
+		add_loose_objects_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
 	}
 	else {
 		/* printf("library_append_end, scene is NULL (objects wont get bases)\n"); */
@@ -10739,11 +10758,14 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Main 
  * \param bmain: The main database in which to instantiate objects/collections
  * \param scene: The scene in which to instantiate objects/collections (if NULL, no instantiation is done).
  * \param view_layer: The scene layer in which to instantiate objects/collections (if NULL, no instantiation is done).
+ * \param v3d: The active View3D (only to define local-view for instantiated objects & groups, can be NULL).
  */
-void BLO_library_link_end(Main *mainl, BlendHandle **bh, int flag, Main *bmain, Scene *scene, ViewLayer *view_layer)
+void BLO_library_link_end(
+        Main *mainl, BlendHandle **bh, int flag, Main *bmain,
+        Scene *scene, ViewLayer *view_layer, const View3D *v3d)
 {
 	FileData *fd = (FileData *)(*bh);
-	library_link_end(mainl, &fd, flag, bmain, scene, view_layer);
+	library_link_end(mainl, &fd, flag, bmain, scene, view_layer, v3d);
 	*bh = (BlendHandle *)fd;
 }
 
