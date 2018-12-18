@@ -749,7 +749,7 @@ class ConstraintButtonsPanel:
         layout.prop(con, "shrinkwrap_type")
 
         if con.shrinkwrap_type in {'PROJECT', 'NEAREST_SURFACE', 'TARGET_PROJECT'}:
-            layout.prop(con, 'wrap_mode', text="Snap Mode")
+            layout.prop(con, "wrap_mode", text="Snap Mode")
 
         if con.shrinkwrap_type == 'PROJECT':
             row = layout.row(align=True)

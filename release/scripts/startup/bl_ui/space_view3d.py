@@ -161,7 +161,7 @@ class VIEW3D_HT_header(Header):
                         show_snap = True
 
         if show_snap:
-            snap_items = bpy.types.ToolSettings.bl_rna.properties['snap_elements'].enum_items
+            snap_items = bpy.types.ToolSettings.bl_rna.properties["snap_elements"].enum_items
             snap_elements = tool_settings.snap_elements
             if len(snap_elements) == 1:
                 text = ""
@@ -229,7 +229,7 @@ class VIEW3D_HT_header(Header):
         # grease pencil
         if object_mode == 'PAINT_GPENCIL':
             origin = tool_settings.gpencil_stroke_placement_view3d
-            gp_origin = tool_settings.bl_rna.properties['gpencil_stroke_placement_view3d'].enum_items[origin]
+            gp_origin = tool_settings.bl_rna.properties["gpencil_stroke_placement_view3d"].enum_items[origin]
 
             or_icon = getattr(gp_origin, "icon", "BLANK1")
             or_name = getattr(gp_origin, "name", "Stroke Placement")
@@ -4024,7 +4024,7 @@ class VIEW3D_MT_object_mode_pie(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        pie.operator_enum("OBJECT_OT_mode_set", "mode")
+        pie.operator_enum("object.mode_set", "mode")
 
 
 class VIEW3D_MT_view_pie(Menu):
@@ -4035,7 +4035,7 @@ class VIEW3D_MT_view_pie(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        pie.operator_enum("VIEW3D_OT_view_axis", "type")
+        pie.operator_enum("view3d.view_axis", "type")
         pie.operator("view3d.view_camera", text="View Camera", icon='CAMERA_DATA')
         pie.operator("view3d.view_selected", text="View Selected", icon='ZOOM_SELECTED')
 
@@ -4067,7 +4067,7 @@ class VIEW3D_MT_shading_ex_pie(Menu):
         pie.prop_enum(view.shading, "type", value='WIREFRAME')
         pie.prop_enum(view.shading, "type", value='SOLID')
 
-        # Note this duplicates 'view3d.toggle_xray' logic, so we can see the active item: T58661.
+        # Note this duplicates "view3d.toggle_xray" logic, so we can see the active item: T58661.
         if (
                 (context.mode == 'POSE') or
                 ((context.mode == 'WEIGHT_PAINT') and (context.active_object.find_armature()))
@@ -4422,7 +4422,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                     sub.prop(system, "edit_studio_light", text="Disable Studio Light Edit", icon="NONE", toggle=True)
 
                 col = split.column()
-                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
 
                 split = layout.split(factor=0.9)
                 col = split.column()
@@ -4440,8 +4440,8 @@ class VIEW3D_PT_shading_lighting(Panel):
                 sub.template_icon_view(shading, "studio_light", scale=3)
 
                 col = split.column()
-                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
-                col.operator('VIEW3D_OT_toggle_matcap_flip', emboss=False, text="", icon='ARROW_LEFTRIGHT')
+                col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
+                col.operator("view3d.toggle_matcap_flip", emboss=False, text="", icon='ARROW_LEFTRIGHT')
 
         elif shading.type == 'MATERIAL':
             col.prop(shading, "use_scene_lights")
@@ -4457,7 +4457,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 sub.template_icon_view(shading, "studio_light", scale=3)
 
                 col = split.column()
-                col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
+                col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
 
                 if shading.selected_studio_light.type == 'WORLD':
                     split = layout.split(factor=0.9)
@@ -4482,16 +4482,16 @@ class VIEW3D_PT_shading_color(Panel):
         layout = self.layout
         shading = VIEW3D_PT_shading.get_shading(context)
 
-        layout.row().prop(shading, 'color_type', expand=True)
+        layout.row().prop(shading, "color_type", expand=True)
         if shading.color_type == 'SINGLE':
-            layout.row().prop(shading, 'single_color', text="")
+            layout.row().prop(shading, "single_color", text="")
 
     def _draw_background_color(self, context):
         layout = self.layout
         shading = VIEW3D_PT_shading.get_shading(context)
 
         layout.row().label(text="Background")
-        layout.row().prop(shading, 'background_type', expand=True)
+        layout.row().prop(shading, "background_type", expand=True)
         if shading.background_type == 'VIEWPORT':
             layout.row().prop(shading, "background_color", text="")
 

@@ -177,7 +177,7 @@ class TEXTURE_PT_node_mapping(TextureButtonsPanel, Panel):
     def poll(cls, context):
         node = context.texture_node
         # TODO(sergey): perform a faster/nicer check?
-        return node and hasattr(node, 'texture_mapping') and (context.engine in cls.COMPAT_ENGINES)
+        return node and hasattr(node, "texture_mapping") and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

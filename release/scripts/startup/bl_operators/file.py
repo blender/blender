@@ -264,12 +264,12 @@ class WM_OT_blend_strings_utf8_validate(Operator):
             return False
         done_items.add(item)
 
-        if getattr(item, 'library', None) is not None:
+        if getattr(item, "library", None) is not None:
             return False  # No point in checking library data, we cannot fix it anyway...
 
         changed = False
         for prop in item.bl_rna.properties:
-            if prop.identifier in {'bl_rna', 'rna_type'}:
+            if prop.identifier in {"bl_rna", "rna_type"}:
                 continue  # Or we'd recurse 'till Hell freezes.
             if prop.is_readonly:
                 continue

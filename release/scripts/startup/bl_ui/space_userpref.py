@@ -45,9 +45,9 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif userpref.active_section == 'LIGHTS':
-            layout.operator('wm.studiolight_install', text="Add MatCap").type = 'MATCAP'
-            layout.operator('wm.studiolight_install', text="Add LookDev HDRI").type = 'WORLD'
-            op = layout.operator('wm.studiolight_install', text="Add Studio Light")
+            layout.operator("wm.studiolight_install", text="Add MatCap").type = 'MATCAP'
+            layout.operator("wm.studiolight_install", text="Add LookDev HDRI").type = 'WORLD'
+            op = layout.operator("wm.studiolight_install", text="Add Studio Light")
             op.type = 'STUDIO'
             op.filter_glob = ".sl"
         elif userpref.active_section == 'THEMES':
@@ -1521,11 +1521,11 @@ class StudioLightPanelMixin():
 
         row.template_icon(layout.icon(studio_light), scale=6.0)
         col = row.column()
-        op = col.operator('wm.studiolight_uninstall', text="", icon='REMOVE')
+        op = col.operator("wm.studiolight_uninstall", text="", icon='REMOVE')
         op.index = studio_light.index
 
         if studio_light.type == 'STUDIO':
-            op = col.operator('wm.studiolight_copy_settings', text="", icon='IMPORT')
+            op = col.operator("wm.studiolight_copy_settings", text="", icon='IMPORT')
             op.index = studio_light.index
 
         box.label(text=studio_light.name)
@@ -1571,7 +1571,7 @@ class USERPREF_PT_studiolight_light_editor(Panel):
 
         row = layout.row()
         row.prop(system, "edit_studio_light", toggle=True)
-        row.operator('wm.studiolight_new', text="Save as Studio light", icon="FILE_TICK")
+        row.operator("wm.studiolight_new", text="Save as Studio light", icon="FILE_TICK")
 
         layout.separator()
 
