@@ -8474,9 +8474,43 @@ typedef struct BPyRNA_CallBack {
 	StructRNA   *bpy_srna;
 } PyRNA_CallBack;
 
+PyDoc_STRVAR(pyrna_draw_handler_add_doc,
+".. method:: draw_handler_add(callback, args, region_type, draw_type)\n"
+"\n"
+"   Add a new draw handler to this space type.\n"
+"   It will be called every time the specified region in the space type will be drawn.\n"
+"   Note: All arguments are positional only for now.\n"
+"\n"
+"   :param callback:\n"
+"        A function that will be called when the region is drawn.\n"
+"        It gets the specified arguments as input.\n"
+"   :type callback: function\n"
+"   :param args: Arguments that will be passed to the callback.\n"
+"   :type args: tuple\n"
+"   :param region_type: The region type the callback draws in; usually `'WINDOW'`. (:class:`bpy.types.Region.type`)\n"
+"   :type region_type: str\n"
+"   :param draw_type: Usually `POST_PIXEL` for 2D drawing and `POST_VIEW` for 3D drawing. In some cases `PRE_VIEW` can be used.\n"
+"   :type draw_type: str\n"
+"   :return: Handler that can be removed later on.\n"
+"   :rtype: object"
+);
+
+PyDoc_STRVAR(pyrna_draw_handler_remove_doc,
+".. method:: draw_handler_remove(handler, region_type)\n"
+"\n"
+"   Remove a draw handler that was added previously.\n"
+"\n"
+"   :param handler: The draw handler that should be removed.\n"
+"   :type handler: object\n"
+"   :param region_type: Region type the callback was added to.\n"
+"   :type region_type: str\n"
+);
+
 static struct BPyRNA_CallBack pyrna_cb_methods[] = {
-	{{"draw_handler_add",    (PyCFunction)pyrna_callback_classmethod_add,   METH_VARARGS | METH_STATIC, ""}, &RNA_Space},
-	{{"draw_handler_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_STATIC, ""}, &RNA_Space},
+	{{"draw_handler_add",    (PyCFunction)pyrna_callback_classmethod_add,
+	  METH_VARARGS | METH_STATIC, pyrna_draw_handler_add_doc}, &RNA_Space},
+	{{"draw_handler_remove", (PyCFunction)pyrna_callback_classmethod_remove,
+	  METH_VARARGS | METH_STATIC, pyrna_draw_handler_remove_doc}, &RNA_Space},
 
 	{{"draw_cursor_add",    (PyCFunction)pyrna_callback_classmethod_add,    METH_VARARGS | METH_STATIC, ""}, &RNA_WindowManager},
 	{{"draw_cursor_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_STATIC, ""}, &RNA_WindowManager},
