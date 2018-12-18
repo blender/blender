@@ -346,7 +346,7 @@
         grid="#46464633"
         clipping_border_3d="#313131ff"
         wire="#000000"
-        wire_edit="#808080"
+        wire_edit="#000000"
         gp_vertex="#000000"
         gp_vertex_select="#ff8500"
         gp_vertex_size="3"
