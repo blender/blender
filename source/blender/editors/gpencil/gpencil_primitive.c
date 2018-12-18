@@ -1381,16 +1381,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 			/* done! */
 			return OPERATOR_FINISHED;
 		}
-		case RIGHTMOUSE:
-		{
-			if (tgpi->flag == IN_CURVE_EDIT || (tgpi->flag == IN_PROGRESS && tgpi->tot_stored_edges > 0)) {
-				tgpi->flag = IDLE;
-				gpencil_primitive_interaction_end(C, op, win, tgpi);
-				/* done! */
-				return OPERATOR_FINISHED;
-			}
-			ATTR_FALLTHROUGH;
-		}
+		case RIGHTMOUSE: /* cancel */
 		case ESCKEY:
 		{
 			/* return to normal cursor and header status */
