@@ -62,9 +62,15 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType *UNU
 		return false;
 	}
 
-	Object *ob = CTX_data_active_object(C);
-
-	return (ob && ob->pd && ob->pd->forcefield);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BASACT(view_layer);
+	if (base && BASE_VISIBLE(v3d, base)) {
+		Object *ob = base->object;
+		if (ob->pd && ob->pd->forcefield) {
+			return true;
+		}
+	}
+	return false;
 }
 
 static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
@@ -87,7 +93,8 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmGizmoGroup *gzgr
 {
 	wmGizmoWrapper *wwrapper = gzgroup->customdata;
 	wmGizmo *gz = wwrapper->gizmo;
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	PartDeflect *pd = ob->pd;
 
 	if (pd->forcefield == PFIELD_WIND) {

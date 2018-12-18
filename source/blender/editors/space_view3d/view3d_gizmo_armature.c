@@ -129,19 +129,22 @@ static void gizmo_bbone_offset_set(
 
 static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	if (ob != NULL) {
-		const bArmature *arm = ob->data;
-		if (arm->drawtype == ARM_B_BONE) {
-			bPoseChannel *pchan = BKE_pose_channel_active(ob);
-			if (pchan && pchan->bone->segments > 1) {
-				View3D *v3d = CTX_wm_view3d(C);
-				if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-				    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
-				{
-					/* pass */
-				}
-				else {
+	View3D *v3d = CTX_wm_view3d(C);
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
+	{
+		return false;
+	}
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BASACT(view_layer);
+	if (base && BASE_VISIBLE(v3d, base)) {
+		Object *ob = BKE_object_pose_armature_get(base->object);
+		if (ob) {
+			const bArmature *arm = ob->data;
+			if (arm->drawtype == ARM_B_BONE) {
+				bPoseChannel *pchan = BKE_pose_channel_active(ob);
+				if (pchan && pchan->bone->segments > 1) {
 					return true;
 				}
 			}
@@ -153,7 +156,8 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
 
 static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = BKE_object_pose_armature_get(OBACT(view_layer));
 	bPoseChannel *pchan = BKE_pose_channel_active(ob);
 
 	const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
@@ -183,7 +187,8 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 
 static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = BKE_object_pose_armature_get(OBACT(view_layer));
 
 	if (!gzgroup->customdata)
 		return;

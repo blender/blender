@@ -63,11 +63,14 @@ static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmGizmoGroupType *UNUS
 		return false;
 	}
 
-	Object *ob = CTX_data_active_object(C);
-
-	if (ob && ob->type == OB_LAMP) {
-		Lamp *la = ob->data;
-		return (la->type == LA_SPOT);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BASACT(view_layer);
+	if (base && BASE_VISIBLE(v3d, base)) {
+		Object *ob = base->object;
+		if (ob->type == OB_LAMP) {
+			Lamp *la = ob->data;
+			return (la->type == LA_SPOT);
+		}
 	}
 	return false;
 }
@@ -91,7 +94,8 @@ static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmGizmoGroup *gzgro
 {
 	wmGizmoWrapper *wwrapper = gzgroup->customdata;
 	wmGizmo *gz = wwrapper->gizmo;
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	Lamp *la = ob->data;
 	float dir[3];
 
@@ -168,10 +172,14 @@ static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmGizmoGroupType *UNUS
 		return false;
 	}
 
-	Object *ob = CTX_data_active_object(C);
-	if (ob && ob->type == OB_LAMP) {
-		Lamp *la = ob->data;
-		return (la->type == LA_AREA);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BASACT(view_layer);
+	if (base && BASE_VISIBLE(v3d, base)) {
+		Object *ob = base->object;
+		if (ob->type == OB_LAMP) {
+			Lamp *la = ob->data;
+			return (la->type == LA_AREA);
+		}
 	}
 	return false;
 }
@@ -195,7 +203,8 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmGizmoGroup 
 static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmGizmoWrapper *wwrapper = gzgroup->customdata;
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	Lamp *la = ob->data;
 	wmGizmo *gz = wwrapper->gizmo;
 
@@ -247,9 +256,10 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UN
 		return false;
 	}
 
-	Object *ob = CTX_data_active_object(C);
-
-	if (ob != NULL) {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BASACT(view_layer);
+	if (base && BASE_VISIBLE(v3d, base)) {
+		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
 			Lamp *la = ob->data;
 			return (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA));
@@ -287,7 +297,8 @@ static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmGizmoGrou
 static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmGizmoWrapper *wwrapper = gzgroup->customdata;
-	Object *ob = CTX_data_active_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	wmGizmo *gz = wwrapper->gizmo;
 
 	copy_m4_m4(gz->matrix_basis, ob->obmat);

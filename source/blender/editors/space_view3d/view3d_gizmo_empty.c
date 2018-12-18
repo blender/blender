@@ -118,11 +118,14 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 		return false;
 	}
 
-	Object *ob = CTX_data_active_object(C);
-
-	if (ob && ob->type == OB_EMPTY) {
-		if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-			return BKE_object_empty_image_is_visible_in_view3d(ob, rv3d);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BASACT(view_layer);
+	if (BASE_VISIBLE(v3d, base)) {
+		Object *ob = base->object;
+		if (ob->type == OB_EMPTY) {
+			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+				return BKE_object_empty_image_is_visible_in_view3d(ob, rv3d);
+			}
 		}
 	}
 	return false;
@@ -147,8 +150,9 @@ static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmGizmoGrou
 static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	struct EmptyImageWidgetGroup *igzgroup = gzgroup->customdata;
-	Object *ob = CTX_data_active_object(C);
 	wmGizmo *gz = igzgroup->gizmo;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 
 	copy_m4_m4(gz->matrix_basis, ob->obmat);
 
