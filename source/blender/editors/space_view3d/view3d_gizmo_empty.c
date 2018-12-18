@@ -120,7 +120,7 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);
-	if (BASE_VISIBLE(v3d, base)) {
+	if (base && BASE_VISIBLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_EMPTY) {
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
