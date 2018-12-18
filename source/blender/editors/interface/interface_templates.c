@@ -1893,9 +1893,9 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 		bool has_advanced = false;
 #endif
 
-		UI_block_func_set(block, ED_undo_operator_repeat_cb, op, NULL);
+		UI_block_func_handle_set(block, ED_undo_operator_repeat_cb_evt, op);
 		template_operator_redo_property_buts_draw(C, op, layout, layout_flags, NULL /* &has_advanced */ );
-		UI_block_func_set(block, NULL, NULL, NULL); /* may want to reset to old state instead of NULLing all */
+		/* Warning! this leaves the handle function for any other users of this block. */
 
 #if 0
 		if (has_advanced) {
