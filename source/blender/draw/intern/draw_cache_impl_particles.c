@@ -44,6 +44,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_customdata_types.h"
 
+#include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -1303,6 +1304,7 @@ static void particle_batch_cache_ensure_pos(
 	sim.ob = object;
 	sim.psys = psys;
 	sim.psmd = psys_get_modifier(object, psys);
+	sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 	if (psys->part->phystype == PART_PHYS_KEYED) {
 		if (psys->flag & PSYS_KEYED) {
@@ -1332,17 +1334,17 @@ static void particle_batch_cache_ensure_pos(
 
 		float val;
 
-		GPU_vertbuf_attr_set(point_cache->pos, pos_id, curr_point, pa->state.co);
-		GPU_vertbuf_attr_set(point_cache->pos, rot_id, curr_point, pa->state.rot);
+		GPU_vertbuf_attr_set(point_cache->pos, pos_id, curr_point, state.co);
+		GPU_vertbuf_attr_set(point_cache->pos, rot_id, curr_point, state.rot);
 
 		switch (psys->part->draw_col) {
 			case PART_DRAW_COL_VEL:
-				val = len_v3(pa->state.vel) / psys->part->color_vec_max;
+				val = len_v3(state.vel) / psys->part->color_vec_max;
 				break;
 			case PART_DRAW_COL_ACC:
 				val = len_v3v3(
-				        pa->state.vel,
-				        pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * psys->part->color_vec_max);
+				        state.vel,
+				        pa->prev_state.vel) / ((state.time - pa->prev_state.time) * psys->part->color_vec_max);
 				break;
 			default:
 				val = -1.0f;
