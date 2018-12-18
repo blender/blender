@@ -385,7 +385,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 	if (startMatch) {
 		const size_t prefixLen = strlen(prefix);
 		startMatch += prefixLen + 1;
-		/* get the end point (i.e. where the next occurance of " is after the starting point) */
+		/* get the end point (i.e. where the next occurrence of " is after the starting point) */
 
 		endMatch = startMatch;
 		while ((endMatch = strchr(endMatch, '"'))) {
