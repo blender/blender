@@ -1310,6 +1310,7 @@ static void emit_from_particles(
 		sim.scene = scene;
 		sim.ob = flow_ob;
 		sim.psys = psys;
+		sim.psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 		/* prepare curvemapping tables */
 		if ((psys->part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && psys->part->clumpcurve)
