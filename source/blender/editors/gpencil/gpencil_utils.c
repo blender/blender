@@ -62,6 +62,7 @@
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
+#include "WM_toolsystem.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1510,8 +1511,16 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 	glDisable(GL_LINE_SMOOTH);
 }
 
+static bool gp_brush_cursor_poll(bContext *C)
+{
+   if (WM_toolsystem_active_tool_is_brush(C)) {
+       return true;
+   }
+   return false;
+}
+
 /* Helper callback for drawing the cursor itself */
-static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
+static void gp_brush_cursor_draw(bContext *C, int x, int y, void *customdata)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1692,8 +1701,8 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
 		gset->paintcursor = WM_paint_cursor_activate(
 		        CTX_wm_manager(C),
 		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
-		        NULL,
-		        gp_brush_drawcursor,
+		        gp_brush_cursor_poll,
+		        gp_brush_cursor_draw,
 		        (lastpost) ? customdata : NULL);
 	}
 }
