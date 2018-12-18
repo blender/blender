@@ -2132,6 +2132,7 @@ typedef struct MeshBatchCache {
 	struct {
 		/* Indices to verts. */
 		GPUIndexBuf *surf_tris;
+		GPUIndexBuf *edges_lines;
 		/* Indices to vloops. */
 		GPUIndexBuf *loops_tris;
 		GPUIndexBuf *loops_lines;
@@ -2155,6 +2156,7 @@ typedef struct MeshBatchCache {
 		GPUBatch *edit_facedots;
 		/* Common display / Other */
 		GPUBatch *all_verts;
+		GPUBatch *all_edges;
 		GPUBatch *wire_loops; /* Loops around faces. */
 		GPUBatch *wire_triangles; /* Triangles for object mode wireframe. */
 	} batch;
@@ -2170,7 +2172,6 @@ typedef struct MeshBatchCache {
 	GPUIndexBuf *triangles_in_order;
 	GPUIndexBuf *ledges_in_order;
 
-	GPUBatch *all_edges;
 	GPUBatch *all_triangles;
 
 	GPUVertBuf *pos_with_normals;
@@ -2574,7 +2575,6 @@ static void mesh_batch_cache_clear(Mesh *me)
 		GPU_BATCH_DISCARD_SAFE(batch[i]);
 	}
 
-	GPU_BATCH_DISCARD_SAFE(cache->all_edges);
 	GPU_BATCH_DISCARD_SAFE(cache->all_triangles);
 
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edges_in_order);
@@ -3997,41 +3997,6 @@ static void mesh_create_edit_facedots(
 
 /* Indices */
 
-static GPUIndexBuf *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE));
-
-	if (cache->edges_in_order == NULL) {
-		const int vert_len = mesh_render_data_verts_len_get(rdata);
-		const int edge_len = mesh_render_data_edges_len_get(rdata);
-
-		GPUIndexBufBuilder elb;
-		GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edge_len, vert_len);
-
-		BLI_assert(rdata->types & MR_DATATYPE_EDGE);
-
-		if (rdata->edit_bmesh) {
-			BMesh *bm = rdata->edit_bmesh->bm;
-			BMIter eiter;
-			BMEdge *eed;
-			BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
-				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-					GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
-				}
-			}
-		}
-		else {
-			const MEdge *ed = rdata->medge;
-			for (int i = 0; i < edge_len; i++, ed++) {
-				GPU_indexbuf_add_line_verts(&elb, ed->v1, ed->v2);
-			}
-		}
-		cache->edges_in_order = GPU_indexbuf_build(&elb);
-	}
-
-	return cache->edges_in_order;
-}
-
 #define NO_EDGE INT_MAX
 static GPUIndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata, MeshBatchCache *cache)
 {
@@ -4319,6 +4284,57 @@ static GPUIndexBuf *mesh_batch_cache_get_loose_edges(MeshRenderData *rdata, Mesh
 	return cache->ledges_in_order;
 }
 
+static void mesh_create_edges_lines(MeshRenderData *rdata, GPUIndexBuf *ibo, const bool use_hide)
+{
+	const int verts_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
+	const int edges_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
+
+	GPUIndexBufBuilder elb;
+	GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edges_len, verts_len);
+
+	if (rdata->mapped.use == false) {
+		if (rdata->edit_bmesh) {
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter iter;
+			BMEdge *eed;
+
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+				/* use_hide always for edit-mode */
+				if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					continue;
+				}
+				GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1), BM_elem_index_get(eed->v2));
+			}
+		}
+		else {
+			const MEdge *ed = rdata->medge;
+			for (int i = 0; i < edges_len; i++, ed++) {
+				if ((ed->flag & ME_EDGERENDER) == 0) {
+					continue;
+				}
+				if (!(use_hide && (ed->flag & ME_HIDE))) {
+					GPU_indexbuf_add_line_verts(&elb, ed->v1, ed->v2);
+				}
+			}
+		}
+	}
+	else {
+		BMesh *bm = rdata->edit_bmesh->bm;
+		const MEdge *edge = rdata->medge;
+		for (int i = 0; i < edges_len; i++, edge++) {
+			const int p_orig = rdata->mapped.e_origindex[i];
+			if (p_orig != ORIGINDEX_NONE) {
+				BMEdge *eed = BM_edge_at_index(bm, p_orig);
+				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					GPU_indexbuf_add_line_verts(&elb, edge->v1, edge->v2);
+				}
+			}
+		}
+	}
+
+	GPU_indexbuf_build_in_place(&elb, ibo);
+}
+
 static void mesh_create_surf_tris(MeshRenderData *rdata, GPUIndexBuf *ibo, const bool use_hide)
 {
 	const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
@@ -4511,20 +4527,7 @@ GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 GPUBatch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->all_edges == NULL) {
-		/* create batch from Mesh */
-		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_EDGE;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-
-		cache->all_edges = GPU_batch_create(
-		         GPU_PRIM_LINES, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
-		                         mesh_batch_cache_get_edges_in_order(rdata, cache));
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->all_edges;
+	return DRW_batch_request(&cache->batch.all_edges);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
@@ -5535,6 +5538,10 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	if (DRW_batch_requested(cache->batch.all_verts, GPU_PRIM_POINTS)) {
 		DRW_vbo_request(cache->batch.all_verts, &cache->ordered.pos_nor);
 	}
+	if (DRW_batch_requested(cache->batch.all_edges, GPU_PRIM_LINES)) {
+		DRW_ibo_request(cache->batch.all_edges, &cache->ibo.edges_lines);
+		DRW_vbo_request(cache->batch.all_edges, &cache->ordered.pos_nor);
+	}
 	if (DRW_batch_requested(cache->batch.surface_weights, GPU_PRIM_TRIS)) {
 		DRW_ibo_request(cache->batch.surface_weights, &cache->ibo.surf_tris);
 		DRW_vbo_request(cache->batch.surface_weights, &cache->ordered.pos_nor);
@@ -5617,6 +5624,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surf_tris, MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.loops_tris, MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.loops_lines, MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
+	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_lines, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
 	for (int i = 0; i < cache->mat_len; ++i) {
 		DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
 	}
@@ -5661,6 +5669,9 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	}
 	if (DRW_vbo_requested(cache->tess.pos_nor)) {
 		mesh_create_pos_and_nor_tess(rdata, cache->tess.pos_nor, use_hide);
+	}
+	if (DRW_ibo_requested(cache->ibo.edges_lines)) {
+		mesh_create_edges_lines(rdata, cache->ibo.edges_lines, use_hide);
 	}
 	if (DRW_ibo_requested(cache->ibo.surf_tris)) {
 		mesh_create_surf_tris(rdata, cache->ibo.surf_tris, use_hide);
