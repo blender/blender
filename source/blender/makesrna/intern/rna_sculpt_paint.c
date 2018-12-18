@@ -395,7 +395,8 @@ static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
 	if (object->sculpt->pbvh != NULL) {
 		pbvh_show_mask_set(object->sculpt->pbvh, object->sculpt->show_mask);
 	}
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, object);
+	DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, object);
 }
 
 static char *rna_Sculpt_path(PointerRNA *UNUSED(ptr))
