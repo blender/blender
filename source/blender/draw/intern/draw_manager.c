@@ -2279,7 +2279,9 @@ void DRW_draw_depth_loop(
 	/* Get list of enabled engines */
 	{
 		drw_engines_enable_basic();
-		drw_engines_enable_from_object_mode();
+		if (DRW_state_draw_support()) {
+			drw_engines_enable_from_object_mode();
+		}
 	}
 
 	/* Setup viewport */
