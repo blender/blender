@@ -1160,7 +1160,12 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	}
 
 	/* transfer stroke from temporary buffer to the actual frame */
-	BLI_movelisttolist(&gpf->strokes, &tgpi->gpf->strokes);
+	if (ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) {
+		BLI_movelisttolist_reverse(&gpf->strokes, &tgpi->gpf->strokes);
+	}
+	else {
+		BLI_movelisttolist(&gpf->strokes, &tgpi->gpf->strokes);
+	}
 	BLI_assert(BLI_listbase_is_empty(&tgpi->gpf->strokes));
 
 	/* add weights if required */
