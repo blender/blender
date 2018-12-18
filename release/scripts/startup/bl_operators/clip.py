@@ -516,7 +516,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
         # XXX, should probably use context.selected_editable_objects
         # since selected objects can be from a lib or in hidden layer!
         for ob in scene.objects:
-            if ob.select_set(True):
+            if ob.select_get():
                 self._bake_object(scene, ob)
 
         return {'FINISHED'}
