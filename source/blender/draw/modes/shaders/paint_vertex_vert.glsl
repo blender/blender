@@ -2,7 +2,7 @@
 uniform mat4 ModelViewProjectionMatrix;
 
 in vec3 pos;
-in vec3 color;
+in vec3 c; /* active color */
 
 out vec3 finalColor;
 
@@ -17,5 +17,5 @@ void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-	finalColor = srgb_to_linear_attrib(color);
+	finalColor = srgb_to_linear_attrib(c);
 }

@@ -103,11 +103,11 @@ struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_wire_loops(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide, uint select_id_offset);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me, bool use_hide);
 struct GPUBatch *DRW_mesh_batch_cache_get_loose_edges_with_normals(struct Mesh *me);

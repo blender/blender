@@ -102,22 +102,16 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 		        datatoc_paint_weight_vert_glsl, NULL,
 		        datatoc_paint_weight_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
-	}
 
-	if (!e_data.wire_overlay_shader) {
 		e_data.wire_overlay_shader = DRW_shader_create_with_lib(
 		        datatoc_paint_wire_vert_glsl, NULL,
 		        datatoc_paint_wire_frag_glsl,
 		        datatoc_common_globals_lib_glsl, "#define WEIGHT_MODE\n");
-	}
 
-	if (!e_data.face_overlay_shader) {
 		e_data.face_overlay_shader = DRW_shader_create(
 		        datatoc_paint_face_vert_glsl, NULL,
 		        datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
-	}
 
-	if (!e_data.vert_overlay_shader) {
 		e_data.vert_overlay_shader = DRW_shader_create_with_lib(
 		        datatoc_paint_wire_vert_glsl, NULL,
 		        datatoc_paint_vert_frag_glsl,

@@ -45,7 +45,10 @@ extern char datatoc_paint_vertex_vert_glsl[];
 extern char datatoc_paint_vertex_frag_glsl[];
 extern char datatoc_paint_wire_vert_glsl[];
 extern char datatoc_paint_wire_frag_glsl[];
+extern char datatoc_paint_face_vert_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
+
+extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* *********** LISTS *********** */
 
@@ -95,7 +98,9 @@ static void PAINT_VERTEX_engine_init(void *UNUSED(vedata))
 		        datatoc_paint_wire_frag_glsl,
 		        datatoc_common_globals_lib_glsl, "#define VERTEX_MODE\n");
 
-		e_data.face_overlay_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+		e_data.face_overlay_shader = DRW_shader_create(
+		        datatoc_paint_face_vert_glsl, NULL,
+		        datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
 	}
 }
 
@@ -124,7 +129,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 	{
 		psl->wire_overlay = DRW_pass_create(
 		        "Wire Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_OFFSET_NEGATIVE);
 
 		stl->g_data->lwire_shgrp = DRW_shgroup_create(e_data.wire_overlay_shader, psl->wire_overlay);
 		DRW_shgroup_uniform_block(stl->g_data->lwire_shgrp, "globalsBlock", globals_ubo);
@@ -154,6 +159,10 @@ static void PAINT_VERTEX_cache_populate(void *vedata, Object *ob)
 		const bool use_surface = v3d->overlay.vertex_paint_mode_opacity != 0.0f;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		struct GPUBatch *geom;
+
+		if (me->mloopcol == NULL) {
+			return;
+		}
 
 		if (use_surface) {
 			geom = DRW_cache_mesh_surface_vert_colors_get(ob);
@@ -185,6 +194,7 @@ static void PAINT_VERTEX_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.vcolor_face_shader);
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
+	DRW_SHADER_FREE_SAFE(e_data.face_overlay_shader);
 }
 
 static const DrawEngineDataSize PAINT_VERTEX_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_VERTEX_Data);

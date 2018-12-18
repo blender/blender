@@ -357,6 +357,17 @@ static void mesh_cd_calc_active_uv_layer(
 	}
 }
 
+static void mesh_cd_calc_active_vcol_layer(
+        const Mesh *me, ushort cd_lused[CD_NUMTYPES])
+{
+	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
+
+	int layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPCOL);
+	if (layer != -1) {
+		cd_lused[CD_MLOOPCOL] |= (1 << layer);
+	}
+}
+
 static void mesh_cd_calc_used_gpu_layers(
         const Mesh *me, uchar cd_vused[CD_NUMTYPES], ushort cd_lused[CD_NUMTYPES],
         struct GPUMaterial **gpumat_array, int gpumat_array_len)
@@ -1310,7 +1321,7 @@ static void mesh_render_data_ensure_vert_normals_pack(MeshRenderData *rdata)
 
 
 /** Ensure #MeshRenderData.vert_color */
-static void mesh_render_data_ensure_vert_color(MeshRenderData *rdata)
+static void UNUSED_FUNCTION(mesh_render_data_ensure_vert_color)(MeshRenderData *rdata)
 {
 	char (*vcol)[3] = rdata->vert_color;
 	if (vcol == NULL) {
@@ -2838,14 +2849,6 @@ static GPUVertBuf *mesh_batch_cache_get_tri_pos_and_normals_edit(
 	        use_hide ? &cache->pos_with_normals_visible_only_edit : &cache->pos_with_normals_edit);
 }
 
-static GPUVertBuf *mesh_batch_cache_get_tri_pos_and_normals_final(
-        MeshRenderData *rdata, MeshBatchCache *cache, bool use_hide)
-{
-	return mesh_batch_cache_get_tri_pos_and_normals_ex(
-	        rdata, use_hide,
-	        use_hide ? &cache->pos_with_normals_visible_only : &cache->pos_with_normals);
-}
-
 /* DEPRECATED Need to be ported */
 static GPUVertBuf *mesh_batch_cache_get_facedot_pos_with_normals_and_flag(
         MeshRenderData *rdata, MeshBatchCache *cache)
@@ -3181,66 +3184,6 @@ static GPUVertBuf *mesh_create_verts_select_id(
 		}
 		const int vbo_len_used = vidx;
 		if (vbo_len_used != vbo_len_capacity) {
-			GPU_vertbuf_data_resize(vbo, vbo_len_used);
-		}
-	}
-
-	return vbo;
-}
-
-static GPUVertBuf *mesh_create_tri_vert_colors(
-        MeshRenderData *rdata, bool use_hide)
-{
-	BLI_assert(
-	        rdata->types &
-	        (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPCOL));
-
-	GPUVertBuf *vbo;
-	{
-		uint cidx = 0;
-
-		static GPUVertFormat format = { 0 };
-		static struct { uint col; } attr_id;
-		if (format.attr_len == 0) {
-			attr_id.col = GPU_vertformat_attr_add(&format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		}
-
-		const int tri_len = mesh_render_data_looptri_len_get(rdata);
-
-		vbo = GPU_vertbuf_create_with_format(&format);
-
-		const uint vbo_len_capacity = tri_len * 3;
-		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
-
-		mesh_render_data_ensure_vert_color(rdata);
-		const char (*vert_color)[3] = rdata->vert_color;
-
-		if (rdata->edit_bmesh) {
-			for (int i = 0; i < tri_len; i++) {
-				const BMLoop **ltri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
-				/* Assume 'use_hide' */
-				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
-					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						const int l_index = BM_elem_index_get(ltri[tri_corner]);
-						GPU_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_color[l_index]);
-					}
-				}
-			}
-		}
-		else {
-			for (int i = 0; i < tri_len; i++) {
-				const MLoopTri *mlt = &rdata->mlooptri[i];
-				if (!(use_hide && (rdata->mpoly[mlt->poly].flag & ME_HIDE))) {
-					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
-						const uint l_index = mlt->tri[tri_corner];
-						GPU_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_color[l_index]);
-					}
-				}
-			}
-		}
-		const uint vbo_len_used = cidx;
-
-		if (vbo_len_capacity != vbo_len_used) {
 			GPU_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 	}
@@ -4617,29 +4560,6 @@ GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me)
 	return DRW_batch_request(&cache->batch.surface_weights);
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->triangles_with_vert_colors == NULL) {
-		const bool use_hide = (me->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL)) != 0;
-		const int datatype =
-		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPCOL;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-
-		cache->triangles_with_vert_colors = GPU_batch_create_ex(
-		        GPU_PRIM_TRIS, mesh_create_tri_vert_colors(rdata, use_hide), NULL, GPU_BATCH_OWNS_VBO);
-
-		GPUVertBuf *vbo_tris = mesh_batch_cache_get_tri_pos_and_normals_final(rdata, cache, use_hide);
-		GPU_batch_vertbuf_add(cache->triangles_with_vert_colors, vbo_tris);
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->triangles_with_vert_colors;
-}
-
-
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(
         struct Mesh *me, bool use_hide, uint select_id_offset)
 {
@@ -5006,6 +4926,31 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 	texpaint_request_active_uv(cache, me);
+	return DRW_batch_request(&cache->batch.surface);
+}
+
+static void texpaint_request_active_vcol(MeshBatchCache *cache, Mesh *me)
+{
+	uchar cd_vneeded[CD_NUMTYPES] = {0};
+	ushort cd_lneeded[CD_NUMTYPES] = {0};
+	mesh_cd_calc_active_vcol_layer(me, cd_lneeded);
+	if (cd_lneeded[CD_MLOOPCOL] == 0) {
+		/* This should not happen. */
+		BLI_assert(!"No vcol layer available in vertpaint, but batches requested anyway!");
+	}
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
+	                                              cd_vneeded, cd_lneeded);
+	if (cd_overlap == false) {
+		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
+		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
+		                          cd_vneeded, cd_lneeded);
+	}
+}
+
+GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	texpaint_request_active_vcol(cache, me);
 	return DRW_batch_request(&cache->batch.surface);
 }
 
@@ -5582,6 +5527,9 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 		/* For paint overlay. Active layer should have been queried. */
 		if (cache->cd_lused[CD_MLOOPUV] != 0) {
 			DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_uv_tan);
+		}
+		if (cache->cd_lused[CD_MLOOPCOL] != 0) {
+			DRW_vbo_request(cache->batch.surface, &cache->ordered.loop_vcol);
 		}
 	}
 	if (DRW_batch_requested(cache->batch.all_verts, GPU_PRIM_POINTS)) {

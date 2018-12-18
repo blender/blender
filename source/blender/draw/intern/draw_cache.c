@@ -3053,7 +3053,7 @@ GPUBatch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(me);
+	return DRW_mesh_batch_cache_get_surface_vertpaint(me);
 }
 
 /* Return list of batches */
