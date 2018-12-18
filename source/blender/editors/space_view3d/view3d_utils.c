@@ -77,18 +77,18 @@
 
 void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float r_color[3])
 {
-	switch (v3d->shading.background_type) {
-		case V3D_SHADING_BACKGROUND_WORLD:
+	if (v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD) {
+		if (scene->world) {
 			copy_v3_v3(r_color, &scene->world->horr);
-			break;
-		case V3D_SHADING_BACKGROUND_VIEWPORT:
-			copy_v3_v3(r_color, v3d->shading.background_color);
-			break;
-		case V3D_SHADING_BACKGROUND_THEME:
-		default:
-			UI_GetThemeColor3fv(TH_HIGH_GRAD, r_color);
-			break;
+			return;
+		}
 	}
+	else if (v3d->shading.background_type == V3D_SHADING_BACKGROUND_VIEWPORT) {
+		copy_v3_v3(r_color, v3d->shading.background_color);
+		return;
+	}
+
+	UI_GetThemeColor3fv(TH_HIGH_GRAD, r_color);
 }
 
 void ED_view3d_cursor3d_calc_mat3(const Scene *scene, float mat[3][3])
