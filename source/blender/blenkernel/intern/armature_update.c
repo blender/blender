@@ -794,6 +794,10 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
 /* Common part for both original and proxy armatrues. */
 static void pose_eval_done_common(struct Depsgraph *depsgraph, Object *object)
 {
+	const bArmature *armature = (bArmature *)object->data;
+	if (armature->edbo != NULL) {
+		return;
+	}
 	bPose *pose = object->pose;
 	UNUSED_VARS_NDEBUG(pose);
 	BLI_assert(pose != NULL);
