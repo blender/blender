@@ -5559,8 +5559,8 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static float default_title[2] = {0.035f, 0.035f};
-	static float default_action[2] = {0.1f, 0.05f};
+	static float default_title[2] = {0.1f, 0.05f};
+	static float default_action[2] = {0.035f, 0.035f};
 
 	static float default_title_center[2] = {0.175f, 0.05f};
 	static float default_action_center[2] = {0.15f, 0.05f};
