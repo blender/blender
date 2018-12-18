@@ -1288,7 +1288,10 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 
 /* When using multiple objects, apply their relative rotational offset to the active object. */
 #define USE_RELATIVE_ROTATION
+/* Disable overlays, ignoring user setting (lamp wire gets in the way). */
 #define USE_RENDER_OVERRIDE
+/* Calculate a depth if the cursor isn't already over a depth (not essential but feels buggy without). */
+#define USE_FAKE_DEPTH_INIT
 
 struct XFormAxisItem {
 	Object *ob;
@@ -1317,6 +1320,37 @@ struct XFormAxisData {
 
 	int init_event;
 };
+
+#ifdef USE_FAKE_DEPTH_INIT
+static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *xfd, const int mval[2])
+{
+	struct XFormAxisItem *item = xfd->object_data;
+	float view_co_a[3], view_co_b[3];
+	const float mval_fl[2] = {UNPACK2(mval)};
+	ED_view3d_win_to_ray(xfd->vc.ar, mval_fl, view_co_a, view_co_b);
+	add_v3_v3(view_co_b, view_co_a);
+	float center[3] = {0.0f};
+	int   center_tot = 0;
+	for (int i = 0; i < xfd->object_data_len; i++, item++) {
+		const Object *ob = item->ob;
+		const float *ob_co_a = ob->obmat[3];
+		float        ob_co_b[3];
+		add_v3_v3v3(ob_co_b, ob->obmat[3], ob->obmat[2]);
+		float view_isect[3], ob_isect[3];
+		if (isect_line_line_v3(view_co_a, view_co_b, ob_co_a, ob_co_b, view_isect, ob_isect)) {
+			add_v3_v3(center, view_isect);
+			center_tot += 1;
+		}
+	}
+	if (center_tot) {
+		mul_v3_fl(center, 1.0f / center_tot);
+		float center_proj[3];
+		ED_view3d_project(xfd->vc.ar, center, center_proj);
+		xfd->prev.depth = center_proj[2];
+		xfd->prev.is_depth_valid = true;
+	}
+}
+#endif  /* USE_FAKE_DEPTH_INIT */
 
 static bool object_is_target_compat(const Object *ob)
 {
@@ -1524,6 +1558,19 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 					depth = (double)xfd->prev.depth;
 				}
 			}
+
+#ifdef USE_FAKE_DEPTH_INIT
+			/* First time only. */
+			if (depth == 1.0f) {
+				if (xfd->prev.is_depth_valid == false) {
+					object_transform_axis_target_calc_depth_init(xfd, event->mval);
+					if (xfd->prev.is_depth_valid) {
+						depth = (double)xfd->prev.depth;
+					}
+				}
+			}
+#endif
+
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
 				xfd->prev.depth = depth;
 				xfd->prev.is_depth_valid = true;
