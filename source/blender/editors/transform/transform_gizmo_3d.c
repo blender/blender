@@ -782,9 +782,10 @@ int ED_transform_calc_gizmo_stats(
 
 	if (is_gp_edit) {
 		float diff_mat[4][4];
+		const bool use_mat_local = true;
 		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 			/* only editable and visible layers are considered */
-			const bool use_mat_local = gpl->parent != NULL;
+			
 			if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
 
 				/* calculate difference matrix */
