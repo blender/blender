@@ -2402,7 +2402,7 @@ static struct TransIslandData *editmesh_islands_info_calc(
 /* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
                              BMEditMesh *em, BMVert *eve, float *bweight,
-                             struct TransIslandData *v_island)
+                             struct TransIslandData *v_island, const bool no_island_center)
 {
 	float *no, _no[3];
 	BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
@@ -2426,7 +2426,12 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	}
 
 	if (v_island) {
-		copy_v3_v3(td->center, v_island->co);
+		if (no_island_center) {
+			copy_v3_v3(td->center, td->loc);
+		}
+		else {
+			copy_v3_v3(td->center, v_island->co);
+		}
 		copy_m3_m3(td->axismtx, v_island->axismtx);
 	}
 	else if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
@@ -2492,8 +2497,14 @@ static void createTransEditVerts(TransInfo *t)
 	int island_info_tot;
 	int *island_vert_map = NULL;
 
+	/* Snap rotation along normal needs a common axis for whole islands, otherwise one get random crazy results,
+	 * see T59104. However, we do not want to use the island center for the pivot/translation reference... */
+	const bool is_snap_rotate = ((t->mode == TFM_TRANSLATION) &&
+	                             /* There is not guarantee that snapping is initialized yet at this point... */
+	                             (usingSnappingNormal(t) || (t->settings->snap_flag & SCE_SNAP_ROTATE) != 0) &&
+	                             (t->around != V3D_AROUND_LOCAL_ORIGINS));
 	/* Even for translation this is needed because of island-orientation, see: T51651. */
-	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
+	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS) || is_snap_rotate;
 	/* Original index of our connected vertex when connected distances are calculated.
 	 * Optional, allocate if needed. */
 	int *dists_index = NULL;
@@ -2626,7 +2637,9 @@ static void createTransEditVerts(TransInfo *t)
 				}
 
 
-				VertsToTransData(t, tob, tx, em, eve, bweight, v_island);
+				/* Do not use the island center in case we are using islands
+				 * only to get axis for snap/rotate to normal... */
+				VertsToTransData(t, tob, tx, em, eve, bweight, v_island, is_snap_rotate);
 				if (tx)
 					tx++;
 
