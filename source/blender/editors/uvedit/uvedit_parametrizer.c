@@ -4506,13 +4506,13 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 	if (phandle->ncharts == 0)
 		return;
 
-	if (phandle->aspx != phandle->aspy)
-		param_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
-
 	/* this could be its own function */
 	if (do_rotate) {
 		param_pack_rotate(handle);
 	}
+
+	if (phandle->aspx != phandle->aspy)
+		param_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
 
 	/* we may not use all these boxes */
 	boxarray = MEM_mallocN(phandle->ncharts * sizeof(BoxPack), "BoxPack box");
