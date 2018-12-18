@@ -1351,7 +1351,7 @@ typedef struct ToolSettings {
 	char snap_uv_mode;
 	char snap_flag;
 	char snap_target;
-	char snap_force_increment_flag;
+	char snap_transform_mode_flag;
 
 
 	char proportional, prop_mode;
@@ -1910,11 +1910,11 @@ enum {
 #define SCE_SNAP_MODE_NODE_X    (1 << 6)
 #define SCE_SNAP_MODE_NODE_Y    (1 << 7)
 
-/** #ToolSettings.snap_force_increment_flag */
+/** #ToolSettings.snap_transform_mode_flag */
 enum {
-	SCE_SNAP_FORCE_INCREMENT_TRANSLATE  = (1 << 0),
-	SCE_SNAP_FORCE_INCREMENT_ROTATE     = (1 << 1),
-	SCE_SNAP_FORCE_INCREMENT_SCALE      = (1 << 2),
+	SCE_SNAP_TRANSFORM_MODE_TRANSLATE  = (1 << 0),
+	SCE_SNAP_TRANSFORM_MODE_ROTATE     = (1 << 1),
+	SCE_SNAP_TRANSFORM_MODE_SCALE      = (1 << 2),
 };
 
 /* ToolSettings.selectmode */

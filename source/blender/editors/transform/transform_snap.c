@@ -137,19 +137,25 @@ bool activeSnap(const TransInfo *t)
 	       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
 }
 
-static bool doForceIncrementSnap(const TransInfo *t)
+bool transformModeUseSnap(const TransInfo *t)
 {
-	const ToolSettings *ts = t->settings;
+	ToolSettings *ts = t->settings;
 	if (t->mode == TFM_TRANSLATION) {
-		return ts->snap_force_increment_flag & SCE_SNAP_FORCE_INCREMENT_TRANSLATE;
+		return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_TRANSLATE) != 0;
 	}
 	if (t->mode == TFM_ROTATION) {
-		return ts->snap_force_increment_flag & SCE_SNAP_FORCE_INCREMENT_ROTATE;
+		return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_ROTATE) != 0;
 	}
 	if (t->mode == TFM_RESIZE) {
-		return ts->snap_force_increment_flag & SCE_SNAP_FORCE_INCREMENT_SCALE;
+		return (ts->snap_transform_mode_flag & SCE_SNAP_TRANSFORM_MODE_SCALE) != 0;
 	}
+
 	return false;
+}
+
+static bool doForceIncrementSnap(const TransInfo *t)
+{
+	return !transformModeUseSnap(t);
 }
 
 void drawSnapping(const struct bContext *C, TransInfo *t)
@@ -656,7 +662,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	/* use scene defaults only when transform is modal */
 	else if (t->flag & T_MODAL) {
 		if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE)) {
-			if (ts->snap_flag & SCE_SNAP) {
+			if (transformModeUseSnap(t) && (ts->snap_flag & SCE_SNAP)) {
 				t->modifiers |= MOD_SNAP;
 			}
 

@@ -2101,11 +2101,13 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		/* do we check for parameter? */
-		if (t->modifiers & MOD_SNAP) {
-			ts->snap_flag |= SCE_SNAP;
-		}
-		else {
-			ts->snap_flag &= ~SCE_SNAP;
+		if (transformModeUseSnap(t)) {
+			if (t->modifiers & MOD_SNAP) {
+				ts->snap_flag |= SCE_SNAP;
+			}
+			else {
+				ts->snap_flag &= ~SCE_SNAP;
+			}
 		}
 
 		if (t->spacetype == SPACE_VIEW3D) {

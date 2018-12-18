@@ -5225,12 +5225,6 @@ class VIEW3D_PT_snapping(Panel):
             col.prop(tool_settings, "use_snap_grid_absolute")
 
         if snap_elements != {'INCREMENT'}:
-            col.label(text="Affect")
-            row = col.row(align=True)
-            row.prop(tool_settings, "use_snap_force_increment_translate", text="Move")
-            row.prop(tool_settings, "use_snap_force_increment_rotate", text="Rotate")
-            row.prop(tool_settings, "use_snap_force_increment_scale", text="Scale")
-
             col.label(text="Target")
             row = col.row(align=True)
             row.prop(tool_settings, "snap_target", expand=True)
@@ -5246,6 +5240,12 @@ class VIEW3D_PT_snapping(Panel):
 
             if 'VOLUME' in snap_elements:
                 col.prop(tool_settings, "use_snap_peel_object")
+
+        col.label(text="Affect")
+        row = col.row(align=True)
+        row.prop(tool_settings, "use_snap_translate", text="Move", toggle=True)
+        row.prop(tool_settings, "use_snap_rotate", text="Rotate", toggle=True)
+        row.prop(tool_settings, "use_snap_scale", text="Scale", toggle=True)
 
 
 class VIEW3D_PT_transform_orientations(Panel):

@@ -783,6 +783,8 @@ typedef enum {
 	SMALL_GEARS	= 2
 } GearsType;
 
+bool transformModeUseSnap(const TransInfo *t);
+
 void snapGridIncrement(TransInfo *t, float *val);
 void snapGridIncrementAction(TransInfo *t, float *val, GearsType action);
 
