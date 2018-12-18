@@ -8204,6 +8204,33 @@ void flushTransPaintCurve(TransInfo *t)
 	}
 }
 
+static void createTransGPencil_center_get(
+	bGPDstroke *gps, const bool is_prop_edit, float r_center[3])
+{
+	bGPDspoint *pt;
+	int i;
+
+	zero_v3(r_center);
+	int tot_sel = 0;
+	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+		bool point_ok;
+		if (is_prop_edit) {
+			point_ok = true;
+		}
+		else {
+			/* Only selected points in selected strokes */
+			point_ok = (pt->flag & GP_SPOINT_SELECT) != 0;
+		}
+		if (point_ok) {
+			add_v3_v3(r_center, &pt->x);
+			tot_sel++;
+		}
+	}
+
+	if (tot_sel > 0) {
+		mul_v3_fl(r_center, 1.0f / tot_sel);
+	}
+}
 
 static void createTransGPencil(bContext *C, TransInfo *t)
 {
@@ -8407,6 +8434,10 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 							/* save falloff factor */
 							gps->runtime.multi_frame_falloff = falloff;
 
+							/* calculate stroke center */
+							float center[3];
+							createTransGPencil_center_get(gps, is_prop_edit, &center[0]);
+
 							/* add all necessary points... */
 							for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 								bool point_ok;
@@ -8424,7 +8455,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 								/* do point... */
 								if (point_ok) {
 									copy_v3_v3(td->iloc, &pt->x);
-									copy_v3_v3(td->center, &pt->x); // XXX: what about  t->around == local?
+									copy_v3_v3(td->center, center);
 
 									td->loc = &pt->x;
 
