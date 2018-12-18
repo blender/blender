@@ -50,6 +50,7 @@
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -2600,6 +2601,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	OBJECT_ShadingGroupList *sgl = (ob->dtx & OB_DRAWXRAY) ? &stl->g_data->sgl_ghost : &stl->g_data->sgl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool is_edit_mode = (ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob);
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
@@ -2654,26 +2656,35 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (hide_object_extra) {
 				break;
 			}
-			if (ob != draw_ctx->object_edit) {
-				Mesh *me = ob->data;
-				if (me->totedge == 0) {
+			Mesh *me = ob->data;
+			if (me->totedge == 0) {
+				if (!is_edit_mode) {
 					struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 						}
-
 						DRWShadingGroup *shgroup = shgroup_theme_id_to_point_or(sgl, theme_id, sgl->points);
 						DRW_shgroup_call_object_add(shgroup, geom, ob);
 					}
 				}
-				else {
+			}
+			else {
+				/* Kind of expensive in edit mode. Only show if in wireframe mode. */
+				bool has_edit_mesh_cage = false;
+				/* TODO: Should be its own function. */
+				if (is_edit_mode) {
+					BMEditMesh *embm = me->edit_btmesh;
+					has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
+				}
+				if (!is_edit_mode ||
+				    (((v3d->shading.type < OB_SOLID) || (ob->dt == OB_WIRE)) && has_edit_mesh_cage))
+				{
 					struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 						}
-
 						DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
 						DRW_shgroup_call_object_add(shgroup, geom, ob);
 					}
@@ -2699,7 +2710,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_LATTICE:
 		{
-			if (ob != draw_ctx->object_edit && !BKE_object_is_in_editmode(ob)) {
+			if (is_edit_mode) {
 				if (hide_object_extra) {
 					break;
 				}
@@ -2715,7 +2726,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_CURVE:
 		{
-			if (ob != draw_ctx->object_edit) {
+			if (is_edit_mode) {
 				if (hide_object_extra) {
 					break;
 				}
@@ -2730,7 +2741,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_MBALL:
 		{
-			if (ob != draw_ctx->object_edit) {
+			if (is_edit_mode) {
 				DRW_shgroup_mball_handles(sgl, ob, view_layer);
 			}
 			break;
