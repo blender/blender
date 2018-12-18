@@ -4437,6 +4437,42 @@ static void mesh_create_loops_tris(
 /** \name Public API
  * \{ */
 
+static void texpaint_request_active_uv(MeshBatchCache *cache, Mesh *me)
+{
+	uchar cd_vneeded[CD_NUMTYPES] = {0};
+	ushort cd_lneeded[CD_NUMTYPES] = {0};
+	mesh_cd_calc_active_uv_layer(me, cd_lneeded);
+	if (cd_lneeded[CD_MLOOPUV] == 0) {
+		/* This should not happen. */
+		BLI_assert(!"No uv layer available in texpaint, but batches requested anyway!");
+	}
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
+	                                              cd_vneeded, cd_lneeded);
+	if (cd_overlap == false) {
+		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
+		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
+		                          cd_vneeded, cd_lneeded);
+	}
+}
+
+static void texpaint_request_active_vcol(MeshBatchCache *cache, Mesh *me)
+{
+	uchar cd_vneeded[CD_NUMTYPES] = {0};
+	ushort cd_lneeded[CD_NUMTYPES] = {0};
+	mesh_cd_calc_active_vcol_layer(me, cd_lneeded);
+	if (cd_lneeded[CD_MLOOPCOL] == 0) {
+		/* This should not happen. */
+		BLI_assert(!"No vcol layer available in vertpaint, but batches requested anyway!");
+	}
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
+	                                              cd_vneeded, cd_lneeded);
+	if (cd_overlap == false) {
+		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
+		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
+		                          cd_vneeded, cd_lneeded);
+	}
+}
+
 GPUBatch *DRW_mesh_batch_cache_get_all_verts(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
@@ -4482,72 +4518,14 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me)
 	return DRW_batch_request(&cache->batch.surface_weights);
 }
 
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(
-        struct Mesh *me, bool use_hide, uint select_id_offset)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->triangles_with_select_id_offset != select_id_offset) {
-		cache->triangles_with_select_id_offset = select_id_offset;
-		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
-	}
-
-	if (cache->triangles_with_select_id == NULL) {
-		const int datatype =
-		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-		if (rdata->mapped.supported) {
-			rdata->mapped.use = true;
-		}
-
-		cache->triangles_with_select_id = GPU_batch_create_ex(
-		        GPU_PRIM_TRIS, mesh_create_tri_select_id(rdata, use_hide, select_id_offset), NULL, GPU_BATCH_OWNS_VBO);
-
-		GPUVertBuf *vbo_tris = mesh_batch_cache_get_tri_pos_and_normals_edit(rdata, cache, use_hide);
-		GPU_batch_vertbuf_add(cache->triangles_with_select_id, vbo_tris);
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->triangles_with_select_id;
-}
-
-/**
- * Same as #DRW_mesh_batch_cache_get_triangles_with_select_id
- * without the ID's, use to mask out geometry, eg - dont select face-dots behind other faces.
- */
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me, bool use_hide)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	if (cache->triangles_with_select_mask == NULL) {
-		const int datatype =
-		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-		if (rdata->mapped.supported) {
-			rdata->mapped.use = true;
-		}
-
-		GPUVertBuf *vbo_tris = mesh_batch_cache_get_tri_pos_and_normals_edit(rdata, cache, use_hide);
-
-		cache->triangles_with_select_mask = GPU_batch_create(
-		        GPU_PRIM_TRIS, vbo_tris, NULL);
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->triangles_with_select_mask;
-}
-
 GPUBatch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me, bool *r_is_manifold)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
+	/* Even if is_manifold is not correct (not updated),
+	 * the default (not manifold) is just the worst case. */
 	if (r_is_manifold) {
-		/* Even if is_manifold is not correct (not updated),
-		 * the default (not manifold) is just the worst case. */
 		*r_is_manifold = cache->is_manifold;
 	}
-
 	return DRW_batch_request(&cache->batch.edge_detection);
 }
 
@@ -4605,7 +4583,128 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(Mesh *me)
 	return DRW_batch_request(&cache->batch.edit_facedots);
 }
 
-/* Need to be ported to new getter style. */
+GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
+        Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	uchar cd_vneeded[CD_NUMTYPES] = {0};
+	ushort cd_lneeded[CD_NUMTYPES] = {0};
+	mesh_cd_calc_used_gpu_layers(me, cd_vneeded, cd_lneeded, gpumat_array, gpumat_array_len);
+
+	BLI_assert(gpumat_array_len == cache->mat_len);
+
+	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
+	                                              cd_vneeded, cd_lneeded);
+	if (cd_overlap == false) {
+		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
+		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
+		                          cd_vneeded, cd_lneeded);
+
+		mesh_cd_extract_auto_layers_names_and_srgb(me,
+		                                           cache->cd_lneeded,
+		                                           &cache->auto_layer_names,
+		                                           &cache->auto_layer_is_srgb,
+		                                           &cache->auto_layer_len);
+	}
+	if (auto_layer_names) {
+		*auto_layer_names = cache->auto_layer_names;
+		*auto_layer_is_srgb = cache->auto_layer_is_srgb;
+		*auto_layer_count = cache->auto_layer_len;
+	}
+	for (int i = 0; i < cache->mat_len; ++i) {
+		DRW_batch_request(&cache->surf_per_mat[i]);
+	}
+	return cache->surf_per_mat;
+}
+
+GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	texpaint_request_active_uv(cache, me);
+	for (int i = 0; i < cache->mat_len; ++i) {
+		DRW_batch_request(&cache->surf_per_mat[i]);
+	}
+	return cache->surf_per_mat;
+}
+
+GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	texpaint_request_active_uv(cache, me);
+	return DRW_batch_request(&cache->batch.surface);
+}
+
+GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	texpaint_request_active_vcol(cache, me);
+	return DRW_batch_request(&cache->batch.surface);
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+
+/** \name Edit Mode selection API
+ * \{ */
+
+GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(Mesh *me, bool use_hide, uint select_id_offset)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->triangles_with_select_id_offset != select_id_offset) {
+		cache->triangles_with_select_id_offset = select_id_offset;
+		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
+	}
+
+	if (cache->triangles_with_select_id == NULL) {
+		const int datatype =
+		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
+		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+		if (rdata->mapped.supported) {
+			rdata->mapped.use = true;
+		}
+
+		cache->triangles_with_select_id = GPU_batch_create_ex(
+		        GPU_PRIM_TRIS, mesh_create_tri_select_id(rdata, use_hide, select_id_offset), NULL, GPU_BATCH_OWNS_VBO);
+
+		GPUVertBuf *vbo_tris = mesh_batch_cache_get_tri_pos_and_normals_edit(rdata, cache, use_hide);
+		GPU_batch_vertbuf_add(cache->triangles_with_select_id, vbo_tris);
+
+		mesh_render_data_free(rdata);
+	}
+
+	return cache->triangles_with_select_id;
+}
+
+/**
+ * Same as #DRW_mesh_batch_cache_get_triangles_with_select_id
+ * without the ID's, use to mask out geometry, eg - dont select face-dots behind other faces.
+ */
+GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(Mesh *me, bool use_hide)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	if (cache->triangles_with_select_mask == NULL) {
+		const int datatype =
+		        MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
+		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+		if (rdata->mapped.supported) {
+			rdata->mapped.use = true;
+		}
+
+		GPUVertBuf *vbo_tris = mesh_batch_cache_get_tri_pos_and_normals_edit(rdata, cache, use_hide);
+
+		cache->triangles_with_select_mask = GPU_batch_create(
+		        GPU_PRIM_TRIS, vbo_tris, NULL);
+
+		mesh_render_data_free(rdata);
+	}
+
+	return cache->triangles_with_select_mask;
+}
+
+
 GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(Mesh *me, uint select_id_offset)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
@@ -4689,100 +4788,12 @@ GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *me, uint select_id
 	return cache->verts_with_select_id;
 }
 
-GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
-        Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
-        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	uchar cd_vneeded[CD_NUMTYPES] = {0};
-	ushort cd_lneeded[CD_NUMTYPES] = {0};
-	mesh_cd_calc_used_gpu_layers(me, cd_vneeded, cd_lneeded, gpumat_array, gpumat_array_len);
+/** \} */
 
-	BLI_assert(gpumat_array_len == cache->mat_len);
+/* ---------------------------------------------------------------------- */
 
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cd_vneeded, cd_lneeded);
-	if (cd_overlap == false) {
-		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
-		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
-		                          cd_vneeded, cd_lneeded);
-
-		mesh_cd_extract_auto_layers_names_and_srgb(me,
-		                                           cache->cd_lneeded,
-		                                           &cache->auto_layer_names,
-		                                           &cache->auto_layer_is_srgb,
-		                                           &cache->auto_layer_len);
-	}
-	if (auto_layer_names) {
-		*auto_layer_names = cache->auto_layer_names;
-		*auto_layer_is_srgb = cache->auto_layer_is_srgb;
-		*auto_layer_count = cache->auto_layer_len;
-	}
-	for (int i = 0; i < cache->mat_len; ++i) {
-		DRW_batch_request(&cache->surf_per_mat[i]);
-	}
-	return cache->surf_per_mat;
-}
-
-static void texpaint_request_active_uv(MeshBatchCache *cache, Mesh *me)
-{
-	uchar cd_vneeded[CD_NUMTYPES] = {0};
-	ushort cd_lneeded[CD_NUMTYPES] = {0};
-	mesh_cd_calc_active_uv_layer(me, cd_lneeded);
-	if (cd_lneeded[CD_MLOOPUV] == 0) {
-		/* This should not happen. */
-		BLI_assert(!"No uv layer available in texpaint, but batches requested anyway!");
-	}
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cd_vneeded, cd_lneeded);
-	if (cd_overlap == false) {
-		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
-		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
-		                          cd_vneeded, cd_lneeded);
-	}
-}
-
-GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	texpaint_request_active_uv(cache, me);
-	for (int i = 0; i < cache->mat_len; ++i) {
-		DRW_batch_request(&cache->surf_per_mat[i]);
-	}
-	return cache->surf_per_mat;
-}
-
-GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	texpaint_request_active_uv(cache, me);
-	return DRW_batch_request(&cache->batch.surface);
-}
-
-static void texpaint_request_active_vcol(MeshBatchCache *cache, Mesh *me)
-{
-	uchar cd_vneeded[CD_NUMTYPES] = {0};
-	ushort cd_lneeded[CD_NUMTYPES] = {0};
-	mesh_cd_calc_active_vcol_layer(me, cd_lneeded);
-	if (cd_lneeded[CD_MLOOPCOL] == 0) {
-		/* This should not happen. */
-		BLI_assert(!"No vcol layer available in vertpaint, but batches requested anyway!");
-	}
-	bool cd_overlap = mesh_cd_layers_type_overlap(cache->cd_vused, cache->cd_lused,
-	                                              cd_vneeded, cd_lneeded);
-	if (cd_overlap == false) {
-		/* XXX TODO(fclem): We are writting to batch cache here. Need to make this thread safe. */
-		mesh_cd_layers_type_merge(cache->cd_vneeded, cache->cd_lneeded,
-		                          cd_vneeded, cd_lneeded);
-	}
-}
-
-GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-	texpaint_request_active_vcol(cache, me);
-	return DRW_batch_request(&cache->batch.surface);
-}
+/** \name UV Image editor API
+ * \{ */
 
 /* TODO port to batch request. Is basically batch.wire_loops. */
 GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(Mesh *me)
