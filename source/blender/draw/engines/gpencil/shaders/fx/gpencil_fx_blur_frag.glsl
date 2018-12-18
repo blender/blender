@@ -45,20 +45,16 @@ void main()
 
 	/* apply blurring, using a 9-tap filter with predefined gaussian weights */
 	/* depth (get the value of the surrounding pixels) */
-    float outdepth = 0.0;
-
-    outdepth += get_zdepth(ivec2(uv.x - 1.0 * dx, uv.y + 1.0 * dy)) * 0.0947416;
-    outdepth += get_zdepth(ivec2(uv.x - 0.0 * dx, uv.y + 1.0 * dy)) * 0.118318;
-    outdepth += get_zdepth(ivec2(uv.x + 1.0 * dx, uv.y + 1.0 * dy)) * 0.0947416;
-    outdepth += get_zdepth(ivec2(uv.x - 1.0 * dx, uv.y + 0.0 * dy)) * 0.118318;
-
-    outdepth += get_zdepth(ivec2(uv.x, uv.y)) * 0.147761;
-
-    outdepth += get_zdepth(ivec2(uv.x + 1.0 * dx, uv.y + 0.0 * dy)) * 0.118318;
-    outdepth += get_zdepth(ivec2(uv.x - 1.0 * dx, uv.y - 1.0 * dy)) * 0.0947416;
-    outdepth += get_zdepth(ivec2(uv.x + 0.0 * dx, uv.y - 1.0 * dy)) * 0.118318;
-    outdepth += get_zdepth(ivec2(uv.x + 1.0 * dx, uv.y - 1.0 * dy)) * 0.0947416;
-
+    float outdepth = get_zdepth(ivec2(uv.x, uv.y));
+	for (int x = -1; x < 2; x++) {
+		for (int y = -1; y < 2; y++) {
+			float depth = get_zdepth(ivec2(uv.x + x * dx, uv.y + y * dy));
+			if (depth < outdepth) {
+				outdepth = depth;
+				break;
+			}
+		}
+	}
     gl_FragDepth = outdepth;
 
 	/* color */
