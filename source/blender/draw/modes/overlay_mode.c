@@ -28,6 +28,7 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
+#include "BKE_global.h"
 
 #include "GPU_shader.h"
 #include "GPU_extensions.h"
@@ -250,6 +251,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			    ((ob->base_flag & BASE_SELECTED) != 0))
 			{
 				rim_col = (ob == draw_ctx->obact) ? ts.colorActive : ts.colorSelect;
+				rim_col = (G.moving & G_TRANSFORM_OBJ) ? ts.colorTransform : rim_col;
 			}
 
 			/* This fixes only the biggest case which is a plane in ortho view. */
