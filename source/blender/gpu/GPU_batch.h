@@ -100,7 +100,7 @@ enum {
 
 GPUBatch *GPU_batch_create_ex(GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
 void GPU_batch_init_ex(GPUBatch *, GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
-GPUBatch *GPU_batch_duplicate(GPUBatch *batch_src);
+void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 
 #define GPU_batch_create(prim, verts, elem) \
 	GPU_batch_create_ex(prim, verts, elem, 0)

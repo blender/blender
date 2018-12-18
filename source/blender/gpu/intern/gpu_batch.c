@@ -114,19 +114,22 @@ void GPU_batch_init_ex(
 }
 
 /* This will share the VBOs with the new batch. */
-GPUBatch *GPU_batch_duplicate(GPUBatch *batch_src)
+void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 {
-	GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, batch_src->verts[0], batch_src->elem, 0);
+	GPU_batch_init_ex(batch_dst, GPU_PRIM_POINTS, batch_src->verts[0], batch_src->elem, 0);
 
-	batch->gl_prim_type = batch_src->gl_prim_type;
+	batch_dst->gl_prim_type = batch_src->gl_prim_type;
 	for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; ++v) {
-		batch->verts[v] = batch_src->verts[v];
+		batch_dst->verts[v] = batch_src->verts[v];
 	}
-	return batch;
 }
 
 void GPU_batch_clear(GPUBatch *batch)
 {
+	if (batch->free_callback) {
+		batch->free_callback(batch, batch->callback_data);
+	}
+
 	if (batch->owns_flag & GPU_BATCH_OWNS_INDEX) {
 		GPU_indexbuf_discard(batch->elem);
 	}
@@ -144,10 +147,6 @@ void GPU_batch_clear(GPUBatch *batch)
 		}
 	}
 	GPU_batch_vao_cache_clear(batch);
-
-	if (batch->free_callback) {
-		batch->free_callback(batch, batch->callback_data);
-	}
 }
 
 void GPU_batch_discard(GPUBatch *batch)

@@ -102,6 +102,13 @@ static ListBase g_idatalists = {NULL, NULL};
 
 static void instance_batch_free(GPUBatch *batch, void *UNUSED(user_data))
 {
+	if (batch->verts[0] == NULL) {
+		/** XXX This is a false positive case.
+		 * The batch has been requested but not init yet
+		 * and there is a chance that it might become init.
+		 **/
+		return;
+	}
 	/* Free all batches that have the same key before they are reused. */
 	/* TODO: Make it thread safe! Batch freeing can happen from another thread. */
 	/* XXX we need to iterate over all idatalists unless we make some smart
@@ -194,12 +201,11 @@ void DRW_instancing_buffer_request(
 	/* Create the batch. */
 	ibuf = chunk->ibufs + new_id;
 	ibuf->vert = *r_vert = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_DYNAMIC);
-	ibuf->batch = *r_batch = GPU_batch_duplicate(instance);
+	ibuf->batch = *r_batch = MEM_callocN(sizeof(GPUBatch), "GPUBatch");
 	ibuf->format = format;
 	ibuf->shgroup = shgroup;
 	ibuf->instance = instance;
 	GPU_vertbuf_data_alloc(*r_vert, BUFFER_VERTS_CHUNK);
-	GPU_batch_instbuf_set(ibuf->batch, ibuf->vert, false);
 	/* Make sure to free this ibuf if the instance batch gets free. */
 	GPU_batch_callback_free_set(instance, &instance_batch_free, NULL);
 }
@@ -253,6 +259,9 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 				GPU_vertbuf_data_resize(ibuf->vert, size);
 			}
 			GPU_vertbuf_use(ibuf->vert); /* Send data. */
+			/* Setup batch now that we are sure ibuf->instance is setup. */
+			GPU_batch_copy(ibuf->batch, ibuf->instance);
+			GPU_batch_instbuf_set(ibuf->batch, ibuf->vert, false);
 			ibuf->shgroup = NULL; /* Set as non used for the next round. */
 		}
 		else {
