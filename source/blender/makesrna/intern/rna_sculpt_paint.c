@@ -378,7 +378,8 @@ static void rna_Sculpt_ShowDiffuseColor_update(bContext *C, PointerRNA *UNUSED(p
 		if (ob->sculpt->pbvh)
 			pbvh_show_diffuse_color_set(ob->sculpt->pbvh, ob->sculpt->show_diffuse_color);
 
-		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+		DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 	}
 }
 
