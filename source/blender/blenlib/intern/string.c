@@ -1026,7 +1026,9 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
  */
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num)
 {
-	char src[16];
+	/* NOTE: Buffer to hold maximum unsigned int64, which is 1.8e+19. but
+	 * we also need space for commas and null-terminator. */
+	char src[27];
 	int num_len = sprintf(src, "%"PRIu64"", num);
 
 	return BLI_str_format_int_grouped_ex(src, dst, num_len);
