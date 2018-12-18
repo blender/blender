@@ -141,6 +141,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 
 	/* Make flat object selectable in ortho view if wireframe is enabled. */
 	if ((draw_ctx->v3d->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
+	    (draw_ctx->v3d->shading.type == OB_WIRE) ||
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
 	{
