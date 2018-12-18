@@ -267,7 +267,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 				}
 				else {
 					/* Edges with 1 or 3+ faces attached,
-					 * most likely caused by a degeneratge mesh. */
+					 * most likely caused by a degenerate mesh. */
 				}
 			}
 		}

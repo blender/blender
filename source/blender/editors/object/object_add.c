@@ -1860,8 +1860,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 			Object *ob = base->object;
 
 			/* The way object type conversion works currently (enforcing conversion of *all* objects using converted
-			 * obdata, even some un-selected/hidden/inother scene ones, sounds totally bad to me.
-			 * However, changing this is more design than bugfix, not to mention convoluted code below,
+			 * object-data, even some un-selected/hidden/another scene ones, sounds totally bad to me.
+			 * However, changing this is more design than bug-fix, not to mention convoluted code below,
 			 * so that will be for later.
 			 * But at the very least, do not do that with linked IDs! */
 			if ((ID_IS_LINKED(ob) || (ob->data && ID_IS_LINKED(ob->data))) && !keep_original) {

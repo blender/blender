@@ -678,7 +678,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 }
 
-struct {
+static struct {
 	char app_template[64];
 	bool override;
 } wm_init_state_app_template = {{0}};

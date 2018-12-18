@@ -354,7 +354,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 			/* Input is now as a sequence of rows so length of sequence
 			 * is the number of rows */
-			/* -1 is an error, size checks will accunt for this */
+			/* -1 is an error, size checks will account for this */
 			const unsigned short num_row = PySequence_Size(arg);
 
 			if (num_row >= 2 && num_row <= 4) {

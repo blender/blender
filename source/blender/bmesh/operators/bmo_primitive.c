@@ -1099,7 +1099,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
 	BLI_assert(f->len <= 4);
 
 	/* If face has 3 vertices, it's a polar face, in which case we need to
-	 * compute a nearbye to determine its latitude. */
+	 * compute a nearby to determine its latitude. */
 	float avgx = 0.0f, avgy = 0.0f;
 	BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, loop_index) {
 		if (f->len == 3) {
