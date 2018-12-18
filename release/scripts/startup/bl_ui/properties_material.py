@@ -234,6 +234,7 @@ class EEVEE_MATERIAL_PT_settings(MaterialButtonsPanel, Panel):
         layout.prop(mat, "use_screen_refraction")
         layout.prop(mat, "refraction_depth")
         layout.prop(mat, "use_sss_translucency")
+        layout.prop(mat, "pass_index")
 
     def draw(self, context):
         self.draw_shared(self, context.material)
