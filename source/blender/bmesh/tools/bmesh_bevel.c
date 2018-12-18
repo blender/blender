@@ -1962,7 +1962,7 @@ static void print_adjust_stats(BoundVert *vstart)
  * residual in terms of that one degree of freedom.
  * Unfortunately, the results are in some cases worse than the general least squares solution
  * for the combined (with weights) problem, so this code is not used.
- * But keep it here for a while in case peformance issues demand that it be used sometimes. */
+ * But keep it here for a while in case performance issues demand that it be used sometimes. */
 static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscycle)
 {
 	BoundVert *v;
@@ -2191,7 +2191,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 
 /* Adjust the offsets to try to make them, as much as possible,
  * have even-width bevels with offsets that match their specs.
- * The problem that we can try to amelieroate is that when loop slide
+ * The problem that we can try to ameliorate is that when loop slide
  * is active, the meet point will probably not be the one that makes
  * both sides have their specified width. And because both ends may be
  * on loop slide edges, the widths at each end could be different.

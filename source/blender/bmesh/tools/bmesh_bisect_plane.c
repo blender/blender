@@ -26,7 +26,7 @@
  * Cut the geometry in half using a plane.
  *
  * \par Implementation
- * This simply works by splitting tagged edges whos verts span either side of
+ * This simply works by splitting tagged edges who's verts span either side of
  * the plane, then splitting faces along their dividing verts.
  * The only complex case is when a ngon spans the axis multiple times,
  * in this case we need to do some extra checks to correctly bisect the ngon.

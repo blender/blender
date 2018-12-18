@@ -34,7 +34,7 @@
  * - verts use BM_ELEM_TAG, these need to be cleared before functions exit.
  *
  * \note Order of execution with 2+ rings is undefined,
- * so tage care
+ * so take care.
  */
 
 #include "MEM_guardedalloc.h"

@@ -202,7 +202,7 @@ static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
 }
 
 /**
- * Draw screen area ligher with arrow shape ("eraser" of previous dark shape).
+ * Draw screen area lighter with arrow shape ("eraser" of previous dark shape).
  */
 static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir))
 {

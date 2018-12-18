@@ -467,7 +467,7 @@ static bool raycastDerivedMesh(
 		}
 	}
 	/* You need to make sure that ray_start is really far away,
-	 * because even in the Orthografic view, in some cases,
+	 * because even in the orthographic view, in some cases,
 	 * the ray can start inside the object (see T50486) */
 	if (len_diff > 400.0f) {
 		/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with

@@ -655,7 +655,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 BMLogEntry *BM_log_entry_add(BMLog *log)
 {
 	/* WARNING: this is now handled by the UndoSystem: BKE_UNDOSYS_TYPE_SCULPT
-	 * freeing here causes unnecesssary complications. */
+	 * freeing here causes unnecessary complications. */
 	BMLogEntry *entry;
 #if 0
 	/* Delete any entries after the current one */
