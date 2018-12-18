@@ -906,6 +906,7 @@ const bTheme U_theme_default = {
 		.path_before = RGBA(0xff0000ff),
 		.path_after = RGBA(0x0000ffff),
 		.gp_vertex_size = 1,
+		.metadatatext = RGBA(0xffffffff),
 	},
 	.ttopbar = {
 		.back = RGBA(0x42424200),
