@@ -40,8 +40,8 @@ def gpencil_stroke_placement_settings(context, layout):
     if context.space_data.type != 'VIEW_3D':
         col.label(text="Stroke Placement:")
         row = col.row(align=True)
-        row.prop_enum(ts, propname, 'VIEW')
-        row.prop_enum(ts, propname, 'CURSOR', text="Cursor")
+        row.prop_enum(tool_settings, propname, 'VIEW')
+        row.prop_enum(tool_settings, propname, 'CURSOR', text="Cursor")
 
 
 def gpencil_active_brush_settings_simple(context, layout):
