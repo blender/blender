@@ -535,10 +535,14 @@ void uiTemplateMovieclipInformation(uiLayout *layout, PointerRNA *ptr, const cha
 				ofs += BLI_strncpy_rlen(str + ofs, IFACE_(", RGB byte"), sizeof(str) - ofs);
 		}
 
-		short frs_sec;
-		float frs_sec_base;
-		if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
-			ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_(", %.2f fps"), (float)frs_sec / frs_sec_base);
+		if (clip->anim != NULL) {
+			short frs_sec;
+			float frs_sec_base;
+			if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
+				ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs,
+				                    IFACE_(", %.2f fps"),
+				                    (float)frs_sec / frs_sec_base);
+			}
 		}
 	}
 	else {
