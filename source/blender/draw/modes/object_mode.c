@@ -2657,7 +2657,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (ob != draw_ctx->object_edit) {
 				Mesh *me = ob->data;
 				if (me->totedge == 0) {
-					struct GPUBatch *geom = DRW_cache_mesh_verts_get(ob);
+					struct GPUBatch *geom = DRW_cache_mesh_all_verts_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);

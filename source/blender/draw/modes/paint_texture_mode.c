@@ -305,7 +305,7 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 		/* Face Mask */
 		if (use_face_sel) {
 			struct GPUBatch *geom;
-			geom = DRW_cache_mesh_wire_get(ob);
+			geom = DRW_cache_mesh_surface_edges_get(ob);
 			DRW_shgroup_call_add(stl->g_data->lwire_shgrp, geom, ob->obmat);
 
 			geom = DRW_cache_mesh_surface_get(ob);

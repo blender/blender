@@ -196,7 +196,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (use_face_sel || use_wire) {
-			geom = DRW_cache_mesh_wire_get(ob);
+			geom = DRW_cache_mesh_surface_edges_get(ob);
 			DRW_shgroup_call_add(stl->g_data->lwire_shgrp, geom, ob->obmat);
 		}
 
@@ -206,7 +206,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (use_vert_sel) {
-			geom = DRW_cache_mesh_verts_get(ob);
+			geom = DRW_cache_mesh_all_verts_get(ob);
 			DRW_shgroup_call_add(stl->g_data->vert_shgrp, geom, ob->obmat);
 		}
 	}

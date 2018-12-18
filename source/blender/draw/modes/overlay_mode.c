@@ -260,7 +260,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
 			if (is_flat_object_viewed_from_side && !is_sculpt_mode) {
 				/* Avoid losing flat objects when in ortho views (see T56549) */
-				struct GPUBatch *geom = DRW_cache_object_wire_outline_get(ob);
+				struct GPUBatch *geom = DRW_cache_object_all_edges_get(ob);
 				if (geom) {
 					shgrp = pd->flat_wires;
 					shgrp = DRW_shgroup_create_sub(shgrp);

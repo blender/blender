@@ -1186,7 +1186,7 @@ static int mesh_render_data_loose_verts_len_get_maybe_mapped(const MeshRenderDat
 	return ((rdata->mapped.use == false) ? rdata->loose_vert_len : rdata->mapped.loose_vert_len);
 }
 
-static int mesh_render_data_edges_len_get(const MeshRenderData *rdata)
+static int UNUSED_FUNCTION(mesh_render_data_edges_len_get)(const MeshRenderData *rdata)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_EDGE);
 	return rdata->edge_len;
@@ -1475,113 +1475,6 @@ fallback:
 
 /** \name Internal Cache Generation
  * \{ */
-
-static bool mesh_render_data_edge_vcos_manifold_pnors(
-        MeshRenderData *rdata, const int edge_index,
-        float **r_vco1, float **r_vco2, float **r_pnor1, float **r_pnor2, bool *r_is_manifold)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
-
-	if (rdata->edit_bmesh) {
-		BMesh *bm = rdata->edit_bmesh->bm;
-		BMEdge *eed = BM_edge_at_index(bm, edge_index);
-		if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-			return false;
-		}
-		*r_vco1 = eed->v1->co;
-		*r_vco2 = eed->v2->co;
-		if (BM_edge_is_manifold(eed)) {
-			*r_pnor1 = eed->l->f->no;
-			*r_pnor2 = eed->l->radial_next->f->no;
-			*r_is_manifold = true;
-		}
-		else if (eed->l != NULL) {
-			*r_pnor1 = eed->l->f->no;
-			*r_pnor2 = eed->l->f->no;
-			*r_is_manifold = false;
-		}
-		else {
-			*r_pnor1 = eed->v1->no;
-			*r_pnor2 = eed->v1->no;
-			*r_is_manifold = false;
-		}
-	}
-	else {
-		MVert *mvert = rdata->mvert;
-		const MEdge *medge = rdata->medge;
-		EdgeAdjacentPolys *eap = rdata->edges_adjacent_polys;
-		float (*pnors)[3] = rdata->poly_normals;
-
-		if (!eap) {
-			const MLoop *mloop = rdata->mloop;
-			const MPoly *mpoly = rdata->mpoly;
-			const int poly_len = rdata->poly_len;
-			const bool do_pnors = (poly_len != 0 && pnors == NULL);
-
-			eap = rdata->edges_adjacent_polys = MEM_mallocN(sizeof(*eap) * rdata->edge_len, __func__);
-			for (int i = 0; i < rdata->edge_len; i++) {
-				eap[i].count = 0;
-				eap[i].face_index[0] = -1;
-				eap[i].face_index[1] = -1;
-			}
-			if (do_pnors) {
-				pnors = rdata->poly_normals = MEM_mallocN(sizeof(*pnors) * poly_len, __func__);
-			}
-
-			for (int i = 0; i < poly_len; i++, mpoly++) {
-				if (do_pnors) {
-					BKE_mesh_calc_poly_normal(mpoly, mloop + mpoly->loopstart, mvert, pnors[i]);
-				}
-
-				const int loopend = mpoly->loopstart + mpoly->totloop;
-				for (int j = mpoly->loopstart; j < loopend; j++) {
-					const int edge_idx = mloop[j].e;
-					if (eap[edge_idx].count < 2) {
-						eap[edge_idx].face_index[eap[edge_idx].count] = i;
-					}
-					eap[edge_idx].count++;
-				}
-			}
-		}
-		BLI_assert(eap && (rdata->poly_len == 0 || pnors != NULL));
-
-		*r_vco1 = mvert[medge[edge_index].v1].co;
-		*r_vco2 = mvert[medge[edge_index].v2].co;
-		if (eap[edge_index].face_index[0] == -1) {
-			/* Edge has no poly... */
-			*r_pnor1 = *r_pnor2 = mvert[medge[edge_index].v1].co; /* XXX mvert.no are shorts... :( */
-			*r_is_manifold = false;
-		}
-		else {
-			*r_pnor1 = pnors[eap[edge_index].face_index[0]];
-
-			float nor[3], v1[3], v2[3], r_center[3];
-			const MPoly *mpoly = rdata->mpoly + eap[edge_index].face_index[0];
-			const MLoop *mloop = rdata->mloop + mpoly->loopstart;
-
-			BKE_mesh_calc_poly_center(mpoly, mloop, mvert, r_center);
-			sub_v3_v3v3(v1, *r_vco2, *r_vco1);
-			sub_v3_v3v3(v2, r_center, *r_vco1);
-			cross_v3_v3v3(nor, v1, v2);
-
-			if (dot_v3v3(nor, *r_pnor1) < 0.0) {
-				SWAP(float *, *r_vco1, *r_vco2);
-			}
-
-			if (eap[edge_index].count == 2) {
-				BLI_assert(eap[edge_index].face_index[1] >= 0);
-				*r_pnor2 = pnors[eap[edge_index].face_index[1]];
-				*r_is_manifold = true;
-			}
-			else {
-				*r_pnor2 = pnors[eap[edge_index].face_index[0]];
-				*r_is_manifold = false;
-			}
-		}
-	}
-
-	return true;
-}
 
 static uchar mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *efa)
 {
@@ -4530,13 +4423,13 @@ GPUBatch *DRW_mesh_batch_cache_get_all_edges(Mesh *me)
 	return DRW_batch_request(&cache->batch.all_edges);
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_surface(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 	return DRW_batch_request(&cache->batch.surface);
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_loose_edges_with_normals(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -4557,7 +4450,7 @@ GPUBatch *DRW_mesh_batch_cache_get_loose_edges_with_normals(Mesh *me)
 	return cache->ledges_with_normals;
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 	return DRW_batch_request(&cache->batch.surface_weights);
@@ -4617,88 +4510,6 @@ struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh
 	}
 
 	return cache->triangles_with_select_mask;
-}
-
-GPUBatch *DRW_mesh_batch_cache_get_points_with_normals(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->points_with_normals == NULL) {
-		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-
-		cache->points_with_normals = GPU_batch_create(
-		        GPU_PRIM_POINTS, mesh_batch_cache_get_tri_pos_and_normals_edit(rdata, cache, false), NULL);
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->points_with_normals;
-}
-
-GPUBatch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
-{
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->fancy_edges == NULL) {
-		/* create batch from DM */
-		static GPUVertFormat format = { 0 };
-		static struct { uint pos, n1, n2; } attr_id;
-		if (format.attr_len == 0) {
-			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-			attr_id.n1 = GPU_vertformat_attr_add(&format, "N1", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-			attr_id.n2 = GPU_vertformat_attr_add(&format, "N2", GPU_COMP_I10, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		}
-		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-
-		MeshRenderData *rdata = mesh_render_data_create(
-		        me, MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
-
-		const int edge_len = mesh_render_data_edges_len_get(rdata);
-
-		const int vbo_len_capacity = edge_len * 2; /* these are PRIM_LINE verts, not mesh verts */
-		int vbo_len_used = 0;
-		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
-		for (int i = 0; i < edge_len; i++) {
-			float *vcos1, *vcos2;
-			float *pnor1 = NULL, *pnor2 = NULL;
-			bool is_manifold;
-
-			if (mesh_render_data_edge_vcos_manifold_pnors(rdata, i, &vcos1, &vcos2, &pnor1, &pnor2, &is_manifold)) {
-
-				GPUPackedNormal n1value = { .x = 0, .y = 0, .z = +511 };
-				GPUPackedNormal n2value = { .x = 0, .y = 0, .z = -511 };
-
-				if (is_manifold) {
-					n1value = GPU_normal_convert_i10_v3(pnor1);
-					n2value = GPU_normal_convert_i10_v3(pnor2);
-				}
-
-				const GPUPackedNormal *n1 = &n1value;
-				const GPUPackedNormal *n2 = &n2value;
-
-				GPU_vertbuf_attr_set(vbo, attr_id.pos, 2 * i, vcos1);
-				GPU_vertbuf_attr_set(vbo, attr_id.n1, 2 * i, n1);
-				GPU_vertbuf_attr_set(vbo, attr_id.n2, 2 * i, n2);
-
-				GPU_vertbuf_attr_set(vbo, attr_id.pos, 2 * i + 1, vcos2);
-				GPU_vertbuf_attr_set(vbo, attr_id.n1, 2 * i + 1, n1);
-				GPU_vertbuf_attr_set(vbo, attr_id.n2, 2 * i + 1, n2);
-
-				vbo_len_used += 2;
-			}
-		}
-		if (vbo_len_used != vbo_len_capacity) {
-			GPU_vertbuf_data_resize(vbo, vbo_len_used);
-		}
-
-		cache->fancy_edges = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->fancy_edges;
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me, bool *r_is_manifold)
@@ -5009,7 +4820,7 @@ GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(Mesh *me)
 	return cache->texpaint_uv_loops;
 }
 
-GPUBatch *DRW_mesh_batch_cache_get_wire_loops(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 	return DRW_batch_request(&cache->batch.wire_loops);

@@ -152,7 +152,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 
 		if (is_flat_object_viewed_from_side) {
 			/* Avoid losing flat objects when in ortho views (see T56549) */
-			struct GPUBatch *geom = DRW_cache_object_wire_outline_get(ob);
+			struct GPUBatch *geom = DRW_cache_object_all_edges_get(ob);
 			DRW_shgroup_call_object_add(stl->g_data->depth_shgrp, geom, ob);
 			return;
 		}

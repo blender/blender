@@ -363,7 +363,7 @@ static void drw_shgroup_bone_custom_wire(
         const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct GPUBatch *geom = DRW_cache_object_wire_outline_get(custom);
+	struct GPUBatch *geom = DRW_cache_object_all_edges_get(custom);
 
 	/* XXXXXXX needs to be moved elsewhere. */
 	drw_batch_cache_generate_requested(custom);
