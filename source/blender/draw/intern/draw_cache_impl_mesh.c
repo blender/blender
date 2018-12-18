@@ -2003,7 +2003,6 @@ typedef struct MeshBatchCache {
 	 * Indices does not match the CPU data structure's. */
 	struct {
 		GPUVertBuf *pos_nor;
-
 		GPUVertBuf *wireframe_data;
 	} tess;
 
@@ -2027,6 +2026,7 @@ typedef struct MeshBatchCache {
 		GPUIndexBuf *surf_tris;
 		GPUIndexBuf *edges_lines;
 		GPUIndexBuf *edges_adj_lines;
+		GPUIndexBuf *loose_edges_lines;
 		/* Indices to vloops. */
 		GPUIndexBuf *loops_tris;
 		GPUIndexBuf *loops_lines;
@@ -2051,6 +2051,7 @@ typedef struct MeshBatchCache {
 		/* Common display / Other */
 		GPUBatch *all_verts;
 		GPUBatch *all_edges;
+		GPUBatch *loose_edges;
 		GPUBatch *edge_detection;
 		GPUBatch *wire_loops; /* Loops around faces. */
 		GPUBatch *wire_triangles; /* Triangles for object mode wireframe. */
@@ -3570,19 +3571,6 @@ static void mesh_create_loop_vcol(MeshRenderData *rdata, GPUVertBuf *vbo)
 #undef USE_COMP_MESH_DATA
 }
 
-static GPUVertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
-        MeshRenderData *rdata, MeshBatchCache *cache)
-{
-	BLI_assert(rdata->types & MR_DATATYPE_VERT);
-
-	if (cache->ordered.pos_nor == NULL) {
-		cache->ordered.pos_nor = GPU_vertbuf_create(GPU_USAGE_STATIC);
-		mesh_create_pos_and_nor(rdata, cache->ordered.pos_nor);
-	}
-
-	return cache->ordered.pos_nor;
-}
-
 static GPUVertFormat *edit_mesh_pos_nor_format(uint *r_pos_id, uint *r_nor_id)
 {
 	static GPUVertFormat format_pos_nor = { 0 };
@@ -4152,57 +4140,6 @@ static void mesh_create_wireframe_data_tess(MeshRenderData *rdata, GPUVertBuf *v
 	MEM_freeN(adj_data);
 }
 
-static GPUIndexBuf *mesh_batch_cache_get_loose_edges(MeshRenderData *rdata, MeshBatchCache *cache)
-{
-	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
-
-	if (cache->ledges_in_order == NULL) {
-		const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
-		const int edge_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
-
-		/* Alloc max (edge_len) and upload only needed range. */
-		GPUIndexBufBuilder elb;
-		GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edge_len, vert_len);
-
-		if (rdata->mapped.use == false) {
-			if (rdata->edit_bmesh) {
-				/* No need to support since edit mesh already draw them.
-				 * But some engines may want them ... */
-				BMesh *bm = rdata->edit_bmesh->bm;
-				BMIter eiter;
-				BMEdge *eed;
-				BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
-					    (eed->l == NULL || !bm_edge_has_visible_face(eed)))
-					{
-						GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
-					}
-				}
-			}
-			else {
-				for (int i = 0; i < edge_len; i++) {
-					const MEdge *medge = &rdata->medge[i];
-					if (medge->flag & ME_LOOSEEDGE) {
-						GPU_indexbuf_add_line_verts(&elb, medge->v1, medge->v2);
-					}
-				}
-			}
-		}
-		else {
-			/* Hidden checks are already done when creating the loose edge list. */
-			Mesh *me_cage = rdata->mapped.me_cage;
-			for (int i_iter = 0; i_iter < rdata->mapped.loose_edge_len; i_iter++) {
-				const int i = rdata->mapped.loose_edges[i_iter];
-				const MEdge *medge = &me_cage->medge[i];
-				GPU_indexbuf_add_line_verts(&elb, medge->v1, medge->v2);
-			}
-		}
-		cache->ledges_in_order = GPU_indexbuf_build(&elb);
-	}
-
-	return cache->ledges_in_order;
-}
-
 static void mesh_create_edges_lines(MeshRenderData *rdata, GPUIndexBuf *ibo, const bool use_hide)
 {
 	const int verts_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
@@ -4364,6 +4301,55 @@ static void mesh_create_loops_lines(
 	GPU_indexbuf_build_in_place(&elb, ibo);
 }
 
+static void mesh_create_loose_edges_lines(
+        MeshRenderData *rdata, GPUIndexBuf *ibo, const bool use_hide)
+{
+	const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
+	const int edge_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
+
+	/* Alloc max (edge_len) and upload only needed range. */
+	GPUIndexBufBuilder elb;
+	GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edge_len, vert_len);
+
+	if (rdata->mapped.use == false) {
+		if (rdata->edit_bmesh) {
+			/* No need to support since edit mesh already draw them.
+			 * But some engines may want them ... */
+			BMesh *bm = rdata->edit_bmesh->bm;
+			BMIter eiter;
+			BMEdge *eed;
+			BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
+				    (eed->l == NULL || !bm_edge_has_visible_face(eed)))
+				{
+					GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < edge_len; i++) {
+				const MEdge *medge = &rdata->medge[i];
+				if ((medge->flag & ME_LOOSEEDGE) &&
+				    !(use_hide && (medge->flag & ME_HIDE)))
+				{
+					GPU_indexbuf_add_line_verts(&elb, medge->v1, medge->v2);
+				}
+			}
+		}
+	}
+	else {
+		/* Hidden checks are already done when creating the loose edge list. */
+		Mesh *me_cage = rdata->mapped.me_cage;
+		for (int i_iter = 0; i_iter < rdata->mapped.loose_edge_len; i_iter++) {
+			const int i = rdata->mapped.loose_edges[i_iter];
+			const MEdge *medge = &me_cage->medge[i];
+			GPU_indexbuf_add_line_verts(&elb, medge->v1, medge->v2);
+		}
+	}
+
+	GPU_indexbuf_build_in_place(&elb, ibo);
+}
+
 static void mesh_create_loops_tris(
         MeshRenderData *rdata, GPUIndexBuf **ibo, int ibo_len, const bool use_hide)
 {
@@ -4494,22 +4480,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface(Mesh *me)
 GPUBatch *DRW_mesh_batch_cache_get_loose_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->ledges_with_normals == NULL) {
-		const int datatype = MR_DATATYPE_VERT | MR_DATATYPE_EDGE | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_POLY;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-		if (rdata->mapped.supported) {
-			rdata->mapped.use = true;
-		}
-
-		cache->ledges_with_normals = GPU_batch_create(
-		        GPU_PRIM_LINES, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
-		                        mesh_batch_cache_get_loose_edges(rdata, cache));
-
-		mesh_render_data_free(rdata);
-	}
-
-	return cache->ledges_with_normals;
+	return DRW_batch_request(&cache->batch.loose_edges);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_surface_weights(Mesh *me)
@@ -5380,6 +5351,10 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 		DRW_ibo_request(cache->batch.all_edges, &cache->ibo.edges_lines);
 		DRW_vbo_request(cache->batch.all_edges, &cache->ordered.pos_nor);
 	}
+	if (DRW_batch_requested(cache->batch.loose_edges, GPU_PRIM_LINES)) {
+		DRW_ibo_request(cache->batch.loose_edges, &cache->ibo.loose_edges_lines);
+		DRW_vbo_request(cache->batch.loose_edges, &cache->ordered.pos_nor);
+	}
 	if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {
 		DRW_ibo_request(cache->batch.edge_detection, &cache->ibo.edges_adj_lines);
 		DRW_vbo_request(cache->batch.edge_detection, &cache->ordered.pos_nor);
@@ -5468,6 +5443,7 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.loops_lines, MR_DATATYPE_LOOP | MR_DATATYPE_POLY);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_lines, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
 	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_adj_lines, MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPTRI);
+	DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.loose_edges_lines, MR_DATATYPE_VERT | MR_DATATYPE_EDGE);
 	for (int i = 0; i < cache->mat_len; ++i) {
 		DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI);
 	}
@@ -5518,6 +5494,9 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	}
 	if (DRW_ibo_requested(cache->ibo.edges_adj_lines)) {
 		mesh_create_edges_adjacency_lines(rdata, cache->ibo.edges_adj_lines, &cache->is_manifold, use_hide);
+	}
+	if (DRW_ibo_requested(cache->ibo.loose_edges_lines)) {
+		mesh_create_loose_edges_lines(rdata, cache->ibo.loose_edges_lines, use_hide);
 	}
 	if (DRW_ibo_requested(cache->ibo.surf_tris)) {
 		mesh_create_surf_tris(rdata, cache->ibo.surf_tris, use_hide);
