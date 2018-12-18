@@ -2356,10 +2356,7 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 				GHOST_TTabletMode tablet_mode = tablet_mode_from_name(device_info[i].name, device_type);
 
-				if ((m_xtablet.StylusDevice == NULL) &&
-				    ((tablet_mode == GHOST_kTabletModeStylus) && (device_info[i].type != m_atom.TABLET)))
-				    /* for libinput to work reliable, only lookup ValuatorClass in Tablet type:'STYLUS' */
-				{
+				if ((m_xtablet.StylusDevice == NULL) && (tablet_mode == GHOST_kTabletModeStylus)) {
 //					printf("\tfound stylus\n");
 					m_xtablet.StylusID = device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
@@ -2386,7 +2383,7 @@ void GHOST_SystemX11::refreshXInputDevices()
 									m_xtablet.YtiltLevels = 0;
 								}
 
-								found_valuator_class = true;
+								found_valuator_class = (m_xtablet.PressureLevels > 0);
 
 								break;
 							}
