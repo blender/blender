@@ -559,7 +559,7 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 void GPENCIL_cache_populate(void *vedata, Object *ob)
 {
 	/* object must be visible */
-	if (!DRW_object_is_visible_in_active_context(ob)) {
+	if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
 		return;
 	}
 

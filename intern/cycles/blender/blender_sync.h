@@ -117,7 +117,8 @@ private:
 	                BL::Object& b_ob,
 	                BL::Object& b_ob_instance,
 	                bool object_updated,
-	                bool hide_tris);
+	                bool show_self,
+	                bool show_particles);
 	void sync_curves(Mesh *mesh,
 	                 BL::Mesh& b_mesh,
 	                 BL::Object& b_ob,
@@ -127,7 +128,8 @@ private:
 	                    BL::ViewLayer& b_view_layer,
 	                    BL::DepsgraphObjectInstance& b_instance,
 	                    float motion_time,
-	                    bool hide_tris,
+	                    bool show_self,
+	                    bool show_particles,
 	                    BlenderObjectCulling& culling,
 	                    bool *use_portal);
 	void sync_light(BL::Object& b_parent,

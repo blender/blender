@@ -34,6 +34,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_camera.h"
+#include "BKE_object.h"
 
 #include "BLI_rand.h"
 #include "BLI_rect.h"
@@ -179,11 +180,12 @@ void EEVEE_render_cache(
 		RE_engine_update_stats(engine, NULL, info);
 	}
 
-	if (ob->base_flag & BASE_VISIBLE) {
+	const int ob_visibility = DRW_object_visibility_in_active_context(ob);
+	if (ob_visibility & OB_VISIBLE_PARTICLES) {
 		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 
-	if (DRW_object_is_visible_in_active_context(ob)) {
+	if (ob_visibility & OB_VISIBLE_SELF) {
 		if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
 			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
 		}

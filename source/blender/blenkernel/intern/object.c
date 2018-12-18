@@ -714,33 +714,40 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 }
 
 /**
- * Return if the object is visible, as evaluated by depsgraph
+ * Return which parts of the object are visible, as evaluated by depsgraph
  */
-bool BKE_object_is_visible(const Object *ob, const eObjectVisibilityCheck mode)
+int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
 {
 	if ((ob->base_flag & BASE_VISIBLE) == 0) {
-		return false;
+		return 0;
 	}
 
-	if (mode == OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE) {
-		return true;
+	/* Test which components the object has. */
+	int visibility = OB_VISIBLE_SELF;
+	if (ob->particlesystem.first) {
+		visibility |= OB_VISIBLE_INSTANCES | OB_VISIBLE_PARTICLES;
+	}
+	else if (ob->transflag & OB_DUPLI) {
+		visibility |= OB_VISIBLE_INSTANCES;
 	}
 
-	if (((ob->transflag & OB_DUPLI) == 0) &&
-	    (ob->particlesystem.first == NULL))
-	{
-		return true;
+	/* Optional hiding of self if there are particles or instancers. */
+	if (visibility & (OB_VISIBLE_PARTICLES | OB_VISIBLE_INSTANCES)) {
+		switch ((eEvaluationMode)dag_eval_mode) {
+			case DAG_EVAL_VIEWPORT:
+				if (!(ob->duplicator_visibility_flag & OB_DUPLI_FLAG_VIEWPORT)) {
+					visibility &= ~OB_VISIBLE_SELF;
+				}
+				break;
+			case DAG_EVAL_RENDER:
+				if (!(ob->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER)) {
+					visibility &= ~OB_VISIBLE_SELF;
+				}
+				break;
+		}
 	}
 
-	switch (mode) {
-		case OB_VISIBILITY_CHECK_FOR_VIEWPORT:
-			return ((ob->duplicator_visibility_flag & OB_DUPLI_FLAG_VIEWPORT) != 0);
-		case OB_VISIBILITY_CHECK_FOR_RENDER:
-			return ((ob->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
-		default:
-			BLI_assert(!"Object visible test mode not supported.");
-			return false;
-	}
+	return visibility;
 }
 
 bool BKE_object_exists_check(Main *bmain, const Object *obtest)

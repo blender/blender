@@ -295,7 +295,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
                                  BL::ViewLayer& b_view_layer,
                                  BL::DepsgraphObjectInstance& b_instance,
                                  float motion_time,
-                                 bool hide_tris,
+                                 bool show_self,
+                                 bool show_particles,
                                  BlenderObjectCulling& culling,
                                  bool *use_portal)
 {
@@ -403,7 +404,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 		object_updated = true;
 
 	/* mesh sync */
-	object->mesh = sync_mesh(b_depsgraph, b_ob, b_ob_instance, object_updated, hide_tris);
+	object->mesh = sync_mesh(b_depsgraph, b_ob, b_ob_instance, object_updated, show_self, show_particles);
 
 	/* special case not tracked by object update flags */
 
@@ -505,82 +506,6 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 	return object;
 }
 
-static bool object_render_hide_original(BL::Object::type_enum ob_type,
-                                        BL::Object::instance_type_enum dupli_type)
-{
-	/* metaball exception, they duplicate self */
-	if(ob_type == BL::Object::type_META)
-		return false;
-
-	return (dupli_type == BL::Object::instance_type_VERTS ||
-	        dupli_type == BL::Object::instance_type_FACES ||
-	        dupli_type == BL::Object::instance_type_FRAMES);
-}
-
-static bool object_render_hide(BL::Object& b_ob,
-                               bool top_level,
-                               bool parent_hide,
-                               bool& hide_triangles,
-                               BL::Depsgraph::mode_enum depsgraph_mode)
-{
-	/* check if we should render or hide particle emitter */
-	BL::Object::particle_systems_iterator b_psys;
-
-	bool hair_present = false;
-	bool has_particles = false;
-	bool show_emitter = false;
-	bool hide_emitter = false;
-	bool hide_as_dupli_parent = false;
-	bool hide_as_dupli_child_original = false;
-
-	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
-		if((b_psys->settings().render_type() == BL::ParticleSettings::render_type_PATH) &&
-		   (b_psys->settings().type()==BL::ParticleSettings::type_HAIR))
-			hair_present = true;
-		has_particles = true;
-	}
-
-	/* Both mode_PREVIEW and mode_VIEWPORT are treated the same here.*/
-	const bool show_instancer = depsgraph_mode == BL::Depsgraph::mode_RENDER
-	                             ? b_ob.show_instancer_for_render()
-	                             : b_ob.show_instancer_for_viewport();
-
-	if(has_particles) {
-		show_emitter = show_instancer;
-		hide_emitter = !show_emitter;
-	} else if(b_ob.is_instancer()) {
-		if(top_level || show_instancer) {
-			hide_as_dupli_parent = true;
-		}
-	}
-
-	/* hide original object for duplis */
-	BL::Object parent = b_ob.parent();
-	while(parent) {
-		if(object_render_hide_original(b_ob.type(),
-		                               parent.instance_type()))
-		{
-			if(parent_hide) {
-				hide_as_dupli_child_original = true;
-				break;
-			}
-		}
-		parent = parent.parent();
-	}
-
-	hide_triangles = hide_emitter;
-
-	if(show_emitter) {
-		return false;
-	}
-	else if(hair_present) {
-		return hide_as_dupli_child_original;
-	}
-	else {
-		return (hide_as_dupli_parent || hide_as_dupli_child_original);
-	}
-}
-
 /* Object Loop */
 
 void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
@@ -608,7 +533,6 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 	bool use_portal = false;
 
 	BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
-	BL::Depsgraph::mode_enum depsgraph_mode = b_depsgraph.mode();
 
 	BL::Depsgraph::object_instances_iterator b_instance_iter;
 	for(b_depsgraph.object_instances.begin(b_instance_iter);
@@ -624,15 +548,17 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 		culling.init_object(scene, b_ob);
 
 		/* test if object needs to be hidden */
-		bool hide_tris;
+		const bool show_self = b_instance.show_self();
+		const bool show_particles = b_instance.show_particles();
 
-		 if(!object_render_hide(b_ob, true, true, hide_tris, depsgraph_mode)) {
+		 if(show_self || show_particles) {
 			/* object itself */
 			sync_object(b_depsgraph,
 			            b_view_layer,
 			            b_instance,
 			            motion_time,
-			            hide_tris,
+			            show_self,
+			            show_particles,
 			            culling,
 			            &use_portal);
 		 }

@@ -97,13 +97,14 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 
 bool BKE_object_data_is_in_editmode(const struct ID *id);
 
-typedef enum eObjectVisibilityCheck {
-	OB_VISIBILITY_CHECK_FOR_VIEWPORT,
-	OB_VISIBILITY_CHECK_FOR_RENDER,
-	OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE,
-} eObjectVisibilityCheck;
+typedef enum eObjectVisibilityResult {
+	OB_VISIBLE_SELF = 1,
+	OB_VISIBLE_PARTICLES = 2,
+	OB_VISIBLE_INSTANCES = 4,
+	OB_VISIBLE_ALL = (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES | OB_VISIBLE_INSTANCES),
+} eObjectVisibilityResult;
 
-bool BKE_object_is_visible(const struct Object *ob, const eObjectVisibilityCheck mode);
+int BKE_object_visibility(const struct Object *ob, const int dag_eval_mode);
 
 void BKE_object_init(struct Object *ob);
 struct Object *BKE_object_add_only_object(

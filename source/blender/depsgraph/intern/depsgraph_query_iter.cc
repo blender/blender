@@ -107,6 +107,26 @@ void verify_id_properties_freed(DEGObjectIterData *data)
 	temp_dupli_object->id.properties = NULL;
 }
 
+static bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject *dob)
+{
+	/* Automatic hiding if this object is being instanced on verts/faces/frames
+	 * by its parent. Ideally this should not be needed, but due to the wrong
+	 * dependency direction in the data design there is no way to keep the object
+	 * visible otherwise. The better solution eventually would be for objects
+	 * to specify which object they instance, instead of through parenting. */
+	if (eval_mode == DAG_EVAL_RENDER || dob) {
+		const int hide_original_types = OB_DUPLIFRAMES | OB_DUPLIVERTS | OB_DUPLIFACES;
+
+		if (!dob || !(dob->type & hide_original_types)) {
+			if (ob->parent && (ob->parent->transflag & hide_original_types)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
@@ -116,14 +136,13 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 
 		data->dupli_object_next = data->dupli_object_next->next;
 
-		/* Group duplis need to set ob matrices correct, for deform. so no_draw
-		 * is part handled.
-		 */
-		if ((obd->transflag & OB_RENDER_DUPLI) == 0 && dob->no_draw) {
+		if (dob->no_draw) {
 			continue;
 		}
-
 		if (obd->type == OB_MBALL) {
+			continue;
+		}
+		if (deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
 			continue;
 		}
 
@@ -142,11 +161,10 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		/* Duplicated elements shouldn't care whether their original collection is visible or not. */
 		temp_dupli_object->base_flag |= BASE_VISIBLE;
 
-		if (BKE_object_is_visible(temp_dupli_object, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE) == false) {
+		int ob_visibility = BKE_object_visibility(temp_dupli_object, data->eval_mode);
+		if (ob_visibility == 0) {
 			continue;
 		}
-
-		temp_dupli_object->transflag &= ~OB_DUPLI;
 
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
 		iter->current = &data->temp_dupli_object;
@@ -196,25 +214,29 @@ void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 	Object *object = (Object *)id_node->id_cow;
 	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&object->id));
 
-	if ((BKE_object_is_visible(object, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE) == false) &&
-	    ((data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) != 0))
-	{
-		return;
-	}
+	int ob_visibility = OB_VISIBLE_ALL;
+	if (data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) {
+		ob_visibility = BKE_object_visibility(object, data->eval_mode);
 
-	if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
-	    (object->transflag & OB_DUPLI))
-	{
-		data->dupli_parent = object;
-		data->dupli_list = object_duplilist(data->graph, data->scene, object);
-		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
-		if (BKE_object_is_visible(object, (eObjectVisibilityCheck)data->visibility_check) == false) {
+		if (deg_object_hide_original(data->eval_mode, object, NULL)) {
 			return;
 		}
 	}
 
-	iter->current = object;
-	iter->skip = false;
+	if (ob_visibility & OB_VISIBLE_INSTANCES) {
+		if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
+			(object->transflag & OB_DUPLI))
+		{
+			data->dupli_parent = object;
+			data->dupli_list = object_duplilist(data->graph, data->scene, object);
+			data->dupli_object_next = (DupliObject *)data->dupli_list->first;
+		}
+	}
+
+	if (ob_visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES)) {
+		iter->current = object;
+		iter->skip = false;
+	}
 }
 
 }  // namespace
@@ -239,10 +261,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	data->scene = DEG_get_evaluated_scene(depsgraph);
 	data->id_node_index = 0;
 	data->num_id_nodes = num_id_nodes;
-	eEvaluationMode eval_mode = DEG_get_mode(depsgraph);
-	data->visibility_check = (eval_mode == DAG_EVAL_RENDER)
-	                         ? OB_VISIBILITY_CHECK_FOR_RENDER
-	                         : OB_VISIBILITY_CHECK_FOR_VIEWPORT;
+	data->eval_mode = DEG_get_mode(depsgraph);
 	deg_invalidate_iterator_work_data(data);
 
 	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];

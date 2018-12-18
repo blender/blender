@@ -118,7 +118,7 @@ typedef struct DEGObjectIterData {
 
 	struct Scene *scene;
 
-	int visibility_check; /* eObjectVisibilityCheck. */
+	eEvaluationMode eval_mode;
 
 	/* **** Iteration over dupli-list. *** */
 

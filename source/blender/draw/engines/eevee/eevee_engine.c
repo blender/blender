@@ -130,15 +130,14 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const int ob_visibility = DRW_object_visibility_in_active_context(ob);
 	bool cast_shadow = false;
 
-	if (ob->base_flag & BASE_VISIBLE) {
+	if (ob_visibility & OB_VISIBLE_PARTICLES) {
 		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 
-	if (DRW_object_is_renderable(ob) &&
-	    DRW_object_is_visible_in_active_context(ob))
-	{
+	if (DRW_object_is_renderable(ob) && (ob_visibility & OB_VISIBLE_SELF)) {
 		if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
 			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
 		}

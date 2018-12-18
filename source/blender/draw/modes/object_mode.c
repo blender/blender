@@ -2271,7 +2271,7 @@ static void DRW_shgroup_relationship_lines(
         Scene *scene,
         Object *ob)
 {
-	if (ob->parent && DRW_object_is_visible_in_active_context(ob->parent)) {
+	if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
 		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->orig);
 		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 	}
@@ -2279,11 +2279,11 @@ static void DRW_shgroup_relationship_lines(
 	if (ob->rigidbody_constraint) {
 		Object *rbc_ob1 = ob->rigidbody_constraint->ob1;
 		Object *rbc_ob2 = ob->rigidbody_constraint->ob2;
-		if (rbc_ob1 && DRW_object_is_visible_in_active_context(rbc_ob1)) {
+		if (rbc_ob1 && (DRW_object_visibility_in_active_context(rbc_ob1) & OB_VISIBLE_SELF)) {
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, rbc_ob1->obmat[3]);
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 		}
-		if (rbc_ob2 && DRW_object_is_visible_in_active_context(rbc_ob2)) {
+		if (rbc_ob2 && (DRW_object_visibility_in_active_context(rbc_ob2) & OB_VISIBLE_SELF)) {
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, rbc_ob2->obmat[3]);
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 		}
@@ -2608,13 +2608,14 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	ModifierData *md = NULL;
 	int theme_id = TH_UNDEFINED;
+	const int ob_visibility = DRW_object_visibility_in_active_context(ob);
 
 	/* Handle particles first in case the emitter itself shouldn't be rendered. */
-	if (ob->type == OB_MESH) {
+	if (ob_visibility & OB_VISIBLE_PARTICLES) {
 		OBJECT_cache_populate_particles(ob, psl);
 	}
 
-	if (DRW_object_is_visible_in_active_context(ob) == false) {
+	if ((ob_visibility & OB_VISIBLE_SELF) == 0) {
 		return;
 	}
 

@@ -411,7 +411,8 @@ static void eevee_lightbake_count_probes(EEVEE_LightBake *lbake)
 
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 	{
-		if (!BKE_object_is_visible(ob, OB_VISIBILITY_CHECK_FOR_RENDER)) {
+		const int ob_visibility = BKE_object_visibility(ob, DAG_EVAL_RENDER);
+		if ((ob_visibility & OB_VISIBLE_SELF) == 0) {
 			continue;
 		}
 
@@ -1006,7 +1007,8 @@ static void eevee_lightbake_gather_probes(EEVEE_LightBake *lbake)
 	 * This allows a large number of probe to be precomputed (even dupli ones). */
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 	{
-		if (!BKE_object_is_visible(ob, OB_VISIBILITY_CHECK_FOR_RENDER)) {
+		const int ob_visibility = BKE_object_visibility(ob, DAG_EVAL_RENDER);
+		if ((ob_visibility & OB_VISIBLE_SELF) == 0) {
 			continue;
 		}
 

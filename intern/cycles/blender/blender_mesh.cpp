@@ -979,7 +979,8 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
                              BL::Object& b_ob,
                              BL::Object& b_ob_instance,
                              bool object_updated,
-                             bool hide_tris)
+                             bool show_self,
+                             bool show_particles)
 {
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
@@ -1086,7 +1087,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 		                                 mesh->subdivision_type);
 
 		if(b_mesh) {
-			if(view_layer.use_surfaces && !hide_tris) {
+			if(view_layer.use_surfaces && show_self) {
 				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
 					create_subd_mesh(scene, mesh, b_ob, b_mesh, used_shaders,
 					                 dicing_rate, max_subdivisions);
@@ -1096,7 +1097,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 				create_mesh_volume_attributes(scene, b_ob, mesh, b_scene.frame_current());
 			}
 
-			if(view_layer.use_hair && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
+			if(view_layer.use_hair && show_particles && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
 				sync_curves(mesh, b_mesh, b_ob, false);
 
 			/* free derived mesh */

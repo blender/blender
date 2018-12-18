@@ -28,6 +28,7 @@
 #include "DRW_render.h"
 
 #include "BKE_camera.h"
+#include "BKE_object.h"
 
 #include "DNA_gpencil_types.h"
 
@@ -130,12 +131,10 @@ static void GPENCIL_render_cache(
 	void *vedata, struct Object *ob,
 	struct RenderEngine *UNUSED(engine), struct Depsgraph *UNUSED(depsgraph))
 {
-	if ((ob == NULL) || (DRW_object_is_visible_in_active_context(ob) == false)) {
-		return;
-	}
-
-	if (ob->type == OB_GPENCIL) {
-		GPENCIL_cache_populate(vedata, ob);
+	if (ob && ob->type == OB_GPENCIL) {
+		if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
+			GPENCIL_cache_populate(vedata, ob);
+		}
 	}
 }
 

@@ -34,6 +34,7 @@
 #include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
@@ -489,7 +490,10 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		return; /* Do not draw solid in this case. */
 	}
 
-	if (!DRW_object_is_visible_in_active_context(ob) || (ob->dt < OB_WIRE)) {
+	if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
+		return;
+	}
+	if (ob->dt < OB_WIRE) {
 		return;
 	}
 
