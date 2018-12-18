@@ -364,6 +364,10 @@ static void drw_shgroup_bone_custom_wire(
 {
 	/* grr, not re-using instances! */
 	struct GPUBatch *geom = DRW_cache_object_wire_outline_get(custom);
+
+	/* XXXXXXX needs to be moved elsewhere. */
+	drw_batch_cache_generate_requested(custom);
+
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
 		float final_bonemat[4][4], final_color[4];
