@@ -286,7 +286,10 @@ class VIEW3D_HT_header(Header):
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
         sub = row.row(align=True)
-        sub.enabled = shading.type != 'RENDERED'
+        # TODO, currently render shading type ignores mesh two-side, until it's supported
+        # show the shading popover which shows double-sided option.
+
+        # sub.enabled = shading.type != 'RENDERED'
         sub.popover(panel="VIEW3D_PT_shading")
 
 
@@ -4509,17 +4512,15 @@ class VIEW3D_PT_shading_options(Panel):
     bl_label = "Options"
     bl_parent_id = 'VIEW3D_PT_shading'
 
-    @classmethod
-    def poll(cls, context):
-        shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type in {'WIREFRAME', 'SOLID'}
-
     def draw(self, context):
         layout = self.layout
 
         shading = VIEW3D_PT_shading.get_shading(context)
 
         col = layout.column()
+
+        if shading.type != 'WIREFRAME':
+            col.prop(shading, "show_backface_culling")
 
         row = col.row()
 
@@ -4548,8 +4549,6 @@ class VIEW3D_PT_shading_options(Panel):
 
             col = layout.column()
 
-            col.prop(shading, "show_backface_culling")
-
             row = col.row()
             row.active = not shading.show_xray
             row.prop(shading, "show_cavity")
@@ -4574,15 +4573,16 @@ class VIEW3D_PT_shading_options(Panel):
                     sub.prop(shading, "curvature_ridge_factor", text="Ridge")
                     sub.prop(shading, "curvature_valley_factor", text="Valley")
 
-        row = layout.split()
-        row.prop(shading, "show_object_outline")
-        sub = row.row()
-        sub.active = shading.show_object_outline
-        sub.prop(shading, "object_outline_color", text="")
+        if shading.type in {'WIREFRAME', 'SOLID'}:
+            row = layout.split()
+            row.prop(shading, "show_object_outline")
+            sub = row.row()
+            sub.active = shading.show_object_outline
+            sub.prop(shading, "object_outline_color", text="")
 
-        col = layout.column()
-        if (shading.light == 'STUDIO') and (shading.type is not 'WIREFRAME'):
-            col.prop(shading, "show_specular_highlight", text="Specular Lighting")
+            col = layout.column()
+            if (shading.light == 'STUDIO') and (shading.type != 'WIREFRAME'):
+                col.prop(shading, "show_specular_highlight", text="Specular Lighting")
 
 
 class VIEW3D_PT_shading_options_shadow(Panel):
