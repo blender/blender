@@ -22,7 +22,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
 	if(MY_WC_BRANCH STREQUAL "HEAD")
 		# Detached HEAD, check whether commit hash is reachable
 		# in the master branch
-		execute_process(COMMAND git rev-parse --short HEAD
+		execute_process(COMMAND git rev-parse --short=12 HEAD
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -80,12 +80,12 @@ if(EXISTS ${SOURCE_DIR}/.git)
 		if(NOT _git_below_check STREQUAL "")
 			# If there're commits between HEAD and upstream this means
 			# that we're reset-ed to older revision. Use it's hash then.
-			execute_process(COMMAND git rev-parse --short HEAD
+			execute_process(COMMAND git rev-parse --short=12 HEAD
 			                WORKING_DIRECTORY ${SOURCE_DIR}
 			                OUTPUT_VARIABLE MY_WC_HASH
 			                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		else()
-			execute_process(COMMAND git rev-parse --short @{u}
+			execute_process(COMMAND git rev-parse --short=12 @{u}
 			                WORKING_DIRECTORY ${SOURCE_DIR}
 			                OUTPUT_VARIABLE MY_WC_HASH
 			                OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -94,7 +94,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
 			if(MY_WC_HASH STREQUAL "")
 				# Local branch, not set to upstream.
 				# Well, let's use HEAD for now
-				execute_process(COMMAND git rev-parse --short HEAD
+				execute_process(COMMAND git rev-parse --short=12 HEAD
 				                WORKING_DIRECTORY ${SOURCE_DIR}
 				                OUTPUT_VARIABLE MY_WC_HASH
 				                OUTPUT_STRIP_TRAILING_WHITESPACE)
