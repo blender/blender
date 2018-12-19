@@ -337,7 +337,8 @@ static void EDIT_TEXT_cache_populate(void *vedata, Object *ob)
 			/* Get geometry cache */
 			struct GPUBatch *geom;
 
-			if (cu->flag & CU_FAST) {
+			bool has_surface = (cu->flag & (CU_FRONT | CU_BACK)) || cu->ext1 != 0.0f || cu->ext2 != 0.0f;
+			if ((cu->flag & CU_FAST) || !has_surface) {
 				geom = DRW_cache_text_edge_wire_get(ob);
 				if (geom) {
 					DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
