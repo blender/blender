@@ -848,7 +848,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	RegionView3D *rv3d = p->ar->regiondata;
 	const int def_nr = obact->actdef - 1;
 	const bool have_weight = (bool)BLI_findlink(&obact->defbase, def_nr);
-	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (rv3d->persp == RV3D_CAMOB);
+	const char *align_flag = &ts->gpencil_v3d_align;
+	const bool is_depth = (bool)(*align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
+	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) &&
+		(rv3d->persp == RV3D_CAMOB) && (!is_depth);
 	int i, totelem;
 
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */

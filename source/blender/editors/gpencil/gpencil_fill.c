@@ -820,7 +820,10 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	const int cfra_eval = (int)DEG_get_ctime(tgpf->depsgraph);
 
 	ToolSettings *ts = tgpf->scene->toolsettings;
-	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (tgpf->rv3d->persp == RV3D_CAMOB);
+	const char *align_flag = &ts->gpencil_v3d_align;
+	const bool is_depth = (bool)(*align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
+	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) &&
+		(tgpf->rv3d->persp == RV3D_CAMOB) && (!is_depth);
 	Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
 	if (brush == NULL) {
 		return;

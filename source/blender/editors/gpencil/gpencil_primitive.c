@@ -639,9 +639,10 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	bGPDstroke *gps = tgpi->gpf->strokes.first;
 	GP_Sculpt_Settings *gset = &ts->gp_sculpt;
 	int depth_margin = (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 4 : 0;
-	char *align_flag = &ts->gpencil_v3d_align;
+	const char *align_flag = &ts->gpencil_v3d_align;
 	bool is_depth = (bool)(*align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
-	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (tgpi->rv3d->persp == RV3D_CAMOB);
+	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) &&
+		(tgpi->rv3d->persp == RV3D_CAMOB) && (!is_depth);
 
 	if (tgpi->type == GP_STROKE_BOX)
 		gps->totpoints = (tgpi->tot_edges * 4 + tgpi->tot_stored_edges);
