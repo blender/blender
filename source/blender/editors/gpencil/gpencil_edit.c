@@ -871,7 +871,9 @@ GHash *gp_copybuf_validate_colormap(bContext *C)
 		}
 
 		/* Store this mapping (for use later when pasting) */
-		BLI_ghash_insert(new_colors, key, ma);
+		if (!BLI_ghash_haskey(new_colors, POINTER_FROM_INT(*key))) {
+			BLI_ghash_insert(new_colors, POINTER_FROM_INT(*key), ma);
+		}
 	}
 
 	gp_strokes_copypastebuf_colors_name_to_material_free(name_to_ma);
@@ -1118,13 +1120,13 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 				BLI_addtail(&gpf->strokes, new_stroke);
 
 				/* Remap material */
-				Material *ma = BLI_ghash_lookup(new_colors, &new_stroke->mat_nr);
+				Material *ma = BLI_ghash_lookup(new_colors, POINTER_FROM_INT(new_stroke->mat_nr));
 				if ((ma) && (BKE_gpencil_get_material_index(ob, ma) > 0)) {
-					gps->mat_nr = BKE_gpencil_get_material_index(ob, ma) - 1;
-					CLAMP_MIN(gps->mat_nr, 0);
+					new_stroke->mat_nr = BKE_gpencil_get_material_index(ob, ma) - 1;
+					CLAMP_MIN(new_stroke->mat_nr, 0);
 				}
 				else {
-					gps->mat_nr = 0; /* only if the color is not found */
+					new_stroke->mat_nr = 0; /* only if the color is not found */
 				}
 
 			}
