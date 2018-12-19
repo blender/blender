@@ -1129,7 +1129,7 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
 
     dicing_rate: FloatProperty(
         name="Dicing Scale",
-        description="Multiplier for scene dicing rate (located in the Geometry Panel)",
+        description="Multiplier for scene dicing rate (located in the Subdivision panel)",
         min=0.1, max=1000.0, soft_min=0.5,
         default=1.0,
     )
