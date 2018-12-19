@@ -759,6 +759,9 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])
 {
 	Object *ob = CTX_data_active_object(C);
+	if (ob == NULL) {
+		return false;
+	}
 	return ED_object_calc_active_center(ob, select_only, r_center);
 }
 
