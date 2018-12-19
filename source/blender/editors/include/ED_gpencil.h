@@ -239,6 +239,8 @@ void ED_gp_project_point_to_plane(
 void ED_gp_get_drawing_reference(
         const struct Scene *scene, const struct Object *ob,
         struct bGPDlayer *gpl, char align_flag, float vec[3]);
+void ED_gpencil_project_stroke_to_view(
+	struct bContext *C, struct bGPDlayer *gpl, struct bGPDstroke *gps);
 
 /* set sculpt cursor */
 void ED_gpencil_toggle_brush_cursor(struct bContext *C, bool enable, void *customdata);

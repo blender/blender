@@ -641,6 +641,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	int depth_margin = (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 4 : 0;
 	char *align_flag = &ts->gpencil_v3d_align;
 	bool is_depth = (bool)(*align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
+	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (tgpi->rv3d->persp == RV3D_CAMOB);
 
 	if (tgpi->type == GP_STROKE_BOX)
 		gps->totpoints = (tgpi->tot_edges * 4 + tgpi->tot_stored_edges);
@@ -944,6 +945,11 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	for (int i = 0; i < gps->totpoints; i++) {
 		bGPDspoint *pt = &gps->points[i];
 		gp_apply_parent_point(tgpi->depsgraph, tgpi->ob, tgpi->gpd, tgpi->gpl, pt);
+	}
+
+	/* if camera view, reproject flat to view to avoid perspective effect */
+	if (is_camera) {
+		ED_gpencil_project_stroke_to_view(C, tgpi->gpl, gps);
 	}
 
 	/* force fill recalc */

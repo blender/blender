@@ -193,6 +193,8 @@ void ED_gp_draw_fill(struct tGPDdraw *tgpw);
 /* gpencil_utils.c */
 
 typedef struct GP_SpaceConversion {
+	struct Scene *scene;
+	struct Object *ob;
 	struct bGPdata *gpd;
 	struct bGPDlayer *gpl;
 

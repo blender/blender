@@ -845,10 +845,12 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	ToolSettings *ts = p->scene->toolsettings;
 	Depsgraph *depsgraph = p->depsgraph;
 	Object *obact = (Object *)p->ownerPtr.data;
+	RegionView3D *rv3d = p->ar->regiondata;
 	const int def_nr = obact->actdef - 1;
 	const bool have_weight = (bool)BLI_findlink(&obact->defbase, def_nr);
-
+	const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (rv3d->persp == RV3D_CAMOB);
 	int i, totelem;
+
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
 	int depth_margin = (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 4 : 0;
 
@@ -976,6 +978,11 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			/* if parented change position relative to parent object */
 			gp_apply_parent_point(depsgraph, obact, gpd, gpl, pt);
 		}
+
+		/* if camera view, reproject flat to view to avoid perspective effect */
+		if (is_camera) {
+			ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
+		}
 	}
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		/* first point */
@@ -987,6 +994,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		gp_reproject_toplane(p, gps);
 		/* if parented change position relative to parent object */
 		gp_apply_parent_point(depsgraph, obact, gpd, gpl, pt);
+		/* if camera view, reproject flat to view to avoid perspective effect */
+		if (is_camera) {
+			ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
+		}
 		/* copy pressure and time */
 		pt->pressure = ptc->pressure;
 		pt->strength = ptc->strength;
@@ -1146,6 +1157,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		gp_reproject_toplane(p, gps);
 		/* change position relative to parent object */
 		gp_apply_parent(depsgraph, obact, gpd, gpl, gps);
+		/* if camera view, reproject flat to view to avoid perspective effect */
+		if (is_camera) {
+			ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
+		}
 
 		if (depth_arr)
 			MEM_freeN(depth_arr);
