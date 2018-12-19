@@ -670,6 +670,8 @@ static void rna_Particle_change_physics_type(Main *bmain, Scene *scene, PointerR
 		part->fluid = MEM_callocN(sizeof(SPHFluidSettings), "SPH Fluid Settings");
 		BKE_particlesettings_fluid_default_settings(part);
 	}
+
+	DEG_relations_tag_update(bmain);
 }
 
 static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
