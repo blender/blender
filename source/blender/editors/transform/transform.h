@@ -586,7 +586,7 @@ typedef struct TransInfo {
 
 #define T_PROP_EDIT			(1 << 11)
 #define T_PROP_CONNECTED	(1 << 12)
-#define T_PROP_PROJECTED	(1 << 25)
+#define T_PROP_PROJECTED	(1 << 13)
 #define T_PROP_EDIT_ALL		(T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
 
 #define T_V3D_ALIGN			(1 << 14)
