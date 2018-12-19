@@ -131,6 +131,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 							const char *dir_default = BKE_appdir_folder_default();
 							if (dir_default) {
 								STRNCPY(sfile->params->dir, dir_default);
+								sfile->params->file[0] = '\0';
 							}
 						}
 						break;
