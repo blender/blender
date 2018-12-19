@@ -1454,7 +1454,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 	ViewContext vc;
 	ED_view3d_viewcontext_init(C, &vc);
 
-	if (!object_is_target_compat(vc.obact)) {
+	if (vc.obact == NULL || !object_is_target_compat(vc.obact)) {
 		/* Falls back to texture space transform. */
 		return OPERATOR_PASS_THROUGH;
 	}
