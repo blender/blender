@@ -233,7 +233,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		axis_type = RNA_property_enum_get(&ptr, ggd->gzgt_axis_type_prop);
 	}
 
-	ggd->data.orientation_type = scene->orientation_type;
+	ggd->data.orientation_type = scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
 	const bool use_normal = (
 	        (ggd->data.orientation_type != V3D_MANIP_NORMAL) ||
 	        (axis_type == EXTRUDE_AXIS_NORMAL));
@@ -431,7 +431,7 @@ static void gizmo_mesh_extrude_message_subscribe(
 	};
 
 	{
-		WM_msg_subscribe_rna_anon_prop(mbus, Scene, transform_orientation, &msg_sub_value_gz_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, TransformOrientationSlot, type, &msg_sub_value_gz_tag_refresh);
 	}
 
 

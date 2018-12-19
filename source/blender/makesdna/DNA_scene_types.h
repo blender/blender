@@ -1521,6 +1521,21 @@ typedef struct SceneEEVEE {
 /* *************************************************************** */
 /* Scene ID-Block */
 
+typedef struct TransformOrientationSlot {
+	int type;
+	int index_custom;
+	char flag;
+	char _pad0[7];
+} TransformOrientationSlot;
+
+/* Indices when used in Scene.orientation. */
+enum {
+	SCE_ORIENT_DEFAULT = 0,
+	SCE_ORIENT_TRANSLATE = 1,
+	SCE_ORIENT_ROTATE = 2,
+	SCE_ORIENT_SCALE = 3,
+};
+
 typedef struct Scene {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
@@ -1561,8 +1576,8 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 
-	int orientation_index_custom;
-	int orientation_type;
+	/* First is the [scene, translate, rotate, scale]. */
+	TransformOrientationSlot orientation_slots[4];
 
 	void *sound_scene;
 	void *playback_handle;

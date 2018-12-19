@@ -132,7 +132,6 @@ void BIF_createTransformOrientation(struct bContext *C, struct ReportList *repor
                                     const char *name, const bool use_view,
                                     const bool activate, const bool overwrite);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
-void BIF_selectTransformOrientationValue(struct Scene *scene, int orientation);
 
 void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], const short around);
 
@@ -210,7 +209,8 @@ void ED_transform_calc_orientation_from_type(
          const struct bContext *C, float r_mat[3][3],
          /* extra args */
          struct Scene *scene, struct RegionView3D *rv3d, struct Object *ob, struct Object *obedit,
-         const short orientation_type, const int pivot_point);
+         const short orientation_type, int orientation_index_custom,
+         const int pivot_point);
 
 struct TransformBounds {
 	float center[3];		/* Center for transform widget. */
@@ -226,6 +226,7 @@ struct TransformCalcParams {
 	uint use_local_axis : 1;
 	/* Use 'Scene.orientation_type' when zero, otherwise subtract one and use. */
 	ushort orientation_type;
+	ushort orientation_index_custom;
 };
 int ED_transform_calc_gizmo_stats(
         const struct bContext *C,

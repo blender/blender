@@ -1401,9 +1401,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->around = V3D_AROUND_CURSOR;
 		}
 
-		t->orientation.user = t->scene->orientation_type;
-		t->orientation.custom = BKE_scene_transform_orientation_find(
-		        t->scene, t->scene->orientation_index_custom);
+		TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
+		t->orientation.user = orient_slot->type;
+		t->orientation.custom = BKE_scene_transform_orientation_find(t->scene, orient_slot->index_custom);
 
 		t->orientation.index = 0;
 		ARRAY_SET_ITEMS(

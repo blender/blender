@@ -1567,6 +1567,20 @@ static void rna_Scene_use_persistent_data_update(Main *UNUSED(bmain), Scene *UNU
 		RE_FreePersistentData();
 }
 
+/* Scene.orientation_slots */
+static void rna_Scene_transform_orientation_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	TransformOrientationSlot *orient_slot = &scene->orientation_slots[0];
+	rna_iterator_array_begin(iter, orient_slot, sizeof(*orient_slot), ARRAY_SIZE(scene->orientation_slots), 0, NULL);
+}
+
+static int rna_Scene_transform_orientation_slots_length(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	return ARRAY_SIZE(scene->orientation_slots);
+}
+
 static bool rna_Scene_use_audio_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
@@ -1961,32 +1975,29 @@ static void rna_ViewLayer_remove(
 	}
 }
 
-static int rna_Scene_transform_orientation_get(PointerRNA *ptr)
+static int rna_TransformOrientationSlot_type_get(PointerRNA *ptr)
 {
-	Scene *scene = ptr->data;
-	/* convert to enum value */
-	return (scene->orientation_type == V3D_MANIP_CUSTOM) ?
-	            (scene->orientation_type + scene->orientation_index_custom) : scene->orientation_type;
+	TransformOrientationSlot *orient_slot = ptr->data;
+	return BKE_scene_orientation_slot_get_index(orient_slot);
 }
 
-void rna_Scene_transform_orientation_set(PointerRNA *ptr, int value)
+void rna_TransformOrientationSlot_type_set(PointerRNA *ptr, int value)
 {
-	Scene *scene = ptr->data;
-	BIF_selectTransformOrientationValue(scene, value);
+	TransformOrientationSlot *orient_slot = ptr->data;
+	BKE_scene_orientation_slot_set_index(orient_slot, value);
 }
 
-static PointerRNA rna_Scene_current_orientation_get(PointerRNA *ptr)
+static PointerRNA rna_TransformOrientationSlot_get(PointerRNA *ptr)
 {
-	Scene *scene = ptr->data;
+	Scene *scene = ptr->id.data;
+	TransformOrientationSlot *orient_slot = ptr->data;
 	TransformOrientation *orientation;
-
-	if (scene->orientation_type < V3D_MANIP_CUSTOM) {
+	if (orient_slot->type < V3D_MANIP_CUSTOM) {
 		orientation = NULL;
 	}
 	else {
-		orientation = BKE_scene_transform_orientation_find(scene, scene->orientation_index_custom);
+		orientation = BKE_scene_transform_orientation_find(scene, orient_slot->index_custom);
 	}
-
 	return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, orientation);
 }
 
@@ -2179,6 +2190,39 @@ static void rna_def_transform_orientation(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Name of the custom transform orientation");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
+
+static void rna_def_transform_orientation_slot(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "TransformOrientationSlot", NULL);
+	RNA_def_struct_sdna(srna, "TransformOrientationSlot");
+	RNA_def_struct_ui_text(srna, "Orientation Slot", "");
+
+	/* Orientations */
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rna_enum_transform_orientation_items);
+	RNA_def_property_enum_funcs(
+	        prop,
+	        "rna_TransformOrientationSlot_type_get",
+	        "rna_TransformOrientationSlot_type_set",
+	        "rna_TransformOrientation_itemf");
+	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "custom_orientation", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "TransformOrientation");
+	RNA_def_property_pointer_funcs(prop, "rna_TransformOrientationSlot_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Current Transform Orientation", "");
+
+	/* flag */
+	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SELECT);
+	RNA_def_property_ui_text(prop, "Use", "Disable to unlink the orientation from the scene-setting");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+}
+
 
 static void rna_def_tool_settings(BlenderRNA  *brna)
 {
@@ -6429,19 +6473,18 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene");
 	rna_def_timeline_markers(brna, prop);
 
-	/* Orientations */
-	prop = RNA_def_property(srna, "transform_orientation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "orientation_type");
-	RNA_def_property_enum_items(prop, rna_enum_transform_orientation_items);
-	RNA_def_property_enum_funcs(prop, "rna_Scene_transform_orientation_get", "rna_Scene_transform_orientation_set",
-	                            "rna_TransformOrientation_itemf");
-	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "current_orientation", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "TransformOrientation");
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_current_orientation_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Current Transform Orientation", "Current transformation orientation");
+	/* Transform Orientations */
+	prop = RNA_def_property(srna, "transform_orientation_slots", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(
+	        prop,
+	        "rna_Scene_transform_orientation_slots_begin",
+	        "rna_iterator_array_next",
+	        "rna_iterator_array_end",
+	        "rna_iterator_array_get",
+	        "rna_Scene_transform_orientation_slots_length",
+	        NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "TransformOrientationSlot");
+	RNA_def_property_ui_text(prop, "Transform Orientation Slots", "");
 
 	/* Audio Settings */
 	prop = RNA_def_property(srna, "use_audio", PROP_BOOLEAN, PROP_NONE);
@@ -6566,6 +6609,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_unit_settings(brna);
 	rna_def_scene_image_format_data(brna);
 	rna_def_transform_orientation(brna);
+	rna_def_transform_orientation_slot(brna);
 	rna_def_selected_uv_element(brna);
 	rna_def_display_safe_areas(brna);
 	rna_def_scene_display(brna);

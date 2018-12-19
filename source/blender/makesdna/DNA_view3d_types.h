@@ -514,7 +514,7 @@ enum {
 #define V3D_SHOW_Y              (1 << 2)
 #define V3D_SHOW_Z              (1 << 3)
 
-/* Scene.orientation_type */
+/** #TransformOrientationSlot.type */
 #define V3D_MANIP_GLOBAL		0
 #define V3D_MANIP_LOCAL			1
 #define V3D_MANIP_NORMAL		2

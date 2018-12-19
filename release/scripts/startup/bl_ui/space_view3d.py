@@ -121,16 +121,16 @@ class VIEW3D_HT_header(Header):
 
         # Orientation
         if object_mode in {'OBJECT', 'EDIT', 'POSE', 'EDIT_GPENCIL'}:
-            orientation = scene.transform_orientation
-            current_orientation = scene.current_orientation
+            orient_slot = scene.transform_orientation_slots[0]
+            custom_orientation = orient_slot.custom_orientation
 
-            if not current_orientation:
-                trans_orientation = bpy.types.Scene.bl_rna.properties["transform_orientation"].enum_items[orientation]
-                trans_icon = getattr(trans_orientation, "icon", "BLANK1")
+            if custom_orientation is None:
+                trans_orientation = bpy.types.TransformOrientationSlot.bl_rna.properties["type"].enum_items[orient_slot.type]
+                trans_icon = getattr(trans_orientation, "icon", 'BLANK1')
                 trans_name = getattr(trans_orientation, "name", "Orientation")
             else:
                 trans_icon = 'OBJECT_ORIGIN'
-                trans_name = getattr(current_orientation, "name", "Orientation")
+                trans_name = getattr(custom_orientation, "name", "Orientation")
 
             row = layout.row(align=True)
 
@@ -5258,11 +5258,12 @@ class VIEW3D_PT_transform_orientations(Panel):
         layout.label(text="Transform Orientations")
 
         scene = context.scene
-        orientation = scene.current_orientation
+        orient_slot = scene.transform_orientation_slots[0]
+        orientation = orient_slot.custom_orientation
 
         row = layout.row()
         col = row.column()
-        col.prop(scene, "transform_orientation", expand=True)
+        col.prop(orient_slot, "type", expand=True)
         row.operator("transform.create_orientation", text="", icon='ADD', emboss=False).use = True
 
         if orientation:

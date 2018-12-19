@@ -1230,12 +1230,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "int", "orientation_index_custom")) {
-			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-				scene->orientation_index_custom = -1;
-			}
-		}
-
 		for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
 			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
@@ -2759,6 +2753,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							break;
 						}
 					}
+				}
+			}
+		}
+
+		if (!DNA_struct_find(fd->filesdna, "TransformOrientationSlot")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				for (int i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
+					scene->orientation_slots[i].index_custom = -1;
 				}
 			}
 		}

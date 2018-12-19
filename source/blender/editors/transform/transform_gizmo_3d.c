@@ -638,19 +638,21 @@ void ED_transform_calc_orientation_from_type(
 	Object *obedit = CTX_data_edit_object(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = OBACT(view_layer);
-	const short orientation_type = scene->orientation_type;
+	const short orientation_type = scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
+	const short orientation_index_custom = scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom;
 	const int pivot_point = scene->toolsettings->transform_pivot_point;
 
 	ED_transform_calc_orientation_from_type_ex(
 	        C, r_mat,
-	        scene, rv3d, ob, obedit, orientation_type, pivot_point);
+	        scene, rv3d, ob, obedit, orientation_type, orientation_index_custom, pivot_point);
 }
 
 void ED_transform_calc_orientation_from_type_ex(
         const bContext *C, float r_mat[3][3],
         /* extra args (can be accessed from context) */
         Scene *scene, RegionView3D *rv3d, Object *ob, Object *obedit,
-        const short orientation_type, const int pivot_point)
+        const short orientation_type, int orientation_index_custom,
+        const int pivot_point)
 {
 	bool ok = false;
 
@@ -712,7 +714,7 @@ void ED_transform_calc_orientation_from_type_ex(
 		case V3D_MANIP_CUSTOM:
 		{
 			TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
-			        scene, scene->orientation_index_custom);
+			        scene, orientation_index_custom);
 			if (applyTransformOrientation(custom_orientation, r_mat, NULL)) {
 				ok = true;
 			}
@@ -759,11 +761,14 @@ int ED_transform_calc_gizmo_stats(
 	/* global, local or normal orientation?
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
 	if (ob) {
-		const short orientation_type = params->orientation_type ? (params->orientation_type - 1) : scene->orientation_type;
+		const short orientation_type = params->orientation_type ?
+			(params->orientation_type - 1) : scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
+		const short orientation_index_custom = params->orientation_type ?
+			params->orientation_index_custom : scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom;
 		float mat[3][3];
 		ED_transform_calc_orientation_from_type_ex(
 		        C, mat,
-		        scene, rv3d, ob, obedit, orientation_type, pivot_point);
+		        scene, rv3d, ob, obedit, orientation_type, orientation_index_custom, pivot_point);
 		copy_m4_m3(rv3d->twmat, mat);
 	}
 
@@ -1206,6 +1211,8 @@ static void gizmo_xform_message_subscribe(
         wmGizmoGroup *gzgroup, struct wmMsgBus *mbus,
         Scene *scene, bScreen *UNUSED(screen), ScrArea *UNUSED(sa), ARegion *ar, const void *type_fn)
 {
+	GizmoGroup *ggd = gzgroup->customdata;
+
 	/* Subscribe to view properties */
 	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
 		.owner = ar,
@@ -1217,10 +1224,10 @@ static void gizmo_xform_message_subscribe(
 	RNA_id_pointer_create(&scene->id, &scene_ptr);
 
 	{
-		extern PropertyRNA rna_Scene_transform_orientation;
+		extern PropertyRNA rna_Scene_transform_orientation_slots;
 		extern PropertyRNA rna_Scene_cursor_location;
 		const PropertyRNA *props[] = {
-			&rna_Scene_transform_orientation,
+			&rna_Scene_transform_orientation_slots,
 			(scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) ? &rna_Scene_cursor_location : NULL,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
@@ -1230,15 +1237,30 @@ static void gizmo_xform_message_subscribe(
 		}
 	}
 
+	TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
+	PointerRNA orient_ref_ptr;
+	RNA_pointer_create(&scene->id, &RNA_TransformOrientationSlot, orient_slot, &orient_ref_ptr);
+	{
+		extern PropertyRNA rna_TransformOrientationSlot_type;
+		extern PropertyRNA rna_TransformOrientationSlot_use;
+		const PropertyRNA *props[] = {
+			&rna_TransformOrientationSlot_type,
+			&rna_TransformOrientationSlot_use,
+		};
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			if (props[i]) {
+				WM_msg_subscribe_rna(mbus, &orient_ref_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
+			}
+		}
+	}
+
 	PointerRNA toolsettings_ptr;
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
 	if (type_fn == TRANSFORM_GGT_gizmo) {
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
-		extern PropertyRNA rna_ToolSettings_use_gizmo_mode;
 		const PropertyRNA *props[] = {
 			&rna_ToolSettings_transform_pivot_point,
-			&rna_ToolSettings_use_gizmo_mode,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
@@ -1610,12 +1632,12 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	GizmoGroup *ggd = gzgroup->customdata;
+	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 	struct TransformBounds tbounds;
 
 	if (ggd->use_twtype_refresh) {
-		Scene *scene = CTX_data_scene(C);
 		ggd->twtype = scene->toolsettings->gizmo_flag & ggd->twtype_init;
 		if (ggd->twtype != ggd->twtype_prev) {
 			ggd->twtype_prev = ggd->twtype;
@@ -1623,11 +1645,15 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		}
 	}
 
+	const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
+
 	/* skip, we don't draw anything anyway */
 	if ((ggd->all_hidden =
 	     (ED_transform_calc_gizmo_stats(
 	             C, &(struct TransformCalcParams){
 	                 .use_only_center = true,
+	                 .orientation_type = orient_slot->type + 1,
+	                 .orientation_index_custom = orient_slot->index_custom,
 	             }, &tbounds) == 0)))
 	{
 		return;
@@ -1757,7 +1783,8 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 	if (!equals_m3m3(viewinv_m3, ggd->prev.viewinv_m3)) {
 		{
 			Scene *scene = CTX_data_scene(C);
-			switch (scene->orientation_type) {
+			const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
+			switch (orient_slot->type) {
 				case V3D_MANIP_VIEW:
 				{
 					WIDGETGROUP_gizmo_refresh(C, gzgroup);
@@ -1774,8 +1801,26 @@ static void WIDGETGROUP_gizmo_invoke_prepare(
         const bContext *C, wmGizmoGroup *gzgroup, wmGizmo *gz)
 {
 
-	/* Support shift click to constrain axis. */
 	GizmoGroup *ggd = gzgroup->customdata;
+
+	/* Support gizmo spesific orientation. */
+	{
+		Scene *scene = CTX_data_scene(C);
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
+		PointerRNA *ptr = &gzop->ptr;
+		PropertyRNA *prop_constraint_orientation = RNA_struct_find_property(ptr, "constraint_orientation");
+		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
+		if (orient_slot == &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
+			RNA_property_unset(ptr, prop_constraint_orientation);
+		}
+		else {
+			/* TODO: APIfunction */
+			int index = BKE_scene_orientation_slot_get_index(orient_slot);
+			RNA_property_enum_set(ptr, prop_constraint_orientation, index);
+		}
+	}
+
+	/* Support shift click to constrain axis. */
 	const int axis_idx = BLI_array_findindex(ggd->gizmos, ARRAY_SIZE(ggd->gizmos), &gz);
 	int axis = -1;
 	switch (axis_idx) {
@@ -1932,15 +1977,20 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
 {
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene = CTX_data_scene(C);
 
 	struct XFormCageWidgetGroup *xgzgroup = gzgroup->customdata;
 	wmGizmo *gz = xgzgroup->gizmo;
 
 	struct TransformBounds tbounds;
 
+	const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_SCALE);
+
 	if ((ED_transform_calc_gizmo_stats(
 	             C, &(struct TransformCalcParams) {
 	                 .use_local_axis = true,
+	                 .orientation_type = orient_slot->type + 1,
+	                 .orientation_index_custom = orient_slot->index_custom,
 	             }, &tbounds) == 0) ||
 	    equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
 	{
@@ -2016,7 +2066,8 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup 
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	{
 		Scene *scene = CTX_data_scene(C);
-		switch (scene->orientation_type) {
+		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_SCALE);
+		switch (orient_slot->type) {
 			case V3D_MANIP_VIEW:
 			{
 				float viewinv_m3[3][3];
@@ -2173,7 +2224,9 @@ static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	{
 		Scene *scene = CTX_data_scene(C);
-		switch (scene->orientation_type) {
+		/* Shear is like rotate, use the rotate setting. */
+		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_ROTATE);
+		switch (orient_slot->type) {
 			case V3D_MANIP_VIEW:
 			{
 				float viewinv_m3[3][3];

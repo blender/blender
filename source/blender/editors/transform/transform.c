@@ -2147,10 +2147,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			    !RNA_property_is_set(op->ptr, prop) &&
 			    (t->orientation.user != V3D_MANIP_CUSTOM_MATRIX))
 			{
-				t->scene->orientation_type = t->orientation.user;
-				BLI_assert(((t->scene->orientation_index_custom == -1) && (t->orientation.custom == NULL)) ||
+				TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
+				orient_slot->type = t->orientation.user;
+				BLI_assert(((orient_slot->index_custom == -1) && (t->orientation.custom == NULL)) ||
 				           (BKE_scene_transform_orientation_get_index(
-				                    t->scene, t->orientation.custom) == t->scene->orientation_index_custom));
+				                    t->scene, t->orientation.custom) == orient_slot->index_custom));
 			}
 		}
 	}

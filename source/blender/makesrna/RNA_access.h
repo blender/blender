@@ -697,6 +697,7 @@ extern StructRNA RNA_TintGpencilModifier;
 extern StructRNA RNA_ToolSettings;
 extern StructRNA RNA_TrackToConstraint;
 extern StructRNA RNA_TransformConstraint;
+extern StructRNA RNA_TransformOrientationSlot;
 extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIList;

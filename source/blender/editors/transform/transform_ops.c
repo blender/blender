@@ -39,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_scene.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -168,12 +169,12 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	int orientation = RNA_enum_get(op->ptr, "orientation");
 
-	BIF_selectTransformOrientationValue(scene, orientation);
+	BKE_scene_orientation_slot_set_index(&scene->orientation_slots[SCE_ORIENT_DEFAULT], orientation);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
-	WM_msg_publish_rna_prop(mbus, &scene->id, scene, Scene, transform_orientation);
+	WM_msg_publish_rna_prop(mbus, &scene->id, scene, TransformOrientationSlot, type);
 
 	return OPERATOR_FINISHED;
 }
@@ -215,7 +216,7 @@ static void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	BIF_removeTransformOrientationIndex(C, scene->orientation_index_custom);
+	BIF_removeTransformOrientationIndex(C, scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom);
 
 	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
 
@@ -234,7 +235,8 @@ static bool delete_orientation_poll(bContext *C)
 	if (ED_operator_areaactive(C) == 0)
 		return 0;
 
-	return (scene->orientation_type >= V3D_MANIP_CUSTOM) && (scene->orientation_index_custom != -1);
+	return ((scene->orientation_slots[SCE_ORIENT_DEFAULT].type >= V3D_MANIP_CUSTOM) &&
+	        (scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom != -1));
 }
 
 static void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
