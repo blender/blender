@@ -3083,9 +3083,10 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		if (!RNA_struct_is_a(ptype, &RNA_PropertyGroup)) {
-			PyErr_Format(PyExc_TypeError,
-				"CollectionProperty(...) expected an RNA type derived from %.200s",
-				RNA_struct_ui_name(&RNA_ID), RNA_struct_ui_name(&RNA_PropertyGroup));
+			PyErr_Format(
+			        PyExc_TypeError,
+			        "CollectionProperty(...) expected an RNA type derived from %.200s",
+			        RNA_struct_ui_name(&RNA_ID), RNA_struct_ui_name(&RNA_PropertyGroup));
 			return NULL;
 		}
 

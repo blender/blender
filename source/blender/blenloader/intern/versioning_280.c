@@ -2511,10 +2511,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				if ((gset) && (gset->cur_primitive == NULL)) {
 					gset->cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 					curvemapping_initialize(gset->cur_primitive);
-					curvemap_reset(gset->cur_primitive->cm,
-						&gset->cur_primitive->clipr,
-						CURVE_PRESET_BELL,
-						CURVEMAP_SLOPE_POSITIVE);
+					curvemap_reset(
+					        gset->cur_primitive->cm,
+					        &gset->cur_primitive->clipr,
+					        CURVE_PRESET_BELL,
+					        CURVEMAP_SLOPE_POSITIVE);
 				}
 			}
 		}

@@ -125,10 +125,11 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		if (stl->storage->framebuffer_flag & GP_FRAMEBUFFER_BASIC) {
 			/* temp textures for ping-pong buffers */
 			e_data.temp_depth_tx_a = DRW_texture_pool_query_2D(
-				size[0], size[1], GPU_DEPTH_COMPONENT24,
-				&draw_engine_gpencil_type);
-			e_data.temp_color_tx_a = DRW_texture_pool_query_2D(size[0], size[1], fb_format,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], GPU_DEPTH_COMPONENT24,
+			        &draw_engine_gpencil_type);
+			e_data.temp_color_tx_a = DRW_texture_pool_query_2D(
+			        size[0], size[1], fb_format,
+			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
 				&fbl->temp_fb_a, {
 					GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_a),
@@ -136,11 +137,11 @@ static void GPENCIL_create_framebuffers(void *vedata)
 				});
 
 			e_data.temp_depth_tx_b = DRW_texture_pool_query_2D(
-				size[0], size[1], GPU_DEPTH_COMPONENT24,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], GPU_DEPTH_COMPONENT24,
+			        &draw_engine_gpencil_type);
 			e_data.temp_color_tx_b = DRW_texture_pool_query_2D(
-				size[0], size[1], fb_format,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], fb_format,
+			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
 				&fbl->temp_fb_b, {
 					GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_b),
@@ -149,11 +150,11 @@ static void GPENCIL_create_framebuffers(void *vedata)
 
 			/* used for FX effects and Layer blending */
 			e_data.temp_depth_tx_fx = DRW_texture_pool_query_2D(
-				size[0], size[1], GPU_DEPTH_COMPONENT24,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], GPU_DEPTH_COMPONENT24,
+			        &draw_engine_gpencil_type);
 			e_data.temp_color_tx_fx = DRW_texture_pool_query_2D(
-				size[0], size[1], fb_format,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], fb_format,
+			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
 				&fbl->temp_fb_fx, {
 					GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_fx),
@@ -164,11 +165,11 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		/* background framebuffer to speed up drawing process (always 16 bits) */
 		if (stl->storage->framebuffer_flag & GP_FRAMEBUFFER_DRAW) {
 			e_data.background_depth_tx = DRW_texture_pool_query_2D(
-				size[0], size[1], GPU_DEPTH_COMPONENT24,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], GPU_DEPTH_COMPONENT24,
+			        &draw_engine_gpencil_type);
 			e_data.background_color_tx = DRW_texture_pool_query_2D(
-				size[0], size[1], GPU_RGBA32F,
-				&draw_engine_gpencil_type);
+			        size[0], size[1], GPU_RGBA32F,
+			        &draw_engine_gpencil_type);
 			GPU_framebuffer_ensure_config(
 				&fbl->background_fb, {
 					GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
@@ -624,9 +625,9 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			}
 
 			DRW_shgroup_call_add(
-				stl->g_data->shgrps_grid,
-				e_data.batch_grid,
-				stl->storage->grid_matrix);
+			        stl->g_data->shgrps_grid,
+			        e_data.batch_grid,
+			        stl->storage->grid_matrix);
 		}
 	}
 }
@@ -829,9 +830,9 @@ void GPENCIL_draw_scene(void *ved)
 							GPU_framebuffer_bind(fbl->temp_fb_fx);
 							GPU_framebuffer_clear_color_depth(fbl->temp_fb_fx, clearcol, 1.0f);
 							gpencil_draw_pass_range(
-								fbl, stl, psl, txl, fbl->temp_fb_fx,
-								init_shgrp, end_shgrp,
-								is_last);
+							        fbl, stl, psl, txl, fbl->temp_fb_fx,
+							        init_shgrp, end_shgrp,
+							        is_last);
 
 							/* Blend A texture and FX texture */
 							GPU_framebuffer_bind(fbl->temp_fb_b);
@@ -858,9 +859,9 @@ void GPENCIL_draw_scene(void *ved)
 					}
 					/* last group */
 					gpencil_draw_pass_range(
-						fbl, stl, psl, txl, fbl->temp_fb_a,
-						init_shgrp, end_shgrp,
-						true);
+					        fbl, stl, psl, txl, fbl->temp_fb_a,
+					        init_shgrp, end_shgrp,
+					        true);
 				}
 
 				/* Current buffer drawing */

@@ -981,7 +981,7 @@ static void stitch_propagate_uv_final_position(
 				int face_preview_pos = preview_position[BM_elem_index_get(element_iter->l->f)].data_position;
 				if (face_preview_pos != STITCH_NO_PREVIEW) {
 					copy_v2_v2(preview->preview_polys + face_preview_pos + 2 * element_iter->loop_of_poly_index,
-						final_position[index].uv);
+					           final_position[index].uv);
 				}
 			}
 

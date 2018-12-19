@@ -196,11 +196,11 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	}
 
 	me = bc_get_mesh_copy(
-				blender_context,
-				ob,
-				this->export_settings->export_mesh_type,
-				this->export_settings->apply_modifiers,
-				this->export_settings->triangulate);
+	        blender_context,
+	        ob,
+	        this->export_settings->export_mesh_type,
+	        this->export_settings->apply_modifiers,
+	        this->export_settings->triangulate);
 
 	std::string controller_name = id_name(ob_arm);
 	std::string controller_id = get_controller_id(ob_arm, ob);

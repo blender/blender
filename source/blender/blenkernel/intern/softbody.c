@@ -875,8 +875,9 @@ static void free_scratch(SoftBody *sb)
 	if (sb->scratch) {
 		/* todo make sure everything is cleaned up nicly */
 		if (sb->scratch->colliderhash) {
-			BLI_ghash_free(sb->scratch->colliderhash, NULL,
-					(GHashValFreeFP) ccd_mesh_free); /*this hoepfully will free all caches*/
+			BLI_ghash_free(
+			        sb->scratch->colliderhash, NULL,
+			        (GHashValFreeFP) ccd_mesh_free); /*this hoepfully will free all caches*/
 			sb->scratch->colliderhash = NULL;
 		}
 		if (sb->scratch->bodyface) {

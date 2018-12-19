@@ -97,8 +97,8 @@ static void gpencil_calc_vertex(
 			/* verify time modifiers */
 			if ((time_remap) && (!stl->storage->simplify_modif)) {
 				int remap_cfra = BKE_gpencil_time_modifier(
-					draw_ctx->depsgraph, draw_ctx->scene, ob, gpl, cfra_eval,
-					stl->storage->is_render);
+				        draw_ctx->depsgraph, draw_ctx->scene, ob, gpl, cfra_eval,
+				        stl->storage->is_render);
 				init_gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
 			}
 			else {
@@ -1238,9 +1238,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 
 				if (gp_style->flag & GP_STYLE_STROKE_SHOW) {
 					DRW_shgroup_call_add(
-						stl->g_data->shgrps_drawing_stroke,
-						e_data->batch_buffer_stroke,
-						stl->storage->unit_matrix);
+					        stl->g_data->shgrps_drawing_stroke,
+					        e_data->batch_buffer_stroke,
+					        stl->storage->unit_matrix);
 				}
 
 				if ((gpd->runtime.sbuffer_size >= 3) &&
@@ -1265,9 +1265,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 
 					e_data->batch_buffer_fill = DRW_gpencil_get_buffer_fill_geom(gpd);
 					DRW_shgroup_call_add(
-						stl->g_data->shgrps_drawing_fill,
-						e_data->batch_buffer_fill,
-						stl->storage->unit_matrix);
+					        stl->g_data->shgrps_drawing_fill,
+					        e_data->batch_buffer_fill,
+					        stl->storage->unit_matrix);
 					stl->storage->buffer_fill = true;
 				}
 				stl->storage->buffer_stroke = true;
@@ -1297,9 +1297,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 		e_data->batch_buffer_ctrlpoint = DRW_gpencil_get_buffer_ctrlpoint_geom(gpd);
 
 		DRW_shgroup_call_add(
-			shgrp,
-			e_data->batch_buffer_ctrlpoint,
-			stl->storage->unit_matrix);
+		        shgrp,
+		        e_data->batch_buffer_ctrlpoint,
+		        stl->storage->unit_matrix);
 
 		stl->storage->buffer_ctrlpoint = true;
 	}
@@ -1438,10 +1438,10 @@ static void DRW_gpencil_shgroups_create(
 					const int len = elm->vertex_idx - start_edit;
 					/* use always the same group */
 					DRW_shgroup_call_range_add(
-						stl->g_data->shgrps_edit_point,
-						cache->b_edit.batch,
-						(!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
-						start_edit, len);
+					        stl->g_data->shgrps_edit_point,
+					        cache->b_edit.batch,
+					        (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
+					        start_edit, len);
 
 					start_edit = elm->vertex_idx;
 				}
@@ -1453,10 +1453,10 @@ static void DRW_gpencil_shgroups_create(
 					const int len = elm->vertex_idx - start_edlin;
 					/* use always the same group */
 					DRW_shgroup_call_range_add(
-						stl->g_data->shgrps_edit_line,
-						cache->b_edlin.batch,
-						(!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
-						start_edlin, len);
+					        stl->g_data->shgrps_edit_line,
+					        cache->b_edlin.batch,
+					        (!cache_ob->is_dup_ob) ? gpf->runtime.viewmatrix : cache_ob->obmat,
+					        start_edlin, len);
 
 					start_edlin = elm->vertex_idx;
 				}

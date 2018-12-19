@@ -904,9 +904,9 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
 		/* convert screen-coordinates to 3D coordinates */
 		gp_stroke_convertcoords_tpoint(
-			tgpi->scene, tgpi->ar, tgpi->ob, tgpi->gpl,
-			p2d, depth_arr ? depth_arr + i : NULL,
-			&pt->x);
+		        tgpi->scene, tgpi->ar, tgpi->ob, tgpi->gpl,
+		        p2d, depth_arr ? depth_arr + i : NULL,
+		        &pt->x);
 
 		pt->pressure = pressure;
 		pt->strength = strength;

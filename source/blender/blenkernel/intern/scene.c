@@ -699,18 +699,20 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	CurveMapping *gp_falloff_curve = sce->toolsettings->gp_sculpt.cur_falloff;
 	curvemapping_initialize(gp_falloff_curve);
-	curvemap_reset(gp_falloff_curve->cm,
-		&gp_falloff_curve->clipr,
-		CURVE_PRESET_GAUSS,
-		CURVEMAP_SLOPE_POSITIVE);
+	curvemap_reset(
+	        gp_falloff_curve->cm,
+	        &gp_falloff_curve->clipr,
+	        CURVE_PRESET_GAUSS,
+	        CURVEMAP_SLOPE_POSITIVE);
 
 	sce->toolsettings->gp_sculpt.cur_primitive = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	CurveMapping *gp_primitive_curve = sce->toolsettings->gp_sculpt.cur_primitive;
 	curvemapping_initialize(gp_primitive_curve);
-	curvemap_reset(gp_primitive_curve->cm,
-		&gp_primitive_curve->clipr,
-		CURVE_PRESET_BELL,
-		CURVEMAP_SLOPE_POSITIVE);
+	curvemap_reset(
+	        gp_primitive_curve->cm,
+	        &gp_primitive_curve->clipr,
+	        CURVE_PRESET_BELL,
+	        CURVEMAP_SLOPE_POSITIVE);
 
 	sce->physics_settings.gravity[0] = 0.0f;
 	sce->physics_settings.gravity[1] = 0.0f;

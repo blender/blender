@@ -1593,10 +1593,10 @@ static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT)) {
-			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
-				bm_vert->head.data,
-				CD_MVERT_SKIN);
-
+			MVertSkin *vs = CustomData_bmesh_get(
+			        &bm->vdata,
+			        bm_vert->head.data,
+			        CD_MVERT_SKIN);
 
 			switch (action) {
 				case SKIN_LOOSE_MARK:
@@ -1650,9 +1650,10 @@ static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT)) {
-			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
-				bm_vert->head.data,
-				CD_MVERT_SKIN);
+			MVertSkin *vs = CustomData_bmesh_get(
+			        &bm->vdata,
+			        bm_vert->head.data,
+			        CD_MVERT_SKIN);
 			float avg = (vs->radius[0] + vs->radius[1]) * 0.5f;
 
 			vs->radius[0] = vs->radius[1] = avg;
@@ -1718,13 +1719,14 @@ static void skin_armature_bone_create(Object *skin_ob,
 			ED_vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
 		}
 
-		skin_armature_bone_create(skin_ob,
-			mvert, medge,
-			arm,
-			edges_visited,
-			emap,
-			bone,
-			v);
+		skin_armature_bone_create(
+		        skin_ob,
+		        mvert, medge,
+		        arm,
+		        edges_visited,
+		        emap,
+		        bone,
+		        v);
 	}
 }
 
@@ -1748,11 +1750,12 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 	mvert = me_eval_deform->mvert;
 
 	/* add vertex weights to original mesh */
-	CustomData_add_layer(&me->vdata,
-		CD_MDEFORMVERT,
-		CD_CALLOC,
-		NULL,
-		me->totvert);
+	CustomData_add_layer(
+	        &me->vdata,
+	        CD_MDEFORMVERT,
+	        CD_CALLOC,
+	        NULL,
+	        me->totvert);
 
 	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 	arm_ob = BKE_object_add(bmain, scene, view_layer, OB_ARMATURE, NULL);
@@ -1789,13 +1792,14 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 			}
 
 			if (emap[v].count >= 1) {
-				skin_armature_bone_create(skin_ob,
-					mvert, me->medge,
-					arm,
-					edges_visited,
-					emap,
-					bone,
-					v);
+				skin_armature_bone_create(
+				        skin_ob,
+				        mvert, me->medge,
+				        arm,
+				        edges_visited,
+				        emap,
+				        bone,
+				        v);
 			}
 		}
 	}
