@@ -764,7 +764,6 @@ void view3d_viewmatrix_set(
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
 			Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
-			BKE_object_where_is_calc(depsgraph, scene, ob_camera_eval);
 			obmat_to_viewmat(rv3d, ob_camera_eval);
 		}
 		else {
