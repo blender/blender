@@ -1242,10 +1242,10 @@ static void gizmo_xform_message_subscribe(
 	RNA_pointer_create(&scene->id, &RNA_TransformOrientationSlot, orient_slot, &orient_ref_ptr);
 	{
 		extern PropertyRNA rna_TransformOrientationSlot_type;
-		extern PropertyRNA rna_TransformOrientationSlot_use;
+		extern PropertyRNA rna_TransformOrientationSlot_use_global;
 		const PropertyRNA *props[] = {
 			&rna_TransformOrientationSlot_type,
-			&rna_TransformOrientationSlot_use,
+			&rna_TransformOrientationSlot_use_global,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			if (props[i]) {

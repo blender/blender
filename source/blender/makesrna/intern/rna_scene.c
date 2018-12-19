@@ -2237,9 +2237,9 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Current Transform Orientation", "");
 
 	/* flag */
-	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_global", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Use", "Disable to unlink the orientation from the scene-setting");
+	RNA_def_property_ui_text(prop, "Use", "Use scene orientation instead of a custom setting");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	FunctionRNA *func;

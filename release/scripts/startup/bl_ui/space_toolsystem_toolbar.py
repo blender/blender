@@ -67,13 +67,25 @@ class _template_widget:
     class TRANSFORM_GGT_gizmo:
         @staticmethod
         def draw_settings_with_index(context, layout, index):
-            row = layout.row(align=True)
             scene = context.scene
-            orientation_slot = scene.transform_orientation_slots[index]
-            value = orientation_slot.use
-            row.prop(orientation_slot, "use", text="", icon='LINKED' if value else 'UNLINKED')
-            if not value:
-                row.prop(orientation_slot, "type", text="")
+            orient_slot = scene.transform_orientation_slots[index]
+            use_global = orient_slot.use_global
+            row = layout.row(align=True)
+
+            row.label(text="Orientation:")
+
+            popover_kw = {
+                "panel": "VIEW3D_PT_transform_orientations_gizmo_" f"{index}",
+            }
+
+            if use_global:
+                popover_kw["text"], popover_kw["icon"] = "Scene", 'OBJECT_ORIGIN'
+            else:
+                popover_kw["text"], popover_kw["icon_value"] = orient_slot.ui_info()
+
+            sub = layout.row()
+            sub.ui_units_x = 4
+            sub.popover(**popover_kw)
 
 
 class _defs_view3d_generic:
