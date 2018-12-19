@@ -114,6 +114,19 @@ typedef struct uiHandlePanelData {
 static int get_panel_real_size_y(const Panel *pa);
 static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelState state);
 
+static void panel_title_color_get(bool show_background, uchar color[4])
+{
+	if (show_background) {
+		UI_GetThemeColor4ubv(TH_TITLE, color);
+	}
+	else {
+		/* Use menu colors for floating panels. */
+		bTheme *btheme = UI_GetTheme();
+		const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
+		copy_v4_v4_uchar(color, (const uchar *)wcol->text);
+	}
+}
+
 /*********************** space specific code ************************/
 /* temporary code to remove all sbuts stuff from panel code         */
 
@@ -619,7 +632,9 @@ void UI_panel_label_offset(uiBlock *block, int *x, int *y)
 	}
 }
 
-static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const rcti *rect, char dir)
+static void ui_draw_aligned_panel_header(
+        uiStyle *style, uiBlock *block, const rcti *rect, char dir,
+        const bool show_background)
 {
 	Panel *panel = block->panel;
 	rcti hrect;
@@ -627,7 +642,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 	const char *activename = panel->drawname[0] ? panel->drawname : panel->panelname;
 	const bool is_subpanel = (panel->type && panel->type->parent);
 	uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
-	unsigned char col_title[4];
+	uchar col_title[4];
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if (panel->control & UI_PNL_CLOSE)
@@ -636,7 +651,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 		pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
 
 	/* draw text label */
-	UI_GetThemeColor3ubv(TH_TITLE, col_title);
+	panel_title_color_get(show_background, col_title);
 	col_title[3] = 255;
 
 	hrect = *rect;
@@ -723,21 +738,21 @@ void ui_draw_aligned_panel(
 	if (show_pin)
 #endif
 	{
-		char col_title[4];
-		UI_GetThemeColor4ubv(TH_TITLE, (uchar *)col_title);
+		uchar col_title[4];
+		panel_title_color_get(show_background, col_title);
 
 		GPU_blend(true);
 		UI_icon_draw_aspect(
 		        headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
 		        (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-		        (block->aspect / UI_DPI_FAC), 1.0f, col_title);
+		        (block->aspect / UI_DPI_FAC), 1.0f, (const char *)col_title);
 		GPU_blend(false);
 	}
 
 
 	/* horizontal title */
 	if (is_closed_x == false) {
-		ui_draw_aligned_panel_header(style, block, &titlerect, 'h');
+		ui_draw_aligned_panel_header(style, block, &titlerect, 'h', show_background);
 
 		if (show_drag) {
 			uint col;
@@ -769,7 +784,7 @@ void ui_draw_aligned_panel(
 	}
 	else if (is_closed_x) {
 		/* draw vertical title */
-		ui_draw_aligned_panel_header(style, block, &headrect, 'v');
+		ui_draw_aligned_panel_header(style, block, &headrect, 'v', show_background);
 		pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	}
 	/* an open panel */
@@ -801,12 +816,16 @@ void ui_draw_aligned_panel(
 		immUnbindProgram();
 	}
 
+
+	uchar col_title[4];
+	panel_title_color_get(show_background, col_title);
+
 	/* draw optional close icon */
 
 	if (panel->control & UI_PNL_CLOSE) {
 		const int ofsx = 6;
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformThemeColor3(TH_TITLE);
+		immUniformColor3ubv(col_title);
 		ui_draw_x_icon(pos, rect->xmin + 2 + ofsx, rect->ymax + 2);
 		immUnbindProgram();
 	}
@@ -823,7 +842,7 @@ void ui_draw_aligned_panel(
 
 	{
 		float tria_color[4];
-		UI_GetThemeColor3fv(TH_TITLE, tria_color);
+		rgb_uchar_to_float(tria_color, col_title);
 		tria_color[3] = 1.0f;
 
 		if (is_closed_y)
