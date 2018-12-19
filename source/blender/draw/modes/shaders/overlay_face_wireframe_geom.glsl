@@ -39,7 +39,15 @@ void main(void)
 		EndPrimitive();
 	}
 #else
-	edgeSharpness = vec3(edgeSharpness_g[0], edgeSharpness_g[1], edgeSharpness_g[2]);
+	/* Originally was:
+	 *   edgeSharpness = vec3(edgeSharpness_g[0], edgeSharpness_g[1], edgeSharpness_g[2]);
+	 *
+	 * But that strangely does not work for some AMD GPUs.
+	 * However since this code is currently only used for sculpt mode
+	 * and in this mode the `edgeSharpness_g` is not calculated,
+	 * let's simply set all to 1.0.
+	 */
+	edgeSharpness = vec3(1.0);
 
 	barycentric = vec3(1.0, 0.0, 0.0);
 	gl_Position = gl_in[0].gl_Position;
