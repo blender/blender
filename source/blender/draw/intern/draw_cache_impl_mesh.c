@@ -4267,7 +4267,7 @@ static void mesh_create_loops_lines(
 			BM_ITER_MESH (bm_face, &iter, bm, BM_FACES_OF_MESH) {
 				/* use_hide always for edit-mode */
 				if (!BM_elem_flag_test(bm_face, BM_ELEM_HIDDEN)) {
-					for (int i; i < bm_face->len; i++) {
+					for (int i = 0; i < bm_face->len; i++) {
 						GPU_indexbuf_add_generic_vert(&elb, v_index + i);
 					}
 					/* Finish loop and restart primitive. */
