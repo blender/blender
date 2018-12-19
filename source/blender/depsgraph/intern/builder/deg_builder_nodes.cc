@@ -779,7 +779,6 @@ void DepsgraphNodeBuilder::build_object_data_speaker(Object *object)
 void DepsgraphNodeBuilder::build_object_transform(Object *object)
 {
 	OperationDepsNode *op_node;
-	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *ob_cow = get_cow_datablock(object);
 
 	/* local transforms (from transform channels - loc/rot/scale + deltas) */
@@ -795,7 +794,6 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 		add_operation_node(&object->id, DEG_NODE_TYPE_TRANSFORM,
 		                   function_bind(BKE_object_eval_parent,
 		                                 _1,
-		                                 scene_cow,
 		                                 ob_cow),
 		                   DEG_OPCODE_TRANSFORM_PARENT);
 	}

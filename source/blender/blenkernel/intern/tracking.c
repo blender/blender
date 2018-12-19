@@ -399,7 +399,7 @@ MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(MovieTrackin
 /* Get transformation matrix for a given object which is used
  * for parenting motion tracker reconstruction to 3D world.
  */
-void BKE_tracking_get_camera_object_matrix(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float mat[4][4])
+void BKE_tracking_get_camera_object_matrix(Scene *scene, Object *ob, float mat[4][4])
 {
 	if (!ob) {
 		if (scene->camera)
@@ -409,7 +409,7 @@ void BKE_tracking_get_camera_object_matrix(struct Depsgraph *depsgraph, Scene *s
 	}
 
 	if (ob)
-		BKE_object_where_is_calc_mat4(depsgraph, scene, ob, mat);
+		BKE_object_where_is_calc_mat4(ob, mat);
 	else
 		unit_m4(mat);
 }

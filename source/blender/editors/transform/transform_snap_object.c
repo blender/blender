@@ -1674,7 +1674,6 @@ static short snapCamera(
 {
 	short retval = 0;
 
-	Depsgraph *depsgraph = sctx->depsgraph;
 	Scene *scene = sctx->scene;
 
 	bool is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
@@ -1699,7 +1698,7 @@ static short snapCamera(
 
 	tracking = &clip->tracking;
 
-	BKE_tracking_get_camera_object_matrix(depsgraph, scene, object, orig_camera_mat);
+	BKE_tracking_get_camera_object_matrix(scene, object, orig_camera_mat);
 
 	invert_m4_m4(orig_camera_imat, orig_camera_mat);
 	invert_m4_m4(imat, obmat);

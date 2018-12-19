@@ -317,9 +317,7 @@ static void make_duplis_frames(const DupliContext *ctx)
 	Depsgraph *depsgraph = ctx->depsgraph;
 	Scene *scene = ctx->scene;
 	Object *ob = ctx->object;
-	extern int enable_cu_speed; /* object.c */
 	Object copyob;
-	int cfrao = scene->r.cfra;
 	int dupend = ob->dupend;
 
 	/* dupliframes not supported inside collections */
@@ -339,16 +337,15 @@ static void make_duplis_frames(const DupliContext *ctx)
 	copyob = *ob;
 
 	/* duplicate over the required range */
-	if (ob->transflag & OB_DUPLINOSPEED) enable_cu_speed = 0;
-
-	for (scene->r.cfra = ob->dupsta; scene->r.cfra <= dupend; scene->r.cfra++) {
+	const int dupli_transflag = (ob->transflag & OB_DUPLINOSPEED);
+	for (int frame = ob->dupsta; frame <= dupend; frame++) {
 		int ok = 1;
 
 		/* - dupoff = how often a frames within the range shouldn't be made into duplis
 		 * - dupon = the length of each "skipping" block in frames
 		 */
 		if (ob->dupoff) {
-			ok = scene->r.cfra - ob->dupsta;
+			ok = frame - ob->dupsta;
 			ok = ok % (ob->dupon + ob->dupoff);
 			ok = (ok < ob->dupon);
 		}
@@ -359,23 +356,17 @@ static void make_duplis_frames(const DupliContext *ctx)
 			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
 			 */
 			/* ob-eval will do drivers, so we don't need to do them */
-			BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM);
-			BKE_object_where_is_calc_time(depsgraph, scene, ob, (float)scene->r.cfra);
+			BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, (float)frame, ADT_RECALC_ANIM);
+			BKE_object_where_is_calc_time_for_dupli(depsgraph, scene, ob, (float)frame, dupli_transflag);
 
-			make_dupli(ctx, ob, ob->obmat, scene->r.cfra);
+			make_dupli(ctx, ob, ob->obmat, frame);
 		}
 	}
 
-	enable_cu_speed = 1;
-
-	/* reset frame to original frame, then re-evaluate animation as above
-	 * as 2.5 animation data may have far-reaching consequences
-	 */
-	scene->r.cfra = cfrao;
-
 	/* ob-eval will do drivers, so we don't need to do them */
-	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM);
-	BKE_object_where_is_calc_time(depsgraph, scene, ob, (float)scene->r.cfra);
+	const float original_ctime = DEG_get_ctime(depsgraph);
+	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, original_ctime, ADT_RECALC_ANIM);
+	BKE_object_where_is_calc_time(depsgraph, scene, ob, original_ctime);
 
 	/* but, to make sure unkeyed object transforms are still sane,
 	 * let's copy object's original data back over

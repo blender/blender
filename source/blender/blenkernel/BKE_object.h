@@ -157,8 +157,9 @@ struct Base **BKE_object_pose_base_array_get_unique(struct ViewLayer *view_layer
 struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer, struct View3D *v3d, unsigned int *r_bases_len);
 
 void BKE_object_get_parent_matrix(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
-        struct Object *par, float parentmat[4][4]);
+        struct Object *ob, struct Object *par, float parentmat[4][4]);
+void BKE_object_get_parent_matrix_for_dupli(
+        struct Object *ob, struct Object *par, float dupli_ctime, int dupli_transflag, float parentmat[4][4]);
 void BKE_object_where_is_calc(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(
@@ -166,11 +167,12 @@ void BKE_object_where_is_calc_ex(
         struct Object *ob, float r_originmat[3][3]);
 void BKE_object_where_is_calc_time(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime);
+void BKE_object_where_is_calc_time_for_dupli(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime, int dupli_transflag);
 void BKE_object_where_is_calc_time_ex(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime, int dupli_transflag,
         struct RigidBodyWorld *rbw, float r_originmat[3][3]);
-void BKE_object_where_is_calc_mat4(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float obmat[4][4]);
+void BKE_object_where_is_calc_mat4(struct Object *ob, float obmat[4][4]);
 
 /* possibly belong in own moduke? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);
@@ -231,7 +233,6 @@ void BKE_object_eval_local_transform(
         struct Object *ob);
 void BKE_object_eval_parent(
         struct Depsgraph *depsgraph,
-        struct Scene *scene,
         struct Object *ob);
 void BKE_object_eval_constraints(
         struct Depsgraph *depsgraph,

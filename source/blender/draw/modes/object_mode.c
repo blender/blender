@@ -1685,7 +1685,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		UI_GetThemeColor4fv(TH_BUNDLE_SOLID, bundle_color_solid);
 
 		float camera_mat[4][4];
-		BKE_tracking_get_camera_object_matrix(draw_ctx->depsgraph, scene, ob, camera_mat);
+		BKE_tracking_get_camera_object_matrix(scene, ob, camera_mat);
 
 		float bundle_scale_mat[4][4];
 		if (is_solid_bundle) {

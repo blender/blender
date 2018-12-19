@@ -63,7 +63,7 @@ struct MovieTrackingReconstruction *BKE_tracking_get_active_reconstruction(struc
 
 /* matrices for constraints and drawing */
 void BKE_tracking_get_camera_object_matrix(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float mat[4][4]);
+        struct Scene *scene, struct Object *ob, float mat[4][4]);
 void BKE_tracking_get_projection_matrix(struct MovieTracking *tracking, struct MovieTrackingObject *object,
                                         int framenr, int winx, int winy, float mat[4][4]);
 

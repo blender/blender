@@ -92,9 +92,7 @@ void BKE_object_eval_local_transform(Depsgraph *depsgraph, Object *ob)
 
 /* Evaluate parent */
 /* NOTE: based on solve_parenting(), but with the cruft stripped out */
-void BKE_object_eval_parent(Depsgraph *depsgraph,
-                            Scene *scene,
-                            Object *ob)
+void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
 {
 	Object *par = ob->parent;
 
@@ -109,7 +107,7 @@ void BKE_object_eval_parent(Depsgraph *depsgraph,
 	copy_m4_m4(locmat, ob->obmat);
 
 	/* get parent effect matrix */
-	BKE_object_get_parent_matrix(depsgraph, scene, ob, par, totmat);
+	BKE_object_get_parent_matrix(ob, par, totmat);
 
 	/* total */
 	mul_m4_m4m4(tmat, totmat, ob->parentinv);
@@ -397,7 +395,7 @@ void BKE_object_eval_transform_all(Depsgraph *depsgraph,
 	/* This mimics full transform update chain from new depsgraph. */
 	BKE_object_eval_local_transform(depsgraph, object);
 	if (object->parent != NULL) {
-		BKE_object_eval_parent(depsgraph, scene, object);
+		BKE_object_eval_parent(depsgraph, object);
 	}
 	if (!BLI_listbase_is_empty(&object->constraints)) {
 		BKE_object_eval_constraints(depsgraph, scene, object);
