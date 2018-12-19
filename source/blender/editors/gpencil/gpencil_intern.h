@@ -162,6 +162,7 @@ typedef struct tGPDprimitive {
 	int point_count;                  /* number of edges allocated */
 	int tot_stored_edges;             /* stored number of polygon edges */
 	int tot_edges;                    /* number of polygon edges */
+	float move[2];                    /* move distance */
 	float origin[2];                  /* initial box corner */
 	float start[2];                   /* first box corner */
 	float end[2];                     /* last box corner */

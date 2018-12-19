@@ -1302,10 +1302,19 @@ static void gpencil_primitive_edit_event_handling(bContext *C, wmOperator *op, w
 }
 
 /* move */
-static void gpencil_primitive_move(tGPDprimitive *tgpi)
+static void gpencil_primitive_move(tGPDprimitive *tgpi, bool reset)
 {
 	float move[2];
-	sub_v2_v2v2(move, tgpi->mval, tgpi->mvalo);
+	zero_v2(move);
+
+	if (reset) {
+		sub_v2_v2(move, tgpi->move);
+		zero_v2(tgpi->move);
+	}
+	else {
+		sub_v2_v2v2(move, tgpi->mval, tgpi->mvalo);
+		add_v2_v2(tgpi->move, move);
+	}
 
 	bGPDstroke *gps = tgpi->gpf->strokes.first;
 	tGPspoint *points2D = tgpi->points;
@@ -1335,13 +1344,20 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 
 		switch (event->type) {
 			case MOUSEMOVE:
-				gpencil_primitive_move(tgpi);
+				gpencil_primitive_move(tgpi, false);
 				gpencil_primitive_update(C, op, tgpi);
 				break;
 			case ESCKEY:
-			case RIGHTMOUSE:
 			case LEFTMOUSE:
+				zero_v2(tgpi->move);
 				tgpi->flag = IN_CURVE_EDIT;
+				break;
+			case RIGHTMOUSE:
+				if (event->val == KM_RELEASE) {
+					tgpi->flag = IN_CURVE_EDIT;
+					gpencil_primitive_move(tgpi, true);
+					gpencil_primitive_update(C, op, tgpi);
+				}
 				break;
 		}
 		copy_v2_v2(tgpi->mvalo, tgpi->mval);
