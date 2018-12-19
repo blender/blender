@@ -5270,40 +5270,6 @@ class VIEW3D_PT_transform_orientations(Panel):
             row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
 
 
-# XXX, each panel needs to access a different orientation index.
-# look into a way to pass this from the UI that draws it.
-def VIEW3D_PT_transform_orientations_gizmo_factory(index):
-    class VIEW3D_PT_transform_orientations_other_n(Panel):
-        bl_space_type = 'VIEW_3D'
-        bl_region_type = 'HEADER'
-        bl_label = "Transform Orientations"
-        bl_ui_units_x = 8
-        bl_idname = "VIEW3D_PT_transform_orientations_gizmo_" + str(index)
-
-        def draw(self, context):
-            layout = self.layout
-
-            layout.label(text="Transform Orientations")
-
-            scene = context.scene
-            orient_slot = scene.transform_orientation_slots[index]
-
-            layout.prop(orient_slot, "use_global", text="Scene Orientation", icon='OBJECT_ORIGIN')
-            use_global = orient_slot.use_global
-
-            col = layout.column()
-            col.active = not use_global
-            col.column().prop(orient_slot, "type", expand=True)
-
-            # Only 'VIEW3D_PT_transform_orientations' can edit
-
-    return VIEW3D_PT_transform_orientations_other_n
-
-VIEW3D_PT_transform_orientations_gizmo_1 = VIEW3D_PT_transform_orientations_gizmo_factory(1)
-VIEW3D_PT_transform_orientations_gizmo_2 = VIEW3D_PT_transform_orientations_gizmo_factory(2)
-VIEW3D_PT_transform_orientations_gizmo_3 = VIEW3D_PT_transform_orientations_gizmo_factory(3)
-
-
 class VIEW3D_PT_gpencil_origin(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -5816,9 +5782,6 @@ classes = (
     VIEW3D_PT_gpencil_origin,
     VIEW3D_PT_gpencil_lock,
     VIEW3D_PT_transform_orientations,
-    VIEW3D_PT_transform_orientations_gizmo_1,
-    VIEW3D_PT_transform_orientations_gizmo_2,
-    VIEW3D_PT_transform_orientations_gizmo_3,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,
     TOPBAR_PT_gpencil_materials,

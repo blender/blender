@@ -1975,15 +1975,36 @@ static void rna_ViewLayer_remove(
 	}
 }
 
+/* Fake value, used internally (not saved to DNA). */
+#define V3D_MANIP_DEFAULT -1
+
 static int rna_TransformOrientationSlot_type_get(PointerRNA *ptr)
 {
+	Scene *scene = ptr->id.data;
 	TransformOrientationSlot *orient_slot = ptr->data;
+	if (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
+		if ((orient_slot->flag & SELECT) == 0) {
+			return V3D_MANIP_DEFAULT;
+		}
+	}
 	return BKE_scene_orientation_slot_get_index(orient_slot);
 }
 
 void rna_TransformOrientationSlot_type_set(PointerRNA *ptr, int value)
 {
+	Scene *scene = ptr->id.data;
 	TransformOrientationSlot *orient_slot = ptr->data;
+
+	if (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
+		if (value == V3D_MANIP_DEFAULT) {
+			orient_slot->flag &= ~SELECT;
+			return;
+		}
+		else {
+			orient_slot->flag |= SELECT;
+		}
+	}
+
 	BKE_scene_orientation_slot_set_index(orient_slot, value);
 }
 
@@ -2001,12 +2022,26 @@ static PointerRNA rna_TransformOrientationSlot_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_TransformOrientation, orientation);
 }
 
-const EnumPropertyItem *rna_TransformOrientation_itemf(
-        bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(
+        bContext *C, PointerRNA *ptr,
+        const bool with_scene,
+        bool *r_free)
 {
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item = NULL;
 	int i = V3D_MANIP_CUSTOM, totitem = 0;
+
+	if (with_scene) {
+		tmp.identifier = "DEFAULT";
+		tmp.name = "Default";
+		tmp.description = "Use the scene orientation";
+		tmp.value = V3D_MANIP_DEFAULT;
+		tmp.icon = ICON_OBJECT_ORIGIN;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+		tmp.icon = 0;
+
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
 
 	RNA_enum_items_add(&item, &totitem, rna_enum_transform_orientation_items);
 
@@ -2035,6 +2070,19 @@ const EnumPropertyItem *rna_TransformOrientation_itemf(
 
 	return item;
 }
+const EnumPropertyItem *rna_TransformOrientation_itemf(
+        bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	return rna_TransformOrientation_impl_itemf(C, ptr, false, r_free);
+}
+
+const EnumPropertyItem *rna_TransformOrientation_with_scene_itemf(
+        bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	return rna_TransformOrientation_impl_itemf(C, ptr, true, r_free);
+}
+
+#undef V3D_MANIP_DEFAULT
 
 void rna_TransformOrientationSlot_ui_info(
         ID *scene_id, TransformOrientationSlot *orient_slot,
@@ -2227,8 +2275,8 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
 	        prop,
 	        "rna_TransformOrientationSlot_type_get",
 	        "rna_TransformOrientationSlot_type_set",
-	        "rna_TransformOrientation_itemf");
-	RNA_def_property_ui_text(prop, "Transform Orientation", "Transformation orientation");
+	        "rna_TransformOrientation_with_scene_itemf");
+	RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "custom_orientation", PROP_POINTER, PROP_NONE);
@@ -2237,8 +2285,8 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Current Transform Orientation", "");
 
 	/* flag */
-	prop = RNA_def_property(srna, "use_global", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SELECT);
+	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Use", "Use scene orientation instead of a custom setting");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
