@@ -785,7 +785,7 @@ int ED_transform_calc_gizmo_stats(
 		const bool use_mat_local = true;
 		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 			/* only editable and visible layers are considered */
-			
+
 			if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
 
 				/* calculate difference matrix */
@@ -1822,6 +1822,9 @@ static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroup
 	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		return false;
 	}
+	if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) {
+		return false;
+	}
 	return true;
 }
 
@@ -1874,6 +1877,9 @@ static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *gzg
 	}
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
+		return false;
+	}
+	if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) {
 		return false;
 	}
 	return true;

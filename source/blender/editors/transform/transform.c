@@ -1942,9 +1942,32 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 	}
 }
 
-static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), void *arg)
+static bool transinfo_show_overlay(const struct bContext *C, TransInfo *t, ARegion *ar)
+{
+	/* Don't show overlays when not the active view and when overlay is disabled: T57139 */
+	bool ok = false;
+	if (ar == t->ar) {
+		ok = true;
+	}
+	else {
+		ScrArea *sa = CTX_wm_area(C);
+		if (sa->spacetype == SPACE_VIEW3D) {
+			View3D *v3d = sa->spacedata.first;
+			if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+				ok = true;
+			}
+		}
+	}
+	return ok;
+}
+
+static void drawTransformView(const struct bContext *C, ARegion *ar, void *arg)
 {
 	TransInfo *t = arg;
+
+	if (!transinfo_show_overlay(C, t, ar)) {
+		return;
+	}
 
 	GPU_line_width(1.0f);
 
@@ -1952,12 +1975,14 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 	drawPropCircle(C, t);
 	drawSnapping(C, t);
 
-	/* edge slide, vert slide */
-	drawEdgeSlide(t);
-	drawVertSlide(t);
+	if (ar == t->ar) {
+		/* edge slide, vert slide */
+		drawEdgeSlide(t);
+		drawVertSlide(t);
 
-	/* Rotation */
-	drawDial3d(t);
+		/* Rotation */
+		drawDial3d(t);
+	}
 }
 
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
@@ -2000,23 +2025,30 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 	GPU_blend(false);
 }
 
-static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, void *arg)
+static void drawTransformPixel(const struct bContext *C, ARegion *ar, void *arg)
 {
 	TransInfo *t = arg;
-	Scene *scene = t->scene;
-	ViewLayer *view_layer = t->view_layer;
-	Object *ob = OBACT(view_layer);
 
-	/* draw autokeyframing hint in the corner
-	 * - only draw if enabled (advanced users may be distracted/annoyed),
-	 *   for objects that will be autokeyframed (no point otherwise),
-	 *   AND only for the active region (as showing all is too overwhelming)
-	 */
-	if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
-		if (ar == t->ar) {
-			if (t->flag & (T_OBJECT | T_POSE)) {
-				if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-					drawAutoKeyWarning(t, ar);
+	if (!transinfo_show_overlay(C, t, ar)) {
+		return;
+	}
+
+	if (ar == t->ar) {
+		Scene *scene = t->scene;
+		ViewLayer *view_layer = t->view_layer;
+		Object *ob = OBACT(view_layer);
+
+		/* draw autokeyframing hint in the corner
+		 * - only draw if enabled (advanced users may be distracted/annoyed),
+		 *   for objects that will be autokeyframed (no point otherwise),
+		 *   AND only for the active region (as showing all is too overwhelming)
+		 */
+		if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
+			if (ar == t->ar) {
+				if (t->flag & (T_OBJECT | T_POSE)) {
+					if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
+						drawAutoKeyWarning(t, ar);
+					}
 				}
 			}
 		}
