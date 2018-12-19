@@ -2209,12 +2209,14 @@ void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const ID *id
  */
 char *BKE_id_to_unique_string_key(const struct ID *id)
 {
-	char name[MAX_ID_FULL_NAME + 2];
-	name[0] = id->name[0];
-	name[1] = id->name[1];
-	BKE_id_full_name_get(name + 2, id);
-
-	return BLI_strdup(name);
+	if (id->lib == NULL) {
+		return BLI_strdup(id->name);
+	}
+	else {
+		/* Important library comes first since we can't ensure an object name won't include a library
+		 * like identifier at the end, but we _can_ ensure every library has an ID after it. */
+		return BLI_string_joinN(id->lib->id.name, id->name);
+	}
 }
 
 void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
