@@ -8455,7 +8455,8 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 								/* do point... */
 								if (point_ok) {
 									copy_v3_v3(td->iloc, &pt->x);
-									copy_v3_v3(td->center, center);
+									/* GPXX disable center while get better solution */
+									copy_v3_v3(td->center, &pt->x);
 
 									td->loc = &pt->x;
 
