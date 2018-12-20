@@ -291,10 +291,7 @@ class VIEW3D_MT_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
-
-    @staticmethod
-    def draw_menus(layout, context):
+        layout = self.layout
         obj = context.active_object
         mode_string = context.mode
         edit_object = context.edit_object

@@ -39,10 +39,7 @@ class CONSOLE_MT_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
-
-    @staticmethod
-    def draw_menus(layout, context):
+        layout = self.layout
         layout.menu("CONSOLE_MT_console")
 
 

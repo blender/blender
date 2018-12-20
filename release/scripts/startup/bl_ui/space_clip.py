@@ -283,10 +283,7 @@ class CLIP_MT_tracking_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
-
-    @staticmethod
-    def draw_menus(layout, context):
+        layout = self.layout
         sc = context.space_data
         clip = sc.clip
 
@@ -308,10 +305,7 @@ class CLIP_MT_masking_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
-
-    @staticmethod
-    def draw_menus(layout, context):
+        layout = self.layout
         sc = context.space_data
         clip = sc.clip
 

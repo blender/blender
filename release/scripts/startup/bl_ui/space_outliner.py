@@ -90,10 +90,7 @@ class OUTLINER_MT_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
-
-    @staticmethod
-    def draw_menus(layout, context):
+        layout = self.layout
         space = context.space_data
 
         if space.display_mode == 'DATA_API':

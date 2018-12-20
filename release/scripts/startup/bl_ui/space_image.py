@@ -606,10 +606,7 @@ class MASK_MT_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
-
-    @staticmethod
-    def draw_menus(layout, context):
+        layout = self.layout
         sima = context.space_data
         ima = sima.image
 
