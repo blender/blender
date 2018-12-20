@@ -1312,14 +1312,18 @@ static void gp_convert_set_end_frame(struct Main *UNUSED(main), struct Scene *UN
 
 static bool gp_convert_poll(bContext *C)
 {
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	Object *ob = CTX_data_active_object(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
+	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+		return false;
+	}
+
+	bGPdata *gpd = (bGPdata *)ob->data;
 	bGPDlayer *gpl = NULL;
 	bGPDframe *gpf = NULL;
 	ScrArea *sa = CTX_wm_area(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	/* only if the current view is 3D View, if there's valid data (i.e. at least one stroke!),
 	 * and if we are not in edit mode!
@@ -1328,13 +1332,15 @@ static bool gp_convert_poll(bContext *C)
 	        (gpl = BKE_gpencil_layer_getactive(gpd)) &&
 	        (gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV)) &&
 	        (gpf->strokes.first) &&
-	        (OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL));
+	        (!GPENCIL_ANY_EDIT_MODE(gpd)));
 }
 
 static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 {
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_timing_data");
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	Object *ob = CTX_data_active_object(C);
+	bGPdata *gpd = (bGPdata *)ob->data;
+
 	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 	Scene *scene = CTX_data_scene(C);
 	const int mode = RNA_enum_get(op->ptr, "type");
@@ -1493,7 +1499,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	                "Normalize weight (set from stroke width)");
 	RNA_def_float(ot->srna, "radius_multiplier", 1.0f, 0.0f, 1000.0f, "Radius Fac",
 	              "Multiplier for the points' radii (set from stroke width)", 0.0f, 10.0f);
-	RNA_def_boolean(ot->srna, "use_link_strokes", true, "Link Strokes",
+	RNA_def_boolean(ot->srna, "use_link_strokes", false, "Link Strokes",
 	                "Whether to link strokes with zero-radius sections of curves");
 
 	prop = RNA_def_enum(ot->srna, "timing_mode", prop_gpencil_convert_timingmodes, GP_STROKECONVERT_TIMING_FULL,
