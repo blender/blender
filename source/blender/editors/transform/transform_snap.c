@@ -1547,6 +1547,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 	/* absolute snapping on grid based on global center */
 	if ((t->tsnap.snap_spatial_grid) && (t->mode == TFM_TRANSLATION)) {
 		const float *center_global = t->center_global;
+		bool use_local_axis = false;
 
 		/* use a fallback for cursor selection,
 		 * this isn't useful as a global center for absolute grid snapping
@@ -1556,11 +1557,52 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 			center_global = cd->global;
 		}
 
+		if (t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2)) {
+			use_local_axis = true;
+		}
+
 		for (i = 0; i <= max_index; i++) {
 			/* do not let unconstrained axis jump to absolute grid increments */
 			if (!(t->con.mode & CON_APPLY) || t->con.mode & (CON_AXIS0 << i)) {
 				const float iter_fac = fac[action] * asp[i];
-				val[i] = iter_fac * roundf((val[i] + center_global[i]) / iter_fac) - center_global[i];
+
+				if (use_local_axis) {
+					float local_axis[3];
+					float pos_on_axis[3];
+
+					copy_v3_v3(local_axis, t->con.mtx[i]);
+					copy_v3_v3(pos_on_axis, t->con.mtx[i]);
+
+					/* amount of movement on axis from initial pos */
+					mul_v3_fl(pos_on_axis, val[i]);
+
+					/* actual global position on axis */
+					add_v3_v3(pos_on_axis, center_global);
+
+					float min_dist = INFINITY;
+					for (int j = 0; j < 3; j++) {
+						if (fabs(local_axis[j]) < 0.01f) {
+							/* Ignore very small (normalized) axis changes */
+							continue;
+						}
+
+						/* closest point on grid */
+						float grid_p = iter_fac * roundf(pos_on_axis[j] / iter_fac);
+						float dist_p = fabs((grid_p - pos_on_axis[j]) / local_axis[j]);
+
+						/* The amount of distance needed to travel along the local axis to snap to the closest grid point */
+						/* in the global j axis direction */
+						float move_dist = (grid_p - center_global[j]) / local_axis[j];
+
+						if (dist_p < min_dist) {
+							min_dist = dist_p;
+							val[i] = move_dist;
+						}
+					}
+				}
+				else {
+					val[i] = iter_fac * roundf((val[i]  + center_global[i]) / iter_fac) - center_global[i];
+				}
 			}
 		}
 	}
