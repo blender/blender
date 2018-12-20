@@ -11,10 +11,6 @@ if "%GIT%" == "" (
 	goto EOF
 )
 "%GIT%" pull --rebase
-"%GIT%" submodule update --init --recursive
-rem Use blender2.8 branch for submodules that have it.
-"%GIT%" submodule foreach "git checkout blender2.8 || git checkout master"
-"%GIT%" submodule foreach git pull --rebase origin
-
+"%GIT%" submodule foreach git pull --rebase origin master
 
 :EOF
