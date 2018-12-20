@@ -290,10 +290,41 @@ static void area_draw_azone(short UNUSED(x1), short UNUSED(y1), short UNUSED(x2)
 	/* No drawing needed since all corners are action zone, and visually distinguishable. */
 }
 
-static void draw_azone_plus(float x1, float y1, float x2, float y2)
+/**
+ * \brief Edge widgets to show hidden panels such as the toolbar and headers.
+ */
+static void draw_azone_arrow(float x1, float y1, float x2, float y2, AZEdge edge)
 {
-	float width = 0.1f * U.widget_unit;
-	float pad = 0.2f * U.widget_unit;
+	const float size =  0.2f * U.widget_unit;
+	const float l = 1.0f;     /* arrow length */
+	const float s = 0.25f;    /* arrow thickness */
+	const float hl = l / 2.0f;
+	const float points[6][2] = {{0, -hl}, {l, hl}, {l - s, hl + s}, {0, s + s - hl}, {s - l, hl + s}, {-l, hl}};
+	const float center[2] = {(x1 + x2) / 2, (y1 + y2) / 2};
+
+	int axis;
+	int sign;
+	switch (edge) {
+		case AE_BOTTOM_TO_TOPLEFT:
+			axis = 0;
+			sign = 1;
+			break;
+		case AE_TOP_TO_BOTTOMRIGHT:
+			axis = 0;
+			sign = -1;
+			break;
+		case AE_LEFT_TO_TOPRIGHT:
+			axis = 1;
+			sign = 1;
+			break;
+		case AE_RIGHT_TO_TOPLEFT:
+			axis = 1;
+			sign = -1;
+			break;
+		default:
+			BLI_assert(0);
+			return;
+	}
 
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -302,15 +333,22 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 
-	immRectf(pos, (x1 + x2 - width) * 0.5f, y1 + pad, (x1 + x2 + width) * 0.5f, y2 - pad);
-	immRectf(pos, x1 + pad, (y1 + y2 - width) * 0.5f, (x1 + x2 - width) * 0.5f, (y1 + y2 + width) * 0.5f);
-	immRectf(pos, (x1 + x2 + width) * 0.5f, (y1 + y2 - width) * 0.5f, x2 - pad, (y1 + y2 + width) * 0.5f);
+	immBegin(GPU_PRIM_TRI_FAN, 6);
+	for (int i = 0; i < 6; i++) {
+		if (axis == 0) {
+			immVertex2f(pos, center[0] + points[i][0] * size, center[1] + points[i][1] * sign * size);
+		}
+		else {
+			immVertex2f(pos, center[0] + points[i][1] * sign * size, center[1] + points[i][0] * size);
+		}
+	}
+	immEnd();
 
 	immUnbindProgram();
 	GPU_blend(false);
 }
 
-static void region_draw_azone_tab_plus(AZone *az)
+static void region_draw_azone_tab_arrow(AZone *az)
 {
 	GPU_blend(true);
 
@@ -333,7 +371,7 @@ static void region_draw_azone_tab_plus(AZone *az)
 	float color[4] = {0.05f, 0.05f, 0.05f, 0.4f};
 	UI_draw_roundbox_aa(true, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, color);
 
-	draw_azone_plus((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2);
+	draw_azone_arrow((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, az->edge);
 }
 
 static void area_azone_tag_update(ScrArea *sa)
@@ -368,7 +406,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 				if (az->ar) {
 					/* only display tab or icons when the region is hidden */
 					if (az->ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-						region_draw_azone_tab_plus(az);
+						region_draw_azone_tab_arrow(az);
 					}
 				}
 			}
@@ -881,7 +919,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 
 	float edge_offset = 1.0f;
 	const float tab_size_x = 0.7f * U.widget_unit;
-	const float tab_size_y = 0.7f * U.widget_unit;
+	const float tab_size_y = 0.4f * U.widget_unit;
 
 
 	for (azt = sa->actionzones.first; azt; azt = azt->next) {
@@ -909,9 +947,9 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 			az->y2 = ar->winrct.ymax - (edge_offset * tab_size_x);
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
-			az->x1 = ar->winrct.xmax - 1;
+			az->x1 = ar->winrct.xmax;
 			az->y1 = ar->winrct.ymax - ((edge_offset + 1.0f) * tab_size_x);
-			az->x2 = ar->winrct.xmax - 1 + tab_size_y;
+			az->x2 = ar->winrct.xmax + tab_size_y;
 			az->y2 = ar->winrct.ymax - (edge_offset * tab_size_x);
 			break;
 	}
