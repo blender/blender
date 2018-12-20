@@ -678,12 +678,12 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
-	/* New code, using "generic" BKE_pchan_to_parent_transform(). */
+	/* New code, using "generic" BKE_bone_parent_transform_calc_from_pchan(). */
 	{
 		BoneParentTransform bpt;
 		float rpmat[3][3];
 
-		BKE_pchan_to_parent_transform(pchan, &bpt);
+		BKE_bone_parent_transform_calc_from_pchan(pchan, &bpt);
 		if (t->mode == TFM_TRANSLATION)
 			copy_m3_m4(pmat, bpt.loc_mat);
 		else

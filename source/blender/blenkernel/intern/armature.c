@@ -1460,7 +1460,7 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
 
 /* Simple helper, computes the offset bone matrix.
  *     offs_bone = yoffs(b-1) + root(b) + bonemat(b). */
-void BKE_get_offset_bone_mat(Bone *bone, float offs_bone[4][4])
+void BKE_bone_offset_matrix_get(const Bone *bone, float offs_bone[4][4])
 {
 	BLI_assert(bone->parent != NULL);
 
@@ -1491,10 +1491,10 @@ void BKE_get_offset_bone_mat(Bone *bone, float offs_bone[4][4])
  *       pose-channel into its local space (i.e. 'visual'-keyframing).
  *       (note: I don't understand that, so I keep it :p --mont29).
  */
-void BKE_pchan_to_parent_transform(bPoseChannel *pchan, BoneParentTransform *r_bpt)
+void BKE_bone_parent_transform_calc_from_pchan(const bPoseChannel *pchan, BoneParentTransform *r_bpt)
 {
-	Bone *bone, *parbone;
-	bPoseChannel *parchan;
+	const Bone *bone, *parbone;
+	const bPoseChannel *parchan;
 
 	/* set up variables for quicker access below */
 	bone = pchan->bone;
@@ -1504,12 +1504,12 @@ void BKE_pchan_to_parent_transform(bPoseChannel *pchan, BoneParentTransform *r_b
 	if (parchan) {
 		float offs_bone[4][4];
 		/* yoffs(b-1) + root(b) + bonemat(b). */
-		BKE_get_offset_bone_mat(bone, offs_bone);
+		BKE_bone_offset_matrix_get(bone, offs_bone);
 
-		BKE_calc_bone_parent_transform(bone->flag, offs_bone, parbone->arm_mat, parchan->pose_mat, r_bpt);
+		BKE_bone_parent_transform_calc_from_matrices(bone->flag, offs_bone, parbone->arm_mat, parchan->pose_mat, r_bpt);
 	}
 	else {
-		BKE_calc_bone_parent_transform(bone->flag, bone->arm_mat, NULL, NULL, r_bpt);
+		BKE_bone_parent_transform_calc_from_matrices(bone->flag, bone->arm_mat, NULL, NULL, r_bpt);
 	}
 }
 
@@ -1519,7 +1519,9 @@ void BKE_pchan_to_parent_transform(bPoseChannel *pchan, BoneParentTransform *r_b
  * offs_bone: delta from parent to current arm_mat (or just arm_mat if no parent)
  * parent_arm_mat, parent_pose_mat: arm_mat and pose_mat of parent, or NULL
  * r_bpt: OUTPUT parent transform */
-void BKE_calc_bone_parent_transform(int bone_flag, const float offs_bone[4][4], const float parent_arm_mat[4][4], const float parent_pose_mat[4][4], BoneParentTransform *r_bpt)
+void BKE_bone_parent_transform_calc_from_matrices(
+        int bone_flag, const float offs_bone[4][4], const float parent_arm_mat[4][4], const float parent_pose_mat[4][4],
+        BoneParentTransform *r_bpt)
 {
 	if (parent_pose_mat) {
 		/* Compose the rotscale matrix for this bone. */
@@ -1593,25 +1595,27 @@ void BKE_calc_bone_parent_transform(int bone_flag, const float offs_bone[4][4], 
 	}
 }
 
-void BKE_clear_bone_parent_transform(struct BoneParentTransform *bpt)
+void BKE_bone_parent_transform_clear(struct BoneParentTransform *bpt)
 {
 	unit_m4(bpt->rotscale_mat);
 	unit_m4(bpt->loc_mat);
 }
 
-void BKE_invert_bone_parent_transform(struct BoneParentTransform *bpt)
+void BKE_bone_parent_transform_invert(struct BoneParentTransform *bpt)
 {
 	invert_m4(bpt->rotscale_mat);
 	invert_m4(bpt->loc_mat);
 }
 
-void BKE_combine_bone_parent_transform(const struct BoneParentTransform *in1, const struct BoneParentTransform *in2, struct BoneParentTransform *result)
+void BKE_bone_parent_transform_combine(
+        const struct BoneParentTransform *in1, const struct BoneParentTransform *in2,
+        struct BoneParentTransform *result)
 {
 	mul_m4_m4m4(result->rotscale_mat, in1->rotscale_mat, in2->rotscale_mat);
 	mul_m4_m4m4(result->loc_mat, in1->loc_mat, in2->loc_mat);
 }
 
-void BKE_apply_bone_parent_transform(const struct BoneParentTransform *bpt, const float inmat[4][4], float outmat[4][4])
+void BKE_bone_parent_transform_apply(const struct BoneParentTransform *bpt, const float inmat[4][4], float outmat[4][4])
 {
 	/* in case inmat == outmat */
 	float tmploc[3];
@@ -1628,9 +1632,9 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[4][4], float
 {
 	BoneParentTransform bpt;
 
-	BKE_pchan_to_parent_transform(pchan, &bpt);
-	BKE_invert_bone_parent_transform(&bpt);
-	BKE_apply_bone_parent_transform(&bpt, inmat, outmat);
+	BKE_bone_parent_transform_calc_from_pchan(pchan, &bpt);
+	BKE_bone_parent_transform_invert(&bpt);
+	BKE_bone_parent_transform_apply(&bpt, inmat, outmat);
 }
 
 /* Convert Bone-Space Matrix to Pose-Space Matrix. */
@@ -1638,8 +1642,8 @@ void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan, float inmat[4][4], float
 {
 	BoneParentTransform bpt;
 
-	BKE_pchan_to_parent_transform(pchan, &bpt);
-	BKE_apply_bone_parent_transform(&bpt, inmat, outmat);
+	BKE_bone_parent_transform_calc_from_pchan(pchan, &bpt);
+	BKE_bone_parent_transform_apply(&bpt, inmat, outmat);
 }
 
 /* Convert Pose-Space Location to Bone-Space Location
@@ -1949,7 +1953,7 @@ void BKE_armature_where_is_bone(Bone *bone, Bone *prevbone, const bool use_recur
 	if (prevbone) {
 		float offs_bone[4][4];
 		/* yoffs(b-1) + root(b) + bonemat(b) */
-		BKE_get_offset_bone_mat(bone, offs_bone);
+		BKE_bone_offset_matrix_get(bone, offs_bone);
 
 		/* Compose the matrix for this bone  */
 		mul_m4_m4m4(bone->arm_mat, prevbone->arm_mat, offs_bone);
