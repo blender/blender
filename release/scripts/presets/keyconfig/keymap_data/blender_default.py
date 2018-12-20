@@ -1558,7 +1558,7 @@ def km_node_editor(params):
         ("node.link", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("detach", True)]}),
         ("node.resize", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
-        ("node.add_reroute", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True}, None),
+        ("node.add_reroute", {"type": params.action_tweak, "value": 'ANY', "shift": True}, None),
         ("node.links_cut", {"type": params.action_tweak, "value": 'ANY', "ctrl": True}, None),
         ("node.select_link_viewer", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
