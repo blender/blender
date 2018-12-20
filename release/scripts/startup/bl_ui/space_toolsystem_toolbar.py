@@ -32,6 +32,7 @@ from .space_toolsystem_common import (
     ToolDef,
 )
 
+
 def generate_from_enum_ex(
         context, *,
         icon_prefix,
@@ -873,6 +874,7 @@ class _defs_vertex_paint:
             attr="vertex_tool",
         )
 
+
 class _defs_texture_paint:
 
     @staticmethod
@@ -1107,6 +1109,7 @@ class _defs_gpencil_paint:
             widget=None,
             keymap=(),
         )
+
 
 class _defs_gpencil_edit:
     @ToolDef.from_fn

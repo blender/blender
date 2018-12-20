@@ -1571,7 +1571,7 @@ class USERPREF_PT_studiolight_light_editor(Panel):
 
         row = layout.row()
         row.prop(system, "edit_studio_light", toggle=True)
-        row.operator("wm.studiolight_new", text="Save as Studio light", icon="FILE_TICK")
+        row.operator("wm.studiolight_new", text="Save as Studio light", icon='FILE_TICK')
 
         layout.separator()
 

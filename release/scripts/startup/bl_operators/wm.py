@@ -1124,7 +1124,6 @@ class WM_OT_properties_edit(Operator):
 
         return value_eval
 
-
     def get_default_eval(self):
         try:
             default_eval = eval(self.default)
@@ -1134,7 +1133,6 @@ class WM_OT_properties_edit(Operator):
             default_eval = self.default
 
         return default_eval
-
 
     def execute(self, context):
         from rna_prop_ui import (
@@ -1252,7 +1250,7 @@ class WM_OT_properties_edit(Operator):
 
         # default default value
         prop_type = type(self.get_value_eval())
-        if prop_type in {int,float}:
+        if prop_type in {int, float}:
             self.default = str(prop_type(0))
         else:
             self.default = ""
@@ -1315,7 +1313,7 @@ class WM_OT_properties_edit(Operator):
         layout.prop(self, "value")
 
         row = layout.row()
-        row.enabled = type(self.get_value_eval()) in {int,float}
+        row.enabled = type(self.get_value_eval()) in {int, float}
         row.prop(self, "default")
 
         row = layout.row(align=True)
@@ -2396,6 +2394,7 @@ class WM_OT_toolbar(Operator):
 
     if use_toolbar_release_hack:
         _key_held = None
+
         def invoke(self, context, event):
             WM_OT_toolbar._key_held = event.type
             return self.execute(context)
@@ -2520,7 +2519,7 @@ class WM_OT_studiolight_new(Operator):
             except:
                 traceback.print_exc()
 
-        finalpath = str(path_studiolights.joinpath(self.filename));
+        finalpath = str(path_studiolights.joinpath(self.filename))
         if pathlib.Path(finalpath + ".sl").is_file():
             if not self.ask_overide:
                 self.ask_overide = True
@@ -2678,7 +2677,7 @@ class WM_MT_splash(Menu):
         #sub = col.split(factor=0.35)
         #row = sub.row()
         #row.alignment = 'RIGHT'
-        #row.label(text="Language:")
+        # row.label(text="Language:")
         #userpref = context.user_preferences
         #sub.prop(userpref.system, "language", text="")
 
@@ -2807,6 +2806,7 @@ class WM_OT_drop_blend_file(Operator):
         col.operator_context = 'INVOKE_DEFAULT'
         col.operator("wm.link", text="Link...", icon='LINK_BLEND').filepath = self.filepath
         col.operator("wm.append", text="Append...", icon='APPEND_BLEND').filepath = self.filepath
+
 
 classes = (
     WM_OT_addon_disable,

@@ -615,7 +615,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
         col = layout.column()
 
-
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col.label(text="Textures:")
@@ -634,7 +633,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(md, "offset_u")
         col.prop(md, "offset_v")
-
 
     def MULTIRES(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)

@@ -983,8 +983,8 @@ class GPENCIL_UL_layer(UIList):
 
             row = layout.row(align=True)
             row.prop(gpl, "clamp_layer", text="",
-                        icon='MOD_MASK' if gpl.clamp_layer else 'LAYER_ACTIVE',
-                        emboss=False)
+                     icon='MOD_MASK' if gpl.clamp_layer else 'LAYER_ACTIVE',
+                     emboss=False)
 
             row.prop(gpl, "lock", text="", emboss=False)
             row.prop(gpl, "hide", text="", emboss=False)

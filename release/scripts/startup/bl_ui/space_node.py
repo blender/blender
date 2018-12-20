@@ -145,7 +145,6 @@ class NODE_HT_header(Header):
 
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
 
-
         layout.prop(snode, "pin", text="")
         layout.separator_spacer()
 
@@ -576,9 +575,11 @@ class EEVEE_NODE_PT_material_settings(Panel):
     @classmethod
     def poll(cls, context):
         snode = context.space_data
-        return (context.engine in cls.COMPAT_ENGINES) and \
-               snode.tree_type == 'ShaderNodeTree' and snode.id and \
-               snode.id.bl_rna.identifier == 'Material'
+        return (
+            (context.engine in cls.COMPAT_ENGINES) and
+            (snode.tree_type == 'ShaderNodeTree' and snode.id) and
+            (snode.id.bl_rna.identifier == 'Material')
+        )
 
     def draw(self, context):
         material = context.space_data.id
@@ -595,8 +596,10 @@ class NODE_PT_material_viewport(Panel):
     @classmethod
     def poll(cls, context):
         snode = context.space_data
-        return snode.tree_type == 'ShaderNodeTree' and snode.id and \
-               snode.id.bl_rna.identifier == 'Material'
+        return (
+            (snode.tree_type == 'ShaderNodeTree' and snode.id) and
+            (snode.id.bl_rna.identifier == "Material")
+        )
 
     def draw(self, context):
         material = context.space_data.id

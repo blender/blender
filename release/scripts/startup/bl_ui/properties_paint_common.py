@@ -311,6 +311,7 @@ def brush_mask_texture_settings(layout, brush):
     col.prop(mask_tex_slot, "offset")
     col.prop(mask_tex_slot, "scale")
 
+
 classes = (
     VIEW3D_MT_tools_projectpaint_clone,
 )

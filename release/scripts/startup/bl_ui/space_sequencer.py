@@ -99,7 +99,7 @@ class SEQUENCER_HT_header(Header):
 
         if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
             layout.separator()
-            layout.operator("sequencer.refresh_all", icon="FILE_REFRESH", text="")
+            layout.operator("sequencer.refresh_all", icon='FILE_REFRESH', text="")
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.prop(st, "display_mode", text="", icon_only=True)
@@ -408,7 +408,7 @@ class SEQUENCER_MT_add_effect(Menu):
         col.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
         col.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
         col.operator("sequencer.effect_strip_add", text="Color Mix").type = 'COLORMIX'
-        col.enabled = sel_sequences(context) >=2
+        col.enabled = sel_sequences(context) >= 2
 
         layout.separator()
 

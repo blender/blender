@@ -4417,7 +4417,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                     sub.scale_y = 0.6  # smaller studiolight preview
                     sub.template_icon_view(shading, "studio_light", scale=3)
                 else:
-                    sub.prop(system, "edit_studio_light", text="Disable Studio Light Edit", icon="NONE", toggle=True)
+                    sub.prop(system, "edit_studio_light", text="Disable Studio Light Edit", icon='NONE', toggle=True)
 
                 col = split.column()
                 col.operator("wm.studiolight_userpref_show", emboss=False, text="", icon='PREFERENCES')
@@ -4426,7 +4426,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col = split.column()
 
                 row = col.row()
-                row.prop(shading, "use_world_space_lighting", text="", icon="WORLD", toggle=True)
+                row.prop(shading, "use_world_space_lighting", text="", icon='WORLD', toggle=True)
                 row = row.row()
                 row.active = shading.use_world_space_lighting
                 row.prop(shading, "studiolight_rotate_z", text="Rotation")
@@ -5263,7 +5263,7 @@ class VIEW3D_PT_transform_orientations(Panel):
 
         if orientation:
             row = layout.row(align=False)
-            row.prop(orientation, "name", text="", icon="OBJECT_ORIGIN")
+            row.prop(orientation, "name", text="", icon='OBJECT_ORIGIN')
             row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
 
 

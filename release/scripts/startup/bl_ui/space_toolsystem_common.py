@@ -631,6 +631,7 @@ def _activate_by_item(context, space_type, item, index):
         handle = WindowManager.draw_cursor_add(handle_fn, (context, item, tool), space_type)
         handle_map[space_type] = handle
 
+
 _activate_by_item._cursor_draw_handle = {}
 
 

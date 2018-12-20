@@ -631,13 +631,12 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
 
         col = layout.column()
 
-
         row = col.row(align=True)
 
         sub = row.row(align=True)
         sub.prop(brush, "cursor_overlay_alpha", text="Curve Alpha")
         sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
-        row.prop(brush,"use_cursor_overlay", text="", toggle=True, icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON')
+        row.prop(brush, "use_cursor_overlay", text="", toggle=True, icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON')
 
         col.active = brush.brush_capabilities.has_overlay
 
@@ -925,6 +924,8 @@ class VIEW3D_PT_sculpt_dyntopo_remesh(Panel, View3DPaintPanel):
             col.operator("sculpt.detail_flood_fill")
 
 # TODO, move to space_view3d.py
+
+
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Options"
@@ -971,6 +972,7 @@ class VIEW3D_PT_sculpt_options_unified(Panel, View3DPaintPanel):
         layout.use_property_decorate = False
 
         self.unified_paint_settings(layout, context)
+
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -1302,6 +1304,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
         col = flow.column()
         col.prop(ipaint, "use_backface_culling")
 
+
 class VIEW3D_PT_tools_projectpaint_unified(Panel, View3DPaintPanel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_parent_id = "VIEW3D_PT_tools_projectpaint"
@@ -1313,6 +1316,7 @@ class VIEW3D_PT_tools_projectpaint_unified(Panel, View3DPaintPanel):
         layout.use_property_decorate = False
 
         self.unified_paint_settings(layout, context)
+
 
 class VIEW3D_PT_tools_projectpaint_cavity(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
@@ -1454,6 +1458,8 @@ class VIEW3D_PT_tools_normal(View3DPanel, Panel):
 # ********** grease pencil object tool panels ****************
 
 # Grease Pencil drawing brushes
+
+
 class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Brush"
@@ -1702,7 +1708,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Sensitivity"
-    bl_parent_id ="VIEW3D_PT_tools_grease_pencil_brushcurves"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
     @staticmethod
     def draw(self, context):
@@ -1718,7 +1724,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_sensitivity(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Strength"
-    bl_parent_id ="VIEW3D_PT_tools_grease_pencil_brushcurves"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
     @staticmethod
     def draw(self, context):
@@ -1734,7 +1740,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves_strength(View3DPanel, Panel):
 class VIEW3D_PT_tools_grease_pencil_brushcurves_jitter(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Jitter"
-    bl_parent_id ="VIEW3D_PT_tools_grease_pencil_brushcurves"
+    bl_parent_id = "VIEW3D_PT_tools_grease_pencil_brushcurves"
 
     @staticmethod
     def draw(self, context):

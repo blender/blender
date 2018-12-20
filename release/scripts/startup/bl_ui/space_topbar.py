@@ -540,7 +540,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
             srow = col.row(align=True)
             srow.prop(gpl, "opacity", text="Opacity", slider=True)
             srow.prop(gpl, "clamp_layer", text="",
-                     icon='MOD_MASK' if gpl.clamp_layer else 'LAYER_ACTIVE')
+                      icon='MOD_MASK' if gpl.clamp_layer else 'LAYER_ACTIVE')
 
         col = row.column()
 
