@@ -1374,6 +1374,11 @@ static void DRW_gpencil_shgroups_create(
 		bGPDframe *gpf = elm->gpf;
 		bGPDstroke *gps = elm->gps;
 		MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
+		/* if the user switch used material from data to object,
+		 * the material could not be available */
+		if (gp_style == NULL) {
+			break;
+		}
 
 		/* limit the number of shading groups */
 		if (i >= GPENCIL_MAX_SHGROUPS) {
