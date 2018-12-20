@@ -327,10 +327,11 @@ class NODE_MT_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
+        selected_nodes_len = len(context.selected_nodes)
+
         # If nothing is selected
         # (disabled for now until it can be made more useful).
         '''
-        selected_nodes_len = len(context.selected_nodes)
         if selected_nodes_len == 0:
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.menu("NODE_MT_add")
