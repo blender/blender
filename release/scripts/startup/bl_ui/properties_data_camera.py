@@ -313,7 +313,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                         box.template_image(bg, "image", bg.image_user, compact=True)
                         has_bg = True
 
-                        if use_multiview and bg.view_axis in {'CAMERA', 'ALL'}:
+                        if use_multiview:
                             box.prop(bg.image, "use_multiview")
 
                             column = box.column()
