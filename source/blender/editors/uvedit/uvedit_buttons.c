@@ -49,6 +49,8 @@
 #include "BKE_screen.h"
 #include "BKE_editmesh.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_image.h"
 #include "ED_uvedit.h"
 
@@ -204,6 +206,7 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 	uvedit_translate(scene, obedit, em, ima, delta);
 
 	WM_event_add_notifier(C, NC_IMAGE, sima->image);
+	DEG_id_tag_update((ID *)obedit->data, ID_RECALC_GEOMETRY);
 }
 
 /* Panels */
