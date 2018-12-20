@@ -380,7 +380,7 @@ static void ui_item_move(uiItem *item, int delta_xmin, int delta_xmax)
 
 /******************** Special RNA Items *********************/
 
-static int ui_layout_local_dir(uiLayout *layout)
+int uiLayoutGetLocalDir(const uiLayout *layout)
 {
 	switch (layout->item.type) {
 		case ITEM_LAYOUT_ROW:
@@ -402,7 +402,7 @@ static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, bool 
 {
 	uiLayout *sub;
 
-	if (ui_layout_local_dir(test) == UI_LAYOUT_HORIZONTAL)
+	if (uiLayoutGetLocalDir(test) == UI_LAYOUT_HORIZONTAL)
 		sub = uiLayoutRow(layout, align);
 	else
 		sub = uiLayoutColumn(layout, align);
@@ -731,7 +731,7 @@ static void ui_item_enum_expand_exec(
 			UI_but_func_set(but, ui_item_enum_expand_handle, but, POINTER_FROM_INT(value));
 		}
 
-		if (ui_layout_local_dir(layout) != UI_LAYOUT_HORIZONTAL)
+		if (uiLayoutGetLocalDir(layout) != UI_LAYOUT_HORIZONTAL)
 			but->drawflag |= UI_BUT_TEXT_LEFT;
 
 		/* Allow quick, inaccurate swipe motions to switch tabs (no need to keep cursor over them). */
@@ -1749,7 +1749,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 				/* Expanded enums each have their own name. */
 
 				/* Often expanded enum's are better arranged into a row, so check the existing layout. */
-				if (ui_layout_local_dir(layout) == UI_LAYOUT_HORIZONTAL) {
+				if (uiLayoutGetLocalDir(layout) == UI_LAYOUT_HORIZONTAL) {
 					layout = uiLayoutRow(layout_split, true);
 				}
 				else {
