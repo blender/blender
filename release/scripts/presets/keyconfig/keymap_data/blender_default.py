@@ -1559,7 +1559,7 @@ def km_node_editor(params):
          {"properties": [("detach", True)]}),
         ("node.resize", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("node.add_reroute", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True}, None),
-        ("node.links_cut", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
+        ("node.links_cut", {"type": params.action_tweak, "value": 'ANY', "ctrl": True}, None),
         ("node.select_link_viewer", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("node.backimage_move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
         ("node.backimage_zoom", {"type": 'V', "value": 'PRESS'},
@@ -5066,9 +5066,9 @@ def km_node_editor_tool_select_box(params):
         "Node Tool: Select Box",
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("node.select_box", {"type": params.tool_mouse, "value": 'PRESS'},
-              {"properties": [("deselect", False), ("tweak", True)]}),
-            ("node.select_box", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+            ("node.select_box", {"type": params.tool_tweak, "value": 'ANY'},
+              {"properties": [("tweak", True)]}),
+            ("node.select_box", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
               {"properties": [("deselect", True), ("tweak", True)]}),
         ]},
     )
@@ -5715,7 +5715,7 @@ def km_3d_view_tool_paint_gpencil_curve(params):
             ("gpencil.primitive", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("type", 'CURVE'), ("wait_for_input", False)]}),
         ]},
-    )	
+    )
 
 def km_3d_view_tool_edit_gpencil_select(params):
     return (
