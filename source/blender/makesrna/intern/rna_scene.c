@@ -2023,15 +2023,14 @@ static PointerRNA rna_TransformOrientationSlot_get(PointerRNA *ptr)
 }
 
 static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(
-        bContext *C, PointerRNA *ptr,
-        const bool with_scene,
+        Scene *scene, const bool include_default,
         bool *r_free)
 {
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item = NULL;
 	int i = V3D_MANIP_CUSTOM, totitem = 0;
 
-	if (with_scene) {
+	if (include_default) {
 		tmp.identifier = "DEFAULT";
 		tmp.name = "Default";
 		tmp.description = "Use the scene orientation";
@@ -2045,13 +2044,6 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(
 
 	RNA_enum_items_add(&item, &totitem, rna_enum_transform_orientation_items);
 
-	Scene *scene;
-	if (ptr->type == &RNA_Scene) {
-		scene = ptr->data;
-	}
-	else {
-		scene = CTX_data_scene(C);
-	}
 	const ListBase *transform_orientations = scene ? &scene->transform_spaces : NULL;
 
 	if (transform_orientations && (BLI_listbase_is_empty(transform_orientations) == false)) {
@@ -2073,13 +2065,23 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(
 const EnumPropertyItem *rna_TransformOrientation_itemf(
         bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_TransformOrientation_impl_itemf(C, ptr, false, r_free);
+	Scene *scene;
+	if (ptr->id.data && (GS(((ID *)ptr->id.data)->name) == ID_SCE)) {
+		scene = ptr->id.data;
+	}
+	else {
+		scene = CTX_data_scene(C);
+	}
+	return rna_TransformOrientation_impl_itemf(scene, false, r_free);
 }
 
 const EnumPropertyItem *rna_TransformOrientation_with_scene_itemf(
-        bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_TransformOrientation_impl_itemf(C, ptr, true, r_free);
+	Scene *scene = ptr->id.data;
+	TransformOrientationSlot *orient_slot = ptr->data;
+	bool include_default = (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]);
+	return rna_TransformOrientation_impl_itemf(scene, include_default, r_free);
 }
 
 #undef V3D_MANIP_DEFAULT
