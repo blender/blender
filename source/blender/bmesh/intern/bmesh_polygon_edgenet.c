@@ -1162,7 +1162,16 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
 		BM_elem_flag_enable(v_split, VERT_NOT_IN_STACK);
 
 		BLI_assert(v_delimit->e != NULL);
+
+		/* Degenerate, avoid eternal loop, see: T59074. */
+#if 0
 		BLI_assert(v_split->e != NULL);
+#else
+		if (UNLIKELY(v_split->e == NULL)) {
+			BM_vert_kill(bm, v_split);
+			v_split = NULL;
+		}
+#endif
 	}
 
 	/* Restore flags */
