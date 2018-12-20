@@ -2263,10 +2263,7 @@ static uiBut *ui_item_menu(
 
 void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon)
 {
-	MenuType *mt;
-
-	mt = WM_menutype_find(menuname, false);
-
+	MenuType *mt = WM_menutype_find(menuname, false);
 	if (mt == NULL) {
 		RNA_warning("not found %s", menuname);
 		return;
@@ -2282,6 +2279,19 @@ void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon)
 	ui_item_menu(
 	        layout, name, icon, ui_item_menutype_func, mt, NULL,
 	        mt->description ? TIP_(mt->description) : "", false);
+}
+
+void uiItemMContents(uiLayout *layout, const char *menuname)
+{
+	MenuType *mt = WM_menutype_find(menuname, false);
+	if (mt == NULL) {
+		RNA_warning("not found %s", menuname);
+		return;
+	}
+
+	uiBlock *block = layout->root->block;
+	bContext *C = block->evil_C;
+	UI_menutype_draw(C, mt, layout);
 }
 
 /* popover */
