@@ -809,6 +809,11 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 					return "Draw";
 			}
 			break;
+		case SPACE_NODE:
+		{
+			/* 'Select Box' interferes with cut-links which is handy. */
+			return "Select";
+		}
 	}
 
 	return "Select Box";
