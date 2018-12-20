@@ -1206,7 +1206,7 @@ static int pyrna_string_to_enum(
 		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, r_value)) {
 			const char *enum_str = pyrna_enum_as_string(ptr, prop);
 			PyErr_Format(PyExc_TypeError,
-			             "%.200s enum \"%.200s\" not found in (%.200s)",
+			             "%.200s enum \"%.200s\" not found in (%s)",
 			             error_prefix, param, enum_str);
 			MEM_freeN((void *)enum_str);
 			return -1;
