@@ -8455,8 +8455,14 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 								/* do point... */
 								if (point_ok) {
 									copy_v3_v3(td->iloc, &pt->x);
-									/* GPXX disable center while get better solution */
-									copy_v3_v3(td->center, &pt->x);
+									/* only copy center in local origins.
+									 * This allows get interesting effects also when move using proportional editing */
+									if (ts->transform_pivot_point == V3D_AROUND_LOCAL_ORIGINS) {
+										copy_v3_v3(td->center, center);
+									}
+									else {
+										copy_v3_v3(td->center, &pt->x);
+									}
 
 									td->loc = &pt->x;
 
