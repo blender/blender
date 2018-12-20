@@ -328,12 +328,15 @@ class NODE_MT_specials(Menu):
         layout = self.layout
 
         # If nothing is selected
+        # (disabled for now until it can be made more useful).
+        '''
         selected_nodes_len = len(context.selected_nodes)
         if selected_nodes_len == 0:
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.menu("NODE_MT_add")
             layout.operator("node.clipboard_paste", text="Paste")
             return
+        '''
 
         # If something is selected
         layout.operator_context = 'INVOKE_DEFAULT'

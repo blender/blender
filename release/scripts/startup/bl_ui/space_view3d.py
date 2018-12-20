@@ -1733,17 +1733,23 @@ class VIEW3D_MT_object_specials(Menu):
         obj = context.object
         is_eevee = context.scene.render.engine == 'BLENDER_EEVEE'
 
-        # If nothing is selected
         selected_objects_len = len(context.selected_objects)
+
+        # If nothing is selected
+        # (disabled for now until it can be made more useful).
+        '''
         if selected_objects_len == 0:
 
             layout.menu("VIEW3D_MT_add", text="Add")
             layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
 
             return
+        '''
 
         # If something is selected
-        if obj.type == 'MESH':
+        if obj is None:
+            pass
+        elif obj.type == 'MESH':
 
             layout.operator("object.shade_smooth", text="Shade Smooth")
             layout.operator("object.shade_flat", text="Shade Flat")
@@ -1758,7 +1764,7 @@ class VIEW3D_MT_object_specials(Menu):
             if selected_objects_len > 1:
                 layout.operator("object.join")
 
-        if obj.type == 'CAMERA':
+        elif obj.type == 'CAMERA':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             if obj.data.type == 'PERSP':
@@ -1788,7 +1794,7 @@ class VIEW3D_MT_object_specials(Menu):
                     props.input_scale = 0.02
                     props.header_text = "DOF Distance: %.3f"
 
-        if obj.type in {'CURVE', 'FONT'}:
+        elif obj.type in {'CURVE', 'FONT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
@@ -1807,14 +1813,14 @@ class VIEW3D_MT_object_specials(Menu):
 
             layout.operator_menu_enum("object.origin_set", text="Set Origin...", property="type")
 
-        if obj.type == 'GPENCIL':
+        elif obj.type == 'GPENCIL':
             layout.operator("gpencil.convert", text="Convert to Path").type = 'PATH'
             layout.operator("gpencil.convert", text="Convert to Bezier Curves").type = 'CURVE'
             layout.operator("gpencil.convert", text="Convert to Mesh").type = 'POLY'
 
             layout.operator_menu_enum("object.origin_set", text="Set Origin...", property="type")
 
-        if obj.type == 'EMPTY':
+        elif obj.type == 'EMPTY':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Empty Draw Size")
@@ -1823,7 +1829,7 @@ class VIEW3D_MT_object_specials(Menu):
             props.input_scale = 0.01
             props.header_text = "Empty Draw Size: %.3f"
 
-        if obj.type == 'LIGHT':
+        elif obj.type == 'LIGHT':
             light = obj.data
 
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -2827,10 +2833,14 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         # If nothing is selected
+        # (disabled for now until it can be made more useful).
+        '''
+        # If nothing is selected
         if not (selected_verts_len or selected_edges_len or selected_faces_len):
             layout.menu("VIEW3D_MT_mesh_add", text="Add")
 
             return
+        '''
 
         # Else something is selected
 
