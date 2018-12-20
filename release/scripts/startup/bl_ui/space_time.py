@@ -88,7 +88,7 @@ class TIME_MT_editor_menus(Menu):
 
     def draw(self, context):
         layout = self.layout
-        horizontal = layout.direction == 'HORIZONTAL'
+        horizontal = (layout.direction == 'VERTICAL')
         if horizontal:
             row = layout.row()
             sub = row.row(align=True)
