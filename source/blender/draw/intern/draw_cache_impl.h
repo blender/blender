@@ -78,7 +78,8 @@ struct GPUBatch *DRW_curve_batch_cache_get_wireframes_face(struct Curve *cu);
 
 /* Metaball */
 struct GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
-struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(struct Object *ob, struct MetaBall *mb, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
+struct GPUBatch **DRW_metaball_batch_cache_get_surface_shaded(
+        struct Object *ob, struct MetaBall *mb, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(struct Object *ob);
 
 /* DispList */
@@ -184,12 +185,12 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(
         struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
 
 /* Common */
-#define DRW_ADD_FLAG_FROM_VBO_REQUEST(flag, vbo, value) (flag |= DRW_vbo_requested(vbo) ? value : 0)
-#define DRW_ADD_FLAG_FROM_IBO_REQUEST(flag, ibo, value) (flag |= DRW_ibo_requested(ibo) ? value : 0)
+#define DRW_ADD_FLAG_FROM_VBO_REQUEST(flag, vbo, value) (flag |= DRW_vbo_requested(vbo) ? (value) : 0)
+#define DRW_ADD_FLAG_FROM_IBO_REQUEST(flag, ibo, value) (flag |= DRW_ibo_requested(ibo) ? (value) : 0)
 
 /* Test and assign NULL if test fails */
-#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? v : NULL))
-#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? v : NULL))
+#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : NULL))
+#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? (v) : NULL))
 
 struct GPUBatch *DRW_batch_request(struct GPUBatch **batch);
 bool DRW_batch_requested(struct GPUBatch *batch, int prim_type);

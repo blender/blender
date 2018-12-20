@@ -495,8 +495,8 @@ static void mesh_render_calc_normals_loop_and_poly(const Mesh *me, const float s
 }
 
 static void mesh_cd_extract_auto_layers_names_and_srgb(
-	Mesh *me, const ushort cd_lused[CD_NUMTYPES],
-	char **r_auto_layers_names, int **r_auto_layers_srgb, int *r_auto_layers_len)
+        Mesh *me, const ushort cd_lused[CD_NUMTYPES],
+        char **r_auto_layers_names, int **r_auto_layers_srgb, int *r_auto_layers_len)
 {
 	const CustomData *cd_ldata = (me->edit_btmesh) ? &me->edit_btmesh->bm->ldata : &me->ldata;
 
@@ -1015,7 +1015,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				        &rdata->cd.output.ldata, me->totloop,
 				        &rdata->cd.output.tangent_mask);
 
-					/* If we store tangents in the mesh, set temporary. */
+				/* If we store tangents in the mesh, set temporary. */
 #if 0
 				CustomData_set_layer_flag(cd_ldata, CD_TANGENT, CD_FLAG_TEMPORARY);
 #endif
@@ -2413,7 +2413,7 @@ static void mesh_batch_cache_clear_selective(Mesh *me, GPUVertBuf *vert)
 	BLI_assert(vert != NULL);
 
 	if (ELEM(vert, cache->pos_with_normals, cache->pos_with_normals_visible_only,
-	               cache->pos_with_normals_edit, cache->pos_with_normals_visible_only_edit))
+	         cache->pos_with_normals_edit, cache->pos_with_normals_visible_only_edit))
 	{
 		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_normals);
 		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_weights);
@@ -4208,9 +4208,11 @@ static void mesh_create_surf_tris(MeshRenderData *rdata, GPUIndexBuf *ibo, const
 				if (BM_elem_flag_test(bm_face, BM_ELEM_HIDDEN)) {
 					continue;
 				}
-				GPU_indexbuf_add_tri_verts(&elb, BM_elem_index_get(bm_looptri[0]->v),
-				                                 BM_elem_index_get(bm_looptri[1]->v),
-				                                 BM_elem_index_get(bm_looptri[2]->v));
+				GPU_indexbuf_add_tri_verts(
+				        &elb,
+				        BM_elem_index_get(bm_looptri[0]->v),
+				        BM_elem_index_get(bm_looptri[1]->v),
+				        BM_elem_index_get(bm_looptri[2]->v));
 			}
 		}
 		else {
@@ -4373,9 +4375,11 @@ static void mesh_create_loops_tris(
 					continue;
 				}
 				int mat = (ibo_len > 1) ? bm_face->mat_nr : 0;
-				GPU_indexbuf_add_tri_verts(&elb[mat], BM_elem_index_get(bm_looptri[0]),
-				                                         BM_elem_index_get(bm_looptri[1]),
-				                                         BM_elem_index_get(bm_looptri[2]));
+				GPU_indexbuf_add_tri_verts(
+				        &elb[mat],
+				        BM_elem_index_get(bm_looptri[0]),
+				        BM_elem_index_get(bm_looptri[1]),
+				        BM_elem_index_get(bm_looptri[2]));
 			}
 		}
 		else {
@@ -5273,8 +5277,10 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const int mode = CTX_data_mode_enum_ex(draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
 	const bool is_paint_mode = ELEM(mode, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
-	const bool use_hide = (ob->type == OB_MESH) && ((is_paint_mode && (ob == draw_ctx->obact)) ||
-	                                               ((mode == CTX_MODE_EDIT_MESH) && BKE_object_is_in_editmode(ob)));
+	const bool use_hide = (
+	        (ob->type == OB_MESH) &&
+	        ((is_paint_mode && (ob == draw_ctx->obact)) ||
+	         ((mode == CTX_MODE_EDIT_MESH) && BKE_object_is_in_editmode(ob))));
 	bool use_face_sel = false;
 
 	/* Tex paint face select */
@@ -5526,8 +5532,10 @@ void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
 	    DRW_vbo_requested(cache->edit.lnor) ||
 	    DRW_ibo_requested(cache->ibo.edit_verts_points))
 	{
-		mesh_create_edit_tris_and_verts(rdata, cache->edit.data, cache->edit.pos_nor,
-		                                       cache->edit.lnor, cache->ibo.edit_verts_points);
+		mesh_create_edit_tris_and_verts(
+		        rdata,
+		        cache->edit.data, cache->edit.pos_nor,
+		        cache->edit.lnor, cache->ibo.edit_verts_points);
 	}
 	if (DRW_vbo_requested(cache->edit.data_ledges) || DRW_vbo_requested(cache->edit.pos_nor_ledges)) {
 		mesh_create_edit_loose_edges(rdata, cache->edit.data_ledges, cache->edit.pos_nor_ledges);
