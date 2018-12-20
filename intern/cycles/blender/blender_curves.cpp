@@ -62,6 +62,8 @@ static void curveinterp_v3_v3v3v3v3(float3 *p,
 
 static float shaperadius(float shape, float root, float tip, float time)
 {
+	assert(time >= 0.0f);
+	assert(time <= 1.0f);
 	float radius = 1.0f - time;
 
 	if(shape != 0.0f) {
@@ -636,21 +638,24 @@ static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve,
 
 static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, float step)
 {
-	step = clamp(step, 0.0f, 1.0f);
-	float curve_key_f = step * (CData->curve_keynum[curve] - 1);
+	assert(step >= 0.0f);
+	assert(step <= 1.0f);
+	const int first_curve_key = CData->curve_firstkey[curve];
+	const float curve_key_f = step * (CData->curve_keynum[curve] - 1);
 	int curvekey = (int)floorf(curve_key_f);
-	float remainder = curve_key_f - curvekey;
+	const float remainder = curve_key_f - curvekey;
 	if(remainder == 0.0f) {
-		return CurveSegmentMotionCV(CData, sys, curve, curvekey);
+		return CurveSegmentMotionCV(CData, sys, curve, first_curve_key + curvekey);
 	}
 	int curvekey2 = curvekey + 1;
 	if(curvekey2 >= (CData->curve_keynum[curve] - 1)) {
 		curvekey2 = (CData->curve_keynum[curve] - 1);
 		curvekey = curvekey2 - 1;
 	}
-
-	float4 mP = CurveSegmentMotionCV(CData, sys, curve, curvekey);
-	float4 mP2 = CurveSegmentMotionCV(CData, sys, curve, curvekey2);
+	const float4 mP = CurveSegmentMotionCV(
+	        CData, sys, curve, first_curve_key + curvekey);
+	const float4 mP2 = CurveSegmentMotionCV(
+	        CData, sys, curve, first_curve_key + curvekey2);
 	return lerp(mP, mP2, remainder);
 }
 
@@ -687,10 +692,10 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 
 			/* Curve lengths may not match! Curves can be clipped. */
 			int curve_key_end = (num_curves+1 < (int)mesh->curve_first_key.size() ? mesh->curve_first_key[num_curves+1] : (int)mesh->curve_keys.size());
-			int center_curve_len = curve_key_end - mesh->curve_first_key[num_curves];
-			int diff = CData->curve_keynum[curve] - center_curve_len;
+			const int num_center_curve_keys = curve_key_end - mesh->curve_first_key[num_curves];
+			const int is_num_keys_different = CData->curve_keynum[curve] - num_center_curve_keys;
 
-			if(diff == 0) {
+			if(!is_num_keys_different) {
 				for(int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve]; curvekey++) {
 					if(i < mesh->curve_keys.size()) {
 						mP[i] = CurveSegmentMotionCV(CData, sys, curve, curvekey);
@@ -708,12 +713,16 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 				}
 			}
 			else {
-				/* Number of keys has changed. Genereate an interpolated version to preserve motion blur. */
-				float step = 0;
-				float step_size = 1.0f / (center_curve_len-1);
-				for(; i < curve_key_end; i++) {
+				/* Number of keys has changed. Genereate an interpolated version
+				 * to preserve motion blur. */
+				float step_size = 1.0f / (num_center_curve_keys-1);
+				for(int step_index = 0;
+				    step_index < num_center_curve_keys;
+				    ++step_index)
+				{
+					const float step = step_index * step_size;
 					mP[i] = LerpCurveSegmentMotionCV(CData, sys, curve, step);
-					step = i * step_size;
+					i++;
 				}
 				have_motion = true;
 			}
