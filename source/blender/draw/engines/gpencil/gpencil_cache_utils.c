@@ -186,6 +186,10 @@ static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, in
 	else if (gpd->flag & GP_DATA_CACHE_IS_DIRTY) {
 		valid = false;
 	}
+	else if (gpd->flag & GP_DATA_PYTHON_UPDATED) {
+		gpd->flag &= ~GP_DATA_PYTHON_UPDATED;
+		valid = false;
+	}
 	else if (DRW_gpencil_onion_active(gpd)) {
 		/* if onion, set as dirty always
 		 * This reduces performance, but avoid any crash in the multiple

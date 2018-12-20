@@ -481,6 +481,8 @@ typedef enum eGPdata_Flag {
 	GP_DATA_UV_ADAPTATIVE = (1 << 19),
 	/* Autolock not active layers */
 	GP_DATA_AUTOLOCK_LAYERS = (1 << 20),
+	/* Internal flag for python update */
+	GP_DATA_PYTHON_UPDATED = (1 << 21),
 } eGPdata_Flag;
 
 /* gpd->onion_flag */
