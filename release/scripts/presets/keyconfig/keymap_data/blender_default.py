@@ -2812,7 +2812,7 @@ def km_animation_channels(params):
         ("anim.channels_group", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("anim.channels_ungroup", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Menus.
-        op_menu("DOPESHEET_MT_specials_channels", params.context_menu_event),
+        op_menu("DOPESHEET_MT_channel_specials", params.context_menu_event),
     ])
 
     return keymap
