@@ -89,6 +89,30 @@ static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
 	return NULL;
 }
 
+static bool is_position_over_node_or_socket(SpaceNode *snode, float mouse[2])
+{
+	if (node_under_mouse_tweak(snode->edittree, mouse[0], mouse[1])) {
+		return true;
+	}
+
+	bNode *node;
+	bNodeSocket *sock;
+	if (node_find_indicated_socket(snode, &node, &sock, mouse, SOCK_IN | SOCK_OUT)) {
+		return true;
+	}
+
+	return false;
+}
+
+static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ARegion *ar = CTX_wm_region(C);
+	float mouse[2];
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mouse[0], &mouse[1]);
+	return is_position_over_node_or_socket(snode, mouse);
+}
+
 static void node_toggle(bNode *node)
 {
 	nodeSetSelected(node, !(node->flag & SELECT));
@@ -559,26 +583,8 @@ static int node_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
 	const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-	if (tweak) {
-		/* prevent initiating the box select if the mouse is over a node or
-		 * node socket. this allows box select on empty space, but drag-translate
-		 * on nodes */
-		SpaceNode *snode = CTX_wm_space_node(C);
-		ARegion *ar = CTX_wm_region(C);
-		float mouse[2];
-
-		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mouse[0], &mouse[1]);
-
-		if (node_under_mouse_tweak(snode->edittree, mouse[0], mouse[1])) {
-			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
-		}
-
-		bNode *node;
-		bNodeSocket *sock;
-
-		if (node_find_indicated_socket(snode, &node, &sock, mouse, SOCK_IN | SOCK_OUT)) {
-			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
-		}
+	if (tweak && is_event_over_node_or_socket(C, event)) {
+		return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 	}
 
 	return WM_gesture_box_invoke(C, op, event);
@@ -663,6 +669,17 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 
 /* ****** Lasso Select ****** */
 
+static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	const bool tweak = RNA_boolean_get(op->ptr, "tweak");
+
+	if (tweak && is_event_over_node_or_socket(C, event)) {
+		return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+	}
+
+	return WM_gesture_lasso_invoke(C, op, event);
+}
+
 static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves, bool select, bool extend)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
@@ -733,7 +750,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 	ot->idname = "NODE_OT_select_lasso";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_lasso_invoke;
+	ot->invoke = node_lasso_select_invoke;
 	ot->modal = WM_gesture_lasso_modal;
 	ot->exec = node_lasso_select_exec;
 	ot->poll = ED_operator_node_active;
@@ -744,6 +761,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_gesture_lasso_select(ot);
+	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 
 /* ****** Select/Deselect All ****** */

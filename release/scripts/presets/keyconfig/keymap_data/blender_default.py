@@ -5080,9 +5080,9 @@ def km_node_editor_tool_select_lasso(params):
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("node.select_lasso", {"type": params.tool_mouse, "value": 'PRESS'},
-              {"properties": [("deselect", False)]}),
+              {"properties": [("deselect", False), ("tweak", True)]}),
             ("node.select_lasso", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-              {"properties": [("deselect", True)]}),
+              {"properties": [("deselect", True), ("tweak", True)]}),
         ]},
     )
 
