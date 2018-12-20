@@ -817,65 +817,50 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		const bool use_hide = is_active && DRW_object_use_hide_faces(ob);
-		bool is_drawn = false;
-		if (!is_sculpt_mode && TEXTURE_DRAWING_ENABLED(wpd) && ELEM(ob->type, OB_MESH)) {
-			const Mesh *me = ob->data;
-			if (me->mloopuv) {
-				const int materials_len = ob->totcol;
-				struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
-				for (int i = 0; i < materials_len; i++) {
-					Material *mat = give_current_material(ob, i + 1);
-					Image *image;
-					ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
-					int color_type = workbench_material_determine_color_type(wpd, image, ob);
-					material = get_or_create_material_data(vedata, ob, mat, image, color_type);
-					DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
-				}
-				is_drawn = true;
+		const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
+		const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
+
+		if (!is_sculpt_mode && me && me->mloopuv && TEXTURE_DRAWING_ENABLED(wpd)) {
+			/* Draw textured */
+			struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
+			for (int i = 0; i < materials_len; i++) {
+				Material *mat = give_current_material(ob, i + 1);
+				Image *image;
+				ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
+				int color_type = workbench_material_determine_color_type(wpd, image, ob);
+				material = get_or_create_material_data(vedata, ob, mat, image, color_type);
+				DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 			}
 		}
-
-		/* Fallback from not drawn OB_TEXTURE mode or just OB_SOLID mode */
-		if (!is_drawn) {
-			if (ELEM(wpd->shading.color_type, V3D_SHADING_SINGLE_COLOR, V3D_SHADING_RANDOM_COLOR)) {
-				/* No material split needed */
-				struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
-				if (geom) {
-					material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type);
-					if (is_sculpt_mode) {
-						DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
-					}
-					else {
-						DRW_shgroup_call_object_add(material->shgrp, geom, ob);
-					}
-				}
+		else if (ELEM(wpd->shading.color_type, V3D_SHADING_SINGLE_COLOR, V3D_SHADING_RANDOM_COLOR)) {
+			/* Draw solid color */
+			material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type);
+			if (is_sculpt_mode) {
+				DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 			}
-			else { /* MATERIAL colors */
-				if (is_sculpt_mode) {
-					/* Multiple materials are not supported in sculpt mode yet. */
-					Material *mat = give_current_material(ob, 1);
-					material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
-					DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
-				}
-				else {
-					struct GPUBatch **geoms;
-					const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
-					struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
-					for (int i = 0; i < materials_len; i++) {
-						gpumat_array[i] = NULL;
-					}
-					geoms = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len, NULL, NULL, NULL);
+			else {
+				struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
+				DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+			}
+		}
+		else {
+			/* Draw material color */
+			if (is_sculpt_mode) {
+				/* Multiple materials are not supported in sculpt mode yet. */
+				Material *mat = give_current_material(ob, 1);
+				material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
+				DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+			}
+			else {
+				struct GPUBatch **geoms;
+				struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+				memset(gpumat_array, 0, sizeof(*gpumat_array) * materials_len);
 
-					if (geoms) {
-						for (int i = 0; i < materials_len; ++i) {
-							if (geoms[i] == NULL) {
-								continue;
-							}
-							Material *mat = give_current_material(ob, i + 1);
-							material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
-							DRW_shgroup_call_object_add(material->shgrp, geoms[i], ob);
-						}
-					}
+				geoms = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len, NULL, NULL, NULL);
+				for (int i = 0; i < materials_len; ++i) {
+					Material *mat = give_current_material(ob, i + 1);
+					material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
+					DRW_shgroup_call_object_add(material->shgrp, geoms[i], ob);
 				}
 			}
 		}
