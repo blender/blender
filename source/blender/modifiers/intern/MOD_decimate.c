@@ -45,6 +45,8 @@
 #include "BKE_mesh.h"
 #include "BKE_library.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
@@ -77,6 +79,13 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	}
 
 	return dataMask;
+}
+
+static DecimateModifierData *getOriginalModifierData(
+        const DecimateModifierData *dmd, const ModifierEvalContext *ctx)
+{
+	Object *ob_orig = DEG_get_original_object(ctx->object);
+	return (DecimateModifierData *)modifiers_findByName(ob_orig, dmd->modifier.name);
 }
 
 static Mesh *applyModifier(
@@ -187,8 +196,12 @@ static Mesh *applyModifier(
 		MEM_freeN(vweights);
 	}
 
-	/* update for display only */
-	dmd->face_count = bm->totface;
+	if (DEG_is_active(ctx->depsgraph)) {
+		/* update for display only */
+		DecimateModifierData *dmd_orig = getOriginalModifierData(dmd, ctx);
+		dmd_orig->face_count = bm->totface;
+	}
+
 	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&
