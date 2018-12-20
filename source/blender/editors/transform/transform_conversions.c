@@ -8213,15 +8213,7 @@ static void createTransGPencil_center_get(
 	zero_v3(r_center);
 	int tot_sel = 0;
 	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-		bool point_ok;
-		if (is_prop_edit) {
-			point_ok = true;
-		}
-		else {
-			/* Only selected points in selected strokes */
-			point_ok = (pt->flag & GP_SPOINT_SELECT) != 0;
-		}
-		if (point_ok) {
+		if (pt->flag & GP_SPOINT_SELECT) {
 			add_v3_v3(r_center, &pt->x);
 			tot_sel++;
 		}
