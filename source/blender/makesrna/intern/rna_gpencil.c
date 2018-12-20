@@ -596,18 +596,6 @@ static void rna_GPencil_stroke_remove(bGPDframe *frame, ReportList *reports, Poi
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
-static void rna_GPencil_stroke_update(bGPDframe *frame, ReportList *reports, PointerRNA *stroke_ptr)
-{
-	bGPDstroke *stroke = stroke_ptr->data;
-	if (BLI_findindex(&frame->strokes, stroke) == -1) {
-		BKE_report(reports, RPT_ERROR, "Stroke not found in grease pencil frame");
-		return;
-	}
-	stroke->flag |= GP_STROKE_RECALC_CACHES;
-
-	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-}
-
 static void rna_GPencil_stroke_select_set(PointerRNA *ptr, const bool value)
 {
 	bGPDstroke *gps = ptr->data;
@@ -735,14 +723,6 @@ static void rna_GPencil_clear(bGPdata *gpd)
 	BKE_gpencil_free_layers(&gpd->layers);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-}
-
-static void rna_GPencil_update_data(bGPdata *gpd)
-{
-	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-	DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
-
-	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
 static void rna_GpencilVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1008,13 +988,6 @@ static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "remove", "rna_GPencil_stroke_remove");
 	RNA_def_function_ui_description(func, "Remove a grease pencil stroke");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "Stroke", "The stroke to remove");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
-
-	func = RNA_def_function(srna, "update", "rna_GPencil_stroke_update");
-	RNA_def_function_ui_description(func, "Update stroke geometry");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "Stroke", "The stroke to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
@@ -1655,9 +1628,6 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	/* API Functions */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_clear");
 	RNA_def_function_ui_description(func, "Remove all the Grease Pencil data");
-
-	func = RNA_def_function(srna, "update", "rna_GPencil_update_data");
-	RNA_def_function_ui_description(func, "Force internal data update");
 }
 
 /* --- */
