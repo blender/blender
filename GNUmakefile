@@ -445,8 +445,9 @@ update: .FORCE
 	fi
 	git pull --rebase
 	git submodule update --init --recursive
-	git submodule foreach git checkout master
-	git submodule foreach git pull --rebase origin master
+	# Use blender2.7 branch for submodules that have it.
+	git submodule foreach "git checkout blender2.7 || git checkout master"
+	git submodule foreach git pull --rebase origin
 
 
 # -----------------------------------------------------------------------------
