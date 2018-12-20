@@ -310,7 +310,7 @@ bool ED_operator_camera(struct bContext *C);
 
 /* screen_user_menu.c */
 
-struct bUserMenu *ED_screen_user_menu_find(struct bContext *C);
+bUserMenu **ED_screen_user_menus_find(struct bContext *C, uint *r_len);
 struct bUserMenu *ED_screen_user_menu_ensure(struct bContext *C);
 
 
