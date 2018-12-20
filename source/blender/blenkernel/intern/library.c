@@ -2213,9 +2213,11 @@ char *BKE_id_to_unique_string_key(const struct ID *id)
 		return BLI_strdup(id->name);
 	}
 	else {
-		/* Important library comes first since we can't ensure an object name won't include a library
-		 * like identifier at the end, but we _can_ ensure every library has an ID after it. */
-		return BLI_string_joinN(id->lib->id.name, id->name);
+		/* Prefix with an ascii character in the range of 32..96 (visible)
+		 * this ensures we can't have a library ID pair that collide.
+		 * Where 'LIfooOBbarOBbaz' could be ('LIfoo, OBbarOBbaz') or ('LIfooOBbar', 'OBbaz'). */
+		const char ascii_len = strlen(id->lib->id.name + 2) + 32;
+		return BLI_sprintfN("%c%s%s", ascii_len, id->lib->id.name, id->name);
 	}
 }
 
