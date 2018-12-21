@@ -150,6 +150,11 @@ static bool pointer_to_component_node_criteria(
 			/* Bone - generally, we just want the bone component. */
 			*type = DEG_NODE_TYPE_BONE;
 			*subdata = pchan->name;
+			/* But B-Bone properties should connect to the actual operation. */
+			if (!ELEM(NULL, pchan->bone, prop) && pchan->bone->segments > 1 &&
+			    STRPREFIX(RNA_property_identifier(prop), "bbone_")) {
+				*operation_code = DEG_OPCODE_BONE_SEGMENTS;
+			}
 		}
 		return true;
 	}
