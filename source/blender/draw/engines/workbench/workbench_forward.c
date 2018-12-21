@@ -528,7 +528,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 
 		/* Fallback from not drawn OB_TEXTURE mode or just OB_SOLID mode */
 		if (!is_drawn) {
-			if (ELEM(wpd->shading.color_type, V3D_SHADING_SINGLE_COLOR, V3D_SHADING_RANDOM_COLOR)) {
+			if (ELEM(wpd->shading.color_type,
+			         V3D_SHADING_SINGLE_COLOR, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR))
+			{
 				/* No material split needed */
 				struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {

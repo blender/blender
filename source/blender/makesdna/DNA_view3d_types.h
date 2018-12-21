@@ -405,6 +405,7 @@ enum {
 	V3D_SHADING_RANDOM_COLOR   = 1,
 	V3D_SHADING_SINGLE_COLOR   = 2,
 	V3D_SHADING_TEXTURE_COLOR  = 3,
+	V3D_SHADING_OBJECT_COLOR   = 4,
 };
 
 /* View3DShading->background_type */

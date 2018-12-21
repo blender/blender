@@ -4378,7 +4378,7 @@ class VIEW3D_PT_shading(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_label = "Shading"
-    bl_ui_units_x = 11
+    bl_ui_units_x = 12
 
     @classmethod
     def get_shading(cls, context):

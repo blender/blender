@@ -37,6 +37,10 @@ void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Mate
 		hsv_to_rgb_v(hsv, data->diffuse_color);
 		copy_v3_v3(data->base_color, data->diffuse_color);
 	}
+	else if (color_type == V3D_SHADING_OBJECT_COLOR) {
+		copy_v3_v3(data->diffuse_color, ob->col);
+		copy_v3_v3(data->base_color, data->diffuse_color);
+	}
 	else {
 		/* V3D_SHADING_MATERIAL_COLOR */
 		if (mat) {
