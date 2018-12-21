@@ -208,7 +208,7 @@ typedef struct PChart {
 } PChart;
 
 enum PChartFlag {
-	PCHART_NOPACK = 1
+	PCHART_HAS_PINS = 1
 };
 
 enum PHandleState {
@@ -995,6 +995,10 @@ static void p_split_vert(PChart *chart, PEdge *e)
 	PEdge *we, *lastwe = NULL;
 	PVert *v = e->vert;
 	PBool copy = P_TRUE;
+
+	if (e->flag & PEDGE_PIN) {
+		chart->flag |= PCHART_HAS_PINS;
+	}
 
 	if (e->flag & PEDGE_VERTEX_SPLIT)
 		return;
@@ -3062,9 +3066,6 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 			chart->u.lscm.pin1 = pin1;
 			chart->u.lscm.pin2 = pin2;
 		}
-		else {
-			chart->flag |= PCHART_NOPACK;
-		}
 
 		for (v = chart->verts; v; v = v->nextlink)
 			v->u.id = id++;
@@ -4350,7 +4351,7 @@ void param_lscm_solve(ParamHandle *handle)
 		if (chart->u.lscm.context) {
 			result = p_chart_lscm_solve(phandle, chart);
 
-			if (result && !(chart->flag & PCHART_NOPACK))
+			if (result && !(chart->flag & PCHART_HAS_PINS))
 				p_chart_rotate_minimum_area(chart);
 
 			if (!result || (chart->u.lscm.pin1))
@@ -4457,7 +4458,7 @@ void param_smooth_area(ParamHandle *handle)
 }
 
 /* don't pack, just rotate (used for better packing) */
-static void param_pack_rotate(ParamHandle *handle)
+static void param_pack_rotate(ParamHandle *handle, bool ignore_pinned)
 {
 	PChart *chart;
 	int i;
@@ -4470,7 +4471,7 @@ static void param_pack_rotate(ParamHandle *handle)
 
 		chart = phandle->charts[i];
 
-		if (chart->flag & PCHART_NOPACK) {
+		if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
 			continue;
 		}
 
@@ -4490,7 +4491,7 @@ static void param_pack_rotate(ParamHandle *handle)
 	}
 }
 
-void param_pack(ParamHandle *handle, float margin, bool do_rotate)
+void param_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
 {
 	/* box packing variables */
 	BoxPack *boxarray, *box;
@@ -4508,7 +4509,7 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 
 	/* this could be its own function */
 	if (do_rotate) {
-		param_pack_rotate(handle);
+		param_pack_rotate(handle, ignore_pinned);
 	}
 
 	if (phandle->aspx != phandle->aspy)
@@ -4521,7 +4522,7 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
 
-		if (chart->flag & PCHART_NOPACK) {
+		if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
 			unpacked++;
 			continue;
 		}
@@ -4537,7 +4538,7 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 
 		box->w =  chart->u.pack.size[0] + trans[0];
 		box->h =  chart->u.pack.size[1] + trans[1];
-		box->index = i; /* warning this index skips PCHART_NOPACK boxes */
+		box->index = i; /* warning this index skips PCHART_HAS_PINS boxes */
 
 		if (margin > 0.0f)
 			area += (double)sqrtf(box->w * box->h);
@@ -4552,7 +4553,7 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 		for (i = 0; i < phandle->ncharts; i++) {
 			chart = phandle->charts[i];
 
-			if (chart->flag & PCHART_NOPACK) {
+			if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
 				unpacked++;
 				continue;
 			}
@@ -4588,7 +4589,7 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate)
 		param_scale(handle, phandle->aspx, phandle->aspy);
 }
 
-void param_average(ParamHandle *handle)
+void param_average(ParamHandle *handle, bool ignore_pinned)
 {
 	PChart *chart;
 	int i;
@@ -4604,8 +4605,9 @@ void param_average(ParamHandle *handle)
 		PFace *f;
 		chart = phandle->charts[i];
 
-		if (chart->flag & PCHART_NOPACK)
+		if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
 			continue;
+		}
 
 		chart->u.pack.area = 0.0f; /* 3d area */
 		chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
@@ -4629,8 +4631,9 @@ void param_average(ParamHandle *handle)
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
 
-		if (chart->flag & PCHART_NOPACK)
+		if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
 			continue;
+		}
 
 		if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
 			fac = chart->u.pack.area / chart->u.pack.rescale;

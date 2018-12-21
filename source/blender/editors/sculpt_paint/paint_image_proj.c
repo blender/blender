@@ -5937,33 +5937,8 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain = CTX_data_main(C);
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
-	Mesh *me = ob->data;
-	bool synch_selection = (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 
-	BMesh *bm = BM_mesh_create(
-	        &bm_mesh_allocsize_default,
-	        &((struct BMeshCreateParams){.use_toolflags = false,}));
-
-	/* turn synch selection off, since we are not in edit mode we need to ensure only the uv flags are tested */
-	scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
-
-	ED_mesh_uv_texture_ensure(me, NULL);
-
-	BM_mesh_bm_from_me(
-	        bm, me, (&(struct BMeshFromMeshParams){
-	            .calc_face_normal = true,
-	        }));
-	/* select all uv loops first - pack parameters needs this to make sure charts are registered */
-	ED_uvedit_select_all(bm);
-	ED_uvedit_unwrap_cube_project(bm, 1.0, false, NULL);
-	/* set the margin really quickly before the packing operation*/
-	scene->toolsettings->uvcalc_margin = 0.001f;
-	ED_uvedit_pack_islands(scene, ob, bm, false, false, true);
-	BM_mesh_bm_to_me(bmain, bm, me, (&(struct BMeshToMeshParams){0}));
-	BM_mesh_free(bm);
-
-	if (synch_selection)
-		scene->toolsettings->uv_flag |= UV_SYNC_SELECTION;
+	ED_uvedit_add_simple_uvs(bmain, scene, ob);
 
 	BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 

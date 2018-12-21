@@ -838,23 +838,23 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 /* ******************** Pack Islands operator **************** */
 
 
-void ED_uvedit_pack_islands(Scene *scene, Object *ob, BMesh *bm, bool selected, bool correct_aspect, bool do_rotate)
+static void uvedit_pack_islands(Scene *scene, Object *ob, BMesh *bm)
 {
 	ParamHandle *handle;
-	handle = construct_param_handle(scene, ob, bm, true, false, selected, correct_aspect);
-	param_pack(handle, scene->toolsettings->uvcalc_margin, do_rotate);
+	handle = construct_param_handle(scene, ob, bm, true, false, false, false);
+	param_pack(handle, scene->toolsettings->uvcalc_margin, true, false);
 	param_flush(handle);
 	param_delete(handle);
 }
 
-void ED_uvedit_pack_islands_multi(
+static void uvedit_pack_islands_multi(
         Scene *scene, Object **objects, const uint objects_len,
-        bool selected, bool correct_aspect, bool do_rotate, bool implicit)
+        bool do_rotate, bool implicit, bool ignore_pinned)
 {
 	ParamHandle *handle;
 	handle = construct_param_handle_multi(
-	        scene, objects, objects_len, implicit, false, selected, correct_aspect);
-	param_pack(handle, scene->toolsettings->uvcalc_margin, do_rotate);
+	        scene, objects, objects_len, implicit, false, true, true);
+	param_pack(handle, scene->toolsettings->uvcalc_margin, do_rotate, ignore_pinned);
 	param_flush(handle);
 	param_delete(handle);
 }
@@ -878,7 +878,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	else
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
 
-	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, do_rotate, true);
+	uvedit_pack_islands_multi(scene, objects, objects_len, do_rotate, true, false);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
@@ -929,7 +929,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	handle = construct_param_handle_multi(scene, objects, objects_len, implicit, false, true, true);
-	param_average(handle);
+	param_average(handle, false);
 	param_flush(handle);
 	param_delete(handle);
 
@@ -1406,10 +1406,10 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel, const bool pa
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
-	param_average(handle);
+	param_average(handle, true);
 
 	if (pack) {
-		param_pack(handle, scene->toolsettings->uvcalc_margin, false);
+		param_pack(handle, scene->toolsettings->uvcalc_margin, false, true);
 	}
 
 	param_flush(handle);
@@ -1516,7 +1516,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
 
-	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, true, implicit);
+	uvedit_pack_islands_multi(scene, objects, objects_len, true, implicit, true);
 
 	MEM_freeN(objects);
 
@@ -1981,7 +1981,7 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 
 /******************* Cube Project operator ****************/
 
-void ED_uvedit_unwrap_cube_project(BMesh *bm, float cube_size, bool use_select, const float center[3])
+static void uvedit_unwrap_cube_project(BMesh *bm, float cube_size, bool use_select, const float center[3])
 {
 	BMFace *efa;
 	BMLoop *l;
@@ -2066,7 +2066,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		ED_uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
+		uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
 
 		uv_map_clip_correct(scene, obedit, op);
 
@@ -2094,4 +2094,37 @@ void UV_OT_cube_project(wmOperatorType *ot)
 	/* properties */
 	RNA_def_float(ot->srna, "cube_size", 1.0f, 0.0f, FLT_MAX, "Cube Size", "Size of the cube to project on", 0.001f, 100.0f);
 	uv_map_clip_correct_properties(ot);
+}
+
+/************************* Simple UVs for texture painting *****************/
+
+void ED_uvedit_add_simple_uvs(Main *bmain, Scene *scene, Object *ob)
+{
+	Mesh *me = ob->data;
+	bool sync_selection = (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+
+	BMesh *bm = BM_mesh_create(
+	        &bm_mesh_allocsize_default,
+	        &((struct BMeshCreateParams){.use_toolflags = false,}));
+
+	/* turn sync selection off, since we are not in edit mode we need to ensure only the uv flags are tested */
+	scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
+
+	ED_mesh_uv_texture_ensure(me, NULL);
+
+	BM_mesh_bm_from_me(
+	        bm, me, (&(struct BMeshFromMeshParams){
+	            .calc_face_normal = true,
+	        }));
+	/* select all uv loops first - pack parameters needs this to make sure charts are registered */
+	ED_uvedit_select_all(bm);
+	uvedit_unwrap_cube_project(bm, 1.0, false, NULL);
+	/* set the margin really quickly before the packing operation*/
+	scene->toolsettings->uvcalc_margin = 0.001f;
+	uvedit_pack_islands(scene, ob, bm);
+	BM_mesh_bm_to_me(bmain, bm, me, (&(struct BMeshToMeshParams){0}));
+	BM_mesh_free(bm);
+
+	if (sync_selection)
+		scene->toolsettings->uv_flag |= UV_SYNC_SELECTION;
 }
