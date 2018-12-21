@@ -4810,6 +4810,21 @@ static bool particle_edit_toggle_poll(bContext *C)
 	        modifiers_findByType(ob, eModifierType_Softbody));
 }
 
+static void free_all_psys_edit(Object *object)
+{
+	for (ParticleSystem *psys = object->particlesystem.first;
+	     psys != NULL;
+	     psys = psys->next)
+	{
+		if (psys->edit != NULL) {
+			BLI_assert(psys->free_edit != NULL);
+			psys->free_edit(psys->edit);
+			psys->free_edit = NULL;
+			psys->edit = NULL;
+		}
+	}
+}
+
 static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
 	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
@@ -4851,6 +4866,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	else {
 		ob->mode &= ~mode_flag;
 		toggle_particle_cursor(C, 0);
+		free_all_psys_edit(ob);
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	}
 
