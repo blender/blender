@@ -971,8 +971,8 @@ Mesh *BKE_mesh_new_from_object(
 			/* copies object and modifiers (but not the data) */
 			if (cage) {
 				/* copies the data */
-				tmpmesh = BKE_mesh_copy(bmain, ob->data);
-
+				Mesh *mesh = ob->data;
+				BKE_id_copy_ex(bmain, &mesh->id, (ID **)&tmpmesh, 0, false);
 				/* XXX BKE_mesh_copy() already handles materials usercount. */
 				do_mat_id_data_us = false;
 			}
