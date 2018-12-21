@@ -545,8 +545,8 @@ void *BKE_sound_add_scene_sound(struct Scene *scene, struct Sequence *sequence, 
 void *BKE_sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence)
 {
 	return BKE_sound_add_scene_sound(scene, sequence,
-	                             sequence->startdisp, sequence->enddisp,
-	                             sequence->startofs + sequence->anim_startofs);
+	                                 sequence->startdisp, sequence->enddisp,
+	                                 sequence->startofs + sequence->anim_startofs);
 }
 
 void BKE_sound_remove_scene_sound(struct Scene *scene, void *handle)
