@@ -2711,7 +2711,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_LATTICE:
 		{
-			if (is_edit_mode) {
+			if (!is_edit_mode) {
 				if (hide_object_extra) {
 					break;
 				}
@@ -2727,7 +2727,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_CURVE:
 		{
-			if (is_edit_mode) {
+			if (!is_edit_mode) {
 				if (hide_object_extra) {
 					break;
 				}
@@ -2742,7 +2742,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_MBALL:
 		{
-			if (is_edit_mode) {
+			if (!is_edit_mode) {
 				DRW_shgroup_mball_handles(sgl, ob, view_layer);
 			}
 			break;
