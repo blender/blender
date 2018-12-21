@@ -472,7 +472,7 @@ bGPDstroke *BKE_gpencil_add_stroke(bGPDframe *gpf, int mat_idx, int totpoints, s
 	/* allocate memory for a new stroke */
 	bGPDstroke *gps = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
 
-	gps->thickness = thickness * 25;
+	gps->thickness = thickness;
 	gps->inittime = 0;
 
 	/* enable recalculation flag by default */
