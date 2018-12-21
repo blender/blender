@@ -984,7 +984,7 @@ static bool unified_findnearest(
 			ED_view3d_backbuf_validate(vc);
 			BMFace *efa_zbuf = NULL;
 			BMFace *efa_test = EDBM_face_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf);
-			if (hit.f.ele && dist_center_p) {
+			if (efa_test && dist_center_p) {
 				dist = min_ff(dist_margin, dist_center);
 			}
 			if (efa_test) {
@@ -1009,7 +1009,7 @@ static bool unified_findnearest(
 			ED_view3d_backbuf_validate(vc);
 			BMEdge *eed_zbuf = NULL;
 			BMEdge *eed_test = EDBM_edge_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &eed_zbuf);
-			if (hit.e.ele && dist_center_p) {
+			if (eed_test && dist_center_p) {
 				dist = min_ff(dist_margin, dist_center);
 			}
 			if (eed_test) {
