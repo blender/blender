@@ -301,9 +301,17 @@ static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmGizmoGroup
 	Object *ob = OBACT(view_layer);
 	wmGizmo *gz = wwrapper->gizmo;
 
-	copy_m4_m4(gz->matrix_basis, ob->obmat);
+	normalize_m4_m4(gz->matrix_basis, ob->obmat);
 	unit_m4(gz->matrix_offset);
-	gz->matrix_offset[3][2] = -2.4f / gz->scale_basis;
+
+	if (ob->type == OB_LAMP) {
+		Lamp *la = ob->data;
+		if (la->type == LA_SPOT) {
+			/* Draw just past the lamp size angle gizmo. */
+			madd_v3_v3fl(gz->matrix_basis[3], gz->matrix_basis[2], -la->spotsize);
+		}
+	}
+	gz->matrix_offset[3][2] -= 23.0;
 	WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_OFFSET_SCALE, true);
 }
 
