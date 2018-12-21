@@ -234,18 +234,18 @@ typedef struct SceneRenderLayer {
 typedef enum eScenePassType {
 	SCE_PASS_COMBINED                 = (1 << 0),
 	SCE_PASS_Z                        = (1 << 1),
-	SCE_PASS_RGBA                     = (1 << 2),
-	SCE_PASS_DIFFUSE                  = (1 << 3),
-	SCE_PASS_SPEC                     = (1 << 4),
+	SCE_PASS_DEPRECATED_1             = (1 << 2), /* RGBA */
+	SCE_PASS_DEPRECATED_2             = (1 << 3), /* DIFFUSE */
+	SCE_PASS_DEPRECATED_3             = (1 << 4), /* SPEC */
 	SCE_PASS_SHADOW                   = (1 << 5),
 	SCE_PASS_AO                       = (1 << 6),
-	SCE_PASS_REFLECT                  = (1 << 7),
+	SCE_PASS_DEPRECATED_4             = (1 << 7), /* REFLECT */
 	SCE_PASS_NORMAL                   = (1 << 8),
 	SCE_PASS_VECTOR                   = (1 << 9),
-	SCE_PASS_REFRACT                  = (1 << 10),
+	SCE_PASS_DEPRECATED_5             = (1 << 10), /* REFRACT */
 	SCE_PASS_INDEXOB                  = (1 << 11),
 	SCE_PASS_UV                       = (1 << 12),
-	SCE_PASS_INDIRECT                 = (1 << 13),
+	SCE_PASS_DEPRECATED_6             = (1 << 13), /* INDIRECT */
 	SCE_PASS_MIST                     = (1 << 14),
 	SCE_PASS_RAYHITS                  = (1 << 15),
 	SCE_PASS_EMIT                     = (1 << 16),
@@ -271,17 +271,11 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_VECTOR "Vector"
 #define RE_PASSNAME_NORMAL "Normal"
 #define RE_PASSNAME_UV "UV"
-#define RE_PASSNAME_RGBA "Color"
 #define RE_PASSNAME_EMIT "Emit"
-#define RE_PASSNAME_DIFFUSE "Diffuse"
-#define RE_PASSNAME_SPEC "Spec"
 #define RE_PASSNAME_SHADOW "Shadow"
 
 #define RE_PASSNAME_AO "AO"
 #define RE_PASSNAME_ENVIRONMENT "Env"
-#define RE_PASSNAME_INDIRECT "Indirect"
-#define RE_PASSNAME_REFLECT "Reflect"
-#define RE_PASSNAME_REFRACT "Refract"
 #define RE_PASSNAME_INDEXOB "IndexOB"
 #define RE_PASSNAME_INDEXMA "IndexMA"
 #define RE_PASSNAME_MIST "Mist"

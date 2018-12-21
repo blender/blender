@@ -954,20 +954,11 @@ int RE_pass_depth(const eScenePassType pass_type)
 		{
 			return 2;
 		}
-		case SCE_PASS_RGBA:
-		{
-			return 4;
-		}
 		case SCE_PASS_COMBINED:
-		case SCE_PASS_DIFFUSE:
-		case SCE_PASS_SPEC:
 		case SCE_PASS_SHADOW:
-		case SCE_PASS_REFLECT:
 		case SCE_PASS_NORMAL:
 		case SCE_PASS_VECTOR:
-		case SCE_PASS_REFRACT:
 		case SCE_PASS_INDEXOB:  /* XXX double check */
-		case SCE_PASS_INDIRECT:
 		case SCE_PASS_RAYHITS:  /* XXX double check */
 		case SCE_PASS_EMIT:
 		case SCE_PASS_ENVIRONMENT:

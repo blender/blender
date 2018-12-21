@@ -350,26 +350,14 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_NORMAL, view, "XYZ");
 			if (view_layer->passflag  & SCE_PASS_UV)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_UV, view, "UVA");
-			if (view_layer->passflag  & SCE_PASS_RGBA)
-				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_RGBA, view, "RGBA");
 			if (view_layer->passflag  & SCE_PASS_EMIT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_EMIT, view, "RGB");
-			if (view_layer->passflag  & SCE_PASS_DIFFUSE)
-				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE, view, "RGB");
-			if (view_layer->passflag  & SCE_PASS_SPEC)
-				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SPEC, view, "RGB");
 			if (view_layer->passflag  & SCE_PASS_AO)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_AO, view, "RGB");
 			if (view_layer->passflag  & SCE_PASS_ENVIRONMENT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_ENVIRONMENT, view, "RGB");
-			if (view_layer->passflag  & SCE_PASS_INDIRECT)
-				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_INDIRECT, view, "RGB");
 			if (view_layer->passflag  & SCE_PASS_SHADOW)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SHADOW, view, "RGB");
-			if (view_layer->passflag  & SCE_PASS_REFLECT)
-				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_REFLECT, view, "RGB");
-			if (view_layer->passflag  & SCE_PASS_REFRACT)
-				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_REFRACT, view, "RGB");
 			if (view_layer->passflag  & SCE_PASS_INDEXOB)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_INDEXOB, view, "X");
 			if (view_layer->passflag  & SCE_PASS_INDEXMA)
@@ -517,16 +505,10 @@ static int passtype_from_name(const char *name)
 	CHECK_PASS(VECTOR);
 	CHECK_PASS(NORMAL);
 	CHECK_PASS(UV);
-	CHECK_PASS(RGBA);
 	CHECK_PASS(EMIT);
-	CHECK_PASS(DIFFUSE);
-	CHECK_PASS(SPEC);
 	CHECK_PASS(SHADOW);
 	CHECK_PASS(AO);
 	CHECK_PASS(ENVIRONMENT);
-	CHECK_PASS(INDIRECT);
-	CHECK_PASS(REFLECT);
-	CHECK_PASS(REFRACT);
 	CHECK_PASS(INDEXOB);
 	CHECK_PASS(INDEXMA);
 	CHECK_PASS(MIST);

@@ -447,7 +447,7 @@ static void prepare(Render *re, ViewLayer *view_layer)
 	RenderLayer *rl = RE_GetRenderLayer(re->result, view_layer->name);
 	bool diffuse = false, z = false;
 	for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
-		if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE)) {
+		if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE_COLOR)) {
 			controller->setPassDiffuse(rpass->rect, rpass->rectx, rpass->recty);
 			diffuse = true;
 		}
