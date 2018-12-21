@@ -8204,8 +8204,7 @@ void flushTransPaintCurve(TransInfo *t)
 	}
 }
 
-static void createTransGPencil_center_get(
-	bGPDstroke *gps, const bool is_prop_edit, float r_center[3])
+static void createTransGPencil_center_get(bGPDstroke *gps, float r_center[3])
 {
 	bGPDspoint *pt;
 	int i;
@@ -8428,7 +8427,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 
 							/* calculate stroke center */
 							float center[3];
-							createTransGPencil_center_get(gps, is_prop_edit, &center[0]);
+							createTransGPencil_center_get(gps, center);
 
 							/* add all necessary points... */
 							for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
