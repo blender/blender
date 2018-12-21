@@ -571,10 +571,10 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
 				/* Update custom handle links. */
 				if (ebone_iter->bbone_prev && ebone_iter->bbone_prev->temp.ebone) {
-					ebone_iter->bbone_prev = ebone_iter->bbone_prev->temp.ebone;
+					ebone->bbone_prev = ebone_iter->bbone_prev->temp.ebone;
 				}
 				if (ebone_iter->bbone_next && ebone_iter->bbone_next->temp.ebone) {
-					ebone_iter->bbone_next = ebone_iter->bbone_next->temp.ebone;
+					ebone->bbone_next = ebone_iter->bbone_next->temp.ebone;
 				}
 
 				/* Lets try to fix any constraint subtargets that might
@@ -625,6 +625,21 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
 	RNA_def_boolean(
 	        ot->srna, "do_flip_names", false,
 	        "Flip Names", "Try to flip names of the bones, if possible, instead of adding a number extension");
+}
+
+/* Get the duplicated or existing mirrored copy of the bone. */
+static EditBone *get_symmetrized_bone(bArmature *arm, EditBone *bone)
+{
+	if (bone == NULL) {
+		return NULL;
+	}
+	else if (bone->temp.ebone != NULL) {
+		return bone->temp.ebone;
+	}
+	else {
+		EditBone *mirror = ED_armature_ebone_get_mirrored(arm->edbo, bone);
+		return (mirror != NULL) ? mirror : bone;
+	}
 }
 
 /**
@@ -757,17 +772,13 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* the parent may have been duplicated, if not lookup the mirror parent */
-					EditBone *ebone_parent = (
-					        ebone_iter->parent->temp.ebone ?
-					        ebone_iter->parent->temp.ebone :
-					        ED_armature_ebone_get_mirrored(arm->edbo, ebone_iter->parent));
+					EditBone *ebone_parent = get_symmetrized_bone(arm, ebone_iter->parent);
 
-					if (ebone_parent == NULL) {
+					if (ebone_parent == ebone_iter->parent) {
 						/* If the mirror lookup failed, (but the current bone has a parent)
 						 * then we can assume the parent has no L/R but is a center bone.
 						 * So just use the same parent for both.
 						 */
-						ebone_parent = ebone_iter->parent;
 						ebone->flag &= ~BONE_CONNECTED;
 					}
 
@@ -775,12 +786,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				}
 
 				/* Update custom handle links. */
-				if (ebone_iter->bbone_prev && ebone_iter->bbone_prev->temp.ebone) {
-					ebone_iter->bbone_prev = ebone_iter->bbone_prev->temp.ebone;
-				}
-				if (ebone_iter->bbone_next && ebone_iter->bbone_next->temp.ebone) {
-					ebone_iter->bbone_next = ebone_iter->bbone_next->temp.ebone;
-				}
+				ebone->bbone_prev = get_symmetrized_bone(arm, ebone_iter->bbone_prev);
+				ebone->bbone_next = get_symmetrized_bone(arm, ebone_iter->bbone_next);
 
 				/* Lets try to fix any constraint subtargets that might
 				 * have been duplicated
