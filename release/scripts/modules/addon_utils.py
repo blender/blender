@@ -30,7 +30,7 @@ __all__ = (
 )
 
 import bpy as _bpy
-_user_preferences = _bpy.context.user_preferences
+_preferences = _bpy.context.preferences
 
 error_encoding = False
 # (name, file, path)
@@ -43,7 +43,7 @@ def _initialize():
     path_list = paths()
     for path in path_list:
         _bpy.utils._sys_path_ensure(path)
-    for addon in _user_preferences.addons:
+    for addon in _preferences.addons:
         enable(addon.module)
 
 
@@ -231,7 +231,7 @@ def check(module_name):
     :rtype: tuple of booleans
     """
     import sys
-    loaded_default = module_name in _user_preferences.addons
+    loaded_default = module_name in _preferences.addons
 
     mod = sys.modules.get(module_name)
     loaded_state = (
@@ -258,7 +258,7 @@ def check(module_name):
 
 
 def _addon_ensure(module_name):
-    addons = _user_preferences.addons
+    addons = _preferences.addons
     addon = addons.get(module_name)
     if not addon:
         addon = addons.new()
@@ -266,7 +266,7 @@ def _addon_ensure(module_name):
 
 
 def _addon_remove(module_name):
-    addons = _user_preferences.addons
+    addons = _preferences.addons
 
     while module_name in addons:
         addon = addons.get(module_name)

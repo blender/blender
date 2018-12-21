@@ -45,7 +45,7 @@ def load():
     from bpy import context
     from bl_keymap_utils.io import keyconfig_init_from_data
 
-    prefs = context.user_preferences
+    prefs = context.preferences
     kc = context.window_manager.keyconfigs.new(idname)
     kc_prefs = kc.preferences
 

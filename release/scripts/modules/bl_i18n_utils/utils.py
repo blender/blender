@@ -178,8 +178,8 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     if support is None:
         support = {}
 
-    userpref = bpy.context.user_preferences
-    used_ext = {ext.module for ext in userpref.addons}
+    prefs = bpy.context.preferences
+    used_ext = {ext.module for ext in prefs.addons}
 
     ret = [
         mod for mod in addon_utils.modules()

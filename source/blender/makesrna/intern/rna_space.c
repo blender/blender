@@ -102,7 +102,7 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 	{SPACE_OUTLINER, "OUTLINER", ICON_OUTLINER, "Outliner", "Overview of scene graph and all available data-blocks"},
 	{SPACE_BUTS, "PROPERTIES", ICON_PROPERTIES, "Properties", "Edit properties of active object and related data-blocks"},
 	{SPACE_FILE, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", "Browse for files and assets"},
-	{SPACE_USERPREF, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences",
+	{SPACE_USERPREF, "PREFERENCES", ICON_PREFERENCES, "Preferences",
 	                 "Edit persistent configuration settings"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -417,7 +417,7 @@ static StructRNA *rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_CONSOLE:
 			return &RNA_SpaceConsole;
 		case SPACE_USERPREF:
-			return &RNA_SpaceUserPreferences;
+			return &RNA_SpacePreferences;
 		case SPACE_CLIP:
 			return &RNA_SpaceClipEditor;
 		default:
@@ -4733,7 +4733,7 @@ static void rna_def_space_userpref(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "SpaceUserPreferences", "Space");
+	srna = RNA_def_struct(brna, "SpacePreferences", "Space");
 	RNA_def_struct_sdna(srna, "SpaceUserPref");
 	RNA_def_struct_ui_text(srna, "Space User Preferences", "User preferences space data");
 

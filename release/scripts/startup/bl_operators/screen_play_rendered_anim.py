@@ -79,7 +79,7 @@ class PlayRenderedAnim(Operator):
 
         scene = context.scene
         rd = scene.render
-        prefs = context.user_preferences
+        prefs = context.preferences
         fps_final = rd.fps / rd.fps_base
 
         preset = prefs.filepaths.animation_player_preset

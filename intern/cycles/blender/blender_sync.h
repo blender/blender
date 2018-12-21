@@ -83,7 +83,7 @@ public:
 	static SceneParams get_scene_params(BL::Scene& b_scene,
 	                                    bool background);
 	static SessionParams get_session_params(BL::RenderEngine& b_engine,
-	                                        BL::UserPreferences& b_userpref,
+	                                        BL::Preferences& b_userpref,
 	                                        BL::Scene& b_scene,
 	                                        bool background);
 	static bool get_session_pause(BL::Scene& b_scene, bool background);

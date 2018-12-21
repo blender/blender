@@ -33,14 +33,14 @@ class _RestrictContext:
     __slots__ = ()
     _real_data = _bpy.data
     # safe, the pointer never changes
-    _real_pref = _bpy.context.user_preferences
+    _real_pref = _bpy.context.preferences
 
     @property
     def window_manager(self):
         return self._real_data.window_managers[0]
 
     @property
-    def user_preferences(self):
+    def preferences(self):
         return self._real_pref
 
 

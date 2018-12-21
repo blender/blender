@@ -218,8 +218,8 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 	BL::RenderEngine engine(engineptr);
 
 	PointerRNA userprefptr;
-	RNA_pointer_create(NULL, &RNA_UserPreferences, (void*)PyLong_AsVoidPtr(pyuserpref), &userprefptr);
-	BL::UserPreferences userpref(userprefptr);
+	RNA_pointer_create(NULL, &RNA_Preferences, (void*)PyLong_AsVoidPtr(pyuserpref), &userprefptr);
+	BL::Preferences userpref(userprefptr);
 
 	PointerRNA dataptr;
 	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);

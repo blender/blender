@@ -702,7 +702,7 @@ bool BlenderSync::get_session_pause(BL::Scene& b_scene, bool background)
 }
 
 SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
-                                              BL::UserPreferences& b_userpref,
+                                              BL::Preferences& b_userpref,
                                               BL::Scene& b_scene,
                                               bool background)
 {
@@ -742,7 +742,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	else if(get_enum(cscene, "device") == 1) {
 		PointerRNA b_preferences;
 
-		BL::UserPreferences::addons_iterator b_addon_iter;
+		BL::Preferences::addons_iterator b_addon_iter;
 		for(b_userpref.addons.begin(b_addon_iter); b_addon_iter != b_userpref.addons.end(); ++b_addon_iter) {
 			if(b_addon_iter->module() == "cycles") {
 				b_preferences = b_addon_iter->preferences().ptr;

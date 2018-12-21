@@ -148,7 +148,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         props.data_path = context_member
         del row
 
-    show_developer_ui = context.user_preferences.view.show_developer_ui
+    show_developer_ui = context.preferences.view.show_developer_ui
     rna_properties = {prop.identifier for prop in rna_item.bl_rna.properties if prop.is_runtime} if items else None
 
     layout.use_property_split = True

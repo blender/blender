@@ -47,7 +47,7 @@ class TIME_HT_editor_buttons(Header):
             # if using JACK and A/V sync:
             #   hide the play-reversed button
             #   since JACK transport doesn't support reversed playback
-            if scene.sync_mode == 'AUDIO_SYNC' and context.user_preferences.system.audio_device == 'JACK':
+            if scene.sync_mode == 'AUDIO_SYNC' and context.preferences.system.audio_device == 'JACK':
                 sub = row.row(align=True)
                 sub.scale_x = 1.4
                 sub.operator("screen.animation_play", text="", icon='PLAY')
@@ -275,7 +275,7 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
 
         scene = context.scene
         tool_settings = context.tool_settings
-        userprefs = context.user_preferences
+        prefs = context.preferences
 
         col = layout.column(align=True)
         col.label(text="Active Keying Set:")
@@ -293,7 +293,7 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
         row = col.row()
         row.prop(tool_settings, "auto_keying_mode", text="")
         row.prop(tool_settings, "use_keyframe_insert_keyingset", text="")
-        if not userprefs.edit.use_keyframe_insert_available:
+        if not prefs.edit.use_keyframe_insert_available:
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
 
         layout.prop(tool_settings, "use_keyframe_cycle_aware")

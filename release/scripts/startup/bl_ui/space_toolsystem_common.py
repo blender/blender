@@ -431,7 +431,7 @@ class ToolSelectPanelHelper:
         """
         # Currently this just checks the width,
         # we could have different layouts as preferences too.
-        system = bpy.context.user_preferences.system
+        system = bpy.context.preferences.system
         view2d = region.view2d
         view2d_scale = (
             view2d.region_to_view(1.0, 0.0)[0] -

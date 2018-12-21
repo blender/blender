@@ -37,7 +37,7 @@ class EditExternally(Operator):
     def _editor_guess(context):
         import sys
 
-        image_editor = context.user_preferences.filepaths.image_editor
+        image_editor = context.preferences.filepaths.image_editor
 
         # use image editor in the preferences when available.
         if not image_editor:
@@ -189,7 +189,7 @@ class ProjectEdit(Operator):
         if bpy.data.is_saved:
             filepath = "//" + filepath
         else:
-            tmpdir = context.user_preferences.filepaths.temporary_directory
+            tmpdir = context.preferences.filepaths.temporary_directory
             filepath = os.path.join(tmpdir, "project_edit")
 
         obj = context.object

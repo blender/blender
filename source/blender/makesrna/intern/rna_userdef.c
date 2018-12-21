@@ -285,27 +285,27 @@ static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
 
 static PointerRNA rna_UserDef_view_get(PointerRNA *ptr)
 {
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesView, ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_PreferencesView, ptr->data);
 }
 
 static PointerRNA rna_UserDef_edit_get(PointerRNA *ptr)
 {
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesEdit, ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_PreferencesEdit, ptr->data);
 }
 
 static PointerRNA rna_UserDef_input_get(PointerRNA *ptr)
 {
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesInput, ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_PreferencesInput, ptr->data);
 }
 
 static PointerRNA rna_UserDef_filepaths_get(PointerRNA *ptr)
 {
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesFilePaths, ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_PreferencesFilePaths, ptr->data);
 }
 
 static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 {
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
+	return rna_pointer_inherit_refine(ptr, &RNA_PreferencesSystem, ptr->data);
 }
 
 static void rna_UserDef_audio_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -2078,7 +2078,7 @@ static void rna_def_userdef_theme_space_userpref(BlenderRNA *brna)
 
 	/* space_userpref */
 
-	srna = RNA_def_struct(brna, "ThemeUserPreferences", NULL);
+	srna = RNA_def_struct(brna, "ThemePreferences", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Theme User Preferences", "Theme settings for the User Preferences");
@@ -3202,7 +3202,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{9, "NODE_EDITOR", ICON_NODETREE, "Node Editor", ""},
 		{11, "PROPERTIES", ICON_PROPERTIES, "Properties", ""},
 		{12, "OUTLINER", ICON_OUTLINER, "Outliner", ""},
-		{14, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
+		{14, "PREFERENCES", ICON_PREFERENCES, "Preferences", ""},
 		{15, "INFO", ICON_INFO, "Info", ""},
 		{16, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
@@ -3307,11 +3307,11 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeInfo");
 	RNA_def_property_ui_text(prop, "Info", "");
 
-	prop = RNA_def_property(srna, "user_preferences", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tuserpref");
-	RNA_def_property_struct_type(prop, "ThemeUserPreferences");
-	RNA_def_property_ui_text(prop, "User Preferences", "");
+	RNA_def_property_struct_type(prop, "ThemePreferences");
+	RNA_def_property_ui_text(prop, "Preferences", "");
 
 	prop = RNA_def_property(srna, "console", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -3670,9 +3670,9 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	PropertyRNA *prop;
 	StructRNA *srna;
 
-	srna = RNA_def_struct(brna, "UserPreferencesView", NULL);
+	srna = RNA_def_struct(brna, "PreferencesView", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_nested(brna, srna, "Preferences");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "View & Controls", "Preferences related to viewing data");
 
@@ -3971,9 +3971,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "UserPreferencesEdit", NULL);
+	srna = RNA_def_struct(brna, "PreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_nested(brna, srna, "Preferences");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Edit Methods", "Settings for interacting with Blender data");
 
@@ -4295,9 +4295,9 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
+	srna = RNA_def_struct(brna, "PreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_nested(brna, srna, "Preferences");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "System & OpenGL", "Graphics driver and operating system settings");
 
@@ -4633,9 +4633,9 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "UserPreferencesInput", NULL);
+	srna = RNA_def_struct(brna, "PreferencesInput", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_nested(brna, srna, "Preferences");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "Input", "Settings for input devices");
 
@@ -4846,9 +4846,9 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "UserPreferencesFilePaths", NULL);
+	srna = RNA_def_struct(brna, "PreferencesFilePaths", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
+	RNA_def_struct_nested(brna, srna, "Preferences");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 	RNA_def_struct_ui_text(srna, "File Paths", "Default paths for external files");
 
@@ -5031,7 +5031,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem user_pref_sections[] = {
+	static const EnumPropertyItem preference_section_items[] = {
 		{0, "", ICON_USER, "User Preferences", ""},
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
 		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
@@ -5059,14 +5059,14 @@ void RNA_def_userdef(BlenderRNA *brna)
 	rna_def_userdef_solidlight(brna);
 	rna_def_userdef_walk_navigation(brna);
 
-	srna = RNA_def_struct(brna, "UserPreferences", NULL);
+	srna = RNA_def_struct(brna, "Preferences", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
-	RNA_def_struct_ui_text(srna, "User Preferences", "Global user preferences");
+	RNA_def_struct_ui_text(srna, "Preferences", "Global preferences");
 
 	prop = RNA_def_property(srna, "active_section", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "userpref");
-	RNA_def_property_enum_items(prop, user_pref_sections);
+	RNA_def_property_enum_items(prop, preference_section_items);
 	RNA_def_property_ui_text(prop, "Active Section",
 	                         "Active section of the user preferences shown in the user interface");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
@@ -5101,31 +5101,31 @@ void RNA_def_userdef(BlenderRNA *brna)
 	/* nested structs */
 	prop = RNA_def_property(srna, "view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesView");
+	RNA_def_property_struct_type(prop, "PreferencesView");
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "View & Controls", "Preferences related to viewing data");
 
 	prop = RNA_def_property(srna, "edit", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesEdit");
+	RNA_def_property_struct_type(prop, "PreferencesEdit");
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data");
 
 	prop = RNA_def_property(srna, "inputs", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesInput");
+	RNA_def_property_struct_type(prop, "PreferencesInput");
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Inputs", "Settings for input devices");
 
 	prop = RNA_def_property(srna, "filepaths", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
+	RNA_def_property_struct_type(prop, "PreferencesFilePaths");
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files");
 
 	prop = RNA_def_property(srna, "system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesSystem");
+	RNA_def_property_struct_type(prop, "PreferencesSystem");
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "System & OpenGL", "Graphics driver and operating system settings");
 

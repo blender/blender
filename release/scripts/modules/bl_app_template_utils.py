@@ -33,7 +33,7 @@ __all__ = (
 
 import bpy as _bpy
 
-# Normally matches 'user_preferences.app_template_id',
+# Normally matches 'preferences.app_template_id',
 # but loading new preferences will get us out of sync.
 _app_template = {
     "id": "",
@@ -184,7 +184,7 @@ def reset(*, reload_scripts=False):
     """
     Sets default state.
     """
-    template_id = _bpy.context.user_preferences.app_template
+    template_id = _bpy.context.preferences.app_template
     if _bpy.app.debug_python:
         print("bl_app_template_utils.reset('%s')" % template_id)
 

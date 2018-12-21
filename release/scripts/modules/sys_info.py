@@ -227,7 +227,7 @@ def write_sysinfo(filepath):
             import addon_utils
             addon_utils.modules()
             output.write(title("Enabled add-ons"))
-            for addon in bpy.context.user_preferences.addons.keys():
+            for addon in bpy.context.preferences.addons.keys():
                 addon_mod = addon_utils.addons_fake_modules.get(addon, None)
                 if addon_mod is None:
                     output.write("%s (MISSING)\n" % (addon))

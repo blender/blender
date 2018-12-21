@@ -129,7 +129,7 @@ class SceneKeyingSetsPanel:
                 owner = ks
                 propname = prop
             else:
-                owner = context.user_preferences.edit
+                owner = context.preferences.edit
                 if userpref_fallback:
                     propname = userpref_fallback
                 else:
@@ -137,7 +137,7 @@ class SceneKeyingSetsPanel:
         else:
             item = ks
 
-            owner = context.user_preferences.edit
+            owner = context.preferences.edit
             if userpref_fallback:
                 propname = userpref_fallback
             else:

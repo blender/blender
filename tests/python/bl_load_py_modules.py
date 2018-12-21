@@ -104,7 +104,7 @@ def source_list(path, filename_check=None):
 
 def load_addons():
     modules = addon_modules_sorted()
-    addons = bpy.context.user_preferences.addons
+    addons = bpy.context.preferences.addons
 
     # first disable all
     for mod_name in list(addons.keys()):

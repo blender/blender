@@ -65,7 +65,7 @@ class CyclesNodeButtonsPanel:
 
 
 def get_device_type(context):
-    return context.user_preferences.addons[__package__].preferences.compute_device_type
+    return context.preferences.addons[__package__].preferences.compute_device_type
 
 
 def use_cpu(context):
@@ -102,7 +102,7 @@ def show_device_active(context):
     cscene = context.scene.cycles
     if cscene.device != 'GPU':
         return True
-    return context.user_preferences.addons[__package__].preferences.has_active_device()
+    return context.preferences.addons[__package__].preferences.has_active_device()
 
 
 def draw_samples_info(layout, context):

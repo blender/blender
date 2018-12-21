@@ -50,8 +50,8 @@ class OBJECT_OT_addon_prefs_example(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        user_preferences = context.user_preferences
-        addon_prefs = user_preferences.addons[__name__].preferences
+        preferences = context.preferences
+        addon_prefs = preferences.addons[__name__].preferences
 
         info = ("Path: %s, Number: %d, Boolean %r" %
                 (addon_prefs.filepath, addon_prefs.number, addon_prefs.boolean))

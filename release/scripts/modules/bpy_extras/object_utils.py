@@ -67,7 +67,7 @@ def add_object_align_init(context, operator):
             properties.location = location.to_translation()
 
     # rotation
-    view_align = (context.user_preferences.edit.object_align == 'VIEW')
+    view_align = (context.preferences.edit.object_align == 'VIEW')
     view_align_force = False
     if operator:
         if properties.is_property_set("view_align"):
@@ -135,7 +135,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
     # XXX
     # caused because entering edit-mode does not add a empty undo slot!
-    if context.user_preferences.edit.use_enter_edit_mode:
+    if context.preferences.edit.use_enter_edit_mode:
         if not (obj_act and
                 obj_act.mode == 'EDIT' and
                 obj_act.type == obj_new.type):
@@ -174,7 +174,7 @@ def object_data_add(context, obdata, operator=None, name=None):
         bpy.ops.object.mode_set(mode='EDIT')
     else:
         layer.objects.active = obj_new
-        if context.user_preferences.edit.use_enter_edit_mode:
+        if context.preferences.edit.use_enter_edit_mode:
             bpy.ops.object.mode_set(mode='EDIT')
 
     return obj_new

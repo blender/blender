@@ -359,7 +359,7 @@ INFO_DOCS = (
 # only support for properties atm.
 RNA_BLACKLIST = {
     # XXX messes up PDF!, really a bug but for now just workaround.
-    "UserPreferencesSystem": {"language", }
+    "PreferencesSystem": {"language", }
 }
 
 MODULE_GROUPING = {

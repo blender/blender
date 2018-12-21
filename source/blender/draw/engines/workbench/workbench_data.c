@@ -16,7 +16,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene = draw_ctx->scene;
 	wpd->material_hash = BLI_ghash_ptr_new(__func__);
-	wpd->user_preferences = &U;
+	wpd->preferences = &U;
 
 	View3D *v3d = draw_ctx->v3d;
 	if (!v3d) {

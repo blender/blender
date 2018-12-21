@@ -53,7 +53,7 @@ int BlenderSession::end_resumable_chunk = 0;
 bool BlenderSession::print_render_stats = false;
 
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
-                               BL::UserPreferences& b_userpref,
+                               BL::Preferences& b_userpref,
                                BL::BlendData& b_data,
                                bool preview_osl)
 : session(NULL),
@@ -79,7 +79,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
 }
 
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
-                               BL::UserPreferences& b_userpref,
+                               BL::Preferences& b_userpref,
                                BL::BlendData& b_data,
                                BL::SpaceView3D& b_v3d,
                                BL::RegionView3D& b_rv3d,

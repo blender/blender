@@ -2015,7 +2015,7 @@ class WM_OT_addon_install(Operator):
             # don't use bpy.utils.script_paths("addons") because we may not be able to write to it.
             path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
         else:
-            path_addons = context.user_preferences.filepaths.script_directory
+            path_addons = context.preferences.filepaths.script_directory
             if path_addons:
                 path_addons = os.path.join(path_addons, "addons")
 
@@ -2206,7 +2206,7 @@ class WM_OT_addon_expand(Operator):
 
 
 class WM_OT_addon_userpref_show(Operator):
-    """Show add-on user preferences"""
+    """Show add-on preferences"""
     bl_idname = "wm.addon_userpref_show"
     bl_label = ""
     bl_options = {'INTERNAL'}
@@ -2227,7 +2227,7 @@ class WM_OT_addon_userpref_show(Operator):
             info = addon_utils.module_bl_info(mod)
             info["show_expanded"] = True
 
-            context.user_preferences.active_section = 'ADDONS'
+            context.preferences.active_section = 'ADDONS'
             context.window_manager.addon_filter = 'All'
             context.window_manager.addon_search = info["name"]
             bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
@@ -2454,7 +2454,7 @@ class WM_OT_studiolight_install(Operator):
         import traceback
         import shutil
         import pathlib
-        userpref = context.user_preferences
+        prefs = context.preferences
 
         filepaths = [pathlib.Path(self.directory, e.name) for e in self.files]
         path_studiolights = bpy.utils.user_resource('DATAFILES')
@@ -2472,7 +2472,7 @@ class WM_OT_studiolight_install(Operator):
 
         for filepath in filepaths:
             shutil.copy(str(filepath), str(path_studiolights))
-            userpref.studio_lights.load(str(path_studiolights.joinpath(filepath.name)), self.type)
+            prefs.studio_lights.load(str(path_studiolights.joinpath(filepath.name)), self.type)
 
         # print message
         msg = (
@@ -2503,7 +2503,7 @@ class WM_OT_studiolight_new(Operator):
 
     def execute(self, context):
         import pathlib
-        userpref = context.user_preferences
+        prefs = context.preferences
         wm = context.window_manager
 
         path_studiolights = bpy.utils.user_resource('DATAFILES')
@@ -2525,11 +2525,11 @@ class WM_OT_studiolight_new(Operator):
                 self.ask_overide = True
                 return wm.invoke_props_dialog(self, width=600)
             else:
-                for studio_light in userpref.studio_lights:
+                for studio_light in prefs.studio_lights:
                     if studio_light.name == self.filename + ".sl":
                         bpy.ops.wm.studiolight_uninstall(index=studio_light.index)
 
-        userpref.studio_lights.new(path=finalpath)
+        prefs.studio_lights.new(path=finalpath)
 
         # print message
         msg = (
@@ -2564,8 +2564,8 @@ class WM_OT_studiolight_uninstall(Operator):
 
     def execute(self, context):
         import pathlib
-        userpref = context.user_preferences
-        for studio_light in userpref.studio_lights:
+        prefs = context.preferences
+        for studio_light in prefs.studio_lights:
             if studio_light.index == self.index:
                 if studio_light.path:
                     self._remove_path(pathlib.Path(studio_light.path))
@@ -2573,7 +2573,7 @@ class WM_OT_studiolight_uninstall(Operator):
                     self._remove_path(pathlib.Path(studio_light.path_irr_cache))
                 if studio_light.path_sh_cache:
                     self._remove_path(pathlib.Path(studio_light.path_sh_cache))
-                userpref.studio_lights.remove(studio_light)
+                prefs.studio_lights.remove(studio_light)
                 return {'FINISHED'}
         return {'CANCELLED'}
 
@@ -2585,9 +2585,9 @@ class WM_OT_studiolight_copy_settings(Operator):
     index: bpy.props.IntProperty()
 
     def execute(self, context):
-        userpref = context.user_preferences
-        system = userpref.system
-        for studio_light in userpref.studio_lights:
+        prefs = context.preferences
+        system = prefs.system
+        for studio_light in prefs.studio_lights:
             if studio_light.index == self.index:
                 system.light_ambient = studio_light.light_ambient
                 for sys_light, light in zip(system.solid_lights, studio_light.solid_lights):
@@ -2601,13 +2601,13 @@ class WM_OT_studiolight_copy_settings(Operator):
 
 
 class WM_OT_studiolight_userpref_show(Operator):
-    """Show light user preferences"""
+    """Show light preferences"""
     bl_idname = "wm.studiolight_userpref_show"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        context.user_preferences.active_section = 'LIGHTS'
+        context.preferences.active_section = 'LIGHTS'
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
         return {'FINISHED'}
 
@@ -2617,7 +2617,7 @@ class WM_MT_splash(Menu):
 
     def draw_setup(self, context):
         wm = context.window_manager
-        # userpref = context.user_preferences
+        # prefs = context.preferences
 
         layout = self.layout
 
@@ -2678,8 +2678,8 @@ class WM_MT_splash(Menu):
         #row = sub.row()
         #row.alignment = 'RIGHT'
         # row.label(text="Language:")
-        #userpref = context.user_preferences
-        #sub.prop(userpref.system, "language", text="")
+        #prefs = context.preferences
+        #sub.prop(prefs.system, "language", text="")
 
         # Keep height constant
         if not has_select_mouse:
@@ -2705,7 +2705,7 @@ class WM_MT_splash(Menu):
         layout.separator()
 
     def draw(self, context):
-        # Draw setup screen if no user preferences have been saved yet.
+        # Draw setup screen if no preferences have been saved yet.
         import os
 
         user_path = bpy.utils.resource_path('USER')

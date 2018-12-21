@@ -485,11 +485,11 @@ def main():
                         help="Do not generate/clear previews for mat/tex/image/etc. IDs (those handled by core Blender code).")
     args = parser.parse_args(argv)
 
-    orig_save_version = bpy.context.user_preferences.filepaths.save_version
+    orig_save_version = bpy.context.preferences.filepaths.save_version
     if args.no_backups:
-        bpy.context.user_preferences.filepaths.save_version = 0
+        bpy.context.preferences.filepaths.save_version = 0
     elif orig_save_version < 1:
-        bpy.context.user_preferences.filepaths.save_version = 1
+        bpy.context.preferences.filepaths.save_version = 1
 
     if args.clear:
         print("clear!")
@@ -501,7 +501,7 @@ def main():
                     do_data_intern=args.no_data_intern)
 
     # Not really necessary, but better be consistent.
-    bpy.context.user_preferences.filepaths.save_version = orig_save_version
+    bpy.context.preferences.filepaths.save_version = orig_save_version
 
 
 if __name__ == "__main__":

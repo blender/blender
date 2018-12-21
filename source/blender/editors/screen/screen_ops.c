@@ -4751,7 +4751,7 @@ static void context_cycle_prop_get(
 			propname = "context";
 			break;
 		case SPACE_USERPREF:
-			RNA_pointer_create(NULL, &RNA_UserPreferences, &U, r_ptr);
+			RNA_pointer_create(NULL, &RNA_Preferences, &U, r_ptr);
 			propname = "active_section";
 			break;
 		default:

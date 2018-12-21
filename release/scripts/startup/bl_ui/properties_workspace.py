@@ -57,7 +57,7 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
         col = layout.box().column(align=True)
 
         workspace = context.workspace
-        userpref = context.user_preferences
+        prefs = context.preferences
 
         col.active = workspace.use_filter_by_owner
 
@@ -65,7 +65,7 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
         addon_map = {mod.__name__: mod for mod in addon_utils.modules()}
         owner_ids = {owner_id.name for owner_id in workspace.owner_ids}
 
-        for addon in userpref.addons:
+        for addon in prefs.addons:
             module_name = addon.module
             info = addon_utils.module_bl_info(addon_map[module_name])
             if not info["use_owner"]:

@@ -609,7 +609,7 @@ class TOPBAR_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
 
         if any(bpy.utils.app_template_paths()):
-            app_template = context.user_preferences.app_template
+            app_template = context.preferences.app_template
         else:
             app_template = None
 
@@ -647,7 +647,7 @@ class TOPBAR_MT_file(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        if bpy.data.is_dirty and context.user_preferences.view.use_quit_dialog:
+        if bpy.data.is_dirty and context.preferences.view.use_quit_dialog:
             layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
@@ -894,7 +894,7 @@ class TOPBAR_MT_help(Menu):
     def draw(self, context):
         layout = self.layout
 
-        show_developer = context.user_preferences.view.show_developer_ui
+        show_developer = context.preferences.view.show_developer_ui
 
         layout.operator(
             "wm.url_open", text="Manual", icon='HELP',

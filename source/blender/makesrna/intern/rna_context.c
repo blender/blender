@@ -196,10 +196,10 @@ static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
 }
 
-static PointerRNA rna_Context_user_preferences_get(PointerRNA *UNUSED(ptr))
+static PointerRNA rna_Context_preferences_get(PointerRNA *UNUSED(ptr))
 {
 	PointerRNA newptr;
-	RNA_pointer_create(NULL, &RNA_UserPreferences, &U, &newptr);
+	RNA_pointer_create(NULL, &RNA_Preferences, &U, &newptr);
 	return newptr;
 }
 
@@ -306,10 +306,10 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ToolSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_tool_settings_get", NULL, NULL, NULL);
 
-	prop = RNA_def_property(srna, "user_preferences", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "UserPreferences");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_user_preferences_get", NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "Preferences");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_preferences_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_context_mode_items);

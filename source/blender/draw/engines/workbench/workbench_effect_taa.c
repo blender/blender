@@ -98,13 +98,13 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata)
 			result = (scene->r.mode & R_OSA) ? scene->r.osa : 1;
 		}
 		else if (IN_RANGE_INCL(
-		            wpd->user_preferences->gpu_viewport_quality,
+		            wpd->preferences->gpu_viewport_quality,
 		            GPU_VIEWPORT_QUALITY_TAA8, GPU_VIEWPORT_QUALITY_TAA16))
 		{
 			result = 8;
 		}
 		else if (IN_RANGE_INCL(
-		            wpd->user_preferences->gpu_viewport_quality,
+		            wpd->preferences->gpu_viewport_quality,
 		            GPU_VIEWPORT_QUALITY_TAA16, GPU_VIEWPORT_QUALITY_TAA32))
 		{
 			result = 16;

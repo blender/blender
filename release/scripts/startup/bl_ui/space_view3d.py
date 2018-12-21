@@ -4420,8 +4420,8 @@ class VIEW3D_PT_shading_lighting(Panel):
             sub = col.row()
 
             if shading.light == 'STUDIO':
-                userpref = context.user_preferences
-                system = userpref.system
+                prefs = context.preferences
+                system = prefs.system
 
                 if not system.edit_studio_light:
                     sub.scale_y = 0.6  # smaller studiolight preview
@@ -5013,7 +5013,7 @@ class VIEW3D_PT_overlay_edit_mesh_developer(Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.mode == 'EDIT_MESH' and context.user_preferences.view.show_developer_ui
+        return context.mode == 'EDIT_MESH' and context.preferences.view.show_developer_ui
 
     def draw(self, context):
         layout = self.layout

@@ -195,8 +195,8 @@ class _defs_annotate:
     def eraser():
         def draw_settings(context, layout, tool):
             # TODO: Move this setting to tool_settings
-            user_prefs = context.user_preferences
-            layout.prop(user_prefs.edit, "grease_pencil_eraser_radius", text="Radius")
+            prefs = context.preferences
+            layout.prop(prefs.edit, "grease_pencil_eraser_radius", text="Radius")
         return dict(
             text="Annotate Eraser",
             icon="ops.gpencil.draw.eraser",

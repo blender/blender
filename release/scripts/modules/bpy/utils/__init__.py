@@ -71,7 +71,7 @@ import sys as _sys
 
 import addon_utils as _addon_utils
 
-_user_preferences = _bpy.context.user_preferences
+_preferences = _bpy.context.preferences
 _script_module_dirs = "startup", "modules"
 _is_factory_startup = _bpy.app.factory_startup
 
@@ -176,7 +176,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # to reload. note that they will only actually reload of the
         # modification time changes. This `won't` work for packages so...
         # its not perfect.
-        for module_name in [ext.module for ext in _user_preferences.addons]:
+        for module_name in [ext.module for ext in _preferences.addons]:
             _addon_utils.disable(module_name)
 
     def register_module_call(mod):
@@ -308,7 +308,7 @@ def script_path_user():
 
 def script_path_pref():
     """returns the user preference or None"""
-    path = _user_preferences.filepaths.script_directory
+    path = _preferences.filepaths.script_directory
     return _os.path.normpath(path) if path else None
 
 
@@ -572,7 +572,7 @@ def preset_find(name, preset_path, display_name=False, ext=".py"):
 def keyconfig_init():
     # Key configuration initialization and refresh, called from the Blender
     # window manager on startup and refresh.
-    active_config = _user_preferences.inputs.active_keyconfig
+    active_config = _preferences.inputs.active_keyconfig
 
     # Load the default key configuration.
     default_filepath = preset_find("blender", "keyconfig")
