@@ -4130,7 +4130,7 @@ class VIEW3D_MT_orientations_pie(Menu):
         pie = layout.menu_pie()
         scene = context.scene
 
-        pie.prop(scene, "transform_orientation", expand=True)
+        pie.prop(scene.transform_orientation_slots[0], "type", expand=True)
 
 
 class VIEW3D_MT_snap_pie(Menu):
