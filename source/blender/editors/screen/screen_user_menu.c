@@ -62,7 +62,7 @@
 /** \name Menu Type
  * \{ */
 
-bUserMenu **ED_screen_user_menus_find(bContext *C, uint *r_len)
+bUserMenu **ED_screen_user_menus_find(const bContext *C, uint *r_len)
 {
 	SpaceLink *sl = CTX_wm_space_data(C);
 	const char *context = CTX_data_mode_string(C);
