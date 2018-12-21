@@ -532,6 +532,10 @@ void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Seque
 
 void *BKE_sound_add_scene_sound(struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip)
 {
+	/* Happens when sequence's sound datablock was removed. */
+	if (sequence->sound == NULL) {
+		return NULL;
+	}
 	const double fps = FPS;
 	void *handle = AUD_Sequence_add(scene->sound_scene, sequence->sound->playback_handle,
 	                               startframe / fps, endframe / fps, frameskip / fps);
