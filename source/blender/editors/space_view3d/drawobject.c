@@ -319,6 +319,8 @@ void draw_object_backbufsel(
 					bm_wireoffs = bm_solidoffs;
 				}
 
+				ED_view3d_polygon_offset(rv3d, 1.1);
+
 				/* we draw verts if vert select mode. */
 				if (select_mode & SCE_SELECT_VERTEX) {
 					bbs_mesh_verts(geom_verts, bm_wireoffs);
