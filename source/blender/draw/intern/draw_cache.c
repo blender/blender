@@ -3749,16 +3749,23 @@ bool DRW_vbo_requested(GPUVertBuf *vbo)
 
 void drw_batch_cache_generate_requested(Object *ob)
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const ToolSettings *ts = draw_ctx->scene->toolsettings;
+	const int mode = CTX_data_mode_enum_ex(draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
+	const bool is_paint_mode = ELEM(mode, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
+	const bool use_hide = (ob->type == OB_MESH) && ((is_paint_mode && (ob == draw_ctx->obact)) ||
+	                                               ((mode == CTX_MODE_EDIT_MESH) && BKE_object_is_in_editmode(ob)));
+
 	struct Mesh *mesh_eval = ob->runtime.mesh_eval;
 	switch (ob->type) {
 		case OB_MESH:
-			DRW_mesh_batch_cache_create_requested(ob, (Mesh *)ob->data);
+			DRW_mesh_batch_cache_create_requested(ob, (Mesh *)ob->data, ts, is_paint_mode, use_hide);
 			break;
 		case OB_CURVE:
 		case OB_FONT:
 		case OB_SURF:
 			if (mesh_eval) {
-				DRW_mesh_batch_cache_create_requested(ob, mesh_eval);
+				DRW_mesh_batch_cache_create_requested(ob, mesh_eval, ts, is_paint_mode, use_hide);
 			}
 			DRW_curve_batch_cache_create_requested(ob);
 			break;

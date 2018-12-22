@@ -5277,30 +5277,17 @@ void DRW_mesh_cache_uvedit(
  * \{ */
 
 /* Can be called for any surface type. Mesh *me is the final mesh. */
-void DRW_mesh_batch_cache_create_requested(Object *ob, Mesh *me)
+void DRW_mesh_batch_cache_create_requested(
+        Object *ob, Mesh *me,
+        const ToolSettings *ts, const bool is_paint_mode, const bool use_hide)
 {
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	const int mode = CTX_data_mode_enum_ex(draw_ctx->object_edit, draw_ctx->obact, draw_ctx->object_mode);
-	const bool is_paint_mode = ELEM(mode, CTX_MODE_PAINT_TEXTURE, CTX_MODE_PAINT_VERTEX, CTX_MODE_PAINT_WEIGHT);
-	const bool use_hide = (
-	        (ob->type == OB_MESH) &&
-	        ((is_paint_mode && (ob == draw_ctx->obact)) ||
-	         ((mode == CTX_MODE_EDIT_MESH) && BKE_object_is_in_editmode(ob))));
-	bool use_face_sel = false;
-
-	/* Tex paint face select */
-	if (is_paint_mode && (ob->type == OB_MESH) && (draw_ctx->obact == ob)) {
-		const Mesh *me_orig = DEG_get_original_object(ob)->data;
-		use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-	}
-
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	/* Check vertex weights. */
-	if (cache->batch.surface_weights != 0) {
+	if ((cache->batch.surface_weights != 0) && (ts != NULL)) {
 		struct DRW_MeshWeightState wstate;
 		BLI_assert(ob->type == OB_MESH);
-		drw_mesh_weight_state_extract(ob, me, draw_ctx->scene->toolsettings, is_paint_mode, &wstate);
+		drw_mesh_weight_state_extract(ob, me, ts, is_paint_mode, &wstate);
 		mesh_batch_cache_check_vertex_group(cache, &wstate);
 		drw_mesh_weight_state_copy(&cache->weight_state, &wstate);
 		drw_mesh_weight_state_clear(&wstate);

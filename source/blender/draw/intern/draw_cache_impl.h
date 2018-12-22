@@ -37,6 +37,7 @@ struct ModifierData;
 struct ParticleSystem;
 struct PTCacheEdit;
 struct SpaceImage;
+struct ToolSettings;
 
 struct Curve;
 struct Lattice;
@@ -97,7 +98,9 @@ struct GPUBatch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
 struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 
 /* Mesh */
-void DRW_mesh_batch_cache_create_requested(struct Object *ob, struct Mesh *me);
+void DRW_mesh_batch_cache_create_requested(
+        struct Object *ob, struct Mesh *me,
+        const struct ToolSettings *ts, const bool is_paint_mode, const bool use_hide);
 
 struct GPUBatch *DRW_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
