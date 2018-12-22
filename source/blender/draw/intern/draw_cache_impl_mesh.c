@@ -1182,12 +1182,12 @@ static int mesh_render_data_verts_len_get_maybe_mapped(const MeshRenderData *rda
 
 static int UNUSED_FUNCTION(mesh_render_data_loose_verts_len_get)(const MeshRenderData *rdata)
 {
-	BLI_assert(rdata->types & MR_DATATYPE_OVERLAY);
+	BLI_assert(rdata->types & MR_DATATYPE_LOOSE_VERT);
 	return rdata->loose_vert_len;
 }
 static int mesh_render_data_loose_verts_len_get_maybe_mapped(const MeshRenderData *rdata)
 {
-	BLI_assert(rdata->types & MR_DATATYPE_OVERLAY);
+	BLI_assert(rdata->types & MR_DATATYPE_LOOSE_VERT);
 	return ((rdata->mapped.use == false) ? rdata->loose_vert_len : rdata->mapped.loose_vert_len);
 }
 
@@ -1204,12 +1204,12 @@ static int mesh_render_data_edges_len_get_maybe_mapped(const MeshRenderData *rda
 
 static int UNUSED_FUNCTION(mesh_render_data_loose_edges_len_get)(const MeshRenderData *rdata)
 {
-	BLI_assert(rdata->types & MR_DATATYPE_OVERLAY);
+	BLI_assert(rdata->types & MR_DATATYPE_LOOSE_EDGE);
 	return rdata->loose_edge_len;
 }
 static int mesh_render_data_loose_edges_len_get_maybe_mapped(const MeshRenderData *rdata)
 {
-	BLI_assert(rdata->types & MR_DATATYPE_OVERLAY);
+	BLI_assert(rdata->types & MR_DATATYPE_LOOSE_EDGE);
 	return ((rdata->mapped.use == false) ? rdata->loose_edge_len : rdata->mapped.loose_edge_len);
 }
 
