@@ -282,7 +282,7 @@ static void PAINT_TEXTURE_cache_populate(void *vedata, Object *ob)
 
 					for (int i = 0; i < mat_nr; i++) {
 						const int index = use_material_slots ? i : 0;
-						if (stl->g_data->shgroup_image_array[index]) {
+						if ((i < me->totcol) && stl->g_data->shgroup_image_array[index]) {
 							DRW_shgroup_call_add(stl->g_data->shgroup_image_array[index], geom_array[i], ob->obmat);
 						}
 						else {
