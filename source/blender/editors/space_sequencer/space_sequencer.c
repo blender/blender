@@ -654,7 +654,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
 		rcti rect;
 		ED_region_visible_rect(ar, &rect);
 		int xoffset = rect.xmin + U.widget_unit;
-		int yoffset = rect.xmax;
+		int yoffset = rect.ymax;
 		ED_scene_draw_fps(scene, xoffset, &yoffset);
 	}
 }
