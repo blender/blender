@@ -2088,61 +2088,6 @@ typedef struct MeshBatchCache {
 
 	/* OLD BATCH METHOD, thoses needs to be ported and added in the structs above. */
 
-	/* Indices buffers. */
-	GPUIndexBuf *edges_in_order;
-	GPUIndexBuf *edges_adjacency; /* Store edges with adjacent vertices. */
-	GPUIndexBuf *triangles_in_order;
-	GPUIndexBuf *ledges_in_order;
-
-	GPUBatch *all_triangles;
-
-	GPUVertBuf *pos_with_normals;
-	GPUVertBuf *pos_with_normals_visible_only;
-	GPUVertBuf *pos_with_normals_edit;
-	GPUVertBuf *pos_with_normals_visible_only_edit;
-	GPUVertBuf *tri_aligned_uv;  /* Active UV layer (mloopuv) */
-
-	/**
-	 * Other uses are all positions or loose elements.
-	 * This stores all visible elements, needed for selection.
-	 */
-	GPUVertBuf *ed_fcenter_pos_with_nor_and_sel;
-	GPUVertBuf *ed_edge_pos;
-	GPUVertBuf *ed_vert_pos;
-
-	GPUBatch *triangles_with_normals;
-	GPUBatch *ledges_with_normals;
-
-	/* Skip hidden (depending on paint select mode) */
-	GPUBatch *triangles_with_weights;
-	GPUBatch *triangles_with_vert_colors;
-	/* Always skip hidden */
-	GPUBatch *triangles_with_select_mask;
-	GPUBatch *triangles_with_select_id;
-	uint       triangles_with_select_id_offset;
-
-	GPUBatch *facedot_with_select_id;  /* shares vbo with 'edit_facedots' */
-	GPUBatch *edges_with_select_id;
-	GPUBatch *verts_with_select_id;
-
-	uint facedot_with_select_id_offset;
-	uint edges_with_select_id_offset;
-	uint verts_with_select_id_offset;
-
-	GPUBatch *points_with_normals;
-	GPUBatch *fancy_edges; /* owns its vertex buffer (not shared) */
-
-	GPUBatch *edge_detection;
-
-	/* Texture Paint.*/
-	/* per-texture batch */
-	GPUBatch **texpaint_triangles;
-	GPUBatch  *texpaint_triangles_single;
-
-	GPUBatch *overlay_weight_faces;
-	GPUBatch *overlay_weight_verts;
-	GPUBatch *overlay_paint_edges;
-
 	/* 2D/UV edit */
 	GPUVertBuf *edituv_pos;
 	GPUVertBuf *edituv_area;
@@ -2189,7 +2134,7 @@ typedef struct MeshBatchCache {
 	/* XXX, only keep for as long as sculpt mode uses shaded drawing. */
 	bool is_sculpt_points_tag;
 
-	/* Valid only if edges_adjacency is up to date. */
+	/* Valid only if edge_detection is up to date. */
 	bool is_manifold;
 } MeshBatchCache;
 
@@ -2311,8 +2256,6 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 	}
 	MEM_SAFE_FREE(cache->surf_per_mat);
 
-	MEM_SAFE_FREE(cache->texpaint_triangles);
-
 	MEM_SAFE_FREE(cache->auto_layer_names);
 	MEM_SAFE_FREE(cache->auto_layer_is_srgb);
 
@@ -2382,12 +2325,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_loose_verts);
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_loose_edges);
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_facedots);
-			GPU_VERTBUF_DISCARD_SAFE(cache->ed_edge_pos);
-			GPU_VERTBUF_DISCARD_SAFE(cache->ed_vert_pos);
-			/* Edit mode selection. */
-			GPU_BATCH_DISCARD_SAFE(cache->facedot_with_select_id);
-			GPU_BATCH_DISCARD_SAFE(cache->edges_with_select_id);
-			GPU_BATCH_DISCARD_SAFE(cache->verts_with_select_id);
 			/* Paint mode selection */
 			/* TODO only do that in paint mode. */
 			GPU_VERTBUF_DISCARD_SAFE(cache->ordered.loop_pos_nor);
@@ -2398,9 +2335,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 					GPU_BATCH_DISCARD_SAFE(cache->surf_per_mat[i]);
 				}
 			}
-			GPU_BATCH_DISCARD_SAFE(cache->overlay_paint_edges);
-			GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
-			GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
 			/* Because visible UVs depends on edit mode selection, discard everything. */
 			mesh_batch_cache_discard_uvedit(cache);
 			break;
@@ -2423,49 +2357,6 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			break;
 		default:
 			BLI_assert(0);
-	}
-}
-
-/**
- * This only clear the batches associated to the given vertex buffer.
- **/
-static void mesh_batch_cache_clear_selective(Mesh *me, GPUVertBuf *vert)
-{
-	MeshBatchCache *cache = me->runtime.batch_cache;
-	if (!cache) {
-		return;
-	}
-
-	BLI_assert(vert != NULL);
-
-	if (ELEM(vert, cache->pos_with_normals, cache->pos_with_normals_visible_only,
-	         cache->pos_with_normals_edit, cache->pos_with_normals_visible_only_edit))
-	{
-		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_normals);
-		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_weights);
-		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_vert_colors);
-		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
-		GPU_BATCH_DISCARD_SAFE(cache->triangles_with_select_mask);
-		GPU_BATCH_DISCARD_SAFE(cache->points_with_normals);
-		GPU_BATCH_DISCARD_SAFE(cache->ledges_with_normals);
-		// if (cache->shaded_triangles) {
-		// 	for (int i = 0; i < cache->mat_len; i++) {
-		// 		GPU_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
-		// 	}
-		// }
-		// MEM_SAFE_FREE(cache->shaded_triangles);
-		// if (cache->texpaint_triangles) {
-		// 	for (int i = 0; i < cache->mat_len; i++) {
-		// 		GPU_BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
-		// 	}
-		// }
-		MEM_SAFE_FREE(cache->texpaint_triangles);
-		GPU_BATCH_DISCARD_SAFE(cache->texpaint_triangles_single);
-	}
-	/* TODO: add the other ones if needed. */
-	else {
-		/* Does not match any vertbuf in the batch cache! */
-		BLI_assert(0);
 	}
 }
 
@@ -2497,50 +2388,9 @@ static void mesh_batch_cache_clear(Mesh *me)
 		GPU_BATCH_DISCARD_SAFE(batch[i]);
 	}
 
-	GPU_BATCH_DISCARD_SAFE(cache->all_triangles);
-
-	GPU_INDEXBUF_DISCARD_SAFE(cache->edges_in_order);
-	GPU_INDEXBUF_DISCARD_SAFE(cache->triangles_in_order);
-	GPU_INDEXBUF_DISCARD_SAFE(cache->ledges_in_order);
-
-	GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
-	GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
-	GPU_BATCH_DISCARD_SAFE(cache->overlay_paint_edges);
-
-	GPU_BATCH_DISCARD_SAFE(cache->triangles_with_normals);
-	GPU_BATCH_DISCARD_SAFE(cache->points_with_normals);
-	GPU_BATCH_DISCARD_SAFE(cache->ledges_with_normals);
-	GPU_VERTBUF_DISCARD_SAFE(cache->pos_with_normals);
-	GPU_VERTBUF_DISCARD_SAFE(cache->pos_with_normals_visible_only);
-	GPU_VERTBUF_DISCARD_SAFE(cache->pos_with_normals_edit);
-	GPU_VERTBUF_DISCARD_SAFE(cache->pos_with_normals_visible_only_edit);
-	GPU_BATCH_DISCARD_SAFE(cache->triangles_with_weights);
-	GPU_BATCH_DISCARD_SAFE(cache->triangles_with_vert_colors);
-	GPU_VERTBUF_DISCARD_SAFE(cache->tri_aligned_uv);
-	GPU_VERTBUF_DISCARD_SAFE(cache->ed_fcenter_pos_with_nor_and_sel);
-	GPU_VERTBUF_DISCARD_SAFE(cache->ed_edge_pos);
-	GPU_VERTBUF_DISCARD_SAFE(cache->ed_vert_pos);
-	GPU_BATCH_DISCARD_SAFE(cache->triangles_with_select_mask);
-	GPU_BATCH_DISCARD_SAFE(cache->triangles_with_select_id);
-	GPU_BATCH_DISCARD_SAFE(cache->facedot_with_select_id);
-	GPU_BATCH_DISCARD_SAFE(cache->edges_with_select_id);
-	GPU_BATCH_DISCARD_SAFE(cache->verts_with_select_id);
-
-	GPU_BATCH_DISCARD_SAFE(cache->fancy_edges);
-
-	GPU_INDEXBUF_DISCARD_SAFE(cache->edges_adjacency);
-	GPU_BATCH_DISCARD_SAFE(cache->edge_detection);
-
 	mesh_batch_cache_discard_shaded_tri(cache);
 
 	mesh_batch_cache_discard_uvedit(cache);
-
-	if (cache->texpaint_triangles) {
-		for (int i = 0; i < cache->mat_len; i++) {
-			GPU_BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
-		}
-	}
-	MEM_SAFE_FREE(cache->texpaint_triangles);
 
 	drw_mesh_weight_state_clear(&cache->weight_state);
 }
@@ -4869,8 +4719,9 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Mesh *me)
 /**
  * Needed for when we draw with shaded data.
  */
-void DRW_mesh_cache_sculpt_coords_ensure(Mesh *me)
+void DRW_mesh_cache_sculpt_coords_ensure(Mesh *UNUSED(me))
 {
+#if 0 /* Unused for now */
 	if (me->runtime.batch_cache) {
 		MeshBatchCache *cache = mesh_batch_cache_get(me);
 		if (cache && cache->pos_with_normals && cache->is_sculpt_points_tag) {
@@ -4881,6 +4732,7 @@ void DRW_mesh_cache_sculpt_coords_ensure(Mesh *me)
 		}
 		cache->is_sculpt_points_tag = false;
 	}
+#endif
 }
 
 static uchar mesh_batch_cache_validate_edituvs(MeshBatchCache *cache, uchar state)
