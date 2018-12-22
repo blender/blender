@@ -125,11 +125,11 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_edges_nor(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(struct Mesh *me);
 /* edit-mesh selection */
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide, uint select_id_offset);
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me, bool use_hide);
-struct GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(struct Mesh *me, uint select_id_offset);
-struct GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me, uint select_id_offset);
-struct GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me, uint select_id_offset);
+struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me);
 /* Object mode Wireframe overlays */
 struct GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(struct Mesh *me);
 

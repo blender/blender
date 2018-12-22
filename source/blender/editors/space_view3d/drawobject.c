@@ -190,99 +190,61 @@ bool view3d_camera_border_hack_test = false;
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static void bbs_obmode_mesh_verts(Object *ob, int offset)
-{
-	Mesh *me = ob->data;
-	GPUBatch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GPU_batch_draw(batch);
-}
-
-static void bbs_mesh_verts(BMEditMesh *em, int offset)
+static void bbs_mesh_verts(GPUBatch *batch, int offset)
 {
 	GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-	Mesh *me = em->ob->data;
-	GPUBatch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+	GPU_batch_uniform_1ui(batch, "offset", offset);
 	GPU_batch_draw(batch);
 }
 
-static void bbs_mesh_wire(BMEditMesh *em, int offset)
+static void bbs_mesh_wire(GPUBatch *batch, int offset)
 {
 	GPU_line_width(1.0f);
+	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
-	Mesh *me = em->ob->data;
-	GPUBatch *batch = DRW_mesh_batch_cache_get_edges_with_select_id(me, offset);
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+	GPU_batch_uniform_1ui(batch, "offset", offset);
 	GPU_batch_draw(batch);
-}
 
-static void bbs_mesh_face(BMEditMesh *em, const bool use_select)
-{
-	Mesh *me = em->ob->data;
-	GPUBatch *batch;
-
-	if (use_select) {
-		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, true, 1);
-		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-		GPU_batch_draw(batch);
-	}
-	else {
-		int selcol;
-		GPU_select_index_get(0, &selcol);
-		batch = DRW_mesh_batch_cache_get_triangles_with_select_mask(me, true);
-		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR_U32);
-		GPU_batch_uniform_1ui(batch, "color", selcol);
-		GPU_batch_draw(batch);
-	}
-}
-
-static void bbs_mesh_face_dot(BMEditMesh *em)
-{
-	Mesh *me = em->ob->data;
-	GPUBatch *batch = DRW_mesh_batch_cache_get_facedots_with_select_id(me, 1);
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GPU_batch_draw(batch);
+	glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
 }
 
 /* two options, facecolors or black */
-static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
-                              Object *ob, bool use_faceselect)
+static void bbs_mesh_face(GPUBatch *batch, const bool use_select)
 {
-	if (use_faceselect) {
-		bbs_mesh_face(em, true);
-
-		if (check_ob_drawface_dot(scene, v3d, ob->dt)) {
-			bbs_mesh_face_dot(em);
-		}
+	if (use_select) {
+		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+		GPU_batch_uniform_1ui(batch, "offset", 1);
+		GPU_batch_draw(batch);
 	}
 	else {
-		bbs_mesh_face(em, false);
+		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_SELECT_ID);
+		GPU_batch_uniform_1ui(batch, "id", 0);
+		GPU_batch_draw(batch);
 	}
+}
+
+static void bbs_mesh_face_dot(GPUBatch *batch)
+{
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+	GPU_batch_uniform_1ui(batch, "offset", 1);
+	GPU_batch_draw(batch);
 }
 
 static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *ob)
 {
 	Mesh *me = ob->data;
 
+	GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+	GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
+	DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
+
 	/* Only draw faces to mask out verts, we don't want their selection ID's. */
-	const int G_f_orig = G.f;
-	G.f &= ~G_BACKBUFSEL;
+	bbs_mesh_face(geom_faces, false);
+	bbs_mesh_verts(geom_verts, 1);
 
-	{
-		int selcol;
-		GPUBatch *batch;
-		GPU_select_index_get(0, &selcol);
-		batch = DRW_mesh_batch_cache_get_triangles_with_select_mask(me, true);
-		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR_U32);
-		GPU_batch_uniform_1ui(batch, "color", selcol);
-		GPU_batch_draw(batch);
-	}
-
-	G.f |= (G_f_orig & G_BACKBUFSEL);
-
-	bbs_obmode_mesh_verts(ob, 1);
 	bm_vertoffs = me->totvert + 1;
 }
 
@@ -290,15 +252,12 @@ static void bbs_mesh_solid_faces(Scene *UNUSED(scene), Object *ob)
 {
 	Mesh *me = ob->data;
 	Mesh *me_orig = DEG_get_original_object(ob)->data;
-	GPUBatch *batch;
-	if ((me_orig->editflag & ME_EDIT_PAINT_FACE_SEL)) {
-		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, true, 1);
-	}
-	else {
-		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, false, 1);
-	}
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GPU_batch_draw(batch);
+
+	const bool use_hide = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL);
+	GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+	DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, use_hide);
+
+	bbs_mesh_face(geom_faces, true);
 }
 
 void draw_object_backbufsel(
@@ -311,8 +270,6 @@ void draw_object_backbufsel(
 	}
 
 	GPU_matrix_mul(ob->obmat);
-
-	glClearDepth(1.0); GPU_clear(GPU_DEPTH_BIT);
 	GPU_depth_test(true);
 
 	switch (ob->type) {
@@ -320,10 +277,30 @@ void draw_object_backbufsel(
 			if (ob->mode & OB_MODE_EDIT) {
 				Mesh *me = ob->data;
 				BMEditMesh *em = me->edit_btmesh;
+				const bool draw_facedot = check_ob_drawface_dot(scene, v3d, ob->dt);
+				const bool use_faceselect = (select_mode & SCE_SELECT_FACE) != 0;
 
 				BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
-				bbs_mesh_solid_EM(em, scene, v3d, ob, (select_mode & SCE_SELECT_FACE) != 0);
+				GPUBatch *geom_faces, *geom_edges, *geom_verts, *geom_facedots;
+				geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+				if (select_mode & SCE_SELECT_EDGE) {
+					geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
+				}
+				if (select_mode & SCE_SELECT_VERTEX) {
+					geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
+				}
+				if (draw_facedot) {
+					geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(me);
+				}
+				DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
+
+				bbs_mesh_face(geom_faces, use_faceselect);
+
+				if (use_faceselect && draw_facedot) {
+					bbs_mesh_face_dot(geom_facedots);
+				}
+
 				if (select_mode & SCE_SELECT_FACE)
 					bm_solidoffs = 1 + em->bm->totface;
 				else {
@@ -334,7 +311,7 @@ void draw_object_backbufsel(
 
 				/* we draw edges if edge select mode */
 				if (select_mode & SCE_SELECT_EDGE) {
-					bbs_mesh_wire(em, bm_solidoffs);
+					bbs_mesh_wire(geom_edges, bm_solidoffs);
 					bm_wireoffs = bm_solidoffs + em->bm->totedge;
 				}
 				else {
@@ -344,7 +321,7 @@ void draw_object_backbufsel(
 
 				/* we draw verts if vert select mode. */
 				if (select_mode & SCE_SELECT_VERTEX) {
-					bbs_mesh_verts(em, bm_wireoffs);
+					bbs_mesh_verts(geom_verts, bm_wireoffs);
 					bm_vertoffs = bm_wireoffs + em->bm->totvert;
 				}
 				else {
@@ -354,7 +331,7 @@ void draw_object_backbufsel(
 				ED_view3d_polygon_offset(rv3d, 0.0);
 			}
 			else {
-				Mesh *me = ob->data;
+				Mesh *me = DEG_get_original_object(ob)->data;
 				if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) &&
 				    /* currently vertex select supports weight paint and vertex paint*/
 				    ((ob->mode & OB_MODE_WEIGHT_PAINT) || (ob->mode & OB_MODE_VERTEX_PAINT)))
