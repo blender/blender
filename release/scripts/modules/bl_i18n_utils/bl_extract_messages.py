@@ -379,7 +379,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         km_i18n_context = bpy.app.translations.contexts.id_windowmanager
         for lvl in hier:
             msgsrc = msgsrc_prev + "." + lvl[1]
-            process_msg(msgs, km_i18n_context, lvl[0], msgsrc, reports, None, settings)
+            if isinstance(lvl[0], str):  # Can be a function too, now, with tool system...
+                process_msg(msgs, km_i18n_context, lvl[0], msgsrc, reports, None, settings)
             if lvl[3]:
                 walk_keymap_hierarchy(lvl[3], msgsrc)
 
@@ -987,7 +988,7 @@ def main():
     args = parser.parse_args(argv)
 
     settings = settings_i18n.I18nSettings()
-    settings.from_json(args.settings)
+    settings.load(args.settings)
 
     if args.output:
         settings.FILE_NAME_POT = args.output

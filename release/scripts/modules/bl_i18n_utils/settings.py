@@ -552,6 +552,8 @@ class I18nSettings:
             self.__dict__ = {uid: data for uid, data in globals().items() if not uid.startswith("_")}
         if isinstance(fname, str):
             if not os.path.isfile(fname):
+                # Assume it is already real JSon string...
+                self.from_json(fname)
                 return
             with open(fname) as f:
                 self.from_json(f.read())

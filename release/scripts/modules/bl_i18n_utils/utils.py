@@ -180,26 +180,33 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
 
     prefs = bpy.context.preferences
     used_ext = {ext.module for ext in prefs.addons}
+    # XXX TEMP WORKAROUND
+    black_list = {"space_view3d_math_vis",
+                  "object_scatter"}
 
     ret = [
         mod for mod in addon_utils.modules()
-        if ((addons and mod.__name__ in addons) or
-            (not addons and addon_utils.module_bl_info(mod)["support"] in support))
+        if (((addons and mod.__name__ in addons) or
+            (not addons and addon_utils.module_bl_info(mod)["support"] in support)) and
+            (mod.__name__ not in black_list))
     ]
 
     if not check_only:
         for mod in ret:
-            module_name = mod.__name__
-            if disable:
-                if module_name not in used_ext:
-                    continue
-                print("    Disabling module ", module_name)
-                bpy.ops.wm.addon_disable(module=module_name)
-            else:
-                if module_name in used_ext:
-                    continue
-                print("    Enabling module ", module_name)
-                bpy.ops.wm.addon_enable(module=module_name)
+            try:
+                module_name = mod.__name__
+                if disable:
+                    if module_name not in used_ext:
+                        continue
+                    print("    Disabling module ", module_name)
+                    bpy.ops.wm.addon_disable(module=module_name)
+                else:
+                    if module_name in used_ext:
+                        continue
+                    print("    Enabling module ", module_name)
+                    bpy.ops.wm.addon_enable(module=module_name)
+            except Exception as e:  # XXX TEMP WORKAROUND
+                print(e)
 
         # XXX There are currently some problems with bpy/rna...
         #     *Very* tricky to solve!
