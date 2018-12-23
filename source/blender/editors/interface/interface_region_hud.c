@@ -188,8 +188,8 @@ static void hud_region_layout(const bContext *C, ARegion *ar)
 
 	if (ar->panels.first && (ar->sizey != size_y)) {
 		View2D *v2d = &ar->v2d;
-		ar->winx = ar->sizex;
-		ar->winy = ar->sizey;
+		ar->winx = ar->sizex * UI_DPI_FAC;
+		ar->winy = ar->sizey * UI_DPI_FAC;
 
 		ar->winrct.xmax = (ar->winrct.xmin + ar->winx) - 1;
 		ar->winrct.ymax = (ar->winrct.ymin + ar->winy) - 1;

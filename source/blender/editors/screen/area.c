@@ -1250,8 +1250,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 		        max_ii(0, BLI_rcti_size_y(overlap_remainder) - UI_UNIT_Y / 2));
 		ar->winrct.xmin = overlap_remainder_margin.xmin;
 		ar->winrct.ymin = overlap_remainder_margin.ymin;
-		ar->winrct.xmax = ar->winrct.xmin + ar->sizex - 1;
-		ar->winrct.ymax = ar->winrct.ymin + ar->sizey - 1;
+		ar->winrct.xmax = ar->winrct.xmin + prefsizex - 1;
+		ar->winrct.ymax = ar->winrct.ymin + prefsizey - 1;
 
 		BLI_rcti_isect(&ar->winrct, &overlap_remainder_margin, &ar->winrct);
 
@@ -2308,8 +2308,8 @@ void ED_region_panels_layout_ex(
 		Panel *panel = ar->panels.last;
 		if (panel != NULL) {
 			int size_dyn[2] = {
-				UI_UNIT_X * ((panel->flag & PNL_CLOSED) ? 8 : 14),
-				UI_panel_size_y(panel),
+				UI_UNIT_X * ((panel->flag & PNL_CLOSED) ? 8 : 14) / UI_DPI_FAC,
+				UI_panel_size_y(panel) / UI_DPI_FAC,
 			};
 			/* region size is layout based and needs to be updated */
 			if ((ar->sizex != size_dyn[0]) ||
@@ -2319,7 +2319,7 @@ void ED_region_panels_layout_ex(
 				ar->sizey = size_dyn[1];
 				sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
 			}
-			y = ABS(ar->sizey - 1);
+			y = ABS(ar->sizey * UI_DPI_FAC - 1);
 		}
 	}
 	else if (vertical) {
