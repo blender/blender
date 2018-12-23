@@ -68,7 +68,7 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 			if (id->lib != NULL) {
 				is_valid = false;
 				BKE_reportf(reports, RPT_ERROR,
-				            "ID %s is in local database while being linked from library %s!\n", id->name, id->lib->name);
+				            "ID %s is in local database while being linked from library %s!", id->name, id->lib->name);
 			}
 		}
 	}
@@ -77,7 +77,7 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 		Library *curlib = curmain->curlib;
 		if (curlib == NULL) {
 			BKE_reportf(reports, RPT_ERROR,
-			            "Library database with NULL library datablock!\n");
+			            "Library database with NULL library datablock!");
 			continue;
 		}
 
@@ -86,7 +86,7 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 
 		if (bh == NULL) {
 			BKE_reportf(reports, RPT_ERROR,
-			            "Library ID %s not found at expected path %s!\n", curlib->id.name, curlib->filepath);
+			            "Library ID %s not found at expected path %s!", curlib->id.name, curlib->filepath);
 			continue;
 		}
 
@@ -100,7 +100,7 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 			if (GS(id->name) == ID_LI) {
 				is_valid = false;
 				BKE_reportf(reports, RPT_ERROR,
-				            "Library ID %s in library %s, this should not happen!\n", id->name, curlib->name);
+				            "Library ID %s in library %s, this should not happen!", id->name, curlib->name);
 				continue;
 			}
 
@@ -110,13 +110,13 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 				if (id->lib == NULL) {
 					is_valid = false;
 					BKE_reportf(reports, RPT_ERROR,
-					            "ID %s has NULL lib pointer while being in library %s!\n", id->name, curlib->name);
+					            "ID %s has NULL lib pointer while being in library %s!", id->name, curlib->name);
 					continue;
 				}
 				if (id->lib != curlib) {
 					is_valid = false;
 					BKE_reportf(reports, RPT_ERROR,
-					            "ID %s has mismatched lib pointer!\n", id->name);
+					            "ID %s has mismatched lib pointer!", id->name);
 					continue;
 				}
 
@@ -131,7 +131,7 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 				if (name == NULL) {
 					is_valid = false;
 					BKE_reportf(reports, RPT_ERROR,
-					            "ID %s not found in library %s anymore!\n", id->name, id->lib->name);
+					            "ID %s not found in library %s anymore!", id->name, id->lib->name);
 					continue;
 				}
 			}

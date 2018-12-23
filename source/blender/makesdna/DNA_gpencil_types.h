@@ -477,8 +477,8 @@ typedef enum eGPdata_Flag {
 	GP_DATA_STROKE_FORCE_RECALC = (1 << 17),
 	/* Special mode drawing polygons */
 	GP_DATA_STROKE_POLYGON = (1 << 18),
-	/* Use adaptative UV scales */
-	GP_DATA_UV_ADAPTATIVE = (1 << 19),
+	/* Use adaptive UV scales */
+	GP_DATA_UV_ADAPTIVE = (1 << 19),
 	/* Autolock not active layers */
 	GP_DATA_AUTOLOCK_LAYERS = (1 << 20),
 	/* Internal flag for python update */

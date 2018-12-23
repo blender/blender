@@ -264,7 +264,7 @@ def brush_texture_settings(layout, brush, sculpt):
                     if brush.sculpt_capabilities.has_random_texture_angle:
                         col.prop(tex_slot, "use_random", text="Random")
                         if tex_slot.use_random:
-                            col.prop(tex_slot, "random_angle", text="Raandom Angle")
+                            col.prop(tex_slot, "random_angle", text="Random Angle")
                 else:
                     col.prop(tex_slot, "use_random", text="Random")
                     if tex_slot.use_random:

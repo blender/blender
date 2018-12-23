@@ -425,7 +425,7 @@ typedef enum eSimplifyGpencil_Mode {
 	/* Keep only one vertex every n vertices */
 	GP_SIMPLIFY_FIXED = 0,
 	/* Use RDP algorithm */
-	GP_SIMPLIFY_ADAPTATIVE = 1,
+	GP_SIMPLIFY_ADAPTIVE = 1,
 } eSimplifyGpencil_Mode;
 
 typedef struct OffsetGpencilModifierData {

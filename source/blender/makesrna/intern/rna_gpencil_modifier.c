@@ -544,9 +544,9 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_gpencil_simplify_mode_items[] = {
 		{GP_SIMPLIFY_FIXED, "FIXED", ICON_IPO_CONSTANT, "Fixed",
-		"Delete alternative vertices in the stroke, except extrems"},
-		{GP_SIMPLIFY_ADAPTATIVE, "ADAPTATIVE", ICON_IPO_EASE_IN_OUT, "Adaptative",
-		"Use a RDP algorithm to simplify" },
+		 "Delete alternative vertices in the stroke, except extremes"},
+		{GP_SIMPLIFY_ADAPTIVE, "ADAPTIVE", ICON_IPO_EASE_IN_OUT, "Adaptive",
+		 "Use a RDP algorithm to simplify" },
 		{0, NULL, 0, NULL, NULL}
 	};
 

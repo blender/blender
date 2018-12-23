@@ -2101,7 +2101,8 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 
 	/* props */
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_dissolve_types, 0, "Type", "Method used for disolving Stroke points");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_dissolve_types, 0,
+	                        "Type", "Method used for dissolving Stroke points");
 }
 
 /* ****************** Snapping - Strokes <-> Cursor ************************ */

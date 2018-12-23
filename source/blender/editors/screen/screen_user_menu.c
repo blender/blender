@@ -264,8 +264,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 	MEM_freeN(um_array);
 
 	if (is_empty) {
-		uiItemL(menu->layout, IFACE_("No menu items found."), ICON_NONE);
-		uiItemL(menu->layout, IFACE_("Right click on buttons to add them to this menu."), ICON_NONE);
+		uiItemL(menu->layout, IFACE_("No menu items found"), ICON_NONE);
+		uiItemL(menu->layout, IFACE_("Right click on buttons to add them to this menu"), ICON_NONE);
 	}
 }
 

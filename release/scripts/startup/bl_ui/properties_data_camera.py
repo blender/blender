@@ -106,10 +106,10 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                     col.prop(ccam, "fisheye_fov")
                 elif ccam.panorama_type == 'EQUIRECTANGULAR':
                     sub = col.column(align=True)
-                    sub.prop(ccam, "latitude_min", text="Latitute Min")
+                    sub.prop(ccam, "latitude_min", text="Latitude Min")
                     sub.prop(ccam, "latitude_max", text="Max")
                     sub = col.column(align=True)
-                    sub.prop(ccam, "longitude_min", text="Longiture Min")
+                    sub.prop(ccam, "longitude_min", text="Longitude Min")
                     sub.prop(ccam, "longitude_max", text="Max")
             elif engine in {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}:
                 if cam.lens_unit == 'MILLIMETERS':

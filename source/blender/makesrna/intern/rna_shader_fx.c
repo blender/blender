@@ -371,7 +371,7 @@ static void rna_def_shader_fx_rim(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_float_sdna(prop, NULL, "mask_rgb");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Mask Color", "Color that must be keept");
+	RNA_def_property_ui_text(prop, "Mask Color", "Color that must be kept");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -383,7 +383,7 @@ static void rna_def_shader_fx_rim(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "blur", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "blur");
 	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_text(prop, "Blur", "Number of pixels for bluring rim (set to 0 to disable)");
+	RNA_def_property_ui_text(prop, "Blur", "Number of pixels for blurring rim (set to 0 to disable)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
@@ -470,7 +470,7 @@ static void rna_def_shader_fx_shadow(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "blur", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "blur");
 	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_text(prop, "Blur", "Number of pixels for bluring shadow (set to 0 to disable)");
+	RNA_def_property_ui_text(prop, "Blur", "Number of pixels for blurring shadow (set to 0 to disable)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
@@ -533,7 +533,7 @@ static void rna_def_shader_fx_glow(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "radius", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "blur[0]");
 	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_text(prop, "Radius", "Number of pixels for bluring glow (set to 0 to disable)");
+	RNA_def_property_ui_text(prop, "Radius", "Number of pixels for blurring glow (set to 0 to disable)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);

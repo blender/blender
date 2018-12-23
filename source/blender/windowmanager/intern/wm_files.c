@@ -853,7 +853,7 @@ void wm_homefile_read(
 		            app_template, app_template_system, sizeof(app_template_system)))
 		{
 			/* Can safely continue with code below, just warn it's not found. */
-			BKE_reportf(reports, RPT_WARNING, "Application Template '%s' not found.", app_template);
+			BKE_reportf(reports, RPT_WARNING, "Application Template '%s' not found", app_template);
 		}
 
 		/* Insert template name into startup file. */

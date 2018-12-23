@@ -357,7 +357,7 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
             layout.prop(gpd, "show_stroke_direction", text="Show Stroke Directions")
 
         layout.prop(gpd, "use_force_fill_recalc", text="Force Fill Update")
-        layout.prop(gpd, "use_adaptative_uv", text="Adaptative UVs")
+        layout.prop(gpd, "use_adaptive_uv", text="Adaptive UVs")
 
 
 class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):

@@ -321,7 +321,7 @@ void UI_OT_eyedropper_colorband_point(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Eyedropper colorband (points)";
 	ot->idname = "UI_OT_eyedropper_colorband_point";
-	ot->description = "Pointsample a color band";
+	ot->description = "Point-sample a color band";
 
 	/* api callbacks */
 	ot->invoke = eyedropper_colorband_invoke;

@@ -275,7 +275,7 @@ void BKE_gpencil_simplify_stroke(bGPDstroke *gps, float factor)
 	MEM_SAFE_FREE(points2d);
 }
 
-/* Simplify alternate vertex of stroke except extrems */
+/* Simplify alternate vertex of stroke except extremes */
 void BKE_gpencil_simplify_fixed(bGPDstroke *gps)
 {
 	if (gps->totpoints < 5) {

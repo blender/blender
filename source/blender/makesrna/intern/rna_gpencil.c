@@ -1474,7 +1474,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "xray_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "xray_mode");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_xraymodes_items);
-	RNA_def_property_ui_text(prop, "Xray", "");
+	RNA_def_property_ui_text(prop, "X-Ray", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Flags */
@@ -1535,9 +1535,9 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Force Fill Update", "Force recalc of fill data after use deformation modifiers (reduce FPS)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-	prop = RNA_def_property(srna, "use_adaptative_uv", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_UV_ADAPTATIVE);
-	RNA_def_property_ui_text(prop, "Adaptative UV", "Automatic UVs are calculated depending of the stroke size");
+	prop = RNA_def_property(srna, "use_adaptive_uv", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_UV_ADAPTIVE);
+	RNA_def_property_ui_text(prop, "Adaptive UV", "Automatic UVs are calculated depending of the stroke size");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "use_autolock_layers", PROP_BOOLEAN, PROP_NONE);

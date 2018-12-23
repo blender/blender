@@ -1121,7 +1121,7 @@ void DRW_gpencil_triangulate_stroke_fill(Object *ob, bGPDstroke *gps)
 	float minv[2];
 	float maxv[2];
 	/* first needs bounding box data */
-	if (gpd->flag & GP_DATA_UV_ADAPTATIVE) {
+	if (gpd->flag & GP_DATA_UV_ADAPTIVE) {
 		gpencil_calc_2d_bounding_box(points2d, gps->totpoints, minv, maxv);
 	}
 	else {

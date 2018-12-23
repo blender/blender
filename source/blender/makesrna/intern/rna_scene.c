@@ -6238,7 +6238,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_OVERSCAN);
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "Overscan", "Internally render past the image border to avoid "
-	                                           "screen-space effects disapearing");
+	                                           "screen-space effects disappearing");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "overscan_size", PROP_FLOAT, PROP_PERCENTAGE);
