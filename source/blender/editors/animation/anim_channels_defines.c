@@ -4095,10 +4095,11 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 }
 
 /* callback for wrapping NLA Track "solo" toggle logic */
-static void achannel_nlatrack_solo_widget_cb(bContext *C, void *adt_poin, void *nlt_poin)
+static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *UNUSED(arg2))
 {
-	AnimData *adt = adt_poin;
-	NlaTrack *nlt = nlt_poin;
+	bAnimListElem *ale = ale_poin;
+	AnimData *adt = ale->adt;
+	NlaTrack *nlt = ale->data;
 
 	/* Toggle 'solo' mode. There are several complications here which need explaining:
 	 * - The method call is needed to perform a few additional validation operations
@@ -4111,6 +4112,7 @@ static void achannel_nlatrack_solo_widget_cb(bContext *C, void *adt_poin, void *
 	BKE_nlatrack_solo_toggle(adt, nlt);
 
 	/* send notifiers */
+	DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
 }
 
@@ -4407,7 +4409,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 
 				/* settings needing special attention */
 				case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
-					UI_but_func_set(but, achannel_nlatrack_solo_widget_cb, ale->adt, ale->data);
+					UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), NULL);
 					break;
 
 				/* no flushing */
