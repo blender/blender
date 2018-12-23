@@ -401,19 +401,19 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 	char msg_str[UI_MAX_DRAW_STR];
 
 	if (tgpi->type == GP_STROKE_LINE) {
-		BLI_strncpy(msg_str, IFACE_("Line: ESC to cancel, LMB set origin, Enter/RMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center"), UI_MAX_DRAW_STR);
 	}
 	else if (tgpi->type == GP_STROKE_BOX) {
-		BLI_strncpy(msg_str, IFACE_("Rectangle: ESC to cancel, LMB set origin, Enter/RMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
 	}
 	else if (tgpi->type == GP_STROKE_CIRCLE) {
-		BLI_strncpy(msg_str, IFACE_("Circle: ESC to cancel, Enter/RMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center"), UI_MAX_DRAW_STR);
 	}
 	else if (tgpi->type == GP_STROKE_ARC) {
-		BLI_strncpy(msg_str, IFACE_("Arc: ESC to cancel, Enter/RMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center, M: Flip"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center, M: Flip"), UI_MAX_DRAW_STR);
 	}
 	else if (tgpi->type == GP_STROKE_CURVE) {
-		BLI_strncpy(msg_str, IFACE_("Curve: ESC to cancel, Enter/RMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center, E: extrude"), UI_MAX_DRAW_STR);
+		BLI_strncpy(msg_str, IFACE_("Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust edge number, Shift to square, Alt to center, E: extrude"), UI_MAX_DRAW_STR);
 	}
 
 	if (ELEM(tgpi->type, GP_STROKE_CIRCLE, GP_STROKE_ARC, GP_STROKE_LINE, GP_STROKE_BOX)) {
