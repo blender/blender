@@ -97,6 +97,7 @@
 #define IN_CURVE_EDIT 2
 #define IN_MOVE 3
 #define IN_BRUSH_SIZE 4
+#define IN_BRUSH_STRENGTH 5
 
 #define SELECT_NONE 0
 #define SELECT_START 1
@@ -1329,10 +1330,34 @@ static void gpencil_primitive_edit_event_handling(bContext *C, wmOperator *op, w
 	}
 }
 
+/* brush strength */
+static void gpencil_primitive_strength(tGPDprimitive *tgpi, bool reset)
+{
+	Brush *brush = tgpi->brush;
+	if (brush) {
+		if (reset) {
+			brush->gpencil_settings->draw_strength = tgpi->brush_strength;
+			tgpi->brush_strength = 0.0f;
+		}
+		else {
+			if (tgpi->brush_strength == 0.0f) {
+				tgpi->brush_strength = brush->gpencil_settings->draw_strength;
+			}
+			float move[2];
+			sub_v2_v2v2(move, tgpi->mval, tgpi->mvalo);
+			float adjust = (move[1] > 0.0f) ? 0.01f : -0.01f;
+			brush->gpencil_settings->draw_strength += adjust * fabsf(len_manhattan_v2(move));
+		}
+
+		/* limit low limit because below 0.2f the stroke is invisible */
+		CLAMP(brush->gpencil_settings->draw_strength, 0.2f, 1.0f);
+	}
+}
+
 /* brush size */
 static void gpencil_primitive_size(tGPDprimitive *tgpi, bool reset)
 {
-	Brush * brush = tgpi->brush;
+	Brush *brush = tgpi->brush;
 	if (brush) {
 		if (reset) {
 			brush->size = tgpi->brush_size;
@@ -1415,23 +1440,46 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 	}
 	else if (tgpi->flag == IN_BRUSH_SIZE) {
 		switch (event->type) {
-		case MOUSEMOVE:
-			gpencil_primitive_size(tgpi, false);
-			gpencil_primitive_update(C, op, tgpi);
-			break;
-		case ESCKEY:
-		case MIDDLEMOUSE:
-		case LEFTMOUSE:
-			tgpi->brush_size = 0;
-			tgpi->flag = IN_CURVE_EDIT;
-			break;
-		case RIGHTMOUSE:
-			if (event->val == KM_RELEASE) {
-				tgpi->flag = IN_CURVE_EDIT;
-				gpencil_primitive_size(tgpi, true);
+			case MOUSEMOVE:
+				gpencil_primitive_size(tgpi, false);
 				gpencil_primitive_update(C, op, tgpi);
-			}
-			break;
+				break;
+			case ESCKEY:
+			case MIDDLEMOUSE:
+			case LEFTMOUSE:
+				tgpi->brush_size = 0;
+				tgpi->flag = IN_CURVE_EDIT;
+				break;
+			case RIGHTMOUSE:
+				if (event->val == KM_RELEASE) {
+					tgpi->flag = IN_CURVE_EDIT;
+					gpencil_primitive_size(tgpi, true);
+					gpencil_primitive_update(C, op, tgpi);
+				}
+				break;
+		}
+		copy_v2_v2(tgpi->mvalo, tgpi->mval);
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else if (tgpi->flag == IN_BRUSH_STRENGTH) {
+		switch (event->type) {
+			case MOUSEMOVE:
+				gpencil_primitive_strength(tgpi, false);
+				gpencil_primitive_update(C, op, tgpi);
+				break;
+			case ESCKEY:
+			case MIDDLEMOUSE:
+			case LEFTMOUSE:
+				tgpi->brush_strength = 0.0f;
+				tgpi->flag = IN_CURVE_EDIT;
+				break;
+			case RIGHTMOUSE:
+				if (event->val == KM_RELEASE) {
+					tgpi->flag = IN_CURVE_EDIT;
+					gpencil_primitive_strength(tgpi, true);
+					gpencil_primitive_update(C, op, tgpi);
+				}
+				break;
 		}
 		copy_v2_v2(tgpi->mvalo, tgpi->mval);
 		return OPERATOR_RUNNING_MODAL;
@@ -1528,10 +1576,15 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 			}
 			break;
 		}
-		case FKEY: /* brush thickness */
+		case FKEY: /* brush thickness/ brush strength */
 		{
 			if ((event->val == KM_PRESS)) {
-				tgpi->flag = IN_BRUSH_SIZE;
+				if (event->shift) {
+					tgpi->flag = IN_BRUSH_STRENGTH;
+				}
+				else {
+					tgpi->flag = IN_BRUSH_SIZE;
+				}
 				WM_cursor_modal_set(win, BC_NS_SCROLLCURSOR);
 			}
 			break;

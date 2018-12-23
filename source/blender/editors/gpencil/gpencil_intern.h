@@ -158,6 +158,7 @@ typedef struct tGPDprimitive {
 	int orign_type;                   /* original type of primitive */
 	bool curve;                       /* type of primitive is a curve */
 	int brush_size;                   /* brush size */
+	float brush_strength;             /* brush strength */
 	short flip;                       /* flip option */
 	tGPspoint *points;                /* array of data-points for stroke */
 	int point_count;                  /* number of edges allocated */
