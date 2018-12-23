@@ -276,7 +276,7 @@ static void sculpt_rake_rotate(
 	sub_v3_v3v3(vec_rot, v_co, sculpt_co);
 
 	copy_qt_qt(q_interp, ss->cache->rake_rotation_symmetry);
-	mul_fac_qt_fl(q_interp, factor);
+	pow_qt_fl_normalized(q_interp, factor);
 	mul_qt_v3(q_interp, vec_rot);
 
 	add_v3_v3(vec_rot, sculpt_co);

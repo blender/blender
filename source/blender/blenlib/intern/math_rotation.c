@@ -193,9 +193,10 @@ void sub_qt_qtqt(float q[4], const float q1[4], const float q2[4])
 	mul_qt_qtqt(q, q1, nq2);
 }
 
-/* angular mult factor */
-void mul_fac_qt_fl(float q[4], const float fac)
+/* raise a unit quaternion to the specified power */
+void pow_qt_fl_normalized(float q[4], const float fac)
 {
+	BLI_ASSERT_UNIT_QUAT(q);
 	const float angle = fac * saacos(q[0]); /* quat[0] = cos(0.5 * angle), but now the 0.5 and 2.0 rule out */
 	const float co = cosf(angle);
 	const float si = sinf(angle);
