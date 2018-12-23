@@ -161,7 +161,6 @@ typedef enum GPUBuiltinShader {
 	 * \param pos: in vec3
 	 */
 	GPU_SHADER_3D_UNIFORM_COLOR,
-	GPU_SHADER_3D_UNIFORM_COLOR_U32,
 	GPU_SHADER_3D_UNIFORM_COLOR_INSTANCE,
 	/**
 	 * Take a 3D position and color for each vertex without color interpolation.
@@ -170,7 +169,6 @@ typedef enum GPUBuiltinShader {
 	 * \param pos: in vec3
 	 */
 	GPU_SHADER_3D_FLAT_COLOR,
-	GPU_SHADER_3D_FLAT_COLOR_U32,  /* use for select-id's */
 	/**
 	 * Take a 3D position and color for each vertex with perspective correct interpolation.
 	 *
