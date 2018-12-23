@@ -872,6 +872,14 @@ static void rna_def_image_paint(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem paint_interp_items[] = {
+		{IMAGEPAINT_INTERP_LINEAR, "LINEAR", 0,
+		 "Linear", "Linear interpolation"},
+		{IMAGEPAINT_INTERP_CLOSEST, "CLOSEST", 0,
+		 "Closest", "No interpolation (sample closest texel)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ImagePaint", "Paint");
 	RNA_def_struct_sdna(srna, "ImagePaintSettings");
 	RNA_def_struct_path_func(srna, "rna_ImagePaintSettings_path");
@@ -962,6 +970,13 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_enum_items(prop, paint_type_items);
 	RNA_def_property_ui_text(prop, "Mode", "Mode of operation for projection painting");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_mode_update");
+
+	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "interp");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_enum_items(prop, paint_interp_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "Texture filtering type");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ImaPaint_mode_update");
 
 	/* Missing data */

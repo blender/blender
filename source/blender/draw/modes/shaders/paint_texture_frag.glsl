@@ -4,8 +4,14 @@ out vec4 fragColor;
 
 uniform sampler2D image;
 uniform float alpha = 1.0;
+uniform bool nearestInterp;
 
 void main()
 {
-	fragColor = vec4(texture(image, uv_interp).rgb, alpha);
+	vec2 uv = uv_interp;
+	if (nearestInterp) {
+		vec2 tex_size = vec2(textureSize(image, 0).xy);
+		uv = (floor(uv_interp * tex_size) + 0.5) / tex_size;
+	}
+	fragColor = vec4(texture(image, uv).rgb, alpha);
 }

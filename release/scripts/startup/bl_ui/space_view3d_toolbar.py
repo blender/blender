@@ -511,6 +511,8 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 layout.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
             have_image = settings.canvas is not None
 
+            layout.prop(settings, "interpolation", text="")
+
         if settings.missing_uvs:
             layout.separator()
             split = layout.split()

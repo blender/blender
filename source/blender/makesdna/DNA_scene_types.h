@@ -923,6 +923,9 @@ typedef struct ImagePaintSettings {
 	float stencil_col[3];
 	/** Dither amount used when painting on byte images. */
 	float dither;
+	/** Display texture interpolation method. */
+	int interp;
+	int pad;
 } ImagePaintSettings;
 
 /* ------------------------------------------- */
@@ -2206,6 +2209,12 @@ typedef enum eImagePaintMode {
 	IMAGEPAINT_MODE_MATERIAL, /* detect texture paint slots from the material */
 	IMAGEPAINT_MODE_IMAGE,    /* select texture paint image directly */
 } eImagePaintMode;
+
+/* ImagePaintSettings.interp */
+enum {
+	IMAGEPAINT_INTERP_LINEAR = 0,
+	IMAGEPAINT_INTERP_CLOSEST,
+};
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				(1 << 0)

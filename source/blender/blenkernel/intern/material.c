@@ -1063,7 +1063,9 @@ static void fill_texpaint_slots_recursive(bNodeTree *nodetree, bNode *active_nod
 			if (active_node == node) {
 				ma->paint_active_slot = *index;
 			}
+
 			ma->texpaintslot[*index].ima = (Image *)node->id;
+			ma->texpaintslot[*index].interp = ((NodeTexImage *)node->storage)->interpolation;
 
 			/* for new renderer, we need to traverse the treeback in search of a UV node */
 			bNode *uvnode = nodetree_uv_node_recursive(node);

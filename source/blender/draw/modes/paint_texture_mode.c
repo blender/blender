@@ -28,6 +28,8 @@
 
 #include "BIF_gl.h"
 
+#include "BKE_node.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -139,8 +141,6 @@ static void PAINT_TEXTURE_engine_init(void *UNUSED(vedata))
 	if (!e_data.fallback_sh) {
 		e_data.fallback_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
-		e_data.image_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-
 		e_data.image_sh = DRW_shader_create_with_lib(
 		        datatoc_paint_texture_vert_glsl, NULL,
 		        datatoc_paint_texture_frag_glsl,
@@ -189,7 +189,8 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 		Object *ob = draw_ctx->obact;
 		if (ob && ob->type == OB_MESH) {
 			Scene *scene = draw_ctx->scene;
-			const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
+			const ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
+			const bool use_material_slots = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
 			const Mesh *me = ob->data;
 			const int mat_nr = max_ii(1, me->totcol);
 
@@ -200,6 +201,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 				for (int i = 0; i < mat_nr; i++) {
 					Material *ma = give_current_material(ob, i + 1);
 					Image *ima = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
+					int interp = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].interp : 0;
 					GPUTexture *tex = ima ?
 					        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f) : NULL;
 
@@ -208,6 +210,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 						DRW_shgroup_uniform_texture(grp, "image", tex);
 						DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
 						DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+						DRW_shgroup_uniform_bool_copy(grp, "nearestInterp", interp == SHD_INTERP_CLOSEST);
 						stl->g_data->shgroup_image_array[i] = grp;
 					}
 					else {
@@ -216,7 +219,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 				}
 			}
 			else {
-				Image *ima = scene->toolsettings->imapaint.canvas;
+				Image *ima = imapaint->canvas;
 				GPUTexture *tex = ima ?
 				        GPU_texture_from_blender(ima, NULL, GL_TEXTURE_2D, false, 0.0f) : NULL;
 
@@ -225,6 +228,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 					DRW_shgroup_uniform_texture(grp, "image", tex);
 					DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
 					DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+					DRW_shgroup_uniform_bool_copy(grp, "nearestInterp", imapaint->interp == IMAGEPAINT_INTERP_CLOSEST);
 					stl->g_data->shgroup_image_array[0] = grp;
 				}
 				else {
