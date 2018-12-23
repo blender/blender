@@ -5,9 +5,14 @@
 #include "BIF_gl.h"
 
 #include "BKE_image.h"
+#include "BKE_node.h"
 
 #include "BLI_dynstr.h"
 #include "BLI_hash.h"
+
+#include "DNA_node_types.h"
+
+#include "ED_uvedit.h"
 
 #define HSV_SATURATION 0.5
 #define HSV_VALUE 0.8
@@ -186,9 +191,24 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *i
 	return color_type;
 }
 
+void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_image, int *r_interp, Material **r_mat)
+{
+	bNode *node;
+	*r_mat = give_current_material(ob, mat_nr);
+	ED_object_get_active_image(ob, mat_nr, r_image, NULL, &node, NULL);
+	if (node) {
+		BLI_assert(node->type == SH_NODE_TEX_IMAGE);
+		NodeTexImage *storage = node->storage;
+		*r_interp = storage->interpolation;
+	}
+	else {
+		*r_interp = 0;
+	}
+}
+
 void workbench_material_shgroup_uniform(
         WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob,
-        const bool use_metallic, const bool deferred)
+        const bool use_metallic, const bool deferred, const int interp)
 {
 	if (deferred && !MATDATA_PASS_ENABLED(wpd)) {
 		return;
@@ -201,6 +221,7 @@ void workbench_material_shgroup_uniform(
 		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
 		DRW_shgroup_uniform_bool_copy(grp, "imageSrgb", do_color_correction);
+		DRW_shgroup_uniform_bool_copy(grp, "imageNearest", (interp == SHD_INTERP_CLOSEST));
 	}
 	else {
 		DRW_shgroup_uniform_vec3(grp, "materialDiffuseColor", (use_metallic) ? material->base_color : material->diffuse_color, 1);

@@ -159,3 +159,13 @@ vec4 srgb_to_linearrgb(vec4 col_from)
 	col_to.a = col_from.a;
 	return col_to;
 }
+
+vec4 workbench_sample_texture(sampler2D image, vec2 coord, bool srgb, bool nearest_sampling)
+{
+	vec2 tex_size = vec2(textureSize(image, 0).xy);
+	/* TODO(fclem) We could do the same with sampler objects.
+	 * But this is a quick workaround instead of messing with the GPUTexture itself. */
+	vec2 uv = nearest_sampling ? (floor(coord * tex_size) + 0.5) / tex_size : coord;
+	vec4 color = texture(image, uv);
+	return (srgb) ? srgb_to_linearrgb(color) : color;
+}

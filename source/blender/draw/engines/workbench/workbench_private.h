@@ -234,6 +234,7 @@ typedef struct WORKBENCH_MaterialData {
 	float roughness;
 	int object_id;
 	int color_type;
+	int interp;
 	Image *ima;
 
 	/* Linked shgroup for drawing */
@@ -295,6 +296,7 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *ob);
+void workbench_material_get_image_and_mat(Object *ob, int mat_nr, Image **r_image, int *r_interp, Material **r_mat);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
@@ -303,7 +305,7 @@ int workbench_material_get_prepass_shader_index(WORKBENCH_PrivateData *wpd, bool
 int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_shgroup_uniform(
         WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob,
-        const bool use_metallic, const bool deferred);
+        const bool use_metallic, const bool deferred, const int interp);
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material);
 
 /* workbench_studiolight.c */

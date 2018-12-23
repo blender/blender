@@ -2,6 +2,7 @@
 uniform float ImageTransparencyCutoff = 0.1;
 uniform sampler2D image;
 uniform bool imageSrgb;
+uniform bool imageNearest;
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
@@ -35,12 +36,9 @@ void main()
 	vec4 diffuse_color;
 
 #ifdef V3D_SHADING_TEXTURE_COLOR
-	diffuse_color = texture(image, uv_interp);
+	diffuse_color = workbench_sample_texture(image, uv_interp, imageSrgb, imageNearest);
 	if (diffuse_color.a < ImageTransparencyCutoff) {
 		discard;
-	}
-	if (imageSrgb) {
-		diffuse_color = srgb_to_linearrgb(diffuse_color);
 	}
 #else
 	diffuse_color = vec4(materialDiffuseColor, 1.0);

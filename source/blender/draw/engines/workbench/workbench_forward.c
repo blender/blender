@@ -139,7 +139,7 @@ static void workbench_init_object_data(DrawData *dd)
 }
 
 static WORKBENCH_MaterialData *get_or_create_material_data(
-        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int color_type)
+        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int color_type, int interp)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -155,6 +155,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
 	material_template.color_type = color_type;
 	material_template.ima = ima;
+	material_template.interp = interp;
 	uint hash = workbench_material_get_hash(&material_template, false);
 
 	material = BLI_ghash_lookup(wpd->material_hash, POINTER_FROM_UINT(hash));
@@ -177,7 +178,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 			DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		}
 
-		workbench_material_shgroup_uniform(wpd, grp, material, ob, false, false);
+		workbench_material_shgroup_uniform(wpd, grp, material, ob, false, false, interp);
 		material->shgrp = grp;
 
 		/* Depth */
@@ -430,11 +431,12 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
 		if (draw_as == PART_DRAW_PATH) {
-			Image *image = NULL;
-			Material *mat = give_current_material(ob, part->omat);
-			ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
+			Material *mat;
+			Image *image;
+			int interp;
+			workbench_material_get_image_and_mat(ob, part->omat, &image, &interp, &mat);
 			int color_type = workbench_material_determine_color_type(wpd, image, ob);
-			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, color_type);
+			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, color_type, interp);
 
 			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR)
 			                           ? wpd->transparent_accum_hair_sh
@@ -444,7 +446,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			                                psl->transparent_accum_pass,
 			                                shader);
 			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
-			workbench_material_shgroup_uniform(wpd, shgrp, material, ob, false, false);
+			workbench_material_shgroup_uniform(wpd, shgrp, material, ob, false, false, interp);
 			DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 			/* Hairs have lots of layer and can rapidly become the most prominent surface.
 			 * So lower their alpha artificially. */
@@ -509,20 +511,12 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
 				struct GPUBatch **geom_array = DRW_cache_mesh_surface_texpaint_get(ob);
 				for (int i = 0; i < materials_len; i++) {
-					Material *mat = give_current_material(ob, i + 1);
+					Material *mat;
 					Image *image;
-					ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
-					/* use OB_SOLID when no texture could be determined */
-
-					int color_type = wpd->shading.color_type;
-					if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-						/* use OB_SOLID when no texture could be determined */
-						if (image == NULL) {
-							color_type = V3D_SHADING_MATERIAL_COLOR;
-						}
-					}
-
-					material = get_or_create_material_data(vedata, ob, mat, image, color_type);
+					int interp;
+					workbench_material_get_image_and_mat(ob, i + 1, &image, &interp, &mat);
+					int color_type = workbench_material_determine_color_type(wpd, image, ob);
+					material = get_or_create_material_data(vedata, ob, mat, image, color_type, interp);
 					DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
 					DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 				}
@@ -538,7 +532,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				/* No material split needed */
 				struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
-					material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type);
+					material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 						if (!is_wire) {
@@ -569,7 +563,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 						}
 
 						Material *mat = give_current_material(ob, i + 1);
-						material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
+						material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 							if (!is_wire) {

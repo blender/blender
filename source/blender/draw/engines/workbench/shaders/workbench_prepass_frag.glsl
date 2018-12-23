@@ -7,6 +7,7 @@ uniform float materialRoughness;
 uniform sampler2D image;
 uniform float ImageTransparencyCutoff = 0.1;
 uniform bool imageSrgb;
+uniform bool imageNearest;
 
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
@@ -37,12 +38,9 @@ void main()
 	vec4 color;
 
 #  ifdef V3D_SHADING_TEXTURE_COLOR
-	color = texture(image, uv_interp);
+	color = workbench_sample_texture(image, uv_interp, imageSrgb, imageNearest);
 	if (color.a < ImageTransparencyCutoff) {
 		discard;
-	}
-	if (imageSrgb) {
-		color = srgb_to_linearrgb(color);
 	}
 #  else
 	color.rgb = materialDiffuseColor;
