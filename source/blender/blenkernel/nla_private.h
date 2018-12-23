@@ -92,6 +92,14 @@ typedef struct NlaEvalChannelSnapshot {
 	/* Memory over-allocated to provide space for values. */
 } NlaEvalChannelSnapshot;
 
+/* NlaEvalChannel->mix_mode */
+enum eNlaEvalChannel_MixMode {
+	NEC_MIX_ADD,
+	NEC_MIX_MULTIPLY,
+	NEC_MIX_QUATERNION,
+	NEC_MIX_AXIS_ANGLE,
+};
+
 /* Temp channel for accumulating data from NLA for a single property.
  * Handles array properties as a unit to allow intelligent blending. */
 typedef struct NlaEvalChannel {
@@ -104,6 +112,11 @@ typedef struct NlaEvalChannel {
 
 	int index;
 	bool is_array;
+	bool in_blend;
+	char mix_mode;
+
+	struct NlaEvalChannel *next_blend;
+	NlaEvalChannelSnapshot *blend_snapshot;
 
 	/* Mask of array items controlled by NLA. */
 	NlaValidMask valid;

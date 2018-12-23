@@ -488,7 +488,11 @@ static void rna_NlaTrack_solo_set(PointerRNA *ptr, bool value)
 /* enum defines exported for rna_animation.c */
 const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
 	{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace",
-	                        "Result strip replaces the accumulated results by amount specified by influence"},
+	                        "The strip values replace the accumulated results by amount specified by influence"},
+	{NLASTRIP_MODE_COMBINE, "COMBINE", 0, "Combine",
+	                        "The strip values are combined with accumulated results by appropriately using addition, "
+	                        "multiplication, or quaternion math, based on channel type"},
+	{0, "", 0, NULL, NULL},
 	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumulated results"},
 	{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract",
 	                         "Weighted result of strip is removed from the accumulated results"},
