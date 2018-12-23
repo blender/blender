@@ -957,12 +957,26 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
+static bool region_azone_edge_poll(const ARegion *ar, const bool is_fullscreen)
+{
+	const bool is_hidden = (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
+
+	if (is_hidden && is_fullscreen) {
+		return false;
+	}
+	if (!is_hidden && ar->regiontype == RGN_TYPE_HEADER) {
+		return false;
+	}
+
+	return true;
+}
+
 static void region_azone_edge_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, const bool is_fullscreen)
 {
 	AZone *az = NULL;
 	const bool is_hidden = (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
 
-	if (is_hidden && is_fullscreen) {
+	if (!region_azone_edge_poll(ar, is_fullscreen)) {
 		return;
 	}
 
@@ -975,7 +989,7 @@ static void region_azone_edge_initialize(ScrArea *sa, ARegion *ar, AZEdge edge, 
 	if (is_hidden) {
 		region_azone_tab_plus(sa, az, ar);
 	}
-	else if (!is_hidden && (ar->regiontype != RGN_TYPE_HEADER)) {
+	else {
 		region_azone_edge(az, ar);
 	}
 }
