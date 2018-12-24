@@ -1027,13 +1027,13 @@ static void knife_init_colors(KnifeColors *colors)
 	/* possible BMESH_TODO: add explicit themes or calculate these by
 	 * figuring out contrasting colors with grid / edges / verts
 	 * a la UI_make_axis_color */
-	UI_GetThemeColor3ubv(TH_NURB_VLINE, colors->line);
-	UI_GetThemeColor3ubv(TH_NURB_ULINE, colors->edge);
-	UI_GetThemeColor3ubv(TH_HANDLE_SEL_VECT, colors->curpoint);
-	UI_GetThemeColor3ubv(TH_HANDLE_SEL_VECT, colors->curpoint_a);
+	UI_GetThemeColorType3ubv(TH_NURB_VLINE, SPACE_VIEW3D, colors->line);
+	UI_GetThemeColorType3ubv(TH_NURB_ULINE, SPACE_VIEW3D, colors->edge);
+	UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, colors->curpoint);
+	UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, colors->curpoint_a);
 	colors->curpoint_a[3] = 102;
-	UI_GetThemeColor3ubv(TH_ACTIVE_SPLINE, colors->point);
-	UI_GetThemeColor3ubv(TH_ACTIVE_SPLINE, colors->point_a);
+	UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, colors->point);
+	UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, colors->point_a);
 	colors->point_a[3] = 102;
 }
 

@@ -1118,6 +1118,16 @@ void UI_GetThemeColor4ubv(int colorid, unsigned char col[4])
 	col[3] = cp[3];
 }
 
+void UI_GetThemeColorType3ubv(int colorid, int spacetype, char col[3])
+{
+	const unsigned char *cp;
+
+	cp = UI_ThemeGetColorPtr(theme_active, spacetype, colorid);
+	col[0] = cp[0];
+	col[1] = cp[1];
+	col[2] = cp[2];
+}
+
 void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4])
 {
 	const unsigned char *cp;
