@@ -2419,7 +2419,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C, struct ARegion 
 	uiLayout *sub = uiLayoutRow(col, true);
 	uiLayoutSetRedAlert(sub, true);
 	uiItemL(sub, G.autoexec_fail, ICON_BLANK1);
-	uiItemL(col, IFACE_("This may lead to unexpected behavior."), ICON_BLANK1);
+	uiItemL(col, IFACE_("This may lead to unexpected behavior"), ICON_BLANK1);
 
 	uiItemS(layout);
 

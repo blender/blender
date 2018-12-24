@@ -3333,9 +3333,13 @@ static const EnumPropertyItem node_hair_items[] = {
 };
 
 static const EnumPropertyItem node_principled_hair_items[] = {
-	{SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION,     "ABSORPTION", 0, "Absorption coefficient",   "Directly set the absorption coefficient sigma_a. This is not the most intuitive way to color hair."},
-	{SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION, "MELANIN",    0, "Melanin concentration",    "Define the melanin concentrations below to get the most realistic-looking hair. You can get the concentrations for different types of hair online."},
-	{SHD_PRINCIPLED_HAIR_REFLECTANCE,           "COLOR",      0, "Direct coloring",          "Choose the color of your preference, and the shader will approximate the absorption coefficient to render lookalike hair."},
+	{SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION,     "ABSORPTION", 0, "Absorption coefficient",
+	 "Directly set the absorption coefficient sigma_a (this is not the most intuitive way to color hair)"},
+	{SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION, "MELANIN",    0, "Melanin concentration",
+	 "Define the melanin concentrations below to get the most realistic-looking hair"
+	 "(you can get the concentrations for different types of hair online)"},
+	{SHD_PRINCIPLED_HAIR_REFLECTANCE,           "COLOR",      0, "Direct coloring",
+	 "Choose the color of your preference, and the shader will approximate the absorption coefficient to render lookalike hair"},
 	{0, NULL, 0, NULL, NULL}
 };
 

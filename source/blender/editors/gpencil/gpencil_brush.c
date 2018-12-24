@@ -224,13 +224,13 @@ static GP_Sculpt_Data *gpsculpt_get_brush(Scene *scene, bool is_weight_mode)
 
 /* Brush Operations ------------------------------- */
 
-/* Invert behaviour of brush? */
+/* Invert behavior of brush? */
 static bool gp_brush_invert_check(tGP_BrushEditData *gso)
 {
 	/* The basic setting is the brush's setting (from the panel) */
 	bool invert = ((gso->gp_brush->flag & GP_SCULPT_FLAG_INVERT) != 0);
 
-	/* During runtime, the user can hold down the Ctrl key to invert the basic behaviour */
+	/* During runtime, the user can hold down the Ctrl key to invert the basic behavior */
 	if (gso->flag & GP_SCULPT_FLAG_INVERT) {
 		invert ^= true;
 	}

@@ -1972,7 +1972,7 @@ void GPU_pass_compile(GPUPass *pass, const char *shname)
 		        shname);
 
 		/* NOTE: Some drivers / gpu allows more active samplers than the opengl limit.
-		 * We need to make sure to count active samplers to avoid undefined behaviour. */
+		 * We need to make sure to count active samplers to avoid undefined behavior. */
 		if (!gpu_pass_shader_validate(pass)) {
 			if (pass->shader != NULL) {
 				fprintf(stderr, "GPUShader: error: too many samplers in shader.\n");

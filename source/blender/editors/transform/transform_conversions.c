@@ -5059,7 +5059,7 @@ void flushTransGraphData(TransInfo *t)
 					break;
 
 				case SACTSNAP_TSTEP: /* second step */
-					/* XXX: the handle behaviour in this case is still not quite right... */
+					/* XXX: the handle behavior in this case is still not quite right... */
 					td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
 					td->loc[0]   = floor(((double)td->loc[0] / secf) + 0.5) * secf;
 					break;

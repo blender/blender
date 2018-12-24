@@ -2991,7 +2991,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	 * to make it easier to predict where items are in the hierarchy
 	 * - This order only really matters if we need to show all channels in the list (e.g. for drawing)
 	 *   (XXX: What about lingering "active" flags? The order may now become unpredictable)
-	 * - Don't do this if this behaviour has been turned off (i.e. due to it being too slow)
+	 * - Don't do this if this behavior has been turned off (i.e. due to it being too slow)
 	 * - Don't do this if there's just a single object
 	 */
 	if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !(ads->flag & ADS_FLAG_NO_DB_SORT) &&

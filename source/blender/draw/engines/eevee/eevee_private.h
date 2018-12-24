@@ -742,7 +742,7 @@ typedef struct EEVEE_LampEngineData {
 	DrawData dd;
 
 	bool need_update;
-	/* This needs to be out of the union to avoid undefined behaviour. */
+	/* This needs to be out of the union to avoid undefined behavior. */
 	short prev_cube_shadow_id;
 	union {
 		struct EEVEE_LightData ld;

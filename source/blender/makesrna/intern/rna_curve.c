@@ -999,7 +999,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 	RNA_def_property_enum_items(prop, prop_overflow_items);
 	RNA_def_property_enum_default(prop, CU_OVERFLOW_NONE);
 	RNA_def_property_ui_text(prop, "Textbox Overflow",
-	                         "Handle the text behaviour when it doesn't fit in the text boxes");
+	                         "Handle the text behavior when it doesn't fit in the text boxes");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* number values */

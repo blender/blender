@@ -212,7 +212,7 @@ class GreasePencilStrokeEditPanel:
         col.operator("gpencil.stroke_subdivide", text="Subdivide")
         row = col.row(align=True)
         row.operator("gpencil.stroke_simplify_fixed", text="Simplify")
-        row.operator("gpencil.stroke_simplify", text="Adaptative")
+        row.operator("gpencil.stroke_simplify", text="Adaptive")
 
         col.separator()
 

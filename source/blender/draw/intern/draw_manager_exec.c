@@ -927,7 +927,7 @@ static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 				return;
 			}
 		}
-		/* printf so user can report bad behaviour */
+		/* printf so user can report bad behavior */
 		printf("Not enough ubo slots! This should not happen!\n");
 		/* This is not depending on user input.
 		 * It is our responsibility to make sure there is enough slots. */

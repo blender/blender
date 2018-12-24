@@ -3328,7 +3328,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);
 		RNA_def_property_int_funcs(prop, "rna_SpaceView3D_icon_from_show_object_viewport_get", NULL, NULL);
 		RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-		RNA_def_property_ui_text(prop, "Visibility Iconm", "");
+		RNA_def_property_ui_text(prop, "Visibility Icon", "");
 	}
 
 	/* Nested Structs */

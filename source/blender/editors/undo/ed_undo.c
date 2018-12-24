@@ -206,7 +206,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList 
 	if (G.debug & G_DEBUG_IO) {
 		Main *bmain = CTX_data_main(C);
 		if (bmain->lock != NULL) {
-			BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* undo step.");
+			BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* undo step");
 			BLO_main_validate_libraries(bmain, reports);
 		}
 	}

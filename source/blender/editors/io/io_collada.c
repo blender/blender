@@ -456,7 +456,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 
 	RNA_def_enum(func, "prop_bc_export_ui_section", prop_bc_export_ui_section, 0,
-		"Export Section", "Only for User Interface Organisation");
+	             "Export Section", "Only for User Interface organization");
 
 	RNA_def_boolean(func,
 	                "apply_modifiers", 0, "Apply Modifiers",
@@ -501,7 +501,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 		"Keep Smooth curves", "Export also the curve handles (if available).\nThis does only work when the inverse parent matrix is the Unity matrix\nOtherwise you may end up with odd results\n");
 
 	RNA_def_boolean(func, "keep_keyframes", 0,
-		"Keep Keyframes", "Use existing keyframes as additional sample points.\nThis helps when you want to keep manual tweeks");
+		"Keep Keyframes", "Use existing keyframes as additional sample points (this helps when you want to keep manual tweaks)");
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");

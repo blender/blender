@@ -1419,7 +1419,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* adjust selection behaviour - for toggle option */
+	/* adjust selection behavior - for toggle option */
 	if (toggle) {
 		deselect = (hit_point->flag & GP_SPOINT_SELECT) != 0;
 	}

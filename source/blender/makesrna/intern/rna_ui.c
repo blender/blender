@@ -1234,7 +1234,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bl_parent_id", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->parent_id");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-	RNA_def_property_ui_text(prop, "Parent ID Name", "If this is set, the panel becomes a subpanel");
+	RNA_def_property_ui_text(prop, "Parent ID Name", "If this is set, the panel becomes a sub-panel");
 
 	prop = RNA_def_property(srna, "bl_ui_units_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "type->ui_units_x");

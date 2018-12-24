@@ -142,7 +142,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
 /* Convention to write UVs:
  * - V2fGeomParam on the arbGeomParam
  * - set scope as face varying
- * - (optional due to its behaviour) tag as UV using Alembic::AbcGeom::SetIsUV
+ * - (optional due to its behavior) tag as UV using Alembic::AbcGeom::SetIsUV
  */
 static void write_uv(const OCompoundProperty &prop, const CDStreamConfig &config, void *data, const char *name)
 {

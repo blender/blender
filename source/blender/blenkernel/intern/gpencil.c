@@ -364,7 +364,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 		BLI_insertlinkafter(&gpd->layers, gpl_active, gpl);
 	}
 
-	/* annotation vs GP Object behaviour is slightly different */
+	/* annotation vs GP Object behavior is slightly different */
 	if (gpd->flag & GP_DATA_ANNOTATIONS) {
 		/* set default color of new strokes for this layer */
 		copy_v4_v4(gpl->color, U.gpencil_new_layer_col);

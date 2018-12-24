@@ -226,7 +226,7 @@ BLI_INLINE list_node *sweep_up(struct SortInfo *si, list_node *list, unsigned in
  * When inserting higher-ranked lists, we choose to clear out the lower ranks
  * in the interests of keeping the sort stable, but this makes analysis harder.
  * Note that clearing the lower-ranked lists is `O(length(list))--` thus it
- * shouldn't affect the `O(n log n)` behaviour.
+ * shouldn't affect the `O(n log n)` behavior.
  * In other words, inserting one `rank-i` list is equivalent to inserting
  * `2**i` `rank-0` lists, thus even if we do `i` additional merges
  * in the clearing-out (taking at most `2**i` time) we are still fine.

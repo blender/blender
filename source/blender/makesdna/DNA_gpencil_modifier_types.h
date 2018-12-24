@@ -280,7 +280,7 @@ typedef struct BuildGpencilModifierData {
 	float start_delay;    /* For each pair of gp keys, number of frames before strokes start appearing */
 	float length;         /* For each pair of gp keys, number of frames that build effect must be completed within */
 
-	short flag;           /* (eGpencilBuild_Flag) Options for controlling modifier behaviour */
+	short flag;           /* (eGpencilBuild_Flag) Options for controlling modifier behavior */
 
 	short mode;           /* (eGpencilBuild_Mode) How are strokes ordered */
 	short transition;     /* (eGpencilBuild_Transition) In what order do stroke points appear/disappear */

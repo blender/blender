@@ -271,7 +271,7 @@ const char *utf8_invalid_tests[][3] = {
 //            (to convert between UTF-16LE and UTF-16BE).
 //        With such internal use of noncharacters, it may be desirable and safer to block those code points in
 //        UTF-8 decoders, as they should never occur legitimately in incoming UTF-8 data, and could trigger
-//        unsafe behaviour in subsequent processing.
+//        unsafe behavior in subsequent processing.
 //
 //        Particularly problematic noncharacters in 16-bit applications:
     {"5.3.1  U+FFFE = ef bf be = \"\xef\xbf\xbe\"                                              |",

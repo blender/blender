@@ -1554,7 +1554,7 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_bisect_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_BISECT_AXIS_X);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Bisect Axis", "Cuts the mesh across the mirrorplane");
+	RNA_def_property_ui_text(prop, "Bisect Axis", "Cuts the mesh across the mirror plane");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_bisect_flip_axis", PROP_BOOLEAN, PROP_NONE);

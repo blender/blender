@@ -3058,7 +3058,7 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	/* NOTE: don't save settings, otherwise, can end up with some weird behaviour (sticky extend) */
+	/* NOTE: don't save settings, otherwise, can end up with some weird behavior (sticky extend) */
 	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); // SHIFTKEY
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 

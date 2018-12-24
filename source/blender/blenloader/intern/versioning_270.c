@@ -1515,7 +1515,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 		if (!DNA_struct_elem_find(fd->filesdna, "FFMpegCodecData", "int", "constant_rate_factor")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-				/* fall back to behaviour from before we introduced CRF for old files */
+				/* fall back to behavior from before we introduced CRF for old files */
 				scene->r.ffcodecdata.constant_rate_factor = FFM_CRF_NONE;
 			}
 		}

@@ -843,7 +843,7 @@ static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
 	/* And define another RNA type for those collection items. */
 	srna = RNA_def_struct(brna, "PointCacheItem", NULL);
 	RNA_def_struct_sdna(srna, "PointCache");
-	RNA_def_struct_ui_text(srna, "Point Cache", "point cache for physics simulations");
+	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations");
 	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 
 	rna_def_pointcache_common(srna);
@@ -1603,7 +1603,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "spring_length", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "springpreload");
 	RNA_def_property_range(prop, 0.0f, 200.0f);
-	RNA_def_property_ui_text(prop, "view_layer", "Alter spring length to shrink/blow up (unit %) 0 to disable");
+	RNA_def_property_ui_text(prop, "View Layer", "Alter spring length to shrink/blow up (unit %) 0 to disable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
 	prop = RNA_def_property(srna, "aero", PROP_INT, PROP_NONE);

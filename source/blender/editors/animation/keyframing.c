@@ -479,7 +479,7 @@ int insert_vert_fcurve(FCurve *fcu, float x, float y, eBezTriple_KeyframeType ke
 
 	/* set default handle types and interpolation mode */
 	if (flag & INSERTKEY_NO_USERPREF) {
-		/* for Py-API, we want scripts to have predictable behaviour,
+		/* for Py-API, we want scripts to have predictable behavior,
 		 * hence the option to not depend on the userpref defaults
 		 */
 		beztr.h1 = beztr.h2 = HD_AUTO_ANIM;
@@ -1007,7 +1007,7 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
 		}
 	}
 
-	/* update F-Curve flags to ensure proper behaviour for property type */
+	/* update F-Curve flags to ensure proper behavior for property type */
 	update_autoflags_fcurve_direct(fcu, prop);
 
 	/* adjust frame on which to add keyframe */
@@ -1949,9 +1949,9 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 
 				/* Special exception for keyframing transforms:
 				 * Set "group" for this manually, instead of having them appearing at the bottom (ungrouped)
-				 * part of the channels list. Leaving these ungrouped is not a nice user behaviour in this case.
+				 * part of the channels list. Leaving these ungrouped is not a nice user behavior in this case.
 				 *
-				 * TODO: Perhaps we can extend this behaviour in future for other properties...
+				 * TODO: Perhaps we can extend this behavior in future for other properties...
 				 */
 				if (ptr.type == &RNA_PoseBone) {
 					bPoseChannel *pchan = (bPoseChannel *)ptr.data;
