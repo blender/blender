@@ -13,7 +13,7 @@ void main()
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	/* Add offset in Z to avoid zfighting and render selected wires on top. */
 	/* TODO scale this bias using znear and zfar range. */
-	gl_Position.zw -= exp2(-20) * (is_select ? 2.0 : 1.0);
+	gl_Position.zw -= exp2(-20.0) * (is_select ? 2.0 : 1.0);
 
 	if (is_hidden) {
 		gl_Position = vec4(-2.0, -2.0, -2.0, 1.0);
