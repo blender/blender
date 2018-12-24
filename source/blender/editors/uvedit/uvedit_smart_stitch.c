@@ -2743,8 +2743,8 @@ void UV_OT_stitch(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	/* test should not be editable or viewed in toolbar */
-	prop = RNA_def_int_array(ot->srna, "objects_selection_count", 1, NULL, 0, INT_MAX, "objects_selection_count",
-	                         "objects_selection_count", 0, INT_MAX);
+	prop = RNA_def_int_array(ot->srna, "objects_selection_count", 1, NULL, 0, INT_MAX, "Objects Selection Count",
+	                         "", 0, INT_MAX);
 	RNA_def_property_array(prop, 6);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }

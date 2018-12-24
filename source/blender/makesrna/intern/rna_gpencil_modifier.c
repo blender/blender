@@ -1089,7 +1089,7 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "shift", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "shift");
-	RNA_def_property_ui_text(prop, "Shift", "Shiftness value");
+	RNA_def_property_ui_text(prop, "Shift", "Shiftiness value");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 

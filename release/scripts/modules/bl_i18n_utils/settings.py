@@ -296,6 +296,11 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "fps: %i",
     "gimbal",
     "global",
+    "glTF 2.0 (.glb/.gltf)",
+    "glTF Binary (.glb)",
+    "glTF Embedded (.gltf)",
+    "glTF Separate (.gltf + .bin + textures)",
+    "invoke() needs to be called before execute()",
     "iScale",
     "iso-8859-15",
     "iTaSC",
@@ -325,6 +330,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "vBVH",
     "view",
     "wav",
+    "wmOwnerID '%s' not in workspace '%s'",
     "y",
     # Sub-strings.
     "available with",
@@ -332,6 +338,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "can't save image while rendering",
     "constructive modifier",
     "cursor",
+    "custom",
     "custom matrix",
     "custom orientation",
     "edge data",
@@ -368,7 +375,6 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "verts only",
     "view",
     "virtual parents",
-    "wmOwnerID '%s' not in workspace '%s'",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 
@@ -380,6 +386,7 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Pad.",
     "    RNA Path: bpy.types.",
     "Temp. Diff.",
+    "Temperature Diff.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

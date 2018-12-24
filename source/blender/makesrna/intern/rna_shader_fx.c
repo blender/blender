@@ -53,7 +53,7 @@ const EnumPropertyItem rna_enum_object_shaderfx_type_items[] = {
 	{eShaderFxType_Colorize, "FX_COLORIZE", ICON_SHADERFX, "Colorize", "Apply different tint effects" },
 	{eShaderFxType_Flip, "FX_FLIP", ICON_SHADERFX, "Flip", "Flip image" },
 	{eShaderFxType_Glow, "FX_GLOW", ICON_SHADERFX, "Glow", "Create a glow effect" },
-	{eShaderFxType_Light, "FX_LIGHT", ICON_SHADERFX, "Light", "Simulate ilumination" },
+	{eShaderFxType_Light, "FX_LIGHT", ICON_SHADERFX, "Light", "Simulate illumination" },
 	{eShaderFxType_Pixel, "FX_PIXEL", ICON_SHADERFX, "Pixelate", "Pixelate image"},
 	{eShaderFxType_Rim, "FX_RIM", ICON_SHADERFX, "Rim", "Add a rim to the image" },
 	{eShaderFxType_Shadow, "FX_SHADOW", ICON_SHADERFX, "Shadow", "Create a shadow effect"},

@@ -522,7 +522,7 @@ public: // Implementation of Interface1D
 	/*! The different blending modes available to similate the interaction media-medium. */
 	typedef enum {
 		DRY_MEDIUM,     /*!< To simulate a dry medium such as Pencil or Charcoal.*/
-		HUMID_MEDIUM,   /*!< To simulate ink painting (color substraction blending).*/
+		HUMID_MEDIUM,   /*!< To simulate ink painting (color subtraction blending).*/
 		OPAQUE_MEDIUM,  /*!< To simulate an opaque medium (oil, spray...).*/
 	} MediumType;
 

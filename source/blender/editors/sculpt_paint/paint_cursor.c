@@ -527,7 +527,7 @@ static int project_brush_radius(
 	cross_v3_v3v3(ortho, nonortho, view);
 	normalize_v3(ortho);
 
-	/* make a point on the surface of the brush tagent to the view */
+	/* make a point on the surface of the brush tangent to the view */
 	mul_v3_fl(ortho, radius);
 	add_v3_v3v3(offset, location, ortho);
 

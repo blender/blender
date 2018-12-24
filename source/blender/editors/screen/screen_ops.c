@@ -4703,7 +4703,7 @@ static void SCREEN_OT_space_type_set_or_cycle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Cycle Space Type Set";
-	ot->description = "Set the space type or cycle subtype";
+	ot->description = "Set the space type or cycle sub-type";
 	ot->idname = "SCREEN_OT_space_type_set_or_cycle";
 
 	/* api callbacks */

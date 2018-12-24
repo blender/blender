@@ -359,7 +359,7 @@ class GreasePencilAppearancePanel:
 
             if tool in {'THICKNESS', 'STRENGTH'}:
                 col.prop(brush, "cursor_color_add", text="Add")
-                col.prop(brush, "cursor_color_sub", text="Substract")
+                col.prop(brush, "cursor_color_sub", text="Subtract")
             elif tool == 'PINCH':
                 col.prop(brush, "cursor_color_add", text="Pinch")
                 col.prop(brush, "cursor_color_sub", text="Inflate")

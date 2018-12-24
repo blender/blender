@@ -3170,7 +3170,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "twist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -100000.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Twist", "Number of turns around parent allong the strand");
+	RNA_def_property_ui_text(prop, "Twist", "Number of turns around parent along the strand");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "use_twist_curve", PROP_BOOLEAN, PROP_NONE);

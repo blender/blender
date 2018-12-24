@@ -424,7 +424,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	static const EnumPropertyItem prop_bc_export_animation_type[] = {
 	{ BC_ANIMATION_EXPORT_SAMPLES, "sample", 0, "Samples", "Export Sampled points guided by sampling rate" },
-	{ BC_ANIMATION_EXPORT_KEYS, "keys", 0, "Curves", "Export Curves\n Note: guided by curve keys" },
+	{ BC_ANIMATION_EXPORT_KEYS, "keys", 0, "Curves", "Export Curves (note: guided by curve keys)" },
 	{ 0, NULL, 0, NULL, NULL }
 	};
 
@@ -458,8 +458,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_enum(func, "prop_bc_export_ui_section", prop_bc_export_ui_section, 0,
 	             "Export Section", "Only for User Interface organization");
 
-	RNA_def_boolean(func,
-	                "apply_modifiers", 0, "Apply Modifiers",
+	RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers",
 	                "Apply modifiers to exported mesh (non destructive))");
 
 	RNA_def_int(func, "export_mesh_type", 0, INT_MIN, INT_MAX,
@@ -481,27 +480,29 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Export all Shape Keys from Mesh Objects");
 
 	RNA_def_boolean(func, "deform_bones_only", false, "Deform Bones only",
-	            	"Only export deforming bones with armatures");
+	                "Only export deforming bones with armatures");
 
 
 
-	RNA_def_boolean(func, "include_animations", true,
-		"Include Animations", "Export Animations if available.\nExporting Animations will enforce the decomposition of node transforms\ninto  <translation> <rotation> and <scale> components");
+	RNA_def_boolean(func, "include_animations", true, "Include Animations",
+	                "Export animations if available (exporting animations will enforce the decomposition of "
+	                "node transforms into  <translation> <rotation> and <scale> components)");
 
-	RNA_def_boolean(func, "include_all_actions", true,
-		"Include all Actions", "Export also unassigned actions.\nThis allows you to export entire animation libraries for your charater(s)");
+	RNA_def_boolean(func, "include_all_actions", true, "Include all Actions",
+	                "Export also unassigned actions (this allows you to export entire animation libraries for your character(s))");
 
-	RNA_def_enum(func, "export_animation_type_selection", prop_bc_export_animation_type, 0,
-		"Key Type", "Type for exported animations (use sample keys or Curve keys)");
+	RNA_def_enum(func, "export_animation_type_selection", prop_bc_export_animation_type, 0, "Key Type",
+	             "Type for exported animations (use sample keys or Curve keys)");
 
-	RNA_def_int(func, "sampling_rate", 1, 1, INT_MAX,
-		"Sampling Rate", "The distance between 2 keyframes. 1 means: Every frame is keyed", 1, INT_MAX);
+	RNA_def_int(func, "sampling_rate", 1, 1, INT_MAX, "Sampling Rate",
+	            "The distance between 2 keyframes (1 to key every frame)", 1, INT_MAX);
 
-	RNA_def_boolean(func, "keep_smooth_curves", 0,
-		"Keep Smooth curves", "Export also the curve handles (if available).\nThis does only work when the inverse parent matrix is the Unity matrix\nOtherwise you may end up with odd results\n");
+	RNA_def_boolean(func, "keep_smooth_curves", 0, "Keep Smooth curves",
+	                "Export also the curve handles (if available) (this does only work when the inverse parent matrix "
+	                "is the unity matrix, otherwise you may end up with odd results)");
 
-	RNA_def_boolean(func, "keep_keyframes", 0,
-		"Keep Keyframes", "Use existing keyframes as additional sample points (this helps when you want to keep manual tweaks)");
+	RNA_def_boolean(func, "keep_keyframes", 0, "Keep Keyframes",
+	                "Use existing keyframes as additional sample points (this helps when you want to keep manual tweaks)");
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");
@@ -514,29 +515,28 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Export Polygons (Quads & NGons) as Triangles");
 
 	RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances",
-		"Instantiate multiple Objects from same Data");
+	                "Instantiate multiple Objects from same Data");
 
 	RNA_def_boolean(func, "use_blender_profile", 1, "Use Blender Profile",
-		"Export additional Blender specific information (for material, shaders, bones, etc.)");
+	                "Export additional Blender specific information (for material, shaders, bones, etc.)");
 
 	RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name",
 	                "Sort exported data by Object name");
 
-	RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
-	            "Transform", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
+	RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX, "Transform",
+	            "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
 
-	RNA_def_enum(func, "export_transformation_type_selection", prop_bc_export_transformation_type, 0,
-	             "Transform", "Transformation type for translation, scale and rotation");
+	RNA_def_enum(func, "export_transformation_type_selection", prop_bc_export_transformation_type, 0, "Transform",
+	             "Transformation type for translation, scale and rotation");
 
 	RNA_def_boolean(func, "open_sim", 0, "Export to SL/OpenSim",
 	                "Compatibility mode for SL, OpenSim and other compatible online worlds");
 
-	RNA_def_boolean(func, "limit_precision", 0,
-		"Limit Precision", "Reduce the precision of the exported data to 6 digits");
+	RNA_def_boolean(func, "limit_precision", 0, "Limit Precision",
+	                "Reduce the precision of the exported data to 6 digits");
 
-	RNA_def_boolean(func, "keep_bind_info", 0,
-		"Keep Bind Info", "Store Bindpose information in custom bone properties for later use during Collada export");
-
+	RNA_def_boolean(func, "keep_bind_info", 0, "Keep Bind Info",
+	                "Store Bindpose information in custom bone properties for later use during Collada export");
 }
 
 

@@ -4433,7 +4433,7 @@ static void def_sh_displacement(StructRNA *srna)
 static void def_sh_vector_displacement(StructRNA *srna)
 {
 	static const EnumPropertyItem prop_space_items[] = {
-		{SHD_SPACE_TANGENT, "TANGENT", 0, "Tangent Space", "Tagent space vector displacement mapping"},
+		{SHD_SPACE_TANGENT, "TANGENT", 0, "Tangent Space", "Tangent space vector displacement mapping"},
 		{SHD_SPACE_OBJECT, "OBJECT", 0, "Object Space", "Object space vector displacement mapping"},
 		{SHD_SPACE_WORLD, "WORLD", 0, "World Space", "World space vector displacement mapping"},
 		{0, NULL, 0, NULL, NULL}

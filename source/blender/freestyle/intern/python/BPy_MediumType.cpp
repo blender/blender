@@ -41,7 +41,7 @@ PyDoc_STRVAR(MediumType_doc,
 "media-medium:\n"
 "\n"
 "* Stroke.DRY_MEDIUM: To simulate a dry medium such as Pencil or Charcoal.\n"
-"* Stroke.HUMID_MEDIUM: To simulate ink painting (color substraction blending).\n"
+"* Stroke.HUMID_MEDIUM: To simulate ink painting (color subtraction blending).\n"
 "* Stroke.OPAQUE_MEDIUM: To simulate an opaque medium (oil, spray...).");
 
 PyTypeObject MediumType_Type = {

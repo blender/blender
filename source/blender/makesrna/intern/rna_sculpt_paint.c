@@ -1360,7 +1360,7 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_array_default(prop, default_2);
-	RNA_def_property_ui_text(prop, "Cursor Sub", "Color for the cursor for substraction");
+	RNA_def_property_ui_text(prop, "Cursor Sub", "Color for the cursor for subtraction");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
 	prop = RNA_def_property(srna, "use_cursor", PROP_BOOLEAN, PROP_NONE);

@@ -1144,7 +1144,7 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         name="Holdout",
         description="Render objects as a holdout or matte, creating a "
         "hole in the image with zero alpha, to fill out in "
-        "compositing with real footange or another render",
+        "compositing with real footage or another render",
         default=False,
     )
 

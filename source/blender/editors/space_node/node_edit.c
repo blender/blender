@@ -2629,7 +2629,7 @@ void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Cryptomatte Socket";
-	ot->description = "Remove layer from a Crytpomatte node";
+	ot->description = "Remove layer from a Cryptomatte node";
 	ot->idname = "NODE_OT_cryptomatte_layer_remove";
 
 	/* callbacks */
