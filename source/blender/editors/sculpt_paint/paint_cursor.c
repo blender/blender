@@ -692,7 +692,7 @@ static void paint_draw_tex_overlay(
 		}
 
 		/* draw textured quad */
-		immUniform1i("image", GL_TEXTURE0);
+		immUniform1i("image", 0);
 
 		immBegin(GPU_PRIM_TRI_FAN, 4);
 		immAttr2f(texCoord, 0.0f, 0.0f);
