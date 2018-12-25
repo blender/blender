@@ -459,50 +459,6 @@ static void gp_calc_stroke_text_coordinates(const float(*points2d)[2], int totpo
 	}
 }
 
-/* Get points of stroke always flat to view not affected by camera view or view position */
-static void gp_stroke_2d_flat(const bGPDspoint *points, int totpoints, float(*points2d)[2], int *r_direction)
-{
-	const bGPDspoint *pt0 = &points[0];
-	const bGPDspoint *pt1 = &points[1];
-	const bGPDspoint *pt3 = &points[(int)(totpoints * 0.75)];
-
-	float locx[3];
-	float locy[3];
-	float loc3[3];
-	float normal[3];
-
-	/* local X axis (p0 -> p1) */
-	sub_v3_v3v3(locx, &pt1->x, &pt0->x);
-
-	/* point vector at 3/4 */
-	sub_v3_v3v3(loc3, &pt3->x, &pt0->x);
-
-	/* vector orthogonal to polygon plane */
-	cross_v3_v3v3(normal, locx, loc3);
-
-	/* local Y axis (cross to normal/x axis) */
-	cross_v3_v3v3(locy, normal, locx);
-
-	/* Normalize vectors */
-	normalize_v3(locx);
-	normalize_v3(locy);
-
-	/* Get all points in local space */
-	for (int i = 0; i < totpoints; i++) {
-		const bGPDspoint *pt = &points[i];
-		float loc[3];
-
-		/* Get local space using first point as origin */
-		sub_v3_v3v3(loc, &pt->x, &pt0->x);
-
-		points2d[i][0] = dot_v3v3(loc, locx);
-		points2d[i][1] = dot_v3v3(loc, locy);
-	}
-
-	/* Concave (-1), Convex (1), or Autodetect (0)? */
-	*r_direction = (int)locy[2];
-}
-
 /* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
 static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 {
@@ -517,7 +473,7 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 	int direction = 0;
 
 	/* convert to 2d and triangulate */
-	gp_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
+	BKE_gpencil_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
 	BLI_polyfill_calc(points2d, (uint)gps->totpoints, direction, tmp_triangles);
 
 	/* calc texture coordinates automatically */

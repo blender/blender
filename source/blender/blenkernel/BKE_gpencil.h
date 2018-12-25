@@ -168,6 +168,9 @@ void BKE_gpencil_simplify_stroke(struct bGPDstroke *gps, float factor);
 void BKE_gpencil_simplify_fixed(struct bGPDstroke *gps);
 void BKE_gpencil_subdivide(struct bGPDstroke *gps, int level, int flag);
 
+void BKE_gpencil_stroke_2d_flat(
+	const struct bGPDspoint *points, int totpoints, float(*points2d)[2], int *r_direction);
+
 void BKE_gpencil_transform(struct bGPdata *gpd, float mat[4][4]);
 
 bool BKE_gpencil_smooth_stroke(struct bGPDstroke *gps, int i, float inf);
