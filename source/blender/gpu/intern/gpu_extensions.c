@@ -272,7 +272,8 @@ void gpu_extensions_init(void)
 
 #ifdef _WIN32
 		if (strstr(version, "4.5.13399") ||
-		    strstr(version, "4.5.13417"))
+		    strstr(version, "4.5.13417") ||
+		    strstr(version, "4.5.13422"))
 		{
 			/* The renderers include:
 			 *   Mobility Radeon HD 5000;
