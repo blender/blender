@@ -319,15 +319,33 @@ static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
 	return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
+static Object *eval_object_ensure(Object *ob, bContext *C, ReportList *reports, PointerRNA *rnaptr_depsgraph)
+{
+	if (ob->runtime.mesh_eval == NULL) {
+		Object *ob_orig = ob;
+		Depsgraph *depsgraph = rnaptr_depsgraph != NULL ? rnaptr_depsgraph->data : NULL;
+		if (depsgraph == NULL) {
+			depsgraph = CTX_data_depsgraph(C);
+		}
+		if (depsgraph != NULL) {
+			ob = DEG_get_evaluated_object(depsgraph, ob);
+		}
+		if (ob == NULL || ob->runtime.mesh_eval == NULL) {
+			BKE_reportf(reports, RPT_ERROR, "Object '%s' has no evaluated mesh data", ob_orig->id.name + 2);
+			return NULL;
+		}
+	}
+	return ob;
+}
+
 static void rna_Object_ray_cast(
-        Object *ob, ReportList *reports,
-        float origin[3], float direction[3], float distance,
+        Object *ob, bContext *C, ReportList *reports,
+        float origin[3], float direction[3], float distance, PointerRNA *rnaptr_depsgraph,
         bool *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	bool success = false;
 
-	if (ob->runtime.mesh_eval == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for ray casting", ob->id.name + 2);
+	if (ob->runtime.mesh_eval == NULL && (ob = eval_object_ensure(ob, C, reports, rnaptr_depsgraph)) == NULL) {
 		return;
 	}
 
@@ -375,14 +393,12 @@ static void rna_Object_ray_cast(
 }
 
 static void rna_Object_closest_point_on_mesh(
-        Object *ob, ReportList *reports, float origin[3], float distance,
+        Object *ob, bContext *C, ReportList *reports, float origin[3], float distance, PointerRNA *rnaptr_depsgraph,
         bool *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 
-	if (ob->runtime.mesh_eval == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for finding nearest point",
-		            ob->id.name + 2);
+	if (ob->runtime.mesh_eval == NULL && (ob = eval_object_ensure(ob, C, reports, rnaptr_depsgraph)) == NULL) {
 		return;
 	}
 
@@ -435,12 +451,20 @@ static bool rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings
 
 #include "BKE_mesh_runtime.h"
 
-void rna_Object_me_eval_info(struct Object *ob, int type, char *result)
+void rna_Object_me_eval_info(struct Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)
 {
 	Mesh *me_eval = NULL;
 	char *ret = NULL;
 
 	result[0] = '\0';
+
+	switch (type) {
+		case 1:
+		case 2:
+		if (ob->runtime.mesh_eval == NULL && (ob = eval_object_ensure(ob, C, NULL, rnaptr_depsgraph)) == NULL) {
+			return;
+		}
+	}
 
 	switch (type) {
 		case 0:
@@ -619,8 +643,9 @@ void RNA_api_object(StructRNA *srna)
 
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");
-	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Cast a ray onto evaluated geometry, in object space "
+	                                "(using context's or provided depsgraph to get evaluated mesh if needed)");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
 	/* ray start and end */
 	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX,
@@ -631,6 +656,10 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_float(func, "distance", BVH_RAYCAST_DIST_MAX, 0.0, BVH_RAYCAST_DIST_MAX,
 	              "", "Maximum distance", 0.0, BVH_RAYCAST_DIST_MAX);
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "",
+	                       "Depsgraph to use to get evaluated data, when called from original object "
+	                       "(only needed if current Context's depsgraph is not suitable)");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
 	/* return location and normal */
 	parm = RNA_def_boolean(func, "result", 0, "", "Wheter the ray successfully hit the geometry");
@@ -650,8 +679,9 @@ void RNA_api_object(StructRNA *srna)
 
 	/* Nearest Point */
 	func = RNA_def_function(srna, "closest_point_on_mesh", "rna_Object_closest_point_on_mesh");
-	RNA_def_function_ui_description(func, "Find the nearest point in object space");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Find the nearest point on evaluated geometry, in object space "
+	                                "(using context's or provided depsgraph to get evaluated mesh if needed)");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
 	/* location of point for test and max distance */
 	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX,
@@ -659,6 +689,10 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	/* default is sqrt(FLT_MAX) */
 	RNA_def_float(func, "distance", 1.844674352395373e+19, 0.0, FLT_MAX, "", "Maximum distance", 0.0, FLT_MAX);
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "",
+	                       "Depsgraph to use to get evaluated data, when called from original object "
+	                       "(only needed if current Context's depsgraph is not suitable)");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
 	/* return location and normal */
 	parm = RNA_def_boolean(func, "result", 0, "", "Wheter closest point on geometry was found");
@@ -701,10 +735,16 @@ void RNA_api_object(StructRNA *srna)
 #ifndef NDEBUG
 	/* mesh */
 	func = RNA_def_function(srna, "dm_info", "rna_Object_me_eval_info");
-	RNA_def_function_ui_description(func, "Returns a string for derived mesh data (debug builds only)");
+	RNA_def_function_ui_description(func, "Returns a string for original/evaluated mesh data (debug builds only, "
+	                                "using context's or provided depsgraph to get evaluated mesh if needed)");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	parm = RNA_def_enum(func, "type", mesh_dm_info_items, 0, "", "Modifier settings to apply");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "",
+	                       "Depsgraph to use to get evaluated data, when called from original object "
+	                       "(only needed if current Context's depsgraph is not suitable)");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	/* weak!, no way to return dynamic string type */
 	parm = RNA_def_string(func, "result", NULL, 16384, "", "Requested informations");
 	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
