@@ -725,7 +725,7 @@ def km_uv_editor(params):
          {"properties": [("pinned", False)]}),
         ("uv.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
          {"properties": [("pinned", True)]}),
-        ("uv.circle_select", {"type": 'C', "value": 'PRESS'}, None),
+        ("uv.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         ("uv.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True},
          {"properties": [("mode", 'ADD')]}),
         ("uv.select_lasso", {"type": params.action_tweak, "value": 'ANY', "shift": True, "ctrl": True},
