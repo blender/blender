@@ -839,7 +839,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 			}
 		}
 		else if (ELEM(wpd->shading.color_type,
-		              V3D_SHADING_SINGLE_COLOR, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR)) {
+		              V3D_SHADING_SINGLE_COLOR, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR))
+		{
 			/* Draw solid color */
 			material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type);
 			if (is_sculpt_mode) {

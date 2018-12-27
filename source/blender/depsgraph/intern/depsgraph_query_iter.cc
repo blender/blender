@@ -225,7 +225,7 @@ void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 
 	if (ob_visibility & OB_VISIBLE_INSTANCES) {
 		if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
-			(object->transflag & OB_DUPLI))
+		    (object->transflag & OB_DUPLI))
 		{
 			data->dupli_parent = object;
 			data->dupli_list = object_duplilist(data->graph, data->scene, object);

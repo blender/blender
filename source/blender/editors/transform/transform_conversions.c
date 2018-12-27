@@ -8449,7 +8449,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 									/* only copy center in local origins.
 									 * This allows get interesting effects also when move using proportional editing */
 									if ((gps->flag & GP_STROKE_SELECT) &&
-										(ts->transform_pivot_point == V3D_AROUND_LOCAL_ORIGINS))
+									    (ts->transform_pivot_point == V3D_AROUND_LOCAL_ORIGINS))
 									{
 										copy_v3_v3(td->center, center);
 									}
