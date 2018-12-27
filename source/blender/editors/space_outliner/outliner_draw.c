@@ -1627,7 +1627,7 @@ static void outliner_draw_tree_element(
 				const bool is_selected = (base != NULL) && ((base->flag & BASE_SELECTED) != 0);
 
 				if (ob == obact || is_selected) {
-					char col[4] = {0, 0, 0, 0};
+					uchar col[4] = {0, 0, 0, 0};
 
 					/* outliner active ob: always white text, circle color now similar to view3d */
 

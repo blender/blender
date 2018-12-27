@@ -1118,7 +1118,7 @@ void UI_GetThemeColor4ubv(int colorid, unsigned char col[4])
 	col[3] = cp[3];
 }
 
-void UI_GetThemeColorType3ubv(int colorid, int spacetype, char col[3])
+void UI_GetThemeColorType3ubv(int colorid, int spacetype, uchar col[3])
 {
 	const unsigned char *cp;
 
@@ -1128,7 +1128,7 @@ void UI_GetThemeColorType3ubv(int colorid, int spacetype, char col[3])
 	col[2] = cp[2];
 }
 
-void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4])
+void UI_GetThemeColorType4ubv(int colorid, int spacetype, uchar col[4])
 {
 	const unsigned char *cp;
 

@@ -96,12 +96,12 @@
 #define KNIFE_FLT_EPS_PX_FACE  0.05f
 
 typedef struct KnifeColors {
-	unsigned char line[3];
-	unsigned char edge[3];
-	unsigned char curpoint[3];
-	unsigned char curpoint_a[4];
-	unsigned char point[3];
-	unsigned char point_a[4];
+	uchar line[3];
+	uchar edge[3];
+	uchar curpoint[3];
+	uchar curpoint_a[4];
+	uchar point[3];
+	uchar point_a[4];
 } KnifeColors;
 
 /* knifetool operator */
@@ -1027,13 +1027,13 @@ static void knife_init_colors(KnifeColors *colors)
 	/* possible BMESH_TODO: add explicit themes or calculate these by
 	 * figuring out contrasting colors with grid / edges / verts
 	 * a la UI_make_axis_color */
-	UI_GetThemeColorType3ubv(TH_NURB_VLINE, SPACE_VIEW3D, (char *)colors->line);
-	UI_GetThemeColorType3ubv(TH_NURB_ULINE, SPACE_VIEW3D, (char *)colors->edge);
-	UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, (char *)colors->curpoint);
-	UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, (char *)colors->curpoint_a);
+	UI_GetThemeColorType3ubv(TH_NURB_VLINE, SPACE_VIEW3D, colors->line);
+	UI_GetThemeColorType3ubv(TH_NURB_ULINE, SPACE_VIEW3D, colors->edge);
+	UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, colors->curpoint);
+	UI_GetThemeColorType3ubv(TH_HANDLE_SEL_VECT, SPACE_VIEW3D, colors->curpoint_a);
 	colors->curpoint_a[3] = 102;
-	UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, (char *)colors->point);
-	UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, (char *)colors->point_a);
+	UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, colors->point);
+	UI_GetThemeColorType3ubv(TH_ACTIVE_SPLINE, SPACE_VIEW3D, colors->point_a);
 	colors->point_a[3] = 102;
 }
 
