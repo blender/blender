@@ -191,12 +191,13 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 			Scene *scene = draw_ctx->scene;
 			const bool use_material_slots = (scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_MATERIAL);
 			const Mesh *me = ob->data;
+			const int mat_nr = max_ii(1, me->totcol);
 
 			stl->g_data->shgroup_image_array = MEM_mallocN(
-			        sizeof(*stl->g_data->shgroup_image_array) * (use_material_slots ? me->totcol : 1), __func__);
+			        sizeof(*stl->g_data->shgroup_image_array) * (use_material_slots ? mat_nr : 1), __func__);
 
 			if (use_material_slots) {
-				for (int i = 0; i < me->totcol; i++) {
+				for (int i = 0; i < mat_nr; i++) {
 					Material *ma = give_current_material(ob, i + 1);
 					Image *ima = (ma && ma->texpaintslot) ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 					GPUTexture *tex = ima ?
