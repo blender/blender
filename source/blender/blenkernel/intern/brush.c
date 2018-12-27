@@ -182,6 +182,7 @@ void BKE_brush_init_gpencil_settings(Brush *brush)
 	brush->gpencil_settings->draw_jitter = 0.0f;
 	brush->gpencil_settings->flag |= GP_BRUSH_USE_JITTER_PRESSURE;
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PEN;
+	brush->gpencil_settings->flag |= GP_BRUSH_ENABLE_CURSOR;
 
 	/* curves */
 	brush->gpencil_settings->curve_sensitivity = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
