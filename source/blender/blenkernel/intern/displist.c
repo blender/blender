@@ -965,12 +965,28 @@ static void curve_calc_modifiers_post(
 		if (!modifier_isEnabled(scene, md, required_mode))
 			continue;
 
+		/* If we need normals, no choice, have to convert to mesh now. */
+		if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md) && modified == NULL) {
+			if (vertCos != NULL) {
+				displist_apply_allverts(dispbase, vertCos);
+			}
+
+			if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
+				curve_to_filledpoly(cu, nurb, dispbase);
+			}
+
+			modified = BKE_mesh_new_nomain_from_curve_displist(ob, dispbase);
+		}
+
 		if (mti->type == eModifierTypeType_OnlyDeform ||
 		    (mti->type == eModifierTypeType_DeformOrConstruct && !modified))
 		{
 			if (modified) {
 				if (!vertCos) {
 					vertCos = BKE_mesh_vertexCos_get(modified, &totvert);
+				}
+				if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md)) {
+					BKE_mesh_ensure_normals(modified);
 				}
 				mti->deformVerts(md, &mectx_deform, modified, vertCos, totvert);
 			}
@@ -1021,6 +1037,9 @@ static void curve_calc_modifiers_post(
 				vertCos = NULL;
 			}
 
+			if (mti->dependsOnNormals != NULL && mti->dependsOnNormals(md)) {
+				BKE_mesh_ensure_normals(modified);
+			}
 			mesh_applied = mti->applyModifier(md, &mectx_apply, modified);
 
 			if (mesh_applied) {
