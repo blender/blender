@@ -2003,12 +2003,13 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 {
 	TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
 
-	bool ok = false;
-
-	if (tc->obedit) {
+	if (t->spacetype != SPACE_VIEW3D) {
+		return false;
+	}
+	else if (tc->obedit) {
 		if (ED_object_calc_active_center_for_editmode(tc->obedit, select_only, r_center)) {
 			mul_m4_v3(tc->obedit->obmat, r_center);
-			ok = true;
+			return true;
 		}
 	}
 	else if (t->flag & T_POSE) {
@@ -2016,7 +2017,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		Object *ob = OBACT(view_layer) ;
 		if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
 			mul_m4_v3(ob->obmat, r_center);
-			ok = true;
+			return true;
 		}
 	}
 	else if (t->options & CTX_PAINT_CURVE) {
@@ -2025,7 +2026,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		PaintCurve *pc = br->paint_curve;
 		copy_v3_v3(r_center, pc->points[pc->add_index - 1].bez.vec[1]);
 		r_center[2] = 0.0f;
-		ok = true;
+		return true;
 	}
 	else {
 		/* object mode */
@@ -2034,11 +2035,11 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		Base *base = BASACT(view_layer);
 		if (ob && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
 			copy_v3_v3(r_center, ob->obmat[3]);
-			ok = true;
+			return true;
 		}
 	}
 
-	return ok;
+	return false;
 }
 
 static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[3])
