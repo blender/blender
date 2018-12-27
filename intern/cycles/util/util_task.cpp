@@ -204,50 +204,26 @@ void TaskScheduler::init(int num_threads)
 		/* launch threads that will be waiting for work */
 		threads.resize(num_threads);
 
-		const int num_groups = system_cpu_group_count();
-		unsigned short num_process_groups = 0;
-		vector<unsigned short> process_groups;
-		int current_group_threads = 0;
-		if(num_groups > 1) {
-			process_groups.resize(num_groups);
-			num_process_groups = system_cpu_process_groups(num_groups,
-			                                               &process_groups[0]);
-			if(num_process_groups == 1) {
-				current_group_threads = system_cpu_group_thread_count(process_groups[0]);
-			}
-		}
+		const int num_nodes = system_cpu_num_numa_nodes();
 		int thread_index = 0;
-		for(int group = 0; group < num_groups; ++group) {
-			/* NOTE: That's not really efficient from threading point of view,
-			 * but it is simple to read and it doesn't make sense to use more
-			 * user-specified threads than logical threads anyway.
-			 */
-			int num_group_threads = (group == num_groups - 1)
-			        ? (threads.size() - thread_index)
-			        : system_cpu_group_thread_count(group);
-			for(int group_thread = 0;
-				group_thread < num_group_threads && thread_index < threads.size();
-				++group_thread, ++thread_index)
+		for (int node = 0;
+		     node < num_nodes && thread_index < threads.size();
+		     ++node)
+		{
+			if (!system_cpu_is_numa_node_available(node)) {
+				continue;
+			}
+			const int num_node_processors =
+			        system_cpu_num_numa_node_processors(node);
+			for (int i = 0;
+			     i < num_node_processors && thread_index < threads.size();
+			     ++i)
 			{
-				/* NOTE: Thread group of -1 means we would not force thread affinity. */
-				int thread_group;
-				if(num_groups == 1) {
-					/* Use default affinity if there's only one CPU group in the system. */
-					thread_group = -1;
-				}
-				else if(use_auto_threads &&
-				        num_process_groups == 1 &&
-						num_threads <= current_group_threads)
-				{
-					/* If we fit into curent CPU group we also don't force any affinity. */
-					thread_group = -1;
-				}
-				else {
-					thread_group = group;
-				}
-				threads[thread_index] = new thread(function_bind(&TaskScheduler::thread_run,
-				                                                 thread_index + 1),
-				                                   thread_group);
+				threads[thread_index] = new thread(
+				        function_bind(&TaskScheduler::thread_run,
+				                      thread_index + 1),
+				        node);
+				thread_index++;
 			}
 		}
 	}

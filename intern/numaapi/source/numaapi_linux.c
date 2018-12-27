@@ -34,6 +34,8 @@
 #  include <dlfcn.h>
 #endif
 
+#include <stdio.h>
+
 #ifdef WITH_DYNLOAD
 
 // Descriptor numa library.
@@ -61,6 +63,7 @@ typedef struct bitmask* tnuma_allocate_nodemask(void);
 typedef void tnuma_free_cpumask(struct bitmask* bitmask);
 typedef void tnuma_free_nodemask(struct bitmask* bitmask);
 typedef int tnuma_run_on_node_mask(struct bitmask *nodemask);
+typedef int tnuma_run_on_node_mask_all(struct bitmask *nodemask);
 typedef void tnuma_set_interleave_mask(struct bitmask *nodemask);
 typedef void tnuma_set_localalloc(void);
 
@@ -83,6 +86,7 @@ static tnuma_allocate_nodemask* numa_allocate_nodemask;
 static tnuma_free_nodemask* numa_free_nodemask;
 static tnuma_free_cpumask* numa_free_cpumask;
 static tnuma_run_on_node_mask* numa_run_on_node_mask;
+static tnuma_run_on_node_mask_all* numa_run_on_node_mask_all;
 static tnuma_set_interleave_mask* numa_set_interleave_mask;
 static tnuma_set_localalloc* numa_set_localalloc;
 
@@ -157,6 +161,7 @@ static NUMAAPI_Result loadNumaSymbols(void) {
   NUMA_LIBRARY_FIND(numa_free_cpumask);
   NUMA_LIBRARY_FIND(numa_free_nodemask);
   NUMA_LIBRARY_FIND(numa_run_on_node_mask);
+  NUMA_LIBRARY_FIND(numa_run_on_node_mask_all);
   NUMA_LIBRARY_FIND(numa_set_interleave_mask);
   NUMA_LIBRARY_FIND(numa_set_localalloc);
 
@@ -192,10 +197,7 @@ int numaAPI_GetNumNodes(void) {
 }
 
 bool numaAPI_IsNodeAvailable(int node) {
-  if (numa_node_size(node, NULL) > 0) {
-    return true;
-  }
-  return false;
+  return numaAPI_GetNumNodeProcessors(node) > 0;
 }
 
 int numaAPI_GetNumNodeProcessors(int node) {
@@ -235,13 +237,15 @@ bool numaAPI_RunThreadOnNode(int node) {
   struct bitmask* node_mask = numa_allocate_nodemask();
   numa_bitmask_clearall(node_mask);
   numa_bitmask_setbit(node_mask, node);
-  numa_run_on_node_mask(node_mask);
+  numa_run_on_node_mask_all(node_mask);
   // TODO(sergey): The following commands are based on x265 code, we might want
   // to make those optional, or require to call those explicitly.
   //
   // Current assumption is that this is similar to SetThreadGroupAffinity().
-  numa_set_interleave_mask(node_mask);
-  numa_set_localalloc();
+  if (numa_node_size(node, NULL) > 0) {
+    numa_set_interleave_mask(node_mask);
+    numa_set_localalloc();
+  }
 #ifdef WITH_DYNLOAD
   if (numa_free_nodemask != NULL) {
     numa_free_nodemask(node_mask);
