@@ -285,8 +285,8 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
 	bool variable;
 	const int unit_x = UI_UNIT_X * (layout->scale[0] ? layout->scale[0] : 1.0f);
 
-	if (icon && !name[0])
-		return unit_x;  /* icon only */
+	if (!name[0])
+		return unit_x;  /* icon only or empty name */
 
 	variable = ui_layout_variable_size(layout);
 

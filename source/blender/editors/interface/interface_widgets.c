@@ -948,16 +948,23 @@ static void widget_draw_vertex_buffer(unsigned int pos, unsigned int col, int mo
 
 static void shape_preset_trias_from_rect_menu(uiWidgetTrias *tria, const rcti *rect)
 {
+	float width = BLI_rcti_size_x(rect);
+	float height = BLI_rcti_size_y(rect);
 	float centx, centy, size;
-	int a;
+
 	tria->type = ROUNDBOX_TRIA_MENU;
 
-	/* center position and size */
-	tria->center[0] = centx = rect->xmax - 0.32f * BLI_rcti_size_y(rect);
-	tria->center[1] = centy = rect->ymin + 0.50f * BLI_rcti_size_y(rect);
-	tria->size = size = 0.4f * BLI_rcti_size_y(rect);
+	/* Center position and size. */
+	tria->center[0] = centx = rect->xmin + 0.52f * BLI_rcti_size_y(rect);
+	tria->center[1] = centy = rect->ymin + 0.52f * BLI_rcti_size_y(rect);
+	tria->size = size = 0.4f * height;
 
-	for (a = 0; a < 6; a++) {
+	if (width > height * 1.1f) {
+		/* For wider buttons align tighter to the right. */
+		tria->center[0] = centx = rect->xmax - 0.32f * height;
+	}
+
+	for (int a = 0; a < 6; a++) {
 		tria->vec[a][0] = size * g_shape_preset_menu_arrow_vert[a][0] + centx;
 		tria->vec[a][1] = size * g_shape_preset_menu_arrow_vert[a][1] + centy;
 	}
@@ -969,15 +976,15 @@ static void shape_preset_trias_from_rect_menu(uiWidgetTrias *tria, const rcti *r
 static void shape_preset_trias_from_rect_checkmark(uiWidgetTrias *tria, const rcti *rect)
 {
 	float centx, centy, size;
-	int a;
+
 	tria->type = ROUNDBOX_TRIA_CHECK;
 
-	/* center position and size */
+	/* Center position and size. */
 	tria->center[0] = centx = rect->xmin + 0.5f * BLI_rcti_size_y(rect);
 	tria->center[1] = centy = rect->ymin + 0.5f * BLI_rcti_size_y(rect);
 	tria->size = size = 0.5f * BLI_rcti_size_y(rect);
 
-	for (a = 0; a < 6; a++) {
+	for (int a = 0; a < 6; a++) {
 		tria->vec[a][0] = size * g_shape_preset_checkmark_vert[a][0] + centx;
 		tria->vec[a][1] = size * g_shape_preset_checkmark_vert[a][1] + centy;
 	}
