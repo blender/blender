@@ -235,9 +235,6 @@ GHOST_SystemX11(
 	}
 #endif  /* USE_XINPUT_HOTPLUG */
 
-	/* initialize incase X11 fails to load */
-	memset(&m_xtablet, 0, sizeof(m_xtablet));
-
 	refreshXInputDevices();
 #endif  /* WITH_X11_XINPUT */
 }
@@ -252,12 +249,8 @@ GHOST_SystemX11::
 #endif
 
 #ifdef WITH_X11_XINPUT
-	/* close tablet devices */
-	if (m_xtablet.StylusDevice)
-		XCloseDevice(m_display, m_xtablet.StylusDevice);
-
-	if (m_xtablet.EraserDevice)
-		XCloseDevice(m_display, m_xtablet.EraserDevice);
+	/* Close tablet devices. */
+	clearXInputDevices();
 #endif /* WITH_X11_XINPUT */
 
 	if (m_xkb_descr) {
@@ -769,17 +762,6 @@ processEvents(
 
 
 #ifdef WITH_X11_XINPUT
-/* set currently using tablet mode (stylus or eraser) depending on device ID */
-static void setTabletMode(GHOST_SystemX11 *system, GHOST_WindowX11 *window, XID deviceid)
-{
-	if (deviceid == system->GetXTablet().StylusID)
-		window->GetTabletData()->Active = GHOST_kTabletModeStylus;
-	else if (deviceid == system->GetXTablet().EraserID)
-		window->GetTabletData()->Active = GHOST_kTabletModeEraser;
-}
-#endif /* WITH_X11_XINPUT */
-
-#ifdef WITH_X11_XINPUT
 static bool checkTabletProximity(Display *display, XDevice *device)
 {
 	/* we could have true/false/not-found return value, but for now false is OK */
@@ -876,9 +858,15 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	 * but for now enough parts of the code are checking 'Active'
 	 * - campbell */
 	if (window->GetTabletData()->Active != GHOST_kTabletModeNone) {
-		if (checkTabletProximity(xe->xany.display, m_xtablet.StylusDevice) == false &&
-		    checkTabletProximity(xe->xany.display, m_xtablet.EraserDevice) == false)
-		{
+		bool any_proximity = false;
+
+		for (GHOST_TabletX11& xtablet: m_xtablets) {
+			if (checkTabletProximity(xe->xany.display, xtablet.Device)) {
+				any_proximity = true;
+			}
+		}
+
+		if (!any_proximity) {
 			// printf("proximity disable\n");
 			window->GetTabletData()->Active = GHOST_kTabletModeNone;
 		}
@@ -1472,59 +1460,64 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		default:
 		{
 #ifdef WITH_X11_XINPUT
-			if (xe->type == m_xtablet.MotionEvent ||
-			    xe->type == m_xtablet.MotionEventEraser ||
-			    xe->type == m_xtablet.PressEvent ||
-			    xe->type == m_xtablet.PressEventEraser)
-			{
-				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
-				const unsigned char axis_first = data->first_axis;
-				const unsigned char axes_end = axis_first + data->axes_count;  /* after the last */
-				int axis_value;
+			for (GHOST_TabletX11& xtablet: m_xtablets) {
+				if (xe->type == xtablet.MotionEvent || xe->type == xtablet.PressEvent) {
+					XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
+					if (data->deviceid != xtablet.ID) {
+						continue;
+					}
 
-				/* stroke might begin without leading ProxyIn event,
-				 * this happens when window is opened when stylus is already hovering
-				 * around tablet surface */
-				setTabletMode(this, window, data->deviceid);
+					const unsigned char axis_first = data->first_axis;
+					const unsigned char axes_end = axis_first + data->axes_count;  /* after the last */
+					int axis_value;
 
-				/* Note: This event might be generated with incomplete dataset (don't exactly know why, looks like in
-				 *       some cases, if the value does not change, it is not included in subsequent XDeviceMotionEvent
-				 *       events). So we have to check which values this event actually contains!
-				 */
+					/* stroke might begin without leading ProxyIn event,
+					 * this happens when window is opened when stylus is already hovering
+					 * around tablet surface */
+					window->GetTabletData()->Active = xtablet.mode;
+
+					/* Note: This event might be generated with incomplete dataset (don't exactly know why, looks like in
+					 *       some cases, if the value does not change, it is not included in subsequent XDeviceMotionEvent
+					 *       events). So we have to check which values this event actually contains!
+					 */
 
 #define AXIS_VALUE_GET(axis, val) \
 	((axis_first <= axis && axes_end > axis) && ((void)(val = data->axis_data[axis - axis_first]), true))
 
-				if (AXIS_VALUE_GET(2, axis_value)) {
-					window->GetTabletData()->Pressure = axis_value / ((float)m_xtablet.PressureLevels);
-				}
+					if (AXIS_VALUE_GET(2, axis_value)) {
+						window->GetTabletData()->Pressure = axis_value / ((float)xtablet.PressureLevels);
+					}
 
-				/* the (short) cast and the & 0xffff is bizarre and unexplained anywhere,
-				 * but I got garbage data without it. Found it in the xidump.c source --matt
-				 *
-				 * The '& 0xffff' just truncates the value to its two lowest bytes, this probably means
-				 * some drivers do not properly set the whole int value? Since we convert to float afterward,
-				 * I don't think we need to cast to short here, but do not have a device to check this. --mont29
-				 */
-				if (AXIS_VALUE_GET(3, axis_value)) {
-					window->GetTabletData()->Xtilt = (short)(axis_value & 0xffff) /
-					                                 ((float)m_xtablet.XtiltLevels);
-				}
-				if (AXIS_VALUE_GET(4, axis_value)) {
-					window->GetTabletData()->Ytilt = (short)(axis_value & 0xffff) /
-					                                 ((float)m_xtablet.YtiltLevels);
-				}
+					/* the (short) cast and the & 0xffff is bizarre and unexplained anywhere,
+					 * but I got garbage data without it. Found it in the xidump.c source --matt
+					 *
+					 * The '& 0xffff' just truncates the value to its two lowest bytes, this probably means
+					 * some drivers do not properly set the whole int value? Since we convert to float afterward,
+					 * I don't think we need to cast to short here, but do not have a device to check this. --mont29
+					 */
+					if (AXIS_VALUE_GET(3, axis_value)) {
+						window->GetTabletData()->Xtilt = (short)(axis_value & 0xffff) /
+														 ((float)xtablet.XtiltLevels);
+					}
+					if (AXIS_VALUE_GET(4, axis_value)) {
+						window->GetTabletData()->Ytilt = (short)(axis_value & 0xffff) /
+														 ((float)xtablet.YtiltLevels);
+					}
 
 #undef AXIS_VALUE_GET
 
-			}
-			else if (xe->type == m_xtablet.ProxInEvent) {
-				XProximityNotifyEvent *data = (XProximityNotifyEvent *)xe;
+				}
+				else if (xe->type == xtablet.ProxInEvent) {
+					XProximityNotifyEvent *data = (XProximityNotifyEvent *)xe;
+					if (data->deviceid != xtablet.ID) {
+						continue;
+					}
 
-				setTabletMode(this, window, data->deviceid);
-			}
-			else if (xe->type == m_xtablet.ProxOutEvent) {
-				window->GetTabletData()->Active = GHOST_kTabletModeNone;
+					window->GetTabletData()->Active = xtablet.mode;
+				}
+				else if (xe->type == xtablet.ProxOutEvent) {
+					window->GetTabletData()->Active = GHOST_kTabletModeNone;
+				}
 			}
 #endif // WITH_X11_XINPUT
 			break;
@@ -2304,6 +2297,20 @@ static GHOST_TTabletMode tablet_mode_from_name(const char *name, const char *typ
 		NULL
 	};
 
+	static const char* type_blacklist[] = {
+		"pad",
+		"cursor",
+		"touch",
+		NULL
+	};
+
+	/* Skip some known unsupported types. */
+	for (i=0; type_blacklist[i] != NULL; i++) {
+		if (type && (strcasecmp(type, type_blacklist[i]) == 0)) {
+			return GHOST_kTabletModeNone;
+		}
+	}
+
 	/* First check device type to avoid cases where name is "Pen and Eraser" and type is "ERASER" */
 	for (i=0; tablet_stylus_whitelist[i] != NULL; i++) {
 		if (type && match_token(type, tablet_stylus_whitelist[i])) {
@@ -2330,16 +2337,8 @@ static GHOST_TTabletMode tablet_mode_from_name(const char *name, const char *typ
 void GHOST_SystemX11::refreshXInputDevices()
 {
 	if (m_xinput_version.present) {
-
-		if (m_xtablet.StylusDevice) {
-			XCloseDevice(m_display, m_xtablet.StylusDevice);
-			m_xtablet.StylusDevice = NULL;
-		}
-
-		if (m_xtablet.EraserDevice) {
-			XCloseDevice(m_display, m_xtablet.EraserDevice);
-			m_xtablet.EraserDevice = NULL;
-		}
+		/* Close tablet devices. */
+		clearXInputDevices();
 
 		/* Install our error handler to override Xlib's termination behavior */
 		GHOST_X11_ERROR_HANDLERS_OVERRIDE(handler_store);
@@ -2351,72 +2350,51 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 			for (int i = 0; i < device_count; ++i) {
 				char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) : NULL;
-
-//				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
-
 				GHOST_TTabletMode tablet_mode = tablet_mode_from_name(device_info[i].name, device_type);
 
-				if ((m_xtablet.StylusDevice == NULL) && (tablet_mode == GHOST_kTabletModeStylus)) {
-//					printf("\tfound stylus\n");
-					m_xtablet.StylusID = device_info[i].id;
-					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
-
-					if (m_xtablet.StylusDevice != NULL) {
-						/* Find how many pressure levels tablet has */
-						XAnyClassPtr ici = device_info[i].inputclassinfo;
-						bool found_valuator_class = false;
-
-						for (int j = 0; j < m_xtablet.StylusDevice->num_classes; ++j) {
-							if (ici->c_class == ValuatorClass) {
-//								printf("\t\tfound ValuatorClass\n");
-								XValuatorInfo *xvi = (XValuatorInfo *)ici;
-								m_xtablet.PressureLevels = xvi->axes[2].max_value;
-
-								if (xvi->num_axes > 3) {
-									/* this is assuming that the tablet has the same tilt resolution in both
-									 * positive and negative directions. It would be rather weird if it didn't.. */
-									m_xtablet.XtiltLevels = xvi->axes[3].max_value;
-									m_xtablet.YtiltLevels = xvi->axes[4].max_value;
-								}
-								else {
-									m_xtablet.XtiltLevels = 0;
-									m_xtablet.YtiltLevels = 0;
-								}
-
-								found_valuator_class = (m_xtablet.PressureLevels > 0);
-
-								break;
-							}
-
-							ici = (XAnyClassPtr)(((char *)ici) + ici->length);
-						}
-
-						if (!found_valuator_class) {
-							/* In case our name matching detects a device that
-							 * isn't actually a stylus. For example there can
-							 * be "XPPEN Tablet" and "XPPEN Tablet Pen", but
-							 * only the latter is a stylus. */
-							XCloseDevice(m_display, m_xtablet.StylusDevice);
-							m_xtablet.StylusDevice = NULL;
-							m_xtablet.StylusID = 0;
-						}
-					}
-					else {
-						m_xtablet.StylusID = 0;
-					}
-				}
-				else if ((m_xtablet.EraserDevice == NULL) &&
-				         (tablet_mode == GHOST_kTabletModeEraser))
-				{
-//					printf("\tfound eraser\n");
-					m_xtablet.EraserID = device_info[i].id;
-					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
-					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID = 0;
-				}
+//				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
 
 				if (device_type) {
 					XFree((void *)device_type);
 				}
+
+				if (!(tablet_mode == GHOST_kTabletModeStylus || tablet_mode == GHOST_kTabletModeEraser)) {
+					continue;
+				}
+
+				GHOST_TabletX11 xtablet = {tablet_mode};
+				xtablet.ID = device_info[i].id;
+				xtablet.Device = XOpenDevice(m_display, xtablet.ID);
+
+				if (xtablet.Device != NULL) {
+					/* Find how many pressure levels tablet has */
+					XAnyClassPtr ici = device_info[i].inputclassinfo;
+
+					for (int j = 0; j < xtablet.Device->num_classes; ++j) {
+						if (ici->c_class == ValuatorClass) {
+							XValuatorInfo *xvi = (XValuatorInfo *)ici;
+							xtablet.PressureLevels = xvi->axes[2].max_value;
+
+							if (xvi->num_axes > 3) {
+								/* this is assuming that the tablet has the same tilt resolution in both
+								 * positive and negative directions. It would be rather weird if it didn't.. */
+								xtablet.XtiltLevels = xvi->axes[3].max_value;
+								xtablet.YtiltLevels = xvi->axes[4].max_value;
+							}
+							else {
+								xtablet.XtiltLevels = 0;
+								xtablet.YtiltLevels = 0;
+							}
+
+							break;
+						}
+
+						ici = (XAnyClassPtr)(((char *)ici) + ici->length);
+					}
+
+					m_xtablets.push_back(xtablet);
+				}
+
 			}
 
 			XFreeDeviceList(device_info);
@@ -2424,6 +2402,16 @@ void GHOST_SystemX11::refreshXInputDevices()
 
 		GHOST_X11_ERROR_HANDLERS_RESTORE(handler_store);
 	}
+}
+
+void GHOST_SystemX11::clearXInputDevices()
+{
+	for (GHOST_TabletX11& xtablet: m_xtablets) {
+		if (xtablet.Device)
+			XCloseDevice(m_display, xtablet.Device);
+	}
+
+	m_xtablets.clear();
 }
 
 #endif /* WITH_X11_XINPUT */
