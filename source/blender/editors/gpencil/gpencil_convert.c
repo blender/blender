@@ -1179,6 +1179,7 @@ static void gp_layer_to_curve(
 	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);
 	BKE_collection_object_add(bmain, collection, ob);
 	base_new = BKE_view_layer_base_find(view_layer, ob);
+	DEG_relations_tag_update(bmain); /* added object */
 
 	cu->flag |= CU_3D;
 
