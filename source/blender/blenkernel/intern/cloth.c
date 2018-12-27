@@ -1285,6 +1285,11 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	if (!edgelist)
 		return 0;
 
+	clmd->sim_parms->avg_spring_len = 0.0f;
+	for (i = 0; i < mvert_num; i++) {
+		cloth->verts[i].avg_spring_len = 0.0f;
+	}
+
 	// structural springs
 	for ( i = 0; i < numedges; i++ ) {
 		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
