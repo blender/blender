@@ -98,8 +98,8 @@ link_directories(${OPENIMAGEIO_LIBPATH}
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
-CYCLES_TEST(render_graph_finalize "${ALL_CYCLES_LIBRARIES}")
+CYCLES_TEST(render_graph_finalize "${ALL_CYCLES_LIBRARIES};bf_intern_numaapi")
 CYCLES_TEST(util_aligned_malloc "cycles_util")
 CYCLES_TEST(util_path "cycles_util;${BOOST_LIBRARIES};${OPENIMAGEIO_LIBRARIES}")
 CYCLES_TEST(util_string "cycles_util;${BOOST_LIBRARIES}")
-CYCLES_TEST(util_task "cycles_util;${BOOST_LIBRARIES}")
+CYCLES_TEST(util_task "cycles_util;${BOOST_LIBRARIES};bf_intern_numaapi")
