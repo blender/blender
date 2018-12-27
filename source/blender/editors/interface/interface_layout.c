@@ -2228,7 +2228,7 @@ static uiBut *ui_item_menu(
 			/* pass */
 		}
 		else if (force_menu) {
-			w += UI_UNIT_X;
+			w += 0.6f * UI_UNIT_X;
 		}
 		else {
 			if (name[0]) {
@@ -2237,12 +2237,16 @@ static uiBut *ui_item_menu(
 		}
 	}
 
-	if (name[0] && icon)
+	if (name[0] && icon) {
 		but = uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, tip);
-	else if (icon)
+	}
+	else if (icon) {
 		but = uiDefIconMenuBut(block, func, arg, icon, 0, 0, w, h, tip);
-	else
+		UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+	}
+	else {
 		but = uiDefMenuBut(block, func, arg, name, 0, 0, w, h, tip);
+	}
 
 	if (argN) {
 		/* ugly .. */
