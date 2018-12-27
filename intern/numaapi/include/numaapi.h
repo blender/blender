@@ -67,7 +67,7 @@ int numaAPI_GetNumNodes(void);
 // Returns truth if the given node is available for compute.
 bool numaAPI_IsNodeAvailable(int node);
 
-// Getnumber of available processors on a given node.
+// Get number of available processors on a given node.
 int numaAPI_GetNumNodeProcessors(int node);
 
 ////////////////////////////////////////////////////////////////////////////////

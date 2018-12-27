@@ -21,10 +21,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-thread::thread(function<void()> run_cb, int group)
+thread::thread(function<void()> run_cb, int node)
   : run_cb_(run_cb),
     joined_(false),
-	group_(group)
+	node_(node)
 {
 	thread_ = std::thread(&thread::run, this);
 }
@@ -39,19 +39,8 @@ thread::~thread()
 void *thread::run(void *arg)
 {
 	thread *self = (thread*)(arg);
-	if(self->group_ != -1) {
-#ifdef _WIN32
-		HANDLE thread_handle = GetCurrentThread();
-		GROUP_AFFINITY group_affinity = { 0 };
-		int num_threads = system_cpu_group_thread_count(self->group_);
-		group_affinity.Group = self->group_;
-		group_affinity.Mask = (num_threads == 64)
-		                              ? -1
-		                              :  (1ull << num_threads) - 1;
-		if(SetThreadGroupAffinity(thread_handle, &group_affinity, NULL) == 0) {
-			fprintf(stderr, "Error setting thread affinity.\n");
-		}
-#endif
+	if (self->node_ != -1) {
+		system_cpu_run_thread_on_node(self->node_);
 	}
 	self->run_cb_();
 	return NULL;

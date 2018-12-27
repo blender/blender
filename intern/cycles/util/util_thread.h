@@ -46,7 +46,7 @@ typedef std::condition_variable thread_condition_variable;
 
 class thread {
 public:
-	thread(function<void()> run_cb, int group = -1);
+	thread(function<void()> run_cb, int node = -1);
 	~thread();
 
 	static void *run(void *arg);
@@ -56,7 +56,7 @@ protected:
 	function<void()> run_cb_;
 	std::thread thread_;
 	bool joined_;
-	int group_;
+	int node_;
 };
 
 /* Own wrapper around pthread's spin lock to make it's use easier. */
