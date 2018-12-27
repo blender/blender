@@ -74,8 +74,9 @@ static void gpencil_calc_vertex(
 	Object *ob = cache_ob->ob;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool main_onion = draw_ctx->v3d != NULL ? (draw_ctx->v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
+	const bool playing = stl->storage->is_playing;
 	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) &&
-		main_onion && DRW_gpencil_onion_active(gpd);
+		main_onion && DRW_gpencil_onion_active(gpd) && !playing;
 
 	const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
 
