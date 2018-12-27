@@ -7940,7 +7940,6 @@ void MESH_OT_average_normals(struct wmOperatorType *ot)
 
 	ot->prop = RNA_def_enum(ot->srna, "average_type", average_method_items, EDBM_CLNOR_AVERAGE_LOOP,
 	                        "Type", "Averaging method");
-	RNA_def_property_flag(ot->prop, PROP_HIDDEN);
 
 	RNA_def_int(ot->srna, "weight", 50, 1, 100, "Weight", "Weight applied per face", 1, 100);
 
