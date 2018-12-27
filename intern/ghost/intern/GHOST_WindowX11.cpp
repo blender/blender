@@ -648,37 +648,26 @@ bool GHOST_WindowX11::createX11_XIC()
 void GHOST_WindowX11::refreshXInputDevices()
 {
 	if (m_system->m_xinput_version.present) {
-		GHOST_SystemX11::GHOST_TabletX11 &xtablet = m_system->GetXTablet();
-		XEventClass xevents[8], ev;
-		int dcount = 0;
+		std::vector<XEventClass> xevents;
 
-		/* With modern XInput (xlib 1.6.2 at least and/or evdev 2.9.0) and some 'no-name' tablets
-		 * like 'UC-LOGIC Tablet WP5540U', we also need to 'select' ButtonPress for motion event,
-		 * otherwise we do not get any tablet motion event once pen is pressed... See T43367.
-		 */
+		for (GHOST_SystemX11::GHOST_TabletX11& xtablet: m_system->GetXTablets()) {
+			/* With modern XInput (xlib 1.6.2 at least and/or evdev 2.9.0) and some 'no-name' tablets
+			 * like 'UC-LOGIC Tablet WP5540U', we also need to 'select' ButtonPress for motion event,
+			 * otherwise we do not get any tablet motion event once pen is pressed... See T43367.
+			 */
+			XEventClass ev;
 
-		if (xtablet.StylusDevice) {
-			DeviceMotionNotify(xtablet.StylusDevice, xtablet.MotionEvent, ev);
-			if (ev) xevents[dcount++] = ev;
-			DeviceButtonPress(xtablet.StylusDevice, xtablet.PressEvent, ev);
-			if (ev) xevents[dcount++] = ev;
-			ProximityIn(xtablet.StylusDevice, xtablet.ProxInEvent, ev);
-			if (ev) xevents[dcount++] = ev;
-			ProximityOut(xtablet.StylusDevice, xtablet.ProxOutEvent, ev);
-			if (ev) xevents[dcount++] = ev;
-		}
-		if (xtablet.EraserDevice) {
-			DeviceMotionNotify(xtablet.EraserDevice, xtablet.MotionEventEraser, ev);
-			if (ev) xevents[dcount++] = ev;
-			DeviceButtonPress(xtablet.EraserDevice, xtablet.PressEventEraser, ev);
-			if (ev) xevents[dcount++] = ev;
-			ProximityIn(xtablet.EraserDevice, xtablet.ProxInEventEraser, ev);
-			if (ev) xevents[dcount++] = ev;
-			ProximityOut(xtablet.EraserDevice, xtablet.ProxOutEventEraser, ev);
-			if (ev) xevents[dcount++] = ev;
+			DeviceMotionNotify(xtablet.Device, xtablet.MotionEvent, ev);
+			if (ev) xevents.push_back(ev);
+			DeviceButtonPress(xtablet.Device, xtablet.PressEvent, ev);
+			if (ev) xevents.push_back(ev);
+			ProximityIn(xtablet.Device, xtablet.ProxInEvent, ev);
+			if (ev) xevents.push_back(ev);
+			ProximityOut(xtablet.Device, xtablet.ProxOutEvent, ev);
+			if (ev) xevents.push_back(ev);
 		}
 
-		XSelectExtensionEvent(m_display, m_window, xevents, dcount);
+		XSelectExtensionEvent(m_display, m_window, xevents.data(), (int)xevents.size());
 	}
 }
 
