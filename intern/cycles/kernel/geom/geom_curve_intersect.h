@@ -874,13 +874,15 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
 			float gd = isect->v;
 
 			/* direction from inside to surface of curve */
-			sd->Ng = (dif - tg * sd->u * l) / (P_curve[0].w + sd->u * l * gd);
+			float denom = fmaxf(P_curve[0].w + sd->u * l * gd, 1e-8f);
+			sd->Ng = (dif - tg * sd->u * l) / denom;
 
 			/* adjustment for changing radius */
 			if(gd != 0.0f) {
 				sd->Ng = sd->Ng - gd * tg;
-				sd->Ng = normalize(sd->Ng);
 			}
+
+			sd->Ng = normalize(sd->Ng);
 		}
 
 		sd->N = sd->Ng;

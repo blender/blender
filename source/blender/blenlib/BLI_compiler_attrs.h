@@ -93,10 +93,12 @@
 #endif
 
 /* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
-#if defined(__GNUC__) && (__GNUC__ >= 7)  /* gcc7.0+ only */
-#  define ATTR_FALLTHROUGH __attribute__((fallthrough))
-#else
-#  define ATTR_FALLTHROUGH ((void)0)
+#ifndef ATTR_FALLTHROUGH
+#  if defined(__GNUC__) && (__GNUC__ >= 7)  /* gcc7.0+ only */
+#    define ATTR_FALLTHROUGH __attribute__((fallthrough))
+#  else
+#    define ATTR_FALLTHROUGH ((void)0)
+#  endif
 #endif
 
 /* Declare the memory alignment in Bytes. */
