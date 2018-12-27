@@ -244,7 +244,6 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 	char filename[FILE_MAXFILE];
 	VFont *vfont = NULL;
 	PackedFile *pf;
-	PackedFile *temp_pf = NULL;
 	bool is_builtin;
 
 	if (STREQ(filepath, FO_BUILTIN_NAME)) {
@@ -256,7 +255,6 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 	else {
 		BLI_split_file_part(filepath, filename, sizeof(filename));
 		pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
-		temp_pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
 
 		is_builtin = false;
 	}
@@ -282,7 +280,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 
 			/* Do not add FO_BUILTIN_NAME to temporary listbase */
 			if (!STREQ(filename, FO_BUILTIN_NAME)) {
-				vfont->temp_pf = temp_pf;
+				vfont->temp_pf = newPackedFile(NULL, filepath, BKE_main_blendfile_path(bmain));
 			}
 		}
 
