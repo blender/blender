@@ -632,6 +632,7 @@ struct ImportJobData {
 	Main *bmain;
 	Scene *scene;
 	ViewLayer *view_layer;
+	wmWindowManager *wm;
 
 	char filename[1024];
 	ImportSettings settings;
@@ -656,6 +657,8 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	data->stop = stop;
 	data->do_update = do_update;
 	data->progress = progress;
+
+	WM_set_locked_interface(data->wm, true);
 
 	ArchiveReader *archive = new ArchiveReader(data->filename);
 
@@ -836,6 +839,8 @@ static void import_endjob(void *user_data)
 		}
 	}
 
+	WM_set_locked_interface(data->wm, false);
+
 	switch (data->error_code) {
 		default:
 		case ABC_NO_ERROR:
@@ -868,6 +873,7 @@ bool ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 	job->bmain = CTX_data_main(C);
 	job->scene = CTX_data_scene(C);
 	job->view_layer = CTX_data_view_layer(C);
+	job->wm = CTX_wm_manager(C);
 	job->import_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
 
