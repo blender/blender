@@ -316,10 +316,6 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
 	int pass_index = 0;
 	const char *sockname;
 	for (bNodeSocket *sock = node->outputs.first; sock && pass_index < 31; sock = sock->next, pass_index++) {
-		if ((pass_index >= 6 && pass_index <= 8) || (pass_index >= 11 && pass_index <= 13)) {
-			/* deprecated passes */
-			continue;
-		}
 		if (sock->storage == NULL) {
 			NodeImageLayer *sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
 			sock->storage = sockdata;
