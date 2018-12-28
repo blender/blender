@@ -440,18 +440,32 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
 	const Int32ArraySamplePtr num_vertices = sample.getCurvesNumVertices();
 
 	int vertex_idx = 0;
-	int curve_idx = 0;
+	int curve_idx;
 	Curve *curve = static_cast<Curve *>(m_object->data);
 
 	const int curve_count = BLI_listbase_count(&curve->nurb);
+	bool same_topology = curve_count == num_vertices->size();
 
-	if (curve_count != num_vertices->size()) {
+	if (same_topology) {
+		Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
+		for (curve_idx=0; nurbs; nurbs = nurbs->next, ++curve_idx) {
+			const int num_in_alembic = (*num_vertices)[curve_idx];
+			const int num_in_blender = nurbs->pntsu;
+
+			if (num_in_alembic != num_in_blender) {
+				same_topology = false;
+				break;
+			}
+		}
+	}
+
+	if (!same_topology) {
 		BKE_nurbList_free(&curve->nurb);
 		read_curve_sample(curve, m_curves_schema, sample_sel);
 	}
 	else {
 		Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
-		for (; nurbs; nurbs = nurbs->next, ++curve_idx) {
+		for (curve_idx=0; nurbs; nurbs = nurbs->next, ++curve_idx) {
 			const int totpoint = (*num_vertices)[curve_idx];
 
 			if (nurbs->bp) {
