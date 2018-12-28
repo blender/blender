@@ -65,7 +65,7 @@ fw('.TH "BLENDER" "1" "%s" "Blender %s"\n' % (date_string, blender_version.repla
 
 fw('''
 .SH NAME
-blender \- a 3D modelling and rendering package''')
+blender \- a full-featured 3D application''')
 
 fw('''
 .SH SYNOPSIS
@@ -76,9 +76,9 @@ fw('''
 .SH DESCRIPTION
 .PP
 .B blender
-is a 3D modelling and rendering package. Originating as the in-house software of a high quality animation studio, Blender has proven to be an extremely fast and versatile design instrument. The software has a personal touch, offering a unique approach to the world of Three Dimensions.
+is a full-featured 3D application. It supports the entirety of the 3D pipeline - modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
 
-Use Blender to create TV commercials, to make technical visualizations, business graphics, to create content for games, or design user interfaces. You can easy build and manage complex environments. The renderer is versatile and extremely fast. All basic animation principles (curves & keys) are well implemented.
+Use Blender to create 3D images and animations, films and commercials, content for games, architectural and industrial visualizatons, and scientific visualizations.
 
 http://www.blender.org''')
 
