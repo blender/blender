@@ -51,7 +51,7 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_sound.h"
-
+#include "BKE_library.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -3207,6 +3207,7 @@ static void seq_copy_del_sound(Scene *scene, Sequence *seq)
 
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 
@@ -3219,7 +3220,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_sequence_base_dupli_recursive(scene, scene, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME, 0);
+	BKE_sequence_base_dupli_recursive(scene, scene, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
 	/* To make sure the copied strips have unique names between each other add
 	 * them temporarily to the end of the original seqbase. (bug 25932)
@@ -3244,15 +3245,13 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	seqbase_clipboard_frame = scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
-	{
-		Sequence *seq;
-		for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
-			seq_copy_del_sound(scene, seq);
-		}
-
-		/* duplicate pointers */
-		BKE_sequencer_base_clipboard_pointers_store(&seqbase_clipboard);
+	for (Sequence *seq = seqbase_clipboard.first; seq; seq = seq->next) {
+		seq_copy_del_sound(scene, seq);
 	}
+
+	/* Replace datablock pointers with copies, to keep things working in case
+	 * datablocks get deleted or another .blend file is openeded. */
+	BKE_sequencer_base_clipboard_pointers_store(bmain, &seqbase_clipboard);
 
 	return OPERATOR_FINISHED;
 }
@@ -3285,7 +3284,12 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_sequencer_deselect_all(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
+	/* Copy strips, temporarily restoring pointers to actual datablocks. This
+	 * must happen on the clipboard itself, so that copying does user counting
+	 * on the actual datablocks. */
+	BKE_sequencer_base_clipboard_pointers_restore(&seqbase_clipboard, bmain);
 	BKE_sequence_base_dupli_recursive(scene, scene, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME, 0);
+	BKE_sequencer_base_clipboard_pointers_store(bmain, &seqbase_clipboard);
 
 	/* transform pasted strips before adding */
 	if (ofs) {
@@ -3293,8 +3297,6 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 			BKE_sequence_translate(scene, iseq, ofs);
 		}
 	}
-
-	BKE_sequencer_base_clipboard_pointers_restore(&nseqbase, bmain);
 
 	for (iseq = nseqbase.first; iseq; iseq = iseq->next) {
 		BKE_sequence_sound_init(scene, iseq);
@@ -3689,7 +3691,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		sh = BKE_sequence_get_effect(seq);
-		sh.free(seq);
+		sh.free(seq, true);
 
 		seq->type = new_type;
 

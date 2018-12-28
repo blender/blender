@@ -148,10 +148,10 @@ struct SeqEffectHandle {
 	void (*load)(struct Sequence *seq);
 
 	/* duplicate */
-	void (*copy)(struct Sequence *dst, struct Sequence *src);
+	void (*copy)(struct Sequence *dst, struct Sequence *src, const int flag);
 
 	/* destruct */
-	void (*free)(struct Sequence *seq);
+	void (*free)(struct Sequence *seq, const bool do_id_user);
 
 	/* returns: -1: no input needed,
 	 * 0: no early out,
@@ -229,12 +229,8 @@ int BKE_sequencer_recursive_apply(struct Sequence *seq, int (*apply_func)(struct
 
 void BKE_sequencer_free_clipboard(void);
 
-void BKE_sequence_clipboard_pointers_free(struct Sequence *seq);
-void BKE_sequence_clipboard_pointers_store(struct Sequence *seq);
-void BKE_sequence_clipboard_pointers_restore(struct Sequence *seq, struct Main *bmain);
-
 void BKE_sequencer_base_clipboard_pointers_free(struct ListBase *seqbase);
-void BKE_sequencer_base_clipboard_pointers_store(struct ListBase *seqbase);
+void BKE_sequencer_base_clipboard_pointers_store(struct Main *bmain, struct ListBase *seqbase);
 void BKE_sequencer_base_clipboard_pointers_restore(struct ListBase *seqbase, struct Main *bmain);
 
 void BKE_sequence_free(struct Scene *scene, struct Sequence *seq);
