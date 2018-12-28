@@ -528,7 +528,7 @@ static void rna_GPencil_stroke_point_add(ID *id, bGPDstroke *stroke, int count, 
 
 		stroke->totpoints += count;
 
-		stroke->flag |= GP_STROKE_RECALC_CACHES;
+		stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 		gpd->flag |= GP_DATA_PYTHON_UPDATED;
 		DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
@@ -581,7 +581,7 @@ static void rna_GPencil_stroke_point_pop(ID *id, bGPDstroke *stroke, ReportList 
 		MEM_freeN(pt_dvert);
 	}
 
-	stroke->flag |= GP_STROKE_RECALC_CACHES;
+	stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 	gpd->flag |= GP_DATA_PYTHON_UPDATED;
 	DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);

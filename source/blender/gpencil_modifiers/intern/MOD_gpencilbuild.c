@@ -178,7 +178,7 @@ static void reduce_stroke_points(bGPDstroke *gps, const int num_points, const eB
 	gps->totpoints = num_points;
 
 	/* mark stroke as needing to have its geometry caches rebuilt */
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 	gps->tot_triangles = 0;
 	MEM_SAFE_FREE(gps->triangles);
 }

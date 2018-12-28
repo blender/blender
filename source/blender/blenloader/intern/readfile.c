@@ -6597,7 +6597,7 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 				/* the triangulation is not saved, so need to be recalculated */
 				gps->triangles = NULL;
 				gps->tot_triangles = 0;
-				gps->flag |= GP_STROKE_RECALC_CACHES;
+				gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 			}
 		}
 	}

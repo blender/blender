@@ -513,8 +513,8 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 	}
 
 	/* disable recalculation flag */
-	if (gps->flag & GP_STROKE_RECALC_CACHES) {
-		gps->flag &= ~GP_STROKE_RECALC_CACHES;
+	if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
+		gps->flag &= ~GP_STROKE_RECALC_GEOMETRY;
 	}
 
 	/* clear memory */
@@ -591,7 +591,7 @@ static void gp_draw_stroke_fill(
 	MaterialGPencilStyle *gp_style = ma->gp_style;
 
 	/* Calculate triangles cache for filling area (must be done only after changes) */
-	if ((gps->flag & GP_STROKE_RECALC_CACHES) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
+	if ((gps->flag & GP_STROKE_RECALC_GEOMETRY) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
 		gp_triangulate_stroke_fill(gps);
 	}
 	BLI_assert(gps->tot_triangles >= 1);

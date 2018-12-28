@@ -332,7 +332,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	gps->inittime = 0.0f;
 
 	/* enable recalculation flag by default */
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 	gps->flag &= ~GP_STROKE_SELECT;
 	/* the polygon must be closed, so enabled cyclic */
 	if (ELEM(tgpi->type, GP_STROKE_BOX, GP_STROKE_CIRCLE)) {
@@ -349,7 +349,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	/* initialize triangle memory to dummy data */
 	gps->tot_triangles = 0;
 	gps->triangles = NULL;
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 	/* add to strokes */
 	BLI_addtail(&tgpi->gpf->strokes, gps);
@@ -975,7 +975,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	}
 
 	/* force fill recalc */
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 	MEM_SAFE_FREE(depth_arr);
 
@@ -1203,7 +1203,7 @@ static void gpencil_primitive_interaction_end(bContext *C, wmOperator *op, wmWin
 	gps = tgpi->gpf->strokes.first;
 	if (gps) {
 		gps->thickness = tgpi->brush->size;
-		gps->flag |= GP_STROKE_RECALC_CACHES;
+		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 		gps->tot_triangles = 0;
 	}
 

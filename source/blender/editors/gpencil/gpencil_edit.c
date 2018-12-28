@@ -631,7 +631,7 @@ static void gp_duplicate_points(const bGPDstroke *gps, ListBase *new_strokes, co
 
 				/* initialize triangle memory - will be calculated on next redraw */
 				gpsd->triangles = NULL;
-				gpsd->flag |= GP_STROKE_RECALC_CACHES;
+				gpsd->flag |= GP_STROKE_RECALC_GEOMETRY;
 				gpsd->tot_triangles = 0;
 
 				/* now, make a new points array, and copy of the relevant parts */
@@ -713,7 +713,7 @@ static int gp_duplicate_exec(bContext *C, wmOperator *op)
 					}
 
 					/* triangle information - will be calculated on next redraw */
-					gpsd->flag |= GP_STROKE_RECALC_CACHES;
+					gpsd->flag |= GP_STROKE_RECALC_GEOMETRY;
 					gpsd->triangles = NULL;
 
 					/* add to temp buffer */
@@ -936,7 +936,7 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 					}
 
 					/* triangles cache - will be recalculated on next redraw */
-					gpsd->flag |= GP_STROKE_RECALC_CACHES;
+					gpsd->flag |= GP_STROKE_RECALC_GEOMETRY;
 					gpsd->tot_triangles = 0;
 					gpsd->triangles = NULL;
 
@@ -1113,7 +1113,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 					new_stroke->dvert = MEM_dupallocN(gps->dvert);
 					BKE_gpencil_stroke_weights_duplicate(gps, new_stroke);
 				}
-				new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+				new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 				new_stroke->triangles = NULL;
 
 				new_stroke->next = new_stroke->prev = NULL;
@@ -1777,7 +1777,7 @@ static int gp_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
 							gps->totpoints = tot;
 
 							/* triangles cache needs to be recalculated */
-							gps->flag |= GP_STROKE_RECALC_CACHES;
+							gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 							gps->tot_triangles = 0;
 
 							/* deselect the stroke, since none of its selected points will still be selected */
@@ -1877,7 +1877,7 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 
 			/* initialize triangle memory  - to be calculated on next redraw */
 			new_stroke->triangles = NULL;
-			new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+			new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 			new_stroke->tot_triangles = 0;
 
 			/* Compute new buffer size (+ 1 needed as the endpoint index is "inclusive") */
@@ -2707,7 +2707,7 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 						}
 						new_stroke->triangles = NULL;
 						new_stroke->tot_triangles = 0;
-						new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+						new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 						/* if new, set current color */
 						if (type == GP_STROKE_JOINCOPY) {
@@ -3124,7 +3124,7 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 				if (gps->dvert != NULL) {
 					gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
 				}
-				gps->flag |= GP_STROKE_RECALC_CACHES;
+				gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 				/* loop and interpolate */
 				i2 = 0;
@@ -3195,7 +3195,7 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 			}
 
 			/* triangles cache needs to be recalculated */
-			gps->flag |= GP_STROKE_RECALC_CACHES;
+			gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 			gps->tot_triangles = 0;
 		}
 	}

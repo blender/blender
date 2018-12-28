@@ -227,7 +227,7 @@ static void gpencil_rdp_stroke(bGPDstroke *gps, vec2f *points2d, float epsilon)
 		old_dvert = MEM_dupallocN(gps->dvert);
 	}
 	/* resize gps */
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 	gps->tot_triangles = 0;
 
 	int j = 0;
@@ -302,7 +302,7 @@ void BKE_gpencil_simplify_fixed(bGPDstroke *gps)
 	if (gps->dvert != NULL) {
 		gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * newtot);
 	}
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 	gps->tot_triangles = 0;
 
 	int j = 0;
@@ -443,7 +443,7 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer *g
 					         eGpencilModifierType_Offset))
 					{
 
-						gps->flag |= GP_STROKE_RECALC_CACHES;
+						gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 					}
 				}
 			}
@@ -743,7 +743,7 @@ void BKE_gpencil_subdivide(bGPDstroke *gps, int level, int flag)
 			temp_dverts = MEM_dupallocN(gps->dvert);
 			gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
 		}
-		gps->flag |= GP_STROKE_RECALC_CACHES;
+		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 		/* move points from last to first to new place */
 		i2 = gps->totpoints - 1;

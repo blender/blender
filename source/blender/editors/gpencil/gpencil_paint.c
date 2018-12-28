@@ -816,7 +816,7 @@ static short gp_stroke_addpoint(
 			}
 
 			/* force fill recalc */
-			gps->flag |= GP_STROKE_RECALC_CACHES;
+			gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 			/* drawing batch cache is dirty now */
 			gp_update_cache(p->gpd);
 		}
@@ -895,7 +895,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gps->inittime = p->inittime;
 
 	/* enable recalculation flag by default (only used if hq fill) */
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 	/* allocate enough memory for a continuous array for storage points */
 	const int subdivide = brush->gpencil_settings->draw_subdivide;
@@ -904,7 +904,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 	/* initialize triangle memory to dummy data */
 	gps->triangles = MEM_callocN(sizeof(bGPDtriangle), "GP Stroke triangulation");
-	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 	gps->tot_triangles = 0;
 	/* drawing batch cache is dirty now */
 	gp_update_cache(p->gpd);

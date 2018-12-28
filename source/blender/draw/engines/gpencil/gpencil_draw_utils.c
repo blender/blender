@@ -219,7 +219,7 @@ static void gpencil_calc_stroke_fill_uv(
 static void DRW_gpencil_recalc_geometry_caches(
 	Object *ob, bGPDlayer *gpl, MaterialGPencilStyle *gp_style, bGPDstroke *gps)
 {
-	if (gps->flag & GP_STROKE_RECALC_CACHES) {
+	if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
 		/* Calculate triangles cache for filling area (must be done only after changes) */
 		if ((gps->tot_triangles == 0) || (gps->triangles == NULL)) {
 			if ((gps->totpoints > 2) &&
@@ -234,7 +234,7 @@ static void DRW_gpencil_recalc_geometry_caches(
 		ED_gpencil_calc_stroke_uv(ob, gps);
 
 		/* clear flag */
-		gps->flag &= ~GP_STROKE_RECALC_CACHES;
+		gps->flag &= ~GP_STROKE_RECALC_GEOMETRY;
 	}
 }
 
@@ -1118,8 +1118,8 @@ void DRW_gpencil_triangulate_stroke_fill(Object *ob, bGPDstroke *gps)
 	}
 
 	/* disable recalculation flag */
-	if (gps->flag & GP_STROKE_RECALC_CACHES) {
-		gps->flag &= ~GP_STROKE_RECALC_CACHES;
+	if (gps->flag & GP_STROKE_RECALC_GEOMETRY) {
+		gps->flag &= ~GP_STROKE_RECALC_GEOMETRY;
 	}
 
 	/* clear memory */

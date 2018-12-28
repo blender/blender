@@ -306,7 +306,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 					}
 					new_stroke->totpoints = gps_to->totpoints;
 					new_stroke->tot_triangles = 0;
-					new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+					new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 				}
 				/* update points position */
 				gp_interpolate_update_points(gps_from, gps_to, new_stroke, tgpil->factor);
@@ -320,7 +320,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 				}
 				new_stroke->tot_triangles = 0;
 				new_stroke->triangles = MEM_recallocN(new_stroke->triangles, sizeof(*new_stroke->triangles));
-				new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+				new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 			}
 
 			/* add to strokes */
@@ -596,7 +596,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 						BKE_gpencil_stroke_weights_duplicate(gps_src, gps_dst);
 					}
 					gps_dst->triangles = MEM_dupallocN(gps_src->triangles);
-					gps_dst->flag |= GP_STROKE_RECALC_CACHES;
+					gps_dst->flag |= GP_STROKE_RECALC_GEOMETRY;
 					BLI_addtail(&gpf_dst->strokes, gps_dst);
 				}
 			}
@@ -1033,7 +1033,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 					}
 					new_stroke->totpoints = gps_to->totpoints;
 					new_stroke->tot_triangles = 0;
-					new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+					new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
 				}
 
 				/* update points position */

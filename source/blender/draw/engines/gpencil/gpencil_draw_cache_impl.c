@@ -209,7 +209,7 @@ void DRW_gpencil_get_fill_geom(struct GpencilBatchCacheElem *be, Object *ob, bGP
 	BLI_assert(gps->totpoints >= 3);
 
 	/* Calculate triangles cache for filling area (must be done only after changes) */
-	if ((gps->flag & GP_STROKE_RECALC_CACHES) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
+	if ((gps->flag & GP_STROKE_RECALC_GEOMETRY) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
 		DRW_gpencil_triangulate_stroke_fill(ob, gps);
 		ED_gpencil_calc_stroke_uv(ob, gps);
 	}

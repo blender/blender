@@ -1080,7 +1080,7 @@ static void recalcData_gpencil_strokes(TransInfo *t)
 	for (int i = 0; i < tc->data_len; i++, td++) {
 		bGPDstroke *gps = td->extra;
 		if (gps != NULL) {
-			gps->flag |= GP_STROKE_RECALC_CACHES;
+			gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 		}
 	}
 }

@@ -997,7 +997,7 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 		if (gps->dvert != NULL) {
 			gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
 		}
-		gps->flag |= GP_STROKE_RECALC_CACHES;
+		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
 
 		/* move points from last to first to new place */
 		i2 = gps->totpoints - 1;
