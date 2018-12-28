@@ -3221,7 +3221,7 @@ static void rna_def_unit_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
-void rna_def_view_layer_common(StructRNA *srna, int scene)
+void rna_def_view_layer_common(StructRNA *srna, const bool scene)
 {
 	PropertyRNA *prop;
 
@@ -3239,7 +3239,7 @@ void rna_def_view_layer_common(StructRNA *srna, int scene)
 		RNA_def_property_struct_type(prop, "Material");
 		RNA_def_property_flag(prop, PROP_EDITABLE);
 		RNA_def_property_ui_text(prop, "Material Override",
-								 "Material to override all other materials in this view layer");
+		                         "Material to override all other materials in this view layer");
 		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_material_override_update");
 
 		prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);

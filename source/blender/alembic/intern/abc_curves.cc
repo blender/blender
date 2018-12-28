@@ -448,7 +448,7 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
 
 	if (same_topology) {
 		Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
-		for (curve_idx=0; nurbs; nurbs = nurbs->next, ++curve_idx) {
+		for (curve_idx = 0; nurbs; nurbs = nurbs->next, ++curve_idx) {
 			const int num_in_alembic = (*num_vertices)[curve_idx];
 			const int num_in_blender = nurbs->pntsu;
 
@@ -465,7 +465,7 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
 	}
 	else {
 		Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
-		for (curve_idx=0; nurbs; nurbs = nurbs->next, ++curve_idx) {
+		for (curve_idx = 0; nurbs; nurbs = nurbs->next, ++curve_idx) {
 			const int totpoint = (*num_vertices)[curve_idx];
 
 			if (nurbs->bp) {

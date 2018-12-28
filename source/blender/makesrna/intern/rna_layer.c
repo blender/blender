@@ -381,7 +381,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_ViewLayer_path");
 	RNA_def_struct_idprops_func(srna, "rna_ViewLayer_idprops");
 
-	rna_def_view_layer_common(srna, 1);
+	rna_def_view_layer_common(srna, true);
 
 	func = RNA_def_function(srna, "update_render_passes", "rna_ViewLayer_update_render_passes");
 	RNA_def_function_ui_description(func, "Requery the enabled render passes from the render engine");
