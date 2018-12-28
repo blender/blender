@@ -751,7 +751,7 @@ static void load_gammacross(Sequence *UNUSED(seq))
 {
 }
 
-static void free_gammacross(Sequence *UNUSED(seq))
+static void free_gammacross(Sequence *UNUSED(seq), const bool UNUSED(do_id_user))
 {
 }
 
@@ -1875,7 +1875,7 @@ static int num_inputs_wipe(void)
 	return 2;
 }
 
-static void free_wipe_effect(Sequence *seq)
+static void free_wipe_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	if (seq->effectdata)
 		MEM_freeN(seq->effectdata);
@@ -1883,7 +1883,7 @@ static void free_wipe_effect(Sequence *seq)
 	seq->effectdata = NULL;
 }
 
-static void copy_wipe_effect(Sequence *dst, Sequence *src)
+static void copy_wipe_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
@@ -2066,13 +2066,13 @@ static int num_inputs_transform(void)
 	return 1;
 }
 
-static void free_transform_effect(Sequence *seq)
+static void free_transform_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	if (seq->effectdata) MEM_freeN(seq->effectdata);
 	seq->effectdata = NULL;
 }
 
-static void copy_transform_effect(Sequence *dst, Sequence *src)
+static void copy_transform_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
@@ -2384,7 +2384,7 @@ static int num_inputs_glow(void)
 	return 1;
 }
 
-static void free_glow_effect(Sequence *seq)
+static void free_glow_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	if (seq->effectdata)
 		MEM_freeN(seq->effectdata);
@@ -2392,7 +2392,7 @@ static void free_glow_effect(Sequence *seq)
 	seq->effectdata = NULL;
 }
 
-static void copy_glow_effect(Sequence *dst, Sequence *src)
+static void copy_glow_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
@@ -2478,7 +2478,7 @@ static int num_inputs_color(void)
 	return 0;
 }
 
-static void free_solid_color(Sequence *seq)
+static void free_solid_color(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	if (seq->effectdata)
 		MEM_freeN(seq->effectdata);
@@ -2486,7 +2486,7 @@ static void free_solid_color(Sequence *seq)
 	seq->effectdata = NULL;
 }
 
-static void copy_solid_color(Sequence *dst, Sequence *src)
+static void copy_solid_color(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
@@ -2734,7 +2734,7 @@ static int num_inputs_speed(void)
 	return 1;
 }
 
-static void free_speed_effect(Sequence *seq)
+static void free_speed_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
 	if (v->frameMap)
@@ -2744,7 +2744,7 @@ static void free_speed_effect(Sequence *seq)
 	seq->effectdata = NULL;
 }
 
-static void copy_speed_effect(Sequence *dst, Sequence *src)
+static void copy_speed_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	SpeedControlVars *v;
 	dst->effectdata = MEM_dupallocN(src->effectdata);
@@ -2959,7 +2959,7 @@ static int num_inputs_gaussian_blur(void)
 	return 1;
 }
 
-static void free_gaussian_blur_effect(Sequence *seq)
+static void free_gaussian_blur_effect(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	if (seq->effectdata)
 		MEM_freeN(seq->effectdata);
@@ -2967,7 +2967,7 @@ static void free_gaussian_blur_effect(Sequence *seq)
 	seq->effectdata = NULL;
 }
 
-static void copy_gaussian_blur_effect(Sequence *dst, Sequence *src)
+static void copy_gaussian_blur_effect(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
@@ -3573,7 +3573,7 @@ static void load_noop(Sequence *UNUSED(seq))
 
 }
 
-static void free_noop(Sequence *UNUSED(seq))
+static void free_noop(Sequence *UNUSED(seq), const bool UNUSED(do_id_user))
 {
 
 }
@@ -3583,12 +3583,12 @@ static int num_inputs_default(void)
 	return 2;
 }
 
-static void copy_effect_default(Sequence *dst, Sequence *src)
+static void copy_effect_default(Sequence *dst, Sequence *src, const int UNUSED(flag))
 {
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static void free_effect_default(Sequence *seq)
+static void free_effect_default(Sequence *seq, const bool UNUSED(do_id_user))
 {
 	if (seq->effectdata)
 		MEM_freeN(seq->effectdata);
