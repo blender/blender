@@ -77,6 +77,10 @@
 
 static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	if (!RNA_struct_property_is_set(op->ptr, "as_background_job")) {
+		RNA_boolean_set(op->ptr, "as_background_job", true);
+	}
+
 	RNA_boolean_set(op->ptr, "init_scene_frame_range", true);
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -388,8 +392,10 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "export_hair", 1, "Export Hair", "Exports hair particle systems as animated curves");
 	RNA_def_boolean(ot->srna, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
 
-	RNA_def_boolean(ot->srna, "as_background_job", true, "Run as Background Job",
-	                "Enable this to run the import in the background, disable to block Blender while importing");
+	RNA_def_boolean(ot->srna, "as_background_job", false, "Run as Background Job",
+	                "Enable this to run the import in the background, disable to block Blender while importing. "
+	                "This option is deprecated; EXECUTE this operator to run in the foreground, and INVOKE it "
+	                "to run as a background job");
 
 	/* This dummy prop is used to check whether we need to init the start and
 	 * end frame values to that of the scene's, otherwise they are reset at
@@ -522,6 +528,17 @@ static void wm_alembic_import_draw(bContext *UNUSED(C), wmOperator *op)
 	ui_alembic_import_settings(op->layout, &ptr);
 }
 
+
+/* op->invoke, opens fileselect if path property not set, otherwise executes */
+static int wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	if (!RNA_struct_property_is_set(op->ptr, "as_background_job")) {
+		RNA_boolean_set(op->ptr, "as_background_job", true);
+	}
+	return WM_operator_filesel(C, op, event);
+}
+
+
 static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 {
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -568,7 +585,7 @@ void WM_OT_alembic_import(wmOperatorType *ot)
 	ot->description = "Load an Alembic archive";
 	ot->idname = "WM_OT_alembic_import";
 
-	ot->invoke = WM_operator_filesel;
+	ot->invoke = wm_alembic_import_invoke;
 	ot->exec = wm_alembic_import_exec;
 	ot->poll = WM_operator_winactive;
 	ot->ui = wm_alembic_import_draw;
@@ -591,8 +608,10 @@ void WM_OT_alembic_import(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "is_sequence", false, "Is Sequence",
 	                "Set to true if the cache is split into separate files");
 
-	RNA_def_boolean(ot->srna, "as_background_job", true, "Run as Background Job",
-	                "Enable this to run the export in the background, disable to block Blender while exporting");
+	RNA_def_boolean(ot->srna, "as_background_job", false, "Run as Background Job",
+	                "Enable this to run the export in the background, disable to block Blender while exporting. "
+	                "This option is deprecated; EXECUTE this operator to run in the foreground, and INVOKE it "
+	                "to run as a background job");
 }
 
 #endif
