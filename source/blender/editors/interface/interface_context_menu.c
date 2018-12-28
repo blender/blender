@@ -691,13 +691,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		uiBlock *block = uiLayoutGetBlock(layout);
 		const int w = uiLayoutGetWidth(layout);
 		uiBut *but2;
-
-		but2 = uiDefIconTextBut(
-		        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
-		        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
-		        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
-		        "Add to a user defined context menu (stored in the user preferences)");
-		UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
+		bool item_found = false;
 
 		uint um_array_len;
 		bUserMenu **um_array = ED_screen_user_menus_find(C, &um_array_len);
@@ -709,13 +703,23 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 			bUserMenuItem *umi = ui_but_user_menu_find(C, but, um);
 			if (umi != NULL) {
 				but2 = uiDefIconTextBut(
-				        block, UI_BTYPE_BUT, 0, ICON_BLANK1,
+				        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
 				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
 				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				UI_but_func_set(but2, popup_user_menu_remove_func, um, umi);
+				item_found = true;
 			}
 		}
 		MEM_freeN(um_array);
+
+		if (!item_found) {
+			but2 = uiDefIconTextBut(
+			        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
+			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
+			        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+			        "Add to a user defined context menu (stored in the user preferences)");
+			UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
+		}
 
 		uiItemS(layout);
 	}
