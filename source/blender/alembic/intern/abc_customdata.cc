@@ -284,6 +284,7 @@ static size_t mcols_out_of_bounds_check(
         const size_t array_size,
         const std::string & iobject_full_name,
         const PropertyHeader &prop_header,
+        bool &r_is_out_of_bounds,
         bool &r_bounds_warning_given)
 {
 	if (color_index < array_size) {
@@ -298,7 +299,7 @@ static size_t mcols_out_of_bounds_check(
 		          << prop_header.getName() << std::endl;
 		r_bounds_warning_given = true;
 	}
-
+	r_is_out_of_bounds = true;
 	return 0;
 }
 
@@ -379,12 +380,15 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 				color_index = (*indices)[color_index];
 			}
 			if (use_c3f_ptr) {
+				bool is_mcols_out_of_bounds = false;
 				color_index = mcols_out_of_bounds_check(
 				                  color_index,
 				                  c3f_ptr->size(),
 				                  iobject_full_name, prop_header,
-				                  bounds_warning_given);
-
+				                  is_mcols_out_of_bounds, bounds_warning_given);
+				if (is_mcols_out_of_bounds) {
+					continue;
+				}
 				const Imath::C3f &color = (*c3f_ptr)[color_index];
 				cface->a = unit_float_to_uchar_clamp(color[0]);
 				cface->r = unit_float_to_uchar_clamp(color[1]);
@@ -392,12 +396,15 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 				cface->b = 255;
 			}
 			else {
+				bool is_mcols_out_of_bounds = false;
 				color_index = mcols_out_of_bounds_check(
 				                  color_index,
 				                  c4f_ptr->size(),
 				                  iobject_full_name, prop_header,
-				                  bounds_warning_given);
-
+				                  is_mcols_out_of_bounds, bounds_warning_given);
+				if (is_mcols_out_of_bounds) {
+					continue;
+				}
 				const Imath::C4f &color = (*c4f_ptr)[color_index];
 				cface->a = unit_float_to_uchar_clamp(color[0]);
 				cface->r = unit_float_to_uchar_clamp(color[1]);
