@@ -1057,39 +1057,6 @@ bool BKE_scene_has_object(Scene *scene, Object *ob)
 	return false;
 }
 
-/* ---------------------------------------------------------------------- */
-/* Override */
-
-/**
- * Add a new datablock override
- */
-void BKE_override_view_layer_datablock_add(
-        ViewLayer *view_layer, int id_type, const char *data_path, const ID *owner_id)
-{
-	UNUSED_VARS(view_layer, id_type, data_path, owner_id);
-	TODO_LAYER_OVERRIDE;
-}
-
-/**
- * Add a new int override
- */
-void BKE_override_view_layer_int_add(
-        ViewLayer *view_layer, int id_type, const char *data_path, const int value)
-{
-	UNUSED_VARS(view_layer, id_type, data_path, value);
-	TODO_LAYER_OVERRIDE;
-}
-
-/**
- * Add a new boolean override
- */
-void BKE_override_layer_collection_boolean_add(
-        struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value)
-{
-	UNUSED_VARS(layer_collection, id_type, data_path, value);
-	TODO_LAYER_OVERRIDE;
-}
-
 /** \} */
 
 /* Iterators */

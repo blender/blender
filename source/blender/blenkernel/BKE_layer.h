@@ -117,16 +117,6 @@ bool BKE_layer_collection_has_selected_objects(
 void BKE_base_set_visible(struct Scene *scene, struct ViewLayer *view_layer, struct Base *base, bool extend);
 void BKE_layer_collection_set_visible(struct Scene *scene, struct ViewLayer *view_layer, struct LayerCollection *lc, bool extend);
 
-/* override */
-
-void BKE_override_view_layer_datablock_add(
-        struct ViewLayer *view_layer, int id_type, const char *data_path, const struct ID *owner_id);
-void BKE_override_view_layer_int_add(
-        struct ViewLayer *view_layer, int id_type, const char *data_path, const int value);
-
-void BKE_override_layer_collection_boolean_add(
-        struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value);
-
 /* evaluation */
 
 void BKE_layer_eval_view_layer(

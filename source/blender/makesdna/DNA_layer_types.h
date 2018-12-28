@@ -76,9 +76,10 @@ typedef struct ViewLayer {
 	/* Old SceneRenderLayer data. */
 	int layflag;
 	int passflag;			/* pass_xor has to be after passflag */
-	int pass_xor;
 	float pass_alpha_threshold;
+	int samples;
 
+	struct Material *mat_override;
 	struct IDProperty *id_properties; /* Equivalent to datablocks ID properties. */
 
 	struct FreestyleConfig freestyle_config;

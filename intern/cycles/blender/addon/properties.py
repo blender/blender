@@ -272,7 +272,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
     use_layer_samples: EnumProperty(
         name="Layer Samples",
-        description="How to use per render layer sample settings",
+        description="How to use per view layer sample settings",
         items=enum_use_layer_samples,
         default='USE',
     )

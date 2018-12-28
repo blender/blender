@@ -372,6 +372,25 @@ void BlenderSync::sync_view_layer(BL::SpaceView3D& /*b_v3d*/, BL::ViewLayer& b_v
 	view_layer.use_background_ao = b_view_layer.use_ao();
 	view_layer.use_surfaces = b_view_layer.use_solid();
 	view_layer.use_hair = b_view_layer.use_strand();
+
+	/* Material override. */
+	view_layer.material_override = b_view_layer.material_override();
+
+	/* Sample override. */
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	int use_layer_samples = get_enum(cscene, "use_layer_samples");
+
+	view_layer.bound_samples = (use_layer_samples == 1);
+	view_layer.samples = 0;
+
+	if(use_layer_samples != 2) {
+		int samples = b_view_layer.samples();
+		if(get_boolean(cscene, "use_square_samples"))
+			view_layer.samples = samples * samples;
+		else
+			view_layer.samples = samples;
+	}
+
 }
 
 /* Images */

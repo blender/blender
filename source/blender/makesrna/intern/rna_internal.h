@@ -274,6 +274,7 @@ void rna_Scene_use_view_map_cache_update(struct Main *bmain, struct Scene *scene
 void rna_Scene_glsl_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Scene_freestyle_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_ViewLayer_name_set(struct PointerRNA *ptr, const char *value);
+void rna_ViewLayer_material_override_update(struct Main *bmain, struct Scene *activescene, struct PointerRNA *ptr);
 void rna_ViewLayer_pass_update(struct Main *bmain, struct Scene *activescene, struct PointerRNA *ptr);
 
 /* named internal so as not to conflict with obj.update() rna func */

@@ -151,6 +151,10 @@ void DepsgraphNodeBuilder::build_view_layer(
 	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
+	/* Material override. */
+	if (view_layer->mat_override != NULL) {
+		build_material(view_layer->mat_override);
+	}
 	/* Collections. */
 	add_operation_node(&scene->id,
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,

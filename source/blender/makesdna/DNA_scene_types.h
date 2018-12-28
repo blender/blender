@@ -194,7 +194,7 @@ typedef struct SceneRenderLayer {
 
 	char name[64] DNA_DEPRECATED;	/* MAX_NAME */
 
-	struct Material *mat_override DNA_DEPRECATED; /* Converted to ViewLayer override. */
+	struct Material *mat_override DNA_DEPRECATED; /* Converted to ViewLayer setting. */
 
 	unsigned int lay DNA_DEPRECATED; /* Converted to LayerCollection cycles camera visibility override. */
 	unsigned int lay_zmask DNA_DEPRECATED; /* Converted to LayerCollection cycles holdout override. */
@@ -205,7 +205,7 @@ typedef struct SceneRenderLayer {
 	int passflag DNA_DEPRECATED; /* pass_xor has to be after passflag */
 	int pass_xor DNA_DEPRECATED; /* Converted to ViewLayer passflag and flag. */
 
-	int samples DNA_DEPRECATED; /* Converted to ViewLayer override. */
+	int samples DNA_DEPRECATED; /* Converted to ViewLayer setting. */
 	float pass_alpha_threshold DNA_DEPRECATED; /* Converted to ViewLayer pass_alpha_threshold. */
 
 	IDProperty *prop DNA_DEPRECATED; /* Converted to ViewLayer id_properties. */

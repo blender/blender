@@ -438,6 +438,8 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 				ViewLayer *view_layer;
 				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+					CALLBACK_INVOKE(view_layer->mat_override, IDWALK_CB_USER);
+
 					for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 						CALLBACK_INVOKE(base->object, IDWALK_CB_NOP);
 					}

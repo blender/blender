@@ -460,28 +460,6 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 	for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 		ViewLayer *view_layer = BKE_view_layer_add(scene, srl->name);
 
-		if (srl->samples != 0) {
-			have_override = true;
-
-			/* It is up to the external engine to handle
-			 * its own doversion in this case. */
-			BKE_override_view_layer_int_add(
-			        view_layer,
-			        ID_SCE,
-			        "samples",
-			        srl->samples);
-		}
-
-		if (srl->mat_override) {
-			have_override = true;
-
-			BKE_override_view_layer_datablock_add(
-			        view_layer,
-			        ID_MA,
-			        "self",
-			        (ID *)srl->mat_override);
-		}
-
 		if (srl->layflag & SCE_LAY_DISABLE) {
 			view_layer->flag &= ~VIEW_LAYER_RENDER;
 		}
@@ -490,12 +468,11 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 			view_layer->flag &= ~VIEW_LAYER_FREESTYLE;
 		}
 
-		/* XXX If we are to keep layflag it should be merged with flag (dfelinto). */
 		view_layer->layflag = srl->layflag;
-		/* XXX Not sure if we should keep the passes (dfelinto). */
 		view_layer->passflag = srl->passflag;
-		view_layer->pass_xor = srl->pass_xor;
 		view_layer->pass_alpha_threshold = srl->pass_alpha_threshold;
+		view_layer->samples = srl->samples;
+		view_layer->mat_override = srl->mat_override;
 
 		BKE_freestyle_config_free(&view_layer->freestyle_config, true);
 		view_layer->freestyle_config = srl->freestyleConfig;

@@ -132,6 +132,10 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
+	/* Material override. */
+	if (view_layer->mat_override != NULL) {
+		build_material(view_layer->mat_override);
+	}
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
 		ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);

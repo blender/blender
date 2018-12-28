@@ -1424,6 +1424,13 @@ static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
 	BLI_uniquename(&scene->r.views, rv, DATA_("RenderView"), '.', offsetof(SceneRenderView, name), sizeof(rv->name));
 }
 
+void rna_ViewLayer_material_override_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	rna_Scene_glsl_update(bmain, scene, ptr);
+	DEG_relations_tag_update(bmain);
+}
+
 void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
@@ -3227,6 +3234,19 @@ void rna_def_view_layer_common(StructRNA *srna, int scene)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	if (scene) {
+		prop = RNA_def_property(srna, "material_override", PROP_POINTER, PROP_NONE);
+		RNA_def_property_pointer_sdna(prop, NULL, "mat_override");
+		RNA_def_property_struct_type(prop, "Material");
+		RNA_def_property_flag(prop, PROP_EDITABLE);
+		RNA_def_property_ui_text(prop, "Material Override",
+								 "Material to override all other materials in this view layer");
+		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_material_override_update");
+
+		prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
+		RNA_def_property_ui_text(prop, "Samples", "Override number of render samples for this view layer, "
+		                                          "0 will use the scene setting");
+		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 		prop = RNA_def_property(srna, "pass_alpha_threshold", PROP_FLOAT, PROP_FACTOR);
 		RNA_def_property_ui_text(prop, "Alpha Threshold",
 		                         "Z, Index, normal, UV and vector passes are only affected by surfaces with "
