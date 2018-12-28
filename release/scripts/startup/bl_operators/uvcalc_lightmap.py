@@ -107,12 +107,12 @@ class prettyface:
 
                 no = data.normal
                 r = no.rotation_difference(mathutils.Vector((0.0, 0.0, 1.0)))
-                cos_2d = [(r * co).xy for co in cos]
+                cos_2d = [(r @ co).xy for co in cos]
                 # print(cos_2d)
                 angle = mathutils.geometry.box_fit_2d(cos_2d)
 
                 mat = mathutils.Matrix.Rotation(angle, 2)
-                cos_2d = [(mat * co) for co in cos_2d]
+                cos_2d = [(mat @ co) for co in cos_2d]
                 xs = [co.x for co in cos_2d]
                 ys = [co.y for co in cos_2d]
 
