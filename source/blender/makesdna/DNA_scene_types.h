@@ -266,6 +266,8 @@ typedef enum eScenePassType {
 	SCE_PASS_ROUGHNESS                = (1u << 31u),
 } eScenePassType;
 
+#define RE_PASSNAME_DEPRECATED "Deprecated"
+
 #define RE_PASSNAME_COMBINED "Combined"
 #define RE_PASSNAME_Z "Depth"
 #define RE_PASSNAME_VECTOR "Vector"
