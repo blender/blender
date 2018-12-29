@@ -123,7 +123,7 @@ static void userpref_main_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void userpref_main_region_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar);
+	ED_region_panels_ex(C, ar, NULL, U.userpref, true);
 }
 
 static void userpref_operatortypes(void)
