@@ -340,7 +340,7 @@ Mask *ED_mask_new(bContext *C, const char *name)
 }
 
 /* Get ative layer. Will create mask/layer to be sure there's an active layer.  */
-MaskLayer *ED_mask_layer_ensure(bContext *C)
+MaskLayer *ED_mask_layer_ensure(bContext *C, bool *r_added_mask)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *mask_layer;
@@ -348,6 +348,7 @@ MaskLayer *ED_mask_layer_ensure(bContext *C)
 	if (mask == NULL) {
 		/* If there's no active mask, create one. */
 		mask = ED_mask_new(C, NULL);
+		*r_added_mask = true;
 	}
 
 	mask_layer = BKE_mask_layer_active(mask);
@@ -366,6 +367,8 @@ static int mask_new_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", name);
 
 	ED_mask_new(C, name);
+
+	WM_event_add_notifier(C, NC_MASK | NA_ADDED, NULL);
 
 	return OPERATOR_FINISHED;
 }

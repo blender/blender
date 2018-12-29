@@ -1340,6 +1340,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 				case ID_SCR:
 				case ID_WS:
 					data.icon = ICON_WORKSPACE; break;
+				case ID_MSK:
+					data.icon = ICON_MOD_MASK; break;
+				case ID_MC:
+					data.icon = ICON_SEQUENCE; break;
 				default:
 					break;
 			}

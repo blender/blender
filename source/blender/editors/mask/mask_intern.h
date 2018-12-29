@@ -59,7 +59,7 @@ void MASK_OT_primitive_square_add(struct wmOperatorType *ot);
 
 /* mask_ops.c */
 struct Mask *ED_mask_new(struct bContext *C, const char *name);
-struct MaskLayer *ED_mask_layer_ensure(struct bContext *C);
+struct MaskLayer *ED_mask_layer_ensure(struct bContext *C, bool *r_added_mask);
 
 void MASK_OT_new(struct wmOperatorType *ot);
 void MASK_OT_layer_new(struct wmOperatorType *ot);
