@@ -70,6 +70,7 @@
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
+#include "BKE_mask.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -1627,6 +1628,9 @@ static void do_render_all_options(Render *re)
 	 * like the render engine, but sequencer and compositing do not (yet?)
 	 * work with copy-on-write. */
 	BKE_animsys_evaluate_all_animation(re->main, NULL, re->scene, (float)cfra);
+
+	/* Update for masks (these do not use animsys but own lighter weight structure to define animation). */
+	BKE_mask_evaluate_all_masks(re->main, (float)cfra, true);
 
 	if (RE_engine_render(re, 1)) {
 		/* in this case external render overrides all */
