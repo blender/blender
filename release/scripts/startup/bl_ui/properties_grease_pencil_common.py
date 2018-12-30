@@ -217,6 +217,7 @@ class GreasePencilStrokeEditPanel:
         col.separator()
 
         row = col.row(align=True)
+        row.operator("gpencil.stroke_merge", text="Merge")
         row.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
         row.operator("gpencil.stroke_join", text="& Copy").type = 'JOINCOPY'
 
