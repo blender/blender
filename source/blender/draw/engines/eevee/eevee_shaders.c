@@ -33,7 +33,7 @@
 
 #include "eevee_private.h"
 
-const char *filter_defines = "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
+static const char *filter_defines = "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
 #if defined(IRRADIANCE_SH_L2)
 	                             "#define IRRADIANCE_SH_L2\n"
 #elif defined(IRRADIANCE_CUBEMAP)

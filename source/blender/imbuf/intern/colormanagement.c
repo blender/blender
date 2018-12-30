@@ -97,8 +97,8 @@ static int global_tot_looks = 0;
 float imbuf_luma_coefficients[3] = {0.0f};
 float imbuf_xyz_to_rgb[3][3] = {{0.0f}};
 float imbuf_rgb_to_xyz[3][3] = {{0.0f}};
-float imbuf_xyz_to_linear_srgb[3][3] = {{0.0f}};
-float imbuf_linear_srgb_to_xyz[3][3] = {{0.0f}};
+static float imbuf_xyz_to_linear_srgb[3][3] = {{0.0f}};
+static float imbuf_linear_srgb_to_xyz[3][3] = {{0.0f}};
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times

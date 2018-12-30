@@ -2714,7 +2714,7 @@ GPUBatch *DRW_cache_bone_arrows_get(void)
 	return SHC.drw_bone_arrows;
 }
 
-const float staticSine[16] = {
+static const float staticSine[16] = {
 	0.0f, 0.104528463268f, 0.207911690818f, 0.309016994375f,
 	0.406736643076f, 0.5f, 0.587785252292f, 0.669130606359f,
 	0.743144825477f, 0.809016994375f, 0.866025403784f,

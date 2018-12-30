@@ -50,7 +50,7 @@ typedef struct TimerContainer {
 	bool file_load_cb_registered;
 } TimerContainer;
 
-static TimerContainer GlobalTimer = { 0 };
+static TimerContainer GlobalTimer = {{0}};
 
 static void ensure_callback_is_registered(void);
 

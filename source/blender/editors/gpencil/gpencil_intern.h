@@ -508,7 +508,7 @@ struct GP_EditableStrokes_Iter {
  */
 #define GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps)                           \
 {                                                                                       \
-	struct GP_EditableStrokes_Iter gpstroke_iter = {0};                                 \
+	struct GP_EditableStrokes_Iter gpstroke_iter = {{{0}}};                             \
 	Depsgraph *depsgraph_ = CTX_data_depsgraph(C);                                      \
 	Object *obact_ = CTX_data_active_object(C);                                         \
 	bGPdata *gpd_ = CTX_data_gpencil_data(C);                                           \

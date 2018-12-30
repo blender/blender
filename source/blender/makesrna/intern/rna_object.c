@@ -110,7 +110,7 @@ const EnumPropertyItem rna_enum_object_empty_drawtype_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-const EnumPropertyItem rna_enum_object_empty_image_depth_items[] = {
+static const EnumPropertyItem rna_enum_object_empty_image_depth_items[] = {
 	{OB_EMPTY_IMAGE_DEPTH_DEFAULT, "DEFAULT", 0, "Default", ""},
 	{OB_EMPTY_IMAGE_DEPTH_FRONT, "FRONT", 0, "Front", ""},
 	{OB_EMPTY_IMAGE_DEPTH_BACK, "BACK", 0, "Back", ""},

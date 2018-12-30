@@ -479,7 +479,7 @@ static void gpu_framebuffer_update_attachments_and_fill_empty_slots(GPUFrameBuff
 static struct {
 	GPUFrameBuffer *framebuffers[FRAMEBUFFER_STACK_DEPTH];
 	uint top;
-} FrameBufferStack = { 0 };
+} FrameBufferStack = {{0}};
 
 static void gpuPushFrameBuffer(GPUFrameBuffer *fbo)
 {

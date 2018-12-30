@@ -25,13 +25,11 @@
  *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
- *
  */
 
 /** \file blender/modifiers/intern/MOD_particleinstance.c
  *  \ingroup modifiers
  */
-
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -55,6 +53,8 @@
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
+
+#include "MOD_modifiertypes.h"
 
 static void initData(ModifierData *md)
 {

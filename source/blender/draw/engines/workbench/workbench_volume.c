@@ -52,7 +52,7 @@ static struct {
 	struct GPUShader *volume_slice_coba_sh;
 	struct GPUTexture *dummy_tex;
 	struct GPUTexture *dummy_coba_tex;
-} e_data = {NULL};
+} e_data = {{NULL}};
 
 extern char datatoc_workbench_volume_vert_glsl[];
 extern char datatoc_workbench_volume_frag_glsl[];

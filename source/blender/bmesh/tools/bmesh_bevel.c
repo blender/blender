@@ -1741,9 +1741,8 @@ static void bevel_harden_normals_mode(BevelParams *bp, BevVert *bv, BMOperator *
 		/* Set normals.out for vertices as computed earlier */
 		if (BMO_slot_map_contains(nslot, bcur->nv.v) != true) {
 
-			float(*vert_normal) = MEM_callocN(sizeof(*vert_normal) * 3, __func__);
-			add_v3_v3(vert_normal, n_final);
-			normalize_v3(vert_normal);
+			float *vert_normal = MEM_mallocN(sizeof(*vert_normal) * 3, __func__);
+			normalize_v3_v3(vert_normal, n_final);
 
 			BMO_slot_map_insert(op, nslot, bcur->nv.v, vert_normal);
 		}

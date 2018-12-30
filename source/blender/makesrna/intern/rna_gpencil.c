@@ -72,7 +72,7 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-const EnumPropertyItem rna_enum_gplayer_move_type_items[] = {
+static const EnumPropertyItem rna_enum_gplayer_move_type_items[] = {
    {-1, "UP", 0, "Up", ""},
    {1, "DOWN", 0, "Down", ""},
    {0, NULL, 0, NULL, NULL}

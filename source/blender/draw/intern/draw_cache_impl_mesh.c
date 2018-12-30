@@ -268,7 +268,7 @@ typedef struct MeshRenderData {
 	int *loose_verts;
 
 	float (*poly_normals)[3];
-	float (*vert_weight);
+	float *vert_weight;
 	char (*vert_color)[3];
 	GPUPackedNormal *poly_normals_pack;
 	GPUPackedNormal *vert_normals_pack;
@@ -1422,7 +1422,7 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
 /** Ensure #MeshRenderData.vert_weight */
 static void mesh_render_data_ensure_vert_weight(MeshRenderData *rdata, const struct DRW_MeshWeightState *wstate)
 {
-	float (*vweight) = rdata->vert_weight;
+	float *vweight = rdata->vert_weight;
 	if (vweight == NULL) {
 		if (wstate->defgroup_active == -1) {
 			goto fallback;
@@ -3245,7 +3245,7 @@ static void mesh_create_weights(MeshRenderData *rdata, GPUVertBuf *vbo, DRW_Mesh
 	const int vbo_len_capacity = mesh_render_data_verts_len_get_maybe_mapped(rdata);
 
 	mesh_render_data_ensure_vert_weight(rdata, wstate);
-	const float (*vert_weight) = rdata->vert_weight;
+	const float *vert_weight = rdata->vert_weight;
 
 	GPU_vertbuf_init_with_format(vbo, &format);
 	/* Meh, another allocation / copy for no benefit.
