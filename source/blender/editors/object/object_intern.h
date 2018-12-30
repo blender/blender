@@ -99,7 +99,6 @@ void OBJECT_OT_link_to_collection(struct wmOperatorType *ot);
 void OBJECT_OT_select_all(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
-void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
 void OBJECT_OT_select_linked(struct wmOperatorType *ot);
 void OBJECT_OT_select_grouped(struct wmOperatorType *ot);
 void OBJECT_OT_select_mirror(struct wmOperatorType *ot);

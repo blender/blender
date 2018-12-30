@@ -426,12 +426,6 @@ int imb_get_anim_type(const char *name);
  */
 bool IMB_isfloat(struct ImBuf *ibuf);
 
-/**
- *
- * \attention Defined in divers.c
- */
-void IMB_de_interlace(struct ImBuf *ibuf);
-
 /* create char buffer, color corrected if necessary, for ImBufs that lack one */
 void IMB_rect_from_float(struct ImBuf *ibuf);
 /* Create char buffer for part of the image, color corrected if necessary,

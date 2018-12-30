@@ -648,13 +648,6 @@ uiPopupBlockHandle *ui_popup_menu_create(
         uiMenuCreateFunc create_func, void *arg);
 
 /* interface_region_popover.c */
-uiBlock *ui_popover_block_refresh(
-        struct bContext *C, uiPopupBlockHandle *handle,
-        ARegion *butregion, uiBut *but);
-uiPopupBlockHandle *ui_popover_block_create(
-        struct bContext *C, struct ARegion *butregion, uiBut *but,
-        uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
-        void *arg);
 uiPopupBlockHandle *ui_popover_panel_create(
         struct bContext *C, struct ARegion *butregion, uiBut *but,
         uiMenuCreateFunc create_func, void *arg);
@@ -711,7 +704,6 @@ extern void ui_but_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut 
 extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);
 extern uiBut *ui_but_find_active_in_region(struct ARegion *ar);
 extern uiBut *ui_but_find_mouse_over(struct ARegion *ar, const struct wmEvent *event);
-void ui_but_pie_dir_visual(RadialDirection dir, float vec[2]);
 void ui_but_pie_dir(RadialDirection dir, float vec[2]);
 float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);
 

@@ -50,7 +50,6 @@ extern struct FreestyleGlobals g_freestyle;
 /* Rendering */
 void FRS_initialize(void);
 void FRS_set_context(struct bContext *C);
-void FRS_read_file(struct bContext *C);
 int FRS_is_freestyle_enabled(struct ViewLayer *view_layer);
 void FRS_init_stroke_renderer(struct Render *re);
 void FRS_begin_stroke_rendering(struct Render *re);

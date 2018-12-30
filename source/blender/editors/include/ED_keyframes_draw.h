@@ -180,8 +180,6 @@ void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, int sa
 void gpencil_to_keylist(struct bDopeSheet *ads, struct bGPdata *gpd, struct DLRBT_Tree *keys, const bool active);
 /* Grease Pencil Layer */
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys);
-/* Palette */
-void palette_to_keylist(struct bDopeSheet *ads, struct Palette *palette, struct DLRBT_Tree *keys);
 /* Mask */
 void mask_to_keylist(struct bDopeSheet *UNUSED(ads), struct MaskLayer *masklay, struct DLRBT_Tree *keys);
 

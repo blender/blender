@@ -409,9 +409,6 @@ extern DRWManager DST; /* TODO : get rid of this and allow multithreaded renderi
 /* --------------- FUNCTIONS ------------- */
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags);
-void drw_texture_get_format(
-        GPUTextureFormat format, bool is_framebuffer,
-        GPUTextureFormat *r_data_type, int *r_channels, bool *r_is_depth);
 
 void *drw_viewport_engine_data_ensure(void *engine_type);
 

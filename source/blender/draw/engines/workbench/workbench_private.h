@@ -250,14 +250,6 @@ typedef struct WORKBENCH_ObjectData {
 	int object_id;
 } WORKBENCH_ObjectData;
 
-/* workbench_engine.c */
-void workbench_solid_materials_init(WORKBENCH_Data *vedata);
-void workbench_solid_materials_cache_init(WORKBENCH_Data *vedata);
-void workbench_solid_materials_cache_populate(WORKBENCH_Data *vedata, Object *ob);
-void workbench_solid_materials_cache_finish(WORKBENCH_Data *vedata);
-void workbench_solid_materials_draw_scene(WORKBENCH_Data *vedata);
-void workbench_solid_materials_free(void);
-
 /* workbench_deferred.c */
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
 void workbench_deferred_engine_free(void);

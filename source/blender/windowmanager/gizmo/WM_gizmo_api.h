@@ -70,8 +70,6 @@ void WM_gizmo_unlink(
         ListBase *gizmolist, struct wmGizmoMap *gzmap, struct wmGizmo *gz,
         struct bContext *C);
 
-void WM_gizmo_name_set(struct wmGizmoGroup *gzgroup, struct wmGizmo *gz, const char *name);
-
 bool WM_gizmo_select_unlink(struct wmGizmoMap *gzmap, struct wmGizmo *gz);
 bool WM_gizmo_select_set(struct wmGizmoMap *gzmap, struct wmGizmo *gz, bool select);
 void WM_gizmo_highlight_set(struct wmGizmoMap *gzmap, struct wmGizmo *gz);

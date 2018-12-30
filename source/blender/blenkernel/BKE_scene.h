@@ -104,7 +104,6 @@ int BKE_scene_base_iter_next(
         struct Scene **scene, int val, struct Base **base, struct Object **ob);
 
 void BKE_scene_base_flag_to_objects(struct ViewLayer *view_layer);
-void BKE_scene_base_flag_from_objects(struct Scene *scene);
 void BKE_scene_object_base_flag_sync_from_base(struct Base *base);
 void BKE_scene_object_base_flag_sync_from_object(struct Base *base);
 

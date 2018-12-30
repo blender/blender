@@ -260,11 +260,6 @@ void RE_SetView(struct Render *re, float mat[4][4]);
 void RE_GetView(struct Render *re, float mat[4][4]);
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 
-/* make or free the dbase */
-void RE_Database_CameraOnly(
-        struct Render *re, struct Main *bmain, struct Scene *scene,
-        int use_camera_view);
-
 /* set the render threads based on the commandline and autothreads setting */
 void RE_init_threadcount(Render *re);
 

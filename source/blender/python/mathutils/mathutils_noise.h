@@ -28,7 +28,5 @@
 #define __MATHUTILS_NOISE_H__
 
 PyMODINIT_FUNC PyInit_mathutils_noise(void);
-PyMODINIT_FUNC PyInit_mathutils_noise_types(void);
-PyMODINIT_FUNC PyInit_mathutils_noise_metrics(void);
 
 #endif /* __MATHUTILS_NOISE_H__ */

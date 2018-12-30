@@ -494,10 +494,6 @@ void DM_interp_poly_data(
 
 void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
-DerivedMesh *mesh_create_derived_for_modifier(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
-        struct ModifierData *md, int build_shapekey_layers);
-
 DerivedMesh *mesh_create_derived_render(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);
@@ -529,8 +525,6 @@ void DM_add_named_tangent_layer_for_uv(
 void DM_calc_loop_tangents(
         DerivedMesh *dm, bool calc_active_tangent, const char (*tangent_names)[MAX_NAME],
         int tangent_names_count);
-
-void DM_calc_auto_bump_scale(DerivedMesh *dm);
 
 void DM_init_origspace(DerivedMesh *dm);
 

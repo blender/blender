@@ -56,8 +56,6 @@ void BKE_blender_userdef_app_template_data_swap(struct UserDef *userdef_dst, str
 void BKE_blender_userdef_app_template_data_set(struct UserDef *userdef);
 void BKE_blender_userdef_app_template_data_set_and_free(struct UserDef *userdef);
 
-void BKE_blender_userdef_data_duplicate(struct UserDef *userdef_dst, struct UserDef *userdef_src);
-
 void BKE_blender_userdef_data_free(struct UserDef *userdef, bool clear_fonts);
 
 /* set this callback when a UI is running */

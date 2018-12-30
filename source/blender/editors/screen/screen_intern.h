@@ -44,7 +44,6 @@ struct Main;
 /* area.c */
 void        ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free);
 void        ED_area_data_swap(ScrArea *sa1, ScrArea *sa2);
-void        screen_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *area);
 void        region_toggle_hidden(struct bContext *C, ARegion *ar, const bool do_fade);
 
 /* screen_edit.c */

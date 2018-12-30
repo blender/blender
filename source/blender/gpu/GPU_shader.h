@@ -95,7 +95,6 @@ void GPU_shader_uniform_buffer(GPUShader *shader, int location, struct GPUUnifor
 void GPU_shader_uniform_texture(GPUShader *shader, int location, struct GPUTexture *tex);
 void GPU_shader_uniform_float(GPUShader *shader, int location, float value);
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
-void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int output, int number);
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name);
 

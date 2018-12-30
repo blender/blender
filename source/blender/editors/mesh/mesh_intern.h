@@ -123,7 +123,6 @@ void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt);
 void MESH_OT_polybuild_face_at_cursor(struct wmOperatorType *ot);
 void MESH_OT_polybuild_split_at_cursor(struct wmOperatorType *ot);
 void MESH_OT_polybuild_dissolve_at_cursor(struct wmOperatorType *ot);
-void MESH_OT_polybuild_hover(struct wmOperatorType *ot);
 
 /* *** editmesh_inset.c *** */
 void MESH_OT_inset(struct wmOperatorType *ot);

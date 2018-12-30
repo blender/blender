@@ -186,7 +186,6 @@ TreeTraversalAction outliner_find_selected_objects(struct TreeElement *te, void 
 /* outliner_draw.c ---------------------------------------------- */
 
 void draw_outliner(const struct bContext *C);
-void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
 
 TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te);
 
@@ -229,17 +228,6 @@ int common_restrict_check(struct bContext *C, struct Object *ob);
 int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel);
 bool outliner_flag_set(ListBase *lb, short flag, short set);
 bool outliner_flag_flip(ListBase *lb, short flag);
-
-void object_toggle_visibility_cb(
-        struct bContext *C, struct ReportList *reports, struct Scene *scene,
-        TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
-void object_toggle_selectability_cb(
-        struct bContext *C, struct ReportList *reports, struct Scene *scene,
-        TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
-void object_toggle_renderability_cb(
-        struct bContext *C, struct ReportList *reports, struct Scene *scene,
-        TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
-
 
 void item_rename_cb(
         struct bContext *C, struct ReportList *reports, struct Scene *scene,

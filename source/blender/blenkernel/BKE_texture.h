@@ -73,7 +73,6 @@ struct MTex *BKE_texture_mtex_add_id(struct ID *id, int slot);
 /* UNUSED */
 // void autotexname(struct Tex *tex);
 
-struct Tex *give_current_object_texture(struct Object *ob);
 struct Tex *give_current_linestyle_texture(struct FreestyleLineStyle *linestyle);
 struct Tex *give_current_brush_texture(struct Brush *br);
 struct Tex *give_current_particle_texture(struct ParticleSettings *part);

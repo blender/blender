@@ -180,11 +180,13 @@ inline bool bc_startswith(std::string const & value, std::string const & startin
 	return (value.substr(0, starting.size()) == starting);
 }
 
+#if 0  /* UNUSED */
 inline bool bc_endswith(std::string const & value, std::string const & ending)
 {
 	if (ending.size() > value.size()) return false;
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
+#endif
 
 extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement);
 extern std::string bc_url_encode(std::string data);

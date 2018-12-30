@@ -41,7 +41,6 @@ struct GPUVertFormat;
 #include "BLI_sys_types.h"
 
 /* gpu_batch_presets.c */
-struct GPUVertFormat *GPU_batch_preset_format_3d(void);
 
 /* Replacement for gluSphere */
 struct GPUBatch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
