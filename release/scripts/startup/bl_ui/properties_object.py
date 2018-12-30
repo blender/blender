@@ -142,7 +142,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(ob, "parent")
-        sub = col.row(align=True)
+        sub = col.column()
         sub.prop(ob, "parent_type")
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
@@ -152,18 +152,20 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
         col = flow.column()
         col.active = (ob.parent is not None)
         col.prop(ob, "use_slow_parent")
-        sub = col.row(align=True)
+        sub = col.column()
         sub.active = (ob.use_slow_parent)
         sub.prop(ob, "slow_parent_offset", text="Offset")
 
-        col = flow.column()
         col.separator()
+
+        col = flow.column()
 
         col.prop(ob, "track_axis", text="Tracking Axis")
         col.prop(ob, "up_axis", text="Up Axis")
 
-        col = flow.column()
         col.separator()
+
+        col = flow.column()
 
         col.prop(ob, "pass_index")
 
