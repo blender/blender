@@ -780,9 +780,9 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
-/* Simulates the grid scale that is visualized by the shaders drawing functions.
- * The actual code is seen in `object_grid_frag.glsl` when you get the `grid_res` value.
- * Currently the simulation is done only when RV3D_VIEW_IS_AXIS. */
+/* Simulates the grid scale that is actually viewed.
+ * The actual code is seen in `object_grid_frag.glsl` (see `grid_res`).
+ * Currently the simulation is only done when RV3D_VIEW_IS_AXIS. */
 float ED_view3d_grid_view_scale(
         Scene *scene, View3D *v3d, RegionView3D *rv3d, const char **grid_unit)
 {
@@ -798,7 +798,7 @@ float ED_view3d_grid_view_scale(
 			float lvl = (logf(grid_distance / grid_scale) / logf(grid_subdiv));
 
 			/* 1.3f is a visually chosen offset for the
-			 * subdivision to match the displayed grid. */
+			 * subdivision to match the visible grid. */
 			lvl -= 1.3f;
 			CLAMP_MIN(lvl, 0.0f);
 
