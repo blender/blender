@@ -1313,6 +1313,12 @@ static void outliner_add_layer_collections_recursive(
 		ten->name = id->name + 2;
 		ten->directdata = lc;
 
+		/* Open by default. */
+		TreeStoreElem *tselem = TREESTORE(ten);
+		if (!tselem->used) {
+			tselem->flag &= ~TSE_CLOSED;
+		}
+
 		const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
 		if (exclude ||
 		    ((layer->runtime_flag & VIEW_LAYER_HAS_HIDE) &&
