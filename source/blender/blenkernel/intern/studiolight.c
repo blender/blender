@@ -88,6 +88,9 @@ static const char *STUDIOLIGHT_LIGHTS_FOLDER = "studiolights/studio/";
 static const char *STUDIOLIGHT_WORLD_FOLDER = "studiolights/world/";
 static const char *STUDIOLIGHT_MATCAP_FOLDER = "studiolights/matcap/";
 
+static const char *STUDIOLIGHT_WORLD_DEFAULT = "forest.exr";
+static const char *STUDIOLIGHT_MATCAP_DEFAULT = "basic_1.exr";
+
 /* ITER MACRO */
 
 /** Iter on all pixel giving texel center position and pixel pointer.
@@ -1249,8 +1252,23 @@ void BKE_studiolight_free(void)
 	}
 }
 
-struct StudioLight *BKE_studiolight_find_first(int flag)
+struct StudioLight *BKE_studiolight_find_default(int flag)
 {
+	const char *default_name = "";
+
+	if (flag & STUDIOLIGHT_TYPE_WORLD) {
+		default_name = STUDIOLIGHT_WORLD_DEFAULT;
+	}
+	else if (flag & STUDIOLIGHT_TYPE_MATCAP) {
+		default_name = STUDIOLIGHT_MATCAP_DEFAULT;
+	}
+
+	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
+		if ((sl->flag & flag) && STREQ(sl->name, default_name)) {
+			return sl;
+		}
+	}
+
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
 		if ((sl->flag & flag)) {
 			return sl;
@@ -1268,12 +1286,12 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
 			}
 			else {
 				/* flags do not match, so use default */
-				return BKE_studiolight_find_first(flag);
+				return BKE_studiolight_find_default(flag);
 			}
 		}
 	}
 	/* When not found, use the default studio light */
-	return BKE_studiolight_find_first(flag);
+	return BKE_studiolight_find_default(flag);
 }
 
 struct StudioLight *BKE_studiolight_findindex(int index, int flag)
@@ -1284,7 +1302,7 @@ struct StudioLight *BKE_studiolight_findindex(int index, int flag)
 		}
 	}
 	/* When not found, use the default studio light */
-	return BKE_studiolight_find_first(flag);
+	return BKE_studiolight_find_default(flag);
 }
 
 struct ListBase *BKE_studiolight_listbase(void)
