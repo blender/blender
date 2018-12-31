@@ -3206,7 +3206,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{15, "INFO", ICON_INFO, "Info", ""},
 		{16, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", ""},
 		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
-		{20, "CLIP_EDITOR", ICON_CLIP, "Movie Clip Editor", ""},
+		{20, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", ""},
 		{21, "TOPBAR", ICON_NONE, "Top Bar", ""},
 		{22, "STATUSBAR", ICON_NONE, "Status Bar", ""},
 		{0, NULL, 0, NULL, NULL}

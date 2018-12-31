@@ -396,7 +396,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMODIFIERS);
 	RNA_def_property_ui_text(prop, "Display Modifier Data",
 	                         "Include visualization of animation data related to data-blocks linked to modifiers");
-	RNA_def_property_ui_icon(prop, ICON_MODIFIER, 0);
+	RNA_def_property_ui_icon(prop, ICON_MODIFIER_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_meshes", PROP_BOOLEAN, PROP_NONE);

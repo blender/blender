@@ -4581,7 +4581,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY))
 			owner = sa;
 		handle_event = B_STOPCLIP;
-		icon = ICON_CLIP;
+		icon = ICON_TRACKER;
 	}
 	else if (sa->spacetype == SPACE_FILE) {
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_FILESEL_READDIR)) {

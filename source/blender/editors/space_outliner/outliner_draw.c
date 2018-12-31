@@ -891,7 +891,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 				data.icon = ICON_CONSTRAINT;
 				break;
 			case TSE_MODIFIER_BASE:
-				data.icon = ICON_MODIFIER;
+				data.icon = ICON_MODIFIER_DATA;
 				break;
 			case TSE_LINKED_OB:
 				data.icon = ICON_OBJECT_DATA;

@@ -70,7 +70,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
 	{ID_MB, "META", ICON_META_DATA, "Metaball", ""},
 	{ID_ME, "MESH", ICON_MESH_DATA, "Mesh", ""},
-	{ID_MC, "MOVIECLIP", ICON_CLIP, "Movie Clip", ""},
+	{ID_MC, "MOVIECLIP", ICON_TRACKER, "Movie Clip", ""},
 	{ID_NT, "NODETREE", ICON_NODETREE, "Node Tree", ""},
 	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
 	{ID_PC, "PAINTCURVE", ICON_CURVE_BEZCURVE, "Paint Curve", ""},

@@ -1894,7 +1894,7 @@ int UI_idcode_icon_get(const int idcode)
 		case ID_MB:
 			return ICON_META_DATA;
 		case ID_MC:
-			return ICON_CLIP;
+			return ICON_TRACKER;
 		case ID_ME:
 			return ICON_MESH_DATA;
 		case ID_MSK:
