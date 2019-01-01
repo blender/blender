@@ -259,6 +259,7 @@ class _draw_left_context_mode:
             UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "blend", text="")
 
         @staticmethod
         def PAINT_VERTEX(context, layout, tool):
@@ -277,6 +278,7 @@ class _draw_left_context_mode:
             UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "blend", text="")
 
         @staticmethod
         def PAINT_WEIGHT(context, layout, tool):
@@ -294,6 +296,7 @@ class _draw_left_context_mode:
             UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
             UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "blend", text="")
 
         @staticmethod
         def PAINT_GPENCIL(context, layout, tool):
@@ -494,6 +497,7 @@ class _draw_left_context_mode:
             UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "blend", text="")
 
 
 class TOPBAR_PT_gpencil_layers(Panel):
