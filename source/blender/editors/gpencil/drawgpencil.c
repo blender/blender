@@ -712,7 +712,8 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	int keep_size = (int)((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
 	immUniform1i("keep_size", keep_size);
 	immUniform1i("pixfactor", tgpw->gpd->pixfactor);
-	immUniform1i("xraymode", tgpw->gpd->xray_mode);
+	/* xray mode always to 3D space to avoid wrong zdepth calculation (T60051) */
+	immUniform1i("xraymode", GP_XRAY_3DSPACE);
 
 	/* draw stroke curve */
 	GPU_line_width(max_ff(curpressure * thickness, 1.0f));
