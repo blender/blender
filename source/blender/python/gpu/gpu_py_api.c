@@ -41,7 +41,7 @@
 #include "gpu_py_select.h"
 #include "gpu_py_types.h"
 
-#include "gpu_py.h" /* own include */
+#include "gpu_py_api.h" /* own include */
 
 
 /* -------------------------------------------------------------------- */

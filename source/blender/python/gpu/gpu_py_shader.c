@@ -36,7 +36,7 @@
 #include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
-#include "gpu_py.h"
+#include "gpu_py_api.h"
 #include "gpu_py_shader.h" /* own include */
 #include "gpu_py_vertex_format.h"
 

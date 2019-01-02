@@ -34,7 +34,7 @@ set(INC_SYS
 )
 
 set(SRC
-	gpu_py.c
+	gpu_py_api.c
 	gpu_py_batch.c
 	gpu_py_element.c
 	gpu_py_matrix.c
@@ -45,7 +45,7 @@ set(SRC
 	gpu_py_vertex_buffer.c
 	gpu_py_vertex_format.c
 
-	gpu_py.h
+	gpu_py_api.h
 	gpu_py_batch.h
 	gpu_py_element.h
 	gpu_py_matrix.h
