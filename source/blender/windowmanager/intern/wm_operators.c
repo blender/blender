@@ -1651,12 +1651,9 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEv
 	}
 
 
-	struct SearchPopupInit_Data data = {
-		.size = {
-		    UI_searchbox_size_x() * 2,
-		    UI_searchbox_size_y(),
-		},
-	};
+	static struct SearchPopupInit_Data data;
+	data.size[0] = UI_searchbox_size_x() * 2;
+	data.size[1] = UI_searchbox_size_y();
 
 	UI_popup_block_invoke(C, wm_block_search_menu, &data);
 
