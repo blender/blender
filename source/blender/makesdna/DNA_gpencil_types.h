@@ -178,7 +178,7 @@ typedef struct bGPDstroke {
 	char colorname[128] DNA_DEPRECATED;    /* color name */
 
 	int mat_nr;             /* material index */
-	char pad_[4];
+	char _pad[4];
 
 	struct MDeformVert *dvert;    /* vertex weight data */
 
@@ -244,7 +244,7 @@ typedef enum eGPDframe_Flag {
 /* Runtime temp data for bGPDlayer */
 typedef struct bGPDlayer_Runtime {
 	int icon_id;                    /* id for dynamic icon used to show annotation color preview for layer */
-	char pad_[4];
+	char _pad[4];
 } bGPDlayer_Runtime;
 
 /* Grease-Pencil Annotations - 'Layer' */
@@ -277,7 +277,7 @@ typedef struct bGPDlayer {
 	char viewlayername[64]; /* Name of the layer used to filter render output */
 
 	int blend_mode;         /* blend modes */
-	char pad_[4];
+	char _pad[4];
 
 	/* annotation onion skin */
 	short gstep;			/* Ghosts Before: max number of ghost frames to show between active frame and the one before it (0 = only the ghost itself) */
@@ -351,7 +351,7 @@ typedef struct bGPdata_Runtime {
 	 */
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
-	char pad_[6];
+	char _pad[6];
 
 	int tot_cp_points;                 /* number of control-points for stroke */
 	char pad1_[4];
@@ -366,7 +366,7 @@ typedef struct bGPgrid {
 	char _pad1[4];
 
 	int   lines;
-	char pad_[4];
+	char _pad[4];
 } bGPgrid;
 
 /* Grease-Pencil Annotations - 'DataBlock' */
