@@ -147,7 +147,7 @@ const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(
 		case SPACE_VIEW3D:
 			return rna_enum_context_mode_items;
 		case SPACE_IMAGE:
-			return rna_enum_space_image_mode_items;
+			return rna_enum_space_image_mode_all_items;
 	}
 	return DummyRNA_DEFAULT_items;
 }
