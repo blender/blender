@@ -328,8 +328,17 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	for(size_t i = 0; i < passes.size(); i++) {
 		Pass& pass = passes[i];
 
-		if(pass.type == PASS_NONE)
+		if(pass.type == PASS_NONE) {
 			continue;
+		}
+
+		/* Can't do motion pass if no motion vectors are available. */
+		if (pass.type == PASS_MOTION || pass.type == PASS_MOTION_WEIGHT) {
+			if (scene->need_motion() != Scene::MOTION_PASS) {
+				kfilm->pass_stride += pass.components;
+				continue;
+			}
+		}
 
 		int pass_flag = (1 << (pass.type % 32));
 		if(pass.type <= PASS_CATEGORY_MAIN_END) {
