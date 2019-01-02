@@ -111,6 +111,11 @@ class SelectPattern(Operator):
         row.prop(self, "case_sensitive")
         row.prop(self, "extend")
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return (not obj) or (obj.mode == 'OBJECT') or (obj.type == 'ARMATURE')
+
 
 class SelectCamera(Operator):
     """Select the active camera"""
