@@ -5645,15 +5645,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	/* in case this value changes in future, clamp else we get undefined behavior */
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
-	if (ob->sculpt) {
-		if (ob->mode & OB_MODE_ALL_SCULPT) {
-			ob->sculpt = MEM_callocN(sizeof(SculptSession), "reload sculpt session");
-			ob->sculpt->mode_type = ob->mode;
-		}
-		else {
-			ob->sculpt = NULL;
-		}
-	}
+	ob->sculpt = NULL;
 
 	link_list(fd, &ob->lodlevels);
 	ob->currentlod = ob->lodlevels.first;
