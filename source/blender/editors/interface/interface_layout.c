@@ -876,7 +876,7 @@ void UI_context_active_but_prop_get_filebrowser(
 {
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
-	uiBut *but, *prevbut;
+	uiBut *but, *prevbut = NULL;
 
 	memset(r_ptr, 0, sizeof(*r_ptr));
 	*r_prop = NULL;
@@ -887,16 +887,18 @@ void UI_context_active_but_prop_get_filebrowser(
 
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		for (but = block->buttons.first; but; but = but->next) {
-			prevbut = but->prev;
+			if (but && but->rnapoin.data) {
+				if (RNA_property_type(but->rnaprop) == PROP_STRING) {
+					prevbut = but;
+				}
+			}
 
 			/* find the button before the active one */
-			if ((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.data) {
-				if (RNA_property_type(prevbut->rnaprop) == PROP_STRING) {
-					*r_ptr = prevbut->rnapoin;
-					*r_prop = prevbut->rnaprop;
-					*r_is_undo = (prevbut->flag & UI_BUT_UNDO) != 0;
-					return;
-				}
+			if ((but->flag & UI_BUT_LAST_ACTIVE) && prevbut) {
+				*r_ptr = prevbut->rnapoin;
+				*r_prop = prevbut->rnaprop;
+				*r_is_undo = (prevbut->flag & UI_BUT_UNDO) != 0;
+				return;
 			}
 		}
 	}
