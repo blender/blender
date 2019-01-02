@@ -62,11 +62,13 @@ class SelectPattern(Operator):
             pattern_match = (lambda a, b:
                              fnmatch.fnmatchcase(a.upper(), b.upper()))
         is_ebone = False
+        is_pbone = False
         obj = context.object
         if obj and obj.mode == 'POSE':
             items = obj.data.bones
             if not self.extend:
                 bpy.ops.pose.select_all(action='DESELECT')
+            is_pbone = True
         elif obj and obj.type == 'ARMATURE' and obj.mode == 'EDIT':
             items = obj.data.edit_bones
             if not self.extend:
@@ -77,7 +79,7 @@ class SelectPattern(Operator):
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
 
-        # Can be pose bones or objects
+        # Can be pose bones, edit bones or objects
         for item in items:
             if pattern_match(item.name, self.pattern):
 
@@ -90,6 +92,8 @@ class SelectPattern(Operator):
                         item_parent = item.parent
                         if item_parent is not None:
                             item_parent.select_tail = True
+                elif is_pbone:
+                    item.select = True
                 else:
                     item.select_set(True)
 
