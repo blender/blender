@@ -2939,6 +2939,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Blender Units",
 	                         "When locked brush stays same size relative to object; "
 	                         "when unlocked brush size is given in pixels");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, true);
 }
 
 

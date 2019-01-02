@@ -356,15 +356,15 @@ def brush_basic_sculpt_settings(layout, context, brush, *, compact=False):
     capabilities = brush.sculpt_capabilities
 
     row = layout.row(align=True)
+    UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_locked_size")
+
     ups = tool_settings.unified_paint_settings
     if (
             (ups.use_unified_size and ups.use_locked_size) or
             ((not ups.use_unified_size) and brush.use_locked_size)
     ):
-        UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_locked_size", icon='LOCKED')
         UnifiedPaintPanel.prop_unified_size(row, context, brush, "unprojected_radius", slider=True, text="Radius")
     else:
-        UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_locked_size", icon='UNLOCKED')
         UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
 
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size")
