@@ -1880,6 +1880,7 @@ static bool correctivesmooth_poll(bContext *C)
 
 static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)edit_modifier_property_get(op, ob, eModifierType_CorrectiveSmooth);
@@ -1906,9 +1907,16 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
 	else {
 		/* signal to modifier to recalculate */
 		csmd->bind_coords_num = (unsigned int)-1;
+
+		/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+		const int mode = csmd->modifier.mode;
+		csmd->modifier.mode |= eModifierMode_Realtime;
+		object_force_modifier_update_for_bind(depsgraph, scene, ob);
+		csmd->modifier.mode = mode;
 	}
 
-	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+	/* We need ID_RECALC_COPY_ON_WRITE to ensure (un)binding is flushed to CoW copies of the object... */
+	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
