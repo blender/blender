@@ -328,11 +328,11 @@ class SEQUENCER_MT_add(Menu):
         bpy_data_movieclips_len = len(bpy.data.movieclips)
         if bpy_data_movieclips_len > 10:
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("sequencer.movieclip_strip_add", text="Clip...", icon='CLIP')
+            layout.operator("sequencer.movieclip_strip_add", text="Clip...", icon='TRACKER')
         elif bpy_data_movieclips_len > 0:
-            layout.operator_menu_enum("sequencer.movieclip_strip_add", "clip", text="Clip", icon='CLIP')
+            layout.operator_menu_enum("sequencer.movieclip_strip_add", "clip", text="Clip", icon='TRACKER')
         else:
-            layout.menu("SEQUENCER_MT_add_empty", text="Clip", icon='CLIP')
+            layout.menu("SEQUENCER_MT_add_empty", text="Clip", icon='TRACKER')
         del bpy_data_movieclips_len
 
         bpy_data_masks_len = len(bpy.data.masks)
