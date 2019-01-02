@@ -1209,9 +1209,6 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->main = re->main;
 	resc->scene = sce;
 
-	/* ensure scene has depsgraph, base flags etc OK */
-	BKE_scene_set_background(re->main, sce);
-
 	/* copy callbacks */
 	resc->display_update = re->display_update;
 	resc->duh = re->duh;
@@ -1260,7 +1257,6 @@ static void ntree_render_scenes(Render *re)
 	bNode *node;
 	int cfra = re->scene->r.cfra;
 	Scene *restore_scene = re->scene;
-	bool scene_changed = false;
 
 	if (re->scene->nodetree == NULL) return;
 
@@ -1269,22 +1265,15 @@ static void ntree_render_scenes(Render *re)
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 			if (node->id && node->id != (ID *)re->scene) {
-				if (node->flag & NODE_TEST) {
-					Scene *scene = (Scene *)node->id;
+				Scene *scene = (Scene *)node->id;
 
-					scene_changed |= scene != restore_scene;
+				if (render_scene_has_layers_to_render(scene, false)) {
 					render_scene(re, scene, cfra);
-					node->flag &= ~NODE_TEST;
-
 					nodeUpdate(restore_scene->nodetree, node);
 				}
 			}
 		}
 	}
-
-	/* restore scene if we rendered another last */
-	if (scene_changed)
-		BKE_scene_set_background(re->main, re->scene);
 }
 
 /* bad call... need to think over proper method still */
