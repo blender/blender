@@ -914,7 +914,7 @@ static bool gp_brush_weight_apply(
 	}
 
 	/* verify target weight */
-	CLAMP_MAX(curweight, gso->gp_brush->target_weight);
+	CLAMP_MAX(curweight, gso->gp_brush->weight);
 
 	CLAMP(curweight, 0.0f, 1.0f);
 	if (dw) {

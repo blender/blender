@@ -1304,7 +1304,7 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-	prop = RNA_def_property(srna, "target_weight", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Target weight");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);

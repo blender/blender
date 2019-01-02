@@ -991,7 +991,7 @@ typedef struct GP_Sculpt_Data {
 	float strength;         /* strength of effect */
 	float curcolor_add[3];  /* cursor color for add */
 	float curcolor_sub[3];  /* cursor color for sub */
-	float target_weight;    /* target weight */
+	float weight;           /* target weight */
 	char pad_[4];
 } GP_Sculpt_Data;
 

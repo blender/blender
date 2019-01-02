@@ -476,7 +476,7 @@ def brush_basic_gpencil_weight_settings(layout, context, brush, *, compact=False
 
     layout.prop(brush, "use_falloff")
 
-    layout.prop(brush, "target_weight", slider=True)
+    layout.prop(brush, "weight", slider=True)
 
 
 classes = (
