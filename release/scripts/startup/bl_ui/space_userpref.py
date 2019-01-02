@@ -45,11 +45,9 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif prefs.active_section == 'LIGHTS':
-            layout.operator("wm.studiolight_install", text="Add MatCap").type = 'MATCAP'
-            layout.operator("wm.studiolight_install", text="Add LookDev HDRI").type = 'WORLD'
-            op = layout.operator("wm.studiolight_install", text="Add Studio Light")
-            op.type = 'STUDIO'
-            op.filter_glob = ".sl"
+            layout.operator("wm.studiolight_install", text="Install MatCap").type = 'MATCAP'
+            layout.operator("wm.studiolight_install", text="Install LookDev HDRI").type = 'WORLD'
+            layout.operator("wm.studiolight_install", text="Install Studio Light").type = 'STUDIO'
         elif prefs.active_section == 'THEMES':
             layout.operator("wm.theme_install", icon='FILEBROWSER')
             layout.operator("ui.reset_default_theme", icon='LOOP_BACK')

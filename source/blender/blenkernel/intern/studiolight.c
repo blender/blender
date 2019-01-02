@@ -1391,8 +1391,8 @@ StudioLight *BKE_studiolight_create(const char *path, const SolidLight light[4],
 
 	char filename[FILE_MAXFILE];
 	BLI_split_file_part(path, filename, FILE_MAXFILE);
-	BLI_snprintf(sl->path, FILE_MAXFILE, "%s%s", path, ".sl");
-	BLI_snprintf(sl->name, FILE_MAXFILE, "%s%s", filename, ".sl");
+	STRNCPY(sl->path, path);
+	STRNCPY(sl->name, filename);
 
 	memcpy(sl->light, light, sizeof(*light) * 4);
 	memcpy(sl->light_ambient, light_ambient, sizeof(*light_ambient) * 3);
