@@ -1751,15 +1751,15 @@ class VIEW3D_MT_object_specials(Menu):
         '''
 
         # If something is selected
-        if obj is None:
-            pass
-        elif obj.type == 'MESH':
-
+        if obj is not None and obj.type in {'MESH', 'CURVE', 'SURFACE'}:
             layout.operator("object.shade_smooth", text="Shade Smooth")
             layout.operator("object.shade_flat", text="Shade Flat")
 
             layout.separator()
 
+        if obj is None:
+            pass
+        elif obj.type == 'MESH':
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator_menu_enum("object.origin_set", text="Set Origin...", property="type")
 
