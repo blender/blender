@@ -145,8 +145,9 @@ static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 
 /* UI compatible list: should not be needed, but for now we need to keep EMPTY
  * at least in the static version of this enum for python scripts. */
-static const EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                             PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Area_type_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;

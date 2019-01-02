@@ -2657,8 +2657,9 @@ static const EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	return item;
 }
 
-static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                    PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Node_image_layer_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bNode *node = (bNode *)ptr->data;
 	Image *ima = (Image *)node->id;
@@ -2724,8 +2725,9 @@ static const EnumPropertyItem *renderresult_views_add_enum(RenderView *rv)
 	return item;
 }
 
-static const EnumPropertyItem *rna_Node_image_view_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Node_image_view_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bNode *node = (bNode *)ptr->data;
 	Image *ima = (Image *)node->id;
@@ -2745,8 +2747,9 @@ static const EnumPropertyItem *rna_Node_image_view_itemf(bContext *UNUSED(C), Po
 	return item;
 }
 
-static const EnumPropertyItem *rna_Node_view_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                    PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Node_view_layer_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bNode *node = (bNode *)ptr->data;
 	Scene *sce = (Scene *)node->id;
@@ -2774,8 +2777,9 @@ static void rna_Node_view_layer_update(Main *bmain, Scene *scene, PointerRNA *pt
 	}
 }
 
-static const EnumPropertyItem *rna_Node_channel_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Node_channel_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bNode *node = (bNode *)ptr->data;
 	EnumPropertyItem *item = NULL;

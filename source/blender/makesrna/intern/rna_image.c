@@ -179,8 +179,9 @@ static char *rna_ImageUser_path(PointerRNA *ptr)
 	return BLI_strdup("");
 }
 
-static const EnumPropertyItem *rna_Image_source_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Image_source_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Image *ima = (Image *)ptr->data;
 	EnumPropertyItem *item = NULL;

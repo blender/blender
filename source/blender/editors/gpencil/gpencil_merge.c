@@ -208,9 +208,9 @@ static void gpencil_dissolve_points(bContext *C)
  * All the data is saved to be sorted and used later.
  */
 static void gpencil_calc_points_factor(
-			bContext *C, const int mode, int totpoints,
-			const bool clear_point, const bool clear_stroke,
-			tGPencilPointCache *src_array)
+        bContext *C, const int mode, int totpoints,
+        const bool clear_point, const bool clear_stroke,
+        tGPencilPointCache *src_array)
 {
 	bGPDspoint *pt;
 	int i;
@@ -367,77 +367,77 @@ static void gpencil_get_extremes(
 }
 
 static int gpencil_analyze_strokes(
-		tGPencilPointCache *src_array, int totstrokes, int totpoints,
-		tGPencilPointCache *dst_array)
+        tGPencilPointCache *src_array, int totstrokes, int totpoints,
+        tGPencilPointCache *dst_array)
 {
-		int i;
-		int last = 0;
-		GHash *all_strokes = BLI_ghash_ptr_new(__func__);
-		/* add first stroke to array */
-		tGPencilPointCache *sort_pt = &src_array[0];
-		bGPDstroke *gps = sort_pt->gps;
-		last = gpencil_insert_to_array(src_array, dst_array, totpoints, gps, false, last);
-		float start[3];
-		float end[3];
-		float end_prv[3];
-		gpencil_get_extremes(src_array, totpoints, gps, start, end);
-		copy_v3_v3(end_prv, end);
-		BLI_ghash_insert(all_strokes, sort_pt->gps, sort_pt->gps);
+	int i;
+	int last = 0;
+	GHash *all_strokes = BLI_ghash_ptr_new(__func__);
+	/* add first stroke to array */
+	tGPencilPointCache *sort_pt = &src_array[0];
+	bGPDstroke *gps = sort_pt->gps;
+	last = gpencil_insert_to_array(src_array, dst_array, totpoints, gps, false, last);
+	float start[3];
+	float end[3];
+	float end_prv[3];
+	gpencil_get_extremes(src_array, totpoints, gps, start, end);
+	copy_v3_v3(end_prv, end);
+	BLI_ghash_insert(all_strokes, sort_pt->gps, sort_pt->gps);
 
-		/* look for near stroke */
-		bool loop = (bool)(totstrokes > 1);
-		while (loop) {
-			bGPDstroke *gps_next = NULL;
-			GHash *strokes = BLI_ghash_ptr_new(__func__);
-			float dist_start = 0.0f;
-			float dist_end = 0.0f;
-			float dist = FLT_MAX;
-			bool reverse = false;
+	/* look for near stroke */
+	bool loop = (bool)(totstrokes > 1);
+	while (loop) {
+		bGPDstroke *gps_next = NULL;
+		GHash *strokes = BLI_ghash_ptr_new(__func__);
+		float dist_start = 0.0f;
+		float dist_end = 0.0f;
+		float dist = FLT_MAX;
+		bool reverse = false;
 
-			for (i = 0; i < totpoints; i++) {
-				sort_pt = &src_array[i];
-				/* avoid dups */
-				if (BLI_ghash_haskey(all_strokes, sort_pt->gps)) {
-					continue;
-				}
-				if (!BLI_ghash_haskey(strokes, sort_pt->gps)) {
-					gpencil_get_extremes(src_array, totpoints, sort_pt->gps, start, end);
-					/* distances to previous end */
-					dist_start = len_v3v3(end_prv, start);
-					dist_end = len_v3v3(end_prv, end);
-
-					if (dist > dist_start) {
-						gps_next = sort_pt->gps;
-						dist = dist_start;
-						reverse = false;
-					}
-					if (dist > dist_end) {
-						gps_next = sort_pt->gps;
-						dist = dist_end;
-						reverse = true;
-					}
-					BLI_ghash_insert(strokes, sort_pt->gps, sort_pt->gps);
-				}
+		for (i = 0; i < totpoints; i++) {
+			sort_pt = &src_array[i];
+			/* avoid dups */
+			if (BLI_ghash_haskey(all_strokes, sort_pt->gps)) {
+				continue;
 			}
-			BLI_ghash_free(strokes, NULL, NULL);
+			if (!BLI_ghash_haskey(strokes, sort_pt->gps)) {
+				gpencil_get_extremes(src_array, totpoints, sort_pt->gps, start, end);
+				/* distances to previous end */
+				dist_start = len_v3v3(end_prv, start);
+				dist_end = len_v3v3(end_prv, end);
 
-			/* add the stroke to array */
-			if (gps->next != NULL) {
-				BLI_ghash_insert(all_strokes, gps_next, gps_next);
-				last = gpencil_insert_to_array(src_array, dst_array, totpoints, gps_next, reverse, last);
-				/* replace last end */
-				sort_pt = &dst_array[last - 1];
-				copy_v3_v3(end_prv, &sort_pt->x);
-			}
-
-			/* loop exit */
-			if (last >= totpoints) {
-				loop = false;
+				if (dist > dist_start) {
+					gps_next = sort_pt->gps;
+					dist = dist_start;
+					reverse = false;
+				}
+				if (dist > dist_end) {
+					gps_next = sort_pt->gps;
+					dist = dist_end;
+					reverse = true;
+				}
+				BLI_ghash_insert(strokes, sort_pt->gps, sort_pt->gps);
 			}
 		}
+		BLI_ghash_free(strokes, NULL, NULL);
 
-		BLI_ghash_free(all_strokes, NULL, NULL);
-		return last;
+		/* add the stroke to array */
+		if (gps->next != NULL) {
+			BLI_ghash_insert(all_strokes, gps_next, gps_next);
+			last = gpencil_insert_to_array(src_array, dst_array, totpoints, gps_next, reverse, last);
+			/* replace last end */
+			sort_pt = &dst_array[last - 1];
+			copy_v3_v3(end_prv, &sort_pt->x);
+		}
+
+		/* loop exit */
+		if (last >= totpoints) {
+			loop = false;
+		}
+	}
+
+	BLI_ghash_free(all_strokes, NULL, NULL);
+	return last;
 }
 
 static bool gp_strokes_merge_poll(bContext *C)
@@ -458,7 +458,7 @@ static bool gp_strokes_merge_poll(bContext *C)
 	/* check hidden or locked materials */
 	MaterialGPencilStyle *gp_style = ma->gp_style;
 	if ((gp_style->flag & GP_STYLE_COLOR_HIDE) ||
-		(gp_style->flag & GP_STYLE_COLOR_LOCKED))
+	    (gp_style->flag & GP_STYLE_COLOR_LOCKED))
 	{
 		return false;
 	}
@@ -466,8 +466,8 @@ static bool gp_strokes_merge_poll(bContext *C)
 	/* check layer */
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 	if ((gpl == NULL) ||
-		(gpl->flag & GP_LAYER_LOCKED) ||
-		(gpl->flag & GP_LAYER_HIDE))
+	    (gpl->flag & GP_LAYER_LOCKED) ||
+	    (gpl->flag & GP_LAYER_HIDE))
 	{
 		return false;
 	}
@@ -523,7 +523,7 @@ static int gp_stroke_merge_exec(bContext *C, wmOperator *op)
 
 	/* prepare the new stroke */
 	bGPDstroke *gps = gpencil_prepare_stroke(C, op, totpoints);
-	
+
 	/* copy original points to final stroke */
 	gpencil_insert_points_to_stroke(gps, sorted_array, totpoints);
 

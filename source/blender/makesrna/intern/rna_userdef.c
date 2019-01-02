@@ -425,8 +425,9 @@ static PointerRNA rna_Theme_space_list_generic_get(PointerRNA *ptr)
 
 
 #ifdef WITH_OPENSUBDIV
-static const EnumPropertyItem *rna_userdef_opensubdiv_compute_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                                   PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_userdef_opensubdiv_compute_type_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -468,8 +469,9 @@ static void rna_userdef_opensubdiv_update(Main *bmain, Scene *UNUSED(scene), Poi
 
 #endif
 
-static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                        PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_userdef_audio_device_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	int index = 0;
 	int totitem = 0;
@@ -501,8 +503,9 @@ static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C
 }
 
 #ifdef WITH_INTERNATIONAL
-static const EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_lang_enum_properties_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	const EnumPropertyItem *items = BLT_lang_RNA_enum_properties();
 	if (items == NULL) {

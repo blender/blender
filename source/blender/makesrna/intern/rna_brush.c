@@ -529,8 +529,9 @@ static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 	brush->unprojected_radius = value;
 }
 
-static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Brush_direction_itemf(
+        bContext *C, PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
@@ -635,8 +636,9 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA
 	}
 }
 
-static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Brush_stroke_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 

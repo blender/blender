@@ -471,8 +471,9 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 	ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
 
-static const EnumPropertyItem *rna_Object_parent_type_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                      PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Object_parent_type_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Object *ob = (Object *)ptr->data;
 	EnumPropertyItem *item = NULL;

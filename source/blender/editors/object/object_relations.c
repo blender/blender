@@ -385,8 +385,9 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 }
 
 /* Generic itemf's for operators that take library args */
-static const EnumPropertyItem *proxy_collection_object_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                             PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *proxy_collection_object_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem item_tmp = {0}, *item = NULL;
 	int totitem = 0;

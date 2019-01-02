@@ -2113,7 +2113,8 @@ void rna_TransformOrientationSlot_ui_info(
 	}
 }
 
-static const EnumPropertyItem *get_unit_enum_items(int system, int type, bool *r_free)
+static const EnumPropertyItem *rna_UnitSettings_itemf_wrapper(
+        const int system, const int type, bool *r_free)
 {
 	const void *usys;
 	int len;
@@ -2142,28 +2143,28 @@ static const EnumPropertyItem *get_unit_enum_items(int system, int type, bool *r
 	return items;
 }
 
-const EnumPropertyItem *rna_get_length_unit_items(
+const EnumPropertyItem *rna_UnitSettings_length_unit_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	UnitSettings *units = ptr->data;
-	return get_unit_enum_items(units->system, B_UNIT_LENGTH, r_free);
+	return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_LENGTH, r_free);
 }
 
-const EnumPropertyItem *rna_get_mass_unit_items(
+const EnumPropertyItem *rna_UnitSettings_mass_unit_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	UnitSettings *units = ptr->data;
-	return get_unit_enum_items(units->system, B_UNIT_MASS, r_free);
+	return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_MASS, r_free);
 }
 
-const EnumPropertyItem *rna_get_time_unit_items(
+const EnumPropertyItem *rna_UnitSettings_time_unit_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	UnitSettings *units = ptr->data;
-	return get_unit_enum_items(units->system, B_UNIT_TIME, r_free);
+	return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_TIME, r_free);
 }
 
-static void rna_unit_system_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_UnitSettings_system_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	UnitSettings *unit = &scene->unit;
 	if (unit->system == USER_UNIT_NONE) {
@@ -3182,7 +3183,7 @@ static void rna_def_unit_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "system", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, unit_systems);
 	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display");
-	RNA_def_property_update(prop, NC_WINDOW, "rna_unit_system_update");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_UnitSettings_system_update");
 
 	prop = RNA_def_property(srna, "system_rotation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rotation_units);
@@ -3204,19 +3205,19 @@ static void rna_def_unit_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "length_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_get_length_unit_items");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_UnitSettings_length_unit_itemf");
 	RNA_def_property_ui_text(prop, "Length Unit", "Unit that will be used to display length values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "mass_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_get_mass_unit_items");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_UnitSettings_mass_unit_itemf");
 	RNA_def_property_ui_text(prop, "Mass Unit", "Unit that will be used to display mass values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "time_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_get_time_unit_items");
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_UnitSettings_time_unit_itemf");
 	RNA_def_property_ui_text(prop, "Time Unit", "Unit that will be used to display time values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }

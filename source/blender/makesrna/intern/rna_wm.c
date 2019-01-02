@@ -877,8 +877,9 @@ static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
 }
 
 
-static const EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
-                                                   bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_KeyMapItem_type_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+        bool *UNUSED(r_free))
 {
 	int map_type = rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -890,8 +891,9 @@ static const EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), Po
 	else return rna_enum_event_type_items;
 }
 
-static const EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
-                                                    bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_KeyMapItem_value_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+        bool *UNUSED(r_free))
 {
 	int map_type = rna_wmKeyMapItem_map_type_get(ptr);
 
@@ -903,8 +905,9 @@ static const EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), P
 		return rna_enum_event_value_items;
 }
 
-static const EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop),
-                                                        bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(
+        bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+        bool *UNUSED(r_free))
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmKeyConfig *kc;

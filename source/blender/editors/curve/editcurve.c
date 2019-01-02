@@ -6133,8 +6133,9 @@ static const EnumPropertyItem curve_delete_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static const EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                            PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_curve_delete_type_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;

@@ -373,8 +373,9 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 }
 
 
-static const EnumPropertyItem *rna_Particle_Material_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                      PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_Particle_Material_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Object *ob = CTX_data_pointer_get(C, "object").data;
 	Material *ma;
@@ -1154,8 +1155,9 @@ static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
 	return strlen(tstr);
 }
 
-static const EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                 PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Particle_from_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	/*if (part->type==PART_REACTOR) */
 	/*	return part_reactor_from_items; */
@@ -1163,8 +1165,9 @@ static const EnumPropertyItem *rna_Particle_from_itemf(bContext *UNUSED(C), Poin
 	return part_from_items;
 }
 
-static const EnumPropertyItem *rna_Particle_dist_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                 PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Particle_dist_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -1174,8 +1177,9 @@ static const EnumPropertyItem *rna_Particle_dist_itemf(bContext *UNUSED(C), Poin
 		return part_dist_items;
 }
 
-static const EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                    PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Particle_draw_as_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ParticleSettings *part = ptr->id.data;
 
@@ -1185,8 +1189,9 @@ static const EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *UNUSED(C), P
 		return part_draw_as_items;
 }
 
-static const EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Particle_ren_as_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ParticleSettings *part = ptr->id.data;
 

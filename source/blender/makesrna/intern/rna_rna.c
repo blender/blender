@@ -878,8 +878,9 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA *)prop)->maxlength;
 }
 
-static const EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr,
-                                                        PropertyRNA *prop_parent, bool *r_free)
+static const EnumPropertyItem *rna_EnumProperty_default_itemf(
+        bContext *C, PointerRNA *ptr,
+        PropertyRNA *prop_parent, bool *r_free)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	EnumPropertyRNA *eprop;

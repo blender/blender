@@ -689,8 +689,9 @@ static void rna_softbody_dependency_update(Main *bmain, Scene *scene, PointerRNA
 	rna_softbody_update(bmain, scene, ptr);
 }
 
-static const EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                  PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_Effector_shape_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Object *ob = NULL;
 
