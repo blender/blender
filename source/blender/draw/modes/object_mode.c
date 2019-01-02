@@ -526,43 +526,13 @@ static void OBJECT_engine_init(void *vedata)
 			grid_res = viewdist / grid_scale;
 
 			if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
-				e_data.grid_flag = PLANE_YZ;
-				if (show_axis_y) {
-					e_data.grid_flag |= SHOW_AXIS_Y;
-				}
-				{
-					e_data.grid_flag |= SHOW_AXIS_Z;
-				}
-				if (show_floor) {
-					e_data.grid_flag |= SHOW_GRID;
-					e_data.grid_flag |= GRID_BACK;
-				}
+				e_data.grid_flag = PLANE_YZ | SHOW_AXIS_Y | SHOW_AXIS_Z | SHOW_GRID | GRID_BACK;
 			}
 			else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-				e_data.grid_flag = PLANE_XY;
-				if (show_axis_x) {
-					e_data.grid_flag |= SHOW_AXIS_X;
-				}
-				if (show_axis_y) {
-					e_data.grid_flag |= SHOW_AXIS_Y;
-				}
-				if (show_floor) {
-					e_data.grid_flag |= SHOW_GRID;
-					e_data.grid_flag |= GRID_BACK;
-				}
+				e_data.grid_flag = PLANE_XY | SHOW_AXIS_X | SHOW_AXIS_Y | SHOW_GRID | GRID_BACK;
 			}
 			else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
-				e_data.grid_flag = PLANE_XZ;
-				if (show_axis_x) {
-					e_data.grid_flag |= SHOW_AXIS_X;
-				}
-				{
-					e_data.grid_flag |= SHOW_AXIS_Z;
-				}
-				if (show_floor) {
-					e_data.grid_flag |= SHOW_GRID;
-					e_data.grid_flag |= GRID_BACK;
-				}
+				e_data.grid_flag = PLANE_XZ | SHOW_AXIS_X | SHOW_AXIS_Z | SHOW_GRID | GRID_BACK;
 			}
 			else { /* RV3D_VIEW_USER */
 				e_data.grid_flag = PLANE_XY;
