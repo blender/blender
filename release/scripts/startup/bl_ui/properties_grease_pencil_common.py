@@ -254,29 +254,11 @@ class GreasePencilStrokeSculptPanel:
 
         layout.template_icon_view(settings, "sculpt_tool", show_labels=True)
 
-        row = layout.row(align=True)
-        row.prop(brush, "size", slider=True)
-        sub = row.row(align=True)
-        sub.enabled = tool not in {'GRAB', 'CLONE'}
-        sub.prop(brush, "use_pressure_radius", text="")
-
-        row = layout.row(align=True)
-        row.prop(brush, "strength", slider=True)
-        row.prop(brush, "use_pressure_strength", text="")
-
-        layout.prop(brush, "use_falloff")
-
-        layout.use_property_split = False
-        if tool in {'THICKNESS', 'STRENGTH'}:
-            layout.row().prop(brush, "direction", expand=True)
-        elif tool == 'PINCH':
-            row = layout.row(align=True)
-            row.prop_enum(brush, "direction", value='ADD', text="Pinch")
-            row.prop_enum(brush, "direction", value='SUBTRACT', text="Inflate")
-        elif tool == 'TWIST':
-            row = layout.row(align=True)
-            row.prop_enum(brush, "direction", value='ADD', text="CCW")
-            row.prop_enum(brush, "direction", value='SUBTRACT', text="CW")
+        if not self.is_popover:
+            from .properties_paint_common import (
+                brush_basic_gpencil_sculpt_settings,
+            )
+            brush_basic_gpencil_sculpt_settings(layout, context, brush)
 
 
 class GreasePencilSculptOptionsPanel:
