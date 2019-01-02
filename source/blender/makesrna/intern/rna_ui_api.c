@@ -941,7 +941,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Enum. Large widget showing Icon previews");
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "show_labels", false, "", "Show enum label in preview buttons");
-	RNA_def_float(func, "scale", 5.0f, 1.0f, 100.0f, "Scale", "Scale the icon size (by the button size)", 1.0f, 100.0f);
+	RNA_def_float(func, "scale", 6.0f, 1.0f, 100.0f, "UI Units", "Scale the button icon size (by the button size)", 1.0f, 100.0f);
+	RNA_def_float(func, "scale_popup", 5.0f, 1.0f, 100.0f, "Scale", "Scale the popup icon size (by the button size)", 1.0f, 100.0f);
 
 	func = RNA_def_function(srna, "template_histogram", "uiTemplateHistogram");
 	RNA_def_function_ui_description(func, "Item. A histogramm widget to analyze imaga data");

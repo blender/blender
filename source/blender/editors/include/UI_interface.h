@@ -1087,7 +1087,9 @@ void uiTemplatePreview(
         struct MTex *slot, const char *preview_id);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool expand);
 void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale);
-void uiTemplateIconView(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool show_labels, float icon_scale);
+void uiTemplateIconView(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool show_labels,
+        float icon_scale, float icon_scale_popup);
 void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, const char *propname);

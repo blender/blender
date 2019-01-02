@@ -2650,7 +2650,9 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 /**
  * \param icon_scale: Scale of the icon, 1x == button height.
  */
-void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname, bool show_labels, float icon_scale)
+void uiTemplateIconView(
+        uiLayout *layout, PointerRNA *ptr, const char *propname, bool show_labels,
+        float icon_scale, float icon_scale_popup)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	IconViewMenuArgs *cb_args;
@@ -2677,12 +2679,16 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname,
 		cb_args->ptr = *ptr;
 		cb_args->prop = prop;
 		cb_args->show_labels = show_labels;
-		cb_args->icon_scale = icon_scale;
+		cb_args->icon_scale = icon_scale_popup;
 
-		but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb_args, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
+		but = uiDefBlockButN(
+		        block, ui_icon_view_menu_cb, cb_args, "",
+		        0, 0, UI_UNIT_X * icon_scale, UI_UNIT_Y * icon_scale, "");
 	}
 	else {
-		but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, ICON_X, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, NULL, 0.0, 0.0, 0.0, 0.0, "");
+		but = uiDefIconBut(
+		        block, UI_BTYPE_LABEL, 0, ICON_X,
+		        0, 0, UI_UNIT_X * icon_scale, UI_UNIT_Y * icon_scale, NULL, 0.0, 0.0, 0.0, 0.0, "");
 	}
 
 
