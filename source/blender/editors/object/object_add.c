@@ -1609,7 +1609,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	}
 
 	for (dob = lb_duplis->first; dob; dob = dob->next) {
-		Object *ob_src = DEG_get_original_object(dob->ob);
+		Object *ob_src = dob->ob;
 		Object *ob_dst = BLI_ghash_lookup(dupli_gh, dob);
 
 		/* Remap new object to itself, and clear again newid pointer of orig object. */
