@@ -2140,6 +2140,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 						BKE_animdata_merge_copy(bmain, &gpd_dst->id, &gpd_src->id, ADT_MERGECOPY_KEEP_DST, false);
 					}
 				}
+				DEG_id_tag_update(&gpd_src->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 			}
 
 			/* Free the old object */
@@ -2148,6 +2149,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+	DEG_id_tag_update(&gpd_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);  /* because we removed object(s) */
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
