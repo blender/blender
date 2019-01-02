@@ -378,8 +378,6 @@ static void file_draw_preview(
 	xco = sx + (int)dx;
 	yco = sy - layout->prv_h + (int)dy;
 
-	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-
 	/* shadow */
 	if (use_dropshadow) {
 		UI_draw_box_shadow(220, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
@@ -392,9 +390,14 @@ static void file_draw_preview(
 		UI_GetThemeColor4fv(TH_TEXT, col);
 	}
 
+	/* Preview images use premultiplied alpha. */
+	GPU_blend_set_func_separate(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 	immDrawPixelsTexScaled(&state, (float)xco, (float)yco, imb->x, imb->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect,
 	                       scale, scale, 1.0f, 1.0f, col);
+
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	if (icon) {
 		UI_icon_draw_aspect((float)xco, (float)yco, icon, icon_aspect, 1.0f, NULL);

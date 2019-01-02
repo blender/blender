@@ -1602,9 +1602,8 @@ static void icon_draw_size(
 			/* no create icon on this level in code */
 			if (!pi->rect[size]) return;  /* something has gone wrong! */
 
-			/* preview images use premul alpha ... */
-			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-
+			/* Preview images use premultiplied alpha. */
+			GPU_blend_set_func_separate(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, rgb, desaturate);
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		}
