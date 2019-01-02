@@ -879,11 +879,6 @@ bool OSLRenderServices::get_userdata(bool derivatives, ustring name, TypeDesc ty
 	return false; /* disabled by lockgeom */
 }
 
-bool OSLRenderServices::has_userdata(ustring name, TypeDesc type, OSL::ShaderGlobals *sg)
-{
-	return false; /* never called by OSL */
-}
-
 TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring filename)
 {
 	if(filename.length() && filename[0] == '@') {
@@ -1072,7 +1067,8 @@ bool OSLRenderServices::texture3d(ustring filename,
                                   float *result,
                                   float *dresultds,
                                   float *dresultdt,
-                                  float *dresultdr)
+                                  float *dresultdr,
+                                  ustring *errormessage)
 {
 	OSL::TextureSystem *ts = osl_ts;
 	ShaderData *sd = (ShaderData *)(sg->renderstate);
@@ -1138,22 +1134,36 @@ bool OSLRenderServices::texture3d(ustring filename,
 	return status;
 }
 
-bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
-                                    OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
-                                    const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy,
-                                    int nchannels, float *result)
+bool OSLRenderServices::environment(ustring filename,
+                                    TextureHandle *th,
+                                    TexturePerthread *thread_info,
+                                    TextureOpt &options,
+                                    OSL::ShaderGlobals *sg,
+                                    const OSL::Vec3 &R,
+                                    const OSL::Vec3 &dRdx,
+                                    const OSL::Vec3 &dRdy,
+                                    int nchannels,
+                                    float *result,
+                                    float *dresultds,
+                                    float *dresultdt,
+                                    ustring *errormessage)
 {
 	OSL::TextureSystem *ts = osl_ts;
-	ShaderData *sd = (ShaderData *)(sg->renderstate);
-	KernelGlobals *kg = sd->osl_globals;
-	OSLThreadData *tdata = kg->osl_tdata;
-	OIIO::TextureSystem::Perthread *thread_info = tdata->oiio_thread_info;
 
-	OIIO::TextureSystem::TextureHandle *th = ts->get_texture_handle(filename, thread_info);
+	if (thread_info == NULL) {
+		ShaderData *sd = (ShaderData *)(sg->renderstate);
+		KernelGlobals *kg = sd->osl_globals;
+		OSLThreadData *tdata = kg->osl_tdata;
+		thread_info = tdata->oiio_thread_info;
+	}
+
+	if (th == NULL) {
+		th = ts->get_texture_handle(filename, thread_info);
+	}
 
 	bool status = ts->environment(th, thread_info,
 	                              options, R, dRdx, dRdy,
-	                              nchannels, result);
+	                              nchannels, result, dresultds, dresultdt);
 
 	if(!status) {
 		if(nchannels == 3 || nchannels == 4) {
@@ -1169,9 +1179,13 @@ bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
 	return status;
 }
 
-bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
+bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg,
+                                         ustring filename,
+                                         TextureHandle *th,
+                                         int subimage,
                                          ustring dataname,
-                                         TypeDesc datatype, void *data)
+                                         TypeDesc datatype,
+                                         void *data)
 {
 	OSL::TextureSystem *ts = osl_ts;
 	if(filename.length() && filename[0] == '@') {

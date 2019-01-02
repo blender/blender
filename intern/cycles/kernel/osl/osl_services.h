@@ -48,54 +48,53 @@ public:
 
 	void thread_init(KernelGlobals *kernel_globals, OSL::TextureSystem *ts);
 
-	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform, float time);
-	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform, float time);
+	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform, float time) override;
+	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform, float time) override;
 
-	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from, float time);
-	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring to, float time);
+	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from, float time) override;
+	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring to, float time) override;
 
-	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform);
-	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform);
+	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform) override;
+	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSL::TransformationPtr xform) override;
 
-	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from);
-	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from);
+	bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from) override;
+	bool get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, ustring from) override;
 
 	bool get_array_attribute(OSL::ShaderGlobals *sg, bool derivatives,
 	                         ustring object, TypeDesc type, ustring name,
-	                         int index, void *val);
+	                         int index, void *val) override;
 	bool get_attribute(OSL::ShaderGlobals *sg, bool derivatives, ustring object,
-	                   TypeDesc type, ustring name, void *val);
+	                   TypeDesc type, ustring name, void *val) override;
 	bool get_attribute(ShaderData *sd, bool derivatives, ustring object_name,
 	                   TypeDesc type, ustring name, void *val);
 
 	bool get_userdata(bool derivatives, ustring name, TypeDesc type,
-	                  OSL::ShaderGlobals *sg, void *val);
-	bool has_userdata(ustring name, TypeDesc type, OSL::ShaderGlobals *sg);
+	                  OSL::ShaderGlobals *sg, void *val) override;
 
 	int pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,
 	                      float radius, int max_points, bool sort, size_t *out_indices,
-	                      float *out_distances, int derivs_offset);
+	                      float *out_distances, int derivs_offset) override;
 
 	int pointcloud_get(OSL::ShaderGlobals *sg, ustring filename, size_t *indices, int count,
-	                   ustring attr_name, TypeDesc attr_type, void *out_data);
+	                   ustring attr_name, TypeDesc attr_type, void *out_data) override;
 
 	bool pointcloud_write(OSL::ShaderGlobals *sg,
 	                      ustring filename, const OSL::Vec3 &pos,
 	                      int nattribs, const ustring *names,
 	                      const TypeDesc *types,
-	                      const void **data);
+	                      const void **data) override;
 
 	bool trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	           const OSL::Vec3 &P, const OSL::Vec3 &dPdx,
 	           const OSL::Vec3 &dPdy, const OSL::Vec3 &R,
-	           const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy);
+	           const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy) override;
 
 	bool getmessage(OSL::ShaderGlobals *sg, ustring source, ustring name,
-	                TypeDesc type, void *val, bool derivatives);
+	                TypeDesc type, void *val, bool derivatives) override;
 
-	TextureSystem::TextureHandle *get_texture_handle(ustring filename);
+	TextureSystem::TextureHandle *get_texture_handle(ustring filename) override;
 
-	bool good(TextureSystem::TextureHandle *texture_handle);
+	bool good(TextureSystem::TextureHandle *texture_handle) override;
 
 	bool texture(ustring filename,
 	             TextureSystem::TextureHandle *texture_handle,
@@ -108,7 +107,7 @@ public:
 	             float *result,
 	             float *dresultds,
 	             float *dresultdt,
-	             ustring *errormessage);
+	             ustring *errormessage) override;
 
 	bool texture3d(ustring filename,
 	               TextureHandle *texture_handle,
@@ -123,15 +122,30 @@ public:
 	               float *result,
 	               float *dresultds,
 	               float *dresultdt,
-	               float *dresultdr);
+	               float *dresultdr,
+	               ustring *errormessage) override;
 
-	bool environment(ustring filename, TextureOpt &options,
-	                 OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
-	                 const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy,
-	                 int nchannels, float *result);
+	bool environment(ustring filename,
+	                 TextureHandle *texture_handle,
+	                 TexturePerthread *texture_thread_info,
+	                 TextureOpt &options,
+	                 OSL::ShaderGlobals *sg,
+	                 const OSL::Vec3 &R,
+	                 const OSL::Vec3 &dRdx,
+	                 const OSL::Vec3 &dRdy,
+	                 int nchannels,
+	                 float *result,
+	                 float *dresultds,
+	                 float *dresultdt,
+	                 ustring *errormessage) override;
 
-	bool get_texture_info(OSL::ShaderGlobals *sg, ustring filename, int subimage,
-	                      ustring dataname, TypeDesc datatype, void *data);
+	bool get_texture_info(OSL::ShaderGlobals *sg,
+	                      ustring filename,
+	                      TextureHandle *texture_handle,
+	                      int subimage,
+	                      ustring dataname,
+	                      TypeDesc datatype,
+	                      void *data) override;
 
 	static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
 	                                     TypeDesc type, bool derivatives, void *val);
