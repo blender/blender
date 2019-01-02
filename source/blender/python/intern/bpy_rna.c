@@ -1401,20 +1401,12 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 			ret = PyUnicode_FromString(identifier);
 		}
 		else {
-			const EnumPropertyItem *enum_item;
-			bool free;
-
-			/* don't throw error here, can't trust blender 100% to give the
-			 * right values, python code should not generate error for that */
-			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &enum_item, NULL, &free);
-			if (enum_item && enum_item->identifier) {
-				ret = PyUnicode_FromString(enum_item->identifier);
-			}
-			else {
-				if (free) {
-					MEM_freeN((void *)enum_item);
-				}
-				RNA_property_enum_items(NULL, ptr, prop, &enum_item, NULL, &free);
+			{
+				/* Static, no need to free. */
+				const EnumPropertyItem *enum_item;
+				bool free_dummy;
+				RNA_property_enum_items_ex(NULL, ptr, prop, true, &enum_item, NULL, &free_dummy);
+				BLI_assert(!free_dummy);
 
 				/* Do not print warning in case of DummyRNA_NULL_items, this one will never match any value... */
 				if (enum_item != DummyRNA_NULL_items) {
@@ -1443,10 +1435,6 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 				}
 
 				ret = PyUnicode_FromString("");
-			}
-
-			if (free) {
-				MEM_freeN((void *)enum_item);
 			}
 #if 0
 			PyErr_Format(PyExc_AttributeError,
