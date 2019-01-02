@@ -310,7 +310,7 @@ static void DRW_gpencil_fx_light(
 	DRW_shgroup_uniform_vec2(fx_shgrp, "Viewport", DRW_viewport_size_get(), 1);
 
 	/* location of the light using obj location as origin */
-	copy_v3_v3(fxd->loc, &fxd->object->loc[0]);
+	copy_v3_v3(fxd->loc, fxd->object->obmat[3]);
 
 	/* Calc distance to strokes plane
 	 * The w component of location is used to transfer the distance to drawing plane
@@ -323,7 +323,7 @@ static void DRW_gpencil_fx_light(
 	}
 	mul_mat3_m4_v3(cache->obmat, r_normal); /* only rotation component */
 	plane_from_point_normal_v3(r_plane, r_point, r_normal);
-	float dt = dist_to_plane_v3(fxd->object->loc, r_plane);
+	float dt = dist_to_plane_v3(fxd->object->obmat[3], r_plane);
 	fxd->loc[3] = dt; /* use last element to save it */
 
 	DRW_shgroup_uniform_vec4(fx_shgrp, "loc", &fxd->loc[0], 1);
@@ -469,7 +469,7 @@ static void DRW_gpencil_fx_shadow(
 	DRW_shgroup_uniform_vec4(fx_shgrp, "shadow_color", &fxd->shadow_rgba[0], 1);
 
 	if ((fxd->object) && (fxd->flag & FX_SHADOW_USE_OBJECT)) {
-		DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &fxd->object->loc[0], 1);
+		DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->object->obmat[3], 1);
 	}
 	else {
 		DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
@@ -609,7 +609,7 @@ static void DRW_gpencil_fx_swirl(
 
 	DRW_shgroup_uniform_vec2(fx_shgrp, "Viewport", DRW_viewport_size_get(), 1);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &fxd->object->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->object->obmat[3], 1);
 
 	DRW_shgroup_uniform_int(fx_shgrp, "radius", &fxd->radius, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "angle", &fxd->angle, 1);

@@ -74,7 +74,6 @@ static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphConte
 {
 	ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
 	if (fxd->object != NULL) {
-		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_GEOMETRY, "Shadow ShaderFx");
 		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");
 	}
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");

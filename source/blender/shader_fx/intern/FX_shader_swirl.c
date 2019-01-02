@@ -62,7 +62,6 @@ static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphConte
 {
 	SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
 	if (fxd->object != NULL) {
-		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_GEOMETRY, "Swirl ShaderFx");
 		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
 	}
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");

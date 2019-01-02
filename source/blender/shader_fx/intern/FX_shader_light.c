@@ -63,7 +63,6 @@ static void updateDepsgraph(ShaderFxData *md, const ModifierUpdateDepsgraphConte
 {
 	LightShaderFxData *fxd = (LightShaderFxData *)md;
 	if (fxd->object != NULL) {
-		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_GEOMETRY, "Light ShaderFx");
 		DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Light ShaderFx");
 	}
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Light ShaderFx");
