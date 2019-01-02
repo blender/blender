@@ -34,11 +34,89 @@
 
 #include "../generic/python_utildefines.h"
 
+#include "GPU_init_exit.h"
+#include "GPU_primitive.h"
+
 #include "gpu_py_matrix.h"
 #include "gpu_py_select.h"
 #include "gpu_py_types.h"
 
-#include "gpu_py_api.h" /* own include */
+#include "gpu_py.h" /* own include */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Utils to invalidate functions
+ * \{ */
+
+bool bpygpu_is_initialized(void)
+{
+	if (!GPU_is_initialized()) {
+		PyErr_SetString(
+		        PyExc_SystemError,
+		        "GPU functions for drawing are not available in background mode");
+
+		return false;
+	}
+
+	return true;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Primitive Type Utils
+ * \{ */
+
+int bpygpu_ParsePrimType(PyObject *o, void *p)
+{
+	Py_ssize_t mode_id_len;
+	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
+	if (mode_id == NULL) {
+		PyErr_Format(PyExc_ValueError,
+		             "expected a string, got %s",
+		             Py_TYPE(o)->tp_name);
+		return 0;
+	}
+#define MATCH_ID(id) \
+	if (mode_id_len == strlen(STRINGIFY(id))) { \
+		if (STREQ(mode_id, STRINGIFY(id))) { \
+			mode = GPU_PRIM_##id; \
+			goto success; \
+		} \
+	} ((void)0)
+
+	GPUPrimType mode;
+	MATCH_ID(POINTS);
+	MATCH_ID(LINES);
+	MATCH_ID(TRIS);
+	MATCH_ID(LINE_STRIP);
+	MATCH_ID(LINE_LOOP);
+	MATCH_ID(TRI_STRIP);
+	MATCH_ID(TRI_FAN);
+	MATCH_ID(LINE_STRIP_ADJ);
+
+#undef MATCH_ID
+	PyErr_Format(PyExc_ValueError,
+	             "unknown type literal: '%s'",
+	             mode_id);
+	return 0;
+
+success:
+	(*(GPUPrimType *)p) = mode;
+	return 1;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name GPU Module
+ * \{ */
+
 
 PyDoc_STRVAR(GPU_doc,
 "This module provides Python wrappers for the GPU implementation in Blender. "
@@ -83,3 +161,5 @@ PyObject *BPyInit_gpu(void)
 
 	return mod;
 }
+
+/** \} */

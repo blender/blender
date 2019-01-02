@@ -22,9 +22,13 @@
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_API_H__
-#define __GPU_PY_API_H__
+#ifndef __GPU_PY_H__
+#define __GPU_PY_H__
+
+bool bpygpu_is_initialized(void);
+
+int bpygpu_ParsePrimType(PyObject *o, void *p);
 
 PyObject *BPyInit_gpu(void);
 
-#endif  /* __GPU_PY_API_H__ */
+#endif  /* __GPU_PY_H__ */

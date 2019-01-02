@@ -53,6 +53,7 @@
 
 #include "../generic/py_capi_utils.h"
 
+#include "gpu_py.h"
 #include "gpu_py_offscreen.h" /* own include */
 
 
@@ -93,7 +94,8 @@ static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args
 
 	static const char *_keywords[] = {"width", "height", "samples", NULL};
 	static _PyArg_Parser _parser = {"ii|i:GPUOffScreen.__new__", _keywords, 0};
-	if (!_PyArg_ParseTupleAndKeywordsFast(
+	if (!bpygpu_is_initialized() ||
+	    !_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &width, &height, &samples))
 	{

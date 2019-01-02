@@ -73,7 +73,6 @@ void GPU_init(void)
 }
 
 
-
 void GPU_exit(void)
 {
 	if (!G.background) {
@@ -91,4 +90,10 @@ void GPU_exit(void)
 	gpu_extensions_exit(); /* must come last */
 
 	initialized = false;
+}
+
+
+bool GPU_is_initialized(void)
+{
+	return initialized;
 }

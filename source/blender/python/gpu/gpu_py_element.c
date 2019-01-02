@@ -36,7 +36,7 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "gpu_py_primitive.h"
+#include "gpu_py.h"
 #include "gpu_py_element.h" /* own include */
 
 
@@ -61,7 +61,8 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 
 	static const char *_keywords[] = {"type", "seq", NULL};
 	static _PyArg_Parser _parser = {"$O&O:IndexBuf.__new__", _keywords, 0};
-	if (!_PyArg_ParseTupleAndKeywordsFast(
+	if (!bpygpu_is_initialized() ||
+	    !_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        bpygpu_ParsePrimType, &params.type_id,
 	        &params.seq))

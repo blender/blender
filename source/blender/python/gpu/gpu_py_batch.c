@@ -44,7 +44,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-#include "gpu_py_primitive.h"
+#include "gpu_py.h"
 #include "gpu_py_shader.h"
 #include "gpu_py_vertex_buffer.h"
 #include "gpu_py_element.h"
@@ -85,7 +85,8 @@ static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, Py
 
 	static const char *_keywords[] = {"type", "buf", "elem", NULL};
 	static _PyArg_Parser _parser = {"|$O&O!O!:GPUBatch.__new__", _keywords, 0};
-	if (!_PyArg_ParseTupleAndKeywordsFast(
+	if (!bpygpu_is_initialized() ||
+	    !_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        bpygpu_ParsePrimType, &params.type_id,
 	        &BPyGPUVertBuf_Type, &params.py_vertbuf,

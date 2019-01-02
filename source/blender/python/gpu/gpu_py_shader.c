@@ -36,6 +36,7 @@
 #include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
+#include "gpu_py.h"
 #include "gpu_py_shader.h" /* own include */
 #include "gpu_py_vertex_format.h"
 
@@ -117,7 +118,8 @@ static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, P
 	        "libcode", "defines", NULL};
 
 	static _PyArg_Parser _parser = {"ss|$sss:GPUShader.__new__", _keywords, 0};
-	if (!_PyArg_ParseTupleAndKeywordsFast(
+	if (!bpygpu_is_initialized() ||
+	    !_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &params.vertexcode, &params.fragcode, &params.geocode,
 	        &params.libcode, &params.defines))
@@ -717,7 +719,9 @@ static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *ar
 {
 	GPUBuiltinShader shader_id;
 
-	if (!bpygpu_ParseBultinShaderEnum(arg, &shader_id)) {
+	if (!bpygpu_is_initialized() ||
+	    !bpygpu_ParseBultinShaderEnum(arg, &shader_id))
+	{
 		return NULL;
 	}
 
