@@ -88,14 +88,15 @@ static int bpygpu_offscreen_valid_check(BPyGPUOffScreen *bpygpu_ofs)
 
 static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
+	BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
 	GPUOffScreen *ofs;
 	int width, height, samples = 0;
 	char err_out[256];
 
 	static const char *_keywords[] = {"width", "height", "samples", NULL};
 	static _PyArg_Parser _parser = {"ii|i:GPUOffScreen.__new__", _keywords, 0};
-	if (!bpygpu_is_initialized() ||
-	    !_PyArg_ParseTupleAndKeywordsFast(
+	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &width, &height, &samples))
 	{

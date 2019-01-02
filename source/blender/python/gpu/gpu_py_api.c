@@ -49,7 +49,7 @@
 /** \name Utils to invalidate functions
  * \{ */
 
-bool bpygpu_is_initialized(void)
+bool bpygpu_is_initialized_or_error(void)
 {
 	if (!GPU_is_initialized()) {
 		PyErr_SetString(

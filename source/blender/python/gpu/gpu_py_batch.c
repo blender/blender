@@ -75,6 +75,8 @@ static bool bpygpu_batch_is_program_or_error(BPyGPUBatch *self)
 
 static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
+	BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
 	const char *exc_str_missing_arg = "GPUBatch.__new__() missing required argument '%s' (pos %d)";
 
 	struct {
@@ -85,8 +87,7 @@ static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, Py
 
 	static const char *_keywords[] = {"type", "buf", "elem", NULL};
 	static _PyArg_Parser _parser = {"|$O&O!O!:GPUBatch.__new__", _keywords, 0};
-	if (!bpygpu_is_initialized() ||
-	    !_PyArg_ParseTupleAndKeywordsFast(
+	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        bpygpu_ParsePrimType, &params.type_id,
 	        &BPyGPUVertBuf_Type, &params.py_vertbuf,

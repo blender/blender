@@ -105,6 +105,8 @@ static int bpygpu_uniform_location_get(GPUShader *shader, const char *name, cons
 
 static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
+	BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
 	struct {
 		const char *vertexcode;
 		const char *fragcode;
@@ -118,8 +120,7 @@ static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, P
 	        "libcode", "defines", NULL};
 
 	static _PyArg_Parser _parser = {"ss|$sss:GPUShader.__new__", _keywords, 0};
-	if (!bpygpu_is_initialized() ||
-	    !_PyArg_ParseTupleAndKeywordsFast(
+	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &params.vertexcode, &params.fragcode, &params.geocode,
 	        &params.libcode, &params.defines))
@@ -717,11 +718,11 @@ PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
 );
 static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
 {
+	BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
 	GPUBuiltinShader shader_id;
 
-	if (!bpygpu_is_initialized() ||
-	    !bpygpu_ParseBultinShaderEnum(arg, &shader_id))
-	{
+	if (!bpygpu_ParseBultinShaderEnum(arg, &shader_id)) {
 		return NULL;
 	}
 
