@@ -564,22 +564,27 @@ static bool raycastEditMesh(
 	if (treedata->tree == NULL) {
 		BVHCache **bvh_cache = NULL;
 		BLI_bitmap *elem_mask = NULL;
+		BMEditMesh *em_orig;
 		int looptri_num_active = -1;
 
+		/* Get original version of the edit_btmesh. */
+		em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+
 		if (sctx->callbacks.edit_mesh.test_face_fn) {
-			elem_mask = BLI_BITMAP_NEW(em->tottri, __func__);
+			BMesh *bm = em_orig->bm;
+			BLI_assert(poly_to_tri_count(bm->totface, bm->totloop) == em_orig->tottri);
+
+			elem_mask = BLI_BITMAP_NEW(em_orig->tottri, __func__);
 			looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
-			        em->bm, elem_mask,
-			        sctx->callbacks.edit_mesh.test_face_fn, sctx->callbacks.edit_mesh.user_data);
+			        bm, elem_mask,
+			        sctx->callbacks.edit_mesh.test_face_fn,
+			        sctx->callbacks.edit_mesh.user_data);
 		}
 		else {
 			/* Only cache if bvhtree is created without a mask.
 			 * This helps keep a standardized bvhtree in cache. */
 			bvh_cache = &em_bvh_cache;
 		}
-
-		/* Get original version of the edit_btmesh. */
-		BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
 
 		bvhtree_from_editmesh_looptri_ex(
 		        treedata, em_orig, elem_mask, looptri_num_active,
