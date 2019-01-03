@@ -896,8 +896,8 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 {
 	BLI_assert(ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT));
 
-	Curve *me = (Curve *)ob->data;
-	CurveBatchCache *cache = curve_batch_cache_get(me);
+	Curve *cu = ob->data;
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
 
 	/* Verify that all surface batches have needed attrib layers. */
 	/* TODO(fclem): We could be a bit smarter here and only do it per material. */
@@ -979,7 +979,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
 		DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], CU_DATATYPE_SURFACE);
 	}
 
-	CurveRenderData *rdata = curve_render_data_create(me, ob->runtime.curve_cache, mr_flag);
+	CurveRenderData *rdata = curve_render_data_create(cu, ob->runtime.curve_cache, mr_flag);
 
 	/* DispLists */
 	ListBase *lb = &rdata->ob_curve_cache->disp;
