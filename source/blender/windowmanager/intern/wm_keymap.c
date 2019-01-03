@@ -387,6 +387,7 @@ static wmKeyMap *wm_keymap_copy(wmKeyMap *keymap)
 
 	keymapn->modal_items = keymap->modal_items;
 	keymapn->poll = keymap->poll;
+	keymapn->poll_modal_item = keymap->poll_modal_item;
 	BLI_listbase_clear(&keymapn->items);
 	keymapn->flag &= ~(KEYMAP_UPDATE | KEYMAP_EXPANDED);
 
@@ -868,6 +869,7 @@ wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, const Enu
 		if (defaultkm) {
 			km->modal_items = defaultkm->modal_items;
 			km->poll = defaultkm->poll;
+			km->poll_modal_item = defaultkm->poll_modal_item;
 		}
 	}
 
@@ -977,6 +979,7 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 
 		km->modal_items = defaultkm->modal_items;
 		km->poll = defaultkm->poll;
+		km->poll_modal_item = defaultkm->poll_modal_item;
 
 		if (km->modal_items) {
 			for (kmi = km->items.first; kmi; kmi = kmi->next) {
@@ -1629,6 +1632,7 @@ void WM_keyconfig_update(wmWindowManager *wm)
 		if (kmn) {
 			kmn->modal_items = km->modal_items;
 			kmn->poll = km->poll;
+			kmn->poll_modal_item = km->poll_modal_item;
 		}
 
 		/* in case of old non-diff keymaps, force extra update to create diffs */
