@@ -3098,6 +3098,8 @@ def km_grease_pencil_stroke_paint_fill(_params):
         # If press alternative key, the brush now it's for drawing lines
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_fill", True)]}),
+        # Lasso select
+        ("gpencil.select_lasso", {"type": _params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap
@@ -5654,6 +5656,8 @@ def km_3d_view_tool_paint_gpencil_line(params):
              {"properties": [("type", 'LINE'), ("wait_for_input", False)]}),
             ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("type", 'LINE'), ("wait_for_input", False)]}),
+            # Lasso select
+            ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -5669,6 +5673,8 @@ def km_3d_view_tool_paint_gpencil_box(params):
              {"properties": [("type", 'BOX'), ("wait_for_input", False)]}),
             ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("type", 'BOX'), ("wait_for_input", False)]}),
+            # Lasso select
+            ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -5684,6 +5690,8 @@ def km_3d_view_tool_paint_gpencil_circle(params):
              {"properties": [("type", 'CIRCLE'), ("wait_for_input", False)]}),
             ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("type", 'CIRCLE'), ("wait_for_input", False)]}),
+            # Lasso select
+            ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -5699,6 +5707,8 @@ def km_3d_view_tool_paint_gpencil_arc(params):
              {"properties": [("type", 'ARC'), ("wait_for_input", False)]}),
             ("gpencil.primitive", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("type", 'ARC'), ("wait_for_input", False)]}),
+            # Lasso select
+            ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -5709,6 +5719,8 @@ def km_3d_view_tool_paint_gpencil_curve(params):
         {"items": [
             ("gpencil.primitive", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("type", 'CURVE'), ("wait_for_input", False)]}),
+            # Lasso select
+            ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
         ]},
     )
 
