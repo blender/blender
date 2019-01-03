@@ -298,7 +298,7 @@ const bool GLXEW_ARB_create_context_robustness =
 	}
 	else {
 		/* Don't create legacy context */
-		fprintf(stderr, "Warning! GLX_ARB_create_context not available.\n");
+		fprintf(stderr, "Error! GLX_ARB_create_context not available.\n");
 	}
 
 	GHOST_TSuccess success;
@@ -328,10 +328,7 @@ const bool GLXEW_ARB_create_context_robustness =
 		version = glGetString(GL_VERSION);
 
 		if (!version || version[0] < '3' || ((version[0] == '3') && (version[2] < '3'))) {
-			fprintf(stderr, "Error! Blender requires OpenGL 3.3 to run. Try updating your drivers.\n");
-			fflush(stderr);
-			/* ugly, but we get crashes unless a whole bunch of systems are patched. */
-			exit(0);
+			success = GHOST_kFailure;
 		}
 		else
 			success = GHOST_kSuccess;
@@ -341,6 +338,14 @@ const bool GLXEW_ARB_create_context_robustness =
 		success = GHOST_kFailure;
 	}
 
+	if (success == GHOST_kFailure) {
+		fprintf(stderr, "Error! Unsupported graphics driver.\n");
+		fprintf(stderr, "Blender requires a graphics driver with at least OpenGL 3.3 support.\n");
+		fprintf(stderr, "The program will now close.\n");
+		fflush(stderr);
+		/* ugly, but we get crashes unless a whole bunch of systems are patched. */
+		exit(1);
+	}
 
 	GHOST_X11_ERROR_HANDLERS_RESTORE(handler_store);
 
