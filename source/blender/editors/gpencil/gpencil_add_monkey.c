@@ -535,10 +535,9 @@ static const ColorTemplate gp_monkey_pct_pupils = {
 /* Monkey API */
 
 /* add a 2D Suzanne (original model created by Matias Mendiola) */
-void ED_gpencil_create_monkey(bContext *C, float mat[4][4])
+void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 {
 	Main *bmain = CTX_data_main(C);
-	Object *ob = CTX_data_active_object(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int cfra_eval = (int)DEG_get_ctime(depsgraph);
 	bGPdata *gpd = (bGPdata *)ob->data;

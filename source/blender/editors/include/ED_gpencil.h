@@ -220,13 +220,13 @@ void ED_gpencil_brush_draw_eraser(struct Brush *brush, int x, int y);
 
 /* ----------- Add Primitive Utilities -------------- */
 
-void ED_gpencil_create_monkey(struct bContext *C, float mat[4][4]);
-void ED_gpencil_create_stroke(struct bContext *C, float mat[4][4]);
+void ED_gpencil_create_monkey(struct bContext *C, struct Object *ob, float mat[4][4]);
+void ED_gpencil_create_stroke(struct bContext *C, struct Object *ob, float mat[4][4]);
 
 /* ------------ Object Utilities ------------ */
 struct Object *ED_gpencil_add_object(
         struct bContext *C, struct Scene *scene, const float loc[3], unsigned short local_view_bits);
-void ED_gpencil_add_defaults(struct bContext *C);
+void ED_gpencil_add_defaults(struct bContext *C, struct Object *ob);
 /* set object modes */
 void ED_gpencil_setup_modes(struct bContext *C, struct bGPdata *gpd, int newmode);
 

@@ -1221,16 +1221,15 @@ Object *ED_gpencil_add_object(bContext *C, Scene *UNUSED(scene), const float loc
 	/* define size */
 	BKE_object_obdata_size_init(ob, GP_OBGPENCIL_DEFAULT_SIZE);
 	/* create default brushes and colors */
-	ED_gpencil_add_defaults(C);
+	ED_gpencil_add_defaults(C, ob);
 
 	return ob;
 }
 
 /* Helper function to create default colors and drawing brushes */
-void ED_gpencil_add_defaults(bContext *C)
+void ED_gpencil_add_defaults(bContext *C, Object *ob)
 {
 	Main *bmain = CTX_data_main(C);
-	Object *ob = CTX_data_active_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
 	/* first try to reuse default material */

@@ -137,7 +137,8 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 			*gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
 
 			/* add default sets of colors and brushes */
-			ED_gpencil_add_defaults(C);
+			Object *ob = CTX_data_active_object(C);
+			ED_gpencil_add_defaults(C, ob);
 
 			/* add new layer */
 			BKE_gpencil_layer_addnew(*gpd_ptr, DATA_("GP_Layer"), true);
@@ -245,7 +246,8 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 			*gpd_ptr = BKE_gpencil_data_addnew(bmain, DATA_("GPencil"));
 
 			/* add default sets of colors and brushes */
-			ED_gpencil_add_defaults(C);
+			Object *ob = CTX_data_active_object(C);
+			ED_gpencil_add_defaults(C, ob);
 		}
 	}
 
