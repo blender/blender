@@ -115,8 +115,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 		if (sock->type != stemp->type) {
 			nodeModifySocketType(ntree, node, sock, stemp->type, stemp->subtype);
 		}
-
-		sock->limit = (stemp->limit == 0 ? 0xFFF : stemp->limit);
+		sock->limit = (stemp->limit == 0 ? (in_out == SOCK_IN ? 1 : 0xFFF) : stemp->limit);
 		sock->flag |= stemp->flag;
 	}
 	else {

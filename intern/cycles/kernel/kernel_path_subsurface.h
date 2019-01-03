@@ -64,6 +64,11 @@ bool kernel_path_subsurface_scatter(
 		        sd->object_flag & SD_OBJECT_INTERSECTS_VOLUME;
 #  endif  /* __VOLUME__ */
 
+		/* Closure memory will be overwritten, so read required variables now. */
+		Bssrdf *bssrdf = (Bssrdf *)sc;
+		ClosureType bssrdf_type = sc->type;
+		float bssrdf_roughness = bssrdf->roughness;
+
 		/* compute lighting with the BSDF closure */
 		for(int hit = 0; hit < num_hits; hit++) {
 			/* NOTE: We reuse the existing ShaderData, we assume the path
@@ -74,7 +79,8 @@ bool kernel_path_subsurface_scatter(
 			                               hit,
 			                               sd,
 			                               state,
-			                               sc);
+			                               bssrdf_type,
+			                               bssrdf_roughness);
 
 			kernel_path_surface_connect_light(kg, sd, emission_sd, *throughput, state, L);
 
