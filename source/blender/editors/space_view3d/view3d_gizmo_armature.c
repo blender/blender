@@ -138,7 +138,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);
-	if (base && BASE_VISIBLE(v3d, base)) {
+	if (base && BASE_VISIBLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = BKE_object_pose_armature_get(base->object);
 		if (ob) {
 			const bArmature *arm = ob->data;

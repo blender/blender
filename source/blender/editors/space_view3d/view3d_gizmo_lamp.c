@@ -65,7 +65,7 @@ static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmGizmoGroupType *UNUS
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);
-	if (base && BASE_VISIBLE(v3d, base)) {
+	if (base && BASE_VISIBLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
 			Lamp *la = ob->data;
@@ -174,7 +174,7 @@ static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmGizmoGroupType *UNUS
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);
-	if (base && BASE_VISIBLE(v3d, base)) {
+	if (base && BASE_VISIBLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
 			Lamp *la = ob->data;
@@ -258,7 +258,7 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UN
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);
-	if (base && BASE_VISIBLE(v3d, base)) {
+	if (base && BASE_VISIBLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->type == OB_LAMP) {
 			Lamp *la = ob->data;

@@ -64,7 +64,7 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType *UNU
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = BASACT(view_layer);
-	if (base && BASE_VISIBLE(v3d, base)) {
+	if (base && BASE_VISIBLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
 		Object *ob = base->object;
 		if (ob->pd && ob->pd->forcefield) {
 			return true;
