@@ -9062,16 +9062,17 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 	BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
+	/* Before static overrides, which needs typeinfo. */
+	lib_verify_nodetree(bfd->main, true);
+
 	/* Now that all our data-blocks are loaded, we can re-generate overrides from their references. */
 	if (fd->memfile == NULL) {
 		/* Do not apply in undo case! */
-		lib_verify_nodetree(bfd->main, true);  /* Needed to ensure we have typeinfo in nodes... */
 		BKE_main_override_static_update(bfd->main);
 	}
 
 	BKE_collections_after_lib_link(bfd->main);
 
-	lib_verify_nodetree(bfd->main, true);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 
 	link_global(fd, bfd);   /* as last */
