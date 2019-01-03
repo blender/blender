@@ -509,7 +509,7 @@ void DRW_displist_vertbuf_create_pos_and_nor_and_uv_tess(
 					if (is_smooth) {
 						int idx_len = is_tri ? 3 : 4;
 						for (int j = 0; j < idx_len; j++) {
-							pnors_idx[j] = GPU_normal_convert_i10_v3_negated(nors[idx[j]]);
+							pnors_idx[j] = GPU_normal_convert_i10_v3(nors[idx[j]]);
 						}
 					}
 					else {
@@ -520,7 +520,7 @@ void DRW_displist_vertbuf_create_pos_and_nor_and_uv_tess(
 						else {
 							normal_quad_v3(nor_flat, verts[idx[0]], verts[idx[1]], verts[idx[2]], verts[idx[3]]);
 						}
-						pnors_idx[0] = GPU_normal_convert_i10_v3_negated(nor_flat);
+						pnors_idx[0] = GPU_normal_convert_i10_v3(nor_flat);
 						pnors_idx[1] = pnors_idx[0];
 						pnors_idx[2] = pnors_idx[0];
 						pnors_idx[3] = pnors_idx[0];
