@@ -1307,9 +1307,6 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		rect = ima->rect;
 	}
 
-	/* We need to flush widget base first to ensure correct ordering. */
-	UI_widgetbase_draw_cache_flush();
-
 	/* draw */
 	GPUBuiltinShader shader;
 	if (desaturate != 0.0f) {
@@ -1513,17 +1510,15 @@ static void icon_draw_size(
 
 	DrawInfo *di = icon_ensure_drawinfo(icon);
 
+	/* We need to flush widget base first to ensure correct ordering. */
+	UI_widgetbase_draw_cache_flush();
+
 	if (di->type == ICON_TYPE_VECTOR) {
-		/* We need to flush widget base first to ensure correct ordering. */
-		UI_widgetbase_draw_cache_flush();
 		/* vector icons use the uiBlock transformation, they are not drawn
 		 * with untransformed coordinates like the other icons */
 		di->data.vector.func((int)x, (int)y, w, h, 1.0f);
 	}
 	else if (di->type == ICON_TYPE_GEOM) {
-		/* We need to flush widget base first to ensure correct ordering. */
-		UI_widgetbase_draw_cache_flush();
-
 #ifdef USE_UI_TOOLBAR_HACK
 		/* TODO(campbell): scale icons up for toolbar, we need a way to detect larger buttons and do this automatic. */
 		{
@@ -1547,7 +1542,8 @@ static void icon_draw_size(
 			ibuf = BKE_icon_geom_rasterize(icon->obj, w, h);
 			di->data.geom.image_cache = ibuf;
 		}
-		glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+		GPU_blend_set_func_separate(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, desaturate);
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
@@ -1591,9 +1587,7 @@ static void icon_draw_size(
 #endif
 		if (!iimg->rect) return;  /* something has gone wrong! */
 
-		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, desaturate);
-		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage *pi = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
@@ -1610,9 +1604,6 @@ static void icon_draw_size(
 	}
 	else if (di->type == ICON_TYPE_GPLAYER) {
 		BLI_assert(icon->obj != NULL);
-
-		/* We need to flush widget base first to ensure correct ordering. */
-		UI_widgetbase_draw_cache_flush();
 
 		/* Just draw a colored rect - Like for vicon_colorset_draw() */
 #ifndef WITH_HEADLESS
