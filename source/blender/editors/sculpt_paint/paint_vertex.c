@@ -246,7 +246,7 @@ bool vertex_paint_poll(bContext *C)
 
 bool vertex_paint_poll_ignore_tool(bContext *C)
 {
-	return vertex_paint_poll_ex(C, true);
+	return vertex_paint_poll_ex(C, false);
 }
 
 bool weight_paint_mode_poll(bContext *C)
