@@ -330,21 +330,13 @@ const bool GLXEW_ARB_create_context_robustness =
 		if (!version || version[0] < '3' || ((version[0] == '3') && (version[2] < '3'))) {
 			success = GHOST_kFailure;
 		}
-		else
+		else {
 			success = GHOST_kSuccess;
+		}
 	}
 	else {
 		/* freeing well clean up the context initialized above */
 		success = GHOST_kFailure;
-	}
-
-	if (success == GHOST_kFailure) {
-		fprintf(stderr, "Error! Unsupported graphics driver.\n");
-		fprintf(stderr, "Blender requires a graphics driver with at least OpenGL 3.3 support.\n");
-		fprintf(stderr, "The program will now close.\n");
-		fflush(stderr);
-		/* ugly, but we get crashes unless a whole bunch of systems are patched. */
-		exit(1);
 	}
 
 	GHOST_X11_ERROR_HANDLERS_RESTORE(handler_store);
