@@ -261,7 +261,7 @@ static bool pointer_to_component_node_criteria(
 		*type = DEG_NODE_TYPE_SHADING;
 		return true;
 	}
-	else if (ptr->type == &RNA_Curve) {
+	else if (ELEM(ptr->type, &RNA_Curve, &RNA_TextCurve)) {
 		*id = (ID *)ptr->id.data;
 		*type = DEG_NODE_TYPE_GEOMETRY;
 		return true;
