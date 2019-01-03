@@ -727,6 +727,7 @@ static short layer_collection_sync(
 			}
 
 			if (base->flag & BASE_HIDDEN) {
+				base->flag &= ~BASE_VISIBLE;
 				view_layer->runtime_flag |= VIEW_LAYER_HAS_HIDE;
 				lc->runtime_flag |= LAYER_COLLECTION_HAS_HIDDEN_OBJECTS;
 			}

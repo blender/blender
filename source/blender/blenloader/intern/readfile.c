@@ -9067,8 +9067,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 		/* Do not apply in undo case! */
 		lib_verify_nodetree(bfd->main, true);  /* Needed to ensure we have typeinfo in nodes... */
 		BKE_main_override_static_update(bfd->main);
-		BKE_collections_after_lib_link(bfd->main);
 	}
+
+	BKE_collections_after_lib_link(bfd->main);
 
 	lib_verify_nodetree(bfd->main, true);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
