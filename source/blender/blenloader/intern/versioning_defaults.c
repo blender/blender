@@ -131,7 +131,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 					case SPACE_VIEW3D:
 					{
 						View3D *v3d = (View3D *)sl;
+						v3d->overlay.texture_paint_mode_opacity = 1.0f;
 						v3d->overlay.weight_paint_mode_opacity = 1.0f;
+						v3d->overlay.vertex_paint_mode_opacity = 1.0f;
 						/* grease pencil settings */
 						v3d->vertex_opacity = 1.0f;
 						v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
