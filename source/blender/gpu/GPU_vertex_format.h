@@ -112,8 +112,6 @@ typedef struct GPUPackedNormal {
 } GPUPackedNormal;
 
 GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3]);
-GPUPackedNormal GPU_normal_convert_i10_v3_negated(const float data[3]);
 GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3]);
-GPUPackedNormal GPU_normal_convert_i10_s3_negated(const short data[3]);
 
 #endif /* __GPU_VERTEX_FORMAT_H__ */
