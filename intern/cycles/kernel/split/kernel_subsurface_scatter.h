@@ -110,13 +110,18 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 				*bssrdf_sd = *sd; /* note: copy happens each iteration of inner loop, this is
 				                   * important as the indirect path will write into bssrdf_sd */
 
+				Bssrdf *bssrdf = (Bssrdf *)sc;
+				ClosureType bssrdf_type = sc->type;
+				float bssrdf_roughness = bssrdf->roughness;
+
 				LocalIntersection ss_isect_private = *ss_isect;
 				subsurface_scatter_multi_setup(kg,
 				                               &ss_isect_private,
 				                               hit,
 				                               bssrdf_sd,
 				                               hit_state,
-				                               sc);
+				                               bssrdf_type,
+				                               bssrdf_roughness);
 				*ss_isect = ss_isect_private;
 
 #ifdef __VOLUME__

@@ -69,22 +69,21 @@ ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
 }
 
 /* replace closures with a single diffuse bsdf closure after scatter step */
-ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderData *sd, const ShaderClosure *sc, float3 weight, float3 N)
+ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderData *sd, ClosureType type, float roughness, float3 weight, float3 N)
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
 	sd->num_closure = 0;
 	sd->num_closure_left = kernel_data.integrator.max_closures;
 
-	Bssrdf *bssrdf = (Bssrdf *)sc;
 #ifdef __PRINCIPLED__
-	if(bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
-	   bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
+	if(type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
+	   type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
 	{
 		PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf*)bsdf_alloc(sd, sizeof(PrincipledDiffuseBsdf), weight);
 
 		if(bsdf) {
 			bsdf->N = N;
-			bsdf->roughness = bssrdf->roughness;
+			bsdf->roughness = roughness;
 			sd->flag |= bsdf_principled_diffuse_setup(bsdf);
 
 			/* replace CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID with this special ID so render passes
@@ -92,8 +91,8 @@ ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderD
 			bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
 		}
 	}
-	else if(CLOSURE_IS_BSDF_BSSRDF(bssrdf->type) ||
-			CLOSURE_IS_BSSRDF(bssrdf->type))
+	else if(CLOSURE_IS_BSDF_BSSRDF(type) ||
+			CLOSURE_IS_BSSRDF(type))
 #endif  /* __PRINCIPLED__ */
 	{
 		DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd, sizeof(DiffuseBsdf), weight);
@@ -309,7 +308,8 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
         int hit,
         ShaderData *sd,
         ccl_addr_space PathState *state,
-        const ShaderClosure *sc)
+        ClosureType type,
+        float roughness)
 {
 #ifdef __SPLIT_KERNEL__
 	Ray ray_object = ss_isect->ray;
@@ -332,7 +332,7 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 	subsurface_color_bump_blur(kg, sd, state, &weight, &N);
 
 	/* Setup diffuse BSDF. */
-	subsurface_scatter_setup_diffuse_bsdf(kg, sd, sc, weight, N);
+	subsurface_scatter_setup_diffuse_bsdf(kg, sd, type, roughness, weight, N);
 }
 
 /* Random walk subsurface scattering.
