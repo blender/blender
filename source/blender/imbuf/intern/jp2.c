@@ -119,21 +119,21 @@ static void info_callback(const char *msg, void *client_data)
 }
 #endif
 
-#   define PIXEL_LOOPER_BEGIN(_rect)                                          \
+#define PIXEL_LOOPER_BEGIN(_rect)                                             \
 	for (y = h - 1; y != (unsigned int)(-1); y--) {                           \
 		for (i = y * w, i_next = (y + 1) * w;                                 \
 		     i < i_next;                                                      \
 		     i++, _rect += 4)                                                 \
 		{                                                                     \
 
-#   define PIXEL_LOOPER_BEGIN_CHANNELS(_rect, _channels)                      \
+#define PIXEL_LOOPER_BEGIN_CHANNELS(_rect, _channels)                         \
 	for (y = h - 1; y != (unsigned int)(-1); y--) {                           \
 		for (i = y * w, i_next = (y + 1) * w;                                 \
 		     i < i_next;                                                      \
 		     i++, _rect += _channels)                                         \
 		{                                                                     \
 
-#   define PIXEL_LOOPER_END \
+#define PIXEL_LOOPER_END \
 	} \
 } (void)0 \
 

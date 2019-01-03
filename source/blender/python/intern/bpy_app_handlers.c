@@ -69,7 +69,7 @@ static PyStructSequence_Field app_cb_info_fields[] = {
 	{(char *)"load_factory_startup_post", (char *)"on loading factory startup (after)"},
 
 	/* sets the permanent tag */
-#   define APP_CB_OTHER_FIELDS 1
+#define APP_CB_OTHER_FIELDS 1
 	{(char *)"persistent",        (char *)"Function decorator for callback functions not to be removed when loading new files"},
 
 	{NULL}

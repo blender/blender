@@ -98,7 +98,7 @@
 //#define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#	include "PIL_time.h"
+#  include "PIL_time.h"
 #endif
 
 #include "smoke_API.h"

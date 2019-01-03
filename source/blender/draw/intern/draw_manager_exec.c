@@ -1146,7 +1146,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			GPU_select_load_id(select_id[_start]);                   \
 		}
 
-# define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(_start, _count) \
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(_start, _count) \
 		_start += _count;                                    \
 	}
 

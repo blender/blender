@@ -114,9 +114,9 @@ static void free_anim_movie(struct anim *UNUSED(anim))
 
 
 #if defined(_WIN32)
-# define PATHSEPARATOR '\\'
+#  define PATHSEPARATOR '\\'
 #else
-# define PATHSEPARATOR '/'
+#  define PATHSEPARATOR '/'
 #endif
 
 static int an_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)

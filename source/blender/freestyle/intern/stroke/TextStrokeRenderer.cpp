@@ -18,9 +18,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-# include "TextStrokeRenderer.h"
-# include "Canvas.h"
-# include "StrokeIterators.h"
+#include "TextStrokeRenderer.h"
+#include "Canvas.h"
+#include "StrokeIterators.h"
 
 namespace Freestyle {
 

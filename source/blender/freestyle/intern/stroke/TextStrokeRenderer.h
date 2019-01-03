@@ -38,9 +38,9 @@
 #ifndef TEXTSTROKERENDERER_H
 #define TEXTSTROKERENDERER_H
 
-# include "StrokeRenderer.h"
-# include "../system/FreestyleConfig.h"
-# include <fstream>
+#include "StrokeRenderer.h"
+#include "../system/FreestyleConfig.h"
+#include <fstream>
 
 namespace Freestyle {
 

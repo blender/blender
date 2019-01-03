@@ -37,12 +37,12 @@ void main()
 #ifdef LAYERED_DEPTH
 uniform sampler2DArray depthBufferLayered;
 uniform int layer;
-# define gtao_depthBuffer depthBufferLayered
-# define gtao_textureLod(a, b, c) textureLod(a, vec3(b, layer), c)
+#  define gtao_depthBuffer depthBufferLayered
+#  define gtao_textureLod(a, b, c) textureLod(a, vec3(b, layer), c)
 
 #else
-# define gtao_depthBuffer depthBuffer
-# define gtao_textureLod(a, b, c) textureLod(a, b, c)
+#  define gtao_depthBuffer depthBuffer
+#  define gtao_textureLod(a, b, c) textureLod(a, b, c)
 
 #endif
 
