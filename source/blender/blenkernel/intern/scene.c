@@ -590,6 +590,7 @@ void BKE_scene_init(Scene *sce)
 	 */
 	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
 
+	sce->r.gauss = 1.5;
 	sce->r.dither_intensity = 1.0f;
 
 	sce->r.bake_mode = 0;
