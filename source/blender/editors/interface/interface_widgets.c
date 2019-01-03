@@ -140,7 +140,7 @@ typedef struct uiWidgetBase {
 typedef struct uiWidgetType {
 
 	/* pointer to theme color definition */
-	uiWidgetColors *wcol_theme;
+	const uiWidgetColors *wcol_theme;
 	uiWidgetStateColors *wcol_state;
 
 	/* converted colors for state */
@@ -149,7 +149,7 @@ typedef struct uiWidgetType {
 	void (*state)(struct uiWidgetType *, int state, int drawflag);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
-	void (*text)(uiFontStyle *, uiWidgetColors *, uiBut *, rcti *);
+	void (*text)(const uiFontStyle *, const uiWidgetColors *, uiBut *, rcti *);
 
 } uiWidgetType;
 
@@ -1408,7 +1408,7 @@ static void ui_text_clip_give_next_off(uiBut *but, const char *str)
  * Return the length of modified (right-clipped + ellipsis) string.
  */
 static void ui_text_clip_right_ex(
-        uiFontStyle *fstyle, char *str, const size_t max_len, const float okwidth,
+        const uiFontStyle *fstyle, char *str, const size_t max_len, const float okwidth,
         const char *sep, const int sep_len, const float sep_strwidth, size_t *r_final_len)
 {
 	float tmp;
@@ -1442,7 +1442,7 @@ static void ui_text_clip_right_ex(
  * for strings with shortcuts, like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
 float UI_text_clip_middle_ex(
-        uiFontStyle *fstyle, char *str, float okwidth, const float minwidth,
+        const uiFontStyle *fstyle, char *str, float okwidth, const float minwidth,
         const size_t max_len, const char rpart_sep)
 {
 	float strwidth;
@@ -1562,7 +1562,7 @@ float UI_text_clip_middle_ex(
 /**
  * Wrapper around UI_text_clip_middle_ex.
  */
-static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
+static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	/* No margin for labels! */
 	const int border = ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_MENU, UI_BTYPE_POPOVER) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
@@ -1578,7 +1578,7 @@ static void ui_text_clip_middle(uiFontStyle *fstyle, uiBut *but, const rcti *rec
  * Like ui_text_clip_middle(), but protect/preserve at all cost the right part of the string after sep.
  * Useful for strings with shortcuts (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
-static void ui_text_clip_middle_protect_right(uiFontStyle *fstyle, uiBut *but, const rcti *rect, const char rsep)
+static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle, uiBut *but, const rcti *rect, const char rsep)
 {
 	/* No margin for labels! */
 	const int border = ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_MENU, UI_BTYPE_POPOVER) ? 0 : (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
@@ -1593,7 +1593,7 @@ static void ui_text_clip_middle_protect_right(uiFontStyle *fstyle, uiBut *but, c
 /**
  * Cut off the text, taking into account the cursor location (text display while editing).
  */
-static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
+static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	const int border = (int)(UI_TEXT_CLIP_MARGIN + 0.5f);
 	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
@@ -1655,7 +1655,7 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rec
  *
  * \note deals with ': ' especially for number buttons
  */
-static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
+static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	const int border = UI_TEXT_CLIP_MARGIN + 1;
 	const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
@@ -1773,7 +1773,7 @@ static void widget_draw_text_ime_underline(
 }
 #endif  /* WITH_INPUT_IME */
 
-static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
+static void widget_draw_text(const uiFontStyle *fstyle, const uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
 	int drawstr_left_len = UI_MAX_DRAW_STR;
 	const char *drawstr = but->drawstr;
@@ -1786,12 +1786,16 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 	UI_fontstyle_set(fstyle);
 
-	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT))
-		fstyle->align = UI_STYLE_TEXT_LEFT;
-	else if (but->drawflag & UI_BUT_TEXT_RIGHT)
-		fstyle->align = UI_STYLE_TEXT_RIGHT;
-	else
-		fstyle->align = UI_STYLE_TEXT_CENTER;
+	eFontStyle_Align align;
+	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
+		align = UI_STYLE_TEXT_LEFT;
+	}
+	else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
+		align = UI_STYLE_TEXT_RIGHT;
+	}
+	else {
+		align = UI_STYLE_TEXT_CENTER;
+	}
 
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
@@ -1803,7 +1807,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		uiBut *but_edit = ui_but_drag_multi_edit_get(but);
 		if (but_edit) {
 			drawstr = but_edit->editstr;
-			fstyle->align = UI_STYLE_TEXT_LEFT;
+			align = UI_STYLE_TEXT_LEFT;
 		}
 	}
 	else {
@@ -1971,8 +1975,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		int drawlen = (drawstr_left_len == INT_MAX) ? strlen(drawstr + but->ofs) : (drawstr_left_len - but->ofs);
 
 		if (drawlen > 0) {
-			UI_fontstyle_draw_ex(fstyle, rect, drawstr + but->ofs, (unsigned char *)wcol->text,
-			                     drawlen, &font_xofs, &font_yofs);
+			UI_fontstyle_draw_ex(
+			        fstyle, rect, drawstr + but->ofs, (uchar *)wcol->text,
+			        &(struct uiFontStyleDraw_Params) { .align = align, },
+			        drawlen, &font_xofs, &font_yofs);
 
 			if (but->menu_key != '\0') {
 				char fixedbuf[128];
@@ -2017,9 +2023,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			col[3] *= 0.5f;
 		}
 
-		fstyle->align = UI_STYLE_TEXT_RIGHT;
 		rect->xmax -= UI_TEXT_CLIP_MARGIN;
-		UI_fontstyle_draw(fstyle, rect, drawstr_right, (const uchar *)col);
+		UI_fontstyle_draw(
+		        fstyle, rect, drawstr_right, (const uchar *)col,
+		        &(struct uiFontStyleDraw_Params) { .align = UI_STYLE_TEXT_RIGHT, });
 	}
 }
 
@@ -2039,7 +2046,7 @@ static BIFIconID widget_icon_id(uiBut *but)
 }
 
 /* draws text and icons for buttons */
-static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
+static void widget_draw_text_icon(const uiFontStyle *fstyle, const uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
 	const uiButExtraIconType extra_icon_type = ui_but_icon_extra_get(but);
 	const bool show_menu_icon = ui_but_draw_menu_icon(but);
@@ -2577,7 +2584,7 @@ void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float 
 	*ypos = centy + sinf(-ang) * radius;
 }
 
-static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
+static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
 	/* TODO(merwin): reimplement as shader for pixel-perfect colors */
 
@@ -2967,7 +2974,7 @@ static void ui_draw_roundbox(const rcti *rect, const float rad, const uiWidgetCo
 
 
 /* ************ separator, for menus etc ***************** */
-static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
+static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
 	int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
 	unsigned char col[4] = {
@@ -4075,8 +4082,8 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rcti *rect)
 {
 	bTheme *btheme = UI_GetTheme();
-	ThemeUI *tui = &btheme->tui;
-	uiFontStyle *fstyle = &style->widget;
+	const ThemeUI *tui = &btheme->tui;
+	const uiFontStyle *fstyle = &style->widget;
 	uiWidgetType *wt = NULL;
 
 #ifdef USE_UI_POPOVER_ONCE
@@ -4619,7 +4626,7 @@ void ui_draw_pie_center(uiBlock *block)
 }
 
 
-uiWidgetColors *ui_tooltip_get_theme(void)
+const uiWidgetColors *ui_tooltip_get_theme(void)
 {
 	uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
 	return wt->wcol_theme;
@@ -4663,7 +4670,7 @@ void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *UNUSED(block), 
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state, bool use_sep)
+void ui_draw_menu_item(const uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state, bool use_sep)
 {
 	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect = *rect;
@@ -4673,7 +4680,6 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	wt->draw(&wt->wcol, rect, 0, 0);
 
 	UI_fontstyle_set(fstyle);
-	fstyle->align = UI_STYLE_TEXT_LEFT;
 
 	/* text location offset */
 	rect->xmin += 0.25f * UI_UNIT_X;
@@ -4711,15 +4717,18 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 			UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 		}
 
-		UI_fontstyle_draw(fstyle, rect, drawstr, (unsigned char *)wt->wcol.text);
+		UI_fontstyle_draw(
+		        fstyle, rect, drawstr, (uchar *)wt->wcol.text,
+		        &(struct uiFontStyleDraw_Params) { .align = UI_STYLE_TEXT_LEFT, });
 	}
 
 	/* part text right aligned */
 	if (use_sep) {
 		if (cpoin) {
-			fstyle->align = UI_STYLE_TEXT_RIGHT;
 			rect->xmax = _rect.xmax - 5;
-			UI_fontstyle_draw(fstyle, rect, cpoin + 1, (unsigned char *)wt->wcol.text);
+			UI_fontstyle_draw(
+			        fstyle, rect, cpoin + 1, (uchar *)wt->wcol.text,
+			        &(struct uiFontStyleDraw_Params) { .align = UI_STYLE_TEXT_RIGHT, });
 			*cpoin = UI_SEP_CHAR;
 		}
 	}
@@ -4741,7 +4750,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	}
 }
 
-void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
+void ui_draw_preview_item(const uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state)
 {
 	rcti trect = *rect;
 	const float text_size = UI_UNIT_Y;
@@ -4777,7 +4786,9 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
 		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
-		UI_fontstyle_draw(fstyle, &trect, drawstr, (unsigned char *)wt->wcol.text);
+		UI_fontstyle_draw(
+		        fstyle, &trect, drawstr, (uchar *)wt->wcol.text,
+		        &(struct uiFontStyleDraw_Params) { .align = UI_STYLE_TEXT_CENTER, });
 	}
 }
 

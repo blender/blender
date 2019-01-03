@@ -516,7 +516,6 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 
 	/* set font, get bb */
 	data->fstyle = style->widget; /* copy struct */
-	data->fstyle.align = UI_STYLE_TEXT_CENTER;
 	ui_fontscale(&data->fstyle.points, aspect);
 	UI_fontstyle_set(&data->fstyle);
 

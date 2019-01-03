@@ -153,7 +153,8 @@ static uiFont *uifont_to_blfont(int id)
 
 
 void UI_fontstyle_draw_ex(
-        const uiFontStyle *fs, const rcti *rect, const char *str, const unsigned char col[4],
+        const uiFontStyle *fs, const rcti *rect, const char *str, const uchar col[4],
+        const struct uiFontStyleDraw_Params *fs_params,
         size_t len, float *r_xofs, float *r_yofs)
 {
 	int xofs = 0, yofs;
@@ -171,13 +172,13 @@ void UI_fontstyle_draw_ex(
 	if (fs->kerning == 1) {
 		font_flag |= BLF_KERNING_DEFAULT;
 	}
-	if (fs->word_wrap == 1) {
+	if (fs_params->word_wrap == 1) {
 		font_flag |= BLF_WORD_WRAP;
 	}
 
 	BLF_enable(fs->uifont_id, font_flag);
 
-	if (fs->word_wrap == 1) {
+	if (fs_params->word_wrap == 1) {
 		/* draw from boundbox top */
 		yofs = BLI_rcti_size_y(rect) - BLF_height_max(fs->uifont_id);
 	}
@@ -187,14 +188,14 @@ void UI_fontstyle_draw_ex(
 		yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
 	}
 
-	if (fs->align == UI_STYLE_TEXT_CENTER) {
+	if (fs_params->align == UI_STYLE_TEXT_CENTER) {
 		xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len)));
 		/* don't center text if it chops off the start of the text, 2 gives some margin */
 		if (xofs < 2) {
 			xofs = 2;
 		}
 	}
-	else if (fs->align == UI_STYLE_TEXT_RIGHT) {
+	else if (fs_params->align == UI_STYLE_TEXT_RIGHT) {
 		xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len) - 0.1f * U.widget_unit;
 	}
 
@@ -211,12 +212,14 @@ void UI_fontstyle_draw_ex(
 	*r_yofs = yofs;
 }
 
-void UI_fontstyle_draw(const uiFontStyle *fs, const rcti *rect, const char *str, const unsigned char col[4])
+void UI_fontstyle_draw(
+        const uiFontStyle *fs, const rcti *rect, const char *str, const uchar col[4],
+        const struct uiFontStyleDraw_Params *fs_params)
 {
 	float xofs, yofs;
 
 	UI_fontstyle_draw_ex(
-	        fs, rect, str, col,
+	        fs, rect, str, col, fs_params,
 	        BLF_DRAW_STR_DUMMY_MAX, &xofs, &yofs);
 }
 

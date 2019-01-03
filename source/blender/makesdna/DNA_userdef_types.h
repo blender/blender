@@ -80,23 +80,12 @@ typedef struct uiFontStyle {
 	short uifont_id;		/* saved in file, 0 is default */
 	short points;			/* actual size depends on 'global' dpi */
 	short kerning;			/* unfitted or default kerning value. */
-	char word_wrap;			/* enable word-wrap when drawing */
-	char pad[5];
 	short italic, bold;		/* style hint */
 	short shadow;			/* value is amount of pixels blur */
 	short shadx, shady;		/* shadow offset in pixels */
-	short align;			/* text align hint */
 	float shadowalpha;		/* total alpha */
 	float shadowcolor;		/* 1 value, typically white or black anyway */
 } uiFontStyle;
-
-/* uiFontStyle.align */
-typedef enum eFontStyle_Align {
-	UI_STYLE_TEXT_LEFT		= 0,
-	UI_STYLE_TEXT_CENTER	= 1,
-	UI_STYLE_TEXT_RIGHT		= 2
-} eFontStyle_Align;
-
 
 /* this is fed to the layout engine and widget code */
 

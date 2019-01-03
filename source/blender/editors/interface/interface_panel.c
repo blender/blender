@@ -658,7 +658,9 @@ static void ui_draw_aligned_panel_header(
 	if (dir == 'h') {
 		hrect.xmin = rect->xmin + pnl_icons;
 		hrect.ymin += 2.0f / block->aspect;
-		UI_fontstyle_draw(fontstyle, &hrect, activename, col_title);
+		UI_fontstyle_draw(
+		        fontstyle, &hrect, activename, col_title,
+		        &(struct uiFontStyleDraw_Params) { .align = UI_STYLE_TEXT_LEFT, });
 	}
 	else {
 		/* ignore 'pnl_icons', otherwise the text gets offset horizontally

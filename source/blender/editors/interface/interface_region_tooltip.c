@@ -167,7 +167,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 {
 	const float pad_px = UI_TIP_PADDING;
 	uiTooltipData *data = ar->regiondata;
-	uiWidgetColors *theme = ui_tooltip_get_theme();
+	const uiWidgetColors *theme = ui_tooltip_get_theme();
 	rcti bbox = data->bbox;
 	float tip_colors[UI_TIP_LC_MAX][3];
 	unsigned char drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
@@ -224,15 +224,14 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 
 		bbox.ymin = bbox.ymax - (data->lineh * field->geom.lines);
 		if (field->format.style == UI_TIP_STYLE_HEADER) {
+			const struct uiFontStyleDraw_Params fs_params = {
+				.align = UI_STYLE_TEXT_LEFT,
+				.word_wrap = true,
+			};
 			/* draw header and active data (is done here to be able to change color) */
-			uiFontStyle fstyle_header = data->fstyle;
-
-			/* override text-style */
-			fstyle_header.word_wrap = true;
-
 			rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_MAIN]);
-			UI_fontstyle_set(&fstyle_header);
-			UI_fontstyle_draw(&fstyle_header, &bbox, field->text, drawcol);
+			UI_fontstyle_set(&data->fstyle);
+			UI_fontstyle_draw(&data->fstyle, &bbox, field->text, drawcol, &fs_params);
 
 			/* offset to the end of the last line */
 			if (field->text_suffix) {
@@ -242,7 +241,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 				bbox.ymax -= yofs;
 
 				rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_ACTIVE]);
-				UI_fontstyle_draw(&fstyle_header, &bbox, field->text_suffix, drawcol);
+				UI_fontstyle_draw(&data->fstyle, &bbox, field->text_suffix, drawcol, &fs_params);
 
 				/* undo offset */
 				bbox.xmin -= xofs;
@@ -250,25 +249,30 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			}
 		}
 		else if (field->format.style == UI_TIP_STYLE_MONO) {
+			const struct uiFontStyleDraw_Params fs_params = {
+				.align = UI_STYLE_TEXT_LEFT,
+				.word_wrap = true,
+			};
 			uiFontStyle fstyle_mono = data->fstyle;
 			fstyle_mono.uifont_id = blf_mono_font;
-			fstyle_mono.word_wrap = true;
 
 			UI_fontstyle_set(&fstyle_mono);
 			/* XXX, needed because we dont have mono in 'U.uifonts' */
 			BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.pixelsize, U.dpi);
 			rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
-			UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, drawcol);
+			UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, drawcol, &fs_params);
 		}
 		else {
-			uiFontStyle fstyle_normal = data->fstyle;
 			BLI_assert(field->format.style == UI_TIP_STYLE_NORMAL);
-			fstyle_normal.word_wrap = true;
+			const struct uiFontStyleDraw_Params fs_params = {
+				.align = UI_STYLE_TEXT_LEFT,
+				.word_wrap = true,
+			};
 
 			/* draw remaining data */
 			rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
-			UI_fontstyle_set(&fstyle_normal);
-			UI_fontstyle_draw(&fstyle_normal, &bbox, field->text, drawcol);
+			UI_fontstyle_set(&data->fstyle);
+			UI_fontstyle_draw(&data->fstyle, &bbox, field->text, drawcol, &fs_params);
 		}
 
 		bbox.ymax -= data->lineh * field->geom.lines;

@@ -291,8 +291,9 @@ static void file_draw_icon(uiBlock *block, const char *path, int sx, int sy, int
 }
 
 
-static void file_draw_string(int sx, int sy, const char *string, float width, int height, short align,
-                             const unsigned char col[4])
+static void file_draw_string(
+        int sx, int sy, const char *string, float width, int height, eFontStyle_Align align,
+        const uchar col[4])
 {
 	uiStyle *style;
 	uiFontStyle fs;
@@ -306,8 +307,6 @@ static void file_draw_string(int sx, int sy, const char *string, float width, in
 	style = UI_style_get();
 	fs = style->widgetlabel;
 
-	fs.align = align;
-
 	BLI_strncpy(fname, string, FILE_MAXFILE);
 	UI_text_clip_middle_ex(&fs, fname, width, UI_DPI_ICON_SIZE, sizeof(fname), '\0');
 
@@ -317,7 +316,9 @@ static void file_draw_string(int sx, int sy, const char *string, float width, in
 	rect.ymin = sy - height;
 	rect.ymax = sy;
 
-	UI_fontstyle_draw(&fs, &rect, fname, col);
+	UI_fontstyle_draw(
+	        &fs, &rect, fname, col,
+	        &(struct uiFontStyleDraw_Params) { .align = align, });
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
@@ -553,7 +554,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int textwidth, textheight;
 	int i;
 	bool is_icon;
-	short align;
+	eFontStyle_Align align;
 	bool do_drag;
 	int column_space = 0.6f * UI_UNIT_X;
 	unsigned char text_col[4];
