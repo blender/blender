@@ -1089,12 +1089,22 @@ static void curve_calc_modifiers_post(
 			/* XXX2.8(Sybren): make sure the face normals are recalculated as well */
 			BKE_mesh_ensure_normals(modified);
 
+			/* Special tweaks, needed since neither BKE_mesh_new_nomain_from_template() nor
+			 * BKE_mesh_new_nomain_from_curve_displist() properly duplicate mat info...
+			 */
+			BLI_strncpy(modified->id.name, cu->id.name, sizeof(modified->id.name));
+			*((short *)modified->id.name) = ID_ME;
+			MEM_SAFE_FREE(modified->mat);
+			/* Set flag which makes it easier to see what's going on in a debugger. */
+			modified->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+			modified->mat = MEM_dupallocN(cu->mat);
+			modified->totcol = cu->totcol;
+
 			(*r_final) = modified;
 		}
 		else {
 			(*r_final) = NULL;
 		}
-
 	}
 }
 
