@@ -512,9 +512,9 @@ void BKE_material_clear_id(Main *bmain, ID *id, bool update_data)
 	}
 }
 
-Material *give_current_material(Object *ob, short act)
+Material **give_current_material_p(Object *ob, short act)
 {
-	Material ***matarar, *ma;
+	Material ***matarar, **ma_p;
 	const short *totcolp;
 
 	if (ob == NULL) return NULL;
@@ -534,7 +534,7 @@ Material *give_current_material(Object *ob, short act)
 	}
 
 	if (ob->matbits && ob->matbits[act - 1]) {    /* in object */
-		ma = ob->mat[act - 1];
+		ma_p = &ob->mat[act - 1];
 	}
 	else {                              /* in data */
 
@@ -545,12 +545,21 @@ Material *give_current_material(Object *ob, short act)
 
 		matarar = give_matarar(ob);
 
-		if (matarar && *matarar) ma = (*matarar)[act - 1];
-		else ma = NULL;
-
+		if (matarar && *matarar) {
+			ma_p = &(*matarar)[act - 1];
+		}
+		else {
+			ma_p = NULL;
+		}
 	}
 
-	return ma;
+	return ma_p;
+}
+
+Material *give_current_material(Object *ob, short act)
+{
+	Material **ma_p = give_current_material_p(ob, act);
+	return ma_p ? *ma_p : NULL;
 }
 
 MaterialGPencilStyle *BKE_material_gpencil_settings_get(Object *ob, short act)
