@@ -87,12 +87,12 @@ static int curve_render_surface_tri_len_get(const ListBase *lb)
 	return tri_len;
 }
 
-typedef void (setTriIndicesFn)(void *thunk, uint v1, uint v2, uint v3);
+typedef void (SetTriIndicesFn)(void *thunk, uint v1, uint v2, uint v3);
 
 static void displist_indexbufbuilder_set(
-	setTriIndicesFn *set_tri_indices,
-	setTriIndicesFn *set_quad_tri_indices, /* meh, find a better solution. */
-	void *thunk, const DispList *dl, const int ofs)
+        SetTriIndicesFn *set_tri_indices,
+        SetTriIndicesFn *set_quad_tri_indices, /* meh, find a better solution. */
+        void *thunk, const DispList *dl, const int ofs)
 {
 	if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
 		const int *idx = dl->index;
@@ -126,9 +126,9 @@ static void displist_indexbufbuilder_set(
 }
 
 static int displist_indexbufbuilder_tess_set(
-	setTriIndicesFn *set_tri_indices,
-	setTriIndicesFn *set_quad_tri_indices, /* meh, find a better solution. */
-	void *thunk, const DispList *dl, const int ofs)
+        SetTriIndicesFn *set_tri_indices,
+        SetTriIndicesFn *set_quad_tri_indices, /* meh, find a better solution. */
+        void *thunk, const DispList *dl, const int ofs)
 {
 	int v_idx = ofs;
 	if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
@@ -219,9 +219,10 @@ void DRW_displist_indexbuf_create_triangles_in_order(ListBase *lb, GPUIndexBuf *
 
 	int ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
-		displist_indexbufbuilder_set((setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
-		                             (setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
-		                             &elb, dl, ofs);
+		displist_indexbufbuilder_set(
+		        (SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		        (SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		        &elb, dl, ofs);
 		ofs += dl_vert_len(dl);
 	}
 
@@ -244,9 +245,10 @@ void DRW_displist_indexbuf_create_triangles_tess_split_by_material(
 	/* calc each index buffer builder */
 	uint v_idx = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
-		v_idx = displist_indexbufbuilder_tess_set((setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
-		                                          (setTriIndicesFn *)GPU_indexbuf_add_tri_verts,
-		                                          &elb[dl->col], dl, v_idx);
+		v_idx = displist_indexbufbuilder_tess_set(
+		        (SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		        (SetTriIndicesFn *)GPU_indexbuf_add_tri_verts,
+		        &elb[dl->col], dl, v_idx);
 	}
 
 	/* build each indexbuf */
@@ -305,9 +307,10 @@ void DRW_displist_vertbuf_create_wireframe_data_tess(ListBase *lb, GPUVertBuf *v
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
 		thunk.dl = dl;
 		/* TODO consider non-manifold edges correctly. */
-		thunk.ofs = displist_indexbufbuilder_tess_set(set_overlay_wires_tri_indices,
-		                                              set_overlay_wires_quad_tri_indices,
-		                                              &thunk, dl, thunk.ofs);
+		thunk.ofs = displist_indexbufbuilder_tess_set(
+		        set_overlay_wires_tri_indices,
+		        set_overlay_wires_quad_tri_indices,
+		        &thunk, dl, thunk.ofs);
 	}
 
 	if (thunk.ofs < vert_len) {
