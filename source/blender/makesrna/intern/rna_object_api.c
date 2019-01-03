@@ -142,11 +142,7 @@ static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 		return false;
 	}
 
-	if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
-		return false;
-	}
-
-	return ((base->flag & BASE_VISIBLE) != 0);
+	return BASE_VISIBLE_BGMODE(v3d, base);
 }
 
 static bool rna_Object_holdout_get(Object *ob, ReportList *reports, ViewLayer *view_layer)

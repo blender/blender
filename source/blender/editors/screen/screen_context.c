@@ -121,16 +121,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "selectable_objects")) {
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_select & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if (((base->flag & BASE_VISIBLE) != 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
+			if (BASE_SELECTABLE_BGMODE(v3d, base)) {
 				CTX_data_id_list_add(result, &base->object->id);
 			}
 		}
@@ -180,16 +171,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "selectable_bases")) {
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_select & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if ((base->flag & BASE_VISIBLE) && (base->flag & BASE_SELECTABLE) != 0) {
+			if (BASE_SELECTABLE_BGMODE(v3d, base)) {
 				CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
@@ -198,13 +180,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "selected_bases")) {
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if ((base->flag & BASE_SELECTED) != 0) {
+			if (BASE_VISIBLE_BGMODE(v3d, base) && (base->flag & BASE_SELECTED) != 0) {
 				CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
@@ -213,13 +189,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "selected_editable_bases")) {
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if ((base->flag & BASE_SELECTED) != 0) {
+			if (BASE_VISIBLE_BGMODE(v3d, base) && (base->flag & BASE_SELECTED) != 0) {
 				if (0 == BKE_object_is_libdata(base->object)) {
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
@@ -231,13 +201,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	else if (CTX_data_equals(member, "editable_bases")) {
 		/* Visible + Editable, but not necessarily selected */
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (v3d && v3d->localvd && ((base->local_view_bits & v3d->local_view_uuid) == 0)) {
-				continue;
-			}
-			if (v3d && ((v3d->object_type_exclude_viewport & (1 << base->object->type)) != 0)) {
-				continue;
-			}
-			if ((base->flag & BASE_VISIBLE) != 0) {
+			if (BASE_VISIBLE_BGMODE(v3d, base)) {
 				if (0 == BKE_object_is_libdata(base->object)) {
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 				}
