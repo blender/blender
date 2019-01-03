@@ -8012,13 +8012,14 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			}
 			case TIMER:
 			{
-				/* handle menu auto open timer */
+				/* Handle menu auto open timer. */
 				if (event->customdata == data->autoopentimer) {
 					WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
 					data->autoopentimer = NULL;
 
-					if (ui_but_contains_point_px(ar, but, event->x, event->y))
+					if (ui_but_contains_point_px(ar, but, event->x, event->y) || but->active) {
 						button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
+					}
 				}
 
 				break;
