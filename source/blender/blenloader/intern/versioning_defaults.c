@@ -45,6 +45,7 @@
 #include "BKE_appdir.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
+#include "BKE_idprop.h"
 #include "BKE_keyconfig.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
@@ -73,6 +74,15 @@ void BLO_update_defaults_userpref_blend(void)
 	U.flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
 
+	/* Clear addon preferences. */
+	for (bAddon *addon = U.addons.first; addon; addon = addon->next) {
+		if (addon->prop) {
+			IDP_FreeProperty(addon->prop);
+			MEM_freeN(addon->prop);
+			addon->prop = NULL;
+		}
+	}
+
 	/* Transform tweak with single click and drag. */
 	U.flag |= USER_RELEASECONFIRM;
 
@@ -89,6 +99,9 @@ void BLO_update_defaults_userpref_blend(void)
 	/* Only enable tooltips translation by default, without actually enabling translation itself, for now. */
 	U.transopts = USER_TR_TOOLTIPS;
 	U.memcachelimit = 4096;
+
+	/* Auto perspective. */
+	U.uiflag |= USER_AUTOPERSP;
 
 	/* Default to left click select. */
 	BKE_keyconfig_pref_set_select_mouse(&U, 0, true);
