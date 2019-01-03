@@ -242,6 +242,7 @@ void Device::draw_pixels(
 	mem_copy_from(rgba, y, w, h, rgba.memory_elements_size(1));
 
 	GLuint texid;
+	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &texid);
 	glBindTexture(GL_TEXTURE_2D, texid);
 

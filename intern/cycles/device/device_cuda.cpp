@@ -1861,6 +1861,7 @@ public:
 
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
+		glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1, &pmem.cuTexId);
 		glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
 		if(mem.data_type == TYPE_HALF)
@@ -1949,6 +1950,7 @@ public:
 				offset *= sizeof(uint8_t);
 
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
 			if(mem.data_type == TYPE_HALF) {
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_HALF_FLOAT, (void*)offset);
