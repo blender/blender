@@ -357,13 +357,12 @@ typedef struct BevelModifierData {
 	short e_flags;        /* flags to direct how edge weights are applied to verts */
 	short mat;            /* material index if >= 0, else material inherited from surrounding faces */
 	short edge_flags;
-	int pad2;
+	short face_str_mode;
+	short pad2;
 	float profile;        /* controls profile shape (0->1, .5 is round) */
 	/* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
 	float bevel_angle;
 	/* if the MOD_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
-	int hnmode;
-	float hn_strength;
 	char defgrp_name[64];
 	struct BevelModNorEditData clnordata;
 } BevelModifierData;
@@ -386,7 +385,7 @@ enum {
 /*	MOD_BEVEL_DIST          = (1 << 12), */  /* same as above */
 	MOD_BEVEL_OVERLAP_OK    = (1 << 13),
 	MOD_BEVEL_EVEN_WIDTHS   = (1 << 14),
-	MOD_BEVEL_SET_WN_STR	= (1 << 15),
+	MOD_BEVEL_HARDEN_NORMALS = (1 << 15),
 };
 
 /* BevelModifierData->val_flags (not used as flags any more) */
@@ -403,12 +402,12 @@ enum {
 	MOD_BEVEL_MARK_SHARP = (1 << 1),
 };
 
-/* BevelModifierData->hnmode */
+/* BevelModifierData->face_str_mode */
 enum {
-	MOD_BEVEL_HN_NONE,
-	MOD_BEVEL_HN_FACE,
-	MOD_BEVEL_HN_ADJ,
-	MOD_BEVEL_FIX_SHA,
+	MOD_BEVEL_FACE_STRENGTH_NONE,
+	MOD_BEVEL_FACE_STRENGTH_NEW,
+	MOD_BEVEL_FACE_STRENGTH_AFFECTED,
+	MOD_BEVEL_FACE_STRENGTH_ALL,
 };
 
 typedef struct SmokeModifierData {

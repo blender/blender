@@ -117,11 +117,12 @@ enum {
 	BEVEL_AMT_PERCENT
 };
 
+/* Bevel face_strength_mode values: should match face_str mode enum in DNA_modifer_types.h */
 enum {
-	BEVEL_HN_NONE,			/* Disable harden normals */
-	BEVEL_HN_FACE,			/* harden normals according to face area */
-	BEVEL_HN_ADJ,			/* harden normals according to adjacent 'beveled' faces */
-	BEVEL_HN_FIX_SHA,		/* Special mode to fix normal shading continuity */
+	BEVEL_FACE_STRENGTH_NONE,
+	BEVEL_FACE_STRENGTH_NEW,
+	BEVEL_FACE_STRENGTH_AFFECTED,
+	BEVEL_FACE_STRENGTH_ALL,
 };
 
 extern const BMOpDefine *bmo_opdefines[];
