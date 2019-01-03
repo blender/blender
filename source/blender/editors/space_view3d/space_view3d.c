@@ -326,9 +326,9 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	v3d->overlay.wireframe_threshold = 1.0f;
 	v3d->overlay.xray_alpha_bone = 0.5f;
-	v3d->overlay.texture_paint_mode_opacity = 0.8;
+	v3d->overlay.texture_paint_mode_opacity = 1.0f;
 	v3d->overlay.weight_paint_mode_opacity = 1.0f;
-	v3d->overlay.vertex_paint_mode_opacity = 0.8;
+	v3d->overlay.vertex_paint_mode_opacity = 1.0f;
 	v3d->overlay.edit_flag = V3D_OVERLAY_EDIT_FACES |
 	                         V3D_OVERLAY_EDIT_SEAMS |
 	                         V3D_OVERLAY_EDIT_SHARP |
