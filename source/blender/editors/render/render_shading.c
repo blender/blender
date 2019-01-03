@@ -483,6 +483,15 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
 	if (prop) {
+		if (RNA_struct_is_a(ptr.type, &RNA_Object)) {
+			/* Add slot follows user-preferences for creating new slots,
+			 * RNA pointer assignment doesn't, see: T60014. */
+			Object *ob = ptr.data;
+			if (give_current_material_p(ob, ob->actcol) == NULL) {
+				BKE_object_material_slot_add(bmain, ob);
+			}
+		}
+
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer use also increases user, so this compensates it */
 		id_us_min(&ma->id);

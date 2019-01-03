@@ -78,7 +78,8 @@ enum {
 	BKE_MAT_ASSIGN_OBJECT
 };
 
-struct Material *give_current_material(struct Object *ob, short act);
+struct Material **give_current_material_p(struct Object *ob, short act);
+struct Material  *give_current_material(struct Object *ob, short act);
 void assign_material_id(struct Main *bmain, struct ID *id, struct Material *ma, short act);
 void assign_material(struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
 void assign_matarar(struct Main *bmain, struct Object *ob, struct Material ***matar, short totcol);
