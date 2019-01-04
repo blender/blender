@@ -365,7 +365,7 @@ void gpu_extensions_init(void)
 	if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
 		printf("\n");
 		printf("GPU: Bypassing workaround detection.\n");
-		printf("GPU: OpenGL indentification strings\n");
+		printf("GPU: OpenGL identification strings\n");
 		printf("GPU: vendor: %s\n", vendor);
 		printf("GPU: renderer: %s\n", renderer);
 		printf("GPU: version: %s\n\n", version);
