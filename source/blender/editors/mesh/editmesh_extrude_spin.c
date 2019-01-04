@@ -71,7 +71,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	RNA_float_get_array(op->ptr, "axis", axis);
 	const int steps = RNA_int_get(op->ptr, "steps");
 	const float angle = RNA_float_get(op->ptr, "angle");
-	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip") ^ (angle < 0.0f);
+	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
 	const bool dupli = RNA_boolean_get(op->ptr, "dupli");
 	const bool use_auto_merge = (
 	        RNA_boolean_get(op->ptr, "use_auto_merge") &&
