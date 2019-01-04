@@ -88,8 +88,7 @@ typedef struct SubdivStats {
 		struct {
 			/* Time spend on creating topology refiner, which includes time
 			 * spend on conversion from Blender data to OpenSubdiv data, and
-			 * time spend on topology orientation on OpenSubdiv C-API side.
-			 */
+			 * time spend on topology orientation on OpenSubdiv C-API side. */
 			double topology_refiner_creation_time;
 			/* Total time spent in BKE_subdiv_to_mesh(). */
 			double subdiv_to_mesh_time;
@@ -108,13 +107,19 @@ typedef struct SubdivStats {
 	};
 
 	/* Per-value timestamp on when corresponding BKE_subdiv_stats_begin() was
-	 * called.
-	 */
+	 * called. */
 	double begin_timestamp_[NUM_SUBDIV_STATS_VALUES];
 } SubdivStats;
 
 /* Functor which evaluates dispalcement at a given (u, v) of given ptex face. */
 typedef struct SubdivDisplacement {
+	/* Initialize displacement evaluator.
+	 *
+	 * Is called right before evaluation is actually needed. This allows to do
+	 * some lazy initialization, like allocate evaluator from a main thread but
+	 * then do actual evaluation from background job. */
+	void (*initialize)(struct SubdivDisplacement *displacement);
+
 	/* Return displacement which is to be added to the original coordinate.
 	 *
 	 * NOTE: This function is supposed to return "continuous" displacement for
@@ -124,8 +129,7 @@ typedef struct SubdivDisplacement {
 	 * displacement grids if needed.
 	 *
 	 * Averaging of displacement for vertices created for over coarse vertices
-	 * and edges is done by subdiv code.
-	 */
+	 * and edges is done by subdiv code. */
 	void (*eval_displacement)(struct SubdivDisplacement *displacement,
 	                          const int ptex_face_index,
 	                          const float u, const float v,
@@ -142,8 +146,7 @@ typedef struct SubdivDisplacement {
  * It does not specify storage, memory layout or anything else.
  * It is possible to create different storages (like, grid based CPU side
  * buffers, GPU subdivision mesh, CPU side fully qualified mesh) from the same
- * Subdiv structure.
- */
+ * Subdiv structure. */
 typedef struct Subdiv {
 	/* Settings this subdivision surface is created for.
 	 *
@@ -152,8 +155,7 @@ typedef struct Subdiv {
 	SubdivSettings settings;
 	/* Topology refiner includes all the glue logic to feed Blender side
 	 * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh
-	 * drawer.
-	 */
+	 * drawer. */
 	struct OpenSubdiv_TopologyRefiner *topology_refiner;
 	/* CPU side evaluator. */
 	struct OpenSubdiv_Evaluator *evaluator;
@@ -200,7 +202,7 @@ void BKE_subdiv_free(Subdiv *subdiv);
 
 void BKE_subdiv_displacement_attach_from_multires(
         Subdiv *subdiv,
-        const struct Mesh *mesh,
+        struct Mesh *mesh,
         const struct MultiresModifierData *mmd);
 
 void BKE_subdiv_displacement_detach(Subdiv *subdiv);
@@ -212,8 +214,7 @@ int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
 /* ============================= VARIOUS HELPERS ============================ */
 
 /* For a given (ptex_u, ptex_v) within a ptex face get corresponding
- * (grid_u, grid_v) within a grid.
- */
+ * (grid_u, grid_v) within a grid. */
 BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(
         const float ptex_u, const float ptex_v,
         float *r_grid_u, float *r_grid_v);
@@ -226,8 +227,7 @@ BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level);
 /* Simplified version of mdisp_rot_face_to_crn, only handles quad and
  * works in normalized coordinates.
  *
- * NOTE: Output coordinates are in ptex coordinates.
- */
+ * NOTE: Output coordinates are in ptex coordinates. */
 BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
         const float u, const float v,
         float *r_u, float *r_v);

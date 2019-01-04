@@ -64,6 +64,7 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv)
 	else {
 		/* TODO(sergey): Check for topology change. */
 	}
+	BKE_subdiv_eval_init_displacement(subdiv);
 	return true;
 }
 
@@ -157,6 +158,17 @@ bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 	subdiv->evaluator->refine(subdiv->evaluator);
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
 	return true;
+}
+
+void BKE_subdiv_eval_init_displacement(Subdiv *subdiv)
+{
+	if (subdiv->displacement_evaluator == NULL) {
+		return;
+	}
+	if (subdiv->displacement_evaluator->initialize == NULL) {
+		return;
+	}
+	subdiv->displacement_evaluator->initialize(subdiv->displacement_evaluator);
 }
 
 /* ========================== Single point queries ========================== */

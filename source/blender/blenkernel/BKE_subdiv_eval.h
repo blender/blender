@@ -42,6 +42,12 @@ bool BKE_subdiv_eval_begin(struct Subdiv *subdiv);
 bool BKE_subdiv_eval_update_from_mesh(struct Subdiv *subdiv,
                                       const struct Mesh *mesh);
 
+/* Makes sure displacement evaluator is initialized.
+ *
+ * NOTE: This function must be called once before evaluating displacement or
+ * final surface position. */
+void BKE_subdiv_eval_init_displacement(struct Subdiv *subdiv);
+
 /* Single point queries. */
 
 void BKE_subdiv_eval_limit_point(
@@ -77,8 +83,7 @@ void BKE_subdiv_eval_face_varying(
  * TODO(sergey): This is currently used together with
  * BKE_subdiv_eval_final_point() which cas easily evaluate derivatives.
  * Would be nice to have dispalcement evaluation function which does not require
- * knowing derivatives ahead of a time.
- */
+ * knowing derivatives ahead of a time. */
 void BKE_subdiv_eval_displacement(
         struct Subdiv *subdiv,
         const int ptex_face_index,
@@ -96,8 +101,7 @@ void BKE_subdiv_eval_final_point(
  *
  * Will evaluate patch at uniformly distributed (u, v) coordinates on a grid
  * of given resolution, producing resolution^2 evaluation points. The order
- * goes as u in rows, v in columns.
- */
+ * goes as u in rows, v in columns. */
 
 void BKE_subdiv_eval_limit_patch_resolution_point(
         struct Subdiv *subdiv,

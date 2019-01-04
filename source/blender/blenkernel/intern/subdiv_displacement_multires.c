@@ -49,20 +49,23 @@ typedef struct PolyCornerIndex {
 
 typedef struct MultiresDisplacementData {
 	int grid_size;
+	/* Mesh is used to read external displacement. */
+	Mesh *mesh;
 	const MPoly *mpoly;
 	const MDisps *mdisps;
 	/* Indexed by ptex face index, contains polygon/corner which corresponds
 	 * to it.
 	 *
 	 * NOTE: For quad polygon this is an index of first corner only, since
-	 * there we only have one ptex.
-	 */
+	 * there we only have one ptex. */
 	PolyCornerIndex *ptex_poly_corner;
+	/* Sanity check, is used in debug builds.
+	 * Controls that initialize() was called prior to eval_displacement(). */
+	bool is_initialized;
 } MultiresDisplacementData;
 
 /* Denotes which grid to use to average value of the displacement read from the
- * grid which corresponds to the ptex face.
- */
+ * grid which corresponds to the ptex face. */
 typedef enum eAverageWith {
 	AVERAGE_WITH_NONE,
 	AVERAGE_WITH_ALL,
@@ -238,6 +241,16 @@ static void average_displacement(SubdivDisplacement *displacement,
 	}
 }
 
+static void initialize(SubdivDisplacement *displacement)
+{
+	MultiresDisplacementData *data = displacement->user_data;
+	Mesh *mesh = data->mesh;
+	/* Make sure external displacement is read. */
+	CustomData_external_read(
+	    &mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+	data->is_initialized = true;
+}
+
 static void eval_displacement(SubdivDisplacement *displacement,
                               const int ptex_face_index,
                               const float u, const float v,
@@ -245,6 +258,7 @@ static void eval_displacement(SubdivDisplacement *displacement,
                               float r_D[3])
 {
 	MultiresDisplacementData *data = displacement->user_data;
+	BLI_assert(data->is_initialized);
 	const int grid_size = data->grid_size;
 	/* Get displacement in tangent space. */
 	const MDisps *displacement_grid;
@@ -254,8 +268,7 @@ static void eval_displacement(SubdivDisplacement *displacement,
 	                                             &displacement_grid,
 	                                             &grid_u, &grid_v);
 	/* Read displacement from the current displacement grid and see if any
-	 * averaging is needed.
-	 */
+	 * averaging is needed. */
 	float tangent_D[3];
 	eAverageWith average_with =
 	        read_displacement_grid(displacement_grid, grid_size,
@@ -279,8 +292,7 @@ static void free_displacement(SubdivDisplacement *displacement)
 }
 
 /* TODO(sergey): This seems to be generally used information, which almost
- * worth adding to a subdiv itself, with possible cache of the value.
- */
+ * worth adding to a subdiv itself, with possible cache of the value. */
 static int count_num_ptex_faces(const Mesh *mesh)
 {
 	int num_ptex_faces = 0;
@@ -323,25 +335,28 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement,
 }
 
 static void displacement_init_data(SubdivDisplacement *displacement,
-                                   const Mesh *mesh,
+                                   Mesh *mesh,
                                    const MultiresModifierData *mmd)
 {
 	MultiresDisplacementData *data = displacement->user_data;
 	data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
+	data->mesh = mesh;
 	data->mpoly = mesh->mpoly;
 	data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
+	data->is_initialized = false;
 	displacement_data_init_mapping(displacement, mesh);
 }
 
 static void displacement_init_functions(SubdivDisplacement *displacement)
 {
+	displacement->initialize = initialize;
 	displacement->eval_displacement = eval_displacement;
 	displacement->free = free_displacement;
 }
 
 void BKE_subdiv_displacement_attach_from_multires(
         Subdiv *subdiv,
-        const Mesh *mesh,
+        Mesh *mesh,
         const MultiresModifierData *mmd)
 {
 	/* Make sure we don't have previously assigned displacement. */
