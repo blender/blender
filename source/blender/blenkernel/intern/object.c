@@ -2563,7 +2563,7 @@ void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask)
 		for (int i = 0; i < 3; i++) {
 			if (((1 << i) & axis_mask) == 0) {
 				if (len[i] > 0.0f) {
-					ob->size[i] = value[i] / len[i];
+					ob->size[i] = copysignf(value[i] / len[i], ob->size[i]);
 				}
 			}
 		}
