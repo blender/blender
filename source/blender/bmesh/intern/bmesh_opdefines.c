@@ -1061,6 +1061,7 @@ static BMOpDefine bmo_extrude_face_region_def = {
 	 {"edges_exclude", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_EMPTY}},
 	 {"use_keep_orig", BMO_OP_SLOT_BOOL},   /* keep original geometry (requires ``geom`` to include edges). */
 	 {"use_normal_flip", BMO_OP_SLOT_BOOL},  /* Create faces with reversed direction. */
+	 {"use_normal_from_adjacent", BMO_OP_SLOT_BOOL},  /* Use winding from surrounding faces instead of this region. */
 	 {"use_select_history", BMO_OP_SLOT_BOOL},  /* pass to duplicate */
 	 {{'\0'}},
 	},
