@@ -1483,9 +1483,19 @@ class WM_OT_copy_prev_settings(Operator):
 
         old = cls._old_path()
         new = cls._new_path()
+
+        # Disable operator in case config path is overriden with environment
+        # variable. That case has no automatic per-version configuration.
+        userconfig_path = os.path.normpath(bpy.utils.user_resource('CONFIG'))
+        new_userconfig_path = os.path.normpath(os.path.join(new, "config"))
+        if userconfig_path != new_userconfig_path:
+            return False
+
+        # Enable operator if new config path does not exist yet.
         if os.path.isdir(old) and not os.path.isdir(new):
             return True
 
+        # Enable operator also if there are no new user preference yet.
         old_userpref = os.path.join(old, "config", "userpref.blend")
         new_userpref = os.path.join(new, "config", "userpref.blend")
         return os.path.isfile(old_userpref) and not os.path.isfile(new_userpref)
@@ -2693,8 +2703,8 @@ class WM_MT_splash(Menu):
         # Draw setup screen if no preferences have been saved yet.
         import os
 
-        user_path = bpy.utils.resource_path('USER')
-        userdef_path = os.path.join(user_path, "config", "userpref.blend")
+        userconfig_path = bpy.utils.user_resource('CONFIG');
+        userdef_path = os.path.join(userconfig_path, "userpref.blend")
 
         if not os.path.isfile(userdef_path):
             self.draw_setup(context)
