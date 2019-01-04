@@ -2741,5 +2741,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		/* Fix anamorphic bokeh eevee rna limits.*/
+		for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
+			if (ca->gpu_dof.ratio < 0.01f) {
+				ca->gpu_dof.ratio = 0.01f;
+			}
+		}
 	}
 }
