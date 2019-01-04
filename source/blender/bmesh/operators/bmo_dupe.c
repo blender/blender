@@ -525,8 +525,9 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			BMO_op_finish(bm, &dupop);
 		}
 		else {
-			BMO_op_initf(bm, &extop, op->flag, "extrude_face_region geom=%S use_normal_flip=%b",
-			             op, "geom_last.out", use_normal_flip && (a == 0));
+			BMO_op_initf(bm, &extop, op->flag,
+			             "extrude_face_region geom=%S use_normal_flip=%b use_normal_from_adjacent=%b",
+			             op, "geom_last.out", use_normal_flip && (a == 0), (a != 0));
 			BMO_op_exec(bm, &extop);
 			if ((use_merge && (a == steps - 1)) == false) {
 				BMO_op_callf(bm, op->flag,
