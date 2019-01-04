@@ -1442,6 +1442,11 @@ void DepsgraphNodeBuilder::build_lamp(Lamp *lamp)
 	                             DEG_NODE_TYPE_PARAMETERS,
 	                             NULL,
 	                             DEG_OPCODE_PARAMETERS_EVAL);
+	/* NOTE: We mark this node as both entry and exit. This way we have a
+	 * node to link all dependencies for shading (which includes relation to the
+	 * lamp object, and incldues relation from node tree) without adding a
+	 * dedicated component type. */
+	op_node->set_as_entry();
 	op_node->set_as_exit();
 	/* lamp's nodetree */
 	build_nodetree(lamp->nodetree);
