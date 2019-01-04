@@ -744,6 +744,7 @@ void BKE_gpencil_subdivide(bGPDstroke *gps, int level, int flag)
 			gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
 		}
 		gps->flag |= GP_STROKE_RECALC_GEOMETRY;
+		gps->tot_triangles = 0;
 
 		/* move points from last to first to new place */
 		i2 = gps->totpoints - 1;
