@@ -493,6 +493,8 @@ void UI_popup_block_ex(struct bContext *C, uiBlockCreateFunc func, uiBlockHandle
 
 void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *block);
 
+bool UI_popup_block_name_exists(struct bContext *C, const char *name);
+
 /* Blocks
  *
  * Functions for creating, drawing and freeing blocks. A Block is a

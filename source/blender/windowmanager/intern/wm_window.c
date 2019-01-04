@@ -444,7 +444,9 @@ static void wm_confirm_quit(bContext *C)
 	wmWindow *win = CTX_wm_window(C);
 
 	if (GHOST_SupportsNativeDialogs() == 0) {
-		UI_popup_block_invoke(C, block_create_confirm_quit, NULL);
+		if (!UI_popup_block_name_exists(C, "confirm_quit_popup")) {
+			UI_popup_block_invoke(C, block_create_confirm_quit, NULL);
+		}
 	}
 	else if (GHOST_confirmQuit(win->ghostwin)) {
 		wm_exit_schedule_delayed(C);

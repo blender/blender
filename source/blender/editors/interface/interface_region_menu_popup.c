@@ -648,4 +648,20 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 	}
 }
 
+bool UI_popup_block_name_exists(bContext *C, const char *name)
+{
+	bScreen *sc = CTX_wm_screen(C);
+	uiBlock *block;
+	ARegion *ar;
+
+	for (ar = sc->regionbase.first; ar; ar = ar->next) {
+		for (block = ar->uiblocks.first; block; block = block->next) {
+			if (STREQ(block->name, name)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /** \} */
