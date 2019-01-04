@@ -345,6 +345,9 @@ void gpu_extensions_init(void)
 	}
 	else {
 		printf("Warning: Could not find a matching GPU name. Things may not behave as expected.\n");
+		printf("Detected OpenGL configuration:\n");
+		printf("Vendor: %s\n", vendor);
+		printf("Renderer: %s\n", renderer);
 		GG.device = GPU_DEVICE_ANY;
 		GG.driver = GPU_DRIVER_ANY;
 	}
