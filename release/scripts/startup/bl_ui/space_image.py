@@ -438,7 +438,7 @@ class IMAGE_MT_uvs_select_mode(Menu):
             props.data_path = "tool_settings.uv_select_mode"
 
 
-class IMAGE_MT_specials(Menu):
+class IMAGE_MT_uvs_specials(Menu):
     bl_label = "UV Context Menu"
 
     def draw(self, context):
@@ -1325,7 +1325,7 @@ classes = (
     IMAGE_MT_uvs_mirror,
     IMAGE_MT_uvs_weldalign,
     IMAGE_MT_uvs_select_mode,
-    IMAGE_MT_specials,
+    IMAGE_MT_uvs_specials,
     IMAGE_MT_pivot_pie,
     IMAGE_MT_uvs_snap_pie,
     IMAGE_HT_header,
