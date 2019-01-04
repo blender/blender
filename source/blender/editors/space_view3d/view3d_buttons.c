@@ -782,7 +782,6 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
 
 	if (block) {
 		BLI_assert(C == NULL);
-		uiBut *but;
 		int yi = 200;
 		const int butw = 200;
 		const int buth = 20 * UI_DPI_FAC;
