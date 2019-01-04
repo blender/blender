@@ -339,6 +339,10 @@ void gpu_extensions_init(void)
 		GG.device = GPU_DEVICE_SOFTWARE;
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
+	else if (strstr(renderer, "llvmpipe")) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
 	else {
 		printf("Warning: Could not find a matching GPU name. Things may not behave as expected.\n");
 		GG.device = GPU_DEVICE_ANY;
