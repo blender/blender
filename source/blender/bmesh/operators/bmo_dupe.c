@@ -573,11 +573,10 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 							BM_face_kill(bm, f_src);
 							elem_array_len--;
 							elem_array[i] = elem_array[elem_array_len];
+							continue;
 						}
 					}
-					else {
-						i++;
-					}
+					i++;
 				}
 				slot_geom_out->len = elem_array_len;
 			}
