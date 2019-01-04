@@ -2382,12 +2382,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						ARegion *navigation_region = BKE_spacedata_find_region_type(slink, area, RGN_TYPE_NAV_BAR);
 
 						if (!navigation_region) {
+							ARegion *main_region = BKE_spacedata_find_region_type(slink, area, RGN_TYPE_WINDOW);
 							ListBase *regionbase = (slink == area->spacedata.first) ?
 							                       &area->regionbase : &slink->regionbase;
 
 							navigation_region = MEM_callocN(sizeof(ARegion), "userpref navigation-region do_versions");
 
-							BLI_addhead(regionbase, navigation_region); /* order matters, addhead not addtail! */
+							BLI_insertlinkbefore(regionbase, main_region, navigation_region); /* order matters, addhead not addtail! */
 							navigation_region->regiontype = RGN_TYPE_NAV_BAR;
 							navigation_region->alignment = RGN_ALIGN_LEFT;
 						}
@@ -2691,9 +2692,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
-	{
-		/* Versioning code until next subversion bump goes here. */
-
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 40)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "snap_transform_mode_flag")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->toolsettings->snap_transform_mode_flag =
@@ -2748,5 +2747,34 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				ca->gpu_dof.ratio = 0.01f;
 			}
 		}
+
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+				for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_USERPREF) {
+						ARegion *execute_region = BKE_spacedata_find_region_type(sl, area, RGN_TYPE_EXECUTE);
+
+						if (!execute_region) {
+							ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
+							ARegion *ar_navbar = BKE_spacedata_find_region_type(sl, area, RGN_TYPE_NAV_BAR);
+
+							execute_region = MEM_callocN(sizeof(ARegion), "execute region for properties");
+
+							BLI_assert(ar_navbar);
+
+							BLI_insertlinkafter(regionbase, ar_navbar, execute_region);
+
+							execute_region->regiontype = RGN_TYPE_EXECUTE;
+							execute_region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+							execute_region->flag |= RGN_FLAG_DYNAMIC_SIZE;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	{
+		/* Versioning code until next subversion bump goes here. */
 	}
 }

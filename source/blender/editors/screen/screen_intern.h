@@ -57,7 +57,6 @@ int         screen_area_join(struct bContext *C, bScreen *scr, ScrArea *sa1, Scr
 int         area_getorientation(ScrArea *sa, ScrArea *sb);
 
 struct AZone *ED_area_actionzone_find_xy(ScrArea *sa, const int xy[2]);
-struct AZone *ED_area_actionzone_refresh_xy(ScrArea *sa, const int xy[2]);
 
 /* screen_geometry.c */
 int         screen_geom_area_height(const ScrArea *area);

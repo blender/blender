@@ -61,13 +61,6 @@ static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 	spref = MEM_callocN(sizeof(SpaceUserPref), "inituserpref");
 	spref->spacetype = SPACE_USERPREF;
 
-	/* navigation region */
-	ar = MEM_callocN(sizeof(ARegion), "navigation region for userpref");
-
-	BLI_addtail(&spref->regionbase, ar);
-	ar->regiontype = RGN_TYPE_NAV_BAR;
-	ar->alignment = RGN_ALIGN_LEFT;
-
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for userpref");
 
@@ -75,6 +68,21 @@ static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 	ar->regiontype = RGN_TYPE_HEADER;
 	/* Ignore user preference "USER_HEADER_BOTTOM" here (always show bottom for new types). */
 	ar->alignment = RGN_ALIGN_BOTTOM;
+
+	/* navigation region */
+	ar = MEM_callocN(sizeof(ARegion), "navigation region for userpref");
+
+	BLI_addtail(&spref->regionbase, ar);
+	ar->regiontype = RGN_TYPE_NAV_BAR;
+	ar->alignment = RGN_ALIGN_LEFT;
+
+	/* execution region */
+	ar = MEM_callocN(sizeof(ARegion), "execution region for userpref");
+
+	BLI_addtail(&spref->regionbase, ar);
+	ar->regiontype = RGN_TYPE_EXECUTE;
+	ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+	ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for userpref");
@@ -159,6 +167,13 @@ static void userpref_navigation_region_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar);
 }
 
+/* add handlers, stuff you only do once or on area/region changes */
+static void userpref_execute_region_init(wmWindowManager *wm, ARegion *ar)
+{
+	ED_region_panels_init(wm, ar);
+	ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
+}
+
 static void userpref_main_region_listener(
         wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
         wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
@@ -180,6 +195,13 @@ static void userpref_header_listener(
 }
 
 static void userpref_navigation_region_listener(
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
+        wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
+{
+	/* context changes */
+}
+
+static void userpref_execute_region_listener(
         wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
         wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
 {
@@ -230,6 +252,17 @@ void ED_spacetype_userpref(void)
 	art->init = userpref_navigation_region_init;
 	art->draw = userpref_navigation_region_draw;
 	art->listener = userpref_navigation_region_listener;
+	art->keymapflag = ED_KEYMAP_UI;
+
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: execution window */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
+	art->regionid = RGN_TYPE_EXECUTE;
+	art->init = userpref_execute_region_init;
+	art->layout = ED_region_panels_layout;
+	art->draw = ED_region_panels_draw;
+	art->listener = userpref_execute_region_listener;
 	art->keymapflag = ED_KEYMAP_UI;
 
 	BLI_addhead(&st->regiontypes, art);

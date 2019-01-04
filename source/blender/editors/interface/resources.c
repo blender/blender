@@ -183,6 +183,8 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 						cp = ts->header;
 					else if (theme_regionid == RGN_TYPE_NAV_BAR)
 						cp = ts->navigation_bar;
+					else if (theme_regionid == RGN_TYPE_EXECUTE)
+						cp = ts->execution_buts;
 					else
 						cp = ts->button;
 

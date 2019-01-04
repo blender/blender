@@ -1345,7 +1345,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		if (!BLI_is_dir(root)) {
 			BKE_report(
 			        op->reports, RPT_ERROR,
-			        "Please set your User Preferences' 'Translation Branches "
+			        "Please set your Preferences' 'Translation Branches "
 			        "Directory' path to a valid directory");
 			return OPERATOR_CANCELLED;
 		}

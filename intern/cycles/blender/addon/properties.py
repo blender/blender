@@ -1485,7 +1485,6 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def draw_impl(self, layout, context):
         available_device_types = self.get_device_types(context)
-        layout.label(text="Cycles Compute Device:")
         if len(available_device_types) == 1:
             layout.label(text="No compatible GPUs found", icon='INFO')
             return

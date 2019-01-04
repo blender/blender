@@ -47,6 +47,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 	{RGN_TYPE_TOOL_PROPS, "TOOL_PROPS", 0, "Tool Properties", ""},
 	{RGN_TYPE_PREVIEW, "PREVIEW", 0, "Preview", ""},
 	{RGN_TYPE_NAV_BAR, "NAVIGATION_BAR", 0, "Navigation Bar", ""},
+	{RGN_TYPE_EXECUTE, "EXECUTE", 0, "Execute Buttons", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

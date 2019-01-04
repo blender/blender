@@ -106,6 +106,11 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		copy_v4_v4_char(btheme->tclip.metadatabg, U_theme_default.tima.metadatabg);
 		copy_v4_v4_char(btheme->tclip.metadatatext, U_theme_default.tima.metadatatext);
 	}
+
+	if (!USER_VERSION_ATLEAST(280, 40)) {
+		copy_v4_v4_char(btheme->tuserpref.execution_buts, btheme->tuserpref.navigation_bar);
+	}
+
 #undef USER_VERSION_ATLEAST
 }
 
