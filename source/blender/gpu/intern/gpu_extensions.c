@@ -196,6 +196,10 @@ void gpu_extensions_init(void)
 		GG.device = GPU_DEVICE_SOFTWARE;
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
+	else if (strstr(renderer, "llvmpipe")) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
 	else {
 		GG.device = GPU_DEVICE_ANY;
 		GG.driver = GPU_DRIVER_ANY;
