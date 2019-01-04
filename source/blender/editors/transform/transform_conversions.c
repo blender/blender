@@ -8588,7 +8588,7 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->options & CTX_GPENCIL_STROKES) {
 		t->options |= CTX_GPENCIL_STROKES;
-		t->flag |= T_POINTS;
+		t->flag |= T_POINTS | T_EDIT;
 
 		initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 		createTransGPencil(C, t);

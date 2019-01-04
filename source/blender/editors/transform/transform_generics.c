@@ -1292,7 +1292,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 	t->flag = 0;
 
-	t->obedit_type = (object_mode == OB_MODE_EDIT) ? object_type : -1;
+	t->obedit_type = ((object_mode == OB_MODE_EDIT) || (object_mode == OB_MODE_EDIT_GPENCIL)) ? object_type : -1;
 
 	/* Many kinds of transform only use a single handle. */
 	if (t->data_container == NULL) {
