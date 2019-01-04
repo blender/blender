@@ -2554,9 +2554,7 @@ void BKE_object_dimensions_set(Object *ob, const float value[3])
 
 	bb = BKE_object_boundbox_get(ob);
 	if (bb) {
-		float scale[3], len[3];
-
-		mat4_to_size(scale, ob->obmat);
+		float len[3];
 
 		len[0] = bb->vec[4][0] - bb->vec[0][0];
 		len[1] = bb->vec[2][1] - bb->vec[0][1];
