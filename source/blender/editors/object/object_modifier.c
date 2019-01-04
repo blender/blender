@@ -432,10 +432,12 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 	return 1;
 }
 
-int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, ModifierData *md)
+int ED_object_modifier_convert(ReportList *UNUSED(reports),
+                               Main *bmain, Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer,
+                               Object *ob, ModifierData *md)
 {
 	Object *obn;
-	ParticleSystem *psys;
+	ParticleSystem *psys_orig, *psys_eval;
 	ParticleCacheKey *key, **cache;
 	ParticleSettings *part;
 	Mesh *me;
@@ -448,20 +450,25 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (md->type != eModifierType_ParticleSystem) return 0;
 	if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
 
-	psys = ((ParticleSystemModifierData *)md)->psys;
-	part = psys->part;
+	psys_orig = ((ParticleSystemModifierData *)md)->psys;
+	part = psys_orig->part;
 
-	if (part->ren_as != PART_DRAW_PATH || psys->pathcache == NULL)
+	if (part->ren_as != PART_DRAW_PATH) {
 		return 0;
+	}
+	psys_eval = psys_eval_get(depsgraph, ob, psys_orig);
+	if (psys_eval->pathcache == NULL) {
+		return 0;
+	}
 
-	totpart = psys->totcached;
-	totchild = psys->totchildcache;
+	totpart = psys_eval->totcached;
+	totchild = psys_eval->totchildcache;
 
 	if (totchild && (part->draw & PART_DRAW_PARENT) == 0)
 		totpart = 0;
 
 	/* count */
-	cache = psys->pathcache;
+	cache = psys_eval->pathcache;
 	for (a = 0; a < totpart; a++) {
 		key = cache[a];
 
@@ -471,7 +478,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 		}
 	}
 
-	cache = psys->childcache;
+	cache = psys_eval->childcache;
 	for (a = 0; a < totchild; a++) {
 		key = cache[a];
 
@@ -498,7 +505,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	medge = me->medge;
 
 	/* copy coordinates */
-	cache = psys->pathcache;
+	cache = psys_eval->pathcache;
 	for (a = 0; a < totpart; a++) {
 		key = cache[a];
 		kmax = key->segments;
@@ -517,7 +524,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 		}
 	}
 
-	cache = psys->childcache;
+	cache = psys_eval->childcache;
 	for (a = 0; a < totchild; a++) {
 		key = cache[a];
 		kmax = key->segments;
@@ -1086,12 +1093,13 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 static int modifier_convert_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 
-	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, view_layer, ob, md))
+	if (!md || !ED_object_modifier_convert(op->reports, bmain, depsgraph, scene, view_layer, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

@@ -282,6 +282,24 @@ ParticleSystem *psys_orig_get(ParticleSystem *psys)
 	return psys->orig_psys;
 }
 
+struct ParticleSystem *psys_eval_get(Depsgraph *depsgraph,
+                                     Object *object,
+                                     ParticleSystem *psys)
+{
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+	if (object_eval == object) {
+		return psys;
+	}
+	ParticleSystem *psys_eval = object_eval->particlesystem.first;
+	while (psys_eval != NULL) {
+		if (psys_eval->orig_psys == psys) {
+			return psys_eval;
+		}
+		psys_eval = psys_eval->next;
+	}
+	return psys_eval;
+}
+
 static PTCacheEdit *psys_orig_edit_get(ParticleSystem *psys)
 {
 	if (psys->orig_psys == NULL) {

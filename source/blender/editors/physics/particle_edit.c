@@ -4650,25 +4650,6 @@ int PE_minmax(Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
 
 /************************ particle edit toggle operator ************************/
 
-static struct ParticleSystem *psys_eval_get(
-        Depsgraph *depsgraph,
-        Object *object,
-        ParticleSystem *psys)
-{
-	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
-	if (object_eval == object) {
-		return psys;
-	}
-	ParticleSystem *psys_eval = object_eval->particlesystem.first;
-	while (psys_eval != NULL) {
-		if (psys_eval->orig_psys == psys) {
-			return psys_eval;
-		}
-		psys_eval = psys_eval->next;
-	}
-	return psys_eval;
-}
-
 /* initialize needed data for bake edit */
 void PE_create_particle_edit(
         Depsgraph *depsgraph, Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)

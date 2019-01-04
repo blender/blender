@@ -1507,12 +1507,14 @@ static uiLayout *draw_modifier(
 				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 
 				if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
+					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB)) {
 						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_duplicates_make_real");
-					else if (psys->part->ren_as == PART_DRAW_PATH && psys->pathcache)
+					}
+					else if (psys->part->ren_as == PART_DRAW_PATH) {
 						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_modifier_convert");
+					}
 				}
 			}
 			else {

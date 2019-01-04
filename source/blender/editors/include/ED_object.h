@@ -248,7 +248,7 @@ void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(
-        struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+        struct ReportList *reports, struct Main *bmain, struct Depsgraph *depsgraph, struct Scene *scene,
         struct ViewLayer *view_layer, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_apply(
         struct Main *bmain, struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
