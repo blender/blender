@@ -270,7 +270,7 @@ static int node_resize_area_default(bNode *node, int x, int y)
 			return 0;
 	}
 	else {
-		const float size = 10.0f;
+		const float size = NODE_RESIZE_MARGIN;
 		rctf totr = node->totr;
 		int dir = 0;
 
