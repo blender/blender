@@ -3484,11 +3484,34 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 
 			PathResolvedRNA anim_rna;
 			if (animsys_store_rna_setting(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+				/* Evaluate driver, and write results to COW-domain destination */
 				const float ctime = DEG_get_ctime(depsgraph);
 				const float curval = evaluate_fcurve_driver(&anim_rna, fcu, driver_orig, ctime);
 				ok = animsys_write_rna_setting(&anim_rna, curval);
+
+				/* Flush results & status codes to original data for UI (T59984) */
 				if (ok && DEG_is_active(depsgraph)) {
 					animsys_write_orig_anim_rna(&id_ptr, fcu->rna_path, fcu->array_index, curval);
+
+					/* curval is displayed in the UI, and flag contains error-status codes */
+					driver_orig->curval = fcu->driver->curval;
+					driver_orig->flag = fcu->driver->flag;
+
+					DriverVar *dvar_orig = driver_orig->variables.first;
+					DriverVar *dvar = fcu->driver->variables.first;
+					for (;
+					     dvar_orig && dvar;
+					     dvar_orig = dvar_orig->next, dvar = dvar->next)
+					{
+						DriverTarget *dtar_orig = &dvar_orig->targets[0];
+						DriverTarget *dtar = &dvar->targets[0];
+						for (int i = 0; i < MAX_DRIVER_TARGETS; i++, dtar_orig++, dtar++) {
+							dtar_orig->flag = dtar->flag;
+						}
+
+						dvar_orig->curval = dvar->curval;
+						dvar_orig->flag = dvar->flag;
+					}
 				}
 			}
 
