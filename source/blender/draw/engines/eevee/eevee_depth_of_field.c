@@ -178,9 +178,9 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 			/* Precompute values to save instructions in fragment shader. */
 			effects->dof_bokeh_sides[0] = blades;
-			effects->dof_bokeh_sides[1] = 2.0f * M_PI / blades;
+			effects->dof_bokeh_sides[1] = blades > 0.0f ? 2.0f * M_PI / blades : 0.0f;
 			effects->dof_bokeh_sides[2] = blades / (2.0f * M_PI);
-			effects->dof_bokeh_sides[3] = cosf(M_PI / blades);
+			effects->dof_bokeh_sides[3] = blades > 0.0f ? cosf(M_PI / blades) : 0.0f;
 
 			return EFFECT_DOF | EFFECT_POST_BUFFER;
 		}
