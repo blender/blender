@@ -428,15 +428,15 @@ static void OBJECT_engine_init(void *vedata)
 		        "#define DEPTH_BACK " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_BACK) "\n"
 
 		e_data.object_empty_image_sh = DRW_shader_create(
-		            datatoc_object_empty_image_vert_glsl, NULL,
-		            datatoc_object_empty_image_frag_glsl,
-		            EMPTY_IMAGE_SHADER_DEFINES);
+		        datatoc_object_empty_image_vert_glsl, NULL,
+		        datatoc_object_empty_image_frag_glsl,
+		        EMPTY_IMAGE_SHADER_DEFINES);
 
 		e_data.object_empty_image_wire_sh = DRW_shader_create(
-		            datatoc_object_empty_image_vert_glsl, NULL,
-		            datatoc_object_empty_image_frag_glsl,
-		            EMPTY_IMAGE_SHADER_DEFINES
-		            "#define USE_WIRE\n");
+		        datatoc_object_empty_image_vert_glsl, NULL,
+		        datatoc_object_empty_image_frag_glsl,
+		        EMPTY_IMAGE_SHADER_DEFINES
+		        "#define USE_WIRE\n");
 
 #		undef EMPTY_IMAGE_SHADER_DEFINES
 
@@ -2041,13 +2041,12 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 
 	OBJECT_ShadingGroupList *sgl = (ob->dtx & OB_DRAWXRAY) ? &stl->g_data->sgl_ghost : &stl->g_data->sgl;
 
-	OBJECT_LightProbeEngineData *prb_data =
-	        (OBJECT_LightProbeEngineData *)DRW_drawdata_ensure(
-	                &ob->id,
-	                &draw_engine_object_type,
-	                sizeof(OBJECT_LightProbeEngineData),
-	                NULL,
-	                NULL);
+	OBJECT_LightProbeEngineData *prb_data = (OBJECT_LightProbeEngineData *)DRW_drawdata_ensure(
+	        &ob->id,
+	        &draw_engine_object_type,
+	        sizeof(OBJECT_LightProbeEngineData),
+	        NULL,
+	        NULL);
 
 	if ((DRW_state_is_select() || do_outlines) && ((prb->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0)) {
 		int *call_id = shgroup_theme_id_to_probe_outline_counter(stl, theme_id);
@@ -2595,14 +2594,17 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	const bool hide_object_extra = (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) != 0;
 
 	if (do_outlines) {
-		if (!BKE_object_is_in_editmode(ob) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
+		if (!BKE_object_is_in_editmode(ob) &&
+		    !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT)))
+		{
 			struct GPUBatch *geom;
 
 			/* This fixes only the biggest case which is a plane in ortho view. */
 			int flat_axis = 0;
-			bool is_flat_object_viewed_from_side = (rv3d->persp == RV3D_ORTHO) &&
-			                                       DRW_object_is_flat(ob, &flat_axis) &&
-			                                       DRW_object_axis_orthogonal_to_view(ob, flat_axis);
+			bool is_flat_object_viewed_from_side = (
+			        (rv3d->persp == RV3D_ORTHO) &&
+			        DRW_object_is_flat(ob, &flat_axis) &&
+			        DRW_object_axis_orthogonal_to_view(ob, flat_axis));
 
 			if (stl->g_data->xray_enabled || is_flat_object_viewed_from_side) {
 				geom = DRW_cache_object_edge_detection_get(ob, NULL);

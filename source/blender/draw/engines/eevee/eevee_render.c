@@ -209,11 +209,12 @@ static void eevee_render_result_combined(
 	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 
 	GPU_framebuffer_bind(vedata->stl->effects->final_fb);
-	GPU_framebuffer_read_color(vedata->stl->effects->final_fb,
-	                           vedata->stl->g_data->overscan_pixels + rect->xmin,
-	                           vedata->stl->g_data->overscan_pixels + rect->ymin,
-	                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-	                           4, 0, rp->rect);
+	GPU_framebuffer_read_color(
+	        vedata->stl->effects->final_fb,
+	        vedata->stl->g_data->overscan_pixels + rect->xmin,
+	        vedata->stl->g_data->overscan_pixels + rect->ymin,
+	        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+	        4, 0, rp->rect);
 
 	/* Premult alpha */
 	int pixels_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
@@ -238,11 +239,12 @@ static void eevee_render_result_subsurface(
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_COLOR, viewname);
 
 		GPU_framebuffer_bind(vedata->fbl->sss_accum_fb);
-		GPU_framebuffer_read_color(vedata->fbl->sss_accum_fb,
-		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
-		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
-		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-		                           3, 1, rp->rect);
+		GPU_framebuffer_read_color(
+		        vedata->fbl->sss_accum_fb,
+		        vedata->stl->g_data->overscan_pixels + rect->xmin,
+		        vedata->stl->g_data->overscan_pixels + rect->ymin,
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		        3, 1, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i++) {
@@ -254,11 +256,12 @@ static void eevee_render_result_subsurface(
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_DIRECT, viewname);
 
 		GPU_framebuffer_bind(vedata->fbl->sss_accum_fb);
-		GPU_framebuffer_read_color(vedata->fbl->sss_accum_fb,
-		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
-		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
-		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-		                           3, 0, rp->rect);
+		GPU_framebuffer_read_color(
+		        vedata->fbl->sss_accum_fb,
+		        vedata->stl->g_data->overscan_pixels + rect->xmin,
+		        vedata->stl->g_data->overscan_pixels + rect->ymin,
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		        3, 0, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i++) {
@@ -289,11 +292,12 @@ static void eevee_render_result_normal(
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_NORMAL, viewname);
 
 		GPU_framebuffer_bind(vedata->fbl->main_fb);
-		GPU_framebuffer_read_color(vedata->fbl->main_fb,
-		                           g_data->overscan_pixels + rect->xmin,
-		                           g_data->overscan_pixels + rect->ymin,
-		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-		                           3, 1, rp->rect);
+		GPU_framebuffer_read_color(
+		        vedata->fbl->main_fb,
+		        g_data->overscan_pixels + rect->xmin,
+		        g_data->overscan_pixels + rect->ymin,
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		        3, 1, rp->rect);
 
 		/* Convert Eevee encoded normals to Blender normals. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i += 3) {
@@ -336,11 +340,12 @@ static void eevee_render_result_z(
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
 
 		GPU_framebuffer_bind(vedata->fbl->main_fb);
-		GPU_framebuffer_read_depth(vedata->fbl->main_fb,
-		                           g_data->overscan_pixels + rect->xmin,
-		                           g_data->overscan_pixels + rect->ymin,
-		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-		                           rp->rect);
+		GPU_framebuffer_read_depth(
+		        vedata->fbl->main_fb,
+		        g_data->overscan_pixels + rect->xmin,
+		        g_data->overscan_pixels + rect->ymin,
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		        rp->rect);
 
 		bool is_persp = DRW_viewport_is_persp_get();
 
@@ -373,11 +378,12 @@ static void eevee_render_result_mist(
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_MIST, viewname);
 
 		GPU_framebuffer_bind(vedata->fbl->mist_accum_fb);
-		GPU_framebuffer_read_color(vedata->fbl->mist_accum_fb,
-		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
-		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
-		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-		                           1, 0, rp->rect);
+		GPU_framebuffer_read_color(
+		        vedata->fbl->mist_accum_fb,
+		        vedata->stl->g_data->overscan_pixels + rect->xmin,
+		        vedata->stl->g_data->overscan_pixels + rect->ymin,
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		        1, 0, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty; i++) {
@@ -402,11 +408,12 @@ static void eevee_render_result_occlusion(
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_AO, viewname);
 
 		GPU_framebuffer_bind(vedata->fbl->ao_accum_fb);
-		GPU_framebuffer_read_color(vedata->fbl->ao_accum_fb,
-		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
-		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
-		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
-		                           3, 0, rp->rect);
+		GPU_framebuffer_read_color(
+		        vedata->fbl->ao_accum_fb,
+		        vedata->stl->g_data->overscan_pixels + rect->xmin,
+		        vedata->stl->g_data->overscan_pixels + rect->ymin,
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		        3, 0, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i += 3) {

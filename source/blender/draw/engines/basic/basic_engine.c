@@ -146,9 +146,10 @@ static void basic_cache_populate(void *vedata, Object *ob)
 	    (ob->dt == OB_WIRE))
 	{
 		int flat_axis = 0;
-		bool is_flat_object_viewed_from_side = (draw_ctx->rv3d->persp == RV3D_ORTHO) &&
-		                                       DRW_object_is_flat(ob, &flat_axis) &&
-		                                       DRW_object_axis_orthogonal_to_view(ob, flat_axis);
+		bool is_flat_object_viewed_from_side = (
+		        (draw_ctx->rv3d->persp == RV3D_ORTHO) &&
+		        DRW_object_is_flat(ob, &flat_axis) &&
+		        DRW_object_axis_orthogonal_to_view(ob, flat_axis));
 
 		if (is_flat_object_viewed_from_side) {
 			/* Avoid losing flat objects when in ortho views (see T56549) */
