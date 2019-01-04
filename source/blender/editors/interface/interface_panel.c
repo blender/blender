@@ -492,7 +492,7 @@ static void ui_draw_panel_scalewidget(const rcti *rect)
 }
 static void ui_draw_panel_dragwidget(const rctf *rect)
 {
-	unsigned char col_back[3], col_high[3], col_dark[3];
+	uchar col_back[3], col_high[3], col_dark[3];
 	const int col_tint = 84;
 
 	const int px = (int)U.pixelsize;
@@ -1519,7 +1519,7 @@ static void ui_panel_category_draw_tab(
         int mode, float minx, float miny, float maxx, float maxy, float rad,
         int roundboxtype,
         const bool use_highlight, const bool use_shadow,
-        const unsigned char highlight_fade[3])
+        const uchar highlight_fade[3])
 {
 	float vec[4][2] = {
 	    {0.195, 0.02},
@@ -1637,20 +1637,20 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	int y_ofs = tab_v_pad;
 
 	/* Primary theme colors */
-	unsigned char theme_col_back[4];
-	unsigned char theme_col_text[3];
-	unsigned char theme_col_text_hi[3];
+	uchar theme_col_back[4];
+	uchar theme_col_text[3];
+	uchar theme_col_text_hi[3];
 
 	/* Tab colors */
-	unsigned char theme_col_tab_bg[4];
-	unsigned char theme_col_tab_active[3];
-	unsigned char theme_col_tab_inactive[3];
+	uchar theme_col_tab_bg[4];
+	uchar theme_col_tab_active[3];
+	uchar theme_col_tab_inactive[3];
 
 	/* Secondary theme colors */
-	unsigned char theme_col_tab_outline[3];
-	unsigned char theme_col_tab_divider[3];  /* line that divides tabs from the main region */
-	unsigned char theme_col_tab_highlight[3];
-	unsigned char theme_col_tab_highlight_inactive[3];
+	uchar theme_col_tab_outline[3];
+	uchar theme_col_tab_divider[3];  /* line that divides tabs from the main region */
+	uchar theme_col_tab_highlight[3];
+	uchar theme_col_tab_highlight_inactive[3];
 
 
 

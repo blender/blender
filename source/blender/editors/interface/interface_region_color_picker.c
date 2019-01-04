@@ -169,7 +169,7 @@ static void ui_update_color_picker_buts_rgb(
 		}
 		else if (STREQ(bt->str, "Hex: ")) {
 			float rgb_gamma[3];
-			unsigned char rgb_gamma_uchar[3];
+			uchar rgb_gamma_uchar[3];
 			double intpart;
 			char col[16];
 
@@ -386,7 +386,7 @@ static void ui_block_colorpicker(
 	static char tip[50];
 	static char hexcol[128];
 	float rgb_gamma[3];
-	unsigned char rgb_gamma_uchar[3];
+	uchar rgb_gamma_uchar[3];
 	float softmin, softmax, hardmin, hardmax, step, precision;
 	int yco;
 	ColorPicker *cpicker = ui_block_colorpicker_create(block);

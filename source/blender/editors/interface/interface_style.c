@@ -293,7 +293,7 @@ void UI_fontstyle_draw_simple(const uiFontStyle *fs, float x, float y, const cha
  */
 void UI_fontstyle_draw_simple_backdrop(
         const uiFontStyle *fs, float x, float y, const char *str,
-        const unsigned char fg[4], const unsigned char bg[4])
+        const uchar fg[4], const uchar bg[4])
 {
 	if (fs->kerning == 1)
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
@@ -401,7 +401,7 @@ void uiStyleInit(void)
 	uiFont *font;
 	uiStyle *style = U.uistyles.first;
 	int monofont_size = datatoc_bmonofont_ttf_size;
-	unsigned char *monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
+	uchar *monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
 
 	/* recover from uninitialized dpi */
 	if (U.dpi == 0)
@@ -444,7 +444,7 @@ void uiStyleInit(void)
 		if (font->uifont_id == UIFONT_DEFAULT) {
 #ifdef WITH_INTERNATIONAL
 			int font_size = datatoc_bfont_ttf_size;
-			unsigned char *font_ttf = (unsigned char *)datatoc_bfont_ttf;
+			uchar *font_ttf = (uchar *)datatoc_bfont_ttf;
 			static int last_font_size = 0;
 
 			/* use unicode font for translation */
@@ -454,7 +454,7 @@ void uiStyleInit(void)
 				if (!font_ttf) {
 					/* fall back if not found */
 					font_size = datatoc_bfont_ttf_size;
-					font_ttf = (unsigned char *)datatoc_bfont_ttf;
+					font_ttf = (uchar *)datatoc_bfont_ttf;
 				}
 			}
 
@@ -466,13 +466,13 @@ void uiStyleInit(void)
 
 			font->blf_id = BLF_load_mem("default", font_ttf, font_size);
 #else
-			font->blf_id = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+			font->blf_id = BLF_load_mem("default", (uchar *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 #endif
 		}
 		else {
 			font->blf_id = BLF_load(font->filename);
 			if (font->blf_id == -1) {
-				font->blf_id = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+				font->blf_id = BLF_load_mem("default", (uchar *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 			}
 		}
 
@@ -505,7 +505,7 @@ void uiStyleInit(void)
 		if (!monofont_ttf) {
 			/* fall back if not found */
 			monofont_size = datatoc_bmonofont_ttf_size;
-			monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
+			monofont_ttf = (uchar *)datatoc_bmonofont_ttf;
 		}
 	}
 #endif

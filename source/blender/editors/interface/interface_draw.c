@@ -1193,7 +1193,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	float size;
 
 	/* backdrop */
-	glColor3ubv((unsigned char *)wcol->inner);
+	glColor3ubv((uchar *)wcol->inner);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	UI_draw_roundbox_gl_mode(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
 
@@ -1252,7 +1252,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	/* AA circle */
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
-	glColor3ubv((unsigned char *)wcol->inner);
+	glColor3ubv((uchar *)wcol->inner);
 	glutil_draw_lined_arc(0.0f, M_PI * 2.0, 100.0f, 32);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -1288,7 +1288,7 @@ static void ui_draw_but_curve_grid(const rcti *rect, float zoomx, float zoomy, f
 
 }
 
-static void gl_shaded_color(unsigned char *col, int shade)
+static void gl_shaded_color(uchar *col, int shade)
 {
 	glColor3ub(col[0] - shade > 0 ? col[0] - shade : 0,
 	           col[1] - shade > 0 ? col[1] - shade : 0,
@@ -1354,27 +1354,27 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	}
 	else {
 		if (cumap->flag & CUMA_DO_CLIP) {
-			gl_shaded_color((unsigned char *)wcol->inner, -20);
+			gl_shaded_color((uchar *)wcol->inner, -20);
 			glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-			glColor3ubv((unsigned char *)wcol->inner);
+			glColor3ubv((uchar *)wcol->inner);
 			glRectf(rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
 			        rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
 			        rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
 			        rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
 		else {
-			glColor3ubv((unsigned char *)wcol->inner);
+			glColor3ubv((uchar *)wcol->inner);
 			glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 
 		/* grid, every 0.25 step */
-		gl_shaded_color((unsigned char *)wcol->inner, -16);
+		gl_shaded_color((uchar *)wcol->inner, -16);
 		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
 		/* grid, every 1.0 step */
-		gl_shaded_color((unsigned char *)wcol->inner, -24);
+		gl_shaded_color((uchar *)wcol->inner, -24);
 		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
 		/* axes */
-		gl_shaded_color((unsigned char *)wcol->inner, -50);
+		gl_shaded_color((uchar *)wcol->inner, -50);
 		glBegin(GL_LINES);
 		glVertex2f(rect->xmin, rect->ymin + zoomy * (-offsy));
 		glVertex2f(rect->xmax, rect->ymin + zoomy * (-offsy));
@@ -1430,7 +1430,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	}
 
 	/* the curve */
-	glColor3ubv((unsigned char *)wcol->item);
+	glColor3ubv((uchar *)wcol->item);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	glBegin(GL_LINE_STRIP);
@@ -1486,7 +1486,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
 	/* outline */
-	glColor3ubv((unsigned char *)wcol->outline);
+	glColor3ubv((uchar *)wcol->outline);
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
@@ -1677,7 +1677,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 /* ****************************************************** */
 
 
-static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
+static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float shadsize, uchar alpha)
 {
 	/* right quad */
 	glColor4ub(0, 0, 0, alpha);
@@ -1704,7 +1704,7 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 	glVertex2f(minx + 0.5f * shadsize, miny - shadsize);
 }
 
-void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
+void UI_draw_box_shadow(uchar alpha, float minx, float miny, float maxx, float maxy)
 {
 	glEnable(GL_BLEND);
 

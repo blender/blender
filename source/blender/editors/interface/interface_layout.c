@@ -399,7 +399,7 @@ static void ui_item_array(
 	PropertyType type;
 	PropertySubType subtype;
 	uiLayout *sub;
-	unsigned int a, b;
+	uint a, b;
 
 	/* retrieve type and subtype */
 	type = RNA_property_type(prop);
@@ -417,9 +417,9 @@ static void ui_item_array(
 		/* special check for layer layout */
 		int butw, buth, unit;
 		int cols = (len >= 20) ? 2 : 1;
-		const unsigned int colbuts = len / (2 * cols);
-		unsigned int layer_used = 0;
-		unsigned int layer_active = 0;
+		const uint colbuts = len / (2 * cols);
+		uint layer_used = 0;
+		uint layer_active = 0;
 
 		UI_block_layout_set_current(block, uiLayoutAbsolute(layout, false));
 
@@ -449,7 +449,7 @@ static void ui_item_array(
 
 			for (a = 0; a < colbuts; a++) {
 				const int layer_num  = a + b * colbuts;
-				const unsigned int layer_flag = (1u << layer_num);
+				const uint layer_flag = (1u << layer_num);
 
 				if (layer_used & layer_flag) {
 					if (layer_active & layer_flag)
@@ -467,7 +467,7 @@ static void ui_item_array(
 			}
 			for (a = 0; a < colbuts; a++) {
 				const int layer_num  = a + len / 2 + b * colbuts;
-				const unsigned int layer_flag = (1u << layer_num);
+				const uint layer_flag = (1u << layer_num);
 
 				if (layer_used & layer_flag) {
 					if (layer_active & layer_flag)

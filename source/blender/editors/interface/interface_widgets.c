@@ -97,10 +97,10 @@ enum {
 /* it has outline, back, and two optional tria meshes */
 
 typedef struct uiWidgetTrias {
-	unsigned int tot;
+	uint tot;
 
 	float vec[16][2];
-	const unsigned int (*index)[3];
+	const uint (*index)[3];
 
 } uiWidgetTrias;
 
@@ -514,7 +514,7 @@ static void shape_preset_init_trias_ex(
         uiWidgetTrias *tria, const rcti *rect, float triasize, char where,
         /* input data */
         const float verts[][2], const int verts_tot,
-        const unsigned int tris[][3], const int tris_tot)
+        const uint tris[][3], const int tris_tot)
 {
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
@@ -636,7 +636,7 @@ static void shadecolors4(char coltop[4], char coldown[4], const char *color, sho
 	coldown[3] = color[3];
 }
 
-static void round_box_shade_col4_r(unsigned char r_col[4], const char col1[4], const char col2[4], const float fac)
+static void round_box_shade_col4_r(uchar r_col[4], const char col1[4], const char col2[4], const float fac)
 {
 	const int faci = unit_float_to_uchar_clamp(fac);
 	const int facm = 255 - faci;
@@ -715,7 +715,7 @@ static void widgetbase_draw_ex(
 				/* alpha fill */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-				glColor4ubv((unsigned char *)wcol->inner);
+				glColor4ubv((uchar *)wcol->inner);
 
 				for (a = 0; a < wtb->totvert; a++) {
 					x_mid += wtb->inner_v[a][0];
@@ -739,7 +739,7 @@ static void widgetbase_draw_ex(
 			}
 			else {
 				/* simple fill */
-				glColor4ubv((unsigned char *)wcol->inner);
+				glColor4ubv((uchar *)wcol->inner);
 
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
@@ -749,8 +749,8 @@ static void widgetbase_draw_ex(
 		}
 		else {
 			char col1[4], col2[4];
-			unsigned char col_array[WIDGET_SIZE_MAX * 4];
-			unsigned char *col_pt = col_array;
+			uchar col_array[WIDGET_SIZE_MAX * 4];
+			uchar *col_pt = col_array;
 
 			shadecolors4(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
 
@@ -774,13 +774,13 @@ static void widgetbase_draw_ex(
 		float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
 		float triangle_strip_emboss[WIDGET_SIZE_MAX * 2][2]; /* only for emboss */
 
-		const unsigned char tcol[4] = {
+		const uchar tcol[4] = {
 			wcol->outline[0],
 			wcol->outline[1],
 			wcol->outline[2],
 			wcol->outline[3] / WIDGET_AA_JITTER,
 		};
-		unsigned char emboss[4];
+		uchar emboss[4];
 
 		widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
 
@@ -817,11 +817,11 @@ static void widgetbase_draw_ex(
 
 	/* decoration */
 	if (wtb->tria1.tot || wtb->tria2.tot) {
-		const unsigned char tcol[4] = {
+		const uchar tcol[4] = {
 			wcol->item[0],
 			wcol->item[1],
 			wcol->item[2],
-			(unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER),
+			(uchar)((float)wcol->item[3] / WIDGET_AA_JITTER),
 		};
 		glColor4ubv(tcol);
 
@@ -1318,7 +1318,7 @@ static void widget_draw_text_ime_underline(
 		        fstyle->uifont_id, drawstr + but->ofs,
 		        ime_data->composite_len + but->pos - but->ofs);
 
-		glColor4ubv((unsigned char *)wcol->text);
+		glColor4ubv((uchar *)wcol->text);
 		UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 1);
 
 		/* draw the thick line */
@@ -1422,7 +1422,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 				selwidth_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selend - but->ofs);
 
-				glColor4ubv((unsigned char *)wcol->item);
+				glColor4ubv((uchar *)wcol->item);
 				glRecti(rect->xmin + selsta_draw,
 				        rect->ymin + 2,
 				        min_ii(rect->xmin + selwidth_draw, rect->xmax - 2),
@@ -1516,7 +1516,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	}
 #endif
 
-	glColor4ubv((unsigned char *)wcol->text);
+	glColor4ubv((uchar *)wcol->text);
 
 	if (!use_right_only) {
 		/* for underline drawing */
@@ -2396,7 +2396,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glTranslatef(centx, centy, 0.0f);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
-	glColor3ubv((unsigned char *)wcol->outline);
+	glColor3ubv((uchar *)wcol->outline);
 	glutil_draw_lined_arc(0.0f, M_PI * 2.0, radius, tot + 1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -2682,7 +2682,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 {
 	int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
-	unsigned char col[4] = {
+	uchar col[4] = {
 		wcol->text[0],
 		wcol->text[1],
 		wcol->text[2],
@@ -3106,7 +3106,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	if (color_profile)
 		ui_block_cm_to_display_space_v3(but->block, col);
 
-	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
+	rgba_float_to_uchar((uchar *)wcol->inner, col);
 	const bool show_alpha_checkers = (wcol->inner[3] < 255);
 
 	wcol->shaded = 0;
@@ -3358,9 +3358,9 @@ static void widget_state_label(uiWidgetType *wt, int state)
 		/* call this for option button */
 		widget_state(wt, state);
 		if (state & UI_SELECT)
-			UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
+			UI_GetThemeColor3ubv(TH_TEXT_HI, (uchar *)wt->wcol.text);
 		else
-			UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
+			UI_GetThemeColor3ubv(TH_TEXT, (uchar *)wt->wcol.text);
 	}
 }
 
@@ -3455,7 +3455,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 {
 	uiWidgetBase wtb;
 	const float rad = 0.25f * U.widget_unit;
-	unsigned char col[4];
+	uchar col[4];
 
 	/* state copy! */
 	wt->wcol = *(wt->wcol_theme);
@@ -4000,12 +4000,12 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	if (block) {
 		if (block->flag & UI_BLOCK_CLIPTOP) {
 			/* XXX no scaling for UI here yet */
-			glColor3ubv((unsigned char *)wt->wcol.text);
+			glColor3ubv((uchar *)wt->wcol.text);
 			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 8, 't');
 		}
 		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
 			/* XXX no scaling for UI here yet */
-			glColor3ubv((unsigned char *)wt->wcol.text);
+			glColor3ubv((uchar *)wt->wcol.text);
 			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10, 'v');
 		}
 	}
@@ -4023,7 +4023,7 @@ static void draw_disk_shaded(
 	float s, c;
 	float y1, y2;
 	float fac;
-	unsigned char r_col[4];
+	uchar r_col[4];
 
 	glBegin(GL_TRIANGLE_STRIP);
 
@@ -4217,7 +4217,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 			UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 		}
 
-		glColor4ubv((unsigned char *)wt->wcol.text);
+		glColor4ubv((uchar *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, rect, drawstr);
 	}
 
@@ -4284,7 +4284,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
 		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
-		glColor4ubv((unsigned char *)wt->wcol.text);
+		glColor4ubv((uchar *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, &trect, drawstr);
 	}
 }

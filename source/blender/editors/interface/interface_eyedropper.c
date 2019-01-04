@@ -136,8 +136,8 @@ void eyedropper_draw_cursor_text(const struct bContext *C, const ARegion *ar, co
 	wmWindow *win = CTX_wm_window(C);
 	int x = win->eventstate->x;
 	int y = win->eventstate->y;
-	const unsigned char fg[4] = {255, 255, 255, 255};
-	const unsigned char bg[4] = {0, 0, 0, 50};
+	const uchar fg[4] = {255, 255, 255, 255};
+	const uchar bg[4] = {0, 0, 0, 50};
 
 
 	if ((name[0] == '\0') ||

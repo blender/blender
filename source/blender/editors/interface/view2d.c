@@ -1712,7 +1712,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		uiWidgetColors wcol = btheme->tui.wcol_scroll;
 		rcti slider;
 		int state;
-		unsigned char col[4];
+		uchar col[4];
 
 		slider.xmin = vs->hor_min;
 		slider.xmax = vs->hor_max;
@@ -1813,7 +1813,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		uiWidgetColors wcol = btheme->tui.wcol_scroll;
 		rcti slider;
 		int state;
-		unsigned char col[4];
+		uchar col[4];
 
 		slider.xmin = vert.xmin;
 		slider.xmax = vert.xmax;
@@ -2326,7 +2326,7 @@ short UI_view2d_mouse_in_scrollers(const bContext *C, View2D *v2d, int x, int y)
 typedef struct View2DString {
 	struct View2DString *next;
 	union {
-		unsigned char ub[4];
+		uchar ub[4];
 		int pack;
 	} col;
 	rcti rect;

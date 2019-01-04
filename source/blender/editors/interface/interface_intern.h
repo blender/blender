@@ -242,7 +242,7 @@ struct uiBut {
 	 */
 	float a2;
 
-	unsigned char col[4];
+	uchar col[4];
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -282,7 +282,7 @@ struct uiBut {
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied from the block */
 	signed char pie_dir; /* direction in a pie menu, used for collision detection (RadialDirection) */
 	char changed; /* could be made into a single flag */
-	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
+	uchar unit_type; /* so buttons can support unit systems which are not RNA */
 	short modifier_key;
 	short iconadd;
 
@@ -306,7 +306,7 @@ struct uiBut {
 	struct wmOperatorType *optype;
 	struct PointerRNA *opptr;
 	short opcontext;
-	unsigned char menu_key; /* 'a'-'z', always lower case */
+	uchar menu_key; /* 'a'-'z', always lower case */
 
 	/* Draggable data, type is WM_DRAG_... */
 	char dragtype;
@@ -377,7 +377,7 @@ struct uiBlock {
 	rctf rect;
 	float aspect;
 
-	unsigned int puphash;  /* popup menu hash for memory */
+	uint puphash;  /* popup menu hash for memory */
 
 	uiButHandleFunc func;
 	void *func_arg1;
