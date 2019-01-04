@@ -233,7 +233,7 @@ struct uiBut {
 	 */
 	float a2;
 
-	unsigned char col[4];
+	uchar col[4];
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -271,7 +271,7 @@ struct uiBut {
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied from the block */
 	signed char pie_dir; /* direction in a pie menu, used for collision detection (RadialDirection) */
 	bool changed; /* could be made into a single flag */
-	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
+	uchar unit_type; /* so buttons can support unit systems which are not RNA */
 	short modifier_key;
 	short iconadd;
 
@@ -295,7 +295,7 @@ struct uiBut {
 	struct wmOperatorType *optype;
 	struct PointerRNA *opptr;
 	short opcontext;
-	unsigned char menu_key; /* 'a'-'z', always lower case */
+	uchar menu_key; /* 'a'-'z', always lower case */
 
 	/* Draggable data, type is WM_DRAG_... */
 	char dragtype;
@@ -378,7 +378,7 @@ struct uiBlock {
 	rctf rect;
 	float aspect;
 
-	unsigned int puphash;  /* popup menu hash for memory */
+	uint puphash;  /* popup menu hash for memory */
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -679,7 +679,7 @@ extern void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, floa
 void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha);
 
 
-void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highlight[3], unsigned char highlight_fade[3]);
+void ui_draw_but_TAB_outline(const rcti *rect, float rad, uchar highlight[3], uchar highlight_fade[3]);
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);
 void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, const struct uiWidgetColors *wcol, const rcti *rect);

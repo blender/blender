@@ -152,9 +152,9 @@ typedef struct EEVEE_LightBake {
  * \{ */
 
 /* Return memory footprint in bytes. */
-static unsigned int eevee_lightcache_memsize_get(LightCache *lcache)
+static uint eevee_lightcache_memsize_get(LightCache *lcache)
 {
-	unsigned int size = 0;
+	uint size = 0;
 	if (lcache->grid_tx.data) {
 		size += MEM_allocN_len(lcache->grid_tx.data);
 	}

@@ -170,7 +170,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	const uiWidgetColors *theme = ui_tooltip_get_theme();
 	rcti bbox = data->bbox;
 	float tip_colors[UI_TIP_LC_MAX][3];
-	unsigned char drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
+	uchar drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
 
 	float *main_color    = tip_colors[UI_TIP_LC_MAIN]; /* the color from the theme */
 	float *value_color   = tip_colors[UI_TIP_LC_VALUE];
@@ -189,10 +189,10 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	ui_draw_tooltip_background(UI_style_get(), NULL, &bbox);
 
 	/* set background_color */
-	rgb_uchar_to_float(background_color, (const unsigned char *)theme->inner);
+	rgb_uchar_to_float(background_color, (const uchar *)theme->inner);
 
 	/* calculate normal_color */
-	rgb_uchar_to_float(main_color, (const unsigned char *)theme->text);
+	rgb_uchar_to_float(main_color, (const uchar *)theme->text);
 	copy_v3_v3(active_color, main_color);
 	copy_v3_v3(normal_color, main_color);
 	copy_v3_v3(python_color, main_color);

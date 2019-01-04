@@ -104,12 +104,12 @@ enum {
 /* it has outline, back, and two optional tria meshes */
 
 typedef struct uiWidgetTrias {
-	unsigned int tot;
+	uint tot;
 	int type;
 	float size, center[2];
 
 	float vec[16][2];
-	const unsigned int (*index)[3];
+	const uint (*index)[3];
 
 } uiWidgetTrias;
 
@@ -546,7 +546,7 @@ void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
 }
 
 
-void UI_draw_anti_fan(float tri_array[][2], unsigned int length, const float color[4])
+void UI_draw_anti_fan(float tri_array[][2], uint length, const float color[4])
 {
 	float draw_color[4];
 
@@ -855,7 +855,7 @@ static void shape_preset_init_trias_ex(
         uiWidgetTrias *tria, const rcti *rect, float triasize, char where,
         /* input data */
         const float verts[][2], const int verts_tot,
-        const unsigned int tris[][3], const int tris_tot)
+        const uint tris[][3], const int tris_tot)
 {
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
@@ -932,10 +932,10 @@ static void shape_preset_init_scroll_circle(uiWidgetTrias *tria, const rcti *rec
 	        g_shape_preset_scroll_circle_face, ARRAY_SIZE(g_shape_preset_scroll_circle_face));
 }
 
-static void widget_draw_vertex_buffer(unsigned int pos, unsigned int col, int mode,
+static void widget_draw_vertex_buffer(uint pos, uint col, int mode,
                                       const float quads_pos[WIDGET_SIZE_MAX][2],
-                                      const unsigned char quads_col[WIDGET_SIZE_MAX][4],
-                                      unsigned int totvert)
+                                      const uchar quads_col[WIDGET_SIZE_MAX][4],
+                                      uint totvert)
 {
 	immBegin(mode, totvert);
 	for (int i = 0; i < totvert; ++i) {
@@ -1010,7 +1010,7 @@ static void shadecolors4(char coltop[4], char coldown[4], const char *color, sho
 	coldown[3] = color[3];
 }
 
-static void round_box_shade_col4_r(unsigned char r_col[4], const char col1[4], const char col2[4], const float fac)
+static void round_box_shade_col4_r(uchar r_col[4], const char col1[4], const char col2[4], const float fac)
 {
 	const int faci = unit_float_to_uchar_clamp(fac);
 	const int facm = 255 - faci;
@@ -1032,7 +1032,7 @@ static void widget_verts_to_triangle_strip(uiWidgetBase *wtb, const int totvert,
 	copy_v2_v2(triangle_strip[a * 2 + 1], wtb->inner_v[0]);
 }
 
-static void widgetbase_outline(uiWidgetBase *wtb, unsigned int pos)
+static void widgetbase_outline(uiWidgetBase *wtb, uint pos)
 {
 	float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
 	widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
@@ -1071,10 +1071,10 @@ static void widgetbase_set_uniform_discard_factor(
 
 static void widgetbase_set_uniform_colors_ubv(
         uiWidgetBase *wtb,
-        const unsigned char *col1, const unsigned char *col2,
-        const unsigned char *outline,
-        const unsigned char *emboss,
-        const unsigned char *tria,
+        const uchar *col1, const uchar *col2,
+        const uchar *outline,
+        const uchar *emboss,
+        const uchar *tria,
         const bool alpha_check)
 {
 	widgetbase_set_uniform_alpha_check(wtb, alpha_check);
@@ -1188,11 +1188,11 @@ static void widgetbase_draw_ex(
         uiWidgetBase *wtb, const uiWidgetColors *wcol,
         bool show_alpha_checkers)
 {
-	unsigned char inner_col1[4] = {0};
-	unsigned char inner_col2[4] = {0};
-	unsigned char emboss_col[4] = {0};
-	unsigned char outline_col[4] = {0};
-	unsigned char tria_col[4] = {0};
+	uchar inner_col1[4] = {0};
+	uchar inner_col2[4] = {0};
+	uchar emboss_col[4] = {0};
+	uchar outline_col[4] = {0};
+	uchar tria_col[4] = {0};
 	/* For color widget. */
 	if (wcol->shaded != 0) {
 		show_alpha_checkers = false;
@@ -1204,10 +1204,10 @@ static void widgetbase_draw_ex(
 	if (wtb->draw_inner) {
 		if (wcol->shaded == 0) {
 			/* simple fill */
-			inner_col1[0] = inner_col2[0] = (unsigned char)wcol->inner[0];
-			inner_col1[1] = inner_col2[1] = (unsigned char)wcol->inner[1];
-			inner_col1[2] = inner_col2[2] = (unsigned char)wcol->inner[2];
-			inner_col1[3] = inner_col2[3] = (unsigned char)wcol->inner[3];
+			inner_col1[0] = inner_col2[0] = (uchar)wcol->inner[0];
+			inner_col1[1] = inner_col2[1] = (uchar)wcol->inner[1];
+			inner_col1[2] = inner_col2[2] = (uchar)wcol->inner[2];
+			inner_col1[3] = inner_col2[3] = (uchar)wcol->inner[3];
 		}
 		else {
 			/* gradient fill */
@@ -1231,7 +1231,7 @@ static void widgetbase_draw_ex(
 		tria_col[0] = wcol->item[0];
 		tria_col[1] = wcol->item[1];
 		tria_col[2] = wcol->item[2];
-		tria_col[3] = (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER);
+		tria_col[3] = (uchar)((float)wcol->item[3] / WIDGET_AA_JITTER);
 	}
 
 	/* Draw everything in one drawcall */
@@ -1863,7 +1863,7 @@ static void widget_draw_text(const uiFontStyle *fstyle, const uiWidgetColors *wc
 				uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-				immUniformColor4ubv((unsigned char *)wcol->item);
+				immUniformColor4ubv((uchar *)wcol->item);
 				immRecti(pos, rect->xmin + selsta_draw,
 				         rect->ymin + 2,
 				         min_ii(rect->xmin + selwidth_draw, rect->xmax - 2),
@@ -2004,7 +2004,7 @@ static void widget_draw_text(const uiFontStyle *fstyle, const uiWidgetColors *wc
 					ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index) + (1.0f * UI_DPI_FAC);
 
 					BLF_position(fstyle->uifont_id, rect->xmin + font_xofs + ul_advance, rect->ymin + font_yofs, 0.0f);
-					BLF_color4ubv(fstyle->uifont_id, (unsigned char *)wcol->text);
+					BLF_color4ubv(fstyle->uifont_id, (uchar *)wcol->text);
 					BLF_draw(fstyle->uifont_id, "_", 2);
 
 					if (fstyle->kerning == 1) {
@@ -2668,7 +2668,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 	GPU_blend(true);
 	GPU_line_smooth(true);
 
-	immUniformColor3ubv((unsigned char *)wcol->outline);
+	immUniformColor3ubv((uchar *)wcol->outline);
 	imm_draw_circle_wire_2d(pos, centx, centy, radius, tot);
 
 	immUnbindProgram();
@@ -2977,7 +2977,7 @@ static void ui_draw_roundbox(const rcti *rect, const float rad, const uiWidgetCo
 static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
 	int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
-	unsigned char col[4] = {
+	uchar col[4] = {
 		wcol->text[0],
 		wcol->text[1],
 		wcol->text[2],
@@ -3416,7 +3416,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	if (!ui_but_is_color_gamma(but))
 		ui_block_cm_to_display_space_v3(but->block, col);
 
-	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
+	rgba_float_to_uchar((uchar *)wcol->inner, col);
 	const bool show_alpha_checkers = (wcol->inner[3] < 255);
 
 	wcol->shaded = 0;
@@ -3662,9 +3662,9 @@ static void widget_state_label(uiWidgetType *wt, int state, int drawflag)
 		/* call this for option button */
 		widget_state(wt, state, drawflag);
 		if (state & UI_SELECT)
-			UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
+			UI_GetThemeColor3ubv(TH_TEXT_HI, (uchar *)wt->wcol.text);
 		else
-			UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
+			UI_GetThemeColor3ubv(TH_TEXT, (uchar *)wt->wcol.text);
 	}
 
 	if (state & UI_BUT_REDALERT) {
@@ -3767,17 +3767,17 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 //#define USE_TAB_SHADED_HIGHLIGHT
 
 	uiWidgetBase wtb;
-	unsigned char theme_col_tab_highlight[3];
+	uchar theme_col_tab_highlight[3];
 
 #ifdef USE_TAB_SHADED_HIGHLIGHT
 	/* create outline highlight colors */
 	if (is_active) {
-		interp_v3_v3v3_uchar(theme_col_tab_highlight, (unsigned char *)wcol->inner_sel,
-		                     (unsigned char *)wcol->outline, 0.2f);
+		interp_v3_v3v3_uchar(theme_col_tab_highlight, (uchar *)wcol->inner_sel,
+		                     (uchar *)wcol->outline, 0.2f);
 	}
 	else {
-		interp_v3_v3v3_uchar(theme_col_tab_highlight, (unsigned char *)wcol->inner,
-		                     (unsigned char *)wcol->outline, 0.12f);
+		interp_v3_v3v3_uchar(theme_col_tab_highlight, (uchar *)wcol->inner,
+		                     (uchar *)wcol->outline, 0.12f);
 	}
 #endif
 
@@ -3799,7 +3799,7 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 
 #ifdef USE_TAB_SHADED_HIGHLIGHT
 	/* draw outline (3d look) */
-	ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, (unsigned char *)wcol->inner);
+	ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, (uchar *)wcol->inner);
 #endif
 
 #ifndef USE_TAB_SHADED_HIGHLIGHT
@@ -3813,7 +3813,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	uiWidgetColors *wcol = &btheme->tui.wcol_radio;
 	uiWidgetBase wtb;
 	const float rad = wcol->roundness * U.widget_unit;
-	unsigned char col[4];
+	uchar col[4];
 
 	/* state copy! */
 	wt->wcol = *(wt->wcol_theme);
@@ -4401,7 +4401,7 @@ static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
 {
 	if (block) {
 		float draw_color[4];
-		unsigned char *color = (unsigned char *)wt->wcol.text;
+		uchar *color = (uchar *)wt->wcol.text;
 
 		draw_color[0] = ((float)color[0]) / 255.0f;
 		draw_color[1] = ((float)color[1]) / 255.0f;
@@ -4465,7 +4465,7 @@ static void ui_draw_popover_back_impl(
 	if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
 		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformColor4ubv((unsigned char *)wcol->inner);
+		immUniformColor4ubv((uchar *)wcol->inner);
 		GPU_blend(true);
 		immBegin(GPU_PRIM_TRIS, 3);
 		if (direction == UI_DIR_DOWN) {
@@ -4516,8 +4516,8 @@ static void draw_disk_shaded(
 	float s, c;
 	float y1, y2;
 	float fac;
-	unsigned char r_col[4];
-	unsigned int pos, col;
+	uchar r_col[4];
+	uint pos, col;
 
 	GPUVertFormat *format = immVertexFormat();
 	pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -4527,7 +4527,7 @@ static void draw_disk_shaded(
 	}
 	else {
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformColor4ubv((unsigned char *)col1);
+		immUniformColor4ubv((uchar *)col1);
 	}
 
 	immBegin(GPU_PRIM_TRI_STRIP, subd * 2);
@@ -4602,7 +4602,7 @@ void ui_draw_pie_center(uiBlock *block)
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformColor4ubv((unsigned char *)btheme->tui.wcol_pie_menu.outline);
+	immUniformColor4ubv((uchar *)btheme->tui.wcol_pie_menu.outline);
 
 	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_internal, subd);
 	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_external, subd);
@@ -4651,7 +4651,7 @@ void ui_draw_widget_back_color(
 	rcti rect_copy = *rect;
 	wt->state(wt, 0, 0);
 	if (color) {
-		rgba_float_to_uchar((unsigned char *)wt->wcol.inner, color);
+		rgba_float_to_uchar((uchar *)wt->wcol.inner, color);
 	}
 	wt->draw(&wt->wcol, &rect_copy, 0, UI_CNR_ALL);
 }

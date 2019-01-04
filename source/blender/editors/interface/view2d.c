@@ -1320,7 +1320,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	int a, step;
 	int vertical_minor_step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC),
 		horizontal_major_step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
-	unsigned char grid_line_color[3];
+	uchar grid_line_color[3];
 
 	/* check for grid first, as it may not exist */
 	if (grid == NULL)
@@ -1537,7 +1537,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 
 	int offset = -10;
 	float lstep = step;
-	unsigned char grid_line_color[3];
+	uchar grid_line_color[3];
 
 	/* Make an estimate of at least how many vertices will be needed */
 	unsigned vertex_count = 4;
@@ -1832,7 +1832,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	rcti vert, hor;
 	const int scroll = view2d_scroll_mapped(v2d->scroll);
 	const char emboss_alpha = btheme->tui.widget_emboss[3];
-	unsigned char scrollers_back_color[4];
+	uchar scrollers_back_color[4];
 
 	/* Color for scrollbar backs */
 	UI_GetThemeColor4ubv(TH_BACK, scrollers_back_color);
@@ -2472,7 +2472,7 @@ char UI_view2d_mouse_in_scrollers(
 typedef struct View2DString {
 	struct View2DString *next;
 	union {
-		unsigned char ub[4];
+		uchar ub[4];
 		int pack;
 	} col;
 	rcti rect;

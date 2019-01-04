@@ -843,8 +843,8 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
 {
 	uiBut *but;
 
-	unsigned int menu_key_mask = 0;
-	unsigned char menu_key;
+	uint menu_key_mask = 0;
+	uchar menu_key;
 	const char *str_pt;
 	int pass;
 	int tot_missing = 0;
@@ -3837,7 +3837,7 @@ uiBut *uiDefBut(uiBlock *block, int type, int retval, const char *str, int x, in
  *     ((1 << findBitIndex(x)) == x);
  * \endcode
  */
-static int findBitIndex(unsigned int x)
+static int findBitIndex(uint x)
 {
 	if (!x || !is_power_of_2_i(x)) { /* is_power_of_2_i(x) strips lowest bit */
 		return -1;
@@ -4344,7 +4344,7 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
 
 void UI_but_unit_type_set(uiBut *but, const int unit_type)
 {
-	but->unit_type = (unsigned char)(RNA_SUBTYPE_UNIT_VALUE(unit_type));
+	but->unit_type = (uchar)(RNA_SUBTYPE_UNIT_VALUE(unit_type));
 }
 
 int UI_but_unit_type_get(const uiBut *but)

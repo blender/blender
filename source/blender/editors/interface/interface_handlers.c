@@ -288,7 +288,7 @@ typedef struct uiHandleButtonData {
 	ColorBand *coba;
 
 	/* tooltip */
-	unsigned int tooltip_force : 1;
+	uint tooltip_force : 1;
 
 	/* auto open */
 	bool used_mouse;
@@ -2756,7 +2756,7 @@ static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, char 
 
 	if (ui_but_is_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
 		printf("%s: entering invalid ascii char into an ascii key (%d)\n",
-		       __func__, (int)(unsigned char)ascii);
+		       __func__, (int)(uchar)ascii);
 
 		return false;
 	}

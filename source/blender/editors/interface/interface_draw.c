@@ -84,7 +84,7 @@ int UI_draw_roundbox_corner_get(void)
 }
 #endif
 
-void UI_draw_roundbox_3ubAlpha(bool filled, float minx, float miny, float maxx, float maxy, float rad, const unsigned char col[3], unsigned char alpha)
+void UI_draw_roundbox_3ubAlpha(bool filled, float minx, float miny, float maxx, float maxy, float rad, const uchar col[3], uchar alpha)
 {
 	float colv[4];
 	colv[0] = ((float)col[0]) / 255;
@@ -548,7 +548,7 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
 /* based on UI_draw_roundbox_gl_mode, check on making a version which allows us to skip some sides */
-void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highlight[3], unsigned char highlight_fade[3])
+void ui_draw_but_TAB_outline(const rcti *rect, float rad, uchar highlight[3], uchar highlight_fade[3])
 {
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -732,7 +732,7 @@ static void draw_scope_end(const rctf *rect, GLint *scissor)
 static void histogram_draw_one(
         float r, float g, float b, float alpha,
         float x, float y, float w, float h, const float *data, int res, const bool is_line,
-        unsigned int pos_attrib)
+        uint pos_attrib)
 {
 	float color[4] = {r, g, b, alpha};
 
@@ -1122,7 +1122,7 @@ static float polar_to_y(float center, float diam, float ampli, float angle)
 	return center + diam * ampli * sinf(angle);
 }
 
-static void vectorscope_draw_target(unsigned int pos, float centerx, float centery, float diam, const float colf[3])
+static void vectorscope_draw_target(uint pos, float centerx, float centery, float diam, const float colf[3])
 {
 	float y, u, v;
 	float tangle = 0.0f, tampli;
@@ -1280,7 +1280,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColo
 	GPU_blend(false);
 }
 
-static void ui_draw_colorband_handle_tri_hlight(unsigned int pos, float x1, float y1, float halfwidth, float height)
+static void ui_draw_colorband_handle_tri_hlight(uint pos, float x1, float y1, float halfwidth, float height)
 {
 	GPU_line_smooth(true);
 
@@ -1293,7 +1293,7 @@ static void ui_draw_colorband_handle_tri_hlight(unsigned int pos, float x1, floa
 	GPU_line_smooth(false);
 }
 
-static void ui_draw_colorband_handle_tri(unsigned int pos, float x1, float y1, float halfwidth, float height, bool fill)
+static void ui_draw_colorband_handle_tri(uint pos, float x1, float y1, float halfwidth, float height, bool fill)
 {
 	glEnable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
 
@@ -1306,7 +1306,7 @@ static void ui_draw_colorband_handle_tri(unsigned int pos, float x1, float y1, f
 	glDisable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
 }
 
-static void ui_draw_colorband_handle_box(unsigned int pos, float x1, float y1, float x2, float y2, bool fill)
+static void ui_draw_colorband_handle_box(uint pos, float x1, float y1, float x2, float y2, bool fill)
 {
 	immBegin(fill ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x1, y1);
@@ -1536,7 +1536,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 
 	/* backdrop */
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox_3ubAlpha(true, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, (unsigned char *)wcol->inner, 255);
+	UI_draw_roundbox_3ubAlpha(true, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, (uchar *)wcol->inner, 255);
 
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
@@ -1568,7 +1568,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformColor3ubv((unsigned char *)wcol->inner);
+	immUniformColor3ubv((uchar *)wcol->inner);
 
 	GPU_blend(true);
 	GPU_line_smooth(true);
@@ -1582,7 +1582,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 	immUnbindProgram();
 }
 
-static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
+static void ui_draw_but_curve_grid(uint pos, const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
 {
 	float dx = step * zoomx;
 	float fx = rect->xmin + zoomx * (-offsx);
@@ -1611,7 +1611,7 @@ static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoo
 
 }
 
-static void gl_shaded_color(unsigned char *col, int shade)
+static void gl_shaded_color(uchar *col, int shade)
 {
 	immUniformColor3ub(
 	        col[0] - shade > 0 ? col[0] - shade : 0,
@@ -1687,9 +1687,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 	}
 	else {
 		if (cumap->flag & CUMA_DO_CLIP) {
-			gl_shaded_color((unsigned char *)wcol->inner, -20);
+			gl_shaded_color((uchar *)wcol->inner, -20);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-			immUniformColor3ubv((unsigned char *)wcol->inner);
+			immUniformColor3ubv((uchar *)wcol->inner);
 			immRectf(pos,
 			         rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
 			         rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
@@ -1697,18 +1697,18 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 			         rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
 		else {
-			immUniformColor3ubv((unsigned char *)wcol->inner);
+			immUniformColor3ubv((uchar *)wcol->inner);
 			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 
 		/* grid, every 0.25 step */
-		gl_shaded_color((unsigned char *)wcol->inner, -16);
+		gl_shaded_color((uchar *)wcol->inner, -16);
 		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
 		/* grid, every 1.0 step */
-		gl_shaded_color((unsigned char *)wcol->inner, -24);
+		gl_shaded_color((uchar *)wcol->inner, -24);
 		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
 		/* axes */
-		gl_shaded_color((unsigned char *)wcol->inner, -50);
+		gl_shaded_color((uchar *)wcol->inner, -50);
 		immBegin(GPU_PRIM_LINES, 4);
 		immVertex2f(pos, rect->xmin, rect->ymin + zoomy * (-offsy));
 		immVertex2f(pos, rect->xmax, rect->ymin + zoomy * (-offsy));
@@ -1795,7 +1795,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 	GPU_blend(true);
 
 	/* Curve filled. */
-	immUniformColor3ubvAlpha((unsigned char *)wcol->item, 128);
+	immUniformColor3ubvAlpha((uchar *)wcol->item, 128);
 	GPU_polygon_smooth(true);
 	immBegin(GPU_PRIM_TRI_STRIP, (CM_TABLE * 2 + 2) + 4);
 	immVertex2f(pos, line_range.xmin, rect->ymin);
@@ -1813,7 +1813,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 
 	/* Curve line. */
 	GPU_line_width(1.0f);
-	immUniformColor3ubvAlpha((unsigned char *)wcol->item, 255);
+	immUniformColor3ubvAlpha((uchar *)wcol->item, 255);
 	GPU_line_smooth(true);
 	immBegin(GPU_PRIM_LINE_STRIP, (CM_TABLE + 1) + 2);
 	immVertex2f(pos, line_range.xmin, line_range.ymin);
@@ -1861,7 +1861,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 	pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	immUniformColor3ubv((unsigned char *)wcol->outline);
+	immUniformColor3ubv((uchar *)wcol->outline);
 	imm_draw_box_wire_2d(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	immUnbindProgram();
@@ -2076,7 +2076,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, const uiWidgetColors *UNUSE
  * would replace / modify the following 3 functions  - merwin
  */
 
-static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
+static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, float maxx, float maxy, float shadsize, uchar alpha)
 {
 	/**
 	 * <pre>
@@ -2139,7 +2139,7 @@ static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, f
 	immVertex2fv(pos, v3);
 }
 
-void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
+void UI_draw_box_shadow(uchar alpha, float minx, float miny, float maxx, float maxy)
 {
 	GPU_blend(true);
 

@@ -30,7 +30,7 @@
 #define MENU_PADDING (int)(0.2f * UI_UNIT_Y)
 
 /* interface_region_menu_popup.c */
-unsigned int ui_popup_menu_hash(const char *str);
+uint ui_popup_menu_hash(const char *str);
 
 /* interface_regions_intern.h */
 ARegion *ui_region_temp_add(bScreen *sc);

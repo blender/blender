@@ -97,8 +97,8 @@
 typedef struct IconImage {
 	int w;
 	int h;
-	unsigned int *rect;
-	unsigned char *datatoc_rect;
+	uint *rect;
+	uchar *datatoc_rect;
 	int datatoc_size;
 } IconImage;
 
@@ -209,7 +209,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 		if (bbuf) {
 			int y, imgsize;
 
-			iimg->rect = MEM_mallocN(size * size * sizeof(unsigned int), "icon_rect");
+			iimg->rect = MEM_mallocN(size * size * sizeof(uint), "icon_rect");
 
 			/* Here we store the rect in the icon - same as before */
 			if (size == bbuf->x && size == bbuf->y && xofs == 0 && yofs == 0)
@@ -402,15 +402,15 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 
 	/* XXX: Include alpha into this... */
 	/* normal */
-	immUniformColor3ubv((unsigned char *)cs->solid);
+	immUniformColor3ubv((uchar *)cs->solid);
 	immRecti(pos, x, y, a, y + h);
 
 	/* selected */
-	immUniformColor3ubv((unsigned char *)cs->select);
+	immUniformColor3ubv((uchar *)cs->select);
 	immRecti(pos, a, y, b, y + h);
 
 	/* active */
-	immUniformColor3ubv((unsigned char *)cs->active);
+	immUniformColor3ubv((uchar *)cs->active);
 	immRecti(pos, b, y, c, y + h);
 
 	immUnbindProgram();
@@ -474,7 +474,7 @@ static void init_brush_icons(void)
 
 #define INIT_BRUSH_ICON(icon_id, name)                                          \
 	{                                                                           \
-		unsigned char *rect = (unsigned char *)datatoc_ ##name## _png;          \
+		uchar *rect = (uchar *)datatoc_ ##name## _png;          \
 		int size = datatoc_ ##name## _png_size;                                 \
 		DrawInfo *di;                                                           \
 		\
@@ -722,13 +722,13 @@ static void init_internal_icons(void)
 	}
 #endif
 	if (b16buf == NULL)
-		b16buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons16_png,
+		b16buf = IMB_ibImageFromMemory((uchar *)datatoc_blender_icons16_png,
 		                               datatoc_blender_icons16_png_size, IB_rect, NULL, "<blender icons>");
 	if (b16buf)
 		IMB_premultiply_alpha(b16buf);
 
 	if (b32buf == NULL)
-		b32buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons32_png,
+		b32buf = IMB_ibImageFromMemory((uchar *)datatoc_blender_icons32_png,
 		                               datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
 	if (b32buf)
 		IMB_premultiply_alpha(b32buf);
@@ -1069,7 +1069,7 @@ int UI_preview_render_size(enum eIconSizes size)
  */
 static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 {
-	unsigned int render_size = UI_preview_render_size(size);
+	uint render_size = UI_preview_render_size(size);
 
 	if (!prv_img) {
 		if (G.debug & G_DEBUG)
@@ -1080,7 +1080,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 		prv_img->h[size] = render_size;
 		prv_img->flag[size] |= PRV_CHANGED;
 		prv_img->changed_timestamp[size] = 0;
-		prv_img->rect[size] = MEM_callocN(render_size * render_size * sizeof(unsigned int), "prv_rect");
+		prv_img->rect[size] = MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect");
 	}
 }
 
@@ -1262,7 +1262,7 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh,
-                           unsigned int *rect, float alpha, const float rgb[3], const float desaturate)
+                           uint *rect, float alpha, const float rgb[3], const float desaturate)
 {
 	ImBuf *ima = NULL;
 	int draw_w = w;
@@ -1302,7 +1302,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 
 		/* first allocate imbuf for scaling and copy preview into it */
 		ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
-		memcpy(ima->rect, rect, rw * rh * sizeof(unsigned int));
+		memcpy(ima->rect, rect, rw * rh * sizeof(uint));
 		IMB_scaleImBuf(ima, draw_w, draw_h); /* scale it */
 		rect = ima->rect;
 	}
