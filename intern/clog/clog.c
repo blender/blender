@@ -29,7 +29,7 @@
 #include <assert.h>
 
 /* For 'isatty' to check for color. */
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__unix__) || defined(__APPLE__) || defined(__HAIKU__)
 #  include <unistd.h>
 #endif
 
