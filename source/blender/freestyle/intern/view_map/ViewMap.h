@@ -1566,13 +1566,13 @@ public:
 	}
 
 	/*! Returns the ViewShape name. */
-	inline const char *getName() const
+	inline const string& getName() const
 	{
 		return _SShape->getName();
 	}
 
 	/*! Returns the ViewShape library path. */
-	inline const char *getLibraryPath() const
+	inline const string& getLibraryPath() const
 	{
 		return _SShape->getLibraryPath();
 	}

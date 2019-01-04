@@ -28,6 +28,8 @@
  *  \date 25/01/2002
  */
 
+#include <string>
+
 #include "FrsMaterial.h"
 #include "SceneVisitor.h"
 
@@ -37,6 +39,8 @@
 #include "../system/BaseObject.h"
 #include "../system/Id.h"
 #include "../system/Precision.h"
+
+using namespace std;
 
 namespace Freestyle {
 
@@ -48,8 +52,6 @@ public:
 	inline Rep() : BaseObject()
 	{
 		_Id = 0;
-		_Name = 0;
-		_LibraryPath = 0;
 		_FrsMaterial = 0;
 	}
 
@@ -132,12 +134,12 @@ public:
 		return _Id;
 	}
 
-	inline const char *getName() const
+	inline const string& getName() const
 	{
 		return _Name;
 	}
 
-	inline const char *getLibraryPath() const
+	inline const string& getLibraryPath() const
 	{
 		return _LibraryPath;
 	}
@@ -158,12 +160,12 @@ public:
 		_Id = id;
 	}
 
-	inline void setName(const char *name)
+	inline void setName(const string& name)
 	{
 		_Name = name;
 	}
 
-	inline void setLibraryPath(const char *path)
+	inline void setLibraryPath(const string& path)
 	{
 		_LibraryPath = path;
 	}
@@ -176,8 +178,8 @@ public:
 private:
 	BBox<Vec3f> _BBox;
 	Id _Id;
-	const char *_Name;
-	const char *_LibraryPath;
+	string _Name;
+	string _LibraryPath;
 	FrsMaterial *_FrsMaterial;
 };
 

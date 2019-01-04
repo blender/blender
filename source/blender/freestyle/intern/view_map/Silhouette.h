@@ -1415,8 +1415,8 @@ private:
 	vector<SVertex*> _verticesList;  // list of all vertices
 	vector<FEdge*> _edgesList;       // list of all edges
 	Id _Id;
-	const char *_Name;
-	const char *_LibraryPath;
+	string _Name;
+	string _LibraryPath;
 	BBox<Vec3r> _BBox;
 	vector<FrsMaterial> _FrsMaterials;
 
@@ -1436,8 +1436,6 @@ public:
 		userdata = NULL;
 		_importance = 0.0f;
 		_ViewShape = NULL;
-		_Name = NULL;
-		_LibraryPath = NULL;
 	}
 
 	/*! Copy constructor */
@@ -1891,13 +1889,13 @@ public:
 	}
 
 	/*! Returns the name of the Shape. */
-	inline const char *getName() const
+	inline const string& getName() const
 	{
 		return _Name;
 	}
 
 	/*! Returns the library path of the Shape. */
-	inline const char *getLibraryPath() const
+	inline const string& getLibraryPath() const
 	{
 		return _LibraryPath;
 	}
@@ -1910,13 +1908,13 @@ public:
 	}
 
 	/*! Sets the name of the shape.*/
-	inline void setName(const char *name)
+	inline void setName(const string& name)
 	{
 		_Name = name;
 	}
 
 	/*! Sets the library path of the shape.*/
-	inline void setLibraryPath(const char *path)
+	inline void setLibraryPath(const string& path)
 	{
 		_LibraryPath = path;
 	}

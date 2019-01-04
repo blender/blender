@@ -293,7 +293,7 @@ PyDoc_STRVAR(ViewShape_name_doc,
 
 static PyObject *ViewShape_name_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(self->vs->getName());
+	return PyUnicode_FromString(self->vs->getName().c_str());
 }
 
 PyDoc_STRVAR(ViewShape_library_path_doc,
@@ -303,10 +303,7 @@ PyDoc_STRVAR(ViewShape_library_path_doc,
 
 static PyObject *ViewShape_library_path_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
-	const char *name = self->vs->getLibraryPath();
-	if (!name)
-		Py_RETURN_NONE;
-	return PyUnicode_FromString(name);
+	return PyUnicode_FromString(self->vs->getLibraryPath().c_str());
 }
 
 PyDoc_STRVAR(ViewShape_id_doc,

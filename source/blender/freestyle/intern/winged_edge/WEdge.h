@@ -1024,8 +1024,8 @@ protected:
 	vector<WEdge *> _EdgeList;
 	vector<WFace *> _FaceList;
 	int _Id;
-	const char *_Name;
-	const char *_LibraryPath;
+	string _Name;
+	string _LibraryPath;
 	static unsigned _SceneCurrentId;
 #if 0
 	Vec3f _min;
@@ -1044,8 +1044,6 @@ public:
 #endif
 		_Id = _SceneCurrentId;
 		_SceneCurrentId++;
-		_Name = 0;
-		_LibraryPath = 0;
 	}
 
 	/*! copy constructor */
@@ -1125,12 +1123,12 @@ public:
 	}
 #endif
 
-	inline const char *getName() const
+	inline const string& getName() const
 	{
 		return _Name;
 	}
 
-	inline const char *getLibraryPath() const
+	inline const string& getLibraryPath() const
 	{
 		return _LibraryPath;
 	}
@@ -1179,12 +1177,12 @@ public:
 		_FrsMaterials = iMaterials;
 	}
 
-	inline void setName(const char *name)
+	inline void setName(const string& name)
 	{
 		_Name = name;
 	}
 
-	inline void setLibraryPath(const char *path)
+	inline void setLibraryPath(const string& path)
 	{
 		_LibraryPath = path;
 	}
