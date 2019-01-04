@@ -83,6 +83,7 @@
 /* ******************* view3d space & buttons ************** */
 #define B_REDR              2
 #define B_OBJECTPANELMEDIAN 1008
+#define B_OBJECTPANEL_DIMS  1009
 
 #define NBR_TRANSFORM_PROPERTIES 8
 
@@ -90,6 +91,7 @@
 typedef struct {
 	float ob_eul[4];   /* used for quat too... */
 	float ob_scale[3]; /* need temp space due to linked values */
+	float ob_dims_orig[3];
 	float ob_dims[3];
 	short link_scale;
 	float ve_median[NBR_TRANSFORM_PROPERTIES];
@@ -170,6 +172,14 @@ static void apply_scale_factor_clamp(float *val, const int tot, const float ve_m
 	}
 }
 
+static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
+{
+	if (v3d->properties_storage == NULL) {
+		v3d->properties_storage = MEM_callocN(sizeof(TransformProperties), "TransformProperties");
+	}
+	return v3d->properties_storage;
+}
+
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
@@ -195,7 +205,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 #define L_WEIGHT     4
 
 	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
-	TransformProperties *tfp;
+	TransformProperties *tfp = v3d_transform_props_ensure(v3d);
 	float median[NBR_TRANSFORM_PROPERTIES], ve_median[NBR_TRANSFORM_PROPERTIES];
 	int tot, totedgedata, totcurvedata, totlattdata, totcurvebweight;
 	bool has_meshdata = false;
@@ -204,11 +214,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 	copy_vn_fl(median, NBR_TRANSFORM_PROPERTIES, 0.0f);
 	tot = totedgedata = totcurvedata = totlattdata = totcurvebweight = 0;
-
-	/* make sure we got storage */
-	if (v3d->properties_storage == NULL)
-		v3d->properties_storage = MEM_callocN(sizeof(TransformProperties), "TransformProperties");
-	tfp = v3d->properties_storage;
 
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
@@ -770,6 +775,47 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 }
 #undef NBR_TRANSFORM_PROPERTIES
 
+static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d, Object *ob)
+{
+	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
+	TransformProperties *tfp = v3d_transform_props_ensure(v3d);
+
+	if (block) {
+		BLI_assert(C == NULL);
+		uiBut *but;
+		int yi = 200;
+		const int butw = 200;
+		const int buth = 20 * UI_DPI_FAC;
+
+		BKE_object_dimensions_get(ob, tfp->ob_dims);
+		copy_v3_v3(tfp->ob_dims_orig, tfp->ob_dims);
+
+		uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("Dimensions:"), 0, yi -= buth, butw, buth, NULL, 0, 0, 0, 0, "");
+		UI_block_align_begin(block);
+		const float lim = 10000;
+		for (int i = 0; i < 3; i++) {
+			char text[3] = {'X' + i, ':', '\0'};
+			uiDefButF(block, UI_BTYPE_NUM, B_OBJECTPANEL_DIMS, text, 0, yi -= buth, butw, buth,
+			          &(tfp->ob_dims[i]), 0.0f, lim, 10, 3, "");
+		}
+		UI_block_align_end(block);
+	}
+	else {  /* apply */
+		int axis_mask = 0;
+		for (int i = 0; i < 3; i++) {
+			if (tfp->ob_dims[i] == tfp->ob_dims_orig[i]) {
+				axis_mask |= (1 << i);
+			}
+		}
+		BKE_object_dimensions_set(ob, tfp->ob_dims, axis_mask);
+
+		PointerRNA obptr;
+		RNA_id_pointer_create(&ob->id, &obptr);
+		PropertyRNA *prop = RNA_struct_find_property(&obptr, "scale");
+		RNA_property_update(C, &obptr, prop);
+	}
+}
+
 #define B_VGRP_PNL_EDIT_SINGLE 8       /* or greater */
 
 static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
@@ -987,14 +1033,6 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE);
 	uiItemL(colsub, "", ICON_NONE);
 	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_DECORATE_UNLOCKED);
-
-	if (ptr->type == &RNA_Object) {
-		Object *ob = ptr->data;
-		/* dimensions and editmode just happen to be the same checks */
-		if (OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
-			uiItemR(layout, ptr, "dimensions", 0, NULL, ICON_NONE);
-		}
-	}
 }
 
 static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
@@ -1120,6 +1158,11 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 				DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 			}
 			break;
+		case B_OBJECTPANEL_DIMS:
+			if (ob) {
+				v3d_object_dimension_buts(C, NULL, v3d, ob);
+			}
+			break;
 	}
 
 	/* default for now */
@@ -1167,6 +1210,12 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
 
 		RNA_id_pointer_create(&ob->id, &obptr);
 		v3d_transform_butsR(col, &obptr);
+
+		/* dimensions and editmode just happen to be the same checks */
+		if (OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
+			View3D *v3d = CTX_wm_view3d(C);
+			v3d_object_dimension_buts(NULL, col, v3d, ob);
+		}
 	}
 }
 

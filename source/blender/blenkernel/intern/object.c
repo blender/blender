@@ -2548,7 +2548,7 @@ void BKE_object_dimensions_get(Object *ob, float vec[3])
 	}
 }
 
-void BKE_object_dimensions_set(Object *ob, const float value[3])
+void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask)
 {
 	BoundBox *bb = NULL;
 
@@ -2560,9 +2560,13 @@ void BKE_object_dimensions_set(Object *ob, const float value[3])
 		len[1] = bb->vec[2][1] - bb->vec[0][1];
 		len[2] = bb->vec[1][2] - bb->vec[0][2];
 
-		if (len[0] > 0.f) ob->size[0] = value[0] / len[0];
-		if (len[1] > 0.f) ob->size[1] = value[1] / len[1];
-		if (len[2] > 0.f) ob->size[2] = value[2] / len[2];
+		for (int i = 0; i < 3; i++) {
+			if (((1 << i) & axis_mask) == 0) {
+				if (len[i] > 0.0f) {
+					ob->size[i] = value[i] / len[i];
+				}
+			}
+		}
 	}
 }
 
