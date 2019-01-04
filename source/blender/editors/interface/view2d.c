@@ -1666,10 +1666,14 @@ View2DScrollers *UI_view2d_scrollers_calc(
 	vert = v2d->vert;
 	hor = v2d->hor;
 
-	/* slider rects need to be smaller than region */
+	/* slider rects need to be smaller than region and not interfere with splitter areas */
+	hor.xmin += UI_HEADER_OFFSET;
+	hor.xmax -= UI_HEADER_OFFSET;
+	vert.ymin += UI_HEADER_OFFSET;
+	vert.ymax -= UI_HEADER_OFFSET;
+
+	/* width of sliders */
 	smaller = (int)(0.1f * U.widget_unit);
-	hor.xmin += smaller;
-	hor.xmax -= smaller;
 	if (scroll & V2D_SCROLL_BOTTOM)
 		hor.ymin += smaller;
 	else
@@ -1679,8 +1683,6 @@ View2DScrollers *UI_view2d_scrollers_calc(
 		vert.xmin += smaller;
 	else
 		vert.xmax -= smaller;
-	vert.ymin += smaller;
-	vert.ymax -= smaller;
 
 	CLAMP(vert.ymin, vert.ymin, vert.ymax - V2D_SCROLLER_HANDLE_SIZE);
 	CLAMP(hor.xmin, hor.xmin, hor.xmax - V2D_SCROLLER_HANDLE_SIZE);
