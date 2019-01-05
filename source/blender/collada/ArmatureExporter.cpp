@@ -233,7 +233,7 @@ void ArmatureExporter::add_bone_node(
 
 					se->writeNodes(*i);
 					copy_m4_m4((*i)->parentinv, backup_parinv);
-					child_objects.erase(i++);
+					i = child_objects.erase(i);
 				}
 				else i++;
 			}
