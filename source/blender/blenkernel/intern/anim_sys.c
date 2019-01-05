@@ -2054,8 +2054,8 @@ static bool nlaevalchan_keycmp(const void *a, const void *b)
 	const NlaEvalChannelKey *A = a;
 	const NlaEvalChannelKey *B = b;
 
-	return (BLI_ghashutil_ptrcmp(A->ptr.data, B->ptr.data) ||
-	        BLI_ghashutil_ptrcmp(A->prop, B->prop));
+	return ((A->ptr.data != B->ptr.data) ||
+	        (A->prop != B->prop));
 }
 
 /* ---------------------- */
