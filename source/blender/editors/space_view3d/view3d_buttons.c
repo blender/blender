@@ -793,9 +793,12 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
 		UI_block_align_begin(block);
 		const float lim = 10000;
 		for (int i = 0; i < 3; i++) {
+			uiBut *but;
 			char text[3] = {'X' + i, ':', '\0'};
-			uiDefButF(block, UI_BTYPE_NUM, B_TRANSFORM_PANEL_DIMS, text, 0, yi -= buth, butw, buth,
-			          &(tfp->ob_dims[i]), 0.0f, lim, 10, 3, "");
+			but = uiDefButF(
+			        block, UI_BTYPE_NUM, B_TRANSFORM_PANEL_DIMS, text, 0, yi -= buth, butw, buth,
+			        &(tfp->ob_dims[i]), 0.0f, lim, 10, 3, "");
+			UI_but_unit_type_set(but, PROP_UNIT_LENGTH);
 		}
 		UI_block_align_end(block);
 	}
