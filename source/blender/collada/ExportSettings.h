@@ -71,6 +71,7 @@ typedef struct ExportSettings {
 	int sampling_rate;
 	bool keep_smooth_curves;
 	bool keep_keyframes;
+	bool keep_flat_curves;
 
 	bool active_uv_only;
 	BC_export_animation_type export_animation_type;
