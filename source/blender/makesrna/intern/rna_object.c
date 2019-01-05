@@ -903,6 +903,12 @@ static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 	BKE_object_dimensions_get(ob, value);
 }
 
+static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
+{
+	Object *ob = ptr->data;
+	BKE_object_dimensions_set(ob, value, 0);
+}
+
 static int rna_Object_location_editable(PointerRNA *ptr, int index)
 {
 	Object *ob = (Object *)ptr->data;
@@ -2303,10 +2309,9 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "dimensions", PROP_FLOAT, PROP_XYZ_LENGTH);
 	RNA_def_property_array(prop, 3);
-	/* Only for the transform-panel and conflicts with animating scale. */
-	/* Disallow editing, it doesn't work properly, see: T54771. */
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_float_funcs(prop, "rna_Object_dimensions_get", NULL, NULL);
+	/* Only as convinient helper for py API, and conflicts with animating scale. */
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_funcs(prop, "rna_Object_dimensions_get", "rna_Object_dimensions_set", NULL);
 	RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_ui_text(prop, "Dimensions", "Absolute bounding box dimensions of the object");
 	RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
