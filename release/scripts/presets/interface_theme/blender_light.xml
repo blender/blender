@@ -423,6 +423,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#cccccc"
             tab_back="#999999ff"
@@ -493,6 +494,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#cccccc"
             tab_back="#999999ff"
@@ -537,6 +539,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#cccccc"
             tab_back="#999999ff"
@@ -589,6 +592,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -660,6 +664,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -744,6 +749,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -798,6 +804,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -831,6 +838,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#808080ff"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -876,6 +884,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -937,6 +946,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#cccccc"
             tab_back="#999999ff"
@@ -982,6 +992,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -1026,6 +1037,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -1043,39 +1055,40 @@
         </space>
       </ThemeInfo>
     </info>
-    <user_preferences>
-      <ThemeUserPreferences>
+    <preferences>
+      <ThemePreferences>
         <space>
           <ThemeSpaceGeneric
-            back="#999999"
-            title="#000000"
-            text="#000000"
+            back="#424242"
+            title="#eeeeee"
+            text="#e6e6e6"
             text_hi="#ffffff"
-            header="#b3b3b3ff"
-            header_text="#000000"
+            header="#424242ff"
+            header_text="#eeeeee"
             header_text_hi="#ffffff"
-            button="#7272727f"
-            button_title="#000000"
-            button_text="#000000"
+            button="#424242ff"
+            button_title="#ffffff"
+            button_text="#e5e5e5"
             button_text_hi="#ffffff"
-            navigation_bar="#808080ff"
-            tab_active="#6697e6"
-            tab_inactive="#535353"
-            tab_back="#404040ff"
-            tab_outline="#3c3c3c"
+            navigation_bar="#373737ff"
+            execution_buts="#373737ff"
+            tab_active="#4b4b4b"
+            tab_inactive="#2b2b2b"
+            tab_back="#232323ff"
+            tab_outline="#232323"
             >
             <panelcolors>
               <ThemePanelColors
-                header="#c2c2c2ea"
-                back="#99999980"
+                header="#42424200"
+                back="#333333b3"
                 sub_back="#0000003e"
                 >
               </ThemePanelColors>
             </panelcolors>
           </ThemeSpaceGeneric>
         </space>
-      </ThemeUserPreferences>
-    </user_preferences>
+      </ThemePreferences>
+    </preferences>
     <console>
       <ThemeConsole
         line_output="#6080ff"
@@ -1099,6 +1112,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -1132,6 +1146,8 @@
         frame_current="#60c040"
         strips="#0c0a0a"
         strips_selected="#ff8c00"
+        metadatabg="#000000"
+        metadatatext="#ffffff"
         handle_free="#000000"
         handle_auto="#909000"
         handle_align="#803060"
@@ -1158,6 +1174,7 @@
             button_text="#000000"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#6697e6"
             tab_inactive="#535353"
             tab_back="#404040ff"
@@ -1200,6 +1217,7 @@
             button_text="#ffffff"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#446499"
             tab_inactive="#28292d"
             tab_back="#28292dff"
@@ -1233,6 +1251,7 @@
             button_text="#ffffff"
             button_text_hi="#ffffff"
             navigation_bar="#00000000"
+            execution_buts="#00000000"
             tab_active="#446499"
             tab_inactive="#28292d"
             tab_back="#28292dff"
