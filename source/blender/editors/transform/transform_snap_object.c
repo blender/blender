@@ -454,7 +454,7 @@ static bool raycastMesh(
 		retval = data.retval;
 	}
 	else {
-		BVHTreeRayHit hit = {.index = -1, .dist = local_depth};
+		BVHTreeRayHit hit = { .index = -1, .dist = local_depth, };
 
 		if (BLI_bvhtree_ray_cast(
 		        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
@@ -622,7 +622,7 @@ static bool raycastEditMesh(
 		retval = data.retval;
 	}
 	else {
-		BVHTreeRayHit hit = {.index = -1, .dist = local_depth};
+		BVHTreeRayHit hit = { .index = -1, .dist = local_depth, };
 
 		if (BLI_bvhtree_ray_cast(
 		        treedata->tree, ray_start_local, ray_normal_local, 0.0f,

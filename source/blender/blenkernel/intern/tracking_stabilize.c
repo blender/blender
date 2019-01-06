@@ -1598,7 +1598,7 @@ ImBuf *BKE_tracking_stabilize_frame(MovieClip *clip,
 
 	TrackingStabilizeFrameInterpolationData data = {
 		.ibuf = ibuf, .tmpibuf = tmpibuf, .mat = mat,
-		.interpolation = interpolation
+		.interpolation = interpolation,
 	};
 
 	ParallelRangeSettings settings;

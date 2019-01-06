@@ -324,7 +324,7 @@ void BKE_mesh_calc_normals_poly(
 
 	MeshCalcNormalsData data = {
 	    .mpolys = mpolys, .mloop = mloop, .mverts = mverts,
-	    .pnors = pnors, .lnors_weighted = lnors_weighted, .vnors = vnors
+	    .pnors = pnors, .lnors_weighted = lnors_weighted, .vnors = vnors,
 	};
 
 	/* Compute poly normals, and prepare weighted loop normals. */

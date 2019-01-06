@@ -410,7 +410,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	nearest.index = -1;
 	nearest.dist_sq = FLT_MAX;
 
-	ShrinkwrapCalcCBData data = {.calc = calc, .tree = calc->tree};
+	ShrinkwrapCalcCBData data = { .calc = calc, .tree = calc->tree, };
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
@@ -676,7 +676,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	/* After successfully build the trees, start projection vertices. */
 	ShrinkwrapCalcCBData data = {
 		.calc = calc, .tree = calc->tree, .aux_tree = aux_tree,
-		.proj_axis = proj_axis, .local2aux = &local2aux
+		.proj_axis = proj_axis, .local2aux = &local2aux,
 	};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
@@ -852,7 +852,7 @@ static bool target_project_solve_point_tri(
 	x[2] = (dot_v3v3(tmp, r_hit_no) < 0) ? -dist : dist;
 
 	/* Solve the equations iteratively. */
-	TargetProjectTriData tri_data = { .vtri_co = vtri_co, .vtri_no = vtri_no, .point_co = point_co };
+	TargetProjectTriData tri_data = { .vtri_co = vtri_co, .vtri_no = vtri_no, .point_co = point_co, };
 
 	sub_v3_v3v3(tri_data.n0_minus_n2, vtri_no[0], vtri_no[2]);
 	sub_v3_v3v3(tri_data.n1_minus_n2, vtri_no[1], vtri_no[2]);
@@ -1268,7 +1268,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	nearest.dist_sq = FLT_MAX;
 
 	/* Find the nearest vertex */
-	ShrinkwrapCalcCBData data = {.calc = calc, .tree = calc->tree};
+	ShrinkwrapCalcCBData data = { .calc = calc, .tree = calc->tree, };
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);

@@ -761,10 +761,10 @@ static int gizmo_cage2d_test_select(
 
 	/* if gizmo does not have a scale intersection, don't do it */
 	if (transform_flag & (ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM)) {
-		const rctf r_xmin = {.xmin = -size[0], .ymin = -size[1], .xmax = -size[0] + margin[0], .ymax = size[1]};
-		const rctf r_xmax = {.xmin = size[0] - margin[0], .ymin = -size[1], .xmax = size[0], .ymax = size[1]};
-		const rctf r_ymin = {.xmin = -size[0], .ymin = -size[1], .xmax = size[0], .ymax = -size[1] + margin[1]};
-		const rctf r_ymax = {.xmin = -size[0], .ymin = size[1] - margin[1], .xmax = size[0], .ymax = size[1]};
+		const rctf r_xmin = { .xmin = -size[0], .ymin = -size[1], .xmax = -size[0] + margin[0], .ymax = size[1], };
+		const rctf r_xmax = { .xmin = size[0] - margin[0], .ymin = -size[1], .xmax = size[0], .ymax = size[1], };
+		const rctf r_ymin = { .xmin = -size[0], .ymin = -size[1], .xmax = size[0], .ymax = -size[1] + margin[1], };
+		const rctf r_ymax = { .xmin = -size[0], .ymin = size[1] - margin[1], .xmax = size[0], .ymax = size[1], };
 
 		if (BLI_rctf_isect_pt_v(&r_xmin, point_local)) {
 			if (BLI_rctf_isect_pt_v(&r_ymin, point_local)) {

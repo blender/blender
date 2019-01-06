@@ -474,12 +474,12 @@ static int convert_i16(short x)
 
 GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
 {
-	GPUPackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
+	GPUPackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]), };
 	return n;
 }
 
 GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
 {
-	GPUPackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]) };
+	GPUPackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]), };
 	return n;
 }

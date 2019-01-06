@@ -896,7 +896,7 @@ static void obstacles_from_mesh(
 			    .tree = &treeData, .obstacle_map = obstacle_map,
 			    .has_velocity = has_velocity, .vert_vel = vert_vel,
 			    .velocityX = velocityX, .velocityY = velocityY, .velocityZ = velocityZ,
-			    .num_obstacles = num_obstacles
+			    .num_obstacles = num_obstacles,
 			};
 			ParallelRangeSettings settings;
 			BLI_parallel_range_settings_defaults(&settings);

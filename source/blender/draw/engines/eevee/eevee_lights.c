@@ -1236,7 +1236,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		Lamp *la = (Lamp *)ob->data;
 		BoundSphere bsphere = {
 			.center = {ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2]},
-			.radius = light_attenuation_radius_get(la, light_threshold)
+			.radius = light_attenuation_radius_get(la, light_threshold),
 		};
 		cube_visible[i] = DRW_culling_sphere_test(&bsphere);
 	}

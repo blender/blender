@@ -127,7 +127,7 @@ struct ApplicationState app_state = {
 	},
 	.exit_code_on_error = {
 		.python = 0,
-	}
+	},
 };
 
 /* -------------------------------------------------------------------- */

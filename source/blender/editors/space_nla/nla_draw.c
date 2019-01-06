@@ -603,7 +603,7 @@ static void nla_draw_strip_text(
 		.xmin = xminc,
 		.ymin = yminc,
 		.xmax = xmaxc,
-		.ymax = ymaxc
+		.ymax = ymaxc,
 	};
 
 	/* add this string to the cache of texts to draw */

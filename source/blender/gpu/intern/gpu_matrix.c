@@ -75,7 +75,7 @@ typedef struct {
 static MatrixState state = {
 	.model_view_stack = {{MATRIX_4X4_IDENTITY}, 0},
 	.projection_stack = {{MATRIX_4X4_IDENTITY}, 0},
-	.dirty = true
+	.dirty = true,
 };
 
 #undef MATRIX_4X4_IDENTITY

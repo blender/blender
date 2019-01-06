@@ -202,9 +202,11 @@ static Mesh *applyModifier(
 	mloopuv = CustomData_duplicate_referenced_layer_named(&mesh->ldata, CD_MLOOPUV, uvname, numLoops);
 	MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
-	UVWarpData data = {.mpoly = mpoly, .mloop = mloop, .mloopuv = mloopuv,
-	                   .dvert = dvert, .defgrp_index = defgrp_index,
-	                   .warp_mat = warp_mat, .axis_u = axis_u, .axis_v = axis_v};
+	UVWarpData data = {
+		.mpoly = mpoly, .mloop = mloop, .mloopuv = mloopuv,
+		.dvert = dvert, .defgrp_index = defgrp_index,
+		.warp_mat = warp_mat, .axis_u = axis_u, .axis_v = axis_v,
+	};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (numPolys > 1000);

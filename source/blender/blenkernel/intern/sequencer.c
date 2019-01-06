@@ -3474,7 +3474,7 @@ static ImBuf *do_render_strip_uncached(
 					if (BLI_linklist_index(state->scene_parents, seq->scene) != -1) {
 						break;
 					}
-					LinkNode scene_parent = {.next = state->scene_parents, .link = seq->scene};
+					LinkNode scene_parent = { .next = state->scene_parents, .link = seq->scene, };
 					state->scene_parents = &scene_parent;
 					/* end check */
 

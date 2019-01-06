@@ -696,7 +696,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
 	}
 
 	/* Update ID refcount, remap pointers to self in new ID. */
-	struct IDCopyLibManagementData data = {.id_src = id, .id_dst = *r_newid, .flag = flag};
+	struct IDCopyLibManagementData data = {.id_src = id, .id_dst = *r_newid, .flag = flag,};
 	BKE_library_foreach_ID_link(bmain, *r_newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
 
 	/* Do not make new copy local in case we are copying outside of main...

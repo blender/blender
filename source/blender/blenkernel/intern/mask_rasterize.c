@@ -1465,7 +1465,7 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
 	    .x_px_ofs = x_inv * 0.5f,
 	    .y_px_ofs = y_inv * 0.5f,
 	    .width = width,
-	    .buffer = buffer
+	    .buffer = buffer,
 	};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);

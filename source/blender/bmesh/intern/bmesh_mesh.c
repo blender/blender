@@ -352,7 +352,7 @@ static void bm_mesh_edges_calc_vectors(BMesh *bm, float (*edgevec)[3], const flo
 
 	BMEdgesCalcVectorsData data = {
 	    .vcos = vcos,
-	    .edgevec = edgevec
+	    .edgevec = edgevec,
 	};
 
 	BM_iter_parallel(bm, BM_EDGES_OF_MESH, mesh_edges_calc_vectors_cb, &data, bm->totedge >= BM_OMP_LIMIT);
@@ -464,7 +464,7 @@ static void bm_mesh_verts_calc_normals(
 	    .fnos = fnos,
 	    .edgevec = edgevec,
 	    .vcos = vcos,
-	    .vnos = vnos
+	    .vnos = vnos,
 	};
 
 	BM_iter_parallel(bm, BM_FACES_OF_MESH, mesh_verts_calc_normals_accum_cb, &data, bm->totface >= BM_OMP_LIMIT);

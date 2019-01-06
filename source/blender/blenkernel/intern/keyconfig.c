@@ -126,7 +126,7 @@ void BKE_keyconfig_pref_set_select_mouse(UserDef *userdef, int value, bool overr
 	wmKeyConfigPref *kpt = BKE_keyconfig_pref_ensure(userdef, WM_KEYCONFIG_STR_DEFAULT);
 	IDProperty *idprop = IDP_GetPropertyFromGroup(kpt->prop, "select_mouse");
 	if (!idprop) {
-		IDPropertyTemplate tmp = { .i = value };
+		IDPropertyTemplate tmp = { .i = value, };
 		IDP_AddToGroup(kpt->prop, IDP_New(IDP_INT, &tmp, "select_mouse"));
 	}
 	else if (override) {

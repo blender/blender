@@ -795,7 +795,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors
 		.xmin = (float)recti->xmin + 1,
 		.xmax = (float)recti->xmax - 1,
 		.ymin = (float)recti->ymin + 1,
-		.ymax = (float)recti->ymax - 1
+		.ymax = (float)recti->ymax - 1,
 	};
 
 	float w = BLI_rctf_size_x(&rect);
@@ -901,7 +901,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColors 
 		.xmin = (float)recti->xmin + 1,
 		.xmax = (float)recti->xmax - 1,
 		.ymin = (float)recti->ymin + 1,
-		.ymax = (float)recti->ymax - 1
+		.ymax = (float)recti->ymax - 1,
 	};
 
 	if (scopes->wavefrm_yfac < 0.5f)
@@ -1187,7 +1187,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, const uiWidgetColo
 		.xmin = (float)recti->xmin + 1,
 		.xmax = (float)recti->xmax - 1,
 		.ymin = (float)recti->ymin + 1,
-		.ymax = (float)recti->ymax - 1
+		.ymax = (float)recti->ymax - 1,
 	};
 
 	float w = BLI_rctf_size_x(&rect);
@@ -1639,7 +1639,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 		.xmin = rect->xmin,
 		.ymin = rect->ymin,
 		.xmax = rect->xmax,
-		.ymax = rect->ymax
+		.ymax = rect->ymax,
 	};
 	rcti scissor_region = {0, ar->winx, 0, ar->winy};
 	BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
@@ -1664,7 +1664,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, const uiWidgetColors *wcol, cons
 			.xmin = rect->xmin + zoomx * (-offsx),
 			.xmax = grid.xmin + zoomx,
 			.ymin = rect->ymin + zoomy * (-offsy),
-			.ymax = grid.ymin + zoomy
+			.ymax = grid.ymin + zoomy,
 		};
 
 		ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
@@ -1876,7 +1876,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, const uiWidgetCol
 		.xmin = (float)recti->xmin + 1,
 		.xmax = (float)recti->xmax - 1,
 		.ymin = (float)recti->ymin + 1,
-		.ymax = (float)recti->ymax - 1
+		.ymax = (float)recti->ymax - 1,
 	};
 
 	int width  = BLI_rctf_size_x(&rect) + 1;
@@ -2028,7 +2028,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, const uiWidgetColors *UNUSE
 		.xmin = recti->xmin,
 		.ymin = recti->ymin,
 		.xmax = recti->xmax,
-		.ymax = recti->ymax
+		.ymax = recti->ymax,
 	};
 
 	rcti scissor_region = {0, ar->winx, 0, ar->winy};

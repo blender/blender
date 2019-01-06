@@ -2840,7 +2840,7 @@ int RNA_property_int_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 bool RNA_property_int_set_default(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
 	if (value != 0) {
-		IDPropertyTemplate val = { .i = value };
+		IDPropertyTemplate val = { .i = value, };
 		return rna_idproperty_ui_set_default(ptr, prop, IDP_INT, &val);
 	}
 	else {
@@ -3160,7 +3160,7 @@ float RNA_property_float_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 bool RNA_property_float_set_default(PointerRNA *ptr, PropertyRNA *prop, float value)
 {
 	if (value != 0) {
-		IDPropertyTemplate val = { .d = value };
+		IDPropertyTemplate val = { .d = value, };
 		return rna_idproperty_ui_set_default(ptr, prop, IDP_DOUBLE, &val);
 	}
 	else {
@@ -7464,7 +7464,7 @@ bool RNA_property_copy(Main *bmain, PointerRNA *ptr, PointerRNA *fromptr, Proper
 	IDOverrideStaticPropertyOperation opop = {
 	    .operation = IDOVERRIDESTATIC_OP_REPLACE,
 	    .subitem_reference_index = index,
-	    .subitem_local_index = index
+	    .subitem_local_index = index,
 	};
 	return rna_property_override_operation_apply(
 	            bmain,
@@ -7937,7 +7937,7 @@ bool RNA_struct_override_matches(
 						IDOverrideStaticPropertyOperation opop_tmp = {
 						    .operation = IDOVERRIDESTATIC_OP_REPLACE,
 						    .subitem_reference_index = -1,
-						    .subitem_local_index = -1
+						    .subitem_local_index = -1,
 						};
 						rna_property_override_operation_apply(
 						            bmain,

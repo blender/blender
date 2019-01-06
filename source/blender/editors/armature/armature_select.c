@@ -269,7 +269,8 @@ void *get_nearest_bone(
 		if (vc.obedit != NULL) {
 			bases = BKE_view_layer_array_from_bases_in_mode(
 			        vc.view_layer, vc.v3d, &bases_len, {
-			            .object_mode = OB_MODE_EDIT});
+			            .object_mode = OB_MODE_EDIT,
+			        });
 		}
 		else {
 			bases = BKE_object_pose_base_array_get(vc.view_layer, vc.v3d, &bases_len);

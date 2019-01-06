@@ -1012,9 +1012,10 @@ bool multiresModifier_reshapeFromDeformModifier(
 	        multires_mesh, &num_deformed_verts);
 	/* Apply deformation modifier on the multires, */
 	const ModifierEvalContext modifier_ctx = {
-	        .depsgraph = depsgraph,
-	        .object = object,
-	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
+		.depsgraph = depsgraph,
+		.object = object,
+		.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY,
+	};
 	modwrap_deformVerts(
 	        md, &modifier_ctx, multires_mesh, deformed_verts,
 	        multires_mesh->totvert);
@@ -1183,16 +1184,18 @@ bool multiresModifier_reshapeFromCCG(
 	multires_reshape_ensure_grids(coarse_mesh, top_level);
 	/* Construct context. */
 	ReshapeFromCCGTaskData data = {
-	        .reshape_ctx = {
-	                .subdiv = subdiv,
-	                .coarse_mesh = coarse_mesh,
-	                .mdisps  = mdisps,
-	                .grid_paint_mask = grid_paint_mask,
-	                .top_grid_size = BKE_subdiv_grid_size_from_level(top_level),
-	                .top_level = top_level},
-	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
-	        .key = &key,
-	        .grids = subdiv_ccg->grids};
+		.reshape_ctx = {
+			.subdiv = subdiv,
+			.coarse_mesh = coarse_mesh,
+			.mdisps  = mdisps,
+			.grid_paint_mask = grid_paint_mask,
+			.top_grid_size = BKE_subdiv_grid_size_from_level(top_level),
+			.top_level = top_level,
+		},
+		.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
+		.key = &key,
+		.grids = subdiv_ccg->grids,
+	};
 	/* Initialize propagation to higher levels. */
 	MultiresPropagateData propagate_data;
 	multires_reshape_propagate_prepare(

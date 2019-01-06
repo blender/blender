@@ -1550,7 +1550,7 @@ typedef struct {
 } GPUAttribStack;
 
 static GPUAttribStack state = {
-	.top = 0
+	.top = 0,
 };
 
 #define AttribStack state

@@ -1187,7 +1187,7 @@ void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata, EEVEE_Data 
 	float filter_quality = scene->eevee.gi_filter_quality;
 
 	EEVEE_LightBake lbake = {
-		.resource_only = true
+		.resource_only = true,
 	};
 
 	/* Create resources. */

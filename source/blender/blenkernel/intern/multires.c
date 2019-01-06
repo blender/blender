@@ -291,9 +291,10 @@ Mesh *BKE_multires_create_mesh(
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene, ob_eval, CD_MASK_BAREMESH);
 	ModifierEvalContext modifier_ctx = {
-	        .depsgraph = depsgraph,
-	        .object = ob_eval,
-	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
+		.depsgraph = depsgraph,
+		.object = ob_eval,
+		.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY,
+	};
 
 	const ModifierTypeInfo *mti = modifierType_getInfo(mmd->modifier.type);
 	Mesh *result = mti->applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
@@ -1180,7 +1181,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	    .gridOffset = gridOffset,
 	    .gridSize = gridSize,
 	    .dGridSize = dGridSize,
-	    .dSkip = dSkip
+	    .dSkip = dSkip,
 	};
 
 	BLI_task_parallel_range(0, totpoly, &data, multires_disp_run_cb, &settings);

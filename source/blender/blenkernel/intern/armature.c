@@ -2641,7 +2641,7 @@ void BKE_armature_cached_bbone_deformation_update(Object *object)
 	ArmatureBBoneDefmatsData data = {
 		.pdef_info_array = pdef_info_array,
 		.dualquats = dualquats,
-		.use_quaternion = use_quaternion
+		.use_quaternion = use_quaternion,
 	};
 	BLI_task_parallel_listbase(&pose->chanbase,
 	                           &data,

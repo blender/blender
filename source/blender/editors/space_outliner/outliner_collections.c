@@ -267,7 +267,7 @@ static int collection_delete_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct CollectionEditData data = {.scene = scene, .soops = soops};
+	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 	bool hierarchy = RNA_boolean_get(op->ptr, "hierarchy");
 
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
@@ -488,7 +488,7 @@ static int collection_link_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Collection *active_collection = CTX_data_layer_collection(C)->collection;
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct CollectionEditData data = {.scene = scene, .soops = soops};
+	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
@@ -536,7 +536,7 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct CollectionEditData data = {.scene = scene, .soops = soops};
+	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
@@ -623,7 +623,7 @@ static bool collections_view_layer_poll(bContext *C, bool clear, int flag)
 	}
 
 	Scene *scene = CTX_data_scene(C);
-	struct CollectionEditData data = {.scene = scene, .soops = soops};
+	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 	bool result = false;
 
@@ -695,7 +695,7 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct CollectionEditData data = {.scene = scene, .soops = soops};
+	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 	bool clear = strstr(op->idname, "clear") != NULL;
 	int flag = strstr(op->idname, "holdout") ?       LAYER_COLLECTION_HOLDOUT :
 	           strstr(op->idname, "indirect_only") ? LAYER_COLLECTION_INDIRECT_ONLY :

@@ -1064,13 +1064,15 @@ static bool cloth_bvh_objcollisions_nearcheck(ClothModifierData * clmd, Collisio
 {
 	*collisions = (CollPair *)MEM_mallocN(sizeof(CollPair) * numresult, "collision array");
 
-	ColDetectData data = {.clmd = clmd,
-	                      .collmd = collmd,
-	                      .overlap = overlap,
-	                      .collisions = *collisions,
-	                      .culling = culling,
-	                      .use_normal = use_normal,
-	                      .collided = false};
+	ColDetectData data = {
+		.clmd = clmd,
+		.collmd = collmd,
+		.overlap = overlap,
+		.collisions = *collisions,
+		.culling = culling,
+		.use_normal = use_normal,
+		.collided = false,
+	};
 
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
@@ -1083,10 +1085,12 @@ static bool cloth_bvh_objcollisions_nearcheck(ClothModifierData * clmd, Collisio
 static bool cloth_bvh_selfcollisions_nearcheck(ClothModifierData * clmd, CollPair *collisions,
                                                int numresult, BVHTreeOverlap *overlap)
 {
-	SelfColDetectData data = {.clmd = clmd,
-	                          .overlap = overlap,
-	                          .collisions = collisions,
-	                          .collided = false};
+	SelfColDetectData data = {
+		.clmd = clmd,
+		.overlap = overlap,
+		.collisions = collisions,
+		.collided = false,
+	};
 
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);

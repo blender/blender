@@ -269,7 +269,7 @@ BLI_INLINE void sortPolyVertsTri(unsigned int *indices, const MLoop * const mloo
 
 BLI_INLINE unsigned int nearestVert(SDefBindCalcData * const data, const float point_co[3])
 {
-	BVHTreeNearest nearest = {.dist_sq = FLT_MAX, .index = -1};
+	BVHTreeNearest nearest = { .dist_sq = FLT_MAX, .index = -1, };
 	const MPoly *poly;
 	const MEdge *edge;
 	const MLoop *loop;
@@ -976,18 +976,20 @@ static bool surfacedeformBind(
 	smd->numverts = numverts;
 	smd->numpoly = tnumpoly;
 
-	SDefBindCalcData data = {.treeData = &treeData,
-		                     .vert_edges = vert_edges,
-		                     .edge_polys = edge_polys,
-		                     .mpoly = mpoly,
-		                     .medge = medge,
-		                     .mloop = mloop,
-		                     .looptri = BKE_mesh_runtime_looptri_ensure(target),
-		                     .targetCos = MEM_malloc_arrayN(tnumverts, sizeof(float[3]), "SDefTargetBindVertArray"),
-		                     .bind_verts = smd->verts,
-		                     .vertexCos = vertexCos,
-		                     .falloff = smd->falloff,
-		                     .success = MOD_SDEF_BIND_RESULT_SUCCESS};
+	SDefBindCalcData data = {
+		.treeData = &treeData,
+		.vert_edges = vert_edges,
+		.edge_polys = edge_polys,
+		.mpoly = mpoly,
+		.medge = medge,
+		.mloop = mloop,
+		.looptri = BKE_mesh_runtime_looptri_ensure(target),
+		.targetCos = MEM_malloc_arrayN(tnumverts, sizeof(float[3]), "SDefTargetBindVertArray"),
+		.bind_verts = smd->verts,
+		.vertexCos = vertexCos,
+		.falloff = smd->falloff,
+		.success = MOD_SDEF_BIND_RESULT_SUCCESS,
+	};
 
 	if (data.targetCos == NULL) {
 		modifier_setError((ModifierData *)smd, "Out of memory");

@@ -4433,7 +4433,7 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 	else {
 		wmWindowManager *wm = CTX_wm_manager(C);
 		PointerRNA ptr;
-		struct uiTemplateOperatorPropertyPollParam user_data = {.C = C, .op = op, .flag = flag};
+		struct uiTemplateOperatorPropertyPollParam user_data = { .C = C, .op = op, .flag = flag, };
 
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 

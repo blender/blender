@@ -100,7 +100,7 @@ KerningCacheBLF *blf_kerning_cache_new(FontBLF *font)
 			/* Cannot fail since it has been added just before. */
 			GlyphBLF *g_prev = blf_glyph_search(font->glyph_cache, j);
 
-			FT_Vector delta = {.x = 0, .y = 0};
+			FT_Vector delta = { .x = 0, .y = 0, };
 			if (FT_Get_Kerning(font->face, g_prev->idx, g->idx, kc->mode, &delta) == 0) {
 				kc->table[i][j] = (int)delta.x >> 6;
 			}

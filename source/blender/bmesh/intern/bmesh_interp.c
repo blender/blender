@@ -508,7 +508,7 @@ void BM_loop_interp_multires_ex(
 		.cd_loop_mdisp_offset = cd_loop_mdisp_offset,
 		.md_dst = md_dst, .f_src_center = f_src_center,
 		.axis_x = axis_x, .axis_y = axis_y, .v1 = v1, .v4 = v4, .e1 = e1, .e2 = e2,
-		.res = res, .d = 1.0f / (float)(res - 1)
+		.res = res, .d = 1.0f / (float)(res - 1),
 	};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);

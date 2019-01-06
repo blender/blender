@@ -334,7 +334,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	    .effectedF = effectedF,
 	    .numEffectedV = numEffectedV,
 	    .numEffectedE = numEffectedE,
-	    .numEffectedF = numEffectedF
+	    .numEffectedF = numEffectedF,
 	};
 
 	{
@@ -677,7 +677,7 @@ static void ccgSubSurf__calcSubdivLevel(
 	    .numEffectedV = numEffectedV,
 	    .numEffectedE = numEffectedE,
 	    .numEffectedF = numEffectedF,
-	    .curLvl = curLvl
+	    .curLvl = curLvl,
 	};
 
 	{

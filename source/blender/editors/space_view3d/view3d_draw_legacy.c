@@ -767,7 +767,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 		.xmin = 0,
 		.xmax = ar->winx - 1,
 		.ymin = 0,
-		.ymax = ar->winy - 1
+		.ymax = ar->winy - 1,
 	};
 
 	/* Constrain rect to depth bounds */

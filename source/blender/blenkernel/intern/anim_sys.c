@@ -3128,7 +3128,7 @@ bool BKE_animsys_nla_remap_keyframe_value(struct NlaKeyframingContext *context, 
 	}
 
 	/* Find the evaluation channel for the NLA stack below current strip. */
-	NlaEvalChannelKey key = { .ptr = *prop_ptr, .prop = prop };
+	NlaEvalChannelKey key = { .ptr = *prop_ptr, .prop = prop, };
 	NlaEvalData *nlaeval = &context->nla_channels;
 	NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, NULL, &key);
 	int real_index = nlaevalchan_validate_index(nec, index);

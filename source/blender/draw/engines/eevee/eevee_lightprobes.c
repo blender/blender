@@ -820,7 +820,7 @@ void EEVEE_lightbake_render_world(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 {
 	EEVEE_BakeRenderData brdata = {
 		.vedata = vedata,
-		.face_fb = face_fb
+		.face_fb = face_fb,
 	};
 
 	render_cubemap(lightbake_render_world_face, &brdata, (float[3]){0.0f}, 1.0f, 10.0f);
@@ -854,7 +854,7 @@ void EEVEE_lightbake_render_scene(
 	EEVEE_BakeRenderData brdata = {
 		.vedata = vedata,
 		.sldata = sldata,
-		.face_fb = face_fb
+		.face_fb = face_fb,
 	};
 
 	render_cubemap(lightbake_render_scene_face, &brdata, pos, near_clip, far_clip);

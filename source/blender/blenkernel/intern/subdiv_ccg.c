@@ -865,8 +865,8 @@ static void subdiv_ccg_recalc_inner_grid_normals(SubdivCCG *subdiv_ccg)
 	CCGKey key;
 	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 	RecalcInnerNormalsData data = {
-	        .subdiv_ccg = subdiv_ccg,
-	        .key = &key
+		.subdiv_ccg = subdiv_ccg,
+		.key = &key,
 	};
 	RecalcInnerNormalsTLSData tls_data = {NULL};
 	ParallelRangeSettings parallel_range_settings;

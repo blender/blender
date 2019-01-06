@@ -1580,7 +1580,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
 			DynamicPaintSetInitColorData data = {
 			    .surface = surface,
 			    .mloop = mloop, .mlooptri = mlooptri, .mloopuv = mloopuv, .pool = pool,
-			    .scene_color_manage = scene_color_manage
+			    .scene_color_manage = scene_color_manage,
 			};
 			ParallelRangeSettings settings;
 			BLI_parallel_range_settings_defaults(&settings);
@@ -1595,7 +1595,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
 			DynamicPaintSetInitColorData data = {
 			    .surface = surface,
 			    .mlooptri = mlooptri, .mloopuv = mloopuv,
-			    .scene_color_manage = scene_color_manage
+			    .scene_color_manage = scene_color_manage,
 			};
 			ParallelRangeSettings settings;
 			BLI_parallel_range_settings_defaults(&settings);
@@ -1756,7 +1756,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
 	if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
 		MVert *mvert = result->mvert;
 
-		DynamicPaintModifierApplyData data = {.surface = surface, .mvert = mvert};
+		DynamicPaintModifierApplyData data = { .surface = surface, .mvert = mvert, };
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
 		settings.use_threading = (sData->total_points > 10000);
@@ -1903,7 +1903,7 @@ static Mesh *dynamicPaint_Modifier_apply(
 						/* paint is stored on dry and wet layers, so mix final color first */
 						float (*fcolor)[4] = MEM_callocN(sizeof(*fcolor) * sData->total_points, "Temp paint color");
 
-						DynamicPaintModifierApplyData data = {.surface = surface, .fcolor = fcolor};
+						DynamicPaintModifierApplyData data = { .surface = surface, .fcolor = fcolor, };
 						{
 							ParallelRangeSettings settings;
 							BLI_parallel_range_settings_defaults(&settings);
@@ -2007,7 +2007,7 @@ static Mesh *dynamicPaint_Modifier_apply(
 					else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
 						MVert *mvert = result->mvert;
 
-						DynamicPaintModifierApplyData data = {.surface = surface, .mvert = mvert};
+						DynamicPaintModifierApplyData data = { .surface = surface, .mvert = mvert, };
 						ParallelRangeSettings settings;
 						BLI_parallel_range_settings_defaults(&settings);
 						settings.use_threading = (sData->total_points > 1000);
@@ -2481,7 +2481,7 @@ static int dynamic_paint_find_neighbour_pixel(
 		DynamicPaintFindIslandBorderData bdata = {
 			.vert_to_looptri_map = vert_to_looptri_map,
 			.w = w, .h = h, .px = px, .py = py,
-			.best_index = NOT_FOUND, .best_weight = 1.0f
+			.best_index = NOT_FOUND, .best_weight = 1.0f,
 		};
 
 		float pixel[2];
@@ -3236,7 +3236,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 		return;
 	}
 
-	DynamicPaintOutputSurfaceImageData data = {.surface = surface, .ibuf = ibuf};
+	DynamicPaintOutputSurfaceImageData data = { .surface = surface, .ibuf = ibuf, };
 	switch (surface->type) {
 		case MOD_DPAINT_SURFACE_T_PAINT:
 			switch (output_layer) {
@@ -4191,7 +4191,7 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph, DynamicPaintSurface *sur
 					    .scene = scene, .timescale = timescale, .c_index = c_index,
 					    .mesh = mesh, .mvert = mvert, .mloop = mloop, .mlooptri = mlooptri,
 					    .brush_radius = brush_radius, .avg_brushNor = avg_brushNor, .brushVelocity = brushVelocity,
-					    .treeData = &treeData
+					    .treeData = &treeData,
 					};
 					ParallelRangeSettings settings;
 					BLI_parallel_range_settings_defaults(&settings);
@@ -5351,7 +5351,7 @@ static void dynamicPaint_doBorderStep(DynamicPaintSurface *surface)
 
 	/* Don't use prevPoint, relying on the condition that neighbors are never border pixels. */
 	DynamicPaintEffectData data = {
-		.surface = surface
+		.surface = surface,
 	};
 
 	ParallelRangeSettings settings;
@@ -5907,7 +5907,7 @@ static int dynamicPaint_doStep(
 		return 0;
 
 	if (dynamic_paint_surface_needs_dry_dissolve(surface)) {
-		DynamicPaintDissolveDryData data = {.surface = surface, .timescale = timescale};
+		DynamicPaintDissolveDryData data = { .surface = surface, .timescale = timescale, };
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
 		settings.use_threading = (sData->total_points > 1000);

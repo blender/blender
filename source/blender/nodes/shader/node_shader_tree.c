@@ -715,7 +715,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat, bool *has_sur
 	/* TODO(fclem): consider moving this to the gpu shader tree evaluation. */
 	nTreeTags tags = {
 		.ssr_id = 1.0,
-		.sss_id = 1.0
+		.sss_id = 1.0,
 	};
 	ntree_shader_tag_nodes(localtree, output, &tags);
 

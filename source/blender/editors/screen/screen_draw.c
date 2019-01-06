@@ -564,7 +564,7 @@ static void screen_preview_draw_areas(const bScreen *screen, const float scale[2
 			.xmin = sa->totrct.xmin * scale[0] + ofs_h,
 			.xmax = sa->totrct.xmax * scale[0] - ofs_h,
 			.ymin = sa->totrct.ymin * scale[1] + ofs_h,
-			.ymax = sa->totrct.ymax * scale[1] - ofs_h
+			.ymax = sa->totrct.ymax * scale[1] - ofs_h,
 		};
 
 		immBegin(GPU_PRIM_TRI_FAN, 4);

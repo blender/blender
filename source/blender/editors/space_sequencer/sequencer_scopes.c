@@ -503,7 +503,7 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
 	memset(bins, 0, sizeof(bins));
 
-	MakeHistogramViewData data = {.ibuf = ibuf, .bins = bins};
+	MakeHistogramViewData data = { .ibuf = ibuf, .bins = bins, };
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (ibuf->y >= 256);
@@ -588,7 +588,7 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
 	memset(bins, 0, sizeof(bins));
 
-	MakeHistogramViewData data = {.ibuf = ibuf, .bins = bins};
+	MakeHistogramViewData data = { .ibuf = ibuf, .bins = bins, };
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (ibuf->y >= 256);
