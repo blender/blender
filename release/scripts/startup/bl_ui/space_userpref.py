@@ -123,7 +123,6 @@ class USERPREF_PT_interface_display(PreferencePanel):
 class USERPREF_PT_interface_display_info(PreferencePanel):
     bl_label = "Information"
     bl_parent_id = "USERPREF_PT_interface_display"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -162,7 +161,6 @@ class USERPREF_PT_interface_text(PreferencePanel):
 
 class USERPREF_PT_interface_text_translate(PreferencePanel):
     bl_label = "Translate UI"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_interface_text"
 
     @classmethod
@@ -292,9 +290,11 @@ class USERPREF_PT_interface_menus(PreferencePanel):
     def draw_props(self, context, layout):
         prefs = context.preferences
         view = prefs.view
+        system = prefs.system
 
         layout.prop(view, "color_picker_type")
         layout.row().prop(view, "header_align_default", expand=True)
+        layout.prop(system, "use_region_overlap")
 
         layout.prop(view, "show_splash")
         layout.prop(view, "use_quit_dialog")
@@ -303,7 +303,6 @@ class USERPREF_PT_interface_menus(PreferencePanel):
 class USERPREF_PT_interface_menus_mouse_over(PreferencePanel):
     bl_label = "Open on Mouse Over"
     bl_parent_id = "USERPREF_PT_interface_menus"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         prefs = context.preferences
@@ -324,7 +323,6 @@ class USERPREF_PT_interface_menus_mouse_over(PreferencePanel):
 class USERPREF_PT_interface_menus_pie(PreferencePanel):
     bl_label = "Pie Menus"
     bl_parent_id = "USERPREF_PT_interface_menus"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -338,8 +336,9 @@ class USERPREF_PT_interface_menus_pie(PreferencePanel):
 
 
 class USERPREF_PT_interface_templates(PreferencePanel):
-    bl_label = "Templates"
+    bl_label = "Application Templates"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "USERPREF_PT_interface_develop"
 
     @classmethod
     def poll(cls, context):
@@ -350,7 +349,7 @@ class USERPREF_PT_interface_templates(PreferencePanel):
         prefs = context.preferences
         view = prefs.view
 
-        layout.label(text="Options intended for use with app-templates only")
+        layout.label(text="Options intended for developing application templates only")
         layout.prop(view, "show_layout_ui")
 
 
@@ -392,7 +391,6 @@ class USERPREF_PT_edit_animation(PreferencePanel):
 
 class USERPREF_PT_edit_animation_autokey(PreferencePanel):
     bl_label = "Auto-Keyframing"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_edit_animation"
 
     def draw_header(self, context):
@@ -411,7 +409,6 @@ class USERPREF_PT_edit_animation_autokey(PreferencePanel):
 
 class USERPREF_PT_edit_animation_fcurves(PreferencePanel):
     bl_label = "F-Curves"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_edit_animation"
 
     def draw_props(self, context, layout):
@@ -427,26 +424,10 @@ class USERPREF_PT_edit_animation_fcurves(PreferencePanel):
         layout.prop(edit, "fcurve_unselected_alpha", text="F-Curve Visibility")
 
 
-class USERPREF_PT_edit_transform(PreferencePanel):
-    bl_label = "Transform"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        edit = prefs.edit
-
-        layout.prop(edit, "use_drag_immediately")
-        layout.prop(edit, "use_numeric_input_advanced")
-
-
 class USERPREF_PT_edit_duplicate_data(PreferencePanel):
     bl_label = "Duplicate Data"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "USERPREF_PT_edit_objects"
 
     @classmethod
     def poll(cls, context):
@@ -525,7 +506,24 @@ class USERPREF_PT_edit_misc(PreferencePanel):
         edit = prefs.edit
 
         layout.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
-        layout.prop(edit, "node_margin", text="Node Editor Auto-offset Margin")
+        layout.prop(edit, "node_margin", text="Node Auto-offset Margin")
+
+
+class USERPREF_PT_edit_cursor(PreferencePanel):
+    bl_label = "3D Cursor"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return (prefs.active_section == 'EDITING')
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        edit = prefs.edit
+
+        layout.prop(edit, "use_mouse_depth_cursor")
+        layout.prop(edit, "use_cursor_lock_adjust")
 
 
 class USERPREF_PT_system_sound(PreferencePanel):
@@ -599,13 +597,10 @@ class USERPREF_PT_system_opengl(PreferencePanel):
             layout.label(text="Might fail for Mesh editing selection!")
             layout.separator()
 
-        layout.prop(system, "use_region_overlap")
-
 
 class USERPREF_PT_system_opengl_textures(PreferencePanel):
     bl_label = "Textures"
     bl_parent_id = "USERPREF_PT_system_opengl"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -629,7 +624,6 @@ class USERPREF_PT_system_opengl_textures(PreferencePanel):
 class USERPREF_PT_system_opengl_selection(PreferencePanel):
     bl_label = "Selection"
     bl_parent_id = "USERPREF_PT_system_opengl"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -1155,9 +1149,8 @@ class USERPREF_PT_file_paths(Panel):
         layout.prop(paths, "image_editor", text="Image Editor")
         layout.prop(paths, "animation_player_preset", text="Playback Preset")
 
-        row = layout.row()
-        row.enabled = paths.animation_player_preset == 'CUSTOM'
-        row.prop(paths, "animation_player", text="Animation Player")
+        if paths.animation_player_preset == 'CUSTOM':
+            layout.prop(paths, "animation_player", text="Animation Player")
 
 
 class USERPREF_PT_file_autorun(Panel):
@@ -1234,7 +1227,6 @@ class USERPREF_PT_file_saveload(PreferencePanel):
 class USERPREF_PT_file_saveload_autosave(PreferencePanel):
     bl_label = "Auto Save"
     bl_parent_id = "USERPREF_PT_file_saveload"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -1251,7 +1243,6 @@ class USERPREF_PT_file_saveload_autosave(PreferencePanel):
 class USERPREF_PT_file_saveload_texteditor(PreferencePanel):
     bl_label = "Text Editor"
     bl_parent_id = "USERPREF_PT_file_saveload"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -1328,6 +1319,7 @@ class USERPREF_PT_input_devices_keyboard(PreferencePanel):
         inputs = prefs.inputs
 
         layout.prop(inputs, "use_emulate_numpad")
+        layout.prop(inputs, "use_numeric_input_advanced")
 
 
 class USERPREF_PT_input_devices_mouse(PreferencePanel):
@@ -1343,10 +1335,11 @@ class USERPREF_PT_input_devices_mouse(PreferencePanel):
         layout.prop(inputs, "mouse_double_click_time", text="Double Click Speed")
         layout.prop(inputs, "use_mouse_emulate_3_button")
         layout.prop(inputs, "use_mouse_continuous")
+        layout.prop(inputs, "use_drag_immediately")
 
 
 class USERPREF_PT_input_view(PreferencePanel):
-    bl_label = "View Manipulation"
+    bl_label = "View Navigation"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1361,7 +1354,6 @@ class USERPREF_PT_input_view(PreferencePanel):
 class USERPREF_PT_input_view_orbit(PreferencePanel):
     bl_label = "Orbit & Pan"
     bl_parent_id = "USERPREF_PT_input_view"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         import sys
@@ -1380,7 +1372,6 @@ class USERPREF_PT_input_view_orbit(PreferencePanel):
 class USERPREF_PT_input_view_zoom(PreferencePanel):
     bl_label = "Zoom"
     bl_parent_id = "USERPREF_PT_input_view"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -1396,23 +1387,9 @@ class USERPREF_PT_input_view_zoom(PreferencePanel):
         layout.prop(inputs, "use_zoom_to_mouse")
 
 
-class USERPREF_PT_input_view_cursor(PreferencePanel):
-    bl_label = "Cursor"
-    bl_parent_id = "USERPREF_PT_input_view"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        inputs = prefs.inputs
-
-        layout.prop(inputs, "use_mouse_depth_cursor")
-        layout.prop(inputs, "use_cursor_lock_adjust")
-
-
 class USERPREF_PT_input_view_fly_walk(PreferencePanel):
     bl_label = "Fly & Walk"
     bl_parent_id = "USERPREF_PT_input_view"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -1421,8 +1398,20 @@ class USERPREF_PT_input_view_fly_walk(PreferencePanel):
         layout.row().prop(inputs, "navigation_mode", expand=True)
         layout.prop(inputs, "use_camera_lock_parent")
 
-        layout.label(text="Walk Navigation:")
 
+class USERPREF_PT_input_view_fly_walk_navigation(PreferencePanel):
+    bl_label = "Walk"
+    bl_parent_id = "USERPREF_PT_input_view_fly_walk"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return prefs.inputs.navigation_mode == 'WALK'
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        inputs = prefs.inputs
         walk = inputs.walk_navigation
 
         layout.prop(walk, "use_mouse_reverse")
@@ -1437,6 +1426,12 @@ class USERPREF_PT_input_view_fly_walk(PreferencePanel):
 class USERPREF_PT_input_view_fly_walk_gravity(PreferencePanel):
     bl_label = "Gravity"
     bl_parent_id = "USERPREF_PT_input_view_fly_walk"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return prefs.inputs.navigation_mode == 'WALK'
 
     def draw_header(self, context):
         prefs = context.preferences
@@ -1458,7 +1453,6 @@ class USERPREF_PT_input_view_fly_walk_gravity(PreferencePanel):
 class USERPREF_PT_input_devices_tablet(PreferencePanel):
     bl_label = "Tablet"
     bl_parent_id = "USERPREF_PT_input_devices"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -1470,8 +1464,8 @@ class USERPREF_PT_input_devices_tablet(PreferencePanel):
 
 class USERPREF_PT_input_devices_ndof(PreferencePanel):
     bl_label = "NDOF"
-    bl_parent_id = "USERPREF_PT_input_devices"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "USERPREF_PT_input_devices"
 
     @classmethod
     def poll(cls, context):
@@ -2003,10 +1997,10 @@ classes += (
     USERPREF_PT_edit_animation,
     USERPREF_PT_edit_animation_autokey,
     USERPREF_PT_edit_animation_fcurves,
-    USERPREF_PT_edit_transform,
     USERPREF_PT_edit_duplicate_data,
     USERPREF_PT_edit_gpencil,
     USERPREF_PT_edit_annotations,
+    USERPREF_PT_edit_cursor,
     USERPREF_PT_edit_misc,
 
     USERPREF_PT_system_opengl,
@@ -2042,8 +2036,8 @@ classes += (
     USERPREF_PT_input_view,
     USERPREF_PT_input_view_orbit,
     USERPREF_PT_input_view_zoom,
-    USERPREF_PT_input_view_cursor,
     USERPREF_PT_input_view_fly_walk,
+    USERPREF_PT_input_view_fly_walk_navigation,
     USERPREF_PT_input_view_fly_walk_gravity,
 
     USERPREF_PT_keymap,
