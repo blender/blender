@@ -348,7 +348,7 @@ static void gizmo_render_border_prop_matrix_set(
 
 	BLI_rctf_resize(border, len_v3(matrix[0]), len_v3(matrix[1]));
 	BLI_rctf_recenter(border, matrix[3][0], matrix[3][1]);
-	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, border, border);
+	BLI_rctf_isect(&(rctf){ .xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1, }, border, border);
 }
 
 static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
@@ -416,7 +416,7 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
 		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewgroup->state.view_border, false);
 	}
 	else {
-		viewgroup->state.view_border = (rctf){.xmin = 0, .ymin = 0, .xmax = ar->winx, .ymax = ar->winy};
+		viewgroup->state.view_border = (rctf){ .xmin = 0, .ymin = 0, .xmax = ar->winx, .ymax = ar->winy, };
 	}
 
 	wmGizmo *gz = viewgroup->border;

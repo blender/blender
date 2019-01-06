@@ -438,7 +438,7 @@ static void gizmo_mesh_extrude_message_subscribe(
 	WM_msg_subscribe_rna_params(
 	        mbus,
 	        &(const wmMsgParams_RNA){
-	            .ptr = (PointerRNA){.type = gzgroup->type->srna},
+	            .ptr = (PointerRNA){ .type = gzgroup->type->srna, },
 	            .prop = ggd->gzgt_axis_type_prop,
 	        },
 	        &msg_sub_value_gz_tag_refresh, __func__);

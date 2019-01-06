@@ -605,7 +605,8 @@ static void sync_viewport_camera_smoothview(bContext *C, View3D *v3d, Object *ob
 										            .ofs = other_rv3d->ofs,
 										            .quat = other_rv3d->viewquat,
 										            .dist = &other_rv3d->dist,
-										            .lens = &other_v3d->lens});
+										            .lens = &other_v3d->lens,
+										        });
 									}
 									else {
 										other_v3d->camera = ob;
@@ -651,7 +652,8 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 			        &(const V3D_SmoothParams) {
 			            .camera_old = camera_old, .camera = v3d->camera,
 			            .ofs = rv3d->ofs, .quat = rv3d->viewquat,
-			            .dist = &rv3d->dist, .lens = &v3d->lens});
+			            .dist = &rv3d->dist, .lens = &v3d->lens,
+			        });
 		}
 
 		if (v3d->scenelock) {
@@ -1245,7 +1247,8 @@ static bool view3d_localview_init(
 				            &(const V3D_SmoothParams) {
 				                .camera_old = camera_old,
 				                .ofs = ofs_new, .quat = rv3d->viewquat,
-				                .dist = ok_dist ? &dist_new : NULL, .lens = &v3d->lens});
+				                .dist = ok_dist ? &dist_new : NULL, .lens = &v3d->lens,
+				            });
 			}
 		}
 
@@ -1303,7 +1306,8 @@ static void restore_localviewdata(
 				        &(const V3D_SmoothParams) {
 				            .camera_old = camera_old_rv3d, .camera = camera_new_rv3d,
 				            .ofs = rv3d->localvd->ofs, .quat = rv3d->localvd->viewquat,
-				            .dist = &rv3d->localvd->dist});
+				            .dist = &rv3d->localvd->dist,
+				        });
 
 				if (free) {
 					MEM_freeN(rv3d->localvd);

@@ -269,7 +269,7 @@ void WM_msg_publish_ID(
 	WM_msg_subscribe_rna_params( \
 	        mbus, \
 	        &(const wmMsgParams_RNA){ \
-	            .ptr = (PointerRNA){.type = &RNA_##type_}, \
+	            .ptr = (PointerRNA){ .type = &RNA_##type_, }, \
 	            .prop = NULL, \
 	        }, \
 	        value, __func__); \
@@ -281,7 +281,7 @@ void WM_msg_publish_ID(
 	WM_msg_subscribe_rna_params( \
 	        mbus, \
 	        &(const wmMsgParams_RNA){ \
-	            .ptr = (PointerRNA){.type = &RNA_##type_}, \
+	            .ptr = (PointerRNA){ .type = &RNA_##type_, }, \
 	            .prop = &rna_##type_##_##prop_, \
 	        }, \
 	        value, __func__); \

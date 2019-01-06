@@ -458,7 +458,7 @@ static void gizmo_mesh_spin_init_message_subscribe(
 	WM_msg_subscribe_rna_params(
 	        mbus,
 	        &(const wmMsgParams_RNA){
-	            .ptr = (PointerRNA){.type = gzgroup->type->srna},
+	            .ptr = (PointerRNA){ .type = gzgroup->type->srna, },
 	            .prop = ggd->data.gzgt_axis_prop,
 	        },
 	        &msg_sub_value_gz_tag_refresh, __func__);

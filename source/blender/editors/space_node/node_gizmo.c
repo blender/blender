@@ -293,7 +293,7 @@ static void gizmo_node_crop_prop_matrix_set(
 	const bool ny = rct.ymin > rct.ymax;
 	BLI_rctf_resize(&rct, fabsf(matrix[0][0]), fabsf(matrix[1][1]));
 	BLI_rctf_recenter(&rct, (matrix[3][0] / dims[0]) + 0.5f, (matrix[3][1] / dims[1]) + 0.5f);
-	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, &rct, &rct);
+	BLI_rctf_isect(&(rctf){ .xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1, }, &rct, &rct);
 	if (nx) {
 		SWAP(float, rct.xmin, rct.xmax);
 	}

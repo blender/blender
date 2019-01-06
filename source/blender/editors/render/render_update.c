@@ -150,7 +150,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 						            .view_layer = view_layer,
 						            .ar = ar,
 						            .v3d = (View3D *)sa->spacedata.first,
-						            .engine_type = engine_type
+						            .engine_type = engine_type,
 						        }));
 					}
 				}
