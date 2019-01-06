@@ -640,7 +640,7 @@ class USERPREF_PT_system_opengl_selection(PreferencePanel):
 
 
 class USERPREF_PT_system_memory(PreferencePanel):
-    bl_label = "Memory"
+    bl_label = "Memory/Limits"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -1228,6 +1228,7 @@ class USERPREF_PT_file_saveload(PreferencePanel):
 
         layout.prop(paths, "save_version")
         layout.prop(paths, "recent_files")
+        layout.prop(paths, "author", text="Author")
 
 
 class USERPREF_PT_file_saveload_autosave(PreferencePanel):
@@ -1257,7 +1258,6 @@ class USERPREF_PT_file_saveload_texteditor(PreferencePanel):
         paths = prefs.filepaths
 
         layout.prop(paths, "use_tabs_as_spaces")
-        layout.prop(paths, "author", text="Author")
 
 
 class USERPREF_MT_ndof_settings(Menu):
