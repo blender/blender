@@ -5748,6 +5748,8 @@ static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_laye
 		lib_link_layer_collection(fd, lib, layer_collection, true);
 	}
 
+	view_layer->mat_override = newlibadr_us(fd, lib, view_layer->mat_override);
+
 	IDP_LibLinkProperty(view_layer->id_properties, fd);
 }
 
