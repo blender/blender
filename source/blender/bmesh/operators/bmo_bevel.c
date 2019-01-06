@@ -47,6 +47,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	const bool	mark_sharp	  = BMO_slot_bool_get(op->slots_in, "mark_sharp");
 	const bool  harden_normals = BMO_slot_bool_get(op->slots_in, "harden_normals");
 	const int   face_strength_mode = BMO_slot_int_get(op->slots_in, "face_strength_mode");
+	const float smoothresh    = BMO_slot_float_get(op->slots_in, "smoothresh");
 
 	if (offset > 0) {
 		BMOIter siter;
@@ -72,7 +73,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 
 		BM_mesh_bevel(
 		        bm, offset, offset_type, seg, profile, vonly, false, clamp_overlap, NULL, -1, material,
-		        loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode);
+		        loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode, smoothresh);
 
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);

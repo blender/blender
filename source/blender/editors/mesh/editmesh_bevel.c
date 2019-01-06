@@ -41,6 +41,8 @@
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
 
+#include "DNA_mesh_types.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 
@@ -231,6 +233,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const bool harden_normals = RNA_boolean_get(op->ptr, "harden_normals");
 	const int face_strength_mode = RNA_enum_get(op->ptr, "face_strength_mode");
 
+
 	for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
 		em = opdata->ob_store[ob_index].em;
 
@@ -243,12 +246,21 @@ static bool edbm_bevel_calc(wmOperator *op)
 			material = CLAMPIS(material, -1, em->ob->totcol - 1);
 		}
 
+		Mesh *me = em->ob->data;
+
+		if (harden_normals && !(me->flag & ME_AUTOSMOOTH)) {
+			/* harden_normals only has a visible effect if autosmooth is on, so turn it on */
+			me->flag |= ME_AUTOSMOOTH;
+		}
+
 		EDBM_op_init(
 		        em, &bmop, op,
 		        "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
-		        "material=%i loop_slide=%b mark_seam=%b mark_sharp=%b harden_normals=%b face_strength_mode=%i",
+		        "material=%i loop_slide=%b mark_seam=%b mark_sharp=%b harden_normals=%b face_strength_mode=%i "
+				"smoothresh=%f",
 		        BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-		        clamp_overlap, material, loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode);
+		        	clamp_overlap, material, loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode,
+					me->smoothresh);
 
 		BMO_op_exec(em->bm, &bmop);
 

@@ -222,6 +222,7 @@ typedef struct BevelParams {
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
 	int mat_nr;             /* if >= 0, material number for bevel; else material comes from adjacent faces */
 	int face_strength_mode; /* setting face strength if > 0 */
+	float smoothresh;		/* mesh's smoothresh, used if hardening */
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -1703,6 +1704,33 @@ static void bevel_extend_edge_data(BevVert *bv)
 	} while (bcur != start);
 }
 
+/* Mark edges as sharp if they are between a smooth recon face and a new face. */
+static void bevel_edges_sharp_boundary(BMesh *bm, BevelParams *bp)
+{
+	BMIter fiter, liter;
+	BMFace *f, *fother;
+	BMLoop *l, *lother;
+	FKind fkind;
+
+	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
+		if (!BM_elem_flag_test(f, BM_ELEM_SMOOTH))
+			continue;
+		if (get_face_kind(bp, f) != F_RECON)
+			continue;
+		BM_ITER_ELEM(l, &liter, f, BM_LOOPS_OF_FACE) {
+			/* cases we care about will have exactly one adjacent face */
+			lother = l->radial_next;
+			fother = lother->f;
+			if (lother != l && fother) {
+				fkind = get_face_kind(bp, lother->f);
+				if (ELEM(fkind, F_EDGE, F_VERT)) {
+					BM_elem_flag_disable(l->e, BM_ELEM_SMOOTH);
+				}
+			}
+		}
+	}
+}
+
 /*
  * Harden normals for bevel.
  * The desired effect is that the newly created F_EDGE and F_VERT faces appear smoothly shaded
@@ -1725,11 +1753,25 @@ static void bevel_harden_normals(BMesh *bm, BevelParams *bp)
 		return;
 
 	/* recalculate all face and vertex normals; side effect: ensures vertex, edge, face indices */
+	/* I suspect this is not necessary: TODO: test that guess */
 	BM_mesh_normals_update(bm);
+
+	cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+
+	/* If there is not already a custom split normal layer then making one (with BM_lnorspace_update)
+	 * will not respect the autosmooth angle between smooth faces. To get that to happen, we have
+	 * to mark the sharpen the edges that are only sharp because of the angle test -- otherwise would be smooth.
+	 */
+	if (cd_clnors_offset == -1) {
+		BM_edges_sharp_from_angle_set(bm, bp->smoothresh);
+		bevel_edges_sharp_boundary(bm, bp);
+	}
 
 	/* ensure that bm->lnor_spacearr has properly stored loop normals; side effect: ensures loop indices */
 	BM_lnorspace_update(bm);
-	cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+
+	if (cd_clnors_offset == -1)
+		cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
 		fkind = get_face_kind(bp, f);
@@ -5677,7 +5719,7 @@ void BM_mesh_bevel(
         const bool vertex_only, const bool use_weights, const bool limit_offset,
         const struct MDeformVert *dvert, const int vertex_group, const int mat,
         const bool loop_slide, const bool mark_seam, const bool mark_sharp,
-        const bool harden_normals, const int face_strength_mode)
+        const bool harden_normals, const int face_strength_mode, const float smoothresh)
 {
 	BMIter iter, liter;
 	BMVert *v, *v_next;
@@ -5704,6 +5746,7 @@ void BM_mesh_bevel(
 	bp.mark_sharp = mark_sharp;
 	bp.harden_normals = harden_normals;
 	bp.face_strength_mode = face_strength_mode;
+	bp.smoothresh = smoothresh;
 	bp.face_hash = NULL;
 
 	if (profile >= 0.950f) {  /* r ~ 692, so PRO_SQUARE_R is 1e4 */

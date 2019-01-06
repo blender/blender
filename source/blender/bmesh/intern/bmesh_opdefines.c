@@ -1765,6 +1765,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {"harden_normals", BMO_OP_SLOT_BOOL},  /* harden normals */
 	 {"face_strength_mode", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM},
 	 	bmo_enum_bevel_face_strength_type}, /* whether to set face strength, and which faces to set if so */
+	 {"smoothresh", BMO_OP_SLOT_FLT},       /* for passing mesh's smoothresh, used in hardening */
 	 {{'\0'}},
 	},
 	/* slots_out */
