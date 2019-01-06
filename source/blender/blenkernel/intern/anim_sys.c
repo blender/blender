@@ -2297,7 +2297,7 @@ static NlaEvalChannel *nlaevalchan_verify_key(NlaEvalData *nlaeval, const char *
 	/* Look it up in the key hash. */
 	NlaEvalChannel **p_key_nec;
 	NlaEvalChannelKey **p_key;
-	bool found_key = BLI_ghash_ensure_p_ex(nlaeval->key_hash, key, (void***)&p_key, (void***)&p_key_nec);
+	bool found_key = BLI_ghash_ensure_p_ex(nlaeval->key_hash, key, (void ***)&p_key, (void ***)&p_key_nec);
 
 	if (found_key) {
 		return *p_key_nec;
@@ -2345,7 +2345,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
 
 	/* Lookup the path in the path based hash. */
 	NlaEvalChannel **p_path_nec;
-	bool found_path = BLI_ghash_ensure_p(nlaeval->path_hash, (void*)path, (void***)&p_path_nec);
+	bool found_path = BLI_ghash_ensure_p(nlaeval->path_hash, (void *)path, (void ***)&p_path_nec);
 
 	if (found_path) {
 		return *p_path_nec;
