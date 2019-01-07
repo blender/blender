@@ -230,19 +230,23 @@ def generate(context, space_type):
                 kmi_first = km.keymap_items
                 kmi_first = kmi_first[0] if kmi_first else None
                 if kmi_first is not None:
-                    # We need 'MOUSE' so keys with 'key_modifier' are found.
-                    for kmi_type in ('KEYBOARD', 'MOUSE'):
+                    kmi_found = wm.keyconfigs.find_item_from_operator(
+                        idname=kmi_first.idname,
+                        # properties=kmi_first.properties,  # prevents matches, don't use.
+                        context='INVOKE_REGION_WIN',
+                        include={'KEYBOARD'},
+                    )[1]
+                    if kmi_found is None:
+                        # We need non-keyboard events so keys with 'key_modifier' key is found.
                         kmi_found = wm.keyconfigs.find_item_from_operator(
                             idname=kmi_first.idname,
                             # properties=kmi_first.properties,  # prevents matches, don't use.
                             context='INVOKE_REGION_WIN',
-                            include={kmi_type},
+                            exclude={'KEYBOARD'},
                         )[1]
                         if kmi_found is not None:
-                            if (kmi_type == 'MOUSE') and (kmi_found.key_modifier == 'NONE'):
+                            if kmi_found.key_modifier == 'NONE':
                                 kmi_found = None
-                        if kmi_found is not None:
-                            break
                 else:
                     kmi_found = None
                 del kmi_first
