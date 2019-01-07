@@ -64,7 +64,7 @@
 /* for keyframes and drivers */
 static int pyrna_struct_anim_args_parse_ex(
         PointerRNA *ptr, const char *error_prefix, const char *path,
-        const char **path_full, int *index, bool *r_path_no_validate)
+        const char **r_path_full, int *r_index, bool *r_path_no_validate)
 {
 	const bool is_idbase = RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
@@ -79,11 +79,11 @@ static int pyrna_struct_anim_args_parse_ex(
 
 	/* full paths can only be given from ID base */
 	if (is_idbase) {
-		int r_index = -1;
-		if (RNA_path_resolve_property_full(ptr, path, &r_ptr, &prop, &r_index) == false) {
+		int path_index = -1;
+		if (RNA_path_resolve_property_full(ptr, path, &r_ptr, &prop, &path_index) == false) {
 			prop = NULL;
 		}
-		else if (r_index != -1) {
+		else if (path_index != -1) {
 			PyErr_Format(PyExc_ValueError,
 			             "%.200s path includes index, must be a separate argument",
 			             error_prefix, path);
@@ -124,34 +124,34 @@ static int pyrna_struct_anim_args_parse_ex(
 		}
 
 		if (RNA_property_array_check(prop) == 0) {
-			if ((*index) == -1) {
-				*index = 0;
+			if ((*r_index) == -1) {
+				*r_index = 0;
 			}
 			else {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s index %d was given while property \"%s\" is not an array",
-				             error_prefix, *index, path);
+				             error_prefix, *r_index, path);
 				return -1;
 			}
 		}
 		else {
 			int array_len = RNA_property_array_length(&r_ptr, prop);
-			if ((*index) < -1 || (*index) >= array_len) {
+			if ((*r_index) < -1 || (*r_index) >= array_len) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s index out of range \"%s\", given %d, array length is %d",
-				             error_prefix, path, *index, array_len);
+				             error_prefix, path, *r_index, array_len);
 				return -1;
 			}
 		}
 	}
 
 	if (is_idbase) {
-		*path_full = BLI_strdup(path);
+		*r_path_full = BLI_strdup(path);
 	}
 	else {
-		*path_full = RNA_path_from_ID_to_property(&r_ptr, prop);
+		*r_path_full = RNA_path_from_ID_to_property(&r_ptr, prop);
 
-		if (*path_full == NULL) {
+		if (*r_path_full == NULL) {
 			PyErr_Format(PyExc_TypeError,
 			             "%.200s could not make path to \"%s\"",
 			             error_prefix, path);
@@ -164,21 +164,21 @@ static int pyrna_struct_anim_args_parse_ex(
 
 static int pyrna_struct_anim_args_parse(
         PointerRNA *ptr, const char *error_prefix, const char *path,
-        const char **path_full, int *index)
+        const char **r_path_full, int *r_index)
 {
-	return pyrna_struct_anim_args_parse_ex(ptr, error_prefix, path, path_full, index, NULL);
+	return pyrna_struct_anim_args_parse_ex(ptr, error_prefix, path, r_path_full, r_index, NULL);
 }
 
 /**
- * Unlike #pyrna_struct_anim_args_parse \a path_full may be copied from \a path.
+ * Unlike #pyrna_struct_anim_args_parse \a r_path_full may be copied from \a path.
  */
 static int pyrna_struct_anim_args_parse_no_resolve(
         PointerRNA *ptr, const char *error_prefix, const char *path,
-        const char **path_full)
+        const char **r_path_full)
 {
 	const bool is_idbase = RNA_struct_is_ID(ptr->type);
 	if (is_idbase) {
-		*path_full = path;
+		*r_path_full = path;
 		return 0;
 	}
 	else {
@@ -191,10 +191,10 @@ static int pyrna_struct_anim_args_parse_no_resolve(
 		}
 
 		if (*path == '[') {
-			*path_full = BLI_string_joinN(path_prefix, path);
+			*r_path_full = BLI_string_joinN(path_prefix, path);
 		}
 		else {
-			*path_full = BLI_string_join_by_sep_charN('.', path_prefix, path);
+			*r_path_full = BLI_string_join_by_sep_charN('.', path_prefix, path);
 		}
 		MEM_freeN(path_prefix);
 	}
@@ -203,16 +203,16 @@ static int pyrna_struct_anim_args_parse_no_resolve(
 
 static int pyrna_struct_anim_args_parse_no_resolve_fallback(
         PointerRNA *ptr, const char *error_prefix, const char *path,
-        const char **path_full, int *index)
+        const char **r_path_full, int *r_index)
 {
 	bool path_unresolved = false;
 	if (pyrna_struct_anim_args_parse_ex(
 	            ptr, error_prefix, path,
-	            path_full, index, &path_unresolved) == -1)
+	            r_path_full, r_index, &path_unresolved) == -1)
 	{
 		if (path_unresolved == true) {
 			if (pyrna_struct_anim_args_parse_no_resolve(
-			            ptr, error_prefix, path, path_full) == -1)
+			            ptr, error_prefix, path, r_path_full) == -1)
 			{
 				return -1;
 			}
@@ -227,7 +227,8 @@ static int pyrna_struct_anim_args_parse_no_resolve_fallback(
 /* internal use for insert and delete */
 static int pyrna_struct_keyframe_parse(
         PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
-        const char **path_full, int *index, float *cfra, const char **group_name, int *options)     /* return values */
+        /* return values */
+        const char **r_path_full, int *r_index, float *r_cfra, const char **r_group_name, int *r_options)
 {
 	static const char *kwlist[] = {"data_path", "index", "frame", "group", "options", NULL};
 	PyObject *pyoptions = NULL;
@@ -235,7 +236,7 @@ static int pyrna_struct_keyframe_parse(
 
 	/* note, parse_str MUST start with 's|ifsO!' */
 	if (!PyArg_ParseTupleAndKeywords(
-	            args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name,
+	            args, kw, parse_str, (char **)kwlist, &path, r_index, r_cfra, r_group_name,
 	            &PySet_Type, &pyoptions))
 	{
 		return -1;
@@ -243,21 +244,25 @@ static int pyrna_struct_keyframe_parse(
 
 	if (pyrna_struct_anim_args_parse(
 	            ptr, error_prefix, path,
-	            path_full, index) == -1)
+	            r_path_full, r_index) == -1)
 	{
 		return -1;
 	}
 
-	if (*cfra == FLT_MAX)
-		*cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
+	if (*r_cfra == FLT_MAX) {
+		*r_cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
+	}
 
 	/* flag may be null (no option currently for remove keyframes e.g.). */
-	if (options) {
-		if (pyoptions && (pyrna_set_to_enum_bitfield(rna_enum_keying_flag_items, pyoptions, options, error_prefix) == -1)) {
+	if (r_options) {
+		if (pyoptions &&
+		    (pyrna_set_to_enum_bitfield(
+		            rna_enum_keying_flag_items, pyoptions, r_options, error_prefix) == -1))
+		{
 			return -1;
 		}
 
-		*options |= INSERTKEY_NO_USERPREF;
+		*r_options |= INSERTKEY_NO_USERPREF;
 	}
 
 	return 0; /* success */
@@ -299,9 +304,10 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
-	if (pyrna_struct_keyframe_parse(&self->ptr, args, kw,
-	                                "s|ifsO!:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
-	                                &path_full, &index, &cfra, &group_name, &options) == -1)
+	if (pyrna_struct_keyframe_parse(
+	            &self->ptr, args, kw,
+	            "s|ifsO!:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
+	            &path_full, &index, &cfra, &group_name, &options) == -1)
 	{
 		return NULL;
 	}
