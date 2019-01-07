@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
@@ -61,9 +62,9 @@
 #include "../generic/python_utildefines.h"
 
 /* for keyframes and drivers */
-static int pyrna_struct_anim_args_parse(
+static int pyrna_struct_anim_args_parse_ex(
         PointerRNA *ptr, const char *error_prefix, const char *path,
-        const char **path_full, int *index)
+        const char **path_full, int *index, bool *r_path_no_validate)
 {
 	const bool is_idbase = RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
@@ -101,37 +102,46 @@ static int pyrna_struct_anim_args_parse(
 	}
 
 	if (prop == NULL) {
+		if (r_path_no_validate) {
+			*r_path_no_validate = true;
+			return -1;
+		}
 		PyErr_Format(PyExc_TypeError,
 		             "%.200s property \"%s\" not found",
 		             error_prefix, path);
 		return -1;
 	}
 
-	if (!RNA_property_animateable(&r_ptr, prop)) {
-		PyErr_Format(PyExc_TypeError,
-		             "%.200s property \"%s\" not animatable",
-		             error_prefix, path);
-		return -1;
-	}
-
-	if (RNA_property_array_check(prop) == 0) {
-		if ((*index) == -1) {
-			*index = 0;
-		}
-		else {
-			PyErr_Format(PyExc_TypeError,
-			             "%.200s index %d was given while property \"%s\" is not an array",
-			             error_prefix, *index, path);
-			return -1;
-		}
+	if (r_path_no_validate) {
+		/* Don't touch the index. */
 	}
 	else {
-		int array_len = RNA_property_array_length(&r_ptr, prop);
-		if ((*index) < -1 || (*index) >= array_len) {
+		if (!RNA_property_animateable(&r_ptr, prop)) {
 			PyErr_Format(PyExc_TypeError,
-			             "%.200s index out of range \"%s\", given %d, array length is %d",
-			             error_prefix, path, *index, array_len);
+			             "%.200s property \"%s\" not animatable",
+			             error_prefix, path);
 			return -1;
+		}
+
+		if (RNA_property_array_check(prop) == 0) {
+			if ((*index) == -1) {
+				*index = 0;
+			}
+			else {
+				PyErr_Format(PyExc_TypeError,
+				             "%.200s index %d was given while property \"%s\" is not an array",
+				             error_prefix, *index, path);
+				return -1;
+			}
+		}
+		else {
+			int array_len = RNA_property_array_length(&r_ptr, prop);
+			if ((*index) < -1 || (*index) >= array_len) {
+				PyErr_Format(PyExc_TypeError,
+				             "%.200s index out of range \"%s\", given %d, array length is %d",
+				             error_prefix, path, *index, array_len);
+				return -1;
+			}
 		}
 	}
 
@@ -152,6 +162,68 @@ static int pyrna_struct_anim_args_parse(
 	return 0;
 }
 
+static int pyrna_struct_anim_args_parse(
+        PointerRNA *ptr, const char *error_prefix, const char *path,
+        const char **path_full, int *index)
+{
+	return pyrna_struct_anim_args_parse_ex(ptr, error_prefix, path, path_full, index, NULL);
+}
+
+/**
+ * Unlike #pyrna_struct_anim_args_parse \a path_full may be copied from \a path.
+ */
+static int pyrna_struct_anim_args_parse_no_resolve(
+        PointerRNA *ptr, const char *error_prefix, const char *path,
+        const char **path_full)
+{
+	const bool is_idbase = RNA_struct_is_ID(ptr->type);
+	if (is_idbase) {
+		*path_full = path;
+		return 0;
+	}
+	else {
+		char *path_prefix = RNA_path_from_ID_to_struct(ptr);
+		if (path_prefix == NULL) {
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s could not make path for type %s",
+			             error_prefix, RNA_struct_identifier(ptr->type));
+			return -1;
+		}
+
+		if (*path == '[') {
+			*path_full = BLI_string_joinN(path_prefix, path);
+		}
+		else {
+			*path_full = BLI_string_join_by_sep_charN('.', path_prefix, path);
+		}
+		MEM_freeN(path_prefix);
+	}
+	return 0;
+}
+
+static int pyrna_struct_anim_args_parse_no_resolve_fallback(
+        PointerRNA *ptr, const char *error_prefix, const char *path,
+        const char **path_full, int *index)
+{
+	bool path_unresolved = false;
+	if (pyrna_struct_anim_args_parse_ex(
+	            ptr, error_prefix, path,
+	            path_full, index, &path_unresolved) == -1)
+	{
+		if (path_unresolved == true) {
+			if (pyrna_struct_anim_args_parse_no_resolve(
+			            ptr, error_prefix, path, path_full) == -1)
+			{
+				return -1;
+			}
+		}
+		else {
+			return -1;
+		}
+	}
+	return 0;
+}
+
 /* internal use for insert and delete */
 static int pyrna_struct_keyframe_parse(
         PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
@@ -162,14 +234,19 @@ static int pyrna_struct_keyframe_parse(
 	const char *path;
 
 	/* note, parse_str MUST start with 's|ifsO!' */
-	if (!PyArg_ParseTupleAndKeywords(args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name,
-	                                 &PySet_Type, &pyoptions))
+	if (!PyArg_ParseTupleAndKeywords(
+	            args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name,
+	            &PySet_Type, &pyoptions))
 	{
 		return -1;
 	}
 
-	if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, path_full, index) == -1)
+	if (pyrna_struct_anim_args_parse(
+	            ptr, error_prefix, path,
+	            path_full, index) == -1)
+	{
 		return -1;
+	}
 
 	if (*cfra == FLT_MAX)
 		*cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
@@ -419,7 +496,10 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
 		return NULL;
 
-	if (pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path, &path_full, &index) == -1) {
+	if (pyrna_struct_anim_args_parse(
+	            &self->ptr, "bpy_struct.driver_add():", path,
+	            &path_full, &index) == -1)
+	{
 		return NULL;
 	}
 	else {
@@ -490,10 +570,14 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index))
+	if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index)) {
 		return NULL;
+	}
 
-	if (pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path, &path_full, &index) == -1) {
+	if (pyrna_struct_anim_args_parse_no_resolve_fallback(
+	            &self->ptr, "bpy_struct.driver_remove():", path,
+	            &path_full, &index) == -1)
+	{
 		return NULL;
 	}
 	else {
@@ -504,7 +588,9 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
 		result = ANIM_remove_driver(&reports, (ID *)self->ptr.id.data, path_full, index, 0);
 
-		MEM_freeN((void *)path_full);
+		if (path != path_full) {
+			MEM_freeN((void *)path_full);
+		}
 
 		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
 			return NULL;
