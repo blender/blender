@@ -41,7 +41,8 @@ struct Image;
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
-	char edcode, flag;  /* we keep edcode, for conversion to edges draw flags in old files */
+	/** We keep edcode, for conversion to edges draw flags in old files. */
+	char edcode, flag;
 } MFace;
 
 typedef struct MEdge {
@@ -58,7 +59,8 @@ typedef struct MDeformWeight {
 typedef struct MDeformVert {
 	struct MDeformWeight *dw;
 	int totweight;
-	int flag;  /* flag only in use for weightpaint now */
+	/** Flag only in use for weightpaint now. */
+	int flag;
 } MDeformVert;
 
 typedef struct MVert {
@@ -78,15 +80,18 @@ typedef struct MCol {
 typedef struct MPoly {
 	/* offset into loop array and number of loops in the face */
 	int loopstart;
-	int totloop;  /* keep signed since we need to subtract when getting the previous loop */
+	/** Keep signed since we need to subtract when getting the previous loop. */
+	int totloop;
 	short mat_nr;
 	char flag, pad;
 } MPoly;
 
 /* the e here is because we want to move away from relying on edge hashes.*/
 typedef struct MLoop {
-	unsigned int v;  /* vertex index */
-	unsigned int e;  /* edge index */
+	/** Vertex index. */
+	unsigned int v;
+	/** Edge index. */
+	unsigned int e;
 } MLoop;
 
 /**
@@ -237,7 +242,8 @@ typedef struct MLoopCol {
 
 typedef struct MSelect {
 	int index;
-	int type;  /* ME_VSEL/ME_ESEL/ME_FSEL */
+	/** ME_VSEL/ME_ESEL/ME_FSEL. */
+	int type;
 } MSelect;
 
 /*tessellation uv face data*/

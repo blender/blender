@@ -48,36 +48,61 @@ struct Ipo;
 /* WATCH IT: change type? also make changes in ipo.h  */
 
 typedef struct TexPaintSlot {
-	struct Image *ima; /* image to be painted on */
-	char *uvname;      /* customdata index for uv layer, MAX_NAME*/
-	int valid;         /* do we have a valid image and UV map */
+	/** Image to be painted on. */
+	struct Image *ima;
+	/** Customdata index for uv layer, MAX_NAM.E*/
+	char *uvname;
+	/** Do we have a valid image and UV map. */
+	int valid;
 	int pad;
 } TexPaintSlot;
 
 typedef struct MaterialGPencilStyle {
-	struct Image *sima;      /* Texture image for strokes */
-	struct Image *ima;       /* Texture image for filling */
-	float stroke_rgba[4];    /* color for paint and strokes (alpha included) */
-	float fill_rgba[4];      /* color that should be used for drawing "fills" for strokes (alpha included) */
-	float mix_rgba[4];       /* secondary color used for gradients and other stuff */
-	short flag;              /* settings */
-	short index;             /* custom index for passes */
-	short stroke_style;      /* style for drawing strokes (used to select shader type) */
-	short fill_style;        /* style for filling areas (used to select shader type) */
-	float mix_factor;        /* factor used to define shader behavior (several uses) */
-	float gradient_angle;    /* angle used for gradients orientation */
-	float gradient_radius;   /* radius for radial gradients */
-	float pattern_gridsize;  /* cheesboard size */
-	float gradient_scale[2]; /* uv coordinates scale */
-	float gradient_shift[2]; /* factor to shift filling in 2d space */
-	float texture_angle;     /* angle used for texture orientation */
-	float texture_scale[2];  /* texture scale (separated of uv scale) */
-	float texture_offset[2]; /* factor to shift texture in 2d space */
-	float texture_opacity;   /* texture opacity */
-	float texture_pixsize;   /* pixel size for uv along the stroke */
-	int mode;                /* drawing mode (line or dots) */
+	/** Texture image for strokes. */
+	struct Image *sima;
+	/** Texture image for filling. */
+	struct Image *ima;
+	/** Color for paint and strokes (alpha included). */
+	float stroke_rgba[4];
+	/** Color that should be used for drawing "fills" for strokes (alpha included). */
+	float fill_rgba[4];
+	/** Secondary color used for gradients and other stuff. */
+	float mix_rgba[4];
+	/** Settings. */
+	short flag;
+	/** Custom index for passes. */
+	short index;
+	/** Style for drawing strokes (used to select shader type). */
+	short stroke_style;
+	/** Style for filling areas (used to select shader type). */
+	short fill_style;
+	/** Factor used to define shader behavior (several uses). */
+	float mix_factor;
+	/** Angle used for gradients orientation. */
+	float gradient_angle;
+	/** Radius for radial gradients. */
+	float gradient_radius;
+	/** Cheesboard size. */
+	float pattern_gridsize;
+	/** Uv coordinates scale. */
+	float gradient_scale[2];
+	/** Factor to shift filling in 2d space. */
+	float gradient_shift[2];
+	/** Angle used for texture orientation. */
+	float texture_angle;
+	/** Texture scale (separated of uv scale). */
+	float texture_scale[2];
+	/** Factor to shift texture in 2d space. */
+	float texture_offset[2];
+	/** Texture opacity. */
+	float texture_opacity;
+	/** Pixel size for uv along the stroke. */
+	float texture_pixsize;
+	/** Drawing mode (line or dots). */
+	int mode;
 
-	int gradient_type;       /* type of gradient */
+	/** Type of gradient. */
+	int gradient_type;
 	char pad[4];
 } MaterialGPencilStyle;
 
@@ -113,7 +138,8 @@ typedef enum eMaterialGPencilStyle_Mode {
 
 typedef struct Material {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+	/** Animation data (must be immediately after id for utilities to use it). */
+	struct AnimData *adt;
 
 	short flag, pad1[7];
 
@@ -123,7 +149,8 @@ typedef struct Material {
 	float alpha DNA_DEPRECATED;
 	float ray_mirror  DNA_DEPRECATED;
 	float spec;
-	float gloss_mir  DNA_DEPRECATED; /* renamed and inversed to roughness */
+	/** Renamed and inversed to roughness. */
+	float gloss_mir  DNA_DEPRECATED;
 	float roughness;
 	float metallic;
 	float pad4[2];
@@ -136,7 +163,8 @@ typedef struct Material {
 	short index;
 
 	struct bNodeTree *nodetree;
-	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
+	/** Old animation system, deprecated for 2.5. */
+	struct Ipo *ipo  DNA_DEPRECATED;
 	struct PreviewImage *preview;
 
 	/* Freestyle line settings. */
@@ -158,14 +186,16 @@ typedef struct Material {
 	char blend_flag;
 	char pad3[5];
 
-	/* Cached slots for texture painting, must be refreshed in
-	 * refresh_texpaint_image_cache before using. */
+	/**
+	 * Cached slots for texture painting, must be refreshed in
+	 * refresh_texpaint_image_cache before using.
+	 */
 	struct TexPaintSlot *texpaintslot;
 
-	/* Runtime cache for GLSL materials. */
+	/** Runtime cache for GLSL materials. */
 	ListBase gpumaterial;
 
-	/* grease pencil color */
+	/** Grease pencil color. */
 	struct MaterialGPencilStyle *gp_style;
 } Material;
 

@@ -69,19 +69,22 @@ typedef struct DrawDataList {
 typedef struct IDPropertyData {
 	void *pointer;
 	ListBase group;
-	int val, val2;  /* note, we actually fit a double into these two ints */
+	/** Note, we actually fit a double into these two ints. */
+	int val, val2;
 } IDPropertyData;
 
 typedef struct IDProperty {
 	struct IDProperty *next, *prev;
 	char type, subtype;
 	short flag;
-	char name[64];  /* MAX_IDPROP_NAME */
+	/** MAX_IDPROP_NAME. */
+	char name[64];
 
 	/* saved is used to indicate if this struct has been saved yet.
 	 * seemed like a good idea as a pad var was needed anyway :) */
 	int saved;
-	IDPropertyData data;  /* note, alignment for 64 bits */
+	/** Note, alignment for 64 bits. */
+	IDPropertyData data;
 
 	/* array length, also (this is important!) string length + 1.
 	 * the idea is to be able to reuse array realloc functions on strings.*/
@@ -187,20 +190,26 @@ enum {
 	IDOVERRIDESTATIC_FLAG_LOCKED        =   1 << 1,  /* User cannot change that override operation. */
 };
 
-/* A single overridden property, contain all operations on this one. */
+/** A single overridden property, contain all operations on this one. */
 typedef struct IDOverrideStaticProperty {
 	struct IDOverrideStaticProperty *next, *prev;
 
-	/* Path from ID to overridden property. *Does not* include indices/names for final arrays/collections items. */
+	/**
+	 * Path from ID to overridden property.
+	 * *Does not* include indices/names for final arrays/collections items.
+	 */
 	char *rna_path;
 
-	ListBase operations;  /* List of overriding operations (IDOverridePropertyOperation) applied to this property. */
+	/** List of overriding operations (IDOverridePropertyOperation) applied to this property. */
+	ListBase operations;
 } IDOverrideStaticProperty;
 
 /* Main container for all overriding data info of a data-block. */
 typedef struct IDOverrideStatic {
-	struct ID *reference;  /* Reference linked ID which this one overrides. */
-	ListBase properties;  /* List of IDOverrideProperty structs. */
+	/** Reference linked ID which this one overrides. */
+	struct ID *reference;
+	/** List of IDOverrideProperty structs. */
+	ListBase properties;
 
 	short flag;
 	short pad[3];
@@ -230,9 +239,11 @@ typedef struct ID {
 	void *next, *prev;
 	struct ID *newid;
 	struct Library *lib;
-	char name[66]; /* MAX_ID_NAME */
+	/** MAX_ID_NAME. */
+	char name[66];
 	/**
-	 * LIB_... flags report on status of the datablock this ID belongs to (persistent, saved to and read from .blend).
+	 * LIB_... flags report on status of the datablock this ID belongs to
+	 * (persistent, saved to and read from .blend).
 	 */
 	short flag;
 	/**
@@ -245,9 +256,11 @@ typedef struct ID {
 	int pad;
 	IDProperty *properties;
 
-	IDOverrideStatic *override_static;  /* Reference linked ID which this one overrides. */
+	/** Reference linked ID which this one overrides. */
+	IDOverrideStatic *override_static;
 
-	/* Only set for datablocks which are coming from copy-on-write, points to
+	/**
+	 * Only set for datablocks which are coming from copy-on-write, points to
 	 * the original version of it.
 	 */
 	struct ID *orig_id;
@@ -262,21 +275,27 @@ typedef struct ID {
 typedef struct Library {
 	ID id;
 	struct FileData *filedata;
-	char name[1024];  /* path name used for reading, can be relative and edited in the outliner */
+	/** Path name used for reading, can be relative and edited in the outliner. */
+	char name[1024];
 
-	/* absolute filepath, this is only for convenience, 'name' is the real path used on file read but in
+	/**
+	 * Absolute filepath, this is only for convenience,
+	 * 'name' is the real path used on file read but in
 	 * some cases its useful to access the absolute one.
 	 * This is set on file read.
-	 * Use BKE_library_filepath_set() rather than setting 'name' directly and it will be kept in sync - campbell */
+	 * Use BKE_library_filepath_set() rather than setting 'name'
+	 * directly and it will be kept in sync - campbell */
 	char filepath[1024];
 
-	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
+	/** Set for indirectly linked libs, used in the outliner and while reading. */
+	struct Library *parent;
 
 	struct PackedFile *packedfile;
 
 	/* Temp data needed by read/write code. */
 	int temp_index;
-	short versionfile, subversionfile;  /* see BLENDER_VERSION, BLENDER_SUBVERSION, needed for do_versions */
+	/** See BLENDER_VERSION, BLENDER_SUBVERSION, needed for do_versions. */
+	short versionfile, subversionfile;
 } Library;
 
 enum eIconSizes {
@@ -309,9 +328,11 @@ typedef struct PreviewImage {
 
 	/* Runtime-only data. */
 	struct GPUTexture *gputexture[2];
-	int icon_id;  /* Used by previews outside of ID context. */
+	/** Used by previews outside of ID context. */
+	int icon_id;
 
-	short tag;  /* Runtime data. */
+	/** Runtime data. */
+	short tag;
 	char pad[2];
 } PreviewImage;
 

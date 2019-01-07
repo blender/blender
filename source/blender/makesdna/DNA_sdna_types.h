@@ -35,28 +35,40 @@
 #
 #
 typedef struct SDNA {
-	const char *data;	/* full copy of 'encoded' data (when data_alloc is set, otherwise borrowed). */
-	int datalen;		/* length of data */
+	/** Full copy of 'encoded' data (when data_alloc is set, otherwise borrowed). */
+	const char *data;
+	/** Length of data. */
+	int datalen;
 	bool data_alloc;
 
-	int nr_names;		/* total number of struct members */
-	const char **names;	/* struct member names */
+	/** Total number of struct members. */
+	int nr_names;
+	/** Struct member names. */
+	const char **names;
 
-	int pointerlen;		/* size of a pointer in bytes */
+	/** Size of a pointer in bytes. */
+	int pointerlen;
 
-	int nr_types;		/* number of basic types + struct types */
-	const char **types;	/* type names */
-	short *typelens;	/* type lengths */
+	/** Number of basic types + struct types. */
+	int nr_types;
+	/** Type names. */
+	const char **types;
+	/** Type lengths. */
+	short *typelens;
 
-	int nr_structs;		/* number of struct types */
-	short **structs;	/* sp = structs[a] is the address of a struct definition
-	                     * sp[0] is struct type number, sp[1] amount of members
-	                     *
-	                     * (sp[2], sp[3]), (sp[4], sp[5]), .. are the member
-	                     * type and name numbers respectively */
+	/** Number of struct types. */
+	int nr_structs;
+	/**
+	 * sp = structs[a] is the address of a struct definition
+	 * sp[0] is struct type number, sp[1] amount of members
+	 *
+	 * (sp[2], sp[3]), (sp[4], sp[5]), .. are the member
+	 * type and name numbers respectively.
+	 */
+	short **structs;
 
-	struct GHash *structs_map; /* ghash for faster lookups,
-	                            * requires WITH_DNA_GHASH to be used for now */
+	/** #GHash for faster lookups, requires WITH_DNA_GHASH to be used for now. */
+	struct GHash *structs_map;
 } SDNA;
 
 #

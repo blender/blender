@@ -38,34 +38,53 @@
 
 /* View 2D data - stored per region */
 typedef struct View2D {
-	rctf tot, cur;					/* tot - area that data can be drawn in; cur - region of tot that is visible in viewport */
-	rcti vert, hor;					/* vert - vertical scrollbar region; hor - horizontal scrollbar region */
-	rcti mask;						/* mask - region (in screenspace) within which 'cur' can be viewed */
+	/** Tot - area that data can be drawn in; cur - region of tot that is visible in viewport. */
+	rctf tot, cur;
+	/** Vert - vertical scrollbar region; hor - horizontal scrollbar region. */
+	rcti vert, hor;
+	/** Mask - region (in screenspace) within which 'cur' can be viewed. */
+	rcti mask;
 
-	float min[2], max[2];			/* min/max sizes of 'cur' rect (only when keepzoom not set) */
-	float minzoom, maxzoom;			/* allowable zoom factor range (only when (keepzoom & V2D_LIMITZOOM)) is set */
+	/** Min/max sizes of 'cur' rect (only when keepzoom not set). */
+	float min[2], max[2];
+	/** Allowable zoom factor range (only when (keepzoom & V2D_LIMITZOOM)) is set. */
+	float minzoom, maxzoom;
 
-	short scroll;					/* scroll - scrollbars to display (bitflag) */
-	short scroll_ui;				/* scroll_ui - temp settings used for UI drawing of scrollers */
+	/** Scroll - scrollbars to display (bitflag). */
+	short scroll;
+	/** Scroll_ui - temp settings used for UI drawing of scrollers. */
+	short scroll_ui;
 
-	short keeptot;					/* keeptot - 'cur' rect cannot move outside the 'tot' rect? */
-	short keepzoom;					/* keepzoom - axes that zooming cannot occur on, and also clamp within zoom-limits */
-	short keepofs;					/* keepofs - axes that translation is not allowed to occur on */
+	/** Keeptot - 'cur' rect cannot move outside the 'tot' rect?. */
+	short keeptot;
+	/** Keepzoom - axes that zooming cannot occur on, and also clamp within zoom-limits. */
+	short keepzoom;
+	/** Keepofs - axes that translation is not allowed to occur on. */
+	short keepofs;
 
-	short flag;						/* settings */
-	short align;					/* alignment of content in totrect */
+	/** Settings. */
+	short flag;
+	/** Alignment of content in totrect. */
+	short align;
 
-	short winx, winy;				/* storage of current winx/winy values, set in UI_view2d_size_update */
-	short oldwinx, oldwiny;			/* storage of previous winx/winy values encountered by UI_view2d_curRect_validate(), for keepaspect */
+	/** Storage of current winx/winy values, set in UI_view2d_size_update. */
+	short winx, winy;
+	/** Storage of previous winx/winy values encountered by UI_view2d_curRect_validate(), for keepaspect. */
+	short oldwinx, oldwiny;
 
-	short around;					/* pivot point for transforms (rotate and scale) */
+	/** Pivot point for transforms (rotate and scale). */
+	short around;
 
-	float *tab_offset;				/* different offset per tab, for buttons */
-	int tab_num;					/* number of tabs stored */
-	int tab_cur;					/* current tab */
+	/** Different offset per tab, for buttons. */
+	float *tab_offset;
+	/** Number of tabs stored. */
+	int tab_num;
+	/** Current tab. */
+	int tab_cur;
 
 	/* Usually set externally (as in, not in view2d files). */
-	char alpha_vert, alpha_hor;		/* alpha of vertical and horizontal scrollbars (range is [0, 255]) */
+	/** Alpha of vertical and horizontal scrollbars (range is [0, 255]). */
+	char alpha_vert, alpha_hor;
 	short pad[3];
 
 	/* animated smooth view */

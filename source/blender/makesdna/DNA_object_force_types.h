@@ -60,75 +60,114 @@ typedef enum ePFieldType {
 } ePFieldType;
 
 typedef struct PartDeflect {
-	int	  flag;			/* general settings flag										*/
-	short deflect;		/* Deflection flag - does mesh deflect particles				*/
-	short forcefield;	/* Force field type, do the vertices attract / repel particles?	*/
-	short falloff;		/* fall-off type												*/
-	short shape;		/* point, plane or surface										*/
-	short tex_mode;		/* texture effector												*/
-	short kink, kink_axis; /* for curve guide											*/
+	/** General settings flag									.	*/
+	int	  flag;
+	/** Deflection flag - does mesh deflect particles			.	*/
+	short deflect;
+	/** Force field type, do the vertices attract / repel particles?.	*/
+	short forcefield;
+	/** Fall-off type											.	*/
+	short falloff;
+	/** Point, plane or surface									.	*/
+	short shape;
+	/** Texture effector											.	*/
+	short tex_mode;
+	/** For curve guide										.	*/
+	short kink, kink_axis;
 	short zdir;
 
 	/* Main effector values */
-	float f_strength;	/* The strength of the force (+ or - )					*/
-	float f_damp;		/* Damping ratio of the harmonic effector.				*/
-	float f_flow;		/* How much force is converted into "air flow", i.e.	*/
+	/** The strength of the force (+ or - )				.	*/
+	float f_strength;
+	/** Damping ratio of the harmonic effector.			.	*/
+	float f_damp;
+	/** How much force is converted into "air flow", i.e..	*/
+	float f_flow;
 						/* force used as the velocity of surrounding medium.	*/
 
-	float f_size;		/* Noise size for noise effector, restlength for harmonic effector */
+	/** Noise size for noise effector, restlength for harmonic effector. */
+	float f_size;
 
 	/* fall-off */
-	float f_power;		/* The power law - real gravitation is 2 (square)	*/
-	float maxdist;		/* if indicated, use this maximum					*/
-	float mindist;		/* if indicated, use this minimum					*/
-	float f_power_r;	/* radial fall-off power							*/
-	float maxrad;		/* radial versions of above							*/
+	/** The power law - real gravitation is 2 (square).	*/
+	float f_power;
+	/** If indicated, use this maximum				.	*/
+	float maxdist;
+	/** If indicated, use this minimum				.	*/
+	float mindist;
+	/** Radial fall-off power						.	*/
+	float f_power_r;
+	/** Radial versions of above						.	*/
+	float maxrad;
 	float minrad;
 
 	/* particle collisions */
-	float pdef_damp;	/* Damping factor for particle deflection       */
-	float pdef_rdamp;	/* Random element of damping for deflection     */
-	float pdef_perm;	/* Chance of particle passing through mesh      */
-	float pdef_frict;	/* Friction factor for particle deflection		*/
-	float pdef_rfrict;	/* Random element of friction for deflection	*/
-	float pdef_stickness;/* surface particle stickiness				*/
+	/** Damping factor for particle deflection      . */
+	float pdef_damp;
+	/** Random element of damping for deflection    . */
+	float pdef_rdamp;
+	/** Chance of particle passing through mesh     . */
+	float pdef_perm;
+	/** Friction factor for particle deflection	.	*/
+	float pdef_frict;
+	/** Random element of friction for deflection.	*/
+	float pdef_rfrict;
+	/** Surface particle stickiness			.	*/
+	float pdef_stickness;
 
-	float absorption;	/* used for forces */
+	/** Used for forces. */
+	float absorption;
 
 	/* softbody collisions */
-	float pdef_sbdamp;	/* Damping factor for softbody deflection       */
-	float pdef_sbift;	/* inner face thickness for softbody deflection */
-	float pdef_sboft;	/* outer face thickness for softbody deflection */
+	/** Damping factor for softbody deflection      . */
+	float pdef_sbdamp;
+	/** Inner face thickness for softbody deflection. */
+	float pdef_sbift;
+	/** Outer face thickness for softbody deflection. */
+	float pdef_sboft;
 
 	/* guide curve, same as for particle child effects */
 	float clump_fac, clump_pow;
 	float kink_freq, kink_shape, kink_amp, free_end;
 
 	/* texture effector */
-	float tex_nabla;	/* Used for calculating partial derivatives */
-	struct Tex *tex;	/* Texture of the texture effector			*/
+	/** Used for calculating partial derivatives. */
+	float tex_nabla;
+	/** Texture of the texture effector		.	*/
+	struct Tex *tex;
 
 	/* effector noise */
-	struct RNG *rng;	/* random noise generator for e.g. wind */
-	float f_noise;		/* noise of force						*/
-	int seed;			/* noise random seed					*/
+	/** Random noise generator for e.g. wind. */
+	struct RNG *rng;
+	/** Noise of force					.	*/
+	float f_noise;
+	/** Noise random seed				.	*/
+	int seed;
 
 	/* Display Size */
-	float drawvec1[4]; /* Runtime only : start of the curve or draw scale */
-	float drawvec2[4]; /* Runtime only : end of the curve */
-	float drawvec_falloff_min[3], pad1; /* Runtime only */
-	float drawvec_falloff_max[3], pad2; /* Runtime only */
+	/** Runtime only : start of the curve or draw scale. */
+	float drawvec1[4];
+	/** Runtime only : end of the curve. */
+	float drawvec2[4];
+	/** Runtime only. */
+	float drawvec_falloff_min[3], pad1;
+	/** Runtime only. */
+	float drawvec_falloff_max[3], pad2;
 
-	struct Object *f_source; /* force source object */
+	/** Force source object. */
+	struct Object *f_source;
 
-	float pdef_cfrict;	/* Friction of cloth collisions. */
+	/** Friction of cloth collisions. */
+	float pdef_cfrict;
 	float pad;
 } PartDeflect;
 
 typedef struct EffectorWeights {
-	struct Collection *group;		/* only use effectors from this group of objects */
+	/** Only use effectors from this group of objects. */
+	struct Collection *group;
 
-	float weight[14];			/* effector type specific weights */
+	/** Effector type specific weights. */
+	float weight[14];
 	float global_gravity;
 	short flag, rt[3];
 	int pad;
@@ -171,51 +210,69 @@ typedef struct PTCacheMem {
 	unsigned int frame, totpoint;
 	unsigned int data_types, flag;
 
-	void *data[8]; /* BPHYS_TOT_DATA */
-	void *cur[8]; /* BPHYS_TOT_DATA */
+	/** BPHYS_TOT_DATA. */
+	void *data[8];
+	/** BPHYS_TOT_DATA. */
+	void *cur[8];
 
 	struct ListBase extradata;
 } PTCacheMem;
 
 typedef struct PointCache {
 	struct PointCache *next, *prev;
-	int flag;		/* generic flag */
+	/** Generic flag. */
+	int flag;
 
-	int step;		/* The number of frames between cached frames.
-					 * This should probably be an upper bound for a per point adaptive step in the future,
-					 * buf for now it's the same for all points. Without adaptivity this can effect the perceived
-					 * simulation quite a bit though. If for example particles are colliding with a horizontal
-					 * plane (with high damping) they quickly come to a stop on the plane, however there are still
-					 * forces acting on the particle (gravity and collisions), so the particle velocity isn't necessarily
-					 * zero for the whole duration of the frame even if the particle seems stationary. If all simulation
-					 * frames aren't cached (step > 1) these velocities are interpolated into movement for the non-cached
-					 * frames. The result will look like the point is oscillating around the collision location. So for
-					 * now cache step should be set to 1 for accurate reproduction of collisions.
-					 */
+	/**
+	 * The number of frames between cached frames.
+	 * This should probably be an upper bound for a per point adaptive step in the future,
+	 * buf for now it's the same for all points. Without adaptivity this can effect the perceived
+	 * simulation quite a bit though. If for example particles are colliding with a horizontal
+	 * plane (with high damping) they quickly come to a stop on the plane, however there are still
+	 * forces acting on the particle (gravity and collisions), so the particle velocity isn't necessarily
+	 * zero for the whole duration of the frame even if the particle seems stationary. If all simulation
+	 * frames aren't cached (step > 1) these velocities are interpolated into movement for the non-cached
+	 * frames. The result will look like the point is oscillating around the collision location. So for
+	 * now cache step should be set to 1 for accurate reproduction of collisions.
+	 */
+	int step;
 
-	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
-	int startframe;	/* simulation start frame */
-	int endframe;	/* simulation end frame */
-	int editframe;	/* frame being edited (runtime only) */
-	int last_exact; /* last exact frame that's cached */
-	int last_valid; /* used for editing cache - what is the last baked frame */
+	/** Current frame of simulation (only if SIMULATION_VALID). */
+	int simframe;
+	/** Simulation start frame. */
+	int startframe;
+	/** Simulation end frame. */
+	int endframe;
+	/** Frame being edited (runtime only). */
+	int editframe;
+	/** Last exact frame that's cached. */
+	int last_exact;
+	/** Used for editing cache - what is the last baked frame. */
+	int last_valid;
 	int pad;
 
 	/* for external cache files */
-	int totpoint;   /* number of cached points */
-	int index;	/* modifier stack index */
+	/** Number of cached points. */
+	int totpoint;
+	/** Modifier stack index. */
+	int index;
 	short compression, rt;
 
 	char name[64];
 	char prev_name[64];
 	char info[64];
-	char path[1024]; /* file path, 1024 = FILE_MAX */
-	char *cached_frames;	/* array of length endframe-startframe+1 with flags to indicate cached frames */
-							/* can be later used for other per frame flags too if needed */
+	/** File path, 1024 = FILE_MAX. */
+	char path[1024];
+	/**
+	 * Array of length endframe-startframe+1 with flags to indicate cached frames.
+	 * Can be later used for other per frame flags too if needed.
+	 */
+	char *cached_frames;
 	struct ListBase mem_cache;
 
 	struct PTCacheEdit *edit;
-	void (*free_edit)(struct PTCacheEdit *edit);	/* free callback */
+	/** Free callback. */
+	void (*free_edit)(struct PTCacheEdit *edit);
 } PointCache;
 
 typedef struct SBVertex {
@@ -234,8 +291,10 @@ typedef struct SoftBody_Shared {
 typedef struct SoftBody {
 	/* dynamic data */
 	int totpoint, totspring;
-	struct BodyPoint *bpoint;		/* not saved in file */
-	struct BodySpring *bspring;		/* not saved in file */
+	/** Not saved in file. */
+	struct BodyPoint *bpoint;
+	/** Not saved in file. */
+	struct BodySpring *bspring;
 	char   pad;
 	char   msg_lock;
 	short  msg_value;
@@ -243,52 +302,77 @@ typedef struct SoftBody {
 	/* part of UI: */
 
 	/* general options */
-	float nodemass;		/* softbody mass of *vertex* */
-	char  namedVG_Mass[64]; /* MAX_VGROUP_NAME */
-	                        /* along with it introduce mass painting
-	                         * starting to fix old bug .. nastiness that VG are indexes
-	                         * rather find them by name tag to find it -> jow20090613 */
-	float grav;			/* softbody amount of gravitaion to apply */
-	float mediafrict;	/* friction to env */
-	float rklimit;		/* error limit for ODE solver */
-	float physics_speed;/* user control over simulation speed */
+	/** Softbody mass of *vertex*. */
+	float nodemass;
+	/**
+	 * Along with it introduce mass painting
+	 * starting to fix old bug .. nastiness that VG are indexes
+	 * rather find them by name tag to find it -> jow20090613.
+	 * MAX_VGROUP_NAME */
+	char  namedVG_Mass[64];
+	/** Softbody amount of gravitaion to apply. */
+	float grav;
+	/** Friction to env. */
+	float mediafrict;
+	/** Error limit for ODE solver. */
+	float rklimit;
+	/** User control over simulation speed. */
+	float physics_speed;
 
 	/* goal */
-	float goalspring;	/* softbody goal springs */
-	float goalfrict;	/* softbody goal springs friction */
-	float mingoal;		/* quick limits for goal */
+	/** Softbody goal springs. */
+	float goalspring;
+	/** Softbody goal springs friction. */
+	float goalfrict;
+	/** Quick limits for goal. */
+	float mingoal;
 	float maxgoal;
-	float defgoal;		/* default goal for vertices without vgroup */
-	short vertgroup;	/* index starting at 1 */
-	char  namedVG_Softgoal[64]; /* MAX_VGROUP_NAME */
-	                            /* starting to fix old bug .. nastiness that VG are indexes
-	                             * rather find them by name tag to find it -> jow20090613 */
+	/** Default goal for vertices without vgroup. */
+	float defgoal;
+	/** Index starting at 1. */
+	short vertgroup;
+	/**
+	 * Starting to fix old bug .. nastiness that VG are indexes
+	 * rather find them by name tag to find it -> jow20090613.
+	 * MAX_VGROUP_NAME */
+	char  namedVG_Softgoal[64];
 
-	short fuzzyness;      /* */
+	short fuzzyness;
 
 	/* springs */
-	float inspring;		/* softbody inner springs */
-	float infrict;		/* softbody inner springs friction */
-	char  namedVG_Spring_K[64]; /* MAX_VGROUP_NAME */
-	                            /* along with it introduce Spring_K painting
-	                             * starting to fix old bug .. nastiness that VG are indexes
-	                             * rather find them by name tag to find it -> jow20090613 */
+	/** Softbody inner springs. */
+	float inspring;
+	/** Softbody inner springs friction. */
+	float infrict;
+	/**
+	 * Along with it introduce Spring_K painting
+	 * starting to fix old bug .. nastiness that VG are indexes
+	 * rather find them by name tag to find it -> jow20090613.
+	 * MAX_VGROUP_NAME
+	 */
+	char  namedVG_Spring_K[64];
 
 	/* baking */
 	int sfra, efra;
 	int interval;
-	short local, solverflags;		/* local==1: use local coords for baking */
+	/** Local==1: use local coords for baking. */
+	short local, solverflags;
 
 	/* -- these must be kept for backwards compatibility -- */
-	SBVertex **keys;			/* array of size totpointkey */
-	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */
+	/** Array of size totpointkey. */
+	SBVertex **keys;
+	/** If totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys. */
+	int totpointkey, totkey;
 	/* ---------------------------------------------------- */
 	float secondspring;
 
 	/* self collision*/
-	float colball;		/* fixed collision ball size if > 0 */
-	float balldamp;		/* cooling down collision response  */
-	float ballstiff;	/* pressure the ball is loaded with  */
+	/** Fixed collision ball size if > 0. */
+	float colball;
+	/** Cooling down collision response . */
+	float balldamp;
+	/** Pressure the ball is loaded with . */
+	float ballstiff;
 	short sbc_mode;
 	short aeroedge,
 		minloops,
@@ -298,13 +382,16 @@ typedef struct SoftBody {
 		plastic, springpreload
 		;
 
-	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
+	/** Scratch pad/cache on live time not saved in file. */
+	struct SBScratch *scratch;
 	float shearstiff;
 	float inpush;
 
 	struct SoftBody_Shared *shared;
-	struct PointCache *pointcache DNA_DEPRECATED;  /* Moved to SoftBody_Shared */
-	struct ListBase ptcaches DNA_DEPRECATED;  /* Moved to SoftBody_Shared */
+	/** Moved to SoftBody_Shared. */
+	struct PointCache *pointcache DNA_DEPRECATED;
+	/** Moved to SoftBody_Shared. */
+	struct ListBase ptcaches DNA_DEPRECATED;
 
 	struct Collection *collision_group;
 

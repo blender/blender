@@ -51,11 +51,15 @@
 
 /* IPO Curve Driver */
 typedef struct IpoDriver {
-	struct Object *ob;			/* target/driver ob */
-	short blocktype, adrcode;	/* sub-channel to use */
+	/** Target/driver ob. */
+	struct Object *ob;
+	/** Sub-channel to use. */
+	short blocktype, adrcode;
 
-	short type, flag;			/* driver settings */
-	char name[128];				/* bone, or python expression here */
+	/** Driver settings. */
+	short type, flag;
+	/** Bone, or python expression here. */
+	char name[128];
 } IpoDriver;
 
 /* --- IPO Curve --- */
@@ -64,22 +68,34 @@ typedef struct IpoDriver {
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;
 
-	struct BPoint *bp;					/* array of BPoints (sizeof(BPoint) * totvert) - i.e. baked/imported data */
-	struct BezTriple *bezt;				/* array of BezTriples (sizeof(BezTriple) * totvert)  - i.e. user-editable keyframes  */
+	/** Array of BPoints (sizeof(BPoint) * totvert) - i.e. baked/imported data. */
+	struct BPoint *bp;
+	/** Array of BezTriples (sizeof(BezTriple) * totvert)  - i.e. user-editable keyframes . */
+	struct BezTriple *bezt;
 
-	rctf maxrct, totrct;				/* bounding boxes */
+	/** Bounding boxes. */
+	rctf maxrct, totrct;
 
-	short blocktype, adrcode, vartype;	/* blocktype= ipo-blocktype; adrcode= type of ipo-curve; vartype= 'format' of data */
-	short totvert;						/* total number of BezTriples (i.e. keyframes) on curve */
-	short ipo, extrap;					/* interpolation and extrapolation modes  */
-	short flag, rt;						/* flag= settings; rt= ??? */
-	float ymin, ymax;					/* minimum/maximum y-extents for curve */
-	unsigned int bitmask;				/* ??? */
+	/** Blocktype= ipo-blocktype; adrcode= type of ipo-curve; vartype= 'format' of data. */
+	short blocktype, adrcode, vartype;
+	/** Total number of BezTriples (i.e. keyframes) on curve. */
+	short totvert;
+	/** Interpolation and extrapolation modes . */
+	short ipo, extrap;
+	/** Flag= settings; rt= ???. */
+	short flag, rt;
+	/** Minimum/maximum y-extents for curve. */
+	float ymin, ymax;
+	/** ???. */
+	unsigned int bitmask;
 
-	float slide_min, slide_max;			/* minimum/maximum values for sliders (in action editor) */
-	float curval;						/* value of ipo-curve for current frame */
+	/** Minimum/maximum values for sliders (in action editor). */
+	float slide_min, slide_max;
+	/** Value of ipo-curve for current frame. */
+	float curval;
 
-	IpoDriver *driver;					/* pointer to ipo-driver for this curve */
+	/** Pointer to ipo-driver for this curve. */
+	IpoDriver *driver;
 } IpoCurve;
 
 /* --- ID-Datablock --- */
@@ -88,11 +104,15 @@ typedef struct IpoCurve {
 typedef struct Ipo {
 	ID id;
 
-	ListBase curve;				/* A list of IpoCurve structs in a linked list. */
-	rctf cur;					/* Rect defining extents of keyframes? */
+	/** A list of IpoCurve structs in a linked list. */
+	ListBase curve;
+	/** Rect defining extents of keyframes?. */
+	rctf cur;
 
-	short blocktype, showkey;	/* blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing) */
-	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */
+	/** Blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing). */
+	short blocktype, showkey;
+	/** Muteipo: either 0 or 1 (whether ipo block is muted). */
+	short muteipo, pad;
 } Ipo;
 
 /* ----------- adrcodes (for matching ipo-curves to data) ------------- */

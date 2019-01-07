@@ -40,37 +40,56 @@ extern "C" {
 
 /** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
-	int type;       /* type of data in layer */
-	int offset;     /* in editmode, offset of layer in block */
-	int flag;       /* general purpose flag */
-	int active;     /* number of the active layer of this type */
-	int active_rnd; /* number of the layer to render*/
-	int active_clone; /* number of the layer to render*/
-	int active_mask; /* number of the layer to render*/
-	int uid;        /* shape keyblock unique id reference*/
-	char name[64];  /* layer name, MAX_CUSTOMDATA_LAYER_NAME */
-	void *data;     /* layer data */
+	/** Type of data in layer. */
+	int type;
+	/** In editmode, offset of layer in block. */
+	int offset;
+	/** General purpose flag. */
+	int flag;
+	/** Number of the active layer of this type. */
+	int active;
+	/** Number of the layer to rende.r*/
+	int active_rnd;
+	/** Number of the layer to rende.r*/
+	int active_clone;
+	/** Number of the layer to rende.r*/
+	int active_mask;
+	/** Shape keyblock unique id referenc.e*/
+	int uid;
+	/** Layer name, MAX_CUSTOMDATA_LAYER_NAME. */
+	char name[64];
+	/** Layer data. */
+	void *data;
 } CustomDataLayer;
 
 #define MAX_CUSTOMDATA_LAYER_NAME 64
 
 typedef struct CustomDataExternal {
-	char filename[1024]; /* FILE_MAX */
+	/** FILE_MAX. */
+	char filename[1024];
 } CustomDataExternal;
 
 /** structure which stores custom element data associated with mesh elements
  * (vertices, edges or faces). The custom data is organized into a series of
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
-	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */
-	int typemap[42];              /* runtime only! - maps types to indices of first layer of that type,
-	                               * MUST be >= CD_NUMTYPES, but we cant use a define here.
-	                               * Correct size is ensured in CustomData_update_typemap assert() */
+	/** CustomDataLayers, ordered by type. */
+	CustomDataLayer *layers;
+	/**
+	 * runtime only! - maps types to indices of first layer of that type,
+	 * MUST be >= CD_NUMTYPES, but we cant use a define here.
+	 * Correct size is ensured in CustomData_update_typemap assert().
+	 */
+	int typemap[42];
 	int pad_i1;
-	int totlayer, maxlayer;       /* number of layers, size of layers array */
-	int totsize;                  /* in editmode, total size of all data layers */
-	struct BLI_mempool *pool;     /* (BMesh Only): Memory pool for allocation of blocks */
-	CustomDataExternal *external; /* external file storing customdata layers */
+	/** Number of layers, size of layers array. */
+	int totlayer, maxlayer;
+	/** In editmode, total size of all data layers. */
+	int totsize;
+	/** (BMesh Only): Memory pool for allocation of blocks. */
+	struct BLI_mempool *pool;
+	/** External file storing customdata layers. */
+	CustomDataExternal *external;
 } CustomData;
 
 /* CustomData.type */

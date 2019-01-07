@@ -113,25 +113,30 @@ typedef struct WorkSpaceLayout {
 
 	struct bScreen *screen;
 	/* The name of this layout, we override the RNA name of the screen with this (but not ID name itself) */
-	char name[64] DNA_PRIVATE_WORKSPACE; /* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64] DNA_PRIVATE_WORKSPACE;
 } WorkSpaceLayout;
 
 /** Optional tags, which features to use, aligned with #bAddon names by convention. */
 typedef struct wmOwnerID {
 	struct wmOwnerID *next, *prev;
-	char name[64] DNA_PRIVATE_WORKSPACE; /* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64] DNA_PRIVATE_WORKSPACE;
 } wmOwnerID;
 
 typedef struct WorkSpace {
 	ID id;
 
-	ListBase layouts DNA_PRIVATE_WORKSPACE; /* WorkSpaceLayout */
+	/** WorkSpaceLayout. */
+	ListBase layouts DNA_PRIVATE_WORKSPACE;
 	/* Store for each hook (so for each window) which layout has
 	 * been activated the last time this workspace was visible. */
-	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
+	/** WorkSpaceDataRelation. */
+	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE;
 
 	/* Feature tagging (use for addons) */
-	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */
+	/** WmOwnerID. */
+	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE;
 
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
 
@@ -148,7 +153,8 @@ typedef struct WorkSpace {
 
 	int object_mode;
 
-	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
+	/** Enum eWorkSpaceFlags. */
+	int flags DNA_PRIVATE_WORKSPACE;
 
 	/* Number for workspace tab reordering in the UI. */
 	int order;

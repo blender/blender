@@ -116,16 +116,21 @@ enum {
 typedef struct FreestyleLineSet {
 	struct FreestyleLineSet *next, *prev;
 
-	char name[64]; /* line set name, MAX_NAME */
+	/** Line set name, MAX_NAME. */
+	char name[64];
 	int flags;
 
-	int selection; /* selection criteria */
-	short qi; /* quantitative invisibility */
+	/** Selection criteria. */
+	int selection;
+	/** Quantitative invisibility. */
+	short qi;
 	short pad1;
 	int qi_start, qi_end;
-	int edge_types, exclude_edge_types; /* feature edge types */
+	/** Feature edge types. */
+	int edge_types, exclude_edge_types;
 	int pad2;
-	struct Collection *group; /* group of target objects */
+	/** Group of target objects. */
+	struct Collection *group;
 
 	struct FreestyleLineStyle *linestyle;
 } FreestyleLineSet;
@@ -141,12 +146,15 @@ typedef struct FreestyleModuleConfig {
 typedef struct FreestyleConfig {
 	ListBase modules;
 
-	int mode; /* scripting, editor */
+	/** Scripting, editor. */
+	int mode;
 	int raycasting_algorithm  DNA_DEPRECATED;
-	int flags; /* suggestive contours, ridges/valleys, material boundaries */
+	/** Suggestive contours, ridges/valleys, material boundaries. */
+	int flags;
 	float sphere_radius;
 	float dkr_epsilon;
-	float crease_angle; /* in radians! */
+	/** In radians!. */
+	float crease_angle;
 
 	ListBase linesets;
 } FreestyleConfig;

@@ -48,7 +48,8 @@ typedef struct bSound {
 	/**
 	 * The path to the sound file.
 	 */
-	char name[1024];  /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char name[1024];
 
 	/**
 	 * The packed file.
@@ -73,7 +74,8 @@ typedef struct bSound {
 	float max_gain;
 	float distance;
 	short flags;
-	short tags;  /* Runtime only, always reset in readfile. */
+	/** Runtime only, always reset in readfile. */
+	short tags;
 	int pad;
 
 	/* unused currently
@@ -96,7 +98,7 @@ typedef struct bSound {
 	 */
 	void *playback_handle;
 
-	/* spinlock for asynchronous loading of sounds */
+	/** Spinlock for asynchronous loading of sounds. */
 	void *spinlock;
 	/* XXX unused currently	(SOUND_TYPE_LIMITER) */
 	/* float start, end; */
@@ -121,7 +123,8 @@ enum {
 /* bSound->flags */
 enum {
 #ifdef DNA_DEPRECATED
-	SOUND_FLAGS_3D                   = (1 << 3),  /* deprecated! used for sound actuator loading */
+	/* deprecated! used for sound actuator loading */
+	SOUND_FLAGS_3D                   = (1 << 3),
 #endif
 	SOUND_FLAGS_CACHING              = (1 << 4),
 	SOUND_FLAGS_MONO                 = (1 << 5),
@@ -129,7 +132,8 @@ enum {
 
 /* bSound->tags */
 enum {
-	SOUND_TAGS_WAVEFORM_NO_RELOAD    = 1 << 0,  /* Do not free/reset waveform on sound load, only used by undo code. */
+	/* Do not free/reset waveform on sound load, only used by undo code. */
+	SOUND_TAGS_WAVEFORM_NO_RELOAD    = 1 << 0,
 	SOUND_TAGS_WAVEFORM_LOADING     = (1 << 6),
 };
 

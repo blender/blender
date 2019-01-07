@@ -43,8 +43,10 @@ typedef struct TextLine {
 	struct TextLine *next, *prev;
 
 	char *line;
-	char *format; /* may be NULL if syntax is off or not yet formatted */
-	int len, blen; /* blen unused */
+	/** May be NULL if syntax is off or not yet formatted. */
+	char *format;
+	/** Blen unused. */
+	int len, blen;
 } TextLine;
 
 typedef struct Text {

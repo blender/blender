@@ -49,7 +49,8 @@ typedef struct RigidBodyWorld_Shared {
 	struct ListBase ptcaches;
 
 	/* References to Physics Sim objects. Exist at runtime only ---------------------- */
-	void *physics_world;		/* Physics sim world (i.e. btDiscreteDynamicsWorld) */
+	/** Physics sim world (i.e. btDiscreteDynamicsWorld). */
+	void *physics_world;
 } RigidBodyWorld_Shared;
 
 /* RigidBodyWorld (rbw)
@@ -58,26 +59,39 @@ typedef struct RigidBodyWorld_Shared {
  */
 typedef struct RigidBodyWorld {
 	/* Sim World Settings ------------------------------------------------------------- */
-	struct EffectorWeights *effector_weights; /* effectors info */
+	/** Effectors info. */
+	struct EffectorWeights *effector_weights;
 
-	struct Collection *group;		/* Group containing objects to use for Rigid Bodies */
-	struct Object **objects;	/* Array to access group objects by index, only used at runtime */
+	/** Group containing objects to use for Rigid Bodies. */
+	struct Collection *group;
+	/** Array to access group objects by index, only used at runtime. */
+	struct Object **objects;
 
-	struct Collection *constraints;	/* Group containing objects to use for Rigid Body Constraints*/
+	/** Group containing objects to use for Rigid Body Constraint.s*/
+	struct Collection *constraints;
 
 	int pad;
-	float ltime;				/* last frame world was evaluated for (internal) */
+	/** Last frame world was evaluated for (internal). */
+	float ltime;
 
-	struct RigidBodyWorld_Shared *shared; /* This pointer is shared between all evaluated copies */
-	struct PointCache *pointcache DNA_DEPRECATED; /* Moved to shared->pointcache */
-	struct ListBase ptcaches DNA_DEPRECATED; /* Moved to shared->ptcaches */
-	int numbodies;              /* number of objects in rigid body group */
+	/** This pointer is shared between all evaluated copies. */
+	struct RigidBodyWorld_Shared *shared;
+	/** Moved to shared->pointcache. */
+	struct PointCache *pointcache DNA_DEPRECATED;
+	/** Moved to shared->ptcaches. */
+	struct ListBase ptcaches DNA_DEPRECATED;
+	/** Number of objects in rigid body group. */
+	int numbodies;
 
-	short steps_per_second;		/* number of simulation steps thaken per second */
-	short num_solver_iterations;/* number of constraint solver iterations made per simulation step */
+	/** Number of simulation steps thaken per second. */
+	short steps_per_second;
+	/** Number of constraint solver iterations made per simulation step. */
+	short num_solver_iterations;
 
-	int flag;					/* (eRigidBodyWorld_Flag) settings for this RigidBodyWorld */
-	float time_scale;			/* used to speed up or slow down the simulation */
+	/** (eRigidBodyWorld_Flag) settings for this RigidBodyWorld. */
+	int flag;
+	/** Used to speed up or slow down the simulation. */
+	float time_scale;
 } RigidBodyWorld;
 
 /* Flags for RigidBodyWorld */
@@ -101,8 +115,10 @@ typedef enum eRigidBodyWorld_Flag {
 #
 typedef struct RigidBodyOb_Shared {
 	/* References to Physics Sim objects. Exist at runtime only */
-	void *physics_object;	/* Physics object representation (i.e. btRigidBody) */
-	void *physics_shape;	/* Collision shape used by physics sim (i.e. btCollisionShape) */
+	/** Physics object representation (i.e. btRigidBody). */
+	void *physics_object;
+	/** Collision shape used by physics sim (i.e. btCollisionShape). */
+	void *physics_shape;
 } RigidBodyOb_Shared;
 
 /* RigidBodyObject (rbo)
@@ -113,33 +129,49 @@ typedef struct RigidBodyOb_Shared {
  */
 typedef struct RigidBodyOb {
 	/* General Settings for this RigidBodyOb */
-	short type;				/* (eRigidBodyOb_Type) role of RigidBody in sim  */
-	short shape;			/* (eRigidBody_Shape) collision shape to use */
+	/** (eRigidBodyOb_Type) role of RigidBody in sim . */
+	short type;
+	/** (eRigidBody_Shape) collision shape to use. */
+	short shape;
 
-	int flag;				/* (eRigidBodyOb_Flag) */
-	int col_groups;			/* Collision groups that determines which rigid bodies can collide with each other */
-	short mesh_source;		/* (eRigidBody_MeshSource) mesh source for mesh based collision shapes */
+	/** (eRigidBodyOb_Flag). */
+	int flag;
+	/** Collision groups that determines which rigid bodies can collide with each other. */
+	int col_groups;
+	/** (eRigidBody_MeshSource) mesh source for mesh based collision shapes. */
+	short mesh_source;
 	short pad;
 
 	/* Physics Parameters */
-	float mass;				/* how much object 'weighs' (i.e. absolute 'amount of stuff' it holds) */
+	/** How much object 'weighs' (i.e. absolute 'amount of stuff' it holds). */
+	float mass;
 
-	float friction;			/* resistance of object to movement */
-	float restitution;		/* how 'bouncy' object is when it collides */
+	/** Resistance of object to movement. */
+	float friction;
+	/** How 'bouncy' object is when it collides. */
+	float restitution;
 
-	float margin;			/* tolerance for detecting collisions */
+	/** Tolerance for detecting collisions. */
+	float margin;
 
-	float lin_damping;		/* damping for linear velocities */
-	float ang_damping;		/* damping for angular velocities */
+	/** Damping for linear velocities. */
+	float lin_damping;
+	/** Damping for angular velocities. */
+	float ang_damping;
 
-	float lin_sleep_thresh;	/* deactivation threshold for linear velocities */
-	float ang_sleep_thresh;	/* deactivation threshold for angular velocities */
+	/** Deactivation threshold for linear velocities. */
+	float lin_sleep_thresh;
+	/** Deactivation threshold for angular velocities. */
+	float ang_sleep_thresh;
 
-	float orn[4];			/* rigid body orientation */
-	float pos[3];			/* rigid body position */
+	/** Rigid body orientation. */
+	float orn[4];
+	/** Rigid body position. */
+	float pos[3];
 	float pad1;
 
-	struct RigidBodyOb_Shared *shared; /* This pointer is shared between all evaluated copies */
+	/** This pointer is shared between all evaluated copies. */
+	struct RigidBodyOb_Shared *shared;
 } RigidBodyOb;
 
 
@@ -210,17 +242,24 @@ typedef enum eRigidBody_MeshSource {
  * Represents an constraint connecting two rigid bodies.
  */
 typedef struct RigidBodyCon {
-	struct Object *ob1;			/* First object influenced by the constraint */
-	struct Object *ob2;			/* Second object influenced by the constraint */
+	/** First object influenced by the constraint. */
+	struct Object *ob1;
+	/** Second object influenced by the constraint. */
+	struct Object *ob2;
 
 	/* General Settings for this RigidBodyCon */
-	short type;					/* (eRigidBodyCon_Type) role of RigidBody in sim  */
-	short num_solver_iterations;/* number of constraint solver iterations made per simulation step */
+	/** (eRigidBodyCon_Type) role of RigidBody in sim . */
+	short type;
+	/** Number of constraint solver iterations made per simulation step. */
+	short num_solver_iterations;
 
-	int flag;					/* (eRigidBodyCon_Flag) */
+	/** (eRigidBodyCon_Flag). */
+	int flag;
 
-	float breaking_threshold;	/* breaking impulse threshold */
-	char spring_type;       	/* spring implementation to use */
+	/** Breaking impulse threshold. */
+	float breaking_threshold;
+	/** Spring implementation to use. */
+	char spring_type;
 	char pad[3];
 
 	/* limits */
@@ -256,13 +295,18 @@ typedef struct RigidBodyCon {
 	float spring_damping_ang_z;
 
 	/* motor settings */
-	float motor_lin_target_velocity;	/* linear velocity the motor tries to hold */
-	float motor_ang_target_velocity;	/* angular velocity the motor tries to hold */
-	float motor_lin_max_impulse;		/* maximum force used to reach linear target velocity */
-	float motor_ang_max_impulse;		/* maximum force used to reach angular target velocity */
+	/** Linear velocity the motor tries to hold. */
+	float motor_lin_target_velocity;
+	/** Angular velocity the motor tries to hold. */
+	float motor_ang_target_velocity;
+	/** Maximum force used to reach linear target velocity. */
+	float motor_lin_max_impulse;
+	/** Maximum force used to reach angular target velocity. */
+	float motor_ang_max_impulse;
 
 	/* References to Physics Sim object. Exist at runtime only */
-	void *physics_constraint;	/* Physics object representation (i.e. btTypedConstraint) */
+	/** Physics object representation (i.e. btTypedConstraint). */
+	void *physics_constraint;
 } RigidBodyCon;
 
 

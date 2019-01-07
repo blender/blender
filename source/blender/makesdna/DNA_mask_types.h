@@ -46,67 +46,105 @@
 typedef struct Mask {
 	ID id;
 	struct AnimData *adt;
-	ListBase masklayers;  /* mask layers */
-	int masklay_act;      /* index of active mask layer (-1 == None) */
-	int masklay_tot;      /* total number of mask layers */
+	/** Mask layers. */
+	ListBase masklayers;
+	/** Index of active mask layer (-1 == None). */
+	int masklay_act;
+	/** Total number of mask layers. */
+	int masklay_tot;
 
-	int sfra, efra;       /* frames, used by the sequencer */
+	/** Frames, used by the sequencer. */
+	int sfra, efra;
 
-	int flag;  /* for anim info */
+	/** For anim info. */
+	int flag;
 	int pad;
 } Mask;
 
 typedef struct MaskParent {
-	// int flag;             /* parenting flags */ /* not used */
-	int id_type;          /* type of parenting */
-	int type;             /* type of parenting */
-	ID *id;               /* ID block of entity to which mask/spline is parented to
-	                       * in case of parenting to movie tracking data set to MovieClip datablock */
-	char parent[64];      /* entity of parent to which parenting happened
-	                       * in case of parenting to movie tracking data contains name of layer */
-	char sub_parent[64];  /* sub-entity of parent to which parenting happened
-	                       * in case of parenting to movie tracking data contains name of track */
-	float parent_orig[2]; /* track location at the moment of parenting,
-	                       * stored in mask space*/
+	//* /* Parenting flags */ /* not used. */
+	// int flag;
+	/** Type of parenting. */
+	int id_type;
+	/** Type of parenting. */
+	int type;
+	/**
+	 * ID block of entity to which mask/spline is parented to
+	 * in case of parenting to movie tracking data set to MovieClip datablock.
+	 */
+	ID *id;
+	/**
+	 * Entity of parent to which parenting happened
+	 * in case of parenting to movie tracking data contains name of layer.
+	 */
+	char parent[64];
+	/**
+	 * Sub-entity of parent to which parenting happened
+	 * in case of parenting to movie tracking data contains name of track.
+	 */
+	char sub_parent[64];
+	/**
+	 * Track location at the moment of parenting,
+	 * stored in mask space.
+	 */
+	float parent_orig[2];
 
-	float parent_corners_orig[4][2]; /* Original corners of plane track at the moment of parenting */
+	/** Original corners of plane track at the moment of parenting. */
+	float parent_corners_orig[4][2];
 } MaskParent;
 
 typedef struct MaskSplinePointUW {
-	float u, w;            /* u coordinate along spline segment and weight of this point */
-	int flag;              /* different flags of this point */
+	/** U coordinate along spline segment and weight of this point. */
+	float u, w;
+	/** Different flags of this point. */
+	int flag;
 } MaskSplinePointUW;
 
 typedef struct MaskSplinePoint {
-	BezTriple bezt;        /* actual point coordinates and it's handles  */
+	/** Actual point coordinates and it's handles . */
+	BezTriple bezt;
 	int pad;
-	int tot_uw;            /* number of uv feather values */
-	MaskSplinePointUW *uw; /* feather UV values */
-	MaskParent parent;     /* parenting information of particular spline point */
+	/** Number of uv feather values. */
+	int tot_uw;
+	/** Feather UV values. */
+	MaskSplinePointUW *uw;
+	/** Parenting information of particular spline point. */
+	MaskParent parent;
 } MaskSplinePoint;
 
 typedef struct MaskSpline {
 	struct MaskSpline *next, *prev;
 
-	short flag;              /* different spline flag (closed, ...) */
-	char offset_mode;        /* feather offset method */
-	char weight_interp;      /* weight interpolation */
+	/** Different spline flag (closed, ...). */
+	short flag;
+	/** Feather offset method. */
+	char offset_mode;
+	/** Weight interpolation. */
+	char weight_interp;
 
-	int tot_point;           /* total number of points */
-	MaskSplinePoint *points; /* points which defines spline itself */
-	MaskParent parent;       /* parenting information of the whole spline */
+	/** Total number of points. */
+	int tot_point;
+	/** Points which defines spline itself. */
+	MaskSplinePoint *points;
+	/** Parenting information of the whole spline. */
+	MaskParent parent;
 
-	MaskSplinePoint *points_deform; /* deformed copy of 'points' BezTriple data - not saved */
+	/** Deformed copy of 'points' BezTriple data - not saved. */
+	MaskSplinePoint *points_deform;
 } MaskSpline;
 
 /* one per frame */
 typedef struct MaskLayerShape {
 	struct MaskLayerShape *next, *prev;
 
-	float *data;             /* u coordinate along spline segment and weight of this point */
-	int    tot_vert;         /* to ensure no buffer overruns's: alloc size is (tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE) */
-	int    frame;            /* different flags of this point */
-	char   flag;             /* animation flag */
+	/** U coordinate along spline segment and weight of this point. */
+	float *data;
+	/** To ensure no buffer overruns's: alloc size is (tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE). */
+	int    tot_vert;
+	/** Different flags of this point. */
+	int    frame;
+	/** Animation flag. */
+	char   flag;
 	char   pad[7];
 } MaskLayerShape;
 
@@ -122,13 +160,17 @@ typedef struct MaskLayerShapeElem {
 typedef struct MaskLayer {
 	struct MaskLayer *next, *prev;
 
-	char name[64];                     /* name of the mask layer (64 = MAD_ID_NAME - 2) */
+	/** Name of the mask layer (64 = MAD_ID_NAME - 2). */
+	char name[64];
 
-	ListBase splines;                  /* list of splines which defines this mask layer */
+	/** List of splines which defines this mask layer. */
+	ListBase splines;
 	ListBase splines_shapes;
 
-	struct MaskSpline *act_spline;     /* active spline */
-	struct MaskSplinePoint *act_point; /* active point */
+	/** Active spline. */
+	struct MaskSpline *act_spline;
+	/** Active point. */
+	struct MaskSplinePoint *act_point;
 
 	/* blending options */
 	float  alpha;
@@ -137,8 +179,10 @@ typedef struct MaskLayer {
 	char   falloff;
 	char   pad[7];
 
-	char   flag;             /* for animation */
-	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
+	/** For animation. */
+	char   flag;
+	/** Matching 'Object' flag of the same name - eventually use in the outliner . */
+	char   restrictflag;
 } MaskLayer;
 
 /* MaskParent->flag */

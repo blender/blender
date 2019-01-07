@@ -47,7 +47,8 @@ typedef struct FluidVertexVelocity {
 } FluidVertexVelocity;
 
 typedef struct FluidsimSettings {
-	struct FluidsimModifierData *fmd; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct FluidsimModifierData *fmd;
 	/* threadcont the calculation is done with */
 	int threads;
 	int pad1;
@@ -102,7 +103,10 @@ typedef struct FluidsimSettings {
 	/* additional flags depending on the type, lower short contains flags
 	 * to check validity, higher short additional flags */
 	short typeFlags;
-	/* switch off velocity generation, volume init type for fluid/obstacles (volume=1, shell=2, both=3) */
+	/**
+	 * Switch off velocity generation,
+	 * volume init type for fluid/obstacles (volume=1, shell=2, both=3).
+	 */
 	char  domainNovecgen, volumeInitType;
 
 	/* boundary "stickiness" for part slip values */
@@ -114,18 +118,19 @@ typedef struct FluidsimSettings {
 	float generateParticles;
 	/* smooth fluid surface? */
 	float surfaceSmoothing;
-	/* number of surface subdivisions*/
+	/** Number of surface subdivisions. */
 	int surfaceSubdivs;
-	int flag; /* GUI flags */
+	/** GUI flags. */
+	int flag;
 
-	/* particle display - size scaling, and alpha influence */
+	/** Particle display - size scaling, and alpha influence. */
 	float particleInfSize, particleInfAlpha;
 	/* testing vars */
 	float farFieldSize;
 
-	/* vertex velocities of simulated fluid mesh */
+	/** Vertex velocities of simulated fluid mesh. */
 	struct FluidVertexVelocity *meshVelocities;
-	/* number of vertices in simulated fluid mesh */
+	/** Number of vertices in simulated fluid mesh. */
 	int totvert;
 
 	/* Fluid control settings */
@@ -140,7 +145,7 @@ typedef struct FluidsimSettings {
 
 	int lastgoodframe;
 
-	/* Simulation/flow rate control (i.e. old "Fac-Time") */
+	/** Simulation/flow rate control (i.e. old "Fac-Time"). */
 	float animRate;
 } FluidsimSettings;
 

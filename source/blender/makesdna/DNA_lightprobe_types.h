@@ -41,32 +41,46 @@ struct AnimData;
 
 typedef struct LightProbe {
 	ID id;
-	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
+	/** Animation data (must be immediately after id for utilities to use it). */
+	struct AnimData *adt;
 
-	char type;        /* For realtime probe objects */
-	char flag;        /* General purpose flags for probes */
-	char attenuation_type; /* Attenuation type */
-	char parallax_type;    /* Parallax type */
+	/** For realtime probe objects. */
+	char type;
+	/** General purpose flags for probes. */
+	char flag;
+	/** Attenuation type. */
+	char attenuation_type;
+	/** Parallax type. */
+	char parallax_type;
 
-	float distinf;    /* Influence Radius */
-	float distpar;    /* Parallax Radius */
-	float falloff;    /* Influence falloff */
+	/** Influence Radius. */
+	float distinf;
+	/** Parallax Radius. */
+	float distpar;
+	/** Influence falloff. */
+	float falloff;
 
 	float clipsta, clipend;
 
-	float vis_bias, vis_bleedbias; /* VSM visibility biases */
+	/** VSM visibility biases. */
+	float vis_bias, vis_bleedbias;
 	float vis_blur;
 
-	float intensity; /* Intensity multiplier */
+	/** Intensity multiplier. */
+	float intensity;
 
-	int grid_resolution_x;  /* Irradiance grid resolution */
+	/** Irradiance grid resolution. */
+	int grid_resolution_x;
 	int grid_resolution_y;
 	int grid_resolution_z;
 	int pad1;
 
-	struct Object *parallax_ob;    /* Object to use as a parallax origin */
-	struct Image *image;           /* Image to use on as lighting data */
-	struct Collection *visibility_grp;  /* Object visibility group, inclusive or exclusive */
+	/** Object to use as a parallax origin. */
+	struct Object *parallax_ob;
+	/** Image to use on as lighting data. */
+	struct Image *image;
+	/** Object visibility group, inclusive or exclusive. */
+	struct Collection *visibility_grp;
 
 	/* Runtime display data */
 	float distfalloff, distgridinf;
@@ -119,9 +133,11 @@ typedef struct LightProbeCache {
 
 typedef struct LightGridCache {
 	float mat[4][4];
-	int resolution[3], offset; /* offset to the first irradiance sample in the pool. */
+	/** Offset to the first irradiance sample in the pool. */
+	int resolution[3], offset;
 	float corner[3], attenuation_scale;
-	float increment_x[3], attenuation_bias; /* world space vector between 2 opposite cells */
+	/** World space vector between 2 opposite cells. */
+	float increment_x[3], attenuation_bias;
 	float increment_y[3], level_bias;
 	float increment_z[3], pad4;
 	float visibility_bias, visibility_bleed, visibility_range, pad5;
@@ -142,16 +158,21 @@ typedef struct LightCacheTexture {
 typedef struct LightCache {
 	int flag;
 	/* only a single cache for now */
-	int cube_len, grid_len;          /* Number of probes to use for rendering. */
-	int mips_len;                    /* Number of mipmap level to use. */
-	int vis_res, ref_res;            /* Size of a visibility/reflection sample. */
+	/** Number of probes to use for rendering. */
+	int cube_len, grid_len;
+	/** Number of mipmap level to use. */
+	int mips_len;
+	/** Size of a visibility/reflection sample. */
+	int vis_res, ref_res;
 	int pad[2];
 	/* In the future, we could create a bigger texture containing
 	 * multiple caches (for animation) and interpolate between the
 	 * caches overtime to another texture. */
 	LightCacheTexture grid_tx;
-	LightCacheTexture cube_tx;        /* Contains data for mipmap level 0. */
-	LightCacheTexture *cube_mips;     /* Does not contains valid GPUTexture, only data. */
+	/** Contains data for mipmap level 0. */
+	LightCacheTexture cube_tx;
+	/** Does not contains valid GPUTexture, only data. */
+	LightCacheTexture *cube_mips;
 	/* All lightprobes data contained in the cache. */
 	LightProbeCache *cube_data;
 	LightGridCache  *grid_data;

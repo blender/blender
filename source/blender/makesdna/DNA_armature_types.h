@@ -46,41 +46,62 @@ struct AnimData;
  */
 
 typedef struct Bone {
-	struct Bone *next, *prev;    /*  Next/prev elements within this list */
-	IDProperty  *prop;           /* User-Defined Properties on this Bone */
-	struct Bone *parent;         /*  Parent (ik parent if appropriate flag is set */
-	ListBase     childbase;      /*  Children    */
-	char         name[64];       /*  Name of the bone - must be unique within the armature, MAXBONENAME */
+	/**  Next/prev elements within this list. */
+	struct Bone *next, *prev;
+	/** User-Defined Properties on this Bone. */
+	IDProperty  *prop;
+	/**  Parent (ik parent if appropriate flag is set. */
+	struct Bone *parent;
+	/**  Children   . */
+	ListBase     childbase;
+	/**  Name of the bone - must be unique within the armature, MAXBONENAME. */
+	char         name[64];
 
-	float        roll;           /*  roll is input for editmode, length calculated */
+	/**  roll is input for editmode, length calculated. */
+	float        roll;
 	float        head[3];
-	float        tail[3];        /*  head/tail and roll in Bone Space    */
-	float        bone_mat[3][3]; /*  rotation derived from head/tail/roll */
+	/**  head/tail and roll in Bone Space   . */
+	float        tail[3];
+	/**  rotation derived from head/tail/roll. */
+	float        bone_mat[3][3];
 
 	int          flag;
 
 	float        arm_head[3];
-	float        arm_tail[3];    /*  head/tail in Armature Space (rest pos) */
-	float        arm_mat[4][4];  /*  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest pos*/
-	float        arm_roll;       /* roll in Armature Space (rest pos) */
+	/**  head/tail in Armature Space (rest pos). */
+	float        arm_tail[3];
+	/**  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest po.s*/
+	float        arm_mat[4][4];
+	/** Roll in Armature Space (rest pos). */
+	float        arm_roll;
 
-	float        dist, weight;           /*  dist, weight: for non-deformgroup deforms */
-	float        xwidth, length, zwidth; /*  width: for block bones. keep in this order, transform! */
-	float        rad_head, rad_tail;     /* radius for head/tail sphere, defining deform as well, parent->rad_tip overrides rad_head */
+	/**  dist, weight: for non-deformgroup deforms. */
+	float        dist, weight;
+	/**  width: for block bones. keep in this order, transform!. */
+	float        xwidth, length, zwidth;
+	/** Radius for head/tail sphere, defining deform as well, parent->rad_tip overrides rad_head. */
+	float        rad_head, rad_tail;
 
-	float        roll1, roll2;           /* curved bones settings - these define the "restpose" for a curved bone */
+	/** Curved bones settings - these define the "restpose" for a curved bone. */
+	float        roll1, roll2;
 	float		 curveInX, curveInY;
 	float		 curveOutX, curveOutY;
-	float        ease1, ease2;        /* length of bezier handles */
+	/** Length of bezier handles. */
+	float        ease1, ease2;
 	float		 scaleIn, scaleOut;
 
-	float        size[3];        /*  patch for upward compat, UNUSED! */
-	int          layer;          /* layers that bone appears on */
-	short        segments;       /*  for B-bones */
+	/**  patch for upward compat, UNUSED!. */
+	float        size[3];
+	/** Layers that bone appears on. */
+	int          layer;
+	/**  for B-bones. */
+	short        segments;
 
-	char         bbone_prev_type;	/* Type of next/prev bone handles */
+	/** Type of next/prev bone handles. */
+	char         bbone_prev_type;
 	char         bbone_next_type;
-	struct Bone *bbone_prev;	/* Next/prev bones to use as handle references when calculating bbones (optional) */
+	/** Next/prev bones to use as handle references when calculating bbones (optional). */
+	struct Bone *bbone_prev;
 	struct Bone *bbone_next;
 } Bone;
 
@@ -90,7 +111,8 @@ typedef struct bArmature {
 
 	ListBase    bonebase;
 	ListBase    chainbase;
-	ListBase   *edbo;                   /* editbone listbase, we use pointer so we can check state */
+	/** Editbone listbase, we use pointer so we can check state. */
+	ListBase   *edbo;
 
 	/* active bones should work like active object where possible
 	 * - active and selection are unrelated
@@ -98,25 +120,35 @@ typedef struct bArmature {
 	 * - from the user perspective active == last selected
 	 * - active should be ignored when not visible (hidden layer) */
 
-	Bone       *act_bone;               /* active bone */
-	struct EditBone *act_edbone;        /* active editbone (in editmode) */
+	/** Active bone. */
+	Bone       *act_bone;
+	/** Active editbone (in editmode). */
+	struct EditBone *act_edbone;
 
 	int         flag;
 	int         drawtype;
-	int         gevertdeformer;         /* how vertex deformation is handled in the ge */
+	/** How vertex deformation is handled in the ge. */
+	int         gevertdeformer;
 	int         pad;
 	short       deformflag;
 	short       pathflag;
 
-	unsigned int layer_used;             /* for UI, to show which layers are there */
-	unsigned int layer, layer_protected; /* for buttons to work, both variables in this order together */
+	/** For UI, to show which layers are there. */
+	unsigned int layer_used;
+	/** For buttons to work, both variables in this order together. */
+	unsigned int layer, layer_protected;
 
 // XXX deprecated... old animation system (armature only viz) ---
-	short       ghostep, ghostsize;     /* number of frames to ghosts to show, and step between them  */
-	short       ghosttype, pathsize;        /* ghost drawing options and number of frames between points of path */
-	int         ghostsf, ghostef;       /* start and end frames of ghost-drawing range */
-	int         pathsf, pathef;         /* start and end frames of path-calculation range for all bones */
-	int         pathbc, pathac;         /* number of frames before/after current frame of path-calculation for all bones  */
+	/** Number of frames to ghosts to show, and step between them . */
+	short       ghostep, ghostsize;
+	/** Ghost drawing options and number of frames between points of path. */
+	short       ghosttype, pathsize;
+	/** Start and end frames of ghost-drawing range. */
+	int         ghostsf, ghostef;
+	/** Start and end frames of path-calculation range for all bones. */
+	int         pathsf, pathef;
+	/** Number of frames before/after current frame of path-calculation for all bones . */
+	int         pathbc, pathac;
 // XXX end of deprecated code ----------------------------------
 } bArmature;
 

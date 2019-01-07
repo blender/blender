@@ -47,91 +47,148 @@
  */
 
 typedef struct ClothSimSettings {
-	struct	LinkNode *cache; /* UNUSED atm */
-	float 	mingoal; 	/* see SB */
-	float	Cdis DNA_DEPRECATED;	/* Mechanical damping of springs. */
-	float	Cvi;		/* Viscous/fluid damping.			*/
-	float	gravity[3];	/* Gravity/external force vector.		*/
-	float	dt;		/* This is the duration of our time step, computed.	*/
-	float	mass;		/* The mass of the entire cloth.		*/
-	float	structural DNA_DEPRECATED;	/* Structural spring stiffness. */
-	float	shear;		/* Shear spring stiffness.			*/
-	float	bending;	/* Flexion spring stiffness.			*/
-	float	max_bend; 	/* max bending scaling value, min is "bending" */
-	float	max_struct DNA_DEPRECATED;	/* max structural scaling value, min is "structural" */
-	float	max_shear; 	/* max shear scaling value */
-	float	max_sewing; 	/* max sewing force */
-	float 	avg_spring_len; /* used for normalized springs */
-	float 	timescale; /* parameter how fast cloth runs */
-	float	time_scale; /* multiplies cloth speed */
-	float	maxgoal; 	/* see SB */
-	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
-	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
+	/** UNUSED atm. */
+	struct	LinkNode *cache;
+	/** See SB. */
+	float 	mingoal;
+	/** Mechanical damping of springs. */
+	float	Cdis DNA_DEPRECATED;
+	/** Viscous/fluid damping.		.	*/
+	float	Cvi;
+	/** Gravity/external force vector.	.	*/
+	float	gravity[3];
+	/** This is the duration of our time step, computed..	*/
+	float	dt;
+	/** The mass of the entire cloth.	.	*/
+	float	mass;
+	/** Structural spring stiffness. */
+	float	structural DNA_DEPRECATED;
+	/** Shear spring stiffness.		.	*/
+	float	shear;
+	/** Flexion spring stiffness.		.	*/
+	float	bending;
+	/** Max bending scaling value, min is "bending". */
+	float	max_bend;
+	/** Max structural scaling value, min is "structural". */
+	float	max_struct DNA_DEPRECATED;
+	/** Max shear scaling value. */
+	float	max_shear;
+	/** Max sewing force. */
+	float	max_sewing;
+	/** Used for normalized springs. */
+	float 	avg_spring_len;
+	/** Parameter how fast cloth runs. */
+	float 	timescale;
+	/** Multiplies cloth speed. */
+	float	time_scale;
+	/** See SB. */
+	float	maxgoal;
+	/** Scaling of effector forces (see softbody_calc_forces)..*/
+	float	eff_force_scale;
+	/** Scaling of effector wind (see softbody_calc_forces)..	*/
+	float	eff_wind_scale;
 	float 	sim_time_old;
 	float	defgoal;
 	float	goalspring;
 	float	goalfrict;
-	float	velocity_smooth; /* smoothing of velocities for hair */
-	float	density_target;		/* minimum density for hair */
-	float	density_strength;	/* influence of hair density */
-	float	collider_friction; /* friction with colliders */
-	float	vel_damping DNA_DEPRECATED;	/* damp the velocity to speed up getting to the resting position */
-	float	shrink_min;  /* min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
-	float	shrink_max;  /* max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing) */
+	/** Smoothing of velocities for hair. */
+	float	velocity_smooth;
+	/** Minimum density for hair. */
+	float	density_target;
+	/** Influence of hair density. */
+	float	density_strength;
+	/** Friction with colliders. */
+	float	collider_friction;
+	/** Damp the velocity to speed up getting to the resting position. */
+	float	vel_damping DNA_DEPRECATED;
+	/** Min amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing). */
+	float	shrink_min;
+	/** Max amount to shrink cloth by 0.0f (no shrink) - 1.0f (shrink to nothing). */
+	float	shrink_max;
 
 	/* XXX various hair stuff
 	 * should really be separate, this struct is a horrible mess already
 	 */
-	float	bending_damping;	/* damping of bending springs */
-	float	voxel_cell_size;    /* size of voxel grid cells for continuum dynamics */
+	/** Damping of bending springs. */
+	float	bending_damping;
+	/** Size of voxel grid cells for continuum dynamics. */
+	float	voxel_cell_size;
 	int		pad;
 
-	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
-	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
-	int	preroll  DNA_DEPRECATED;	/* How many frames of simulation to do before we start.	*/
-	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
-	short	solver_type; 	/* which solver should be used?		txold	*/
-	short	vgroup_bend;	/* vertex group for scaling bending stiffness */
-	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
-	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
-	short	vgroup_shrink;  /* vertex group for shrinking cloth */
-	short	shapekey_rest;  /* vertex group for scaling structural stiffness */
-	short	presets; /* used for presets on GUI */
+	/** Number of time steps per frame.	.	*/
+	int 	stepsPerFrame;
+	/** Flags, see CSIMSETT_FLAGS enum above..	*/
+	int	flags;
+	/** How many frames of simulation to do before we start..	*/
+	int	preroll  DNA_DEPRECATED;
+	/** In percent!; if tearing enabled, a spring will get cut. */
+	int	maxspringlen;
+	/** Which solver should be used?		txold.	*/
+	short	solver_type;
+	/** Vertex group for scaling bending stiffness. */
+	short	vgroup_bend;
+	/** Optional vertexgroup name for assigning weight..*/
+	short	vgroup_mass;
+	/** Vertex group for scaling structural stiffness. */
+	short	vgroup_struct;
+	/** Vertex group for shrinking cloth. */
+	short	vgroup_shrink;
+	/** Vertex group for scaling structural stiffness. */
+	short	shapekey_rest;
+	/** Used for presets on GUI. */
+	short	presets;
 	short 	reset;
 
 	char pad0[4];
 	struct EffectorWeights *effector_weights;
 
 	short	bending_model;
-	short	vgroup_shear;		/* Vertex group for scaling structural stiffness. */
+	/** Vertex group for scaling structural stiffness. */
+	short	vgroup_shear;
 	float	tension;
 	float	compression;
 	float	max_tension;
 	float	max_compression;
-	float	tension_damp;		/* Mechanical damping of tension springs. */
-	float	compression_damp;	/* Mechanical damping of compression springs. */
-	float	shear_damp;			/* Mechanical damping of shear springs. */
+	/** Mechanical damping of tension springs. */
+	float	tension_damp;
+	/** Mechanical damping of compression springs. */
+	float	compression_damp;
+	/** Mechanical damping of shear springs. */
+	float	shear_damp;
 } ClothSimSettings;
 
 
 typedef struct ClothCollSettings {
-	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
-	float	epsilon;		/* min distance for collisions.		*/
-	float	self_friction;		/* Fiction/damping with self contact. */
-	float	friction;		/* Friction/damping applied on contact with other object.*/
-	float	damping;	/* Collision restitution on contact with other object.*/
-	float 	selfepsilon; 		/* for selfcollision */
+	/** E.g. pointer to temp memory for collisions. */
+	struct	LinkNode *collision_list;
+	/** Min distance for collisions.	.	*/
+	float	epsilon;
+	/** Fiction/damping with self contact. */
+	float	self_friction;
+	/** Friction/damping applied on contact with other object..*/
+	float	friction;
+	/** Collision restitution on contact with other object..*/
+	float	damping;
+	/** For selfcollision. */
+	float	selfepsilon;
 	float repel_force DNA_DEPRECATED;
 	float distance_repel DNA_DEPRECATED;
-	int	flags;			/* collision flags defined in BKE_cloth.h */
-	short	self_loop_count DNA_DEPRECATED;	/* How many iterations for the selfcollision loop */
-	short	loop_count;		/* How many iterations for the collision loop.		*/
+	/** Collision flags defined in BKE_cloth.h. */
+	int	flags;
+	/** How many iterations for the selfcollision loop. */
+	short	self_loop_count DNA_DEPRECATED;
+	/** How many iterations for the collision loop.	.	*/
+	short	loop_count;
 	int pad;
-	struct Collection *group;	/* Only use colliders from this group of objects */
-	short	vgroup_selfcol; /* vgroup to paint which vertices are used for self collisions */
+	/** Only use colliders from this group of objects. */
+	struct Collection *group;
+	/** Vgroup to paint which vertices are used for self collisions. */
+	short	vgroup_selfcol;
 	short pad2[3];
-	float	clamp;		/* Impulse clamp for object collisions. */
-	float	self_clamp;	/* Impulse clamp for self collisions. */
+	/** Impulse clamp for object collisions. */
+	float	clamp;
+	/** Impulse clamp for self collisions. */
+	float	self_clamp;
 } ClothCollSettings;
 
 

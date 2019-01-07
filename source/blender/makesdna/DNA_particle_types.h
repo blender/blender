@@ -39,20 +39,29 @@
 struct AnimData;
 
 typedef struct HairKey {
-	float co[3];	/* location of hair vertex */
-	float time;		/* time along hair, default 0-100 */
-	float weight;	/* softbody weight */
-	short editflag;	/* saved particled edit mode flags */
+	/** Location of hair vertex. */
+	float co[3];
+	/** Time along hair, default 0-100. */
+	float time;
+	/** Softbody weight. */
+	float weight;
+	/** Saved particled edit mode flags. */
+	short editflag;
 	short pad;
 	float world_co[3];
 } HairKey;
 
 typedef struct ParticleKey {	/* when changed update size of struct to copy_particleKey()!! */
-	float co[3];	/* location */
-	float vel[3];	/* velocity */
-	float rot[4];	/* rotation quaternion */
-	float ave[3];	/* angular velocity */
-	float time;		/* when this key happens */
+	/** Location. */
+	float co[3];
+	/** Velocity. */
+	float vel[3];
+	/** Rotation quaternion. */
+	float rot[4];
+	/** Angular velocity. */
+	float ave[3];
+	/** When this key happens. */
+	float time;
 } ParticleKey;
 
 typedef struct BoidParticle {
@@ -70,10 +79,14 @@ typedef struct ParticleSpring {
 
 /* Child particles are created around or between parent particles */
 typedef struct ChildParticle {
-	int num, parent;	/* num is face index on the final derived mesh */
-	int pa[4];			/* nearest particles to the child, used for the interpolation */
-	float w[4];			/* interpolation weights for the above particles */
-	float fuv[4], foffset; /* face vertex weights and offset */
+	/** Num is face index on the final derived mesh. */
+	int num, parent;
+	/** Nearest particles to the child, used for the interpolation. */
+	int pa[4];
+	/** Interpolation weights for the above particles. */
+	float w[4];
+	/** Face vertex weights and offset. */
+	float fuv[4], foffset;
 	float rt;
 } ChildParticle;
 
@@ -90,40 +103,58 @@ typedef struct ParticleDupliWeight {
 	struct Object *ob;
 	short count;
 	short flag;
-	short index, rt; /* only updated on file save and used on file load */
+	/** Only updated on file save and used on file load. */
+	short index, rt;
 } ParticleDupliWeight;
 
 typedef struct ParticleData {
-	ParticleKey state;		/* current global coordinates */
+	/** Current global coordinates. */
+	ParticleKey state;
 
-	ParticleKey prev_state; /* previous state */
+	/** Previous state. */
+	ParticleKey prev_state;
 
-	HairKey *hair;			/* hair vertices */
+	/** Hair vertices. */
+	HairKey *hair;
 
-	ParticleKey *keys;		/* keyed keys */
+	/** Keyed keys. */
+	ParticleKey *keys;
 
-	BoidParticle *boid;		/* boids data */
+	/** Boids data. */
+	BoidParticle *boid;
 
-	int totkey;				/* amount of hair or keyed keys*/
+	/** Amount of hair or keyed key.s*/
+	int totkey;
 
-	float time, lifetime;	/* dietime is not necessarily time+lifetime as */
-	float dietime;			/* particles can die unnaturally (collision). */
+	/** Dietime is not necessarily time+lifetime as. */
+	float time, lifetime;
+	/** Particles can die unnaturally (collision). */
+	float dietime;
 
-	/* WARNING! Those two indices, when not affected to vertices, are for !!! TESSELLATED FACES !!!, not POLYGONS! */
-	int num;				/* index to vert/edge/face */
-	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
+	/**
+	 * WARNING! Those two indices,
+	 * when not affected to vertices, are for !!! TESSELLATED FACES !!!, not POLYGONS!
+	 */
+	/** Index to vert/edge/face. */
+	int num;
+	/** Index to derived mesh data (face) to avoid slow lookups. */
+	int num_dmcache;
 
-	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
+	/** Coordinates on face/edge number "num" and depth alon.g*/
+	float fuv[4], foffset;
 							/* face normal for volume emission. */
 
-	float size;				/* size and multiplier so that we can update size when ever */
+	/** Size and multiplier so that we can update size when ever. */
+	float size;
 
-	float sphdensity;		/* density of sph particle */
+	/** Density of sph particle. */
+	float sphdensity;
 	int pad;
 
 	int hair_index;
 	short flag;
-	short alive;			/* the life state of a particle */
+	/** The life state of a particle. */
+	short alive;
 } ParticleData;
 
 typedef struct SPHFluidSettings {
@@ -242,14 +273,16 @@ typedef struct ParticleSettings {
 	/* hair dynamics */
 	float bending_random;
 
-	struct MTex *mtex[18];		/* MAX_MTEX */
+	/** MAX_MTEX. */
+	struct MTex *mtex[18];
 
 	struct Collection *dup_group;
 	struct ListBase dupliweights;
 	struct Collection *eff_group  DNA_DEPRECATED;		// deprecated
 	struct Object *dup_ob;
 	struct Object *bb_ob;
-	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
+	/** Old animation system, deprecated for 2.5. */
+	struct Ipo *ipo  DNA_DEPRECATED;
 	struct PartDeflect *pd;
 	struct PartDeflect *pd2;
 
@@ -277,32 +310,47 @@ typedef struct ParticleSystem {
 
 	struct ParticleSystem *next, *prev;
 
-	ParticleSettings *part;					/* particle settings */
+	/** Particle settings. */
+	ParticleSettings *part;
 
-	ParticleData *particles;				/* (parent) particles */
-	ChildParticle *child;					/* child particles */
+	/** (parent) particles. */
+	ParticleData *particles;
+	/** Child particles. */
+	ChildParticle *child;
 
-	struct PTCacheEdit *edit;						/* particle editmode (runtime) */
-	void (*free_edit)(struct PTCacheEdit *edit);	/* free callback */
+	/** Particle editmode (runtime). */
+	struct PTCacheEdit *edit;
+	/** Free callback. */
+	void (*free_edit)(struct PTCacheEdit *edit);
 
-	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
-	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
-	ListBase pathcachebufs, childcachebufs;	/* buffers for the above */
+	/** Path cache (runtime). */
+	struct ParticleCacheKey **pathcache;
+	/** Child cache (runtime). */
+	struct ParticleCacheKey **childcache;
+	/** Buffers for the above. */
+	ListBase pathcachebufs, childcachebufs;
 
-	struct ClothModifierData *clmd;					/* cloth simulation for hair */
-	struct Mesh *hair_in_mesh, *hair_out_mesh;	/* input/output for cloth simulation */
+	/** Cloth simulation for hair. */
+	struct ClothModifierData *clmd;
+	/** Input/output for cloth simulation. */
+	struct Mesh *hair_in_mesh, *hair_out_mesh;
 
 	struct Object *target_ob;
 
-	struct LatticeDeformData *lattice_deform_data;		/* run-time only lattice deformation data */
+	/** Run-time only lattice deformation data. */
+	struct LatticeDeformData *lattice_deform_data;
 
-	struct Object *parent;					/* particles from global space -> parent space */
+	/** Particles from global space -> parent space. */
+	struct Object *parent;
 
-	struct ListBase targets;				/* used for keyed and boid physics */
+	/** Used for keyed and boid physics. */
+	struct ListBase targets;
 
-	char name[64];							/* particle system name, MAX_NAME */
+	/** Particle system name, MAX_NAME. */
+	char name[64];
 
-	float imat[4][4];	/* used for duplicators */
+	/** Used for duplicators. */
+	float imat[4][4];
 	float cfra, tree_frame, bvhtree_frame;
 	int seed, child_seed;
 	int flag, totpart, totunexist, totchild, totcached, totchildcache;
@@ -315,10 +363,12 @@ typedef struct ParticleSystem {
 	short target_psys, totkeyed, bakespace;
 	short pad2;
 
-	char bb_uvname[3][64];					/* billboard uv name, MAX_CUSTOMDATA_LAYER_NAME */
+	/** Billboard uv name, MAX_CUSTOMDATA_LAYER_NAME. */
+	char bb_uvname[3][64];
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
-	short vgroup[13], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */
+	/** Vertex groups, 0==disable, 1==starting index. */
+	short vgroup[13], vg_neg, rt3;
 	char pad[6];
 
 	/* point cache */
@@ -330,13 +380,17 @@ typedef struct ParticleSystem {
 	ParticleSpring *fluid_springs;
 	int tot_fluidsprings, alloc_fluidsprings;
 
-	struct KDTree *tree;					/* used for interactions with self and other systems */
-	struct BVHTree *bvhtree;				/* used for interactions with self and other systems */
+	/** Used for interactions with self and other systems. */
+	struct KDTree *tree;
+	/** Used for interactions with self and other systems. */
+	struct BVHTree *bvhtree;
 
 	struct ParticleDrawData *pdd;
 
-	float dt_frac;							/* current time step, as a fraction of a frame */
-	float lattice_strength;					/* influence of the lattice modifier */
+	/** Current time step, as a fraction of a frame. */
+	float dt_frac;
+	/** Influence of the lattice modifier. */
+	float lattice_strength;
 
 	void *batch_cache;
 

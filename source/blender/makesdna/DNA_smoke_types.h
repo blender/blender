@@ -132,7 +132,8 @@ enum {
 };
 
 typedef struct SmokeDomainSettings {
-	struct SmokeModifierData *smd; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct SmokeModifierData *smd;
 	struct FLUID_3D *fluid;
 	void *fluid_mutex;
 	struct Collection *fluid_group;
@@ -152,27 +153,48 @@ typedef struct SmokeDomainSettings {
 	float *shadow;
 
 	/* simulation data */
-	float p0[3]; /* start point of BB in local space (includes sub-cell shift for adaptive domain)*/
-	float p1[3]; /* end point of BB in local space */
-	float dp0[3]; /* difference from object center to grid start point */
-	float cell_size[3]; /* size of simulation cell in local space */
-	float global_size[3]; /* global size of domain axises */
+	/** Start point of BB in local space (includes sub-cell shift for adaptive domain.)*/
+	float p0[3];
+	/** End point of BB in local space. */
+	float p1[3];
+	/** Difference from object center to grid start point. */
+	float dp0[3];
+	/** Size of simulation cell in local space. */
+	float cell_size[3];
+	/** Global size of domain axises. */
+	float global_size[3];
 	float prev_loc[3];
-	int shift[3]; /* current domain shift in simulation cells */
-	float shift_f[3]; /* exact domain shift */
-	float obj_shift_f[3]; /* how much object has shifted since previous smoke frame (used to "lock" domain while drawing) */
-	float imat[4][4]; /* domain object imat */
-	float obmat[4][4]; /* domain obmat */
-	float fluidmat[4][4]; /* low res fluid matrix */
-	float fluidmat_wt[4][4]; /* high res fluid matrix */
+	/** Current domain shift in simulation cells. */
+	int shift[3];
+	/** Exact domain shift. */
+	float shift_f[3];
+	/**
+	 * How much object has shifted since previous smoke frame
+	 * (used to "lock" domain while drawing).
+	 */
+	float obj_shift_f[3];
+	/** Domain object imat. */
+	float imat[4][4];
+	/** Domain obmat. */
+	float obmat[4][4];
+	/** Low res fluid matrix. */
+	float fluidmat[4][4];
+	/** High res fluid matrix. */
+	float fluidmat_wt[4][4];
 
-	int base_res[3]; /* initial "non-adapted" resolution */
-	int res_min[3]; /* cell min */
-	int res_max[3]; /* cell max */
-	int res[3]; /* data resolution (res_max-res_min) */
+	/** Initial "non-adapted" resolution. */
+	int base_res[3];
+	/** Cell min. */
+	int res_min[3];
+	/** Cell max. */
+	int res_max[3];
+	/** Data resolution (res_max-res_min). */
+	int res[3];
 	int total_cells;
-	float dx; /* 1.0f / res */
-	float scale; /* largest domain size */
+	/** 1.0f / res. */
+	float dx;
+	/** Largest domain size. */
+	float scale;
 
 	/* user settings */
 	int adapt_margin;
@@ -181,13 +203,18 @@ typedef struct SmokeDomainSettings {
 
 	float alpha;
 	float beta;
-	int amplify; /* wavelet amplification */
-	int maxres; /* longest axis on the BB gets this resolution assigned */
-	int flags; /* show up-res or low res, etc */
+	/** Wavelet amplification. */
+	int amplify;
+	/** Longest axis on the BB gets this resolution assigned. */
+	int maxres;
+	/** Show up-res or low res, etc. */
+	int flags;
 	int viewsettings;
-	short noise; /* noise type: wave, curl, anisotropic */
+	/** Noise type: wave, curl, anisotropic. */
+	short noise;
 	short diss_percent;
-	int diss_speed;/* in frames */
+	/** In frames. */
+	int diss_speed;
 	float strength;
 	int res_wt[3];
 	float dx_wt;
@@ -201,14 +228,17 @@ typedef struct SmokeDomainSettings {
 	char pad[2];
 
 	/* Smoke uses only one cache from now on (index [0]), but keeping the array for now for reading old files. */
-	struct PointCache *point_cache[2];	/* definition is in DNA_object_force_types.h */
+	/** Definition is in DNA_object_force_types.h. */
+	struct PointCache *point_cache[2];
 	struct ListBase ptcaches[2];
 	struct EffectorWeights *effector_weights;
-	int border_collisions;	/* How domain border collisions are handled */
+	/** How domain border collisions are handled. */
+	int border_collisions;
 	float time_scale;
 	float vorticity;
 	int active_fields;
-	float active_color[3]; /* monitor color situation of simulation */
+	/** Monitor color situation of simulation. */
+	float active_color[3];
 	int highres_sampling;
 
 	/* flame parameters */
@@ -227,7 +257,8 @@ typedef struct SmokeDomainSettings {
 	float vector_scale;
 	char vector_draw_type;
 	char use_coba;
-	char coba_field;  /* simulation field used for the color mapping */
+	/** Simulation field used for the color mapping. */
+	char coba_field;
 	char interp_method;
 
 	float clipping;
@@ -258,13 +289,15 @@ typedef struct SmokeDomainSettings {
 #define MOD_SMOKE_FLOW_USE_PART_SIZE (1<<4) /* use specific size for particles instead of closest cell */
 
 typedef struct SmokeFlowSettings {
-	struct SmokeModifierData *smd; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct SmokeModifierData *smd;
 	struct Mesh *mesh;
 	struct ParticleSystem *psys;
 	struct Tex *noise_texture;
 
 	/* initial velocity */
-	float *verts_old; /* previous vertex positions in domain space */
+	/** Previous vertex positions in domain space. */
+	float *verts_old;
 	int numverts;
 	float vel_multi; // Multiplier for inherited velocity
 	float vel_normal;
@@ -273,22 +306,28 @@ typedef struct SmokeFlowSettings {
 	float density;
 	float color[3];
 	float fuel_amount;
-	float temp; /* delta temperature (temp - ambient temp) */
-	float volume_density; /* density emitted within mesh volume */
-	float surface_distance; /* maximum emission distance from mesh surface */
+	/** Delta temperature (temp - ambient temp). */
+	float temp;
+	/** Density emitted within mesh volume. */
+	float volume_density;
+	/** Maximum emission distance from mesh surface. */
+	float surface_distance;
 	float particle_size;
 	int subframes;
 	/* texture control */
 	float texture_size;
 	float texture_offset;
 	int pad;
-	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
+	/** MAX_CUSTOMDATA_LAYER_NAME. */
+	char uvlayer_name[64];
 	short vgroup_density;
 
-	short type; /* smoke, flames, both, outflow */
+	/** Smoke, flames, both, outflow. */
+	short type;
 	short source;
 	short texture_type;
-	int flags; /* absolute emission etc*/
+	/** Absolute emission et.c*/
+	int flags;
 } SmokeFlowSettings;
 
 
@@ -298,7 +337,8 @@ typedef struct SmokeFlowSettings {
 
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {
-	struct SmokeModifierData *smd; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct SmokeModifierData *smd;
 	struct Mesh *mesh;
 	float *verts_old;
 	int numverts;

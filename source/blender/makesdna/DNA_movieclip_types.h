@@ -48,73 +48,111 @@ struct MovieTrackingTrack;
 struct MovieTrackingMarker;
 
 typedef struct MovieClipUser {
-	int framenr;    /* current frame number */
-	short render_size, render_flag;     /* proxy render size */
+	/** Current frame number. */
+	int framenr;
+	/** Proxy render size. */
+	short render_size, render_flag;
 } MovieClipUser;
 
 typedef struct MovieClipProxy {
-	char dir[768];          /* 768=FILE_MAXDIR custom directory for index and proxy files (defaults to BL_proxy) */
+	/** 768=FILE_MAXDIR custom directory for index and proxy files (defaults to BL_proxy). */
+	char dir[768];
 
-	short tc;               /* time code in use */
-	short quality;          /* proxy build quality */
-	short build_size_flag;  /* size flags (see below) of all proxies to build */
-	short build_tc_flag;    /* time code flags (see below) of all tc indices to build */
+	/** Time code in use. */
+	short tc;
+	/** Proxy build quality. */
+	short quality;
+	/** Size flags (see below) of all proxies to build. */
+	short build_size_flag;
+	/** Time code flags (see below) of all tc indices to build. */
+	short build_tc_flag;
 } MovieClipProxy;
 
 typedef struct MovieClip {
 	ID id;
-	struct AnimData *adt;   /* animation data (must be immediately after id for utilities to use it) */
+	/** Animation data (must be immediately after id for utilities to use it). */
+	struct AnimData *adt;
 
-	char name[1024];        /* file path, 1024 = FILE_MAX */
+	/** File path, 1024 = FILE_MAX. */
+	char name[1024];
 
-	int source;         /* sequence or movie */
-	int lastframe;      /* last accessed frame number */
-	int lastsize[2];    /* size of last accessed frame */
+	/** Sequence or movie. */
+	int source;
+	/** Last accessed frame number. */
+	int lastframe;
+	/** Size of last accessed frame. */
+	int lastsize[2];
 
-	float aspx, aspy;   /* display aspect */
+	/** Display aspect. */
+	float aspx, aspy;
 
-	struct anim *anim;  /* movie source data */
-	struct MovieClipCache *cache;       /* cache for different stuff, not in file */
-	struct bGPdata *gpd;                /* grease pencil data */
+	/** Movie source data. */
+	struct anim *anim;
+	/** Cache for different stuff, not in file. */
+	struct MovieClipCache *cache;
+	/** Grease pencil data. */
+	struct bGPdata *gpd;
 
-	struct MovieTracking tracking;      /* data for SfM tracking */
-	void *tracking_context;             /* context of tracking job
-	                                     * used to synchronize data like framenumber
-	                                     * in SpaceClip clip user */
+	/** Data for SfM tracking. */
+	struct MovieTracking tracking;
+	/**
+	 * Context of tracking job used to synchronize data
+	 * like framenumber in SpaceClip clip user.
+	 */
+	void *tracking_context;
 
-	struct MovieClipProxy proxy;        /* proxy to clip data */
+	/** Proxy to clip data. */
+	struct MovieClipProxy proxy;
 	int flag;
 
-	int len;    /* length of movie */
+	/** Length of movie. */
+	int len;
 
-	int start_frame;    /* scene frame number footage starts playing at */
-	                    /* affects all data which is associated with a clip */
-	                    /* such as motion tracking, camera reconstruciton and so */
-
-	int frame_offset;   /* offset which is adding to a file number when reading frame */
-	                    /* from a file. affects only a way how scene frame is mapping */
-	                    /* to a file name and not touches other data associated with */
-	                    /* a clip */
+	/**
+	 * Scene frame number footage starts playing at affects all data
+	 * which is associated with a clip such as motion tracking,
+	 * camera reconstruciton and so.
+	 */
+	int start_frame;
+	/**
+	 * Offset which is adding to a file number when reading frame from a file.
+	 * affects only a way how scene frame is mapping to a file name and not
+	 * touches other data associated with a clip. */
+	int frame_offset;
 
 	/* color management */
 	ColorManagedColorspaceSettings colorspace_settings;
 } MovieClip;
 
 typedef struct MovieClipScopes {
-	short ok;                       /* 1 means scopes are ok and recalculation is unneeded */
-	short use_track_mask;           /* whether track's mask should be applied on preview */
-	int track_preview_height;       /* height of track preview widget */
-	int frame_width, frame_height;  /* width and height of frame for which scopes are calculated */
-	struct MovieTrackingMarker undist_marker;   /* undistorted position of marker used for pattern sampling */
-	struct ImBuf *track_search;     /* search area of a track */
-	struct ImBuf *track_preview;    /* ImBuf displayed in track preview */
-	float track_pos[2];             /* sub-pizel position of marker in track ImBuf */
-	short track_disabled;           /* active track is disabled, special notifier should be drawn */
-	short track_locked;             /* active track is locked, no transformation should be allowed */
-	int framenr;                    /* frame number scopes are created for */
-	struct MovieTrackingTrack *track;   /* track scopes are created for */
-	struct MovieTrackingMarker *marker; /* marker scopes are created for */
-	float slide_scale[2];           /* scale used for sliding from previewe area */
+	/** 1 means scopes are ok and recalculation is unneeded. */
+	short ok;
+	/** Whether track's mask should be applied on preview. */
+	short use_track_mask;
+	/** Height of track preview widget. */
+	int track_preview_height;
+	/** Width and height of frame for which scopes are calculated. */
+	int frame_width, frame_height;
+	/** Undistorted position of marker used for pattern sampling. */
+	struct MovieTrackingMarker undist_marker;
+	/** Search area of a track. */
+	struct ImBuf *track_search;
+	/** ImBuf displayed in track preview. */
+	struct ImBuf *track_preview;
+	/** Sub-pizel position of marker in track ImBuf. */
+	float track_pos[2];
+	/** Active track is disabled, special notifier should be drawn. */
+	short track_disabled;
+	/** Active track is locked, no transformation should be allowed. */
+	short track_locked;
+	/** Frame number scopes are created for. */
+	int framenr;
+	/** Track scopes are created for. */
+	struct MovieTrackingTrack *track;
+	/** Marker scopes are created for. */
+	struct MovieTrackingMarker *marker;
+	/** Scale used for sliding from previewe area. */
+	float slide_scale[2];
 } MovieClipScopes;
 
 /* MovieClipProxy->build_size_flag */

@@ -60,25 +60,40 @@ typedef struct bActionModifier {
 typedef struct bActionStrip {
 	struct bActionStrip *next, *prev;
 	short	flag, mode;
-	short	stride_axis;		/* axis 0=x, 1=y, 2=z */
-	short   curmod;				/* current modifier for buttons */
+	/** Axis 0=x, 1=y, 2=z. */
+	short	stride_axis;
+	/** Current modifier for buttons. */
+	short   curmod;
 
-	struct	Ipo *ipo;			/* Blending ipo - was used for some old NAN era experiments. Non-functional currently. */
-	struct	bAction *act;		/* The action referenced by this strip */
-	struct  Object *object;		/* For groups, the actual object being nla'ed */
-	float	start, end;			/* The range of frames covered by this strip */
-	float	actstart, actend;	/* The range of frames taken from the action */
-	float	actoffs;			/* Offset within action, for cycles and striding */
-	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */
-	float	repeat;				/* The number of times to repeat the action range */
-	float	scale;				/* The amount the action range is scaled by */
+	/** Blending ipo - was used for some old NAN era experiments. Non-functional currently. */
+	struct	Ipo *ipo;
+	/** The action referenced by this strip. */
+	struct	bAction *act;
+	/** For groups, the actual object being nla'ed. */
+	struct  Object *object;
+	/** The range of frames covered by this strip. */
+	float	start, end;
+	/** The range of frames taken from the action. */
+	float	actstart, actend;
+	/** Offset within action, for cycles and striding. */
+	float	actoffs;
+	/** The stridelength (considered when flag & ACT_USESTRIDE). */
+	float	stridelen;
+	/** The number of times to repeat the action range. */
+	float	repeat;
+	/** The amount the action range is scaled by. */
+	float	scale;
 
-	float	blendin, blendout;	/* The number of frames on either end of the strip's length to fade in/out */
+	/** The number of frames on either end of the strip's length to fade in/out. */
+	float	blendin, blendout;
 
-	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
-	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
+	/** Instead of stridelen, it uses an action channel. */
+	char	stridechannel[32];
+	/** If repeat, use this bone/channel for defining offset. */
+	char	offs_bone[32];
 
-	ListBase modifiers;			/* modifier stack */
+	/** Modifier stack. */
+	ListBase modifiers;
 } bActionStrip;
 
 /* strip->mode (these defines aren't really used, but are here for reference) */
@@ -89,12 +104,14 @@ typedef struct bActionStrip {
 typedef enum eActStrip_Flag {
 	ACTSTRIP_SELECT			= (1<<0),
 	ACTSTRIP_USESTRIDE		= (1<<1),
-	ACTSTRIP_BLENDTONEXT	= (1<<2),	/* Not implemented. Is not used anywhere */
+	/* Not implemented. Is not used anywhere */
+	ACTSTRIP_BLENDTONEXT	= (1<<2),
 	ACTSTRIP_HOLDLASTFRAME	= (1<<3),
 	ACTSTRIP_ACTIVE			= (1<<4),
 	ACTSTRIP_LOCK_ACTION	= (1<<5),
 	ACTSTRIP_MUTE			= (1<<6),
-	ACTSTRIP_REVERSE		= (1<<7),	/* This has yet to be implemented. To indicate that a strip should be played backwards */
+	/* This has yet to be implemented. To indicate that a strip should be played backwards */
+	ACTSTRIP_REVERSE		= (1<<7),
 	ACTSTRIP_CYCLIC_USEX	= (1<<8),
 	ACTSTRIP_CYCLIC_USEY	= (1<<9),
 	ACTSTRIP_CYCLIC_USEZ	= (1<<10),

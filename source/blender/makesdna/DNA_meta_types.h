@@ -45,21 +45,30 @@ struct Material;
 typedef struct MetaElem {
 	struct MetaElem *next, *prev;
 
-	struct BoundBox *bb;        /* Bound Box of MetaElem */
+	/** Bound Box of MetaElem. */
+	struct BoundBox *bb;
 
 	short type, flag;
 	short pad[2];
-	float x, y, z;          /* Position of center of MetaElem */
-	float quat[4];          /* Rotation of MetaElem (MUST be kept normalized) */
-	float expx; /* dimension parameters, used for some types like cubes */
+	/** Position of center of MetaElem. */
+	float x, y, z;
+	/** Rotation of MetaElem (MUST be kept normalized). */
+	float quat[4];
+	/** Dimension parameters, used for some types like cubes. */
+	float expx;
 	float expy;
 	float expz;
-	float rad;              /* radius of the meta element */
-	float rad2;             /* temp field, used only while processing */
-	float s;                /* stiffness, how much of the element to fill */
-	float len;              /* old, only used for backwards compat. use dimensions now */
+	/** Radius of the meta element. */
+	float rad;
+	/** Temp field, used only while processing. */
+	float rad2;
+	/** Stiffness, how much of the element to fill. */
+	float s;
+	/** Old, only used for backwards compat. use dimensions now. */
+	float len;
 
-	float *mat, *imat;      /* matrix and inverted matrix */
+	/** Matrix and inverted matrix. */
+	float *mat, *imat;
 } MetaElem;
 
 typedef struct MetaBall {
@@ -68,22 +77,27 @@ typedef struct MetaBall {
 
 	ListBase elems;
 	ListBase disp;
-	ListBase *editelems;		/* not saved in files, note we use pointer for editmode check */
-	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
+	/** Not saved in files, note we use pointer for editmode check. */
+	ListBase *editelems;
+	/** Old animation system, deprecated for 2.5. */
+	struct Ipo *ipo  DNA_DEPRECATED;
 
 	/* material of the mother ball will define the material used of all others */
 	struct Material **mat;
 
-	char flag, flag2;			/* flag is enum for updates, flag2 is bitflags for settings */
+	/** Flag is enum for updates, flag2 is bitflags for settings. */
+	char flag, flag2;
 	short totcol;
-	short texflag, pad; /* used to store MB_AUTOSPACE */
+	/** Used to store MB_AUTOSPACE. */
+	short texflag, pad;
 
 	/* texture space, copied as one block in editobject.c */
 	float loc[3];
 	float size[3];
 	float rot[3];
 
-	float wiresize, rendersize; /* display and render res */
+	/** Display and render res. */
+	float wiresize, rendersize;
 
 	/* bias elements to have an offset volume.
 	 * mother ball changes will effect other objects thresholds,

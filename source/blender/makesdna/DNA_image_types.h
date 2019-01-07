@@ -46,19 +46,26 @@ struct GPUTexture;
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
 typedef struct ImageUser {
-	struct Scene *scene;		/* to retrieve render result */
+	/** To retrieve render result. */
+	struct Scene *scene;
 
-	int framenr;				/* movies, sequences: current to display */
-	int frames;					/* total amount of frames to use */
-	int offset, sfra;			/* offset within movie, start frame in global time */
-	char _pad, cycl;		/* cyclic flag */
+	/** Movies, sequences: current to display. */
+	int framenr;
+	/** Total amount of frames to use. */
+	int frames;
+	/** Offset within movie, start frame in global time. */
+	int offset, sfra;
+	/** Cyclic flag. */
+	char _pad, cycl;
 	char ok;
 
-	char multiview_eye;			/* multiview current eye - for internal use of drawing routines */
+	/** Multiview current eye - for internal use of drawing routines. */
+	char multiview_eye;
 	short pass;
 	short pad;
 
-	short multi_index, view, layer;	 /* listbase indices, for menu browsing or retrieve buffer */
+	/** Listbase indices, for menu browsing or retrieve buffer. */
+	short multi_index, view, layer;
 	short flag;
 } ImageUser;
 
@@ -69,19 +76,23 @@ typedef struct ImageAnim {
 
 typedef struct ImageView {
 	struct ImageView *next, *prev;
-	char name[64];			/* MAX_NAME */
-	char filepath[1024];	/* 1024 = FILE_MAX */
+	/** MAX_NAME. */
+	char name[64];
+	/** 1024 = FILE_MAX. */
+	char filepath[1024];
 } ImageView;
 
 typedef struct ImagePackedFile {
 	struct ImagePackedFile *next, *prev;
 	struct PackedFile *packedfile;
-	char filepath[1024];	/* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char filepath[1024];
 } ImagePackedFile;
 
 typedef struct RenderSlot {
 	struct RenderSlot *next, *prev;
-	char name[64];  /* 64 = MAX_NAME */
+	/** 64 = MAX_NAME. */
+	char name[64];
 	struct RenderResult *render;
 } RenderSlot;
 
@@ -101,10 +112,13 @@ enum {
 typedef struct Image {
 	ID id;
 
-	char name[1024];			/* file path, 1024 = FILE_MAX */
+	/** File path, 1024 = FILE_MAX. */
+	char name[1024];
 
-	struct MovieCache *cache;	/* not written in file */
-	struct GPUTexture *gputexture[2]; /* not written in file 2 = TEXTARGET_COUNT */
+	/** Not written in file. */
+	struct MovieCache *cache;
+	/** Not written in file 2 = TEXTARGET_COUNT. */
+	struct GPUTexture *gputexture[2];
 
 	/* sources from: */
 	ListBase anims;
@@ -122,7 +136,8 @@ typedef struct Image {
 	short pad2;
 	unsigned int pad3;
 
-	struct PackedFile *packedfile DNA_DEPRECATED; /* deprecated */
+	/** Deprecated. */
+	struct PackedFile *packedfile DNA_DEPRECATED;
 	struct ListBase packedfiles;
 	struct PreviewImage *preview;
 
@@ -146,9 +161,11 @@ typedef struct Image {
 	char pad[5];
 
 	/* Multiview */
-	char eye; /* for viewer node stereoscopy */
+	/** For viewer node stereoscopy. */
+	char eye;
 	char views_format;
-	ListBase views;  /* ImageView */
+	/** ImageView. */
+	ListBase views;
 	struct Stereo3dFormat *stereo3d_format;
 } Image;
 

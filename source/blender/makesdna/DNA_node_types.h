@@ -62,12 +62,18 @@ typedef struct bNodeStack {
 	float vec[4];
 	float min, max;
 	void *data;
-	short hasinput;			/* when input has link, tagged before executing */
-	short hasoutput;		/* when output is linked, tagged before executing */
-	short datatype;			/* type of data pointer */
-	short sockettype;		/* type of socket stack comes from, to remap linking different sockets */
-	short is_copy;			/* data is a copy of external data (no freeing) */
-	short external;			/* data is used by external nodes (no freeing) */
+	/** When input has link, tagged before executing. */
+	short hasinput;
+	/** When output is linked, tagged before executing. */
+	short hasoutput;
+	/** Type of data pointer. */
+	short datatype;
+	/** Type of socket stack comes from, to remap linking different sockets. */
+	short sockettype;
+	/** Data is a copy of external data (no freeing). */
+	short is_copy;
+	/** Data is used by external nodes (no freeing). */
+	short external;
 	short pad[2];
 } bNodeStack;
 
@@ -86,48 +92,62 @@ typedef struct bNodeStack {
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev, *new_sock;
 
-	IDProperty *prop;			/* user-defined properties */
+	/** User-defined properties. */
+	IDProperty *prop;
 
-	char identifier[64];		/* unique identifier for mapping */
+	/** Unique identifier for mapping. */
+	char identifier[64];
 
-	char name[64];	/* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64];
 
 	/* XXX deprecated, only used for the Image and OutputFile nodes,
 	 * should be removed at some point.
 	 */
-	void *storage;				/* custom storage */
+	/** Custom storage. */
+	void *storage;
 
 	short type, flag;
-	short limit;				/* max. number of links */
-	short in_out;				/* input/output type */
-	struct bNodeSocketType *typeinfo;	/* runtime type information */
-	char idname[64];			/* runtime type identifier */
+	/** Max. number of links. */
+	short limit;
+	/** Input/output type. */
+	short in_out;
+	/** Runtime type information. */
+	struct bNodeSocketType *typeinfo;
+	/** Runtime type identifier. */
+	char idname[64];
 
 	float locx, locy;
 
-	void *default_value;		/* default input value used for unlinked sockets */
+	/** Default input value used for unlinked sockets. */
+	void *default_value;
 
 	/* execution data */
-	short stack_index;			/* local stack index */
+	/** Local stack index. */
+	short stack_index;
 	/* XXX deprecated, kept for forward compatibility */
 	short stack_type  DNA_DEPRECATED;
 	char draw_shape, pad[3];
 
-	void *cache;				/* cached data from execution */
+	/** Cached data from execution. */
+	void *cache;
 
 	/* internal data to retrieve relations and groups
 	 * DEPRECATED, now uses the generic identifier string instead
 	 */
-	int own_index  DNA_DEPRECATED;	/* group socket identifiers, to find matching pairs after reading files */
+	/** Group socket identifiers, to find matching pairs after reading files. */
+	int own_index  DNA_DEPRECATED;
 	/* XXX deprecated, only used for restoring old group node links */
 	int to_index  DNA_DEPRECATED;
 	/* XXX deprecated, still forward compatible since verification restores pointer from matching own_index. */
 	struct bNodeSocket *groupsock  DNA_DEPRECATED;
 
-	struct bNodeLink *link;		/* a link pointer, set in ntreeUpdateTree */
+	/** A link pointer, set in ntreeUpdateTree. */
+	struct bNodeLink *link;
 
 	/* XXX deprecated, socket input values are stored in default_value now. kept for forward compatibility */
-	bNodeStack ns  DNA_DEPRECATED;	/* custom data for inputs, only UI writes in this */
+	/** Custom data for inputs, only UI writes in this. */
+	bNodeStack ns  DNA_DEPRECATED;
 } bNodeSocket;
 
 /* sock->type */
@@ -173,45 +193,73 @@ typedef enum eNodeSocketFlag {
 typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 
-	IDProperty *prop;		/* user-defined properties */
+	/** User-defined properties. */
+	IDProperty *prop;
 
-	struct bNodeType *typeinfo;	/* runtime type information */
-	char idname[64];			/* runtime type identifier */
+	/** Runtime type information. */
+	struct bNodeType *typeinfo;
+	/** Runtime type identifier. */
+	char idname[64];
 
-	char name[64];	/* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64];
 	int flag;
 	short type, pad;
-	short done, level;		/* both for dependency and sorting */
-	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
-	short stack_index;		/* for groupnode, offset in global caller stack */
-	short nr;				/* number of this node in list, used for UI exec events */
-	float color[3];			/* custom user-defined color */
+	/** Both for dependency and sorting. */
+	short done, level;
+	/** Lasty: check preview render status, menunr: browse ID blocks. */
+	short lasty, menunr;
+	/** For groupnode, offset in global caller stack. */
+	short stack_index;
+	/** Number of this node in list, used for UI exec events. */
+	short nr;
+	/** Custom user-defined color. */
+	float color[3];
 
 	ListBase inputs, outputs;
-	struct bNode *parent;	/* parent node */
-	struct ID *id;			/* optional link to libdata */
-	void *storage;			/* custom data, must be struct, for storage in file */
-	struct bNode *original;	/* the original node in the tree (for localized tree) */
-	ListBase internal_links; /* list of cached internal links (input to output), for muted nodes and operators */
+	/** Parent node. */
+	struct bNode *parent;
+	/** Optional link to libdata. */
+	struct ID *id;
+	/** Custom data, must be struct, for storage in file. */
+	void *storage;
+	/** The original node in the tree (for localized tree). */
+	struct bNode *original;
+	/** List of cached internal links (input to output), for muted nodes and operators. */
+	ListBase internal_links;
 
-	float locx, locy;		/* root offset for drawing (parent space) */
-	float width, height;	/* node custom width and height */
-	float miniwidth;		/* node width if hidden */
-	float offsetx, offsety;	/* additional offset from loc */
-	float anim_init_locx;	/* initial locx for insert offset animation */
-	float anim_ofsx;		/* offset that will be added to locx for insert offset animation */
+	/** Root offset for drawing (parent space). */
+	float locx, locy;
+	/** Node custom width and height. */
+	float width, height;
+	/** Node width if hidden. */
+	float miniwidth;
+	/** Additional offset from loc. */
+	float offsetx, offsety;
+	/** Initial locx for insert offset animation. */
+	float anim_init_locx;
+	/** Offset that will be added to locx for insert offset animation. */
+	float anim_ofsx;
 
-	int update;				/* update flags */
+	/** Update flags. */
+	int update;
 
-	char label[64];			/* custom user-defined label, MAX_NAME */
-	short custom1, custom2;	/* to be abused for buttons */
+	/** Custom user-defined label, MAX_NAME. */
+	char label[64];
+	/** To be abused for buttons. */
+	short custom1, custom2;
 	float custom3, custom4;
 
-	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
-	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
-	rctf totr;				/* entire boundbox (worldspace) */
-	rctf butr;				/* optional buttons area */
-	rctf prvr;				/* optional preview area */
+	/** Need_exec is set as UI execution event, exec is flag during exec. */
+	short need_exec, exec;
+	/** Optional extra storage for use in thread (read only then!). */
+	void *threaddata;
+	/** Entire boundbox (worldspace). */
+	rctf totr;
+	/** Optional buttons area. */
+	rctf butr;
+	/** Optional preview area. */
+	rctf prvr;
 	/* XXX TODO
 	 * Node totr size depends on the prvr size, which in turn is determined from preview size.
 	 * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
@@ -220,12 +268,23 @@ typedef struct bNode {
 	 * could be replaced by more accurate node instance drawing, but that requires removing totr from DNA
 	 * and replacing all uses with per-instance data.
 	 */
-	short preview_xsize, preview_ysize;	/* reserved size of the preview rect */
-	short tmp_flag, pad2;   /* Used at runtime when going through the tree. Initialize before use. */
-	struct uiBlock *block;	/* runtime during drawing */
+	/** Reserved size of the preview rect. */
+	short preview_xsize, preview_ysize;
+	/** Used at runtime when going through the tree. Initialize before use. */
+	short tmp_flag, pad2;
+	/** Runtime during drawing. */
+	struct uiBlock *block;
 
-	float ssr_id; /* XXX: eevee only, id of screen space reflection layer, needs to be a float to feed GPU_uniform. */
-	float sss_id; /* XXX: eevee only, id of screen subsurface scatter layer, needs to be a float to feed GPU_uniform. */
+	/**
+	 * XXX: eevee only, id of screen space reflection layer,
+	 * needs to be a float to feed GPU_uniform.
+	 */
+	float ssr_id;
+	/**
+	 * XXX: eevee only, id of screen subsurface scatter layer,
+	 * needs to be a float to feed GPU_uniform.
+	 */
+	float sss_id;
 } bNode;
 
 /* node->flag */
@@ -298,7 +357,8 @@ typedef struct bNodeInstanceHashEntry {
 
 
 typedef struct bNodePreview {
-	bNodeInstanceHashEntry hash_entry;	/* must be first */
+	/** Must be first. */
+	bNodeInstanceHashEntry hash_entry;
 
 	unsigned char *rect;
 	short xsize, ysize;
@@ -338,32 +398,49 @@ typedef struct bNodeLink {
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {
 	ID id;
-	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
+	/** Animation data (must be immediately after id for utilities to use it). */
+	struct AnimData *adt;
 
-	struct bNodeTreeType *typeinfo;	/* runtime type information */
-	char idname[64];				/* runtime type identifier */
+	/** Runtime type information. */
+	struct bNodeTreeType *typeinfo;
+	/** Runtime type identifier. */
+	char idname[64];
 
-	struct StructRNA *interface_type;	/* runtime RNA type of the group interface */
+	/** Runtime RNA type of the group interface. */
+	struct StructRNA *interface_type;
 
-	struct bGPdata *gpd;		/* grease pencil data */
-	float view_center[2];		/* node tree stores own offset for consistent editor view */
+	/** Grease pencil data. */
+	struct bGPdata *gpd;
+	/** Node tree stores own offset for consistent editor view. */
+	float view_center[2];
 
 	ListBase nodes, links;
 
-	int type, init;					/* set init on fileread */
-	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always
-									 * will increase this counter */
+	/** Set init on fileread. */
+	int type, init;
+	/**
+	 * Sockets in groups have unique identifiers, adding new sockets always
+	 * will increase this counter.
+	 */
+	int cur_index;
 	int flag;
-	int update;						/* update flags */
-	short is_updating;				/* flag to prevent reentrant update calls */
-	short done;						/* generic temporary flag for recursion check (DFS/BFS) */
+	/** Update flags. */
+	int update;
+	/** Flag to prevent reentrant update calls. */
+	short is_updating;
+	/** Generic temporary flag for recursion check (DFS/BFS). */
+	short done;
 	int pad2;
 
-	int nodetype DNA_DEPRECATED;	/* specific node type this tree is used for */
+	/** Specific node type this tree is used for. */
+	int nodetype DNA_DEPRECATED;
 
-	short edit_quality;				/* Quality setting when editing */
-	short render_quality;				/* Quality setting when rendering */
-	int chunksize;					/* tile size for compositor engine */
+	/** Quality setting when editing. */
+	short edit_quality;
+	/** Quality setting when rendering. */
+	short render_quality;
+	/** Tile size for compositor engine. */
+	int chunksize;
 
 	rctf viewer_border;
 
@@ -450,13 +527,15 @@ typedef enum eNodeTreeUpdate {
  */
 
 typedef struct bNodeSocketValueInt {
-	int subtype;				/* RNA subtype */
+	/** RNA subtype. */
+	int subtype;
 	int value;
 	int min, max;
 } bNodeSocketValueInt;
 
 typedef struct bNodeSocketValueFloat {
-	int subtype;				/* RNA subtype */
+	/** RNA subtype. */
+	int subtype;
 	float value;
 	float min, max;
 } bNodeSocketValueFloat;
@@ -467,7 +546,8 @@ typedef struct bNodeSocketValueBoolean {
 } bNodeSocketValueBoolean;
 
 typedef struct bNodeSocketValueVector {
-	int subtype;				/* RNA subtype */
+	/** RNA subtype. */
+	int subtype;
 	float value[3];
 	float min, max;
 } bNodeSocketValueVector;
@@ -479,7 +559,8 @@ typedef struct bNodeSocketValueRGBA {
 typedef struct bNodeSocketValueString {
 	int subtype;
 	int pad;
-	char value[1024];	/* 1024 = FILEMAX */
+	/** 1024 = FILEMAX. */
+	char value[1024];
 } bNodeSocketValueString;
 
 /* data structs, for node->storage */
@@ -587,7 +668,8 @@ typedef struct NodeImageLayer {
 	/* index in the Image->layers->passes lists */
 	int pass_index  DNA_DEPRECATED;
 	/* render pass name */
-	char pass_name[64]; /* amount defined in openexr_multi.h */
+	/** Amount defined in openexr_multi.h. */
+	char pass_name[64];
 } NodeImageLayer;
 
 typedef struct NodeBlurData {
@@ -597,7 +679,8 @@ typedef struct NodeBlurData {
 	float fac, percentx, percenty;
 	short filtertype;
 	char bokeh, gamma;
-	int image_in_width, image_in_height; /* needed for absolute/relative conversions */
+	/** Needed for absolute/relative conversions. */
+	int image_in_width, image_in_height;
 } NodeBlurData;
 
 typedef struct NodeDBlurData {
@@ -617,29 +700,36 @@ typedef struct NodeHueSat {
 } NodeHueSat;
 
 typedef struct NodeImageFile {
-	char name[1024]; /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char name[1024];
 	struct ImageFormatData im_format;
 	int sfra, efra;
 } NodeImageFile;
 
 /* XXX first struct fields should match NodeImageFile to ensure forward compatibility */
 typedef struct NodeImageMultiFile {
-	char base_path[1024];	/* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char base_path[1024];
 	ImageFormatData format;
-	int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;	/* XXX old frame rand values from NodeImageFile for forward compatibility */
-	int active_input;		/* selected input in details view list */
+	/** XXX old frame rand values from NodeImageFile for forward compatibility. */
+	int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;
+	/** Selected input in details view list. */
+	int active_input;
 	int pad;
 } NodeImageMultiFile;
 typedef struct NodeImageMultiFileSocket {
 	/* single layer file output */
 	short use_render_format  DNA_DEPRECATED;
-	short use_node_format;	/* use overall node image format */
+	/** Use overall node image format. */
+	short use_node_format;
 	int pad1;
-	char path[1024];		/* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char path[1024];
 	ImageFormatData format;
 
 	/* multilayer output */
-	char layer[30];		/* EXR_TOT_MAXNAME-2 ('.' and channel char are appended) */
+	/** EXR_TOT_MAXNAME-2 ('.' and channel char are appended). */
+	char layer[30];
 	char pad2[2];
 } NodeImageMultiFileSocket;
 
@@ -672,8 +762,10 @@ typedef struct NodeDefocus {
 } NodeDefocus;
 
 typedef struct NodeScriptDict {
-	void *dict; /* for PyObject *dict */
-	void *node; /* for BPy_Node *node */
+	/** For PyObject *dict. */
+	void *dict;
+	/** For BPy_Node *node. */
+	void *node;
 } NodeScriptDict;
 
 /* qdn: glare node */
@@ -825,7 +917,8 @@ typedef struct NodeShaderTexPointDensity {
 	short interpolation;
 	short color_source;
 	short ob_color_source;
-	char vertex_attribute_name[64]; /* vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
+	/** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
+	char vertex_attribute_name[64];
 	/* Used at runtime only by sampling RNA API. */
 	PointDensity pd;
 	int cached_resolution;
@@ -878,7 +971,8 @@ typedef struct NodeShaderScript {
 	int mode;
 	int flag;
 
-	char filepath[1024]; /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char filepath[1024];
 
 	char bytecode_hash[64];
 	char *bytecode;
@@ -902,7 +996,8 @@ typedef struct NodeShaderUVMap {
 typedef struct NodeShaderTexIES {
 	int mode;
 
-	char filepath[1024]; /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char filepath[1024];
 } NodeShaderTexIES;
 
 typedef struct NodeSunBeams {

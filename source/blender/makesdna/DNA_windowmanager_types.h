@@ -97,9 +97,11 @@ enum ReportListFlags {
 #
 typedef struct Report {
 	struct Report *next, *prev;
-	short type;  /* ReportType */
+	/** ReportType. */
+	short type;
 	short flag;
-	int len;  /* strlen(message), saves some time calculating the word wrap  */
+	/** `strlen(message)`, saves some time calculating the word wrap . */
+	int len;
 	const char *typestr;
 	const char *message;
 } Report;
@@ -107,8 +109,10 @@ typedef struct Report {
 /* saved in the wm, don't remove */
 typedef struct ReportList {
 	ListBase list;
-	int printlevel;  /* ReportType */
-	int storelevel;  /* ReportType */
+	/** ReportType. */
+	int printlevel;
+	/** ReportType. */
+	int storelevel;
 	int flag, pad;
 	struct wmTimer *reporttimer;
 } ReportList;
@@ -129,36 +133,54 @@ typedef struct ReportTimerInfo {
 typedef struct wmWindowManager {
 	ID id;
 
-	struct wmWindow *windrawable, *winactive;  /* separate active from drawable */
+	/** Separate active from drawable. */
+	struct wmWindow *windrawable, *winactive;
 	ListBase windows;
 
-	int initialized;                  /* set on file read */
-	short file_saved;                 /* indicator whether data was saved */
-	short op_undo_depth;              /* operator stack depth to avoid nested undo pushes */
+	/** Set on file read. */
+	int initialized;
+	/** Indicator whether data was saved. */
+	short file_saved;
+	/** Operator stack depth to avoid nested undo pushes. */
+	short op_undo_depth;
 
-	ListBase operators;               /* operator registry */
+	/** Operator registry. */
+	ListBase operators;
 
-	ListBase queue;                   /* refresh/redraw wmNotifier structs */
+	/** Refresh/redraw wmNotifier structs. */
+	ListBase queue;
 
-	struct ReportList reports;        /* information and error reports */
+	/** Information and error reports. */
+	struct ReportList reports;
 
-	ListBase jobs;                    /* threaded jobs manager */
+	/** Threaded jobs manager. */
+	ListBase jobs;
 
-	ListBase paintcursors;            /* extra overlay cursors to draw, like circles */
+	/** Extra overlay cursors to draw, like circles. */
+	ListBase paintcursors;
 
-	ListBase drags;                   /* active dragged items */
+	/** Active dragged items. */
+	ListBase drags;
 
-	ListBase keyconfigs;              /* known key configurations */
-	struct wmKeyConfig *defaultconf;  /* default configuration */
-	struct wmKeyConfig *addonconf;    /* addon configuration */
-	struct wmKeyConfig *userconf;     /* user configuration */
+	/** Known key configurations. */
+	ListBase keyconfigs;
+	/** Default configuration. */
+	struct wmKeyConfig *defaultconf;
+	/** Addon configuration. */
+	struct wmKeyConfig *addonconf;
+	/** User configuration. */
+	struct wmKeyConfig *userconf;
 
-	ListBase timers;                  /* active timers */
-	struct wmTimer *autosavetimer;    /* timer for auto save */
+	/** Active timers. */
+	ListBase timers;
+	/** Timer for auto save. */
+	struct wmTimer *autosavetimer;
 
-	struct UndoStack *undo_stack;     /* all undo history (runtime only). */
+	/** All undo history (runtime only). */
+	struct UndoStack *undo_stack;
 
-	char is_interface_locked;		/* indicates whether interface is locked for user interaction */
+	/** Indicates whether interface is locked for user interaction. */
+	char is_interface_locked;
 	char par[7];
 
 	struct wmMsgBus *message_bus;
@@ -184,14 +206,20 @@ enum {
 typedef struct wmWindow {
 	struct wmWindow *next, *prev;
 
-	void *ghostwin;             /* don't want to include ghost.h stuff */
-	void *gpuctx;               /* don't want to include gpu stuff */
+	/** Don't want to include ghost.h stuff. */
+	void *ghostwin;
+	/** Don't want to include gpu stuff. */
+	void *gpuctx;
 
-	struct wmWindow *parent;    /* Parent window */
+	/** Parent window. */
+	struct wmWindow *parent;
 
-	struct Scene *scene;        /* Active scene displayed in this window. */
-	struct Scene *new_scene;    /* temporary when switching */
-	char view_layer_name[64];   /* Active view layer displayed in this window. */
+	/** Active scene displayed in this window. */
+	struct Scene *scene;
+	/** Temporary when switching. */
+	struct Scene *new_scene;
+	/** Active view layer displayed in this window. */
+	char view_layer_name[64];
 
 	struct WorkSpaceInstanceHook *workspace_hook;
 
@@ -201,38 +229,59 @@ typedef struct wmWindow {
 
 	struct bScreen *screen DNA_DEPRECATED;
 
-	short posx, posy, sizex, sizey;  /* window coords */
-	short windowstate;  /* borderless, full */
-	short monitor;      /* multiscreen... no idea how to store yet */
-	short active;       /* set to 1 if an active window, for quick rejects */
-	short cursor;       /* current mouse cursor type */
-	short lastcursor;   /* previous cursor when setting modal one */
-	short modalcursor;  /* the current modal cursor */
-	short grabcursor;           /* cursor grab mode */
-	short addmousemove; /* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
+	/** Window coords. */
+	short posx, posy, sizex, sizey;
+	/** Borderless, full. */
+	short windowstate;
+	/** Multiscreen... no idea how to store yet. */
+	short monitor;
+	/** Set to 1 if an active window, for quick rejects. */
+	short active;
+	/** Current mouse cursor type. */
+	short cursor;
+	/** Previous cursor when setting modal one. */
+	short lastcursor;
+	/** The current modal cursor. */
+	short modalcursor;
+	/** Cursor grab mode. */
+	short grabcursor;
+	/** Internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching. */
+	short addmousemove;
 	short pad[4];
 
-	int winid;                  /* winid also in screens, is for retrieving this window after read */
+	/** Winid also in screens, is for retrieving this window after read. */
+	int winid;
 
-	short lock_pie_event;      /* internal, lock pie creation from this event until released */
-	short last_pie_event;      /* exception to the above rule for nested pies, store last pie event for operators
-	                            * that spawn a new pie right after destruction of last pie */
+	/** Internal, lock pie creation from this event until released. */
+	short lock_pie_event;
+	/**
+	 * Exception to the above rule for nested pies, store last pie event for operators
+	 * that spawn a new pie right after destruction of last pie.
+	 */
+	short last_pie_event;
 
-	struct wmEvent *eventstate;   /* storage for event system */
+	/** Storage for event system. */
+	struct wmEvent *eventstate;
 
-	struct wmGesture *tweak;      /* internal for wm_operators.c */
+	/** Internal for wm_operators.c. */
+	struct wmGesture *tweak;
 
 	/* Input Method Editor data - complex character input (esp. for asian character input)
 	 * Currently WIN32, runtime-only data */
 	struct wmIMEData *ime_data;
 
-	ListBase queue;               /* all events (ghost level events were handled) */
-	ListBase handlers;            /* window+screen handlers, handled last */
-	ListBase modalhandlers;       /* priority handlers, handled first */
+	/** All events (ghost level events were handled). */
+	ListBase queue;
+	/** Window+screen handlers, handled last. */
+	ListBase handlers;
+	/** Priority handlers, handled first. */
+	ListBase modalhandlers;
 
-	ListBase gesture;             /* gesture stuff */
+	/** Gesture stuff. */
+	ListBase gesture;
 
-	struct Stereo3dFormat *stereo3d_format; /* properties for stereoscopic displays */
+	/** Properties for stereoscopic displays. */
+	struct Stereo3dFormat *stereo3d_format;
 
 	/* custom drawing callbacks */
 	ListBase drawcalls;
@@ -256,7 +305,8 @@ typedef struct wmOperatorTypeMacro {
 	/* operator id */
 	char idname[64];
 	/* rna pointer to access properties, like keymap */
-	struct IDProperty *properties;  /* operator properties, assigned to ptr->data and can be written to a file */
+	/** Operator properties, assigned to ptr->data and can be written to a file. */
+	struct IDProperty *properties;
 	struct PointerRNA *ptr;
 } wmOperatorTypeMacro;
 
@@ -265,27 +315,38 @@ typedef struct wmKeyMapItem {
 	struct wmKeyMapItem *next, *prev;
 
 	/* operator */
-	char idname[64];                /* used to retrieve operator type pointer */
-	IDProperty *properties;         /* operator properties, assigned to ptr->data and can be written to a file */
+	/** Used to retrieve operator type pointer. */
+	char idname[64];
+	/** Operator properties, assigned to ptr->data and can be written to a file. */
+	IDProperty *properties;
 
 	/* modal */
-	char propvalue_str[64];         /* runtime temporary storage for loading */
-	short propvalue;                /* if used, the item is from modal map */
+	/** Runtime temporary storage for loading. */
+	char propvalue_str[64];
+	/** If used, the item is from modal map. */
+	short propvalue;
 
 	/* event */
-	short type;                     /* event code itself */
-	short val;                      /* KM_ANY, KM_PRESS, KM_NOTHING etc */
-	short shift, ctrl, alt, oskey;  /* oskey is apple or windowskey, value denotes order of pressed */
-	short keymodifier;              /* rawkey modifier */
+	/** Event code itself. */
+	short type;
+	/** KM_ANY, KM_PRESS, KM_NOTHING etc. */
+	short val;
+	/** Oskey is apple or windowskey, value denotes order of pressed. */
+	short shift, ctrl, alt, oskey;
+	/** Rawkey modifier. */
+	short keymodifier;
 
 	/* flag: inactive, expanded */
 	short flag;
 
 	/* runtime */
-	short maptype;                  /* keymap editor */
-	short id;                       /* unique identifier. Positive for kmi that override builtins, negative otherwise */
+	/** Keymap editor. */
+	short maptype;
+	/** Unique identifier. Positive for kmi that override builtins, negative otherwise. */
+	short id;
 	short pad;
-	struct PointerRNA *ptr;         /* rna pointer to access properties */
+	/** Rna pointer to access properties. */
+	struct PointerRNA *ptr;
 } wmKeyMapItem;
 
 /* used instead of wmKeyMapItem for diff keymaps */
@@ -321,13 +382,19 @@ typedef struct wmKeyMap {
 	ListBase items;
 	ListBase diff_items;
 
-	char idname[64];  /* global editor keymaps, or for more per space/region */
-	short spaceid;    /* same IDs as in DNA_space_types.h */
-	short regionid;   /* see above */
-	char owner_id[64];  /* optional, see: #wmOwnerID */
+	/** Global editor keymaps, or for more per space/region. */
+	char idname[64];
+	/** Same IDs as in DNA_space_types.h. */
+	short spaceid;
+	/** See above. */
+	short regionid;
+	/** Optional, see: #wmOwnerID. */
+	char owner_id[64];
 
-	short flag;       /* general flags */
-	short kmi_id;     /* last kmi id */
+	/** General flags. */
+	short flag;
+	/** Last kmi id. */
+	short kmi_id;
 
 	/* runtime */
 	/** Verify if enabled in the current context, use #WM_keymap_poll instead of direct calls. */
@@ -359,15 +426,18 @@ enum {
  */
 typedef struct wmKeyConfigPref {
 	struct wmKeyConfigPref *next, *prev;
-	char idname[64];    /* unique name */
+	/** Unique name. */
+	char idname[64];
 	IDProperty *prop;
 } wmKeyConfigPref;
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;
 
-	char idname[64];    /* unique name */
-	char basename[64];  /* idname of configuration this is derives from, "" if none */
+	/** Unique name. */
+	char idname[64];
+	/** Idname of configuration this is derives from, "" if none. */
+	char basename[64];
 
 	ListBase keymaps;
 	int actkeymap;
@@ -387,20 +457,30 @@ typedef struct wmOperator {
 	struct wmOperator *next, *prev;
 
 	/* saved */
-	char idname[64];              /* used to retrieve type pointer */
-	IDProperty *properties;       /* saved, user-settable properties */
+	/** Used to retrieve type pointer. */
+	char idname[64];
+	/** Saved, user-settable properties. */
+	IDProperty *properties;
 
 	/* runtime */
-	struct wmOperatorType *type;  /* operator type definition from idname */
-	void *customdata;             /* custom storage, only while operator runs */
-	void *py_instance;            /* python stores the class instance here */
+	/** Operator type definition from idname. */
+	struct wmOperatorType *type;
+	/** Custom storage, only while operator runs. */
+	void *customdata;
+	/** Python stores the class instance here. */
+	void *py_instance;
 
-	struct PointerRNA *ptr;       /* rna pointer to access properties */
-	struct ReportList *reports;   /* errors and warnings storage */
+	/** Rna pointer to access properties. */
+	struct PointerRNA *ptr;
+	/** Errors and warnings storage. */
+	struct ReportList *reports;
 
-	ListBase macro;               /* list of operators, can be a tree */
-	struct wmOperator *opm;       /* current running macro, not saved */
-	struct uiLayout *layout;      /* runtime for drawing */
+	/** List of operators, can be a tree. */
+	ListBase macro;
+	/** Current running macro, not saved. */
+	struct wmOperator *opm;
+	/** Runtime for drawing. */
+	struct uiLayout *layout;
 	short flag, pad[3];
 } wmOperator;
 

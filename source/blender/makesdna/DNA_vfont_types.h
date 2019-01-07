@@ -45,7 +45,8 @@ struct VFontData;
 typedef struct VFont {
 	ID id;
 
-	char name[1024]; /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char name[1024];
 
 	struct VFontData *data;
 	struct PackedFile *packedfile;

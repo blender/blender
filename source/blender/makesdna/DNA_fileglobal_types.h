@@ -37,7 +37,8 @@
  * the moment of saving, and the file-specific settings.
  */
 typedef struct FileGlobal {
-	char subvstr[4];		/* needs to be here, for human fileformat recognition */
+	/** Needs to be here, for human fileformat recognition. */
+	char subvstr[4];
 	short subversion;
 	short minversion, minsubversion;
 	char pad[6];
@@ -48,10 +49,12 @@ typedef struct FileGlobal {
 
 	int fileflags;
 	int globalf;
-	uint64_t build_commit_timestamp;  /* commit timestamp from buildinfo */
-	char build_hash[16];  /* hash from buildinfo */
-	/* file path where this was saved, for recover */
-	char filename[1024]; /* 1024 = FILE_MAX */
+	/** Commit timestamp from buildinfo. */
+	uint64_t build_commit_timestamp;
+	/** Hash from buildinfo. */
+	char build_hash[16];
+	/** File path where this was saved, for recover (1024 = FILE_MAX). */
+	char filename[1024];
 } FileGlobal;
 
 

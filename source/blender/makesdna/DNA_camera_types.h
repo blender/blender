@@ -77,10 +77,13 @@ typedef struct CameraBGImage {
 
 typedef struct Camera {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+	/** Animation data (must be immediately after id for utilities to use it). */
+	struct AnimData *adt;
 
-	char type; /* CAM_PERSP, CAM_ORTHO or CAM_PANO */
-	char dtx; /* draw type extra */
+	/** CAM_PERSP, CAM_ORTHO or CAM_PANO. */
+	char type;
+	/** Draw type extra. */
+	char dtx;
 	short flag;
 	float passepartalpha;
 	float clipsta, clipend;
@@ -93,7 +96,8 @@ typedef struct Camera {
 	 * The name was not changed so that no other files need to be modified */
 	float YF_dofdist;
 
-	struct Ipo *ipo  DNA_DEPRECATED; /* old animation system, deprecated for 2.5 */
+	/** Old animation system, deprecated for 2.5. */
+	struct Ipo *ipo  DNA_DEPRECATED;
 
 	struct Object *dof_ob;
 	struct GPUDOFSettings gpu_dof;

@@ -56,8 +56,10 @@ typedef struct CollectionChild {
 typedef struct Collection {
 	ID id;
 
-	ListBase gobject;   /* CollectionObject */
-	ListBase children;  /* CollectionChild */
+	/** CollectionObject. */
+	ListBase gobject;
+	/** CollectionChild. */
+	ListBase children;
 
 	struct PreviewImage *preview;
 

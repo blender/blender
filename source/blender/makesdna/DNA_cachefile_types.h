@@ -62,11 +62,11 @@ typedef struct CacheFile {
 	struct AbcArchiveHandle *handle;
 	void *handle_mutex;
 
-	/* Paths of the objects inside of the Alembic archive referenced by this
-	 * CacheFile. */
+	/** Paths of the objects inside of the Alembic archive referenced by this CacheFile. */
 	ListBase object_paths;
 
-	char filepath[1024];  /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char filepath[1024];
 
 	char is_sequence;
 	char forward_axis;
@@ -74,10 +74,13 @@ typedef struct CacheFile {
 	char override_frame;
 
 	float scale;
-	float frame;  /* The frame/time to lookup in the cache file. */
-	float frame_offset; /* The frame offset to subtract. */
+	/** The frame/time to lookup in the cache file. */
+	float frame;
+	/** The frame offset to subtract. */
+	float frame_offset;
 
-	short flag;  /* Animation flag. */
+	/** Animation flag. */
+	short flag;
 	short draw_flag;
 
 	char padding[4];

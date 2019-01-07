@@ -108,9 +108,12 @@ typedef struct Strip {
 	struct Strip *next, *prev;
 	int us, done;
 	int startstill, endstill;
-	StripElem *stripdata;  /* only used as an array in IMAGE sequences(!),
-	                        * and as a 1-element array in MOVIE sequences,
-	                        * NULL for all other strip-types */
+	/**
+	 * Only used as an array in IMAGE sequences(!),
+	 * and as a 1-element array in MOVIE sequences,
+	 * NULL for all other strip-types.
+	 */
+	StripElem *stripdata;
 	char dir[768];
 	StripProxy *proxy;
 	StripCrop *crop;
@@ -133,35 +136,62 @@ typedef struct Strip {
  */
 typedef struct Sequence {
 	struct Sequence *next, *prev;
-	void *tmp; /* tmp var for copying, and tagging for linked selection */
-	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
-	char name[64]; /* SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths */
+	/** Tmp var for copying, and tagging for linked selection. */
+	void *tmp;
+	/** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
+	void *lib;
+	/** SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths. */
+	char name[64];
 
-	int flag, type; /*flags bitmap (see below) and the type of sequence*/
-	int len; /* the length of the contents of this strip - before handles are applied */
-	int start; /* start frame of contents of strip in absolute frame coordinates. For metastrips start of first strip startdisp */
-	int startofs, endofs; /* frames after the first frame where display starts, frames before the last frame where display ends */
-	int startstill, endstill; /* frames that use the first frame before data begins, frames that use the last frame after data ends */
-	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
-	int startdisp, enddisp; /* starting and ending points of the strip in the sequence*/
+	/**fLags bitmap (see below) and the type of sequenc.e*/
+	int flag, type;
+	/** The length of the contents of this strip - before handles are applied. */
+	int len;
+	/**
+	 * Start frame of contents of strip in absolute frame coordinates.
+	 * For metastrips start of first strip startdisp.
+	 */
+	int start;
+	/**
+	 * Frames after the first frame where display starts,
+	 * frames before the last frame where display ends.
+	 */
+	int startofs, endofs;
+	/**
+	 * Frames that use the first frame before data begins,
+	 * frames that use the last frame after data ends.
+	 */
+	int startstill, endstill;
+	/** Machine: the strip channel, depth the depth in the sequence when dealing with metastrips. */
+	int machine, depth;
+	/** Starting and ending points of the strip in the sequenc.e*/
+	int startdisp, enddisp;
 	float sat;
 	float mul, handsize;
 
 	short anim_preseek;
-	short streamindex;    /* streamindex for movie or sound files with several streams */
-	int multicam_source;  /* for multicam source selection */
-	int clip_flag;        /* MOVIECLIP render flags */
+	/** Streamindex for movie or sound files with several streams. */
+	short streamindex;
+	/** For multicam source selection. */
+	int multicam_source;
+	/** MOVIECLIP render flags. */
+	int clip_flag;
 
 	Strip *strip;
 
-	struct Ipo *ipo DNA_DEPRECATED;   /* old animation system, deprecated for 2.5 */
+	/** Old animation system, deprecated for 2.5. */
+	struct Ipo *ipo DNA_DEPRECATED;
 
 	/* these ID vars should never be NULL but can be when linked libs fail to load, so check on access */
 	struct Scene     *scene;
-	struct Object    *scene_camera;  /* override scene camera */
-	struct MovieClip *clip;          /* for MOVIECLIP strips */
-	struct Mask      *mask;          /* for MASK strips */
-	ListBase anims;                  /* for MOVIE strips */
+	/** Override scene camera. */
+	struct Object    *scene_camera;
+	/** For MOVIECLIP strips. */
+	struct MovieClip *clip;
+	/** For MASK strips. */
+	struct Mask      *mask;
+	/** For MOVIE strips. */
+	ListBase anims;
 
 	float effect_fader;
 	float speed_fader;
@@ -169,26 +199,33 @@ typedef struct Sequence {
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
 
-	ListBase seqbase;       /* list of strips for metastrips */
+	/** List of strips for metastrips. */
+	ListBase seqbase;
 
-	struct bSound *sound;   /* the linked "bSound" object */
+	/** The linked "bSound" object. */
+	struct bSound *sound;
 	void *scene_sound;
 	float volume;
 
-	float pitch, pan;     /* pitch (-0.1..10), pan -2..2 */
+	/** Pitch (-0.1..10), pan -2..2. */
+	float pitch, pan;
 	float strobe;
 
-	void *effectdata;     /* Struct pointer for effect settings */
+	/** Struct pointer for effect settings. */
+	void *effectdata;
 
-	int anim_startofs;    /* only use part of animation file */
-	int anim_endofs;      /* is subtle different to startofs / endofs */
+	/** Only use part of animation file. */
+	int anim_startofs;
+	/** Is subtle different to startofs / endofs. */
+	int anim_endofs;
 
 
 	int blend_mode;
 	float blend_opacity;
 
 	/* is sfra needed anymore? - it looks like its only used in one place */
-	int sfra;  /* starting frame according to the timeline of the scene. */
+	/** Starting frame according to the timeline of the scene. */
+	int sfra;
 
 	char alpha_mode;
 	char pad[2];
@@ -212,15 +249,20 @@ typedef struct MetaStack {
 } MetaStack;
 
 typedef struct Editing {
-	ListBase *seqbasep; /* pointer to the current list of seq's being edited (can be within a meta strip) */
-	ListBase seqbase;   /* pointer to the top-most seq's */
+	/** Pointer to the current list of seq's being edited (can be within a meta strip). */
+	ListBase *seqbasep;
+	/** Pointer to the top-most seq's. */
+	ListBase seqbase;
 	ListBase metastack;
 
 	/* Context vars, used to be static */
 	Sequence *act_seq;
-	char act_imagedir[1024]; /* 1024 = FILE_MAX */
-	char act_sounddir[1024]; /* 1024 = FILE_MAX */
-	char proxy_dir[1024]; /* 1024 = FILE_MAX */
+	/** 1024 = FILE_MAX. */
+	char act_imagedir[1024];
+	/** 1024 = FILE_MAX. */
+	char act_sounddir[1024];
+	/** 1024 = FILE_MAX. */
+	char proxy_dir[1024];
 
 	int over_ofs, over_cfra;
 	int over_flag, proxy_storage;
@@ -234,12 +276,16 @@ typedef struct WipeVars {
 } WipeVars;
 
 typedef struct GlowVars {
-	float fMini;    /*	Minimum intensity to trigger a glow */
+	/**	Minimum intensity to trigger a glow. */
+	float fMini;
 	float fClamp;
-	float fBoost;   /*	Amount to multiply glow intensity */
-	float dDist;    /*	Radius of glow blurring */
+	/**	Amount to multiply glow intensity. */
+	float fBoost;
+	/**	Radius of glow blurring. */
+	float dDist;
 	int dQuality;
-	int bNoComp;    /*	SHOW/HIDE glow buffer */
+	/**	SHOW/HIDE glow buffer. */
+	int bNoComp;
 } GlowVars;
 
 typedef struct TransformVars {
@@ -250,7 +296,8 @@ typedef struct TransformVars {
 	float rotIni;
 	int percent;
 	int interpolation;
-	int uniform_scale; /* preserve aspect/ratio when scaling */
+	/** Preserve aspect/ratio when scaling. */
+	int uniform_scale;
 } TransformVars;
 
 typedef struct SolidColorVars {
@@ -302,8 +349,10 @@ enum {
 };
 
 typedef struct ColorMixVars {
-	int blend_effect;    /* value from SEQ_TYPE_XXX enumeration */
-	float factor;        /* blend factor [0.0f, 1.0f]           */
+	/** Value from SEQ_TYPE_XXX enumeration. */
+	int blend_effect;
+	/** Blend factor [0.0f, 1.0f]. */
+	float factor;
 } ColorMixVars;
 
 /* ***************** Sequence modifiers ****************** */
@@ -311,7 +360,8 @@ typedef struct ColorMixVars {
 typedef struct SequenceModifierData {
 	struct SequenceModifierData *next, *prev;
 	int type, flag;
-	char name[64]; /* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64];
 
 	/* mask input, either sequence or mask ID */
 	int mask_input_type;

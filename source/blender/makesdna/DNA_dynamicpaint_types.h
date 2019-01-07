@@ -101,7 +101,8 @@ enum {
 typedef struct DynamicPaintSurface {
 
 	struct DynamicPaintSurface *next, *prev;
-	struct DynamicPaintCanvasSettings *canvas; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct DynamicPaintCanvasSettings *canvas;
 	struct PaintSurfaceData *data;
 
 	struct Collection *brush_group;
@@ -116,8 +117,10 @@ typedef struct DynamicPaintSurface {
 	char name[64];
 	short format, type;
 	short disp_type, image_fileformat;
-	short effect_ui;	/* ui selection box */
-	short preview_id;	/* surface output id to preview */
+	/** Ui selection box. */
+	short effect_ui;
+	/** Surface output id to preview. */
+	short preview_id;
 	short init_color_type, pad_s;
 	int flags, effect;
 
@@ -127,7 +130,8 @@ typedef struct DynamicPaintSurface {
 	/* initial color */
 	float init_color[4];
 	struct Tex *init_texture;
-	char init_layername[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
+	/** MAX_CUSTOMDATA_LAYER_NAME. */
+	char init_layername[64];
 
 	int dry_speed, diss_speed;
 	float color_dry_threshold;
@@ -143,10 +147,14 @@ typedef struct DynamicPaintSurface {
 	float wave_damping, wave_speed, wave_timescale, wave_spring, wave_smoothness;
 	int pad2;
 
-	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	char image_output_path[1024];  /* 1024 = FILE_MAX */
-	char output_name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
-	char output_name2[64]; /* MAX_CUSTOMDATA_LAYER_NAME */ /* some surfaces have 2 outputs */
+	/** MAX_CUSTOMDATA_LAYER_NAME. */
+	char uvlayer_name[64];
+	/** 1024 = FILE_MAX. */
+	char image_output_path[1024];
+	/** MAX_CUSTOMDATA_LAYER_NAME. */
+	char output_name[64];
+	/** MAX_CUSTOMDATA_LAYER_NAME */ /* some surfaces have 2 outputs. */
+	char output_name2[64];
 
 } DynamicPaintSurface;
 
@@ -162,14 +170,16 @@ enum {
 
 /* Canvas settings */
 typedef struct DynamicPaintCanvasSettings {
-	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct DynamicPaintModifierData *pmd;
 	struct Mesh *mesh;
 
 	struct ListBase surfaces;
 	short active_sur, flags;
 	int pad;
 
-	char error[64];		/* Bake error description */
+	/** Bake error description. */
+	char error[64];
 
 } DynamicPaintCanvasSettings;
 
@@ -228,7 +238,8 @@ enum {
 
 /* Brush settings */
 typedef struct DynamicPaintBrushSettings {
-	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
+	/** For fast RNA access. */
+	struct DynamicPaintModifierData *pmd;
 	struct Mesh *mesh;
 	struct ParticleSystem *psys;
 
@@ -242,8 +253,10 @@ typedef struct DynamicPaintBrushSettings {
 	float paint_distance;
 
 	/* color ramps */
-	struct ColorBand *paint_ramp;	/* Proximity paint falloff */
-	struct ColorBand *vel_ramp;		/* Velocity paint ramp */
+	/** Proximity paint falloff. */
+	struct ColorBand *paint_ramp;
+	/** Velocity paint ramp. */
+	struct ColorBand *vel_ramp;
 
 	short proximity_falloff;
 	short wave_type;

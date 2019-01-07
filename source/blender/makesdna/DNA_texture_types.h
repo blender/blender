@@ -57,7 +57,8 @@ typedef struct MTex {
 	short texco, mapto, maptoneg, blendtype;
 	struct Object *object;
 	struct Tex *tex;
-	char uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
+	/** MAX_CUSTOMDATA_LAYER_NAME. */
+	char uvname[64];
 
 	char projx, projy, projz, mapping;
 	char brush_map_mode, brush_angle_mode;
@@ -128,19 +129,27 @@ typedef struct PointDensity {
 	short source;
 	short pad0;
 
-	short color_source; /* psys_color_source */
+	/** psys_color_source */
+	short color_source;
 	short ob_color_source;
 
 	int totpoints;
 
-	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
-	int psys;				/* index+1 in ob.particlesystem, non-ID pointer not allowed */
-	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
-	short ob_cache_space;		/* cache points in worldspace, object space, ... ? */
-	char vertex_attribute_name[64]; /* vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
+	/** for 'Object' or 'Particle system' type - source object */
+	struct Object *object;
+	/** index+1 in ob.particlesystem, non-ID pointer not allowed */
+	int psys;
+	/** cache points in worldspace, object space, ... ? */
+	short psys_cache_space;
+	/** cache points in worldspace, object space, ... ? */
+	short ob_cache_space;
+	/** vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
+	char vertex_attribute_name[64];
 
-	void *point_tree;		/* the acceleration tree containing points */
-	float *point_data;		/* dynamically allocated extra for extra information, like particle age */
+	/** The acceleration tree containing points. */
+	void *point_tree;
+	/** Dynamically allocated extra for extra information, like particle age. */
+	float *point_data;
 
 	float noise_size;
 	short noise_depth;
@@ -150,14 +159,17 @@ typedef struct PointDensity {
 	float noise_fac;
 
 	float speed_scale, falloff_speed_scale, pad2;
-	struct ColorBand *coba;	/* for time -> color */
+	/** For time -> color */
+	struct ColorBand *coba;
 
-	struct CurveMapping *falloff_curve; /* falloff density curve */
+	/** Falloff density curve. */
+	struct CurveMapping *falloff_curve;
 } PointDensity;
 
 typedef struct Tex {
 	ID id;
-	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+	/** Animation data (must be immediately after id for utilities to use it). */
+	struct AnimData *adt;
 
 	float noisesize, turbul;
 	float bright, contrast, saturation, rfac, gfac, bfac;
@@ -177,7 +189,8 @@ typedef struct Tex {
 	float vn_mexp;
 	short vn_distm, vn_coltype;
 
-	short noisedepth, noisetype; /* noisedepth MUST be <= 30 else we get floating point exceptions */
+	/* noisedepth MUST be <= 30 else we get floating point exceptions */
+	short noisedepth, noisetype;
 
 	/* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
 	short noisebasis, noisebasis2;
@@ -202,7 +215,8 @@ typedef struct Tex {
 	struct ImageUser iuser;
 
 	struct bNodeTree *nodetree;
-	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
+	/* old animation system, deprecated for 2.5 */
+	struct Ipo *ipo  DNA_DEPRECATED;
 	struct Image *ima;
 	struct ColorBand *coba;
 	struct PreviewImage *preview;

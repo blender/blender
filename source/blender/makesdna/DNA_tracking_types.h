@@ -57,27 +57,35 @@ typedef struct MovieReconstructedCamera {
 } MovieReconstructedCamera;
 
 typedef struct MovieTrackingCamera {
-	void *intrinsics;   /* intrinsics handle */
+	/** Intrinsics handle. */
+	void *intrinsics;
 
 	short distortion_model;
 	short pad;
 
-	float sensor_width; /* width of CCD sensor */
-	float pixel_aspect; /* pixel aspect ratio */
-	float focal;        /* focal length */
-	short units;        /* units of focal length user is working with */
+	/** Width of CCD sensor. */
+	float sensor_width;
+	/** Pixel aspect ratio. */
+	float pixel_aspect;
+	/** Focal length. */
+	float focal;
+	/** Units of focal length user is working with. */
+	short units;
 	short pad1;
-	float principal[2]; /* principal point */
+	/** Principal point. */
+	float principal[2];
 
 	/* Polynomial distortion */
-	float k1, k2, k3;   /* polynomial radial distortion */
+	/** Polynomial radial distortion. */
+	float k1, k2, k3;
 
 	/* Division distortion model coefficients */
 	float division_k1, division_k2;
 } MovieTrackingCamera;
 
 typedef struct MovieTrackingMarker {
-	float pos[2];   /* 2d position of marker on frame (in unified 0..1 space) */
+	/** 2d position of marker on frame (in unified 0..1 space). */
+	float pos[2];
 
 	/* corners of pattern in the following order:
 	 *
@@ -99,14 +107,17 @@ typedef struct MovieTrackingMarker {
 	 */
 	float search_min[2], search_max[2];
 
-	int framenr;    /* number of frame marker is associated with */
-	int flag;       /* Marker's flag (alive, ...) */
+	/** Number of frame marker is associated with. */
+	int framenr;
+	/** Marker's flag (alive, ...). */
+	int flag;
 } MovieTrackingMarker;
 
 typedef struct MovieTrackingTrack {
 	struct MovieTrackingTrack *next, *prev;
 
-	char name[64];  /* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64];
 
 	/* ** settings ** */
 
@@ -122,32 +133,50 @@ typedef struct MovieTrackingTrack {
 	 */
 	float search_min[2] DNA_DEPRECATED, search_max[2] DNA_DEPRECATED;
 
-	float offset[2];                    /* offset to "parenting" point */
+	/** Offset to "parenting" point. */
+	float offset[2];
 
 	/* ** track ** */
-	int markersnr;                  /* count of markers in track */
-	int last_marker;                /* most recently used marker */
-	MovieTrackingMarker *markers;   /* markers in track */
+	/** Count of markers in track. */
+	int markersnr;
+	/** Most recently used marker. */
+	int last_marker;
+	/** Markers in track. */
+	MovieTrackingMarker *markers;
 
 	/* ** reconstruction data ** */
-	float bundle_pos[3];            /* reconstructed position */
-	float error;                    /* average track reprojection error */
+	/** Reconstructed position. */
+	float bundle_pos[3];
+	/** Average track reprojection error. */
+	float error;
 
 	/* ** UI editing ** */
-	int flag, pat_flag, search_flag;    /* flags (selection, ...) */
-	float color[3];                     /* custom color for track */
+	/** Flags (selection, ...). */
+	int flag, pat_flag, search_flag;
+	/** Custom color for track. */
+	float color[3];
 
 	/* ** control how tracking happens */
-	short frames_limit;     /* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
-	short margin;           /* margin from frame boundaries */
-	short pattern_match;    /* re-adjust every N frames */
+	/**
+	 * Number of frames to be tarcked during single tracking session
+	 * (if TRACKING_FRAMES_LIMIT is set).
+	 */
+	short frames_limit;
+	/** Margin from frame boundaries. */
+	short margin;
+	/** Re-adjust every N frames. */
+	short pattern_match;
 
 	/* tracking parameters */
-	short motion_model;     /* model of the motion for this track */
-	int algorithm_flag;    /* flags for the tracking algorithm (use brute, use esm, use pyramid, etc */
-	float minimum_correlation;          /* minimal correlation which is still treated as successful tracking */
+	/** Model of the motion for this track. */
+	short motion_model;
+	/** Flags for the tracking algorithm (use brute, use esm, use pyramid, etc. */
+	int algorithm_flag;
+	/** Minimal correlation which is still treated as successful tracking. */
+	float minimum_correlation;
 
-	struct bGPdata *gpd;        /* grease-pencil data */
+	/** Grease-pencil data. */
+	struct bGPdata *gpd;
 
 	/* Weight of this track.
 	 *
@@ -180,56 +209,82 @@ typedef struct MovieTrackingPlaneMarker {
 	 */
 	float corners[4][2];
 
-	int framenr;    /* Number of frame plane marker is associated with */
-	int flag;       /* Marker's flag (alive, ...) */
+	/** Number of frame plane marker is associated with. */
+	int framenr;
+	/** Marker's flag (alive, ...). */
+	int flag;
 } MovieTrackingPlaneMarker;
 
 typedef struct MovieTrackingPlaneTrack {
 	struct MovieTrackingPlaneTrack *next, *prev;
 
-	char name[64];  /* MAX_NAME */
+	/** MAX_NAME. */
+	char name[64];
 
-	MovieTrackingTrack **point_tracks;  /* Array of point tracks used to define this plane.
-	                                     * Each element is a pointer to MovieTrackingTrack. */
-	int point_tracksnr, pad;  /* Number of tracks in point_tracks array. */
+	/**
+	 * Array of point tracks used to define this pla.ne.
+	 * Each element is a pointer to MovieTrackingTrack.
+	 */
+	MovieTrackingTrack **point_tracks;
+	/** Number of tracks in point_tracks array. */
+	int point_tracksnr, pad;
 
-	MovieTrackingPlaneMarker *markers;   /* Markers in the plane track */
-	int markersnr;                       /* Count of markers in track (size of markers array) */
+	/** Markers in the plane track. */
+	MovieTrackingPlaneMarker *markers;
+	/** Count of markers in track (size of markers array). */
+	int markersnr;
 
-	int flag;    /* flags (selection, ...) */
+	/** Flags (selection, ...). */
+	int flag;
 
-	struct Image *image;                 /* Image displaying during editing */
-	float image_opacity;                 /* Opacity of the image */
+	/** Image displaying during editing. */
+	struct Image *image;
+	/** Opacity of the image. */
+	float image_opacity;
 
 	/* Runtime data */
-	int last_marker;                     /* Most recently used marker */
+	/** Most recently used marker. */
+	int last_marker;
 } MovieTrackingPlaneTrack;
 
 typedef struct MovieTrackingSettings {
 	int flag;
 
 	/* ** default tracker settings */
-	short default_motion_model;         /* model of the motion for this track */
-	short default_algorithm_flag;       /* flags for the tracking algorithm (use brute, use esm, use pyramid, etc */
-	float default_minimum_correlation;  /* minimal correlation which is still treated as successful tracking */
-	short default_pattern_size;         /* size of pattern area for new tracks */
-	short default_search_size;          /* size of search area for new tracks */
-	short default_frames_limit;         /* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
-	short default_margin;               /* margin from frame boundaries */
-	short default_pattern_match;        /* re-adjust every N frames */
-	short default_flag;                 /* default flags like color channels used by default */
-	float default_weight;               /* default weight of the track */
+	/** Model of the motion for this track. */
+	short default_motion_model;
+	/** Flags for the tracking algorithm (use brute, use esm, use pyramid, etc. */
+	short default_algorithm_flag;
+	/** Minimal correlation which is still treated as successful tracking. */
+	float default_minimum_correlation;
+	/** Size of pattern area for new tracks. */
+	short default_pattern_size;
+	/** Size of search area for new tracks. */
+	short default_search_size;
+	/** Number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set). */
+	short default_frames_limit;
+	/** Margin from frame boundaries. */
+	short default_margin;
+	/** Re-adjust every N frames. */
+	short default_pattern_match;
+	/** Default flags like color channels used by default. */
+	short default_flag;
+	/** Default weight of the track. */
+	float default_weight;
 
-	short motion_flag;      /* flags describes motion type */
+	/** Flags describes motion type. */
+	short motion_flag;
 
 	/* ** common tracker settings ** */
-	short speed;            /* speed of tracking */
+	/** Speed of tracking. */
+	short speed;
 
 	/* ** reconstruction settings ** */
+	/* two keyframes for reconstruction initialization
+	 * were moved to per-tracking object settings
+	 */
 	int keyframe1 DNA_DEPRECATED,
-		keyframe2 DNA_DEPRECATED;   /* two keyframes for reconstruction initialization
-		                             * were moved to per-tracking object settings
-		                             */
+		keyframe2 DNA_DEPRECATED;
 
 	int reconstruction_flag;
 
@@ -239,63 +294,86 @@ typedef struct MovieTrackingSettings {
 	/* ** tool settings ** */
 
 	/* set scale */
-	float dist;                 /* distance between two bundles used for scene scaling */
+	/** Distance between two bundles used for scene scaling. */
+	float dist;
 
 	/* cleanup */
 	int clean_frames, clean_action;
 	float clean_error;
 
 	/* set object scale */
-	float object_distance;      /* distance between two bundles used for object scaling */
+	/** Distance between two bundles used for object scaling. */
+	float object_distance;
 
 	int pad3;
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
 	int flag;
-	int tot_track, act_track;       	/* total number of translation tracks and index of active track in list */
-	int tot_rot_track, act_rot_track;	/* total number of rotation tracks and index of active track in list */
+	/** Total number of translation tracks and index of active track in list. */
+	int tot_track, act_track;
+	/** Total number of rotation tracks and index of active track in list. */
+	int tot_rot_track, act_rot_track;
 
 	/* 2d stabilization */
-	float maxscale;         /* max auto-scale factor */
-	MovieTrackingTrack *rot_track DNA_DEPRECATED;  /* use TRACK_USE_2D_STAB_ROT on individual tracks instead */
+	/** Max auto-scale factor. */
+	float maxscale;
+	/** Use TRACK_USE_2D_STAB_ROT on individual tracks instead. */
+	MovieTrackingTrack *rot_track DNA_DEPRECATED;
 
-	int anchor_frame;		/* reference point to anchor stabilization offset */
-	float target_pos[2];	/* expected target position of frame after raw stabilization, will be subtracted */
-	float target_rot;       /* expected target rotation of frame after raw stabilization, will be compensated */
-	float scale;			/* zoom factor known to be present on original footage. Also used for autoscale */
+	/** Reference point to anchor stabilization offset. */
+	int anchor_frame;
+	/** Expected target position of frame after raw stabilization, will be subtracted. */
+	float target_pos[2];
+	/** Expected target rotation of frame after raw stabilization, will be compensated. */
+	float target_rot;
+	/** Zoom factor known to be present on original footage. Also used for autoscale. */
+	float scale;
 
-	float locinf, scaleinf, rotinf; /* influence on location, scale and rotation */
+	/** Influence on location, scale and rotation. */
+	float locinf, scaleinf, rotinf;
 
-	int filter;     /* filter used for pixel interpolation */
+	/** Filter used for pixel interpolation. */
+	int filter;
 
 	/* initialization and run-time data */
-	int ok DNA_DEPRECATED;	/* Without effect now, we initialize on every frame. Formerly used for caching of init values */
+	/** Without effect now, we initialize on every frame. Formerly used for caching of init values. */
+	int ok DNA_DEPRECATED;
 } MovieTrackingStabilization;
 
 typedef struct MovieTrackingReconstruction {
 	int flag;
 
-	float error;        /* average error of reconstruction */
+	/** Average error of reconstruction. */
+	float error;
 
-	int last_camera;        /* most recently used camera */
-	int camnr;              /* number of reconstructed cameras */
-	struct MovieReconstructedCamera *cameras;   /* reconstructed cameras */
+	/** Most recently used camera. */
+	int last_camera;
+	/** Number of reconstructed cameras. */
+	int camnr;
+	/** Reconstructed cameras. */
+	struct MovieReconstructedCamera *cameras;
 } MovieTrackingReconstruction;
 
 typedef struct MovieTrackingObject {
 	struct MovieTrackingObject *next, *prev;
 
-	char name[64];          /* Name of tracking object, MAX_NAME */
+	/** Name of tracking object, MAX_NAME. */
+	char name[64];
 	int flag;
-	float scale;            /* scale of object solution in amera space */
+	/** Scale of object solution in amera space. */
+	float scale;
 
-	ListBase tracks;        /* list of tracks use to tracking this object */
-	ListBase plane_tracks;  /* list of plane tracks used by this object */
-	MovieTrackingReconstruction reconstruction; /* reconstruction data for this object */
+	/** List of tracks use to tracking this object. */
+	ListBase tracks;
+	/** List of plane tracks used by this object. */
+	ListBase plane_tracks;
+	/** Reconstruction data for this object. */
+	MovieTrackingReconstruction reconstruction;
 
 	/* reconstruction options */
-	int keyframe1, keyframe2;   /* two keyframes for reconstruction initialization */
+	/** Two keyframes for reconstruction initialization. */
+	int keyframe1, keyframe2;
 } MovieTrackingObject;
 
 typedef struct MovieTrackingStats {
@@ -305,14 +383,19 @@ typedef struct MovieTrackingStats {
 typedef struct MovieTrackingDopesheetChannel {
 	struct MovieTrackingDopesheetChannel *next, *prev;
 
-	MovieTrackingTrack *track;  /* motion track for which channel is created */
+	/** Motion track for which channel is created. */
+	MovieTrackingTrack *track;
 	int pad;
 
-	char name[64];          /* name of channel */
+	/** Name of channel. */
+	char name[64];
 
-	int tot_segment;        /* total number of segments */
-	int *segments;          /* tracked segments */
-	int max_segment, total_frames;  /* longest segment length and total number of tracked frames */
+	/** Total number of segments. */
+	int tot_segment;
+	/** Tracked segments. */
+	int *segments;
+	/** Longest segment length and total number of tracked frames. */
+	int max_segment, total_frames;
 } MovieTrackingDopesheetChannel;
 
 typedef struct MovieTrackingDopesheetCoverageSegment {
@@ -326,10 +409,13 @@ typedef struct MovieTrackingDopesheetCoverageSegment {
 } MovieTrackingDopesheetCoverageSegment;
 
 typedef struct MovieTrackingDopesheet {
-	int ok;                     /* flag if dopesheet information is still relevant */
+	/** Flag if dopesheet information is still relevant. */
+	int ok;
 
-	short sort_method;          /* method to be used to sort tracks */
-	short flag;                 /* dopesheet building flag such as inverted order of sort */
+	/** Method to be used to sort tracks. */
+	short sort_method;
+	/** Dopesheet building flag such as inverted order of sort. */
+	short flag;
 
 	/* ** runtime stuff ** */
 
@@ -344,21 +430,32 @@ typedef struct MovieTrackingDopesheet {
 } MovieTrackingDopesheet;
 
 typedef struct MovieTracking {
-	MovieTrackingSettings settings; /* different tracking-related settings */
-	MovieTrackingCamera camera;     /* camera intrinsics */
-	ListBase tracks;                /* list of tracks used for camera object */
-	ListBase plane_tracks;          /* list of plane tracks used by camera object */
-	MovieTrackingReconstruction reconstruction; /* reconstruction data for camera object */
-	MovieTrackingStabilization stabilization;   /* stabilization data */
-	MovieTrackingTrack *act_track;             /* active track */
-	MovieTrackingPlaneTrack *act_plane_track;  /* active plane track */
+	/** Different tracking-related settings. */
+	MovieTrackingSettings settings;
+	/** Camera intrinsics. */
+	MovieTrackingCamera camera;
+	/** List of tracks used for camera object. */
+	ListBase tracks;
+	/** List of plane tracks used by camera object. */
+	ListBase plane_tracks;
+	/** Reconstruction data for camera object. */
+	MovieTrackingReconstruction reconstruction;
+	/** Stabilization data. */
+	MovieTrackingStabilization stabilization;
+	/** Active track. */
+	MovieTrackingTrack *act_track;
+	/** Active plane track. */
+	MovieTrackingPlaneTrack *act_plane_track;
 
 	ListBase objects;
-	int objectnr, tot_object;       /* index of active object and total number of objects */
+	/** Index of active object and total number of objects. */
+	int objectnr, tot_object;
 
-	MovieTrackingStats *stats;      /* statistics displaying in clip editor */
+	/** Statistics displaying in clip editor. */
+	MovieTrackingStats *stats;
 
-	MovieTrackingDopesheet dopesheet;   /* dopesheet data */
+	/** Dopesheet data. */
+	MovieTrackingDopesheet dopesheet;
 } MovieTracking;
 
 /* MovieTrackingCamera->distortion_model */
