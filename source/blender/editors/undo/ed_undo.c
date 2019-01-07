@@ -199,7 +199,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList 
 		Main *bmain = CTX_data_main(C);
 		scene = CTX_data_scene(C);
 		wm->op_undo_depth++;
-		BLI_callback_exec(bmain, &scene->id, step_for_callback > 0 ? BLI_CB_EVT_UNDO_PRE : BLI_CB_EVT_REDO_PRE);
+		BLI_callback_exec(bmain, &scene->id, step_for_callback > 0 ? BLI_CB_EVT_UNDO_POST : BLI_CB_EVT_REDO_POST);
 		wm->op_undo_depth--;
 	}
 
