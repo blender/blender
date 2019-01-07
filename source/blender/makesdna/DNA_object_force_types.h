@@ -55,7 +55,7 @@ typedef enum ePFieldType {
 	PFIELD_BOID       = 10,	/* Defines predator / goal for boids									*/
 	PFIELD_TURBULENCE = 11,	/* Force defined by BLI_gTurbulence										*/
 	PFIELD_DRAG       = 12,	/* Linear & quadratic drag												*/
-	PFIELD_SMOKEFLOW  = 1301,	/* Force based on smoke simulation air flow								*/
+	PFIELD_SMOKEFLOW  = 13,	/* Force based on smoke simulation air flow								*/
 	NUM_PFIELD_TYPES
 } ePFieldType;
 
