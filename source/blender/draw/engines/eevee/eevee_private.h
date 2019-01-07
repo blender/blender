@@ -372,7 +372,8 @@ typedef struct EEVEE_ShadowCube {
 } EEVEE_ShadowCube;
 
 typedef struct EEVEE_ShadowCascade {
-	float shadowmat[MAX_CASCADE_NUM][4][4]; /* World->Lamp->NDC->Tex : used for sampling the shadow map. */
+	/* World->Lamp->NDC->Tex : used for sampling the shadow map. */
+	float shadowmat[MAX_CASCADE_NUM][4][4];
 	float split_start[4];
 	float split_end[4];
 } EEVEE_ShadowCascade;
@@ -729,7 +730,8 @@ typedef struct EEVEE_ShadowCubeData {
 
 typedef struct EEVEE_ShadowCascadeData {
 	short light_id, shadow_id, cascade_id, layer_id;
-	float viewprojmat[MAX_CASCADE_NUM][4][4]; /* World->Lamp->NDC : used for rendering the shadow map. */
+	/* World->Lamp->NDC : used for rendering the shadow map. */
+	float viewprojmat[MAX_CASCADE_NUM][4][4];
 	float projmat[MAX_CASCADE_NUM][4][4];
 	float viewmat[4][4], viewinv[4][4];
 	float radius[MAX_CASCADE_NUM];

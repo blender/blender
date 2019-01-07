@@ -825,30 +825,49 @@ void POSELIB_OT_pose_move(wmOperatorType *ot)
 
 /* Simple struct for storing settings/data for use during PoseLib preview */
 typedef struct tPoseLib_PreviewData {
-	ListBase backups;       /* tPoseLib_Backup structs for restoring poses */
-	ListBase searchp;       /* LinkData structs storing list of poses which match the current search-string */
+	/** tPoseLib_Backup structs for restoring poses. */
+	ListBase backups;
+	/** LinkData structs storing list of poses which match the current search-string. */
+	ListBase searchp;
 
-	Scene *scene;           /* active scene */
-	ScrArea *sa;            /* active area */
+	/** active scene. */
+	Scene *scene;
+	/** active area. */
+	ScrArea *sa;
 
-	PointerRNA rna_ptr;     /* RNA-Pointer to Object 'ob' */
-	Object *ob;             /* object to work on */
-	bArmature *arm;         /* object's armature data */
-	bPose *pose;            /* object's pose */
-	bAction *act;           /* poselib to use */
-	TimeMarker *marker;     /* 'active' pose */
+	/** RNA-Pointer to Object 'ob' .*/
+	PointerRNA rna_ptr;
+	/** object to work on. */
+	Object *ob;
+	/** object's armature data. */
+	bArmature *arm;
+	/** object's pose. */
+	bPose *pose;
+	/** poselib to use. */
+	bAction *act;
+	/** 'active' pose. */
+	TimeMarker *marker;
 
-	int totcount;           /* total number of elements to work on */
+	/** total number of elements to work on. */
+	int totcount;
 
-	short state;            /* state of main loop */
-	short redraw;           /* redraw/update settings during main loop */
-	short flag;             /* flags for various settings */
+	/** state of main loop. */
+	short state;
+	/** redraw/update settings during main loop. */
+	short redraw;
+	/** flags for various settings. */
+	short flag;
 
-	short search_cursor;    /* position of cursor in searchstr (cursor occurs before the item at the nominated index) */
-	char searchstr[64];     /* (Part of) Name to search for to filter poses that get shown */
-	char searchold[64];     /* Previously set searchstr (from last loop run), so that we can detected when to rebuild searchp */
+	/** position of cursor in searchstr (cursor occurs before the item at the nominated index) */
+	short search_cursor;
+	/** (Part of) Name to search for to filter poses that get shown. */
+	char searchstr[64];
+	/** Previously set searchstr (from last loop run),
+	 * so that we can detected when to rebuild searchp. */
+	char searchold[64];
 
-	char headerstr[UI_MAX_DRAW_STR];    /* Info-text to print in header */
+	/** Info-text to print in header. */
+	char headerstr[UI_MAX_DRAW_STR];
 } tPoseLib_PreviewData;
 
 /* defines for tPoseLib_PreviewData->state values */

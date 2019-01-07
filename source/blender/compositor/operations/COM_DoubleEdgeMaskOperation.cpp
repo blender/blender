@@ -1194,7 +1194,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 			else {                               // "bleed out" buffer edge mode is turned on
 				do_adjacentBleedBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
-			isz = rsize[0];                      // set up inner edge, outer edge, and gradient buffer sizes after border pass
+			// set up inner edge, outer edge, and gradient buffer sizes after border pass
+			isz = rsize[0];
 			osz = rsize[1];
 			gsz = rsize[2];
 			// detect edges in all non-border pixels in the buffer
@@ -1207,24 +1208,31 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 			else {                               // "bleed out" buffer edge mode is turned on
 				do_allBleedBorders(t, rw, limask, lomask, lres, res, rsize);
 			}
-			isz = rsize[0];                      // set up inner edge, outer edge, and gradient buffer sizes after border pass
+			// set up inner edge, outer edge, and gradient buffer sizes after border pass
+			isz = rsize[0];
 			osz = rsize[1];
 			gsz = rsize[2];
 			// detect edges in all non-border pixels in the buffer
 			do_allEdgeDetection(t, rw, limask, lomask, lres, res, rsize, isz, osz, gsz);
 		}
 
-		isz = rsize[0];                          // set edge and gradient buffer sizes once again...
-		osz = rsize[1];                          // the sizes in rsize[] may have been modified
-		gsz = rsize[2];                          // by the do_*EdgeDetection() function.
+		// set edge and gradient buffer sizes once again...
+		// the sizes in rsize[] may have been modified
+		// by the do_*EdgeDetection() function.
+		isz = rsize[0];
+		osz = rsize[1];
+		gsz = rsize[2];
 
-		fsz = gsz + isz + osz;                                   // calculate size of pixel index buffer needed
-		gbuf = (unsigned short *)MEM_callocN(sizeof(unsigned short) * fsz * 2, "DEM"); // allocate edge/gradient pixel index buffer
+		// calculate size of pixel index buffer needed
+		fsz = gsz + isz + osz;
+		// allocate edge/gradient pixel index buffer
+		gbuf = (unsigned short *)MEM_callocN(sizeof(unsigned short) * fsz * 2, "DEM");
 
 		do_createEdgeLocationBuffer(t, rw, lres, res, gbuf, &innerEdgeOffset, &outerEdgeOffset, isz, gsz);
 		do_fillGradientBuffer(rw, res, gbuf, isz, osz, gsz, innerEdgeOffset, outerEdgeOffset);
 
-		MEM_freeN(gbuf);                         // free the gradient index buffer
+		// free the gradient index buffer
+		MEM_freeN(gbuf);
 	}
 }
 

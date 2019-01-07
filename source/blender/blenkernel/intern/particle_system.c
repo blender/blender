@@ -1688,7 +1688,8 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	/* 4.0 seems to be a pretty good value */
 	float interaction_radius = fluid->radius * (fluid->flag & SPH_FAC_RADIUS ? 4.0f * pa->size : 1.0f);
 	float h = interaction_radius * sphdata->hfac;
-	float rest_density = fluid->rest_density * (fluid->flag & SPH_FAC_DENSITY ? 4.77f : 1.f); /* 4.77 is an experimentally determined density factor */
+	/* 4.77 is an experimentally determined density factor */
+	float rest_density = fluid->rest_density * (fluid->flag & SPH_FAC_DENSITY ? 4.77f : 1.f);
 	float rest_length = fluid->rest_length * (fluid->flag & SPH_FAC_REST_LENGTH ? 2.588f * pa->size : 1.f);
 
 	float stiffness = fluid->stiffness_k;
@@ -2657,12 +2658,18 @@ static int collision_response(ParticleSimulationData *sim, ParticleData *pa, Par
 	ParticleCollisionElement *pce = &col->pce;
 	PartDeflect *pd = col->hit->pd;
 	RNG *rng = sim->rng;
-	float co[3];										/* point of collision */
-	float x = hit->dist/col->original_ray_length;		/* location factor of collision between this iteration */
-	float f = col->f + x * (1.0f - col->f);				/* time factor of collision between timestep */
-	float dt1 = (f - col->f) * col->total_time;			/* time since previous collision (in seconds) */
-	float dt2 = (1.0f - f) * col->total_time;			/* time left after collision (in seconds) */
-	int through = (BLI_rng_get_float(rng) < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
+	/* point of collision */
+	float co[3];
+	/* location factor of collision between this iteration */
+	float x = hit->dist/col->original_ray_length;
+	/* time factor of collision between timestep */
+	float f = col->f + x * (1.0f - col->f);
+	/* time since previous collision (in seconds) */
+	float dt1 = (f - col->f) * col->total_time;
+	/* time left after collision (in seconds) */
+	float dt2 = (1.0f - f) * col->total_time;
+	/* did particle pass through the collision surface? */
+	int through = (BLI_rng_get_float(rng) < pd->pdef_perm) ? 1 : 0;
 
 	/* calculate exact collision location */
 	interp_v3_v3v3(co, col->co1, col->co2, x);
@@ -2682,10 +2689,14 @@ static int collision_response(ParticleSimulationData *sim, ParticleData *pa, Par
 	}
 	/* figure out velocity and other data after collision */
 	else {
-		float v0[3];	/* velocity directly before collision to be modified into velocity directly after collision */
-		float v0_nor[3];/* normal component of v0 */
-		float v0_tan[3];/* tangential component of v0 */
-		float vc_tan[3];/* tangential component of collision surface velocity */
+		/* velocity directly before collision to be modified into velocity directly after collision */
+		float v0[3];
+		/* normal component of v0 */
+		float v0_nor[3];
+		/* tangential component of v0 */
+		float v0_tan[3];
+		/* tangential component of collision surface velocity */
+		float vc_tan[3];
 		float v0_dot, vc_dot;
 		float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_rng_get_float(rng) - 0.5f);
 		float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_rng_get_float(rng) - 0.5f);
@@ -2728,7 +2739,8 @@ static int collision_response(ParticleSimulationData *sim, ParticleData *pa, Par
 				madd_v3_v3fl(v1_tan, vr_tan, -0.4);
 				mul_v3_fl(v1_tan, 1.0f/1.4f); /* 1/(1+0.4) */
 
-				/* rolling friction is around 0.01 of sliding friction (could be made a parameter) */
+				/* rolling friction is around 0.01 of sliding friction
+				 * (could be made a parameter) */
 				mul_v3_fl(v1_tan, 1.0f - 0.01f * frict);
 
 				/* surface_velocity is opposite to cm velocity */
@@ -3185,7 +3197,8 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 		}
 	}
 
-	realloc_roots = false; /* whether hair root info array has to be reallocated */
+	/* whether hair root info array has to be reallocated */
+	realloc_roots = false;
 	if (psys->hair_in_mesh) {
 		Mesh *mesh = psys->hair_in_mesh;
 		if (totpoint != mesh->totvert || totedge != mesh->totedge) {

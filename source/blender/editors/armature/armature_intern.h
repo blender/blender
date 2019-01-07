@@ -147,27 +147,35 @@ void POSE_OT_bone_layers(struct wmOperatorType *ot);
 typedef struct tPChanFCurveLink {
 	struct tPChanFCurveLink *next, *prev;
 
-	struct Object *ob;              /* Object this Pose Channel belongs to. */
+	/** Object this Pose Channel belongs to. */
+	struct Object *ob;
 
-	ListBase fcurves;               /* F-Curves for this PoseChannel (wrapped with LinkData) */
-	struct bPoseChannel *pchan;     /* Pose Channel which data is attached to */
+	/** F-Curves for this PoseChannel (wrapped with LinkData) */
+	ListBase fcurves;
+	/** Pose Channel which data is attached to */
+	struct bPoseChannel *pchan;
 
-	char *pchan_path;               /* RNA Path to this Pose Channel (needs to be freed when we're done) */
+	/** RNA Path to this Pose Channel (needs to be freed when we're done) */
+	char *pchan_path;
 
-	float oldloc[3];                /* transform values at start of operator (to be restored before each modal step) */
+	/** transform values at start of operator (to be restored before each modal step) */
+	float oldloc[3];
 	float oldrot[3];
 	float oldscale[3];
 	float oldquat[4];
 	float oldangle;
 	float oldaxis[3];
 
-	float roll1, roll2;             /* old bbone values (to be restored along with the transform properties) */
-	float curveInX, curveInY;       /* (NOTE: we haven't renamed these this time, as their names are already long enough) */
+	/** old bbone values (to be restored along with the transform properties) */
+	float roll1, roll2;
+	/** (NOTE: we haven't renamed these this time, as their names are already long enough) */
+	float curveInX, curveInY;
 	float curveOutX, curveOutY;
 	float ease1, ease2;
 	float scaleIn, scaleOut;
 
-	struct IDProperty *oldprops;    /* copy of custom properties at start of operator (to be restored before each modal step) */
+	/** copy of custom properties at start of operator (to be restored before each modal step) */
+	struct IDProperty *oldprops;
 } tPChanFCurveLink;
 
 /* ----------- */

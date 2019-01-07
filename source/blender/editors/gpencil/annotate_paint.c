@@ -116,56 +116,84 @@ typedef enum eGPencil_PaintFlags {
  */
 typedef struct tGPsdata {
 	Main *bmain;
-	Scene *scene;       /* current scene from context */
+	/** current scene from context. */
+	Scene *scene;
 	struct Depsgraph *depsgraph;
 
-	wmWindow *win;      /* window where painting originated */
-	ScrArea *sa;        /* area where painting originated */
-	ARegion *ar;        /* region where painting originated */
-	View2D *v2d;        /* needed for GP_STROKE_2DSPACE */
-	rctf *subrect;      /* for using the camera rect within the 3d view */
+	/** window where painting originated. */
+	wmWindow *win;
+	/** area where painting originated. */
+	ScrArea *sa;
+	/** region where painting originated. */
+	ARegion *ar;
+	/** needed for GP_STROKE_2DSPACE. */
+	View2D *v2d;
+	/** for using the camera rect within the 3d view. */
+	rctf *subrect;
 	rctf subrect_data;
 
-	GP_SpaceConversion gsc; /* settings to pass to gp_points_to_xy() */
+	/** settings to pass to gp_points_to_xy(). */
+	GP_SpaceConversion gsc;
 
-	PointerRNA ownerPtr; /* pointer to owner of gp-datablock */
-	bGPdata *gpd;       /* gp-datablock layer comes from */
-	bGPDlayer *gpl;     /* layer we're working on */
-	bGPDframe *gpf;     /* frame we're working on */
+	/** pointer to owner of gp-datablock. */
+	PointerRNA ownerPtr;
+	/** gp-datablock layer comes from. */
+	bGPdata *gpd;
+	/** layer we're working on. */
+	bGPDlayer *gpl;
+	/** frame we're working on. */
+	bGPDframe *gpf;
 
-	char *align_flag;   /* projection-mode flags (toolsettings - eGPencil_Placement_Flags) */
+	/** projection-mode flags (toolsettings - eGPencil_Placement_Flags) */
+	char *align_flag;
 
-	eGPencil_PaintStatus status;     /* current status of painting */
-	eGPencil_PaintModes  paintmode;  /* mode for painting */
-	eGPencil_PaintFlags  flags;      /* flags that can get set during runtime (eGPencil_PaintFlags) */
+	/** current status of painting. */
+	eGPencil_PaintStatus status;
+	/** mode for painting. */
+	eGPencil_PaintModes  paintmode;
+	/** flags that can get set during runtime (eGPencil_PaintFlags) */
+	eGPencil_PaintFlags  flags;
 
-	short radius;       /* radius of influence for eraser */
+	/** radius of influence for eraser. */
+	short radius;
 
-	float mval[2];        /* current mouse-position */
-	float mvalo[2];       /* previous recorded mouse-position */
+	/** current mouse-position. */
+	float mval[2];
+	/** previous recorded mouse-position. */
+	float mvalo[2];
 
-	float pressure;     /* current stylus pressure */
-	float opressure;    /* previous stylus pressure */
+	/** current stylus pressure. */
+	float pressure;
+	/** previous stylus pressure. */
+	float opressure;
 
 	/* These need to be doubles, as (at least under unix) they are in seconds since epoch,
 	 * float (and its 7 digits precision) is definitively not enough here!
 	 * double, with its 15 digits precision, ensures us millisecond precision for a few centuries at least.
 	 */
-	double inittime;    /* Used when converting to path */
-	double curtime;     /* Used when converting to path */
-	double ocurtime;    /* Used when converting to path */
+	/** Used when converting to path. */
+	double inittime;
+	/** Used when converting to path. */
+	double curtime;
+	/** Used when converting to path. */
+	double ocurtime;
 
-	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
-	                     * to region space */
+	/** Inverted transformation matrix applying when converting coords from screen-space
+	 * to region space. */
+	float imat[4][4];
 	float mat[4][4];
 
-	float custom_color[4]; /* custom color - hack for enforcing a particular color for track/mask editing */
+	/** custom color - hack for enforcing a particular color for track/mask editing. */
+	float custom_color[4];
 
-	void *erasercursor; /* radial cursor data for drawing eraser */
+	/** radial cursor data for drawing eraser. */
+	void *erasercursor;
 
-	short straight[2];   /* 1: line horizontal, 2: line vertical, other: not defined, second element position */
+	/** 1: line horizontal, 2: line vertical, other: not defined, second element position. */
+	short straight[2];
 
-	short keymodifier;   /* key used for invoking the operator */
+	/** key used for invoking the operator. */
+	short keymodifier;
 } tGPsdata;
 
 /* ------ */
@@ -348,7 +376,8 @@ static short gp_stroke_addpoint(
 
 			/* store settings */
 			copy_v2_v2(&pt->x, mval);
-			pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
+			/* T44932 - Pressure vals are unreliable, so ignore for now */
+			pt->pressure = 1.0f;
 			pt->strength = 1.0f;
 			pt->time = (float)(curtime - p->inittime);
 
@@ -363,7 +392,8 @@ static short gp_stroke_addpoint(
 
 			/* store settings */
 			copy_v2_v2(&pt->x, mval);
-			pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
+			/* T44932 - Pressure vals are unreliable, so ignore for now */
+			pt->pressure = 1.0f;
 			pt->strength = 1.0f;
 			pt->time = (float)(curtime - p->inittime);
 
@@ -385,7 +415,8 @@ static short gp_stroke_addpoint(
 		/* store settings */
 		copy_v2_v2(&pt->x, mval);
 		pt->pressure = pressure;
-		pt->strength = 1.0f;  /* unused for annotations, but initialise for easier conversions to GP Object */
+		/* unused for annotations, but initialise for easier conversions to GP Object */
+		pt->strength = 1.0f;
 
 		/* point time */
 		pt->time = (float)(curtime - p->inittime);
@@ -405,7 +436,8 @@ static short gp_stroke_addpoint(
 
 		/* store settings */
 		copy_v2_v2(&pt->x, mval);
-		pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
+		/* T44932 - Pressure vals are unreliable, so ignore for now */
+		pt->pressure = 1.0f;
 		pt->strength = 1.0f;
 		pt->time = (float)(curtime - p->inittime);
 
@@ -1297,7 +1329,8 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 
 			/* for camera view set the subrect */
 			if (rv3d->persp == RV3D_CAMOB) {
-				ED_view3d_calc_camera_border(p->scene, depsgraph, p->ar, v3d, rv3d, &p->subrect_data, true); /* no shift */
+				/* no shift */
+				ED_view3d_calc_camera_border(p->scene, depsgraph, p->ar, v3d, rv3d, &p->subrect_data, true);
 				p->subrect = &p->subrect_data;
 			}
 		}
@@ -1689,7 +1722,8 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsg
 	int tablet = 0;
 
 	/* convert from window-space to area-space mouse coordinates
-	 * NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
+	 * NOTE: float to ints conversions,
+	 * +1 factor is probably used to ensure a bit more accurate rounding...
 	 */
 	p->mval[0] = event->mval[0] + 1;
 	p->mval[1] = event->mval[1] + 1;
@@ -1789,7 +1823,8 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsg
 	gpencil_draw_apply(op, p, depsgraph);
 
 	/* force refresh */
-	ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
+	/* just active area for now, since doing whole screen is too slow */
+	ED_region_tag_redraw(p->ar);
 }
 
 /* ------------------------------- */
@@ -2006,7 +2041,8 @@ static void gpencil_stroke_end(wmOperator *op)
 static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p = op->customdata;
-	int estate = OPERATOR_PASS_THROUGH; /* default exit state - pass through to support MMB view nav, etc. */
+	/* default exit state - pass through to support MMB view nav, etc. */
+	int estate = OPERATOR_PASS_THROUGH;
 
 	/* if (event->type == NDOF_MOTION)
 	 *    return OPERATOR_PASS_THROUGH;
@@ -2249,7 +2285,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 
 			/* force refresh */
-			ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
+			/* just active area for now, since doing whole screen is too slow */
+			ED_region_tag_redraw(p->ar);
 
 			/* event handled, so just tag as running modal */
 			estate = OPERATOR_RUNNING_MODAL;
@@ -2269,7 +2306,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	else {
 		/* update status indicators - cursor, header, etc. */
 		gpencil_draw_status_indicators(C, p);
-		gpencil_draw_cursor_set(p); /* cursor may have changed outside our control - T44084 */
+		/* cursor may have changed outside our control - T44084 */
+		gpencil_draw_cursor_set(p);
 	}
 
 	/* process last operations before exiting */

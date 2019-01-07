@@ -94,20 +94,24 @@ typedef struct View3DCameraControl {
 	Object *root_parent;
 
 	/* backup values */
-	float dist_backup; /* backup the views distance since we use a zero dist for fly mode */
-	float ofs_backup[3]; /* backup the views offset in case the user cancels flying in non camera mode */
+	float dist_backup;
+	/* backup the views distance since we use a zero dist for fly mode */
+	float ofs_backup[3];
+	/* backup the views offset in case the user cancels flying in non camera mode */
 
 	/* backup the views quat in case the user cancels flying in non camera mode.
 	 * (quat for view, eul for camera) */
 	float rot_backup[4];
-	char persp_backup;  /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+	/* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+	char persp_backup;
 
 	/* are we flying an ortho camera in perspective view,
 	 * which was originally in ortho view?
 	 * could probably figure it out but better be explicit */
 	bool is_ortho_cam;
 
-	void *obtfm; /* backup the objects transform */
+	/* backup the objects transform */
+	void *obtfm;
 } View3DCameraControl;
 
 
@@ -185,8 +189,10 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
 	}
 	else {
 		/* perspective or ortho */
-		if (rv3d->persp == RV3D_ORTHO)
-			rv3d->persp = RV3D_PERSP;  /* if ortho projection, make perspective */
+		if (rv3d->persp == RV3D_ORTHO) {
+			/* if ortho projection, make perspective */
+			rv3d->persp = RV3D_PERSP;
+		}
 
 		copy_qt_qt(vctrl->rot_backup, rv3d->viewquat);
 		copy_v3_v3(vctrl->ofs_backup, rv3d->ofs);

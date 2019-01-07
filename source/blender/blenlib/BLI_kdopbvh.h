@@ -61,27 +61,41 @@ typedef struct BVHTreeOverlap {
 } BVHTreeOverlap;
 
 typedef struct BVHTreeNearest {
-	int index;          /* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
-	float co[3];        /* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
-	float no[3];        /* normal at nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
-	float dist_sq;      /* squared distance to search around */
+	/** The index of the nearest found
+	 * (untouched if none is found within a dist radius from the given coordinates) */
+	int index;
+	/** Nearest coordinates
+	 * (untouched it none is found within a dist radius from the given coordinates). */
+	float co[3];
+	/** Normal at nearest coordinates
+	 * (untouched it none is found within a dist radius from the given coordinates). */
+	float no[3];
+	/** squared distance to search around */
+	float dist_sq;
 	int flags;
 } BVHTreeNearest;
 
 typedef struct BVHTreeRay {
-	float origin[3];    /* ray origin */
-	float direction[3]; /* ray direction */
-	float radius;       /* radius around ray */
+	/** ray origin */
+	float origin[3];
+	/** ray direction */
+	float direction[3];
+	/** radius around ray */
+	float radius;
 #ifdef USE_KDOPBVH_WATERTIGHT
 	struct IsectRayPrecalc *isect_precalc;
 #endif
 } BVHTreeRay;
 
 typedef struct BVHTreeRayHit {
-	int index;          /* index of the tree node (untouched if no hit is found) */
-	float co[3];        /* coordinates of the hit point */
-	float no[3];        /* normal on hit point */
-	float dist;         /* distance to the hit point */
+	/** Index of the tree node (untouched if no hit is found). */
+	int index;
+	/** Coordinates of the hit point. */
+	float co[3];
+	/** Normal on hit point. */
+	float no[3];
+	/** Distance to the hit point. */
+	float dist;
 } BVHTreeRayHit;
 
 enum {

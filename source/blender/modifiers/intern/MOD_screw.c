@@ -231,7 +231,8 @@ static Mesh *applyModifier(
 	float axis_vec[3] = {0.0f, 0.0f, 0.0f};
 	float tmp_vec1[3], tmp_vec2[3];
 	float mat3[3][3];
-	float mtx_tx[4][4]; /* transform the coords by an object relative to this objects transformation */
+	/* transform the coords by an object relative to this objects transformation */
+	float mtx_tx[4][4];
 	float mtx_tx_inv[4][4]; /* inverted */
 	float mtx_tmp_a[4][4];
 

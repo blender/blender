@@ -188,11 +188,15 @@ typedef struct WORKBENCH_PrivateData {
 	float cached_shadow_direction[3];
 	float shadow_mat[4][4];
 	float shadow_inv[4][4];
-	float shadow_far_plane[4]; /* Far plane of the view frustum. */
-	float shadow_near_corners[4][3]; /* Near plane corners in shadow space. */
-	float shadow_near_min[3]; /* min and max of shadow_near_corners. allow fast test */
+	/* Far plane of the view frustum. */
+	float shadow_far_plane[4];
+	/* Near plane corners in shadow space. */
+	float shadow_near_corners[4][3];
+	/* min and max of shadow_near_corners. allow fast test */
+	float shadow_near_min[3];
 	float shadow_near_max[3];
-	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
+	/* This is a parallelogram, so only 2 normal and distance to the edges. */
+	float shadow_near_sides[2][4];
 	bool shadow_changed;
 	bool is_playback;
 
@@ -243,7 +247,8 @@ typedef struct WORKBENCH_ObjectData {
 
 	/* Shadow direction in local object space. */
 	float shadow_dir[3], shadow_depth;
-	float shadow_min[3], shadow_max[3]; /* Min, max in shadow space */
+	/* Min, max in shadow space */
+	float shadow_min[3], shadow_max[3];
 	BoundBox shadow_bbox;
 	bool shadow_bbox_dirty;
 

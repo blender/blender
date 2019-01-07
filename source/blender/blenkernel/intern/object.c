@@ -1144,7 +1144,8 @@ static void copy_object_pose(Object *obn, const Object *ob, const int flag)
 {
 	bPoseChannel *chan;
 
-	/* note: need to clear obn->pose pointer first, so that BKE_pose_copy_data works (otherwise there's a crash) */
+	/* note: need to clear obn->pose pointer first,
+	 * so that BKE_pose_copy_data works (otherwise there's a crash) */
 	obn->pose = NULL;
 	BKE_pose_copy_data_ex(&obn->pose, ob->pose, flag, true);  /* true = copy constraints */
 
@@ -1626,7 +1627,8 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
 		ob->mat = MEM_dupallocN(target->mat);
 		ob->matbits = MEM_dupallocN(target->matbits);
 		for (i = 0; i < target->totcol; i++) {
-			/* don't need to run test_object_materials since we know this object is new and not used elsewhere */
+			/* don't need to run test_object_materials
+			 * since we know this object is new and not used elsewhere */
 			id_us_plus((ID *)ob->mat[i]);
 		}
 	}
@@ -2788,15 +2790,24 @@ void BKE_scene_foreach_display_point(
 /* copied from DNA_object_types.h */
 typedef struct ObTfmBack {
 	float loc[3], dloc[3], orig[3];
-	float size[3], dscale[3];   /* scale and delta scale */
-	float rot[3], drot[3];      /* euler rotation */
-	float quat[4], dquat[4];    /* quaternion rotation */
-	float rotAxis[3], drotAxis[3];  /* axis angle rotation - axis part */
-	float rotAngle, drotAngle;  /* axis angle rotation - angle part */
-	float obmat[4][4];      /* final worldspace matrix with constraints & animsys applied */
-	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
-	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
-	float imat[4][4];   /* inverse matrix of 'obmat' for during render, temporally: ipokeys of transform  */
+	/** scale and delta scale. */
+	float size[3], dscale[3];
+	/** euler rotation. */
+	float rot[3], drot[3];
+	/** quaternion rotation. */
+	float quat[4], dquat[4];
+	/** axis angle rotation - axis part. */
+	float rotAxis[3], drotAxis[3];
+	/** axis angle rotation - angle part. */
+	float rotAngle, drotAngle;
+	/** final worldspace matrix with constraints & animsys applied. */
+	float obmat[4][4];
+	/** inverse result of parent, so that object doesn't 'stick' to parent. */
+	float parentinv[4][4];
+	/** inverse result of constraints. doesn't include effect of parent or object local transform. */
+	float constinv[4][4];
+	/** inverse matrix of 'obmat' for during render, temporally: ipokeys of transform. */
+	float imat[4][4];
 } ObTfmBack;
 
 void *BKE_object_tfm_backup(Object *ob)

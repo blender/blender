@@ -157,7 +157,8 @@ static void bm_decim_calc_target_co_db(
 	        &vquadrics[BM_elem_index_get(e->v2)]);
 
 	if (BLI_quadric_optimize(&q, optimize_co, OPTIMIZE_EPS)) {
-		return;  /* all is good */
+		/* all is good */
+		return;
 	}
 	else {
 		optimize_co[0] = 0.5 * ((double)e->v1->co[0] + (double)e->v2->co[0]);
@@ -194,9 +195,12 @@ static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_
 				float cross_optim[3];
 
 #if 1
-				float vec_other[3];  /* line between the two outer verts, re-use for both cross products */
-				float vec_exist[3];  /* before collapse */
-				float vec_optim[3];  /* after collapse */
+				/* line between the two outer verts, re-use for both cross products */
+				float vec_other[3];
+				/* before collapse */
+				float vec_exist[3];
+				/* after collapse */
+				float vec_optim[3];
 
 				sub_v3_v3v3(vec_other, co_prev, co_next);
 				sub_v3_v3v3(vec_exist, co_prev, v->co);
@@ -369,7 +373,8 @@ static void bm_decim_build_edge_cost(
 	uint i;
 
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
-		eheap_table[i] = NULL;  /* keep sanity check happy */
+		/* keep sanity check happy */
+		eheap_table[i] = NULL;
 		bm_decim_build_edge_cost_single(e, vquadrics, vweights, vweight_factor, eheap, eheap_table);
 	}
 }
@@ -722,7 +727,8 @@ static void bm_edge_collapse_loop_customdata(
 
 	BLI_assert(l_clear->v == v_clear);
 	BLI_assert(l_other->v == v_other);
-	(void)v_other;  /* quiet warnings for release */
+	/* quiet warnings for release */
+	(void)v_other;
 
 	/* now we have both corners of the face 'l->f' */
 	for (side = 0; side < 2; side++) {
@@ -1147,7 +1153,8 @@ static bool bm_decim_edge_collapse(
 	int e_clear_other[2];
 	BMVert *v_other = e->v1;
 	const int v_other_index = BM_elem_index_get(e->v1);
-	const int v_clear_index = BM_elem_index_get(e->v2);  /* the vert is removed so only store the index */
+	/* the vert is removed so only store the index */
+	const int v_clear_index = BM_elem_index_get(e->v2);
 	float customdata_fac;
 
 #ifdef USE_VERT_NORMAL_INTERP
@@ -1159,7 +1166,8 @@ static bool bm_decim_edge_collapse(
 	if (optimize_co_calc) {
 		/* disallow collapsing which results in degenerate cases */
 		if (UNLIKELY(bm_edge_collapse_is_degenerate_topology(e))) {
-			bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);  /* add back with a high cost */
+			/* add back with a high cost */
+			bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
 			return false;
 		}
 
@@ -1167,7 +1175,8 @@ static bool bm_decim_edge_collapse(
 
 		/* check if this would result in an overlapping face */
 		if (UNLIKELY(bm_edge_collapse_is_degenerate_flip(e, optimize_co))) {
-			bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);  /* add back with a high cost */
+			/* add back with a high cost */
+			bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
 			return false;
 		}
 	}
@@ -1203,7 +1212,8 @@ static bool bm_decim_edge_collapse(
 			vweights[v_other_index] = v_other_weight;
 		}
 
-		e = NULL;  /* paranoid safety check */
+		/* paranoid safety check */
+		e = NULL;
 
 		copy_v3_v3(v_other->co, optimize_co);
 
@@ -1295,9 +1305,12 @@ void BM_mesh_decimate_collapse(
         const bool do_triangulate,
         const int symmetry_axis, const float symmetry_eps)
 {
-	Heap *eheap;             /* edge heap */
-	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
-	Quadric *vquadrics;      /* vert index aligned quadrics */
+	/* edge heap */
+	Heap *eheap;
+	/* edge index aligned table pointing to the eheap */
+	HeapNode **eheap_table;
+	/* vert index aligned quadrics */
+	Quadric *vquadrics;
 	int tot_edge_orig;
 	int face_tot_target;
 
@@ -1359,7 +1372,8 @@ void BM_mesh_decimate_collapse(
 			// const float value = BLI_heap_node_value(BLI_heap_top(eheap));
 			BMEdge *e = BLI_heap_pop_min(eheap);
 			float optimize_co[3];
-			BLI_assert(BM_elem_index_get(e) < tot_edge_orig);  /* handy to detect corruptions elsewhere */
+			/* handy to detect corruptions elsewhere */
+			BLI_assert(BM_elem_index_get(e) < tot_edge_orig);
 
 			/* under normal conditions wont be accessed again,
 			 * but NULL just incase so we don't use freed node */
@@ -1511,5 +1525,6 @@ invalidate:
 	/* testing only */
 	// BM_mesh_validate(bm);
 
-	(void)tot_edge_orig;  /* quiet release build warning */
+	/* quiet release build warning */
+	(void)tot_edge_orig;
 }

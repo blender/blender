@@ -40,18 +40,24 @@ typedef struct VoronoiSite {
 typedef struct VoronoiEdge {
 	struct VoronoiEdge *next, *prev;
 
-	float start[2], end[2];	/* start and end points */
+	/* start and end points */
+	float start[2], end[2];
 
 	/* this fields are used during diagram computation only */
 
-	float direction[2];		/* directional vector, from "start", points to "end", normal of |left, right| */
+	/* directional vector, from "start", points to "end", normal of |left, right| */
+	float direction[2];
 
-	float left[2];			/* point on Voronoi place on the left side of edge */
-	float right[2];			/* point on Voronoi place on the right side of edge */
+	/* point on Voronoi place on the left side of edge */
+	float left[2];
+	/* point on Voronoi place on the right side of edge */
+	float right[2];
 
-	float f, g;				/* directional coeffitients satisfying equation y = f * x + g (edge lies on this line) */
+	/* directional coeffitients satisfying equation y = f * x + g (edge lies on this line) */
+	float f, g;
 
-	/* some edges consist of two parts, so we add the pointer to another part to connect them at the end of an algorithm */
+	/* some edges consist of two parts,
+	 * so we add the pointer to another part to connect them at the end of an algorithm */
 	struct VoronoiEdge *neighbor;
 } VoronoiEdge;
 
