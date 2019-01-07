@@ -96,11 +96,11 @@ static int foreach_libblock_id_user_map_callback(
 		}
 
 		if ((GS(self_id->name) == ID_OB) && (id_p == (ID **)&((Object *)self_id)->proxy_from)) {
-			/* We skip proxy_from here, since it some internal pointer which is not irrelevant info for py/API level. */
+			/* We skip proxy_from here, since it's some internal pointer which is not relevant info for py/API level. */
 			return IDWALK_RET_NOP;
 		}
 		else if ((GS(self_id->name) == ID_KE) && (id_p == (ID **)&((Key *)self_id)->from)) {
-			/* We skip from here, since it some internal pointer which is not irrelevant info for py/API level. */
+			/* We skip from here, since it's some internal pointer which is not relevant info for py/API level. */
 			return IDWALK_RET_NOP;
 		}
 
