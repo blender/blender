@@ -806,12 +806,6 @@ static void subdiv_foreach_vertices(SubdivForeachTaskContext *ctx,
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
 	const MPoly *coarse_poly = &coarse_mpoly[poly_index];
-	if (ctx->foreach_context->vertex_corner != NULL) {
-		subdiv_foreach_corner_vertices(ctx, tls, coarse_poly);
-	}
-	if (ctx->foreach_context->vertex_edge != NULL) {
-		subdiv_foreach_edge_vertices(ctx, tls, coarse_poly);
-	}
 	if (ctx->foreach_context->vertex_inner != NULL) {
 		subdiv_foreach_inner_vertices(ctx, tls, coarse_poly);
 	}
@@ -1950,6 +1944,22 @@ static void subdiv_foreach_vertices_of_loose_edges_task(
  * Subdivision process entry points.
  */
 
+static void subdiv_foreach_single_geometry_vertices(
+        SubdivForeachTaskContext *ctx,
+        void *tls)
+{
+	if (ctx->foreach_context->vertex_corner == NULL) {
+		return;
+	}
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
+		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
+		subdiv_foreach_corner_vertices(ctx, tls, coarse_poly);
+		subdiv_foreach_edge_vertices(ctx, tls, coarse_poly);
+	}
+}
+
 static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
 {
 	/* NOTE: In theory, we can try to skip allocation of TLS here, but in
@@ -1960,6 +1970,8 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
 	 * and boundary edges. */
 	subdiv_foreach_every_corner_vertices(ctx, tls);
 	subdiv_foreach_every_edge_vertices(ctx, tls);
+	/* Run callbacks which are supposed to be run once per shared geometry. */
+	subdiv_foreach_single_geometry_vertices(ctx, tls);
 	subdiv_foreach_tls_free(tls);
 }
 
