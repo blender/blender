@@ -135,7 +135,7 @@ typedef struct WorkSpace {
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE;
 
 	/* Feature tagging (use for addons) */
-	/** WmOwnerID. */
+	/** #wmOwnerID. */
 	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE;
 
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */

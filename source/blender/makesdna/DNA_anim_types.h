@@ -167,9 +167,9 @@ typedef struct FMod_FunctionGenerator {
 	float value_offset;
 
 	/* flags */
-	/** EFMod_Generator_Functions. */
+	/** #eFMod_Generator_Functions. */
 	int type;
-	/** EFMod_Generator_flags. */
+	/** #eFMod_Generator_flags. */
 	int flag;
 } FMod_FunctionGenerator;
 

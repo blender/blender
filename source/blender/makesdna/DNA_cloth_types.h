@@ -53,19 +53,19 @@ typedef struct ClothSimSettings {
 	float 	mingoal;
 	/** Mechanical damping of springs. */
 	float	Cdis DNA_DEPRECATED;
-	/** Viscous/fluid damping.		.	*/
+	/** Viscous/fluid damping. */
 	float	Cvi;
-	/** Gravity/external force vector.	.	*/
+	/** Gravity/external force vector. */
 	float	gravity[3];
 	/** This is the duration of our time step, computed..	*/
 	float	dt;
-	/** The mass of the entire cloth.	.	*/
+	/** The mass of the entire cloth. */
 	float	mass;
 	/** Structural spring stiffness. */
 	float	structural DNA_DEPRECATED;
-	/** Shear spring stiffness.		.	*/
+	/** Shear spring stiffness. */
 	float	shear;
-	/** Flexion spring stiffness.		.	*/
+	/** Flexion spring stiffness. */
 	float	bending;
 	/** Max bending scaling value, min is "bending". */
 	float	max_bend;
@@ -115,15 +115,15 @@ typedef struct ClothSimSettings {
 	float	voxel_cell_size;
 	int		pad;
 
-	/** Number of time steps per frame.	.	*/
+	/** Number of time steps per frame. */
 	int 	stepsPerFrame;
-	/** Flags, see CSIMSETT_FLAGS enum above..	*/
+	/** Flags, see CSIMSETT_FLAGS enum above. */
 	int	flags;
-	/** How many frames of simulation to do before we start..	*/
+	/** How many frames of simulation to do before we start. */
 	int	preroll  DNA_DEPRECATED;
 	/** In percent!; if tearing enabled, a spring will get cut. */
 	int	maxspringlen;
-	/** Which solver should be used?		txold.	*/
+	/** Which solver should be used? txold. */
 	short	solver_type;
 	/** Vertex group for scaling bending stiffness. */
 	short	vgroup_bend;
@@ -161,13 +161,13 @@ typedef struct ClothSimSettings {
 typedef struct ClothCollSettings {
 	/** E.g. pointer to temp memory for collisions. */
 	struct	LinkNode *collision_list;
-	/** Min distance for collisions.	.	*/
+	/** Min distance for collisions. */
 	float	epsilon;
 	/** Fiction/damping with self contact. */
 	float	self_friction;
-	/** Friction/damping applied on contact with other object..*/
+	/** Friction/damping applied on contact with other object. */
 	float	friction;
-	/** Collision restitution on contact with other object..*/
+	/** Collision restitution on contact with other object. */
 	float	damping;
 	/** For selfcollision. */
 	float	selfepsilon;
@@ -177,7 +177,7 @@ typedef struct ClothCollSettings {
 	int	flags;
 	/** How many iterations for the selfcollision loop. */
 	short	self_loop_count DNA_DEPRECATED;
-	/** How many iterations for the collision loop.	.	*/
+	/** How many iterations for the collision loop. */
 	short	loop_count;
 	int pad;
 	/** Only use colliders from this group of objects. */

@@ -120,27 +120,27 @@ typedef struct bAnimVizSettings {
 	/** Number of frames befo.re/after current frame to show */
 	int ghost_bc, ghost_ac;
 
-	/** EOnionSkin_Types. */
+	/** #eOnionSkin_Types. */
 	short ghost_type;
 	/** Number of frames between each ghost shown (not for GHOST_TYPE_KEYS). */
 	short ghost_step;
 
-	/** EOnionSkin_Flag. */
+	/** #eOnionSkin_Flag. */
 	short ghost_flag;
 
 	/* General Settings ------------------------ */
-	/** EAnimViz_RecalcFlags. */
+	/** #eAnimViz_RecalcFlags. */
 	short recalc;
 
 	/* Motion Path Settings ------------------- */
-	/** EMotionPath_Types. */
+	/** #eMotionPath_Types. */
 	short path_type;
 	/** Number of frames between points indicated on the paths. */
 	short path_step;
 
-	/** EMotionPaths_ViewFlag. */
+	/** #eMotionPaths_ViewFlag. */
 	short path_viewflag;
-	/** EMotionPaths_BakeFlag. */
+	/** #eMotionPaths_BakeFlag. */
 	short path_bakeflag;
 
 	/** Start and end frames of path-calculation range. */
@@ -313,7 +313,7 @@ typedef struct bPoseChannel {
 	float quat[4];
 	/** Axis-angle rotation. */
 	float rotAxis[3], rotAngle;
-	/** ERotationModes - rotation representation to use. */
+	/** #eRotationModes - rotation representation to use. */
 	short rotmode;
 	short pad;
 

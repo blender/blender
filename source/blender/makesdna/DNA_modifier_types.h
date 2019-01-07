@@ -1439,7 +1439,7 @@ typedef struct DynamicPaintModifierData {
 
 	struct DynamicPaintCanvasSettings *canvas;
 	struct DynamicPaintBrushSettings *brush;
-	/** Ui display: canvas / brush. */
+	/** UI display: canvas / brush. */
 	int type;
 	int pad;
 } DynamicPaintModifierData;

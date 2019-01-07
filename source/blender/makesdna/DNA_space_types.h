@@ -905,7 +905,7 @@ typedef struct FileDirEntry {
 	/* Either point to active variant/revision if available, or own entry (in mere filebrowser case). */
 	FileDirEntryRevision *entry;
 
-	/** EFileSel_File_Types. */
+	/** #eFileSel_File_Types. */
 	int typeflag;
 	/** ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
 	int blentype;

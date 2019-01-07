@@ -337,7 +337,7 @@ typedef struct ScrArea {
 	 * It's been there for ages, name doesn't fit any more.
 	 */
 	char spacetype;
-	/** ESpace_Type (SPACE_FOO). */
+	/** #eSpace_Type (SPACE_FOO). */
 	char butspacetype;
 	short butspacetype_subtype;
 
@@ -366,17 +366,17 @@ typedef struct ScrArea {
 	 * changing the editor type, we try to reuse old editor data from this list.
 	 * The first item is the active/visible one.
 	 */
-	/** SpaceLink. */
+	/** #SpaceLink. */
 	ListBase spacedata;
 	/* NOTE: This region list is the one from the active/visible editor (first item in
 	 * spacedata list). Use SpaceLink.regionbase if it's inactive (but only then)!
 	 */
-	/** ARegion. */
+	/** #ARegion. */
 	ListBase regionbase;
-	/** WmEventHandler. */
+	/** #wmEventHandler. */
 	ListBase handlers;
 
-	/** AZone. */
+	/** #AZone. */
 	ListBase actionzones;
 
 	ScrArea_Runtime runtime;
@@ -427,17 +427,17 @@ typedef struct ARegion {
 	/** Callbacks for this region type. */
 	struct ARegionType *type;
 
-	/** UiBlock. */
+	/** #uiBlock. */
 	ListBase uiblocks;
 	/** Panel. */
 	ListBase panels;
 	/** Stack of panel categories. */
 	ListBase panels_category_active;
-	/** UiList. */
+	/** #uiList. */
 	ListBase ui_lists;
-	/** UiPreview. */
+	/** #uiPreview. */
 	ListBase ui_previews;
-	/** WmEventHandler. */
+	/** #wmEventHandler. */
 	ListBase handlers;
 	/** Panel categories runtime. */
 	ListBase panels_category;

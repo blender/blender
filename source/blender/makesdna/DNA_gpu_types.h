@@ -59,7 +59,7 @@ typedef struct GPUSSAOSettings {
 typedef struct GPUFXSettings {
 	GPUDOFSettings *dof;
 	GPUSSAOSettings *ssao;
-	/** EGPUFXFlags. */
+	/** #eGPUFXFlags. */
 	char fx_flag;
 	char pad[7];
 } GPUFXSettings;

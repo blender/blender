@@ -137,7 +137,7 @@ typedef struct MovieClipScopes {
 	struct MovieTrackingMarker undist_marker;
 	/** Search area of a track. */
 	struct ImBuf *track_search;
-	/** ImBuf displayed in track preview. */
+	/** #ImBuf displayed in track preview. */
 	struct ImBuf *track_preview;
 	/** Sub-pizel position of marker in track ImBuf. */
 	float track_pos[2];

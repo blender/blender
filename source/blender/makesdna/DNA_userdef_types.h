@@ -427,7 +427,7 @@ typedef struct ThemeWireColor {
 	char	select[4];
 	char 	active[4];
 
-	/** EWireColor_Flags. */
+	/** #eWireColor_Flags. */
 	short 	flag;
 	short 	pad;
 } ThemeWireColor;
@@ -559,9 +559,9 @@ typedef struct UserDef {
 	/* UserDef has separate do-version handling, and can be read from other files */
 	int versionfile, subversionfile;
 
-	/** EUserPref_Flag. */
+	/** #eUserPref_Flag. */
 	int flag;
-	/** EDupli_ID_Flags. */
+	/** #eDupli_ID_Flags. */
 	int dupflag;
 	int savetime;
 	/** FILE_MAXDIR length. */
@@ -584,7 +584,7 @@ typedef struct UserDef {
 
 	/** Minimum spacing between gridlines in View2D grids. */
 	short v2d_min_gridsize;
-	/** ETimecodeStyles, style of timecode display. */
+	/** #eTimecodeStyles, style of timecode display. */
 	short timecode_style;
 
 	short versions;
@@ -592,9 +592,9 @@ typedef struct UserDef {
 
 	short pad;
 	short wheellinescroll;
-	/** EUserpref_UI_Flag. */
+	/** #eUserpref_UI_Flag. */
 	int uiflag;
-	/** EUserpref_UI_Flag2. */
+	/** #eUserpref_UI_Flag2. */
 	int uiflag2;
 	/* Experimental flag for app-templates to make changes to behavior
 	 * which are outside the scope of typical preferences. */
@@ -628,7 +628,7 @@ typedef struct UserDef {
 	/** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
 	char node_margin;
 	char pad2[5];
-	/** EUserpref_Translation_Flags. */
+	/** #eUserpref_Translation_Flags. */
 	short transopts;
 	short menuthreshold1, menuthreshold2;
 

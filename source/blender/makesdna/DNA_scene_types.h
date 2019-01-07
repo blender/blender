@@ -1097,18 +1097,18 @@ typedef struct GP_Sculpt_Settings {
 	/** Runtime. */
 	void *paintcursor;
 
-	/** EGP_Sculpt_Types (sculpt). */
+	/** #eGP_Sculpt_Types (sculpt). */
 	int brushtype;
-	/** EGP_Sculpt_SettingsFlag. */
+	/** #eGP_Sculpt_SettingsFlag. */
 	int flag;
-	/** EGP_Lockaxis_Types lock drawing to one axis. */
+	/** #eGP_Lockaxis_Types lock drawing to one axis. */
 	int lock_axis;
 	char pad1[4];
 
 	/* weight paint is a submode of sculpt but use its own index. All weight paint
 	 * brushes must be defined at the end of the brush array.
 	 */
-	/** EGP_Sculpt_Types (weight paint). */
+	/** #eGP_Sculpt_Types (weight paint). */
 	int weighttype;
 	char pad[4];
 	/** Multiframe edit falloff effect by frame. */
@@ -1139,12 +1139,12 @@ typedef enum eGP_Sculpt_SettingsFlag {
 
 /* Settings for GP Interpolation Operators */
 typedef struct GP_Interpolate_Settings {
-	/** EGP_Interpolate_SettingsFlag. */
+	/** #eGP_Interpolate_SettingsFlag. */
 	short flag;
 
-	/** EGP_Interpolate_Type - Interpolation Mode. */
+	/** #eGP_Interpolate_Type - Interpolation Mode. */
 	char type;
-	/** EBezTriple_Easing - Easing mode (if easing equation used). */
+	/** #eBezTriple_Easing - Easing mode (if easing equation used). */
 	char easing;
 
 	/** BEZT_IPO_BACK. */

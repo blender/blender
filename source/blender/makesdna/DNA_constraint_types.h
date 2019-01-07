@@ -485,11 +485,11 @@ typedef struct bPivotConstraint {
 	/* Rotation-driven activation:
 	 * This option provides easier one-stop setups for footrolls
 	 */
-	/** Rotation axes to consider for this (ePivotConstraint_Axis). */
+	/** Rotation axes to consider for this (#ePivotConstraint_Axis). */
 	short 		rotAxis;
 
 	/* General flags */
-	/** EPivotConstraint_Flag. */
+	/** #ePivotConstraint_Flag. */
 	short 		flag;
 } bPivotConstraint;
 

@@ -55,35 +55,36 @@ typedef enum ePFieldType {
 	PFIELD_BOID       = 10,	/* Defines predator / goal for boids									*/
 	PFIELD_TURBULENCE = 11,	/* Force defined by BLI_gTurbulence										*/
 	PFIELD_DRAG       = 12,	/* Linear & quadratic drag												*/
-	PFIELD_SMOKEFLOW  = 13,	/* Force based on smoke simulation air flow								*/
+	PFIELD_SMOKEFLOW  = 1301,	/* Force based on smoke simulation air flow								*/
 	NUM_PFIELD_TYPES
 } ePFieldType;
 
 typedef struct PartDeflect {
-	/** General settings flag									.	*/
+	/** General settings flag. */
 	int	  flag;
-	/** Deflection flag - does mesh deflect particles			.	*/
+	/** Deflection flag - does mesh deflect particles. */
 	short deflect;
-	/** Force field type, do the vertices attract / repel particles?.	*/
+	/** Force field type, do the vertices attract / repel particles? */
 	short forcefield;
-	/** Fall-off type											.	*/
+	/** Fall-off type. */
 	short falloff;
-	/** Point, plane or surface									.	*/
+	/** Point, plane or surface. */
 	short shape;
-	/** Texture effector											.	*/
+	/** Texture effector. */
 	short tex_mode;
-	/** For curve guide										.	*/
+	/** For curve guide. */
 	short kink, kink_axis;
 	short zdir;
 
 	/* Main effector values */
-	/** The strength of the force (+ or - )				.	*/
+	/** The strength of the force (+ or - ). */
 	float f_strength;
-	/** Damping ratio of the harmonic effector.			.	*/
+	/** Damping ratio of the harmonic effector. */
 	float f_damp;
-	/** How much force is converted into "air flow", i.e..	*/
+	/**
+	 * How much force is converted into "air flow", i.e.
+	 * force used as the velocity of surrounding medium. */
 	float f_flow;
-						/* force used as the velocity of surrounding medium.	*/
 
 	/** Noise size for noise effector, restlength for harmonic effector. */
 	float f_size;
@@ -91,35 +92,35 @@ typedef struct PartDeflect {
 	/* fall-off */
 	/** The power law - real gravitation is 2 (square).	*/
 	float f_power;
-	/** If indicated, use this maximum				.	*/
+	/** If indicated, use this maximum. */
 	float maxdist;
-	/** If indicated, use this minimum				.	*/
+	/** If indicated, use this minimum. */
 	float mindist;
-	/** Radial fall-off power						.	*/
+	/** Radial fall-off power. */
 	float f_power_r;
-	/** Radial versions of above						.	*/
+	/** Radial versions of above. */
 	float maxrad;
 	float minrad;
 
 	/* particle collisions */
-	/** Damping factor for particle deflection      . */
+	/** Damping factor for particle deflection. */
 	float pdef_damp;
-	/** Random element of damping for deflection    . */
+	/** Random element of damping for deflection. */
 	float pdef_rdamp;
-	/** Chance of particle passing through mesh     . */
+	/** Chance of particle passing through mesh. */
 	float pdef_perm;
-	/** Friction factor for particle deflection	.	*/
+	/** Friction factor for particle deflection. */
 	float pdef_frict;
-	/** Random element of friction for deflection.	*/
+	/** Random element of friction for deflection. */
 	float pdef_rfrict;
-	/** Surface particle stickiness			.	*/
+	/** Surface particle stickiness. */
 	float pdef_stickness;
 
 	/** Used for forces. */
 	float absorption;
 
 	/* softbody collisions */
-	/** Damping factor for softbody deflection      . */
+	/** Damping factor for softbody deflection. */
 	float pdef_sbdamp;
 	/** Inner face thickness for softbody deflection. */
 	float pdef_sbift;
@@ -133,15 +134,15 @@ typedef struct PartDeflect {
 	/* texture effector */
 	/** Used for calculating partial derivatives. */
 	float tex_nabla;
-	/** Texture of the texture effector		.	*/
+	/** Texture of the texture effector. */
 	struct Tex *tex;
 
 	/* effector noise */
 	/** Random noise generator for e.g. wind. */
 	struct RNG *rng;
-	/** Noise of force					.	*/
+	/** Noise of force. */
 	float f_noise;
-	/** Noise random seed				.	*/
+	/** Noise random seed. */
 	int seed;
 
 	/* Display Size */
