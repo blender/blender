@@ -131,6 +131,34 @@ typedef struct SubdivForeachTaskContext {
 	BLI_bitmap *coarse_edges_used_map;
 } SubdivForeachTaskContext;
 
+/* =============================================================================
+ * Threading helpers.
+ */
+
+static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
+{
+	const SubdivForeachContext *foreach_context = ctx->foreach_context;
+	void *tls = NULL;
+	if (foreach_context->user_data_tls_size != 0) {
+		tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
+		memcpy(tls,
+		       foreach_context->user_data_tls,
+		       foreach_context->user_data_tls_size);
+	}
+	return tls;
+}
+
+static void subdiv_foreach_tls_free(void *tls)
+{
+	if (tls != NULL) {
+		MEM_freeN(tls);
+	}
+}
+
+/* =============================================================================
+ * Initialization.
+ */
+
 /* NOTE: Expects edge map to be zeroed. */
 static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
 {
@@ -443,16 +471,9 @@ static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx)
 	if (ctx->foreach_context->vertex_every_corner == NULL) {
 		return;
 	}
-	const SubdivForeachContext *foreach_context = ctx->foreach_context;
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	void *tls = NULL;
-	if (foreach_context->user_data_tls_size != 0) {
-		tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
-		memcpy(tls,
-		       foreach_context->user_data_tls,
-		       foreach_context->user_data_tls_size);
-	}
+	void *tls = subdiv_foreach_tls_alloc(ctx);
 	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
 		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
 		if (coarse_poly->totloop == 4) {
@@ -462,9 +483,7 @@ static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx)
 			subdiv_foreach_every_corner_vertices_special(ctx, tls, coarse_poly);
 		}
 	}
-	if (tls != NULL) {
-		MEM_freeN(tls);
-	}
+	subdiv_foreach_tls_free(tls);
 }
 
 /* Traverse of edge vertices. They are coming from coarse edges. */
@@ -675,16 +694,9 @@ static void subdiv_foreach_every_edge_vertices(SubdivForeachTaskContext *ctx)
 	if (ctx->foreach_context->vertex_every_edge == NULL) {
 		return;
 	}
-	const SubdivForeachContext *foreach_context = ctx->foreach_context;
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	void *tls = NULL;
-	if (foreach_context->user_data_tls_size != 0) {
-		tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
-		memcpy(tls,
-		       foreach_context->user_data_tls,
-		       foreach_context->user_data_tls_size);
-	}
+	void *tls = subdiv_foreach_tls_alloc(ctx);
 	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
 		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
 		if (coarse_poly->totloop == 4) {
@@ -694,9 +706,7 @@ static void subdiv_foreach_every_edge_vertices(SubdivForeachTaskContext *ctx)
 			subdiv_foreach_every_edge_vertices_special(ctx, tls, coarse_poly);
 		}
 	}
-	if (tls != NULL) {
-		MEM_freeN(tls);
-	}
+	subdiv_foreach_tls_free(tls);
 }
 
 /* Traversal of inner vertices, they are coming from ptex patches. */
