@@ -112,6 +112,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
 	const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
 	const int offset_type = bmd->val_flags;
+	const float value = bmd->value;
 	const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
 	const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
 	const bool mark_seam = (bmd->edge_flags & MOD_BEVEL_MARK_SEAM);
@@ -192,7 +193,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		harden_normals = false;
 	}
 
-	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
+	BM_mesh_bevel(bm, value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp,
 	              harden_normals, face_strength_mode, mesh->smoothresh);

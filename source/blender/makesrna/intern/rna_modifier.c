@@ -3066,7 +3066,14 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "value");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1, 4);
-	RNA_def_property_ui_text(prop, "Width", "Bevel value/amount");
+	RNA_def_property_ui_text(prop, "Width", "Bevel amount");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "width_pct", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 5.0, 2);
+	RNA_def_property_ui_text(prop, "Width Percent", "Bevel amount for percentage method");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "segments", PROP_INT, PROP_NONE);

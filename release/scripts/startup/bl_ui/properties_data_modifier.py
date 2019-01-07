@@ -136,7 +136,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "width")
+        if md.offset_type == 'PERCENT':
+            col.prop(md, "width_pct")
+        else:
+            col.prop(md, "width")
         col.prop(md, "segments")
         col.prop(md, "profile")
         col.prop(md, "material")
