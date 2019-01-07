@@ -4064,7 +4064,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 
 	/* tag copy-on-write flushing (so that the settings will have an effect) */
 	if (ale_setting->id) {
-		DEG_id_tag_update(ale_setting->id, ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update(ale_setting->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 	}
 	if (ale_setting->adt && ale_setting->adt->action) {
 		/* action is it's own datablock, so has to be tagged specifically... */
@@ -4113,7 +4113,7 @@ static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *
 
 	/* send notifiers */
 	DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
-	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
 }
 
 /* callback for widget sliders - insert keyframes */

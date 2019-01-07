@@ -1355,6 +1355,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 			switch (ac.datatype) {
 				case ANIMCONT_NLA: /* NLA-tracks only */
 					rearrange_nla_channels(&ac, adt, mode);
+					DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 					break;
 
 				case ANIMCONT_DRIVERS: /* Drivers list only */

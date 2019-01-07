@@ -794,7 +794,7 @@ static void view3d_main_region_listener(
 						ED_region_tag_redraw(ar);
 					break;
 				case ND_ANIMCHAN:
-					if (wmn->action == NA_SELECTED)
+					if (ELEM(wmn->action, NA_EDITED, NA_ADDED, NA_REMOVED, NA_SELECTED))
 						ED_region_tag_redraw(ar);
 					break;
 			}
