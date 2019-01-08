@@ -3106,16 +3106,22 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
 }
 
 /**
- * Apply correction from the NLA context to the value about to be keyframed.
+ * Apply correction from the NLA context to the values about to be keyframed.
  *
  * @param context Context to use (may be NULL).
  * @param prop_ptr Property about to be keyframed.
- * @param index Array index within the property.
- * @param[in,out] r_value Value to correct.
- * @return False if correction fails due to a division by zero.
+ * @param[in,out] values Array of property values to adjust.
+ * @param count Number of values in the array.
+ * @param index Index of the element about to be updated, or -1.
+ * @param[out] r_force_all Set to true if all channels must be inserted. May be NULL.
+ * @return False if correction fails due to a division by zero, or null r_force_all when all channels are required.
  */
-bool BKE_animsys_nla_remap_keyframe_value(struct NlaKeyframingContext *context, struct PointerRNA *prop_ptr, struct PropertyRNA *prop, int index, float *r_value)
+bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context, struct PointerRNA *prop_ptr, struct PropertyRNA *prop, float *values, int count, int index, bool *r_force_all)
 {
+	if (r_force_all != NULL) {
+		*r_force_all = false;
+	}
+
 	/* No context means no correction. */
 	if (context == NULL || context->strip.act == NULL) {
 		return true;
@@ -3143,18 +3149,26 @@ bool BKE_animsys_nla_remap_keyframe_value(struct NlaKeyframingContext *context, 
 	NlaEvalChannelKey key = { .ptr = *prop_ptr, .prop = prop, };
 	NlaEvalData *nlaeval = &context->nla_channels;
 	NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, NULL, &key);
-	int real_index = nlaevalchan_validate_index(nec, index);
 
-	if (real_index < 0) {
-		return true;
+	if (nec->base_snapshot.length != count) {
+		BLI_assert(!"invalid value count");
+		return false;
 	}
 
-	/* Invert the blending operation to compute the desired key value. */
+	/* Invert the blending operation to compute the desired key values. */
 	NlaEvalChannelSnapshot *nec_snapshot = nlaeval_snapshot_find_channel(&nlaeval->eval_snapshot, nec);
 
-	float old_value = nec_snapshot->values[real_index];
+	float *old_values = nec_snapshot->values;
 
-	return nla_invert_blend_value(blend_mode, old_value, *r_value, influence, r_value);
+	for (int i = 0; i < count; i++) {
+		if (ELEM(index, i, -1)) {
+			if (!nla_invert_blend_value(blend_mode, old_values[i], values[i], influence, &values[i])) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 /**

@@ -98,8 +98,11 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 			if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 				but->flag |= UI_BUT_ANIMATED_KEY;
 
-			if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, cfra))
-				but->drawflag |= UI_BUT_ANIMATED_CHANGED;
+			/* XXX: this feature is totally broken and useless with NLA */
+			if (adt == NULL || adt->nla_tracks.first == NULL) {
+				if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, cfra))
+					but->drawflag |= UI_BUT_ANIMATED_CHANGED;
+			}
 		}
 		else {
 			but->flag |= UI_BUT_DRIVEN;
