@@ -434,6 +434,11 @@ static void mesh_cd_calc_used_gpu_layers(
 							layer = (name[0] != '\0') ?
 							        CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
 							        CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+
+							/* Only fallback to orco (below) when we have no UV layers, see: T56545 */
+							if (layer == -1 && name[0] != '\0') {
+								layer = CustomData_get_active_layer(cd_ldata, CD_MLOOPUV);
+							}
 						}
 						if (layer != -1) {
 							cd_lused[CD_TANGENT] |= (1 << layer);
