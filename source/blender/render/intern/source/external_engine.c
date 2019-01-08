@@ -812,8 +812,10 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 	 * and check whether their nodetree has a node that needs to be updated. */
 	/* NOTE: using G_MAIN seems valid here,
 	 * unless we want to register that for every other temp Main we could generate??? */
+	ntreeCompositRegisterPass(scene->nodetree, scene, view_layer, name, type);
+
 	for (Scene *sce = G_MAIN->scene.first; sce; sce = sce->id.next) {
-		if (sce->nodetree) {
+		if (sce->nodetree && sce != scene) {
 			ntreeCompositRegisterPass(sce->nodetree, scene, view_layer, name, type);
 		}
 	}
