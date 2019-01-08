@@ -2961,7 +2961,7 @@ void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 void BKE_object_sculpt_data_create(Object *ob)
 {
-	BLI_assert(ob->mode & OB_MODE_ALL_SCULPT);
+	BLI_assert((ob->sculpt == NULL) && (ob->mode & OB_MODE_ALL_SCULPT));
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), __func__);
 	ob->sculpt->mode_type = ob->mode;
 }
