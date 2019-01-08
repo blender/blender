@@ -94,6 +94,9 @@ public:
 	uint update_visibility();
 	void update_time();
 
+	/* Dump the content of the tree as a graphviz file. */
+	void dump_graph(const char *filename);
+
 	// Properties.
 	BoundBox bounds;
 	uint visibility;

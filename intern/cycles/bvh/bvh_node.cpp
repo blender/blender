@@ -150,6 +150,56 @@ void BVHNode::update_time()
 	}
 }
 
+namespace {
+
+struct DumpTraversalContext {
+	/* Descriptor of wile where writing is happening. */
+	FILE *stream;
+	/* Unique identifier of the node current. */
+	int id;
+};
+
+void dump_subtree(DumpTraversalContext *context,
+                  const BVHNode *node,
+                  const BVHNode *parent = NULL)
+{
+	if(node->is_leaf()) {
+		fprintf(context->stream,
+		        "  node_%p [label=\"%d\",fillcolor=\"#ccccee\",style=filled]\n",
+		        node,
+		        context->id);
+	}
+	else {
+		fprintf(context->stream,
+		        "  node_%p [label=\"%d\",fillcolor=\"#cceecc\",style=filled]\n",
+		        node,
+		        context->id);
+	}
+	if(parent != NULL) {
+		fprintf(context->stream, "  node_%p -> node_%p;\n", parent, node);
+	}
+	context->id += 1;
+	for(int i = 0; i < node->num_children(); ++i) {
+		dump_subtree(context, node->get_child(i), node);
+	}
+}
+
+}  // namespace
+
+void BVHNode::dump_graph(const char *filename)
+{
+	DumpTraversalContext context;
+	context.stream = fopen(filename, "w");
+	if(context.stream == NULL) {
+		return;
+	}
+	context.id = 0;
+	fprintf(context.stream, "digraph BVH {\n");
+	dump_subtree(&context, this);
+	fprintf(context.stream, "}\n");
+	fclose(context.stream);
+}
+
 /* Inner Node */
 
 void InnerNode::print(int depth) const
