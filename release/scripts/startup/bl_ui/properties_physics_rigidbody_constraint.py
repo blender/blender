@@ -212,7 +212,7 @@ class PHYSICS_PT_rigid_body_constraint_limits_angular(PHYSICS_PT_rigidbody_const
         rbc = ob.rigid_body_constraint
 
         return (ob and rbc
-                and (rbc.type in {'GENERIC_SPRING', 'HINGE', 'PISTON'})
+                and (rbc.type in {'GENERIC', 'GENERIC_SPRING', 'HINGE', 'PISTON'})
                 and context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
@@ -241,7 +241,7 @@ class PHYSICS_PT_rigid_body_constraint_limits_angular(PHYSICS_PT_rigidbody_const
             sub.prop(rbc, "limit_ang_x_lower", text="X Lower")
             sub.prop(rbc, "limit_ang_x_upper", text="Upper")
 
-        elif rbc.type == 'GENERIC_SPRING':
+        elif rbc.type in {'GENERIC', 'GENERIC_SPRING'}:
             col = flow.column()
             col.prop(rbc, "use_limit_ang_x")
 
