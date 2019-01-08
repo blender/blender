@@ -934,7 +934,10 @@ class _defs_weight_paint:
             brush = context.tool_settings.weight_paint.brush
             if brush is not None:
                 from .properties_paint_common import UnifiedPaintPanel
-                UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
+                UnifiedPaintPanel.prop_unified_weight(
+                    layout, context, brush, "weight", slider=True, text="Weight")
+                UnifiedPaintPanel.prop_unified_strength(
+                    layout, context, brush, "strength", slider=True, text="Strength")
             props = tool.operator_properties("paint.weight_gradient")
             layout.prop(props, "type")
 
