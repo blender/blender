@@ -436,6 +436,12 @@ void BVHEmbree::build(Progress& progress, Stats *stats_)
 	stats = NULL;
 }
 
+BVHNode *BVHEmbree::widen_children_nodes(const BVHNode * /*root*/)
+{
+	assert(!"Must not be called.");
+	return NULL;
+}
+
 void BVHEmbree::add_object(Object *ob, int i)
 {
 	Mesh *mesh = ob->mesh;
