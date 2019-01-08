@@ -5648,8 +5648,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	if (ob->sculpt) {
 		/* Only create data on undo, otherwise rely on editor mode switching. */
 		if (fd->memfile && (ob->mode & OB_MODE_ALL_SCULPT)) {
-			ob->sculpt = MEM_callocN(sizeof(SculptSession), "reload sculpt session");
-			ob->sculpt->mode_type = ob->mode;
+			BKE_object_sculpt_data_create(ob);
 		}
 		else {
 			ob->sculpt = NULL;

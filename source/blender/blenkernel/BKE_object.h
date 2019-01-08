@@ -293,6 +293,8 @@ void BKE_object_handle_update_ex(
         const bool do_proxy_update);
 void BKE_object_sculpt_modifiers_changed(struct Object *ob);
 
+void BKE_object_sculpt_data_create(struct Object *ob);
+
 int BKE_object_obdata_texspace_get(struct Object *ob, short **r_texflag, float **r_loc, float **r_size, float **r_rot);
 
 struct Mesh *BKE_object_get_evaluated_mesh(const struct Depsgraph *depsgraph, struct Object *ob);

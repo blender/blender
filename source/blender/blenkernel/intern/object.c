@@ -2959,6 +2959,13 @@ void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 	BKE_object_handle_update_ex(depsgraph, scene, ob, NULL, true);
 }
 
+void BKE_object_sculpt_data_create(Object *ob)
+{
+	BLI_assert(ob->mode & OB_MODE_ALL_SCULPT);
+	ob->sculpt = MEM_callocN(sizeof(SculptSession), __func__);
+	ob->sculpt->mode_type = ob->mode;
+}
+
 void BKE_object_sculpt_modifiers_changed(Object *ob)
 {
 	SculptSession *ss = ob->sculpt;

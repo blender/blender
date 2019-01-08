@@ -130,7 +130,17 @@ void ED_editors_init(bContext *C)
 							ED_object_posemode_enter_ex(bmain, ob);
 						}
 						else {
-							ED_object_mode_toggle(C, mode);
+							if (obact == ob) {
+								ED_object_mode_toggle(C, mode);
+							}
+							else {
+								/* Create data for non-active objects which need it for
+								 * mode-switching but don't yet support multi-editing. */
+								if (mode & OB_MODE_ALL_SCULPT) {
+									ob->mode = mode;
+									BKE_object_sculpt_data_create(ob);
+								}
+							}
 						}
 					}
 				}
