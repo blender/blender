@@ -1186,7 +1186,7 @@ static bool view3d_localview_init(
 		}
 		else {
 			for (base = FIRSTBASE(view_layer); base; base = base->next) {
-				if (TESTBASE(v3d, base)) {
+				if (BASE_SELECTED(v3d, base)) {
 					BKE_object_minmax(base->object, min, max, false);
 					base->local_view_bits |= local_view_bit;
 					ok = true;
@@ -1421,7 +1421,7 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 
 	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
-		if (TESTBASE(v3d, base)) {
+		if (BASE_SELECTED(v3d, base)) {
 			base->local_view_bits &= ~v3d->local_view_uuid;
 			ED_object_base_select(base, BA_DESELECT);
 

@@ -5874,7 +5874,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* Traverse all bases and set all possible flags. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		base->flag_legacy &= ~BA_WAS_SEL;
-		if (TESTBASELIB_BGMODE(v3d, base)) {
+		if (BASE_SELECTED_EDITABLE(v3d, base)) {
 			Object *ob = base->object;
 			Object *parsel = ob->parent;
 			/* If parent selected, deselect. */
@@ -5882,7 +5882,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 				if (parsel->base_flag & BASE_SELECTED) {
 					Base *parbase = BKE_view_layer_base_find(view_layer, parsel);
 					if (parbase != NULL) { /* in rare cases this can fail */
-						if (TESTBASELIB_BGMODE(v3d, parbase)) {
+						if (BASE_SELECTED_EDITABLE(v3d, parbase)) {
 							break;
 						}
 					}
@@ -5940,7 +5940,7 @@ static int count_proportional_objects(TransInfo *t)
 	{
 		/* Mark all parents. */
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			if (TESTBASELIB_BGMODE(v3d, base)) {
+			if (BASE_SELECTED_EDITABLE(v3d, base)) {
 				Object *parent = base->object->parent;
 				/* flag all parents */
 				while (parent != NULL) {
@@ -5954,7 +5954,7 @@ static int count_proportional_objects(TransInfo *t)
 			/* all base not already selected or marked that is editable */
 			if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
 			    (base->flag & BASE_SELECTED) == 0 &&
-			    (BASE_EDITABLE_BGMODE(v3d, base)))
+			    (BASE_EDITABLE(v3d, base)))
 			{
 				mark_children(base->object);
 			}
@@ -5968,7 +5968,7 @@ static int count_proportional_objects(TransInfo *t)
 		 */
 		if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
 		    (base->flag & BASE_SELECTED) == 0 &&
-		    (BASE_EDITABLE_BGMODE(v3d, base)))
+		    (BASE_EDITABLE(v3d, base)))
 		{
 			flush_trans_object_base_deps_flag(depsgraph, ob);
 			total += 1;
@@ -6937,7 +6937,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 	TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
 	/* count */
-	tc->data_len = CTX_DATA_COUNT(C, selected_objects);
+	tc->data_len = CTX_DATA_COUNT(C, selected_bases);
 
 	if (!tc->data_len) {
 		/* clear here, main transform function escapes too */
@@ -6989,7 +6989,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 			/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
 			if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
 			    (base->flag & BASE_SELECTED) == 0 &&
-			    BASE_EDITABLE_BGMODE(v3d, base))
+			    BASE_EDITABLE(v3d, base))
 			{
 				td->protectflag = ob->protectflag;
 				td->ext = tx;

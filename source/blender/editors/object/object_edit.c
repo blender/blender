@@ -920,7 +920,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *
 
 	for (base = FIRSTBASE(view_layer); base; base = base->next) {
 		if (base != BASACT(view_layer)) {
-			if (TESTBASELIB(v3d, base)) {
+			if (BASE_SELECTED_EDITABLE(v3d, base)) {
 				DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
 
 				if (event == 1) {  /* loc */

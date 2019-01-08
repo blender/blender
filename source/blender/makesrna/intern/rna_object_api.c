@@ -142,7 +142,7 @@ static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 		return false;
 	}
 
-	return BASE_VISIBLE_BGMODE(v3d, base);
+	return BASE_VISIBLE(v3d, base);
 }
 
 static bool rna_Object_holdout_get(Object *ob, ReportList *reports, ViewLayer *view_layer)

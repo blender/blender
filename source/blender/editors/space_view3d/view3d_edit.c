@@ -299,7 +299,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
 		zero_v3(select_center);
 		for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
-			if (TESTBASE(v3d, base_eval)) {
+			if (BASE_SELECTED(v3d, base_eval)) {
 				/* use the boundbox if we can */
 				Object *ob_eval = base_eval->object;
 
@@ -2822,7 +2822,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base_eval;
 		for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
-			if (TESTBASELIB(v3d, base_eval)) {
+			if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {
 				if (base_eval->object->type == OB_ARMATURE)
 					if (base_eval->object->mode & OB_MODE_POSE)
 						break;
@@ -2889,7 +2889,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	else {
 		Base *base_eval;
 		for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
-			if (TESTBASE(v3d, base_eval)) {
+			if (BASE_SELECTED(v3d, base_eval)) {
 
 				if (skip_camera && base_eval->object == v3d->camera) {
 					continue;

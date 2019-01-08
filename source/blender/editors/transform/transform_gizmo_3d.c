@@ -1088,7 +1088,7 @@ int ED_transform_calc_gizmo_stats(
 		if (base && ((base->flag & BASE_SELECTED) == 0)) ob = NULL;
 
 		for (base = view_layer->object_bases.first; base; base = base->next) {
-			if (!TESTBASELIB(v3d, base)) {
+			if (!BASE_SELECTED_EDITABLE(v3d, base)) {
 				continue;
 			}
 			if (ob == NULL) {

@@ -273,7 +273,7 @@ bGPdata *ED_gpencil_data_get_active_v3d(ViewLayer *view_layer, View3D *v3d)
 	/* We have to make sure active object is actually visible and selected, else we must use default scene gpd,
 	 * to be consistent with ED_gpencil_data_get_active's behavior.
 	 */
-	if (base && TESTBASE(v3d, base)) {
+	if (base && BASE_SELECTED(v3d, base)) {
 		if (base->object->type == OB_GPENCIL)
 			gpd = base->object->data;
 	}

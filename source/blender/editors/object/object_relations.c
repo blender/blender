@@ -1337,7 +1337,7 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 	if (sce->id.lib) return;
 
 	for (base = FIRSTBASE; base; base = base->next) {
-		if (TESTBASE(v3d, base)) {
+		if (BASE_SELECTED(v3d, base)) {
 			nbase = MEM_mallocN(sizeof(Base), "newbase");
 			*nbase = *base;
 			BLI_addhead(&(sce->base), nbase);
