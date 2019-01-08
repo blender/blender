@@ -1208,7 +1208,9 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 static void make_bad_file(const char *file, int line)
 {
 	FILE *fp = fopen(file, "w");
-	fprintf(fp, "#error \"Error! can't make correct DNA.c file from %s:%d, STUPID!\"\n", __FILE__, line);
+	fprintf(fp,
+	       "#error \"Error! can't make correct DNA.c file from %s:%d, check alignment.\"\n",
+	       __FILE__, line);
 	fclose(fp);
 }
 
