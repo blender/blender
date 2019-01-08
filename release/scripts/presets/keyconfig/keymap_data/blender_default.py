@@ -5038,9 +5038,9 @@ def km_image_editor_tool_uv_select_circle(params):
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("uv.select_circle", {"type": params.tool_mouse, "value": 'PRESS'},
-             {"properties": [("deselect", False)]}),
+             {"properties": [("wait_for_input", False), ("deselect", False)]}),
             ("uv.select_circle", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("deselect", True)]}),
+             {"properties": [("wait_for_input", False), ("deselect", True)]}),
         ]},
     )
 
