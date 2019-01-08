@@ -4058,10 +4058,7 @@ class VIEW3D_MT_shading_pie(Menu):
 
         view = context.space_data
 
-        pie.prop_enum(view.shading, "type", value='WIREFRAME')
-        pie.prop_enum(view.shading, "type", value='SOLID')
-        pie.prop_enum(view.shading, "type", value='MATERIAL')
-        pie.prop_enum(view.shading, "type", value='RENDERED')
+        pie.prop(view.shading, "type", expand=True)
 
 
 class VIEW3D_MT_shading_ex_pie(Menu):
