@@ -484,7 +484,7 @@ static bool is_valid_unit_collection(const bUnitCollection *usys)
 	return usys != NULL && usys->units[0].name != NULL;
 }
 
-static const bUnitDef *get_preferred_unit_if_used(int type, PreferredUnits units)
+static const bUnitDef *get_preferred_display_unit_if_used(int type, PreferredUnits units)
 {
 	const bUnitCollection *usys = unit_get_system(units.system, type);
 	if (!is_valid_unit_collection(usys)) return NULL;
@@ -525,7 +525,7 @@ static size_t unit_as_string_main(
 		usys = &buDummyCollection;
 	}
 	else {
-		main_unit = get_preferred_unit_if_used(type, units);
+		main_unit = get_preferred_display_unit_if_used(type, units);
 	}
 
 	if (split && unit_should_be_split(type)) {
@@ -734,12 +734,12 @@ bool bUnit_ContainsUnit(const char *str, int system, int type)
 	return false;
 }
 
-double bUnit_PreferredUnitScalar(const struct UnitSettings *settings, int type)
+double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int type)
 {
 	PreferredUnits units = preferred_units_from_UnitSettings(settings);
-	const bUnitDef *unit = get_preferred_unit_if_used(type, units);
-	if (unit == NULL) return 1.0;
-	else return unit->scalar;
+	const bUnitDef *unit = get_preferred_display_unit_if_used(type, units);
+	if (unit) return unit->scalar;
+	else return bUnit_BaseScalar(units.system, type);
 }
 
 /* make a copy of the string that replaces the units with numbers
@@ -905,7 +905,8 @@ double bUnit_ClosestScalar(double value, int system, int type)
 double bUnit_BaseScalar(int system, int type)
 {
 	const bUnitCollection *usys = unit_get_system(system, type);
-	return unit_default(usys)->scalar;
+	if (usys) return unit_default(usys)->scalar;
+	else return 1.0;
 }
 
 /* external access */

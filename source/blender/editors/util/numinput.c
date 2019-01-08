@@ -260,7 +260,7 @@ bool user_string_to_number(bContext *C, const char *str, const UnitSettings *uni
 	double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
 	if (!bUnit_ContainsUnit(str, unit->system, type)) {
 		int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
-		*r_value *= bUnit_PreferredUnitScalar(unit, type);
+		*r_value *= bUnit_PreferredInputUnitScalar(unit, type);
 		*r_value /= unit_scale;
 		return success;
 	}

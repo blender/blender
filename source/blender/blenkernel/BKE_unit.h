@@ -46,7 +46,7 @@ bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sc
 bool bUnit_ContainsUnit(const char *str, int system, int type);
 
 /* if user does not specify a unit, multiply with this value */
-double bUnit_PreferredUnitScalar(const struct UnitSettings *settings, int type);
+double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int type);
 
 /* make string keyboard-friendly: 10µm --> 10um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);
