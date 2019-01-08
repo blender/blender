@@ -197,9 +197,8 @@ bool DRW_object_use_hide_faces(const struct Object *ob)
 
 		switch (ob->mode) {
 			case OB_MODE_TEXTURE_PAINT:
-			case OB_MODE_VERTEX_PAINT:
 				return (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-
+			case OB_MODE_VERTEX_PAINT:
 			case OB_MODE_WEIGHT_PAINT:
 				return (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
 		}

@@ -863,7 +863,9 @@ class _defs_vertex_paint:
     @staticmethod
     def poll_select_mask(context):
         ob = context.active_object
-        return ob.type == 'MESH' and ob.data.use_paint_mask
+        return (ob.type == 'MESH' and
+                (ob.data.use_paint_mask or
+                 ob.data.use_paint_mask_vertex))
 
     @staticmethod
     def generate_from_brushes(context):
