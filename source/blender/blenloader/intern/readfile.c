@@ -5646,7 +5646,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
 	if (ob->sculpt) {
-		if (ob->mode & OB_MODE_ALL_SCULPT) {
+		/* Only create data on undo, otherwise rely on editor mode switching. */
+		if (fd->memfile && (ob->mode & OB_MODE_ALL_SCULPT)) {
 			ob->sculpt = MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 			ob->sculpt->mode_type = ob->mode;
 		}
