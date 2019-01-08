@@ -408,6 +408,9 @@ class _defs_edit_mesh:
         return dict(
             text="Add Cube",
             icon="ops.mesh.primitive_cube_add_gizmo",
+            description=(
+                "Add cube to mesh interactively"
+            ),
             widget=None,
             keymap=(),
         )
