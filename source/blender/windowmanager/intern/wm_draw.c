@@ -213,7 +213,7 @@ static void wm_region_test_render_do_draw(const Scene *scene, struct Depsgraph *
 
 static bool wm_region_use_viewport(ScrArea *sa, ARegion *ar)
 {
-	return (sa->spacetype == SPACE_VIEW3D && ar->regiontype == RGN_TYPE_WINDOW);
+	return (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && ar->regiontype == RGN_TYPE_WINDOW);
 }
 
 /********************** draw all **************************/

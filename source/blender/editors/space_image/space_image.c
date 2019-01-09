@@ -83,6 +83,12 @@
 
 #include "image_intern.h"
 #include "GPU_framebuffer.h"
+#include "GPU_batch_presets.h"
+#include "GPU_viewport.h"
+
+/* TODO(fclem) remove bad level calls */
+#include "../draw/DRW_engine.h"
+#include "wm_draw.h"
 
 /**************************** common state *****************************/
 
@@ -619,6 +625,14 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	//View2DScrollers *scrollers;
 	float col[3];
+
+	/* XXX This is in order to draw UI batches with the DRW
+	 * olg context since we now use it for drawing the entire area */
+	gpu_batch_presets_reset();
+
+	/* TODO(fclem) port to draw manager and remove the depth buffer allocation. */
+	DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(ar->draw_buffer->viewport[0]);
+	GPU_framebuffer_bind(fbl->color_only_fb);
 
 	/* XXX not supported yet, disabling for now */
 	scene->r.scemode &= ~R_COMP_CROP;
