@@ -29,10 +29,10 @@
  *  \ingroup editorui
  */
 
-#include "BLI_sys_types.h"
-
 #ifndef __UI_RESOURCES_H__
 #define __UI_RESOURCES_H__
+
+#include "BLI_sys_types.h"
 
 /* Define icon enum. */
 #define DEF_ICON(name) ICON_##name,

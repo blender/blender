@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __CLOG_H__
-#define __CLOG_H__
+#ifndef __CLG_LOG_H__
+#define __CLG_LOG_H__
 
 /** \file clog/CLG_log.h
  *  \ingroup clog
@@ -211,4 +211,4 @@ void CLG_logref_init(CLG_LogRef *clg_ref);
 }
 #endif
 
-#endif /* __CLOG_H__ */
+#endif /* __CLG_LOG_H__ */

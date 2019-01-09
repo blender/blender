@@ -20,13 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BLI_ENDIAN_SWITCH_INLINE_H__
+#define __BLI_ENDIAN_SWITCH_INLINE_H__
+
 /* only include from header */
 #ifndef __BLI_ENDIAN_SWITCH_H__
 #  error "this file isnt to be directly included"
 #endif
-
-#ifndef __BLI_ENDIAN_SWITCH_INLINE_H__
-#define __BLI_ENDIAN_SWITCH_INLINE_H__
 
 /** \file blender/blenlib/BLI_endian_switch_inline.h
  *  \ingroup bli

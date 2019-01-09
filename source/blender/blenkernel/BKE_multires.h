@@ -163,6 +163,6 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(
         const float dPdv[3],
         const int corner);
 
-#endif  /* __BKE_MULTIRES_H__ */
-
 #include "intern/multires_inline.h"
+
+#endif  /* __BKE_MULTIRES_H__ */

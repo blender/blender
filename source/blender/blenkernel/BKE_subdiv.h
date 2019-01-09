@@ -232,6 +232,6 @@ BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
         const float u, const float v,
         float *r_u, float *r_v);
 
-#endif  /* __BKE_SUBDIV_H__ */
-
 #include "intern/subdiv_inline.h"
+
+#endif  /* __BKE_SUBDIV_H__ */
