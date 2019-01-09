@@ -308,11 +308,10 @@ enum {
 	TIMERF                = 0x011F,  /* last timer */
 
 	/* Actionzones, tweak, gestures: 0x500x, 0x501x */
-#define EVT_ACTIONZONE_FIRST EVT_ACTIONZONE_AREA
+	/* Keep in sync with IS_EVENT_ACTIONZONE(...). */
 	EVT_ACTIONZONE_AREA   = 0x5000,
 	EVT_ACTIONZONE_REGION = 0x5001,
 	EVT_ACTIONZONE_FULLSCREEN = 0x5011,
-#define EVT_ACTIONZONE_LAST (EVT_ACTIONZONE_FULLSCREEN + 1)
 
 	/* NOTE: these values are saved in keymap files, do not change them but just add new ones */
 
@@ -376,7 +375,8 @@ enum {
 /* test whether the event is a NDOF event */
 #define ISNDOF(event_type)  ((event_type) >= NDOF_MOTION && (event_type) < NDOF_LAST)
 
-#define IS_EVENT_ACTIONZONE(event_type)  ((event_type) >= EVT_ACTIONZONE_FIRST && (event_type) < EVT_ACTIONZONE_LAST)
+#define IS_EVENT_ACTIONZONE(event_type) \
+	ELEM(event_type, EVT_ACTIONZONE_AREA, EVT_ACTIONZONE_REGION, EVT_ACTIONZONE_FULLSCREEN)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
 #define ISHOTKEY(event_type)                                                  \
