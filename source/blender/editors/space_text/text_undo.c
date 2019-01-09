@@ -121,12 +121,18 @@ static void text_undosys_step_decode(struct bContext *C, UndoStep *us_p, int dir
 
 	if (dir < 0) {
 		TextUndoBuf data = us->data;
-		txt_do_undo(text, &data);
+		while (data.pos > -1) {
+			txt_do_undo(text, &data);
+		}
+		BLI_assert(data.pos == -1);
 	}
 	else {
 		TextUndoBuf data = us->data;
 		data.pos = -1;
-		txt_do_redo(text, &data);
+		while (data.pos < us->data.pos) {
+			txt_do_redo(text, &data);
+		}
+		BLI_assert(data.pos == us->data.pos);
 	}
 
 	text_update_edited(text);
