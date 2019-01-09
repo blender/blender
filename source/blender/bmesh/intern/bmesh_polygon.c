@@ -30,6 +30,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -259,6 +260,25 @@ float BM_face_calc_area_with_mat3(const BMFace *f, const float mat3[3][3])
 		copy_v3_v3(co, co_next);
 	} while ((l_iter = l_iter->next) != l_first);
 	return len_v3(n) * 0.5f;
+}
+
+/**
+ * get the area of UV face
+ */
+float BM_face_calc_area_uv(const BMFace *f, int cd_loop_uv_offset)
+{
+	/* inline 'area_poly_v2' logic, avoid creating a temp array */
+	const BMLoop *l_iter, *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	/* The Trapezium Area Rule */
+	float cross = 0.0f;
+	do {
+		const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
+		const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l_iter->next, cd_loop_uv_offset);
+		cross += (luv_next->uv[0] - luv->uv[0]) * (luv_next->uv[1] + luv->uv[1]);
+	} while ((l_iter = l_iter->next) != l_first);
+	return fabsf(cross * 0.5f);
 }
 
 /**
