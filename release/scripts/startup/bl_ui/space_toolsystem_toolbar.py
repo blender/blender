@@ -33,6 +33,10 @@ from .space_toolsystem_common import (
 )
 
 
+def kmi_to_string_or_none(kmi):
+    return kmi.to_string() if kmi else "<none>"
+
+
 def generate_from_enum_ex(
         context, *,
         icon_prefix,
@@ -101,6 +105,10 @@ class _defs_view3d_generic:
     @ToolDef.from_fn
     def ruler():
         def description(context, item, km):
+            if km is not None:
+                kmi = km.keymap_items.find_from_operator("view3d.ruler_add")
+            else:
+                kmi = None
             return (
                 "Measure distance and angles.\n"
                 "\u2022 {} anywhere for new measurement.\n"
@@ -109,7 +117,7 @@ class _defs_view3d_generic:
                 "\u2022 Ctrl to snap.\n"
                 "\u2022 Shift to measure surface thickness"
             ).format(
-                km.keymap_items[0].to_string()
+                kmi_to_string_or_none(kmi)
             )
         return dict(
             text="Measure",
