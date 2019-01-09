@@ -253,6 +253,35 @@ void BKE_undosys_stack_clear_active(UndoStack *ustack)
 	}
 }
 
+/* Caller is responsible for handling active. */
+static void undosys_stack_clear_all_last(UndoStack *ustack, UndoStep *us)
+{
+	if (us) {
+		bool is_not_empty = true;
+		UndoStep *us_iter;
+		do {
+			us_iter = ustack->steps.last;
+			BLI_assert(us_iter != ustack->step_active);
+			undosys_step_free_and_unlink(ustack, us_iter);
+			undosys_stack_validate(ustack, is_not_empty);
+		} while ((us != us_iter));
+	}
+}
+
+static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us)
+{
+	if (us) {
+		bool is_not_empty = true;
+		UndoStep *us_iter;
+		do {
+			us_iter = ustack->steps.first;
+			BLI_assert(us_iter != ustack->step_active);
+			undosys_step_free_and_unlink(ustack, us_iter);
+			undosys_stack_validate(ustack, is_not_empty);
+		} while ((us != us_iter));
+	}
+}
+
 static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct Main *bmain)
 {
 	UNDO_NESTED_ASSERT(false);
@@ -364,11 +393,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
 		}
 #endif
 		/* Free from first to last, free functions may update de-duplication info (see #MemFileUndoStep). */
-		while (ustack->steps.first != us) {
-			UndoStep *us_first = ustack->steps.first;
-			BLI_assert(us_first != ustack->step_active);
-			undosys_step_free_and_unlink(ustack, us_first);
-		}
+		undosys_stack_clear_all_first(ustack, us->prev);
 
 #ifdef WITH_GLOBAL_UNDO_KEEP_ONE
 		if (us_exclude) {
@@ -387,6 +412,11 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, c
 	BLI_assert(ustack->step_init == NULL);
 	if (ut->step_encode_init) {
 		undosys_stack_validate(ustack, false);
+
+		if (ustack->step_active) {
+			undosys_stack_clear_all_last(ustack, ustack->step_active->next);
+		}
+
 		UndoStep *us = MEM_callocN(ut->step_size, __func__);
 		CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, name, ut->name);
 		if (name != NULL) {
