@@ -1,8 +1,8 @@
 
 flat in int vertFlag;
 
-#define VERTEX_SELECTED (1 << 0)
-#define VERTEX_ACTIVE   (1 << 1)
+#define VERTEX_ACTIVE   (1 << 0)
+#define VERTEX_SELECTED (1 << 1)
 
 out vec4 FragColor;
 
