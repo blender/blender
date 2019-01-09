@@ -491,7 +491,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
         col = row.column()
         layer_rows = 10
         col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
-                          rows=layer_rows, reverse=True)
+                          rows=layer_rows, sort_reverse=True, sort_lock=True)
 
         gpl = context.active_gpencil_layer
         if gpl:

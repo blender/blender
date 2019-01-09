@@ -1064,7 +1064,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Default maximum number of rows to display", 0, INT_MAX);
 	RNA_def_enum(func, "type", rna_enum_uilist_layout_type_items, UILST_LAYOUT_DEFAULT, "Type", "Type of layout to use");
 	RNA_def_int(func, "columns", 9, 0, INT_MAX, "", "Number of items to display per row, for GRID layout", 0, INT_MAX);
-	RNA_def_boolean(func, "reverse", false, "", "Display items in reverse order");
+	RNA_def_boolean(func, "sort_reverse", false, "", "Display items in reverse order by default");
+	RNA_def_boolean(func, "sort_lock", false, "", "Lock display order to default value");
 
 	func = RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

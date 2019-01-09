@@ -1133,7 +1133,7 @@ void uiTemplateList(
         uiLayout *layout, struct bContext *C, const char *listtype_name, const char *list_id,
         struct PointerRNA *dataptr, const char *propname, struct PointerRNA *active_dataptr,
         const char *active_propname, const char *item_dyntip_propname,
-        int rows, int maxrows, int layout_type, int columns, bool reverse);
+        int rows, int maxrows, int layout_type, int columns, bool sort_reverse, bool sort_lock);
 void uiTemplateNodeLink(uiLayout *layout, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateNodeView(uiLayout *layout, struct bContext *C, struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *input);
 void uiTemplateTextureUser(uiLayout *layout, struct bContext *C);

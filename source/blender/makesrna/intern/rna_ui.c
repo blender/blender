@@ -394,7 +394,7 @@ static void uilist_draw_item(uiList *ui_list, bContext *C, uiLayout *layout, Poi
 	RNA_parameter_list_free(&list);
 }
 
-static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout, bool reverse)
+static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout)
 {
 	extern FunctionRNA rna_UIList_draw_filter_func;
 
@@ -408,7 +408,6 @@ static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout, b
 	RNA_parameter_list_create(&list, &ul_ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
 	RNA_parameter_set_lookup(&list, "layout", &layout);
-	RNA_parameter_set_lookup(&list, "reverse", &reverse);
 	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -1297,6 +1296,12 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", UILST_FLT_EXCLUDE);
 	RNA_def_property_ui_text(prop, "Invert", "Invert filtering (show hidden items, and vice-versa)");
 
+	/* WARNING: This is sort of an abuse, sort-by-alpha is actually a value, should even be an enum in full logic
+	 * (of two values, sort by index and sort by name).
+	 * But for default UIList, it's nicer (better UI-wise) to show this as a boolean bit-flag option,
+	 * avoids having to define custom setters/getters using UILST_FLT_SORT_MASK to mask out
+	 * actual bitflags on same var, etc.
+	 */
 	prop = RNA_def_property(srna, "use_filter_sort_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter_sort_flag", UILST_FLT_SORT_ALPHA);
 	RNA_def_property_ui_icon(prop, ICON_SORTALPHA, 0);
@@ -1304,7 +1309,11 @@ static void rna_def_uilist(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_filter_sort_reverse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter_sort_flag", UILST_FLT_SORT_REVERSE);
-	RNA_def_property_ui_text(prop, "Invert", "Invert the order of shown items");
+	RNA_def_property_ui_text(prop, "Reverse", "Reverse the order of shown items");
+
+	prop = RNA_def_property(srna, "use_filter_sort_lock", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter_sort_flag", UILST_FLT_SORT_LOCK);
+	RNA_def_property_ui_text(prop, "Lock Order", "Lock the order of shown items (user cannot change it)");
 
 	/* draw_item */
 	func = RNA_def_function(srna, "draw_item", NULL);
@@ -1341,7 +1350,6 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Layout to draw the item");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	RNA_def_boolean(func, "reverse", false, "", "Display items in reverse order");
 
 	/* filter */
 	func = RNA_def_function(srna, "filter_items", NULL);

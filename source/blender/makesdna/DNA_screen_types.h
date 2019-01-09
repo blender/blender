@@ -551,14 +551,18 @@ enum {
 	UILST_FLT_EXCLUDE   = UILST_FLT_ITEM,  /* Exclude filtered items, *must* use this same value. */
 };
 
-/* uiList filter orderby type */
+/* uiList filter sort type */
 enum {
-	UILST_FLT_SORT_ALPHA        = 1 << 0,
-	UILST_FLT_FORCED_REVERSE    = 1 << 1,   /* Special flag to indicate reverse was set by external parameter */
+	/* Plain values (only one is valid at a time, once masked with UILST_FLT_SORT_MASK. */
+	UILST_FLT_SORT_INDEX        = 0,  /* Just for sake of consistency. */
+	UILST_FLT_SORT_ALPHA        = 1,
+
+	/* Bitflags affecting behavior of any kind of sorting. */
+	UILST_FLT_SORT_LOCK       = 1u << 30,   /* Special flag to indicate that order is locked (not user-changeable). */
 	UILST_FLT_SORT_REVERSE      = 1u << 31  /* Special value, bitflag used to reverse order! */
 };
 
-#define UILST_FLT_SORT_MASK (((unsigned int)UILST_FLT_SORT_REVERSE) - 1)
+#define UILST_FLT_SORT_MASK (((unsigned int)(UILST_FLT_SORT_REVERSE | UILST_FLT_SORT_LOCK)) - 1)
 
 /* regiontype, first two are the default set */
 /* Do NOT change order, append on end. Types are hardcoded needed */

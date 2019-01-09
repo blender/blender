@@ -3573,7 +3573,7 @@ static void uilist_draw_item_default(
 	}
 }
 
-static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout, bool reverse)
+static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout)
 {
 	PointerRNA listptr;
 	uiLayout *row, *subrow;
@@ -3587,8 +3587,7 @@ static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *
 	uiItemR(subrow, &listptr, "use_filter_invert", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
 	        (ui_list->filter_flag & UILST_FLT_EXCLUDE) ? ICON_ZOOM_OUT : ICON_ZOOM_IN);
 
-	/* a reverse list, cannot sort or invert order in filter */
-	if (!reverse) {
+	if ((ui_list->filter_sort_flag & UILST_FLT_SORT_LOCK) == 0) {
 		subrow = uiLayoutRow(row, true);
 		uiItemR(subrow, &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		uiItemR(subrow, &listptr, "use_filter_sort_reverse", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
@@ -3617,7 +3616,7 @@ static void uilist_filter_items_default(
 	const char *filter_raw = ui_list->filter_byname;
 	char *filter = (char *)filter_raw, filter_buff[32], *filter_dyn = NULL;
 	const bool filter_exclude = (ui_list->filter_flag & UILST_FLT_EXCLUDE) != 0;
-	const bool order_by_name = (ui_list->filter_sort_flag & UILST_FLT_SORT_ALPHA) != 0;
+	const bool order_by_name = (ui_list->filter_sort_flag & UILST_FLT_SORT_MASK) == UILST_FLT_SORT_ALPHA;
 	int len = RNA_property_collection_length(dataptr, prop);
 
 	dyn_data->items_shown = dyn_data->items_len = len;
@@ -3816,7 +3815,8 @@ static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const cha
 void uiTemplateList(
         uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
         PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr, const char *active_propname,
-        const char *item_dyntip_propname, int rows, int maxrows, int layout_type, int columns, bool reverse)
+        const char *item_dyntip_propname, int rows, int maxrows, int layout_type, int columns,
+        bool sort_reverse, bool sort_lock)
 {
 	uiListType *ui_list_type;
 	uiList *ui_list = NULL;
@@ -3921,6 +3921,12 @@ void uiTemplateList(
 		BLI_strncpy(ui_list->list_id, ui_list_id, sizeof(ui_list->list_id));
 		BLI_addtail(&ar->ui_lists, ui_list);
 		ui_list->list_grip = -UI_LIST_AUTO_SIZE_THRESHOLD;  /* Force auto size by default. */
+		if (sort_reverse) {
+			ui_list->filter_sort_flag |= UILST_FLT_SORT_REVERSE;
+		}
+		if (sort_lock) {
+			ui_list->filter_sort_flag |= UILST_FLT_SORT_LOCK;
+		}
 	}
 
 	if (!ui_list->dyn_data) {
@@ -3936,19 +3942,6 @@ void uiTemplateList(
 	MEM_SAFE_FREE(dyn_data->items_filter_flags);
 	MEM_SAFE_FREE(dyn_data->items_filter_neworder);
 	dyn_data->items_len = dyn_data->items_shown = -1;
-
-	/* if reverse, enable reverse and forced flag */
-	if (reverse) {
-		ui_list->filter_sort_flag |= UILST_FLT_SORT_REVERSE;
-		ui_list->filter_sort_flag |= UILST_FLT_FORCED_REVERSE;
-	}
-	else {
-		/* if it was forced, disable forced flag to restore all normal behavior */
-		if (ui_list->filter_sort_flag & UILST_FLT_FORCED_REVERSE) {
-			ui_list->filter_sort_flag &= ~UILST_FLT_SORT_REVERSE;
-			ui_list->filter_sort_flag &= ~UILST_FLT_FORCED_REVERSE;
-		}
-	}
 
 	/* When active item changed since last draw, scroll to it. */
 	if (activei != ui_list->list_last_activei) {
@@ -4227,7 +4220,7 @@ void uiTemplateList(
 			subblock = uiLayoutGetBlock(col);
 			uiDefBut(subblock, UI_BTYPE_SEPR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.05f, NULL, 0.0, 0.0, 0, 0, "");
 
-			draw_filter(ui_list, C, col, reverse);
+			draw_filter(ui_list, C, col);
 		}
 		else {
 			but = uiDefIconButBitI(subblock, UI_BTYPE_TOGGLE, UILST_FLT_SHOW, 0, ICON_DISCLOSURE_TRI_RIGHT, 0, 0,

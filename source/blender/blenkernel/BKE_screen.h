@@ -238,7 +238,7 @@ typedef void (*uiListDrawItemFunc)(
 
 /* Draw the filtering part of an uiList */
 typedef void (*uiListDrawFilterFunc)(
-        struct uiList *ui_list, struct bContext *C, struct uiLayout *layout, bool reverse);
+        struct uiList *ui_list, struct bContext *C, struct uiLayout *layout);
 
 /* Filter items of an uiList */
 typedef void (*uiListFilterItemsFunc)(
