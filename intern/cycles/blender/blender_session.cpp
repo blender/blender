@@ -114,9 +114,6 @@ BlenderSession::~BlenderSession()
 void BlenderSession::create()
 {
 	create_session();
-
-	if(b_v3d)
-		session->start();
 }
 
 void BlenderSession::create_session()
@@ -804,7 +801,6 @@ void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph_)
 	{
 		free_session();
 		create_session();
-		session->start();
 		return;
 	}
 
@@ -857,6 +853,10 @@ void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph_)
 		/* reset time */
 		start_resize_time = 0.0;
 	}
+
+	/* Start rendering thread, if it's not running already. Do this
+	 * after all scene data has been synced at least once. */
+	session->start();
 }
 
 bool BlenderSession::draw(int w, int h)
