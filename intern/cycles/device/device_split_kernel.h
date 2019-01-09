@@ -92,10 +92,9 @@ private:
 	/* Work pool with respect to each work group. */
 	device_only_memory<unsigned int> work_pool_wgs;
 
-	/* Marked True in constructor and marked false at the end of path_trace(). */
-	bool first_tile;
-
-	/* Cached global size */
+	/* Cached kernel-dependent data, initialized once. */
+	bool kernel_data_initialized;
+	size_t local_size[2];
 	size_t global_size[2];
 
 public:

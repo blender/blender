@@ -32,10 +32,9 @@ DeviceSplitKernel::DeviceSplitKernel(Device *device)
   ray_state(device, "ray_state", MEM_READ_WRITE),
   queue_index(device, "queue_index"),
   use_queues_flag(device, "use_queues_flag"),
-  work_pool_wgs(device, "work_pool_wgs")
+  work_pool_wgs(device, "work_pool_wgs"),
+  kernel_data_initialized(false)
 {
-	first_tile = true;
-
 	avg_time_per_sample = 0.0;
 
 	kernel_path_init = NULL;
@@ -116,6 +115,9 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 
 #undef LOAD_KERNEL
 
+	/* Re-initialiaze kernel-dependent data when kernels change. */
+	kernel_data_initialized = false;
+
 	return true;
 }
 
@@ -137,33 +139,25 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		return false;
 	}
 
-	/* Get local size */
-	size_t local_size[2];
-	{
+	/* Allocate all required global memory once. */
+	if(!kernel_data_initialized) {
+		kernel_data_initialized = true;
+
+		/* Set local size */
 		int2 lsize = split_kernel_local_size();
 		local_size[0] = lsize[0];
 		local_size[1] = lsize[1];
-	}
 
-	/* Number of elements in the global state buffer */
-	int num_global_elements = global_size[0] * global_size[1];
+		/* Set global size */
+		int2 gsize = split_kernel_global_size(kgbuffer, kernel_data, task);
 
-	/* Allocate all required global memory once. */
-	if(first_tile) {
-		first_tile = false;
+		/* Make sure that set work size is a multiple of local
+		 * work size dimensions.
+		 */
+		global_size[0] = round_up(gsize[0], local_size[0]);
+		global_size[1] = round_up(gsize[1], local_size[1]);
 
-		/* Set gloabl size */
-		{
-			int2 gsize = split_kernel_global_size(kgbuffer, kernel_data, task);
-
-			/* Make sure that set work size is a multiple of local
-			 * work size dimensions.
-			 */
-			global_size[0] = round_up(gsize[0], local_size[0]);
-			global_size[1] = round_up(gsize[1], local_size[1]);
-		}
-
-		num_global_elements = global_size[0] * global_size[1];
+		int num_global_elements = global_size[0] * global_size[1];
 		assert(num_global_elements % WORK_POOL_SIZE == 0);
 
 		/* Calculate max groups */
@@ -179,6 +173,9 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		split_data.alloc_to_device(state_buffer_size(kgbuffer, kernel_data, num_global_elements));
 		ray_state.alloc(num_global_elements);
 	}
+
+	/* Number of elements in the global state buffer */
+	int num_global_elements = global_size[0] * global_size[1];
 
 #define ENQUEUE_SPLIT_KERNEL(name, global_size, local_size) \
 		if(device->have_error()) { \
