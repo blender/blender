@@ -5646,12 +5646,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
 	if (ob->sculpt) {
+		ob->sculpt = NULL;
 		/* Only create data on undo, otherwise rely on editor mode switching. */
 		if (fd->memfile && (ob->mode & OB_MODE_ALL_SCULPT)) {
 			BKE_object_sculpt_data_create(ob);
-		}
-		else {
-			ob->sculpt = NULL;
 		}
 	}
 
