@@ -21,15 +21,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __GHOST_NDOFMANAGER_H__
+#define __GHOST_NDOFMANAGER_H__
+
 #ifndef WITH_INPUT_NDOF
 #  error NDOF code included in non-NDOF-enabled build
 #endif
 
-#ifndef __GHOST_NDOFMANAGER_H__
-#define __GHOST_NDOFMANAGER_H__
-
 #include "GHOST_System.h"
-
 
 // #define DEBUG_NDOF_MOTION
 // #define DEBUG_NDOF_BUTTONS
