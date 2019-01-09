@@ -99,8 +99,6 @@ protected:
 
 	/* Refit range of primitives. */
 	void refit_primitives(int start, int end, BoundBox& bbox, uint& visibility);
-	static __forceinline bool leaf_check(const BVHNode *node, BVH_TYPE bvh);
-	static bool node_is_unaligned(const BVHNode *node, BVH_TYPE bvh);
 
 	/* triangles and strands */
 	void pack_primitives();
@@ -112,6 +110,8 @@ protected:
 	/* for subclasses to implement */
 	virtual void pack_nodes(const BVHNode *root) = 0;
 	virtual void refit_nodes() = 0;
+
+	virtual BVHNode *widen_children_nodes(const BVHNode *root) = 0;
 };
 
 /* Pack Utility */

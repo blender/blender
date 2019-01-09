@@ -41,6 +41,96 @@ BVH8::BVH8(const BVHParams& params_, const vector<Object*>& objects_)
 {
 }
 
+namespace {
+
+BVHNode *bvh_node_merge_children_recursively(const BVHNode *node)
+{
+	if(node->is_leaf()) {
+		return new LeafNode(*reinterpret_cast<const LeafNode *>(node));
+	}
+	/* Collect nodes of two layer deeper, allowing us to have more childrem in
+	 * an inner layer. */
+	assert(node->num_children() <= 2);
+	const BVHNode *children[8];
+	const BVHNode *child0 = node->get_child(0);
+	const BVHNode *child1 = node->get_child(1);
+	int num_children = 0;
+	if(child0->is_leaf()) {
+		children[num_children++] = child0;
+	}
+	else {
+		const BVHNode *child00 = child0->get_child(0),
+		              *child01 = child0->get_child(1);
+		if(child00->is_leaf()) {
+			children[num_children++] = child00;
+		}
+		else {
+			children[num_children++] = child00->get_child(0);
+			children[num_children++] = child00->get_child(1);
+		}
+		if(child01->is_leaf()) {
+			children[num_children++] = child01;
+		}
+		else {
+			children[num_children++] = child01->get_child(0);
+			children[num_children++] = child01->get_child(1);
+		}
+	}
+	if(child1->is_leaf()) {
+		children[num_children++] = child1;
+	}
+	else {
+		const BVHNode *child10 = child1->get_child(0),
+		              *child11 = child1->get_child(1);
+		if(child10->is_leaf()) {
+			children[num_children++] = child10;
+		}
+		else {
+			children[num_children++] = child10->get_child(0);
+			children[num_children++] = child10->get_child(1);
+		}
+		if(child11->is_leaf()) {
+			children[num_children++] = child11;
+		}
+		else {
+			children[num_children++] = child11->get_child(0);
+			children[num_children++] = child11->get_child(1);
+		}
+	}
+	/* Merge children in subtrees. */
+	BVHNode *children4[8];
+	for(int i = 0; i < num_children; ++i) {
+		children4[i] = bvh_node_merge_children_recursively(children[i]);
+	}
+	/* Allocate new node. */
+	BVHNode *node8 = new InnerNode(node->bounds, children4, num_children);
+	/* TODO(sergey): Consider doing this from the InnerNode() constructor.
+	 * But in order to do this nicely need to think of how to pass all the
+	 * parameters there. */
+	if(node->is_unaligned) {
+		node8->is_unaligned = true;
+		node8->aligned_space = new Transform();
+		*node8->aligned_space = *node->aligned_space;
+	}
+	return node8;
+}
+
+}  // namespace
+
+BVHNode *BVH8::widen_children_nodes(const BVHNode *root)
+{
+	if(root == NULL) {
+		return NULL;
+	}
+	if(root->is_leaf()) {
+		return const_cast<BVHNode *>(root);
+	}
+	BVHNode *root8 = bvh_node_merge_children_recursively(root);
+	/* TODO(sergey): Pack children nodes to parents which has less that 4
+	 * children. */
+	return root8;
+}
+
 void BVH8::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 {
 	float4 data[BVH_ONODE_LEAF_SIZE];
@@ -252,14 +342,14 @@ void BVH8::pack_unaligned_node(int idx,
 void BVH8::pack_nodes(const BVHNode *root)
 {
 	/* Calculate size of the arrays required. */
-	const size_t num_nodes = root->getSubtreeSize(BVH_STAT_ONODE_COUNT);
+	const size_t num_nodes = root->getSubtreeSize(BVH_STAT_NODE_COUNT);
 	const size_t num_leaf_nodes = root->getSubtreeSize(BVH_STAT_LEAF_COUNT);
 	assert(num_leaf_nodes <= num_nodes);
 	const size_t num_inner_nodes = num_nodes - num_leaf_nodes;
 	size_t node_size;
 	if(params.use_unaligned_nodes) {
 		const size_t num_unaligned_nodes =
-		        root->getSubtreeSize(BVH_STAT_UNALIGNED_INNER_ONODE_COUNT);
+		        root->getSubtreeSize(BVH_STAT_UNALIGNED_INNER_COUNT);
 		node_size = (num_unaligned_nodes * BVH_UNALIGNED_ONODE_SIZE) +
 		        (num_inner_nodes - num_unaligned_nodes) * BVH_ONODE_SIZE;
 	}
@@ -287,9 +377,8 @@ void BVH8::pack_nodes(const BVHNode *root)
 	}
 	else {
 		stack.push_back(BVHStackEntry(root, nextNodeIdx));
-		nextNodeIdx += node_is_unaligned(root, bvh8)
-		                   ? BVH_UNALIGNED_ONODE_SIZE
-		                   : BVH_ONODE_SIZE;
+		nextNodeIdx += root->has_unaligned() ? BVH_UNALIGNED_ONODE_SIZE
+		                                     : BVH_ONODE_SIZE;
 	}
 
 	while(stack.size()) {
@@ -303,72 +392,29 @@ void BVH8::pack_nodes(const BVHNode *root)
 		}
 		else {
 			/* Inner node. */
-			const BVHNode *node = e.node;
-			const BVHNode *node0 = node->get_child(0);
-			const BVHNode *node1 = node->get_child(1);
 			/* Collect nodes. */
-			const BVHNode *nodes[8];
-			int numnodes = 0;
-			if(node0->is_leaf()) {
-				nodes[numnodes++] = node0;
-			}
-			else {
-				const BVHNode *node00 = node0->get_child(0),
-				              *node01 = node0->get_child(1);
-				if(node00->is_leaf()) {
-					nodes[numnodes++] = node00;
-				}
-				else {
-					nodes[numnodes++] = node00->get_child(0);
-					nodes[numnodes++] = node00->get_child(1);
-				}
-				if(node01->is_leaf()) {
-					nodes[numnodes++] = node01;
-				}
-				else {
-					nodes[numnodes++] = node01->get_child(0);
-					nodes[numnodes++] = node01->get_child(1);
-				}
-			}
-			if(node1->is_leaf()) {
-				nodes[numnodes++] = node1;
-			}
-			else {
-				const BVHNode *node10 = node1->get_child(0),
-				              *node11 = node1->get_child(1);
-				if(node10->is_leaf()) {
-					nodes[numnodes++] = node10;
-				}
-				else {
-					nodes[numnodes++] = node10->get_child(0);
-					nodes[numnodes++] = node10->get_child(1);
-				}
-				if(node11->is_leaf()) {
-					nodes[numnodes++] = node11;
-				}
-				else {
-					nodes[numnodes++] = node11->get_child(0);
-					nodes[numnodes++] = node11->get_child(1);
-				}
-			}
+			const BVHNode *children[8];
+			int num_children = e.node->num_children();
 			/* Push entries on the stack. */
-			for(int i = 0; i < numnodes; ++i) {
+			for(int i = 0; i < num_children; ++i) {
 				int idx;
-				if(nodes[i]->is_leaf()) {
+				children[i] = e.node->get_child(i);
+				if(children[i]->is_leaf()) {
 					idx = nextLeafNodeIdx++;
 				}
 				else {
 					idx = nextNodeIdx;
-					nextNodeIdx += node_is_unaligned(nodes[i], bvh8)
-						? BVH_UNALIGNED_ONODE_SIZE
-						: BVH_ONODE_SIZE;
+					nextNodeIdx += children[i]->has_unaligned()
+					                       ? BVH_UNALIGNED_ONODE_SIZE
+					                       : BVH_ONODE_SIZE;
 				}
-				stack.push_back(BVHStackEntry(nodes[i], idx));
+				stack.push_back(BVHStackEntry(children[i], idx));
 			}
 			/* Set node. */
-			pack_inner(e, &stack[stack.size() - numnodes], numnodes);
+			pack_inner(e, &stack[stack.size() - num_children], num_children);
 		}
 	}
+
 	assert(node_size == nextNodeIdx);
 	/* Root index to start traversal at, to handle case of single leaf node. */
 	pack.root_index = (root->is_leaf()) ? -1 : 0;

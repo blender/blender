@@ -47,69 +47,6 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 		case BVH_STAT_CHILDNODE_COUNT:
 			cnt = num_children();
 			break;
-		case BVH_STAT_QNODE_COUNT:
-			cnt = 1;
-			for(int i = 0; i < num_children(); i++) {
-				BVHNode *node = get_child(i);
-				if(node->is_leaf()) {
-					cnt += 1;
-				}
-				else {
-					for(int j = 0; j < node->num_children(); j++) {
-						cnt += node->get_child(j)->getSubtreeSize(stat);
-					}
-				}
-			}
-			return cnt;
-		case BVH_STAT_ONODE_COUNT:
-			cnt = 1;
-			for(int i = 0; i < num_children(); i++) {
-				BVHNode *node = get_child(i);
-				if(node->is_leaf()) {
-					cnt += 1;
-				}
-				else {
-					for(int j = 0; j < node->num_children(); j++)
-					{
-						BVHNode *node_next = node->get_child(j);
-						if(node_next->is_leaf()) {
-							cnt += 1;
-						}
-						else {
-							for(int k = 0; k < node_next->num_children(); k++) {
-								cnt += node_next->get_child(k)->getSubtreeSize(stat);
-							}
-						}
-					}
-				}
-			}
-			return cnt;
-		case BVH_STAT_UNALIGNED_INNER_ONODE_COUNT:
-			{
-				bool has_unaligned = false;
-				for(int i = 0; i < num_children(); i++) {
-					BVHNode *node = get_child(i);
-					if(node->is_leaf()) {
-						has_unaligned |= node->is_unaligned;
-					}
-					else {
-						for(int j = 0; j < node->num_children(); j++) {
-							BVHNode *node_next = node->get_child(j);
-							if(node_next->is_leaf()) {
-								has_unaligned |= node_next->is_unaligned;
-							}
-							else {
-								for(int k = 0; k < node_next->num_children(); k++) {
-									cnt += node_next->get_child(k)->getSubtreeSize(stat);
-									has_unaligned |= node_next->get_child(k)->is_unaligned;
-								}
-							}
-						}
-					}
-				}
-				cnt += has_unaligned? 1: 0;
-			}
-			return cnt;
 		case BVH_STAT_ALIGNED_COUNT:
 			if(!is_unaligned) {
 				cnt = 1;
@@ -138,42 +75,6 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 				cnt += has_unaligned? 1: 0;
 			}
 			break;
-		case BVH_STAT_ALIGNED_INNER_QNODE_COUNT:
-			{
-				bool has_unaligned = false;
-				for(int i = 0; i < num_children(); i++) {
-					BVHNode *node = get_child(i);
-					if(node->is_leaf()) {
-						has_unaligned |= node->is_unaligned;
-					}
-					else {
-						for(int j = 0; j < node->num_children(); j++) {
-							cnt += node->get_child(j)->getSubtreeSize(stat);
-							has_unaligned |= node->get_child(j)->is_unaligned;
-						}
-					}
-				}
-				cnt += has_unaligned? 0: 1;
-			}
-			return cnt;
-		case BVH_STAT_UNALIGNED_INNER_QNODE_COUNT:
-			{
-				bool has_unaligned = false;
-				for(int i = 0; i < num_children(); i++) {
-					BVHNode *node = get_child(i);
-					if(node->is_leaf()) {
-						has_unaligned |= node->is_unaligned;
-					}
-					else {
-						for(int j = 0; j < node->num_children(); j++) {
-							cnt += node->get_child(j)->getSubtreeSize(stat);
-							has_unaligned |= node->get_child(j)->is_unaligned;
-						}
-					}
-				}
-				cnt += has_unaligned? 1: 0;
-			}
-			return cnt;
 		case BVH_STAT_ALIGNED_LEAF_COUNT:
 			cnt = (is_leaf() && !is_unaligned) ? 1 : 0;
 			break;
@@ -247,6 +148,56 @@ void BVHNode::update_time()
 		time_from = min(child0->time_from, child1->time_from);
 		time_to =  max(child0->time_to, child1->time_to);
 	}
+}
+
+namespace {
+
+struct DumpTraversalContext {
+	/* Descriptor of wile where writing is happening. */
+	FILE *stream;
+	/* Unique identifier of the node current. */
+	int id;
+};
+
+void dump_subtree(DumpTraversalContext *context,
+                  const BVHNode *node,
+                  const BVHNode *parent = NULL)
+{
+	if(node->is_leaf()) {
+		fprintf(context->stream,
+		        "  node_%p [label=\"%d\",fillcolor=\"#ccccee\",style=filled]\n",
+		        node,
+		        context->id);
+	}
+	else {
+		fprintf(context->stream,
+		        "  node_%p [label=\"%d\",fillcolor=\"#cceecc\",style=filled]\n",
+		        node,
+		        context->id);
+	}
+	if(parent != NULL) {
+		fprintf(context->stream, "  node_%p -> node_%p;\n", parent, node);
+	}
+	context->id += 1;
+	for(int i = 0; i < node->num_children(); ++i) {
+		dump_subtree(context, node->get_child(i), node);
+	}
+}
+
+}  // namespace
+
+void BVHNode::dump_graph(const char *filename)
+{
+	DumpTraversalContext context;
+	context.stream = fopen(filename, "w");
+	if(context.stream == NULL) {
+		return;
+	}
+	context.id = 0;
+	fprintf(context.stream, "digraph BVH {\n");
+	dump_subtree(&context, this);
+	fprintf(context.stream, "}\n");
+	fclose(context.stream);
 }
 
 /* Inner Node */

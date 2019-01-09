@@ -29,18 +29,13 @@ enum BVH_STAT {
 	BVH_STAT_LEAF_COUNT,
 	BVH_STAT_TRIANGLE_COUNT,
 	BVH_STAT_CHILDNODE_COUNT,
-	BVH_STAT_QNODE_COUNT,
 	BVH_STAT_ALIGNED_COUNT,
 	BVH_STAT_UNALIGNED_COUNT,
 	BVH_STAT_ALIGNED_INNER_COUNT,
 	BVH_STAT_UNALIGNED_INNER_COUNT,
-	BVH_STAT_ALIGNED_INNER_QNODE_COUNT,
-	BVH_STAT_UNALIGNED_INNER_QNODE_COUNT,
 	BVH_STAT_ALIGNED_LEAF_COUNT,
 	BVH_STAT_UNALIGNED_LEAF_COUNT,
 	BVH_STAT_DEPTH,
-	BVH_STAT_ONODE_COUNT,
-	BVH_STAT_UNALIGNED_INNER_ONODE_COUNT,
 };
 
 class BVHParams;
@@ -48,13 +43,6 @@ class BVHParams;
 class BVHNode
 {
 public:
-	BVHNode() : is_unaligned(false),
-	            aligned_space(NULL),
-	            time_from(0.0f),
-	            time_to(1.0f)
-	{
-	}
-
 	virtual ~BVHNode()
 	{
 		delete aligned_space;
@@ -85,6 +73,19 @@ public:
 		return *aligned_space;
 	}
 
+	inline bool has_unaligned() const
+	{
+		if(is_leaf()) {
+			return false;
+		}
+		for(int i = 0; i < num_children(); ++i) {
+			if(get_child(i)->is_unaligned) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	// Subtree functions
 	int getSubtreeSize(BVH_STAT stat=BVH_STAT_NODE_COUNT) const;
 	float computeSubtreeSAHCost(const BVHParams& p, float probability = 1.0f) const;
@@ -92,6 +93,9 @@ public:
 
 	uint update_visibility();
 	void update_time();
+
+	/* Dump the content of the tree as a graphviz file. */
+	void dump_graph(const char *filename);
 
 	// Properties.
 	BoundBox bounds;
@@ -105,56 +109,130 @@ public:
 	Transform *aligned_space;
 
 	float time_from, time_to;
+
+protected:
+	explicit BVHNode(const BoundBox& bounds)
+	: bounds(bounds),
+	  visibility(0),
+	  is_unaligned(false),
+	  aligned_space(NULL),
+	  time_from(0.0f),
+	  time_to(1.0f)
+	{
+	}
+
+	explicit BVHNode(const BVHNode& other)
+	: bounds(other.bounds),
+	  visibility(other.visibility),
+	  is_unaligned(other.is_unaligned),
+	  aligned_space(NULL),
+	  time_from(other.time_from),
+	  time_to(other.time_to)
+	{
+		if(other.aligned_space != NULL) {
+			assert(other.is_unaligned);
+			aligned_space = new Transform();
+			*aligned_space = *other.aligned_space;
+		}
+		else {
+			assert(!other.is_unaligned);
+		}
+	}
 };
 
 class InnerNode : public BVHNode
 {
 public:
+	static constexpr int kNumMaxChildren = 8;
+
 	InnerNode(const BoundBox& bounds,
 	          BVHNode* child0,
 	          BVHNode* child1)
+	: BVHNode(bounds),
+	  num_children_(2)
 	{
-		this->bounds = bounds;
 		children[0] = child0;
 		children[1] = child1;
+		reset_unused_children();
 
-		if(child0 && child1)
-			visibility = child0->visibility|child1->visibility;
-		else
-			visibility = 0; /* happens on build cancel */
+		if(child0 && child1) {
+			visibility = child0->visibility | child1->visibility;
+		}
+		else {
+			/* Happens on build cancel. */
+			visibility = 0;
+		}
 	}
 
-	explicit InnerNode(const BoundBox& bounds)
+	InnerNode(const BoundBox& bounds,
+	          BVHNode** children,
+	          const int num_children)
+	: BVHNode(bounds),
+	  num_children_(num_children)
 	{
-		this->bounds = bounds;
 		visibility = 0;
-		children[0] = NULL;
-		children[1] = NULL;
+		time_from = FLT_MAX;
+		time_to = -FLT_MAX;
+		for(int i = 0; i < num_children; ++i) {
+			assert(children[i] != NULL);
+			visibility |= children[i]->visibility;
+			this->children[i] = children[i];
+			time_from = min(time_from, children[i]->time_from);
+			time_to = max(time_to, children[i]->time_to);
+		}
+		reset_unused_children();
+	}
+
+	/* NOTE: This function is only used during binary BVH builder, and it
+	 * supposed to be configured to have 2 children which will be filled in in a
+	 * bit. But this is important to have children reset to NULL. */
+	explicit InnerNode(const BoundBox& bounds)
+	: BVHNode(bounds),
+	  num_children_(0)
+	{
+		reset_unused_children();
+		visibility = 0;
+		num_children_ = 2;
 	}
 
 	bool is_leaf() const { return false; }
-	int num_children() const { return 2; }
-	BVHNode *get_child(int i) const{ assert(i>=0 && i<2); return children[i]; }
+	int num_children() const { return num_children_; }
+	BVHNode *get_child(int i) const
+	{
+		assert(i >= 0 && i < num_children_);
+		return children[i];
+	}
 	void print(int depth) const;
 
-	BVHNode *children[2];
+	int num_children_;
+	BVHNode *children[kNumMaxChildren];
+
+protected:
+	void reset_unused_children()
+	{
+		for(int i = num_children_; i < kNumMaxChildren; ++i) {
+			children[i] = NULL;
+		}
+	}
 };
 
 class LeafNode : public BVHNode
 {
 public:
 	LeafNode(const BoundBox& bounds, uint visibility, int lo, int hi)
-	: lo(lo),
+	: BVHNode(bounds),
+	  lo(lo),
 	  hi(hi)
 	{
 		this->bounds = bounds;
 		this->visibility = visibility;
 	}
 
-	LeafNode(const LeafNode& s)
-	: BVHNode()
+	LeafNode(const LeafNode& other)
+	: BVHNode(other),
+	  lo(other.lo),
+	  hi(other.hi)
 	{
-		*this = s;
 	}
 
 	bool is_leaf() const { return true; }

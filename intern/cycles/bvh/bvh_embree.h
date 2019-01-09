@@ -40,6 +40,10 @@ public:
 	virtual ~BVHEmbree();
 	RTCScene scene;
 	static void destroy(RTCScene);
+
+	/* Building process. */
+	virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
+
 protected:
 	friend class BVH;
 	BVHEmbree(const BVHParams& params, const vector<Object*>& objects);
