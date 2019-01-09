@@ -35,7 +35,7 @@
 
 /* **************** CURVE VEC  ******************** */
 static bNodeSocketTemplate sh_node_curve_vec_in[] = {
-	{	SOCK_FLOAT, 0, N_("Fac"),	1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Fac"),	1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_VECTOR, 1, N_("Vector"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
