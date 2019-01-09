@@ -152,6 +152,10 @@ char *WM_key_event_operator_string(
         struct IDProperty *properties, const bool is_strict,
         char *result, const int result_len);
 
+wmKeyMapItem *WM_key_event_operator_from_keymap(
+        struct wmKeyMap *keymap, const char *opname, struct IDProperty *properties,
+        const short include_mask, const short exclude_mask);
+
 const char *WM_bool_as_string(bool test);
 
 #ifdef __cplusplus

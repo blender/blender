@@ -1147,6 +1147,86 @@ char *WM_modalkeymap_operator_items_to_string_buf(
 	return ret;
 }
 
+static wmKeyMapItem *wm_keymap_item_find_in_keymap(
+        wmKeyMap *keymap, const char *opname,
+        IDProperty *properties, const bool is_strict,
+        const struct wmKeyMapItemFind_Params *params)
+{
+	for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+		/* skip disabled keymap items [T38447] */
+		if (kmi->flag & KMI_INACTIVE) {
+			continue;
+		}
+
+		bool kmi_match = false;
+
+		if (STREQ(kmi->idname, opname)) {
+			if (properties) {
+				/* example of debugging keymaps */
+#if 0
+				if (kmi->ptr) {
+					if (STREQ("MESH_OT_rip_move", opname)) {
+						printf("OPERATOR\n");
+						IDP_print(properties);
+						printf("KEYMAP\n");
+						IDP_print(kmi->ptr->data);
+					}
+				}
+#endif
+
+				if (kmi->ptr && IDP_EqualsProperties_ex(properties, kmi->ptr->data, is_strict)) {
+					kmi_match = true;
+				}
+				/* Debug only, helps spotting mismatches between menu entries and shortcuts! */
+				else if (G.debug & G_DEBUG_WM) {
+					if (is_strict && kmi->ptr) {
+						wmOperatorType *ot = WM_operatortype_find(opname, true);
+						if (ot) {
+							/* make a copy of the properties and set unset ones to their default values. */
+							PointerRNA opptr;
+							IDProperty *properties_default = IDP_CopyProperty(kmi->ptr->data);
+
+							RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
+							WM_operator_properties_default(&opptr, true);
+
+							if (IDP_EqualsProperties_ex(properties, properties_default, is_strict)) {
+								char kmi_str[128];
+								WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
+								/* Note gievn properties could come from other things than menu entry... */
+								printf("%s: Some set values in menu entry match default op values, "
+								       "this might not be desired!\n", opname);
+								printf("\tkm: '%s', kmi: '%s'\n", keymap->idname, kmi_str);
+#ifndef NDEBUG
+#ifdef WITH_PYTHON
+								printf("OPERATOR\n");
+								IDP_print(properties);
+								printf("KEYMAP\n");
+								IDP_print(kmi->ptr->data);
+#endif
+#endif
+								printf("\n");
+							}
+
+							IDP_FreeProperty(properties_default);
+							MEM_freeN(properties_default);
+						}
+					}
+				}
+			}
+			else {
+				kmi_match = true;
+			}
+
+			if (kmi_match) {
+				if ((params == NULL) || params->filter_fn(keymap, kmi, params->user_data)) {
+					return kmi;
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
 static wmKeyMapItem *wm_keymap_item_find_handlers(
         const bContext *C, ListBase *handlers, const char *opname, int UNUSED(opcontext),
         IDProperty *properties, const bool is_strict,
@@ -1156,91 +1236,21 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmEventHandler *handler;
 	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
 
 	/* find keymap item in handlers */
 	for (handler = handlers->first; handler; handler = handler->next) {
 		keymap = WM_keymap_active(wm, handler->keymap);
-
 		if (keymap && WM_keymap_poll((bContext *)C, keymap)) {
-			for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
-				/* skip disabled keymap items [T38447] */
-				if (kmi->flag & KMI_INACTIVE) {
-					continue;
+			wmKeyMapItem *kmi = wm_keymap_item_find_in_keymap(
+			        keymap, opname, properties, is_strict, params);
+			if (kmi != NULL) {
+				if (r_keymap) {
+					*r_keymap = keymap;
 				}
-
-				bool kmi_match = false;
-
-				if (STREQ(kmi->idname, opname)) {
-					if (properties) {
-						/* example of debugging keymaps */
-#if 0
-						if (kmi->ptr) {
-							if (STREQ("MESH_OT_rip_move", opname)) {
-								printf("OPERATOR\n");
-								IDP_print(properties);
-								printf("KEYMAP\n");
-								IDP_print(kmi->ptr->data);
-							}
-						}
-#endif
-
-						if (kmi->ptr && IDP_EqualsProperties_ex(properties, kmi->ptr->data, is_strict)) {
-							kmi_match = true;
-						}
-						/* Debug only, helps spotting mismatches between menu entries and shortcuts! */
-						else if (G.debug & G_DEBUG_WM) {
-							if (is_strict && kmi->ptr) {
-								wmOperatorType *ot = WM_operatortype_find(opname, true);
-								if (ot) {
-									/* make a copy of the properties and set unset ones to their default values. */
-									PointerRNA opptr;
-									IDProperty *properties_default = IDP_CopyProperty(kmi->ptr->data);
-
-									RNA_pointer_create(NULL, ot->srna, properties_default, &opptr);
-									WM_operator_properties_default(&opptr, true);
-
-									if (IDP_EqualsProperties_ex(properties, properties_default, is_strict)) {
-										char kmi_str[128];
-										WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
-										/* Note gievn properties could come from other things than menu entry... */
-										printf("%s: Some set values in menu entry match default op values, "
-										       "this might not be desired!\n", opname);
-										printf("\tkm: '%s', kmi: '%s'\n", keymap->idname, kmi_str);
-#ifndef NDEBUG
-#ifdef WITH_PYTHON
-										printf("OPERATOR\n");
-										IDP_print(properties);
-										printf("KEYMAP\n");
-										IDP_print(kmi->ptr->data);
-#endif
-#endif
-										printf("\n");
-									}
-
-									IDP_FreeProperty(properties_default);
-									MEM_freeN(properties_default);
-								}
-							}
-						}
-					}
-					else {
-						kmi_match = true;
-					}
-
-					if (kmi_match) {
-						if ((params == NULL) || params->filter_fn(keymap, kmi, params->user_data)) {
-							if (r_keymap) {
-								*r_keymap = keymap;
-							}
-							return kmi;
-						}
-					}
-				}
+				return kmi;
 			}
 		}
 	}
-
 	/* ensure un-initialized keymap is never used */
 	if (r_keymap) *r_keymap = NULL;
 	return NULL;
@@ -1443,6 +1453,21 @@ wmKeyMapItem *WM_key_event_operator(
 	        },
 	        r_keymap);
 }
+
+wmKeyMapItem *WM_key_event_operator_from_keymap(
+        wmKeyMap *keymap, const char *opname, IDProperty *properties,
+        const short include_mask, const short exclude_mask)
+{
+	short user_data_mask[2] = {include_mask, exclude_mask};
+	bool use_mask = (include_mask != EVT_TYPE_MASK_ALL) || (exclude_mask != 0);
+	return wm_keymap_item_find_in_keymap(
+	        keymap, opname, properties, true,
+	        &(struct wmKeyMapItemFind_Params){
+	            .filter_fn = use_mask ? kmi_filter_is_visible_type_mask : kmi_filter_is_visible,
+	            .user_data = use_mask ? user_data_mask : NULL,
+	        });
+}
+
 
 bool WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
 {
