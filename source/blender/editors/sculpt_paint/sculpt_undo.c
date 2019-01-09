@@ -60,6 +60,8 @@
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1000,8 +1002,12 @@ void sculpt_undo_push_end(void)
 			BKE_pbvh_node_layer_disp_free(unode->node);
 	}
 
-	UndoStack *ustack = ED_undo_stack_get();
-	BKE_undosys_step_push(ustack, NULL, NULL);
+	/* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
+	wmWindowManager *wm = G_MAIN->wm.first;
+	if (wm->op_undo_depth == 0) {
+		UndoStack *ustack = ED_undo_stack_get();
+		BKE_undosys_step_push(ustack, NULL, NULL);
+	}
 }
 
 /* -------------------------------------------------------------------- */
