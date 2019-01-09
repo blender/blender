@@ -76,14 +76,12 @@ static bool memfile_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	MemFileUndoStep *us_prev = (MemFileUndoStep *)BKE_undosys_step_find_by_type(ustack, BKE_UNDOSYS_TYPE_MEMFILE);
 	us->data = BKE_memfile_undo_encode(bmain, us_prev ? us_prev->data : NULL);
 	us->step.data_size = us->data->undo_size;
+
 	return true;
 }
 
 static void memfile_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
 {
-	/* Loading the content will correctly switch into compatible non-object modes. */
-	ED_object_mode_set(C, OB_MODE_OBJECT);
-
 	/* This is needed so undoing/redoing doesn't crash with threaded previews going */
 	ED_viewport_render_kill_jobs(CTX_wm_manager(C), CTX_data_main(C), true);
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
