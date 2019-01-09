@@ -222,7 +222,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 
 		/* if active layer and no keyframe, create a new one */
 		if (gpl == tgpf->gpl) {
-			if (gpl->actframe->framenum != cfra_eval) {
+			if ((gpl->actframe == NULL) || (gpl->actframe->framenum != cfra_eval)) {
 				BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_ADD_NEW);
 			}
 		}
