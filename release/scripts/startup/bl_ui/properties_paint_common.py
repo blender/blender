@@ -113,7 +113,7 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
 
     col = layout.column()
 
-    if brush.image_tool in {'DRAW', 'FILL'}:
+    if capabilities.has_color:
         if brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'}:
             if not brush.use_gradient:
                 panel.prop_unified_color_picker(col, context, brush, "color", value_slider=True)
@@ -318,6 +318,8 @@ def brush_basic_wpaint_settings(layout, context, brush, *, compact=False):
 
 
 def brush_basic_vpaint_settings(layout, context, brush, *, compact=False):
+    capabilities = brush.vertex_paint_capabilities
+
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size")
@@ -326,8 +328,10 @@ def brush_basic_vpaint_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", text="Strength")
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
-    layout.separator()
-    layout.prop(brush, "blend", text="" if compact else "Blend")
+
+    if capabilities.has_color:
+        layout.separator()
+        layout.prop(brush, "blend", text="" if compact else "Blend")
 
 
 def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
@@ -346,7 +350,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", text="Strength")
     UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
-    if brush.image_tool in {'DRAW', 'FILL'}:
+    if capabilities.has_color:
         layout.separator()
         layout.prop(brush, "blend", text="" if compact else "Blend")
 

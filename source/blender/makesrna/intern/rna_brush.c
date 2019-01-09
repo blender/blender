@@ -310,6 +310,18 @@ static bool rna_ImapaintToolCapabilities_has_space_attenuation_get(PointerRNA *p
 	        br->imagepaint_tool != PAINT_TOOL_FILL;
 }
 
+static bool rna_ImapaintToolCapabilities_has_color_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return ELEM(br->imagepaint_tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL);
+}
+
+static bool rna_VertexpaintToolCapabilities_has_color_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return ELEM(br->vertexpaint_tool, VPAINT_TOOL_DRAW);
+}
+
 static bool rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -375,6 +387,11 @@ static PointerRNA rna_Sculpt_tool_capabilities_get(PointerRNA *ptr)
 static PointerRNA rna_Imapaint_tool_capabilities_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_ImapaintToolCapabilities, ptr->id.data);
+}
+
+static PointerRNA rna_Vertexpaint_tool_capabilities_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_VertexpaintToolCapabilities, ptr->id.data);
 }
 
 static PointerRNA rna_Brush_capabilities_get(PointerRNA *ptr)
@@ -865,8 +882,7 @@ static void rna_def_brush_capabilities(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Brush");
 	RNA_def_struct_nested(brna, srna, "Brush");
 	RNA_def_struct_ui_text(srna, "Brush Capabilities",
-	                       "Read-only indications of which brush operations "
-	                       "are supported by the current brush");
+	                       "Read-only indications of supported operations");
 
 #define BRUSH_CAPABILITY(prop_name_, ui_name_)                          \
 	prop = RNA_def_property(srna, #prop_name_,                          \
@@ -894,8 +910,7 @@ static void rna_def_image_paint_capabilities(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Brush");
 	RNA_def_struct_nested(brna, srna, "Brush");
 	RNA_def_struct_ui_text(srna, "Image Paint Capabilities",
-	                       "Read-only indications of which brush operations "
-	                       "are supported by the current image paint brush");
+	                       "Read-only indications of supported operations");
 
 #define IMAPAINT_TOOL_CAPABILITY(prop_name_, ui_name_)                       \
 	prop = RNA_def_property(srna, #prop_name_,                               \
@@ -908,8 +923,33 @@ static void rna_def_image_paint_capabilities(BlenderRNA *brna)
 	IMAPAINT_TOOL_CAPABILITY(has_accumulate, "Has Accumulate");
 	IMAPAINT_TOOL_CAPABILITY(has_space_attenuation, "Has Space Attenuation");
 	IMAPAINT_TOOL_CAPABILITY(has_radius, "Has Radius");
+	IMAPAINT_TOOL_CAPABILITY(has_color, "Has Color");
 
 #undef IMAPAINT_TOOL_CAPABILITY
+}
+
+static void rna_def_vertex_paint_capabilities(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "VertexpaintToolCapabilities", NULL);
+	RNA_def_struct_sdna(srna, "Brush");
+	RNA_def_struct_nested(brna, srna, "Brush");
+	RNA_def_struct_ui_text(srna, "Vertex Paint Capabilities",
+	                       "Read-only indications of supported operations");
+
+#define VPAINT_TOOL_CAPABILITY(prop_name_, ui_name_)                       \
+	prop = RNA_def_property(srna, #prop_name_,                               \
+	                        PROP_BOOLEAN, PROP_NONE);                        \
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);                        \
+	RNA_def_property_boolean_funcs(prop, "rna_VertexpaintToolCapabilities_"     \
+	                               #prop_name_ "_get", NULL);                \
+	RNA_def_property_ui_text(prop, ui_name_, NULL)
+
+	VPAINT_TOOL_CAPABILITY(has_color, "Has Color");
+
+#undef VPAINT_TOOL_CAPABILITY
 }
 
 static void rna_def_gpencil_options(BlenderRNA *brna)
@@ -1927,13 +1967,19 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SculptToolCapabilities");
 	RNA_def_property_pointer_funcs(prop, "rna_Sculpt_tool_capabilities_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Sculpt Capabilities", "Brush's capabilities in sculpt mode");
+	RNA_def_property_ui_text(prop, "Sculpt Capabilities", "");
 
 	prop = RNA_def_property(srna, "image_paint_capabilities", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "ImapaintToolCapabilities");
 	RNA_def_property_pointer_funcs(prop, "rna_Imapaint_tool_capabilities_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Image Painting Capabilities", "Brush's capabilities in image paint mode");
+	RNA_def_property_ui_text(prop, "Image Paint Capabilities", "");
+
+	prop = RNA_def_property(srna, "vertex_paint_capabilities", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "VertexpaintToolCapabilities");
+	RNA_def_property_pointer_funcs(prop, "rna_Vertexpaint_tool_capabilities_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Vertex Paint Capabilities", "");
 
 	prop = RNA_def_property(srna, "gpencil_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BrushGpencilSettings");
@@ -2009,6 +2055,7 @@ void RNA_def_brush(BlenderRNA *brna)
 	rna_def_brush_capabilities(brna);
 	rna_def_sculpt_capabilities(brna);
 	rna_def_image_paint_capabilities(brna);
+	rna_def_vertex_paint_capabilities(brna);
 	rna_def_gpencil_options(brna);
 	rna_def_brush_texture_slot(brna);
 	rna_def_operator_stroke_element(brna);

@@ -257,7 +257,9 @@ class _draw_left_context_mode:
                 UnifiedPaintPanel,
                 brush_basic_texpaint_settings,
             )
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+            capabilities = brush.image_paint_capabilities
+            if capabilities.has_color:
+                UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             brush_basic_texpaint_settings(layout, context, brush, compact=True)
 
         @staticmethod
@@ -276,7 +278,9 @@ class _draw_left_context_mode:
                 UnifiedPaintPanel,
                 brush_basic_vpaint_settings,
             )
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+            capabilities = brush.vertex_paint_capabilities
+            if capabilities.has_color:
+                UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             brush_basic_vpaint_settings(layout, context, brush, compact=True)
 
         @staticmethod
@@ -453,7 +457,9 @@ class _draw_left_context_mode:
                 UnifiedPaintPanel,
                 brush_basic_texpaint_settings,
             )
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+            capabilities = brush.image_paint_capabilities
+            if capabilities.has_color:
+                UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             brush_basic_texpaint_settings(layout, context, brush, compact=True)
 
 
