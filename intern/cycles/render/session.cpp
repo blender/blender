@@ -129,7 +129,9 @@ Session::~Session()
 
 void Session::start()
 {
-	session_thread = new thread(function_bind(&Session::run, this));
+	if (!session_thread) {
+		session_thread = new thread(function_bind(&Session::run, this));
+	}
 }
 
 bool Session::ready_to_reset()
@@ -830,8 +832,10 @@ void Session::set_pause(bool pause_)
 
 void Session::wait()
 {
-	session_thread->join();
-	delete session_thread;
+	if (session_thread) {
+		session_thread->join();
+		delete session_thread;
+	}
 
 	session_thread = NULL;
 }
