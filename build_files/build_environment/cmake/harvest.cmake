@@ -102,7 +102,6 @@ function(harvest from to)
 			FILES_MATCHING PATTERN ${pattern}
 			PATTERN "pkgconfig" EXCLUDE
 			PATTERN "cmake" EXCLUDE
-			PATTERN "clang" EXCLUDE
 			PATTERN "__pycache__" EXCLUDE
 			PATTERN "tests" EXCLUDE)
 	endif()
@@ -129,6 +128,7 @@ harvest(jemalloc/lib jemalloc/lib "*.a")
 harvest(jpg/include jpeg/include "*.h")
 harvest(jpg/lib jpeg/lib "libjpeg.a")
 harvest(lame/lib ffmpeg/lib "*.a")
+harvest(clang/bin llvm/bin "clang-format")
 harvest(llvm/bin llvm/bin "llvm-config")
 harvest(llvm/lib llvm/lib "libLLVM*.a")
 harvest(ogg/lib ffmpeg/lib "*.a")
