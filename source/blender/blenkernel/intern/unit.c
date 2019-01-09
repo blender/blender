@@ -721,14 +721,16 @@ static const bUnitDef *unit_detect_from_str(const bUnitCollection *usys, const c
 	return unit;
 }
 
-bool bUnit_ContainsUnit(const char *str, int system, int type)
+bool bUnit_ContainsUnit(const char *str, int type)
 {
-	const bUnitCollection *usys = unit_get_system(system, type);
-	if (!is_valid_unit_collection(usys)) return false;
+	for (int system = 0; system < UNIT_SYSTEM_TOT; system++) {
+		const bUnitCollection *usys = unit_get_system(system, type);
+		if (!is_valid_unit_collection(usys)) continue;
 
-	for (int i = 0; i < usys->length; i++) {
-		if (unit_find(str, usys->units + i)) {
-			return true;
+		for (int i = 0; i < usys->length; i++) {
+			if (unit_find(str, usys->units + i)) {
+				return true;
+			}
 		}
 	}
 	return false;

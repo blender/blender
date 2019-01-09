@@ -258,13 +258,7 @@ bool user_string_to_number(bContext *C, const char *str, const UnitSettings *uni
 {
 #ifdef WITH_PYTHON
 	double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
-	if (!bUnit_ContainsUnit(str, unit->system, type)) {
-		int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
-		*r_value *= bUnit_PreferredInputUnitScalar(unit, type);
-		*r_value /= unit_scale;
-		return success;
-	}
-	else {
+	if (bUnit_ContainsUnit(str, type)) {
 		char str_unit_convert[256];
 		BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
 		bUnit_ReplaceString(
@@ -272,6 +266,12 @@ bool user_string_to_number(bContext *C, const char *str, const UnitSettings *uni
 		        unit_scale, unit->system, type);
 
 		return BPY_execute_string_as_number(C, NULL, str_unit_convert, true, r_value);
+	}
+	else {
+		int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
+		*r_value *= bUnit_PreferredInputUnitScalar(unit, type);
+		*r_value /= unit_scale;
+		return success;
 	}
 #else
 	*r_value = atof(str);

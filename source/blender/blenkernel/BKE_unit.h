@@ -43,7 +43,7 @@ size_t bUnit_AsString2(char *str, int len_max, double value, int prec, int type,
 bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
 
 /* return true if the string contains any valid unit for the given type */
-bool bUnit_ContainsUnit(const char *str, int system, int type);
+bool bUnit_ContainsUnit(const char *str, int type);
 
 /* if user does not specify a unit, multiply with this value */
 double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int type);
