@@ -41,9 +41,6 @@ struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
 
-/* visibility and selection */
-bool uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
-
 /* geometric utilities */
 void  uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
 void  uv_poly_center(struct BMFace *f, float r_cent[2], const int cd_loop_uv_offset);

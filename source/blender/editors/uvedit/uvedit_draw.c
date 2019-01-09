@@ -79,10 +79,8 @@
 
 #include "uvedit_intern.h"
 
-static int draw_uvs_face_check(Scene *scene)
+static int draw_uvs_face_check(const ToolSettings *ts)
 {
-	ToolSettings *ts = scene->toolsettings;
-
 	/* checks if we are selecting only faces */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		if (ts->selectmode == SCE_SELECT_FACE)
@@ -94,34 +92,6 @@ static int draw_uvs_face_check(Scene *scene)
 	}
 	else
 		return (ts->uv_selectmode == UV_SELECT_FACE);
-}
-
-static uchar get_state(SpaceImage *sima, Scene *scene)
-{
-	ToolSettings *ts = scene->toolsettings;
-	int drawfaces = draw_uvs_face_check(scene);
-	const bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
-	uchar state = UVEDIT_EDGES | UVEDIT_DATA;
-
-	if (drawfaces) {
-		state |= UVEDIT_FACEDOTS;
-	}
-	if (draw_stretch || !(sima->flag & SI_NO_DRAWFACES)) {
-		state |= UVEDIT_FACES;
-
-		if (draw_stretch) {
-			if (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA) {
-				state |= UVEDIT_STRETCH_AREA;
-			}
-			else {
-				state |= UVEDIT_STRETCH_ANGLE;
-			}
-		}
-	}
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		state |= UVEDIT_SYNC_SEL;
-	}
-	return state;
 }
 
 /* ------------------------- */
@@ -192,17 +162,50 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	GPU_matrix_translate_2f(-cursor[0], -cursor[1]);
 }
 
-static void draw_uvs_shadow(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *depsgraph)
+static void uvedit_get_batches(
+        Object *ob, SpaceImage *sima, const ToolSettings *ts,
+        GPUBatch **faces, GPUBatch **edges, GPUBatch **verts, GPUBatch **facedots)
+{
+	int drawfaces = draw_uvs_face_check(ts);
+	const bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
+	const bool draw_faces = (sima->flag & SI_NO_DRAWFACES) == 0;
+
+	*edges = DRW_mesh_batch_cache_get_edituv_edges(ob->data);
+	*verts = DRW_mesh_batch_cache_get_edituv_verts(ob->data);
+
+	if (drawfaces) {
+		*facedots = DRW_mesh_batch_cache_get_edituv_facedots(ob->data);
+	}
+	else {
+		*facedots = NULL;
+	}
+
+	if (draw_stretch && (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA)) {
+		*faces = DRW_mesh_batch_cache_get_edituv_faces_strech_area(ob->data);
+	}
+	else if (draw_stretch) {
+		*faces = DRW_mesh_batch_cache_get_edituv_faces_strech_angle(ob->data);
+	}
+	else if (draw_faces) {
+		*faces = DRW_mesh_batch_cache_get_edituv_faces(ob->data);
+	}
+	else {
+		*faces = NULL;
+	}
+
+	DRW_mesh_batch_cache_create_requested(ob, ob->data, ts, false, false);
+}
+
+static void draw_uvs_shadow(SpaceImage *UNUSED(sima), Scene *scene, Object *obedit, Depsgraph *depsgraph)
 {
 	Object *eval_ob = DEG_get_evaluated_object(depsgraph, obedit);
-	GPUBatch *faces, *edges, *verts, *facedots;
-	uchar state = UVEDIT_EDGES | UVEDIT_DATA;
 	float col[4];
 	UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
-	DRW_mesh_cache_uvedit(
-	        eval_ob, sima, scene, state,
-	        &faces, &edges, &verts, &facedots);
+	/* TODO get real modified edges. */
+	GPUBatch *edges = DRW_mesh_batch_cache_get_edituv_edges(eval_ob->data);
+
+	DRW_mesh_batch_cache_create_requested(eval_ob, eval_ob->data, scene->toolsettings, false, false);
 
 	if (edges) {
 		GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UNIFORM_COLOR);
@@ -268,7 +271,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 {
 	GPUBatch *faces, *edges, *verts, *facedots;
 	Object *eval_ob = DEG_get_evaluated_object(depsgraph, obedit);
-	ToolSettings *ts = scene->toolsettings;
+	const ToolSettings *ts = scene->toolsettings;
 	float col1[4], col2[4], col3[4], transparent[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if (sima->flag & SI_DRAWSHADOW) {
@@ -282,16 +285,15 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 		}
 	}
 
-	uchar state = get_state(sima, scene);
-
-	DRW_mesh_cache_uvedit(
-	        eval_ob, sima, scene, state,
+	uvedit_get_batches(
+	        eval_ob, sima, ts,
 	        &faces, &edges, &verts, &facedots);
+
 
 	bool interpedges;
 	bool do_elem_order_fix = (ts->uv_flag & UV_SYNC_SELECTION) && (ts->selectmode & SCE_SELECT_FACE);
 	bool do_selected_edges = ((sima->flag & SI_NO_DRAWEDGES) == 0);
-	bool draw_stretch = (state & (UVEDIT_STRETCH_AREA | UVEDIT_STRETCH_ANGLE)) != 0;
+	bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		interpedges = (ts->selectmode & SCE_SELECT_VERTEX) != 0;
 	}

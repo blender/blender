@@ -132,24 +132,18 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me);
 /* Object mode Wireframe overlays */
 struct GPUBatch *DRW_mesh_batch_cache_get_wireframes_face(struct Mesh *me);
+/* edit-mesh UV editor */
+struct GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_strech_area(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edituv_faces_strech_angle(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edituv_faces(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edituv_edges(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edituv_verts(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(struct Mesh *me);
 
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 
-enum {
-	UVEDIT_EDGES          = (1 << 0),
-	UVEDIT_DATA           = (1 << 1),
-	UVEDIT_FACEDOTS       = (1 << 2),
-	UVEDIT_FACES          = (1 << 3),
-	UVEDIT_STRETCH_ANGLE  = (1 << 4),
-	UVEDIT_STRETCH_AREA   = (1 << 5),
-	UVEDIT_SYNC_SEL       = (1 << 6),
-};
-
 /* For Image UV editor. */
 struct GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(struct Mesh *me);
-void DRW_mesh_cache_uvedit(
-        struct Object *me, struct SpaceImage *sima, struct Scene *scene, uchar state,
-        struct GPUBatch **faces, struct GPUBatch **edges, struct GPUBatch **verts, struct GPUBatch **facedots);
 
 /* Edit mesh bitflags (is this the right place?) */
 
