@@ -84,18 +84,17 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 static Mesh *doBiscetOnMirrorPlane(
         MirrorModifierData *mmd,
-        Object *ob,
         const Mesh *mesh,
-        Object *mirror_ob,
         int axis,
-        float mirrormat[4][4])
+        float plane_co[3],
+        float plane_no[3])
 {
 	bool do_bisect_flip_axis = (
 	        (axis == 0 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_X) ||
 	        (axis == 1 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Y) ||
 	        (axis == 2 && mmd->flag & MOD_MIR_BISECT_FLIP_AXIS_Z));
 
-	const float bisect_distance = 0.001;
+	const float bisect_distance = 0.001f;
 
 	Mesh *result;
 	BMesh *bm;
@@ -110,21 +109,14 @@ static Mesh *doBiscetOnMirrorPlane(
 			.cd_mask_extra = CD_MASK_ORIGINDEX,
 		});
 
-	/* prepare data for bisecting */
+	/* Define bisecting plane (aka mirror plane). */
 	float plane[4];
-	float plane_co[3] = {0, 0, 0};
-	float plane_no[3];
-	copy_v3_v3(plane_no, mirrormat[axis]);
-
-	if (mirror_ob != NULL) {
-		float tmp[4][4];
-		invert_m4_m4(tmp, ob->obmat);
-		mul_m4_m4m4(tmp, tmp, mirror_ob->obmat);
-
-		copy_v3_v3(plane_no, tmp[axis]);
-		copy_v3_v3(plane_co, tmp[3]);
+	if (!do_bisect_flip_axis) {
+		/* That reversed condition is a tad weird, but for some reason that's how you keep
+		 * the part of the mesh which is on the non-mirrored side when flip option is disabled,
+		 * think that that is the expected behavior. */
+		negate_v3(plane_no);
 	}
-
 	plane_from_point_normal_v3(plane, plane_co, plane_no);
 
 	BM_mesh_bisect_plane(bm, plane, false, false, 0, 0, bisect_distance);
@@ -133,10 +125,6 @@ static Mesh *doBiscetOnMirrorPlane(
 	float plane_offset[4];
 	copy_v3_v3(plane_offset, plane);
 	plane_offset[3] = plane[3] - bisect_distance;
-
-	if (do_bisect_flip_axis) {
-		negate_v3(plane_offset);
-	}
 
 	/* Delete verts across the mirror plane. */
 	BM_ITER_MESH_MUTABLE(v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
@@ -173,6 +161,7 @@ static Mesh *doMirrorOnAxis(
 	MLoop *ml;
 	MPoly *mp;
 	float mtx[4][4];
+	float plane_co[3], plane_no[3];
 	int i;
 	int a, totshape;
 	int *vtargetmap = NULL, *vtmap_a = NULL, *vtmap_b = NULL;
@@ -197,14 +186,22 @@ static Mesh *doMirrorOnAxis(
 		/* combine matrices to get a single matrix that translates coordinates into
 		 * mirror-object-relative space, does the mirror, and translates back to
 		 * origin-relative space */
-		mul_m4_m4m4(mtx, mtx, tmp);
-		mul_m4_m4m4(mtx, itmp, mtx);
-	}
+		mul_m4_series(mtx, itmp, mtx, tmp);
 
+		if (do_bisect) {
+			copy_v3_v3(plane_co, itmp[3]);
+			copy_v3_v3(plane_no, itmp[axis]);
+		}
+	}
+	else if(do_bisect) {
+		copy_v3_v3(plane_co, mtx[3]);
+		/* Need to negate here, since that axis is inverted (for mirror transform). */
+		negate_v3_v3(plane_no, mtx[axis]);
+	}
 
 	Mesh *mesh_bisect = NULL;
 	if (do_bisect) {
-		mesh_bisect = doBiscetOnMirrorPlane(mmd, ob, mesh, mirror_ob, axis, mtx);
+		mesh_bisect = doBiscetOnMirrorPlane(mmd, mesh, axis, plane_co, plane_no);
 		mesh = mesh_bisect;
 	}
 
