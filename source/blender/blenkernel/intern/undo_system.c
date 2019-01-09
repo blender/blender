@@ -552,14 +552,28 @@ bool BKE_undosys_step_undo_with_data_ex(
 		undosys_stack_validate(ustack, true);
 	}
 	UndoStep *us_prev = us ? us->prev : NULL;
-	if (us && us->type->mode == BKE_UNDOTYPE_MODE_STORE) {
+	if (us) {
 		/* The current state is a copy, we need to load the previous state. */
 		us = us_prev;
 	}
 
 	if (us != NULL) {
 		CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
-		undosys_step_decode(C, us, -1);
+
+		/* Handle accumulate steps. */
+		if (ustack->step_active) {
+			UndoStep *us_iter = ustack->step_active;
+			while (us_iter != us) {
+				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
+					undosys_step_decode(C, us_iter, -1);
+				}
+				us_iter = us_iter->prev;
+			}
+		}
+
+		if (us->type->mode != BKE_UNDOTYPE_MODE_ACCUMULATE) {
+			undosys_step_decode(C, us, -1);
+		}
 		ustack->step_active = us_prev;
 		undosys_stack_validate(ustack, true);
 		if (use_skip) {
@@ -600,6 +614,19 @@ bool BKE_undosys_step_redo_with_data_ex(
 
 	if (us != NULL) {
 		CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
+
+		/* Handle accumulate steps. */
+		if (ustack->step_active && ustack->step_active->next) {
+			UndoStep *us_iter = ustack->step_active->next;
+			while (us_iter != us) {
+				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
+					undosys_step_decode(C, us_iter, 1);
+				}
+				us_iter = us_iter->next;
+			}
+		}
+
+		/* Unlike undo, always redo accumulation state. */
 		undosys_step_decode(C, us, 1);
 		ustack->step_active = us_next;
 		if (use_skip) {
