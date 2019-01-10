@@ -5,9 +5,11 @@ layout(std140) uniform globalsBlock {
 	vec4 colorWireEdit;
 	vec4 colorActive;
 	vec4 colorSelect;
-	vec4 colorTransform;
+	vec4 colorDupliSelect;
+	vec4 colorDupli;
 	vec4 colorLibrarySelect;
 	vec4 colorLibrary;
+	vec4 colorTransform;
 	vec4 colorLamp;
 	vec4 colorSpeaker;
 	vec4 colorCamera;

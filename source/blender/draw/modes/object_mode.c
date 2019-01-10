@@ -238,12 +238,18 @@ typedef struct OBJECT_ShadingGroupList {
 	DRWShadingGroup *wire_active;
 	DRWShadingGroup *wire_select;
 	DRWShadingGroup *wire_transform;
+	/* Wire (duplicator) */
+	DRWShadingGroup *wire_dupli;
+	DRWShadingGroup *wire_dupli_select;
 
 	/* Points */
 	DRWShadingGroup *points;
 	DRWShadingGroup *points_active;
 	DRWShadingGroup *points_select;
 	DRWShadingGroup *points_transform;
+	/* Points (duplicator) */
+	DRWShadingGroup *points_dupli;
+	DRWShadingGroup *points_dupli_select;
 
 	/* Texture Space */
 	DRWShadingGroup *texspace;
@@ -768,9 +774,21 @@ static DRWShadingGroup *shgroup_theme_id_to_outline_or(
 	}
 }
 
-static DRWShadingGroup *shgroup_theme_id_to_wire_or(
-        OBJECT_ShadingGroupList *sgl, int theme_id, DRWShadingGroup *fallback)
+static DRWShadingGroup *shgroup_theme_id_to_wire(
+        OBJECT_ShadingGroupList *sgl, int theme_id, const short base_flag)
 {
+	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+		switch (theme_id) {
+			case TH_ACTIVE:
+			case TH_SELECT:
+				return sgl->wire_dupli_select;
+			case TH_TRANSFORM:
+				return sgl->wire_transform;
+			default:
+				return sgl->wire_dupli;
+		}
+	}
+
 	switch (theme_id) {
 		case TH_ACTIVE:
 			return sgl->wire_active;
@@ -779,13 +797,25 @@ static DRWShadingGroup *shgroup_theme_id_to_wire_or(
 		case TH_TRANSFORM:
 			return sgl->wire_transform;
 		default:
-			return fallback;
+			return sgl->wire;
 	}
 }
 
-static DRWShadingGroup *shgroup_theme_id_to_point_or(
-        OBJECT_ShadingGroupList *sgl, int theme_id, DRWShadingGroup *fallback)
+static DRWShadingGroup *shgroup_theme_id_to_point(
+        OBJECT_ShadingGroupList *sgl, int theme_id, const short base_flag)
 {
+	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+		switch (theme_id) {
+			case TH_ACTIVE:
+			case TH_SELECT:
+				return sgl->points_dupli_select;
+			case TH_TRANSFORM:
+				return sgl->points_transform;
+			default:
+				return sgl->points_dupli;
+		}
+	}
+
 	switch (theme_id) {
 		case TH_ACTIVE:
 			return sgl->points_active;
@@ -794,7 +824,7 @@ static DRWShadingGroup *shgroup_theme_id_to_point_or(
 		case TH_TRANSFORM:
 			return sgl->points_transform;
 		default:
-			return fallback;
+			return sgl->points;
 	}
 }
 
@@ -1178,6 +1208,9 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->wire_select = shgroup_wire(sgl->non_meshes, ts.colorSelect, sh);
 		sgl->wire_transform = shgroup_wire(sgl->non_meshes, ts.colorTransform, sh);
 		sgl->wire_active = shgroup_wire(sgl->non_meshes, ts.colorActive, sh);
+		/* Wire (duplicator) */
+		sgl->wire_dupli = shgroup_wire(sgl->non_meshes, ts.colorDupli, sh);
+		sgl->wire_dupli_select = shgroup_wire(sgl->non_meshes, ts.colorDupliSelect, sh);
 
 		/* Points (loose points) */
 		sh = e_data.loose_points_sh;
@@ -1185,10 +1218,15 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->points_select = shgroup_points(sgl->non_meshes, ts.colorSelect, sh);
 		sgl->points_transform = shgroup_points(sgl->non_meshes, ts.colorTransform, sh);
 		sgl->points_active = shgroup_points(sgl->non_meshes, ts.colorActive, sh);
+		/* Points (duplicator) */
+		sgl->points_dupli = shgroup_points(sgl->non_meshes, ts.colorDupli, sh);
+		sgl->points_dupli_select = shgroup_points(sgl->non_meshes, ts.colorDupliSelect, sh);
 		DRW_shgroup_state_disable(sgl->points, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_select, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_transform, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_active, DRW_STATE_BLEND);
+		DRW_shgroup_state_disable(sgl->points_dupli, DRW_STATE_BLEND);
+		DRW_shgroup_state_disable(sgl->points_dupli_select, DRW_STATE_BLEND);
 
 		/* Metaballs Handles */
 		sgl->mball_handle = shgroup_instance_mball_handles(sgl->non_meshes);
@@ -1398,9 +1436,12 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 	float (*shapemat)[4] = lamp_engine_data->shape_mat;
 	float (*spotblendmat)[4] = lamp_engine_data->spot_blend_mat;
 
-	/* Don't draw the center if it's selected or active */
-	if (theme_id == TH_LAMP)
-		DRW_shgroup_call_dynamic_add(sgl->lamp_center, ob->obmat[3]);
+	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
+		/* Don't draw the center if it's selected or active */
+		if (theme_id == TH_LAMP) {
+			DRW_shgroup_call_dynamic_add(sgl->lamp_center, ob->obmat[3]);
+		}
+	}
 
 	/* First circle */
 	DRW_shgroup_call_dynamic_add(sgl->lamp_circle, ob->obmat[3], color);
@@ -2637,7 +2678,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 						}
-						DRWShadingGroup *shgroup = shgroup_theme_id_to_point_or(sgl, theme_id, sgl->points);
+						DRWShadingGroup *shgroup = shgroup_theme_id_to_point(sgl, theme_id, ob->base_flag);
 						DRW_shgroup_call_object_add(shgroup, geom, ob);
 					}
 				}
@@ -2658,7 +2699,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 						}
-						DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
+						DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
 						DRW_shgroup_call_object_add(shgroup, geom, ob);
 					}
 				}
@@ -2677,7 +2718,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (theme_id == TH_UNDEFINED) {
 				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 			}
-			DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
+			DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
 			DRW_shgroup_call_object_add(shgroup, geom, ob);
 			break;
 		}
@@ -2692,7 +2733,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}
 
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
 				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
@@ -2707,7 +2748,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}
-				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
+				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
 				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
@@ -2795,7 +2836,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					if (theme_id == TH_UNDEFINED) {
 						theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 					}
-					DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(sgl, theme_id, sgl->wire);
+					DRWShadingGroup *shgroup = shgroup_theme_id_to_wire(sgl, theme_id, ob->base_flag);
 					DRW_shgroup_call_object_add(shgroup, geom, ob);
 				}
 			}

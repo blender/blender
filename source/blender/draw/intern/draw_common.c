@@ -60,9 +60,11 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, ts.colorWireEdit);
 	UI_GetThemeColor4fv(TH_ACTIVE, ts.colorActive);
 	UI_GetThemeColor4fv(TH_SELECT, ts.colorSelect);
-	UI_GetThemeColor4fv(TH_TRANSFORM, ts.colorTransform);
+	UI_GetThemeColorBlend4f(TH_SELECT, TH_HIGH_GRAD, 0.66f, ts.colorDupliSelect);
+	UI_GetThemeColorBlend4f(TH_WIRE, TH_HIGH_GRAD, 0.66f, ts.colorDupli);
 	UI_COLOR_RGBA_FROM_U8(0x88, 0xFF, 0xFF, 155, ts.colorLibrarySelect);
 	UI_COLOR_RGBA_FROM_U8(0x55, 0xCC, 0xCC, 155, ts.colorLibrary);
+	UI_GetThemeColor4fv(TH_TRANSFORM, ts.colorTransform);
 	UI_GetThemeColor4fv(TH_LAMP, ts.colorLamp);
 	UI_GetThemeColor4fv(TH_SPEAKER, ts.colorSpeaker);
 	UI_GetThemeColor4fv(TH_CAMERA, ts.colorCamera);
@@ -902,16 +904,26 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 	}
 
 	if (r_color != NULL) {
-		switch (theme_id) {
-			case TH_WIRE_EDIT:    *r_color = ts.colorWireEdit; break;
-			case TH_ACTIVE:       *r_color = ts.colorActive; break;
-			case TH_SELECT:       *r_color = ts.colorSelect; break;
-			case TH_TRANSFORM:    *r_color = ts.colorTransform; break;
-			case TH_SPEAKER:      *r_color = ts.colorSpeaker; break;
-			case TH_CAMERA:       *r_color = ts.colorCamera; break;
-			case TH_EMPTY:        *r_color = ts.colorEmpty; break;
-			case TH_LAMP:         *r_color = ts.colorLamp; break;
-			default:              *r_color = ts.colorWire; break;
+		if (UNLIKELY(ob->base_flag & BASE_FROMDUPLI)) {
+			switch (theme_id) {
+				case TH_ACTIVE:
+				case TH_SELECT:       *r_color = ts.colorDupliSelect; break;
+				case TH_TRANSFORM:    *r_color = ts.colorTransform; break;
+				default:              *r_color = ts.colorDupli; break;
+			}
+		}
+		else {
+			switch (theme_id) {
+				case TH_WIRE_EDIT:    *r_color = ts.colorWireEdit; break;
+				case TH_ACTIVE:       *r_color = ts.colorActive; break;
+				case TH_SELECT:       *r_color = ts.colorSelect; break;
+				case TH_TRANSFORM:    *r_color = ts.colorTransform; break;
+				case TH_SPEAKER:      *r_color = ts.colorSpeaker; break;
+				case TH_CAMERA:       *r_color = ts.colorCamera; break;
+				case TH_EMPTY:        *r_color = ts.colorEmpty; break;
+				case TH_LAMP:         *r_color = ts.colorLamp; break;
+				default:              *r_color = ts.colorWire; break;
+			}
 		}
 	}
 
