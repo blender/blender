@@ -665,6 +665,7 @@ class _defs_edit_mesh:
             props = tool.operator_properties("transform.shear")
             layout.label(text="View Axis:")
             layout.prop(props, "shear_axis", expand=True)
+            _template_widget.TRANSFORM_GGT_gizmo.draw_settings_with_index(context, layout, 2)
         return dict(
             text="Shear",
             icon="ops.transform.shear",

@@ -1211,8 +1211,6 @@ static void gizmo_xform_message_subscribe(
         wmGizmoGroup *gzgroup, struct wmMsgBus *mbus,
         Scene *scene, bScreen *UNUSED(screen), ScrArea *UNUSED(sa), ARegion *ar, const void *type_fn)
 {
-	GizmoGroup *ggd = gzgroup->customdata;
-
 	/* Subscribe to view properties */
 	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
 		.owner = ar,
@@ -1237,7 +1235,20 @@ static void gizmo_xform_message_subscribe(
 		}
 	}
 
-	TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
+	int orient_flag = 0;
+	if (type_fn == TRANSFORM_GGT_gizmo) {
+		GizmoGroup *ggd = gzgroup->customdata;
+		orient_flag = ggd->twtype_init;
+	}
+	else if (type_fn == VIEW3D_GGT_xform_cage) {
+		orient_flag = SCE_GIZMO_SHOW_SCALE;
+		/* pass */
+	}
+	else if (type_fn == VIEW3D_GGT_xform_shear) {
+		orient_flag = SCE_GIZMO_SHOW_ROTATE;
+	}
+
+	TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, orient_flag);
 	PointerRNA orient_ref_ptr;
 	RNA_pointer_create(&scene->id, &RNA_TransformOrientationSlot, orient_slot, &orient_ref_ptr);
 	{
@@ -1258,6 +1269,7 @@ static void gizmo_xform_message_subscribe(
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
 	if (type_fn == TRANSFORM_GGT_gizmo) {
+		GizmoGroup *ggd = gzgroup->customdata;
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
 		extern PropertyRNA rna_ToolSettings_use_gizmo_mode;
 		const PropertyRNA *props[] = {
@@ -2159,15 +2171,20 @@ static void WIDGETGROUP_xform_shear_setup(const bContext *UNUSED(C), wmGizmoGrou
 
 static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
+	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
 	struct XFormShearWidgetGroup *xgzgroup = gzgroup->customdata;
 	struct TransformBounds tbounds;
 
+	const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_ROTATE);
+
 	if (ED_transform_calc_gizmo_stats(
 	            C, &(struct TransformCalcParams) {
 	                .use_local_axis = false,
+	                .orientation_type = orient_slot->type + 1,
+	                .orientation_index_custom = orient_slot->index_custom,
 	            }, &tbounds) == 0)
 	{
 		for (int i = 0; i < 3; i++) {
