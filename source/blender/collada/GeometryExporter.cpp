@@ -356,7 +356,7 @@ void GeometryExporter::createPolylist(short material_index,
 			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
 									makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings->active_uv_only)),
 									2, // this is only until we have optimized UV sets
-									(this->export_settings->active_uv_only) ? 0 : layer_index  // only_active_uv exported -> we have only one set
+									(this->export_settings->active_uv_only) ? 0 : layer_index-1  //set (0,1,2,...)
 									);
 			til.push_back(input3);
 		}
