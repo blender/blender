@@ -4771,7 +4771,7 @@ BLI_INLINE float edit_uv_get_stretch_area(float area, float uvarea)
 
 /* Compute face's normalized contour vectors. */
 BLI_INLINE void edit_uv_preprocess_stretch_angle(
-        float (*auv)[2], float (*av)[3], const int cd_loop_uv_offset, BMFace *efa, float asp[2])
+        float (*auv)[2], float (*av)[3], const int cd_loop_uv_offset, BMFace *efa)
 {
 	BMLoop *l;
 	BMIter liter;
@@ -4781,7 +4781,6 @@ BLI_INLINE void edit_uv_preprocess_stretch_angle(
 		MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
 
 		sub_v2_v2v2(auv[i], luv_prev->uv, luv->uv);
-		mul_v2_v2(auv[i], asp);
 		normalize_v2(auv[i]);
 
 		sub_v3_v3v3(av[i], l->prev->v->co, l->v->co);
@@ -4789,6 +4788,7 @@ BLI_INLINE void edit_uv_preprocess_stretch_angle(
 	}
 }
 
+#if 0 /* here for reference, this is done in shader now. */
 BLI_INLINE float edit_uv_get_loop_stretch_angle(
         const float auv0[2], const float auv1[2], const float av0[3], const float av1[3])
 {
@@ -4797,6 +4797,7 @@ BLI_INLINE float edit_uv_get_loop_stretch_angle(
 	float stretch = fabsf(uvang - ang) / (float)M_PI;
 	return 1.0f - pow2f(1.0f - stretch);
 }
+#endif
 
 #define VERTEX_SELECT (1 << 0)
 #define VERTEX_PINNED (1 << 1)
@@ -4823,7 +4824,7 @@ BLI_INLINE uchar edit_uv_get_loop_flag(BMLoop *l, const int cd_loop_uv_offset, S
 }
 
 static struct EditUVFormatIndex {
-	uint uvs, area, angle, flag, fdots_uvs, fdots_flag;
+	uint uvs, area, angle, uv_adj, flag, fdots_uvs, fdots_flag;
 } uv_attr_id = {0};
 
 static void uvedit_fill_buffer_data(
@@ -4885,10 +4886,7 @@ static void uvedit_fill_buffer_data(
 		if (vbo_angle) {
 			av  = (float (*)[3])BLI_buffer_reinit_data(&vec3_buf, vec3f, efa_len);
 			auv = (float (*)[2])BLI_buffer_reinit_data(&vec2_buf, vec2f, efa_len);
-			/* TODO modify shader to apply the correct aspect on the fly, or get the correct aspect.
-			 * But later solution would make it correct only in one editor at a time. */
-			float asp[2] = {1.0f, 1.0f};
-			edit_uv_preprocess_stretch_angle(auv, av, cd_loop_uv_offset, efa, asp);
+			edit_uv_preprocess_stretch_angle(auv, av, cd_loop_uv_offset, efa);
 		}
 
 		BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, i) {
@@ -4897,8 +4895,14 @@ static void uvedit_fill_buffer_data(
 				GPU_vertbuf_attr_set(vbo_area, uv_attr_id.area, vidx, &area_stretch);
 			}
 			if (vbo_angle) {
-				ushort angle = 65534.0f * edit_uv_get_loop_stretch_angle(auv[i], auv[(i + 1) % efa_len],
-				                                                         av[i],  av[(i + 1) % efa_len]);
+				int i_next = (i + 1) % efa_len;
+				short suv[4];
+				/* Send uvs to the shader and let it compute the aspect corrected angle. */
+				normal_float_to_short_v2(&suv[0], auv[i]);
+				normal_float_to_short_v2(&suv[2], auv[i_next]);
+				GPU_vertbuf_attr_set(vbo_angle, uv_attr_id.uv_adj, vidx, suv);
+				/* Compute 3D angle here */
+				short angle = 32767.0f * angle_normalized_v3v3(av[i], av[i_next]) / (float)M_PI;
 				GPU_vertbuf_attr_set(vbo_angle, uv_attr_id.angle, vidx, &angle);
 			}
 			if (vbo_pos) {
@@ -4978,7 +4982,8 @@ static void mesh_create_uvedit_buffers(
 
 	if (format_pos.attr_len == 0) {
 		uv_attr_id.area  = GPU_vertformat_attr_add(&format_area,  "stretch", GPU_COMP_U16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-		uv_attr_id.angle = GPU_vertformat_attr_add(&format_angle, "stretch", GPU_COMP_U16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		uv_attr_id.angle = GPU_vertformat_attr_add(&format_angle, "angle",   GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		uv_attr_id.uv_adj = GPU_vertformat_attr_add(&format_angle, "uv_adj", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 		uv_attr_id.flag  = GPU_vertformat_attr_add(&format_flag,  "flag",    GPU_COMP_U8,  1, GPU_FETCH_INT);
 		uv_attr_id.uvs   = GPU_vertformat_attr_add(&format_pos,   "u",     GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		GPU_vertformat_alias_add(&format_pos, "pos");

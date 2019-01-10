@@ -933,7 +933,10 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 	[GPU_SHADER_2D_UV_FACES] =
 		{ datatoc_gpu_shader_2D_edituvs_faces_vert_glsl,
 		  datatoc_gpu_shader_flat_color_frag_glsl },
-	[GPU_SHADER_2D_UV_FACES_STRETCH] =
+	[GPU_SHADER_2D_UV_FACES_STRETCH_AREA] =
+		{ datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl,
+		  datatoc_gpu_shader_2D_smooth_color_frag_glsl },
+	[GPU_SHADER_2D_UV_FACES_STRETCH_ANGLE] =
 		{ datatoc_gpu_shader_2D_edituvs_stretch_vert_glsl,
 		  datatoc_gpu_shader_2D_smooth_color_frag_glsl },
 
@@ -1009,6 +1012,9 @@ static const char *gpu_shader_get_builtin_shader_defines(
 
 		case GPU_SHADER_3D_UNIFORM_SELECT_ID:
 			return "#define UNIFORM_ID\n";
+
+		case GPU_SHADER_2D_UV_FACES_STRETCH_ANGLE:
+			return "#define STRETCH_ANGLE\n";
 
 		default:
 			return NULL;

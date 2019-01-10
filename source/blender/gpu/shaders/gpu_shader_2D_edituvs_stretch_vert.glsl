@@ -1,8 +1,16 @@
 
 uniform mat4 ModelViewProjectionMatrix;
+uniform vec2 aspect;
 
 in vec2 pos;
+
+#ifndef STRETCH_ANGLE
 in float stretch;
+#else
+
+in vec4 uv_adj;
+in float angle;
+#endif
 
 noperspective out vec4 finalColor;
 
@@ -42,8 +50,30 @@ vec3 weight_to_rgb(float weight)
 	return r_rgb;
 }
 
+#define M_PI       3.1415926535897932
+
+/* Adapted from BLI_math_vector.h */
+float angle_normalized_v2v2(vec2 v1, vec2 v2)
+{
+	v1 = normalize(v1 * aspect);
+	v2 = normalize(v2 * aspect);
+	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
+	bool q = (dot(v1, v2) >= 0.0);
+	vec2 v = (q) ? (v1 - v2) : (v1 + v2);
+	float a = 2.0 * asin(length(v) / 2.0);
+	return (q) ? a : M_PI - a;
+}
+
 void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+
+#ifdef STRETCH_ANGLE
+	float uv_angle = angle_normalized_v2v2(uv_adj.xy, uv_adj.zw) / M_PI;
+	float stretch = 1.0 - abs(uv_angle - angle);
+	stretch = stretch;
+	stretch = 1.0 - stretch * stretch;
+#endif
+
 	finalColor = vec4(weight_to_rgb(stretch), 1.0);
 }

@@ -305,7 +305,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 
 	if (faces) {
 		GPU_batch_program_set_builtin(faces, (draw_stretch)
-		                                     ? GPU_SHADER_2D_UV_FACES_STRETCH
+		                                     ? (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA)
+		                                       ? GPU_SHADER_2D_UV_FACES_STRETCH_AREA
+		                                       : GPU_SHADER_2D_UV_FACES_STRETCH_ANGLE
 		                                     : GPU_SHADER_2D_UV_FACES);
 
 		if (!draw_stretch) {
@@ -318,6 +320,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 			GPU_batch_uniform_4fv(faces, "faceColor", col1);
 			GPU_batch_uniform_4fv(faces, "selectColor", col2);
 			GPU_batch_uniform_4fv(faces, "activeColor", col3);
+		}
+		else if (sima->dt_uvstretch == SI_UVDT_STRETCH_ANGLE) {
+			float asp[2];
+			ED_space_image_get_uv_aspect(sima, &asp[0], &asp[1]);
+			GPU_batch_uniform_2fv(faces, "aspect", asp);
 		}
 
 		GPU_batch_draw(faces);
