@@ -382,12 +382,18 @@ class AddPresetCloth(AddPresetBase, Operator):
     ]
 
     preset_values = [
-        "cloth.settings.air_damping",
-        "cloth.settings.bending_stiffness",
-        "cloth.settings.mass",
         "cloth.settings.quality",
-        "cloth.settings.spring_damping",
-        "cloth.settings.structural_stiffness",
+        "cloth.settings.mass",
+        "cloth.settings.air_damping",
+        "cloth.settings.bending_model",
+        "cloth.settings.tension_stiffness",
+        "cloth.settings.compression_stiffness",
+        "cloth.settings.shear_stiffness",
+        "cloth.settings.bending_stiffness",
+        "cloth.settings.tension_damping",
+        "cloth.settings.compression_damping",
+        "cloth.settings.shear_damping",
+        "cloth.settings.bending_damping",
     ]
 
     preset_subdir = "cloth"
