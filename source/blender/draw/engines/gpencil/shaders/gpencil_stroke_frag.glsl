@@ -3,7 +3,7 @@ uniform sampler2D myTexture;
 
 in vec4 mColor;
 in vec2 mTexCoord;
-in float uvfac;
+in vec2 uvfac;
 
 out vec4 fragColor;
 
@@ -17,10 +17,9 @@ out vec4 fragColor;
 void main()
 {
 	vec4 tColor = vec4(mColor);
-	/* if alpha < 0, then encap (only solid mode ) */
-	if ((mColor.a < 0) && (color_type == GPENCIL_COLOR_SOLID)) {
-		vec2 center = vec2(uvfac, 1.0);
-		tColor.a = tColor.a * -1.0;
+	/* if uvfac[1]  == 1, then encap (only solid mode ) */
+	if ((uvfac[1] == 1.0) && (color_type == GPENCIL_COLOR_SOLID)) {
+		vec2 center = vec2(uvfac[0], 1.0);
 		float dist = length(mTexCoord - center);
 		if (dist > 0.50) {
 			discard;

@@ -40,6 +40,6 @@ void main()
 		stroke_color.b = srgb_to_linearrgb(stroke_color.b);
 	}
 
-	FragColor = stroke_color;
-	gl_FragDepth = stroke_depth;
+	FragColor = clamp(stroke_color, 0.0, 1.0);
+	gl_FragDepth = clamp(stroke_depth, 0.0, 1.0);
 }
