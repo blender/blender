@@ -50,6 +50,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 
@@ -63,6 +64,8 @@
 
 #include "ED_anim_api.h"
 #include "ED_undo.h"
+
+#include "DEG_depsgraph.h"
 
 /* ********************************************** */
 /* UI STUFF */
@@ -86,9 +89,14 @@ static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED
 }
 
 /* callback to remove the given modifier  */
-static void delete_fmodifier_cb(bContext *C, void *fmods_v, void *fcm_v)
+typedef struct FModifierDeleteContext {
+	ID *fcurve_owner_id;
+	ListBase *modifiers;
+} FModifierDeleteContext;
+static void delete_fmodifier_cb(bContext *C, void *ctx_v, void *fcm_v)
 {
-	ListBase *modifiers = (ListBase *)fmods_v;
+	FModifierDeleteContext *ctx = (FModifierDeleteContext *)ctx_v;
+	ListBase *modifiers = ctx->modifiers;
 	FModifier *fcm = (FModifier *)fcm_v;
 
 	/* remove the given F-Modifier from the active modifier-stack */
@@ -99,6 +107,7 @@ static void delete_fmodifier_cb(bContext *C, void *fmods_v, void *fcm_v)
 	/* send notifiers */
 	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+	DEG_id_tag_update(ctx->fcurve_owner_id, ID_RECALC_COPY_ON_WRITE);
 }
 
 /* --------------- */
@@ -553,7 +562,8 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 
 /* --------------- */
 
-void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
+void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ID *fcurve_owner_id,
+                                    ListBase *modifiers, FModifier *fcm)
 {
 	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 	uiLayout *box, *row, *sub, *col;
@@ -604,7 +614,10 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifier
 		/* delete button */
 		but = uiDefIconBut(block, UI_BTYPE_BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete F-Curve Modifier"));
-		UI_but_func_set(but, delete_fmodifier_cb, modifiers, fcm);
+		FModifierDeleteContext *ctx = MEM_mallocN(sizeof(FModifierDeleteContext), "fmodifier ctx");
+		ctx->fcurve_owner_id = fcurve_owner_id;
+		ctx->modifiers = modifiers;
+		UI_but_funcN_set(but, delete_fmodifier_cb, ctx, fcm);
 
 		UI_block_emboss_set(block, UI_EMBOSS);
 	}
