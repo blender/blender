@@ -1182,17 +1182,22 @@ static void shrinkwrap_snap_with_side(float r_point_co[3], const float point_co[
 
 	/* If exactly on the surface, push out along normal */
 	if (dist < FLT_EPSILON) {
-		madd_v3_v3v3fl(r_point_co, hit_co, hit_no, goal_dist * forcesign);
+		if (forcesnap || goal_dist > 0) {
+			madd_v3_v3v3fl(r_point_co, hit_co, hit_no, goal_dist * forcesign);
+		}
+		else {
+			copy_v3_v3(r_point_co, hit_co);
+		}
 	}
 	/* Move to the correct side if needed */
 	else {
 		float delta[3];
 		sub_v3_v3v3(delta, point_co, hit_co);
-		float dsign = signf(dot_v3v3(delta, hit_no));
+		float dsign = signf(dot_v3v3(delta, hit_no) * forcesign);
 
 		/* If on the wrong side or too close, move to correct */
-		if (forcesnap || dsign * forcesign < 0 || dist < goal_dist) {
-			interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist * dsign * forcesign) / dist);
+		if (forcesnap || dsign * dist < goal_dist) {
+			interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist * dsign) / dist);
 		}
 		else {
 			copy_v3_v3(r_point_co, point_co);
@@ -1217,7 +1222,7 @@ void BKE_shrinkwrap_snap_point_to_surface(
 	switch (mode) {
 		/* Offsets along the line between point_co and hit_co. */
 		case MOD_SHRINKWRAP_ON_SURFACE:
-			if (goal_dist > 0 && (dist = len_v3v3(point_co, hit_co)) > FLT_EPSILON) {
+			if (goal_dist != 0 && (dist = len_v3v3(point_co, hit_co)) > FLT_EPSILON) {
 				interp_v3_v3v3(r_point_co, point_co, hit_co, (dist - goal_dist) / dist);
 			}
 			else {
@@ -1234,7 +1239,7 @@ void BKE_shrinkwrap_snap_point_to_surface(
 			break;
 
 		case MOD_SHRINKWRAP_OUTSIDE_SURFACE:
-			if (goal_dist > 0) {
+			if (goal_dist != 0) {
 				shrinkwrap_snap_with_side(r_point_co, point_co, hit_co, hit_no, goal_dist, +1, true);
 			}
 			else {
@@ -1244,7 +1249,7 @@ void BKE_shrinkwrap_snap_point_to_surface(
 
 		/* Offsets along the normal */
 		case MOD_SHRINKWRAP_ABOVE_SURFACE:
-			if (goal_dist > 0) {
+			if (goal_dist != 0) {
 				BKE_shrinkwrap_compute_smooth_normal(tree, transform, hit_idx, hit_co, hit_no, tmp);
 				madd_v3_v3v3fl(r_point_co, hit_co, tmp, goal_dist);
 			}
