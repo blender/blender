@@ -1170,7 +1170,7 @@ static void mesh_calc_modifiers(
 	ModifierData *firstmd, *md, *previewmd = NULL;
 	CDMaskLink *datamasks, *curr;
 	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
-	CustomDataMask mask, nextmask, previewmask = 0, append_mask = CD_MASK_ORIGINDEX;
+	CustomDataMask mask, nextmask, previewmask = 0, append_mask = CD_MASK_ORIGINDEX | CD_MASK_BAREMESH;
 	float (*deformedVerts)[3] = NULL;
 	int numVerts = ((Mesh *)ob->data)->totvert;
 	const bool useRenderParams = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -1688,7 +1688,7 @@ static void editbmesh_calc_modifiers(
 {
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
-	CustomDataMask mask = 0, append_mask = 0;
+	CustomDataMask mask = 0, append_mask = CD_MASK_BAREMESH;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
 	const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
