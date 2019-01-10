@@ -28,7 +28,6 @@
  */
 
 #if defined(_MSC_VER)
-#  define __func__ __FUNCTION__
 #  define alloca _alloca
 #endif
 

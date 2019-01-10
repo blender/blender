@@ -50,10 +50,6 @@
 #  define SEP '/'
 #endif
 
-#if defined(_MSC_VER)
-#  define __func__ __FUNCTION__
-#endif
-
 /* -------------------------------------------------------------------- */
 /* Utility functions */
 
