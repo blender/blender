@@ -134,9 +134,14 @@ static void text_undosys_step_decode(struct bContext *C, UndoStep *us_p, int dir
 		BLI_assert(data.pos == us->data.pos);
 	}
 
+	SpaceText *st = CTX_wm_space_text(C);
+	if (st) {
+		/* Not essential, always show text being undo where possible. */
+		st->text = text;
+	}
 	text_update_edited(text);
 	text_update_cursor_moved(C);
-	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
+	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 }
 
