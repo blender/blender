@@ -385,13 +385,14 @@ static void loop_interpolation_from_corner(
 		 * middle points.
 		 *
 		 * TODO(sergey): Re-use one of interpolation results from previous
-		 * iteration.
-		 */
+		 * iteration. */
 		const float weights[2] = {0.5f, 0.5f};
-		const int first_indices[2] = {
-		        loops_of_ptex.first_loop - coarse_mloop,
-		        (loops_of_ptex.first_loop + 1 - coarse_mloop) %
-		                coarse_poly->totloop};
+		const int base_loop_index = coarse_poly->loopstart;
+		const int first_loop_index = loops_of_ptex.first_loop - coarse_mloop;
+		const int second_loop_index =
+		        base_loop_index +
+		        (first_loop_index - base_loop_index + 1) % coarse_poly->totloop;
+		const int first_indices[2] = {first_loop_index, second_loop_index};
 		const int last_indices[2] = {
 		        loops_of_ptex.last_loop - coarse_mloop,
 		        loops_of_ptex.first_loop - coarse_mloop};
