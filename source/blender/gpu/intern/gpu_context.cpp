@@ -80,12 +80,14 @@ struct GPUContext {
 #if TRUST_NO_ONE
 	pthread_t thread; /* Thread on which this context is active. */
 	bool thread_is_used;
+#endif
 
 	GPUContext() {
+#if TRUST_NO_ONE
 		thread_is_used = false;
+#endif
 		current_fbo = 0;
 	}
-#endif
 };
 
 #if defined(_MSC_VER) && (_MSC_VER == 1800)
