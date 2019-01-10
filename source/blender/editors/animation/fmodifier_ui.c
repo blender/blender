@@ -113,7 +113,7 @@ static void delete_fmodifier_cb(bContext *C, void *ctx_v, void *fcm_v)
 /* --------------- */
 
 /* draw settings for generator modifier */
-static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, short width)
+static void draw_modifier__generator(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short width)
 {
 	FMod_Generator *data = (FMod_Generator *)fcm->data;
 	uiLayout /* *col, */ /* UNUSED */ *row;
@@ -123,7 +123,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	short bwidth = width - 1.5 * UI_UNIT_X; /* max button width */
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 
 	/* basic settings (backdrop + mode selector + some padding) */
 	/* col = uiLayoutColumn(layout, true); */ /* UNUSED */
@@ -261,13 +261,13 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 /* --------------- */
 
 /* draw settings for generator modifier */
-static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
+static void draw_modifier__fn_generator(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short UNUSED(width))
 {
 	uiLayout *col;
 	PointerRNA ptr;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 
 	/* add the settings */
 	col = uiLayoutColumn(layout, true);
@@ -284,13 +284,13 @@ static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm
 /* --------------- */
 
 /* draw settings for cycles modifier */
-static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
+static void draw_modifier__cycles(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short UNUSED(width))
 {
 	uiLayout *split, *col;
 	PointerRNA ptr;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierCycles, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierCycles, fcm, &ptr);
 
 	/* split into 2 columns
 	 * NOTE: the mode comboboxes shouldn't get labels, otherwise there isn't enough room
@@ -313,13 +313,13 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 /* --------------- */
 
 /* draw settings for noise modifier */
-static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
+static void draw_modifier__noise(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short UNUSED(width))
 {
 	uiLayout *split, *col;
 	PointerRNA ptr;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierNoise, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierNoise, fcm, &ptr);
 
 	/* blending mode */
 	uiItemR(layout, &ptr, "blend_type", 0, NULL, ICON_NONE);
@@ -422,7 +422,7 @@ static void fmod_envelope_deletepoint_cb(bContext *UNUSED(C), void *fcm_dv, void
 }
 
 /* draw settings for envelope modifier */
-static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
+static void draw_modifier__envelope(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short UNUSED(width))
 {
 	FMod_Envelope *env = (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
@@ -433,7 +433,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	int i;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierEnvelope, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierEnvelope, fcm, &ptr);
 
 	/* general settings */
 	col = uiLayoutColumn(layout, true);
@@ -482,13 +482,13 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 /* --------------- */
 
 /* draw settings for limits modifier */
-static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
+static void draw_modifier__limits(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short UNUSED(width))
 {
 	uiLayout *split, *col /* , *row */ /* UNUSED */;
 	PointerRNA ptr;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierLimits, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierLimits, fcm, &ptr);
 
 	/* row 1: minimum */
 	{
@@ -530,13 +530,13 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 /* --------------- */
 
 /* draw settings for stepped interpolation modifier */
-static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
+static void draw_modifier__stepped(uiLayout *layout, ID *fcurve_owner_id, FModifier *fcm, short UNUSED(width))
 {
 	uiLayout *col, *sub;
 	PointerRNA ptr;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierStepped, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifierStepped, fcm, &ptr);
 
 	/* block 1: "stepping" settings */
 	col = uiLayoutColumn(layout, false);
@@ -562,7 +562,7 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 
 /* --------------- */
 
-void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ID *fcurve_owner_id,
+void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *fcurve_owner_id,
                                     ListBase *modifiers, FModifier *fcm)
 {
 	const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
@@ -573,7 +573,7 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ID *fcurve_owner_i
 	PointerRNA ptr;
 
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifier, fcm, &ptr);
+	RNA_pointer_create(fcurve_owner_id, &RNA_FModifier, fcm, &ptr);
 
 	/* draw header */
 	{
@@ -630,31 +630,31 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ID *fcurve_owner_i
 		/* draw settings for individual modifiers */
 		switch (fcm->type) {
 			case FMODIFIER_TYPE_GENERATOR: /* Generator */
-				draw_modifier__generator(box, id, fcm, width);
+				draw_modifier__generator(box, fcurve_owner_id, fcm, width);
 				break;
 
 			case FMODIFIER_TYPE_FN_GENERATOR: /* Built-In Function Generator */
-				draw_modifier__fn_generator(box, id, fcm, width);
+				draw_modifier__fn_generator(box, fcurve_owner_id, fcm, width);
 				break;
 
 			case FMODIFIER_TYPE_CYCLES: /* Cycles */
-				draw_modifier__cycles(box, id, fcm, width);
+				draw_modifier__cycles(box, fcurve_owner_id, fcm, width);
 				break;
 
 			case FMODIFIER_TYPE_ENVELOPE: /* Envelope */
-				draw_modifier__envelope(box, id, fcm, width);
+				draw_modifier__envelope(box, fcurve_owner_id, fcm, width);
 				break;
 
 			case FMODIFIER_TYPE_LIMITS: /* Limits */
-				draw_modifier__limits(box, id, fcm, width);
+				draw_modifier__limits(box, fcurve_owner_id, fcm, width);
 				break;
 
 			case FMODIFIER_TYPE_NOISE: /* Noise */
-				draw_modifier__noise(box, id, fcm, width);
+				draw_modifier__noise(box, fcurve_owner_id, fcm, width);
 				break;
 
 			case FMODIFIER_TYPE_STEPPED: /* Stepped */
-				draw_modifier__stepped(box, id, fcm, width);
+				draw_modifier__stepped(box, fcurve_owner_id, fcm, width);
 				break;
 
 			default: /* unknown type */

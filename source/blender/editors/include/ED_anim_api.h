@@ -584,7 +584,7 @@ void ANIM_draw_framerange(struct Scene *scene, struct View2D *v2d);
 /* ------------- UI Panel Drawing -------------- */
 
 /* draw a given F-Modifier for some layout/UI-Block */
-void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, struct ID *fcurve_owner_id,
+void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *fcurve_owner_id,
                                     ListBase *modifiers, struct FModifier *fcm);
 
 /* ------------- Copy/Paste Buffer -------------- */

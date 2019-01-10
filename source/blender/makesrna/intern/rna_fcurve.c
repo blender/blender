@@ -616,7 +616,7 @@ static void rna_FModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	FModifier *fcm = (FModifier *)ptr->data;
 	AnimData *adt = BKE_animdata_from_id(id);
 
-	DEG_id_tag_update(id, (GS(id->name) == ID_OB) ? ID_RECALC_TRANSFORM : ID_RECALC_GEOMETRY);
+	DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 
 	/* tag datablock for time update so that animation is recalculated,
 	 * as FModifiers affect how animation plays...

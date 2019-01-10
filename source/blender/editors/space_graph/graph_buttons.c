@@ -1142,7 +1142,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		col = uiLayoutColumn(pa->layout, true);
 		uiLayoutSetActive(col, active);
 
-		ANIM_uiTemplate_fmodifier_draw(col, ale->id, ale->fcurve_owner_id, &fcu->modifiers, fcm);
+		ANIM_uiTemplate_fmodifier_draw(col, ale->fcurve_owner_id, &fcu->modifiers, fcm);
 	}
 
 	MEM_freeN(ale);
