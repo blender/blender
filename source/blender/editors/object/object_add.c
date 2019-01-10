@@ -396,7 +396,7 @@ Object *ED_object_add_type(
 
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) {
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 
 	/* deselects all, sets active object */
@@ -2143,7 +2143,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 
 // XXX	ED_object_editmode_enter(C, 0);
-// XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
+// XXX	exit_editmode(C, EM_FREEDATA|); /* freedata, but no undo */
 
 	if (basact) {
 		/* active base was changed */

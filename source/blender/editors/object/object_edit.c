@@ -124,7 +124,6 @@ static void move_to_collection_menus_items(struct uiLayout *layout, struct MoveT
 
 /* ************* XXX **************** */
 static void error(const char *UNUSED(arg)) {}
-static void waitcursor(int UNUSED(val)) {}
 
 /* port over here */
 static void error_libdata(void) {}
@@ -517,15 +516,12 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 {
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
-	if (flag & EM_WAITCURSOR) waitcursor(1);
-
 	if (ED_object_editmode_load_ex(bmain, obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
 		if (UNLIKELY(obedit && obedit->mode & OB_MODE_EDIT)) {
 			obedit->mode &= ~OB_MODE_EDIT;
 		}
-		if (flag & EM_WAITCURSOR) waitcursor(0);
 		return true;
 	}
 
@@ -551,8 +547,6 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 
 		obedit->mode &= ~OB_MODE_EDIT;
 	}
-
-	if (flag & EM_WAITCURSOR) waitcursor(0);
 
 	return (obedit->mode & OB_MODE_EDIT) == 0;
 }
@@ -582,8 +576,6 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 		error_libdata();
 		return false;
 	}
-
-	if (flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
 
@@ -649,8 +641,6 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 		WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
 
-	if (flag & EM_WAITCURSOR) waitcursor(0);
-
 	return (ob->mode & OB_MODE_EDIT) != 0;
 }
 
@@ -691,24 +681,24 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!is_mode_set) {
-		ED_object_editmode_enter(C, EM_WAITCURSOR);
+		ED_object_editmode_enter(C, 0);
 		if (obact->mode & mode_flag) {
 			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, v3d, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
-					ED_object_editmode_enter_ex(bmain, scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
+					ED_object_editmode_enter_ex(bmain, scene, ob, EM_NO_CONTEXT);
 				}
 			}
 			FOREACH_SELECTED_OBJECT_END;
 		}
 	}
 	else {
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+		ED_object_editmode_exit(C, EM_FREEDATA);
 		if ((obact->mode & mode_flag) == 0) {
 			FOREACH_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
-					ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA | EM_WAITCURSOR);
+					ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
 				}
 			}
 			FOREACH_OBJECT_END;

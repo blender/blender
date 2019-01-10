@@ -451,7 +451,7 @@ static void object_delete_cb(
 
 		// check also library later
 		if (ob == CTX_data_edit_object(C)) {
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+			ED_object_editmode_exit(C, EM_FREEDATA);
 		}
 		ED_object_base_free_and_unlink(CTX_data_main(C), scene, ob);
 		/* leave for ED_outliner_id_unref to handle */
@@ -883,7 +883,7 @@ static void object_delete_hierarchy_cb(
 		/* Check also library later. */
 		for (; obedit && (obedit != base->object); obedit = obedit->parent);
 		if (obedit == base->object) {
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+			ED_object_editmode_exit(C, EM_FREEDATA);
 		}
 
 		outline_delete_hierarchy(C, reports, scene, base);

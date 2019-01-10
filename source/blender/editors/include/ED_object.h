@@ -131,7 +131,6 @@ void ED_object_parent(struct Object *ob, struct Object *parent, const int type, 
 /* bitflags for enter/exit editmode */
 enum {
 	EM_FREEDATA         = (1 << 0),
-	EM_WAITCURSOR       = (1 << 1),
 	EM_IGNORE_LAYER     = (1 << 3),
 	EM_NO_CONTEXT       = (1 << 4),
 };
