@@ -344,6 +344,7 @@ class USERPREF_PT_interface_menus_mouse_over(PreferencePanel):
 class USERPREF_PT_interface_menus_pie(PreferencePanel):
     bl_label = "Pie Menus"
     bl_parent_id = "USERPREF_PT_interface_menus"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -352,6 +353,7 @@ class USERPREF_PT_interface_menus_pie(PreferencePanel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.prop(view, "pie_animation_timeout")
+        flow.prop(view, "pie_tap_timeout")
         flow.prop(view, "pie_initial_timeout")
         flow.prop(view, "pie_menu_radius")
         flow.prop(view, "pie_menu_threshold")

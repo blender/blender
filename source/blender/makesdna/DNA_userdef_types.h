@@ -760,7 +760,7 @@ typedef struct UserDef {
 	 * If keeping a pie menu spawn button pressed after this time,
 	 * it turns into a drag/release pie menu.
 	 */
-	short pie_interaction_type;
+	short pie_tap_timeout;
 	/**
 	 * Direction in the pie menu will always be calculated from the
 	 * initial position within this time limit.

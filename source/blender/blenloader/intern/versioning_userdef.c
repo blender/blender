@@ -470,6 +470,10 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	 */
 	{
 		/* (keep this block even if it becomes empty). */
+
+		if (userdef->pie_tap_timeout == 0) {
+			userdef->pie_tap_timeout = 20;
+		}
 	}
 
 	if (userdef->pixelsize == 0.0f)

@@ -9320,6 +9320,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 	ui_window_to_block_fl(ar, block, &event_xy[0], &event_xy[1]);
 
+	/* Distance from initial point. */
 	dist = ui_block_calc_pie_segment(block, event_xy);
 
 	if (but && button_modal_state(but->active->state)) {
@@ -9404,8 +9405,9 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				ED_region_tag_redraw(ar);
 			}
 			else {
-				/* distance from initial point */
-				if (!(block->pie_data.flags & UI_PIE_DRAG_STYLE)) {
+				if ((duration < 0.01 * U.pie_tap_timeout) &&
+				    !(block->pie_data.flags & UI_PIE_DRAG_STYLE))
+				{
 					block->pie_data.flags |= UI_PIE_CLICK_STYLE;
 				}
 				else {
