@@ -141,6 +141,18 @@ typedef struct bAnimListElem {
 	struct ID *id;          /* ID block that channel is attached to */
 	struct AnimData *adt;   /* source of the animation data attached to ID block (for convenience) */
 
+	/* For list element which corresponds to a f-curve, this is an ID which
+	 * owns the f-curve.
+	 *
+	 * For example, if the f-curve is coming from Action, this id will be set to
+	 * action's ID. But if this is a f-curve which is a driver, then the owner
+	 * is set to, for example, object.
+	 *
+	 * Note, that this is different from id above. The if above will be set to
+	 * an object if the f-curve is coming from action associated with that
+	 * object. */
+	struct ID *fcurve_owner_id;
+
 	void   *owner;          /* for per-element F-Curves (e.g. NLA Control Curves), the element that this represents (e.g. NlaStrip) */
 } bAnimListElem;
 
