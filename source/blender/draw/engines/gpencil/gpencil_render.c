@@ -338,7 +338,12 @@ void GPENCIL_render_to_image(void *vedata, RenderEngine *engine, struct RenderLa
 					}
 					else {
 						/* blend gp render */
-						blend_pixel(tmp, gp_pixel_rgba);
+						if (tmp[3] < 1.0f) {
+							blend_pixel(tmp, gp_pixel_rgba);
+						}
+						else {
+							copy_v4_v4(gp_pixel_rgba, tmp);
+						}
 					}
 				}
 			}
