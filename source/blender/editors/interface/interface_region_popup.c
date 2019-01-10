@@ -366,8 +366,8 @@ static void ui_block_region_popup_window_listener(
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
 	uiBut *bt;
-	float xofs = 0.0f;
-	int width = UI_SCREEN_MARGIN;
+	const float xmin_orig = block->rect.xmin;
+	const int margin = UI_SCREEN_MARGIN;
 	int winx, winy;
 
 	if (block->flag & UI_BLOCK_NO_WIN_CLIP) {
@@ -377,30 +377,32 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 	winx = WM_window_pixels_x(window);
 	winy = WM_window_pixels_y(window);
 
-	/* shift menus to right if outside of view */
-	if (block->rect.xmin < width) {
-		xofs = (width - block->rect.xmin);
+	/* shift to left if outside of view */
+	if (block->rect.xmax > winx - margin) {
+		const float xofs = winx - margin - block->rect.xmax;
 		block->rect.xmin += xofs;
 		block->rect.xmax += xofs;
 	}
-	/* or shift to left if outside of view */
-	if (block->rect.xmax > winx - width) {
-		xofs = winx - width - block->rect.xmax;
+	/* shift menus to right if outside of view */
+	if (block->rect.xmin < margin) {
+		const float xofs = (margin - block->rect.xmin);
 		block->rect.xmin += xofs;
 		block->rect.xmax += xofs;
 	}
 
-	if (block->rect.ymin < width)
-		block->rect.ymin = width;
-	if (block->rect.ymax > winy - UI_POPUP_MENU_TOP)
+	if (block->rect.ymin < margin) {
+		block->rect.ymin = margin;
+	}
+	if (block->rect.ymax > winy - UI_POPUP_MENU_TOP) {
 		block->rect.ymax = winy - UI_POPUP_MENU_TOP;
+	}
 
 	/* ensure menu items draw inside left/right boundary */
+	const float xofs = block->rect.xmin - xmin_orig;
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		bt->rect.xmin += xofs;
 		bt->rect.xmax += xofs;
 	}
-
 }
 
 void ui_popup_block_scrolltest(uiBlock *block)
