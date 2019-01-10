@@ -7,7 +7,7 @@ uniform usampler2D outlineId;
 uniform sampler2D outlineDepth;
 uniform sampler2D sceneDepth;
 
-uniform int idOffsets[3];
+uniform int idOffsets[4];
 
 uniform float alphaOcclu;
 uniform vec2 viewportSize;
@@ -22,6 +22,9 @@ vec4 convert_id_to_color(int id)
 	}
 	else if (id < idOffsets[2]) {
 		return colorSelect;
+	}
+	else if (id < idOffsets[3]) {
+		return colorDupliSelect;
 	}
 	else {
 		return colorTransform;
