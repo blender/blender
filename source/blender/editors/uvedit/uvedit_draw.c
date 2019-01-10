@@ -199,16 +199,15 @@ static void uvedit_get_batches(
 static void draw_uvs_shadow(SpaceImage *UNUSED(sima), Scene *scene, Object *obedit, Depsgraph *depsgraph)
 {
 	Object *eval_ob = DEG_get_evaluated_object(depsgraph, obedit);
+	Mesh *me = eval_ob->data;
 	float col[4];
 	UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
-	/* TODO get real modified edges. */
-	GPUBatch *edges = DRW_mesh_batch_cache_get_edituv_edges(eval_ob->data);
-
-	DRW_mesh_batch_cache_create_requested(eval_ob, eval_ob->data, scene->toolsettings, false, false);
+	GPUBatch *edges = DRW_mesh_batch_cache_get_uv_edges(me);
+	DRW_mesh_batch_cache_create_requested(eval_ob, me, scene->toolsettings, false, false);
 
 	if (edges) {
-		GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UNIFORM_COLOR);
+		GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UV_UNIFORM_COLOR);
 		GPU_batch_uniform_4fv(edges, "color", col);
 		GPU_batch_draw(edges);
 	}
@@ -219,14 +218,17 @@ static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
 	Object *eval_ob = DEG_get_evaluated_object(depsgraph, ob);
 	Mesh *me = eval_ob->data;
 	ToolSettings *ts = scene->toolsettings;
-	GPUBatch *geom = DRW_mesh_batch_cache_get_texpaint_loop_wire(me);
 	float col[4];
 	UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
-	if (!geom)
+	if (me->mloopuv == NULL) {
 		return;
+	}
 
-	GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_UNIFORM_COLOR);
+	GPUBatch *geom = DRW_mesh_batch_cache_get_uv_edges(me);
+	DRW_mesh_batch_cache_create_requested(eval_ob, me, scene->toolsettings, false, false);
+
+	GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_UV_UNIFORM_COLOR);
 	GPU_batch_uniform_4fv(geom, "color", col);
 
 	const bool do_material_masking = (ts->uv_flag & UV_SHOW_SAME_IMAGE);
@@ -275,8 +277,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 	float col1[4], col2[4], col3[4], transparent[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if (sima->flag & SI_DRAWSHADOW) {
-		/* XXX TODO: Need to check if shadow mesh is different than original mesh. */
-		bool is_cage_like_final_meshes = true;
+		bool is_cage_like_final_meshes = false;
+		Mesh *me = (Mesh *)eval_ob->data;
+		BMEditMesh *embm = me->edit_btmesh;
+		is_cage_like_final_meshes = embm &&
+		                            embm->mesh_eval_final &&
+		                            embm->mesh_eval_final->runtime.is_original;
 
 		/* When sync selection is enabled, all faces are drawn (except for hidden)
 		 * so if cage is the same as the final, there is no point in drawing this. */

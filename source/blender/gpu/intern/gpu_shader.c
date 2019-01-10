@@ -918,6 +918,9 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 		{ datatoc_gpu_shader_2D_nodelink_vert_glsl,
 		  datatoc_gpu_shader_2D_nodelink_frag_glsl },
 
+	[GPU_SHADER_2D_UV_UNIFORM_COLOR] =
+		{ datatoc_gpu_shader_2D_vert_glsl,
+		  datatoc_gpu_shader_uniform_color_frag_glsl },
 	[GPU_SHADER_2D_UV_VERTS] =
 		{ datatoc_gpu_shader_2D_edituvs_points_vert_glsl,
 		  datatoc_gpu_shader_point_varying_color_varying_outline_aa_frag_glsl },
@@ -1006,6 +1009,9 @@ static const char *gpu_shader_get_builtin_shader_defines(
 
 		case GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR:
 			return "#define USE_FLAT_NORMAL\n";
+
+		case GPU_SHADER_2D_UV_UNIFORM_COLOR:
+			return "#define UV_POS\n";
 
 		case GPU_SHADER_2D_UV_EDGES_SMOOTH:
 			return "#define SMOOTH_COLOR\n";

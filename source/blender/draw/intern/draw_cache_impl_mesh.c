@@ -2100,14 +2100,12 @@ typedef struct MeshBatchCache {
 		GPUBatch *loose_edges;
 		GPUBatch *edge_detection;
 		GPUBatch *wire_loops; /* Loops around faces. */
+		GPUBatch *wire_loops_uvs; /* Same as wire_loops but only has uvs. */
 		GPUBatch *wire_triangles; /* Triangles for object mode wireframe. */
 	} batch;
 
 	GPUIndexBuf **surf_per_mat_tris;
 	GPUBatch **surf_per_mat;
-
-	/* OLD BATCH METHOD, thoses needs to be ported and added in the structs above. */
-	GPUBatch *texpaint_uv_loops;
 
 	/* arrays of bool uniform names (and value) that will be use to
 	 * set srgb conversion for auto attribs.*/
@@ -2272,10 +2270,6 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 	GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_edges);
 	GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_verts);
 	GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_facedots);
-
-	gpu_batch_presets_unregister(cache->texpaint_uv_loops);
-
-	GPU_BATCH_DISCARD_SAFE(cache->texpaint_uv_loops);
 }
 
 void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
@@ -4667,56 +4661,11 @@ GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(Mesh *me)
 	return DRW_batch_request(&cache->batch.edituv_facedots);
 }
 
-/* TODO port to batch request. Is basically batch.wire_loops. */
-GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(Mesh *me)
+GPUBatch *DRW_mesh_batch_cache_get_uv_edges(Mesh *me)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
-
-	if (cache->texpaint_uv_loops == NULL) {
-		/* create batch from DM */
-		const int datatype = MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPUV;
-		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
-
-		const MLoopUV *mloopuv_base = rdata->mloopuv;
-		if (mloopuv_base == NULL) {
-			return NULL;
-		}
-
-		uint vidx = 0;
-
-		static GPUVertFormat format = { 0 };
-		static struct { uint uv; } attr_id;
-		if (format.attr_len == 0) {
-			attr_id.uv = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-		}
-
-		const uint vert_len = mesh_render_data_loops_len_get(rdata);
-		const uint poly_len = mesh_render_data_polys_len_get(rdata);
-		const uint idx_len = vert_len + poly_len;
-
-		GPUIndexBufBuilder elb;
-		GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_LOOP, idx_len, vert_len, true);
-
-		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-		GPU_vertbuf_data_alloc(vbo, vert_len);
-
-		const MPoly *mpoly = rdata->mpoly;
-		for (int a = 0; a < poly_len; a++, mpoly++) {
-			const MLoopUV *mloopuv = mloopuv_base + mpoly->loopstart;
-			for (int b = 0; b < mpoly->totloop; b++, mloopuv++) {
-				GPU_vertbuf_attr_set(vbo, attr_id.uv, vidx, mloopuv->uv);
-				GPU_indexbuf_add_generic_vert(&elb, vidx++);
-			}
-			GPU_indexbuf_add_primitive_restart(&elb);
-		}
-
-		cache->texpaint_uv_loops = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP,
-		                                               vbo, GPU_indexbuf_build(&elb),
-		                                               GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
-		gpu_batch_presets_register(cache->texpaint_uv_loops);
-		mesh_render_data_free(rdata);
-	}
-	return cache->texpaint_uv_loops;
+	texpaint_request_active_uv(cache, me);
+	return DRW_batch_request(&cache->batch.wire_loops_uvs);
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_surface_edges(Mesh *me)
@@ -5153,6 +5102,13 @@ void DRW_mesh_batch_cache_create_requested(
 	if (DRW_batch_requested(cache->batch.wire_loops, GPU_PRIM_LINE_STRIP)) {
 		DRW_ibo_request(cache->batch.wire_loops, &cache->ibo.loops_lines);
 		DRW_vbo_request(cache->batch.wire_loops, &cache->ordered.loop_pos_nor);
+	}
+	if (DRW_batch_requested(cache->batch.wire_loops_uvs, GPU_PRIM_LINE_STRIP)) {
+		DRW_ibo_request(cache->batch.wire_loops_uvs, &cache->ibo.loops_lines);
+		/* For paint overlay. Active layer should have been queried. */
+		if (cache->cd_lused[CD_MLOOPUV] != 0) {
+			DRW_vbo_request(cache->batch.wire_loops_uvs, &cache->ordered.loop_uv_tan);
+		}
 	}
 	if (DRW_batch_requested(cache->batch.wire_triangles, GPU_PRIM_TRIS)) {
 		DRW_vbo_request(cache->batch.wire_triangles, &cache->tess.pos_nor);

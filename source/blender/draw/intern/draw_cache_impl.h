@@ -139,11 +139,10 @@ struct GPUBatch *DRW_mesh_batch_cache_get_edituv_faces(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edituv_facedots(struct Mesh *me);
+/* For Image UV editor. */
+struct GPUBatch *DRW_mesh_batch_cache_get_uv_edges(struct Mesh *me);
 
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
-
-/* For Image UV editor. */
-struct GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(struct Mesh *me);
 
 /* Edit mesh bitflags (is this the right place?) */
 
