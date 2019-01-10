@@ -24,13 +24,12 @@ from bpy.types import (
     Panel,
 )
 from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import contexts as i18n_contexts
 
 
 class USERPREF_HT_header(Header):
     bl_space_type = 'PREFERENCES'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
 
@@ -61,11 +60,9 @@ class USERPREF_PT_save_preferences(Panel):
     bl_region_type = 'EXECUTE'
     bl_options = {'HIDE_HEADER'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
-
-        prefs = context.preferences
 
         layout.scale_x = 1.3
         layout.scale_y = 1.3
@@ -598,7 +595,6 @@ class USERPREF_PT_system_compute_device(PreferencePanel):
 
     def draw_props(self, context, layout):
         prefs = context.preferences
-        system = prefs.system
 
         col = layout.column()
 
@@ -609,6 +605,7 @@ class USERPREF_PT_system_compute_device(PreferencePanel):
             del addon
 
         # NOTE: Disabled for until GPU side of OpenSubdiv is brought back.
+        # system = prefs.system
         # if hasattr(system, "opensubdiv_compute_type"):
         #     col.label(text="OpenSubdiv compute:")
         #     col.row().prop(system, "opensubdiv_compute_type", text="")
@@ -731,10 +728,8 @@ class USERPREF_PT_theme(Panel):
         prefs = context.preferences
         return (prefs.active_section == 'THEMES')
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
-
-        theme = context.preferences.themes[0]
 
         row = layout.row()
 
@@ -758,7 +753,7 @@ class USERPREF_PT_theme_user_interface(PreferencePanel):
         prefs = context.preferences
         return (prefs.active_section == 'THEMES')
 
-    def draw_header(self, context):
+    def draw_header(self, _context):
         layout = self.layout
 
         layout.label(icon='WORKSPACE')
@@ -816,7 +811,6 @@ class USERPREF_PT_theme_interface_state(PreferencePanel):
 
     def draw_props(self, context, layout):
         theme = context.preferences.themes[0]
-        ui = theme.user_interface
         ui_state = theme.user_interface.wcol_state
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
@@ -934,7 +928,7 @@ class USERPREF_PT_theme_text_style(PreferencePanel):
         col.prop(font_style, "shadow_alpha")
         col.prop(font_style, "shadow_value")
 
-    def draw_header(self, context):
+    def draw_header(self, _context):
         layout = self.layout
 
         layout.label(icon='FONTPREVIEW')
@@ -965,7 +959,7 @@ class USERPREF_PT_theme_bone_color_sets(PreferencePanel):
         prefs = context.preferences
         return (prefs.active_section == 'THEMES')
 
-    def draw_header(self, context):
+    def draw_header(self, _context):
         layout = self.layout
 
         layout.label(icon='COLOR')
@@ -1026,7 +1020,7 @@ class PreferenceThemeSpacePanel(Panel):
 
         props_type = {}
 
-        for i, prop in enumerate(themedata.rna_type.properties):
+        for prop in themedata.rna_type.properties:
             if prop.identifier == "rna_type":
                 continue
 
@@ -1039,7 +1033,7 @@ class PreferenceThemeSpacePanel(Panel):
 
             if th_delimiters is None:
                 # simple, no delimiters
-                for i, prop in enumerate(props_ls):
+                for prop in props_ls:
                     flow.prop(themedata, prop.identifier)
             else:
 
@@ -1047,7 +1041,7 @@ class PreferenceThemeSpacePanel(Panel):
                     flow.prop(themedata, prop.identifier)
 
     @staticmethod
-    def draw_header(self, context):
+    def draw_header(self, _context):
         if hasattr(self, "icon") and self.icon != 'NONE':
             layout = self.layout
             layout.label(icon=self.icon)
@@ -1113,7 +1107,7 @@ class ThemeGenericClassGenerator():
         def generate_child_panel_classes_recurse(parent_id, rna_type, theme_area, datapath):
             props_type = {}
 
-            for i, prop in enumerate(rna_type.properties):
+            for prop in rna_type.properties:
                 if prop.identifier == "rna_type":
                     continue
 
@@ -1121,7 +1115,7 @@ class ThemeGenericClassGenerator():
 
             for props_type, props_ls in sorted(props_type.items()):
                 if props_type[0] == 'POINTER':
-                    for i, prop in enumerate(props_ls):
+                    for prop in props_ls:
                         new_datapath = datapath + "." + prop.identifier if datapath else prop.identifier
                         panel_id = parent_id + "_" + prop.identifier
                         paneltype = type(panel_id, (PreferenceThemeSpacePanel,), {
@@ -1178,7 +1172,6 @@ class USERPREF_PT_file_paths(Panel):
         layout = self.layout
         prefs = context.preferences
         paths = prefs.filepaths
-        system = prefs.system
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -1250,7 +1243,6 @@ class USERPREF_PT_file_saveload(PreferencePanel):
     def draw_props(self, context, layout):
         prefs = context.preferences
         paths = prefs.filepaths
-        system = prefs.system
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
@@ -1281,7 +1273,6 @@ class USERPREF_PT_file_saveload_autosave(PreferencePanel):
     def draw_props(self, context, layout):
         prefs = context.preferences
         paths = prefs.filepaths
-        system = prefs.system
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
@@ -1577,9 +1568,6 @@ class USERPREF_PT_keymap(Panel):
 
         # start = time.time()
 
-        prefs = context.preferences
-        keymappref = prefs.keymap
-
         col = layout.column()
 
         # Keymap Settings
@@ -1592,7 +1580,7 @@ class USERPREF_MT_addons_online_resources(Menu):
     bl_label = "Online Resources"
 
     # menu to open web-pages with addons development guides
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator(
@@ -1907,7 +1895,6 @@ class USERPREF_PT_studiolight_add(PreferencePanel):
 
     def draw(self, context):
         layout = self.layout
-        prefs = context.preferences
 
         row = layout.row()
         row.operator("wm.studiolight_install", icon='IMPORT', text="Add MatCap...").type = 'MATCAP'
