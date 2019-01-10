@@ -10850,9 +10850,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						while (fd == NULL) {
 							char newlib_path[FILE_MAX] = {0};
 							printf("Missing library...'\n");
-							printf("	current file: %s\n", BKE_main_blendfile_path_from_global());
-							printf("	absolute lib: %s\n", mainptr->curlib->filepath);
-							printf("	relative lib: %s\n", mainptr->curlib->name);
+							printf("\tcurrent file: %s\n", BKE_main_blendfile_path_from_global());
+							printf("\tabsolute lib: %s\n", mainptr->curlib->filepath);
+							printf("\trelative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
 
 							if (scanf("%1023s", newlib_path) > 0) {  /* Warning, keep length in sync with FILE_MAX! */

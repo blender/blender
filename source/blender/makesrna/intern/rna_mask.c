@@ -32,7 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"  /* SELECT */
 #include "DNA_scene_types.h"
 
 #include "BLT_translation.h"
