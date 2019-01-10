@@ -39,10 +39,6 @@
 #  include <sys/mman.h>
 #endif
 
-#if defined(_MSC_VER)
-#  define __func__ __FUNCTION__
-#endif
-
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
