@@ -47,12 +47,12 @@ def bake_action(
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
     """
-    if not (do_pose or do_object):
+    if not (kwargs.get("do_pose") or kwargs.get("do_object")):
         return None
 
     action, = bake_action_objects(
         [(obj, action)],
-        frames,
+        frames=frames,
         **kwargs,
     )
     return action
