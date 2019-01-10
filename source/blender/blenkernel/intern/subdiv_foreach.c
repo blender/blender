@@ -148,11 +148,15 @@ static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
 	return tls;
 }
 
-static void subdiv_foreach_tls_free(void *tls)
+static void subdiv_foreach_tls_free(SubdivForeachTaskContext *ctx, void *tls)
 {
-	if (tls != NULL) {
-		MEM_freeN(tls);
+	if (tls == NULL) {
+		return;
 	}
+	if (ctx->foreach_context != NULL) {
+		ctx->foreach_context->user_data_tls_free(tls);
+	}
+	MEM_freeN(tls);
 }
 
 /* =============================================================================
@@ -1972,7 +1976,7 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
 	subdiv_foreach_every_edge_vertices(ctx, tls);
 	/* Run callbacks which are supposed to be run once per shared geometry. */
 	subdiv_foreach_single_geometry_vertices(ctx, tls);
-	subdiv_foreach_tls_free(tls);
+	subdiv_foreach_tls_free(ctx, tls);
 }
 
 static void subdiv_foreach_task(
