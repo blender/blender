@@ -9181,6 +9181,9 @@ static void applyTimeScaleValue(TransInfo *t)
 				fac = floorf(fac + 0.5f);
 			}
 
+			/* take proportional editing into account */
+			fac = ((fac - 1.0f) * td->factor) + 1;
+
 			/* check if any need to apply nla-mapping */
 			if (adt)
 				startx = BKE_nla_tweakedit_remap(adt, startx, NLATIME_CONVERT_UNMAP);
