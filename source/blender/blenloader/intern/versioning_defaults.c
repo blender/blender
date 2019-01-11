@@ -137,6 +137,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 						/* grease pencil settings */
 						v3d->vertex_opacity = 1.0f;
 						v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
+						copy_v3_fl(v3d->shading.background_color, 0.05f);
 						break;
 					}
 					case SPACE_FILE:
