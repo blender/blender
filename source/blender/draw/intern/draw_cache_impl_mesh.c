@@ -2319,8 +2319,14 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			mesh_batch_cache_discard_uvedit(cache);
 			break;
 		case BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT:
-			/* For now same as above. */
-			mesh_batch_cache_discard_uvedit(cache);
+			GPU_VERTBUF_DISCARD_SAFE(cache->edituv.loop_data);
+			GPU_VERTBUF_DISCARD_SAFE(cache->edituv.facedots_data);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces_strech_area);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces_strech_angle);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_edges);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_verts);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_facedots);
 			break;
 		default:
 			BLI_assert(0);
