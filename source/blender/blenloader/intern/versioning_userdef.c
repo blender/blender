@@ -56,6 +56,9 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		memcpy(btheme, &U_theme_default, sizeof(*btheme));
 	}
 
+#define FROM_DEFAULT_V4_UCHAR(member) \
+	copy_v4_v4_char(btheme->member, U_theme_default.member);
+
 	if (!USER_VERSION_ATLEAST(280, 25)) {
 		copy_v4_v4_char(btheme->tact.anim_preview_range, btheme->tact.anim_active);
 		copy_v4_v4_char(btheme->tnla.anim_preview_range, btheme->tnla.anim_active);
@@ -63,54 +66,56 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 26)) {
-		copy_v4_v4_char(btheme->tui.icon_collection, U_theme_default.tui.icon_collection);
-		copy_v4_v4_char(btheme->tui.icon_object, U_theme_default.tui.icon_object);
-		copy_v4_v4_char(btheme->tui.icon_object_data, U_theme_default.tui.icon_object_data);
-		copy_v4_v4_char(btheme->tui.icon_modifier, U_theme_default.tui.icon_modifier);
-		copy_v4_v4_char(btheme->tui.icon_shading, U_theme_default.tui.icon_shading);
+		FROM_DEFAULT_V4_UCHAR(tui.icon_collection);
+		FROM_DEFAULT_V4_UCHAR(tui.icon_object);
+		FROM_DEFAULT_V4_UCHAR(tui.icon_object_data);
+		FROM_DEFAULT_V4_UCHAR(tui.icon_modifier);
+		FROM_DEFAULT_V4_UCHAR(tui.icon_shading);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 27)) {
-		copy_v4_v4_char(btheme->tact.shade2, U_theme_default.tact.shade2);
-		copy_v4_v4_char(btheme->tact.hilite, U_theme_default.tact.hilite);
-		copy_v4_v4_char(btheme->tact.group, U_theme_default.tact.group);
-		copy_v4_v4_char(btheme->tact.group_active, U_theme_default.tact.group_active);
-		copy_v4_v4_char(btheme->tact.strip_select, U_theme_default.tact.strip_select);
-		copy_v4_v4_char(btheme->tact.ds_channel, U_theme_default.tact.ds_channel);
-		copy_v4_v4_char(btheme->tact.ds_subchannel, U_theme_default.tact.ds_subchannel);
-		copy_v4_v4_char(btheme->tact.keytype_movehold, U_theme_default.tact.keytype_movehold);
-		copy_v4_v4_char(btheme->tact.keytype_movehold_select, U_theme_default.tact.keytype_movehold_select);
+		FROM_DEFAULT_V4_UCHAR(tact.shade2);
+		FROM_DEFAULT_V4_UCHAR(tact.hilite);
+		FROM_DEFAULT_V4_UCHAR(tact.group);
+		FROM_DEFAULT_V4_UCHAR(tact.group_active);
+		FROM_DEFAULT_V4_UCHAR(tact.strip_select);
+		FROM_DEFAULT_V4_UCHAR(tact.ds_channel);
+		FROM_DEFAULT_V4_UCHAR(tact.ds_subchannel);
+		FROM_DEFAULT_V4_UCHAR(tact.keytype_movehold);
+		FROM_DEFAULT_V4_UCHAR(tact.keytype_movehold_select);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 28)) {
-		copy_v4_v4_char(btheme->tact.ds_ipoline, U_theme_default.tact.ds_ipoline);
+		FROM_DEFAULT_V4_UCHAR(tact.ds_ipoline);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 29)) {
-		copy_v4_v4_char(btheme->tbuts.navigation_bar, U_theme_default.ttopbar.header);
+		FROM_DEFAULT_V4_UCHAR(tbuts.navigation_bar);
 	}
 	if (!USER_VERSION_ATLEAST(280, 31)) {
-		copy_v4_v4_char(btheme->tclip.list_text, U_theme_default.tclip.list_text);
+		FROM_DEFAULT_V4_UCHAR(tclip.list_text);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 36)) {
-		copy_v4_v4_char(btheme->tui.wcol_state.inner_changed, U_theme_default.tui.wcol_state.inner_changed);
-		copy_v4_v4_char(btheme->tui.wcol_state.inner_changed_sel, U_theme_default.tui.wcol_state.inner_changed_sel);
+		FROM_DEFAULT_V4_UCHAR(tui.wcol_state.inner_changed);
+		FROM_DEFAULT_V4_UCHAR(tui.wcol_state.inner_changed_sel);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 39)) {
-		copy_v4_v4_char(btheme->tclip.metadatabg, U_theme_default.tima.metadatabg);
-		copy_v4_v4_char(btheme->tclip.metadatatext, U_theme_default.tima.metadatatext);
+		FROM_DEFAULT_V4_UCHAR(tclip.metadatabg);
+		FROM_DEFAULT_V4_UCHAR(tclip.metadatatext);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 40)) {
-		copy_v4_v4_char(btheme->tuserpref.navigation_bar, U_theme_default.tuserpref.navigation_bar);
+		FROM_DEFAULT_V4_UCHAR(tuserpref.navigation_bar);
 		copy_v4_v4_char(btheme->tuserpref.execution_buts, btheme->tuserpref.navigation_bar);
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 41)) {
-		copy_v4_v4_char(btheme->tv3d.back, U_theme_default.tv3d.back);
+		FROM_DEFAULT_V4_UCHAR(tv3d.back);
 	}
+
+#undef FROM_DEFAULT_V4_UCHAR
 
 #undef USER_VERSION_ATLEAST
 }
