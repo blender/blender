@@ -44,6 +44,10 @@ int system_cpu_num_numa_node_processors(int node);
  * Returns truth if affinity has successfully changed. */
 bool system_cpu_run_thread_on_node(int node);
 
+/* Number of processors within the current CPU group (or within active thread
+ * thread affinity). */
+int system_cpu_num_active_group_processors();
+
 string system_cpu_brand_string();
 int system_cpu_bits();
 bool system_cpu_support_sse2();

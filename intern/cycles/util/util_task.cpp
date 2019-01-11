@@ -228,9 +228,21 @@ int get_num_total_processors(const vector<int>& num_per_node_processors)
 void distribute_threads_on_nodes(const vector<thread*>& threads)
 {
 	const int num_threads = threads.size();
-	/* TODO(sergey): Skip overriding affinity if threads fits into the current
-	 * nodes/CPU group. This will allow user to tweak affinity for weird and
-	 * wonderful reasons. */
+	const int num_active_group_processors =
+	        system_cpu_num_active_group_processors();
+	VLOG(1) << "Detected " << num_active_group_processors << " processors "
+	        << "in active group.";
+	if(num_active_group_processors >= num_threads) {
+		/* If the current thread is set up in a way that its affinity allows to
+		 * use at least requested number of threads we do not explicitly set
+		 * affinity to the worker therads.
+		 * This way we allow users to manually edit affinity of the parent
+		 * thread, and here we follow that affinity. This way it's possible to
+		 * have two Cycles/Blender instances running manually set to a different
+		 * dies on a CPU. */
+		VLOG(1) << "Not setting thread group affinity.";
+		return;
+	}
 	vector<int> num_per_node_processors;
 	get_per_node_num_processors(&num_per_node_processors);
 	if(num_per_node_processors.size() == 0) {
