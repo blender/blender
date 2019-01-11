@@ -92,7 +92,9 @@ void DRW_globals_update(void)
 	copy_v3_fl(ts.colorEditMeshMiddle, dot_v3v3(ts.colorEditMeshMiddle, (float[3]){0.3333f, 0.3333f, 0.3333f})); /* Desaturate */
 
 	interp_v4_v4v4(ts.colorDupliSelect, ts.colorBackground, ts.colorSelect, 0.5f);
-	interp_v4_v4v4(ts.colorDupli, ts.colorBackground, ts.colorWire, 0.5f);
+	/* Was 50% in 2.7x since the background was lighter making it easier to tell the color from black,
+	 * with a darker background we need a more faded color. */
+	interp_v4_v4v4(ts.colorDupli, ts.colorBackground, ts.colorWire, 0.3f);
 
 #ifdef WITH_FREESTYLE
 	UI_GetThemeColor4fv(TH_FREESTYLE_EDGE_MARK, ts.colorEdgeFreestyle);
