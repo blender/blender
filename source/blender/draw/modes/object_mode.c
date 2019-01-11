@@ -1368,22 +1368,20 @@ static void OBJECT_cache_init(void *vedata)
 		/* Spot shapes */
 		state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND | DRW_STATE_CULL_FRONT;
 		sgl->spot_shapes = psl->spot_shapes[i] = DRW_pass_create("Spot Shape Pass", state);
-		float cone_spot_alpha = 0.5f;
 
 		geom = DRW_cache_lamp_spot_volume_get();
-		sgl->lamp_spot_volume = shgroup_instance_alpha(sgl->spot_shapes, geom, cone_spot_alpha);
+		sgl->lamp_spot_volume = shgroup_instance_alpha(sgl->spot_shapes, geom);
 
 		geom = DRW_cache_lamp_spot_square_volume_get();
-		sgl->lamp_spot_volume_rect = shgroup_instance_alpha(sgl->spot_shapes, geom, cone_spot_alpha);
+		sgl->lamp_spot_volume_rect = shgroup_instance_alpha(sgl->spot_shapes, geom);
 
-		cone_spot_alpha = 0.3f;
 		geom = DRW_cache_lamp_spot_volume_get();
-		sgl->lamp_spot_volume_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, cone_spot_alpha);
+		sgl->lamp_spot_volume_outside = shgroup_instance_alpha(sgl->spot_shapes, geom);
 		DRW_shgroup_state_disable(sgl->lamp_spot_volume_outside, DRW_STATE_CULL_FRONT);
 		DRW_shgroup_state_enable(sgl->lamp_spot_volume_outside, DRW_STATE_CULL_BACK);
 
 		geom = DRW_cache_lamp_spot_square_volume_get();
-		sgl->lamp_spot_volume_rect_outside = shgroup_instance_alpha(sgl->spot_shapes, geom, cone_spot_alpha);
+		sgl->lamp_spot_volume_rect_outside = shgroup_instance_alpha(sgl->spot_shapes, geom);
 		DRW_shgroup_state_disable(sgl->lamp_spot_volume_rect_outside, DRW_STATE_CULL_FRONT);
 		DRW_shgroup_state_enable(sgl->lamp_spot_volume_rect_outside, DRW_STATE_CULL_BACK);
 	}
@@ -1524,8 +1522,8 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 	else if (la->type == LA_SPOT) {
 		float size[3], sizemat[4][4];
 		static float one = 1.0f;
-		float cone_inside[3] = {0.0f, 0.0f, 0.0f};
-		float cone_outside[3] = {1.0f, 1.0f, 1.0f};
+		float cone_inside[4] = {0.0f, 0.0f, 0.0f, 0.5f};
+		float cone_outside[4] = {1.0f, 1.0f, 1.0f, 0.3f};
 		float blend = 1.0f - pow2f(la->spotblend);
 		size[0] = size[1] = sinf(la->spotsize * 0.5f) * la->dist;
 		size[2] = cosf(la->spotsize * 0.5f) * la->dist;
