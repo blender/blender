@@ -540,7 +540,7 @@ void DRW_gpencil_get_edit_geom(struct GpencilBatchCacheElem *be, bGPDstroke *gps
 		be->thickness_id = GPU_vertformat_attr_add(&be->format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
 		be->vbo = GPU_vertbuf_create_with_format(&be->format);
-		GPU_vertbuf_data_alloc(be->vbo, gps->totpoints);
+		GPU_vertbuf_data_alloc(be->vbo, be->tot_vertex);
 		be->vbo_len = 0;
 	}
 	gpencil_vbo_ensure_size(be, gps->totpoints);
@@ -619,7 +619,7 @@ void DRW_gpencil_get_edlin_geom(struct GpencilBatchCacheElem *be, bGPDstroke *gp
 		be->color_id = GPU_vertformat_attr_add(&be->format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 		be->vbo = GPU_vertbuf_create_with_format(&be->format);
-		GPU_vertbuf_data_alloc(be->vbo, gps->totpoints);
+		GPU_vertbuf_data_alloc(be->vbo, be->tot_vertex);
 		be->vbo_len = 0;
 	}
 	gpencil_vbo_ensure_size(be, gps->totpoints);

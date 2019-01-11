@@ -117,7 +117,7 @@ static void gpencil_calc_vertex(
 				cache_ob->tot_vertex += gps->totpoints + 3;
 				cache_ob->tot_triangles += gps->totpoints - 1;
 			}
-			if (!is_onion) {
+			if ((!is_multiedit) && (!is_onion)) {
 				break;
 			}
 		}
@@ -126,6 +126,8 @@ static void gpencil_calc_vertex(
 	cache->b_fill.tot_vertex = cache_ob->tot_triangles * 3;
 	cache->b_stroke.tot_vertex = cache_ob->tot_vertex;
 	cache->b_point.tot_vertex = cache_ob->tot_vertex;
+	cache->b_edit.tot_vertex = cache_ob->tot_vertex;
+	cache->b_edlin.tot_vertex = cache_ob->tot_vertex;
 
 	/* some modifiers can change the number of points */
 	int factor = 0;
