@@ -60,8 +60,6 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, ts.colorWireEdit);
 	UI_GetThemeColor4fv(TH_ACTIVE, ts.colorActive);
 	UI_GetThemeColor4fv(TH_SELECT, ts.colorSelect);
-	UI_GetThemeColorBlend4f(TH_SELECT, TH_BACK, 0.5f, ts.colorDupliSelect);
-	UI_GetThemeColorBlend4f(TH_WIRE, TH_BACK, 0.5f, ts.colorDupli);
 	UI_COLOR_RGBA_FROM_U8(0x88, 0xFF, 0xFF, 155, ts.colorLibrarySelect);
 	UI_COLOR_RGBA_FROM_U8(0x55, 0xCC, 0xCC, 155, ts.colorLibrary);
 	UI_GetThemeColor4fv(TH_TRANSFORM, ts.colorTransform);
@@ -92,6 +90,9 @@ void DRW_globals_update(void)
 	/* Custom median color to slightly affect the edit mesh colors. */
 	interp_v4_v4v4(ts.colorEditMeshMiddle, ts.colorVertexSelect, ts.colorWireEdit, 0.35f);
 	copy_v3_fl(ts.colorEditMeshMiddle, dot_v3v3(ts.colorEditMeshMiddle, (float[3]){0.3333f, 0.3333f, 0.3333f})); /* Desaturate */
+
+	interp_v4_v4v4(ts.colorDupliSelect, ts.colorBackground, ts.colorSelect, 0.5f);
+	interp_v4_v4v4(ts.colorDupli, ts.colorBackground, ts.colorWire, 0.5f);
 
 #ifdef WITH_FREESTYLE
 	UI_GetThemeColor4fv(TH_FREESTYLE_EDGE_MARK, ts.colorEdgeFreestyle);
