@@ -314,7 +314,7 @@ void wm_event_do_depsgraph(bContext *C)
 		const Scene *scene = WM_window_get_active_scene(win);
 		const bScreen *screen = WM_window_get_active_screen(win);
 
-		win_combine_v3d_datamask |= ED_view3d_screen_datamask(scene, screen);
+		win_combine_v3d_datamask |= ED_view3d_screen_datamask(C, scene, screen);
 	}
 	/* Update all the dependency graphs of visible vew layers. */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {

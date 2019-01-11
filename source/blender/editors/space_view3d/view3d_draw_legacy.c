@@ -888,7 +888,7 @@ void ED_view3d_draw_depth_gpencil(
 
 /* *********************** customdata **************** */
 
-CustomDataMask ED_view3d_datamask(const Scene *UNUSED(scene), const View3D *v3d)
+CustomDataMask ED_view3d_datamask(const bContext *C, const Scene *UNUSED(scene), const View3D *v3d)
 {
 	CustomDataMask mask = 0;
 	const int drawtype = view3d_effective_drawtype(v3d);
@@ -900,18 +900,24 @@ CustomDataMask ED_view3d_datamask(const Scene *UNUSED(scene), const View3D *v3d)
 			mask |= CD_MASK_ORCO;
 	}
 
+	if ((CTX_data_mode_enum(C) == CTX_MODE_EDIT_MESH) &&
+	    (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT))
+	{
+		mask |= CD_MASK_MDEFORMVERT;
+	}
+
 	return mask;
 }
 
 /* goes over all modes and view3d settings */
-CustomDataMask ED_view3d_screen_datamask(const Scene *scene, const bScreen *screen)
+CustomDataMask ED_view3d_screen_datamask(const bContext *C, const Scene *scene, const bScreen *screen)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH;
 
 	/* check if we need tfaces & mcols due to view mode */
 	for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		if (sa->spacetype == SPACE_VIEW3D) {
-			mask |= ED_view3d_datamask(scene, sa->spacedata.first);
+			mask |= ED_view3d_datamask(C, scene, sa->spacedata.first);
 		}
 	}
 
