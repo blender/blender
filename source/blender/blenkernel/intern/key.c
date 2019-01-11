@@ -1333,9 +1333,6 @@ float *BKE_key_evaluate_object_ex(
 		out = (char *)arr;
 	}
 
-	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
-	key->from = (ID *)ob->data;
-
 	if (ob->shapeflag & OB_SHAPE_LOCK) {
 		/* shape locked, copy the locked shape instead of blending */
 		KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
