@@ -2622,7 +2622,7 @@ static float gp_snap_to_grid_fl(float v, const float offset, const float spacing
 		return v;
 }
 
-static void gp_snap_to_grid_v2(float v[2], const float offset[2], const float spacing)
+static void UNUSED_FUNCTION(gp_snap_to_grid_v2)(float v[2], const float offset[2], const float spacing)
 {
 	v[0] = gp_snap_to_grid_fl(v[0], offset[0], spacing);
 	v[1] = gp_snap_to_grid_fl(v[1], offset[1], spacing);
