@@ -394,7 +394,8 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(
 			ComponentKey eff_key(&relation->ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(eff_key, key, name);
 
-			if (ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS)) {
+			if (ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
+			    relation->pd->forcefield == PFIELD_GUIDE) {
 				ComponentKey mod_key(&relation->ob->id, DEG_NODE_TYPE_GEOMETRY);
 				add_relation(mod_key, key, name);
 			}

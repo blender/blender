@@ -155,7 +155,8 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 		        handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
 
 		if (relation->psys ||
-		    ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS))
+		    ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
+		    relation->pd->forcefield == PFIELD_GUIDE)
 		{
 			/* TODO(sergey): Consider going more granular with more dedicated
 			 * particle system operation. */
