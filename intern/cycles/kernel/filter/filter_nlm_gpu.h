@@ -36,8 +36,6 @@ ccl_device_inline bool get_nlm_coords_window(int w, int h, int r, int stride,
 	if(sy >= s) {
 		return false;
 	}
-	co->z = sx-r;
-	co->w = sy-r;
 
 	/* Pixels still need to lie inside the denoising buffer after applying the offset,
 	 * so determine the area for which this is the case. */
@@ -59,8 +57,8 @@ ccl_device_inline bool get_nlm_coords_window(int w, int h, int r, int stride,
 	if(!local_index_to_coord(clip_area, ccl_global_id(0), &x, &y)) {
 		return false;
 	}
-	co->x = x;
-	co->y = y;
+
+	*co = make_int4(x, y, sx - r, sy - r);
 
 	*ofs = (sy*s + sx) * stride;
 
