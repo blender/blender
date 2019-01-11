@@ -141,6 +141,7 @@ struct Object *BKE_camera_multiview_render(struct Scene *scene, struct Object *c
 void           BKE_camera_multiview_view_matrix(struct RenderData *rd, const struct Object *camera, const bool is_left, float r_viewmat[4][4]);
 void           BKE_camera_multiview_model_matrix(struct RenderData *rd, const struct Object *camera, const char *viewname, float r_modelmat[4][4]);
 void           BKE_camera_multiview_model_matrix_scaled(struct RenderData *rd, const struct Object *camera, const char *viewname, float r_modelmat[4][4]);
+void           BKE_camera_multiview_window_matrix(struct RenderData *rd, const struct Object *camera, const char *viewname, float r_winmat[4][4]);
 float          BKE_camera_multiview_shift_x(struct RenderData *rd, const struct Object *camera, const char *viewname);
 void           BKE_camera_multiview_params(struct RenderData *rd, struct CameraParams *params, const struct Object *camera, const char *viewname);
 bool           BKE_camera_multiview_spherical_stereo(struct RenderData *rd, const struct Object *camera);

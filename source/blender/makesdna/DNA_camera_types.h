@@ -109,9 +109,9 @@ typedef struct Camera {
 	char pad[7];
 
 	/* runtime only, used for drawing */
-	float drwcorners[4][2];
+	float drwcorners[2][4][2];
 	float drwtria[2][2];
-	float drwdepth, pad1;
+	float drwdepth[2];
 	float drwfocusmat[4][4];
 	float drwnormalmat[4][4];
 

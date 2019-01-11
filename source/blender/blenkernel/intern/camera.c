@@ -798,6 +798,22 @@ void BKE_camera_multiview_model_matrix_scaled(RenderData *rd, const Object *came
 	}
 }
 
+void BKE_camera_multiview_window_matrix(RenderData *rd, const Object *camera, const char *viewname, float r_winmat[4][4])
+{
+	CameraParams params;
+
+	/* Setup parameters */
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_object(&params, camera);
+	BKE_camera_multiview_params(rd, &params, camera, viewname);
+
+	/* Compute matrix, viewplane, .. */
+	BKE_camera_params_compute_viewplane(&params, rd->xsch, rd->ysch, rd->xasp, rd->yasp);
+	BKE_camera_params_compute_matrix(&params);
+
+	copy_m4_m4(r_winmat, params.winmat);
+}
+
 bool BKE_camera_multiview_spherical_stereo(RenderData *rd, const Object *camera)
 {
 	Camera *cam;
