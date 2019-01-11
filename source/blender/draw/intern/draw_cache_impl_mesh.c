@@ -868,9 +868,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 			.vcol_len = CustomData_number_of_layers(cd_ldata, CD_MLOOPCOL),
 		};
 
-		rdata->cd.layers.uv_len = count_bits_i(cd_lused[CD_MLOOPUV]);
+		rdata->cd.layers.uv_len = min_ii(cd_layers_src.uv_len, count_bits_i(cd_lused[CD_MLOOPUV]));
 		rdata->cd.layers.tangent_len = count_bits_i(cd_lused[CD_TANGENT]);
-		rdata->cd.layers.vcol_len = count_bits_i(cd_lused[CD_MLOOPCOL]);
+		rdata->cd.layers.vcol_len = min_ii(cd_layers_src.vcol_len, count_bits_i(cd_lused[CD_MLOOPCOL]));
 
 		rdata->cd.layers.uv = MEM_mallocN(sizeof(*rdata->cd.layers.uv) * rdata->cd.layers.uv_len, __func__);
 		rdata->cd.layers.vcol = MEM_mallocN(sizeof(*rdata->cd.layers.vcol) * rdata->cd.layers.vcol_len, __func__);
@@ -3137,6 +3137,11 @@ static void mesh_create_loop_uv_and_tan(MeshRenderData *rdata, GPUVertBuf *vbo)
 		if (i == rdata->cd.layers.tangent_active) {
 			GPU_vertformat_alias_add(&format, "t");
 		}
+	}
+
+	/* HACK: Create a dummy attrib in case there is no valid UV/tangent layer. */
+	if (layers_combined_len == 0) {
+		GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 	}
 
 	GPU_vertbuf_init_with_format(vbo, &format);
