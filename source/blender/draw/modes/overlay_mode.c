@@ -246,13 +246,41 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			const int stencil_mask = (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF;
 			DRWShadingGroup *shgrp = NULL;
 
-			float *rim_col = ts.colorWire;
-			if (!is_edit_mode && !is_sculpt_mode && !has_edit_mesh_cage &&
-			    ((ob->base_flag & BASE_SELECTED) != 0))
-			{
-				rim_col = (ob == draw_ctx->obact) ? ts.colorActive : ts.colorSelect;
-				rim_col = (G.moving & G_TRANSFORM_OBJ) ? ts.colorTransform : rim_col;
+			const float *rim_col = NULL;
+			const float *wire_col = NULL;
+			if (UNLIKELY(ob->base_flag & BASE_FROMDUPLI)) {
+				if (ob->base_flag & BASE_SELECTED) {
+					if (G.moving & G_TRANSFORM_OBJ) {
+						rim_col = ts.colorTransform;
+					}
+					else {
+						rim_col = ts.colorDupliSelect;
+					}
+				}
+				else {
+					rim_col = ts.colorDupli;
+				}
+				wire_col = ts.colorDupli;
 			}
+			else if ((ob->base_flag & BASE_SELECTED) &&
+			         (!is_edit_mode && !is_sculpt_mode && !has_edit_mesh_cage))
+			{
+				if (G.moving & G_TRANSFORM_OBJ) {
+					rim_col = ts.colorTransform;
+				}
+				else if (ob == draw_ctx->obact) {
+					rim_col = ts.colorActive;
+				}
+				else {
+					rim_col = ts.colorSelect;
+				}
+				wire_col = ts.colorWire;
+			}
+			else {
+				rim_col = ts.colorWire;
+				wire_col = ts.colorWire;
+			}
+			BLI_assert(rim_col && wire_col);
 
 			/* This fixes only the biggest case which is a plane in ortho view. */
 			int flat_axis = 0;
@@ -285,7 +313,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
 					if (!(DRW_state_is_select() || DRW_state_is_depth())) {
 						DRW_shgroup_stencil_mask(shgrp, stencil_mask);
-						DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "wireColor", wire_col, 1);
 						DRW_shgroup_uniform_vec3(shgrp, "rimColor", rim_col, 1);
 					}
 
