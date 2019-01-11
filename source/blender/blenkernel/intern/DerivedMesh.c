@@ -2135,8 +2135,10 @@ static CustomDataMask object_get_datamask(const Depsgraph *depsgraph, Object *ob
 			mask |= CD_MASK_MDEFORMVERT;
 		}
 
-		if (ob->mode & OB_MODE_EDIT)
+		if (ob->mode & OB_MODE_EDIT) {
 			mask |= CD_MASK_MVERT_SKIN;
+			mask |= CD_MASK_MDEFORMVERT;
+		}
 	}
 
 	return mask;
