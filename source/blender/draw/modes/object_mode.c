@@ -828,7 +828,10 @@ static DRWShadingGroup *shgroup_theme_id_to_outline_or_null(
 static DRWShadingGroup *shgroup_theme_id_to_wire(
         OBJECT_ShadingGroupList *sgl, int theme_id, const short base_flag)
 {
-	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	if (UNLIKELY(base_flag & BASE_FROM_SET)) {
+		return sgl->wire_dupli;
+	}
+	else if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -855,7 +858,10 @@ static DRWShadingGroup *shgroup_theme_id_to_wire(
 static DRWShadingGroup *shgroup_theme_id_to_point(
         OBJECT_ShadingGroupList *sgl, int theme_id, const short base_flag)
 {
-	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	if (UNLIKELY(base_flag & BASE_FROM_SET)) {
+		return sgl->points_dupli;
+	}
+	else if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
