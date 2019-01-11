@@ -466,7 +466,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {
 					CALLBACK_INVOKE(marker->camera, IDWALK_CB_NOP);
 				}
-
+				
 				if (toolsett) {
 					CALLBACK_INVOKE(toolsett->particle.scene, IDWALK_CB_NOP);
 					CALLBACK_INVOKE(toolsett->particle.object, IDWALK_CB_NOP);
@@ -493,6 +493,9 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					if (toolsett->gp_paint) {
 						library_foreach_paint(&data, &toolsett->gp_paint->paint);
 					}
+
+					CALLBACK_INVOKE(toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
+
 				}
 
 				if (scene->rigidbody_world) {

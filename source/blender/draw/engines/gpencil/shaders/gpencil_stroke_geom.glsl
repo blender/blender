@@ -2,6 +2,7 @@ uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
 uniform int xraymode;
 uniform int color_type;
+uniform int caps_mode[2];
 
 layout(lines_adjacency) in;
 layout(triangle_strip, max_vertices = 13) out;
@@ -22,6 +23,8 @@ out vec2 uvfac;
 #define GPENCIL_COLOR_SOLID   0
 #define GPENCIL_COLOR_TEXTURE 1
 #define GPENCIL_COLOR_PATTERN 2
+
+#define GPENCIL_FLATCAP 1
 
 /* project 3d point to 2d on screen space */
 vec2 toScreenSpace(vec4 vertex)
@@ -159,7 +162,9 @@ void main(void)
 	}
 
 	/* generate the start endcap */
-	if (is_equal(P0,P2) && (color_type == GPENCIL_COLOR_SOLID)){
+	if ((caps_mode[0] != GPENCIL_FLATCAP) && is_equal(P0,P2) &&
+		(color_type == GPENCIL_COLOR_SOLID))
+	{
 		vec4 cap_color = finalColor[1];
 
 		mTexCoord = vec2(2.0, 1.0);
@@ -205,7 +210,9 @@ void main(void)
 	EmitVertex();
 
 	/* generate the end endcap */
-	if (is_equal(P1,P3) && (color_type == GPENCIL_COLOR_SOLID) && (finaluvdata[2].x > 0)){
+	if ((caps_mode[1] != GPENCIL_FLATCAP) && is_equal(P1,P3) &&
+		(color_type == GPENCIL_COLOR_SOLID) && (finaluvdata[2].x > 0))
+	{
 		vec4 cap_color = finalColor[2];
 
 		mTexCoord = vec2(finaluvdata[2].x, 2.0);

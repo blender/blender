@@ -203,7 +203,8 @@ typedef struct bGPDstroke {
 
 	/** Material index. */
 	int mat_nr;
-	char _pad1[4];
+	/** Caps mode for each stroke extreme */
+	short caps[2];
 
 	/** Vertex weight data. */
 	struct MDeformVert *dvert;
@@ -231,6 +232,15 @@ typedef enum eGPDstroke_Flag {
 	/* only for use with stroke-buffer (while drawing eraser) */
 	GP_STROKE_ERASER		= (1 << 15)
 } eGPDstroke_Flag;
+
+/* bGPDstroke->caps */
+typedef enum eGPDstroke_Caps {
+	/* type of extreme */
+	GP_STROKE_CAP_ROUND = 0,
+	GP_STROKE_CAP_FLAT  = 1,
+
+	GP_STROKE_CAP_MAX
+} GPDstroke_Caps;
 
 /* ***************************************** */
 /* GP Frame */
@@ -371,6 +381,8 @@ typedef enum eGPDlayer_Flag {
 	GP_LAYER_UNLOCK_COLOR 	= (1 << 12),
 	/* Mask Layer */
 	GP_LAYER_USE_MASK = (1 << 13),
+	/* Flag used to display in Paint mode only layers with keyframe */
+	GP_LAYER_SOLO_MODE = (1 << 4),
 } eGPDlayer_Flag;
 
 /* bGPDlayer->onion_flag */

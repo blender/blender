@@ -303,9 +303,13 @@ class _draw_left_context_mode:
                 return
 
             is_paint = True
-            if (tool.name in {"Line", "Box", "Circle", "Arc", "Curve"}):
+            if tool.name in {"Line", "Box", "Circle", "Arc", "Curve"}:
                 is_paint = False
-            elif (not tool.has_datablock):
+            elif tool.name == "Cutter":
+                row = layout.row(align=True)
+                row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
+                return
+            elif not tool.has_datablock:
                 return
 
             paint = context.tool_settings.gpencil_paint
@@ -508,6 +512,9 @@ class TOPBAR_PT_gpencil_layers(Panel):
             srow.prop(gpl, "opacity", text="Opacity", slider=True)
             srow.prop(gpl, "clamp_layer", text="",
                       icon='MOD_MASK' if gpl.clamp_layer else 'LAYER_ACTIVE')
+
+            srow = col.row(align=True)
+            srow.prop(gpl, "use_solo_mode", text="Show Only On Keyframed")
 
         col = row.column()
 

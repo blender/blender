@@ -715,6 +715,8 @@ void BKE_scene_init(Scene *sce)
 	        CURVE_PRESET_BELL,
 	        CURVEMAP_SLOPE_POSITIVE);
 
+	sce->toolsettings->gp_sculpt.guide.spacing = 20.0f;
+
 	sce->physics_settings.gravity[0] = 0.0f;
 	sce->physics_settings.gravity[1] = 0.0f;
 	sce->physics_settings.gravity[2] = -9.81f;

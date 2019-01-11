@@ -259,4 +259,17 @@ void ED_gpencil_tpoint_to_point(struct ARegion *ar, float origin[3], const struc
 void ED_gpencil_calc_stroke_uv(struct Object *ob, struct bGPDstroke *gps);
 void ED_gpencil_update_color_uv(struct Main *bmain, struct Material *mat);
 
+/* extend selection to stroke intersections
+ * returns:
+ * 0 - No hit
+ * 1 - Hit in point A
+ * 2 - Hit in point B
+ * 3 - Hit in point A and B
+*/
+int ED_gpencil_select_stroke_segment(
+	struct bGPDlayer *gpl,
+	struct bGPDstroke *gps, struct bGPDspoint *pt,
+	bool select, bool insert, const float scale,
+	float r_hita[3], float r_hitb[3]);
+
 #endif /*  __ED_GPENCIL_H__ */

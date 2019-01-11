@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2017, Blender Foundation
  * This is a new part of Blender
  *
- * Contributor(s): Antonio Vazquez
+ * Contributor(s): Antonio Vazquez, Charlie Jolly
  *
  * ***** END GPL LICENSE BLOCK *****
  *
@@ -246,6 +246,15 @@ static void gp_primitive_update_cps(tGPDprimitive *tgpi)
 			gp_primitive_rotate_line(tgpi->cp1, tgpi->cp2, tgpi->end, tgpi->start, M_PI_2);
 		}
 	}
+}
+
+/* Helper to reflect point */
+static void gp_reflect_point_v2_v2v2v2(float va[2], const float p[2], const float a[2], const float b[2])
+{
+	float point[2];
+	closest_to_line_v2(point, p, a, b);
+	va[0] = point[0] - (p[0] - point[0]);
+	va[1] = point[1] - (p[1] - point[1]);
 }
 
   /* Poll callback for primitive operators */
@@ -677,7 +686,8 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	/* compute screen-space coordinates for points */
 	tGPspoint *points2D = tgpi->points;
 
-	switch (tgpi->type) {
+	if (tgpi->tot_edges > 1) {
+		switch (tgpi->type) {
 		case GP_STROKE_BOX:
 			gp_primitive_rectangle(tgpi, points2D);
 			break;
@@ -694,6 +704,7 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 			gp_primitive_bezier(tgpi, points2D);
 		default:
 			break;
+		}
 	}
 
 	/* convert screen-coordinates to 3D coordinates */
@@ -1321,7 +1332,7 @@ static void gpencil_primitive_edit_event_handling(bContext *C, wmOperator *op, w
 		{
 			if ((event->val == KM_PRESS) &&
 			    (tgpi->curve) &&
-			    (tgpi->orign_type == GP_STROKE_ARC))
+			    (ELEM(tgpi->orign_type, GP_STROKE_ARC) ))
 			{
 				tgpi->flip ^= 1;
 				gp_primitive_update_cps(tgpi);
@@ -1432,22 +1443,22 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 	if (tgpi->flag == IN_MOVE) {
 
 		switch (event->type) {
-			case MOUSEMOVE:
-				gpencil_primitive_move(tgpi, false);
-				gpencil_primitive_update(C, op, tgpi);
-				break;
-			case ESCKEY:
-			case LEFTMOUSE:
-				zero_v2(tgpi->move);
+		case MOUSEMOVE:
+			gpencil_primitive_move(tgpi, false);
+			gpencil_primitive_update(C, op, tgpi);
+			break;
+		case ESCKEY:
+		case LEFTMOUSE:
+			zero_v2(tgpi->move);
+			tgpi->flag = IN_CURVE_EDIT;
+			break;
+		case RIGHTMOUSE:
+			if (event->val == KM_RELEASE) {
 				tgpi->flag = IN_CURVE_EDIT;
-				break;
-			case RIGHTMOUSE:
-				if (event->val == KM_RELEASE) {
-					tgpi->flag = IN_CURVE_EDIT;
-					gpencil_primitive_move(tgpi, true);
-					gpencil_primitive_update(C, op, tgpi);
-				}
-				break;
+				gpencil_primitive_move(tgpi, true);
+				gpencil_primitive_update(C, op, tgpi);
+			}
+			break;
 		}
 		copy_v2_v2(tgpi->mvalo, tgpi->mval);
 		return OPERATOR_RUNNING_MODAL;
@@ -1543,7 +1554,19 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 			/* done! */
 			return OPERATOR_FINISHED;
 		}
-		case RIGHTMOUSE: /* cancel */
+		case RIGHTMOUSE:
+		{
+			/* exception to cancel current stroke when we have previous strokes in buffer */
+			if (tgpi->tot_stored_edges > 0) {
+				tgpi->flag = IDLE;
+				tgpi->tot_edges = 0;
+				gp_primitive_update_strokes(C, tgpi);
+				gpencil_primitive_interaction_end(C, op, win, tgpi);
+				/* done! */
+				return OPERATOR_FINISHED;
+			}
+			ATTR_FALLTHROUGH;
+		}
 		case ESCKEY:
 		{
 			/* return to normal cursor and header status */

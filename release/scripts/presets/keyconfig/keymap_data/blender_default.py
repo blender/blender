@@ -2983,6 +2983,8 @@ def km_grease_pencil_stroke_edit_mode(params):
          {"properties": [("mode", 0)]}),
         ("gpencil.selectmode_toggle", {"type": 'TWO', "value": 'PRESS'},
          {"properties": [("mode", 1)]}),
+        ("gpencil.selectmode_toggle", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("mode", 2)]}),
     ])
 
     if params.apple:
@@ -3045,7 +3047,25 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
         # Erase
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-
+        # Constrain Guides Speedlines
+		# Freehand
+        ("gpencil.draw", {"type": 'O', "value": 'PRESS'}, None),
+        ("gpencil.draw", {"type": 'J', "value": 'PRESS'}, None),
+        ("gpencil.draw", {"type": 'J', "value": 'PRESS', "alt": True}, None),
+        ("gpencil.draw", {"type": 'J', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.draw", {"type": 'K', "value": 'PRESS'}, None),
+        ("gpencil.draw", {"type": 'K', "value": 'PRESS', "alt": True}, None),
+        ("gpencil.draw", {"type": 'K', "value": 'PRESS', "shift": True}, None),
+        ("gpencil.draw", {"type": 'L', "value": 'PRESS'}, None),
+        ("gpencil.draw", {"type": 'L', "value": 'PRESS', "alt": True}, None),
+        ("gpencil.draw", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("gpencil.draw", {"type": 'V', "value": 'PRESS'}, None),
+		# Mirror or flip
+        ("gpencil.draw", {"type": 'M', "value": 'PRESS'}, None),
+		# Mode
+        ("gpencil.draw", {"type": 'C', "value": 'PRESS'}, None),
+		# Set reference point
+        ("gpencil.draw", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         # Tablet Mappings for Drawing ------------------ */
         # For now, only support direct drawing using the eraser, as most users using a tablet
         # may still want to use that as their primary pointing device!
@@ -5718,6 +5738,7 @@ def km_3d_view_tool_paint_gpencil_arc(params):
         ]},
     )
 
+
 def km_3d_view_tool_paint_gpencil_curve(params):
     return (
         "3D View Tool: Paint Gpencil, Curve",
@@ -5729,6 +5750,19 @@ def km_3d_view_tool_paint_gpencil_curve(params):
             ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
         ]},
     )
+
+
+def km_3d_view_tool_paint_gpencil_cutter(params):
+    return (
+        "3D View Tool: Paint Gpencil, Cutter",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("gpencil.stroke_cutter", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            # Lasso select
+            ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
+        ]},
+    )
+
 
 def km_3d_view_tool_edit_gpencil_select(params):
     return (
@@ -6040,6 +6074,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_paint_gpencil_circle(params),
         km_3d_view_tool_paint_gpencil_arc(params),
         km_3d_view_tool_paint_gpencil_curve(params),
+        km_3d_view_tool_paint_gpencil_cutter(params),
         km_3d_view_tool_edit_gpencil_select(params),
         km_3d_view_tool_edit_gpencil_select_box(params),
         km_3d_view_tool_edit_gpencil_select_circle(params),

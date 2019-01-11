@@ -228,6 +228,10 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_draw);
 	WM_operatortype_append(GPENCIL_OT_fill);
 
+	/* Guides ----------------------- */
+
+	WM_operatortype_append(GPENCIL_OT_guide_rotate);
+
 	/* Editing (Strokes) ------------ */
 
 	WM_operatortype_append(GPENCIL_OT_editmode_toggle);
@@ -301,6 +305,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_stroke_lock_color);
 	WM_operatortype_append(GPENCIL_OT_stroke_apply_thickness);
 	WM_operatortype_append(GPENCIL_OT_stroke_cyclical_set);
+	WM_operatortype_append(GPENCIL_OT_stroke_caps_set);
 	WM_operatortype_append(GPENCIL_OT_stroke_join);
 	WM_operatortype_append(GPENCIL_OT_stroke_flip);
 	WM_operatortype_append(GPENCIL_OT_stroke_subdivide);
@@ -310,6 +315,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_stroke_split);
 	WM_operatortype_append(GPENCIL_OT_stroke_smooth);
 	WM_operatortype_append(GPENCIL_OT_stroke_merge);
+	WM_operatortype_append(GPENCIL_OT_stroke_cutter);
 
 	WM_operatortype_append(GPENCIL_OT_brush_presets_create);
 

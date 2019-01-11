@@ -1563,6 +1563,8 @@ int BKE_gpencil_get_material_index(Object *ob, Material *ma)
 /* Get points of stroke always flat to view not affected by camera view or view position */
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points, int totpoints, float(*points2d)[2], int *r_direction)
 {
+	BLI_assert(totpoints >= 2);
+
 	const bGPDspoint *pt0 = &points[0];
 	const bGPDspoint *pt1 = &points[1];
 	const bGPDspoint *pt3 = &points[(int)(totpoints * 0.75)];
@@ -1576,7 +1578,15 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points, int totpoints, float(*
 	sub_v3_v3v3(locx, &pt1->x, &pt0->x);
 
 	/* point vector at 3/4 */
-	sub_v3_v3v3(loc3, &pt3->x, &pt0->x);
+	float v3[3];
+	if (totpoints == 2) {
+		mul_v3_v3fl(v3, &pt3->x, 0.001f);
+	}
+	else {
+		copy_v3_v3(v3, &pt3->x);
+	}
+
+	sub_v3_v3v3(loc3, v3, &pt0->x);
 
 	/* vector orthogonal to polygon plane */
 	cross_v3_v3v3(normal, locx, loc3);
@@ -1604,3 +1614,86 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points, int totpoints, float(*
 	*r_direction = (int)locy[2];
 }
 
+/* Get points of stroke always flat to view not affected by camera view or view position
+ * using another stroke as reference
+ */
+void BKE_gpencil_stroke_2d_flat_ref(
+	const bGPDspoint *ref_points, int ref_totpoints,
+	const bGPDspoint *points, int totpoints,
+	float(*points2d)[2], const float scale, int *r_direction)
+{
+	BLI_assert(totpoints >= 2);
+
+	const bGPDspoint *pt0 = &ref_points[0];
+	const bGPDspoint *pt1 = &ref_points[1];
+	const bGPDspoint *pt3 = &ref_points[(int)(ref_totpoints * 0.75)];
+
+	float locx[3];
+	float locy[3];
+	float loc3[3];
+	float normal[3];
+
+	/* local X axis (p0 -> p1) */
+	sub_v3_v3v3(locx, &pt1->x, &pt0->x);
+
+	/* point vector at 3/4 */
+	float v3[3];
+	if (totpoints == 2) {
+		mul_v3_v3fl(v3, &pt3->x, 0.001f);
+	}
+	else {
+		copy_v3_v3(v3, &pt3->x);
+	}
+
+	sub_v3_v3v3(loc3,v3, &pt0->x);
+
+	/* vector orthogonal to polygon plane */
+	cross_v3_v3v3(normal, locx, loc3);
+
+	/* local Y axis (cross to normal/x axis) */
+	cross_v3_v3v3(locy, normal, locx);
+
+	/* Normalize vectors */
+	normalize_v3(locx);
+	normalize_v3(locy);
+
+	/* Get all points in local space */
+	for (int i = 0; i < totpoints; i++) {
+		const bGPDspoint *pt = &points[i];
+		float loc[3];
+		float v1[3];
+		float vn[3] = { 0.0f, 0.0f, 0.0f };
+
+		/* apply scale to extremes of the stroke to get better collision detection
+		 * the scale is divided to get more control in the UI parameter
+		 */
+		/* first point */
+		if (i == 0) {
+			const bGPDspoint *pt_next = &points[i + 1];
+			sub_v3_v3v3(vn, &pt->x, &pt_next->x);
+			normalize_v3(vn);
+			mul_v3_fl(vn, scale / 10.0f);
+			add_v3_v3v3(v1, &pt->x, vn);
+		}
+		/* last point */
+		else if (i == totpoints - 1) {
+			const bGPDspoint *pt_prev = &points[i - 1];
+			sub_v3_v3v3(vn, &pt->x, &pt_prev->x);
+			normalize_v3(vn);
+			mul_v3_fl(vn, scale / 10.0f);
+			add_v3_v3v3(v1, &pt->x, vn);
+		}
+		else {
+			copy_v3_v3(v1, &pt->x);
+		}
+		
+		/* Get local space using first point as origin (ref stroke) */
+		sub_v3_v3v3(loc, v1, &pt0->x);
+
+		points2d[i][0] = dot_v3v3(loc, locx);
+		points2d[i][1] = dot_v3v3(loc, locy);
+	}
+
+	/* Concave (-1), Convex (1), or Autodetect (0)? */
+	*r_direction = (int)locy[2];
+}

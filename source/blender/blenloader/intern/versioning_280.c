@@ -2741,6 +2741,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		/* Grease pencil cutter/select segment intersection threshold  */
+		if (!DNA_struct_elem_find(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
+				if (gset) {
+					gset->isect_threshold = 0.1f;
+				}
+			}
+		}
+
 		/* Fix anamorphic bokeh eevee rna limits.*/
 		for (Camera *ca = bmain->camera.first; ca; ca = ca->id.next) {
 			if (ca->gpu_dof.ratio < 0.01f) {

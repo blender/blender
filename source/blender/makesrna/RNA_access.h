@@ -274,6 +274,7 @@ extern StructRNA RNA_GPencilFrame;
 extern StructRNA RNA_GPencilInterpolateSettings;
 extern StructRNA RNA_GPencilLayer;
 extern StructRNA RNA_GPencilSculptBrush;
+extern StructRNA RNA_GPencilSculptGuide;
 extern StructRNA RNA_GPencilSculptSettings;
 extern StructRNA RNA_GPencilStroke;
 extern StructRNA RNA_GPencilStrokePoint;

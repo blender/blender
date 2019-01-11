@@ -390,6 +390,14 @@ GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(bGPdata *gpd)
 	bGPDcontrolpoint *cps = gpd->runtime.cp_points;
 	int totpoints = gpd->runtime.tot_cp_points;
 
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
+	ToolSettings *ts = scene->toolsettings;
+
+	if (ts->gp_sculpt.guide.use_guide) {
+		totpoints++;
+	}
+	
 	static GPUVertFormat format = { 0 };
 	static uint pos_id, color_id, size_id;
 	if (format.attr_len == 0) {
@@ -413,6 +421,27 @@ GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(bGPdata *gpd)
 
 		GPU_vertbuf_attr_set(vbo, pos_id, idx, &cp->x);
 		idx++;
+	}
+
+	if (ts->gp_sculpt.guide.use_guide) {
+		float size = 10 * 0.8f;
+		float color[4];
+		float position[3];
+		if (ts->gp_sculpt.guide.reference_point == GP_GUIDE_REF_CUSTOM) {
+			UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color);
+			copy_v3_v3(position, ts->gp_sculpt.guide.location);
+		}
+		else if (ts->gp_sculpt.guide.reference_point == GP_GUIDE_REF_OBJECT && ts->gp_sculpt.guide.reference_object != NULL) {
+			UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color);
+			copy_v3_v3(position, ts->gp_sculpt.guide.reference_object->loc);
+		}
+		else {
+			UI_GetThemeColor4fv(TH_REDALERT, color);
+			copy_v3_v3(position, scene->cursor.location);
+		}
+		GPU_vertbuf_attr_set(vbo, pos_id, idx, position);
+		GPU_vertbuf_attr_set(vbo, size_id, idx, &size);
+		GPU_vertbuf_attr_set(vbo, color_id, idx, color);
 	}
 
 	return GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, NULL, GPU_BATCH_OWNS_VBO);

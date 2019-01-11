@@ -194,7 +194,7 @@ static void gpencil_dissolve_points(bContext *C)
 
 		for (gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
-			gp_stroke_delete_tagged_points(gpf, gps, gpsn, GP_SPOINT_TAG, false);
+			gp_stroke_delete_tagged_points(gpf, gps, gpsn, GP_SPOINT_TAG, false, 0);
 		}
 	}
 	CTX_DATA_END;

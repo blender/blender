@@ -191,6 +191,7 @@ class GreasePencilStrokeEditPanel:
         col.operator("gpencil.duplicate_move", text="Duplicate")
         if is_3d_view:
             col.operator("gpencil.stroke_cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
+            col.operator_menu_enum("gpencil.stroke_caps_set", text="Toggle Caps...", property="type")
 
         layout.separator()
 

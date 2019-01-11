@@ -234,7 +234,9 @@ void gp_apply_parent(struct Depsgraph *depsgraph, struct Object *obact, bGPdata 
  */
 void gp_apply_parent_point(struct Depsgraph *depsgraph, struct Object *obact, bGPdata *gpd, bGPDlayer *gpl, bGPDspoint *pt);
 
-bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, struct Scene *scene, const float screen_co[2], float r_out[3]);
+void gp_point_3d_to_xy(const GP_SpaceConversion *gsc, const short flag, const float pt[3], float xy[2]);
+
+bool gp_point_xy_to_3d(const GP_SpaceConversion *gsc, struct Scene *scene, const float screen_co[2], float r_out[3]);
 
 /* helper to convert 2d to 3d */
 void gp_stroke_convertcoords_tpoint(
@@ -263,7 +265,7 @@ struct GHash *gp_copybuf_validate_colormap(struct bContext *C);
 
 void gp_stroke_delete_tagged_points(
         bGPDframe *gpf, bGPDstroke *gps, bGPDstroke *next_stroke,
-        int tag_flags, bool select);
+        int tag_flags, bool select, int limit);
 int gp_delete_selected_point_wrap(bContext *C);
 
 void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide);
@@ -291,12 +293,17 @@ void GPENCIL_OT_annotate(struct wmOperatorType *ot);
 void GPENCIL_OT_draw(struct wmOperatorType *ot);
 void GPENCIL_OT_fill(struct wmOperatorType *ot);
 
+/* Guides ----------------------- */
+
+void GPENCIL_OT_guide_rotate(struct wmOperatorType *ot);
+
 /* Paint Modes for operator */
 typedef enum eGPencil_PaintModes {
 	GP_PAINTMODE_DRAW = 0,
 	GP_PAINTMODE_ERASER,
 	GP_PAINTMODE_DRAW_STRAIGHT,
-	GP_PAINTMODE_DRAW_POLY
+	GP_PAINTMODE_DRAW_POLY,
+	GP_PAINTMODE_SET_CP
 } eGPencil_PaintModes;
 
 /* maximum sizes of gp-session buffer */
@@ -384,7 +391,7 @@ enum {
 	GP_STROKE_LINE = 1,
 	GP_STROKE_CIRCLE = 2,
 	GP_STROKE_ARC = 3,
-	GP_STROKE_CURVE = 4
+	GP_STROKE_CURVE = 4,
 };
 
 enum {
@@ -397,6 +404,7 @@ void GPENCIL_OT_stroke_change_color(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_lock_color(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_apply_thickness(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_cyclical_set(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_caps_set(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_join(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_flip(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_subdivide(struct wmOperatorType *ot);
@@ -406,6 +414,7 @@ void GPENCIL_OT_stroke_separate(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_split(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_smooth(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_merge(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_cutter(struct wmOperatorType *ot);
 
 void GPENCIL_OT_brush_presets_create(struct wmOperatorType *ot);
 

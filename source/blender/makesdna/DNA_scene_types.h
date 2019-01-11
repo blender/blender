@@ -1073,6 +1073,20 @@ typedef struct GP_Sculpt_Data {
 	char _pad[4];
 } GP_Sculpt_Data;
 
+/* Settings for a GPencil Speed Guide */
+typedef struct GP_Sculpt_Guide {
+	char use_guide;
+	char use_snapping;
+	char reference_point;
+	char type;
+	char _pad2[4];
+	float angle;
+	float angle_snap;
+	float spacing;
+	float location[3];
+	struct Object *reference_object;
+} GP_Sculpt_Guide;
+
 /* GP_Sculpt_Data.flag */
 typedef enum eGP_Sculpt_Flag {
 	/* invert the effect of the brush */
@@ -1106,7 +1120,8 @@ typedef struct GP_Sculpt_Settings {
 	int flag;
 	/** #eGP_Lockaxis_Types lock drawing to one axis. */
 	int lock_axis;
-	char pad1[4];
+	/** Threshold for intersections */
+	float isect_threshold;
 
 	/* weight paint is a submode of sculpt but use its own index. All weight paint
 	 * brushes must be defined at the end of the brush array.
@@ -1118,6 +1133,8 @@ typedef struct GP_Sculpt_Settings {
 	struct CurveMapping *cur_falloff;
 	/** Curve used for primitve tools. */
 	struct CurveMapping *cur_primitive;
+	/** Guides used for paint tools */
+	struct GP_Sculpt_Guide guide;
 } GP_Sculpt_Settings;
 
 /* GP_Sculpt_Settings.flag */
@@ -2317,9 +2334,25 @@ typedef enum eGPencil_Placement_Flags {
 
 /* ToolSettings.gpencil_selectmode */
 typedef enum eGPencil_Selectmode_types {
-	GP_SELECTMODE_POINT  = 0,
-	GP_SELECTMODE_STROKE = 1
+	GP_SELECTMODE_POINT   = 0,
+	GP_SELECTMODE_STROKE  = 1,
+	GP_SELECTMODE_SEGMENT = 2
 } eGPencil_Selectmode_types;
+
+/* ToolSettings.gpencil_guide_types */
+typedef enum eGPencil_GuideTypes {
+	GP_GUIDE_CIRCULAR = 0,
+	GP_GUIDE_RADIAL,
+	GP_GUIDE_PARALLEL,
+	GP_GUIDE_GRID
+} eGPencil_GuideTypes;
+
+/* ToolSettings.gpencil_guide_references */
+typedef enum eGPencil_Guide_Reference {
+	GP_GUIDE_REF_CURSOR = 0,
+	GP_GUIDE_REF_CUSTOM,
+	GP_GUIDE_REF_OBJECT
+} eGPencil_Guide_Reference;
 
 /* ToolSettings.particle flag */
 #define PE_KEEP_LENGTHS         (1 << 0)
