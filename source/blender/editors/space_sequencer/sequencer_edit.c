@@ -665,7 +665,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 }
 
 
-static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
+static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, ListBase *new_seq_list, int cutframe)
 {
 	TransSeq ts;
 	Sequence *seqn = NULL;
@@ -737,7 +737,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = BKE_sequence_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+		seqn = BKE_sequence_dupli_recursive(scene, scene, new_seq_list, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 
 	if (seqn) {
@@ -786,7 +786,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 	return seqn;
 }
 
-static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
+static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, ListBase *new_seq_list, int cutframe)
 {
 	TransSeq ts;
 	Sequence *seqn = NULL;
@@ -846,7 +846,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = BKE_sequence_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+		seqn = BKE_sequence_dupli_recursive(scene, scene, new_seq_list, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 
 	if (seqn) {
@@ -898,7 +898,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
  */
 
 static bool cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
-                         Sequence * (*cut_seq)(Scene *, Sequence *, int))
+                         Sequence * (*cut_seq)(Scene *, Sequence *, ListBase *, int))
 {
 	Sequence *seq, *seq_next_iter;
 	Sequence *seq_first_new = NULL;
@@ -912,9 +912,8 @@ static bool cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
 			if (cutframe > seq->startdisp &&
 			    cutframe < seq->enddisp)
 			{
-				Sequence *seqn = cut_seq(scene, seq, cutframe);
+				Sequence *seqn = cut_seq(scene, seq, slist, cutframe);
 				if (seqn) {
-					BLI_addtail(slist, seqn);
 					if (seq_first_new == NULL) {
 						seq_first_new = seqn;
 					}
@@ -2411,8 +2410,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new seq */
 				se = BKE_sequencer_give_stripelem(seq, cfra);
 
-				seq_new = BKE_sequence_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME);
-				BLI_addtail(ed->seqbasep, seq_new);
+				seq_new = BKE_sequence_dupli_recursive(scene, scene, ed->seqbasep, seq, SEQ_DUPE_UNIQUE_NAME);
 
 				seq_new->start = start_ofs;
 				seq_new->type = SEQ_TYPE_IMAGE;
