@@ -47,8 +47,6 @@
 #  include <VersionHelpers.h>
 #endif
 
-#include <stdio.h>
-
 ////////////////////////////////////////////////////////////////////////////////
 // Initialization.
 
@@ -74,9 +72,14 @@ typedef BOOL t_VirtualFree(void* address, SIZE_T size, DWORD free_type);
 typedef BOOL t_SetProcessAffinityMask(HANDLE process_handle,
                                       DWORD_PTR process_affinity_mask);
 typedef BOOL t_SetThreadGroupAffinity(HANDLE thread_handle,
-                                      const GROUP_AFFINITY* GroupAffinity,
+                                      const GROUP_AFFINITY* group_affinity,
                                       GROUP_AFFINITY* PreviousGroupAffinity);
+typedef BOOL t_GetThreadGroupAffinity(HANDLE thread_handle,
+                                      GROUP_AFFINITY* group_affinity);
 typedef DWORD t_GetCurrentProcessorNumber(void);
+typedef void t_GetCurrentProcessorNumberEx(PROCESSOR_NUMBER* proc_number);
+typedef DWORD t_GetActiveProcessorCount(WORD group_number);
+
 
 // NUMA symbols.
 static t_GetNumaHighestNodeNumber* _GetNumaHighestNodeNumber;
@@ -88,7 +91,10 @@ static t_VirtualFree* _VirtualFree;
 // Threading symbols.
 static t_SetProcessAffinityMask* _SetProcessAffinityMask;
 static t_SetThreadGroupAffinity* _SetThreadGroupAffinity;
+static t_GetThreadGroupAffinity* _GetThreadGroupAffinity;
 static t_GetCurrentProcessorNumber* _GetCurrentProcessorNumber;
+static t_GetCurrentProcessorNumberEx* _GetCurrentProcessorNumberEx;
+static t_GetActiveProcessorCount* _GetActiveProcessorCount;
 
 static void numaExit(void) {
   // TODO(sergey): Consider closing library here.
@@ -128,7 +134,10 @@ static NUMAAPI_Result loadNumaSymbols(void) {
   // Threading.
   KERNEL_LIBRARY_FIND(SetProcessAffinityMask);
   KERNEL_LIBRARY_FIND(SetThreadGroupAffinity);
+  KERNEL_LIBRARY_FIND(GetThreadGroupAffinity);
   KERNEL_LIBRARY_FIND(GetCurrentProcessorNumber);
+  KERNEL_LIBRARY_FIND(GetCurrentProcessorNumberEx);
+  KERNEL_LIBRARY_FIND(GetActiveProcessorCount);
 
 #undef KERNEL_LIBRARY_FIND
 #undef _LIBRARY_FIND
@@ -149,6 +158,19 @@ NUMAAPI_Result numaAPI_Initialize(void) {
   loadNumaSymbols();
   return NUMAAPI_SUCCESS;
 #endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Internal helpers.
+
+static int countNumSetBits(int64_t mask) {
+  // TODO(sergey): There might be faster way calculating number of set bits.
+  int num_bits = 0;
+  while (mask != 0) {
+    num_bits += (mask & 1);
+    mask = (mask >> 1);
+  }
+  return num_bits;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -185,11 +207,26 @@ int numaAPI_GetNumNodeProcessors(int node) {
   if (!_GetNumaNodeProcessorMask(node, &processor_mask)) {
     return 0;
   }
-  // TODO(sergey): There might be faster way calculating number of set bits.
-  int num_processors = 0;
-  while (processor_mask != 0) {
-    num_processors += (processor_mask & 1);
-    processor_mask = (processor_mask >> 1);
+  return countNumSetBits(processor_mask);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Topology helpers.
+
+int numaAPI_GetNumCurrentNodesProcessors(void) {
+  HANDLE thread_handle = GetCurrentThread();
+  GROUP_AFFINITY group_affinity;
+  // TODO(sergey): Needs implementation.
+  if (!_GetThreadGroupAffinity(thread_handle, &group_affinity)) {
+    return 0;
+  }
+  // First, count number of possible bits in the affinity mask.
+  const int num_processors = countNumSetBits(group_affinity.Mask);
+  // Then check that it's not exceeding number of processors in tjhe group.
+  const int num_group_processors =
+      _GetActiveProcessorCount(group_affinity.Group);
+  if (num_group_processors < num_processors) {
+    return num_group_processors;
   }
   return num_processors;
 }

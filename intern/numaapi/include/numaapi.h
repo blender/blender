@@ -71,6 +71,16 @@ bool numaAPI_IsNodeAvailable(int node);
 int numaAPI_GetNumNodeProcessors(int node);
 
 ////////////////////////////////////////////////////////////////////////////////
+// Topology helpers.
+//
+// Those are a bit higher level queries, but is still rather platform-specific
+// and generally useful.
+
+// Get number of processors within the NUMA nodes on which current thread is
+// set affinity on.
+int numaAPI_GetNumCurrentNodesProcessors(void);
+
+////////////////////////////////////////////////////////////////////////////////
 // Affinities.
 
 // Runs the current process and its children on a specific node.
