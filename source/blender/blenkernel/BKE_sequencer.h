@@ -335,7 +335,8 @@ bool BKE_sequence_base_shuffle_time(ListBase *seqbasep, struct Scene *evil_scene
 bool BKE_sequence_base_isolated_sel_check(struct ListBase *seqbase);
 void BKE_sequencer_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, bool for_render);
 struct Sequence *BKE_sequence_dupli_recursive(
-        const struct Scene *scene_src, struct Scene *scene_dst, struct Sequence *seq, int dupe_flag);
+        const struct Scene *scene_src, struct Scene *scene_dst,
+        struct ListBase *new_seq_list, struct Sequence *seq, int dupe_flag);
 int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 
 bool BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
@@ -391,7 +392,7 @@ typedef struct SeqLoadInfo {
 
 
 /* seq_dupli' flags */
-#define SEQ_DUPE_UNIQUE_NAME    (1 << 0)  /* WARNING: does NOT work when duplicating Meta strips! */
+#define SEQ_DUPE_UNIQUE_NAME    (1 << 0)
 #define SEQ_DUPE_CONTEXT        (1 << 1)
 #define SEQ_DUPE_ANIM           (1 << 2)
 #define SEQ_DUPE_ALL            (1 << 3) /* otherwise only selected are copied */
