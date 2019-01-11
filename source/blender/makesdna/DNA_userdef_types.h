@@ -744,9 +744,6 @@ typedef struct UserDef {
 	short tweak_threshold;
 	char navigation_mode, pad10;
 
-	/** Author name for file formats supporting it. */
-	char author[80];
-
 	char font_path_ui[1024];
 	char font_path_ui_mono[1024];
 

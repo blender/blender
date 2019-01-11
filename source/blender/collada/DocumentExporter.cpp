@@ -243,12 +243,7 @@ int DocumentExporter::exportCurrentScene()
 
 	asset.setUnit(unitname, linearmeasure);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
-	if (U.author[0] != '\0') {
-		asset.getContributor().mAuthor = U.author;
-	}
-	else {
-		asset.getContributor().mAuthor = "Blender User";
-	}
+	asset.getContributor().mAuthor = "Blender User";
 	char version_buf[128];
 #ifdef WITH_BUILDINFO
 	BLI_snprintf(version_buf, sizeof(version_buf), "Blender %d.%02d.%d commit date:%s, commit time:%s, hash:%s",

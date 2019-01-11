@@ -1263,7 +1263,6 @@ class USERPREF_PT_file_saveload(PreferencePanel):
 
         flow.prop(paths, "save_version")
         flow.prop(paths, "recent_files")
-        flow.prop(paths, "author", text="Author")
 
 
 class USERPREF_PT_file_saveload_autosave(PreferencePanel):

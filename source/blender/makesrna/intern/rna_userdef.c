@@ -4924,12 +4924,6 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	                         "(unsafe with blend files from an untrusted source)");
 	RNA_def_property_update(prop, 0, "rna_userdef_script_autoexec_update");
 
-	prop = RNA_def_property(srna, "author", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "author");
-	RNA_def_property_string_maxlength(prop, 80);
-	RNA_def_property_ui_text(prop, "Author",
-	                         "Name that will be used in exported files when format supports such feature");
-
 	prop = RNA_def_property(srna, "use_tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_TXT_TABSTOSPACES_DISABLE);
 	RNA_def_property_ui_text(prop, "Tabs as Spaces",
