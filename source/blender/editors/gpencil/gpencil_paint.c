@@ -2489,6 +2489,7 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 						"Esc/RMB to cancel"));
 					break;
 				case GP_PAINTMODE_DRAW:
+				{
 					GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
 					if (guide->use_guide) {
 						ED_workspace_status_text(C, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
@@ -2498,6 +2499,7 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 						ED_workspace_status_text(C, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw"));
 					}
 					break;
+				}
 				case GP_PAINTMODE_DRAW_POLY:
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
 						"Release Shift/ESC/Enter to end  (or click outside this area)"));
