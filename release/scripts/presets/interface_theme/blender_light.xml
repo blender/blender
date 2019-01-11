@@ -343,7 +343,7 @@
     </user_interface>
     <view_3d>
       <ThemeView3D
-        grid="#46464633"
+        grid="#00000033"
         clipping_border_3d="#313131ff"
         wire="#000000"
         wire_edit="#000000"
@@ -431,9 +431,9 @@
             >
             <gradients>
               <ThemeGradientColors
-                show_grad="TRUE"
-                gradient="#444444"
-                high_gradient="#858585"
+                show_grad="FALSE"
+                high_gradient="#646464"
+                gradient="#646464"
                 >
               </ThemeGradientColors>
             </gradients>
