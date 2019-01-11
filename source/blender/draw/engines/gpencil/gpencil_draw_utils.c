@@ -141,6 +141,8 @@ static void gpencil_calc_vertex(
 			cache->b_fill.tot_vertex *= factor;
 			cache->b_stroke.tot_vertex *= factor;
 			cache->b_point.tot_vertex *= factor;
+			cache->b_edit.tot_vertex *= factor;
+			cache->b_edlin.tot_vertex *= factor;
 		}
 	}
 }
