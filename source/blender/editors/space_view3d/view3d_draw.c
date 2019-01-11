@@ -248,20 +248,22 @@ static void view3d_stereo3d_setup(
 
 	/* update the viewport matrices with the new camera */
 	if (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D) {
-		Camera *data;
+		Camera *data, *data_eval;
 		float viewmat[4][4];
 		float shiftx;
 
 		data = (Camera *)v3d->camera->data;
-		shiftx = data->shiftx;
+		data_eval = (Camera *)DEG_get_evaluated_id(depsgraph, &data->id);
+
+		shiftx = data_eval->shiftx;
 
 		BLI_thread_lock(LOCK_VIEW3D);
-		data->shiftx = BKE_camera_multiview_shift_x(&scene->r, v3d->camera, viewname);
+		data_eval->shiftx = BKE_camera_multiview_shift_x(&scene->r, v3d->camera, viewname);
 
 		BKE_camera_multiview_view_matrix(&scene->r, v3d->camera, is_left, viewmat);
 		view3d_main_region_setup_view(depsgraph, scene, v3d, ar, viewmat, NULL, rect);
 
-		data->shiftx = shiftx;
+		data_eval->shiftx = shiftx;
 		BLI_thread_unlock(LOCK_VIEW3D);
 	}
 	else { /* SCE_VIEWS_FORMAT_MULTIVIEW */
