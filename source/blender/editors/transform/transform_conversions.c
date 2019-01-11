@@ -1162,10 +1162,17 @@ static void createTransPose(TransInfo *t)
 			continue;
 		}
 
+		/* set flags and count total */
+		tc->data_len = count_set_pose_transflags(ob, t->mode, t->around, has_translate_rotate);
+		if (tc->data_len == 0) {
+			continue;
+		}
+
 		if (arm->flag & ARM_RESTPOS) {
 			if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE) == 0) {
 				BKE_report(t->reports, RPT_ERROR, "Cannot change Pose when 'Rest Position' is enabled");
-				return;
+				tc->data_len = 0;
+				continue;
 			}
 		}
 
@@ -1174,10 +1181,6 @@ static void createTransPose(TransInfo *t)
 			ik_on = pose_grab_with_ik(bmain, ob);
 			if (ik_on) t->flag |= T_AUTOIK;
 		}
-
-		/* set flags and count total (warning, can change transform to rotate) */
-		tc->data_len = count_set_pose_transflags(ob, t->mode, t->around, has_translate_rotate);
-		/* len may be zero, skip next iteration. */
 	}
 
 	/* if there are no translatable bones, do rotation */
