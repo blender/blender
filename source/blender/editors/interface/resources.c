@@ -194,15 +194,13 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 					}
 					cp = back;
 					break;
-				case TH_LOW_GRAD:
-					cp = ts->gradients.gradient;
+				case TH_BACK_GRAD:
+					cp = ts->back_grad;
 					break;
-				case TH_HIGH_GRAD:
-					cp = ts->gradients.high_gradient;
-					break;
+
 				case TH_SHOW_BACK_GRAD:
 					cp = &setting;
-					setting = ts->gradients.show_grad;
+					setting = ts->show_back_grad;
 					break;
 				case TH_TEXT:
 					if (theme_regionid == RGN_TYPE_WINDOW)

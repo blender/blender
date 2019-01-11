@@ -58,6 +58,8 @@ typedef enum ThemeColorID {
 // common colors among spaces
 
 	TH_BACK,
+	/** Use when 'TH_SHOW_BACK_GRAD' is set (the lower, darker color). */
+	TH_BACK_GRAD,
 	TH_TEXT,
 	TH_TEXT_HI,
 	TH_TITLE,
@@ -296,8 +298,6 @@ typedef enum ThemeColorID {
 	TH_GIZMO_A,
 	TH_GIZMO_B,
 
-	TH_LOW_GRAD,
-	TH_HIGH_GRAD,
 	TH_SHOW_BACK_GRAD,
 
 	TH_INFO_SELECTED,

@@ -164,13 +164,6 @@ typedef struct uiPanelColors {
 	char pad2[4];
 } uiPanelColors;
 
-typedef struct uiGradientColors {
-	char gradient[4];
-	char high_gradient[4];
-	int show_grad;
-	int pad2;
-} uiGradientColors;
-
 typedef struct ThemeUI {
 	/* Interface Elements (buttons, menus, icons) */
 	uiWidgetColors wcol_regular, wcol_tool, wcol_toolbar_item, wcol_text;
@@ -227,6 +220,11 @@ typedef struct ThemeUI {
 typedef struct ThemeSpace {
 	/* main window colors */
 	char back[4];
+	char back_grad[4];
+
+	char show_back_grad;
+	char _pad0[3];
+
 	/** Panel title. */
 	char title[4];
 	char text[4];
@@ -276,8 +274,6 @@ typedef struct ThemeSpace {
 
 	/* note, cannot use name 'panel' because of DNA mapping old files */
 	uiPanelColors panelcolors;
-
-	uiGradientColors gradients;
 
 	char shade1[4];
 	char shade2[4];

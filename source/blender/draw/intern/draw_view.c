@@ -95,8 +95,8 @@ void DRW_draw_background(void)
 
 		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR_DITHER);
 
-		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
-		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
+		UI_GetThemeColor3ubv(TH_BACK_GRAD, col_lo);
+		UI_GetThemeColor3ubv(TH_BACK, col_hi);
 
 		immBegin(GPU_PRIM_TRI_FAN, 4);
 		immAttr3ubv(color, col_lo);
@@ -118,7 +118,7 @@ void DRW_draw_background(void)
 	}
 	else {
 		/* Solid background Color */
-		UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
+		UI_ThemeClearColorAlpha(TH_BACK, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 }

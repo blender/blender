@@ -88,7 +88,7 @@ void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float
 		return;
 	}
 
-	UI_GetThemeColor3fv(TH_HIGH_GRAD, r_color);
+	UI_GetThemeColor3fv(TH_BACK, r_color);
 }
 
 void ED_view3d_cursor3d_calc_mat3(const Scene *scene, float mat[3][3])

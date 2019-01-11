@@ -67,8 +67,8 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		copy_v3_v3(wd->background_color_high, v3d->shading.background_color);
 	}
 	else if (v3d) {
-		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
-		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
+		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_BACK_GRAD : TH_BACK, wd->background_color_low);
+		UI_GetThemeColor3fv(TH_BACK, wd->background_color_high);
 
 		/* XXX: Really quick conversion to avoid washed out background.
 		 * Needs to be addressed properly (color managed using ocio). */

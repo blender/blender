@@ -60,8 +60,8 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, ts.colorWireEdit);
 	UI_GetThemeColor4fv(TH_ACTIVE, ts.colorActive);
 	UI_GetThemeColor4fv(TH_SELECT, ts.colorSelect);
-	UI_GetThemeColorBlend4f(TH_SELECT, TH_HIGH_GRAD, 0.66f, ts.colorDupliSelect);
-	UI_GetThemeColorBlend4f(TH_WIRE, TH_HIGH_GRAD, 0.66f, ts.colorDupli);
+	UI_GetThemeColorBlend4f(TH_SELECT, TH_BACK, 0.5f, ts.colorDupliSelect);
+	UI_GetThemeColorBlend4f(TH_WIRE, TH_BACK, 0.5f, ts.colorDupli);
 	UI_COLOR_RGBA_FROM_U8(0x88, 0xFF, 0xFF, 155, ts.colorLibrarySelect);
 	UI_COLOR_RGBA_FROM_U8(0x55, 0xCC, 0xCC, 155, ts.colorLibrary);
 	UI_GetThemeColor4fv(TH_TRANSFORM, ts.colorTransform);

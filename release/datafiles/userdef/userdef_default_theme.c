@@ -279,6 +279,7 @@ const bTheme U_theme_default = {
 		.facedot_size = 4,
 	},
 	.tv3d = {
+		.back = RGBA(0x393939ff),
 		.title = RGBA(0xeeeeeeff),
 		.text = RGBA(0xe6e6e6ff),
 		.text_hi = RGBA(0xffffffff),
@@ -297,10 +298,6 @@ const bTheme U_theme_default = {
 			.header = RGBA(0x424242e6),
 			.back = RGBA(0x333333f0),
 			.sub_back = RGBA(0x0000003e),
-		},
-		.gradients = {
-			.gradient = RGBA(0x39393900),
-			.high_gradient = RGBA(0x393939ff),
 		},
 		.grid = RGBA(0xa7a7a733),
 		.wire = RGBA(0x000000ff),

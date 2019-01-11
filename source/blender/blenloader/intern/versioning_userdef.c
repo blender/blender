@@ -108,6 +108,10 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		copy_v4_v4_char(btheme->tuserpref.execution_buts, btheme->tuserpref.navigation_bar);
 	}
 
+	if (!USER_VERSION_ATLEAST(280, 41)) {
+		copy_v4_v4_char(btheme->tv3d.back, U_theme_default.tv3d.back);
+	}
+
 #undef USER_VERSION_ATLEAST
 }
 
@@ -465,15 +469,19 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		        USER_UIFLAG_DEPRECATED_22);
 	}
 
-	/**
-	 * Include next version bump.
-	 */
-	{
+	if (!USER_VERSION_ATLEAST(280, 41)) {
 		/* (keep this block even if it becomes empty). */
 
 		if (userdef->pie_tap_timeout == 0) {
 			userdef->pie_tap_timeout = 20;
 		}
+	}
+
+	/**
+	 * Include next version bump.
+	 */
+	{
+		/* (keep this block even if it becomes empty). */
 	}
 
 	if (userdef->pixelsize == 0.0f)
