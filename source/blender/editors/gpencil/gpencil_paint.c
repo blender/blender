@@ -2474,20 +2474,27 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 #endif
 
 		case GP_STATUS_IDLING:
+		{
 			/* print status info */
 			switch (p->paintmode) {
 				case GP_PAINTMODE_ERASER:
+				{
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | "
 						"ESC/Enter to end  (or click outside this area)"));
 					break;
+				}
 				case GP_PAINTMODE_DRAW_STRAIGHT:
+				{
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Line Session: Hold and drag LMB to draw | "
 						"ESC/Enter to end  (or click outside this area)"));
 					break;
+				}
 				case GP_PAINTMODE_SET_CP:
+				{
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Guides: LMB click and release to place reference point | "
 						"Esc/RMB to cancel"));
 					break;
+				}
 				case GP_PAINTMODE_DRAW:
 				{
 					GP_Sculpt_Guide *guide = &p->scene->toolsettings->gp_sculpt.guide;
@@ -2501,21 +2508,26 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 					break;
 				}
 				case GP_PAINTMODE_DRAW_POLY:
+				{
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
 						"Release Shift/ESC/Enter to end  (or click outside this area)"));
 					break;
-
+				}
 				default: /* unhandled future cases */
+				{
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Session: ESC/Enter to end   (or click outside this area)"));
 					break;
+				}
 			}
 			break;
-
+		}
 		case GP_STATUS_ERROR:
 		case GP_STATUS_DONE:
+		{
 			/* clear status string */
 			ED_workspace_status_text(C, NULL);
 			break;
+		}
 		case GP_STATUS_PAINTING:
 			break;
 	}
