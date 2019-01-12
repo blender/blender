@@ -1888,10 +1888,17 @@ static void nlastrip_evaluate_controls(Depsgraph *depsgraph, NlaStrip *strip, fl
 	 * - we do this after the F-Curves have been evaluated to override the effects of those
 	 *   in case the override has been turned off.
 	 */
-	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
-		strip->strip_time = nlastrip_get_frame(strip, ctime, NLATIME_CONVERT_EVAL);
 	if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
 		strip->influence = nlastrip_get_influence(strip, ctime);
+
+	/* Bypass evaluation time computation if time mapping is disabled. */
+	if ((strip->flag & NLASTRIP_FLAG_NO_TIME_MAP) != 0) {
+		strip->strip_time = ctime;
+		return;
+	}
+
+	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
+		strip->strip_time = nlastrip_get_frame(strip, ctime, NLATIME_CONVERT_EVAL);
 
 	/* if user can control the evaluation time (using F-Curves), consider the option which allows this time to be clamped
 	 * to lie within extents of the action-clip, so that a steady changing rate of progress through several cycles of the clip
@@ -1912,7 +1919,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(Depsgraph *depsgraph, ListBase *list, Li
 	/* loop over strips, checking if they fall within the range */
 	for (strip = strips->first; strip; strip = strip->next) {
 		/* check if current time occurs within this strip  */
-		if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
+		if (IN_RANGE_INCL(ctime, strip->start, strip->end) || (strip->flag & NLASTRIP_FLAG_NO_TIME_MAP)) {
 			/* this strip is active, so try to use it */
 			estrip = strip;
 			side = NES_TIME_WITHIN;
@@ -2971,11 +2978,16 @@ static bool animsys_evaluate_nla(Depsgraph *depsgraph, NlaEvalData *echannels, P
 				/* Always use the blend mode of the strip in tweak mode, even if not in-place. */
 				if (nlt && adt->actstrip) {
 					dummy_strip->blendmode = adt->actstrip->blendmode;
-					dummy_strip->extendmode = adt->actstrip->extendmode;
+					dummy_strip->extendmode = NLASTRIP_EXTEND_HOLD;
 				}
 				else {
 					dummy_strip->blendmode = adt->act_blendmode;
 					dummy_strip->extendmode = adt->act_extendmode;
+				}
+
+				/* Unless extendmode is Nothing (might be useful for flattening NLA evaluation), disable range. */
+				if (dummy_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+					dummy_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;
 				}
 
 				dummy_strip->influence = adt->act_influence;
