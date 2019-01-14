@@ -59,6 +59,9 @@ typedef BOOL (API * GHOST_WIN32_WTPacket)(HCTX, UINT, LPVOID);
 typedef BOOL (API * GHOST_WIN32_WTEnable)(HCTX, BOOL);
 typedef BOOL (API * GHOST_WIN32_WTOverlap)(HCTX, BOOL);
 
+// typedef to user32 functions to disable gestures on windows
+typedef BOOL(API * GHOST_WIN32_RegisterTouchWindow)(HWND hwnd, ULONG ulFlags);
+
 // typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions
 typedef UINT(API * GHOST_WIN32_GetDpiForWindow)(HWND);
 #ifndef USER_DEFAULT_SCREEN_DPI
