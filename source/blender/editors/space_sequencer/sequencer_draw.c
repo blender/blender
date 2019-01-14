@@ -1565,7 +1565,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	/* loop through twice, first unselected, then selected */
 	for (j = 0; j < 2; j++) {
 		Sequence *seq;
-		int outline_tint = (j) ? 40 : -40; /* highlighting around strip edges indicating selection */
+		int outline_tint = (j) ? -60 : -150; /* highlighting around strip edges indicating selection */
 
 		/* loop through strips, checking for those that are visible */
 		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
