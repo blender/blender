@@ -88,14 +88,16 @@ def generate(context, space_type):
     km_name_default = "Toolbar Popup"
     km_name = km_name_default + " <temp>"
     wm = context.window_manager
-    keyconf = wm.keyconfigs.active
-    keymap = keyconf.keymaps.get(km_name)
+    keyconf_user = wm.keyconfigs.user
+    keyconf_active = wm.keyconfigs.active
+
+    keymap = keyconf_active.keymaps.get(km_name)
     if keymap is None:
-        keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
+        keymap = keyconf_active.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
     for kmi in keymap.keymap_items:
         keymap.keymap_items.remove(kmi)
 
-    keymap_src = keyconf.keymaps.get(km_name_default)
+    keymap_src = keyconf_user.keymaps.get(km_name_default)
     if keymap_src is not None:
         for kmi_src in keymap_src.keymap_items:
             # Skip tools that aren't currently shown.
@@ -222,7 +224,7 @@ def generate(context, space_type):
                 include={'KEYBOARD'},
             )[1]
         elif item.keymap is not None:
-            km = keyconf.keymaps.get(item.keymap[0])
+            km = keyconf_user.keymaps.get(item.keymap[0])
             if km is None:
                 print("Keymap", repr(item.keymap[0]), "not found for tool", item.text)
                 kmi_found = None
