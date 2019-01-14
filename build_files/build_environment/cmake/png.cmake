@@ -36,7 +36,7 @@ add_dependencies(
 	external_zlib
 )
 
-if(BUILD_MODE STREQUAL Debug)
+if(WIN32 AND BUILD_MODE STREQUAL Debug)
 	ExternalProject_Add_Step(external_png after_install
 		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/png/lib/libpng16_staticd${LIBEXT} ${LIBDIR}/png/lib/libpng16${LIBEXT}
 		DEPENDEES install
