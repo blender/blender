@@ -249,7 +249,8 @@ static void gp_primitive_update_cps(tGPDprimitive *tgpi)
 }
 
 /* Helper to reflect point */
-static void gp_reflect_point_v2_v2v2v2(float va[2], const float p[2], const float a[2], const float b[2])
+static void UNUSED_FUNCTION(gp_reflect_point_v2_v2v2v2)(
+        float va[2], const float p[2], const float a[2], const float b[2])
 {
 	float point[2];
 	closest_to_line_v2(point, p, a, b);
