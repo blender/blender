@@ -100,8 +100,6 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
  */
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-	// modifier_setError(md, "Hello world");
-	// return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
 	Mesh *result;
 	BMesh *bm;
 	BMIter iter;
