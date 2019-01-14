@@ -3850,7 +3850,7 @@ static void gpencil_cutter_dissolve(bGPDlayer *hit_layer, bGPDstroke *hit_stroke
 	}
 
 	/* if all points selected delete or only 2 points and 1 selected */
-	if ((totselect == 1) && (hit_stroke->totpoints == 2) ||
+	if (((totselect == 1) && (hit_stroke->totpoints == 2)) ||
 		(hit_stroke->totpoints == totselect))
 	{
 		BLI_remlink(&hit_layer->actframe->strokes, hit_stroke);

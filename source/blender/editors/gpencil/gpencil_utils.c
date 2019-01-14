@@ -2052,7 +2052,7 @@ static bool gpencil_check_collision(
 	return hit;
 }
 
-void static gp_copy_points(
+static void gp_copy_points(
 	bGPDstroke *gps, bGPDspoint *pt, bGPDspoint *pt_final, int i, int i2)
 {
 	copy_v3_v3(&pt_final->x, &pt->x);
@@ -2073,7 +2073,7 @@ void static gp_copy_points(
 
 }
 
-void static gp_insert_point(
+static void gp_insert_point(
 	bGPDstroke *gps,
 	bGPDspoint *a_pt, bGPDspoint *b_pt,
 	float co_a[3], float co_b[3])
@@ -2182,7 +2182,6 @@ int ED_gpencil_select_stroke_segment(
 	/* Save list of strokes to check */
 	int totstrokes = 0;
 	for (bGPDstroke *gps_iter = gpf->strokes.first; gps_iter; gps_iter = gps_iter->next) {
-		
 		if (gps_iter->totpoints < 2) {
 			continue;
 		}
