@@ -86,29 +86,42 @@
 /* define a single unit */
 typedef struct bUnitDef {
 	const char *name;
-	const char *name_plural; /* abused a bit for the display name */
-	const char *name_short; /* this is used for display*/
-	const char *name_alt; /* keyboard-friendly ASCII-only version of name_short, can be NULL */
+	/** abused a bit for the display name */
+	const char *name_plural;
+	/** this is used for display*/
+	const char *name_short;
+	/** keyboard-friendly ASCII-only version of name_short, can be NULL */
+	const char *name_alt;
 	/* if name_short has non-ASCII chars, name_alt should be present */
 
-	const char *name_display; /* can be NULL */
-	const char *identifier; /* when NULL, a transformed version of the name will be taken */
+	/** can be NULL */
+	const char *name_display;
+	/** when NULL, a transformed version of the name will be taken */
+	const char *identifier;
 
 	double scalar;
-	double bias; /* not used yet, needed for converting temperature */
+	/** not used yet, needed for converting temperature */
+	double bias;
 	int flag;
 } bUnitDef;
 
-#define B_UNIT_DEF_NONE 0
-#define B_UNIT_DEF_SUPPRESS 1 /* Use for units that are not used enough to be translated into for common use */
-#define B_UNIT_DEF_TENTH 2 /* Display a unit even if its value is 0.1, eg 0.1mm instead of 100um */
+enum {
+	B_UNIT_DEF_NONE = 0,
+	/** Use for units that are not used enough to be translated into for common use */
+	B_UNIT_DEF_SUPPRESS = 1,
+	/** Display a unit even if its value is 0.1, eg 0.1mm instead of 100um */
+	B_UNIT_DEF_TENTH = 2,
+};
 
 /* define a single unit */
 typedef struct bUnitCollection {
 	const struct bUnitDef *units;
-	int base_unit; /* basic unit index (when user doesn't specify unit explicitly) */
-	int flag; /* options for this system */
-	int length; /* to quickly find the last item */
+	/** basic unit index (when user doesn't specify unit explicitly) */
+	int base_unit;
+	/** options for this system */
+	int flag;
+	/** to quickly find the last item */
+	int length;
 } bUnitCollection;
 
 #define UNIT_COLLECTION_LENGTH(def) (sizeof(def) / sizeof(bUnitDef) - 1)

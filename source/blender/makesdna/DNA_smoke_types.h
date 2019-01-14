@@ -283,10 +283,16 @@ typedef struct SmokeDomainSettings {
 #define MOD_SMOKE_FLOW_TEXTURE_MAP_UV 1
 
 /* flags */
-#define MOD_SMOKE_FLOW_ABSOLUTE (1<<1) /*old style emission*/
-#define MOD_SMOKE_FLOW_INITVELOCITY (1<<2) /* passes particles speed to the smoke */
-#define MOD_SMOKE_FLOW_TEXTUREEMIT (1<<3) /* use texture to control emission speed */
-#define MOD_SMOKE_FLOW_USE_PART_SIZE (1<<4) /* use specific size for particles instead of closest cell */
+enum {
+	/**old style emission*/
+	MOD_SMOKE_FLOW_ABSOLUTE = (1 << 1),
+	/** passes particles speed to the smoke */
+	MOD_SMOKE_FLOW_INITVELOCITY = (1 << 2),
+	/** use texture to control emission speed */
+	MOD_SMOKE_FLOW_TEXTUREEMIT = (1 << 3),
+	/** use specific size for particles instead of closest cell */
+	MOD_SMOKE_FLOW_USE_PART_SIZE = (1 << 4),
+};
 
 typedef struct SmokeFlowSettings {
 	/** For fast RNA access. */

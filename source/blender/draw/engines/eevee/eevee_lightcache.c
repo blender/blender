@@ -71,7 +71,8 @@
 #  define IRRADIANCE_FORMAT GPU_RGBA8
 #endif
 
-#define IRRADIANCE_MAX_POOL_LAYER 256 /* OpenGL 3.3 core requirement, can be extended but it's already very big */
+/* OpenGL 3.3 core requirement, can be extended but it's already very big */
+#define IRRADIANCE_MAX_POOL_LAYER 256
 #define IRRADIANCE_MAX_POOL_SIZE 1024
 #define MAX_IRRADIANCE_SAMPLES \
         (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_X) * \

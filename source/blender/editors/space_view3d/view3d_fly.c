@@ -28,7 +28,8 @@
 
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_FLY_DEBUG
-//#  define NDOF_FLY_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesn't thrash - campbell */
+/* is this needed for ndof? - commented so redraw doesn't thrash - campbell */
+//#  define NDOF_FLY_DRAW_TOOMUCH
 #endif /* WITH_INPUT_NDOF */
 
 #include "DNA_object_types.h"
@@ -62,7 +63,8 @@
 
 #include "view3d_intern.h"  /* own include */
 
-/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+/* NOTE: these defines are saved in keymap files,
+ * do not change values but just add new ones */
 enum {
 	FLY_MODAL_CANCEL = 1,
 	FLY_MODAL_CONFIRM,

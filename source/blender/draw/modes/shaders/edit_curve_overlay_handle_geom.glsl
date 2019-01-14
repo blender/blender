@@ -1,7 +1,8 @@
 
 #define VERTEX_ACTIVE   1 << 0
 #define VERTEX_SELECTED 1 << 1
-#define ACTIVE_NURB     1 << 2 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
+/* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
+#define ACTIVE_NURB     1 << 2
 #define EVEN_U_BIT      1 << 3
 
 layout(lines) in;

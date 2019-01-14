@@ -185,7 +185,8 @@ enum {
 	IMA_OLD_PREMUL          = (1 << 7),
 	IMA_FLAG_DEPRECATED_8   = (1 << 8),  /* cleared */
 	IMA_USED_FOR_RENDER     = (1 << 9),
-	IMA_USER_FRAME_IN_RANGE = (1 << 10), /* for image user, but these flags are mixed */
+	/** For image user, but these flags are mixed. */
+	IMA_USER_FRAME_IN_RANGE = (1 << 10),
 	IMA_VIEW_AS_RENDER      = (1 << 11),
 	IMA_IGNORE_ALPHA        = (1 << 12),
 	IMA_DEINTERLACE         = (1 << 13),
@@ -195,14 +196,18 @@ enum {
 };
 
 /* Image.tpageflag */
-#define IMA_TPAGEFLAG_DEPRECATED_0      (1 << 0)  /* cleared */
-#define IMA_TPAGEFLAG_DEPRECATED_1      (1 << 1)  /* cleared */
-#define IMA_TPAGEFLAG_DEPRECATED_2      (1 << 2)  /* cleared */
-#define IMA_MIPMAP_COMPLETE             (1 << 3)  /* all mipmap levels in OpenGL texture set? */
-#define IMA_TPAGEFLAG_DEPRECATED_4      (1 << 4)  /* cleared */
-#define IMA_TPAGEFLAG_DEPRECATED_5      (1 << 5)  /* cleared */
-#define IMA_TPAGE_REFRESH               (1 << 6)
-#define IMA_GLBIND_IS_DATA              (1 << 7) /* opengl image texture bound as non-color data */
+enum {
+	IMA_TPAGEFLAG_DEPRECATED_0 =      (1 << 0),  /* cleared */
+	IMA_TPAGEFLAG_DEPRECATED_1 =      (1 << 1),  /* cleared */
+	IMA_TPAGEFLAG_DEPRECATED_2 =      (1 << 2),  /* cleared */
+	/** All mipmap levels in OpenGL texture set? */
+	IMA_MIPMAP_COMPLETE =             (1 << 3),
+	IMA_TPAGEFLAG_DEPRECATED_4 =      (1 << 4),  /* cleared */
+	IMA_TPAGEFLAG_DEPRECATED_5 =      (1 << 5),  /* cleared */
+	IMA_TPAGE_REFRESH =               (1 << 6),
+	/** OpenGL image texture bound as non-color data. */
+	IMA_GLBIND_IS_DATA =              (1 << 7),
+};
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 
