@@ -2291,6 +2291,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_vertices);
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_loose_verts);
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_loose_edges);
+			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_loose_edges_nor);
 			GPU_BATCH_DISCARD_SAFE(cache->batch.edit_facedots);
 			/* Paint mode selection */
 			/* TODO only do that in paint mode. */
@@ -5154,6 +5155,7 @@ void DRW_mesh_batch_cache_create_requested(
 	}
 	if (DRW_batch_requested(cache->batch.edit_loose_edges_nor, GPU_PRIM_POINTS)) {
 		DRW_vbo_request(cache->batch.edit_loose_edges_nor, &cache->edit.pos_nor_ledges);
+		DRW_vbo_request(cache->batch.edit_loose_edges_nor, &cache->edit.data_ledges);
 	}
 	if (DRW_batch_requested(cache->batch.edit_facedots, GPU_PRIM_POINTS)) {
 		DRW_vbo_request(cache->batch.edit_facedots, &cache->edit.pos_nor_data_facedots);
