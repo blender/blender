@@ -288,7 +288,7 @@ static void ui_colorpicker_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexc
 		IMB_colormanagement_srgb_to_scene_linear_v3(rgb);
 	}
 
-	ui_update_color_picker_buts_rgb(NULL, but->block, cpicker, rgb);
+	ui_update_color_picker_buts_rgb(but, but->block, cpicker, rgb);
 
 	if (popup)
 		popup->menuretval = UI_RETURN_UPDATE;
