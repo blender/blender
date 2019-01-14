@@ -476,6 +476,7 @@ static void ui_block_colorpicker(
 		bt = uiDefIconButO(
 		        block, UI_BTYPE_BUT, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER,
 		        butwidth + 10, yco, UI_UNIT_X, UI_UNIT_Y, NULL);
+		UI_but_drawflag_disable(bt, UI_BUT_ICON_LEFT);
 		UI_but_func_set(bt, ui_popup_close_cb, bt, NULL);
 		bt->custom_data = cpicker;
 	}
