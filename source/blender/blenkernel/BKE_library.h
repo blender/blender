@@ -123,10 +123,7 @@ enum {
 
 void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, const bool use_flag_from_idtag);
 void BKE_id_free(struct Main *bmain, void *idv);
-/* Those three naming are bad actually, should be BKE_id_free... (since it goes beyond mere datablock). */
-/* "Deprecated" old API */
-void  BKE_libblock_free_ex(struct Main *bmain, void *idv, const bool do_id_user, const bool do_ui_user) ATTR_NONNULL();
-void  BKE_libblock_free(struct Main *bmain, void *idv) ATTR_NONNULL();
+
 void  BKE_libblock_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 
 void BKE_libblock_management_main_add(struct Main *bmain, void *idv);
