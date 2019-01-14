@@ -1154,6 +1154,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			sequencer_draw_gpencil(C);
 		}
 
+		UI_view2d_view_restore(C);
 		return;
 	}
 
