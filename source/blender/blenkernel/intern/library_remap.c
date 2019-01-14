@@ -846,7 +846,12 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 	}
 
 #ifdef WITH_PYTHON
+#  ifdef WITH_PYTHON_SAFETY
 	BPY_id_release(id);
+#  endif
+	if (id->py_instance) {
+		BPY_DECREF_RNA_INVALIDATE(id->py_instance);
+	}
 #endif
 
 	if ((flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0) {
@@ -856,7 +861,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 	BKE_libblock_free_datablock(id, flag);
 
 	/* avoid notifying on removed data */
-	if (bmain) {
+	if ((flag & LIB_ID_FREE_NO_MAIN) == 0) {
 		BKE_main_lock(bmain);
 	}
 
@@ -877,7 +882,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 
 	BKE_libblock_free_data(id, (flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0);
 
-	if (bmain) {
+	if ((flag & LIB_ID_FREE_NO_MAIN) == 0) {
 		BKE_main_unlock(bmain);
 	}
 
