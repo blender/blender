@@ -1645,7 +1645,7 @@ void BKE_gpencil_stroke_2d_flat_ref(
 		copy_v3_v3(v3, &pt3->x);
 	}
 
-	sub_v3_v3v3(loc3,v3, &pt0->x);
+	sub_v3_v3v3(loc3, v3, &pt0->x);
 
 	/* vector orthogonal to polygon plane */
 	cross_v3_v3v3(normal, locx, loc3);
@@ -1686,7 +1686,7 @@ void BKE_gpencil_stroke_2d_flat_ref(
 		else {
 			copy_v3_v3(v1, &pt->x);
 		}
-		
+
 		/* Get local space using first point as origin (ref stroke) */
 		sub_v3_v3v3(loc, v1, &pt0->x);
 

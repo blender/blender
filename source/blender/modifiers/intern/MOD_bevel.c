@@ -76,7 +76,6 @@ static void initData(ModifierData *md)
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
 {
-	BevelModifierData *bmd_src = (BevelModifierData *)md_src;
 	BevelModifierData *bmd_dst = (BevelModifierData *)md_dst;
 
 	modifier_copyData_generic(md_src, md_dst, flag);

@@ -2545,14 +2545,21 @@ static int gp_stroke_caps_set_exec(bContext *C, wmOperator *op)
 			MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
 			/* skip strokes that are not selected or invalid for current view */
-			if (((gps->flag & GP_STROKE_SELECT) == 0) || ED_gpencil_stroke_can_use(C, gps) == false)
+			if (((gps->flag & GP_STROKE_SELECT) == 0) ||
+			    (ED_gpencil_stroke_can_use(C, gps) == false))
+			{
 				continue;
+			}
 			/* skip hidden or locked colors */
-			if (!gp_style || (gp_style->flag & GP_STYLE_COLOR_HIDE) || (gp_style->flag & GP_STYLE_COLOR_LOCKED))
+			if (!gp_style ||
+			    (gp_style->flag & GP_STYLE_COLOR_HIDE) ||
+			    (gp_style->flag & GP_STYLE_COLOR_LOCKED))
+			{
 				continue;
+			}
 
 			if ((type == GP_STROKE_CAPS_TOGGLE_BOTH) ||
-				(type == GP_STROKE_CAPS_TOGGLE_START))
+			    (type == GP_STROKE_CAPS_TOGGLE_START))
 			{
 				++gps->caps[0];
 				if (gps->caps[0] >= GP_STROKE_CAP_MAX) {
@@ -2560,7 +2567,7 @@ static int gp_stroke_caps_set_exec(bContext *C, wmOperator *op)
 				}
 			}
 			if ((type == GP_STROKE_CAPS_TOGGLE_BOTH) ||
-				(type == GP_STROKE_CAPS_TOGGLE_END))
+			    (type == GP_STROKE_CAPS_TOGGLE_END))
 			{
 				++gps->caps[1];
 				if (gps->caps[1] >= GP_STROKE_CAP_MAX) {
@@ -3851,7 +3858,7 @@ static void gpencil_cutter_dissolve(bGPDlayer *hit_layer, bGPDstroke *hit_stroke
 
 	/* if all points selected delete or only 2 points and 1 selected */
 	if (((totselect == 1) && (hit_stroke->totpoints == 2)) ||
-		(hit_stroke->totpoints == totselect))
+	    (hit_stroke->totpoints == totselect))
 	{
 		BLI_remlink(&hit_layer->actframe->strokes, hit_stroke);
 		BKE_gpencil_free_stroke(hit_stroke);
@@ -3950,7 +3957,7 @@ static int gpencil_cutter_lasso_select(
 		}
 		/* if mark all points inside lasso set to remove all stroke */
 		if ((tot_inside == oldtot) ||
-			((tot_inside == 1) && (oldtot == 2)))
+		    ((tot_inside == 1) && (oldtot == 2)))
 		{
 			for (i = 0; i < gps->totpoints; i++) {
 				pt = &gps->points[i];

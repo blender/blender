@@ -861,11 +861,11 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
  *       It would be great to de-duplicate the logic here sometime, but that can wait...
  */
 static bool gp_stroke_do_circle_sel(
-		bGPDlayer *gpl,
+        bGPDlayer *gpl,
         bGPDstroke *gps, GP_SpaceConversion *gsc,
         const int mx, const int my, const int radius,
         const bool select, rcti *rect, float diff_mat[4][4], const int selectmode,
-		const float scale)
+        const float scale)
 {
 	bGPDspoint *pt1 = NULL;
 	bGPDspoint *pt2 = NULL;
@@ -1088,8 +1088,8 @@ static int gpencil_generic_select_exec(
 	        (ts->gpencil_selectmode == GP_SELECTMODE_STROKE) &&
 	        ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
 	const bool segmentmode = (
-			(ts->gpencil_selectmode == GP_SELECTMODE_SEGMENT) &&
-			((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
+	        (ts->gpencil_selectmode == GP_SELECTMODE_SEGMENT) &&
+	        ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0));
 	const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
 	const float scale = ts->gp_sculpt.isect_threshold;
 
@@ -1143,9 +1143,7 @@ static int gpencil_generic_select_exec(
 					changed = true;
 
 					/* expand selection to segment */
-					if ((sel_op_result != -1) &&
-						(segmentmode))
-					{
+					if ((sel_op_result != -1) && (segmentmode)) {
 						bool hit_select = (bool)(pt->flag & GP_SPOINT_SELECT);
 						float r_hita[3], r_hitb[3];
 						ED_gpencil_select_stroke_segment(
@@ -1491,8 +1489,8 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 				float r_hita[3], r_hitb[3];
 				bool hit_select = (bool)(hit_point->flag & GP_SPOINT_SELECT);
 				ED_gpencil_select_stroke_segment(
-						hit_layer, hit_stroke, hit_point, hit_select,
-						false, scale, r_hita, r_hitb);
+				        hit_layer, hit_stroke, hit_point, hit_select,
+				        false, scale, r_hita, r_hitb);
 			}
 		}
 		else {

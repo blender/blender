@@ -255,12 +255,12 @@ static bool edbm_bevel_calc(wmOperator *op)
 
 		EDBM_op_init(
 		        em, &bmop, op,
-		        "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
-		        "material=%i loop_slide=%b mark_seam=%b mark_sharp=%b harden_normals=%b face_strength_mode=%i "
-				"smoothresh=%f",
+		        "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f "
+		        "clamp_overlap=%b material=%i loop_slide=%b mark_seam=%b mark_sharp=%b "
+		        "harden_normals=%b face_strength_mode=%i smoothresh=%f",
 		        BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-		        	clamp_overlap, material, loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode,
-					me->smoothresh);
+		        clamp_overlap, material, loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode,
+		        me->smoothresh);
 
 		BMO_op_exec(em->bm, &bmop);
 

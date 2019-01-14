@@ -193,7 +193,7 @@ static Mesh *doMirrorOnAxis(
 			copy_v3_v3(plane_no, itmp[axis]);
 		}
 	}
-	else if(do_bisect) {
+	else if (do_bisect) {
 		copy_v3_v3(plane_co, mtx[3]);
 		/* Need to negate here, since that axis is inverted (for mirror transform). */
 		negate_v3_v3(plane_no, mtx[axis]);

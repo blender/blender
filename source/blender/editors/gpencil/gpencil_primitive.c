@@ -689,22 +689,22 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
 	if (tgpi->tot_edges > 1) {
 		switch (tgpi->type) {
-		case GP_STROKE_BOX:
-			gp_primitive_rectangle(tgpi, points2D);
-			break;
-		case GP_STROKE_LINE:
-			gp_primitive_line(tgpi, points2D);
-			break;
-		case GP_STROKE_CIRCLE:
-			gp_primitive_circle(tgpi, points2D);
-			break;
-		case GP_STROKE_ARC:
-			gp_primitive_arc(tgpi, points2D);
-			break;
-		case GP_STROKE_CURVE:
-			gp_primitive_bezier(tgpi, points2D);
-		default:
-			break;
+			case GP_STROKE_BOX:
+				gp_primitive_rectangle(tgpi, points2D);
+				break;
+			case GP_STROKE_LINE:
+				gp_primitive_line(tgpi, points2D);
+				break;
+			case GP_STROKE_CIRCLE:
+				gp_primitive_circle(tgpi, points2D);
+				break;
+			case GP_STROKE_ARC:
+				gp_primitive_arc(tgpi, points2D);
+				break;
+			case GP_STROKE_CURVE:
+				gp_primitive_bezier(tgpi, points2D);
+			default:
+				break;
 		}
 	}
 
@@ -1444,22 +1444,28 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
 	if (tgpi->flag == IN_MOVE) {
 
 		switch (event->type) {
-		case MOUSEMOVE:
-			gpencil_primitive_move(tgpi, false);
-			gpencil_primitive_update(C, op, tgpi);
-			break;
-		case ESCKEY:
-		case LEFTMOUSE:
-			zero_v2(tgpi->move);
-			tgpi->flag = IN_CURVE_EDIT;
-			break;
-		case RIGHTMOUSE:
-			if (event->val == KM_RELEASE) {
-				tgpi->flag = IN_CURVE_EDIT;
-				gpencil_primitive_move(tgpi, true);
+			case MOUSEMOVE:
+			{
+				gpencil_primitive_move(tgpi, false);
 				gpencil_primitive_update(C, op, tgpi);
+				break;
 			}
-			break;
+			case ESCKEY:
+			case LEFTMOUSE:
+			{
+				zero_v2(tgpi->move);
+				tgpi->flag = IN_CURVE_EDIT;
+				break;
+			}
+			case RIGHTMOUSE:
+			{
+				if (event->val == KM_RELEASE) {
+					tgpi->flag = IN_CURVE_EDIT;
+					gpencil_primitive_move(tgpi, true);
+					gpencil_primitive_update(C, op, tgpi);
+				}
+				break;
+			}
 		}
 		copy_v2_v2(tgpi->mvalo, tgpi->mval);
 		return OPERATOR_RUNNING_MODAL;

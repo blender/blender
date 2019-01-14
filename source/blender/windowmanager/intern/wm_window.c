@@ -1984,7 +1984,7 @@ void WM_init_native_pixels(bool do_it)
 void WM_init_tablet_api(void)
 {
 	if (g_system) {
-		switch(U.tablet_api) {
+		switch (U.tablet_api) {
 			case USER_TABLET_NATIVE:
 				GHOST_SetTabletAPI(g_system, GHOST_kTabletNative);
 				break;
