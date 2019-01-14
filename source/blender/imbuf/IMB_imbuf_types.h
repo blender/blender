@@ -51,10 +51,14 @@
 #define IMB_FILENAME_SIZE	1024
 
 typedef struct DDSData {
-	unsigned int fourcc; /* DDS fourcc info */
-	unsigned int nummipmaps; /* The number of mipmaps in the dds file */
-	unsigned char *data; /* The compressed image data */
-	unsigned int size; /* The size of the compressed data */
+	/** DDS fourcc info */
+	unsigned int fourcc;
+	/** The number of mipmaps in the dds file */
+	unsigned int nummipmaps;
+	/** The compressed image data */
+	unsigned char *data;
+	/** The size of the compressed data */
+	unsigned int size;
 } DDSData;
 
 /**
@@ -66,9 +70,13 @@ typedef struct DDSData {
  *
  */
 
-/* ibuf->ftype flag, main image types */
-/* Warning: Keep explicit value assignments here, this file is included in areas where not all format defines
- *          are set (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined). See T46524. */
+
+/* Warning: Keep explicit value assignments here,
+ * this file is included in areas where not all format defines are set
+ * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
+ * See T46524. */
+
+/** #ImBuf.ftype flag, main image types. */
 enum eImbTypes {
 	IMB_FTYPE_PNG       = 1,
 	IMB_FTYPE_TGA       = 2,
@@ -136,24 +144,30 @@ enum eImbTypes {
 
 typedef struct ImbFormatOptions {
 	short flag;
-	char quality; /* quality serves dual purpose as quality number for jpeg or compression amount for png */
+	/** quality serves dual purpose as quality number for jpeg or compression amount for png */
+	char quality;
 } ImbFormatOptions;
 
 typedef struct ImBuf {
 	struct ImBuf *next, *prev;	/**< allow lists of ImBufs, for caches or flipbooks */
 
 	/* dimensions */
-	int x, y;				/* width and Height of our image buffer.
-							 * Should be 'unsigned int' since most formats use this.
-							 * but this is problematic with texture math in imagetexture.c
-							 * avoid problems and use int. - campbell */
+	/** Width and Height of our image buffer.
+	 * Should be 'unsigned int' since most formats use this.
+	 * but this is problematic with texture math in imagetexture.c
+	 * avoid problems and use int. - campbell */
+	int x, y;
 
-	unsigned char planes;	/* Active amount of bits/bitplanes */
-	int channels;			/* amount of channels in rect_float (0 = 4 channel default) */
+	/** Active amount of bits/bitplanes */
+	unsigned char planes;
+	/** Number of channels in `rect_float` (0 = 4 channel default) */
+	int channels;
 
 	/* flags */
-	int	flags;				/* Controls which components should exist. */
-	int	mall;				/* what is malloced internal, and can be freed */
+	/** Controls which components should exist. */
+	int	flags;
+	/** what is malloced internal, and can be freed */
+	int	mall;
 
 	/* pixels */
 
@@ -179,42 +193,63 @@ typedef struct ImBuf {
 	unsigned int **tiles;
 
 	/* zbuffer */
-	int	*zbuf;				/* z buffer data, original zbuffer */
-	float *zbuf_float;		/* z buffer data, camera coordinates */
+	/** z buffer data, original zbuffer */
+	int	*zbuf;
+	/** z buffer data, camera coordinates */
+	float *zbuf_float;
 
 	/* parameters used by conversion between byte and float */
-	float dither;				/* random dither value, for conversion from float -> byte rect */
+	/** random dither value, for conversion from float -> byte rect */
+	float dither;
 
 	/* mipmapping */
-	struct ImBuf *mipmap[IMB_MIPMAP_LEVELS]; /* MipMap levels, a series of halved images */
+	/** MipMap levels, a series of halved images */
+	struct ImBuf *mipmap[IMB_MIPMAP_LEVELS];
 	int miptot, miplevel;
 
 	/* externally used data */
-	int index;						/* reference index for ImBuf lists */
-	int	userflags;					/* used to set imbuf to dirty and other stuff */
-	struct IDProperty *metadata;	/* image metadata */
-	void *userdata;					/* temporary storage */
+	/** reference index for ImBuf lists */
+	int index;
+	/** used to set imbuf to dirty and other stuff */
+	int	userflags;
+	/** image metadata */
+	struct IDProperty *metadata;
+	/** temporary storage */
+	void *userdata;
 
 	/* file information */
-	enum eImbTypes	ftype;				/* file type we are going to save as */
-	ImbFormatOptions foptions;			/* file format specific flags */
-	char name[IMB_FILENAME_SIZE];		/* filename associated with this image */
-	char cachename[IMB_FILENAME_SIZE];	/* full filename used for reading from cache */
+	/** file type we are going to save as */
+	enum eImbTypes	ftype;
+	/** file format specific flags */
+	ImbFormatOptions foptions;
+	/** filename associated with this image */
+	char name[IMB_FILENAME_SIZE];
+	/** full filename used for reading from cache */
+	char cachename[IMB_FILENAME_SIZE];
 
 	/* memory cache limiter */
-	struct MEM_CacheLimiterHandle_s *c_handle; /* handle for cache limiter */
-	int refcounter; /* reference counter for multiple users */
+	/** handle for cache limiter */
+	struct MEM_CacheLimiterHandle_s *c_handle;
+	/** reference counter for multiple users */
+	int refcounter;
 
 	/* some parameters to pass along for packing images */
-	unsigned char *encodedbuffer;     /* Compressed image only used with png currently */
-	unsigned int   encodedsize;       /* Size of data written to encodedbuffer */
-	unsigned int   encodedbuffersize; /* Size of encodedbuffer */
+	/** Compressed image only used with png currently */
+	unsigned char *encodedbuffer;
+	/** Size of data written to encodedbuffer */
+	unsigned int   encodedsize;
+	/** Size of encodedbuffer */
+	unsigned int   encodedbuffersize;
 
 	/* color management */
-	struct ColorSpace *rect_colorspace;          /* color space of byte buffer */
-	struct ColorSpace *float_colorspace;         /* color space of float buffer, used by sequencer only */
-	unsigned int *display_buffer_flags;          /* array of per-display display buffers dirty flags */
-	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
+	/** color space of byte buffer */
+	struct ColorSpace *rect_colorspace;
+	/** color space of float buffer, used by sequencer only */
+	struct ColorSpace *float_colorspace;
+	/** array of per-display display buffers dirty flags */
+	unsigned int *display_buffer_flags;
+	/** cache used by color management */
+	struct ColormanageCache *colormanage_cache;
 	int colormanage_flag;
 	rcti invalid_rect;
 
@@ -226,11 +261,18 @@ typedef struct ImBuf {
  * \brief userflags: Flags used internally by blender for imagebuffers
  */
 
-#define IB_BITMAPDIRTY			(1 << 1)	/* image needs to be saved is not the same as filename */
-#define IB_MIPMAP_INVALID		(1 << 2)	/* image mipmaps are invalid, need recreate */
-#define IB_RECT_INVALID			(1 << 3)	/* float buffer changed, needs recreation of byte rect */
-#define IB_DISPLAY_BUFFER_INVALID	(1 << 4)	/* either float or byte buffer changed, need to re-calculate display buffers */
-#define IB_PERSISTENT				(1 << 5)	/* image buffer is persistent in the memory and should never be removed from the cache */
+enum {
+	/** image needs to be saved is not the same as filename */
+	IB_BITMAPDIRTY =          (1 << 1),
+	/** image mipmaps are invalid, need recreate */
+	IB_MIPMAP_INVALID =       (1 << 2),
+	/** float buffer changed, needs recreation of byte rect */
+	IB_RECT_INVALID =         (1 << 3),
+	/** either float or byte buffer changed, need to re-calculate display buffers */
+	IB_DISPLAY_BUFFER_INVALID =   (1 << 4),
+	/** image buffer is persistent in the memory and should never be removed from the cache */
+	IB_PERSISTENT =               (1 << 5),
+};
 
 /**
  * \name Imbuf Component flags
@@ -238,22 +280,27 @@ typedef struct ImBuf {
  *
  * \{ */
 
-#define IB_rect				(1 << 0)
-#define IB_test				(1 << 1)
-#define IB_zbuf				(1 << 3)
-#define IB_mem				(1 << 4)
-#define IB_rectfloat		(1 << 5)
-#define IB_zbuffloat		(1 << 6)
-#define IB_multilayer		(1 << 7)
-#define IB_metadata			(1 << 8)
-#define IB_animdeinterlace	(1 << 9)
-#define IB_tiles			(1 << 10)
-#define IB_tilecache		(1 << 11)
-#define IB_alphamode_premul	(1 << 12)  /* indicates whether image on disk have premul alpha */
-#define IB_alphamode_detect	(1 << 13)  /* if this flag is set, alpha mode would be guessed from file */
-#define IB_ignore_alpha		(1 << 14)  /* ignore alpha on load and substitute it with 1.0f */
-#define IB_thumbnail		(1 << 15)
-#define IB_multiview		(1 << 16)
+enum {
+	IB_rect             = 1 << 0,
+	IB_test             = 1 << 1,
+	IB_zbuf             = 1 << 3,
+	IB_mem              = 1 << 4,
+	IB_rectfloat        = 1 << 5,
+	IB_zbuffloat        = 1 << 6,
+	IB_multilayer       = 1 << 7,
+	IB_metadata         = 1 << 8,
+	IB_animdeinterlace  = 1 << 9,
+	IB_tiles            = 1 << 10,
+	IB_tilecache        = 1 << 11,
+	/** indicates whether image on disk have premul alpha */
+	IB_alphamode_premul = 1 << 12,
+	/** if this flag is set, alpha mode would be guessed from file */
+	IB_alphamode_detect = 1 << 13 ,
+	/** ignore alpha on load and substitute it with 1.0f */
+	IB_ignore_alpha     = 1 << 14 ,
+	IB_thumbnail        = 1 << 15,
+	IB_multiview        = 1 << 16,
+};
 
 /** \} */
 

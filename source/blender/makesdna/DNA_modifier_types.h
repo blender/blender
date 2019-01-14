@@ -215,8 +215,10 @@ typedef struct BuildModifierData {
 
 /* Build Modifier -> flag */
 enum {
-	MOD_BUILD_FLAG_RANDOMIZE = (1 << 0),  /* order of vertices is randomized */
-	MOD_BUILD_FLAG_REVERSE   = (1 << 1),  /* frame range is reversed, resulting in a deconstruction effect */
+	/** order of vertices is randomized */
+	MOD_BUILD_FLAG_RANDOMIZE = (1 << 0),
+	/** frame range is reversed, resulting in a deconstruction effect */
+	MOD_BUILD_FLAG_REVERSE   = (1 << 1),
 };
 
 /* Mask Modifier */
@@ -542,15 +544,18 @@ typedef struct DecimateModifierData {
 
 enum {
 	MOD_DECIM_FLAG_INVERT_VGROUP       = (1 << 0),
-	MOD_DECIM_FLAG_TRIANGULATE         = (1 << 1),  /* for collapse only. dont convert tri pairs back to quads */
-	MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS  = (1 << 2),  /* for dissolve only. collapse all verts between 2 faces */
+	/** for collapse only. dont convert tri pairs back to quads */
+	MOD_DECIM_FLAG_TRIANGULATE         = (1 << 1),
+	/** for dissolve only. collapse all verts between 2 faces */
+	MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS  = (1 << 2),
 	MOD_DECIM_FLAG_SYMMETRY            = (1 << 3),
 };
 
 enum {
 	MOD_DECIM_MODE_COLLAPSE,
 	MOD_DECIM_MODE_UNSUBDIV,
-	MOD_DECIM_MODE_DISSOLVE,  /* called planar in the UI */
+	/** called planar in the UI */
+	MOD_DECIM_MODE_DISSOLVE,
 };
 
 typedef struct SmoothModifierData {
@@ -1285,8 +1290,10 @@ typedef struct WeightVGEditModifierData {
 /* WeightVGEdit flags. */
 enum {
 	/* (1 << 0), (1 << 1) and (1 << 2) are free for future use! */
-	MOD_WVG_EDIT_ADD2VG  = (1 << 3),  /* Add vertices with higher weight than threshold to vgroup. */
-	MOD_WVG_EDIT_REMFVG  = (1 << 4),  /* Remove vertices with lower weight than threshold from vgroup. */
+	/** Add vertices with higher weight than threshold to vgroup. */
+	MOD_WVG_EDIT_ADD2VG  = (1 << 3),
+	/** Remove vertices with lower weight than threshold from vgroup. */
+	MOD_WVG_EDIT_REMFVG  = (1 << 4),
 };
 
 typedef struct WeightVGMixModifierData {
@@ -1331,22 +1338,34 @@ typedef struct WeightVGMixModifierData {
 
 /* How second vgroup's weights affect first ones. */
 enum {
-	MOD_WVG_MIX_SET = 1,  /* Second weights replace weights. */
-	MOD_WVG_MIX_ADD = 2,  /* Second weights are added to weights. */
-	MOD_WVG_MIX_SUB = 3,  /* Second weights are subtracted from weights. */
-	MOD_WVG_MIX_MUL = 4,  /* Second weights are multiplied with weights. */
-	MOD_WVG_MIX_DIV = 5,  /* Second weights divide weights. */
-	MOD_WVG_MIX_DIF = 6,  /* Difference between second weights and weights. */
-	MOD_WVG_MIX_AVG = 7,  /* Average of both weights. */
+	/** Second weights replace weights. */
+	MOD_WVG_MIX_SET = 1,
+	/** Second weights are added to weights. */
+	MOD_WVG_MIX_ADD = 2,
+	/** Second weights are subtracted from weights. */
+	MOD_WVG_MIX_SUB = 3,
+	/** Second weights are multiplied with weights. */
+	MOD_WVG_MIX_MUL = 4,
+	/** Second weights divide weights. */
+	MOD_WVG_MIX_DIV = 5,
+	/** Difference between second weights and weights. */
+	MOD_WVG_MIX_DIF = 6,
+	/** Average of both weights. */
+	MOD_WVG_MIX_AVG = 7,
 };
 
 /* What vertices to affect. */
 enum {
-	MOD_WVG_SET_ALL = 1,  /* Affect all vertices. */
-	MOD_WVG_SET_A   = 2,  /* Affect only vertices in first vgroup. */
-	MOD_WVG_SET_B   = 3,  /* Affect only vertices in second vgroup. */
-	MOD_WVG_SET_OR  = 4,  /* Affect only vertices in one vgroup or the other. */
-	MOD_WVG_SET_AND = 5,  /* Affect only vertices in both vgroups. */
+	/** Affect all vertices. */
+	MOD_WVG_SET_ALL = 1,
+	/** Affect only vertices in first vgroup. */
+	MOD_WVG_SET_A   = 2,
+	/** Affect only vertices in second vgroup. */
+	MOD_WVG_SET_B   = 3,
+	/** Affect only vertices in one vgroup or the other. */
+	MOD_WVG_SET_OR  = 4,
+	/** Affect only vertices in both vgroups. */
+	MOD_WVG_SET_AND = 5,
 };
 
 typedef struct WeightVGProximityModifierData {

@@ -45,9 +45,11 @@
 #include "ED_fileselect.h"
 
 #ifdef WIN32
-#  include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
-#  include <shlobj.h>  /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff
-                        * because 'near' is disabled through BLI_windstuff */
+   /* Need to include windows.h so _WIN32_IE is defined. */
+#  include <windows.h>
+   /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
+    * because 'near' is disabled through BLI_windstuff. */
+#  include <shlobj.h>
 #  include "BLI_winstuff.h"
 #endif
 

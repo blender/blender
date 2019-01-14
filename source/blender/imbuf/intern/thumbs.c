@@ -61,12 +61,15 @@
 #include <stdio.h>
 
 #ifdef WIN32
-#  include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
+   /* Need to include windows.h so _WIN32_IE is defined. */
+#  include <windows.h>
 #  ifndef _WIN32_IE
-#    define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
+     /* Minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already. */
+#    define _WIN32_IE 0x0400
 #  endif
-#  include <shlobj.h>  /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff
-                        * because 'near' is disabled through BLI_windstuff */
+   /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
+    * because 'near' is disabled through BLI_windstuff */
+#  include <shlobj.h>
 #  include <direct.h> /* chdir */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
