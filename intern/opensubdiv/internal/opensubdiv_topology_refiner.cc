@@ -352,9 +352,9 @@ bool checkGeometryFacesMatch(
       }
     }
     if (!direct_match) {
-// If face didn't match in direct direction we also test if it matches in
-// reversed direction. This is because conversion might reverse loops to
-// make normals consistent.
+      // If face didn't match in direct direction we also test if it matches in
+      // reversed direction. This is because conversion might reverse loops to
+      // make normals consistent.
 #ifdef OPENSUBDIV_ORIENT_TOPOLOGY
       for (int face_vertex_index = 0; face_vertex_index < num_face_vertices;
            ++face_vertex_index) {
