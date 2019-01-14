@@ -973,7 +973,7 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 	if (id->us == 0) {
 		BKE_libblock_unlink(bmain, id, false, false);
 
-		BKE_libblock_free(bmain, id);
+		BKE_id_free(bmain, id);
 	}
 }
 
@@ -1022,7 +1022,7 @@ void BKE_libblock_delete(Main *bmain, void *idv)
 #endif
 					BLI_assert(id->us == 0);
 				}
-				BKE_libblock_free(bmain, id);
+				BKE_id_free(bmain, id);
 			}
 		}
 	}

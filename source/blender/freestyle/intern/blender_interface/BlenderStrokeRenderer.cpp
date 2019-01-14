@@ -197,12 +197,12 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 #endif
 		switch (ob->type) {
 			case OB_MESH:
-				BKE_libblock_free(freestyle_bmain, ob);
-				BKE_libblock_free(freestyle_bmain, data);
+				BKE_id_free(freestyle_bmain, ob);
+				BKE_id_free(freestyle_bmain, data);
 				break;
 			case OB_CAMERA:
-				BKE_libblock_free(freestyle_bmain, ob);
-				BKE_libblock_free(freestyle_bmain, data);
+				BKE_id_free(freestyle_bmain, ob);
+				BKE_id_free(freestyle_bmain, data);
 				freestyle_scene->camera = NULL;
 				break;
 			default:
@@ -220,7 +220,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	{
 		Material *ma = (Material*)lnk;
 		lnk = lnk->next;
-		BKE_libblock_free(freestyle_bmain, ma);
+		BKE_id_free(freestyle_bmain, ma);
 	}
 
 	BLI_ghash_free(_nodetree_hash, NULL, NULL);

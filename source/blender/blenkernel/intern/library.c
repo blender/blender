@@ -2035,7 +2035,7 @@ void BKE_library_make_local(
 				if (!is_lib) {  /* Not used at all, we can free it! */
 					BLI_assert(!"Unused linked data copy remaining from MakeLibLocal process, should not happen anymore");
 					printf("\t%s (from %s)\n", id->name, id->lib->id.name);
-					BKE_libblock_free(bmain, id);
+					BKE_id_free(bmain, id);
 					it->link = NULL;
 					do_loop = true;
 				}
@@ -2093,7 +2093,7 @@ void BKE_library_make_local(
 			BKE_libblock_free_ex(bmain, id, false, true);
 #else
 			BKE_libblock_unlink(bmain, id, false, false);
-			BKE_libblock_free(bmain, id);
+			BKE_id_free(bmain, id);
 #endif
 			((LinkNode *)it->link)->link = NULL;  /* Not strictly necessary, but safer (see T49903)... */
 			it->link = NULL;

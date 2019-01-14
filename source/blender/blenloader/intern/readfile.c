@@ -8682,7 +8682,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	oldnewmap_clear(fd->datamap);
 
 	if (wrong_id) {
-		BKE_libblock_free(main, id);
+		BKE_id_free(main, id);
 	}
 
 	return (bhead);

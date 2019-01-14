@@ -452,7 +452,7 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source)
 		}
 		BLI_spin_unlock(&image_spin);
 
-		BKE_libblock_free(bmain, source);
+		BKE_id_free(bmain, source);
 	}
 }
 

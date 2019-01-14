@@ -961,7 +961,7 @@ static int bake(
 					RE_bake_pixels_populate(me_nores, pixel_array_low, num_pixels, &bake_images, uv_layer);
 
 					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_nores, normal_swizzle, ob_low->obmat);
-					BKE_libblock_free(bmain, me_nores);
+					BKE_id_free(bmain, me_nores);
 
 					if (md)
 						md->mode = mode;
@@ -1070,7 +1070,7 @@ cleanup:
 		int i;
 		for (i = 0; i < tot_highpoly; i++) {
 			if (highpoly[i].me)
-				BKE_libblock_free(bmain, highpoly[i].me);
+				BKE_id_free(bmain, highpoly[i].me);
 		}
 		MEM_freeN(highpoly);
 	}
@@ -1094,10 +1094,10 @@ cleanup:
 		MEM_freeN(result);
 
 	if (me_low)
-		BKE_libblock_free(bmain, me_low);
+		BKE_id_free(bmain, me_low);
 
 	if (me_cage)
-		BKE_libblock_free(bmain, me_cage);
+		BKE_id_free(bmain, me_cage);
 
 	DEG_graph_free(depsgraph);
 

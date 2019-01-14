@@ -108,7 +108,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 
 	if (sound->playback_handle == NULL) {
 		if (op->customdata) MEM_freeN(op->customdata);
-		BKE_libblock_free(bmain, sound);
+		BKE_id_free(bmain, sound);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
 	}
@@ -116,7 +116,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		BKE_libblock_free(bmain, sound);
+		BKE_id_free(bmain, sound);
 		if (op->customdata) MEM_freeN(op->customdata);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;

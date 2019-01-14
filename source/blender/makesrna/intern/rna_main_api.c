@@ -167,7 +167,7 @@ static Scene *rna_Main_scenes_new(Main *bmain, const char *name)
 }
 static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, PointerRNA *scene_ptr, bool do_unlink)
 {
-	/* don't call BKE_libblock_free(...) directly */
+	/* don't call BKE_id_free(...) directly */
 	Scene *scene = scene_ptr->data;
 	Scene *scene_new;
 

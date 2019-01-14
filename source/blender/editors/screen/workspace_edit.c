@@ -238,7 +238,7 @@ bool ED_workspace_delete(
 
 		ED_workspace_change((prev != NULL) ? prev : next, C, wm, win);
 	}
-	BKE_libblock_free(bmain, workspace_id);
+	BKE_id_free(bmain, workspace_id);
 
 	return true;
 }

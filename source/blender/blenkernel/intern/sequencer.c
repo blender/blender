@@ -5237,14 +5237,14 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	sound = BKE_sound_new_file(bmain, seq_load->path); /* handles relative paths */
 
 	if (sound->playback_handle == NULL) {
-		BKE_libblock_free(bmain, sound);
+		BKE_id_free(bmain, sound);
 		return NULL;
 	}
 
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		BKE_libblock_free(bmain, sound);
+		BKE_id_free(bmain, sound);
 		return NULL;
 	}
 

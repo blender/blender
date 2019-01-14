@@ -230,7 +230,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 	bSound *sound = BKE_sound_new_file(bmain, file);
 
 	if (sound->playback_handle == NULL) {
-		BKE_libblock_free(bmain, sound);
+		BKE_id_free(bmain, sound);
 		BKE_report(reports, RPT_ERROR, "Sequences.new_sound: unable to open sound file");
 		return NULL;
 	}

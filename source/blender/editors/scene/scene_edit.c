@@ -115,7 +115,7 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 
 	id_us_clear_real(&scene->id);
 	if (scene->id.us == 0) {
-		BKE_libblock_free(bmain, scene);
+		BKE_id_free(bmain, scene);
 	}
 
 	return true;
