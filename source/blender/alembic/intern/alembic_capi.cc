@@ -799,7 +799,7 @@ static void import_endjob(void *user_data)
 			 * the reader and the creation of the Blender object. */
 			if (ob == NULL) continue;
 
-			BKE_libblock_free_us(data->bmain, ob);
+			BKE_id_free_us(data->bmain, ob);
 		}
 	}
 	else {

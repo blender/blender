@@ -3296,7 +3296,7 @@ bool BKE_object_shapekey_free(Main *bmain, Object *ob)
 	key = *key_p;
 	*key_p = NULL;
 
-	BKE_libblock_free_us(bmain, key);
+	BKE_id_free_us(bmain, key);
 
 	return false;
 }

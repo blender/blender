@@ -38,6 +38,24 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 
+/**
+ * Naming: BKE_id_ vs BKE_libblock_
+ *
+ * WARNING: description below is ideal goal, current status of naming does not yet
+ * fully follow it (this is WIP).
+ *
+ * BKE_id_ should be used for rather high-level operations, that involve Main database and
+ * relations with other IDs, and can be considered as 'safe' (as in, in themselves, they leave
+ * affected IDs/Main in a consistent status).
+ *
+ * BKE_libblock_ should be used for lower level operations, that perform some parts of BKE_id_ ones,
+ * but will generally not ensure caller that affected data is in a consistent state
+ * by their own execution alone.
+ *
+ * Consequently, external code should not typically use BKE_libblock_ functions,
+ * except in some specific cases requiring advanced (and potentially dangerous) handling.
+ */
+
 struct BlendThumbnail;
 struct GHash;
 struct ListBase;
@@ -75,15 +93,16 @@ enum {
 
 	LIB_ID_CREATE_NO_DEG_TAG         = 1 << 8,  /* Do not tag new ID for update in depsgraph. */
 
-	/* Specific options to some ID types or usages, may be ignored by unrelated ID copying functions. */
+	/*** Specific options to some ID types or usages. ***/
+	/* May be ignored by unrelated ID copying functions. */
 	LIB_ID_COPY_NO_PROXY_CLEAR     = 1 << 16,  /* Object only, needed by make_local code. */
 	LIB_ID_COPY_NO_PREVIEW         = 1 << 17,  /* Do not copy preview data, when supported. */
 	LIB_ID_COPY_CACHES             = 1 << 18,  /* Copy runtime data caches. */
 	LIB_ID_COPY_NO_ANIMDATA        = 1 << 19,  /* Don't copy id->adt, used by ID datablock localization routines. */
 	LIB_ID_COPY_CD_REFERENCE       = 1 << 20,  /* Mesh: Reference CD data layers instead of doing real copy. */
 
-	/* XXX Hackish/not-so-nice specific behaviors needed for some corner cases.
-	 *     Ideally we should not have those, but we need them for now... */
+	/*** XXX Hackish/not-so-nice specific behaviors needed for some corner cases. ***/
+	/* Ideally we should not have those, but we need them for now... */
 	LIB_ID_COPY_ACTIONS            = 1 << 24,  /* EXCEPTION! Deep-copy actions used by animdata of copied ID. */
 	LIB_ID_COPY_KEEP_LIB           = 1 << 25,  /* Keep the library pointer when copying datablock outside of bmain. */
 	LIB_ID_COPY_SHAPEKEY           = 1 << 26,  /* EXCEPTION! Deep-copy shapekeys used by copied obdata ID. */
@@ -124,7 +143,7 @@ enum {
 void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, const bool use_flag_from_idtag);
 void BKE_id_free(struct Main *bmain, void *idv);
 
-void  BKE_libblock_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
+void  BKE_id_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 
 void BKE_libblock_management_main_add(struct Main *bmain, void *idv);
 void BKE_libblock_management_main_remove(struct Main *bmain, void *idv);

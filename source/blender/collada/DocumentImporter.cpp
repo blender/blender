@@ -379,7 +379,7 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 	Camera *cam = uid_camera_map[cam_uid];
 	Camera *old_cam = (Camera *)ob->data;
 	ob->data = cam;
-	BKE_libblock_free_us(bmain, old_cam);
+	BKE_id_free_us(bmain, old_cam);
 	return ob;
 }
 
@@ -396,7 +396,7 @@ Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 	Lamp *la = uid_lamp_map[lamp_uid];
 	Lamp *old_lamp = (Lamp *)ob->data;
 	ob->data = la;
-	BKE_libblock_free_us(bmain, old_lamp);
+	BKE_id_free_us(bmain, old_lamp);
 	return ob;
 }
 
