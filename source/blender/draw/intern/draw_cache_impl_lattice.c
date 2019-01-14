@@ -426,6 +426,7 @@ static GPUVertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata, Lattice
 			if (use_weight) {
 				float w_col[4];
 				lattice_render_data_weight_col_get(rdata, i, actdef, w_col);
+				w_col[3] = 1.0f;
 
 				GPU_vertbuf_attr_set(cache->pos, attr_id.col, i, w_col);
 			}
