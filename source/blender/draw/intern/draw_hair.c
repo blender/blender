@@ -141,7 +141,7 @@ static DRWShadingGroup *drw_shgroup_create_hair_procedural_ex(
 		}
 	}
 
-	if (dupli_parent) {
+	if ((dupli_parent != NULL) && (dupli_object != NULL)) {
 		DRWHairInstanceData *hair_inst_data = (DRWHairInstanceData *)DRW_drawdata_ensure(
 		        &object->id, (DrawEngineType *)&drw_shgroup_create_hair_procedural_ex,
 		        sizeof(DRWHairInstanceData), NULL, NULL);
