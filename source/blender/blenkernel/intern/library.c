@@ -2090,7 +2090,7 @@ void BKE_library_make_local(
 			 *       However, this is a highly-risky presumption, and nice crasher in case something goes wrong here.
 			 *       So for 2.78a will keep the safe option, and switch to more efficient one in master later. */
 #if 1
-			BKE_libblock_free_ex(bmain, id, false, true);
+			BKE_id_free_ex(bmain, id, LIB_ID_FREE_NO_USER_REFCOUNT, false);
 #else
 			BKE_libblock_unlink(bmain, id, false, false);
 			BKE_id_free(bmain, id);

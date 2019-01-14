@@ -649,13 +649,13 @@ void BKE_override_static_update(Main *bmain, ID *local)
 
 	/* Again, horribly innefficient in our case, we need something off-Main (aka moar generic nolib copy/free stuff)! */
 	/* XXX And crashing in complex cases (e.g. because depsgraph uses same data...). */
-	BKE_libblock_free_ex(bmain, tmp_id, true, false);
+	BKE_id_free_ex(bmain, tmp_id, LIB_ID_FREE_NO_UI_USER, true);
 
 	if (local->override_static->storage) {
 		/* We know this datablock is not used anywhere besides local->override->storage. */
 		/* XXX For until we get fully shadow copies, we still need to ensure storage releases
 		 *     its usage of any ID pointers it may have. */
-		BKE_libblock_free_ex(bmain, local->override_static->storage, true, false);
+		BKE_id_free_ex(bmain, local->override_static->storage, LIB_ID_FREE_NO_UI_USER, true);
 		local->override_static->storage = NULL;
 	}
 
@@ -744,7 +744,7 @@ ID *BKE_override_static_operations_store_start(Main *bmain, OverrideStaticStorag
 		if (!RNA_struct_override_store(
 		        bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_static))
 		{
-			BKE_libblock_free_ex(override_storage, storage_id, true, false);
+			BKE_id_free_ex(override_storage, storage_id, LIB_ID_FREE_NO_UI_USER, true);
 			storage_id = NULL;
 		}
 	}
@@ -781,7 +781,7 @@ void BKE_override_static_operations_store_finalize(OverrideStaticStorage *overri
 		ID *id;
 
 		while ((id = lb->first)) {
-			BKE_libblock_free_ex(override_storage, id, true, false);
+			BKE_id_free_ex(override_storage, id, LIB_ID_FREE_NO_UI_USER, true);
 		}
 	}
 

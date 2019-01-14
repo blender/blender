@@ -116,7 +116,7 @@ NodeGroup *BlenderFileLoader::Load()
 
 		if (mesh) {
 			insertShapeNode(ob, mesh, ++id);
-			BKE_libblock_free_ex(_re->main, &mesh->id, true, false);
+			BKE_id_free_ex(_re->main, &mesh->id, LIB_ID_FREE_NO_UI_USER, true);
 		}
 	}
 	DEG_OBJECT_ITER_END;

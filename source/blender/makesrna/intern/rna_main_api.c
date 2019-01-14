@@ -137,7 +137,10 @@ static void rna_Main_ID_remove(
 		RNA_POINTER_INVALIDATE(id_ptr);
 	}
 	else if (ID_REAL_USERS(id) <= 0) {
-		BKE_libblock_free_ex(bmain, id, do_id_user, do_ui_user);
+		const int flag = (do_id_user ? 0 : LIB_ID_FREE_NO_USER_REFCOUNT) |
+		                 (do_ui_user ? 0 : LIB_ID_FREE_NO_UI_USER);
+		/* Still using ID flags here, this is in-between commit anyway... */
+		BKE_id_free_ex(bmain, id, flag, true);
 		RNA_POINTER_INVALIDATE(id_ptr);
 	}
 	else {

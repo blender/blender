@@ -950,7 +950,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 
 void BKE_libblock_free(Main *bmain, void *idv)
 {
-	BKE_libblock_free_ex(bmain, idv, true, true);
+	BKE_id_free(bmain, idv);
 }
 
 void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
