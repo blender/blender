@@ -515,7 +515,7 @@ void BKE_sound_update_scene_listener(struct Scene *scene)
 void *BKE_sound_scene_add_scene_sound(struct Scene *scene, struct Sequence *sequence,
                                   int startframe, int endframe, int frameskip)
 {
-	if (scene != sequence->scene) {
+	if (sequence->scene && scene != sequence->scene) {
 		const double fps = FPS;
 		return AUD_Sequence_add(scene->sound_scene, sequence->scene->sound_scene,
 		                       startframe / fps, endframe / fps, frameskip / fps);
