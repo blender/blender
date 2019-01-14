@@ -441,7 +441,12 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te = outliner_active_collection(C);
-	BLI_assert(te != NULL);
+
+	/* Can happen when calling from a key binding. */
+	if (te == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No active collection");
+		return OPERATOR_CANCELLED;
+	}
 
 	Collection *collection = outliner_collection_from_tree_element(te);
 	Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) : NULL;
