@@ -236,6 +236,11 @@ static void rna_userdef_autokeymode_set(PointerRNA *ptr, int value)
 	}
 }
 
+static void rna_userdef_tablet_api_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_init_tablet_api();
+}
+
 #ifdef WITH_INPUT_NDOF
 static void rna_userdef_ndof_deadzone_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -4608,6 +4613,13 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	};
 #endif /* WITH_INPUT_NDOF */
 
+	static const EnumPropertyItem tablet_api[] = {
+		{USER_TABLET_AUTOMATIC, "AUTOMATIC", 0, "Automatic", "Automatically choose Wintab or Windows Ink depending on the device"},
+		{USER_TABLET_NATIVE, "WINDOWS_INK", 0, "Windows Ink", "Use native Windows Ink API, for modern tablet and pen devices. Requires Windows 8 or newer"},
+		{USER_TABLET_WINTAB, "WINTAB", 0, "Wintab", "Use Wintab driver for older tablets and Windows versions"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static const EnumPropertyItem view_zoom_styles[] = {
 		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down"},
 		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zoom in and out based on vertical mouse movement"},
@@ -4732,6 +4744,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -1.0f, 1.0f, 0.1f, 2);
 	RNA_def_property_ui_text(prop, "Softness",
 	                         "Adjusts softness of the low pressure response onset using a gamma curve");
+
+	prop = RNA_def_property(srna, "tablet_api", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, tablet_api);
+	RNA_def_property_ui_text(prop, "Tablet API", "Select the tablet API to use for pressure sensitivity");
+	RNA_def_property_update(prop, 0, "rna_userdef_tablet_api_update");
 
 #ifdef WITH_INPUT_NDOF
 	/* 3D mouse settings */

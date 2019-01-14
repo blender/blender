@@ -52,10 +52,11 @@ GHOST_System::GHOST_System()
       m_displayManager(NULL),
       m_timerManager(NULL),
       m_windowManager(NULL),
-      m_eventManager(NULL)
+      m_eventManager(NULL),
 #ifdef WITH_INPUT_NDOF
-      , m_ndofManager(0)
+      m_ndofManager(0),
 #endif
+      m_tabletAPI(GHOST_kTabletAutomatic)
 {
 }
 
@@ -295,6 +296,16 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 		isDown = buttons.get(mask);
 	}
 	return success;
+}
+
+void GHOST_System::setTabletAPI(GHOST_TTabletAPI api)
+{
+	m_tabletAPI = api;
+}
+
+bool GHOST_System::useTabletAPI(GHOST_TTabletAPI api) const
+{
+	return (m_tabletAPI == GHOST_kTabletAutomatic || m_tabletAPI == api);
 }
 
 #ifdef WITH_INPUT_NDOF

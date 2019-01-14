@@ -1690,6 +1690,8 @@ void wm_ghost_init(bContext *C)
 		}
 
 		GHOST_UseWindowFocus(wm_init_state.window_focus);
+
+		WM_init_tablet_api();
 	}
 }
 
@@ -1977,6 +1979,24 @@ void WM_init_window_focus_set(bool do_it)
 void WM_init_native_pixels(bool do_it)
 {
 	wm_init_state.native_pixels = do_it;
+}
+
+void WM_init_tablet_api(void)
+{
+	if (g_system) {
+		switch(U.tablet_api) {
+			case USER_TABLET_NATIVE:
+				GHOST_SetTabletAPI(g_system, GHOST_kTabletNative);
+				break;
+			case USER_TABLET_WINTAB:
+				GHOST_SetTabletAPI(g_system, GHOST_kTabletWintab);
+				break;
+			case USER_TABLET_AUTOMATIC:
+			default:
+				GHOST_SetTabletAPI(g_system, GHOST_kTabletAutomatic);
+				break;
+		}
+	}
 }
 
 /* This function requires access to the GHOST_SystemHandle (g_system) */

@@ -750,8 +750,13 @@ GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
 	return window->invalidate();
 }
 
+void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
+{
+	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
+	system->setTabletAPI(api);
+}
 
-extern const GHOST_TabletData *GHOST_GetTabletData(GHOST_WindowHandle windowhandle)
+const GHOST_TabletData *GHOST_GetTabletData(GHOST_WindowHandle windowhandle)
 {
 	return ((GHOST_IWindow *)windowhandle)->GetTabletData();
 }

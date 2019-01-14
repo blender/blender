@@ -743,6 +743,13 @@ extern GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthan
 extern GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle);
 
 /**
+ * Set which tablet API to use. Only affects Windows, other platforms have a single API.
+ * \param systemhandle The handle to the system
+ * \param api Enum indicating which API to use.
+ */
+extern void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api);
+
+/**
  * Returns the status of the tablet
  * \param windowhandle The handle to the window
  * \return Status of tablet

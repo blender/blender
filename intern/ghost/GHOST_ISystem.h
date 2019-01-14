@@ -397,6 +397,12 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
+	/**
+	 * Set which tablet API to use. Only affects Windows, other platforms have a single API.
+	 * \param api Enum indicating which API to use.
+	 */
+	virtual void setTabletAPI(GHOST_TTabletAPI api) = 0;
+
 #ifdef WITH_INPUT_NDOF
 	/**
 	 * Sets 3D mouse deadzone

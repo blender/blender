@@ -91,6 +91,7 @@ void		WM_init_state_fullscreen_set(void);
 void		WM_init_state_normal_set(void);
 void		WM_init_window_focus_set(bool do_it);
 void		WM_init_native_pixels(bool do_it);
+void		WM_init_tablet_api(void);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const bool do_python);

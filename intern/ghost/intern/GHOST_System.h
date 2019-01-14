@@ -247,6 +247,17 @@ public:
 	 */
 	GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
 
+	/**
+	 * Set which tablet API to use. Only affects Windows, other platforms have a single API.
+	 * \param api Enum indicating which API to use.
+	 */
+	void setTabletAPI(GHOST_TTabletAPI api);
+
+	/**
+	 * Test if given tablet API should be used by event handling.
+	 */
+	bool useTabletAPI(GHOST_TTabletAPI api) const;
+
 #ifdef WITH_INPUT_NDOF
 	/***************************************************************************************
 	 * Access to 3D mouse.
@@ -380,6 +391,8 @@ protected:
 	/** Settings of the display before the display went fullscreen. */
 	GHOST_DisplaySetting m_preFullScreenSetting;
 
+	/** Which tablet API to use. */
+	GHOST_TTabletAPI m_tabletAPI;
 };
 
 inline GHOST_TimerManager *GHOST_System::getTimerManager() const

@@ -1504,6 +1504,11 @@ class USERPREF_PT_input_devices_tablet(PreferencePanel):
         prefs = context.preferences
         inputs = prefs.inputs
 
+        import sys
+        if sys.platform[:3] == "win":
+            layout.prop(inputs, "tablet_api")
+            layout.separator()
+
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.prop(inputs, "pressure_threshold_max")

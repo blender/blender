@@ -90,6 +90,12 @@ typedef enum {
 	GHOST_kTabletModeEraser
 } GHOST_TTabletMode;
 
+typedef enum {
+	GHOST_kTabletAutomatic = 0,
+	GHOST_kTabletNative,
+	GHOST_kTabletWintab,
+} GHOST_TTabletAPI;
+
 typedef struct GHOST_TabletData {
 	GHOST_TTabletMode Active; /* 0=None, 1=Stylus, 2=Eraser */
 	float Pressure; /* range 0.0 (not touching) to 1.0 (full pressure) */

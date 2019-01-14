@@ -694,12 +694,15 @@ typedef struct UserDef {
 	/** Seconds to zoom around current frame. */
 	float view_frame_seconds;
 
-	char _pad1[4];
+	char _pad1[2];
 
 	/** Private, defaults to 20 for 72 DPI setting. */
 	short widget_unit;
 	short anisotropic_filter;
 	short use_16bit_textures, use_gpu_mipmap;
+
+	/** Tablet API to use (Windows only). */
+	short tablet_api;
 
 	/** Raw tablet pressure that maps to 100%. */
 	float pressure_threshold_max;
@@ -914,6 +917,13 @@ typedef enum eUserpref_UI_Flag2 {
 	USER_REGION_OVERLAP			= (1 << 1),
 	USER_TRACKPAD_NATURAL		= (1 << 2),
 } eUserpref_UI_Flag2;
+
+/* UserDef.tablet_api */
+typedef enum eUserpref_TableAPI {
+	USER_TABLET_AUTOMATIC = 0,
+	USER_TABLET_NATIVE = 1,
+	USER_TABLET_WINTAB = 2,
+} eUserpref_TabletAPI;
 
 /* UserDef.app_flag */
 typedef enum eUserpref_APP_Flag {

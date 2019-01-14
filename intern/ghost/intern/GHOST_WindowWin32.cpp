@@ -51,7 +51,9 @@
 #include <string.h>
 #include <assert.h>
 
-
+#ifndef GET_POINTERID_WPARAM
+#define GET_POINTERID_WPARAM(wParam)                (LOWORD(wParam))
+#endif // GET_POINTERID_WPARAM
 
 const wchar_t *GHOST_WindowWin32::s_windowClassName = L"GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
@@ -89,6 +91,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_wantAlphaBackground(alphaBackground),
       m_normal_state(GHOST_kWindowStateNormal),
 	  m_user32(NULL),
+      m_fpGetPointerInfo(NULL),
+      m_fpGetPointerPenInfo(NULL),
       m_parentWindowHwnd(parentwindowhwnd),
       m_debug_context(is_debug)
 {
@@ -284,6 +288,12 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		RegisterRawInputDevices(&device, 1, sizeof(device));
 	}
 
+	// Initialize Windows Ink
+	if (m_user32) {
+		m_fpGetPointerInfo = (GHOST_WIN32_GetPointerInfo) ::GetProcAddress(m_user32, "GetPointerInfo");
+		m_fpGetPointerPenInfo = (GHOST_WIN32_GetPointerPenInfo) ::GetProcAddress(m_user32, "GetPointerPenInfo");
+	}
+
 	// Initialize Wintab
 	m_wintab.handle = ::LoadLibrary("Wintab32.dll");
 	if (m_wintab.handle) {
@@ -353,6 +363,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 	if (m_Bar) {
 		m_Bar->SetProgressState(m_hWnd, TBPF_NOPROGRESS);
 		m_Bar->Release();
+		m_Bar = NULL;
 	}
 
 	if (m_wintab.handle) {
@@ -364,6 +375,13 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		memset(&m_wintab, 0, sizeof(m_wintab));
 	}
 
+	if (m_user32) {
+		FreeLibrary(m_user32);
+		m_user32 = NULL;
+		m_fpGetPointerInfo = NULL;
+		m_fpGetPointerPenInfo = NULL;
+	}
+
 	if (m_customCursor) {
 		DestroyCursor(m_customCursor);
 		m_customCursor = NULL;
@@ -371,6 +389,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 
 	if (m_hWnd != NULL && m_hDC != NULL && releaseNativeHandles()) {
 		::ReleaseDC(m_hWnd, m_hDC);
+		m_hDC = NULL;
 	}
 
 	if (m_hWnd) {
@@ -379,6 +398,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 			RevokeDragDrop(m_hWnd);
 			// Release our reference of the DropTarget and it will delete itself eventually.
 			m_dropTarget->Release();
+			m_dropTarget = NULL;
 		}
 		::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, NULL);
 		::DestroyWindow(m_hWnd);
@@ -866,8 +886,62 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 	return GHOST_kSuccess;
 }
 
+void GHOST_WindowWin32::processWin32PointerEvent(WPARAM wParam)
+{
+	if (!m_system->useTabletAPI(GHOST_kTabletNative)) {
+		return; // Other tablet API specified by user
+	}
+
+	if (!m_fpGetPointerInfo || !m_fpGetPointerPenInfo) {
+		return; // OS version does not support pointer API
+	}
+
+	UINT32 pointerId = GET_POINTERID_WPARAM(wParam);
+	POINTER_INFO pointerInfo;
+	if (!m_fpGetPointerInfo(pointerId, &pointerInfo)) {
+		return; // Invalid pointer info
+	}
+
+	m_tabletData.Active = GHOST_kTabletModeNone;
+	m_tabletData.Pressure = 1.0f;
+	m_tabletData.Xtilt = 0.0f;
+	m_tabletData.Ytilt = 0.0f;
+
+	if (pointerInfo.pointerType & PT_POINTER) {
+		POINTER_PEN_INFO pointerPenInfo;
+		if (!m_fpGetPointerPenInfo(pointerId, &pointerPenInfo)) {
+			return;
+		}
+
+		// With the Microsoft Surface Pen if you hover the within 1cm of the screen the WM_POINTERUPDATE
+		// event will fire with PEN_MASK_PRESSURE mask set and zero pressure. In this case we disable
+		// tablet mode until the pen is physically touching. This enables the user to switch to the
+		// mouse and draw at full pressure.
+		if (pointerPenInfo.penMask & PEN_MASK_PRESSURE && pointerPenInfo.pressure > 0) {
+			m_tabletData.Active = GHOST_kTabletModeStylus;
+			m_tabletData.Pressure = pointerPenInfo.pressure / 1024.0f;
+		}
+
+		if (pointerPenInfo.penFlags & PEN_FLAG_ERASER) {
+			m_tabletData.Active = GHOST_kTabletModeEraser;
+		}
+
+		if (pointerPenInfo.penFlags & PEN_MASK_TILT_X) {
+			m_tabletData.Xtilt = fmin(fabs(pointerPenInfo.tiltX / 90), 1.0f);
+		}
+
+		if (pointerPenInfo.penFlags & PEN_MASK_TILT_Y) {
+			m_tabletData.Ytilt = fmin(fabs(pointerPenInfo.tiltY / 90), 1.0f);
+		}
+	}
+}
+
 void GHOST_WindowWin32::processWin32TabletActivateEvent(WORD state)
 {
+	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+		return;
+	}
+
 	if (m_wintab.enable && m_wintab.tablet) {
 		m_wintab.enable(m_wintab.tablet, state);
 
@@ -879,6 +953,10 @@ void GHOST_WindowWin32::processWin32TabletActivateEvent(WORD state)
 
 void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
+	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+		return;
+	}
+
 	// Let's see if we can initialize tablet here
 	if (m_wintab.info && m_wintab.tablet) {
 		AXIS Pressure, Orientation[3]; /* The maximum tablet size */
@@ -903,10 +981,16 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
 
 		m_tabletData.Active = GHOST_kTabletModeNone;
 	}
+
+	m_tabletData.Active = GHOST_kTabletModeNone;
 }
 
 void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 {
+	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+		return;
+	}
+
 	if (m_wintab.packet && m_wintab.tablet) {
 		PACKET pkt;
 		if (m_wintab.packet((HCTX)lParam, wParam, &pkt)) {
@@ -972,6 +1056,10 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 
 void GHOST_WindowWin32::bringTabletContextToFront()
 {
+	if (!m_system->useTabletAPI(GHOST_kTabletWintab)) {
+		return;
+	}
+
 	if (m_wintab.overlap && m_wintab.tablet) {
 		m_wintab.overlap(m_wintab.tablet, TRUE);
 	}
