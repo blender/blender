@@ -100,7 +100,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 }
 
 Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
-                                 struct Mesh *mesh)
+                                 const Mesh *mesh)
 {
 	if (mesh->totvert == 0) {
 		return NULL;

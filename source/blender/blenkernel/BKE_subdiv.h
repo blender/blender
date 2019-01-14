@@ -193,7 +193,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter);
 
 Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
-                                 struct Mesh *mesh);
+                                 const struct Mesh *mesh);
 
 void BKE_subdiv_free(Subdiv *subdiv);
 
