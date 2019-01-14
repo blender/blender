@@ -1056,9 +1056,9 @@ float cellnoise(vec3 p)
 
 vec3 cellnoise_color(vec3 p)
 {
-	float r = cellnoise(p);
-	float g = cellnoise(vec3(p.y, p.x, p.z));
-	float b = cellnoise(vec3(p.y, p.z, p.x));
+	float r = cellnoise(p.xyz);
+	float g = cellnoise(p.yxz);
+	float b = cellnoise(p.yzx);
 
 	return vec3(r, g, b);
 }
@@ -2755,16 +2755,16 @@ void node_tex_voronoi(vec3 co, float scale, float exponent, float coloring, floa
 				vec3 pd = p - (vp + ip);
 
 				float d = 0.0;
-				if (metric == 0) { /* SHD_VORONOI_DISTANCE 0 */
+				if (metric == 0.0) { /* SHD_VORONOI_DISTANCE 0 */
 					d = dot(pd, pd);
 				}
-				else if (metric == 1) { /* SHD_VORONOI_MANHATTAN 1 */
+				else if (metric == 1.0) { /* SHD_VORONOI_MANHATTAN 1 */
 					d = abs(pd[0]) + abs(pd[1]) + abs(pd[2]);
 				}
-				else if (metric == 2) { /* SHD_VORONOI_CHEBYCHEV 2 */
+				else if (metric == 2.0) { /* SHD_VORONOI_CHEBYCHEV 2 */
 					d = max(abs(pd[0]), max(abs(pd[1]), abs(pd[2])));
 				}
-				else if (metric == 3) { /* SHD_VORONOI_MINKOWSKI 3 */
+				else if (metric == 3.0) { /* SHD_VORONOI_MINKOWSKI 3 */
 					d = pow(pow(abs(pd[0]), exponent) + pow(abs(pd[1]), exponent) + pow(abs(pd[2]), exponent), 1.0/exponent);
 				}
 
@@ -2805,43 +2805,43 @@ void node_tex_voronoi(vec3 co, float scale, float exponent, float coloring, floa
 
 	if (coloring == 0.0) {
 		/* Intensity output */
-		if (feature == 0) { /* F1 */
+		if (feature == 0.0) { /* F1 */
 			fac = abs(da[0]);
 		}
-		else if (feature == 1) { /* F2 */
+		else if (feature == 1.0) { /* F2 */
 			fac = abs(da[1]);
 		}
-		else if (feature == 2) { /* F3 */
+		else if (feature == 2.0) { /* F3 */
 			fac = abs(da[2]);
 		}
-		else if (feature == 3) { /* F4 */
+		else if (feature == 3.0) { /* F4 */
 			fac = abs(da[3]);
 		}
-		else if (feature == 4) { /* F2F1 */
+		else if (feature == 4.0) { /* F2F1 */
 			fac = abs(da[1] - da[0]);
 		}
-		color = vec4(fac, fac, fac, 1);
+		color = vec4(fac, fac, fac, 1.0);
 	}
 	else {
 		/* Color output */
 		vec3 col = vec3(fac, fac, fac);
-		if (feature == 0) { /* F1 */
+		if (feature == 0.0) { /* F1 */
 			col = pa[0];
 		}
-		else if (feature == 1) { /* F2 */
+		else if (feature == 1.0) { /* F2 */
 			col = pa[1];
 		}
-		else if (feature == 2) { /* F3 */
+		else if (feature == 2.0) { /* F3 */
 			col = pa[2];
 		}
-		else if (feature == 3) { /* F4 */
+		else if (feature == 3.0) { /* F4 */
 			col = pa[3];
 		}
-		else if (feature == 4) { /* F2F1 */
+		else if (feature == 4.0) { /* F2F1 */
 			col = abs(pa[1] - pa[0]);
 		}
 
-		color = vec4(cellnoise_color(col), 1);
+		color = vec4(cellnoise_color(col), 1.0);
 		fac = (color.x + color.y + color.z) * (1.0 / 3.0);
 	}
 }
