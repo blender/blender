@@ -425,6 +425,11 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						for (SequenceModifierData *smd = seq->modifiers.first; smd; smd = smd->next) {
 							CALLBACK_INVOKE(smd->mask_id, IDWALK_CB_USER);
 						}
+
+						if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
+							TextVars *text_data = seq->effectdata;
+							CALLBACK_INVOKE(text_data->text_font, IDWALK_CB_USER);
+						}
 					} SEQ_END;
 				}
 

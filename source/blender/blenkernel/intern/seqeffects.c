@@ -37,8 +37,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "DNA_scene_types.h"
@@ -47,6 +49,8 @@
 #include "DNA_space_types.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_sequencer.h"
 
 #include "IMB_imbuf_types.h"
@@ -3357,6 +3361,7 @@ static ImBuf *do_gaussian_blur_effect(
 }
 
 /*********************** text *************************/
+
 static void init_text_effect(Sequence *seq)
 {
 	TextVars *data;
@@ -3365,6 +3370,8 @@ static void init_text_effect(Sequence *seq)
 		MEM_freeN(seq->effectdata);
 
 	data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
+	data->text_font = NULL;
+	data->text_blf_id = -1;
 	data->text_size = 30;
 
 	copy_v4_fl(data->color, 1.0f);
@@ -3375,6 +3382,64 @@ static void init_text_effect(Sequence *seq)
 	data->loc[0] = 0.5f;
 	data->align   = SEQ_TEXT_ALIGN_X_CENTER;
 	data->align_y = SEQ_TEXT_ALIGN_Y_BOTTOM;
+}
+
+void BKE_sequencer_text_font_unload(TextVars *data, const bool do_id_user)
+{
+	if (data) {
+		/* Unlink the VFont */
+		if (do_id_user && data->text_font != NULL) {
+			id_us_min(&data->text_font->id);
+			data->text_font = NULL;
+		}
+
+		/* Unload the BLF font. */
+		if (data->text_blf_id >= 0) {
+			BLF_unload_id(data->text_blf_id);
+		}
+	}
+}
+
+void BKE_sequencer_text_font_load(TextVars *data, const bool do_id_user)
+{
+	if (data->text_font != NULL) {
+		if (do_id_user) {
+			id_us_plus(&data->text_font->id);
+		}
+
+		char path[FILE_MAX];
+		STRNCPY(path, data->text_font->name);
+		BLI_assert(BLI_thread_is_main());
+		BLI_path_abs(path, BKE_main_blendfile_path_from_global());
+
+		data->text_blf_id = BLF_load(path);
+	}
+}
+
+static void free_text_effect(Sequence *seq, const bool do_id_user)
+{
+	TextVars *data = seq->effectdata;
+	BKE_sequencer_text_font_unload(data, do_id_user);
+
+	if (data) {
+		MEM_freeN(data);
+		seq->effectdata = NULL;
+	}
+}
+
+static void load_text_effect(Sequence *seq)
+{
+	TextVars *data = seq->effectdata;
+	BKE_sequencer_text_font_load(data, false);
+}
+
+static void copy_text_effect(Sequence *dst, Sequence *src, const int flag)
+{
+	dst->effectdata = MEM_dupallocN(src->effectdata);
+	TextVars *data = dst->effectdata;
+
+	data->text_blf_id = -1;
+	BKE_sequencer_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 }
 
 static int num_inputs_text(void)
@@ -3403,10 +3468,22 @@ static ImBuf *do_text_effect(
 	int height = out->y;
 	struct ColorManagedDisplay *display;
 	const char *display_device;
-	const int mono = blf_mono_font_render; // XXX
+	int font = blf_mono_font_render;
 	int line_height;
 	int y_ofs, x, y;
 	float proxy_size_comp;
+
+	if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
+		data->text_blf_id = -1;
+
+		if (data->text_font) {
+			data->text_blf_id = BLF_load(data->text_font->name);
+		}
+	}
+
+	if (data->text_blf_id >= 0) {
+		font = data->text_blf_id;
+	}
 
 	display_device = context->scene->display_settings.display_device;
 	display = IMB_colormanagement_display_get_named(display_device);
@@ -3423,18 +3500,18 @@ static ImBuf *do_text_effect(
 	}
 
 	/* set before return */
-	BLF_size(mono, proxy_size_comp * data->text_size, 72);
+	BLF_size(font, proxy_size_comp * data->text_size, 72);
 
-	BLF_enable(mono, BLF_WORD_WRAP);
+	BLF_enable(font, BLF_WORD_WRAP);
 
 	/* use max width to enable newlines only */
-	BLF_wordwrap(mono, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
+	BLF_wordwrap(font, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
 
-	BLF_buffer(mono, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
+	BLF_buffer(font, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
 
-	line_height = BLF_height_max(mono);
+	line_height = BLF_height_max(font);
 
-	y_ofs = -BLF_descender(mono);
+	y_ofs = -BLF_descender(font);
 
 	x = (data->loc[0] * width);
 	y = (data->loc[1] * height) + y_ofs;
@@ -3451,7 +3528,7 @@ static ImBuf *do_text_effect(
 			rctf rect;
 		} wrap;
 
-		BLF_boundbox_ex(mono, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
+		BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
 
 		if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
 			x -= BLI_rctf_size_x(&wrap.rect);
@@ -3474,19 +3551,20 @@ static ImBuf *do_text_effect(
 	/* BLF_SHADOW won't work with buffers, instead use cheap shadow trick */
 	if (data->flag & SEQ_TEXT_SHADOW) {
 		int fontx, fonty;
-		fontx = BLF_width_max(mono);
+		fontx = BLF_width_max(font);
 		fonty = line_height;
-		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
-		BLF_buffer_col(mono, data->shadow_color);
-		BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
+		BLF_position(font, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
+		BLF_buffer_col(font, data->shadow_color);
+		BLF_draw_buffer(font, data->text, BLF_DRAW_STR_DUMMY_MAX);
 	}
-	BLF_position(mono, x, y, 0.0f);
-	BLF_buffer_col(mono, data->color);
-	BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
 
-	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
+	BLF_position(font, x, y, 0.0f);
+	BLF_buffer_col(font, data->color);
+	BLF_draw_buffer(font, data->text, BLF_DRAW_STR_DUMMY_MAX);
 
-	BLF_disable(mono, BLF_WORD_WRAP);
+	BLF_buffer(font, NULL, NULL, 0, 0, 0, NULL);
+
+	BLF_disable(font, BLF_WORD_WRAP);
 
 	return out;
 }
@@ -3733,8 +3811,9 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		case SEQ_TYPE_TEXT:
 			rval.num_inputs = num_inputs_text;
 			rval.init = init_text_effect;
-			rval.free = free_effect_default;
-			rval.copy = copy_effect_default;
+			rval.free = free_text_effect;
+			rval.load = load_text_effect;
+			rval.copy = copy_text_effect;
 			rval.early_out = early_out_text;
 			rval.execute = do_text_effect;
 			break;
@@ -3763,8 +3842,15 @@ struct SeqEffectHandle BKE_sequence_get_blend(Sequence *seq)
 	struct SeqEffectHandle rval = {false, false, NULL};
 
 	if (seq->blend_mode != 0) {
+		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+			/* load the effect first */
+			rval = get_sequence_effect_impl(seq->type);
+			rval.load(seq);
+		}
+
 		rval = get_sequence_effect_impl(seq->blend_mode);
 		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+			/* now load the blend and unset unloaded flag */
 			rval.load(seq);
 			seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
 		}

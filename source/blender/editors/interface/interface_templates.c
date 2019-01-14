@@ -802,7 +802,7 @@ static void template_ID(
 		but = NULL;
 
 		if (unlinkop) {
-			but = uiDefIconButO(block, UI_BTYPE_BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			but = uiDefIconButO(block, UI_BTYPE_BUT, unlinkop, WM_OP_INVOKE_DEFAULT, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 			/* so we can access the template from operators, font unlinking needs this */
 			UI_but_funcN_set(but, NULL, MEM_dupallocN(template_ui), NULL);
 		}

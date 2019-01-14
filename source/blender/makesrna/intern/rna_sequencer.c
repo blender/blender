@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
 
@@ -459,6 +460,19 @@ static void rna_SequenceCrop_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 	Sequence *seq = sequence_get_by_crop(ed, ptr->data);
 
 	BKE_sequence_invalidate_cache(scene, seq);
+}
+
+static void rna_Sequence_text_font_set(PointerRNA *ptr, PointerRNA ptr_value)
+{
+	Sequence *seq = ptr->data;
+	TextVars *data = seq->effectdata;
+	VFont *value = ptr_value.data;
+
+	BKE_sequencer_text_font_unload(data, true);
+
+	id_us_plus(&value->id);
+	data->text_blf_id = SEQ_FONT_NOT_LOADED;
+	data->text_font = value;
 }
 
 /* name functions that ignore the first two characters */
@@ -2406,6 +2420,14 @@ static void rna_def_text(StructRNA *srna)
 	PropertyRNA *prop;
 
 	RNA_def_struct_sdna_from(srna, "TextVars", "effectdata");
+
+	prop = RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "text_font");
+	RNA_def_property_ui_icon(prop, ICON_FILE_FONT, false);
+	RNA_def_property_ui_text(prop, "Font", "Font of the text. Falls back to the UI font by default");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sequence_text_font_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
 	prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "text_size");

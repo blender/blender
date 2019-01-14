@@ -46,6 +46,7 @@ struct Sequence;
 struct SequenceModifierData;
 struct Stereo3dFormat;
 struct StripElem;
+struct TextVars;
 struct bSound;
 
 struct SeqIndexBuildContext;
@@ -145,7 +146,7 @@ struct SeqEffectHandle {
 
 	/* load is called first time after readblenfile in
 	 * get_sequence_effect automatically */
-	void (*load)(struct Sequence *seq);
+	void (*load)(struct Sequence *seqconst);
 
 	/* duplicate */
 	void (*copy)(struct Sequence *dst, struct Sequence *src, const int flag);
@@ -301,6 +302,9 @@ void BKE_sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence 
 struct SeqEffectHandle BKE_sequence_get_effect(struct Sequence *seq);
 int BKE_sequence_effect_get_num_inputs(int seq_type);
 int BKE_sequence_effect_get_supports_mask(int seq_type);
+void BKE_sequencer_text_font_unload(struct TextVars *data, const bool do_id_user);
+void BKE_sequencer_text_font_load(struct TextVars *data, const bool do_id_user);
+
 
 /* **********************************************************************
  * Sequencer editing functions

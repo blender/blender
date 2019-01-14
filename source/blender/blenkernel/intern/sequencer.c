@@ -401,7 +401,13 @@ static void sequence_clipboard_pointers(Main *bmain, Sequence *seq, void (*callb
 	callback(bmain, (ID **)&seq->clip);
 	callback(bmain, (ID **)&seq->mask);
 	callback(bmain, (ID **)&seq->sound);
+
+	if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
+		TextVars *text_data = seq->effectdata;
+		callback(bmain, (ID **)&text_data->text_font);
+	}
 }
+
 /* recursive versions of functions above */
 void BKE_sequencer_base_clipboard_pointers_free(ListBase *seqbase)
 {

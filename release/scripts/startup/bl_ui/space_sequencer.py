@@ -786,6 +786,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip.type == 'TEXT':
             col = layout.column()
             col.prop(strip, "text")
+            col.template_ID(strip, "font", open="font.open", unlink="font.unlink")
             col.prop(strip, "font_size")
 
             row = col.row()

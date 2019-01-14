@@ -45,6 +45,7 @@
 #include "DNA_color_types.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "DNA_vfont_types.h"
 
 struct Ipo;
 struct Scene;
@@ -320,13 +321,15 @@ typedef struct GaussianBlurVars {
 
 typedef struct TextVars {
 	char text[512];
+	VFont *text_font;
+	int text_blf_id;
 	int text_size;
 	float color[4], shadow_color[4];
 	float loc[2];
 	float wrap_width;
 	char flag;
 	char align, align_y;
-	char pad[5];
+	char pad[1];
 } TextVars;
 
 /* TextVars.flag */
@@ -347,6 +350,8 @@ enum {
 	SEQ_TEXT_ALIGN_Y_CENTER = 1,
 	SEQ_TEXT_ALIGN_Y_BOTTOM = 2,
 };
+
+#define SEQ_FONT_NOT_LOADED -2
 
 typedef struct ColorMixVars {
 	/** Value from SEQ_TYPE_XXX enumeration. */

@@ -198,7 +198,8 @@ int BLF_load(const char *name)
 	/* check if we already load this font. */
 	i = blf_search(name);
 	if (i >= 0) {
-		/*font = global_font[i];*/ /*UNUSED*/
+		font = global_font[i];
+		font->reference_count++;
 		return i;
 	}
 
@@ -222,6 +223,7 @@ int BLF_load(const char *name)
 		return -1;
 	}
 
+	font->reference_count = 1;
 	global_font[i] = font;
 	return i;
 }
@@ -255,6 +257,7 @@ int BLF_load_unique(const char *name)
 		return -1;
 	}
 
+	font->reference_count = 1;
 	global_font[i] = font;
 	return i;
 }
@@ -296,6 +299,7 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 		return -1;
 	}
 
+	font->reference_count = 1;
 	global_font[i] = font;
 	return i;
 }
@@ -326,6 +330,7 @@ int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size
 		return -1;
 	}
 
+	font->reference_count = 1;
 	global_font[i] = font;
 	return i;
 }
@@ -339,8 +344,13 @@ void BLF_unload(const char *name)
 		font = global_font[i];
 
 		if (font && (STREQ(font->name, name))) {
-			blf_font_free(font);
-			global_font[i] = NULL;
+			BLI_assert(font->reference_count > 0);
+			font->reference_count--;
+
+			if (font->reference_count == 0) {
+				blf_font_free(font);
+				global_font[i] = NULL;
+			}
 		}
 	}
 }
@@ -349,8 +359,13 @@ void BLF_unload_id(int fontid)
 {
 	FontBLF *font = blf_get(fontid);
 	if (font) {
-		blf_font_free(font);
-		global_font[fontid] = NULL;
+		BLI_assert(font->reference_count > 0);
+		font->reference_count--;
+
+		if (font->reference_count == 0) {
+			blf_font_free(font);
+			global_font[fontid] = NULL;
+		}
 	}
 }
 
