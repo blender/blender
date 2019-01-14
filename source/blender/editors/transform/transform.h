@@ -666,75 +666,81 @@ typedef struct TransInfo {
 /* ******************** Macros & Prototypes *********************** */
 
 /* transinfo->state */
-#define TRANS_STARTING  0
-#define TRANS_RUNNING	1
-#define TRANS_CONFIRM	2
-#define TRANS_CANCEL	3
+enum {
+	TRANS_STARTING =  0,
+	TRANS_RUNNING =   1,
+	TRANS_CONFIRM =   2,
+	TRANS_CANCEL =    3,
+};
 
 /* transinfo->flag */
-#define T_OBJECT		(1 << 0)
-/** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
-#define T_EDIT			(1 << 1)
-#define T_POSE			(1 << 2)
-#define T_TEXTURE		(1 << 3)
-	/* transforming the camera while in camera view */
-#define T_CAMERA		(1 << 4)
-	/* transforming the 3D cursor. */
-#define T_CURSOR		(1 << 5)
-		 // trans on points, having no rotation/scale
-#define T_POINTS		(1 << 6)
-/**
- * Apply matrix #TransDataContainer.matrix, this avoids having to have duplicate check all over
- * that happen to apply to spesiifc modes (edit & pose for eg). */
-#define T_LOCAL_MATRIX (1 << 7)
+enum {
+	T_OBJECT =        1 << 0,
+	/** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
+	T_EDIT =          1 << 1,
+	T_POSE =          1 << 2,
+	T_TEXTURE =       1 << 3,
+	/** Transforming the camera while in camera view. */
+	T_CAMERA =        1 << 4,
+	/** Transforming the 3D cursor. */
+	T_CURSOR =        1 << 5,
+	/** Transform points, having no rotation/scale. */
+	T_POINTS =        1 << 6,
+	/**
+	 * Apply matrix #TransDataContainer.matrix, this avoids having to have duplicate check all over
+	 * that happen to apply to spesiifc modes (edit & pose for eg). */
+	T_LOCAL_MATRIX =  1 << 7,
 
-	/* restrictions flags */
-#define T_ALL_RESTRICTIONS	((1 << 8)|(1 << 9)|(1 << 10))
-#define T_NO_CONSTRAINT		(1 << 8)
-#define T_NULL_ONE			(1 << 9)
-#define T_NO_ZERO			(1 << 10)
+    /** restrictions flags */
+	T_NO_CONSTRAINT =     1 << 8,
+	T_NULL_ONE =          1 << 9,
+	T_NO_ZERO =           1 << 10,
+	T_ALL_RESTRICTIONS =  T_NO_CONSTRAINT | T_NULL_ONE | T_NO_ZERO,
 
-#define T_PROP_EDIT			(1 << 11)
-#define T_PROP_CONNECTED	(1 << 12)
-#define T_PROP_PROJECTED	(1 << 13)
-#define T_PROP_EDIT_ALL		(T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
+	T_PROP_EDIT =         1 << 11,
+	T_PROP_CONNECTED =    1 << 12,
+	T_PROP_PROJECTED =    1 << 13,
+	T_PROP_EDIT_ALL =     T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
 
-#define T_V3D_ALIGN			(1 << 14)
-	/* for 2d views like uv or ipo */
-#define T_2D_EDIT			(1 << 15)
-#define T_CLIP_UV			(1 << 16)
+	T_V3D_ALIGN =         1 << 14,
+    /** For 2d views like uv or fcurve. */
+	T_2D_EDIT =           1 << 15,
+	T_CLIP_UV =           1 << 16,
 
-	/* auto-ik is on */
-#define T_AUTOIK			(1 << 18)
+    /** Auto-ik is on. */
+	T_AUTOIK =            1 << 18,
 
-#define T_MIRROR			(1 << 19)
+	T_MIRROR =            1 << 19,
 
-#define T_AUTOVALUES		(1 << 20)
+	T_AUTOVALUES =        1 << 20,
 
-	/* to specify if we save back settings at the end */
-#define	T_MODAL				(1 << 21)
+    /** To specify if we save back settings at the end. */
+	T_MODAL =             1 << 21,
 
-	/* no retopo */
-#define T_NO_PROJECT		(1 << 22)
+    /** No retopo. */
+	T_NO_PROJECT =        1 << 22,
 
-#define T_RELEASE_CONFIRM	(1 << 23)
+	T_RELEASE_CONFIRM =   1 << 23,
 
-	/* alternative transformation. used to add offset to tracking markers */
-#define T_ALT_TRANSFORM		(1 << 24)
+    /** Alternative transformation. used to add offset to tracking markers. */
+	T_ALT_TRANSFORM =     1 << 24,
 
-	/** #TransInfo.center has been set, don't change it. */
-#define T_OVERRIDE_CENTER	(1 << 25)
+    /** #TransInfo.center has been set, don't change it. */
+	T_OVERRIDE_CENTER =   1 << 25,
 
-#define T_MODAL_CURSOR_SET	(1 << 26)
+	T_MODAL_CURSOR_SET =  1 << 26,
 
-#define T_CLNOR_REBUILD		(1 << 27)
+	T_CLNOR_REBUILD =     1 << 27,
+};
 
-/* TransInfo->modifiers */
-#define	MOD_CONSTRAINT_SELECT	0x01
-#define	MOD_PRECISION			0x02
-#define	MOD_SNAP				0x04
-#define	MOD_SNAP_INVERT			0x08
-#define	MOD_CONSTRAINT_PLANE	0x10
+/** #TransInfo.modifiers */
+enum {
+	MOD_CONSTRAINT_SELECT =   1 << 0,
+	MOD_PRECISION =           1 << 1,
+	MOD_SNAP =                1 << 2,
+	MOD_SNAP_INVERT =         1 << 3,
+	MOD_CONSTRAINT_PLANE =    1 << 4,
+};
 
 /* use node center for transform instead of upper-left corner.
  * disabled since it makes absolute snapping not work so nicely
@@ -745,48 +751,71 @@ typedef struct TransInfo {
 /* ******************************************************************************** */
 
 /* transinfo->helpline */
-#define HLP_NONE		0
-#define HLP_SPRING		1
-#define HLP_ANGLE		2
-#define HLP_HARROW		3
-#define HLP_VARROW		4
-#define HLP_CARROW		5
-#define HLP_TRACKBALL	6
+enum {
+	HLP_NONE =        0,
+	HLP_SPRING =      1,
+	HLP_ANGLE =       2,
+	HLP_HARROW =      3,
+	HLP_VARROW =      4,
+	HLP_CARROW =      5,
+	HLP_TRACKBALL =   6,
+};
 
 /* transinfo->con->mode */
-#define CON_APPLY		1
-#define CON_AXIS0		2
-#define CON_AXIS1		4
-#define CON_AXIS2		8
-#define CON_SELECT		16
-#define CON_NOFLIP		32	/* does not reorient vector to face viewport when on */
-#define CON_USER		64
+enum {
+	CON_APPLY =       1 << 0,
+	CON_AXIS0 =       1 << 1,
+	CON_AXIS1 =       1 << 2,
+	CON_AXIS2 =       1 << 3,
+	CON_SELECT =      1 << 4,
+	/** Does not reorient vector to face viewport when on. */
+	CON_NOFLIP =      1 << 5,
+	CON_USER =        1 << 6,
+};
 
 /* transdata->flag */
-#define TD_SELECTED			1
-#define	TD_NOACTION			(1 << 2)
-#define	TD_USEQUAT			(1 << 3)
-#define TD_NOTCONNECTED		(1 << 4)
-#define TD_SINGLESIZE		(1 << 5)	/* used for scaling of MetaElem->rad */
-#define TD_INDIVIDUAL_SCALE	(1 << 8) /* Scale relative to individual element center */
-#define TD_NOCENTER			(1 << 9)
-#define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
-#define TD_SKIP				(1 << 11)	/* don't transform this data */
-#define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
-#define TD_NO_LOC			(1 << 13)	/* when this is set, don't apply translation changes to this element */
-#define TD_NOTIMESNAP		(1 << 14)	/* for Graph Editor autosnap, indicates that point should not undergo autosnapping */
-#define TD_INTVALUES		(1 << 15) 	/* for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
-#define TD_MIRROR_EDGE		(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
-#define TD_MOVEHANDLE1		(1 << 17)	/* For fcurve handles, move them along with their keyframes */
-#define TD_MOVEHANDLE2		(1 << 18)
-#define TD_PBONE_LOCAL_MTX_P (1 << 19)	/* exceptional case with pose bone rotating when a parent bone has 'Local Location' option enabled and rotating also transforms it. */
-#define TD_PBONE_LOCAL_MTX_C (1 << 20)	/* same as above but for a child bone */
+enum {
+	TD_SELECTED =         1 << 0,
+	TD_NOACTION =         1 << 2,
+	TD_USEQUAT =          1 << 3,
+	TD_NOTCONNECTED =     1 << 4,
+	/** Used for scaling of #MetaElem.rad */
+	TD_SINGLESIZE =       1 << 5,
+	/** Scale relative to individual element center */
+	TD_INDIVIDUAL_SCALE = 1 << 8,
+	TD_NOCENTER =         1 << 9,
+	/** #TransData.ext abused for particle key timing. */
+	TD_NO_EXT =           1 << 10,
+	/** don't transform this data */
+	TD_SKIP =             1 << 11,
+	/** if this is a bez triple, we need to restore the handles,
+	 * if this is set #TransData.hdata needs freeing */
+	TD_BEZTRIPLE =        1 << 12,
+	/** when this is set, don't apply translation changes to this element */
+	TD_NO_LOC =           1 << 13,
+	/** for Graph Editor autosnap, indicates that point should not undergo autosnapping */
+	TD_NOTIMESNAP =       1 << 14,
+	/** for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
+	TD_INTVALUES =        1 << 15,
+	/** For editmode mirror, clamp to x = 0 */
+	TD_MIRROR_EDGE =      1 << 16,
+	/** For fcurve handles, move them along with their keyframes */
+	TD_MOVEHANDLE1 =      1 << 17,
+	TD_MOVEHANDLE2 =      1 << 18,
+	/** Exceptional case with pose bone rotating when a parent bone has 'Local Location'
+	 * option enabled and rotating also transforms it. */
+	TD_PBONE_LOCAL_MTX_P = 1 << 19,
+	/** Same as above but for a child bone. */
+	TD_PBONE_LOCAL_MTX_C = 1 << 20,
+};
 
 /* transsnap->status */
-#define SNAP_FORCED		1
-#define TARGET_INIT		2
-#define POINT_INIT		4
-#define MULTI_POINTS	8
+enum {
+	SNAP_FORCED =     1 << 0,
+	TARGET_INIT =     1 << 1,
+	POINT_INIT =      1 << 2,
+	MULTI_POINTS =    1 << 3,
+};
 
 /* Hard min/max for proportional size. */
 #define T_PROP_SIZE_MIN 1e-6f
@@ -997,11 +1026,13 @@ struct TransformOrientation *addMatrixSpace(struct bContext *C, float mat[3][3],
                                             const char *name, const bool overwrite);
 bool applyTransformOrientation(const struct TransformOrientation *ts, float r_mat[3][3], char r_name[64]);
 
-#define ORIENTATION_NONE	0
-#define ORIENTATION_NORMAL	1
-#define ORIENTATION_VERT	2
-#define ORIENTATION_EDGE	3
-#define ORIENTATION_FACE	4
+enum {
+	ORIENTATION_NONE =    0,
+	ORIENTATION_NORMAL =  1,
+	ORIENTATION_VERT =    2,
+	ORIENTATION_EDGE =    3,
+	ORIENTATION_FACE =    4,
+};
 #define ORIENTATION_USE_PLANE(ty) \
 	ELEM(ty, ORIENTATION_NORMAL, ORIENTATION_EDGE, ORIENTATION_FACE)
 
