@@ -163,6 +163,9 @@ typedef struct FontBLF {
 	/* font name. */
 	char *name;
 
+	/* # of times this font was loaded */
+	unsigned int reference_count;
+
 	/* filename or NULL. */
 	char *filename;
 

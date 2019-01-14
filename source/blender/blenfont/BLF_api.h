@@ -46,6 +46,7 @@ void BLF_default_set(int fontid);
 
 void BLF_cache_clear(void);
 
+/* Loads a font, or returns an already loaded font and increments its reference count. */
 int BLF_load(const char *name) ATTR_NONNULL();
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
 
