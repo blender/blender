@@ -801,6 +801,8 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 
 				case CTX_MODE_PARTICLE:
 					return "Comb";
+				case CTX_MODE_EDIT_TEXT:
+					return "Cursor";
 			}
 			break;
 		case SPACE_IMAGE:

@@ -1602,6 +1602,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'EDIT_LATTICE': [
             *_tools_default,
         ],
+        'EDIT_TEXT': [
+            _defs_view3d_generic.cursor,
+            None,
+            *_tools_annotate,
+        ],
         'PARTICLE': [
             _defs_view3d_generic.cursor,
             _defs_particle.generate_from_brushes,
