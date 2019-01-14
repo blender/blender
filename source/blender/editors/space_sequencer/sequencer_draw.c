@@ -1432,12 +1432,12 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (cache_handle)
 		IMB_display_buffer_release(cache_handle);
 
-	if (!scope)
-		IMB_freeImBuf(ibuf);
-
 	if (draw_metadata) {
 		ED_region_image_metadata_draw(0.0, 0.0, ibuf, &v2d->tot, 1.0, 1.0);
 	}
+
+	if (!scope)
+		IMB_freeImBuf(ibuf);
 
 	if (draw_backdrop) {
 		GPU_matrix_pop();
