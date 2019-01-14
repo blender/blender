@@ -145,12 +145,14 @@ static void wm_msg_rna_update_by_id(
 				remove = false;
 			}
 			else {
-				/* we need to resolve this from the  */
+				/* We need to resolve this from the new ID pointer. */
 				PointerRNA idptr;
 				RNA_id_pointer_create(id_dst, &idptr);
 				PointerRNA ptr;
-				PropertyRNA *prop;
-				if (!RNA_path_resolve(&idptr, key->msg.params.data_path, &ptr, &prop)) {
+				PropertyRNA *prop = NULL;
+				if (RNA_path_resolve(&idptr, key->msg.params.data_path, &ptr, &prop) &&
+				    (prop == NULL) == (key->msg.params.prop == NULL))
+				{
 					key->msg.params.ptr = ptr;
 					key->msg.params.prop = prop;
 					remove = false;
