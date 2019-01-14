@@ -167,13 +167,12 @@ typedef struct Subdiv {
 	/* Cached values, are not supposed to be accessed directly. */
 	struct {
 		/* Indexed by base face index, element indicates total number of ptex
-		 *faces created for preceding base faces.
-		 */
+		 *faces created for preceding base faces. */
 		int *face_ptex_offset;
 	} cache_;
 } Subdiv;
 
-/* ================================ HELPERS ================================= */
+/* ========================== CONVERSION HELPERS ============================ */
 
 /* NOTE: uv_smooth is eSubsurfUVSmooth. */
 eSubdivFVarLinearInterpolation
@@ -211,7 +210,7 @@ void BKE_subdiv_displacement_detach(Subdiv *subdiv);
 
 int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
 
-/* ============================= VARIOUS HELPERS ============================ */
+/* =========================== PTEX FACES AND GRIDS ========================= */
 
 /* For a given (ptex_u, ptex_v) within a ptex face get corresponding
  * (grid_u, grid_v) within a grid. */

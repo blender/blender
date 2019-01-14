@@ -43,6 +43,8 @@
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
+/* ========================== CONVERSION HELPERS ============================ */
+
 eSubdivFVarLinearInterpolation
 BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
 {
@@ -64,6 +66,8 @@ BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
 	return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
+/* ============================== CONSTRUCTION ============================== */
+
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter)
 {
@@ -83,8 +87,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 	else {
 		/* TODO(sergey): Check whether original geometry had any vertices.
 		 * The thing here is: OpenSubdiv can only deal with faces, but our
-		 * side of subdiv also deals with loose vertices and edges.
-		 */
+		 * side of subdiv also deals with loose vertices and edges. */
 	}
 	Subdiv *subdiv = MEM_callocN(sizeof(Subdiv), "subdiv from converetr");
 	subdiv->settings = *settings;
@@ -123,6 +126,8 @@ void BKE_subdiv_free(Subdiv *subdiv)
 	}
 	MEM_freeN(subdiv);
 }
+
+/* =========================== PTEX FACES AND GRIDS ========================= */
 
 int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv)
 {
