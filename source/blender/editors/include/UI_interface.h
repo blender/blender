@@ -109,14 +109,14 @@ enum {
 
 /* uiBlock->direction */
 enum {
-	UI_DIR_UP           = (1 << 0),
-	UI_DIR_DOWN         = (1 << 1),
-	UI_DIR_LEFT         = (1 << 2),
-	UI_DIR_RIGHT        = (1 << 3),
-	UI_DIR_CENTER_X     = (1 << 4),
-	UI_DIR_CENTER_Y     = (1 << 5),
+	UI_DIR_UP           = 1 << 0,
+	UI_DIR_DOWN         = 1 << 1,
+	UI_DIR_LEFT         = 1 << 2,
+	UI_DIR_RIGHT        = 1 << 3,
+	UI_DIR_CENTER_X     = 1 << 4,
+	UI_DIR_CENTER_Y     = 1 << 5,
 
-	UI_DIR_ALL          = (UI_DIR_UP | UI_DIR_DOWN | UI_DIR_LEFT | UI_DIR_RIGHT),
+	UI_DIR_ALL          = UI_DIR_UP | UI_DIR_DOWN | UI_DIR_LEFT | UI_DIR_RIGHT,
 };
 
 #if 0
@@ -125,77 +125,102 @@ enum {
 #define UI_BLOCK_ROWS      2
 #endif
 
-/* uiBlock->flag (controls) */
-#define UI_BLOCK_LOOP           (1 << 0)
-#define UI_BLOCK_IS_FLIP        (1 << 1)
-#define UI_BLOCK_NO_FLIP        (1 << 2)
-#define UI_BLOCK_NUMSELECT      (1 << 3)
-#define UI_BLOCK_NO_WIN_CLIP    (1 << 4)   /* don't apply window clipping */ /* was UI_BLOCK_ENTER_OK */
-#define UI_BLOCK_CLIPBOTTOM     (1 << 5)
-#define UI_BLOCK_CLIPTOP        (1 << 6)
-#define UI_BLOCK_MOVEMOUSE_QUIT (1 << 7)
-#define UI_BLOCK_KEEP_OPEN      (1 << 8)
-#define UI_BLOCK_POPUP          (1 << 9)
-#define UI_BLOCK_OUT_1          (1 << 10)
-#define UI_BLOCK_SEARCH_MENU    (1 << 11)
-#define UI_BLOCK_POPUP_MEMORY   (1 << 12)
-#define UI_BLOCK_CLIP_EVENTS    (1 << 13)  /* stop handling mouse events */
+/** #uiBlock.flag (controls) */
+enum {
+	UI_BLOCK_LOOP =           1 << 0,
+	UI_BLOCK_IS_FLIP =        1 << 1,
+	UI_BLOCK_NO_FLIP =        1 << 2,
+	UI_BLOCK_NUMSELECT =      1 << 3,
+	/** Don't apply window clipping. */
+	UI_BLOCK_NO_WIN_CLIP =    1 << 4,
+	UI_BLOCK_CLIPBOTTOM =     1 << 5,
+	UI_BLOCK_CLIPTOP =        1 << 6,
+	UI_BLOCK_MOVEMOUSE_QUIT = 1 << 7,
+	UI_BLOCK_KEEP_OPEN =      1 << 8,
+	UI_BLOCK_POPUP =          1 << 9,
+	UI_BLOCK_OUT_1 =          1 << 10,
+	UI_BLOCK_SEARCH_MENU =    1 << 11,
+	UI_BLOCK_POPUP_MEMORY =   1 << 12,
+	/* Stop handling mouse events. */
+	UI_BLOCK_CLIP_EVENTS =    1 << 13,
 
-/* block->flag bits 14-17 are identical to but->drawflag bits */
+	/* block->flag bits 14-17 are identical to but->drawflag bits */
 
-#define UI_BLOCK_POPUP_HOLD  (1 << 18)
-#define UI_BLOCK_LIST_ITEM   (1 << 19)
-#define UI_BLOCK_RADIAL      (1 << 20)
-#define UI_BLOCK_POPOVER     (1 << 21)
-#define UI_BLOCK_POPOVER_ONCE (1 << 22)
-/** Always show keymaps, even for non-menus. */
-#define UI_BLOCK_SHOW_SHORTCUT_ALWAYS (1 << 23)
+	UI_BLOCK_POPUP_HOLD =  1 << 18,
+	UI_BLOCK_LIST_ITEM =   1 << 19,
+	UI_BLOCK_RADIAL =      1 << 20,
+	UI_BLOCK_POPOVER =     1 << 21,
+	UI_BLOCK_POPOVER_ONCE = 1 << 22,
+	/** Always show keymaps, even for non-menus. */
+	UI_BLOCK_SHOW_SHORTCUT_ALWAYS = 1 << 23,
+};
 
-/* uiPopupBlockHandle->menuretval */
-#define UI_RETURN_CANCEL     (1 << 0)   /* cancel all menus cascading */
-#define UI_RETURN_OK         (1 << 1)   /* choice made */
-#define UI_RETURN_OUT        (1 << 2)   /* left the menu */
-#define UI_RETURN_OUT_PARENT (1 << 3)   /* let the parent handle this event */
-#define UI_RETURN_UPDATE     (1 << 4)   /* update the button that opened */
-#define UI_RETURN_POPUP_OK   (1 << 5)   /* popup is ok to be handled */
+/** #uiPopupBlockHandle.menuretval */
+enum {
+	/** Cancel all menus cascading. */
+	UI_RETURN_CANCEL =     1 << 0,
+	/** Choice made. */
+	UI_RETURN_OK =         1 << 1,
+	/** Left the menu. */
+	UI_RETURN_OUT =        1 << 2,
+	/** Let the parent handle this event. */
+	UI_RETURN_OUT_PARENT = 1 << 3,
+	/** Update the button that opened. */
+	UI_RETURN_UPDATE =     1 << 4,
+	/** Popup is ok to be handled. */
+	UI_RETURN_POPUP_OK =   1 << 5,
+};
 
 /* panel controls */
-#define UI_PNL_SOLID    (1 << 1)
-#define UI_PNL_CLOSE    (1 << 5)
-#define UI_PNL_SCALE    (1 << 9)
+enum {
+	UI_PNL_SOLID =    1 << 1,
+	UI_PNL_CLOSE =    1 << 5,
+	UI_PNL_SCALE =    1 << 9,
+};
 
 /* but->flag - general state flags. */
 enum {
-	/* warning, the first 6 flags are internal */
-	UI_BUT_ICON_SUBMENU    = (1 << 6),
-	UI_BUT_ICON_PREVIEW    = (1 << 7),
+	/** warning, the first 6 flags are internal. */
+	UI_BUT_ICON_SUBMENU    = 1 << 6,
+	UI_BUT_ICON_PREVIEW    = 1 << 7,
 
-	UI_BUT_NODE_LINK       = (1 << 8),
-	UI_BUT_NODE_ACTIVE     = (1 << 9),
-	UI_BUT_DRAG_LOCK       = (1 << 10),
-	UI_BUT_DISABLED        = (1 << 11),  /* grayed out and uneditable */
-	UI_BUT_COLOR_LOCK      = (1 << 12),
-	UI_BUT_ANIMATED        = (1 << 13),
-	UI_BUT_ANIMATED_KEY    = (1 << 14),
-	UI_BUT_DRIVEN          = (1 << 15),
-	UI_BUT_REDALERT        = (1 << 16),
-	UI_BUT_INACTIVE        = (1 << 17),  /* grayed out but still editable */
-	UI_BUT_LAST_ACTIVE     = (1 << 18),
-	UI_BUT_UNDO            = (1 << 19),
-	UI_BUT_IMMEDIATE       = (1 << 20),
-	UI_BUT_NO_UTF8         = (1 << 21),
+	UI_BUT_NODE_LINK       = 1 << 8,
+	UI_BUT_NODE_ACTIVE     = 1 << 9,
+	UI_BUT_DRAG_LOCK       = 1 << 10,
+	/** grayed out and uneditable */
+	UI_BUT_DISABLED        = 1 << 11,
+	UI_BUT_COLOR_LOCK      = 1 << 12,
+	UI_BUT_ANIMATED        = 1 << 13,
+	UI_BUT_ANIMATED_KEY    = 1 << 14,
+	UI_BUT_DRIVEN          = 1 << 15,
+	UI_BUT_REDALERT        = 1 << 16,
+	/** grayed out but still editable */
+	UI_BUT_INACTIVE        = 1 << 17,
+	UI_BUT_LAST_ACTIVE     = 1 << 18,
+	UI_BUT_UNDO            = 1 << 19,
+	UI_BUT_IMMEDIATE       = 1 << 20,
+	UI_BUT_NO_UTF8         = 1 << 21,
 
-	UI_BUT_VEC_SIZE_LOCK   = (1 << 22),  /* used to flag if color hsv-circle should keep luminance */
-	UI_BUT_COLOR_CUBIC     = (1 << 23),  /* cubic saturation for the color wheel */
-	UI_BUT_LIST_ITEM       = (1 << 24),  /* This but is "inside" a list item (currently used to change theme colors). */
-	UI_BUT_DRAG_MULTI      = (1 << 25),  /* edit this button as well as the active button (not just dragging) */
+	/** used to flag if color hsv-circle should keep luminance */
+	UI_BUT_VEC_SIZE_LOCK   = 1 << 22,
+	/** cubic saturation for the color wheel */
+	UI_BUT_COLOR_CUBIC     = 1 << 23,
+	/** This but is "inside" a list item (currently used to change theme colors). */
+	UI_BUT_LIST_ITEM       = 1 << 24,
+	/** edit this button as well as the active button (not just dragging) */
+	UI_BUT_DRAG_MULTI      = 1 << 25,
 
-	UI_BUT_HAS_SEP_CHAR    = (1 << 27),  /* but->str contains UI_SEP_CHAR, used for key shortcuts */
-	UI_BUT_UPDATE_DELAY    = (1 << 28),  /* don't run updates while dragging (needed in rare cases). */
-	UI_BUT_TEXTEDIT_UPDATE = (1 << 29),  /* when widget is in textedit mode, update value on each char stroke */
-	UI_BUT_VALUE_CLEAR     = (1 << 30),  /* show 'x' icon to clear/unlink value of text or search button */
+	/** #uiBut.str contains #UI_SEP_CHAR, used for key shortcuts */
+	UI_BUT_HAS_SEP_CHAR    = 1 << 27,
+	/** Don't run updates while dragging (needed in rare cases). */
+	UI_BUT_UPDATE_DELAY    = 1 << 28,
+	/** When widget is in textedit mode, update value on each char stroke */
+	UI_BUT_TEXTEDIT_UPDATE = 1 << 29,
+	/** Show 'x' icon to clear/unlink value of text or search button. */
+	UI_BUT_VALUE_CLEAR     = 1 << 30,
 
-	UI_BUT_OVERRIDEN       = (1u << 31u),  /* RNA property of the button is overridden from linked reference data. */
+	/** RNA property of the button is overridden from linked reference data. */
+	UI_BUT_OVERRIDEN       = 1u << 31u,
 };
 
 #define UI_PANEL_WIDTH          340
@@ -209,39 +234,48 @@ enum {
  *       (except for the 'align' ones)!
  */
 enum {
-	/* Text and icon alignment (by default, they are centered). */
-	UI_BUT_TEXT_LEFT         = (1 << 1),
-	UI_BUT_ICON_LEFT         = (1 << 2),
-	UI_BUT_TEXT_RIGHT        = (1 << 3),
-	/* Prevent the button to show any tooltip. */
-	UI_BUT_NO_TOOLTIP        = (1 << 4),
+	/** Text and icon alignment (by default, they are centered). */
+	UI_BUT_TEXT_LEFT         = 1 << 1,
+	UI_BUT_ICON_LEFT         = 1 << 2,
+	UI_BUT_TEXT_RIGHT        = 1 << 3,
+	/** Prevent the button to show any tooltip. */
+	UI_BUT_NO_TOOLTIP        = 1 << 4,
 
 	/* Button align flag, for drawing groups together.
 	 * Used in 'uiBlock.flag', take care! */
-	UI_BUT_ALIGN_TOP         = (1 << 14),
-	UI_BUT_ALIGN_LEFT        = (1 << 15),
-	UI_BUT_ALIGN_RIGHT       = (1 << 16),
-	UI_BUT_ALIGN_DOWN        = (1 << 17),
-	UI_BUT_ALIGN             = (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN),
+	UI_BUT_ALIGN_TOP         = 1 << 14,
+	UI_BUT_ALIGN_LEFT        = 1 << 15,
+	UI_BUT_ALIGN_RIGHT       = 1 << 16,
+	UI_BUT_ALIGN_DOWN        = 1 << 17,
+	UI_BUT_ALIGN             = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN,
 	/* end bits shared with 'uiBlock.flag' */
 
-	/* Warning - HACK! Needed for buttons which are not TOP/LEFT aligned, but have some top/left corner stitched to some
-	 *                 other TOP/LEFT-aligned button, because of 'corrective' hack in widget_roundbox_set()... */
-	UI_BUT_ALIGN_STITCH_TOP  = (1 << 18),
-	UI_BUT_ALIGN_STITCH_LEFT = (1 << 19),
-	UI_BUT_ALIGN_ALL         = (UI_BUT_ALIGN | UI_BUT_ALIGN_STITCH_TOP | UI_BUT_ALIGN_STITCH_LEFT),
+	/**
+	 * Warning - HACK!
+	 * Needed for buttons which are not TOP/LEFT aligned,
+	 * but have some top/left corner stitched to some other TOP/LEFT-aligned button,
+	 * because of 'corrective' hack in widget_roundbox_set()... */
+	UI_BUT_ALIGN_STITCH_TOP  = 1 << 18,
+	UI_BUT_ALIGN_STITCH_LEFT = 1 << 19,
+	UI_BUT_ALIGN_ALL         = UI_BUT_ALIGN | UI_BUT_ALIGN_STITCH_TOP | UI_BUT_ALIGN_STITCH_LEFT,
 
-	UI_BUT_BOX_ITEM          = (1 << 20), /* This but is "inside" a box item (currently used to change theme colors). */
+	/** This but is "inside" a box item (currently used to change theme colors). */
+	UI_BUT_BOX_ITEM          = 1 << 20,
 
-	UI_BUT_ACTIVE_LEFT       = (1 << 21), /* Active left part of number button */
-	UI_BUT_ACTIVE_RIGHT      = (1 << 22), /* Active right part of number button */
+	/** Active left part of number button */
+	UI_BUT_ACTIVE_LEFT       = 1 << 21,
+	/** Active right part of number button */
+	UI_BUT_ACTIVE_RIGHT      = 1 << 22,
 
 	/* (also used by search buttons to enforce shortcut display for their items). */
-	UI_BUT_HAS_SHORTCUT      = (1 << 23), /* Button has shortcut text. */
+	/** Button has shortcut text. */
+	UI_BUT_HAS_SHORTCUT      = 1 << 23,
 
-	UI_BUT_ICON_REVERSE      = (1 << 24), /* Reverse order of consecutive off/on icons */
+	/** Reverse order of consecutive off/on icons */
+	UI_BUT_ICON_REVERSE      = 1 << 24,
 
-	UI_BUT_ANIMATED_CHANGED  = (1 << 25), /* Value is animated, but the current value differs from the animated one. */
+	/** Value is animated, but the current value differs from the animated one. */
+	UI_BUT_ANIMATED_CHANGED  = 1 << 25,
 };
 
 /* scale fixed button widths by this to account for DPI */
@@ -270,66 +304,78 @@ typedef enum {
 
 /* assigned to but->type, OR'd with the flags above when passing args */
 typedef enum {
-	UI_BTYPE_BUT                    = (1 << 9),
-	UI_BTYPE_ROW                    = (2 << 9),
-	UI_BTYPE_TEXT                   = (3 << 9),
-	UI_BTYPE_MENU                   = (4 << 9),  /* dropdown list */
-	UI_BTYPE_BUT_MENU               = (5 << 9),
-	UI_BTYPE_NUM                    = (6 << 9),  /* number button */
-	UI_BTYPE_NUM_SLIDER             = (7 << 9),  /* number slider */
-	UI_BTYPE_TOGGLE                 = (8 << 9),
-	UI_BTYPE_TOGGLE_N               = (9 << 9),
-	UI_BTYPE_ICON_TOGGLE            = (10 << 9),
-	UI_BTYPE_ICON_TOGGLE_N          = (11 << 9),
-	UI_BTYPE_BUT_TOGGLE             = (12 << 9),  /* same as regular toggle, but no on/off state displayed */
-	UI_BTYPE_CHECKBOX               = (13 << 9),  /* similar to toggle, display a 'tick' */
-	UI_BTYPE_CHECKBOX_N             = (14 << 9),
-	UI_BTYPE_COLOR                  = (15 << 9),
-	UI_BTYPE_TAB                    = (16 << 9),
-	UI_BTYPE_POPOVER                = (17 << 9),
-	UI_BTYPE_SCROLL                 = (18 << 9),
-	UI_BTYPE_BLOCK                  = (19 << 9),
-	UI_BTYPE_LABEL                  = (20 << 9),
-	UI_BTYPE_KEY_EVENT              = (24 << 9),
-	UI_BTYPE_HSVCUBE                = (26 << 9),
-	UI_BTYPE_PULLDOWN               = (27 << 9),  /* menu (often used in headers), **_MENU /w different draw-type */
-	UI_BTYPE_ROUNDBOX               = (28 << 9),
-	UI_BTYPE_COLORBAND              = (30 << 9),
-	UI_BTYPE_UNITVEC                = (31 << 9),  /* sphere widget (used to input a unit-vector, aka normal) */
-	UI_BTYPE_CURVE                  = (32 << 9),
-	UI_BTYPE_LISTBOX                = (36 << 9),
-	UI_BTYPE_LISTROW                = (37 << 9),
-	UI_BTYPE_HSVCIRCLE              = (38 << 9),
-	UI_BTYPE_TRACK_PREVIEW          = (40 << 9),
+	UI_BTYPE_BUT                    = 1 << 9,
+	UI_BTYPE_ROW                    = 2 << 9,
+	UI_BTYPE_TEXT                   = 3 << 9,
+	/** dropdown list */
+	UI_BTYPE_MENU                   = 4 << 9,
+	UI_BTYPE_BUT_MENU               = 5 << 9,
+	/** number button */
+	UI_BTYPE_NUM                    = 6 << 9,
+	/** number slider */
+	UI_BTYPE_NUM_SLIDER             = 7 << 9,
+	UI_BTYPE_TOGGLE                 = 8 << 9,
+	UI_BTYPE_TOGGLE_N               = 9 << 9,
+	UI_BTYPE_ICON_TOGGLE            = 10 << 9,
+	UI_BTYPE_ICON_TOGGLE_N          = 11 << 9,
+	/** same as regular toggle, but no on/off state displayed */
+	UI_BTYPE_BUT_TOGGLE             = 12 << 9,
+	/** similar to toggle, display a 'tick' */
+	UI_BTYPE_CHECKBOX               = 13 << 9,
+	UI_BTYPE_CHECKBOX_N             = 14 << 9,
+	UI_BTYPE_COLOR                  = 15 << 9,
+	UI_BTYPE_TAB                    = 16 << 9,
+	UI_BTYPE_POPOVER                = 17 << 9,
+	UI_BTYPE_SCROLL                 = 18 << 9,
+	UI_BTYPE_BLOCK                  = 19 << 9,
+	UI_BTYPE_LABEL                  = 20 << 9,
+	UI_BTYPE_KEY_EVENT              = 24 << 9,
+	UI_BTYPE_HSVCUBE                = 26 << 9,
+	/** menu (often used in headers), **_MENU /w different draw-type */
+	UI_BTYPE_PULLDOWN               = 27 << 9,
+	UI_BTYPE_ROUNDBOX               = 28 << 9,
+	UI_BTYPE_COLORBAND              = 30 << 9,
+	/** sphere widget (used to input a unit-vector, aka normal) */
+	UI_BTYPE_UNITVEC                = 31 << 9,
+	UI_BTYPE_CURVE                  = 32 << 9,
+	UI_BTYPE_LISTBOX                = 36 << 9,
+	UI_BTYPE_LISTROW                = 37 << 9,
+	UI_BTYPE_HSVCIRCLE              = 38 << 9,
+	UI_BTYPE_TRACK_PREVIEW          = 40 << 9,
 
-	/* buttons with value >= UI_BTYPE_SEARCH_MENU don't get undo pushes */
-	UI_BTYPE_SEARCH_MENU            = (41 << 9),
-	UI_BTYPE_EXTRA                  = (42 << 9),
-	UI_BTYPE_HOTKEY_EVENT           = (46 << 9),
-	UI_BTYPE_IMAGE                  = (47 << 9),  /* non-interactive image, used for splash screen */
-	UI_BTYPE_HISTOGRAM              = (48 << 9),
-	UI_BTYPE_WAVEFORM               = (49 << 9),
-	UI_BTYPE_VECTORSCOPE            = (50 << 9),
-	UI_BTYPE_PROGRESS_BAR           = (51 << 9),
-	UI_BTYPE_NODE_SOCKET            = (53 << 9),
-	UI_BTYPE_SEPR                   = (54 << 9),
-	UI_BTYPE_SEPR_LINE              = (55 << 9),
-	UI_BTYPE_SEPR_SPACER            = (56 << 9),  /* Dynamically fill available space. */
-	UI_BTYPE_GRIP                   = (57 << 9),  /* resize handle (resize uilist) */
+	/** Buttons with value >= #UI_BTYPE_SEARCH_MENU don't get undo pushes. */
+	UI_BTYPE_SEARCH_MENU            = 41 << 9,
+	UI_BTYPE_EXTRA                  = 42 << 9,
+	UI_BTYPE_HOTKEY_EVENT           = 46 << 9,
+	/** Non-interactive image, used for splash screen */
+	UI_BTYPE_IMAGE                  = 47 << 9,
+	UI_BTYPE_HISTOGRAM              = 48 << 9,
+	UI_BTYPE_WAVEFORM               = 49 << 9,
+	UI_BTYPE_VECTORSCOPE            = 50 << 9,
+	UI_BTYPE_PROGRESS_BAR           = 51 << 9,
+	UI_BTYPE_NODE_SOCKET            = 53 << 9,
+	UI_BTYPE_SEPR                   = 54 << 9,
+	UI_BTYPE_SEPR_LINE              = 55 << 9,
+	/** Dynamically fill available space. */
+	UI_BTYPE_SEPR_SPACER            = 56 << 9,
+	/** Resize handle (resize uilist). */
+	UI_BTYPE_GRIP                   = 57 << 9,
 } eButType;
 
 #define BUTTYPE     (63 << 9)
 
-/* gradient types, for color picker UI_BTYPE_HSVCUBE etc */
-#define UI_GRAD_SV      0
-#define UI_GRAD_HV      1
-#define UI_GRAD_HS      2
-#define UI_GRAD_H       3
-#define UI_GRAD_S       4
-#define UI_GRAD_V       5
+/** Gradient types, for color picker #UI_BTYPE_HSVCUBE etc. */
+enum {
+	UI_GRAD_SV =      0,
+	UI_GRAD_HV =      1,
+	UI_GRAD_HS =      2,
+	UI_GRAD_H =       3,
+	UI_GRAD_S =       4,
+	UI_GRAD_V =       5,
 
-#define UI_GRAD_V_ALT   9
-#define UI_GRAD_L_ALT   10
+	UI_GRAD_V_ALT =   9,
+	UI_GRAD_L_ALT =   10,
+};
 
 #define UI_PALETTE_COLOR 20
 
@@ -359,10 +405,12 @@ void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const flo
 void UI_draw_safe_areas(uint pos, float x1, float x2, float y1, float y2,
         const float title_aspect[2], const float action_aspect[2]);
 
-/* state for scrolldrawing */
-#define UI_SCROLL_PRESSED       (1 << 0)
-#define UI_SCROLL_ARROWS        (1 << 1)
-#define UI_SCROLL_NO_OUTLINE    (1 << 2)
+/** State for scrolldrawing. */
+enum {
+	UI_SCROLL_PRESSED =       1 << 0,
+	UI_SCROLL_ARROWS =        1 << 1,
+	UI_SCROLL_NO_OUTLINE =    1 << 2,
+};
 void UI_draw_widget_scroll(struct uiWidgetColors *wcol, const struct rcti *rect, const struct rcti *slider, int state);
 
 /* Shortening string helper. */
@@ -370,20 +418,21 @@ float UI_text_clip_middle_ex(
         const struct uiFontStyle *fstyle, char *str, float okwidth, const float minwidth,
         const size_t max_len, const char rpart_sep);
 
-/* Callbacks
+/**
+ * Callbacks
  *
  * UI_block_func_handle_set/ButmFunc are for handling events through a callback.
  * HandleFunc gets the retval passed on, and ButmFunc gets a2. The latter is
  * mostly for compatibility with older code.
  *
- * UI_but_func_complete_set is for tab completion.
+ * - #UI_but_func_complete_set is for tab completion.
  *
- * uiButSearchFunc is for name buttons, showing a popup with matches
+ * - #uiButSearchFunc is for name buttons, showing a popup with matches
  *
- * UI_block_func_set and UI_but_func_set are callbacks run when a button is used,
- * in case events, operators or RNA are not sufficient to handle the button.
+ * - #UI_block_func_set and UI_but_func_set are callbacks run when a button is used,
+ *   in case events, operators or RNA are not sufficient to handle the button.
  *
- * UI_but_funcN_set will free the argument with MEM_freeN. */
+ * - #UI_but_funcN_set will free the argument with MEM_freeN. */
 
 typedef struct uiSearchItems uiSearchItems;
 
@@ -422,13 +471,14 @@ bool UI_block_is_empty(const uiBlock *block);
 
 
 /* interface_region_menu_popup.c */
-/* Popup Menus
+/**
+ * Popup Menus
  *
  * Functions used to create popup menus. For more extended menus the
  * UI_popup_menu_begin/End functions can be used to define own items with
  * the uiItem functions in between. If it is a simple confirmation menu
- * or similar, popups can be created with a single function call. */
-
+ * or similar, popups can be created with a single function call.
+ */
 typedef struct uiPopupMenu uiPopupMenu;
 
 uiPopupMenu *UI_popup_menu_begin(
@@ -705,7 +755,8 @@ void UI_but_string_info_get(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0
 /* Name of the main py op from i18n addon. */
 #define EDTSRC_I18N_OP_NAME "UI_OT_edittranslation"
 
-/* Special Buttons
+/**
+ * Special Buttons
  *
  * Buttons with a more specific purpose:
  * - MenuBut: buttons that popup a menu (in headers usually).
@@ -713,21 +764,23 @@ void UI_but_string_info_get(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0
  * - BlockBut: buttons that popup a block with more buttons.
  * - KeyevtBut: buttons that can be used to turn key events into values.
  * - PickerButtons: buttons like the color picker (for code sharing).
- * - AutoButR: RNA property button with type automatically defined. */
-
-#define UI_ID_RENAME        (1 << 0)
-#define UI_ID_BROWSE        (1 << 1)
-#define UI_ID_ADD_NEW       (1 << 2)
-#define UI_ID_OPEN          (1 << 3)
-#define UI_ID_ALONE         (1 << 4)
-#define UI_ID_DELETE        (1 << 5)
-#define UI_ID_LOCAL         (1 << 6)
-#define UI_ID_AUTO_NAME     (1 << 7)
-#define UI_ID_FAKE_USER     (1 << 8)
-#define UI_ID_PIN           (1 << 9)
-#define UI_ID_PREVIEWS      (1 << 10)
-#define UI_ID_OVERRIDE      (1 << 11)
-#define UI_ID_FULL          (UI_ID_RENAME | UI_ID_BROWSE | UI_ID_ADD_NEW | UI_ID_OPEN | UI_ID_ALONE | UI_ID_DELETE | UI_ID_LOCAL)
+ * - AutoButR: RNA property button with type automatically defined.
+ */
+enum {
+	UI_ID_RENAME =        1 << 0,
+	UI_ID_BROWSE =        1 << 1,
+	UI_ID_ADD_NEW =       1 << 2,
+	UI_ID_ALONE =         1 << 4,
+	UI_ID_OPEN =          1 << 3,
+	UI_ID_DELETE =        1 << 5,
+	UI_ID_LOCAL =         1 << 6,
+	UI_ID_AUTO_NAME =     1 << 7,
+	UI_ID_FAKE_USER =     1 << 8,
+	UI_ID_PIN =           1 << 9,
+	UI_ID_PREVIEWS =      1 << 10,
+	UI_ID_OVERRIDE =      1 << 11,
+	UI_ID_FULL = UI_ID_RENAME | UI_ID_BROWSE | UI_ID_ADD_NEW | UI_ID_OPEN | UI_ID_ALONE | UI_ID_DELETE | UI_ID_LOCAL,
+};
 
 /**
  * Ways to limit what is displayed in ID-search popup.
@@ -778,9 +831,9 @@ typedef enum {
 /* Return info for uiDefAutoButsRNA */
 typedef enum {
 	/* Returns when no buttons were added */
-	UI_PROP_BUTS_NONE_ADDED       = (1 << 0),
+	UI_PROP_BUTS_NONE_ADDED       = 1 << 0,
 	/* Returned when any property failed the custom check callback (check_prop) */
-	UI_PROP_BUTS_ANY_FAILED_CHECK = (1 << 1),
+	UI_PROP_BUTS_ANY_FAILED_CHECK = 1 << 1,
 } eAutoPropButsReturn;
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2);
@@ -913,44 +966,52 @@ void UI_exit(void);
  *   uiBlockCurLayout. */
 
 /* layout */
-#define UI_LAYOUT_HORIZONTAL    0
-#define UI_LAYOUT_VERTICAL      1
+enum {
+	UI_LAYOUT_HORIZONTAL =    0,
+	UI_LAYOUT_VERTICAL =      1,
+};
 
-#define UI_LAYOUT_PANEL         0
-#define UI_LAYOUT_HEADER        1
-#define UI_LAYOUT_MENU          2
-#define UI_LAYOUT_TOOLBAR       3
-#define UI_LAYOUT_PIEMENU       4
-#define UI_LAYOUT_VERT_BAR      5
+enum {
+	UI_LAYOUT_PANEL =         0,
+	UI_LAYOUT_HEADER =        1,
+	UI_LAYOUT_MENU =          2,
+	UI_LAYOUT_TOOLBAR =       3,
+	UI_LAYOUT_PIEMENU =       4,
+	UI_LAYOUT_VERT_BAR =      5,
+};
 
 #define UI_UNIT_X               ((void)0, U.widget_unit)
 #define UI_UNIT_Y               ((void)0, U.widget_unit)
 
-#define UI_LAYOUT_ALIGN_EXPAND  0
-#define UI_LAYOUT_ALIGN_LEFT    1
-#define UI_LAYOUT_ALIGN_CENTER  2
-#define UI_LAYOUT_ALIGN_RIGHT   3
+enum {
+	UI_LAYOUT_ALIGN_EXPAND =  0,
+	UI_LAYOUT_ALIGN_LEFT =    1,
+	UI_LAYOUT_ALIGN_CENTER =  2,
+	UI_LAYOUT_ALIGN_RIGHT =   3,
+};
 
-#define UI_ITEM_O_RETURN_PROPS  (1 << 0)
-#define UI_ITEM_R_EXPAND        (1 << 1)
-#define UI_ITEM_R_SLIDER        (1 << 2)
-#define UI_ITEM_R_TOGGLE        (1 << 3)
-#define UI_ITEM_R_ICON_ONLY     (1 << 4)
-#define UI_ITEM_R_EVENT         (1 << 5)
-#define UI_ITEM_R_FULL_EVENT    (1 << 6)
-#define UI_ITEM_R_NO_BG         (1 << 7)
-#define UI_ITEM_R_IMMEDIATE     (1 << 8)
-#define UI_ITEM_O_DEPRESS       (1 << 9)
-#define UI_ITEM_R_COMPACT       (1 << 10)
+enum {
+	UI_ITEM_O_RETURN_PROPS =  1 << 0,
+	UI_ITEM_R_EXPAND =        1 << 1,
+	UI_ITEM_R_SLIDER =        1 << 2,
+	UI_ITEM_R_TOGGLE =        1 << 3,
+	UI_ITEM_R_ICON_ONLY =     1 << 4,
+	UI_ITEM_R_EVENT =         1 << 5,
+	UI_ITEM_R_FULL_EVENT =    1 << 6,
+	UI_ITEM_R_NO_BG =         1 << 7,
+	UI_ITEM_R_IMMEDIATE =     1 << 8,
+	UI_ITEM_O_DEPRESS =       1 << 9,
+	UI_ITEM_R_COMPACT =       1 << 10,
+};
 
 #define UI_HEADER_OFFSET ((void)0, 0.4f * UI_UNIT_X)
 
 /* uiLayoutOperatorButs flags */
 enum {
-	UI_TEMPLATE_OP_PROPS_SHOW_TITLE       = (1 << 0),
-	UI_TEMPLATE_OP_PROPS_SHOW_EMPTY       = (1 << 1),
-	UI_TEMPLATE_OP_PROPS_COMPACT          = (1 << 2),
-	UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED    = (1 << 3),
+	UI_TEMPLATE_OP_PROPS_SHOW_TITLE       = 1 << 0,
+	UI_TEMPLATE_OP_PROPS_SHOW_EMPTY       = 1 << 1,
+	UI_TEMPLATE_OP_PROPS_COMPACT          = 1 << 2,
+	UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED    = 1 << 3,
 };
 
 /* used for transp checkers */
@@ -964,10 +1025,10 @@ enum {
  * 8------4 */
 
 enum {
-	UI_CNR_TOP_LEFT     = (1 << 0),
-	UI_CNR_TOP_RIGHT    = (1 << 1),
-	UI_CNR_BOTTOM_RIGHT = (1 << 2),
-	UI_CNR_BOTTOM_LEFT  = (1 << 3),
+	UI_CNR_TOP_LEFT     = 1 << 0,
+	UI_CNR_TOP_RIGHT    = 1 << 1,
+	UI_CNR_BOTTOM_RIGHT = 1 << 2,
+	UI_CNR_BOTTOM_LEFT  = 1 << 3,
 	/* just for convenience */
 	UI_CNR_NONE         = 0,
 	UI_CNR_ALL          = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)
