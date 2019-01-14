@@ -39,8 +39,11 @@ ccl_device_inline bool get_nlm_coords_window(int w, int h, int r, int stride,
 
 	/* Pixels still need to lie inside the denoising buffer after applying the offset,
 	 * so determine the area for which this is the case. */
-	*rect = make_int4(max(0, -co->z),     max(0, -co->w),
-	              w - max(0,  co->z), h - max(0,  co->w));
+	int dx = sx - r;
+	int dy = sy - r;
+
+	*rect = make_int4(max(0, -dx),     max(0, -dy),
+	              w - max(0,  dx), h - max(0,  dy));
 
 	/* Find the intersection of the area that we want to process (window) and the area
 	 * that can be processed (rect) to get the final area for this offset. */
@@ -58,7 +61,7 @@ ccl_device_inline bool get_nlm_coords_window(int w, int h, int r, int stride,
 		return false;
 	}
 
-	*co = make_int4(x, y, sx - r, sy - r);
+	*co = make_int4(x, y, dx, dy);
 
 	*ofs = (sy*s + sx) * stride;
 
