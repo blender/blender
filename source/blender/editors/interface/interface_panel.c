@@ -621,11 +621,10 @@ static void ui_draw_panel_dragwidget(uint pos, uint col, const rctf *rect)
 void UI_panel_label_offset(uiBlock *block, int *x, int *y)
 {
 	Panel *panel = block->panel;
-	uiStyle *style = UI_style_get_dpi();
 	const bool is_subpanel = (panel->type && panel->type->parent);
 
-	*x = UI_UNIT_X * 1.1f;
-	*y = (UI_UNIT_Y * 1.1f) + style->panelspace;
+	*x = UI_UNIT_X * 1.0f;
+	*y = UI_UNIT_Y * 1.5f;
 
 	if (is_subpanel) {
 		*x += 5.0f / block->aspect;
@@ -646,9 +645,9 @@ static void ui_draw_aligned_panel_header(
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if (panel->control & UI_PNL_CLOSE)
-		pnl_icons = (panel->labelofs + 2 * PNL_ICON + 5) / block->aspect + 0.001f;
+		pnl_icons = (panel->labelofs + (2.0f * PNL_ICON)) / block->aspect + 0.001f;
 	else
-		pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
+		pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
 
 	/* draw text label */
 	panel_title_color_get(show_background, col_title);
@@ -657,7 +656,7 @@ static void ui_draw_aligned_panel_header(
 	hrect = *rect;
 	if (dir == 'h') {
 		hrect.xmin = rect->xmin + pnl_icons;
-		hrect.ymin += 2.0f / block->aspect;
+		hrect.ymin -= 2.0f / block->aspect;
 		UI_fontstyle_draw(
 		        fontstyle, &hrect, activename, col_title,
 		        &(struct uiFontStyleDraw_Params) { .align = UI_STYLE_TEXT_LEFT, });
@@ -763,7 +762,7 @@ void ui_draw_aligned_panel(
 			col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 			/* itemrect smaller */
-			itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
+			itemrect.xmax = headrect.xmax - (0.2f * UI_UNIT_X);
 			itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
 			itemrect.ymin = headrect.ymin;
 			itemrect.ymax = headrect.ymax;
@@ -835,7 +834,7 @@ void ui_draw_aligned_panel(
 	/* draw collapse icon */
 
 	/* itemrect smaller */
-	itemrect.xmin = titlerect.xmin + 3.0f / block->aspect;
+	itemrect.xmin = titlerect.xmin;
 	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&titlerect);
 	itemrect.ymin = titlerect.ymin;
 	itemrect.ymax = titlerect.ymax;
