@@ -150,7 +150,7 @@ void DRW_globals_update(void)
 	ts.sizeVertex = U.pixelsize * (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
 	ts.sizeFaceDot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
 	ts.sizeEdge = U.pixelsize * (1.0f / 2.0f); /* TODO Theme */
-	ts.sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2));
+	ts.sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (ts.sizeEdge * (float)M_SQRT1_2)));
 
 	/* Color management. */
 	if (DRW_state_is_image_render()) {
