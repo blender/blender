@@ -133,7 +133,7 @@ static void rna_Main_ID_remove(
 {
 	ID *id = id_ptr->data;
 	if (do_unlink) {
-		BKE_libblock_delete(bmain, id);
+		BKE_id_delete(bmain, id);
 		RNA_POINTER_INVALIDATE(id_ptr);
 	}
 	else if (ID_REAL_USERS(id) <= 0) {

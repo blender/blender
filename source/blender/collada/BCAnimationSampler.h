@@ -65,7 +65,7 @@ public:
 		if (reference && reference->id.us == 0)
 		{
 			Main *bmain = CTX_data_main(mContext);
-			BKE_libblock_delete(bmain, &reference->id);
+			BKE_id_delete(bmain, &reference->id);
 		}
 		curve_map.clear();
 	}

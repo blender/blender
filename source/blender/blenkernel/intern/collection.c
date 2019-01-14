@@ -173,7 +173,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
 		}
 	}
 
-	BKE_libblock_delete(bmain, collection);
+	BKE_id_delete(bmain, collection);
 
 	BKE_main_collection_sync(bmain);
 

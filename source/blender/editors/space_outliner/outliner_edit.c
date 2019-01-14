@@ -379,7 +379,7 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
 	}
 
 
-	BKE_libblock_delete(bmain, id);
+	BKE_id_delete(bmain, id);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }

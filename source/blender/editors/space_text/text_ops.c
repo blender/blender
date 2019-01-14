@@ -387,7 +387,7 @@ static int text_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	BKE_libblock_delete(bmain, text);
+	BKE_id_delete(bmain, text);
 
 	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT | NA_REMOVED, NULL);

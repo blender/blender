@@ -476,7 +476,7 @@ void BKE_blendfile_read_make_empty(bContext *C)
 				continue;
 			}
 			while ((id = lbarray[a]->first)) {
-				BKE_libblock_delete(bmain, id);
+				BKE_id_delete(bmain, id);
 			}
 		}
 	}

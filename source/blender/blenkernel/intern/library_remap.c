@@ -946,7 +946,7 @@ void BKE_id_free_us(Main *bmain, void *idv)      /* test users */
 	}
 }
 
-void BKE_libblock_delete(Main *bmain, void *idv)
+void BKE_id_delete(Main *bmain, void *idv)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int base_count, i;

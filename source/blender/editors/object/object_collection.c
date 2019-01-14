@@ -538,7 +538,7 @@ static int collection_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!collection)
 		return OPERATOR_CANCELLED;
 
-	BKE_libblock_delete(bmain, collection);
+	BKE_id_delete(bmain, collection);
 
 	DEG_relations_tag_update(bmain);
 

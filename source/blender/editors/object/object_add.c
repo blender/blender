@@ -1361,7 +1361,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		 */
 		if (use_global && ob->id.lib == NULL) {
 			/* We want to nuke the object, let's nuke it the easy way (not for linked data though)... */
-			BKE_libblock_delete(bmain, &ob->id);
+			BKE_id_delete(bmain, &ob->id);
 			changed_count += 1;
 			continue;
 		}
