@@ -2164,6 +2164,9 @@ void draw_outliner(const bContext *C)
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);
 
+	/* extend size to allow for horizontal scrollbar */
+	sizey += V2D_SCROLL_HEIGHT;
+
 	if (soops->outlinevis == SO_DATA_API) {
 		/* RNA has two columns:
 		 * - column 1 is (max_width + OL_RNA_COL_SPACEX) or
