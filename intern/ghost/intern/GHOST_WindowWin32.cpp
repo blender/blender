@@ -190,7 +190,24 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		    0);                         // pointer to window-creation data
 		free(title_16);
 	}
+
+	m_user32 = ::LoadLibrary("user32.dll");
+
 	if (m_hWnd) {
+		if (m_user32) {
+			// Touch enabled screens with pen support by default have gestures
+			// enabled, which results in a delay between the pointer down event
+			// and the first move when using the stylus. RegisterTouchWindow
+			// disables the new gesture architecture enabling the events to be
+			// sent immediately to the application rather than being absorbed by
+			// the gesture API.
+			GHOST_WIN32_RegisterTouchWindow pRegisterTouchWindow =
+				(GHOST_WIN32_RegisterTouchWindow)GetProcAddress(m_user32, "RegisterTouchWindow");
+			if (pRegisterTouchWindow) {
+				pRegisterTouchWindow(m_hWnd, 0);
+			}
+		}
+
 		// Register this window as a droptarget. Requires m_hWnd to be valid.
 		// Note that OleInitialize(0) has to be called prior to this. Done in GHOST_SystemWin32.
 		m_dropTarget = new GHOST_DropTargetWin32(this, m_system);
@@ -367,6 +384,11 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, NULL);
 		::DestroyWindow(m_hWnd);
 		m_hWnd = 0;
+	}
+
+	if (m_user32) {
+		FreeLibrary(m_user32);
+		m_user32 = NULL;
 	}
 }
 
@@ -976,10 +998,6 @@ void GHOST_WindowWin32::bringTabletContextToFront()
 
 GHOST_TUns16 GHOST_WindowWin32::getDPIHint()
 {
-	if (!m_user32) {
-		m_user32 = ::LoadLibrary("user32.dll");
-	}
-
 	if (m_user32) {
 		GHOST_WIN32_GetDpiForWindow fpGetDpiForWindow = (GHOST_WIN32_GetDpiForWindow) ::GetProcAddress(m_user32, "GetDpiForWindow");
 
