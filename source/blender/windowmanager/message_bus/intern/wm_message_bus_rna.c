@@ -120,10 +120,15 @@ static void wm_msg_rna_update_by_id(
 
 			/* Remove any non-persistent values, so a single persistent
 			 * value doesn't modify behavior for the rest. */
-			wmMsgSubscribeValueLink *msg_lnk_next;
-			for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first; msg_lnk; msg_lnk = msg_lnk_next) {
+			for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first, *msg_lnk_next;
+			     msg_lnk;
+			     msg_lnk = msg_lnk_next)
+			{
 				msg_lnk_next = msg_lnk->next;
 				if (msg_lnk->params.is_persistent == false) {
+					if (msg_lnk->params.tag) {
+						mbus->messages_tag_count -= 1;
+					}
 					wm_msg_subscribe_value_free(&key->head, msg_lnk);
 				}
 			}
@@ -153,6 +158,18 @@ static void wm_msg_rna_update_by_id(
 			}
 
 			if (remove) {
+				for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first, *msg_lnk_next;
+				     msg_lnk;
+				     msg_lnk = msg_lnk_next)
+				{
+					msg_lnk_next = msg_lnk->next;
+					if (msg_lnk->params.is_persistent == false) {
+						if (msg_lnk->params.tag) {
+							mbus->messages_tag_count -= 1;
+						}
+						wm_msg_subscribe_value_free(&key->head, msg_lnk);
+					}
+				}
 				/* Failed to persist, remove the key. */
 				BLI_remlink(&mbus->messages, key);
 				wm_msg_rna_gset_key_free(key);
@@ -176,6 +193,18 @@ static void wm_msg_rna_remove_by_id(struct wmMsgBus *mbus, const ID *id)
 		wmMsgSubscribeKey_RNA *key = BLI_gsetIterator_getKey(&gs_iter);
 		BLI_gsetIterator_step(&gs_iter);
 		if (key->msg.params.ptr.id.data == id) {
+			/* Clear here so we can decrement 'messages_tag_count'. */
+			for (wmMsgSubscribeValueLink *msg_lnk = key->head.values.first, *msg_lnk_next;
+			     msg_lnk;
+			     msg_lnk = msg_lnk_next)
+			{
+				msg_lnk_next = msg_lnk->next;
+				if (msg_lnk->params.tag) {
+					mbus->messages_tag_count -= 1;
+				}
+				wm_msg_subscribe_value_free(&key->head, msg_lnk);
+			}
+
 			BLI_remlink(&mbus->messages, key);
 			BLI_gset_remove(gs, key, NULL);
 			wm_msg_rna_gset_key_free(key);
