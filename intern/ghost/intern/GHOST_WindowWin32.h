@@ -242,7 +242,7 @@ public:
 
 	const GHOST_TabletData *GetTabletData()
 	{
-		return m_tabletData;
+		return &m_tabletData;
 	}
 
 	void processWin32TabletActivateEvent(WORD state);
@@ -343,16 +343,27 @@ private:
 	static const wchar_t *s_windowClassName;
 	static const int s_maxTitleLength;
 
-	/** WinTab dll handle */
-	HMODULE m_wintab;
-
 	/** Tablet data for GHOST */
-	GHOST_TabletData *m_tabletData;
+	GHOST_TabletData m_tabletData;
 
-	/** Stores the Tablet context if detected Tablet features using WinTab.dll */
-	HCTX m_tablet;
-	LONG m_maxPressure;
-	LONG m_maxAzimuth, m_maxAltitude;
+	/* Wintab API */
+	struct {
+		/** WinTab dll handle */
+		HMODULE handle;
+
+		/** API functions */
+		GHOST_WIN32_WTInfo info;
+		GHOST_WIN32_WTOpen open;
+		GHOST_WIN32_WTClose close;
+		GHOST_WIN32_WTPacket packet;
+		GHOST_WIN32_WTEnable enable;
+		GHOST_WIN32_WTOverlap overlap;
+
+		/** Stores the Tablet context if detected Tablet features using WinTab.dll */
+		HCTX tablet;
+		LONG maxPressure;
+		LONG maxAzimuth, maxAltitude;
+	} m_wintab;
 
 	GHOST_TWindowState m_normal_state;
 
