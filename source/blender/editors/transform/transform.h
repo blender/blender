@@ -514,6 +514,16 @@ typedef struct TransDataContainer {
 	/** Center of transformation (in local-space), Calculated from #TransInfo.center_global. */
 	float center_local[3];
 
+	/**
+	 * Mirror option
+	 */
+	struct {
+		/* Currently for mesh X mirror only. */
+		int axis_flag;
+		/** Set to -1.0f or 1.0 when use_mirror is set. */
+		float sign;
+	} mirror;
+
 	TransCustomDataContainer custom;
 } TransDataContainer;
 
@@ -618,8 +628,6 @@ typedef struct TransInfo {
 
 	short		prop_mode;
 
-	short		mirror;
-
 	float		values[4];
 	/** Offset applied ontop of modal input. */
 	float		values_modal_offset[4];
@@ -710,7 +718,8 @@ enum {
     /** Auto-ik is on. */
 	T_AUTOIK =            1 << 18,
 
-	T_MIRROR =            1 << 19,
+	/** Don't use mirror even if the data-block option is set. */
+	T_NO_MIRROR =         1 << 19,
 
 	T_AUTOVALUES =        1 << 20,
 

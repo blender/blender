@@ -2171,7 +2171,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
-		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_MIRROR) != 0);
+		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_NO_MIRROR) == 0);
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
@@ -5980,7 +5980,7 @@ static void slide_origdata_create_data_vert(
 }
 
 static void slide_origdata_create_data(
-        TransInfo *t, TransDataContainer *tc, SlideOrigData *sod,
+        TransDataContainer *tc, SlideOrigData *sod,
         TransDataGenericSlideVert *sv_array, unsigned int v_stride, unsigned int v_num)
 {
 	if (sod->use_origfaces) {
@@ -6015,7 +6015,7 @@ static void slide_origdata_create_data(
 			slide_origdata_create_data_vert(bm, sod, sv);
 		}
 
-		if (t->flag & T_MIRROR) {
+		if (tc->mirror.axis_flag) {
 			TransData *td = tc->data;
 			TransDataGenericSlideVert *sv_mirror;
 
@@ -6995,7 +6995,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, TransDataContainer *t
 	/* create copies of faces for customdata projection */
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 	slide_origdata_init_data(tc, &sld->orig_data);
-	slide_origdata_create_data(t, tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
+	slide_origdata_create_data(tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	if (rv3d) {
 		calcEdgeSlide_even(t, tc, sld, mval);
@@ -7190,7 +7190,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *t
 	/* create copies of faces for customdata projection */
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 	slide_origdata_init_data(tc, &sld->orig_data);
-	slide_origdata_create_data(t, tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
+	slide_origdata_create_data(tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	if (rv3d) {
 		calcEdgeSlide_even(t, tc, sld, mval);
@@ -7806,7 +7806,7 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
 
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
 	slide_origdata_init_data(tc, &sld->orig_data);
-	slide_origdata_create_data(t, tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
+	slide_origdata_create_data(tc, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	sld->em = em;
 

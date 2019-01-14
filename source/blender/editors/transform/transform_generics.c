@@ -237,27 +237,29 @@ static void clipMirrorModifier(TransInfo *t)
 static void editbmesh_apply_to_mirror(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
-		BMVert *eve;
-		int i;
+		if (tc->mirror.axis_flag) {
+			TransData *td = tc->data;
+			BMVert *eve;
+			int i;
 
-		for (i = 0; i < tc->data_len; i++, td++) {
-			if (td->flag & TD_NOACTION)
-				break;
-			if (td->loc == NULL)
-				break;
-			if (td->flag & TD_SKIP)
-				continue;
+			for (i = 0; i < tc->data_len; i++, td++) {
+				if (td->flag & TD_NOACTION)
+					break;
+				if (td->loc == NULL)
+					break;
+				if (td->flag & TD_SKIP)
+					continue;
 
-			eve = td->extra;
-			if (eve) {
-				eve->co[0] = -td->loc[0];
-				eve->co[1] = td->loc[1];
-				eve->co[2] = td->loc[2];
-			}
+				eve = td->extra;
+				if (eve) {
+					eve->co[0] = -td->loc[0];
+					eve->co[1] = td->loc[1];
+					eve->co[2] = td->loc[2];
+				}
 
-			if (td->flag & TD_MIRROR_EDGE) {
-				td->loc[0] = 0;
+				if (td->flag & TD_MIRROR_EDGE) {
+					td->loc[0] = 0;
+				}
 			}
 		}
 	}
@@ -812,8 +814,11 @@ static void recalcData_objects(TransInfo *t)
 				applyProject(t);
 				clipMirrorModifier(t);
 			}
-			if ((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
+			if ((t->flag & T_NO_MIRROR) == 0 &&
+			    (t->options & CTX_NO_MIRROR) == 0)
+			{
 				editbmesh_apply_to_mirror(t);
+			}
 
 			if (t->mode == TFM_EDGE_SLIDE) {
 				projectEdgeSlideData(t, false);
@@ -1227,6 +1232,12 @@ void initTransDataContainers_FromObjectData(TransInfo *t, Object *obact, Object 
 
 		for (int i = 0; i < objects_len; i++) {
 			TransDataContainer *tc = &t->data_container[i];
+			/* TODO, multiple axes. */
+			tc->mirror.axis_flag = (
+			        ((t->flag & T_NO_MIRROR) == 0) &&
+			        ((t->options & CTX_NO_MIRROR) == 0) &&
+			        (((Mesh *)objects[i]->data)->editflag & ME_EDIT_MIRROR_X) != 0);
+
 			if (object_mode & OB_MODE_EDIT) {
 				tc->obedit = objects[i];
 				/* Check needed for UV's */
@@ -1548,18 +1559,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "mirror")) &&
 	           RNA_property_is_set(op->ptr, prop)))
 	{
-		if (RNA_property_boolean_get(op->ptr, prop)) {
-			t->flag |= T_MIRROR;
-			t->mirror = 1;
+		if (!RNA_property_boolean_get(op->ptr, prop)) {
+			t->flag |= T_NO_MIRROR;
 		}
 	}
-	// Need stuff to take it from edit mesh or whatnot here
-	else if (t->spacetype == SPACE_VIEW3D) {
-		/* TODO(campbell): xform, get mirror from each object. */
-		if (t->obedit_type == OB_MESH && (((Mesh *)OBACT(t->view_layer)->data)->editflag & ME_EDIT_MIRROR_X)) {
-			t->flag |= T_MIRROR;
-			t->mirror = 1;
-		}
+	else if ((t->spacetype == SPACE_VIEW3D) && (t->obedit_type == OB_MESH)) {
+		/* pass */
+	}
+	else {
+		/* Avoid mirroring for unsupported contexts. */
+		t->options |= CTX_NO_MIRROR;
 	}
 
 	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
@@ -2168,7 +2177,7 @@ void calculatePropRatio(TransInfo *t)
 				if (td->flag & TD_SELECTED) {
 					td->factor = 1.0f;
 				}
-				else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f) {
+				else if (tc->mirror.axis_flag && (td->loc[0] * tc->mirror.sign) < -0.00001f) {
 					td->flag |= TD_SKIP;
 					td->factor = 0.0f;
 					restoreElement(td);

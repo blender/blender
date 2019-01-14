@@ -2676,12 +2676,9 @@ static void createTransEditVerts(TransInfo *t)
 		 * Optional, allocate if needed. */
 		int *dists_index = NULL;
 
-		if (t->flag & T_MIRROR) {
-			/* TODO(campbell): xform: We need support for many mirror objects at once! */
-			if (tc->is_active) {
-				EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
-				mirror = 1;
-			}
+		if (tc->mirror.axis_flag) {
+			EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
+			mirror = 1;
 		}
 
 		/**
@@ -2791,7 +2788,7 @@ static void createTransEditVerts(TransInfo *t)
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve->co[0] != 0.0f) {
 					if (eve->co[0] < 0.0f) {
-						t->mirror = -1;
+						tc->mirror.sign = -1.0f;
 						mirror = -1;
 					}
 					break;
@@ -2895,7 +2892,7 @@ cleanup:
 		if (dists_index)
 			MEM_freeN(dists_index);
 
-		if (t->flag & T_MIRROR) {
+		if (tc->mirror.axis_flag) {
 			EDBM_verts_mirror_cache_end(em);
 		}
 	}
@@ -6381,7 +6378,7 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 			char hflag;
 			bool has_face_sel = (bm->totfacesel != 0);
 
-			if (t->flag & T_MIRROR) {
+			if (tc->mirror.axis_flag) {
 				TransData *td;
 				int i;
 
