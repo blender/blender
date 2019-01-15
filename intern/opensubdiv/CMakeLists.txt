@@ -75,6 +75,7 @@ if(WITH_OPENSUBDIV)
 		internal/opensubdiv_converter_orient_impl.h
 		internal/opensubdiv_device_context_cuda.h
 		internal/opensubdiv_device_context_opencl.h
+		internal/opensubdiv_edge_map.h
 		internal/opensubdiv_evaluator_internal.h
 		internal/opensubdiv_gl_mesh_draw.h
 		internal/opensubdiv_gl_mesh_fvar.h

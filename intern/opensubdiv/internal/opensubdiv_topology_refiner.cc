@@ -23,6 +23,7 @@
 #include "MEM_guardedalloc.h"
 #include "internal/opensubdiv_converter_factory.h"
 #include "internal/opensubdiv_converter_internal.h"
+#include "internal/opensubdiv_edge_map.h"
 #include "internal/opensubdiv_internal.h"
 #include "internal/opensubdiv_topology_refiner_internal.h"
 #include "internal/opensubdiv_util.h"
@@ -152,7 +153,7 @@ void fillFacePtexIndexOffset(const OpenSubdiv_TopologyRefiner* topology_refiner,
   }
 }
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Face-varying data.
 
 int getNumFVarChannels(
@@ -185,7 +186,7 @@ const int* getFaceFVarValueIndices(
   return &base_level->GetFaceFVarValues(face_index, channel)[0];
 }
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Internal helpers.
 
 void assignFunctionPointers(OpenSubdiv_TopologyRefiner* topology_refiner) {
@@ -249,6 +250,7 @@ void openSubdiv_deleteTopologyRefiner(
 ////////////////////////////////////////////////////////////////////////////////
 // Comparison with converter.
 
+namespace opensubdiv_capi {
 namespace {
 
 ///////////////////////////////////////////////////////////
@@ -279,7 +281,7 @@ bool checkOptionsMatches(
   return true;
 }
 
-bool checkGeometryCoountersMatches(
+bool checkGeometryCountersMatches(
     const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
     const OpenSubdiv_Converter* converter) {
   using OpenSubdiv::Far::TopologyLevel;
@@ -295,30 +297,113 @@ bool checkPreliminaryMatches(
     const OpenSubdiv_Converter* converter) {
   return checkSchemeTypeMatches(topology_refiner, converter) &&
          checkOptionsMatches(topology_refiner, converter) &&
-         checkGeometryCoountersMatches(topology_refiner, converter);
+         checkGeometryCountersMatches(topology_refiner, converter);
 }
 
 ///////////////////////////////////////////////////////////
 // Geometry comparison.
 
-bool checkGeometryEdgesMatch(
-    const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
-    const OpenSubdiv_Converter* converter) {
-  using OpenSubdiv::Far::ConstIndexArray;
-  using OpenSubdiv::Far::TopologyLevel;
-  const TopologyLevel& base_level = topology_refiner->GetLevel(0);
-  const int num_edges = base_level.GetNumEdges();
-  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    const ConstIndexArray& edge_vertices =
-        base_level.GetEdgeVertices(edge_index);
-    int conv_edge_vertices[2];
-    converter->getEdgeVertices(converter, edge_index, conv_edge_vertices);
-    if (conv_edge_vertices[0] != edge_vertices[0] ||
-        conv_edge_vertices[1] != edge_vertices[1]) {
+// A thin wrapper around index like array which does cyclic access. This means,
+// it basically does indices[requested_index % num_indices].
+//
+// NOTE: This array does not own the memory.
+//
+// TODO(sergey): Consider moving this to a more reusable place.
+class CyclicArray {
+ public:
+  typedef int value_type;
+  typedef int size_type;
+  static constexpr size_type npos = -1;
+
+  explicit CyclicArray(const std::vector<int>& data)
+      : data_(data.data()),
+        size_(data.size()) {
+  }
+
+  explicit CyclicArray(const OpenSubdiv::Far::ConstIndexArray& data)
+      : data_(&data[0]),
+        size_(data.size()) {
+  }
+
+  inline value_type operator[](int index) const {
+    assert(index >= 0);
+    // TODO(sergey): Check whether doing check for element index exceeding total
+    // number of indices prior to modulo helps performance.
+    return data_[index % size()];
+  }
+
+  inline size_type size() const {
+    return size_;
+  }
+
+  // Find index of first occurrence of a given value.
+  inline size_type find(const value_type value) const {
+    const int num_indices = size();
+    for (size_type i = 0; i < num_indices; ++i) {
+      if (value == (*this)[i]) {
+        return i;
+      }
+    }
+    return npos;
+  }
+
+ protected:
+  const value_type* data_;
+  const size_type size_;
+};
+
+bool compareCyclicForward(const CyclicArray& array_a,
+                          const int start_a,
+                          const CyclicArray& array_b,
+                          const int start_b) {
+  const int num_elements = array_a.size();
+  for (int i = 0; i < num_elements; ++i) {
+    if (array_a[start_a + i] != array_b[start_b + i]) {
       return false;
     }
   }
   return true;
+}
+
+bool compareCyclicBackward(const CyclicArray& array_a,
+                           const int start_a,
+                           const CyclicArray& array_b,
+                           const int start_b) {
+  const int num_elements = array_a.size();
+  // TODO(sergey): Some optimization might be possible with memcmp trickery.
+  for (int i = 0; i < num_elements; ++i) {
+    if (array_a[start_a + (num_elements - i - 1)] !=
+        array_b[start_b + (num_elements - i - 1)]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Utility function dedicated for checking whether whether verticies indices
+// used by two faces match.
+// The tricky part here is that we can't trust 1:1 array match here, since it's
+// possible that OpenSubdiv oriented edges of a face to make it compatible with
+// an internal representation of non-manifold meshes.
+bool checkVerticesOfFacesMatch(const CyclicArray& indices_a,
+                               const CyclicArray& indices_b) {
+  if (indices_a.size() != indices_a.size()) {
+    return false;
+  }
+  // "Align" the arrays so we know first matched element.
+  const int start_b = indices_b.find(indices_a[0]);
+  if (start_b == indices_b.npos) {
+    return false;
+  }
+  // Check match in both directions, for the case OpenSubdiv did orient face in
+  // a way which made normals more consistent internally.
+  if (compareCyclicForward(indices_a, 0, indices_b, start_b)) {
+    return true;
+  }
+  if (compareCyclicBackward(indices_a, 0, indices_b, start_b)) {
+    return true;
+  }
+  return false;
 }
 
 bool checkGeometryFacesMatch(
@@ -341,32 +426,8 @@ bool checkGeometryFacesMatch(
     }
     conv_face_vertices.resize(num_face_vertices);
     converter->getFaceVertices(converter, face_index, &conv_face_vertices[0]);
-    // Check face-vertex indices in the direct order (assuming topology
-    // orientation is disabled or did not flip order of the face-vertices).
-    //
-    // TODO(sergey): Can we simply memcmp() with OpenSubdiv's array?
-    bool direct_match = true;
-    for (int face_vertex_index = 0; face_vertex_index < num_face_vertices;
-         ++face_vertex_index) {
-      if (conv_face_vertices[face_vertex_index] !=
-          face_vertices[face_vertex_index]) {
-        direct_match = false;
-        break;
-      }
-    }
-    if (!direct_match) {
-      // If face didn't match in direct direction we also test if it matches in
-      // reversed direction. This is because conversion might reverse loops to
-      // make normals consistent.
-#ifdef OPENSUBDIV_ORIENT_TOPOLOGY
-      for (int face_vertex_index = 0; face_vertex_index < num_face_vertices;
-           ++face_vertex_index) {
-        if (conv_face_vertices[face_vertex_index] !=
-            face_vertices[num_face_vertices - face_vertex_index - 1]) {
-          return false;
-        }
-      }
-#endif
+    if (!checkVerticesOfFacesMatch(CyclicArray(conv_face_vertices),
+                                   CyclicArray(face_vertices))) {
       return false;
     }
   }
@@ -376,14 +437,50 @@ bool checkGeometryFacesMatch(
 bool checkGeometryMatches(
     const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
     const OpenSubdiv_Converter* converter) {
-  return checkGeometryEdgesMatch(topology_refiner, converter) &&
-         checkGeometryFacesMatch(topology_refiner, converter);
+  // NOTE: Since OpenSubdiv's topology refiner doesn't contain loose edges, we
+  // are only checking for faces to be matched. Changes in edges we don't care
+  // here too much (they'll be checked for creases changes later).
+  return checkGeometryFacesMatch(topology_refiner, converter);
 }
 
 ///////////////////////////////////////////////////////////
 // Compare attributes which affects on topology
 
-bool checkEdgeSharpnessMatch(
+inline bool checkSingleEdgeSharpnessMatch(
+    const OpenSubdiv::Far::TopologyLevel& base_level,
+    int base_level_edge_index,
+    const OpenSubdiv_Converter* converter,
+    int converter_edge_index) {
+  // NOTE: Boundary and non-manifold edges are internally forced to an infinite
+  // sharpness. So we can not reliably compare those.
+  //
+  // TODO(sergey): Watch for NON_MANIFOLD_SHARP option.
+  if (base_level.IsEdgeBoundary(base_level_edge_index) ||
+      base_level.IsEdgeNonManifold(base_level_edge_index)) {
+    return true;
+  }
+  const float sharpness = base_level.GetEdgeSharpness(base_level_edge_index);
+  const float converter_sharpness =
+      converter->getEdgeSharpness(converter, converter_edge_index);
+  if (sharpness != converter_sharpness) {
+    return false;
+  }
+  return true;
+}
+
+inline bool checkSingleEdgeTagMatch(
+    const OpenSubdiv::Far::TopologyLevel& base_level,
+    int base_level_edge_index,
+    const OpenSubdiv_Converter* converter,
+    int converter_edge_index) {
+  return checkSingleEdgeSharpnessMatch(base_level, base_level_edge_index,
+                                       converter, converter_edge_index);
+}
+
+// Compares edge tags between topology refiner and converter in a case when
+// converter specifies a full topology.
+// This is simplest loop, since we know that order of edges matches.
+bool checkEdgeTagsMatchFullTopology(
     const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
     const OpenSubdiv_Converter* converter) {
   using OpenSubdiv::Far::ConstIndexArray;
@@ -391,30 +488,77 @@ bool checkEdgeSharpnessMatch(
   const TopologyLevel& base_level = topology_refiner->GetLevel(0);
   const int num_edges = base_level.GetNumEdges();
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
-    const float sharpness = base_level.GetEdgeSharpness(edge_index);
-    const float conv_sharpness =
-        converter->getEdgeSharpness(converter, edge_index);
-    if (sharpness != conv_sharpness) {
+    if (!checkSingleEdgeTagMatch(
+        base_level, edge_index, converter, edge_index)) {
       return false;
     }
   }
   return true;
 }
 
+// Compares tags of edges in the case when orientation of edges is left up to
+// OpenSubdiv. In this case we do need to take care of mapping edges from the
+// converter to current topology refiner, since the order is not guaranteed.
+bool checkEdgeTagsMatchAutoOrient(
+    const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
+    const OpenSubdiv_Converter* converter) {
+  using OpenSubdiv::Far::ConstIndexArray;
+  using OpenSubdiv::Far::TopologyLevel;
+  const TopologyLevel& base_level = topology_refiner->GetLevel(0);
+  const int num_edges = base_level.GetNumEdges();
+  // Create mapping for quick lookup of edge index from its verticies indices.
+  //
+  // TODO(sergey): Consider caching it in some sort of wrapper around topology
+  // refiner.
+  EdgeTagMap<int> edge_map;
+  for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
+    ConstIndexArray edge_vertices = base_level.GetEdgeVertices(edge_index);
+    edge_map.insert(edge_vertices[0], edge_vertices[1], edge_index);
+  }
+  // Compare all edges.
+  for (int converter_edge_index = 0;
+       converter_edge_index < num_edges;
+       ++converter_edge_index) {
+    // Get edge verticies indices, and lookup corresponding edge index in the
+    // base topology level.
+    int edge_vertices[2];
+    converter->getEdgeVertices(converter, converter_edge_index, edge_vertices);
+    const int base_level_edge_index = edge_map.at(
+        edge_vertices[0], edge_vertices[1]);
+    // Perform actual test.
+    if (!checkSingleEdgeTagMatch(
+        base_level, base_level_edge_index, converter, converter_edge_index)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool checkEdgeTagsMatch(
+    const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
+    const OpenSubdiv_Converter* converter) {
+  if (converter->specifiesFullTopology(converter)) {
+    return checkEdgeTagsMatchFullTopology(topology_refiner, converter);
+  } else {
+    return checkEdgeTagsMatchAutoOrient(topology_refiner, converter);
+  }
+}
+
 bool checkTopologyAttributesMatch(
     const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
     const OpenSubdiv_Converter* converter) {
-  return checkEdgeSharpnessMatch(topology_refiner, converter);
+  return checkEdgeTagsMatch(topology_refiner, converter);
 }
 
 }  // namespace
+}  // namespace opensubdiv_capi
 
 bool openSubdiv_topologyRefinerCompareWithConverter(
     const OpenSubdiv_TopologyRefiner* topology_refiner,
     const OpenSubdiv_Converter* converter) {
   const OpenSubdiv::Far::TopologyRefiner* refiner =
       getOSDTopologyRefiner(topology_refiner);
-  return (checkPreliminaryMatches(refiner, converter) &&
-          checkGeometryMatches(refiner, converter) &&
-          checkTopologyAttributesMatch(refiner, converter));
+  return (opensubdiv_capi::checkPreliminaryMatches(refiner, converter) &&
+          opensubdiv_capi::checkGeometryMatches(refiner, converter) &&
+          opensubdiv_capi::checkTopologyAttributesMatch(refiner, converter));
 }

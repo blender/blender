@@ -20,20 +20,27 @@
 #ifndef OPENSUBDIV_UTIL_H_
 #define OPENSUBDIV_UTIL_H_
 
+#include <stdint.h>
+
 #include <algorithm>
+#include <cassert>
 #include <vector>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 namespace opensubdiv_capi {
 
 using std::fill;
+using std::make_pair;
 using std::max;
 using std::min;
+using std::pair;
 using std::stack;
 using std::string;
 using std::swap;
+using std::unordered_map;
 using std::vector;
 
 #define foreach(x, y) for (x : y)
