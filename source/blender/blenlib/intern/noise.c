@@ -288,7 +288,9 @@ static float newPerlin(float x, float y, float z)
 {
 	int A, AA, AB, B, BA, BB;
 	float u = floor(x), v = floor(y), w = floor(z);
-	int X = ((int)u) & 255, Y = ((int)v) & 255, Z = ((int)w) & 255;   /* FIND UNIT CUBE THAT CONTAINS POINT */
+	int X = ((int)u) & 255,
+		Y = ((int)v) & 255,
+		Z = ((int)w) & 255;   /* FIND UNIT CUBE THAT CONTAINS POINT */
 	x -= u;             /* FIND RELATIVE X,Y,Z */
 	y -= v;             /* OF POINT IN CUBE. */
 	z -= w;
@@ -1304,7 +1306,8 @@ static float voronoi_Cr(float x, float y, float z)
 }
 
 
-/* Signed version of all 6 of the above, just 2x-1, not really correct though (range is potentially (0, sqrt(6)).
+/* Signed version of all 6 of the above, just 2x-1, not really correct though
+ * (range is potentially (0, sqrt(6)).
  * Used in the musgrave functions */
 static float voronoi_F1S(float x, float y, float z)
 {

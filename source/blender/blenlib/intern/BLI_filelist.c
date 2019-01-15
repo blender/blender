@@ -179,7 +179,8 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 						file->type = file->s.st_mode;
 					}
 					else if (FILENAME_IS_CURRPAR(file->relname)) {
-						/* Hack around for UNC paths on windows - does not support stat on '\\SERVER\foo\..', sigh... */
+						/* Hack around for UNC paths on windows:
+						 * does not support stat on '\\SERVER\foo\..', sigh... */
 						file->type |= S_IFDIR;
 					}
 					dir_ctx->nrfiles++;

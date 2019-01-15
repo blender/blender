@@ -54,9 +54,13 @@ typedef struct BLI_AStarGNode {
 
 typedef struct BLI_AStarSolution {
 	/* Final 'most useful' data. */
-	int steps;  /* Number of steps (i.e. walked links) in path (nodes num, including start and end, is steps + 1). */
-	int *prev_nodes;  /* Store the path, in reversed order (from destination to source node), as indices. */
-	BLI_AStarGNLink **prev_links;  /* Indices are nodes' ones, as prev_nodes, but they map to relevant link. */
+	/** Number of steps (i.e. walked links) in path
+	 * (nodes num, including start and end, is steps + 1). */
+	int steps;
+	/** Store the path, in reversed order (from destination to source node), as indices. */
+	int *prev_nodes;
+	/** Indices are nodes' ones, as prev_nodes, but they map to relevant link. */
+	BLI_AStarGNLink **prev_links;
 
 	void *custom_data;
 

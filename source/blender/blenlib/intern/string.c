@@ -380,7 +380,8 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 {
 	const char *startMatch, *endMatch;
 
-	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
+	/* get the starting point (i.e. where prefix starts, and add prefixLen+1
+	 * to it to get be after the first " */
 	startMatch = strstr(str, prefix);
 	if (startMatch) {
 		const size_t prefixLen = strlen(prefix);
@@ -438,8 +439,8 @@ char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr
 		 * copy the text up to this position and advance the current position in the string
 		 */
 		if (str != match) {
-			/* add the segment of the string from str to match to the buffer, then restore the value at match
-			 */
+			/* add the segment of the string from str to match to the buffer,
+			 * then restore the value at match */
 			BLI_dynstr_nappend(ds, str, (match - str));
 
 			/* now our current position should be set on the start of the match */

@@ -179,7 +179,8 @@ bool BLI_rcti_inside_rcti(const rcti *rct_a, const rcti *rct_b)
 }
 
 
-/* based closely on 'isect_seg_seg_v2_int', but in modified so corner cases are treated as intersections */
+/* based closely on 'isect_seg_seg_v2_int',
+ * but in modified so corner cases are treated as intersections */
 static int isect_segments_i(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
 	const double div = (double)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));

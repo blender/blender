@@ -479,7 +479,7 @@ int constrain_rgb(float *r, float *g, float *b)
 	return 0; /* Color within RGB gamut */
 }
 
-/* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
+/* ********************** lift/gamma/gain / ASC-CDL conversion ********************************* */
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
 {
@@ -494,7 +494,7 @@ void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *o
 	}
 }
 
-/* ******************************************** other ************************************************* */
+/* ************************************* other ************************************************* */
 
 /* Applies an hue offset to a float rgb color */
 void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)

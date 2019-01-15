@@ -1788,11 +1788,13 @@ void blend_m4_m4m4(float out[4][4], const float dst[4][4], const float src[4][4]
  */
 void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], const float t)
 {
-	/* 'Rotation' component ('U' part of polar decomposition, the closest orthogonal matrix to M3 rot/scale
+	/* 'Rotation' component ('U' part of polar decomposition,
+	 * the closest orthogonal matrix to M3 rot/scale
 	 * transformation matrix), spherically interpolated. */
 	float U_A[3][3], U_B[3][3], U[3][3];
 	float quat_A[4], quat_B[4], quat[4];
-	/* 'Scaling' component ('P' part of polar decomposition, i.e. scaling in U-defined space), linearly interpolated. */
+	/* 'Scaling' component ('P' part of polar decomposition, i.e. scaling in U-defined space),
+	 * linearly interpolated. */
 	float P_A[3][3], P_B[3][3], P[3][3];
 
 	int i;

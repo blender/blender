@@ -242,8 +242,8 @@ static void ghash_buckets_resize(GHash *gh, const uint nbuckets)
 					buckets_new[bucket_index] = e;
 				}
 #else
-				/* No need to recompute hashes in this case, since our mask is just smaller, all items in old bucket i
-				 * will go in same new bucket (i & new_mask)! */
+				/* No need to recompute hashes in this case, since our mask is just smaller,
+				 * all items in old bucket 'i' will go in same new bucket (i & new_mask)! */
 				const unsigned bucket_index = ghash_bucket_index(gh, i);
 				BLI_assert(!buckets_old[i] || (bucket_index == ghash_bucket_index(gh, ghash_entryhash(gh, buckets_old[i]))));
 				Entry *e;
@@ -614,8 +614,9 @@ static Entry *ghash_pop(GHash *gh, GHashIterState *state)
 		return NULL;
 	}
 
-	/* Note: using first_bucket_index here allows us to avoid potential huge number of loops over buckets,
-	 *       in case we are popping from a large ghash with few items in it... */
+	/* Note: using first_bucket_index here allows us to avoid potential
+	 * huge number of loops over buckets,
+	 * in case we are popping from a large ghash with few items in it... */
 	curr_bucket = ghash_find_next_bucket_index(gh, curr_bucket);
 
 	Entry *e = gh->buckets[curr_bucket];
@@ -681,7 +682,8 @@ static GHash *ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP val
 			 * This means entries in buckets in new copy will be in reversed order!
 			 * This shall not be an issue though, since order should never be assumed in ghash. */
 
-			/* Note: We can use 'i' here, since we are sure that 'gh' and 'gh_new' have the same number of buckets! */
+			/* Note: We can use 'i' here, since we are sure that
+			 * 'gh' and 'gh_new' have the same number of buckets! */
 			e_new->next = gh_new->buckets[i];
 			gh_new->buckets[i] = e_new;
 		}

@@ -221,8 +221,9 @@ static void polyedge_beauty_cost_update_single(
 	const uint i = e->base_index;
 	/* recalculate edge */
 	const float cost = polyedge_rotate_beauty_calc(coords, edges, e);
-	/* We can get cases where both choices generate very small negative costs, which leads to infinite loop.
-	 * Anyway, costs above that are not worth recomputing, maybe we could even optimize it to a smaller limit?
+	/* We can get cases where both choices generate very small negative costs,
+	 * which leads to infinite loop. Anyway, costs above that are not worth recomputing,
+	 * maybe we could even optimize it to a smaller limit?
 	 * Actually, FLT_EPSILON is too small in some cases, 1e-6f seems to work OK hopefully?
 	 * See T43578, T49478. */
 	if (cost < -1e-6f) {

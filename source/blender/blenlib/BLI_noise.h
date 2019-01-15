@@ -42,7 +42,8 @@ float BLI_hnoise(float noisesize, float x, float y, float z);
 float BLI_hnoisep(float noisesize, float x, float y, float z);
 float BLI_turbulence(float noisesize, float x, float y, float z, int nr);
 float BLI_turbulence1(float noisesize, float x, float y, float z, int nr);
-/* newnoise: generic noise & turbulence functions to replace the above BLI_hnoise/p & BLI_turbulence/1.
+/* newnoise: generic noise & turbulence functions
+ * to replace the above BLI_hnoise/p & BLI_turbulence/1.
  * This is done so different noise basis functions can be used */
 float BLI_gNoise(float noisesize, float x, float y, float z, int hard, int noisebasis);
 float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int hard, int noisebasis);

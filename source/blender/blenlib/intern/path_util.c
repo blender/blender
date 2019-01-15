@@ -342,14 +342,16 @@ bool BLI_filename_make_safe(char *fname)
 			changed = true;
 		}
 
-		/* Check for forbidden names - not we have to check all combination of upper and lower cases, hence the usage
-		 * of lower_fname (more efficient than using BLI_strcasestr repeatedly). */
+		/* Check for forbidden names - not we have to check all combination
+		 * of upper and lower cases, hence the usage of lower_fname
+		 * (more efficient than using BLI_strcasestr repeatedly). */
 		BLI_str_tolower_ascii(lower_fname, len);
 		for (iname = invalid_names; *iname; iname++) {
 			if (strstr(lower_fname, *iname) == lower_fname) {
 				const size_t iname_len = strlen(*iname);
-				/* Only invalid if the whole name is made of the invalid chunk, or it has an (assumed extension) dot
-				 * just after. This means it will also catch 'valid' names like 'aux.foo.bar', but should be
+				/* Only invalid if the whole name is made of the invalid chunk, or it has an
+				 * (assumed extension) dot just after. This means it will also catch 'valid'
+				 * names like 'aux.foo.bar', but should be
 				 * good enough for us! */
 				if ((iname_len == len) || (lower_fname[iname_len] == '.')) {
 					*fname = '_';
@@ -1048,7 +1050,8 @@ bool BLI_path_abs(char *path, const char *basepath)
 		BLI_str_replace_char(base + BLI_path_unc_prefix_len(base), '\\', '/');
 
 		if (lslash) {
-			const int baselen = (int) (lslash - base) + 1;  /* length up to and including last "/" */
+			/* length up to and including last "/" */
+			const int baselen = (int) (lslash - base) + 1;
 			/* use path for temp storage here, we copy back over it right away */
 			BLI_strncpy(path, tmp + 2, FILE_MAX);  /* strip "//" */
 
@@ -1501,7 +1504,8 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch)
 
 	for (size_t i = strlen(ext_fnmatch); i-- > 0; ) {
 		if (ext_fnmatch[i] == ';') {
-			/* Group separator, we truncate here if we only had wildcards so far. Otherwise, all is sound and fine. */
+			/* Group separator, we truncate here if we only had wildcards so far.
+			 * Otherwise, all is sound and fine. */
 			if (only_wildcards) {
 				ext_fnmatch[i] = '\0';
 				return true;
@@ -1515,7 +1519,8 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch)
 		/* So far, only wildcards in last group of the pattern... */
 		only_wildcards = true;
 	}
-	/* Only one group in the pattern, so even if its only made of wildcard(s), it is assumed vaid. */
+	/* Only one group in the pattern, so even if its only made of wildcard(s),
+	 * it is assumed vaid. */
 	return false;
 }
 
@@ -1613,7 +1618,8 @@ void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t d
 
 	if (dir) {
 		if (lslash) {
-			BLI_strncpy(dir, string, MIN2(dirlen, lslash + 1)); /* +1 to include the slash and the last char */
+			/* +1 to include the slash and the last char */
+			BLI_strncpy(dir, string, MIN2(dirlen, lslash + 1));
 		}
 		else {
 			dir[0] = '\0';

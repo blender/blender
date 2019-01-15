@@ -706,7 +706,8 @@ static bool parse_unary(ExprParseState *state)
 			return parse_next_token(state);
 
 		case TOKEN_ID:
-			/* Parameters: search in reverse order in case of duplicate names - the last one should win. */
+			/* Parameters: search in reverse order in case of duplicate names -
+			 * the last one should win. */
 			for (i = state->param_names_len - 1; i >= 0; i--) {
 				if (STREQ(state->tokenbuf, state->param_names[i])) {
 					parse_add_op(state, OPCODE_PARAMETER, 1)->arg.ival = i;

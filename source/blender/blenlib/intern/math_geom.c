@@ -2200,7 +2200,8 @@ bool isect_tri_tri_epsilon_v3(
 				/* ignore collinear lines, they are either an edge shared between 2 tri's
 				 * (which runs along [co_proj, plane_no], but can be safely ignored).
 				 *
-				 * or a collinear edge placed away from the ray - which we don't intersect with & can ignore. */
+				 * or a collinear edge placed away from the ray -
+				 * which we don't intersect with & can ignore. */
 				if (UNLIKELY(edge_fac == -1.0f)) {
 					/* pass */
 				}
@@ -3424,7 +3425,8 @@ void transform_point_by_tri_v3(
 	 * axis where its barycentric weights can be calculated in 2D and its Z offset can
 	 * be re-applied. The weights are applied directly to the targets 3D points and the
 	 * z-depth is used to scale the targets normal as an offset.
-	 * This saves transforming the target into its Z-Up orientation and back (which could also work) */
+	 * This saves transforming the target into its Z-Up orientation and back
+	 * (which could also work) */
 	float no_tar[3], no_src[3];
 	float mat_src[3][3];
 	float pt_src_xy[3];
@@ -3631,7 +3633,8 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 
 	while (i_next < n) {
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
-		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
+		 * to borders of face.
+		 * In that case, do simple linear interpolation between the two edge vertices */
 
 		/* 'd_next.len' is infact 'd_curr.len', just avoid copy to begin with */
 		if (UNLIKELY(d_next.len < eps)) {
@@ -3704,7 +3707,8 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 
 	while (i_next < n) {
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
-		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
+		 * to borders of face. In that case,
+		 * do simple linear interpolation between the two edge vertices */
 
 		/* 'd_next.len' is infact 'd_curr.len', just avoid copy to begin with */
 		if (UNLIKELY(d_next.len < eps)) {
@@ -3786,7 +3790,8 @@ void interp_cubic_v3(float x[3], float v[3], const float x1[3], const float v1[3
 	v[2] = 3 * a[2] * t2 + 2 * b[2] * t + v1[2];
 }
 
-/* unfortunately internal calculations have to be done at double precision to achieve correct/stable results. */
+/* unfortunately internal calculations have to be done at double precision
+ * to achieve correct/stable results. */
 
 #define IS_ZERO(x) ((x > (-DBL_EPSILON) && x < DBL_EPSILON) ? 1 : 0)
 
@@ -4056,7 +4061,8 @@ void perspective_m4(float mat[4][4], const float left, const float right, const 
 
 }
 
-/* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords (used to jitter the view) */
+/* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords
+ * (used to jitter the view) */
 void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x, const float y)
 {
 	if (winmat[2][3] == -1.0f) {
@@ -4550,7 +4556,8 @@ void vcloud_estimate_transform_v3(
 		if (lloc) copy_v3_v3(lloc, accu_com);
 		if (rloc) copy_v3_v3(rloc, accu_rcom);
 		if (lrot || lscale) { /* caller does not want rot nor scale, strange but legal */
-			/*so now do some reverse engineering and see if we can split rotation from scale ->Polardecompose*/
+			/* so now do some reverse engineering and see if we can
+			 * split rotation from scale -> Polardecompose */
 			/* build 'projection' matrix */
 			float m[3][3], mr[3][3], q[3][3], qi[3][3];
 			float va[3], vb[3], stunt[3];

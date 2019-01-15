@@ -135,7 +135,8 @@ size_t BLI_timecode_string_from_time(
 		}
 		case USER_TIMECODE_SMPTE_MSF:
 		{
-			/* reduced SMPTE format that always shows minutes, seconds, frames. Hours only shown as needed. */
+			/* reduced SMPTE format that always shows minutes, seconds, frames.
+			 * Hours only shown as needed. */
 			if (hours) {
 				rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
 			}
@@ -165,7 +166,8 @@ size_t BLI_timecode_string_from_time(
 		}
 		case USER_TIMECODE_SUBRIP:
 		{
-			/* SubRip, like SMPTE milliseconds but seconds and milliseconds are separated by a comma, not a dot... */
+			/* SubRip, like SMPTE milliseconds but seconds and milliseconds
+			 * are separated by a comma, not a dot... */
 
 			/* precision of decimal part */
 			const int ms_dp = (power <= 0) ? (1 - power) : 1;

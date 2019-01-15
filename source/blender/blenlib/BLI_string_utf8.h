@@ -39,7 +39,8 @@ char        *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, 
 ptrdiff_t    BLI_utf8_invalid_byte(const char *str, size_t length) ATTR_NONNULL();
 int          BLI_utf8_invalid_strip(char *str, size_t length) ATTR_NONNULL();
 
-int          BLI_str_utf8_size(const char *p) ATTR_NONNULL(); /* warning, can return -1 on bad chars */
+/* warning, can return -1 on bad chars */
+int          BLI_str_utf8_size(const char *p) ATTR_NONNULL();
 int          BLI_str_utf8_size_safe(const char *p) ATTR_NONNULL();
 /* copied from glib */
 unsigned int BLI_str_utf8_as_unicode(const char *p) ATTR_NONNULL();
@@ -64,7 +65,8 @@ size_t       BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst, const char *__
 /* count columns that character/string occupies, based on wcwidth.c */
 int          BLI_wcwidth(wchar_t ucs);
 int          BLI_wcswidth(const wchar_t *pwcs, size_t n) ATTR_NONNULL();
-int          BLI_str_utf8_char_width(const char *p) ATTR_NONNULL(); /* warning, can return -1 on bad chars */
+/* warning, can return -1 on bad chars */
+int          BLI_str_utf8_char_width(const char *p) ATTR_NONNULL();
 int          BLI_str_utf8_char_width_safe(const char *p) ATTR_NONNULL();
 
 size_t       BLI_str_partition_utf8(const char *str, const unsigned int delim[], const char **sep, const char **suf) ATTR_NONNULL();

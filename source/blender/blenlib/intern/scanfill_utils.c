@@ -214,7 +214,10 @@ static bool scanfill_preprocess_self_isect(
 						copy_v2_v2(isect->co, pt);
 						isect->co[2] = eed->v1->co[2];
 						isect->v = BLI_scanfill_vert_add(sf_ctx, isect->co);
-						isect->v->poly_nr = eed->v1->poly_nr;  /* NOTE: vert may belong to 2 polys now */
+
+						/* NOTE: vert may belong to 2 polys now */
+						isect->v->poly_nr = eed->v1->poly_nr;
+
 						VFLAG_SET(isect->v, V_ISISECT);
 						edge_isect_ls_add(isect_hash, eed, isect);
 						edge_isect_ls_add(isect_hash, eed_other, isect);
