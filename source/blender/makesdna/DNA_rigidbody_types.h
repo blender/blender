@@ -312,29 +312,30 @@ typedef struct RigidBodyCon {
 
 /* Participation types for RigidBodyOb */
 typedef enum eRigidBodyCon_Type {
-	/* lets bodies rotate around a specified point */
+	/** lets bodies rotate around a specified point */
 	RBC_TYPE_POINT = 0,
-	/* lets bodies rotate around a specified axis */
+	/** lets bodies rotate around a specified axis */
 	RBC_TYPE_HINGE,
-	/* simulates wheel suspension */
+	/** simulates wheel suspension */
 	RBC_TYPE_HINGE2,
-	/* restricts movent to a specified axis */
+	/** restricts movent to a specified axis */
 	RBC_TYPE_SLIDER,
-	/* lets object rotate within a cpecified cone */
+	/** lets object rotate within a cpecified cone */
 	RBC_TYPE_CONE_TWIST,
-	/* allows user to specify constraint axes */
+	/** allows user to specify constraint axes */
 	RBC_TYPE_6DOF,
-	/* like 6DOF but has springs */
+	/** like 6DOF but has springs */
 	RBC_TYPE_6DOF_SPRING,
-	/* simulates a universal joint */
+	/** simulates a universal joint */
 	RBC_TYPE_UNIVERSAL,
-	/* glues two bodies together */
+	/** glues two bodies together */
 	RBC_TYPE_FIXED,
-	/* similar to slider but also allows rotation around slider axis */
+	/** similar to slider but also allows rotation around slider axis */
 	RBC_TYPE_PISTON,
-	/* Simplified spring constraint with only once axis that's automatically placed between the connected bodies */
+	/** Simplified spring constraint with only once axis that's
+	 * automatically placed between the connected bodies */
 	RBC_TYPE_SPRING,
-	/* dirves bodies by applying linear and angular forces */
+	/** dirves bodies by applying linear and angular forces */
 	RBC_TYPE_MOTOR,
 } eRigidBodyCon_Type;
 

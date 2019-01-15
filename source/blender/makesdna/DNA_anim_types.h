@@ -89,7 +89,8 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_ENVELOPE = 3,
 	FMODIFIER_TYPE_CYCLES = 4,
 	FMODIFIER_TYPE_NOISE = 5,
-	FMODIFIER_TYPE_FILTER = 6,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
+	/** unimplemented - for applying: fft, high/low pass filters, etc. */
+	FMODIFIER_TYPE_FILTER = 6,
 	FMODIFIER_TYPE_PYTHON = 7,
 	FMODIFIER_TYPE_LIMITS = 8,
 	FMODIFIER_TYPE_STEPPED = 9,
@@ -226,10 +227,14 @@ typedef struct FMod_Cycles {
 
 /* cycling modes */
 typedef enum eFMod_Cycling_Modes {
-	FCM_EXTRAPOLATE_NONE = 0,			/* don't do anything */
-	FCM_EXTRAPOLATE_CYCLIC,				/* repeat keyframe range as-is */
-	FCM_EXTRAPOLATE_CYCLIC_OFFSET,		/* repeat keyframe range, but with offset based on gradient between values */
-	FCM_EXTRAPOLATE_MIRROR				/* alternate between forward and reverse playback of keyframe range */
+	/** don't do anything */
+	FCM_EXTRAPOLATE_NONE = 0,
+	/** repeat keyframe range as-is */
+	FCM_EXTRAPOLATE_CYCLIC,
+	/** repeat keyframe range, but with offset based on gradient between values */
+	FCM_EXTRAPOLATE_CYCLIC_OFFSET,
+	/** alternate between forward and reverse playback of keyframe range */
+	FCM_EXTRAPOLATE_MIRROR
 } eFMod_Cycling_Modes;
 
 
@@ -598,50 +603,60 @@ typedef struct FCurve {
 
 /* user-editable flags/settings */
 typedef enum eFCurve_Flags {
-		/* curve/keyframes are visible in editor */
+	/** curve/keyframes are visible in editor */
 	FCURVE_VISIBLE		= (1<<0),
-		/* curve is selected for editing  */
+	/** curve is selected for editing  */
 	FCURVE_SELECTED 	= (1<<1),
-		/* curve is active one */
+	/** curve is active one */
 	FCURVE_ACTIVE		= (1<<2),
-		/* keyframes (beztriples) cannot be edited */
+	/** keyframes (beztriples) cannot be edited */
 	FCURVE_PROTECTED	= (1<<3),
-		/* fcurve will not be evaluated for the next round */
+	/** fcurve will not be evaluated for the next round */
 	FCURVE_MUTED		= (1<<4),
 
-		/* fcurve uses 'auto-handles', which stay horizontal... */
-		// DEPRECATED
+	/** fcurve uses 'auto-handles', which stay horizontal... */
+	// DEPRECATED
 	FCURVE_AUTO_HANDLES	= (1<<5),
 	FCURVE_MOD_OFF		= (1<<6),
-		/* skip evaluation, as RNA-path cannot be resolved (similar to muting, but cannot be set by user) */
+	/** skip evaluation, as RNA-path cannot be resolved
+	 * (similar to muting, but cannot be set by user) */
 	FCURVE_DISABLED			= (1<<10),
-		/* curve can only have whole-number values (integer types) */
+	/** curve can only have whole-number values (integer types) */
 	FCURVE_INT_VALUES		= (1<<11),
-		/* curve can only have certain discrete-number values (no interpolation at all, for enums/booleans) */
+	/** curve can only have certain discrete-number values
+	 * (no interpolation at all, for enums/booleans) */
 	FCURVE_DISCRETE_VALUES	= (1<<12),
 
-		/* temporary tag for editing */
+	/** temporary tag for editing */
 	FCURVE_TAGGED			= (1<<15)
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */
 typedef enum eFCurve_Extend {
-	FCURVE_EXTRAPOLATE_CONSTANT	= 0,	/* just extend min/max keyframe value  */
-	FCURVE_EXTRAPOLATE_LINEAR			/* just extend gradient of segment between first segment keyframes */
+	/** just extend min/max keyframe value  */
+	FCURVE_EXTRAPOLATE_CONSTANT	= 0,
+	/** just extend gradient of segment between first segment keyframes */
+	FCURVE_EXTRAPOLATE_LINEAR
 } eFCurve_Extend;
 
 /* curve coloring modes */
 typedef enum eFCurve_Coloring {
-	FCURVE_COLOR_AUTO_RAINBOW = 0,		/* automatically determine color using rainbow (calculated at drawtime) */
-	FCURVE_COLOR_AUTO_RGB     = 1,		/* automatically determine color using XYZ (array index) <-> RGB */
-	FCURVE_COLOR_AUTO_YRGB    = 3,		/* automatically determine color where XYZ <-> RGB, but index(X) != 0 */
-	FCURVE_COLOR_CUSTOM       = 2,		/* custom color */
+	/** automatically determine color using rainbow (calculated at drawtime) */
+	FCURVE_COLOR_AUTO_RAINBOW = 0,
+	/** automatically determine color using XYZ (array index) <-> RGB */
+	FCURVE_COLOR_AUTO_RGB     = 1,
+	/** automatically determine color where XYZ <-> RGB, but index(X) != 0 */
+	FCURVE_COLOR_AUTO_YRGB    = 3,
+	/** custom color */
+	FCURVE_COLOR_CUSTOM       = 2,
 } eFCurve_Coloring;
 
 /* curve smoothing modes */
 typedef enum eFCurve_Smoothing {
-	FCURVE_SMOOTH_NONE             = 0,	/* legacy mode: auto handles only consider adjacent points */
-	FCURVE_SMOOTH_CONT_ACCEL       = 1,	/* maintain continuity of the acceleration */
+	/** legacy mode: auto handles only consider adjacent points */
+	FCURVE_SMOOTH_NONE             = 0,
+	/** maintain continuity of the acceleration */
+	FCURVE_SMOOTH_CONT_ACCEL       = 1,
 } eFCurve_Smoothing;
 
 /* ************************************************ */
@@ -724,11 +739,12 @@ typedef enum eNlaStrip_Blend_Mode {
 
 /* NLA Strip Extrpolation Mode */
 typedef enum eNlaStrip_Extrapolate_Mode {
-		/* extend before first frame if no previous strips in track, and always hold+extend last frame */
+	/* extend before first frame if no previous strips in track,
+	 * and always hold+extend last frame */
 	NLASTRIP_EXTEND_HOLD = 0,
-		/* only hold+extend last frame */
+	/* only hold+extend last frame */
 	NLASTRIP_EXTEND_HOLD_FORWARD = 1,
-		/* don't contribute at all */
+	/* don't contribute at all */
 	NLASTRIP_EXTEND_NOTHING = 2
 } eNlaStrip_Extrapolate_Mode;
 
@@ -741,7 +757,9 @@ typedef enum eNlaStrip_Flag {
 	NLASTRIP_FLAG_SELECT        = (1<<1),
 //  NLASTRIP_FLAG_SELECT_L      = (1<<2),   // left handle selected
 //  NLASTRIP_FLAG_SELECT_R      = (1<<3),   // right handle selected
-		/* NLA strip uses the same action that the action being tweaked uses (not set for the twaking one though) */
+
+	/* NLA strip uses the same action that the action being tweaked uses
+	 * (not set for the twaking one though) */
 	NLASTRIP_FLAG_TWEAKUSER     = (1<<4),
 
 	/* controls driven by local F-Curves */
@@ -801,7 +819,8 @@ typedef struct NlaTrack {
 
 	/** Settings for this track. */
 	int flag;
-	/** Index of the track in the stack (NOTE: not really useful, but we need a pad var anyways!). */
+	/** Index of the track in the stack
+	 * \note not really useful, but we need a pad var anyways! */
 	int index;
 
 	/** Short user-description of this track - MAX_ID_NAME-2. */
@@ -810,18 +829,20 @@ typedef struct NlaTrack {
 
 /* settings for track */
 typedef enum eNlaTrack_Flag {
-		/* track is the one that settings can be modified on, also indicates if track is being 'tweaked' */
+	/** track is the one that settings can be modified on,
+	 * also indicates if track is being 'tweaked' */
 	NLATRACK_ACTIVE		= (1<<0),
-		/* track is selected in UI for relevant editing operations */
+	/** track is selected in UI for relevant editing operations */
 	NLATRACK_SELECTED	= (1<<1),
-		/* track is not evaluated */
+	/** track is not evaluated */
 	NLATRACK_MUTED		= (1<<2),
-		/* track is the only one evaluated (must be used in conjunction with adt->flag) */
+	/** track is the only one evaluated (must be used in conjunction with adt->flag) */
 	NLATRACK_SOLO		= (1<<3),
-		/* track's settings (and strips) cannot be edited (to guard against unwanted changes) */
+	/** track's settings (and strips) cannot be edited (to guard against unwanted changes) */
 	NLATRACK_PROTECTED	= (1<<4),
 
-		/* track is not allowed to execute, usually as result of tweaking being enabled (internal flag) */
+	/** track is not allowed to execute,
+	 * usually as result of tweaking being enabled (internal flag) */
 	NLATRACK_DISABLED	= (1<<10)
 } eNlaTrack_Flag;
 
@@ -936,18 +957,28 @@ typedef enum eKS_Settings {
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
 	INSERTKEY_NOFLAGS       = 0,
-	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
-	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
-	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
-	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
-	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
-	INSERTKEY_XYZ2RGB	= (1<<5),	/* transform F-Curves should have XYZ->RGB color mode */
-	INSERTKEY_NO_USERPREF	= (1<<6),	/* ignore user-prefs (needed for predictable API use) */
-	/* Allow to make a full copy of new key into existing one, if any, instead of 'reusing' existing handles.
+	/** only insert keyframes where they're needed */
+	INSERTKEY_NEEDED 	= (1<<0),
+	/** insert 'visual' keyframes where possible/needed */
+	INSERTKEY_MATRIX 	= (1<<1),
+	/** don't recalculate handles,etc. after adding key */
+	INSERTKEY_FAST 		= (1<<2),
+	/** don't realloc mem (or increase count, as array has already been set out) */
+	INSERTKEY_FASTR		= (1<<3),
+	/** only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+	INSERTKEY_REPLACE 	= (1<<4),
+	/** transform F-Curves should have XYZ->RGB color mode */
+	INSERTKEY_XYZ2RGB	= (1<<5),
+	/** ignore user-prefs (needed for predictable API use) */
+	INSERTKEY_NO_USERPREF	= (1<<6),
+	/** Allow to make a full copy of new key into existing one, if any,
+	 * instead of 'reusing' existing handles.
 	 * Used by copy/paste code. */
 	INSERTKEY_OVERWRITE_FULL = (1<<7),
-	INSERTKEY_DRIVER         = (1<<8),	/* for driver FCurves, use driver's "input" value - for easier corrective driver setup */
-	INSERTKEY_CYCLE_AWARE    = (1<<9),	/* for cyclic FCurves, adjust key timing to preserve the cycle period and flow */
+	/** for driver FCurves, use driver's "input" value - for easier corrective driver setup */
+	INSERTKEY_DRIVER         = (1<<8),
+	/** for cyclic FCurves, adjust key timing to preserve the cycle period and flow */
+	INSERTKEY_CYCLE_AWARE    = (1<<9),
 } eInsertKeyFlags;
 
 /* ************************************************ */
@@ -961,8 +992,8 @@ typedef enum eInsertKeyFlags {
  * yet keyframed (thus, would get overwritten by the animation system before the user had a chance
  * to see the changes that were made).
  *
- * It is probably not needed for overriding keyframed values in most cases, as those will only get evaluated
- * on frame-change now. That situation may change in future.
+ * It is probably not needed for overriding keyframed values in most cases, as those will only get
+ * evaluated on frame-change now. That situation may change in future.
  */
 typedef struct AnimOverride {
 	struct AnimOverride *next, *prev;
@@ -988,14 +1019,15 @@ typedef struct AnimOverride {
  * blocks may override local settings.
  *
  * This datablock should be placed immediately after the ID block where it is used, so that
- * the code which retrieves this data can do so in an easier manner. See blenkernel/intern/anim_sys.c for details.
+ * the code which retrieves this data can do so in an easier manner.
+ * See blenkernel/intern/anim_sys.c for details.
  */
 typedef struct AnimData {
-		/* active action - acts as the 'tweaking track' for the NLA */
+	/** active action - acts as the 'tweaking track' for the NLA */
 	bAction     *action;
-		/* temp-storage for the 'real' active action (i.e. the one used before the tweaking-action
-		 * took over to be edited in the Animation Editors)
-		 */
+	/** temp-storage for the 'real' active action (i.e. the one used before the tweaking-action
+	 * took over to be edited in the Animation Editors)
+	 */
 	bAction     *tmpact;
 
 		/* nla-tracks */
@@ -1016,7 +1048,8 @@ typedef struct AnimData {
 	 */
 	/** Standard user-created Drivers/Expressions (used as part of a rig). */
 	ListBase    drivers;
-	/** Temp storage (AnimOverride) of values for settings that are animated (but the value hasn't been keyframed). */
+	/** Temp storage (AnimOverride) of values for settings that are animated
+	 * (but the value hasn't been keyframed). */
 	ListBase    overrides;
 
 	/** Runtime data, for depsgraph evaluation. */

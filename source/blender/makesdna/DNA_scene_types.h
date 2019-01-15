@@ -125,9 +125,12 @@ typedef enum eFFMpegPreset {
 	 * WEBM/VP9 use these values directly, whereas h.264 map those to
 	 * respectively the MEDIUM, SLOWER, and SUPERFAST presets.
 	 */
-	FFM_PRESET_GOOD = 10, /* the default and recommended for most applications */
-	FFM_PRESET_BEST, /* recommended if you have lots of time and want the best compression efficiency */
-	FFM_PRESET_REALTIME, /* recommended for live / fast encoding */
+	/** the default and recommended for most applications */
+	FFM_PRESET_GOOD = 10,
+	/** recommended if you have lots of time and want the best compression efficiency */
+	FFM_PRESET_BEST,
+	/** recommended for live / fast encoding */
+	FFM_PRESET_REALTIME,
 } eFFMpegPreset;
 
 /* Mapping from easily-understandable descriptions to CRF values.
@@ -1265,7 +1268,8 @@ typedef struct UnifiedPaintSettings {
 	char draw_anchored;
 	char do_linear_conversion;
 
-	/* store last location of stroke or whether the mesh was hit. Valid only while stroke is active */
+	/* store last location of stroke or whether the mesh was hit.
+	 * Valid only while stroke is active */
 	float last_location[3];
 	int last_hit;
 
@@ -1911,7 +1915,8 @@ enum {
 
 /* RenderData.color_mgt_flag */
 enum {
-	R_COLOR_MANAGEMENT              = (1 << 0),  /* deprecated, should only be used in versioning code only */
+	/** deprecated, should only be used in versioning code only */
+	R_COLOR_MANAGEMENT              = (1 << 0),
 	/*R_COLOR_MANAGEMENT_PREDIVIDE    = (1 << 1)*/  /* deprecated, shouldn't be used */
 };
 
@@ -2255,9 +2260,12 @@ enum {
 
 /* ToolSettings.uvcalc_flag */
 #define UVCALC_FILLHOLES			(1 << 0)
-#define UVCALC_NO_ASPECT_CORRECT	(1 << 1)	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
-#define UVCALC_TRANSFORM_CORRECT	(1 << 2)	/* adjust UV's while transforming to avoid distortion */
-#define UVCALC_USESUBSURF			(1 << 3)	/* Use mesh data after subsurf to compute UVs*/
+/** would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+#define UVCALC_NO_ASPECT_CORRECT	(1 << 1)
+/** adjust UV's while transforming to avoid distortion */
+#define UVCALC_TRANSFORM_CORRECT	(1 << 2)
+/** Use mesh data after subsurf to compute UVs*/
+#define UVCALC_USESUBSURF			(1 << 3)
 
 /* ToolSettings.uv_flag */
 #define UV_SYNC_SELECTION	1

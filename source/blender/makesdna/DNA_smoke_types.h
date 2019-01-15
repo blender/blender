@@ -227,7 +227,8 @@ typedef struct SmokeDomainSettings {
 	char data_depth;
 	char pad[2];
 
-	/* Smoke uses only one cache from now on (index [0]), but keeping the array for now for reading old files. */
+	/* Smoke uses only one cache from now on (index [0]),
+	 * but keeping the array for now for reading old files. */
 	/** Definition is in DNA_object_force_types.h. */
 	struct PointCache *point_cache[2];
 	struct ListBase ptcaches[2];

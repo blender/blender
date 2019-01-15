@@ -200,11 +200,12 @@ typedef enum eMotionPaths_ViewFlag {
 
 /* bAnimVizSettings->path_bakeflag */
 typedef enum eMotionPaths_BakeFlag {
-	/* motion paths directly associated with this block of settings needs updating */
+	/** motion paths directly associated with this block of settings needs updating */
 	MOTIONPATH_BAKE_NEEDS_RECALC    = (1 << 0),
-	/* for bones - calculate head-points for curves instead of tips */
+	/** for bones - calculate head-points for curves instead of tips */
 	MOTIONPATH_BAKE_HEADS           = (1 << 1),
-	/* motion paths exist for AnimVizSettings instance - set when calc for first time, and unset when clearing */
+	/** motion paths exist for AnimVizSettings instance - set when calc for first time,
+	 * and unset when clearing */
 	MOTIONPATH_BAKE_HAS_PATHS       = (1 << 2)
 } eMotionPath_BakeFlag;
 
@@ -746,20 +747,26 @@ typedef struct bDopeSheet {
 /* DopeSheet filter-flag */
 typedef enum eDopeSheet_FilterFlag {
 	/* general filtering */
-	ADS_FILTER_ONLYSEL          = (1 << 0),   /* only include channels relating to selected data */
+	/** only include channels relating to selected data */
+	ADS_FILTER_ONLYSEL          = (1 << 0),
 
 	/* temporary filters */
-	ADS_FILTER_ONLYDRIVERS      = (1 << 1),   /* for 'Drivers' editor - only include Driver data from AnimData */
-	ADS_FILTER_ONLYNLA          = (1 << 2),   /* for 'NLA' editor - only include NLA data from AnimData */
-	ADS_FILTER_SELEDIT          = (1 << 3),   /* for Graph Editor - used to indicate whether to include a filtering flag or not */
+	/** for 'Drivers' editor - only include Driver data from AnimData */
+	ADS_FILTER_ONLYDRIVERS      = (1 << 1),
+	/** for 'NLA' editor - only include NLA data from AnimData */
+	ADS_FILTER_ONLYNLA          = (1 << 2),
+	/** for Graph Editor - used to indicate whether to include a filtering flag or not */
+	ADS_FILTER_SELEDIT          = (1 << 3),
 
 	/* general filtering */
-	ADS_FILTER_SUMMARY          = (1 << 4),   /* for 'DopeSheet' Editors - include 'summary' line */
+	/** for 'DopeSheet' Editors - include 'summary' line */
+	ADS_FILTER_SUMMARY          = (1 << 4),
 
 	/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS      = (1 << 6),
 	ADS_FILTER_NOMESH           = (1 << 7),
-	ADS_FILTER_NOOBJ            = (1 << 8),   /* for animdata on object level, if we only want to concentrate on materials/etc. */
+	/** for animdata on object level, if we only want to concentrate on materials/etc. */
+	ADS_FILTER_NOOBJ            = (1 << 8),
 	ADS_FILTER_NOLAT            = (1 << 9),
 	ADS_FILTER_NOCAM            = (1 << 10),
 	ADS_FILTER_NOMAT            = (1 << 11),
@@ -779,26 +786,35 @@ typedef enum eDopeSheet_FilterFlag {
 	/* NOTE: all new datablock filters will have to go in filterflag2 (see below) */
 
 	/* NLA-specific filters */
-	ADS_FILTER_NLA_NOACT        = (1 << 25),  /* if the AnimData block has no NLA data, don't include to just show Action-line */
+	/** if the AnimData block has no NLA data, don't include to just show Action-line */
+	ADS_FILTER_NLA_NOACT        = (1 << 25),
 
 	/* general filtering 3 */
-	ADS_FILTER_INCL_HIDDEN      = (1 << 26),  /* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
-	ADS_FILTER_ONLY_ERRORS		= (1 << 28),  /* show only F-Curves which are disabled/have errors - for debugging drivers */
+	/** include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
+	ADS_FILTER_INCL_HIDDEN      = (1 << 26),
+	/** show only F-Curves which are disabled/have errors - for debugging drivers */
+	ADS_FILTER_ONLY_ERRORS		= (1 << 28),
 
 	/* GPencil Mode */
-	ADS_FILTER_GP_3DONLY        = (1 << 29),  /* GP Mode - Only show datablocks used in the scene */
+	/** GP Mode - Only show datablocks used in the scene */
+	ADS_FILTER_GP_3DONLY        = (1 << 29),
 
-	/* combination filters (some only used at runtime) */
+	/** combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS)
 } eDopeSheet_FilterFlag;
 
 /* DopeSheet general flags */
 typedef enum eDopeSheet_Flag {
-	ADS_FLAG_SUMMARY_COLLAPSED  = (1 << 0),   /* when summary is shown, it is collapsed, so all other channels get hidden */
-	ADS_FLAG_SHOW_DBFILTERS     = (1 << 1),   /* show filters for datablocks */
+	/** when summary is shown, it is collapsed, so all other channels get hidden */
+	ADS_FLAG_SUMMARY_COLLAPSED  = (1 << 0),
+	/** show filters for datablocks */
+	ADS_FLAG_SHOW_DBFILTERS     = (1 << 1),
 
-	ADS_FLAG_FUZZY_NAMES        = (1 << 2),   /* use fuzzy/partial string matches when ADS_FILTER_BY_FCU_NAME is enabled (WARNING: expensive operation) */
-	ADS_FLAG_NO_DB_SORT         = (1 << 3),   /* do not sort datablocks (mostly objects) by name (NOTE: potentially expensive operation) */
+	/** use fuzzy/partial string matches when ADS_FILTER_BY_FCU_NAME is enabled
+	 * (WARNING: expensive operation) */
+	ADS_FLAG_FUZZY_NAMES        = (1 << 2),
+	/** do not sort datablocks (mostly objects) by name (NOTE: potentially expensive operation) */
+	ADS_FLAG_NO_DB_SORT         = (1 << 3),
 
 	/* NOTE: datablock filter flags continued (1 << 10) onwards... */
 } eDopeSheet_Flag;

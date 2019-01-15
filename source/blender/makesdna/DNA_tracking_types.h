@@ -261,7 +261,8 @@ typedef struct MovieTrackingSettings {
 	short default_pattern_size;
 	/** Size of search area for new tracks. */
 	short default_search_size;
-	/** Number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set). */
+	/** Number of frames to be tarcked during single tracking session
+	 * (if TRACKING_FRAMES_LIMIT is set). */
 	short default_frames_limit;
 	/** Margin from frame boundaries. */
 	short default_margin;
@@ -337,7 +338,8 @@ typedef struct MovieTrackingStabilization {
 	int filter;
 
 	/* initialization and run-time data */
-	/** Without effect now, we initialize on every frame. Formerly used for caching of init values. */
+	/** Without effect now, we initialize on every frame.
+	 * Formerly used for caching of init values. */
 	int ok DNA_DEPRECATED;
 } MovieTrackingStabilization;
 

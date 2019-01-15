@@ -181,7 +181,8 @@ typedef struct Tex {
 	/* newnoise: distorted noise amount, musgrave & voronoi output scale */
 	float dist_amount, ns_outscale;
 
-	/* newnoise: voronoi nearest neighbor weights, minkovsky exponent, distance metric & color type */
+	/* newnoise: voronoi nearest neighbor weights, minkovsky exponent,
+	 * distance metric & color type */
 	float vn_w1;
 	float vn_w2;
 	float vn_w3;

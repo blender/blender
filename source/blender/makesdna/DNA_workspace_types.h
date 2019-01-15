@@ -112,7 +112,8 @@ typedef struct WorkSpaceLayout {
 	struct WorkSpaceLayout *next, *prev;
 
 	struct bScreen *screen;
-	/* The name of this layout, we override the RNA name of the screen with this (but not ID name itself) */
+	/* The name of this layout, we override the RNA name of the screen with this
+	 * (but not ID name itself) */
 	/** MAX_NAME. */
 	char name[64] DNA_PRIVATE_WORKSPACE;
 } WorkSpaceLayout;
@@ -192,7 +193,8 @@ typedef struct WorkSpace {
 typedef struct WorkSpaceDataRelation {
 	struct WorkSpaceDataRelation *next, *prev;
 
-	/* the data used to identify the relation (e.g. to find screen-layout (= value) from/for a hook) */
+	/* the data used to identify the relation
+	 * (e.g. to find screen-layout (= value) from/for a hook) */
 	void *parent;
 	/* The value for this parent-data/workspace relation */
 	void *value;
@@ -208,7 +210,8 @@ typedef struct WorkSpaceInstanceHook {
 	WorkSpace *active DNA_PRIVATE_WORKSPACE;
 	struct WorkSpaceLayout *act_layout DNA_PRIVATE_WORKSPACE;
 
-	/* Needed because we can't change workspaces/layouts in running handler loop, it would break context. */
+	/* Needed because we can't change workspaces/layouts in running handler loop,
+	 * it would break context. */
 	WorkSpace *temp_workspace_store;
 	struct WorkSpaceLayout *temp_layout_store;
 } WorkSpaceInstanceHook;

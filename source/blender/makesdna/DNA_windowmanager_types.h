@@ -245,7 +245,8 @@ typedef struct wmWindow {
 	short modalcursor;
 	/** Cursor grab mode. */
 	short grabcursor;
-	/** Internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching. */
+	/** Internal: tag this for extra mousemove event,
+	 * makes cursors/buttons active on UI switching. */
 	short addmousemove;
 	short pad[4];
 
@@ -511,16 +512,17 @@ enum {
 
 /* wmOperator flag */
 enum {
-	/* low level flag so exec() operators can tell if they were invoked, use with care.
-	 * typically this shouldn't make any difference, but it rare cases its needed (see smooth-view) */
+	/** low level flag so exec() operators can tell if they were invoked, use with care.
+	 * Typically this shouldn't make any difference, but it rare cases its needed
+	 * (see smooth-view) */
 	OP_IS_INVOKE = (1 << 0),
-	/* So we can detect if an operators exec() call is activated from an interactive repeat. */
+	/** So we can detect if an operators exec() call is activated from an interactive repeat. */
 	OP_IS_REPEAT = (1 << 1),
 
-	/* When the cursor is grabbed */
+	/** When the cursor is grabbed */
 	OP_IS_MODAL_GRAB_CURSOR    = (1 << 2),
 
-	/* allow modal operators to have the region under the cursor for their context
+	/** Allow modal operators to have the region under the cursor for their context
 	 * (the regiontype is maintained to prevent errors) */
 	OP_IS_MODAL_CURSOR_REGION = (1 << 3),
 };

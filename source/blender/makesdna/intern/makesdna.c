@@ -142,15 +142,21 @@ static int maxdata = 500000, maxnr = 50000;
 static int nr_names = 0;
 static int nr_types = 0;
 static int nr_structs = 0;
-static char **names, *namedata;      /* at address names[a] is string a */
-static char **types, *typedata;      /* at address types[a] is string a */
-static short *typelens_native;       /* at typelens[a] is the length of type 'a' on this systems bitness (32 or 64) */
-static short *typelens_32;           /* contains sizes as they are calculated on 32 bit systems */
-static short *typelens_64;           /* contains sizes as they are calculated on 64 bit systems */
-static short **structs, *structdata; /* at sp = structs[a] is the first address of a struct definition
-                                      * sp[0] is type number
-                                      * sp[1] is amount of elements
-                                      * sp[2] sp[3] is typenr,  namenr (etc) */
+/** at address names[a] is string a */
+static char **names, *namedata;
+/** at address types[a] is string a */
+static char **types, *typedata;
+/** at typelens[a] is the length of type 'a' on this systems bitness (32 or 64) */
+static short *typelens_native;
+/** contains sizes as they are calculated on 32 bit systems */
+static short *typelens_32;
+/** contains sizes as they are calculated on 64 bit systems */
+static short *typelens_64;
+/** at sp = structs[a] is the first address of a struct definition
+ * sp[0] is type number
+ * sp[1] is amount of elements
+ * sp[2] sp[3] is typenr,  namenr (etc) */
+static short **structs, *structdata;
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:
@@ -827,7 +833,8 @@ static int calculate_structlens(int firststruct)
 
 					}
 					else if (cp[0] == '[') {
-						/* parsing can cause names "var" and "[3]" to be found for "float var [3]" ... */
+						/* parsing can cause names "var" and "[3]"
+						 * to be found for "float var [3]" */
 						fprintf(stderr, "Parse error in struct, invalid member name: %s %s\n",
 						        types[structtype], cp);
 						dna_error = 1;

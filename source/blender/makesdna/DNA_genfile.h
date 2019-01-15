@@ -72,11 +72,14 @@ typedef enum eSDNA_Type {
  * For use with #DNA_struct_reconstruct & #DNA_struct_get_compareflags
  */
 enum eSDNA_StructCompare {
-	/* Struct has disappeared (values of this struct type will not be loaded by the current Blender) */
+	/* Struct has disappeared
+	 * (values of this struct type will not be loaded by the current Blender) */
 	SDNA_CMP_REMOVED    = 0,
-	/* Struct is the same (can be loaded with straight memory copy after any necessary endian conversion) */
+	/* Struct is the same
+	 * (can be loaded with straight memory copy after any necessary endian conversion) */
 	SDNA_CMP_EQUAL      = 1,
-	/* Struct is different in some way (needs to be copied/converted field by field) */
+	/* Struct is different in some way
+	 * (needs to be copied/converted field by field) */
 	SDNA_CMP_NOT_EQUAL  = 2,
 };
 

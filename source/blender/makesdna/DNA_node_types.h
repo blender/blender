@@ -139,13 +139,15 @@ typedef struct bNodeSocket {
 	int own_index  DNA_DEPRECATED;
 	/* XXX deprecated, only used for restoring old group node links */
 	int to_index  DNA_DEPRECATED;
-	/* XXX deprecated, still forward compatible since verification restores pointer from matching own_index. */
+	/* XXX deprecated, still forward compatible since verification
+	 * restores pointer from matching own_index. */
 	struct bNodeSocket *groupsock  DNA_DEPRECATED;
 
 	/** A link pointer, set in ntreeUpdateTree. */
 	struct bNodeLink *link;
 
-	/* XXX deprecated, socket input values are stored in default_value now. kept for forward compatibility */
+	/* XXX deprecated, socket input values are stored in default_value now.
+	 * kept for forward compatibility */
 	/** Custom data for inputs, only UI writes in this. */
 	bNodeStack ns  DNA_DEPRECATED;
 } bNodeSocket;
@@ -178,14 +180,22 @@ typedef enum eNodeSocketInOut {
 
 /* sock->flag, first bit is select */
 typedef enum eNodeSocketFlag {
-	SOCK_HIDDEN = (1 << 1),                     /* hidden is user defined, to hide unused */
-	SOCK_IN_USE = (1 << 2),                     /* for quick check if socket is linked */
-	SOCK_UNAVAIL = (1 << 3),                    /* unavailable is for dynamic sockets */
-	// SOCK_DYNAMIC = (1 << 4),                 /* DEPRECATED  dynamic socket (can be modified by user) */
-	// SOCK_INTERNAL = (1 << 5),                /* DEPRECATED  group socket should not be exposed */
-	SOCK_COLLAPSED = (1 << 6),                  /* socket collapsed in UI */
-	SOCK_HIDE_VALUE = (1 << 7),                 /* hide socket value, if it gets auto default */
-	SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),    /* socket hidden automatically, to distinguish from manually hidden */
+	/** hidden is user defined, to hide unused */
+	SOCK_HIDDEN = (1 << 1),
+	/** for quick check if socket is linked */
+	SOCK_IN_USE = (1 << 2),
+	/** unavailable is for dynamic sockets */
+	SOCK_UNAVAIL = (1 << 3),
+	// /** DEPRECATED  dynamic socket (can be modified by user) */
+	// SOCK_DYNAMIC = (1 << 4),
+	// /** DEPRECATED  group socket should not be exposed */
+	// SOCK_INTERNAL = (1 << 5),
+	/** socket collapsed in UI */
+	SOCK_COLLAPSED = (1 << 6),
+	/** hide socket value, if it gets auto default */
+	SOCK_HIDE_VALUE = (1 << 7),
+	/** socket hidden automatically, to distinguish from manually hidden */
+	SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),
 	SOCK_NO_INTERNAL_LINK = (1 << 9),
 } eNodeSocketFlag;
 
@@ -395,7 +405,8 @@ typedef struct bNodeLink {
 #define NTREE_CHUNCKSIZE_1024 1024
 
 /* the basis for a Node tree, all links and nodes reside internal here */
-/* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
+/* only re-usable node trees are in the library though,
+ * materials and textures allocate own tree struct */
 typedef struct bNodeTree {
 	ID id;
 	/** Animation data (must be immediately after id for utilities to use it). */
@@ -497,7 +508,9 @@ typedef struct bNodeTree {
 #define NTREE_COM_GROUPNODE_BUFFER	(1 << 3)	/* use groupnode buffers */
 #define NTREE_VIEWER_BORDER			(1 << 4)	/* use a border for viewer nodes */
 /* NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead. */
-/* #define NTREE_IS_LOCALIZED			(1 << 5) */	/* tree is localized copy, free when deleting node groups */
+
+/* tree is localized copy, free when deleting node groups */
+/* #define NTREE_IS_LOCALIZED			(1 << 5) */
 
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
@@ -771,7 +784,8 @@ typedef struct NodeScriptDict {
 /* qdn: glare node */
 typedef struct NodeGlare {
 	char quality, type, iter;
-	/* XXX angle is only kept for backward/forward compatibility, was used for two different things, see T50736. */
+	/* XXX angle is only kept for backward/forward compatibility,
+	 * was used for two different things, see T50736. */
 	char angle DNA_DEPRECATED, pad_c1, size, star_45, streaks;
 	float colmod, mix, threshold, fade;
 	float angle_ofs, pad_f1;

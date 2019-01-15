@@ -109,7 +109,8 @@ typedef struct Ipo {
 	/** Rect defining extents of keyframes?. */
 	rctf cur;
 
-	/** Blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing). */
+	/** Blocktype: self-explanatory; showkey: either 0 or 1
+	 * (show vertical yellow lines for editing). */
 	short blocktype, showkey;
 	/** Muteipo: either 0 or 1 (whether ipo block is muted). */
 	short muteipo, pad;

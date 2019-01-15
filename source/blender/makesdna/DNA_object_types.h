@@ -259,7 +259,8 @@ typedef struct Object {
 	float obmat[4][4];
 	/** Inverse result of parent, so that object doesn't 'stick' to parent. */
 	float parentinv[4][4];
-	/** Inverse result of constraints. doesn't include effect of parent or object local transform. */
+	/** Inverse result of constraints.
+	 * doesn't include effect of parent or object local transform. */
 	float constinv[4][4];
 	/**
 	 * Inverse matrix of 'obmat' for any other use than rendering!
@@ -612,7 +613,8 @@ enum {
 	/* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in readfile.c. */
 	// BA_HAS_RECALC_OB = (1 << 2),  /* DEPRECATED */
 	// BA_HAS_RECALC_DATA =  (1 << 3),  /* DEPRECATED */
-	BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),  /* DEPRECATED, was runtime only, but was reusing an older flag. */
+	/** DEPRECATED, was runtime only, but was reusing an older flag. */
+	BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),
 };
 
 	/* NOTE: this was used as a proper setting in past, so nullify before using */

@@ -183,7 +183,8 @@ typedef struct Sequence {
 	/** Old animation system, deprecated for 2.5. */
 	struct Ipo *ipo DNA_DEPRECATED;
 
-	/* these ID vars should never be NULL but can be when linked libs fail to load, so check on access */
+	/** these ID vars should never be NULL but can be when linked libs fail to load,
+	 * so check on access */
 	struct Scene     *scene;
 	/** Override scene camera. */
 	struct Object    *scene_camera;

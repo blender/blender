@@ -156,7 +156,8 @@ typedef struct bArmature {
 /* don't use bit 7, was saved in files to disable stuff */
 typedef enum eArmature_Flag {
 	ARM_RESTPOS         = (1<<0),
-	ARM_DRAWXRAY        = (1<<1),   /* XRAY is here only for backwards converting */
+	/** XRAY is here only for backwards converting */
+	ARM_DRAWXRAY        = (1<<1),
 	ARM_DRAWAXES        = (1<<2),
 	ARM_DRAWNAMES       = (1<<3),
 	ARM_POSEMODE        = (1<<4),
@@ -165,11 +166,16 @@ typedef enum eArmature_Flag {
 	ARM_DONT_USE        = (1<<7),
 	ARM_MIRROR_EDIT     = (1<<8),
 	ARM_AUTO_IK         = (1<<9),
-	ARM_NO_CUSTOM       = (1<<10),  /* made option negative, for backwards compat */
-	ARM_COL_CUSTOM      = (1<<11),  /* draw custom colors  */
-	ARM_GHOST_ONLYSEL   = (1<<12),  /* when ghosting, only show selected bones (this should belong to ghostflag instead) */ /* XXX deprecated */
-	ARM_DS_EXPAND       = (1<<13),  /* dopesheet channel is expanded */
-	ARM_HAS_VIZ_DEPS    = (1<<14),  /* other objects are used for visualizing various states (hack for efficient updates) */
+	/** made option negative, for backwards compat */
+	ARM_NO_CUSTOM       = (1<<10),
+	/** draw custom colors  */
+	ARM_COL_CUSTOM      = (1<<11),
+	/** when ghosting, only show selected bones (this should belong to ghostflag instead) */
+	ARM_GHOST_ONLYSEL   = (1<<12), /* XXX deprecated */
+	/** dopesheet channel is expanded */
+	ARM_DS_EXPAND       = (1<<13),
+	/** other objects are used for visualizing various states (hack for efficient updates) */
+	ARM_HAS_VIZ_DEPS    = (1<<14),
 } eArmature_Flag;
 
 /* armature->drawtype */
@@ -223,28 +229,49 @@ typedef enum eBone_Flag {
 	BONE_SELECTED               = (1 << 0),
 	BONE_ROOTSEL                = (1 << 1),
 	BONE_TIPSEL                 = (1 << 2),
-	BONE_TRANSFORM              = (1 << 3),   /* Used instead of BONE_SELECTED during transform (clear before use) */
-	BONE_CONNECTED              = (1 << 4),   /* when bone has a parent, connect head of bone to parent's tail*/
+	/** Used instead of BONE_SELECTED during transform (clear before use) */
+	BONE_TRANSFORM              = (1 << 3),
+	/** when bone has a parent, connect head of bone to parent's tail*/
+	BONE_CONNECTED              = (1 << 4),
 	/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
-	BONE_HIDDEN_P               = (1 << 6),   /* hidden Bones when drawing PoseChannels */
-	BONE_DONE                   = (1 << 7),   /* For detecting cyclic dependencies */
-	BONE_DRAW_ACTIVE            = (1 << 8),   /* active is on mouse clicks only - deprecated, ONLY USE FOR DRAWING */
-	BONE_HINGE                  = (1 << 9),   /* No parent rotation or scale */
-	BONE_HIDDEN_A               = (1 << 10),  /* hidden Bones when drawing Armature Editmode */
-	BONE_MULT_VG_ENV            = (1 << 11),  /* multiplies vgroup with envelope */
-	BONE_NO_DEFORM              = (1 << 12),  /* bone doesn't deform geometry */
-	BONE_UNKEYED                = (1 << 13),  /* set to prevent destruction of its unkeyframed pose (after transform) */
-	BONE_HINGE_CHILD_TRANSFORM  = (1 << 14),  /* set to prevent hinge child bones from influencing the transform center */
-	BONE_NO_SCALE               = (1 << 15),  /* No parent scale */
-	BONE_HIDDEN_PG              = (1 << 16),  /* hidden bone when drawing PoseChannels (for ghost drawing) */
-	BONE_DRAWWIRE               = (1 << 17),  /* bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
-	BONE_NO_CYCLICOFFSET        = (1 << 18),  /* when no parent, bone will not get cyclic offset */
-	BONE_EDITMODE_LOCKED        = (1 << 19),  /* bone transforms are locked in EditMode */
-	BONE_TRANSFORM_CHILD        = (1 << 20),  /* Indicates that a parent is also being transformed */
-	BONE_UNSELECTABLE           = (1 << 21),  /* bone cannot be selected */
-	BONE_NO_LOCAL_LOCATION      = (1 << 22),  /* bone location is in armature space */
-	BONE_RELATIVE_PARENTING     = (1 << 23),  /* object child will use relative transform (like deform) */
-	BONE_ADD_PARENT_END_ROLL    = (1 << 24)   /* it will add the parent end roll to the inroll */
+	/** hidden Bones when drawing PoseChannels */
+	BONE_HIDDEN_P               = (1 << 6),
+	/** For detecting cyclic dependencies */
+	BONE_DONE                   = (1 << 7),
+	/** active is on mouse clicks only - deprecated, ONLY USE FOR DRAWING */
+	BONE_DRAW_ACTIVE            = (1 << 8),
+	/** No parent rotation or scale */
+	BONE_HINGE                  = (1 << 9),
+	/** hidden Bones when drawing Armature Editmode */
+	BONE_HIDDEN_A               = (1 << 10),
+	/** multiplies vgroup with envelope */
+	BONE_MULT_VG_ENV            = (1 << 11),
+	/** bone doesn't deform geometry */
+	BONE_NO_DEFORM              = (1 << 12),
+	/** set to prevent destruction of its unkeyframed pose (after transform) */
+	BONE_UNKEYED                = (1 << 13),
+	/** set to prevent hinge child bones from influencing the transform center */
+	BONE_HINGE_CHILD_TRANSFORM  = (1 << 14),
+	/** No parent scale */
+	BONE_NO_SCALE               = (1 << 15),
+	/** hidden bone when drawing PoseChannels (for ghost drawing) */
+	BONE_HIDDEN_PG              = (1 << 16),
+	/** bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
+	BONE_DRAWWIRE               = (1 << 17),
+	/** when no parent, bone will not get cyclic offset */
+	BONE_NO_CYCLICOFFSET        = (1 << 18),
+	/** bone transforms are locked in EditMode */
+	BONE_EDITMODE_LOCKED        = (1 << 19),
+	/** Indicates that a parent is also being transformed */
+	BONE_TRANSFORM_CHILD        = (1 << 20),
+	/** bone cannot be selected */
+	BONE_UNSELECTABLE           = (1 << 21),
+	/** bone location is in armature space */
+	BONE_NO_LOCAL_LOCATION      = (1 << 22),
+	/** object child will use relative transform (like deform) */
+	BONE_RELATIVE_PARENTING     = (1 << 23),
+	/** it will add the parent end roll to the inroll */
+	BONE_ADD_PARENT_END_ROLL    = (1 << 24)
 
 } eBone_Flag;
 

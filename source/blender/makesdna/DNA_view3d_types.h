@@ -83,7 +83,8 @@ typedef struct RegionView3D {
 
 	/** User defined clipping planes. */
 	float clip[6][4];
-	/** Clip in object space, means we can test for clipping in editmode without first going into worldspace. */
+	/** Clip in object space,
+	 * means we can test for clipping in editmode without first going into worldspace. */
 	float clip_local[6][4];
 	struct BoundBox *clipbb;
 

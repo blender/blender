@@ -163,9 +163,11 @@ enum {
 	/* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
 	 * And if not, should be a general flag. But seems unnecessary for now... */
 #if 0
-	MOD_DPAINT_PREVIEW_READY      = 1 << 0,  /* if viewport preview is ready */
+	/** if viewport preview is ready */
+	MOD_DPAINT_PREVIEW_READY      = 1 << 0,
 #endif
-	MOD_DPAINT_BAKING             = 1 << 1,  /* surface is already baking, so it wont get updated (loop) */
+	/** surface is already baking, so it wont get updated (loop) */
+	MOD_DPAINT_BAKING             = 1 << 1,
 };
 
 /* Canvas settings */
@@ -186,20 +188,31 @@ typedef struct DynamicPaintCanvasSettings {
 
 /* flags */
 enum {
-	MOD_DPAINT_PART_RAD           = 1 << 0,  /* use particle radius */
+	/** use particle radius */
+	MOD_DPAINT_PART_RAD           = 1 << 0,
 	//MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* DNA_DEPRECATED */
-	MOD_DPAINT_ABS_ALPHA          = 1 << 2,  /* don't increase alpha unless paint alpha is higher than existing */
-	MOD_DPAINT_ERASE              = 1 << 3,  /* removes paint */
+	/** don't increase alpha unless paint alpha is higher than existing */
+	MOD_DPAINT_ABS_ALPHA          = 1 << 2,
+	/** removes paint */
+	MOD_DPAINT_ERASE              = 1 << 3,
 
-	MOD_DPAINT_RAMP_ALPHA         = 1 << 4,  /* only read falloff ramp alpha */
-	MOD_DPAINT_PROX_PROJECT       = 1 << 5,  /* do proximity check only in defined dir */
-	MOD_DPAINT_INVERSE_PROX       = 1 << 6,  /* inverse proximity painting */
-	MOD_DPAINT_NEGATE_VOLUME      = 1 << 7,  /* negates volume influence on "volume + prox" mode */
+	/** only read falloff ramp alpha */
+	MOD_DPAINT_RAMP_ALPHA         = 1 << 4,
+	/** do proximity check only in defined dir */
+	MOD_DPAINT_PROX_PROJECT       = 1 << 5,
+	/** inverse proximity painting */
+	MOD_DPAINT_INVERSE_PROX       = 1 << 6,
+	/** negates volume influence on "volume + prox" mode */
+	MOD_DPAINT_NEGATE_VOLUME      = 1 << 7,
 
-	MOD_DPAINT_DO_SMUDGE          = 1 << 8,  /* brush smudges existing paint */
-	MOD_DPAINT_VELOCITY_ALPHA     = 1 << 9,  /* multiply brush influence by velocity */
-	MOD_DPAINT_VELOCITY_COLOR     = 1 << 10,  /* replace brush color by velocity color ramp */
-	MOD_DPAINT_VELOCITY_DEPTH     = 1 << 11,  /* multiply brush intersection depth by velocity */
+	/** brush smudges existing paint */
+	MOD_DPAINT_DO_SMUDGE          = 1 << 8,
+	/** multiply brush influence by velocity */
+	MOD_DPAINT_VELOCITY_ALPHA     = 1 << 9,
+	/** replace brush color by velocity color ramp */
+	MOD_DPAINT_VELOCITY_COLOR     = 1 << 10,
+	/** multiply brush intersection depth by velocity */
+	MOD_DPAINT_VELOCITY_DEPTH     = 1 << 11,
 
 	MOD_DPAINT_USES_VELOCITY      = (MOD_DPAINT_DO_SMUDGE | MOD_DPAINT_VELOCITY_ALPHA |
 	                                 MOD_DPAINT_VELOCITY_COLOR | MOD_DPAINT_VELOCITY_DEPTH),

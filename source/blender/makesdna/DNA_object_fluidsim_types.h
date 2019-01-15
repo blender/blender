@@ -166,7 +166,8 @@ typedef struct FluidsimSettings {
 #define OB_FSBND_FREESLIP       (1<<(OB_TYPEFLAG_START+4))
 #define OB_FSINFLOW_LOCALCOORD  (1<<(OB_TYPEFLAG_START+5))
 
-/* surface generation flag (part of enabling chapter 6 of "Free Surface Flows with Moving and Deforming Objects for LBM") */
+/* surface generation flag (part of enabling chapter 6 of
+ * "Free Surface Flows with Moving and Deforming Objects for LBM") */
 #define OB_FSSG_NOOBS			(1<<(OB_TYPEFLAG_START+6))
 
 // guiDisplayMode particle flags

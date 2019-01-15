@@ -123,7 +123,8 @@ typedef struct BezTriple {
 	/** F1, f2, f3: used for selection status. */
 	char f1, f2, f3;
 
-	/** Hide: used to indicate whether BezTriple is hidden (3D), type of keyframe (eBezTriple_KeyframeType). */
+	/** Hide: used to indicate whether BezTriple is hidden (3D),
+	 * type of keyframe (eBezTriple_KeyframeType). */
 	char hide;
 
 	/** Easing: easing type for interpolation mode (eBezTriple_Easing). */
@@ -333,10 +334,14 @@ enum {
 	CU_FAST               = 1 << 9,  /* Font: no filling inside editmode */
 	/* CU_RETOPO          = 1 << 10, */  /* DEPRECATED */
 	CU_DS_EXPAND          = 1 << 11,
-	CU_PATH_RADIUS        = 1 << 12,  /* make use of the path radius if this is enabled (default for new curves) */
-	CU_DEFORM_FILL        = 1 << 13,  /* fill 2d curve after deformation */
-	CU_FILL_CAPS          = 1 << 14,  /* fill bevel caps */
-	CU_MAP_TAPER          = 1 << 15,  /* map taper object to beveled area */
+	/** make use of the path radius if this is enabled (default for new curves) */
+	CU_PATH_RADIUS        = 1 << 12,
+	/** fill 2d curve after deformation */
+	CU_DEFORM_FILL        = 1 << 13,
+	/** fill bevel caps */
+	CU_FILL_CAPS          = 1 << 14,
+	/** map taper object to beveled area */
+	CU_MAP_TAPER          = 1 << 15,
 };
 
 /* Curve.twist_mode */
@@ -501,10 +506,13 @@ enum {
 	CU_CHINFO_BOLD            = 1 << 0,
 	CU_CHINFO_ITALIC          = 1 << 1,
 	CU_CHINFO_UNDERLINE       = 1 << 2,
-	CU_CHINFO_WRAP            = 1 << 3,  /* wordwrap occurred here */
+	/** wordwrap occurred here */
+	CU_CHINFO_WRAP            = 1 << 3,
 	CU_CHINFO_SMALLCAPS       = 1 << 4,
-	CU_CHINFO_SMALLCAPS_CHECK = 1 << 5,  /* set at runtime, checks if case switching is needed */
-	CU_CHINFO_OVERFLOW        = 1 << 6,  /* Set at runtime, indicates char that doesn't fit in text boxes. */
+	/** set at runtime, checks if case switching is needed */
+	CU_CHINFO_SMALLCAPS_CHECK = 1 << 5,
+	/** Set at runtime, indicates char that doesn't fit in text boxes. */
+	CU_CHINFO_OVERFLOW        = 1 << 6,
 };
 
 /* mixed with KEY_LINEAR but define here since only curve supports */
