@@ -112,12 +112,12 @@ enum {
 	KEY_NORMAL      = 0,
 
 	/* States to blend between (default) */
-	KEY_RELATIVE    = 1
+	KEY_RELATIVE    = 1,
 };
 
 /* Key->flag */
 enum {
-	KEY_DS_EXPAND   = 1
+	KEY_DS_EXPAND   = 1,
 };
 
 /* KeyBlock->type */
@@ -132,7 +132,7 @@ enum {
 enum {
 	KEYBLOCK_MUTE       = (1 << 0),
 	KEYBLOCK_SEL        = (1 << 1),
-	KEYBLOCK_LOCKED     = (1 << 2)
+	KEYBLOCK_LOCKED     = (1 << 2),
 };
 
 #endif /* __DNA_KEY_TYPES_H__  */

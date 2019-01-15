@@ -112,7 +112,7 @@ struct PBVHNode {
 };
 
 typedef enum {
-	PBVH_DYNTOPO_SMOOTH_SHADING = 1
+	PBVH_DYNTOPO_SMOOTH_SHADING = 1,
 } PBVHFlags;
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;

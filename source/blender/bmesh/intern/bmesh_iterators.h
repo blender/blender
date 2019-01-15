@@ -75,7 +75,7 @@ typedef enum BMIterType {
 	 * from the other faces in the radial cycle surrounding the
 	 * input loop's edge.*/
 	BM_LOOPS_OF_LOOP = 12,
-	BM_LOOPS_OF_EDGE = 13
+	BM_LOOPS_OF_EDGE = 13,
 } BMIterType;
 
 #define BM_ITYPE_MAX 14

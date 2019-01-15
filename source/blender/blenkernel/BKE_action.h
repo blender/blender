@@ -90,7 +90,7 @@ typedef enum eAction_TransformFlags {
 
 	/* all flags */
 	ACT_TRANS_ONLY  = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
-	ACT_TRANS_ALL   = (ACT_TRANS_ONLY | ACT_TRANS_PROP)
+	ACT_TRANS_ALL   = (ACT_TRANS_ONLY | ACT_TRANS_PROP),
 } eAction_TransformFlags;
 
 /* Return flags indicating which transforms the given object/posechannel has

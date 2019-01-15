@@ -540,7 +540,7 @@ typedef struct DMGradient_vertStore {
 	float weight_orig;
 	enum {
 		VGRAD_STORE_NOP      = 0,
-		VGRAD_STORE_DW_EXIST = (1 << 0)
+		VGRAD_STORE_DW_EXIST = (1 << 0),
 	} flag;
 } DMGradient_vertStore;
 

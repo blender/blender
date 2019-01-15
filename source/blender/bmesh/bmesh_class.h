@@ -260,7 +260,7 @@ enum {
 	BM_VERT = 1,
 	BM_EDGE = 2,
 	BM_LOOP = 4,
-	BM_FACE = 8
+	BM_FACE = 8,
 };
 
 #define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)

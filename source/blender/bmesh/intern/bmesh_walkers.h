@@ -38,7 +38,7 @@ typedef enum {
 
 typedef enum {
 	BMW_FLAG_NOP = 0,
-	BMW_FLAG_TEST_HIDDEN = (1 << 0)
+	BMW_FLAG_TEST_HIDDEN = (1 << 0),
 } BMWFlag;
 
 /*Walkers*/

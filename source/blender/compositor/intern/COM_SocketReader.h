@@ -32,7 +32,7 @@
 typedef enum PixelSampler {
 	COM_PS_NEAREST = 0,
 	COM_PS_BILINEAR = 1,
-	COM_PS_BICUBIC = 2
+	COM_PS_BICUBIC = 2,
 } PixelSampler;
 
 class MemoryBuffer;

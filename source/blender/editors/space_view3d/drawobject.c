@@ -121,7 +121,7 @@
 typedef enum eWireDrawMode {
 	OBDRAW_WIRE_OFF = 0,
 	OBDRAW_WIRE_ON = 1,
-	OBDRAW_WIRE_ON_DEPTH = 2
+	OBDRAW_WIRE_ON_DEPTH = 2,
 } eWireDrawMode;
 
 typedef struct drawDMVerts_userData {

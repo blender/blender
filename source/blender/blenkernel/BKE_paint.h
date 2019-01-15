@@ -79,7 +79,7 @@ typedef enum ePaintMode {
 	PAINT_MODE_SCULPT_UV = 5,
 
 	/** Keep last. */
-	PAINT_MODE_INVALID = 6
+	PAINT_MODE_INVALID = 6,
 } ePaintMode;
 
 /* overlay invalidation */
@@ -89,7 +89,7 @@ typedef enum eOverlayControlFlags {
 	PAINT_OVERLAY_INVALID_CURVE = (1 << 3),
 	PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
 	PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
-	PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6)
+	PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6),
 } eOverlayControlFlags;
 
 #define PAINT_OVERRIDE_MASK \
@@ -263,6 +263,6 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 
 enum {
 	SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
-	SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1)
+	SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
 };
 #endif

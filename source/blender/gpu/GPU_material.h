@@ -80,7 +80,7 @@ typedef enum GPUType {
 	GPU_TEX2D = 1002,
 	GPU_SHADOW2D = 1003,
 	GPU_TEXCUBE = 1004,
-	GPU_ATTRIB = 3001
+	GPU_ATTRIB = 3001,
 } GPUType;
 
 typedef enum GPUBuiltin {
@@ -99,7 +99,7 @@ typedef enum GPUBuiltin {
 	GPU_PARTICLE_ANG_VELOCITY = (1 << 12),
 	GPU_LOC_TO_VIEW_MATRIX =    (1 << 13),
 	GPU_INVERSE_LOC_TO_VIEW_MATRIX = (1 << 14),
-	GPU_OBJECT_INFO =           (1 << 15)
+	GPU_OBJECT_INFO =           (1 << 15),
 } GPUBuiltin;
 
 typedef enum GPUOpenGLBuiltin {
@@ -119,7 +119,7 @@ typedef enum GPUBlendMode {
 	GPU_BLEND_ALPHA = 2,
 	GPU_BLEND_CLIP = 4,
 	GPU_BLEND_ALPHA_SORT = 8,
-	GPU_BLEND_ALPHA_TO_COVERAGE = 16
+	GPU_BLEND_ALPHA_TO_COVERAGE = 16,
 } GPUBlendMode;
 
 typedef struct GPUNodeStack {

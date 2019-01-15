@@ -2379,7 +2379,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 enum {
 	GEN_CONTEXT_NONE = 0,
 	GEN_CONTEXT_PAINT_CANVAS = 1,
-	GEN_CONTEXT_PAINT_STENCIL = 2
+	GEN_CONTEXT_PAINT_STENCIL = 2,
 };
 
 static int image_new_exec(bContext *C, wmOperator *op)

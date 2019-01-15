@@ -37,7 +37,7 @@ typedef void ParamHandle;	/* handle to a set of charts */
 typedef intptr_t ParamKey;		/* (hash) key for identifying verts and faces */
 typedef enum ParamBool {
 	PARAM_TRUE = 1,
-	PARAM_FALSE = 0
+	PARAM_FALSE = 0,
 } ParamBool;
 
 /* Chart construction:

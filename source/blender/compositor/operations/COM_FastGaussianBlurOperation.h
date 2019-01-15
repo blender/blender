@@ -45,7 +45,7 @@ public:
 enum {
 	FAST_GAUSS_OVERLAY_MIN  = -1,
 	FAST_GAUSS_OVERLAY_NONE =  0,
-	FAST_GAUSS_OVERLAY_MAX  =  1
+	FAST_GAUSS_OVERLAY_MAX  =  1,
 };
 
 class FastGaussianBlurValueOperation : public NodeOperation {

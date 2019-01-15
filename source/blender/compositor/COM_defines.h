@@ -33,7 +33,7 @@ typedef enum DataType {
 	/** \brief Vector data type */
 	COM_DT_VECTOR  = 2,
 	/** \brief Color data type */
-	COM_DT_COLOR   = 4
+	COM_DT_COLOR   = 4,
 } DataType;
 
 /**
@@ -47,7 +47,7 @@ typedef enum CompositorQuality {
 	/** \brief Medium quality setting */
 	COM_QUALITY_MEDIUM = 1,
 	/** \brief Low quality setting */
-	COM_QUALITY_LOW    = 2
+	COM_QUALITY_LOW    = 2,
 } CompositorQuality;
 
 /**
@@ -60,7 +60,7 @@ typedef enum CompositorPriority {
 	/** \brief Medium quality setting */
 	COM_PRIORITY_MEDIUM = 1,
 	/** \brief Low quality setting */
-	COM_PRIORITY_LOW    = 0
+	COM_PRIORITY_LOW    = 0,
 } CompositorPriority;
 
 // configurable items
@@ -98,7 +98,7 @@ typedef enum OrderOfChunks {
 	/** \brief no ordering */
 	COM_TO_TOP_DOWN = 2,
 	/** \brief experimental ordering with 9 hotspots */
-	COM_TO_RULE_OF_THIRDS = 3
+	COM_TO_RULE_OF_THIRDS = 3,
 } OrderOfChunks;
 
 #define COM_ORDER_OF_CHUNKS_DEFAULT COM_TO_CENTER_OUT

@@ -52,7 +52,7 @@ typedef struct TaskScheduler TaskScheduler;
 
 enum {
 	TASK_SCHEDULER_AUTO_THREADS = 0,
-	TASK_SCHEDULER_SINGLE_THREAD = 1
+	TASK_SCHEDULER_SINGLE_THREAD = 1,
 };
 
 TaskScheduler *BLI_task_scheduler_create(int num_threads);

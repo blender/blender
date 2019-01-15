@@ -894,7 +894,7 @@ enum {
 	UI_CNR_BOTTOM_LEFT  = (1 << 3),
 	/* just for convenience */
 	UI_CNR_NONE         = 0,
-	UI_CNR_ALL          = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)
+	UI_CNR_ALL          = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT),
 };
 
 /* not apart of the corner flags but mixed in some functions  */

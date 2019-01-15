@@ -51,7 +51,7 @@ typedef enum {
 	HULL_FLAG_OUTPUT_GEOM =     (1 << 2),
 
 	HULL_FLAG_DEL =             (1 << 3),
-	HULL_FLAG_HOLE =            (1 << 4)
+	HULL_FLAG_HOLE =            (1 << 4),
 } HullFlags;
 
 /* Store hull triangles separate from BMesh faces until the end; this

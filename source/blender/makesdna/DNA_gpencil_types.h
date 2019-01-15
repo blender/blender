@@ -105,7 +105,7 @@ typedef enum eGPDbrush_Flag {
 	/* brush use random for pressure */
 	GP_BRUSH_USE_RANDOM_PRESSURE = (1 << 4),
 	/* brush use random for strength */
-	GP_BRUSH_USE_RANDOM_STRENGTH = (1 << 5)
+	GP_BRUSH_USE_RANDOM_STRENGTH = (1 << 5),
 } eGPDbrush_Flag;
 
 /* color of palettes */
@@ -131,7 +131,7 @@ typedef enum eGPDpalettecolor_Flag {
 	/* "volumetric" strokes (i.e. GLU Quadric discs in 3D) */
 	PC_COLOR_VOLUMETRIC = (1 << 4),
 	/* Use High quality fill */
-	PC_COLOR_HQ_FILL = (1 << 5)
+	PC_COLOR_HQ_FILL = (1 << 5),
 } eGPDpalettecolor_Flag;
 
 /* palette of colors */
@@ -149,7 +149,7 @@ typedef struct bGPDpalette {
 /* bGPDpalette->flag */
 typedef enum eGPDpalette_Flag {
 	/* palette is active */
-	PL_PALETTE_ACTIVE = (1 << 0)
+A,	PL_PALETTE_ACTIVE = (1 << 0)
 } eGPDpalette_Flag;
 
 /* Grease-Pencil Annotations - 'Stroke'
@@ -195,7 +195,7 @@ typedef enum eGPDstroke_Flag {
 	/* Flag used to indicate that stroke is closed and draw edge between last and first point */
 	GP_STROKE_CYCLIC = (1 << 7),
 	/* only for use with stroke-buffer (while drawing eraser) */
-	GP_STROKE_ERASER		= (1 << 15)
+	GP_STROKE_ERASER		= (1 << 15),
 } eGPDstroke_Flag;
 
 /* Grease-Pencil Annotations - 'Frame'
@@ -217,7 +217,7 @@ typedef enum eGPDframe_Flag {
 	/* frame is being painted on */
 	GP_FRAME_PAINT		= (1 << 0),
 	/* for editing in Action Editor */
-	GP_FRAME_SELECT		= (1 << 1)
+	GP_FRAME_SELECT		= (1 << 1),
 } eGPDframe_Flag;
 
 /* Grease-Pencil Annotations - 'Layer' */
@@ -342,7 +342,7 @@ typedef enum eGPdata_Flag {
 	/* Convenience/cache flag to make it easier to quickly toggle onion skinning on/off */
 	GP_DATA_SHOW_ONIONSKINS = (1 << 9),
 	/* Draw a green and red point to indicate start and end of the stroke */
-	GP_DATA_SHOW_DIRECTION = (1 << 10)
+	GP_DATA_SHOW_DIRECTION = (1 << 10),
 } eGPdata_Flag;
 
 #endif /*  __DNA_GPENCIL_TYPES_H__ */

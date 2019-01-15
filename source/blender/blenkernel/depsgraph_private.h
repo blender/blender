@@ -66,7 +66,7 @@ struct ModifierData;
 enum {
 	DAG_WHITE = 0,
 	DAG_GRAY = 1,
-	DAG_BLACK = 2
+	DAG_BLACK = 2,
 };
 
 typedef struct DagAdjList {

@@ -68,7 +68,7 @@ typedef enum InputResizeMode {
 	/** \brief Fit the width or the height of the input image to the width or height of the working area of the node, image will be larger than the working area */
 	COM_SC_FIT = NS_CR_FIT,
 	/** \brief Fit the width and the height of the input image to the width and height of the working area of the node, image will be equally larger than the working area */
-	COM_SC_STRETCH = NS_CR_STRETCH
+	COM_SC_STRETCH = NS_CR_STRETCH,
 } InputResizeMode;
 
 /**

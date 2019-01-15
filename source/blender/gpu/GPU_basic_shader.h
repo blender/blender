@@ -53,7 +53,7 @@ typedef enum GPUBasicShaderOption {
 	GPU_SHADER_LINE =             (1 << 7),   /* draw lines */
 	GPU_SHADER_FLAT_NORMAL =      (1 << 8),   /* use flat normals */
 	GPU_SHADER_OPTIONS_NUM = 9,
-	GPU_SHADER_OPTION_COMBINATIONS = (1 << GPU_SHADER_OPTIONS_NUM)
+	GPU_SHADER_OPTION_COMBINATIONS = (1 << GPU_SHADER_OPTIONS_NUM),
 } GPUBasicShaderOption;
 
 /* Keep these in sync with gpu_shader_basic_frag.glsl */
@@ -69,7 +69,7 @@ typedef enum GPUBasicShaderStipple {
 	GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN            = 8,
 	GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN_SWAP       = 9,
 	GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER           = 10,
-	GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP      = 11
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP      = 11,
 } GPUBasicShaderStipple;
 
 void GPU_basic_shaders_init(void);

@@ -687,7 +687,7 @@ void setNearestAxis(TransInfo *t);
 typedef enum {
 	NO_GEARS 	= 0,
 	BIG_GEARS	= 1,
-	SMALL_GEARS	= 2
+	SMALL_GEARS	= 2,
 } GearsType;
 
 void snapGridIncrement(TransInfo *t, float *val);

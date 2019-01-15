@@ -54,13 +54,13 @@ struct wmKeyConfig;
 enum {
 	DRAW_PICKING     = (1 << 0),
 	DRAW_CONSTCOLOR  = (1 << 1),
-	DRAW_SCENESET    = (1 << 2)
+	DRAW_SCENESET    = (1 << 2),
 };
 
 /* draw_mesh_fancy/draw_mesh_textured draw_flags */
 enum {
 	DRAW_MODIFIERS_PREVIEW  = (1 << 0),
-	DRAW_FACE_SELECT        = (1 << 1)
+	DRAW_FACE_SELECT        = (1 << 1),
 };
 
 /* view3d_header.c */
@@ -168,7 +168,7 @@ enum {
 	V3D_CACHE_TEXT_WORLDSPACE   = (1 << 1),
 	V3D_CACHE_TEXT_ASCII        = (1 << 2),
 	V3D_CACHE_TEXT_GLOBALSPACE  = (1 << 3),
-	V3D_CACHE_TEXT_LOCALCLIP    = (1 << 4)
+	V3D_CACHE_TEXT_LOCALCLIP    = (1 << 4),
 };
 
 int view3d_effective_drawtype(const struct View3D *v3d);

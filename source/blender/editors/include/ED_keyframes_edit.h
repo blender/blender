@@ -73,7 +73,7 @@ typedef enum eEditKeyframes_Select {
 	/* remove ok keyframes from selection */
 	SELECT_SUBTRACT =   (1 << 2),
 	/* flip ok status of keyframes based on key status */
-	SELECT_INVERT   =   (1 << 3)
+	SELECT_INVERT   =   (1 << 3),
 } eEditKeyframes_Select;
 
 /* "selection map" building modes */
@@ -134,7 +134,7 @@ typedef enum eKeyframeVertOk {
 	/* 'handle 2' is ok */
 	KEYFRAME_OK_H2      = (1 << 2),
 	/* all flags */
-	KEYFRAME_OK_ALL     = (KEYFRAME_OK_KEY | KEYFRAME_OK_H1 | KEYFRAME_OK_H2)
+	KEYFRAME_OK_ALL     = (KEYFRAME_OK_KEY | KEYFRAME_OK_H1 | KEYFRAME_OK_H2),
 } eKeyframeVertOk;
 
 /* Flags for use during iteration */

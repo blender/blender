@@ -99,7 +99,7 @@ private:
 //		INANIMATE = 0,
 		LIGHT_COLOR	= 2,
 		LIGHT_FOA = 4,
-		LIGHT_FOE = 8
+		LIGHT_FOE = 8,
 	};
 
 	enum cameraAnim
@@ -110,7 +110,7 @@ private:
 		CAMERA_YFOV = 8,
 		CAMERA_YMAG = 16,
 		CAMERA_ZFAR = 32,
-		CAMERA_ZNEAR = 64
+		CAMERA_ZNEAR = 64,
 	};
 
 	enum matAnim
@@ -119,7 +119,7 @@ private:
 		MATERIAL_SPEC_COLOR = 4,
 		MATERIAL_DIFF_COLOR = 1 << 3,
 		MATERIAL_TRANSPARENCY = 1 << 4,
-		MATERIAL_IOR = 1 << 5
+		MATERIAL_IOR = 1 << 5,
 	};
 
 	enum AnimationType

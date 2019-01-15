@@ -70,13 +70,13 @@ typedef enum  {
 
 typedef enum {
 	METHOD_BRUTE_FORCE = 0,
-	METHOD_MEMOIZE = 1
+	METHOD_MEMOIZE = 1,
 } RetargetMethod;
 
 typedef enum {
 	ARC_FREE = 0,
 	ARC_TAKEN = 1,
-	ARC_USED = 2
+	ARC_USED = 2,
 } ArcUsageFlags;
 
 static RigGraph *GLOBAL_RIGG = NULL;

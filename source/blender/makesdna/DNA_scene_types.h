@@ -1158,7 +1158,7 @@ typedef struct VPaint {
 /* VPaint.flag */
 enum {
 	/* weight paint only */
-	VP_FLAG_VGROUP_RESTRICT     = (1 << 7)
+	VP_FLAG_VGROUP_RESTRICT     = (1 << 7),
 };
 
 /* ------------------------------------------- */
@@ -1187,7 +1187,7 @@ typedef enum eGP_Lockaxis_Types {
 	GP_LOCKAXIS_NONE = 0,
 	GP_LOCKAXIS_X = 1,
 	GP_LOCKAXIS_Y = 2,
-	GP_LOCKAXIS_Z = 3
+	GP_LOCKAXIS_Z = 3,
 } eGP_Lockaxis_Types;
 
 /* Settings for a GPencil Stroke Sculpting Brush */
@@ -1208,7 +1208,7 @@ typedef enum eGP_EditBrush_Flag {
 	GP_EDITBRUSH_FLAG_USE_FALLOFF  = (1 << 2),
 
 	/* smooth brush affects pressure values as well */
-	GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE  = (1 << 3)
+	GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE  = (1 << 3),
 } eGP_EditBrush_Flag;
 
 
@@ -1385,7 +1385,7 @@ typedef enum {
 
 	/* only used if unified alpha is enabled, mirrors the brush flag
 	 * BRUSH_ALPHA_PRESSURE */
-	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1 << 4)
+	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1 << 4),
 } eUnifiedPaintSettingsFlags;
 
 
@@ -2052,7 +2052,7 @@ extern const char *RE_engine_id_CYCLES;
 enum {
 	OB_DRAW_GROUPUSER_NONE      = 0,
 	OB_DRAW_GROUPUSER_ACTIVE    = 1,
-	OB_DRAW_GROUPUSER_ALL       = 2
+	OB_DRAW_GROUPUSER_ALL       = 2,
 };
 
 /* object_vgroup.c */
@@ -2062,7 +2062,7 @@ typedef enum eVGroupSelect {
 	WT_VGROUP_ACTIVE = 1,
 	WT_VGROUP_BONE_SELECT = 2,
 	WT_VGROUP_BONE_DEFORM = 3,
-	WT_VGROUP_BONE_DEFORM_OFF = 4
+	WT_VGROUP_BONE_DEFORM_OFF = 4,
 } eVGroupSelect;
 
 #define WT_VGROUP_MASK_ALL \
@@ -2107,7 +2107,7 @@ typedef enum ePaintFlags {
 	PAINT_SHOW_BRUSH = (1 << 0),
 	PAINT_FAST_NAVIGATE = (1 << 1),
 	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
-	PAINT_USE_CAVITY_MASK = (1 << 3)
+	PAINT_USE_CAVITY_MASK = (1 << 3),
 } ePaintFlags;
 
 /* Paint.symmetry_flags
@@ -2221,13 +2221,13 @@ typedef enum eGPencil_Flags {
 	/* When creating new frames, the last frame gets used as the basis for the new one */
 	GP_TOOL_FLAG_RETAIN_LAST            = (1 << 1),
 	/* Add the strokes below all strokes in the layer */
-	GP_TOOL_FLAG_PAINT_ONBACK = (1 << 2)
+	GP_TOOL_FLAG_PAINT_ONBACK = (1 << 2),
 } eGPencil_Flags;
 
 /* ToolSettings.gpencil_src */
 typedef enum eGPencil_Source_3D {
 	GP_TOOL_SOURCE_SCENE    = 0,
-	GP_TOOL_SOURCE_OBJECT   = 1
+	GP_TOOL_SOURCE_OBJECT   = 1,
 } eGPencil_Source_3d;
 
 /* ToolSettings.gpencil_*_align - Stroke Placement mode flags */

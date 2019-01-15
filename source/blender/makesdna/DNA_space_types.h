@@ -609,7 +609,7 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
 	SEQ_PROXY_RENDER_SIZE_50        =  50,
 	SEQ_PROXY_RENDER_SIZE_75        =  75,
 	SEQ_PROXY_RENDER_SIZE_100       =  99,
-	SEQ_PROXY_RENDER_SIZE_FULL      = 100
+	SEQ_PROXY_RENDER_SIZE_FULL      = 100,
 } eSpaceSeq_Proxy_RenderSize;
 
 typedef struct MaskSpaceInfo {
@@ -626,7 +626,7 @@ typedef struct MaskSpaceInfo {
 typedef enum eSpaceSeq_OverlayType {
 	SEQ_DRAW_OVERLAY_RECT = 0,
 	SEQ_DRAW_OVERLAY_REFERENCE = 1,
-	SEQ_DRAW_OVERLAY_CURRENT = 2
+	SEQ_DRAW_OVERLAY_CURRENT = 2,
 } eSpaceSeq_OverlayType;
 
 /** \} */
@@ -724,7 +724,7 @@ enum eFileDisplayType {
 	FILE_DEFAULTDISPLAY = 0,
 	FILE_SHORTDISPLAY = 1,
 	FILE_LONGDISPLAY = 2,
-	FILE_IMGDISPLAY = 3
+	FILE_IMGDISPLAY = 3,
 };
 
 /* FileSelectParams.sort */
@@ -733,7 +733,7 @@ enum eFileSortType {
 	FILE_SORT_ALPHA = 1,
 	FILE_SORT_EXTENSION = 2,
 	FILE_SORT_TIME = 3,
-	FILE_SORT_SIZE = 4
+	FILE_SORT_SIZE = 4,
 };
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
@@ -1308,7 +1308,7 @@ typedef enum eConsoleLine_Type {
 	CONSOLE_LINE_OUTPUT = 0,
 	CONSOLE_LINE_INPUT = 1,
 	CONSOLE_LINE_INFO = 2, /* autocomp feedback */
-	CONSOLE_LINE_ERROR = 3
+	CONSOLE_LINE_ERROR = 3,
 } eConsoleLine_Type;
 
 

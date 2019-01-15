@@ -92,7 +92,7 @@ typedef enum {
 	CAP_START = 1,
 	CAP_END = 2,
 	SEAM_FRAME = 4,
-	ROOT = 8
+	ROOT = 8,
 } SkinNodeFlag;
 
 typedef struct Frame {

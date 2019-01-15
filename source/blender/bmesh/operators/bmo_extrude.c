@@ -44,7 +44,7 @@
 enum {
 	EXT_INPUT   = 1,
 	EXT_KEEP    = 2,
-	EXT_DEL     = 4
+	EXT_DEL     = 4,
 };
 
 #define VERT_MARK 1

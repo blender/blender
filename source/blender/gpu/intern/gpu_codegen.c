@@ -66,10 +66,10 @@ static char *glsl_material_library = NULL;
 /* type definitions and constants */
 
 enum {
-	MAX_FUNCTION_NAME = 64
+	MAX_FUNCTION_NAME = 64,
 };
 enum {
-	MAX_PARAMETER = 32
+	MAX_PARAMETER = 32,
 };
 
 typedef enum {
