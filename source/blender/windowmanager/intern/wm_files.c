@@ -184,7 +184,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	 *     (see T47632), so for now just handling this specific case here. */
 	CTX_wm_menu_set(C, NULL);
 
-	ED_editors_exit(G_MAIN);
+	ED_editors_exit(G_MAIN, true);
 }
 
 static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)

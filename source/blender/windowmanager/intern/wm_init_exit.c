@@ -483,7 +483,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if (C) {
 		Main *bmain = CTX_data_main(C);
-		ED_editors_exit(bmain);
+		ED_editors_exit(bmain, true);
 	}
 
 	ED_undosys_type_free();

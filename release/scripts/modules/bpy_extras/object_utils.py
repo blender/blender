@@ -133,23 +133,6 @@ def object_data_add(context, obdata, operator=None, name=None):
     obj_new.select_set(True)
     obj_new.matrix_world = add_object_align_init(context, operator)
 
-    # XXX
-    # caused because entering edit-mode does not add a empty undo slot!
-    if context.preferences.edit.use_enter_edit_mode:
-        if not (obj_act and
-                obj_act.mode == 'EDIT' and
-                obj_act.type == obj_new.type):
-
-            _obdata = bpy.data.meshes.new(name)
-            obj_act = bpy.data.objects.new(_obdata.name, _obdata)
-            obj_act.matrix_world = obj_new.matrix_world
-            scene_collection.objects.link(obj_act)
-            layer.objects.active = obj_act
-            bpy.ops.object.mode_set(mode='EDIT')
-            # need empty undo step
-            bpy.ops.ed.undo_push(message="Enter Editmode")
-    # XXX
-
     if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
         bpy.ops.mesh.select_all(action='DESELECT')
         obj_act.select_set(True)

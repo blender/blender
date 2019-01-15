@@ -157,14 +157,14 @@ void ED_editors_init(bContext *C)
 }
 
 /* frees all editmode stuff */
-void ED_editors_exit(Main *bmain)
+void ED_editors_exit(Main *bmain, bool do_undo_system)
 {
 	if (!bmain) {
 		return;
 	}
 
 	/* frees all editmode undos */
-	if (G_MAIN->wm.first) {
+	if (do_undo_system && G_MAIN->wm.first) {
 		wmWindowManager *wm = G_MAIN->wm.first;
 		/* normally we don't check for NULL undo stack, do here since it may run in different context. */
 		if (wm->undo_stack) {

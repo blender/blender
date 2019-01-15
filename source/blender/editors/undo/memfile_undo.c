@@ -38,8 +38,7 @@
 
 #include "ED_object.h"
 #include "ED_undo.h"
-#include "ED_render.h"
-
+#include "ED_util.h"
 
 #include "../blenloader/BLO_undofile.h"
 
@@ -82,6 +81,9 @@ static bool memfile_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 
 static void memfile_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
 {
+	struct Main *bmain = CTX_data_main(C);
+	ED_editors_exit(bmain, false);
+
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 	BKE_memfile_undo_decode(us->data, C);
 

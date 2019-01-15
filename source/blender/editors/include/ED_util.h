@@ -39,7 +39,7 @@ struct Main;
 
 /* ed_util.c */
 void ED_editors_init(struct bContext *C);
-void ED_editors_exit(struct Main *bmain);
+void ED_editors_exit(struct Main *bmain, bool do_undo_system);
 bool ED_editors_flush_edits(struct Main *bmain, bool for_render);
 
 void ED_spacedata_id_remap(struct ScrArea *sa, struct SpaceLink *sl, struct ID *old_id, struct ID *new_id);
