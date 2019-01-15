@@ -385,6 +385,10 @@ bool compareCyclicBackward(const CyclicArray& array_a,
 // The tricky part here is that we can't trust 1:1 array match here, since it's
 // possible that OpenSubdiv oriented edges of a face to make it compatible with
 // an internal representation of non-manifold meshes.
+//
+// TODO(sergey): Check whether this is needed, ot whether OpenSubdiv is only
+// creating edges in a proper orientation without modifying indices of face
+// verticies.
 bool checkVerticesOfFacesMatch(const CyclicArray& indices_a,
                                const CyclicArray& indices_b) {
   if (indices_a.size() != indices_a.size()) {
@@ -544,10 +548,53 @@ bool checkEdgeTagsMatch(
   }
 }
 
+bool checkSingleUVLayerMatch(
+    const OpenSubdiv::Far::TopologyLevel& base_level,
+    const OpenSubdiv_Converter* converter,
+    const int layer_index) {
+  converter->precalcUVLayer(converter, layer_index);
+  const int num_faces = base_level.GetNumFaces();
+  // TODO(sergey): Need to check whether converter changed the winding of
+  // face to match OpenSubdiv's expectations.
+  for (int face_index = 0; face_index < num_faces; ++face_index) {
+    OpenSubdiv::Far::ConstIndexArray base_level_face_uvs =
+        base_level.GetFaceFVarValues(face_index, layer_index);
+    for (int corner = 0; corner < base_level_face_uvs.size(); ++corner) {
+      const int uv_index =
+          converter->getFaceCornerUVIndex(converter, face_index, corner);
+      if (base_level_face_uvs[corner] != uv_index) {
+        converter->finishUVLayer(converter);
+        return false;
+      }
+    }
+  }
+  converter->finishUVLayer(converter);
+  return true;
+}
+
+bool checkUVLayersMatch(
+    const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
+    const OpenSubdiv_Converter* converter) {
+  using OpenSubdiv::Far::TopologyLevel;
+  const int num_layers = converter->getNumUVLayers(converter);
+  const TopologyLevel& base_level = topology_refiner->GetLevel(0);
+  // Number of UF layers should match.
+  if (base_level.GetNumFVarChannels() != num_layers) {
+    return false;
+  }
+  for (int layer_index = 0; layer_index < num_layers; ++layer_index) {
+    if (!checkSingleUVLayerMatch(base_level, converter, layer_index)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool checkTopologyAttributesMatch(
     const OpenSubdiv::Far::TopologyRefiner* topology_refiner,
     const OpenSubdiv_Converter* converter) {
-  return checkEdgeTagsMatch(topology_refiner, converter);
+  return checkEdgeTagsMatch(topology_refiner, converter) &&
+         checkUVLayersMatch(topology_refiner, converter);
 }
 
 }  // namespace
