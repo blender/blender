@@ -72,7 +72,8 @@
  * \{ */
 
 struct PathSelectParams {
-	bool track_active;  /* ensure the active element is the last selected item (handy for picking) */
+	/** ensure the active element is the last selected item (handy for picking) */
+	bool track_active;
 	bool use_topology_distance;
 	bool use_face_step;
 	bool use_fill;

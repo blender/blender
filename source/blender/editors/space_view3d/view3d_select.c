@@ -169,7 +169,8 @@ static void object_deselect_all_visible(ViewLayer *view_layer, View3D *v3d)
 	}
 }
 
-static void object_deselect_all_except(ViewLayer *view_layer, Base *b)   /* deselect all except b */
+/* deselect all except b */
+static void object_deselect_all_except(ViewLayer *view_layer, Base *b)
 {
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->flag & BASE_SELECTED) {
@@ -941,7 +942,8 @@ static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], sh
 		return;
 
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		paintface_deselect_all_visible(vc->C, ob, SEL_DESELECT, false);  /* flush selection at the end */
+		/* flush selection at the end */
+		paintface_deselect_all_visible(vc->C, ob, SEL_DESELECT, false);
 	}
 
 	bm_vertoffs = me->totpoly + 1; /* max index array */
@@ -1155,7 +1157,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
-		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
+		/* this is a bit dodjy, there should only be ONE object with this name,
+		 * but library objects can mess this up */
 		if (STREQ(name, base->object->id.name + 2)) {
 			ED_object_base_activate(C, base);
 			ED_object_base_select(base, BA_SELECT);
@@ -1610,7 +1613,9 @@ static bool ed_object_select_pick(
 	startbase =  FIRSTBASE(view_layer);
 	if (BASACT(view_layer) && BASACT(view_layer)->next) startbase = BASACT(view_layer)->next;
 
-	/* This block uses the control key to make the object selected by its center point rather than its contents */
+	/* This block uses the control key to make the object selected
+	 * by its center point rather than its contents */
+
 	/* in editmode do not activate */
 	if (obcenter) {
 
@@ -1699,7 +1704,8 @@ static bool ed_object_select_pick(
 							}
 
 							/* index of bundle is 1<<16-based. if there's no "bone" index
-							 * in height word, this buffer value belongs to camera. not to bundle */
+							 * in height word, this buffer value belongs to camera. not to bundle
+							 */
 							if (buffer[4 * i + 3] & 0xFFFF0000) {
 								MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
 								MovieTracking *tracking = &clip->tracking;
@@ -1758,7 +1764,8 @@ static bool ed_object_select_pick(
 					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
 					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
 
-					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
+					/* in weightpaint, we use selected bone to select vertexgroup,
+					 * so no switch to new active object */
 					if (BASACT(view_layer) && (BASACT(view_layer)->object->mode & OB_MODE_WEIGHT_PAINT)) {
 						/* prevent activating */
 						basact = NULL;

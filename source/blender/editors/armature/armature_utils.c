@@ -672,7 +672,9 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 		if (eBone == arm->act_edbone) {
 			/* don't change active selection, this messes up separate which uses
 			 * editmode toggle and can separate active bone which is de-selected originally */
-			/* newBone->flag |= BONE_SELECTED; */ /* important, editbones can be active with only 1 point selected */
+
+			/* important, editbones can be active with only 1 point selected */
+			/* newBone->flag |= BONE_SELECTED; */
 			arm->act_bone = newBone;
 		}
 		newBone->roll = 0.0f;
@@ -707,8 +709,9 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 	}
 
 	/* Fix parenting in a separate pass to ensure ebone->bone connections are valid at this point.
-	 * Do not set bone->head/tail here anymore, using EditBone data for that is not OK since our later fiddling
-	 * with parent's arm_mat (for roll conversion) may have some small but visible impact on locations (T46010). */
+	 * Do not set bone->head/tail here anymore,
+	 * using EditBone data for that is not OK since our later fiddling with parent's arm_mat
+	 * (for roll conversion) may have some small but visible impact on locations (T46010). */
 	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
 		newBone = eBone->temp.bone;
 		if (eBone->parent) {

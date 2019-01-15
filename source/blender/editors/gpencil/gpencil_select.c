@@ -998,7 +998,8 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	bool select = !RNA_boolean_get(op->ptr, "deselect");
 
 	GP_SpaceConversion gsc = {NULL};
-	rcti rect = {0};            /* for bounding rect around circle (for quicky intersection testing) */
+	/* for bounding rect around circle (for quicky intersection testing) */
+	rcti rect = {0};
 
 	bool changed = false;
 

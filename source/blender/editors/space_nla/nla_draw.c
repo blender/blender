@@ -95,7 +95,8 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 		}
 	}
 
-	/* when an NLA track is tagged "solo", action doesn't contribute, so shouldn't be as prominent */
+	/* when an NLA track is tagged "solo", action doesn't contribute,
+	 * so shouldn't be as prominent */
 	if (adt && (adt->flag & ADT_NLA_SOLO_TRACK))
 		color[3] *= 0.15f;
 }
@@ -339,7 +340,8 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 		if ((IS_EQF(strip->blendin, 0.0f) && IS_EQF(strip->blendout, 0.0f)) == 0) {
 			immBeginAtMost(GPU_PRIM_LINE_STRIP, 4);
 
-			/* start of strip - if no blendin, start straight at 1, otherwise from 0 to 1 over blendin frames */
+			/* start of strip - if no blendin, start straight at 1,
+			 * otherwise from 0 to 1 over blendin frames */
 			if (IS_EQF(strip->blendin, 0.0f) == 0) {
 				immVertex2f(pos, strip->start,                    yminc);
 				immVertex2f(pos, strip->start + strip->blendin,   ymaxc);
@@ -417,7 +419,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		GPU_blend(true);
 
 		switch (strip->extendmode) {
-			/* since this does both sides, only do the 'before' side, and leave the rest to the next case */
+			/* since this does both sides,
+			 * only do the 'before' side, and leave the rest to the next case */
 			case NLASTRIP_EXTEND_HOLD:
 				/* only need to draw here if there's no strip before since
 				 * it only applies in such a situation
@@ -479,7 +482,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 
 	immUnbindProgram();
 
-	/* draw markings indicating locations of local markers (useful for lining up different actions) */
+	/* draw markings indicating locations of local markers
+	 * (useful for lining up different actions) */
 	if ((snla->flag & SNLA_NOLOCALMARKERS) == 0)
 		nla_strip_draw_markers(strip, yminc, ymaxc);
 
@@ -532,11 +536,13 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		}
 		immEnd();
 	}
-	/* or if meta-strip, draw lines delimiting extents of sub-strips (in same color as outline, if more than 1 exists) */
+	/* or if meta-strip, draw lines delimiting extents of sub-strips
+	 * (in same color as outline, if more than 1 exists) */
 	else if ((strip->type == NLASTRIP_TYPE_META) && (strip->strips.first != strip->strips.last)) {
 		const float y = (ymaxc - yminc) * 0.5f + yminc;
 
-		immBeginAtMost(GPU_PRIM_LINES, 4 * BLI_listbase_count(&strip->strips)); /* up to 2 lines per strip */
+		/* up to 2 lines per strip */
+		immBeginAtMost(GPU_PRIM_LINES, 4 * BLI_listbase_count(&strip->strips));
 
 		/* only draw first-level of child-strips, but don't draw any lines on the endpoints */
 		for (NlaStrip *cs = strip->strips.first; cs; cs = cs->next) {
@@ -798,7 +804,8 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 	 * (NOTE: this is ok here, the configuration is pretty straightforward)
 	 */
 	v2d->tot.ymin = (float)(-height);
-	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
+	/* need to do a view-sync here, so that the keys area doesn't jump around
+	 * (it must copy this) */
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
 
 	/* draw channels */

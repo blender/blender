@@ -245,13 +245,21 @@ static void draw_fcurve_selected_handle_vertices(FCurve *fcu, View2D *v2d, bool 
 		 */
 		if (!sel_handle_only || BEZT_ISSEL_ANY(bezt)) {
 			if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
-				if ((bezt->f1 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
+				if ((bezt->f1 & SELECT) == sel
+					/* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
+					)
+				{
 					immVertex2fv(pos, bezt->vec[0]);
+				}
 			}
 
 			if (bezt->ipo == BEZT_IPO_BEZ) {
-				if ((bezt->f3 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
+				if ((bezt->f3 & SELECT) == sel
+					/* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
+					)
+				{
 					immVertex2fv(pos, bezt->vec[2]);
+				}
 			}
 		}
 	}
@@ -291,7 +299,8 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 	GPU_blend(true);
 	GPU_enable_program_point_size();
 
-	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
+	/* draw the two handles first (if they're shown, the curve doesn't
+	 * have just a single keyframe, and the curve is being edited) */
 	if (do_handles) {
 		draw_fcurve_handle_vertices(fcu, v2d, sel_handle_only, pos);
 	}
@@ -308,13 +317,20 @@ static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool
 static bool draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 {
 	/* don't draw handle lines if handles are not to be shown */
-	if (    (sipo->flag & SIPO_NOHANDLES) || /* handles shouldn't be shown anywhere */
-	        (fcu->flag & FCURVE_PROTECTED) || /* keyframes aren't editable */
+	if (
+	        /* handles shouldn't be shown anywhere */
+	        (sipo->flag & SIPO_NOHANDLES) ||
+	        /* keyframes aren't editable */
+	        (fcu->flag & FCURVE_PROTECTED) ||
 #if 0       /* handles can still be selected and handle types set, better draw - campbell */
-	        (fcu->flag & FCURVE_INT_VALUES) || /* editing the handles here will cause weird/incorrect interpolation issues */
+	        /* editing the handles here will cause weird/incorrect interpolation issues */
+	        (fcu->flag & FCURVE_INT_VALUES) ||
 #endif
-	        ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || /* group that curve belongs to is not editable */
-	        (fcu->totvert <= 1) /* do not show handles if there is only 1 keyframe, otherwise they all clump together in an ugly ball */
+	        /* group that curve belongs to is not editable */
+	        ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
+	        /* do not show handles if there is only 1 keyframe,
+	         * otherwise they all clump together in an ugly ball */
+	        (fcu->totvert <= 1)
 	        )
 	{
 		return false;
@@ -514,7 +530,8 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 * loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
 	 *  chosen here is just the coarsest value which still looks reasonable...
 	 */
-	/* grid->dx represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps */
+	/* grid->dx represents the number of 'frames' between gridlines,
+	 * but we divide by U.v2d_min_gridsize to get pixels-steps */
 	/* TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted? */
 	samplefreq = dx / (U.v2d_min_gridsize * U.pixelsize);
 
@@ -726,7 +743,8 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 	/* TODO: optimize this to not have to calc stuff out of view too? */
 	while (b--) {
 		if (prevbezt->ipo == BEZT_IPO_CONST) {
-			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
+			/* Constant-Interpolation: draw segment between previous keyframe and next,
+			 * but holding same value */
 			v1[0] = prevbezt->vec[1][0];
 			v1[1] = prevbezt->vec[1][1];
 			immVertex2fv(pos, v1);
@@ -746,7 +764,8 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 			 * - resol determines number of points to sample in between keyframes
 			 */
 
-			/* resol depends on distance between points (not just horizontal) OR is a fixed high res */
+			/* resol depends on distance between points
+			 * (not just horizontal) OR is a fixed high res */
 			/* TODO: view scale should factor into this someday too... */
 			if (fcu->driver) {
 				resol = 32;

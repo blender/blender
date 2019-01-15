@@ -120,14 +120,22 @@ typedef struct MultiresBakerJobData {
 typedef struct {
 	Scene *scene;
 	ListBase data;
-	bool bake_clear;      /* Clear the images before baking */
-	int bake_filter;      /* Bake-filter, aka margin */
-	short mode;           /* mode of baking (displacement, normals, AO) */
-	bool use_lores_mesh;  /* Use low-resolution mesh when baking displacement maps */
-	int number_of_rays;   /* Number of rays to be cast when doing AO baking */
-	float bias;           /* Bias between object and start ray point when doing AO baking */
-	int threads;             /* Number of threads to be used for baking */
-	float user_scale;          /* User scale used to scale displacement when baking derivative map. */
+	/** Clear the images before baking */
+	bool bake_clear;
+	/** Bake-filter, aka margin */
+	int bake_filter;
+	/** mode of baking (displacement, normals, AO) */
+	short mode;
+	/** Use low-resolution mesh when baking displacement maps */
+	bool use_lores_mesh;
+	/** Number of rays to be cast when doing AO baking */
+	int number_of_rays;
+	/** Bias between object and start ray point when doing AO baking */
+	float bias;
+	/** Number of threads to be used for baking */
+	int threads;
+	/** User scale used to scale displacement when baking derivative map. */
+	float user_scale;
 } MultiresBakeJob;
 
 static bool multiresbake_check(bContext *C, wmOperator *op)

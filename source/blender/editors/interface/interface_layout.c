@@ -158,7 +158,7 @@ struct uiLayout {
 	bContextStore *context;
 	ListBase items;
 
-	/* Sub layout to add child items, if not the layout itself. */
+	/** Sub layout to add child items, if not the layout itself. */
 	uiLayout *child_items_layout;
 
 	int x, y, w, h;
@@ -169,10 +169,12 @@ struct uiLayout {
 	bool enabled;
 	bool redalert;
 	bool keepaspect;
-	bool variable_size;  /* For layouts inside gridflow, they and their items shall never have a fixed maximal size. */
+	/** For layouts inside gridflow, they and their items shall never have a fixed maximal size. */
+	bool variable_size;
 	char alignment;
 	char emboss;
-	float units[2];  /* for fixed width or height to avoid UI size changes */
+	/** for fixed width or height to avoid UI size changes */
+	float units[2];
 };
 
 typedef struct uiLayoutItemFlow {
@@ -188,9 +190,12 @@ typedef struct uiLayoutItemGridFlow {
 	bool row_major;     /* Fill first row first, instead of filling first column first. */
 	bool even_columns;  /* Same width for all columns. */
 	bool even_rows;     /* Same height for all rows. */
-	/* If positive, absolute fixed number of columns.
-	 * If 0, fully automatic (based on available width).
-	 * If negative, automatic but only generates number of columns/rows multiple of given (absolute) value. */
+	/**
+	 * - If positive, absolute fixed number of columns.
+	 * - If 0, fully automatic (based on available width).
+	 * - If negative, automatic but only generates number of columns/rows
+	 *   multiple of given (absolute) value.
+	 */
 	int columns_len;
 
 	/* Pure internal runtime storage. */
@@ -274,8 +279,9 @@ static int ui_layout_vary_direction(uiLayout *layout)
 
 static bool ui_layout_variable_size(uiLayout *layout)
 {
-	/* Note that this code is probably a bit flacky, we'd probably want to know whether it's variable in X and/or Y,
-	 * etc. But for now it mimics previous one, with addition of variable flag set for children of gridflow layouts. */
+	/* Note that this code is probably a bit flacky, we'd probably want to know whether it's
+	 * variable in X and/or Y, etc. But for now it mimics previous one,
+	 * with addition of variable flag set for children of gridflow layouts. */
 	return ui_layout_vary_direction(layout) == UI_ITEM_VARY_X || layout->variable_size;
 }
 
@@ -697,7 +703,8 @@ static void ui_item_enum_expand_exec(
 
 			/* Separate items, potentially with a label. */
 			if (next_item->identifier) {
-				/* Item without identifier but with name: Add group label for the following items. */
+				/* Item without identifier but with name:
+				 * Add group label for the following items. */
 				if (item->name) {
 					if (!is_first) {
 						uiItemS(block->curlayout);
@@ -735,7 +742,8 @@ static void ui_item_enum_expand_exec(
 		if (uiLayoutGetLocalDir(layout) != UI_LAYOUT_HORIZONTAL)
 			but->drawflag |= UI_BUT_TEXT_LEFT;
 
-		/* Allow quick, inaccurate swipe motions to switch tabs (no need to keep cursor over them). */
+		/* Allow quick, inaccurate swipe motions to switch tabs
+		 * (no need to keep cursor over them). */
 		if (but_type == UI_BTYPE_TAB) {
 			but->flag |= UI_BUT_DRAG_LOCK;
 		}
@@ -806,7 +814,8 @@ static uiBut *ui_item_with_label(
 		}
 		else {
 			if (ui_layout_variable_size(layout)) {
-				/* w_hint is width for label in this case. Use a default width for property button(s) */
+				/* w_hint is width for label in this case.
+				 * Use a default width for property button(s) */
 				prop_but_width = UI_UNIT_X * 5;
 				w_label = w_hint;
 			}
@@ -1253,7 +1262,8 @@ void uiItemsFullEnumO_items(
 					but = block->buttons.last;
 				}
 				else {
-					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+					/* Do not use uiItemL here, as our root layout is a menu one,
+					 * it will add a fake blank icon! */
 					but = uiDefBut(
 					        block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
 					        0.0, 0.0, 0, 0, "");
@@ -1262,7 +1272,8 @@ void uiItemsFullEnumO_items(
 			}
 			else {
 				if (radial) {
-					/* invisible dummy button to ensure all items are always at the same position */
+					/* invisible dummy button to ensure all items are
+					 * always at the same position */
 					uiItemS(target);
 				}
 				else {
@@ -1751,7 +1762,8 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			if ((type == PROP_ENUM) && (flag & UI_ITEM_R_EXPAND)) {
 				/* Expanded enums each have their own name. */
 
-				/* Often expanded enum's are better arranged into a row, so check the existing layout. */
+				/* Often expanded enum's are better arranged into a row,
+				 * so check the existing layout. */
 				if (uiLayoutGetLocalDir(layout) == UI_LAYOUT_HORIZONTAL) {
 					layout = uiLayoutRow(layout_split, true);
 				}
@@ -2106,7 +2118,8 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->free_search_arg = true;
 	}
 	else if (but->type == UI_BTYPE_SEARCH_MENU) {
-		/* In case we fail to find proper searchprop, so other code might have already set but->type to search menu... */
+		/* In case we fail to find proper searchprop,
+		 * so other code might have already set but->type to search menu... */
 		but->flag |= UI_BUT_DISABLED;
 	}
 }
@@ -2262,7 +2275,8 @@ static uiBut *ui_item_menu(
 	}
 
 	if (ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR) ||
-	    (force_menu && layout->root->type != UI_LAYOUT_MENU))  /* We never want a dropdown in menu! */
+	    /* We never want a dropdown in menu! */
+	    (force_menu && layout->root->type != UI_LAYOUT_MENU))
 	{
 		UI_but_type_set_menu_from_pulldown(but);
 	}
@@ -3182,7 +3196,8 @@ typedef struct UILayoutGridFlowInput {
 	const bool even_rows : 1;  /* All rows will have same height. */
 	const int space_x;  /* Space between columns. */
 	const int space_y;  /* Space between rows. */
-	/* Real data about current position and size of this layout item (either estimated, or final values). */
+	/* Real data about current position and size of this layout item
+	 * (either estimated, or final values). */
 	const int litem_w;  /* Layout item width. */
 	const int litem_x;  /* Layout item X position. */
 	const int litem_y;  /* Layout item Y position. */
@@ -3430,7 +3445,8 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 			}
 		}
 
-		/* Set evenly-spaced axes size (quick optimization in case we have even columns and rows). */
+		/* Set evenly-spaced axes size
+		 * (quick optimization in case we have even columns and rows). */
 		if (gflow->even_columns && gflow->even_rows) {
 			litem->w = (int)(gflow->tot_columns * avg_w) + space_x * (gflow->tot_columns - 1);
 			litem->h = (int)(gflow->tot_rows * max_h) + space_y * (gflow->tot_rows - 1);

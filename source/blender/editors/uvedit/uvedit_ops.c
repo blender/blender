@@ -2328,7 +2328,9 @@ static int uv_mouse_select_multi(
 	UvNearestHit hit = UV_NEAREST_HIT_INIT;
 	int i, selectmode, sticky, sync, *hitv = NULL;
 	bool select = true;
-	int flush = 0, hitlen = 0; /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+	/* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+	int flush = 0;
+	int hitlen = 0;
 	float limit[2], **hituv = NULL;
 
 	/* notice 'limit' is the same no matter the zoom level, since this is like
@@ -2460,7 +2462,8 @@ static int uv_mouse_select_multi(
 			/* TODO(MULTI_EDIT): We only need to de-select non-active */
 			uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
 		}
-		/* Current behavior of 'extend' is actually toggling, so pass extend flag as 'toggle' here */
+		/* Current behavior of 'extend'
+		 * is actually toggling, so pass extend flag as 'toggle' here */
 		uv_select_linked_multi(scene, ima, objects, objects_len, limit, &hit, false, false, extend, false);
 	}
 	else if (extend) {
@@ -4453,7 +4456,8 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
 			UvMapVert *mv1, *mvinit1, *mv2, *mvinit2, *mviter;
 			/* mv2cache stores the first of the list of coincident uv's for later comparison
-			 * mv2sep holds the last separator and is copied to mv2cache when a hit is first found */
+			 * mv2sep holds the last separator and is copied to mv2cache
+			 * when a hit is first found */
 			UvMapVert *mv2cache = NULL, *mv2sep = NULL;
 
 			mvinit1 = vmap->vert[BM_elem_index_get(editedge->v1)];

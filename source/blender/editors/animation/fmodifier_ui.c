@@ -358,9 +358,11 @@ static void fmod_envelope_addpoint_cb(bContext *C, void *fcm_dv, void *UNUSED(ar
 		bool exists;
 		int i = BKE_fcm_envelope_find_index(env->data, (float)(scene->r.cfra), env->totvert, &exists);
 
-		/* binarysearch_...() will set exists by default to 0, so if it is non-zero, that means that the point exists already */
-		if (exists)
+		/* binarysearch_...() will set exists by default to 0,
+		 * so if it is non-zero, that means that the point exists already */
+		if (exists) {
 			return;
+		}
 
 		/* add new */
 		fedn = MEM_callocN((env->totvert + 1) * sizeof(FCM_EnvelopeData), "FCM_EnvelopeData");

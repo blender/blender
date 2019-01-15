@@ -512,11 +512,15 @@ int insert_vert_fcurve(FCurve *fcu, float x, float y, eBezTriple_KeyframeType ke
 	 *       to these later, we want these to work in a sane way out of
 	 *       the box.
 	 */
-	beztr.back = 1.70158f;     /* "back" easing - this value used to be used when overshoot=0, but that        */
-	                           /*                 introduced discontinuities in how the param worked           */
 
-	beztr.amplitude = 0.8f;    /* "elastic" easing - values here were hand-optimised for a default duration of */
-	beztr.period = 4.1f;       /*                    ~10 frames (typical mograph motion length)                */
+	/* "back" easing - this value used to be used when overshoot=0, but that
+	 *                 introduced discontinuities in how the param worked. */
+	beztr.back = 1.70158f;
+
+	/* "elastic" easing - values here were hand-optimised for a default duration of
+	 *                    ~10 frames (typical mograph motion length) */
+	beztr.amplitude = 0.8f;
+	beztr.period = 4.1f;
 
 	/* add temp beztriple to keyframes */
 	a = insert_bezt_fcurve(fcu, &beztr, flag);

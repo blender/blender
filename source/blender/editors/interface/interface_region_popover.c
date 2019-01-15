@@ -165,7 +165,8 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 		if (!handle->refresh) {
 			float center[2] = {BLI_rctf_cent_x(&pup->but->rect), BLI_rctf_cent_y(&pup->but->rect)};
 			ui_block_to_window_fl(handle->ctx_region, pup->but->block, &center[0], &center[1]);
-			/* These variables aren't used for popovers, we could add new variables if there is a conflict. */
+			/* These variables aren't used for popovers,
+			 * we could add new variables if there is a conflict. */
 			handle->prev_mx = block->mx = (int)center[0];
 			handle->prev_my = block->my = (int)center[1];
 		}

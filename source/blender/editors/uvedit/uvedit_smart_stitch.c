@@ -89,7 +89,8 @@ typedef struct StitchPreviewer {
 	unsigned int *uvs_per_polygon;
 	/*number of preview polygons */
 	unsigned int num_polys;
-	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
+	/* preview data. These will be either the previewed vertices or edges
+	 * depending on stitch mode settings */
 	float *preview_stitchable;
 	float *preview_unstitchable;
 	/* here we'll store the number of elements to be drawn */
@@ -134,16 +135,19 @@ typedef struct UVVertAverage {
 } UVVertAverage;
 
 typedef struct UvEdge {
-	/* index to uv buffer */
+	/** index to uv buffer */
 	unsigned int uv1;
 	unsigned int uv2;
-	/* general use flag (Used to check if edge is boundary here, and propagates to adjacency elements) */
+	/** general use flag
+	 * (Used to check if edge is boundary here, and propagates to adjacency elements) */
 	unsigned char flag;
-	/* element that guarantees element->face has the edge on element->tfindex and element->tfindex+1 is the second uv */
+	/** element that guarantees element->face
+	 * has the edge on element->tfindex and element->tfindex+1 is the second uv */
 	UvElement *element;
-	/* next uv edge with the same exact vertices as this one.. Calculated at startup to save time */
+	/** next uv edge with the same exact vertices as this one.
+	 * Calculated at startup to save time */
 	struct UvEdge *next;
-	/* point to first of common edges. Needed for iteration */
+	/** point to first of common edges. Needed for iteration */
 	struct UvEdge *first;
 } UvEdge;
 
@@ -347,7 +351,8 @@ static void stitch_uv_rotate(float mat[2][2], float medianPoint[2], float uv[2],
 	uv[1] *= aspect;
 }
 
-/* check if two uvelements are stitchable. This should only operate on -different- separate UvElements */
+/* check if two uvelements are stitchable.
+ * This should only operate on -different- separate UvElements */
 static bool stitch_check_uvs_stitchable(
         UvElement *element, UvElement *element_iter,
         StitchStateContainer *ssc, StitchState *state)
@@ -566,8 +571,9 @@ static void stitch_island_calculate_edge_rotation(
 		index1 = edge->uv1;
 		index2 = edge->uv2;
 	}
-	/* the idea here is to take the directions of the edges and find the rotation between final and initial
-	 * direction. This, using inner and outer vector products, gives the angle. Directions are differences so... */
+	/* the idea here is to take the directions of the edges and find the rotation between
+	 * final and initial direction. This, using inner and outer vector products,
+	 * gives the angle. Directions are differences so... */
 	uv1[0] = luv2->uv[0] - luv1->uv[0];
 	uv1[1] = luv2->uv[1] - luv1->uv[1];
 
@@ -770,7 +776,8 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 						 * I am not too sure we want this though */
 						last_set->next = edge2;
 						last_set = edge2;
-						/* set first, similarly to uv elements. Now we can iterate among common edges easily */
+						/* set first, similarly to uv elements.
+						 * Now we can iterate among common edges easily */
 						edge2->first = edge;
 					}
 				}
@@ -1063,7 +1070,8 @@ static int stitch_process_data(
 		while (!(island_stitch_data[ssc->static_island].stitchableCandidate)) {
 			ssc->static_island++;
 			ssc->static_island %= state->element_map->totalIslands;
-			/* this is entirely possible if for example limit stitching with no stitchable verts or no selection */
+			/* this is entirely possible if for example limit stitching
+			 * with no stitchable verts or no selection */
 			if (ssc->static_island == previous_island) {
 				break;
 			}
@@ -1219,7 +1227,8 @@ static int stitch_process_data(
 
 		/* copy data from MLoopUVs to the preview display buffers */
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-			/* just to test if face was added for processing. uvs of unselected vertices will return NULL */
+			/* just to test if face was added for processing.
+			 * uvs of unselected vertices will return NULL */
 			UvElement *element = BM_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 			if (element) {
@@ -1366,7 +1375,8 @@ static int stitch_process_data(
 		}
 	}
 
-	/* take mean position here. For edge case, this can't be done inside the loop for shared uvverts */
+	/* take mean position here.
+	 * For edge case, this can't be done inside the loop for shared uvverts */
 	if (ssc->mode == STITCH_EDGE && stitch_midpoints) {
 		for (i = 0; i < state->total_separate_uvs; i++) {
 			final_position[i].uv[0] /= final_position[i].count;
@@ -1899,7 +1909,8 @@ static StitchState *stitch_init(
 		}
 	}
 
-	/* explicitly set preview to NULL, to avoid deleting an invalid pointer on stitch_process_data */
+	/* explicitly set preview to NULL,
+	 * to avoid deleting an invalid pointer on stitch_process_data */
 	state->stitch_preview = NULL;
 	/* Allocate the unique uv buffers */
 	state->uvs = MEM_mallocN(sizeof(*state->uvs) * counter, "uv_stitch_unique_uvs");
@@ -2493,9 +2504,9 @@ static StitchState *stitch_select(
 
 	if (ssc->mode == STITCH_VERT) {
 		if (uv_find_nearest_vert_multi(scene, ima, ssc->objects, ssc->objects_len, co, 0.0f, &hit)) {
-			/* Add vertex to selection, deselect all common uv's of vert other
-			 * than selected and update the preview. This behavior was decided so that
-			 * you can do stuff like deselect the opposite stitchable vertex and the initial still gets deselected */
+			/* Add vertex to selection, deselect all common uv's of vert other than selected and
+			 * update the preview. This behavior was decided so that you can do stuff like deselect
+			 * the opposite stitchable vertex and the initial still gets deselected */
 
 			/* find StitchState from hit->ob */
 			StitchState *state = NULL;

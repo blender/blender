@@ -152,7 +152,8 @@ static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibu
 
 	/* if renrect argument, we only refresh scanlines */
 	if (renrect) {
-		/* if (ymax == recty), rendering of layer is ready, we should not draw, other things happen... */
+		/* if (ymax == recty), rendering of layer is ready,
+		 * we should not draw, other things happen... */
 		if (rr->renlay == NULL || renrect->ymax >= rr->recty)
 			return;
 
@@ -665,8 +666,9 @@ static void render_endjob(void *rjv)
 {
 	RenderJob *rj = rjv;
 
-	/* this render may be used again by the sequencer without the active 'Render' where the callbacks
-	 * would be re-assigned. assign dummy callbacks to avoid referencing freed renderjobs bug [#24508] */
+	/* this render may be used again by the sequencer without the active
+	 * 'Render' where the callbacks would be re-assigned. assign dummy callbacks
+	 * to avoid referencing freed renderjobs bug T24508. */
 	RE_InitRenderCB(rj->re);
 
 	if (rj->main != G_MAIN)

@@ -221,10 +221,13 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			/* XXX Is this piece of code ever used now? Simple loop select is now
 			 *     in editmesh_select.c (around line 1000)... */
 			/* sets as active, useful for other tools */
-			if (em->selectmode & SCE_SELECT_VERTEX)
-				BM_select_history_store(em->bm, lcd->eed->v1);  /* low priority TODO, get vertrex close to mouse */
-			if (em->selectmode & SCE_SELECT_EDGE)
+			if (em->selectmode & SCE_SELECT_VERTEX) {
+				/* low priority TODO, get vertrex close to mouse */
+				BM_select_history_store(em->bm, lcd->eed->v1);
+			}
+			if (em->selectmode & SCE_SELECT_EDGE) {
 				BM_select_history_store(em->bm, lcd->eed);
+			}
 
 			EDBM_selectmode_flush(lcd->em);
 			DEG_id_tag_update(lcd->ob->data, ID_RECALC_SELECT);
@@ -698,7 +701,8 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 
 	/* properties */
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 1000000, "Number of Cuts", "", 1, 100);
-	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+	/* avoid re-using last var because it can cause
+	 * _very_ high poly meshes and annoy users (or worse crash) */
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, -1e3f, 1e3f,

@@ -1112,7 +1112,8 @@ static int gpencil_interpolate_reverse_exec(bContext *C, wmOperator *UNUSED(op))
 				gpf = gpf->prev;
 			}
 			else {
-				/* Not a breakdown (may be a key, or an extreme, or something else that wasn't generated)... stop */
+				/* Not a breakdown (may be a key, or an extreme,
+				 * or something else that wasn't generated)... stop */
 				break;
 			}
 		}

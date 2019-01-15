@@ -58,13 +58,16 @@ typedef struct ConsoleDrawContext {
 	int font_id;
 	int cwidth;
 	int lheight;
-	int lofs; /* text vertical offset */
-	int console_width; /* number of characters that fit into the width of the console (fixed width) */
+	/** text vertical offset */
+	int lofs;
+	/** number of characters that fit into the width of the console (fixed width) */
+	int console_width;
 	int winx;
 	int ymin, ymax;
 	int *xy; // [2]
 	int *sel; // [2]
-	int *pos_pick; // bottom of view == 0, top of file == combine chars, end of line is lower then start.
+	/* bottom of view == 0, top of file == combine chars, end of line is lower then start. */
+	int *pos_pick;
 	const int *mval; // [2]
 	int draw;
 } ConsoleDrawContext;

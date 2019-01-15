@@ -237,7 +237,7 @@ void ED_uvedit_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
 	strcpy(pt->idname, "IMAGE_PT_uv");
-	strcpy(pt->label, N_("UV Vertex"));  /* XXX C panels are not available through RNA (bpy.types)! */
+	strcpy(pt->label, N_("UV Vertex"));  /* XXX C panels unavailable through RNA bpy.types! */
 	pt->draw = image_panel_uv;
 	pt->poll = image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);

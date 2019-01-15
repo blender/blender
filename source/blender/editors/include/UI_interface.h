@@ -539,7 +539,9 @@ typedef void (*uiBlockCancelFunc)(struct bContext *C, void *arg1);
 void UI_popup_block_invoke(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void UI_popup_block_invoke_ex(struct bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext);
 void UI_popup_block_ex(struct bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_func, uiBlockCancelFunc cancel_func, void *arg, struct wmOperator *op);
-/* void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext); */ /* UNUSED */
+#if 0  /* UNUSED */
+void uiPupBlockOperator(struct bContext *C, uiBlockCreateFunc func, struct wmOperator *op, int opcontext);
+#endif
 
 void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *block);
 
@@ -1254,13 +1256,19 @@ void uiItemsFullEnumO_items(
         const EnumPropertyItem *item_array, int totitem);
 
 void uiItemL(uiLayout *layout, const char *name, int icon); /* label */
-void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, const char *name, int icon); /* label icon for dragging */
-void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon); /* menu */
-void uiItemMContents(uiLayout *layout, const char *menuname); /* menu contents */
-void uiItemV(uiLayout *layout, const char *name, int icon, int argval); /* value */
-void uiItemS(uiLayout *layout); /* separator */
+/* label icon for dragging */
+void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, const char *name, int icon);
+/* menu */
+void uiItemM(uiLayout *layout, const char *menuname, const char *name, int icon);
+/* menu contents */
+void uiItemMContents(uiLayout *layout, const char *menuname);
+/* value */
+void uiItemV(uiLayout *layout, const char *name, int icon, int argval);
+/* separator */
+void uiItemS(uiLayout *layout);
 void uiItemS_ex(uiLayout *layout, float factor);
-void uiItemSpacer(uiLayout *layout); /* Special separator. */
+/* Special separator. */
+void uiItemSpacer(uiLayout *layout);
 
 void uiItemPopoverPanel_ptr(
         uiLayout *layout, struct bContext *C,

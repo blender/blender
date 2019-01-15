@@ -80,13 +80,20 @@
 /* ----- General Defines ------ */
 /* flags for sflag */
 typedef enum eDrawStrokeFlags {
-	GP_DRAWDATA_NOSTATUS    = (1 << 0),   /* don't draw status info */
-	GP_DRAWDATA_ONLY3D      = (1 << 1),   /* only draw 3d-strokes */
-	GP_DRAWDATA_ONLYV2D     = (1 << 2),   /* only draw 'canvas' strokes */
-	GP_DRAWDATA_ONLYI2D     = (1 << 3),   /* only draw 'image' strokes */
-	GP_DRAWDATA_IEDITHACK   = (1 << 4),   /* special hack for drawing strokes in Image Editor (weird coordinates) */
-	GP_DRAWDATA_NO_XRAY     = (1 << 5),   /* don't draw xray in 3D view (which is default) */
-	GP_DRAWDATA_NO_ONIONS   = (1 << 6),	  /* no onionskins should be drawn (for animation playback) */
+	/** don't draw status info */
+	GP_DRAWDATA_NOSTATUS    = (1 << 0),
+	/** only draw 3d-strokes */
+	GP_DRAWDATA_ONLY3D      = (1 << 1),
+	/** only draw 'canvas' strokes */
+	GP_DRAWDATA_ONLYV2D     = (1 << 2),
+	/** only draw 'image' strokes */
+	GP_DRAWDATA_ONLYI2D     = (1 << 3),
+	/** special hack for drawing strokes in Image Editor (weird coordinates) */
+	GP_DRAWDATA_IEDITHACK   = (1 << 4),
+	/** don't draw xray in 3D view (which is default) */
+	GP_DRAWDATA_NO_XRAY     = (1 << 5),
+	/** no onionskins should be drawn (for animation playback) */
+	GP_DRAWDATA_NO_ONIONS   = (1 << 6),
 } eDrawStrokeFlags;
 
 
@@ -272,7 +279,8 @@ static void gp_draw_stroke_3d(
 		 * Note: we want more visible levels of pressures when thickness is bigger.
 		 */
 		if (fabsf(pt->pressure - curpressure) > 0.2f / (float)thickness) {
-			/* if the pressure changes before get at least 2 vertices, need to repeat last point to avoid assert in immEnd() */
+			/* if the pressure changes before get at least 2 vertices,
+			 * need to repeat last point to avoid assert in immEnd() */
 			if (draw_points < 2) {
 				const bGPDspoint *pt2 = pt - 1;
 				immVertex3fv(pos, &pt2->x);
@@ -954,7 +962,8 @@ static void gp_draw_data_all(
 			gpd_source = (scene->gpd ? scene->gpd : NULL);
 		}
 		else if (spacetype == SPACE_CLIP && scene->clip) {
-			/* currently drawing only gpencil data from either clip or track, but not both - XXX fix logic behind */
+			/* currently drawing only gpencil data from either clip or track,
+			 * but not both - XXX fix logic behind */
 			gpd_source = (scene->clip->gpd ? scene->clip->gpd : NULL);
 		}
 

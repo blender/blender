@@ -781,7 +781,8 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 
 
 #define COLLECTION_MENU_MAX  24
-static bool select_grouped_collection(bContext *C, Object *ob)  /* Select objects in the same group as the active */
+/* Select objects in the same group as the active */
+static bool select_grouped_collection(bContext *C, Object *ob)
 {
 	bool changed = false;
 	Collection *collection, *ob_collections[COLLECTION_MENU_MAX];

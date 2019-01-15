@@ -308,9 +308,12 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 /* dropboxes */
 static bool image_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
-	if (drag->type == WM_DRAG_PATH)
-		if (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) /* rule might not work? */
+	if (drag->type == WM_DRAG_PATH) {
+		/* rule might not work? */
+		if (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) {
 			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -403,7 +406,8 @@ static void image_listener(wmWindow *win, ScrArea *sa, wmNotifier *wmn, Scene *U
 		case NC_MASK:
 		{
 			// Scene *scene = wmn->window->screen->scene;
-			/* ideally would check for: ED_space_image_check_show_maskedit(scene, sima) but we cant get the scene */
+			/* ideally would check for: ED_space_image_check_show_maskedit(scene, sima)
+			 * but we cant get the scene */
 			if (sima->mode == SI_MODE_MASK) {
 				switch (wmn->data) {
 					case ND_SELECT:

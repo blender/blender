@@ -960,7 +960,9 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 }
 
 void ED_vgroup_select_by_name(Object *ob, const char *name)
-{   /* note: ob->actdef==0 signals on painting to create a new one, if a bone in posemode is selected */
+{
+	/* note: ob->actdef==0 signals on painting to create a new one,
+     * if a bone in posemode is selected */
 	ob->actdef = defgroup_name_index(ob, name) + 1;
 }
 
@@ -1946,20 +1948,22 @@ static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
 {
 	/* qsort sorts in ascending order.  We want descending order to save a memcopy
 	 * so this compare function is inverted from the standard greater than comparison qsort needs.
-	 * A normal compare function is called with two pointer arguments and should return an integer less than, equal to,
-	 * or greater than zero corresponding to whether its first argument is considered less than, equal to,
-	 * or greater than its second argument.  This does the opposite. */
+	 * A normal compare function is called with two pointer arguments and should return an integer
+	 * less than, equal to, or greater than zero corresponding to whether its first argument is
+	 * considered less than, equal to, or greater than its second argument.
+	 * This does the opposite. */
 	const struct MDeformWeight *dw1 = a1, *dw2 = a2;
 
 	if      (dw1->weight < dw2->weight) return  1;
 	else if (dw1->weight > dw2->weight) return -1;
-	else if (&dw1 < &dw2)               return  1; /* compare addresses so we have a stable sort algorithm */
+	else if (&dw1 < &dw2)               return  1; /* compare address for stable sort algorithm */
 	else                                return -1;
 }
 
 /* Used for limiting the number of influencing bones per vertex when exporting
  * skinned meshes.  if all_deform_weights is True, limit all deform modifiers
- * to max_weights regardless of type, otherwise, only limit the number of influencing bones per vertex*/
+ * to max_weights regardless of type, otherwise,
+ * only limit the number of influencing bones per vertex. */
 static int vgroup_limit_total_subset(
         Object *ob,
         const bool *vgroup_validmap,

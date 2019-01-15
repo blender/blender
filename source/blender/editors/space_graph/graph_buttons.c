@@ -687,7 +687,9 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 		uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
 	}
 
-	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
+	/* we can clear it again now - it's only needed when creating the ID/Bone fields */
+	uiLayoutSetRedAlert(col, false);
+
 	uiItemR(col, &dtar_ptr, "transform_space", 0, NULL, ICON_NONE);
 
 	/* Object 2 */
@@ -702,7 +704,9 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 		uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
 	}
 
-	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
+	/* we can clear it again now - it's only needed when creating the ID/Bone fields */
+	uiLayoutSetRedAlert(col, false);
+
 	uiItemR(col, &dtar2_ptr, "transform_space", 0, NULL, ICON_NONE);
 }
 
@@ -922,14 +926,22 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		subrow = uiLayoutRow(row, true);
 
 		/* 1.1.1) variable type */
-		sub = uiLayoutRow(subrow, true);                     /* HACK: special group just for the enum, otherwise we */
-		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);  /*       we get ugly layout with text included too...  */
+
+		/* HACK: special group just for the enum,
+		 * otherwise we get ugly layout with text included too... */
+		sub = uiLayoutRow(subrow, true);
+
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
 		uiItemR(sub, &dvar_ptr, "type", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 		/* 1.1.2) variable name */
-		sub = uiLayoutRow(subrow, true);                       /* HACK: special group to counteract the effects of the previous */
-		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);  /*       enum, which now pushes everything too far right         */
+
+		/* HACK: special group to counteract the effects of the previous enum,
+		 * which now pushes everything too far right */
+		sub = uiLayoutRow(subrow, true);
+
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
 
 		uiItemR(sub, &dvar_ptr, "name", 0, "", ICON_NONE);
 
@@ -993,7 +1005,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 	uiItemS(layout);
 	uiItemS(layout);
 
-	/* XXX: This should become redundant. But sometimes the flushing fails, so keep this around for a while longer as a "last resort" */
+	/* XXX: This should become redundant. But sometimes the flushing fails,
+	 * so keep this around for a while longer as a "last resort" */
 	row = uiLayoutRow(layout, true);
 	block = uiLayoutGetBlock(row);
 	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_FILE_REFRESH, IFACE_("Update Dependencies"),
@@ -1020,7 +1033,8 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
 	MEM_freeN(ale);
 }
 
-/* driver settings for active F-Curve (only for 'Drivers' mode in Graph Editor, i.e. the full "Drivers Editor") */
+/* driver settings for active F-Curve
+ * (only for 'Drivers' mode in Graph Editor, i.e. the full "Drivers Editor") */
 static void graph_panel_drivers(const bContext *C, Panel *pa)
 {
 	bAnimListElem *ale;
@@ -1198,7 +1212,9 @@ void graph_buttons_register(ARegionType *art)
 	pt->draw = graph_panel_drivers_popover;
 	pt->poll = graph_panel_drivers_popover_poll;
 	BLI_addtail(&art->paneltypes, pt);
-	WM_paneltype_add(pt); /* This panel isn't used in this region. Add explicitly to global list (so popovers work). */
+	/* This panel isn't used in this region.
+	 * Add explicitly to global list (so popovers work). */
+	WM_paneltype_add(pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers");
 	strcpy(pt->idname, "GRAPH_PT_modifiers");

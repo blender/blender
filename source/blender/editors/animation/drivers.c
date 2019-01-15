@@ -329,7 +329,8 @@ int ANIM_add_driver_with_target(
 
 	/* handle curve-property mappings based on mapping_type */
 	switch (mapping_type) {
-		case CREATEDRIVER_MAPPING_N_N: /* N-N - Try to match as much as possible, then use the first one */
+		case CREATEDRIVER_MAPPING_N_N: /* N-N - Try to match as much as possible,
+		                                * then use the first one */
 		{
 			/* Use the shorter of the two (to avoid out of bounds access) */
 			int dst_len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr, prop) : 1;

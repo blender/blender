@@ -1129,7 +1129,7 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 		if (rv3d->persp == RV3D_CAMOB) {
 			Scene *scene = CTX_data_scene(C);
 			Depsgraph *depsgraph = CTX_data_depsgraph(C);
-			ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, subrect, true); /* no shift */
+			ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, subrect, true);
 			return 1;
 		}
 	}
@@ -1137,7 +1137,8 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 	return 0;
 }
 
-/* convert a given grease-pencil layer to a 3d-curve representation (using current view if appropriate) */
+/* convert a given grease-pencil layer to a 3d-curve representation
+ * (using current view if appropriate) */
 static void gp_layer_to_curve(
         bContext *C, ReportList *reports, bGPdata *gpd, bGPDlayer *gpl, const int mode,
         const bool norm_weights, const float rad_fac, const bool link_strokes, tGpTimingData *gtd)
@@ -1190,7 +1191,8 @@ static void gp_layer_to_curve(
 		const bool add_start_point = (link_strokes && !(prev_gps));
 		const bool add_end_point = (link_strokes && !(gps->next));
 
-		/* Detect new strokes created because of GP_STROKE_BUFFER_MAX reached, and stitch them to previous one. */
+		/* Detect new strokes created because of GP_STROKE_BUFFER_MAX reached,
+		 * and stitch them to previous one. */
 		bool stitch = false;
 		if (prev_gps) {
 			bGPDspoint *pt1 = &prev_gps->points[prev_gps->totpoints - 1];

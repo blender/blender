@@ -76,7 +76,8 @@ static Object *make_prim_init(
 		obedit = ED_object_add_type(C, OB_MESH, idname, loc, rot, false, local_view_bits);
 
 		/* create editmode */
-		ED_object_editmode_enter(C, EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
+		/* rare cases the active layer is messed up */
+		ED_object_editmode_enter(C, EM_IGNORE_LAYER);
 		r_creation_data->was_editmode = true;
 	}
 

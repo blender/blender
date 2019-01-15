@@ -669,7 +669,8 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 	ot->exec = disconnect_hair_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_UNDO;  /* No REGISTER, redo does not work due to missing update, see T47750. */
+	/* No REGISTER, redo does not work due to missing update, see T47750. */
+	ot->flag = OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
 }
@@ -935,7 +936,8 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 	ot->exec = connect_hair_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_UNDO;  /* No REGISTER, redo does not work due to missing update, see T47750. */
+	/* No REGISTER, redo does not work due to missing update, see T47750. */
+	ot->flag = OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Connect all hair systems to the emitter mesh");
 }

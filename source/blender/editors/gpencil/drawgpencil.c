@@ -90,15 +90,24 @@
 /* ----- General Defines ------ */
 /* flags for sflag */
 typedef enum eDrawStrokeFlags {
-	GP_DRAWDATA_NOSTATUS    = (1 << 0),   /* don't draw status info */
-	GP_DRAWDATA_ONLY3D      = (1 << 1),   /* only draw 3d-strokes */
-	GP_DRAWDATA_ONLYV2D     = (1 << 2),   /* only draw 'canvas' strokes */
-	GP_DRAWDATA_ONLYI2D     = (1 << 3),   /* only draw 'image' strokes */
-	GP_DRAWDATA_IEDITHACK   = (1 << 4),   /* special hack for drawing strokes in Image Editor (weird coordinates) */
-	GP_DRAWDATA_NO_XRAY     = (1 << 5),   /* don't draw xray in 3D view (which is default) */
-	GP_DRAWDATA_NO_ONIONS   = (1 << 6),	  /* no onionskins should be drawn (for animation playback) */
-	GP_DRAWDATA_VOLUMETRIC	= (1 << 7),   /* draw strokes as "volumetric" circular billboards */
-	GP_DRAWDATA_FILL        = (1 << 8)    /* fill insides/bounded-regions of strokes */
+	/** don't draw status info */
+	GP_DRAWDATA_NOSTATUS    = (1 << 0),
+	/** only draw 3d-strokes */
+	GP_DRAWDATA_ONLY3D      = (1 << 1),
+	/** only draw 'canvas' strokes */
+	GP_DRAWDATA_ONLYV2D     = (1 << 2),
+	/** only draw 'image' strokes */
+	GP_DRAWDATA_ONLYI2D     = (1 << 3),
+	/** special hack for drawing strokes in Image Editor (weird coordinates) */
+	GP_DRAWDATA_IEDITHACK   = (1 << 4),
+	/** don't draw xray in 3D view (which is default) */
+	GP_DRAWDATA_NO_XRAY     = (1 << 5),
+	/** no onionskins should be drawn (for animation playback) */
+	GP_DRAWDATA_NO_ONIONS   = (1 << 6),
+	/** draw strokes as "volumetric" circular billboards */
+	GP_DRAWDATA_VOLUMETRIC	= (1 << 7),
+	/** fill insides/bounded-regions of strokes */
+	GP_DRAWDATA_FILL        = (1 << 8)
 } eDrawStrokeFlags;
 
 
@@ -342,7 +351,10 @@ static void gp_draw_stroke_volumetric_buffer(
 	const tGPspoint *pt = points;
 	for (int i = 0; i < totpoints; i++, pt++) {
 		gp_set_tpoint_varying_color(pt, ink, color);
-		immAttr1f(size, pt->pressure * thickness); /* TODO: scale based on view transform (zoom level) */
+
+		/* TODO: scale based on view transform (zoom level) */
+		immAttr1f(size, pt->pressure * thickness);
+
 		immVertex2f(pos, pt->x, pt->y);
 	}
 
@@ -403,8 +415,10 @@ static void gp_draw_stroke_volumetric_3d(
 	const bGPDspoint *pt = points;
 	for (int i = 0; i < totpoints && pt; i++, pt++) {
 		gp_set_point_varying_color(pt, ink, color);
-		immAttr1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
-		immVertex3fv(pos, &pt->x);                   /* we can adjust size in vertex shader based on view/projection! */
+		/* TODO: scale based on view transform */
+		immAttr1f(size, pt->pressure * thickness);
+		/* we can adjust size in vertex shader based on view/projection! */
+		immVertex3fv(pos, &pt->x);
 	}
 
 	immEnd();

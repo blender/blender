@@ -51,23 +51,30 @@
 /* Numeric input which isn't allowing full numeric editing. */
 #define USE_FAKE_EDIT
 
-/* NumInput.flag */
+/** #NumInput.flag
+ * (1 << 8) and below are reserved for public flags!
+ */
 enum {
-	/* (1 << 8) and below are reserved for public flags! */
-	NUM_EDIT_FULL       = (1 << 9),   /* Enable full editing, with units and math operators support. */
+	/** Enable full editing, with units and math operators support. */
+	NUM_EDIT_FULL       = (1 << 9),
 #ifdef USE_FAKE_EDIT
-	NUM_FAKE_EDITED     = (1 << 10),  /* Fake edited state (temp, avoids issue with backspace). */
+	/** Fake edited state (temp, avoids issue with backspace). */
+	NUM_FAKE_EDITED     = (1 << 10),
 #endif
 };
 
 /* NumInput.val_flag[] */
 enum {
 	/* (1 << 8) and below are reserved for public flags! */
-	NUM_EDITED          = (1 << 9),    /* User has edited this value somehow. */
-	NUM_INVALID         = (1 << 10),   /* Current expression for this value is invalid. */
+	/** User has edited this value somehow. */
+	NUM_EDITED          = (1 << 9),
+	/** Current expression for this value is invalid. */
+	NUM_INVALID         = (1 << 10),
 #ifdef USE_FAKE_EDIT
-	NUM_NEGATE          = (1 << 11),   /* Current expression's result has to be negated. */
-	NUM_INVERSE         = (1 << 12),   /* Current expression's result has to be inverted. */
+	/** Current expression's result has to be negated. */
+	NUM_NEGATE          = (1 << 11),
+	/** Current expression's result has to be inverted. */
+	NUM_INVERSE         = (1 << 12),
 #endif
 };
 
@@ -134,7 +141,8 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 					               n->unit_sys, n->unit_type[i], true, false);
 				}
 
-				BLI_strncpy(before_cursor, n->str, n->str_cur + 1);  /* +1 because of trailing '\0' */
+				/* +1 because of trailing '\0' */
+				BLI_strncpy(before_cursor, n->str, n->str_cur + 1);
 				BLI_snprintf(&str[j * ln], ln, "[%s%s|%s%s] = %s",
 				             heading_exp, before_cursor, &n->str[n->str_cur], trailing_exp, val);
 			}
@@ -155,7 +163,8 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 			const char *cur = (i == n->idx) ? "|" : "";
 			BLI_snprintf(&str[j * ln], ln, "%sNONE%s", cur, cur);
 		}
-		/* We might have cut some multi-bytes utf8 chars (e.g. trailing '°' of degrees values can become only 'A')... */
+		/* We might have cut some multi-bytes utf8 chars
+		 * (e.g. trailing '°' of degrees values can become only 'A')... */
 		BLI_utf8_invalid_strip(&str[j * ln], strlen(&str[j * ln]));
 	}
 }
@@ -354,7 +363,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 				updated = true;
 				break;
 			}
-			/* Else, common behavior with DELKEY, only difference is remove char(s) before/after the cursor. */
+			/* Else, common behavior with DELKEY,
+			 * only difference is remove char(s) before/after the cursor. */
 			dir = STRCUR_DIR_PREV;
 			ATTR_FALLTHROUGH;
 		case DELKEY:
@@ -369,7 +379,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 						SWAP(int, t_cur, cur);
 						n->str_cur = cur;
 					}
-					memmove(&n->str[cur], &n->str[t_cur], strlen(&n->str[t_cur]) + 1);  /* +1 for trailing '\0'. */
+					/* +1 for trailing '\0'. */
+					memmove(&n->str[cur], &n->str[t_cur], strlen(&n->str[t_cur]) + 1);
 					updated = true;
 				}
 				if (!n->str[0]) {
@@ -423,7 +434,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			return true;
 		case PADPERIOD:
 		case PERIODKEY:
-			/* Force numdot, some OSs/countries generate a comma char in this case, sic...  (T37992) */
+			/* Force numdot, some OSs/countries generate a comma char in this case,
+			 * sic...  (T37992) */
 			ascii[0] = '.';
 			utf8_buf = ascii;
 			break;
@@ -542,7 +554,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		return false;
 	}
 
-	/* At this point, our value has changed, try to interpret it with python (if str is not empty!). */
+	/* At this point, our value has changed, try to interpret it with python
+	 * (if str is not empty!). */
 	if (n->str[0]) {
 		const float val_prev = n->val[idx];
 		Scene *sce = CTX_data_scene(C);
@@ -565,7 +578,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 		if (n->val_flag[idx] & NUM_INVERSE) {
 			val = n->val[idx];
-			/* If we invert on radians when user is in degrees, you get unexpected results... See T53463. */
+			/* If we invert on radians when user is in degrees,
+			 * you get unexpected results... See T53463. */
 			if (!n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
 				val = RAD2DEG(val);
 			}

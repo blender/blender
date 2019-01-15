@@ -663,7 +663,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	GPU_line_width(1.0f);
 
-	/* Since we are switching solid and dashed lines in rather complex logic here, just always go with dashed shader. */
+	/* Since we are switching solid and dashed lines in rather complex logic here,
+	 * just always go with dashed shader. */
 	immUnbindProgram();
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);

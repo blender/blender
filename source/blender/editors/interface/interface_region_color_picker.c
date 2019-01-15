@@ -175,7 +175,8 @@ static void ui_update_color_picker_buts_rgb(
 	}
 	ui_rgb_to_color_picker_compat_v(tmp, hsv);
 
-	/* this updates button strings, is hackish... but button pointers are on stack of caller function */
+	/* this updates button strings,
+	 * is hackish... but button pointers are on stack of caller function */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		if (bt->custom_data != cpicker)
 			continue;
@@ -193,7 +194,8 @@ static void ui_update_color_picker_buts_rgb(
 			double intpart;
 			char col[16];
 
-			/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
+			/* Hex code is assumed to be in sRGB space
+			 * (coming from other applications, web, etc) */
 			copy_v3_v3(rgb_hex, rgb);
 			if (from_but && !ui_but_is_color_gamma(from_but)) {
 				IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex);

@@ -67,14 +67,20 @@ typedef struct ActKeyColumn {
 	struct ActKeyColumn *next, *prev;
 
 	/* sorting-tree linkage */
-	struct ActKeyColumn *left, *right;  /* 'children' of this node, less than and greater than it (respectively) */
-	struct ActKeyColumn *parent;        /* parent of this node in the tree */
-	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
+	/** 'children' of this node, less than and greater than it (respectively) */
+	struct ActKeyColumn *left, *right;
+	/** parent of this node in the tree */
+	struct ActKeyColumn *parent;
+	/** DLRB_BLACK or DLRB_RED */
+	char tree_col;
 
 	/* keyframe info */
-	char key_type;                      /* eBezTripe_KeyframeType */
-	char handle_type;                   /* eKeyframeHandleDrawOpts */
-	char extreme_type;                  /* eKeyframeExtremeDrawOpts */
+	/** eBezTripe_KeyframeType */
+	char key_type;
+	/** eKeyframeHandleDrawOpts */
+	char handle_type;
+	/** eKeyframeExtremeDrawOpts */
+	char extreme_type;
 	short sel;
 	float cfra;
 
@@ -134,7 +140,8 @@ typedef enum eKeyframeExtremeDrawOpts {
 } eKeyframeExtremeDrawOpts;
 
 /* draw simple diamond-shape keyframe */
-/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_DIAMOND, immBegin(GPU_PRIM_POINTS, n), then call this n times */
+/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_DIAMOND,
+ * immBegin(GPU_PRIM_POINTS, n), then call this n times */
 void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type, short mode, float alpha,
                          unsigned int pos_id, unsigned int size_id, unsigned int color_id, unsigned int outline_color_id,
                          unsigned int linemask_id, short ipo_type, short extreme_type);

@@ -1590,7 +1590,8 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 						float grid_p = iter_fac * roundf(pos_on_axis[j] / iter_fac);
 						float dist_p = fabs((grid_p - pos_on_axis[j]) / local_axis[j]);
 
-						/* The amount of distance needed to travel along the local axis to snap to the closest grid point */
+						/* The amount of distance needed to travel along the
+						 * local axis to snap to the closest grid point */
 						/* in the global j axis direction */
 						float move_dist = (grid_p - center_global[j]) / local_axis[j];
 

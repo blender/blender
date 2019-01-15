@@ -499,7 +499,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 			if (num > 1) {
 				if (!cur_node_name || !STREQ(cur_node_name, items[i].node_name)) {
 					cur_node_name = items[i].node_name;
-					/* XXX Do not use uiItemL here, it would add an empty icon as we are in a menu! */
+					/* XXX Do not use uiItemL here,
+					 * it would add an empty icon as we are in a menu! */
 					uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_(cur_node_name), 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
 					         NULL, 0.0, 0.0, 0.0, 0.0, "");
 				}

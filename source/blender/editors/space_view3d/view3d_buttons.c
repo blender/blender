@@ -708,7 +708,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 								apply_raw_diff(&bezt->alfa, tot, ve_median->tilt, median->tilt);
 							}
 						}
-						else if (apply_vcos) {  /* Handles can only have their coordinates changed here. */
+						else if (apply_vcos) {
+							/* Handles can only have their coordinates changed here. */
 							if (bezt->f1 & SELECT) {
 								apply_raw_diff_v3(bezt->vec[0], tot, ve_median->location, median->location);
 							}
@@ -1232,7 +1233,7 @@ void view3d_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
 	strcpy(pt->idname, "VIEW3D_PT_transform");
-	strcpy(pt->label, N_("Transform"));  /* XXX C panels not  available through RNA (bpy.types)! */
+	strcpy(pt->label, N_("Transform"));  /* XXX C panels unavailable through RNA bpy.types! */
 	strcpy(pt->category, "View");
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = view3d_panel_transform;
@@ -1241,7 +1242,7 @@ void view3d_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup");
 	strcpy(pt->idname, "VIEW3D_PT_vgroup");
-	strcpy(pt->label, N_("Vertex Weights"));  /* XXX C panels are not available through RNA (bpy.types)! */
+	strcpy(pt->label, N_("Vertex Weights"));  /* XXX C panels unavailable through RNA bpy.types! */
 	strcpy(pt->category, "View");
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = view3d_panel_vgroup;

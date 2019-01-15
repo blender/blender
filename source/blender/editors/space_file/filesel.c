@@ -627,7 +627,8 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 	 */
 	for (i = 0; i < n; i++) {
 		file = filelist_file(sfile->files, i);
-		/* Do not check whether file is a file or dir here! Causes T44243 (we do accept dirs at this stage). */
+		/* Do not check whether file is a file or dir here! Causes T44243
+		 * (we do accept dirs at this stage). */
 		if (fnmatch(pattern, file->relpath, 0) == 0) {
 			filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 			if (!match) {

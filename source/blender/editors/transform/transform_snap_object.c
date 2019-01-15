@@ -995,7 +995,8 @@ static bool test_projected_edge_dist(
 typedef void (*Nearest2DGetVertCoCallback)(const int index, const float **co, void *data);
 typedef void (*Nearest2DGetEdgeVertsCallback)(const int index, int v_index[2], void *data);
 typedef void (*Nearest2DGetTriVertsCallback)(const int index, int v_index[3], void *data);
-typedef void (*Nearest2DGetTriEdgesCallback)(const int index, int e_index[3], void *data); /* Equal the previous one */
+/* Equal the previous one */
+typedef void (*Nearest2DGetTriEdgesCallback)(const int index, int e_index[3], void *data);
 typedef void (*Nearest2DCopyVertNoCallback)(const int index, float r_no[3], void *data);
 
 typedef struct Nearest2dUserData {

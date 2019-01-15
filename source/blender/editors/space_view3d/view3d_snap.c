@@ -551,7 +551,10 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 /* **************************************************** */
 
-/** Returns the center position of a tracking marker visible on the viewport (useful to snap to). **/
+/**
+ * Returns the center position of a tracking marker visible on the viewport
+ * (useful to snap to).
+ */
 static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 {
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
@@ -830,7 +833,10 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 
 /* **************************************************** */
 
-/** Calculates the bounding box corners (min and max) for \a obedit. The returned values are in global space. **/
+/**
+ * Calculates the bounding box corners (min and max) for \a obedit.
+ * The returned values are in global space.
+ */
 bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 {
 	TransVertStore tvs = {NULL};

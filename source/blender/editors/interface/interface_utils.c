@@ -278,7 +278,8 @@ void ui_rna_collection_search_cb(const struct bContext *C, void *arg, const char
 			iconid = ui_id_icon_get(C, itemptr.data, false);
 		}
 		else {
-			name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL); /* could use the string length here */
+			/* could use the string length here */
+			name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
 		}
 
 		if (name) {

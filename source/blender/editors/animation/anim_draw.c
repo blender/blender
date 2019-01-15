@@ -175,7 +175,8 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColorShadeAlpha(TH_ANIM_PREVIEW_RANGE, -25, -30);
-		//immUniformColor4f(0.8f, 0.44f, 0.1f, 0.2f); /* XXX: Fix this hardcoded color (anim_active) */
+		/* XXX: Fix this hardcoded color (anim_active) */
+		//immUniformColor4f(0.8f, 0.44f, 0.1f, 0.2f);
 
 		/* only draw two separate 'curtains' if there's no overlap between them */
 		if (PSFRA < PEFRA + end_frame_width) {
@@ -285,7 +286,8 @@ static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-/* helper function for ANIM_nla_mapping_apply_fcurve() -> "apply", i.e. mapping points to NLA-mapped global time */
+/* helper function for ANIM_nla_mapping_apply_fcurve() -> "apply",
+ * i.e. mapping points to NLA-mapped global time */
 static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */

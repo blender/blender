@@ -54,7 +54,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* This hack is needed because we don't have a good way to re-reference keymap items once added: T42944 */
+/* This hack is needed because we don't have a good way to
+ * re-reference keymap items once added: T42944 */
 #define USE_KEYMAP_ADD_HACK
 
 /* -------------------------------------------------------------------- */
@@ -135,7 +136,8 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 	int kmi_id;
 
-	/* XXX this guess_opname can potentially return a different keymap than being found on adding later... */
+	/* XXX this guess_opname can potentially return a different keymap
+	 * than being found on adding later... */
 	km = WM_keymap_guess_opname(C, but->optype->idname);
 	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
 	kmi_id = kmi->id;
@@ -407,7 +409,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		bool is_idprop = RNA_property_is_idprop(prop);
 		bool is_set = RNA_property_is_set(ptr, prop);
 
-		/* second slower test, saved people finding keyframe items in menus when its not possible */
+		/* second slower test,
+		 * saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
 			is_anim = RNA_property_path_from_ID_check(&but->rnapoin, but->rnaprop);
 
@@ -418,7 +421,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		const int override_status = RNA_property_static_override_status(ptr, prop, -1);
 		const bool is_overridable = (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE) != 0;
 
-		/* Set the (button_pointer, button_prop) and pointer data for Python access to the hovered ui element. */
+		/* Set the (button_pointer, button_prop)
+		 * and pointer data for Python access to the hovered ui element. */
 		uiLayoutSetContextFromBut(layout, but);
 
 		/* Keyframes */
@@ -675,7 +679,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		}
 	}
 
-	/* Pointer properties and string properties with prop_search support jumping to target object/bone. */
+	/* Pointer properties and string properties with
+	 * prop_search support jumping to target object/bone. */
 	if (but->rnapoin.data && but->rnaprop) {
 		const PropertyType type = RNA_property_type(but->rnaprop);
 

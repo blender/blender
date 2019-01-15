@@ -2098,7 +2098,8 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 
 				knife_project_v2(kcd, kfv->cageco, kfv->sco);
 
-				/* be strict about angle snapping, the vertex needs to be very close to the angle, or we ignore */
+				/* be strict about angle snapping, the vertex needs to be very close to the angle,
+				 * or we ignore */
 				if (kcd->is_angle_snapping) {
 					if (dist_squared_to_line_segment_v2(kfv->sco, kcd->prev.mval, kcd->curr.mval) > KNIFE_FLT_EPSBIG) {
 						continue;
@@ -3120,7 +3121,8 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 				keep_search = false;
 				BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 					if (BM_elem_flag_test(f, BM_ELEM_TAG) == false && (F_ISECT_IS_UNKNOWN(f))) {
-						/* am I connected to a tagged face via an un-tagged edge (ie, not across a cut) */
+						/* am I connected to a tagged face via an un-tagged edge
+						 * (ie, not across a cut) */
 						BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 						BMLoop *l_iter = l_first;
 						bool found = false;

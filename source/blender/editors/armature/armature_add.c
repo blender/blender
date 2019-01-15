@@ -491,7 +491,9 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		EditBone *ebone_iter;
-		EditBone *ebone_first_dupe = NULL;  /* The beginning of the duplicated bones in the edbo list */
+		/* The beginning of the duplicated bones in the edbo list */
+		EditBone *ebone_first_dupe = NULL;
+
 		Object *ob = objects[ob_index];
 		bArmature *arm = ob->data;
 
@@ -664,7 +666,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		bArmature *arm = obedit->data;
 
 		EditBone *ebone_iter;
-		EditBone *ebone_first_dupe = NULL;  /* The beginning of the duplicated mirrored bones in the edbo list */
+		/* The beginning of the duplicated mirrored bones in the edbo list */
+		EditBone *ebone_first_dupe = NULL;
 
 		ED_armature_edit_sync_selection(arm->edbo); // XXX why is this needed?
 

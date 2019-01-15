@@ -96,10 +96,12 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	KeyframeEditFunc test_cb, sel_cb;
 
 	/* determine type-based settings */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	}
 
 	/* filter data */
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
@@ -1088,10 +1090,12 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 	}
 
 	/* filter data */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* select keys */
@@ -1288,7 +1292,8 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 	}
 }
 
-/* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
+/* Option 2) Selects all the keyframes on either side of the current frame
+ * (depends on which side the mouse is on) */
 /* (see actkeys_select_leftright) */
 
 /* Option 3) Selects all visible keyframes in the same frame as the mouse click */
@@ -1308,10 +1313,12 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
 	 */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -1418,8 +1425,11 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	/* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale (in screen/region-space),
 	 * on either side of mouse click (size of keyframe icon)
 	 */
-	key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;    /* standard channel height (to allow for some slop) */
-	key_hsize = roundf(key_hsize / 2.0f);      /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
+
+	/* standard channel height (to allow for some slop) */
+	key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;
+	/* half-size (for either side), but rounded up to nearest int (for easier targeting) */
+	key_hsize = roundf(key_hsize / 2.0f);
 
 	UI_view2d_region_to_view(v2d, mval[0] - (int)key_hsize, mval[1], &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(v2d, mval[0] + (int)key_hsize, mval[1], &rectf.xmax, &rectf.ymax);
@@ -1492,7 +1502,8 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 			mask_to_keylist(ads, masklay, &anim_keys);
 		}
 
-		/* start from keyframe at root of BST, traversing until we find one within the range that was clicked on */
+		/* start from keyframe at root of BST,
+		 * traversing until we find one within the range that was clicked on */
 		for (ak = anim_keys.root; ak; ak = akn) {
 			if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
 				/* set the frame to use, and apply inverse-correction for NLA-mapping

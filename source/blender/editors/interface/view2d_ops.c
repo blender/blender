@@ -77,19 +77,28 @@ static bool view2d_poll(bContext *C)
 
 /* temp customdata for operator */
 typedef struct v2dViewPanData {
-	bScreen *sc;            /* screen where view pan was initiated */
-	ScrArea *sa;            /* area where view pan was initiated */
-	ARegion *ar;            /* region where view pan was initiated */
-	View2D *v2d;            /* view2d we're operating in */
+	/** screen where view pan was initiated */
+	bScreen *sc;
+	/** area where view pan was initiated */
+	ScrArea *sa;
+	/** region where view pan was initiated */
+	ARegion *ar;
+	/** view2d we're operating in */
+	View2D *v2d;
 
-	float facx, facy;       /* amount to move view relative to zoom */
+	/** amount to move view relative to zoom */
+	float facx, facy;
 
 	/* options for version 1 */
-	int startx, starty;     /* mouse x/y values in window when operator was initiated */
-	int lastx, lasty;       /* previous x/y values of mouse in window */
-	int invoke_event;       /* event starting pan, for modal exit */
+	/** mouse x/y values in window when operator was initiated */
+	int startx, starty;
+	/** previous x/y values of mouse in window */
+	int lastx, lasty;
+	/** event starting pan, for modal exit */
+	int invoke_event;
 
-	short in_scroller;      /* for MMB in scrollers (old feature in past, but now not that useful) */
+	/** for MMB in scrollers (old feature in past, but now not that useful) */
+	short in_scroller;
 } v2dViewPanData;
 
 /* initialize panning customdata */
@@ -256,7 +265,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* handle user input - calculations of mouse-movement need to be done here, not in the apply callback! */
+/* handle user input - calculations of mouse-movement
+ * need to be done here, not in the apply callback! */
 static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	v2dViewPanData *vpd = op->customdata;
@@ -669,7 +679,8 @@ static void view_zoomstep_apply_ex(
 			v2d->cur.xmax -= dx;
 
 			if (use_mousepos && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
-				/* get zoom fac the same way as in ui_view2d_curRect_validate_resize - better keep in sync! */
+				/* get zoom fac the same way as in
+				 * ui_view2d_curRect_validate_resize - better keep in sync! */
 				const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
 
 				/* only move view to mouse if zoom fac is inside minzoom/maxzoom */
@@ -702,7 +713,8 @@ static void view_zoomstep_apply_ex(
 			v2d->cur.ymax -= dy;
 
 			if (use_mousepos && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) {
-				/* get zoom fac the same way as in ui_view2d_curRect_validate_resize - better keep in sync! */
+				/* get zoom fac the same way as in
+				 * ui_view2d_curRect_validate_resize - better keep in sync! */
 				const float zoomy = (float)(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
 
 				/* only move view to mouse if zoom fac is inside minzoom/maxzoom */
@@ -1042,7 +1054,8 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 			fac = 0.01f * (event->prevy - event->y);
 		dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
 
-		/* support trackpad zoom to always zoom entirely - the v2d code uses portrait or landscape exceptions */
+		/* support trackpad zoom to always zoom entirely - the v2d code uses portrait or
+		 * landscape exceptions */
 		if (v2d->keepzoom & V2D_KEEPASPECT) {
 			if (fabsf(dx) > fabsf(dy))
 				dy = dx;
@@ -1095,7 +1108,8 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* handle user input - calculations of mouse-movement need to be done here, not in the apply callback! */
+/* handle user input - calculations of mouse-movement need to be done here,
+ * not in the apply callback! */
 static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	v2dViewZoomData *vzd = op->customdata;
@@ -1141,7 +1155,8 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 
 		}
 
-		/* support zoom to always zoom entirely - the v2d code uses portrait or landscape exceptions */
+		/* support zoom to always zoom entirely - the v2d code uses portrait or
+		 * landscape exceptions */
 		if (v2d->keepzoom & V2D_KEEPASPECT) {
 			if (fabsf(dx) > fabsf(dy))
 				dy = dx;
@@ -1270,7 +1285,8 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		 */
 		float zoom, center, size;
 
-		/* TODO: is this zoom factor calculation valid? It seems to produce same results every time... */
+		/* TODO: is this zoom factor calculation valid?
+		 * It seems to produce same results every time... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
 			size = BLI_rctf_size_x(&cur_new);
 			zoom = size / BLI_rctf_size_x(&rect);
@@ -1487,7 +1503,8 @@ void UI_view2d_smooth_view(
 			if (v2d->smooth_timer)
 				WM_event_remove_timer(wm, win, v2d->smooth_timer);
 			/* TIMER1 is hardcoded in keymap */
-			v2d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0); /* max 30 frs/sec */
+			/* max 30 frs/sec */
+			v2d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
 
 			ok = true;
 		}
@@ -1583,20 +1600,32 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 
 /* customdata for scroller-invoke data */
 typedef struct v2dScrollerMove {
-	View2D *v2d;            /* View2D data that this operation affects */
-	ARegion *ar;            /* region that the scroller is in */
+	/** View2D data that this operation affects */
+	View2D *v2d;
+	/** region that the scroller is in */
+	ARegion *ar;
 
-	char scroller;          /* scroller that mouse is in ('h' or 'v') */
-	short zone; /* -1 is min zoomer, 0 is bar, 1 is max zoomer */             // XXX find some way to provide visual feedback of this (active color?)
+	/** scroller that mouse is in ('h' or 'v') */
+	char scroller;
 
-	float fac;              /* view adjustment factor, based on size of region */
-	float fac_round;        /* for pixel rounding (avoid visible UI jitter) */
-	float delta;            /* amount moved by mouse on axis of interest */
+	/* XXX find some way to provide visual feedback of this (active color?) */
+	/** -1 is min zoomer, 0 is bar, 1 is max zoomer */
+	short zone;
 
-	float scrollbarwidth;   /* width of the scrollbar itself, used for page up/down clicks */
-	int scrollbar_orig;      /* initial location of scrollbar x/y, mouse relative */
+	/** view adjustment factor, based on size of region */
+	float fac;
+	/** for pixel rounding (avoid visible UI jitter) */
+	float fac_round;
+	/** amount moved by mouse on axis of interest */
+	float delta;
 
-	int lastx, lasty;       /* previous mouse coordinates (in screen coordinates) for determining movement */
+	/** width of the scrollbar itself, used for page up/down clicks */
+	float scrollbarwidth;
+	/** initial location of scrollbar x/y, mouse relative */
+	int scrollbar_orig;
+
+	/** previous mouse coordinates (in screen coordinates) for determining movement */
+	int lastx, lasty;
 } v2dScrollerMove;
 
 
@@ -1719,8 +1748,8 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 	 */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, NULL, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 
-	/* use a union of 'cur' & 'tot' incase the current view is far outside 'tot'.
-	 * In this cases moving the scroll bars has far too little effect and the view can get stuck [#31476] */
+	/* use a union of 'cur' & 'tot' incase the current view is far outside 'tot'. In this cases
+	 * moving the scroll bars has far too little effect and the view can get stuck T31476. */
 	tot_cur_union = v2d->tot;
 	BLI_rctf_union(&tot_cur_union, &v2d->cur);
 
@@ -1866,10 +1895,12 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
 			if (ELEM(vsm->zone, SCROLLHANDLE_BAR, SCROLLHANDLE_MAX)) {
 				/* if using bar (i.e. 'panning') or 'max' zoom widget */
 				switch (vsm->scroller) {
-					case 'h': /* horizontal scroller - so only horizontal movement ('cur' moves opposite to mouse) */
+					case 'h': /* horizontal scroller - so only horizontal movement
+					           * ('cur' moves opposite to mouse) */
 						vsm->delta = (float)(event->x - vsm->lastx);
 						break;
-					case 'v': /* vertical scroller - so only vertical movement ('cur' moves opposite to mouse) */
+					case 'v': /* vertical scroller - so only vertical movement
+					           * ('cur' moves opposite to mouse) */
 						vsm->delta = (float)(event->y - vsm->lasty);
 						break;
 				}
@@ -1877,10 +1908,12 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
 			else if (vsm->zone == SCROLLHANDLE_MIN) {
 				/* using 'min' zoom widget */
 				switch (vsm->scroller) {
-					case 'h': /* horizontal scroller - so only horizontal movement ('cur' moves with mouse) */
+					case 'h': /* horizontal scroller - so only horizontal movement
+					           * ('cur' moves with mouse) */
 						vsm->delta = (float)(vsm->lastx - event->x);
 						break;
-					case 'v': /* vertical scroller - so only vertical movement ('cur' moves with to mouse) */
+					case 'v': /* vertical scroller - so only vertical movement
+					           * ('cur' moves with to mouse) */
 						vsm->delta = (float)(vsm->lasty - event->y);
 						break;
 				}
@@ -1922,7 +1955,8 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
 }
 
 
-/* a click (or click drag in progress) should have occurred, so check if it happened in scrollbar */
+/* a click (or click drag in progress)
+ * should have occurred, so check if it happened in scrollbar */
 static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -1931,7 +1965,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 	/* check if mouse in scrollbars, if they're enabled */
 	const char in_scroller = UI_view2d_mouse_in_scrollers(ar, v2d, event->x, event->y);
 
-	/* if in a scroller, init customdata then set modal handler which will catch mousedown to start doing useful stuff */
+	/* if in a scroller, init customdata then set modal handler which will
+	 * catch mousedown to start doing useful stuff */
 	if (in_scroller) {
 		v2dScrollerMove *vsm;
 
@@ -1942,10 +1977,12 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 		/* support for quick jump to location - gtk and qt do this on linux */
 		if (event->type == MIDDLEMOUSE) {
 			switch (vsm->scroller) {
-				case 'h': /* horizontal scroller - so only horizontal movement ('cur' moves opposite to mouse) */
+				case 'h': /* horizontal scroller - so only horizontal movement
+				           * ('cur' moves opposite to mouse) */
 					vsm->delta = (float)(event->x - vsm->scrollbar_orig);
 					break;
-				case 'v': /* vertical scroller - so only vertical movement ('cur' moves opposite to mouse) */
+				case 'v': /* vertical scroller - so only vertical movement
+				           * ('cur' moves opposite to mouse) */
 					vsm->delta = (float)(event->y - vsm->scrollbar_orig);
 					break;
 			}
@@ -2002,7 +2039,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
-		/* not in scroller, so nothing happened... (pass through let's something else catch event) */
+		/* not in scroller, so nothing happened...
+		 * (pass through let's something else catch event) */
 		return OPERATOR_PASS_THROUGH;
 	}
 }

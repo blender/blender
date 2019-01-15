@@ -91,39 +91,67 @@ typedef struct tGPDfill {
 	bContext *C;
 	struct Main *bmain;
 	struct Depsgraph *depsgraph;
-	struct wmWindow *win;               /* window where painting originated */
-	struct Scene *scene;                /* current scene from context */
-	struct Object *ob;                  /* current active gp object */
-	struct ScrArea *sa;                 /* area where painting originated */
-	struct RegionView3D *rv3d;          /* region where painting originated */
-	struct View3D *v3d;                 /* view3 where painting originated */
-	struct ARegion *ar;                 /* region where painting originated */
-	struct bGPdata *gpd;                /* current GP datablock */
-	struct Material *mat;               /* current material */
-	struct bGPDlayer *gpl;              /* layer */
-	struct bGPDframe *gpf;              /* frame */
+	/** window where painting originated */
+	struct wmWindow *win;
+	/** current scene from context */
+	struct Scene *scene;
+	/** current active gp object */
+	struct Object *ob;
+	/** area where painting originated */
+	struct ScrArea *sa;
+	/** region where painting originated */
+	struct RegionView3D *rv3d;
+	/** view3 where painting originated */
+	struct View3D *v3d;
+	/** region where painting originated */
+	struct ARegion *ar;
+	/** current GP datablock */
+	struct bGPdata *gpd;
+	/** current material */
+	struct Material *mat;
+	/** layer */
+	struct bGPDlayer *gpl;
+	/** frame */
+	struct bGPDframe *gpf;
 
-	short flag;                         /* flags */
-	short oldkey;                       /* avoid too fast events */
-	bool on_back;                       /* send to back stroke */
+	/** flags */
+	short flag;
+	/** avoid too fast events */
+	short oldkey;
+	/** send to back stroke */
+	bool on_back;
 
-	int center[2];                      /* mouse fill center position */
-	int sizex;                          /* windows width */
-	int sizey;                          /* window height */
-	int lock_axis;                      /* lock to viewport axis */
+	/** mouse fill center position */
+	int center[2];
+	/** windows width */
+	int sizex;
+	/** window height */
+	int sizey;
+	/** lock to viewport axis */
+	int lock_axis;
 
-	short fill_leak;                    /* number of pixel to consider the leak is too small (x 2) */
-	float fill_threshold;               /* factor for transparency */
-	int fill_simplylvl;                 /* number of simplify steps */
-	int fill_draw_mode;                 /* boundary limits drawing mode */
+	/** number of pixel to consider the leak is too small (x 2) */
+	short fill_leak;
+	/** factor for transparency */
+	float fill_threshold;
+	/** number of simplify steps */
+	int fill_simplylvl;
+	/** boundary limits drawing mode */
+	int fill_draw_mode;
 
-	short sbuffer_size;                 /* number of elements currently in cache */
-	void *sbuffer;                      /* temporary points */
-	float *depth_arr;                   /* depth array for reproject */
+	/** number of elements currently in cache */
+	short sbuffer_size;
+	/** temporary points */
+	void *sbuffer;
+	/** depth array for reproject */
+	float *depth_arr;
 
-	Image *ima;                         /* temp image */
-	BLI_Stack *stack;                   /* temp points data */
-	void *draw_handle_3d;               /* handle for drawing strokes while operator is running 3d stuff */
+	/** temp image */
+	Image *ima;
+	/** temp points data */
+	BLI_Stack *stack;
+	/** handle for drawing strokes while operator is running 3d stuff */
+	void *draw_handle_3d;
 } tGPDfill;
 
 

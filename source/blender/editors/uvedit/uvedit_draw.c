@@ -384,7 +384,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 				UI_GetThemeColor4fv(TH_WIRE_EDIT, col1);
 				UI_GetThemeColor4fv(TH_EDGE_SELECT, col2);
 
-				/* We could modify the vbo's data filling instead of modifying the provoking vert. */
+				/* We could modify the vbo's data filling
+				 * instead of modifying the provoking vert. */
 				glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
 				GPU_line_width(1.0f);

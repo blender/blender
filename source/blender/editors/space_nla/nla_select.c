@@ -536,7 +536,8 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 	float x, y;
 
 
-	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
+	/* use View2D to determine the index of the channel
+	 * (i.e a row in the list) where keyframe was */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 	UI_view2d_listview_view_to_cell(v2d, 0, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
 
@@ -563,14 +564,16 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt = (NlaTrack *)ale->data;
 
-			/* loop over NLA-strips in this track, trying to find one which occurs in the necessary bounds */
+			/* loop over NLA-strips in this track,
+			 * trying to find one which occurs in the necessary bounds */
 			for (strip = nlt->strips.first; strip; strip = strip->next) {
 				if (BKE_nlastrip_within_bounds(strip, xmin, xmax))
 					break;
 			}
 		}
 
-		/* remove active channel from list of channels for separate treatment (since it's needed later on) */
+		/* remove active channel from list of channels for separate treatment
+		 * (since it's needed later on) */
 		BLI_remlink(&anim_data, ale);
 
 		/* free list of channels, since it's not used anymore */

@@ -1188,7 +1188,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 				if (tmp->format)
 					MEM_freeN(tmp->format);
 
-				/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
+				/* Put new_line in the tmp->line spot
+				 * still need to try and set the curc correctly. */
 				tmp->line = BLI_strdup(tmp_line);
 				tmp->len = strlen(tmp_line);
 				tmp->format = NULL;
@@ -2144,7 +2145,8 @@ typedef struct TextScroll {
 
 static bool text_scroll_poll(bContext *C)
 {
-	/* it should be possible to still scroll linked texts to read them, even if they can't be edited... */
+	/* it should be possible to still scroll linked texts to read them,
+	 * even if they can't be edited... */
 	return CTX_data_edit_text(C) != NULL;
 }
 
@@ -2470,7 +2472,8 @@ static TextLine *get_line_pos_wrapped(SpaceText *st, ARegion *ar, int *y)
 		lines = text_get_visible_lines(st, ar, linep->line);
 
 		if (i + lines > *y) {
-			/* We found the line matching given vertical 'coordinate', now set y relative to this line's start. */
+			/* We found the line matching given vertical 'coordinate',
+			 * now set y relative to this line's start. */
 			*y -= i;
 			break;
 		}
@@ -2530,7 +2533,8 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 					end = MIN2(end, i);
 
 					if (found) {
-						/* exact cursor position was found, check if it's still on needed line (hasn't been wrapped) */
+						/* exact cursor position was found, check if it's still on needed line
+						 * (hasn't been wrapped) */
 						if (charp > endj && !chop && ch != '\0')
 							charp = endj;
 						break;

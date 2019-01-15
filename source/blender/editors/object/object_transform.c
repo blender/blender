@@ -491,7 +491,8 @@ static int apply_objects_internal(
 					bool has_unparented_layers = false;
 
 					for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-						/* Parented layers aren't supported as we can't easily re-evaluate the scene to sample parent movement */
+						/* Parented layers aren't supported as we can't easily re-evaluate
+						 * the scene to sample parent movement */
 						if (gpl->parent == NULL) {
 							has_unparented_layers = true;
 							break;
@@ -1122,7 +1123,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						float diff_mat[4][4];
 						float inverse_diff_mat[4][4];
 
-						/* recalculate all strokes (all layers are considered without evaluating lock attributtes) */
+						/* recalculate all strokes
+						 * (all layers are considered without evaluating lock attributtes) */
 						for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 							/* calculate difference matrix */
 							ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);
@@ -1203,7 +1205,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 						BKE_object_where_is_calc(depsgraph, scene, ob_other);
 						if (ob_other->type == OB_ARMATURE) {
-							BKE_pose_where_is(depsgraph, scene, ob_other); /* needed for bone parents */
+							/* needed for bone parents */
+							BKE_pose_where_is(depsgraph, scene, ob_other);
 						}
 						ignore_parent_tx(C, bmain, scene, ob_other);
 					}
@@ -1651,7 +1654,8 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 									copy_v3_v3(loc, location_world);
 									madd_v3_v3fl(loc, target_normal, item->xform_dist);
 									object_apply_location(item->ob, loc);
-									copy_v3_v3(item->ob->obmat[3], loc);  /* so orient behaves as expected */
+									/* so orient behaves as expected */
+									copy_v3_v3(item->ob->obmat[3], loc);
 								}
 
 								object_orient_to_location(item->ob, item->rot_mat, item->rot_mat[2], location_world);

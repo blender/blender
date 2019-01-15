@@ -552,7 +552,8 @@ static void action_listener(
 				saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 				ED_area_tag_refresh(sa);
 			}
-			/* autocolor only really needs to change when channels are added/removed, or previously hidden stuff appears
+			/* autocolor only really needs to change when channels are added/removed,
+			 * or previously hidden stuff appears
 			 * (assume for now that if just adding these works, that will be fine)
 			 */
 			else if (((wmn->data == ND_KEYFRAME) && ELEM(wmn->action, NA_ADDED, NA_REMOVED)) ||
@@ -560,7 +561,8 @@ static void action_listener(
 			{
 				ED_area_tag_refresh(sa);
 			}
-			/* for simple edits to the curve data though (or just plain selections), a simple redraw should work
+			/* for simple edits to the curve data though (or just plain selections),
+			 * a simple redraw should work
 			 * (see T39851 for an example of how this can go wrong)
 			 */
 			else {
@@ -595,7 +597,8 @@ static void action_listener(
 			}
 			else {
 				switch (wmn->data) {
-					case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing) */
+					case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush
+					                     * (needs flag set to do syncing) */
 					case ND_OB_SELECT:
 						saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 						ED_area_tag_refresh(sa);
@@ -609,7 +612,8 @@ static void action_listener(
 			break;
 		case NC_OBJECT:
 			switch (wmn->data) {
-				case ND_BONE_SELECT:    /* selection changed, so force refresh to flush (needs flag set to do syncing) */
+				case ND_BONE_SELECT:    /* selection changed, so force refresh to flush
+				                         * (needs flag set to do syncing) */
 				case ND_BONE_ACTIVE:
 					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 					ED_area_tag_refresh(sa);

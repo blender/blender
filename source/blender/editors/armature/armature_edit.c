@@ -87,7 +87,7 @@ void ED_armature_transform_apply(Main *bmain, Object *ob, float mat[4][4], const
 void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4], const bool do_props)
 {
 	EditBone *ebone;
-	float scale = mat4_to_scale(mat);   /* store the scale of the matrix here to use on envelopes */
+	float scale = mat4_to_scale(mat);  /* store the scale of the matrix here to use on envelopes */
 	float mat3[3][3];
 
 	copy_m3_m4(mat3, mat);

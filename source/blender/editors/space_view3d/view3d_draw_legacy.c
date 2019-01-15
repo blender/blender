@@ -563,7 +563,8 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 			if (ibuf == NULL)
 				continue;
 
-			if ((ibuf->rect == NULL && ibuf->rect_float == NULL) || ibuf->channels != 4) { /* invalid image format */
+			if ((ibuf->rect == NULL && ibuf->rect_float == NULL) || ibuf->channels != 4) {
+				/* invalid image format */
 				if (freeibuf)
 					IMB_freeImBuf(freeibuf);
 				if (releaseibuf)

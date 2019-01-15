@@ -470,7 +470,8 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	/* number of vertices and faces for subsurfed mesh*/
 	int numOfEdges, numOfFaces;
 
-	/* holds a map to editfaces for every subsurfed MFace. These will be used to get hidden/ selected flags etc. */
+	/* holds a map to editfaces for every subsurfed MFace.
+	 * These will be used to get hidden/ selected flags etc. */
 	BMFace **faceMap;
 	/* similar to the above, we need a way to map edges to their original ones */
 	BMEdge **edgeMap;
@@ -1432,7 +1433,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	const bool use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
 	bool implicit = false;
 	int reported_errors = 0;
-	/* We will report an error unless at least one object has the subsurf modifier in the right place. */
+	/* We will report an error unless at least one object
+	 * has the subsurf modifier in the right place. */
 	bool subsurf_error = use_subsurf;
 
 	uint objects_len = 0;
@@ -2107,7 +2109,8 @@ void ED_uvedit_add_simple_uvs(Main *bmain, Scene *scene, Object *ob)
 	        &bm_mesh_allocsize_default,
 	        &((struct BMeshCreateParams){.use_toolflags = false,}));
 
-	/* turn sync selection off, since we are not in edit mode we need to ensure only the uv flags are tested */
+	/* turn sync selection off,
+	 * since we are not in edit mode we need to ensure only the uv flags are tested */
 	scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
 
 	ED_mesh_uv_texture_ensure(me, NULL);

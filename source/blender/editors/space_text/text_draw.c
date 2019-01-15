@@ -562,13 +562,21 @@ static void text_update_drawcache(SpaceText *st, ARegion *ar)
 	nlines = drawcache->nlines;
 
 	/* check if full cache update is needed */
-	full_update |= drawcache->winx != ar->winx;               /* area was resized */
-	full_update |= drawcache->wordwrap != st->wordwrap;       /* word-wrapping option was toggled */
-	full_update |= drawcache->showlinenrs != st->showlinenrs; /* word-wrapping option was toggled */
-	full_update |= drawcache->tabnumber != st->tabnumber;     /* word-wrapping option was toggled */
-	full_update |= drawcache->lheight != st->lheight_dpi;         /* word-wrapping option was toggled */
-	full_update |= drawcache->cwidth != st->cwidth;           /* word-wrapping option was toggled */
-	full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME); /* text datablock was changed */
+
+	/* area was resized */
+	full_update |= drawcache->winx != ar->winx;
+	/* word-wrapping option was toggled */
+	full_update |= drawcache->wordwrap != st->wordwrap;
+	/* word-wrapping option was toggled */
+	full_update |= drawcache->showlinenrs != st->showlinenrs;
+	/* word-wrapping option was toggled */
+	full_update |= drawcache->tabnumber != st->tabnumber;
+	/* word-wrapping option was toggled */
+	full_update |= drawcache->lheight != st->lheight_dpi;
+	/* word-wrapping option was toggled */
+	full_update |= drawcache->cwidth != st->cwidth;
+	/* text datablock was changed */
+	full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME);
 
 	if (st->wordwrap) {
 		/* update line heights */
@@ -815,7 +823,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	scroll->ymin = pix_top_margin;
 	scroll->ymax = pix_available;
 
-	/* when re-sizing a view-port with the bar at the bottom to a greater height more blank lines will be added */
+	/* when re-sizing a view-port with the bar at the bottom to a greater height
+	 * more blank lines will be added */
 	if (ltexth + blank_lines < st->top + st->viewlines) {
 		blank_lines = st->top + st->viewlines - ltexth;
 	}

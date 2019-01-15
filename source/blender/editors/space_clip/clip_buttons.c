@@ -184,19 +184,27 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 #define B_MARKER_FLAG           8
 
 typedef struct {
-	int compact;                                /* compact mode */
+	/** compact mode */
+	int compact;
 
 	MovieClip *clip;
-	MovieClipUser *user;                        /* user of clip */
+	/** user of clip */
+	MovieClipUser *user;
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 
-	int framenr;                                    /* current frame number */
-	float marker_pos[2];                            /* position of marker in pixel coords */
-	float marker_pat[2];                            /* position and dimensions of marker pattern in pixel coords */
-	float track_offset[2];                          /* offset of "parenting" point */
-	float marker_search_pos[2], marker_search[2];   /* position and dimensions of marker search in pixel coords */
-	int marker_flag;                                /* marker's flags */
+	/** current frame number */
+	int framenr;
+	/** position of marker in pixel coords */
+	float marker_pos[2];
+	/** position and dimensions of marker pattern in pixel coords */
+	float marker_pat[2];
+	/** offset of "parenting" point */
+	float track_offset[2];
+	/** position and dimensions of marker search in pixel coords */
+	float marker_search_pos[2], marker_search[2];
+	/** marker's flags */
+	int marker_flag;
 } MarkerUpdateCb;
 
 static void to_pixel_space(float r[2], float a[2], int width, int height)

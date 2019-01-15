@@ -457,8 +457,8 @@ static void viewops_data_create(
 
 				negate_v3_v3(my_origin, rv3d->ofs);             /* ofs is flipped */
 
-				/* Set the dist value to be the distance from this 3d point
-				 * this means youll always be able to zoom into it and panning wont go bad when dist was zero */
+				/* Set the dist value to be the distance from this 3d point this means youll
+				 * always be able to zoom into it and panning wont go bad when dist was zero */
 
 				/* remove dist value */
 				upvec[0] = upvec[1] = 0;
@@ -469,7 +469,8 @@ static void viewops_data_create(
 				sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
 				negate_v3(my_pivot);                /* ofs is flipped */
 
-				/* find a new ofs value that is along the view axis (rather than the mouse location) */
+				/* find a new ofs value that is along the view axis
+				 * (rather than the mouse location) */
 				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
 				vod->init.dist = rv3d->dist = len_v3v3(my_pivot, dvec);
 
@@ -1224,7 +1225,8 @@ void view3d_ndof_fly(
 		}
 
 		if (!is_zero_v3(trans)) {
-			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+			/* move center of view opposite of hand motion
+			 * (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, trans);
 			has_translate = true;
 		}
@@ -2819,7 +2821,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 
 	if (ob_eval && (ob_eval->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* hard-coded exception, we look for the one selected armature */
-		/* this is weak code this way, we should make a generic active/selection callback interface once... */
+		/* this is weak code this way, we should make a generic
+		 * active/selection callback interface once... */
 		Base *base_eval;
 		for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
 			if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {
@@ -2896,8 +2899,10 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 				}
 
 				/* account for duplis */
-				if (BKE_object_minmax_dupli(depsgraph, scene, base_eval->object, min, max, false) == 0)
-					BKE_object_minmax(base_eval->object, min, max, false);  /* use if duplis not found */
+				if (BKE_object_minmax_dupli(depsgraph, scene, base_eval->object, min, max, false) == 0) {
+					/* use if duplis not found */
+					BKE_object_minmax(base_eval->object, min, max, false);
+				}
 
 				ok = 1;
 			}
@@ -3136,7 +3141,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 /** \name View Camera Center Operator
  * \{ */
 
-static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
+static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
@@ -3188,7 +3193,7 @@ void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 /** \name View Lock Center Operator
  * \{ */
 
-static int view3d_center_lock_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
+static int view3d_center_lock_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -4560,7 +4565,8 @@ void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[4][4])
 		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
 }
 
-#if 0 /* TODO Missing from 2.8 drawing code. Find a solution to support clip border then uncomment it. */
+#if 0 /* TODO Missing from 2.8 drawing code.
+       * Find a solution to support clip border then uncomment it. */
 
 static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
@@ -4788,7 +4794,8 @@ void ED_view3d_cursor3d_update(
 			}
 		}
 		else {
-			/* Cursor may be outside of the view, prevent it getting 'lost', see: T40353 & T45301 */
+			/* Cursor may be outside of the view,
+			 * prevent it getting 'lost', see: T40353 & T45301 */
 			zero_v2(rv3d->ofs_lock);
 		}
 	}

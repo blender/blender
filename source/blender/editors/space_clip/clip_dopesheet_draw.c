@@ -310,7 +310,8 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 		v2d->tot.ymin = (float)(-height);
 	}
 
-	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
+	/* need to do a view-sync here, so that the keys area doesn't jump around
+	 * (it must copy this) */
 	UI_view2d_sync(NULL, sa, v2d, V2D_LOCK_COPY);
 
 	/* loop through channels, and set up drawing depending on their type

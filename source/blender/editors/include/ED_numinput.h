@@ -33,20 +33,30 @@
 struct wmEvent;
 
 typedef struct NumInput {
-	short  idx_max;                      /* idx_max < NUM_MAX_ELEMENTS */
+	/** idx_max < NUM_MAX_ELEMENTS */
+	short  idx_max;
 	int    unit_sys;
-	int    unit_type[NUM_MAX_ELEMENTS];  /* Each value can have a different type */
+	/** Each value can have a different type */
+	int    unit_type[NUM_MAX_ELEMENTS];
 	bool   unit_use_radians;
 
-	short  flag;                         /* Flags affecting all values' behavior */
-	short  val_flag[NUM_MAX_ELEMENTS];   /* Per-value flags */
-	float  val[NUM_MAX_ELEMENTS];        /* Direct value of the input */
-	float  val_org[NUM_MAX_ELEMENTS];    /* Original value of the input, for reset */
-	float  val_inc[NUM_MAX_ELEMENTS];    /* Increment steps */
+	/** Flags affecting all values' behavior */
+	short  flag;
+	/** Per-value flags */
+	short  val_flag[NUM_MAX_ELEMENTS];
+	/** Direct value of the input */
+	float  val[NUM_MAX_ELEMENTS];
+	/** Original value of the input, for reset */
+	float  val_org[NUM_MAX_ELEMENTS];
+	/** Increment steps */
+	float  val_inc[NUM_MAX_ELEMENTS];
 
-	short  idx;                          /* Active element/value */
-	char   str[NUM_STR_REP_LEN];         /* String as typed by user for edited value (we assume ASCII world!) */
-	/* Current position of cursor in edited value str (first byte of "current" letter, so 0 for an empty str) */
+	/** Active element/value */
+	short  idx;
+	/** String as typed by user for edited value (we assume ASCII world!) */
+	char   str[NUM_STR_REP_LEN];
+	/** Current position of cursor in edited value str
+	 * (first byte of "current" letter, so 0 for an empty str) */
 	int    str_cur;
 } NumInput;
 

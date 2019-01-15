@@ -1511,7 +1511,8 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 	ot->exec = image_match_len_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL/* | OPTYPE_UNDO */; /* Don't think we need undo for that. */
+	/* Don't think we need undo for that. */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL/* | OPTYPE_UNDO */;
 }
 
 /******************** replace image operator ********************/
@@ -1640,7 +1641,8 @@ static int save_image_options_init(Main *bmain, SaveImageOptions *simopts, Space
 			simopts->im_format = scene->r.im_format;
 			is_depth_set = true;
 			if (!BKE_image_is_multiview(ima)) {
-				/* In case multiview is disabled, render settings would be invalid for render result in this area. */
+				/* In case multiview is disabled,
+				 * render settings would be invalid for render result in this area. */
 				simopts->im_format.stereo3d_format = *ima->stereo3d_format;
 				simopts->im_format.views_format = ima->views_format;
 			}
@@ -1660,7 +1662,8 @@ static int save_image_options_init(Main *bmain, SaveImageOptions *simopts, Space
 			simopts->im_format.views_format = ima->views_format;
 		}
 
-		//simopts->subimtype = scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
+		///* XXX - this is lame, we need to make these available too! */
+		//simopts->subimtype = scene->r.subimtype;
 
 		BLI_strncpy(simopts->filepath, ibuf->name, sizeof(simopts->filepath));
 
@@ -2607,13 +2610,16 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 
 	size_t i;
 
-	if (ibuf == NULL)  /* TODO: this should actually never happen, but does for render-results -> cleanup */
+	if (ibuf == NULL) {
+		/* TODO: this should actually never happen, but does for render-results -> cleanup */
 		return OPERATOR_CANCELLED;
+	}
 
 	if (support_undo) {
 		ED_image_undo_push_begin(op->type->name);
 		/* not strictly needed, because we only imapaint_dirty_region to invalidate all tiles
-		 * but better do this right in case someone copies this for a tool that uses partial redraw better */
+		 * but better do this right in case someone copies this for a tool that uses partial
+		 * redraw better */
 		ED_imapaint_clear_partial_redraw();
 		ED_imapaint_dirty_region(ima, ibuf, 0, 0, ibuf->x, ibuf->y, false);
 	}
@@ -2863,7 +2869,8 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
-	RNA_def_string(ot->srna, "id", NULL, MAX_ID_NAME - 2, "Image Name", "Image data-block name to unpack"); /* XXX, weark!, will fail with library, name collisions */
+	/* XXX, weak!, will fail with library, name collisions */
+	RNA_def_string(ot->srna, "id", NULL, MAX_ID_NAME - 2, "Image Name", "Image data-block name to unpack");
 }
 
 /******************** sample image operator ********************/

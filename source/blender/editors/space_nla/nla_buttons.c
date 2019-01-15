@@ -156,7 +156,8 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 						id = ale->id;
 					}
 					else {
-						/* ale->data is always the proper ID block we need, but ale->id may not be (i.e. for textures) */
+						/* ale->data is always the proper ID block we need,
+						 * but ale->id may not be (i.e. for textures) */
 						id = (ID *)ale->data;
 					}
 

@@ -718,7 +718,10 @@ void ED_view3d_draw_depth(
 	/* temp set drawtype to solid */
 	/* Setting these temporarily is not nice */
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
-	U.glalphaclip = alphaoverride ? 0.5f : glalphaclip; /* not that nice but means we wont zoom into billboards */
+
+	/* not that nice but means we wont zoom into billboards */
+	U.glalphaclip = alphaoverride ? 0.5f : glalphaclip;
+
 	U.obcenter_dia = 0;
 
 	/* Tools may request depth outside of regular drawing code. */
@@ -814,7 +817,8 @@ float ED_view3d_grid_view_scale(
 static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 {
 	const float k = U.rvisize * U.pixelsize;  /* axis size */
-	const int bright = - 20 * (10 - U.rvibright);  /* axis alpha offset (rvibright has range 0-10) */
+	/* axis alpha offset (rvibright has range 0-10) */
+	const int bright = - 20 * (10 - U.rvibright);
 
 	/* Axis center in screen coordinates.
 	 *
@@ -1211,12 +1215,15 @@ static void draw_selected_name(Scene *scene, ViewLayer *view_layer, Object *ob, 
 		}
 
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)cfra, ANIMFILTER_KEYS_LOCAL))
+		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)cfra, ANIMFILTER_KEYS_LOCAL)) {
 			UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
-		else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra))
+		}
+		else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra)) {
 			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
-		else
+		}
+		else {
 			UI_FontThemeColor(font_id, TH_TEXT_HI);
+		}
 	}
 	else {
 		/* no object */

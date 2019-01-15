@@ -402,9 +402,11 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[
 					handsize = seq->handsize;
 					displen = (float)abs(seq->startdisp - seq->enddisp);
 
-					if (displen / pixelx > 16) { /* don't even try to grab the handles of small strips */
-						/* Set the max value to handle to 1/3 of the total len when its less than 28.
-						 * This is important because otherwise selecting handles happens even when you click in the middle */
+					/* don't even try to grab the handles of small strips */
+					if (displen / pixelx > 16) {
+						/* Set the max value to handle to 1/3 of the total len when its
+						 * less than 28. This is important because otherwise selecting
+						 * handles happens even when you click in the middle. */
 
 						if ((displen / 3) < 30 * pixelx) {
 							handsize = displen / 3;
@@ -2401,7 +2403,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				strip_new->us = 1;
 
 				/* new stripdata (only one element now!) */
-				/* Note this assume all elements (images) have the same dimension, since we only copy the name here. */
+				/* Note this assume all elements (images) have the same dimension,
+				 * since we only copy the name here. */
 				se_new = MEM_reallocN(strip_new->stripdata, sizeof(*se_new));
 				BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
 				strip_new->stripdata = se_new;

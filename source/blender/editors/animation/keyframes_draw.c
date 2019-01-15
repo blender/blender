@@ -557,7 +557,8 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 			size *= 0.85f;
 			break;
 
-		case BEZT_KEYTYPE_MOVEHOLD:  /* slightly smaller than normal keyframes (but by less than for breakdowns) */
+		case BEZT_KEYTYPE_MOVEHOLD:  /* slightly smaller than normal keyframes
+		                              * (but by less than for breakdowns) */
 			size *= 0.925f;
 			break;
 
@@ -942,9 +943,10 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, int saction_flag)
 		/* loop through each F-Curve, grabbing the keyframes */
 		for (ale = anim_data.first; ale; ale = ale->next) {
 			/* Why not use all #eAnim_KeyType here?
-			 * All of the other key types are actually "summaries" themselves, and will just end up duplicating stuff
-			 * that comes up through standard filtering of just F-Curves.
-			 * Given the way that these work, there isn't really any benefit at all from including them. - Aligorith */
+			 * All of the other key types are actually "summaries" themselves,
+			 * and will just end up duplicating stuff that comes up through
+			 * standard filtering of just F-Curves. Given the way that these work,
+			 * there isn't really any benefit at all from including them. - Aligorith */
 
 			switch (ale->datatype) {
 				case ALE_FCURVE:

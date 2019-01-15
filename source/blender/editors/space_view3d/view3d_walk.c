@@ -947,8 +947,10 @@ static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
 	RegionView3D *rv3d = walk->rv3d;
 	ARegion *ar = walk->ar;
 
-	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
-	float dvec[3] = {0.0f, 0.0f, 0.0f}; /* this is the direction that's added to the view offset per redraw */
+	/* 3x3 copy of the view matrix so we can move along the view axis */
+	float mat[3][3];
+	/* this is the direction that's added to the view offset per redraw */
+	float dvec[3] = {0.0f, 0.0f, 0.0f};
 
 	int moffset[2]; /* mouse offset from the views center */
 	float tmp_quat[4]; /* used for rotating the view */

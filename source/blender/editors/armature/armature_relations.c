@@ -144,7 +144,8 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
 			const char *old_name = BLI_ghashIterator_getKey(&gh_iter);
 			const char *new_name = BLI_ghashIterator_getValue(&gh_iter);
 
-			/* only remap if changed; this still means there will be some waste if there aren't many drivers/keys */
+			/* only remap if changed; this still means there will be some
+			 * waste if there aren't many drivers/keys */
 			if (!STREQ(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
 				fcu->rna_path = BKE_animsys_fix_rna_path_rename(id, fcu->rna_path, "pose.bones",
 				                                                old_name, new_name, 0, 0, false);
@@ -542,7 +543,8 @@ static void separate_armature_bones(Main *bmain, Object *ob, short sel)
 			for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 				if (ebo->parent == curbone) {
 					ebo->parent = NULL;
-					ebo->temp.p = NULL; /* this is needed to prevent random crashes with in ED_armature_from_edit */
+					/* this is needed to prevent random crashes with in ED_armature_from_edit */
+					ebo->temp.p = NULL;
 					ebo->flag &= ~BONE_CONNECTED;
 				}
 			}
@@ -623,7 +625,10 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 		ED_armature_edit_free(obedit->data);
 
 		/* 2) duplicate base */
-		newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
+
+		/* only duplicate linked armature */
+		newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM);
+
 		DEG_relations_tag_update(bmain);
 
 		newob = newbase->object;

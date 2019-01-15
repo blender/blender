@@ -486,7 +486,8 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 	/* recreate dependency graph to include new objects */
 	DEG_relations_tag_update(bmain);
 
-	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
+	/* free gpu materials, some materials depend on existing objects,
+	 * such as lamps so freeing correctly refreshes */
 	GPU_materials_free(bmain);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -705,7 +706,8 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
 }
 
 /* XXX This does not work with several items
- *     (it is only called once in the end, due to the 'deferred' filebrowser invocation through event system...). */
+ * (it is only called once in the end, due to the 'deferred'
+ * filebrowser invocation through event system...). */
 void lib_relocate_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))

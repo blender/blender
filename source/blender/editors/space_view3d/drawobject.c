@@ -80,7 +80,7 @@ static bool check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 	return true;
 }
 
-/* ----------------- OpenGL Circle Drawing - Tables for Optimized Drawing Speed ------------------ */
+/* OpenGL Circle Drawing - Tables for Optimized Drawing Speed */
 /* 32 values of sin function (still same result!) */
 #define CIRCLE_RESOL 32
 

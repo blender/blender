@@ -223,7 +223,8 @@ void ED_view3d_cameracontrol_update(
         const bool use_autokey,
         struct bContext *C, const bool do_rotate, const bool do_translate)
 {
-	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
+	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera
+	 * to the view */
 
 	Scene *scene       = vctrl->ctx_scene;
 	View3D *v3d        = vctrl->ctx_v3d;
@@ -309,7 +310,8 @@ void ED_view3d_cameracontrol_release(
 			DEG_id_tag_update(&ob_back->id, ID_RECALC_TRANSFORM);
 		}
 		else {
-			/* Non Camera we need to reset the view back to the original location because the user canceled*/
+			/* Non Camera we need to reset the view back
+			 * to the original location because the user canceled. */
 			copy_qt_qt(rv3d->viewquat, vctrl->rot_backup);
 			rv3d->persp = vctrl->persp_backup;
 		}

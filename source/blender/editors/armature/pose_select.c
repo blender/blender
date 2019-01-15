@@ -239,7 +239,8 @@ bool ED_armature_pose_select_pick_with_buffer(
 }
 
 /* 'select_mode' is usual SEL_SELECT/SEL_DESELECT/SEL_TOGGLE/SEL_INVERT.
- * When true, 'ignore_visibility' makes this func also affect invisible bones (hidden or on hidden layers). */
+ * When true, 'ignore_visibility' makes this func also affect invisible bones
+ * (hidden or on hidden layers). */
 bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibility)
 {
 	bArmature *arm = ob->data;

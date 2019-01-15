@@ -368,7 +368,8 @@ GPUBatch *ui_batch_roundbox_widget_get(int tria)
 		set_roundbox_vertex_data(&vflag_step, last_data);
 		set_roundbox_vertex(&vflag_step, 0, 0, 0, false, false, EMBOSS);
 		/* Emboss */
-		bool rev = false; /* go back and forth : avoid degenerate triangle (but beware of backface cull) */
+		/* go back and forth : avoid degenerate triangle (but beware of backface cull) */
+		bool rev = false;
 		for (int j = 0; j < WIDGET_AA_JITTER; j++, rev = !rev) {
 			for (int c = (rev) ? 1 : 0; (rev) ? c >= 0 : c < 2; (rev) ? c-- : c++) {
 				int sta = (rev) ? WIDGET_CURVE_RESOLU - 1 : 0;
@@ -685,7 +686,8 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, const rcti *re
 	float maxxi = maxx - U.pixelsize;
 	float minyi = miny + U.pixelsize;
 	float maxyi = maxy - U.pixelsize;
-	float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f; /* for uv, can divide by zero */
+	/* for uv, can divide by zero */
+	float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f;
 	float facyi = (maxyi != minyi) ? 1.0f / (maxyi - minyi) : 0.0f;
 	int a, tot = 0, minsize;
 	const int hnum = (
@@ -1448,7 +1450,8 @@ float UI_text_clip_middle_ex(
 	float strwidth;
 
 	/* Add some epsilon to OK width, avoids 'ellipsing' text that nearly fits!
-	 * Better to have a small piece of the last char cut out, than two remaining chars replaced by an ellipsis... */
+	 * Better to have a small piece of the last char cut out,
+	 * than two remaining chars replaced by an ellipsis... */
 	okwidth += 1.0f + UI_DPI_FAC;
 
 	BLI_assert(str[0]);
@@ -1463,7 +1466,8 @@ float UI_text_clip_middle_ex(
 	strwidth = BLF_width(fstyle->uifont_id, str, max_len);
 
 	if ((okwidth > 0.0f) && (strwidth > okwidth)) {
-		/* utf8 two-dots leader '..' (shorter than ellipsis '...'), some compilers complain with real litteral string. */
+		/* utf8 two-dots leader '..' (shorter than ellipsis '...'),
+		 * some compilers complain with real litteral string. */
 		const char sep[] = {0xe2, 0x80, 0xA5, 0x0};
 		const int sep_len = sizeof(sep) - 1;
 		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
@@ -1527,7 +1531,8 @@ float UI_text_clip_middle_ex(
 			else {
 				memmove(str + l_end + sep_len, str + r_offset, r_len);
 				memcpy(str + l_end, sep, sep_len);
-				final_lpart_len = (size_t)(l_end + sep_len + r_len - 1);  /* -1 to remove trailing '\0'! */
+				/* -1 to remove trailing '\0'! */
+				final_lpart_len = (size_t)(l_end + sep_len + r_len - 1);
 
 				while (BLF_width(fstyle->uifont_id, str, max_len) > okwidth) {
 					/* This will happen because a lot of string width processing is done in integer pixels,
@@ -1690,7 +1695,8 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 			const char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
 			int bytes = cp2 - prev_utf8;
 
-			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
+			/* shift the text after and including cp2 back by 1 char,
+			 * +1 to include null terminator */
 			memmove(cp2 - bytes, cp2, drawstr_len + 1);
 			cp2 -= bytes;
 
@@ -2323,7 +2329,8 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
 static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
-	float blend = wcol_state->blend - 0.2f; /* XXX special tweak to make sure that bar will still be visible */
+	/* XXX special tweak to make sure that bar will still be visible */
+	float blend = wcol_state->blend - 0.2f;
 
 	/* call this for option button */
 	widget_state(wt, state, drawflag);
@@ -2756,7 +2763,9 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 	immBegin(GPU_PRIM_TRIS, steps * 3 * 6);
-	for (dx = 0.0f; dx < 0.999f; dx += color_step) { /* 0.999 = prevent float inaccuracy for steps */
+
+	/* 0.999 = prevent float inaccuracy for steps */
+	for (dx = 0.0f; dx < 0.999f; dx += color_step) {
 		const float dx_next = dx + color_step;
 
 		/* previous color */
@@ -3366,7 +3375,8 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	wtb.draw_inner = false;
 	widgetbase_draw(&wtb, wcol);
 
-	/* Add space at either side of the button so text aligns with numbuttons (which have arrow icons). */
+	/* Add space at either side of the button so text aligns with numbuttons
+	 * (which have arrow icons). */
 	if (!(state & UI_STATE_TEXT_INPUT)) {
 		rect->xmax -= toffs;
 		rect->xmin += toffs;
@@ -3763,7 +3773,8 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 	const float rad = wcol->roundness * U.widget_unit;
 	const bool is_active = (state & UI_SELECT);
 
-/* Draw shaded outline - Disabled for now, seems incorrect and also looks nicer without it imho ;) */
+/* Draw shaded outline - Disabled for now,
+ * seems incorrect and also looks nicer without it imho ;) */
 //#define USE_TAB_SHADED_HIGHLIGHT
 
 	uiWidgetBase wtb;
@@ -4252,7 +4263,8 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 
 			case UI_BTYPE_HSVCUBE:
-				if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {  /* vertical V slider, uses new widget draw now */
+				if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
+					/* vertical V slider, uses new widget draw now */
 					ui_draw_but_HSV_v(but, rect);
 				}
 				else {  /* other HSV pickers... */
@@ -4745,7 +4757,8 @@ void ui_draw_menu_item(const uiFontStyle *fstyle, rcti *rect, const char *name, 
 		aspect = ICON_DEFAULT_HEIGHT / height;
 
 		GPU_blend(true);
-		UI_icon_draw_aspect(xs, ys, iconid, aspect, 1.0f, wt->wcol.text); /* XXX scale weak get from fstyle? */
+		/* XXX scale weak get from fstyle? */
+		UI_icon_draw_aspect(xs, ys, iconid, aspect, 1.0f, wt->wcol.text);
 		GPU_blend(false);
 	}
 }

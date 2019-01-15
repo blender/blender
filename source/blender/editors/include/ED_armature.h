@@ -58,26 +58,32 @@ struct UndoType;
 
 typedef struct EditBone {
 	struct EditBone *next, *prev;
-	struct IDProperty *prop; /* User-Defined Properties on this Bone */
-	struct EditBone *parent; /* Editbones have a one-way link  (i.e. children refer
-	                          * to parents.  This is converted to a two-way link for
-	                          * normal bones when leaving editmode. */
-	char    name[64];       /* MAXBONENAME */
-	float   roll;           /* Roll along axis.  We'll ultimately use the axis/angle method
-	                         * for determining the transformation matrix of the bone.  The axis
-	                         * is tail-head while roll provides the angle. Refer to Graphics
-	                         * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
+	/** User-Defined Properties on this Bone */
+	struct IDProperty *prop;
+	/** Editbones have a one-way link  (i.e. children refer
+	 * to parents.  This is converted to a two-way link for
+	 * normal bones when leaving editmode. */
+	struct EditBone *parent;
+	/** (64 == MAXBONENAME) */
+	char    name[64];
+	/** Roll along axis.  We'll ultimately use the axis/angle method
+	 * for determining the transformation matrix of the bone.  The axis
+	 * is tail-head while roll provides the angle. Refer to Graphics
+	 * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
+	float   roll;
 
-	float head[3];          /* Orientation and length is implicit during editing */
+	/** Orientation and length is implicit during editing */
+	float head[3];
 	float tail[3];
-	/* All joints are considered to have zero rotation with respect to
+	/** All joints are considered to have zero rotation with respect to
 	 * their parents. Therefore any rotations specified during the
 	 * animation are automatically relative to the bones' rest positions*/
 	int flag;
 	int layer;
 
 	float dist, weight;
-	float xwidth, length, zwidth;  /* put them in order! transform uses this as scale */
+	/** put them in order! transform uses this as scale */
+	float xwidth, length, zwidth;
 	float rad_head, rad_tail;
 
 	/* Bendy-Bone parameters */
@@ -87,22 +93,28 @@ typedef struct EditBone {
 	float ease1, ease2;
 	float scaleIn, scaleOut;
 
-	float oldlength;        /* for envelope scaling */
+	/** for envelope scaling */
+	float oldlength;
 
 	short segments;
 
-	char bbone_prev_type;	/* Type of next/prev bone handles */
+	/** Type of next/prev bone handles */
+	char bbone_prev_type;
 	char bbone_next_type;
-	struct EditBone *bbone_prev;	/* Next/prev bones to use as handle references when calculating bbones (optional) */
+	/** Next/prev bones to use as handle references when calculating bbones (optional) */
+	struct EditBone *bbone_prev;
 	struct EditBone *bbone_next;
 
 	/* Used for display */
-	float disp_mat[4][4];  /*  in Armature space, rest pos matrix */
-	float disp_tail_mat[4][4];  /*  in Armature space, rest pos matrix */
-	/* 32 == MAX_BBONE_SUBDIV */
-	float disp_bbone_mat[32][4][4]; /*  in Armature space, rest pos matrix */
+	/** in Armature space, rest pos matrix */
+	float disp_mat[4][4];
+	/** in Armature space, rest pos matrix */
+	float disp_tail_mat[4][4];
+	/** in Armature space, rest pos matrix (32 == MAX_BBONE_SUBDIV) */
+	float disp_bbone_mat[32][4][4];
 
-	struct EditBone *bbone_child;	/* connected child temporary during drawing */
+	/** connected child temporary during drawing */
+	struct EditBone *bbone_child;
 
 	/* Used to store temporary data */
 	union {

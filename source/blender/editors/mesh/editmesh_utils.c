@@ -802,7 +802,8 @@ UvElementMap *BM_uv_element_map_create(
 		island_number = MEM_mallocN(sizeof(*island_number) * totfaces, "uv_island_number_face");
 		copy_vn_i(island_number, totfaces, INVALID_ISLAND);
 
-		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex. Now we should sort uv's in islands. */
+		/* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
+		 * Now we should sort uv's in islands. */
 		for (i = 0; i < totuv; i++) {
 			if (element_map->buf[i].island == INVALID_ISLAND) {
 				element_map->buf[i].island = nislands;
@@ -821,7 +822,8 @@ UvElementMap *BM_uv_element_map_create(
 								initelement = element;
 
 							if (element->l->f == efa) {
-								/* found the uv corresponding to our face and vertex. Now fill it to the buffer */
+								/* found the uv corresponding to our face and vertex.
+								 * Now fill it to the buffer */
 								element->island = nislands;
 								map[element - element_map->buf] = islandbufsize;
 								islandbuf[islandbufsize].l = element->l;
@@ -1228,7 +1230,8 @@ void EDBM_mesh_hide(BMEditMesh *em, bool swap)
 	EDBM_selectmode_flush(em);
 
 	/* original hide flushing comment (OUTDATED):
-	 * hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
+	 * hide happens on least dominant select mode, and flushes up, not down!
+	 * (helps preventing errors in subsurf) */
 	/* - vertex hidden, always means edge is hidden too
 	 * - edge hidden, always means face is hidden too
 	 * - face hidden, only set face hide

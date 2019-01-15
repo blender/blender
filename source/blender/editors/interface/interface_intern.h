@@ -106,7 +106,8 @@ typedef enum {
 } uiWidgetTypeEnum;
 
 #define UI_MENU_WIDTH_MIN       (UI_UNIT_Y * 9)
-#define UI_MENU_SUBMENU_PADDING (6 * UI_DPI_FAC) /* some extra padding added to menus containing submenu icons */
+/* some extra padding added to menus containing submenu icons */
+#define UI_MENU_SUBMENU_PADDING (6 * UI_DPI_FAC)
 
 /* menu scrolling */
 #define UI_MENU_SCROLL_ARROW	12
@@ -181,13 +182,20 @@ extern const short ui_radial_dir_to_angle[8];
 
 /* PieMenuData->flags */
 enum {
-	UI_PIE_DEGREES_RANGE_LARGE  = (1 << 0),  /* pie menu item collision is detected at 90 degrees */
-	UI_PIE_INITIAL_DIRECTION    = (1 << 1),  /* use initial center of pie menu to calculate direction */
-	UI_PIE_DRAG_STYLE           = (1 << 2),  /* pie menu is drag style */
-	UI_PIE_INVALID_DIR          = (1 << 3),  /* mouse not far enough from center position  */
-	UI_PIE_CLICK_STYLE          = (1 << 4),  /* pie menu changed to click style, click to confirm  */
-	UI_PIE_ANIMATION_FINISHED   = (1 << 5),  /* pie animation finished, do not calculate any more motion  */
-	UI_PIE_GESTURE_END_WAIT     = (1 << 6),  /* pie gesture selection has been done, now wait for mouse motion to end */
+	/** pie menu item collision is detected at 90 degrees */
+	UI_PIE_DEGREES_RANGE_LARGE  = (1 << 0),
+	/** use initial center of pie menu to calculate direction */
+	UI_PIE_INITIAL_DIRECTION    = (1 << 1),
+	/** pie menu is drag style */
+	UI_PIE_DRAG_STYLE           = (1 << 2),
+	/** mouse not far enough from center position  */
+	UI_PIE_INVALID_DIR          = (1 << 3),
+	/** pie menu changed to click style, click to confirm  */
+	UI_PIE_CLICK_STYLE          = (1 << 4),
+	/** pie animation finished, do not calculate any more motion  */
+	UI_PIE_ANIMATION_FINISHED   = (1 << 5),
+	/** pie gesture selection has been done, now wait for mouse motion to end */
+	UI_PIE_GESTURE_END_WAIT     = (1 << 6),
 };
 
 #define PIE_CLICK_THRESHOLD_SQ 50.0f
@@ -256,7 +264,7 @@ struct uiBut {
 	void *rename_arg1;
 	void *rename_orig;
 
-	/* Run an action when holding the button down. */
+	/** Run an action when holding the button down. */
 	uiButHandleHoldFunc hold_func;
 	void *hold_argN;
 
@@ -264,14 +272,18 @@ struct uiBut {
 	uiButToolTipFunc tip_func;
 	void *tip_argN;
 
-	/* info on why button is disabled, displayed in tooltip */
+	/** info on why button is disabled, displayed in tooltip */
 	const char *disabled_info;
 
 	BIFIconID icon;
-	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied from the block */
-	signed char pie_dir; /* direction in a pie menu, used for collision detection (RadialDirection) */
-	bool changed; /* could be made into a single flag */
-	uchar unit_type; /* so buttons can support unit systems which are not RNA */
+	/** drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied from the block */
+	char dt;
+	/** direction in a pie menu, used for collision detection (RadialDirection) */
+	signed char pie_dir;
+	/** could be made into a single flag */
+	bool changed;
+	/** so buttons can support unit systems which are not RNA */
+	uchar unit_type;
 	short modifier_key;
 	short iconadd;
 
@@ -336,7 +348,7 @@ typedef struct ColorPickerData {
 } ColorPickerData;
 
 struct PieMenuData {
-	/* store title and icon to allow access when pie levels are created */
+	/** store title and icon to allow access when pie levels are created */
 	const char *title;
 	int icon;
 
@@ -346,13 +358,14 @@ struct PieMenuData {
 	float last_pos[2];
 	double duration_gesture;
 	int flags;
-	int event; /* initial event used to fire the pie menu, store here so we can query for release */
+	/** initial event used to fire the pie menu, store here so we can query for release */
+	int event;
 	float alphafac;
 };
 
 /* uiBlock.content_hints */
 enum eBlockContentHints {
-	/* In a menu block, if there is a single sub-menu button, we add some
+	/** In a menu block, if there is a single sub-menu button, we add some
 	 * padding to the right to put nicely aligned triangle icons there. */
 	UI_BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
 };
@@ -403,14 +416,16 @@ struct uiBlock {
 
 	int flag;
 	short alignnr;
-	/* Hints about the buttons of this block. Used to avoid iterating over
+	/** Hints about the buttons of this block. Used to avoid iterating over
 	 * buttons to find out if some criteria is met by any. Instead, check this
 	 * criteria when adding the button and set a flag here if it's met. */
 	short content_hints; /* eBlockContentHints */
 
 	char direction;
-	char theme_style; /* UI_BLOCK_THEME_STYLE_* */
-	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied to buttons */
+	/** UI_BLOCK_THEME_STYLE_* */
+	char theme_style;
+	/** drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied to buttons */
+	char dt;
 	bool auto_open;
 	char _pad[5];
 	double auto_open_last;
@@ -418,32 +433,46 @@ struct uiBlock {
 	const char *lockstr;
 
 	char lock;
-	char active;                /* to keep blocks while drawing and free them afterwards */
-	char tooltipdisabled;       /* to avoid tooltip after click */
-	char endblock;              /* UI_block_end done? */
+	/** to keep blocks while drawing and free them afterwards */
+	char active;
+	/** to avoid tooltip after click */
+	char tooltipdisabled;
+	/** UI_block_end done? */
+	char endblock;
 
-	eBlockBoundsCalc bounds_type;  /* for doing delayed */
+	/** for doing delayed */
+	eBlockBoundsCalc bounds_type;
 	int mx, my;
-	int bounds, minbounds;      /* for doing delayed */
+	/** for doing delayed */
+	int bounds, minbounds;
 
-	rctf safety;                /* pulldowns, to detect outside, can differ per case how it is created */
-	ListBase saferct;           /* uiSafetyRct list */
+	/** pulldowns, to detect outside, can differ per case how it is created */
+	rctf safety;
+	/** uiSafetyRct list */
+	ListBase saferct;
 
 	uiPopupBlockHandle *handle; /* handle */
 
-	struct wmOperator *ui_operator; /* use so presets can find the operator, */
-	                                /* across menus and from nested popups which fail for operator context. */
+	/** use so presets can find the operator,
+	 * across menus and from nested popups which fail for operator context. */
+	struct wmOperator *ui_operator;
 
-	void *evil_C;               /* XXX hack for dynamic operator enums */
+	/** XXX hack for dynamic operator enums */
+	void *evil_C;
 
-	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
-	ColorPickerData color_pickers; /* XXX, only accessed by color picker templates */
+	/** unit system, used a lot for numeric buttons so include here
+	 * rather then fetching through the scene every time. */
+	struct UnitSettings *unit;
+	/** \note only accessed by color picker templates. */
+	ColorPickerData color_pickers;
 
 	bool is_color_gamma_picker; /* Block for color picker with gamma baked in. */
 
-	char display_device[64]; /* display device name used to display this block,
-	                          * used by color widgets to transform colors from/to scene linear
-	                          */
+	/** display device name used to display this block,
+	 * used by color widgets to transform colors from/to scene linear
+	 */
+	char display_device[64];
+
 	struct PieMenuData pie_data;
 };
 

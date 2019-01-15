@@ -505,7 +505,8 @@ void ED_object_parent_clear(Object *ob, const int type)
 	switch (type) {
 		case CLEAR_PARENT_ALL:
 		{
-			/* for deformers, remove corresponding modifiers to prevent a large number of modifiers building up */
+			/* for deformers, remove corresponding modifiers to prevent
+			 * a large number of modifiers building up */
 			object_remove_parent_deform_modifiers(ob, ob->parent);
 
 			/* clear parenting relationship completely */
@@ -514,14 +515,16 @@ void ED_object_parent_clear(Object *ob, const int type)
 		}
 		case CLEAR_PARENT_KEEP_TRANSFORM:
 		{
-			/* remove parent, and apply the parented transform result as object's local transforms */
+			/* remove parent, and apply the parented transform
+			 * result as object's local transforms */
 			ob->parent = NULL;
 			BKE_object_apply_mat4(ob, ob->obmat, true, false);
 			break;
 		}
 		case CLEAR_PARENT_INVERSE:
 		{
-			/* object stays parented, but the parent inverse (i.e. offset from parent to retain binding state)
+			/* object stays parented, but the parent inverse
+			 * (i.e. offset from parent to retain binding state)
 			 * is cleared. In other words: nothing to do here! */
 			break;
 		}
@@ -632,7 +635,8 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 
 			if ((cu->flag & CU_PATH) == 0) {
 				cu->flag |= CU_PATH | CU_FOLLOW;
-				BKE_displist_make_curveTypes(depsgraph, scene, par, false, false);  /* force creation of path data */
+				/* force creation of path data */
+				BKE_displist_make_curveTypes(depsgraph, scene, par, false, false);
 			}
 			else {
 				cu->flag |= CU_FOLLOW;
@@ -1469,7 +1473,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						/* new approach, using functions from kernel */
 						for (a = 0; a < ob_src->totcol; a++) {
 							Material *ma = give_current_material(ob_src, a + 1);
-							assign_material(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF); /* also works with ma==NULL */
+							/* also works with `ma == NULL` */
+							assign_material(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF);
 						}
 						DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
 						break;
@@ -1868,7 +1873,8 @@ static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, V
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
 				if (ma) {
-					/* do not test for LIB_TAG_NEW or use newid: this functions guaranteed delivers single_users! */
+					/* do not test for LIB_TAG_NEW or use newid:
+					 * this functions guaranteed delivers single_users! */
 
 					if (ma->id.us > 1) {
 						man = BKE_material_copy(bmain, ma);
@@ -2214,8 +2220,9 @@ static void make_override_static_tag_object(Object *obact, Object *ob)
 		return;
 	}
 
-	/* Note: all this is very case-by-case bad handling, ultimately we'll want a real full 'automatic', generic
-	 * handling of all this, will probably require adding some override-aware stuff to library_query code... */
+	/* Note: all this is very case-by-case bad handling, ultimately we'll want a real full
+	 * 'automatic', generic handling of all this,
+	 * will probably require adding some override-aware stuff to library_query code... */
 
 	if (obact->type == OB_ARMATURE && ob->modifiers.first != NULL) {
 		for (ModifierData *md = ob->modifiers.first; md != NULL; md = md->next) {
@@ -2357,10 +2364,12 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
-		/* obcollection is no more duplicollection-ing, it merely parents whole collection of overriding instantiated objects. */
+		/* obcollection is no more duplicollection-ing,
+		 * it merely parents whole collection of overriding instantiated objects. */
 		obcollection->dup_group = NULL;
 
-		/* Also, we'd likely want to lock by default things like transformations of implicitly overridden objects? */
+		/* Also, we'd likely want to lock by default things like
+		 * transformations of implicitly overridden objects? */
 
 		DEG_id_tag_update(&scene->id, 0);
 
@@ -2380,7 +2389,8 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		success = BKE_override_static_create_from_tag(bmain);
 
-		/* Also, we'd likely want to lock by default things like transformations of implicitly overridden objects? */
+		/* Also, we'd likely want to lock by default things like
+		 * transformations of implicitly overridden objects? */
 
 		/* Cleanup. */
 		BKE_main_id_clear_newpoins(bmain);

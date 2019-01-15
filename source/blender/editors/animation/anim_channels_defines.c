@@ -3531,7 +3531,8 @@ static bAnimChannelType ACF_NLAACTION =
 	"NLA Active Action",            /* type name */
 	ACHANNEL_ROLE_CHANNEL,          /* role */
 
-	acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too, since it needs special hacks) */
+	acf_nlaaction_color,            /* backdrop color (NOTE: the backdrop handles this too,
+	                                 * since it needs special hacks) */
 	acf_nlaaction_backdrop,         /* backdrop */
 	acf_generic_indention_flexible, /* indent level */
 	acf_generic_group_offset,       /* offset */           // XXX?
@@ -4413,7 +4414,8 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 					break;
 
 				/* no flushing */
-				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush, otherwise all would open/close at once */
+				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
+				                               * otherwise all would open/close at once */
 				default:
 					UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
 					break;
@@ -4601,7 +4603,8 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 
 			/* modifiers disable */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MOD_OFF)) {
-				offset += ICON_WIDTH * 1.2f; /* hack: extra spacing, to avoid touching the mute toggle */
+				/* hack: extra spacing, to avoid touching the mute toggle */
+				offset += ICON_WIDTH * 1.2f;
 				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MOD_OFF);
 			}
 

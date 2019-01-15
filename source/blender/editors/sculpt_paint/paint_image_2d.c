@@ -1522,7 +1522,8 @@ void paint_2d_bucket_fill(
 		float image_init[2];
 		int minx = ibuf->x, miny = ibuf->y, maxx = 0, maxy = 0;
 		float pixel_color[4];
-		/* We are comparing to sum of three squared values (assumed in range [0,1]), so need to multiply... */
+		/* We are comparing to sum of three squared values
+		 * (assumed in range [0,1]), so need to multiply... */
 		float threshold_sq = br->fill_threshold * br->fill_threshold * 3;
 
 		UI_view2d_region_to_view(s->v2d, mouse_init[0], mouse_init[1], &image_init[0], &image_init[1]);

@@ -194,7 +194,8 @@ static GHash *text_autocomplete_build(Text *text)
 						str_sub[choice_len] = '\0';
 						if (!BLI_ghash_lookup(gh, str_sub)) {
 							char *str_dup = BLI_strdupn(str_sub, choice_len);
-							BLI_ghash_insert(gh, str_dup, str_dup);  /* A 'set' would make more sense here */
+							/* A 'set' would make more sense here */
+							BLI_ghash_insert(gh, str_dup, str_dup);
 						}
 						str_sub[choice_len] = str_sub_last;
 					}

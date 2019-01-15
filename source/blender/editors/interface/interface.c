@@ -164,7 +164,8 @@ void ui_block_to_window_rctf(const ARegion *ar, uiBlock *block, rctf *rct_dst, c
 	ui_block_to_window_fl(ar, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
-void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y)   /* for mouse cursor */
+/* for mouse cursor */
+void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
 {
 	float a, b, c, d, e, f, px, py;
 	int sx, sy, getsizex, getsizey;
@@ -505,7 +506,8 @@ static void ui_block_bounds_calc_popup(
 	ui_block_bounds_calc(block);
 
 	/* If given, adjust input coordinates such that they would generate real final popup position.
-	 * Needed to handle correctly floating panels once they have been dragged around, see T52999. */
+	 * Needed to handle correctly floating panels once they have been dragged around,
+	 * see T52999. */
 	if (r_xy) {
 		r_xy[0] = xy[0] + block->rect.xmin - raw_x;
 		r_xy[1] = xy[1] + block->rect.ymin - raw_y;
@@ -1116,7 +1118,8 @@ static bool ui_but_event_property_operator_string(
 	/* Don't use the button again. */
 	but = NULL;
 
-	/* this version is only for finding hotkeys for properties (which get set via context using operators) */
+	/* this version is only for finding hotkeys for properties
+	 * (which get set via context using operators) */
 	if (prop) {
 		/* to avoid massive slowdowns on property panels, for now, we only check the
 		 * hotkeys for Editor / Scene settings...
@@ -1327,7 +1330,8 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 					continue;
 				}
 				else if (((block->flag & UI_BLOCK_POPOVER) == 0) && UI_but_is_tool(but)) {
-					/* For non-popovers, shown in shortcut only (has special shortcut handling code). */
+					/* For non-popovers, shown in shortcut only
+					 * (has special shortcut handling code). */
 					continue;
 				}
 			}
@@ -2090,7 +2094,8 @@ void ui_but_value_set(uiBut *but, double value)
 				case PROP_ENUM:
 					if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
 						int ivalue = (int)value;
-						ivalue ^= RNA_property_enum_get(&but->rnapoin, prop); /* toggle for enum/flag buttons */
+						/* toggle for enum/flag buttons */
+						ivalue ^= RNA_property_enum_get(&but->rnapoin, prop);
 						RNA_property_enum_set(&but->rnapoin, prop, ivalue);
 					}
 					else {
@@ -2294,7 +2299,8 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 {
 	int unit_type = RNA_SUBTYPE_UNIT_VALUE(UI_but_unit_type_get(but));
 	const double step_orig = step_default * UI_PRECISION_FLOAT_SCALE;
-	/* Scaling up 'step_origg ' here is a bit arbitrary, its just giving better scales from user POV */
+	/* Scaling up 'step_origg ' here is a bit arbitrary,
+	 * its just giving better scales from user POV */
 	const double scale_step = ui_get_but_scale_unit(but, step_orig * 10);
 	const double step = bUnit_ClosestScalar(scale_step, but->block->unit->system, unit_type);
 
@@ -2514,7 +2520,8 @@ bool ui_but_string_set_eval_num(bContext *C, uiBut *but, const char *str, double
 		bool is_unit_but = (ui_but_is_float(but) && ui_but_is_unit(but));
 		/* only enable verbose if we won't run again with units */
 		if (BPY_execute_string_as_number(C, NULL, str, is_unit_but == false, r_value)) {
-			/* if the value parsed ok without unit conversion this button may still need a unit multiplier */
+			/* if the value parsed ok without unit conversion
+			 * this button may still need a unit multiplier */
 			if (is_unit_but) {
 				char str_new[128];
 
@@ -3569,7 +3576,8 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 					uiItemL(column, item->name, item->icon);
 				}
 				else {
-					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+					/* Do not use uiItemL here, as our root layout is a menu one,
+					 * it will add a fake blank icon! */
 					uiDefBut(block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 				}
 			}
@@ -4588,7 +4596,8 @@ void UI_but_func_search_set(
         uiButSearchFunc search_func, void *arg,
         uiButHandleFunc bfunc, void *active)
 {
-	/* needed since callers don't have access to internal functions (as an alternative we could expose it) */
+	/* needed since callers don't have access to internal functions
+	 * (as an alternative we could expose it) */
 	if (search_create_func == NULL) {
 		search_create_func = ui_searchbox_create_generic;
 	}
@@ -4637,7 +4646,8 @@ static void operator_enum_search_cb(const struct bContext *C, void *but, const c
 		RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
 
 		for (item = item_array; item->identifier; item++) {
-			/* note: need to give the index rather than the identifier because the enum can be freed */
+			/* note: need to give the index rather than the
+			 * identifier because the enum can be freed */
 			if (BLI_strcasestr(item->name, str)) {
 				if (false == UI_search_item_add(items, item->name, POINTER_FROM_INT(item->value), item->icon))
 					break;

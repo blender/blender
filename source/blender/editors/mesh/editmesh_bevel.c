@@ -90,7 +90,8 @@ typedef struct {
 	float initial_length[NUM_VALUE_KINDS];
 	float scale[NUM_VALUE_KINDS];
 	NumInput num_input[NUM_VALUE_KINDS];
-	float shift_value[NUM_VALUE_KINDS]; /* The current value when shift is pressed. Negative when shift not active. */
+	/** The current value when shift is pressed. Negative when shift not active. */
+	float shift_value[NUM_VALUE_KINDS];
 	bool is_modal;
 
 	BevelObjectStore *ob_store;
@@ -189,7 +190,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		if (i == OFFSET_VALUE) {
 			opdata->num_input[i].unit_sys = scene->unit.system;
 		}
-		opdata->num_input[i].unit_type[0] = B_UNIT_NONE;  /* Not sure this is a factor or a unit? */
+		/* Not sure this is a factor or a unit? */
+		opdata->num_input[i].unit_type[0] = B_UNIT_NONE;
 	}
 
 	/* avoid the cost of allocating a bm copy */

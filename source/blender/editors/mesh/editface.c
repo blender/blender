@@ -548,7 +548,8 @@ void paintvert_tag_select_update(struct bContext *C, struct Object *ob)
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 }
 
-/*  note: if the caller passes false to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
+/*  note: if the caller passes false to flush_flags,
+ *  then they will need to run paintvert_flush_flags(ob) themselves */
 void paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 {
 	Mesh *me;

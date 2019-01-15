@@ -105,7 +105,8 @@ ListBase *get_active_constraints(Object *ob)
 	return NULL;
 }
 
-/* Find the list that a given constraint belongs to, and/or also get the posechannel this is from (if applicable) */
+/* Find the list that a given constraint belongs to,
+ * and/or also get the posechannel this is from (if applicable) */
 ListBase *get_constraint_lb(Object *ob, bConstraint *con, bPoseChannel **r_pchan)
 {
 	if (r_pchan)
@@ -1306,7 +1307,8 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	if (BKE_constraint_remove_ex(lb, ob, con, true)) {
 		/* there's no active constraint now, so make sure this is the case */
 		BKE_constraints_active_set(&ob->constraints, NULL);
-		ED_object_constraint_update(bmain, ob); /* needed to set the flags on posebones correctly */
+		/* needed to set the flags on posebones correctly */
+		ED_object_constraint_update(bmain, ob);
 
 		/* relatiols */
 		DEG_relations_tag_update(CTX_data_main(C));
@@ -1637,7 +1639,8 @@ static bool get_new_constraint_target(bContext *C, int con_type, Object **tar_ob
 			return false;
 
 		/* restricted target-type constraints -------------- */
-		/* NOTE: for these, we cannot try to add a target object if no valid ones are found, since that doesn't work */
+		/* NOTE: for these, we cannot try to add a target object if no valid ones are found,
+		 * since that doesn't work */
 		/* curve-based constraints - set the only_curve and only_ob flags */
 		case CONSTRAINT_TYPE_CLAMPTO:
 		case CONSTRAINT_TYPE_FOLLOWPATH:

@@ -239,7 +239,8 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 		numW = lt->pntsw;
 		totP = numU * numV * numW;
 
-		/* First Pass: determine midpoint - used for flipping center verts if there are odd number of points on axis */
+		/* First Pass: determine midpoint - used for flipping center verts if there
+		 * are odd number of points on axis */
 		switch (axis) {
 			case LATTICE_FLIP_U:
 				isOdd = numU & 1;

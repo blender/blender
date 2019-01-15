@@ -1916,7 +1916,8 @@ static int correctivesmooth_bind_exec(bContext *C, wmOperator *op)
 		/* signal to modifier to recalculate */
 		csmd->bind_coords_num = (unsigned int)-1;
 
-		/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+		/* Force modifier to run, it will call binding routine
+		 * (this has to happen outside of depsgraph evaluation). */
 		const int mode = csmd->modifier.mode;
 		csmd->modifier.mode |= eModifierMode_Realtime;
 		object_force_modifier_update_for_bind(depsgraph, scene, ob);
@@ -2303,7 +2304,8 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 		lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
 	}
 
-	/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+	/* Force modifier to run, it will call binding routine
+	 * (this has to happen outside of depsgraph evaluation). */
 	const int mode = lmd->modifier.mode;
 	lmd->modifier.mode |= eModifierMode_Realtime;
 	object_force_modifier_update_for_bind(depsgraph, scene, ob);
@@ -2365,7 +2367,8 @@ static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
 		smd->flags |= MOD_SDEF_BIND;
 	}
 
-	/* Force modifier to run, it will call binding routine (this has to happen outside of depsgraph evaluation). */
+	/* Force modifier to run, it will call binding routine
+	 * (this has to happen outside of depsgraph evaluation). */
 	const int mode = smd->modifier.mode;
 	smd->modifier.mode |= eModifierMode_Realtime;
 	object_force_modifier_update_for_bind(depsgraph, scene, ob);

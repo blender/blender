@@ -195,7 +195,8 @@ static bool compare_nodes(const bNode *a, const bNode *b)
 	bool a_active = (a->flag & NODE_ACTIVE) != 0, b_active = (b->flag & NODE_ACTIVE) != 0;
 
 	/* if one is an ancestor of the other */
-	/* XXX there might be a better sorting algorithm for stable topological sort, this is O(n^2) worst case */
+	/* XXX there might be a better sorting algorithm for stable topological sort,
+	 * this is O(n^2) worst case */
 	for (parent = a->parent; parent; parent = parent->parent) {
 		/* if b is an ancestor, it is always behind a */
 		if (parent == b)
@@ -713,7 +714,8 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	node_draw_preview_background(BLI_rctf_size_x(prv) / 10.0f, &draw_rect);
 
 	GPU_blend(true);
-	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);  /* premul graphics */
+	/* premul graphics */
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 	immDrawPixelsTex(&state, draw_rect.xmin, draw_rect.ymin, preview->xsize, preview->ysize, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, preview->rect,
@@ -967,8 +969,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 	nodeLabel(ntree, node, showname, sizeof(showname));
 
+	/* XXX - don't print into self! */
 	//if (node->flag & NODE_MUTED)
-	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
+	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname);
 
 	uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
 	         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(rct->ymax - NODE_DY),
@@ -976,8 +979,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	         NULL, 0, 0, 0, 0, "");
 
 	/* body */
-	if (!nodeIsRegistered(node))
-		UI_GetThemeColor4fv(TH_REDALERT, color);	/* use warning color to indicate undefined types */
+	if (!nodeIsRegistered(node)) {
+		/* use warning color to indicate undefined types */
+		UI_GetThemeColor4fv(TH_REDALERT, color);
+	}
 	else if (node->flag & NODE_CUSTOM_COLOR) {
 		rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], 1.0f);
 	}
@@ -1092,8 +1097,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (node->miniwidth > 0.0f) {
 		nodeLabel(ntree, node, showname, sizeof(showname));
 
+		/* XXX - don't print into self! */
 		//if (node->flag & NODE_MUTED)
-		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
+		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname);
 
 		uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
 		         round_fl_to_int(rct->xmin + NODE_MARGIN_X), round_fl_to_int(centy - NODE_DY * 0.5f),

@@ -86,7 +86,8 @@ typedef struct UvAdjacencyElement {
 typedef struct UvEdge {
 	unsigned int uv1;
 	unsigned int uv2;
-	/* general use flag (Used to check if edge is boundary here, and propagates to adjacency elements) */
+	/* general use flag
+	 * (Used to check if edge is boundary here, and propagates to adjacency elements) */
 	char flag;
 } UvEdge;
 
@@ -745,7 +746,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 					edges[counter].uv1 = offset2;
 					edges[counter].uv2 = offset1;
 				}
-				/* Hack! Set the value of the key to its flag. Now we can set the flag when an edge exists twice :) */
+				/* Hack! Set the value of the key to its flag.
+				 * Now we can set the flag when an edge exists twice :) */
 				flag = BLI_ghash_lookup(edgeHash, &edges[counter]);
 				if (flag) {
 					*flag = 1;

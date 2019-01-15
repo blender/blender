@@ -512,7 +512,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 	{
 		/* Get mounted volumes better method OSX 10.6 and higher, see: */
 		/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
-		/* we get all volumes sorted including network and do not relay on user-defined finder visibility, less confusing */
+
+		/* we get all volumes sorted including network and do not relay
+		 * on user-defined finder visibility, less confusing */
 
 		CFURLRef cfURL = NULL;
 		CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
@@ -646,7 +648,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 							 * Assuming every entry ends with the share name */
 							const char *label = strstr(dirname, "share=");
 							if (label != NULL) {
-								/* Move pointer so "share=" is trimmed off or use full dirname as label. */
+								/* Move pointer so "share=" is trimmed off
+								 * or use full dirname as label. */
 								const char *label_test = label + 6;
 								label = *label_test ? label_test : dirname;
 							}

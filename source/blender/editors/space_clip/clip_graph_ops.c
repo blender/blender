@@ -241,7 +241,8 @@ static bool mouse_select_curve(bContext *C, float co[2], bool extend)
 	if (userdata.track) {
 		if (extend) {
 			if (act_track == userdata.track) {
-				/* currently only single curve can be selected (selected curve represents active track) */
+				/* currently only single curve can be selected
+				 * (selected curve represents active track) */
 				act_track = NULL;
 			}
 		}

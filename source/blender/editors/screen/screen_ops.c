@@ -4183,7 +4183,8 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	}
 	else {
-		int refresh = SPACE_ACTION; /* these settings are currently only available from a menu in the TimeLine */
+		/* these settings are currently only available from a menu in the TimeLine */
+		int refresh = SPACE_ACTION;
 
 		if (mode == 1)  /* XXX only play audio forwards!? */
 			BKE_sound_play_scene(scene);
@@ -4389,7 +4390,8 @@ static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	/* changes context! */
 	if (WM_window_open_temp(C, event->x, event->y, sizex, sizey, WM_WINDOW_USERPREFS) != NULL) {
-		/* The header only contains the editor switcher and looks empty. So hiding in the temp window makes sense. */
+		/* The header only contains the editor switcher and looks empty.
+		 * So hiding in the temp window makes sense. */
 		ScrArea *area = CTX_wm_area(C);
 		ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 		region->flag |= RGN_FLAG_HIDDEN;

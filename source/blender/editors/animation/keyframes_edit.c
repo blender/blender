@@ -369,7 +369,8 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, bA
 	return 0;
 }
 
-/* This function is used to apply operation to all keyframes, regardless of the type without needed an AnimListElem wrapper */
+/* This function is used to apply operation to all keyframes,
+ * regardless of the type without needed an AnimListElem wrapper */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
 	/* sanity checks */
@@ -670,25 +671,35 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
 {
 	/* eEditKeyframes_Validate */
 	switch (mode) {
-		case BEZT_OK_FRAME: /* only if bezt falls on the right frame (float) */
+		case BEZT_OK_FRAME:
+			/* only if bezt falls on the right frame (float) */
 			return ok_bezier_frame;
-		case BEZT_OK_FRAMERANGE: /* only if bezt falls within the specified frame range (floats) */
+		case BEZT_OK_FRAMERANGE:
+			/* only if bezt falls within the specified frame range (floats) */
 			return ok_bezier_framerange;
-		case BEZT_OK_SELECTED:  /* only if bezt is selected (self) */
+		case BEZT_OK_SELECTED:
+			/* only if bezt is selected (self) */
 			return ok_bezier_selected;
-		case BEZT_OK_VALUE: /* only if bezt value matches (float) */
+		case BEZT_OK_VALUE:
+			/* only if bezt value matches (float) */
 			return ok_bezier_value;
-		case BEZT_OK_VALUERANGE: /* only if bezier falls within the specified value range (floats) */
+		case BEZT_OK_VALUERANGE:
+			/* only if bezier falls within the specified value range (floats) */
 			return ok_bezier_valuerange;
-		case BEZT_OK_REGION: /* only if bezier falls within the specified rect (data -> rectf) */
+		case BEZT_OK_REGION:
+			/* only if bezier falls within the specified rect (data -> rectf) */
 			return ok_bezier_region;
-		case BEZT_OK_REGION_LASSO: /* only if the point falls within KeyframeEdit_LassoData defined data */
+		case BEZT_OK_REGION_LASSO:
+			/* only if the point falls within KeyframeEdit_LassoData defined data */
 			return ok_bezier_region_lasso;
-		case BEZT_OK_REGION_CIRCLE: /* only if the point falls within KeyframeEdit_CircleData defined data */
+		case BEZT_OK_REGION_CIRCLE:
+			/* only if the point falls within KeyframeEdit_CircleData defined data */
 			return ok_bezier_region_circle;
-		case BEZT_OK_CHANNEL_LASSO: /* same as BEZT_OK_REGION_LASSO, but we're only using the x-value of the points */
+		case BEZT_OK_CHANNEL_LASSO:
+			/* same as BEZT_OK_REGION_LASSO, but we're only using the x-value of the points */
 			return ok_bezier_channel_lasso;
-		case BEZT_OK_CHANNEL_CIRCLE: /* same as BEZT_OK_REGION_CIRCLE, but we're only using the x-value of the points */
+		case BEZT_OK_CHANNEL_CIRCLE:
+			/* same as BEZT_OK_REGION_CIRCLE, but we're only using the x-value of the points */
 			return ok_bezier_channel_circle;
 		default: /* nothing was ok */
 			return NULL;
@@ -698,7 +709,10 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
 /* ******************************************* */
 /* Assorted Utility Functions */
 
-/* helper callback for <animeditor>_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
+/**
+ * Helper callback for <animeditor>_cfrasnap_exec() ->
+ * used to help get the average time of all selected beztriples
+ */
 short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* only if selected */
@@ -718,7 +732,8 @@ short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-/* helper callback for columnselect_<animeditor>_keys() -> populate list CfraElems with frame numbers from selected beztriples */
+/* helper callback for columnselect_<animeditor>_keys() -> populate
+ * list CfraElems with frame numbers from selected beztriples */
 short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* only if selected */

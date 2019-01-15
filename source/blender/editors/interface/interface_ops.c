@@ -444,7 +444,8 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
 			operation = IDOVERRIDESTATIC_OP_REPLACE;
 			break;
 		case UIOverride_Type_Difference:
-			operation = IDOVERRIDESTATIC_OP_ADD;  /* override code will automatically switch to subtract if needed. */
+			/* override code will automatically switch to subtract if needed. */
+			operation = IDOVERRIDESTATIC_OP_ADD;
 			break;
 		case UIOverride_Type_Factor:
 			operation = IDOVERRIDESTATIC_OP_MULTIPLY;
@@ -549,13 +550,15 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
 
 	if (!all && index != -1) {
 		bool is_strict_find;
-		/* Remove override operation for given item, add singular operations for the other items as needed. */
+		/* Remove override operation for given item,
+		 * add singular operations for the other items as needed. */
 		IDOverrideStaticPropertyOperation *opop = BKE_override_static_property_operation_find(
 		        oprop, NULL, NULL, index, index, false, &is_strict_find);
 		BLI_assert(opop != NULL);
 		if (!is_strict_find) {
 			/* No specific override operation, we have to get generic one,
-			 * and create item-specific override operations for all but given index, before removing generic one. */
+			 * and create item-specific override operations for all but given index,
+			 * before removing generic one. */
 			for (int idx = RNA_property_array_length(&ptr, prop); idx--; ) {
 				if (idx != index) {
 					BKE_override_static_property_operation_get(oprop, opop->operation, NULL, NULL, idx, idx, true, NULL, NULL);
@@ -735,7 +738,8 @@ bool UI_context_copy_to_selected_list(
 		}
 		else if (GS(id->name) == ID_SCE) {
 			/* Sequencer's ID is scene :/ */
-			/* Try to recursively find an RNA_Sequence ancestor, to handle situations like T41062... */
+			/* Try to recursively find an RNA_Sequence ancestor,
+			 * to handle situations like T41062... */
 			if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) != NULL) {
 				*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
 			}

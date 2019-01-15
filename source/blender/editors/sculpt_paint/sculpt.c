@@ -108,7 +108,8 @@
  *
  * \{ */
 
-/* Check if there are any active modifiers in stack (used for flushing updates at enter/exit sculpt mode) */
+/* Check if there are any active modifiers in stack
+ * (used for flushing updates at enter/exit sculpt mode) */
 static bool sculpt_has_active_modifiers(Scene *scene, Object *ob)
 {
 	ModifierData *md;
@@ -2458,7 +2459,8 @@ static void do_snake_hook_brush_task_cb_ex(
 					project_plane_v3_v3v3(delta_pinch, delta_pinch, ss->cache->true_view_normal);
 				}
 
-				/* important to calculate based on the grabbed location (intentionally ignore fade here). */
+				/* important to calculate based on the grabbed location
+				 * (intentionally ignore fade here). */
 				add_v3_v3(delta_pinch, grab_delta);
 
 				sculpt_project_v3(spvc, delta_pinch, delta_pinch);
@@ -3960,7 +3962,8 @@ static void do_tiled(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 	const float *step = sd->paint.tile_offset;
 	int dim;
 
-	/* These are integer locations, for real location: multiply with step and add orgLoc. So 0,0,0 is at orgLoc. */
+	/* These are integer locations, for real location: multiply with step and add orgLoc.
+	 * So 0,0,0 is at orgLoc. */
 	int start[3];
 	int end[3];
 	int cur[3];
@@ -4352,7 +4355,8 @@ static void sculpt_update_cache_invariants(
 
 		if (ss->bm) {
 			/* Free any remaining layer displacements from nodes. If not and topology changes
-			 * from using another tool, then next layer toolstroke can access past disp array bounds */
+			 * from using another tool, then next layer toolstroke
+			 * can access past disp array bounds */
 			BKE_pbvh_free_layer_disp(ss->pbvh);
 		}
 	}
@@ -4805,8 +4809,10 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
 	MTex *mtex = &brush->mtex;
 
 	/* init mtex nodes */
-	if (mtex->tex && mtex->tex->nodetree)
-		ntreeTexBeginExecTree(mtex->tex->nodetree);  /* has internal flag to detect it only does it once */
+	if (mtex->tex && mtex->tex->nodetree) {
+		/* has internal flag to detect it only does it once */
+		ntreeTexBeginExecTree(mtex->tex->nodetree);
+	}
 
 	/* TODO: Shouldn't really have to do this at the start of every
 	 * stroke, but sculpt would need some sort of notification when
@@ -4932,7 +4938,8 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 {
 	/* Don't start the stroke until mouse goes over the mesh.
 	 * note: mouse will only be null when re-executing the saved stroke.
-	 * We have exception for 'exec' strokes since they may not set 'mouse', only 'location', see: T52195. */
+	 * We have exception for 'exec' strokes since they may not set 'mouse',
+	 * only 'location', see: T52195. */
 	if (((op->flag & OP_IS_INVOKE) == 0) ||
 	    (mouse == NULL) || over_mesh(C, op, mouse[0], mouse[1]))
 	{
@@ -5177,7 +5184,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	                "Clicks on the background do not start the stroke");
 }
 
-/**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
+/* Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) */
 
 static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 {
