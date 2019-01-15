@@ -183,7 +183,7 @@ typedef enum eFMI_Requirement_Flags {
 	FMI_REQUIRES_RUNTIME_CHECK      = (1 << 2),
 
 	/* Requires to store data shared between time and valua evaluation */
-	FMI_REQUIRES_STORAGE            = (1 << 3)
+	FMI_REQUIRES_STORAGE            = (1 << 3),
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */

@@ -37,7 +37,7 @@ protected:
 public:
 	enum BlurAxis {
 		BLUR_AXIS_X = 0,
-		BLUR_AXIS_Y = 1
+		BLUR_AXIS_Y = 1,
 	};
 
 	KeyingBlurOperation();

@@ -79,7 +79,7 @@
 
 enum {
 	GP_ARMATURE_NAME = 0,
-	GP_ARMATURE_AUTO = 1
+	GP_ARMATURE_AUTO = 1,
 };
 
 #define DEFAULT_RATIO 0.10f

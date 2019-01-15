@@ -48,7 +48,7 @@ typedef enum ePhysicsRelationType {
 	DEG_PHYSICS_COLLISION       = 1,
 	DEG_PHYSICS_SMOKE_COLLISION = 2,
 	DEG_PHYSICS_DYNAMIC_BRUSH   = 3,
-	DEG_PHYSICS_RELATIONS_NUM   = 4
+	DEG_PHYSICS_RELATIONS_NUM   = 4,
 } ePhysicsRelationType;
 
 /* Get collision/effector relations from collection or entire scene. These

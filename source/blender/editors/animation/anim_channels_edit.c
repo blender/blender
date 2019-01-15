@@ -707,7 +707,7 @@ typedef enum eRearrangeAnimChan_Mode {
 	REARRANGE_ANIMCHAN_TOP = -2,
 	REARRANGE_ANIMCHAN_UP = -1,
 	REARRANGE_ANIMCHAN_DOWN = 1,
-	REARRANGE_ANIMCHAN_BOTTOM = 2
+	REARRANGE_ANIMCHAN_BOTTOM = 2,
 } eRearrangeAnimChan_Mode;
 
 /* defines for rearranging channels */

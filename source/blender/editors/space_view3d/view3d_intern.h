@@ -59,7 +59,7 @@ struct wmWindowManager;
 enum {
 	DRAW_PICKING     = (1 << 0),
 	DRAW_CONSTCOLOR  = (1 << 1),
-	DRAW_SCENESET    = (1 << 2)
+	DRAW_SCENESET    = (1 << 2),
 };
 
 /* view3d_header.c */

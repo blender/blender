@@ -47,13 +47,13 @@ struct FileDirEntry;
 typedef enum FileSelType {
 	FILE_SEL_REMOVE = 0,
 	FILE_SEL_ADD    = 1,
-	FILE_SEL_TOGGLE = 2
+	FILE_SEL_TOGGLE = 2,
 } FileSelType;
 
 typedef enum FileCheckType {
 	CHECK_DIRS = 1,
 	CHECK_FILES = 2,
-	CHECK_ALL = 3
+	CHECK_ALL = 3,
 } FileCheckType;
 
 struct ListBase    *folderlist_new(void);

@@ -463,13 +463,13 @@ typedef struct MovieTracking {
 /* MovieTrackingCamera->distortion_model */
 enum {
 	TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
-	TRACKING_DISTORTION_MODEL_DIVISION = 1
+	TRACKING_DISTORTION_MODEL_DIVISION = 1,
 };
 
 /* MovieTrackingCamera->units */
 enum {
 	CAMERA_UNITS_PX = 0,
-	CAMERA_UNITS_MM = 1
+	CAMERA_UNITS_MM = 1,
 };
 
 /* MovieTrackingMarker->flag */
@@ -478,7 +478,7 @@ enum {
 	MARKER_TRACKED     = (1 << 1),
 	MARKER_GRAPH_SEL_X = (1 << 2),
 	MARKER_GRAPH_SEL_Y = (1 << 3),
-	MARKER_GRAPH_SEL   = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y)
+	MARKER_GRAPH_SEL   = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y),
 };
 
 /* MovieTrackingTrack->flag */
@@ -494,7 +494,7 @@ enum {
 	TRACK_PREVIEW_GRAYSCALE = (1 << 9),
 	TRACK_DOPE_SEL          = (1 << 10),
 	TRACK_PREVIEW_ALPHA     = (1 << 11),
-	TRACK_USE_2D_STAB_ROT   = (1 << 12)
+	TRACK_USE_2D_STAB_ROT   = (1 << 12),
 };
 
 /* MovieTrackingTrack->motion_model */
@@ -504,33 +504,33 @@ enum {
 	TRACK_MOTION_MODEL_TRANSLATION_SCALE           = 2,
 	TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE  = 3,
 	TRACK_MOTION_MODEL_AFFINE                      = 4,
-	TRACK_MOTION_MODEL_HOMOGRAPHY                  = 5
+	TRACK_MOTION_MODEL_HOMOGRAPHY                  = 5,
 };
 
 /* MovieTrackingTrack->algorithm_flag */
 enum {
 	TRACK_ALGORITHM_FLAG_USE_BRUTE			= (1 << 0),
 	TRACK_ALGORITHM_FLAG_USE_NORMALIZATION	= (1 << 2),
-	TRACK_ALGORITHM_FLAG_USE_MASK			= (1 << 3)
+	TRACK_ALGORITHM_FLAG_USE_MASK			= (1 << 3),
 };
 
 /* MovieTrackingTrack->adjframes */
 enum {
 	TRACK_MATCH_KEYFRAME  = 0,
-	TRACK_MATCH_PREVFRAME = 1
+	TRACK_MATCH_PREVFRAME = 1,
 };
 
 /* MovieTrackingSettings->flag */
 enum {
 	TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED = (1 << 0),
-	TRACKING_SETTINGS_SHOW_EXTRA_EXPANDED = (1 << 1)
+	TRACKING_SETTINGS_SHOW_EXTRA_EXPANDED = (1 << 1),
 };
 
 /* MovieTrackingSettings->motion_flag */
 enum {
 	TRACKING_MOTION_TRIPOD = (1 << 0),
 
-	TRACKING_MOTION_MODAL  = (TRACKING_MOTION_TRIPOD)
+	TRACKING_MOTION_MODAL  = (TRACKING_MOTION_TRIPOD),
 };
 
 /* MovieTrackingSettings->speed */
@@ -539,13 +539,13 @@ enum {
 	TRACKING_SPEED_REALTIME = 1,
 	TRACKING_SPEED_HALF     = 2,
 	TRACKING_SPEED_QUARTER  = 4,
-	TRACKING_SPEED_DOUBLE   = 5
+	TRACKING_SPEED_DOUBLE   = 5,
 };
 
 /* MovieTrackingSettings->reconstruction_flag */
 enum {
 	/* TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0), */  /* DEPRECATED */
-	TRACKING_USE_KEYFRAME_SELECTION      = (1 << 1)
+	TRACKING_USE_KEYFRAME_SELECTION      = (1 << 1),
 };
 
 /* MovieTrackingSettings->refine_camera_intrinsics */
@@ -553,7 +553,7 @@ enum {
 	REFINE_FOCAL_LENGTH         = (1 << 0),
 	REFINE_PRINCIPAL_POINT      = (1 << 1),
 	REFINE_RADIAL_DISTORTION_K1 = (1 << 2),
-	REFINE_RADIAL_DISTORTION_K2 = (1 << 4)
+	REFINE_RADIAL_DISTORTION_K2 = (1 << 4),
 };
 
 /* MovieTrackingStrabilization->flag */
@@ -562,30 +562,30 @@ enum {
 	TRACKING_AUTOSCALE          = (1 << 1),
 	TRACKING_STABILIZE_ROTATION = (1 << 2),
 	TRACKING_STABILIZE_SCALE    = (1 << 3),
-	TRACKING_SHOW_STAB_TRACKS   = (1 << 5)
+	TRACKING_SHOW_STAB_TRACKS   = (1 << 5),
 };
 
 /* MovieTrackingStrabilization->filter */
 enum {
 	TRACKING_FILTER_NEAREST  = 0,
 	TRACKING_FILTER_BILINEAR = 1,
-	TRACKING_FILTER_BICUBIC  = 2
+	TRACKING_FILTER_BICUBIC  = 2,
 };
 
 /* MovieTrackingReconstruction->flag */
 enum {
-	TRACKING_RECONSTRUCTED = (1 << 0)
+	TRACKING_RECONSTRUCTED = (1 << 0),
 };
 
 /* MovieTrackingObject->flag */
 enum {
-	TRACKING_OBJECT_CAMERA = (1 << 0)
+	TRACKING_OBJECT_CAMERA = (1 << 0),
 };
 
 enum {
 	TRACKING_CLEAN_SELECT         = 0,
 	TRACKING_CLEAN_DELETE_TRACK   = 1,
-	TRACKING_CLEAN_DELETE_SEGMENT = 2
+	TRACKING_CLEAN_DELETE_SEGMENT = 2,
 };
 
 /* MovieTrackingDopesheet->sort_method */
@@ -593,21 +593,21 @@ enum {
 	TRACKING_DOPE_SORT_NAME          = 0,
 	TRACKING_DOPE_SORT_LONGEST       = 1,
 	TRACKING_DOPE_SORT_TOTAL         = 2,
-	TRACKING_DOPE_SORT_AVERAGE_ERROR = 3
+	TRACKING_DOPE_SORT_AVERAGE_ERROR = 3,
 };
 
 /* MovieTrackingDopesheet->flag */
 enum {
 	TRACKING_DOPE_SORT_INVERSE  = (1 << 0),
 	TRACKING_DOPE_SELECTED_ONLY = (1 << 1),
-	TRACKING_DOPE_SHOW_HIDDEN   = (1 << 2)
+	TRACKING_DOPE_SHOW_HIDDEN   = (1 << 2),
 };
 
 /* MovieTrackingDopesheetCoverageSegment->trackness */
 enum {
 	TRACKING_COVERAGE_BAD        = 0,
 	TRACKING_COVERAGE_ACCEPTABLE = 1,
-	TRACKING_COVERAGE_OK         = 2
+	TRACKING_COVERAGE_OK         = 2,
 };
 
 /* MovieTrackingPlaneMarker->flag */

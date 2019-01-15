@@ -171,7 +171,7 @@ static bool sculpt_brush_needs_rake_rotation(const Brush *brush)
 typedef enum StrokeFlags {
 	CLIP_X = 1,
 	CLIP_Y = 2,
-	CLIP_Z = 4
+	CLIP_Z = 4,
 } StrokeFlags;
 
 /************** Access to original unmodified vertex data *************/

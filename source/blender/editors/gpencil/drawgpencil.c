@@ -107,7 +107,7 @@ typedef enum eDrawStrokeFlags {
 	/** draw strokes as "volumetric" circular billboards */
 	GP_DRAWDATA_VOLUMETRIC	= (1 << 7),
 	/** fill insides/bounded-regions of strokes */
-	GP_DRAWDATA_FILL        = (1 << 8)
+	GP_DRAWDATA_FILL        = (1 << 8),
 } eDrawStrokeFlags;
 
 

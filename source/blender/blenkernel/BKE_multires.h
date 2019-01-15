@@ -74,7 +74,7 @@ typedef enum {
 	MULTIRES_USE_LOCAL_MMD = 1,
 	MULTIRES_USE_RENDER_PARAMS = 2,
 	MULTIRES_ALLOC_PAINT_MASK = 4,
-	MULTIRES_IGNORE_SIMPLIFY = 8
+	MULTIRES_IGNORE_SIMPLIFY = 8,
 } MultiresFlags;
 
 struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,

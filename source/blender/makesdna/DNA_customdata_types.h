@@ -149,7 +149,7 @@ typedef enum CustomDataType {
 	CD_TESSLOOPNORMAL   = 40,
 	CD_CUSTOMLOOPNORMAL = 41,
 
-	CD_NUMTYPES         = 42
+	CD_NUMTYPES         = 42,
 } CustomDataType;
 
 /* Bits for CustomDataMask */

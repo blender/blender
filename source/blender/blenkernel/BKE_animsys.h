@@ -87,7 +87,7 @@ typedef enum eAnimData_MergeCopy_Modes {
 	ADT_MERGECOPY_SRC_COPY = 1,
 
 	/* Use src action (but just reference the existing version) */
-	ADT_MERGECOPY_SRC_REF  = 2
+	ADT_MERGECOPY_SRC_REF  = 2,
 } eAnimData_MergeCopy_Modes;
 
 void BKE_animdata_merge_copy(

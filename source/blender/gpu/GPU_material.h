@@ -90,7 +90,7 @@ typedef enum GPUType {
 	GPU_CLOSURE = 1006,
 
 	/* Opengl Attributes */
-	GPU_ATTRIB = 3001
+	GPU_ATTRIB = 3001,
 } GPUType;
 
 typedef enum GPUBuiltin {
@@ -130,7 +130,7 @@ typedef enum GPUBlendMode {
 	GPU_BLEND_ALPHA = 2,
 	GPU_BLEND_CLIP = 4,
 	GPU_BLEND_ALPHA_SORT = 8,
-	GPU_BLEND_ALPHA_TO_COVERAGE = 16
+	GPU_BLEND_ALPHA_TO_COVERAGE = 16,
 } GPUBlendMode;
 
 typedef struct GPUNodeStack {

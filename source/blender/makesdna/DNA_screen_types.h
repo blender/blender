@@ -563,7 +563,7 @@ enum {
 	/** Special flag to indicate that order is locked (not user-changeable). */
 	UILST_FLT_SORT_LOCK       = 1u << 30,
 	/** Special value, bitflag used to reverse order! */
-	UILST_FLT_SORT_REVERSE      = 1u << 31
+	UILST_FLT_SORT_REVERSE      = 1u << 31,
 };
 
 #define UILST_FLT_SORT_MASK (((unsigned int)(UILST_FLT_SORT_REVERSE | UILST_FLT_SORT_LOCK)) - 1)

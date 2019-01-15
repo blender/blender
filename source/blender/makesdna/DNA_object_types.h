@@ -581,7 +581,7 @@ enum {
 enum {
 	GP_EMPTY = 0,
 	GP_STROKE = 1,
-	GP_MONKEY = 2
+	GP_MONKEY = 2,
 };
 
 /* boundtype */

@@ -164,7 +164,7 @@ typedef enum {
 	/** outside window bounds */
 	V3D_PROJ_RET_CLIP_WIN  = 4,
 	/** outside range (mainly for short), (can't avoid) */
-	V3D_PROJ_RET_OVERFLOW  = 5
+	V3D_PROJ_RET_OVERFLOW  = 5,
 } eV3DProjStatus;
 
 /* some clipping tests are optional */
@@ -173,7 +173,7 @@ typedef enum {
 	V3D_PROJ_TEST_CLIP_BB    = (1 << 0),
 	V3D_PROJ_TEST_CLIP_WIN   = (1 << 1),
 	V3D_PROJ_TEST_CLIP_NEAR  = (1 << 2),
-	V3D_PROJ_TEST_CLIP_ZERO  = (1 << 3)
+	V3D_PROJ_TEST_CLIP_ZERO  = (1 << 3),
 } eV3DProjTest;
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \

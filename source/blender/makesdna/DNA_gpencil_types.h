@@ -136,7 +136,7 @@ typedef enum eGPDpalettecolor_Flag {
 	/* do onion skinning */
 	PC_COLOR_ONIONSKIN = (1 << 3),
 	/* "volumetric" strokes */
-	PC_COLOR_VOLUMETRIC = (1 << 4)
+	PC_COLOR_VOLUMETRIC = (1 << 4),
 } eGPDpalettecolor_Flag;
 
 /* palette of colors */
@@ -155,7 +155,7 @@ typedef struct bGPDpalette {
 /* bGPDpalette->flag */
 typedef enum eGPDpalette_Flag {
 	/* palette is active */
-	PL_PALETTE_ACTIVE = (1 << 0)
+A,	PL_PALETTE_ACTIVE = (1 << 0)
 } eGPDpalette_Flag;
 
 /* ***************************************** */
@@ -232,7 +232,7 @@ typedef enum eGPDstroke_Flag {
 	 * fill color for stroke and no fill area */
 	GP_STROKE_NOFILL = (1 << 8),
 	/* only for use with stroke-buffer (while drawing eraser) */
-	GP_STROKE_ERASER		= (1 << 15)
+	GP_STROKE_ERASER		= (1 << 15),
 } eGPDstroke_Flag;
 
 /* bGPDstroke->caps */
@@ -278,7 +278,7 @@ typedef enum eGPDframe_Flag {
 	/* frame is being painted on */
 	GP_FRAME_PAINT		= (1 << 0),
 	/* for editing in Action Editor */
-	GP_FRAME_SELECT		= (1 << 1)
+	GP_FRAME_SELECT		= (1 << 1),
 } eGPDframe_Flag;
 
 /* ***************************************** */
@@ -619,7 +619,7 @@ typedef enum eGP_OnionModes {
 typedef enum eGP_DepthOrdering {
 	GP_XRAY_FRONT = 0,
 	GP_XRAY_3DSPACE = 1,
-	GP_XRAY_BACK  = 2
+	GP_XRAY_BACK  = 2,
 } eGP_DepthOrdering;
 
 /* ***************************************** */

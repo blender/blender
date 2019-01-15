@@ -99,7 +99,7 @@ struct BezTriple *BKE_mask_spline_point_next_bezt(struct MaskSpline *spline, str
 typedef enum {
 	MASK_PROJ_NEG = -1,
 	MASK_PROJ_ANY = 0,
-	MASK_PROJ_POS = 1
+	MASK_PROJ_POS = 1,
 } eMaskSign;
 float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                  float start_u, const float co[2], const eMaskSign sign);

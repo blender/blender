@@ -1033,7 +1033,7 @@ enum {
 	UI_CNR_BOTTOM_LEFT  = 1 << 3,
 	/* just for convenience */
 	UI_CNR_NONE         = 0,
-	UI_CNR_ALL          = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)
+	UI_CNR_ALL          = (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT),
 };
 
 uiLayout *UI_block_layout(uiBlock *block, int dir, int type, int x, int y, int size, int em, int padding, struct uiStyle *style);
@@ -1329,7 +1329,7 @@ uiBut *UI_region_active_but_get(struct ARegion *ar);
 typedef enum eFontStyle_Align {
 	UI_STYLE_TEXT_LEFT		= 0,
 	UI_STYLE_TEXT_CENTER	= 1,
-	UI_STYLE_TEXT_RIGHT		= 2
+	UI_STYLE_TEXT_RIGHT		= 2,
 } eFontStyle_Align;
 
 struct uiFontStyleDraw_Params {

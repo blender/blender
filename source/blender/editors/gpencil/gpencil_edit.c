@@ -1012,7 +1012,7 @@ static bool gp_strokes_paste_poll(bContext *C)
 
 typedef enum eGP_PasteMode {
 	GP_COPY_ONLY = -1,
-	GP_COPY_MERGE = 1
+	GP_COPY_MERGE = 1,
 } eGP_PasteMode;
 
 static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
@@ -2431,7 +2431,7 @@ void GPENCIL_OT_stroke_apply_thickness(wmOperatorType *ot)
 enum {
 	GP_STROKE_CYCLIC_CLOSE = 1,
 	GP_STROKE_CYCLIC_OPEN = 2,
-	GP_STROKE_CYCLIC_TOGGLE = 3
+	GP_STROKE_CYCLIC_TOGGLE = 3,
 };
 
 static int gp_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
@@ -2524,7 +2524,7 @@ enum {
 	GP_STROKE_CAPS_TOGGLE_BOTH    = 0,
 	GP_STROKE_CAPS_TOGGLE_START   = 1,
 	GP_STROKE_CAPS_TOGGLE_END     = 2,
-	GP_STROKE_CAPS_TOGGLE_DEFAULT = 3
+	GP_STROKE_CAPS_TOGGLE_DEFAULT = 3,
 };
 
 static int gp_stroke_caps_set_exec(bContext *C, wmOperator *op)

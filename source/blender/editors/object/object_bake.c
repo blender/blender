@@ -285,7 +285,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 
 typedef enum ClearFlag {
 	CLEAR_TANGENT_NORMAL = 1,
-	CLEAR_DISPLACEMENT = 2
+	CLEAR_DISPLACEMENT = 2,
 } ClearFlag;
 
 

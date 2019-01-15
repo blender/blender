@@ -172,7 +172,7 @@ static const EnumPropertyItem prop_channels_types[] = {
 typedef enum ePoseSlide_AxisLock {
 	PS_LOCK_X = (1 << 0),
 	PS_LOCK_Y = (1 << 1),
-	PS_LOCK_Z = (1 << 2)
+	PS_LOCK_Z = (1 << 2),
 } ePoseSlide_AxisLock;
 
 /* Property enum for ePoseSlide_AxisLock */

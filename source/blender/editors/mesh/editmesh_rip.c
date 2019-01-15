@@ -409,7 +409,7 @@ typedef struct UnorderedLoopPair {
 } UnorderedLoopPair;
 enum {
 	ULP_FLIP_0 = (1 << 0),
-	ULP_FLIP_1 = (1 << 1)
+	ULP_FLIP_1 = (1 << 1),
 };
 
 static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)

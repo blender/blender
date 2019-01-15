@@ -98,7 +98,7 @@ typedef struct BlurShaderFxData {
 } BlurShaderFxData;
 
 typedef enum eBlurShaderFx_Flag {
-	FX_BLUR_DOF_MODE = (1 << 0)
+	FX_BLUR_DOF_MODE = (1 << 0),
 } eBlurShaderFx_Flag;
 
 typedef struct ColorizeShaderFxData {

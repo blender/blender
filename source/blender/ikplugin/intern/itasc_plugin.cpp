@@ -233,7 +233,7 @@ enum IK_SegmentAxis {
 	IK_Z = 2,
 	IK_TRANS_X = 3,
 	IK_TRANS_Y = 4,
-	IK_TRANS_Z = 5
+	IK_TRANS_Z = 5,
 };
 
 static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *con)

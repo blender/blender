@@ -84,7 +84,7 @@
 
 enum {
 	COM_RECALC_COMPOSITE = 1,
-	COM_RECALC_VIEWER    = 2
+	COM_RECALC_VIEWER    = 2,
 };
 
 typedef struct CompoJob {

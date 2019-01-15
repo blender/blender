@@ -54,7 +54,7 @@ typedef enum ChunkExecutionState {
 	/**
 	 * \brief chunk is executed.
 	 */
-	COM_ES_EXECUTED = 2
+	COM_ES_EXECUTED = 2,
 } ChunkExecutionState;
 
 /**

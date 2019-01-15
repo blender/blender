@@ -65,7 +65,7 @@ typedef enum eSDNA_Type {
 /* define so switch statements don't complain */
 #define SDNA_TYPE_VOID 9
 	SDNA_TYPE_INT64    = 10,
-	SDNA_TYPE_UINT64   = 11
+	SDNA_TYPE_UINT64   = 11,
 } eSDNA_Type;
 
 /**

@@ -104,7 +104,7 @@ static GHOST_SystemHandle g_system = NULL;
 
 typedef enum WinOverrideFlag {
 	WIN_OVERRIDE_GEOM     = (1 << 0),
-	WIN_OVERRIDE_WINSTATE = (1 << 1)
+	WIN_OVERRIDE_WINSTATE = (1 << 1),
 } WinOverrideFlag;
 
 /* set by commandline */

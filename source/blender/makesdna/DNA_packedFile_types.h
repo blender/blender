@@ -53,7 +53,7 @@ enum ePF_FileStatus {
 	PF_REMOVE = 8,
 	PF_NOOP = 9,
 
-	PF_ASK = 10
+	PF_ASK = 10,
 };
 
 #endif /* PACKEDFILE_TYPES_H */

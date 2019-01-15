@@ -164,19 +164,19 @@ enum {
 	MCLIP_PROXY_UNDISTORTED_SIZE_25  = (1 << 4),
 	MCLIP_PROXY_UNDISTORTED_SIZE_50  = (1 << 5),
 	MCLIP_PROXY_UNDISTORTED_SIZE_75  = (1 << 6),
-	MCLIP_PROXY_UNDISTORTED_SIZE_100 = (1 << 7)
+	MCLIP_PROXY_UNDISTORTED_SIZE_100 = (1 << 7),
 };
 
 /* MovieClip->source */
 enum {
 	MCLIP_SRC_SEQUENCE = 1,
-	MCLIP_SRC_MOVIE    = 2
+	MCLIP_SRC_MOVIE    = 2,
 };
 
 /* MovieClip->selection types */
 enum {
 	MCLIP_SEL_NONE  = 0,
-	MCLIP_SEL_TRACK = 1
+	MCLIP_SEL_TRACK = 1,
 };
 
 /* MovieClip->flag */
@@ -186,7 +186,7 @@ enum {
 	/* MCLIP_CUSTOM_START_FRAME    = (1<<2), */ /* UNUSED */
 	MCLIP_DATA_EXPAND             = (1 << 3),
 
-	MCLIP_TIMECODE_FLAGS          =  (MCLIP_USE_PROXY | MCLIP_USE_PROXY_CUSTOM_DIR)
+	MCLIP_TIMECODE_FLAGS          =  (MCLIP_USE_PROXY | MCLIP_USE_PROXY_CUSTOM_DIR),
 };
 
 /* MovieClip->render_size */
@@ -195,12 +195,12 @@ enum {
 	MCLIP_PROXY_RENDER_SIZE_25   = 1,
 	MCLIP_PROXY_RENDER_SIZE_50   = 2,
 	MCLIP_PROXY_RENDER_SIZE_75   = 3,
-	MCLIP_PROXY_RENDER_SIZE_100  = 4
+	MCLIP_PROXY_RENDER_SIZE_100  = 4,
 };
 
 /* MovieClip->render_flag */
 enum {
-	MCLIP_PROXY_RENDER_UNDISTORT = 1
+	MCLIP_PROXY_RENDER_UNDISTORT = 1,
 };
 
 #endif

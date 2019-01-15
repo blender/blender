@@ -3630,7 +3630,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
 
 enum {
 	SORT_TYPE_NAME          = 0,
-	SORT_TYPE_BONEHIERARCHY = 1
+	SORT_TYPE_BONEHIERARCHY = 1,
 };
 
 static int vertex_group_sort_exec(bContext *C, wmOperator *op)

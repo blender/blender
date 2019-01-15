@@ -50,7 +50,7 @@ typedef enum eDepsOperation_Flag {
 	DEPSOP_FLAG_USER_MODIFIED      = (1 << 2),
 
 	/* Set of flags which gets flushed along the relations. */
-	DEPSOP_FLAG_FLUSH = (DEPSOP_FLAG_USER_MODIFIED)
+	DEPSOP_FLAG_FLUSH = (DEPSOP_FLAG_USER_MODIFIED),
 } eDepsOperation_Flag;
 
 /* Atomic Operation - Base type for all operations */

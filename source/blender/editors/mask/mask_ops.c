@@ -464,7 +464,7 @@ enum {
 	SLIDE_ACTION_POINT   = 1,
 	SLIDE_ACTION_HANDLE  = 2,
 	SLIDE_ACTION_FEATHER = 3,
-	SLIDE_ACTION_SPLINE  = 4
+	SLIDE_ACTION_SPLINE  = 4,
 };
 
 typedef struct SlidePointData {

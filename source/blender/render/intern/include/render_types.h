@@ -66,7 +66,7 @@ enum {
 	PART_STATUS_NONE        = 0,
 	PART_STATUS_IN_PROGRESS = 1,
 	PART_STATUS_RENDERED    = 2,
-	PART_STATUS_MERGED      = 3
+	PART_STATUS_MERGED      = 3,
 };
 
 /* controls state of render, everything that's read-only during render stage */

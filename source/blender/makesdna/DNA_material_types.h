@@ -128,7 +128,7 @@ typedef enum eMaterialGPencilStyle_Flag {
 	/* Stroke show main switch */
 	GP_STYLE_STROKE_SHOW = (1 << 8),
 	/* Fill  show main switch */
-	GP_STYLE_FILL_SHOW = (1 << 9)
+	GP_STYLE_FILL_SHOW = (1 << 9),
 } eMaterialGPencilStyle_Flag;
 
 typedef enum eMaterialGPencilStyle_Mode {

@@ -98,7 +98,7 @@ void image_undo_end_locks(void)
 typedef enum {
 	COPY = 0,
 	RESTORE = 1,
-	RESTORE_COPY = 2
+	RESTORE_COPY = 2,
 } CopyMode;
 
 static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, CopyMode mode)

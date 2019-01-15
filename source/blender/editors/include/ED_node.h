@@ -50,7 +50,7 @@ typedef enum {
 	NODE_TOP    = 1,
 	NODE_BOTTOM = 2,
 	NODE_LEFT   = 4,
-	NODE_RIGHT  = 8
+	NODE_RIGHT  = 8,
 } NodeBorder;
 
 #define NODE_GRID_STEPS     5

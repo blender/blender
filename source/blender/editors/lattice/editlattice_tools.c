@@ -135,7 +135,7 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
 typedef enum eLattice_FlipAxes {
 	LATTICE_FLIP_U = 0,
 	LATTICE_FLIP_V = 1,
-	LATTICE_FLIP_W = 2
+	LATTICE_FLIP_W = 2,
 } eLattice_FlipAxes;
 
 /**

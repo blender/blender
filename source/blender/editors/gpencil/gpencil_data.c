@@ -335,7 +335,7 @@ void GPENCIL_OT_layer_remove(wmOperatorType *ot)
 
 enum {
 	GP_LAYER_MOVE_UP   = -1,
-	GP_LAYER_MOVE_DOWN = 1
+	GP_LAYER_MOVE_DOWN = 1,
 };
 
 static int gp_layer_move_exec(bContext *C, wmOperator *op)
@@ -426,7 +426,7 @@ void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
 /* ********************* Duplicate Layer in a new object ************************** */
 enum {
 	GP_LAYER_COPY_OBJECT_ALL_FRAME = 0,
-	GP_LAYER_COPY_OBJECT_ACT_FRAME = 1
+	GP_LAYER_COPY_OBJECT_ACT_FRAME = 1,
 };
 
 static bool gp_layer_duplicate_object_poll(bContext *C)
@@ -563,7 +563,7 @@ void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
 /* ********************* Duplicate Frame ************************** */
 enum {
 	GP_FRAME_DUP_ACTIVE = 0,
-	GP_FRAME_DUP_ALL = 1
+	GP_FRAME_DUP_ALL = 1,
 };
 
 static int gp_frame_duplicate_exec(bContext *C, wmOperator *op)
@@ -623,7 +623,7 @@ void GPENCIL_OT_frame_duplicate(wmOperatorType *ot)
 /* ********************* Clean Fill Boundaries on Frame ************************** */
 enum {
 	GP_FRAME_CLEAN_FILL_ACTIVE = 0,
-	GP_FRAME_CLEAN_FILL_ALL = 1
+	GP_FRAME_CLEAN_FILL_ALL = 1,
 };
 
 static int gp_frame_clean_fill_exec(bContext *C, wmOperator *op)
@@ -1218,7 +1218,7 @@ enum {
 	GP_STROKE_MOVE_UP = -1,
 	GP_STROKE_MOVE_DOWN = 1,
 	GP_STROKE_MOVE_TOP = 2,
-	GP_STROKE_MOVE_BOTTOM = 3
+	GP_STROKE_MOVE_BOTTOM = 3,
 };
 
 static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)

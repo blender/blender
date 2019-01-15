@@ -82,7 +82,7 @@ static const char *view3d_gzgt_ruler_id = "VIEW3D_GGT_ruler";
 /* Ruler Item (we can have many) */
 enum {
 	RULERITEM_USE_ANGLE = (1 << 0),  /* use protractor */
-	RULERITEM_USE_RAYCAST = (1 << 1)
+	RULERITEM_USE_RAYCAST = (1 << 1),
 };
 
 enum {

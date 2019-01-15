@@ -168,7 +168,7 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 enum {
 	VERT_INDEX_DO_COLLAPSE  = -1,
 	VERT_INDEX_INIT         =  0,
-	VERT_INDEX_IGNORE       =  1
+	VERT_INDEX_IGNORE       =  1,
 };
 
 // #define USE_WALKER  /* gives uneven results, disable for now */

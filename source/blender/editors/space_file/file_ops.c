@@ -108,7 +108,7 @@ static void file_deselect_all(SpaceFile *sfile, unsigned int flag)
 typedef enum FileSelect {
 	FILE_SELECT_NOTHING = 0,
 	FILE_SELECT_DIR = 1,
-	FILE_SELECT_FILE = 2
+	FILE_SELECT_FILE = 2,
 } FileSelect;
 
 static void clamp_to_filelist(int numfiles, FileSelection *sel)

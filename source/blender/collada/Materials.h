@@ -40,7 +40,7 @@ extern "C" {
 typedef enum BC_pbr_inputs {
 	BC_PBR_DIFFUSE = 0,
 	BC_PBR_METALLIC = 4,
-	BC_PBR_IOR = 14
+	BC_PBR_IOR = 14,
 } BC_pbr_inputs;
 
 typedef std::map<std::string, bNode *> NodeMap;

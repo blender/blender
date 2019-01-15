@@ -147,7 +147,7 @@ struct RenderResult;
 enum {
 	IMA_GENTYPE_BLANK = 0,
 	IMA_GENTYPE_GRID = 1,
-	IMA_GENTYPE_GRID_COLOR = 2
+	IMA_GENTYPE_GRID_COLOR = 2,
 };
 
 /* ima->ok */

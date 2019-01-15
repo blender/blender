@@ -515,7 +515,7 @@ enum {
 	WM_JOB_PRIORITY     = (1 << 0),
 	WM_JOB_EXCL_RENDER  = (1 << 1),
 	WM_JOB_PROGRESS     = (1 << 2),
-	WM_JOB_SUSPEND      = (1 << 3)
+	WM_JOB_SUSPEND      = (1 << 3),
 };
 
 /* identifying jobs by owner alone is unreliable, this isnt saved, order can change (keep 0 for 'any') */

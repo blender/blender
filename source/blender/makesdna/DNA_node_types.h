@@ -162,20 +162,20 @@ typedef enum eNodeSocketDatatype {
 	SOCK_BOOLEAN		= 4,
 	__SOCK_MESH			= 5,	/* deprecated */
 	SOCK_INT			= 6,
-	SOCK_STRING			= 7
+	SOCK_STRING			= 7,
 } eNodeSocketDatatype;
 
 /* socket shape */
 typedef enum eNodeSocketDrawShape {
 	SOCK_DRAW_SHAPE_CIRCLE = 0,
 	SOCK_DRAW_SHAPE_SQUARE = 1,
-	SOCK_DRAW_SHAPE_DIAMOND = 2
+	SOCK_DRAW_SHAPE_DIAMOND = 2,
 } eNodeSocketDrawShape;
 
 /* socket side (input/output) */
 typedef enum eNodeSocketInOut {
 	SOCK_IN = 1,
-	SOCK_OUT = 2
+	SOCK_OUT = 2,
 } eNodeSocketInOut;
 
 /* sock->flag, first bit is select */
@@ -531,7 +531,7 @@ typedef enum eNodeTreeUpdate {
 	NTREE_UPDATE_GROUP_IN   = (1 << 4),		/* group inputs have changed */
 	NTREE_UPDATE_GROUP_OUT  = (1 << 5),		/* group outputs have changed */
 	/* group has changed (generic flag including all other group flags) */
-	NTREE_UPDATE_GROUP      = (NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_GROUP_OUT)
+	NTREE_UPDATE_GROUP      = (NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_GROUP_OUT),
 } eNodeTreeUpdate;
 
 
@@ -581,25 +581,25 @@ enum {
 	CMP_NODE_MASKTYPE_ADD         = 0,
 	CMP_NODE_MASKTYPE_SUBTRACT    = 1,
 	CMP_NODE_MASKTYPE_MULTIPLY    = 2,
-	CMP_NODE_MASKTYPE_NOT         = 3
+	CMP_NODE_MASKTYPE_NOT         = 3,
 };
 
 enum {
 	CMP_NODE_LENSFLARE_GHOST   = (1 << 0),
 	CMP_NODE_LENSFLARE_GLOW    = (1 << 1),
 	CMP_NODE_LENSFLARE_CIRCLE  = (1 << 2),
-	CMP_NODE_LENSFLARE_STREAKS = (1 << 3)
+	CMP_NODE_LENSFLARE_STREAKS = (1 << 3),
 };
 
 enum {
 	CMP_NODE_DILATEERODE_STEP             = 0,
 	CMP_NODE_DILATEERODE_DISTANCE_THRESH  = 1,
 	CMP_NODE_DILATEERODE_DISTANCE         = 2,
-	CMP_NODE_DILATEERODE_DISTANCE_FEATHER = 3
+	CMP_NODE_DILATEERODE_DISTANCE_FEATHER = 3,
 };
 
 enum {
-	CMP_NODE_INPAINT_SIMPLE               = 0
+	CMP_NODE_INPAINT_SIMPLE               = 0,
 };
 
 enum {
@@ -609,7 +609,7 @@ enum {
 
 	/* we may want multiple aspect options, exposed as an rna enum */
 	CMP_NODEFLAG_MASK_FIXED       = (1 << 8),
-	CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9)
+	CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9),
 };
 
 enum {

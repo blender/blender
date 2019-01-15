@@ -127,7 +127,7 @@ typedef enum eGP_GetFrame_Mode {
 	/* Add a new empty/blank frame */
 	GP_GETFRAME_ADD_NEW   = 1,
 	/* Make a copy of the active frame */
-	GP_GETFRAME_ADD_COPY  = 2
+	GP_GETFRAME_ADD_COPY  = 2,
 } eGP_GetFrame_Mode;
 
 struct bGPDframe *BKE_gpencil_layer_getframe(struct bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew);

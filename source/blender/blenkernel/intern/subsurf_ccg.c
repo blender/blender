@@ -126,7 +126,7 @@ typedef enum {
 	CCG_CALC_NORMALS = 4,
 	/* add an extra four bytes for a mask layer */
 	CCG_ALLOC_MASK = 8,
-	CCG_SIMPLE_SUBDIV = 16
+	CCG_SIMPLE_SUBDIV = 16,
 } CCGFlags;
 
 static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,

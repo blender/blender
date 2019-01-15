@@ -446,7 +446,7 @@ typedef enum eBezTriple_Handle {
 /* f5 (beztriple) */
 typedef enum eBezTriple_Auto_Type {
 	HD_AUTOTYPE_NORMAL = 0,
-	HD_AUTOTYPE_SPECIAL = 1
+	HD_AUTOTYPE_SPECIAL = 1,
 } eBezTriple_Auto_Type;
 
 /* interpolation modes (used only for BezTriple->ipo) */

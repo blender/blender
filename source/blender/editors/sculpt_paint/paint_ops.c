@@ -561,13 +561,13 @@ typedef enum {
 
 typedef enum {
 	STENCIL_PRIMARY = 0,
-	STENCIL_SECONDARY = 1
+	STENCIL_SECONDARY = 1,
 } StencilTextureMode;
 
 
 typedef enum {
 	STENCIL_CONSTRAINT_X = 1,
-	STENCIL_CONSTRAINT_Y = 2
+	STENCIL_CONSTRAINT_Y = 2,
 } StencilConstraint;
 
 typedef struct {

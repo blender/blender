@@ -112,7 +112,7 @@ typedef enum eFModifier_Flags {
 		/* restrict range that F-Modifier can be considered over */
 	FMODIFIER_FLAG_RANGERESTRICT = (1<<4),
 		/* use influence control */
-	FMODIFIER_FLAG_USEINFLUENCE  = (1<<5)
+	FMODIFIER_FLAG_USEINFLUENCE  = (1<<5),
 } eFModifier_Flags;
 
 /* --- */
@@ -138,7 +138,7 @@ typedef struct FMod_Generator {
 /* generator modes */
 typedef enum eFMod_Generator_Modes {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
-	FCM_GENERATOR_POLYNOMIAL_FACTORISED = 1
+	FCM_GENERATOR_POLYNOMIAL_FACTORISED = 1,
 } eFMod_Generator_Modes;
 
 
@@ -147,7 +147,7 @@ typedef enum eFMod_Generator_Modes {
  */
 typedef enum eFMod_Generator_Flags {
 	/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
-	FCM_GENERATOR_ADDITIVE	= (1<<0)
+	FCM_GENERATOR_ADDITIVE	= (1<<0),
 } eFMod_Generator_Flags;
 
 
@@ -181,7 +181,7 @@ typedef enum eFMod_Generator_Functions {
 	FCM_GENERATOR_FN_TAN	= 2,
 	FCM_GENERATOR_FN_SQRT	= 3,
 	FCM_GENERATOR_FN_LN	= 4,
-	FCM_GENERATOR_FN_SINC	= 5
+	FCM_GENERATOR_FN_SINC	= 5,
 } eFMod_Generator_Functions;
 
 
@@ -261,7 +261,7 @@ typedef enum eFMod_Limit_Flags {
 	FCM_LIMIT_XMIN		= (1<<0),
 	FCM_LIMIT_XMAX		= (1<<1),
 	FCM_LIMIT_YMIN		= (1<<2),
-	FCM_LIMIT_YMAX		= (1<<3)
+	FCM_LIMIT_YMAX		= (1<<3),
 } eFMod_Limit_Flags;
 
 
@@ -628,7 +628,7 @@ typedef enum eFCurve_Flags {
 	FCURVE_DISCRETE_VALUES	= (1<<12),
 
 	/** temporary tag for editing */
-	FCURVE_TAGGED			= (1<<15)
+	FCURVE_TAGGED			= (1<<15),
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */
@@ -745,7 +745,7 @@ typedef enum eNlaStrip_Extrapolate_Mode {
 	/* only hold+extend last frame */
 	NLASTRIP_EXTEND_HOLD_FORWARD = 1,
 	/* don't contribute at all */
-	NLASTRIP_EXTEND_NOTHING = 2
+	NLASTRIP_EXTEND_NOTHING = 2,
 } eNlaStrip_Extrapolate_Mode;
 
 /* NLA Strip Settings */
@@ -786,7 +786,7 @@ typedef enum eNlaStrip_Flag {
 	NLASTRIP_FLAG_NO_TIME_MAP   = (1<<29),
 		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
 	NLASTRIP_FLAG_TEMP_META     = (1<<30),
-	NLASTRIP_FLAG_EDIT_TOUCHED  = (1u << 31)
+	NLASTRIP_FLAG_EDIT_TOUCHED  = (1u << 31),
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
@@ -843,7 +843,7 @@ typedef enum eNlaTrack_Flag {
 
 	/** track is not allowed to execute,
 	 * usually as result of tweaking being enabled (internal flag) */
-	NLATRACK_DISABLED	= (1<<10)
+	NLATRACK_DISABLED	= (1<<10),
 } eNlaTrack_Flag;
 
 
@@ -888,7 +888,7 @@ typedef struct KS_Path {
 /* KS_Path->flag */
 typedef enum eKSP_Settings {
 		/* entire array (not just the specified index) gets keyframed */
-	KSP_FLAG_WHOLE_ARRAY	= (1<<0)
+	KSP_FLAG_WHOLE_ARRAY	= (1<<0),
 } eKSP_Settings;
 
 /* KS_Path->groupmode */
@@ -951,7 +951,7 @@ typedef enum eKS_Settings {
 		/* keyingset cannot be removed (and doesn't need to be freed) */
 	KEYINGSET_BUILTIN		= (1<<0),
 		/* keyingset does not depend on context info (i.e. paths are absolute) */
-	KEYINGSET_ABSOLUTE		= (1<<1)
+	KEYINGSET_ABSOLUTE		= (1<<1),
 } eKS_Settings;
 
 /* Flags for use by keyframe creation/deletion calls */
@@ -1104,7 +1104,7 @@ typedef enum eAnimData_Flag {
 typedef enum eAnimData_Recalc {
 	ADT_RECALC_DRIVERS      = (1 << 0),
 	ADT_RECALC_ANIM         = (1 << 1),
-	ADT_RECALC_ALL          = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM)
+	ADT_RECALC_ALL          = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM),
 } eAnimData_Recalc;
 
 /* Base Struct for Anim ------------------------------------- */

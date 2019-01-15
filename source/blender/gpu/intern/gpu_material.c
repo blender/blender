@@ -133,7 +133,7 @@ struct GPUMaterial {
 enum {
 	GPU_DOMAIN_SURFACE    = (1 << 0),
 	GPU_DOMAIN_VOLUME     = (1 << 1),
-	GPU_DOMAIN_SSS        = (1 << 2)
+	GPU_DOMAIN_SSS        = (1 << 2),
 };
 
 /* Functions */

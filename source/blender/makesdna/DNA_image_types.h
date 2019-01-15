@@ -106,7 +106,7 @@ typedef struct RenderSlot {
 enum {
 	TEXTARGET_TEXTURE_2D = 0,
 	TEXTARGET_TEXTURE_CUBE_MAP = 1,
-	TEXTARGET_COUNT = 2
+	TEXTARGET_COUNT = 2,
 };
 
 typedef struct Image {

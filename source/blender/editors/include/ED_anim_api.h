@@ -323,7 +323,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_TMP_PEEK       = (1 << 30),
 
 	/** ignore ONLYSEL flag from filterflag, (internal use only!) */
-	ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31)
+	ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31),
 } eAnimFilter_Flags;
 
 /* ---------- Flag Checking Macros ------------ */
@@ -473,7 +473,7 @@ typedef enum eAnimChannel_Role {
 	/** special purposes - not generally for hierarchy processing */
 	ACHANNEL_ROLE_SPECIAL  = 0,
 	/** data channel - a channel representing one of the actual building blocks of channels */
-	ACHANNEL_ROLE_CHANNEL  = 1
+	ACHANNEL_ROLE_CHANNEL  = 1,
 } eAnimChannel_Role;
 
 /* flag-setting behavior */
@@ -485,7 +485,7 @@ typedef enum eAnimChannels_SetFlag {
 	/** on->off, off->on */
 	ACHANNEL_SETFLAG_INVERT = 2,
 	/** some on -> all off // all on */
-	ACHANNEL_SETFLAG_TOGGLE = 3
+	ACHANNEL_SETFLAG_TOGGLE = 3,
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
@@ -610,7 +610,7 @@ enum eAnimEditDraw_CurrentFrame {
 	/* time indication in seconds or frames */
 	DRAWCFRA_UNIT_SECONDS   = (1 << 0),
 	/* draw indicator extra wide (for timeline) */
-	DRAWCFRA_WIDE           = (1 << 1)
+	DRAWCFRA_WIDE           = (1 << 1),
 };
 
 /* main call to draw current-frame indicator in an Animation Editor */

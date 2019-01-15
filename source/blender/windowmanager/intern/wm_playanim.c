@@ -181,7 +181,7 @@ typedef enum eWS_Qual {
 	WS_QUAL_LMOUSE  = (1 << 16),
 	WS_QUAL_MMOUSE  = (1 << 17),
 	WS_QUAL_RMOUSE  = (1 << 18),
-	WS_QUAL_MOUSE   = (WS_QUAL_LMOUSE | WS_QUAL_MMOUSE | WS_QUAL_RMOUSE)
+	WS_QUAL_MOUSE   = (WS_QUAL_LMOUSE | WS_QUAL_MMOUSE | WS_QUAL_RMOUSE),
 } eWS_Qual;
 
 static struct WindowStateGlobal {

@@ -101,7 +101,7 @@ typedef enum eRigidBodyWorld_Flag {
 	/* sim data needs to be rebuilt */
 	RBW_FLAG_NEEDS_REBUILD		= (1 << 1),
 	/* usse split impulse when stepping the simulation */
-	RBW_FLAG_USE_SPLIT_IMPULSE	= (1 << 2)
+	RBW_FLAG_USE_SPLIT_IMPULSE	= (1 << 2),
 } eRigidBodyWorld_Flag;
 
 /* ******************************** */
@@ -200,7 +200,7 @@ typedef enum eRigidBodyOb_Flag {
 	/* collision margin is not embedded (only used by convex hull shapes for now) */
 	RBO_FLAG_USE_MARGIN			= (1 << 6),
 	/* collision shape deforms during simulation (only for passive triangle mesh shapes) */
-	RBO_FLAG_USE_DEFORM			= (1 << 7)
+	RBO_FLAG_USE_DEFORM			= (1 << 7),
 } eRigidBodyOb_Flag;
 
 /* RigidBody Collision Shape */
@@ -374,7 +374,7 @@ typedef enum eRigidBodyCon_Flag {
 	/* angular springs */
 	RBC_FLAG_USE_SPRING_ANG_X			= (1 << 16),
 	RBC_FLAG_USE_SPRING_ANG_Y			= (1 << 17),
-	RBC_FLAG_USE_SPRING_ANG_Z			= (1 << 18)
+	RBC_FLAG_USE_SPRING_ANG_Z			= (1 << 18),
 } eRigidBodyCon_Flag;
 
 /* ******************************** */

@@ -439,7 +439,7 @@ void GPENCIL_OT_convert(struct wmOperatorType *ot);
 
 enum {
 	GP_STROKE_JOIN = -1,
-	GP_STROKE_JOINCOPY = 1
+	GP_STROKE_JOINCOPY = 1,
 };
 
 enum {
@@ -452,7 +452,7 @@ enum {
 
 enum {
 	GP_MERGE_STROKE = -1,
-	GP_MERGE_POINT = 1
+	GP_MERGE_POINT = 1,
 };
 
 void GPENCIL_OT_stroke_arrange(struct wmOperatorType *ot);

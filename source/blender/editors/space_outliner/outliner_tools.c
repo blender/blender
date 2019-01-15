@@ -311,7 +311,7 @@ static void outliner_do_libdata_operation(
 
 /* ******************************************** */
 typedef enum eOutliner_PropSceneOps {
-	OL_SCENE_OP_DELETE = 1
+	OL_SCENE_OP_DELETE = 1,
 } eOutliner_PropSceneOps;
 
 static const EnumPropertyItem prop_scene_op_types[] = {

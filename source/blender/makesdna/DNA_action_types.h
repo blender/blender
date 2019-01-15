@@ -106,7 +106,7 @@ typedef enum eMotionPath_Flag {
 	/* Custom colors */
 	MOTIONPATH_FLAG_CUSTOM      = (1 << 2),
 	/* Draw lines or only points */
-	MOTIONPATH_FLAG_LINES       = (1 << 3)
+	MOTIONPATH_FLAG_LINES       = (1 << 3),
 } eMotionPath_Flag;
 
 /* Visualization General --------------------------- */
@@ -153,7 +153,7 @@ typedef struct bAnimVizSettings {
 /* bAnimVizSettings->recalc */
 typedef enum eAnimViz_RecalcFlags {
 	/* motionpaths need recalculating */
-	ANIMVIZ_RECALC_PATHS    = (1 << 0)
+	ANIMVIZ_RECALC_PATHS    = (1 << 0),
 } eAnimViz_RecalcFlags;
 
 
@@ -166,13 +166,13 @@ typedef enum eOnionSkin_Types {
 	/* show ghosts within the specified frame range */
 	GHOST_TYPE_RANGE = 2,
 	/* show ghosts on keyframes within the specified range only */
-	GHOST_TYPE_KEYS = 3
+	GHOST_TYPE_KEYS = 3,
 } eOnionSkin_Types;
 
 /* bAnimVizSettings->ghost_flag */
 typedef enum eOnionSkin_Flag {
 	/* only show selected bones in ghosts */
-	GHOST_FLAG_ONLYSEL  = (1 << 0)
+	GHOST_FLAG_ONLYSEL  = (1 << 0),
 } eOnionSkin_Flag;
 
 
@@ -195,7 +195,7 @@ typedef enum eMotionPaths_ViewFlag {
 	/* find keyframes in whole action (instead of just in matching group name) */
 	MOTIONPATH_VIEW_KFACT       = (1 << 3),
 	/* draw lines on path */
-	MOTIONPATH_VIEW_LINES       = (1 << 4)
+	MOTIONPATH_VIEW_LINES       = (1 << 4),
 } eMotionPath_ViewFlag;
 
 /* bAnimVizSettings->path_bakeflag */
@@ -206,7 +206,7 @@ typedef enum eMotionPaths_BakeFlag {
 	MOTIONPATH_BAKE_HEADS           = (1 << 1),
 	/** motion paths exist for AnimVizSettings instance - set when calc for first time,
 	 * and unset when clearing */
-	MOTIONPATH_BAKE_HAS_PATHS       = (1 << 2)
+	MOTIONPATH_BAKE_HAS_PATHS       = (1 << 2),
 } eMotionPath_BakeFlag;
 
 /* runtime */
@@ -406,7 +406,7 @@ typedef enum ePchan_Flag {
 	POSE_HAS_IKS    =   (1 << 14),
 #endif
 	/* spline IK solving */
-	POSE_IKSPLINE   =   (1 << 15)
+	POSE_IKSPLINE   =   (1 << 15),
 } ePchan_Flag;
 
 /* PoseChannel constflag (constraint detection) */
@@ -419,7 +419,7 @@ typedef enum ePchan_ConstFlag {
 	/* only for drawing Posemode too */
 	PCHAN_HAS_STRIDE    = (1 << 4),
 	/* spline IK */
-	PCHAN_HAS_SPLINEIK  = (1 << 5)
+	PCHAN_HAS_SPLINEIK  = (1 << 5),
 } ePchan_ConstFlag;
 
 /* PoseChannel->ikflag */
@@ -437,7 +437,7 @@ typedef enum ePchan_IkFlag {
 
 	BONE_IK_NO_XDOF_TEMP = (1 << 10),
 	BONE_IK_NO_YDOF_TEMP = (1 << 11),
-	BONE_IK_NO_ZDOF_TEMP = (1 << 12)
+	BONE_IK_NO_ZDOF_TEMP = (1 << 12),
 } ePchan_IkFlag;
 
 /* PoseChannel->drawflag */
@@ -480,7 +480,7 @@ typedef enum eRotationModes {
 	ROT_MODE_AXISANGLE = -1,
 
 	ROT_MODE_MIN = ROT_MODE_AXISANGLE,  /* sentinel for Py API */
-	ROT_MODE_MAX = ROT_MODE_ZYX
+	ROT_MODE_MAX = ROT_MODE_ZYX,
 } eRotationModes;
 
 /* Pose ------------------------------------ */
@@ -557,7 +557,7 @@ typedef enum ePose_Flags {
 /* bPose->iksolver and bPose->ikparam->iksolver */
 typedef enum ePose_IKSolverType {
 	IKSOLVER_STANDARD = 0,
-	IKSOLVER_ITASC = 1
+	IKSOLVER_ITASC = 1,
 } ePose_IKSolverType;
 
 /* header for all bPose->ikparam structures */
@@ -589,7 +589,7 @@ typedef enum eItasc_Flags {
 	ITASC_AUTO_STEP           = (1 << 0),
 	ITASC_INITIAL_REITERATION = (1 << 1),
 	ITASC_REITERATION         = (1 << 2),
-	ITASC_SIMULATION          = (1 << 3)
+	ITASC_SIMULATION          = (1 << 3),
 } eItasc_Flags;
 
 /* bItasc->solver */
@@ -662,7 +662,7 @@ typedef enum eActionGroup_Flag {
 	AGRP_MODIFIERS_OFF = (1 << 7),
 
 	AGRP_TEMP       = (1 << 30),
-	AGRP_MOVED      = (1u << 31)
+	AGRP_MOVED      = (1u << 31),
 } eActionGroup_Flag;
 
 
@@ -714,7 +714,7 @@ typedef enum eAction_Flags {
 	/* flags for evaluation/editing */
 	ACT_MUTED       = (1 << 9),
 	ACT_PROTECTED   = (1 << 10),
-	ACT_DISABLED    = (1 << 11)
+	ACT_DISABLED    = (1 << 11),
 } eAction_Flags;
 
 
@@ -800,7 +800,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_GP_3DONLY        = (1 << 29),
 
 	/** combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS)
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS),
 } eDopeSheet_FilterFlag;
 
 /* DopeSheet general flags */
@@ -929,7 +929,7 @@ typedef enum eAnimEdit_AutoSnap {
 	/* snap to actual seconds (nla-action time) */
 	SACTSNAP_SECOND = 4,
 	/* snap to 1.0 second increments */
-	SACTSNAP_TSTEP = 5
+	SACTSNAP_TSTEP = 5,
 } eAnimEdit_AutoSnap;
 
 /* SAction->cache_display */
@@ -985,7 +985,7 @@ typedef enum eActionChannelFlag {
 	ACHAN_EXPANDED  = (1 << 4),
 	ACHAN_SHOWIPO   = (1 << 5),
 	ACHAN_SHOWCONS  = (1 << 6),
-	ACHAN_MOVED     = (1u << 31)
+	ACHAN_MOVED     = (1u << 31),
 } eActionChannelFlag;
 
 #endif  /* __DNA_ACTION_TYPES_H__ */
