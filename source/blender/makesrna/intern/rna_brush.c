@@ -322,6 +322,12 @@ static bool rna_BrushCapabilitiesVertexPaint_has_color_get(PointerRNA *ptr)
 	return ELEM(br->vertexpaint_tool, VPAINT_TOOL_DRAW);
 }
 
+static bool rna_BrushCapabilitiesWeightPaint_has_weight_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return ELEM(br->weightpaint_tool, WPAINT_TOOL_DRAW);
+}
+
 static bool rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -392,6 +398,11 @@ static PointerRNA rna_Imapaint_tool_capabilities_get(PointerRNA *ptr)
 static PointerRNA rna_Vertexpaint_tool_capabilities_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesVertexPaint, ptr->id.data);
+}
+
+static PointerRNA rna_Weightpaint_tool_capabilities_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_BrushCapabilitiesWeightPaint, ptr->id.data);
 }
 
 static PointerRNA rna_Brush_capabilities_get(PointerRNA *ptr)
@@ -950,6 +961,30 @@ static void rna_def_vertex_paint_capabilities(BlenderRNA *brna)
 	VPAINT_TOOL_CAPABILITY(has_color, "Has Color");
 
 #undef VPAINT_TOOL_CAPABILITY
+}
+
+static void rna_def_weight_paint_capabilities(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "BrushCapabilitiesWeightPaint", NULL);
+	RNA_def_struct_sdna(srna, "Brush");
+	RNA_def_struct_nested(brna, srna, "Brush");
+	RNA_def_struct_ui_text(srna, "Weight Paint Capabilities",
+	                       "Read-only indications of supported operations");
+
+#define WPAINT_TOOL_CAPABILITY(prop_name_, ui_name_)                         \
+	prop = RNA_def_property(srna, #prop_name_,                               \
+	                        PROP_BOOLEAN, PROP_NONE);                        \
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);                        \
+	RNA_def_property_boolean_funcs(prop, "rna_BrushCapabilitiesWeightPaint_" \
+	                               #prop_name_ "_get", NULL);                \
+	RNA_def_property_ui_text(prop, ui_name_, NULL)
+
+	WPAINT_TOOL_CAPABILITY(has_weight, "Has Weight");
+
+#undef WPAINT_TOOL_CAPABILITY
 }
 
 static void rna_def_gpencil_options(BlenderRNA *brna)
@@ -1981,6 +2016,12 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Vertexpaint_tool_capabilities_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Vertex Paint Capabilities", "");
 
+	prop = RNA_def_property(srna, "weight_paint_capabilities", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "BrushCapabilitiesWeightPaint");
+	RNA_def_property_pointer_funcs(prop, "rna_Weightpaint_tool_capabilities_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Weight Paint Capabilities", "");
+
 	prop = RNA_def_property(srna, "gpencil_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BrushGpencilSettings");
 	RNA_def_property_pointer_sdna(prop, NULL, "gpencil_settings");
@@ -2056,6 +2097,7 @@ void RNA_def_brush(BlenderRNA *brna)
 	rna_def_sculpt_capabilities(brna);
 	rna_def_image_paint_capabilities(brna);
 	rna_def_vertex_paint_capabilities(brna);
+	rna_def_weight_paint_capabilities(brna);
 	rna_def_gpencil_options(brna);
 	rna_def_brush_texture_slot(brna);
 	rna_def_operator_stroke_element(brna);

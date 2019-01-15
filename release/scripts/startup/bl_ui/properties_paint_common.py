@@ -302,8 +302,11 @@ def brush_mask_texture_settings(layout, brush):
 # Share between topbar and brush panel.
 
 def brush_basic_wpaint_settings(layout, context, brush, *, compact=False):
-    row = layout.row(align=True)
-    UnifiedPaintPanel.prop_unified_weight(row, context, brush, "weight", slider=True, text="Weight")
+    capabilities = brush.weight_paint_capabilities
+
+    if capabilities.has_weight:
+        row = layout.row(align=True)
+        UnifiedPaintPanel.prop_unified_weight(row, context, brush, "weight", slider=True, text="Weight")
 
     row = layout.row(align=True)
     UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
