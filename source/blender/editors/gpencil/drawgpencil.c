@@ -602,7 +602,7 @@ static void gp_draw_stroke_fill(
 {
 	BLI_assert(gps->totpoints >= 3);
 	Material *ma = gpd->mat[gps->mat_nr];
-	MaterialGPencilStyle *gp_style = ma->gp_style;
+	MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
 	/* Calculate triangles cache for filling area (must be done only after changes) */
 	if ((gps->flag & GP_STROKE_RECALC_GEOMETRY) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
@@ -1013,7 +1013,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 		}
 		/* check if the color is visible */
 		Material *ma = tgpw->gpd->mat[gps->mat_nr];
-		MaterialGPencilStyle *gp_style = ma->gp_style;
+		MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
 		if ((gp_style == NULL) ||
 		    (gp_style->flag & GP_STYLE_COLOR_HIDE) ||
@@ -1233,7 +1233,7 @@ static void gp_draw_strokes_edit(
 		/* verify color lock */
 		{
 			Material *ma = gpd->mat[gps->mat_nr];
-			MaterialGPencilStyle *gp_style = ma->gp_style;
+			MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
 			if (gp_style != NULL) {
 				if (gp_style->flag & GP_STYLE_COLOR_HIDE) {
@@ -1263,7 +1263,7 @@ static void gp_draw_strokes_edit(
 		/* for now, we assume that the base color of the points is not too close to the real color */
 		/* set color using material */
 		Material *ma = gpd->mat[gps->mat_nr];
-		MaterialGPencilStyle *gp_style = ma->gp_style;
+		MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
 
 		float selectColor[4];
 		UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, selectColor);
@@ -1307,8 +1307,12 @@ static void gp_draw_strokes_edit(
 				immAttr3fv(color, selectColor);
 				immAttr1f(size, vsize);
 			}
-			else {
+			else if (gp_style) {
 				immAttr3fv(color, gp_style->stroke_rgba);
+				immAttr1f(size, bsize);
+			}
+			else {
+				immAttr3f(color, 0.0f, 0.0f, 0.0f);
 				immAttr1f(size, bsize);
 			}
 

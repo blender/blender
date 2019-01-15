@@ -3892,7 +3892,8 @@ class VIEW3D_MT_assign_material(Menu):
 
         for slot in ob.material_slots:
             mat = slot.material
-            layout.operator("gpencil.stroke_change_color", text=mat.name).material = mat.name
+            if mat:
+                layout.operator("gpencil.stroke_change_color", text=mat.name).material = mat.name
 
 
 class VIEW3D_MT_gpencil_copy_layer(Menu):
