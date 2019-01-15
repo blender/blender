@@ -39,7 +39,7 @@ add_dependencies(
 	external_zlib
 )
 
-if(BUILD_MODE STREQUAL Debug)
+if(WIN32 AND BUILD_MODE STREQUAL Debug)
 	ExternalProject_Add_Step(external_tiff after_install
 		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiffd${LIBEXT} ${LIBDIR}/tiff/lib/tiff${LIBEXT}
 		DEPENDEES install

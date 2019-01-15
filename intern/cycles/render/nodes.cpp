@@ -3732,7 +3732,7 @@ void LightPathNode::compile(OSLCompiler& compiler)
 
 NODE_DEFINE(LightFalloffNode)
 {
-	NodeType* type = NodeType::add("light_fallof", create, NodeType::SHADER);
+	NodeType* type = NodeType::add("light_falloff", create, NodeType::SHADER);
 
 	SOCKET_IN_FLOAT(strength, "Strength", 100.0f);
 	SOCKET_IN_FLOAT(smooth, "Smooth", 0.0f);
@@ -5840,7 +5840,7 @@ NODE_DEFINE(NormalMapNode)
 	space_enum.insert("world", NODE_NORMAL_MAP_WORLD);
 	space_enum.insert("blender_object", NODE_NORMAL_MAP_BLENDER_OBJECT);
 	space_enum.insert("blender_world", NODE_NORMAL_MAP_BLENDER_WORLD);
-	SOCKET_ENUM(space, "Space", space_enum, NODE_TANGENT_RADIAL);
+	SOCKET_ENUM(space, "Space", space_enum, NODE_NORMAL_MAP_TANGENT);
 
 	SOCKET_STRING(attribute, "Attribute", ustring());
 
@@ -6051,7 +6051,7 @@ NODE_DEFINE(DisplacementNode)
 	space_enum.insert("object", NODE_NORMAL_MAP_OBJECT);
 	space_enum.insert("world", NODE_NORMAL_MAP_WORLD);
 
-	SOCKET_ENUM(space, "Space", space_enum, NODE_NORMAL_MAP_TANGENT);
+	SOCKET_ENUM(space, "Space", space_enum, NODE_NORMAL_MAP_OBJECT);
 
 	SOCKET_IN_FLOAT(height, "Height", 0.0f);
 	SOCKET_IN_FLOAT(midlevel, "Midlevel", 0.5f);
