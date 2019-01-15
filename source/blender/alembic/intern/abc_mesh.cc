@@ -289,10 +289,10 @@ static ModifierData *get_liquid_sim_modifier(Scene *scene, Object *ob)
 
 /* ************************************************************************** */
 
-AbcMeshWriter::AbcMeshWriter(Object *ob,
-                             AbcTransformWriter *parent,
-                             uint32_t time_sampling,
-                             ExportSettings &settings)
+AbcGenericMeshWriter::AbcGenericMeshWriter(Object *ob,
+                                           AbcTransformWriter *parent,
+                                           uint32_t time_sampling,
+                                           ExportSettings &settings)
     : AbcObjectWriter(ob, time_sampling, settings, parent)
 {
 	m_is_animated = isAnimated();
@@ -329,22 +329,15 @@ AbcMeshWriter::AbcMeshWriter(Object *ob,
 	}
 }
 
-AbcMeshWriter::~AbcMeshWriter()
+AbcGenericMeshWriter::~AbcGenericMeshWriter()
 {
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
 	}
 }
 
-bool AbcMeshWriter::isAnimated() const
+bool AbcGenericMeshWriter::isAnimated() const
 {
-	/* Check if object has shape keys. */
-	Mesh *me = static_cast<Mesh *>(m_object->data);
-
-	if (me->key) {
-		return true;
-	}
-
 	/* Test modifiers. */
 	ModifierData *md = static_cast<ModifierData *>(m_object->modifiers.first);
 
@@ -356,15 +349,15 @@ bool AbcMeshWriter::isAnimated() const
 		md = md->next;
 	}
 
-	return me->adt != NULL;
+	return false;
 }
 
-void AbcMeshWriter::setIsAnimated(bool is_animated)
+void AbcGenericMeshWriter::setIsAnimated(bool is_animated)
 {
 	m_is_animated = is_animated;
 }
 
-void AbcMeshWriter::do_write()
+void AbcGenericMeshWriter::do_write()
 {
 	/* We have already stored a sample for this object. */
 	if (!m_first_frame && !m_is_animated)
@@ -389,7 +382,7 @@ void AbcMeshWriter::do_write()
 	}
 }
 
-void AbcMeshWriter::writeMesh(struct Mesh *mesh)
+void AbcGenericMeshWriter::writeMesh(struct Mesh *mesh)
 {
 	std::vector<Imath::V3f> points, normals;
 	std::vector<int32_t> poly_verts, loop_counts;
@@ -455,7 +448,7 @@ void AbcMeshWriter::writeMesh(struct Mesh *mesh)
 	writeArbGeoParams(mesh);
 }
 
-void AbcMeshWriter::writeSubD(struct Mesh *mesh)
+void AbcGenericMeshWriter::writeSubD(struct Mesh *mesh)
 {
 	std::vector<float> crease_sharpness;
 	std::vector<Imath::V3f> points;
@@ -506,7 +499,7 @@ void AbcMeshWriter::writeSubD(struct Mesh *mesh)
 }
 
 template <typename Schema>
-void AbcMeshWriter::writeFaceSets(struct Mesh *me, Schema &schema)
+void AbcGenericMeshWriter::writeFaceSets(struct Mesh *me, Schema &schema)
 {
 	std::map< std::string, std::vector<int32_t> > geo_groups;
 	getGeoGroups(me, geo_groups);
@@ -520,17 +513,18 @@ void AbcMeshWriter::writeFaceSets(struct Mesh *me, Schema &schema)
 	}
 }
 
-Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
+Mesh *AbcGenericMeshWriter::getFinalMesh(bool &r_needsfree)
 {
 	/* We don't want subdivided mesh data */
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
 	}
 
+	r_needsfree = false;
+
 	Scene *scene = DEG_get_evaluated_scene(m_settings.depsgraph);
 	Object *ob_eval = DEG_get_evaluated_object(m_settings.depsgraph, m_object);
-	struct Mesh *mesh = mesh_get_eval_final(m_settings.depsgraph, scene, ob_eval, CD_MASK_MESH);
-	r_needsfree = false;
+	struct Mesh *mesh = getEvaluatedMesh(scene, ob_eval, r_needsfree);
 
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
@@ -568,7 +562,7 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 	return mesh;
 }
 
-void AbcMeshWriter::writeArbGeoParams(struct Mesh *me)
+void AbcGenericMeshWriter::writeArbGeoParams(struct Mesh *me)
 {
 	if (m_is_liquid) {
 		/* We don't need anything more for liquid meshes. */
@@ -585,7 +579,7 @@ void AbcMeshWriter::writeArbGeoParams(struct Mesh *me)
 	}
 }
 
-void AbcMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)
+void AbcGenericMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)
 {
 	const int totverts = mesh->totvert;
 
@@ -609,7 +603,7 @@ void AbcMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V3f> &ve
 	}
 }
 
-void AbcMeshWriter::getGeoGroups(
+void AbcGenericMeshWriter::getGeoGroups(
         struct Mesh *mesh,
         std::map<std::string, std::vector<int32_t> > &geo_groups)
 {
@@ -650,6 +644,38 @@ void AbcMeshWriter::getGeoGroups(
 		geo_groups[name] = faceArray;
 	}
 }
+
+
+AbcMeshWriter::AbcMeshWriter(Object *ob,
+                             AbcTransformWriter *parent,
+                             uint32_t time_sampling,
+                             ExportSettings &settings)
+    : AbcGenericMeshWriter(ob, parent, time_sampling, settings)
+{}
+
+AbcMeshWriter::~AbcMeshWriter()
+{}
+
+struct Mesh *AbcMeshWriter::getEvaluatedMesh(struct Scene *scene_eval, struct Object *ob_eval,
+                                             bool &UNUSED(r_needsfree))
+{
+	return mesh_get_eval_final(m_settings.depsgraph, scene_eval, ob_eval, CD_MASK_MESH);
+}
+
+
+bool AbcMeshWriter::isAnimated() const
+{
+	Mesh *me = static_cast<Mesh *>(m_object->data);
+	if (me->key != NULL) {
+		return true;
+	}
+	if (me->adt != NULL) {
+		return true;
+	}
+
+	return AbcGenericMeshWriter::isAnimated();
+}
+
 
 /* ************************************************************************** */
 

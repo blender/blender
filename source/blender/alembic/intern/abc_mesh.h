@@ -31,7 +31,9 @@ struct ModifierData;
 
 /* ************************************************************************** */
 
-class AbcMeshWriter : public AbcObjectWriter {
+/* Writer for Alembic meshes. Does not assume the object is a mesh object. */
+class AbcGenericMeshWriter : public AbcObjectWriter {
+protected:
 	Alembic::AbcGeom::OPolyMeshSchema m_mesh_schema;
 	Alembic::AbcGeom::OPolyMeshSchema::Sample m_mesh_sample;
 
@@ -49,23 +51,23 @@ class AbcMeshWriter : public AbcObjectWriter {
 	bool m_is_subd;
 
 public:
-	AbcMeshWriter(Object *ob,
+	AbcGenericMeshWriter(Object *ob,
 	              AbcTransformWriter *parent,
 	              uint32_t time_sampling,
 	              ExportSettings &settings);
 
-	~AbcMeshWriter();
+	~AbcGenericMeshWriter();
 	void setIsAnimated(bool is_animated);
 
-private:
+protected:
 	virtual void do_write();
+	virtual bool isAnimated() const;
+	virtual struct Mesh *getEvaluatedMesh(struct Scene *scene_eval, struct Object *ob_eval, bool &r_needsfree) = 0;
 
-	bool isAnimated() const;
+	struct Mesh *getFinalMesh(bool &r_needsfree);
 
 	void writeMesh(struct Mesh *mesh);
 	void writeSubD(struct Mesh *mesh);
-
-	struct Mesh *getFinalMesh(bool &r_needsfree);
 
 	void writeArbGeoParams(struct Mesh *mesh);
 	void getGeoGroups(struct Mesh *mesh, std::map<std::string, std::vector<int32_t> > &geoGroups);
@@ -76,6 +78,21 @@ private:
 	template <typename Schema>
 	void writeFaceSets(struct Mesh *mesh, Schema &schema);
 };
+
+
+class AbcMeshWriter : public AbcGenericMeshWriter {
+public:
+	AbcMeshWriter(Object *ob,
+	              AbcTransformWriter *parent,
+	              uint32_t time_sampling,
+	              ExportSettings &settings);
+
+	~AbcMeshWriter();
+protected:
+	bool isAnimated() const override;
+	virtual struct Mesh *getEvaluatedMesh(struct Scene *scene_eval, struct Object *ob_eval, bool &r_needsfree) override;
+};
+
 
 /* ************************************************************************** */
 

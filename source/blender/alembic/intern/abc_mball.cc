@@ -55,7 +55,7 @@ AbcMBallWriter::AbcMBallWriter(
 	m_mesh_ob->runtime.curve_cache = (CurveCache *)MEM_callocN(
 	                             sizeof(CurveCache),
 	                             "CurveCache for AbcMBallWriter");
-
+	/* TODO(Sybren): reimplement metaball writing as subclass of AbcGenericMeshWriter. */
 	m_mesh_writer = new AbcMeshWriter(m_mesh_ob, parent, time_sampling, settings);
 	m_mesh_writer->setIsAnimated(m_is_animated);
 }
