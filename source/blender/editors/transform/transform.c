@@ -2413,41 +2413,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 	}
 
-	/* Transformation axis from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_float_get_array(op->ptr, prop, t->axis);
-		normalize_v3(t->axis);
-		copy_v3_v3(t->axis_orig, t->axis);
-	}
-
-	if ((prop = RNA_struct_find_property(op->ptr, "axis_ortho")) && RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_float_get_array(op->ptr, prop, t->axis_ortho);
-		normalize_v3(t->axis_ortho);
-	}
-
-	/* Constraint init from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop)) {
-		bool constraint_axis[3];
-
-		RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
-
-		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
-			t->con.mode |= CON_APPLY;
-
-			if (constraint_axis[0]) {
-				t->con.mode |= CON_AXIS0;
-			}
-			if (constraint_axis[1]) {
-				t->con.mode |= CON_AXIS1;
-			}
-			if (constraint_axis[2]) {
-				t->con.mode |= CON_AXIS2;
-			}
-
-			setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
-		}
-	}
-
 	if (event) {
 		/* Initialize accurate transform to settings requested by keymap. */
 		bool use_accurate = false;
@@ -2599,6 +2564,54 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	if (t->state == TRANS_CANCEL) {
 		postTrans(C, t);
 		return 0;
+	}
+
+	/* Transformation axis from operator */
+	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_float_get_array(op->ptr, prop, t->axis);
+		normalize_v3(t->axis);
+		copy_v3_v3(t->axis_orig, t->axis);
+	}
+
+	if ((prop = RNA_struct_find_property(op->ptr, "axis_ortho")) && RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_float_get_array(op->ptr, prop, t->axis_ortho);
+		normalize_v3(t->axis_ortho);
+	}
+
+	/* Constraint init from operator */
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop)) {
+		bool constraint_axis[3];
+
+		RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
+
+		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
+			t->con.mode |= CON_APPLY;
+
+			if (constraint_axis[0]) {
+				t->con.mode |= CON_AXIS0;
+			}
+			if (constraint_axis[1]) {
+				t->con.mode |= CON_AXIS1;
+			}
+			if (constraint_axis[2]) {
+				t->con.mode |= CON_AXIS2;
+			}
+
+			setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
+		}
+	}
+	/* Apply values_modal_offset (after we have constraints). */
+	if (t->flag & T_MODAL) {
+		if (!is_zero_v3(t->values_modal_offset)) {
+			float values_ofs[3];
+			if (t->con.mode & CON_APPLY) {
+				mul_v3_m3v3(values_ofs, t->spacemtx, t->values_modal_offset);
+			}
+			else {
+				copy_v3_v3(values_ofs, t->values_modal_offset);
+			}
+			add_v3_v3(t->values, values_ofs);
+		}
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "preserve_clnor"))) {
