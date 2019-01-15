@@ -1179,7 +1179,10 @@ static void createTransPose(TransInfo *t)
 		/* do we need to add temporal IK chains? */
 		if ((arm->flag & ARM_AUTO_IK) && t->mode == TFM_TRANSLATION) {
 			ik_on = pose_grab_with_ik(bmain, ob);
-			if (ik_on) t->flag |= T_AUTOIK;
+			if (ik_on) {
+				t->flag |= T_AUTOIK;
+				has_translate_rotate[0] = true;
+			}
 		}
 	}
 
