@@ -713,7 +713,7 @@ static DRWShadingGroup *shgroup_points(DRWPass *pass, const float col[4], GPUSha
 static int *shgroup_theme_id_to_probe_outline_counter(
         OBJECT_StorageList *stl, int theme_id, const int base_flag)
 {
-	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -738,7 +738,7 @@ static int *shgroup_theme_id_to_probe_outline_counter(
 static int *shgroup_theme_id_to_outline_counter(
         OBJECT_StorageList *stl, int theme_id, const int base_flag)
 {
-	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -779,7 +779,7 @@ static DRWShadingGroup *shgroup_theme_id_to_probe_cube_outline_shgrp(
         OBJECT_StorageList *stl, int theme_id, const int base_flag)
 {
 	/* does not increment counter */
-	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -807,7 +807,7 @@ static DRWShadingGroup *shgroup_theme_id_to_outline_or_null(
 	int *counter = shgroup_theme_id_to_outline_counter(stl, theme_id, base_flag);
 	*counter += 1;
 
-	if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -837,7 +837,7 @@ static DRWShadingGroup *shgroup_theme_id_to_wire(
 	if (UNLIKELY(base_flag & BASE_FROM_SET)) {
 		return sgl->wire_dupli;
 	}
-	else if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	else if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -867,7 +867,7 @@ static DRWShadingGroup *shgroup_theme_id_to_point(
 	if (UNLIKELY(base_flag & BASE_FROM_SET)) {
 		return sgl->points_dupli;
 	}
-	else if (UNLIKELY(base_flag & BASE_FROMDUPLI)) {
+	else if (UNLIKELY(base_flag & BASE_FROM_DUPLI)) {
 		switch (theme_id) {
 			case TH_ACTIVE:
 			case TH_SELECT:
@@ -1512,7 +1512,7 @@ static void DRW_shgroup_lamp(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer
 	float (*shapemat)[4] = lamp_engine_data->shape_mat;
 	float (*spotblendmat)[4] = lamp_engine_data->spot_blend_mat;
 
-	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
+	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
 		/* Don't draw the center if it's selected or active */
 		if (theme_id == TH_LAMP) {
 			DRW_shgroup_call_dynamic_add(sgl->lamp_center, ob->obmat[3]);
@@ -3119,7 +3119,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	}
 
 	/* don't show object extras in set's */
-	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
+	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
 		if ((draw_ctx->object_mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) == 0) {
 			DRW_shgroup_object_center(stl, ob, view_layer, v3d);
 		}

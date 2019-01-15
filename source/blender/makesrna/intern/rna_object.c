@@ -2807,7 +2807,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* Base Settings */
 	prop = RNA_def_property(srna, "is_from_instancer", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_FROMDUPLI);
+	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_FROM_DUPLI);
 	RNA_def_property_ui_text(prop, "Base from Instancer", "Object comes from a instancer");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 

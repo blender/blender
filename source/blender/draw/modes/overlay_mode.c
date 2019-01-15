@@ -252,7 +252,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				rim_col = ts.colorDupli;
 				wire_col = ts.colorDupli;
 			}
-			else if (UNLIKELY(ob->base_flag & BASE_FROMDUPLI)) {
+			else if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
 				if (ob->base_flag & BASE_SELECTED) {
 					if (G.moving & G_TRANSFORM_OBJ) {
 						rim_col = ts.colorTransform;

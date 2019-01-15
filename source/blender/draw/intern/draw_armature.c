@@ -1856,7 +1856,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				if (!is_pose_select && show_relations &&
 				    (arm->flag & ARM_POSEMODE) &&
 				    (bone->flag & BONE_SELECTED) &&
-				    ((ob->base_flag & BASE_FROMDUPLI) == 0) &&
+				    ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
 				    (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT)))
 				{
 					draw_bone_dofs(pchan);

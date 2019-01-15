@@ -77,7 +77,7 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	cache_elem->idx = *gp_cache_used;
 
 	/* object is duplicated (particle) */
-	cache_elem->is_dup_ob = ob->base_flag & BASE_FROMDUPLI;
+	cache_elem->is_dup_ob = ob->base_flag & BASE_FROM_DUPLI;
 
 	/* save FXs */
 	cache_elem->pixfactor = cache_elem->gpd->pixfactor;

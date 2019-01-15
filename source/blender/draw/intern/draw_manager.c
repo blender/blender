@@ -878,7 +878,7 @@ DrawData *DRW_drawdata_ensure(
 	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
 
 	/* Allocate new data. */
-	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROMDUPLI) != 0) {
+	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROM_DUPLI) != 0) {
 		/* NOTE: data is not persistent in this case. It is reset each redraw. */
 		BLI_assert(free_cb == NULL); /* No callback allowed. */
 		/* Round to sizeof(float) for DRW_instance_data_request(). */
@@ -925,7 +925,7 @@ void DRW_drawdata_free(ID *id)
 /* Unlink (but don't free) the drawdata from the DrawDataList if the ID is an OB from dupli. */
 static void drw_drawdata_unlink_dupli(ID *id)
 {
-	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROMDUPLI) != 0) {
+	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROM_DUPLI) != 0) {
 		DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
 
 		if (drawdata == NULL)
@@ -2134,7 +2134,7 @@ void DRW_draw_select_loop(
 				    (object_type_exclude_select & (1 << ob->type)) == 0)
 				{
 					if (object_filter_fn != NULL) {
-						if (ob->base_flag & BASE_FROMDUPLI) {
+						if (ob->base_flag & BASE_FROM_DUPLI) {
 							/* pass (use previous filter_exclude value) */
 						}
 						else {
@@ -2146,7 +2146,7 @@ void DRW_draw_select_loop(
 					}
 
 					/* This relies on dupli instances being after their instancing object. */
-					if ((ob->base_flag & BASE_FROMDUPLI) == 0) {
+					if ((ob->base_flag & BASE_FROM_DUPLI) == 0) {
 						Object *ob_orig = DEG_get_original_object(ob);
 						DRW_select_load_id(ob_orig->select_color);
 					}

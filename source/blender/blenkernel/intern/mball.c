@@ -422,7 +422,7 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
 	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 			Object *ob = base->object;
-			if ((ob->type == OB_MBALL) && !(base->flag & BASE_FROMDUPLI)) {
+			if ((ob->type == OB_MBALL) && !(base->flag & BASE_FROM_DUPLI)) {
 				if (ob != bob) {
 					BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
 

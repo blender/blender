@@ -1547,7 +1547,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 
 					/* XXX TODO rewrite this to include the dupli objects.
 					 * This means we cannot exclude dupli objects from reflections!!! */
-					if ((ob->base_flag & BASE_FROMDUPLI) == 0) {
+					if ((ob->base_flag & BASE_FROM_DUPLI) == 0) {
 						oedata = EEVEE_object_data_ensure(ob);
 						oedata->ob = ob;
 						oedata->test_data = &sldata->probes->vis_data;

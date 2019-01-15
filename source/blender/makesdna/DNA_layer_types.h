@@ -107,7 +107,7 @@ enum {
 	/* Runtime evaluated flags. */
 	BASE_VISIBLE          = (1 << 1), /* Object is enabled and visible. */
 	BASE_SELECTABLE       = (1 << 2), /* Object can be selected. */
-	BASE_FROMDUPLI        = (1 << 3), /* Object comes from duplicator. */
+	BASE_FROM_DUPLI       = (1 << 3), /* Object comes from duplicator. */
 	/* BASE_DEPRECATED    = (1 << 4), */
 	BASE_FROM_SET         = (1 << 5), /* Object comes from set. */
 	BASE_ENABLED_VIEWPORT = (1 << 6), /* Object is enabled in viewport. */

@@ -909,7 +909,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 		if (UNLIKELY(ob->base_flag & BASE_FROM_SET)) {
 			*r_color = ts.colorDupli;
 		}
-		else if (UNLIKELY(ob->base_flag & BASE_FROMDUPLI)) {
+		else if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
 			switch (theme_id) {
 				case TH_ACTIVE:
 				case TH_SELECT:       *r_color = ts.colorDupliSelect; break;

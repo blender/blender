@@ -542,7 +542,7 @@ void BKE_object_free_caches(Object *object)
 	 * object created by dependency graph, which shares pointers with original
 	 * object. In this case we can not free anything.
 	 */
-	if ((object->base_flag & BASE_FROMDUPLI) == 0) {
+	if ((object->base_flag & BASE_FROM_DUPLI) == 0) {
 		BKE_object_free_derived_caches(object);
 		update_flag |= ID_RECALC_GEOMETRY;
 	}

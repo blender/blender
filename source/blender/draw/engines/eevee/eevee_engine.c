@@ -145,7 +145,7 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
 			/* do not add any scene light sources to the cache */
 		}
 		else if (ob->type == OB_LIGHTPROBE) {
-			if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+			if ((ob->base_flag & BASE_FROM_DUPLI) != 0) {
 				/* TODO: Special case for dupli objects because we cannot save the object pointer. */
 			}
 			else {
