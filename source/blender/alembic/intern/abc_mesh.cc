@@ -550,6 +550,10 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 		Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 		BM_mesh_free(bm);
 
+		if (r_needsfree) {
+			BKE_id_free(NULL, mesh);
+		}
+
 		mesh = result;
 		r_needsfree = true;
 	}
