@@ -2885,7 +2885,8 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(
 		return item;
 	}
 
-	return NULL;
+	/* Get all items e.g. when creating keymap item. */
+	return merge_type_items;
 }
 
 void MESH_OT_merge(wmOperatorType *ot)
