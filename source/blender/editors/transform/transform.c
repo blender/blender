@@ -2600,18 +2600,11 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			setUserConstraint(t, t->orientation.user, t->con.mode, "%s");
 		}
 	}
-	/* Apply values_modal_offset (after we have constraints). */
+
+	/* Don't write into the values when non-modal because they are already set from operator redo values. */
 	if (t->flag & T_MODAL) {
-		if (!is_zero_v3(t->values_modal_offset)) {
-			float values_ofs[3];
-			if (t->con.mode & CON_APPLY) {
-				mul_v3_m3v3(values_ofs, t->spacemtx, t->values_modal_offset);
-			}
-			else {
-				copy_v3_v3(values_ofs, t->values_modal_offset);
-			}
-			add_v3_v3(t->values, values_ofs);
-		}
+		/* Setup the mouse input with initial values. */
+		applyMouseInput(t, &t->mouse, t->mouse.imval, t->values);
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "preserve_clnor"))) {

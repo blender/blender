@@ -387,12 +387,6 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	if (mi_data_prev && (mi_data_prev != mi->data)) {
 		MEM_freeN(mi_data_prev);
 	}
-
-	/* Don't write into the values when non-modal because they are already set from operator redo values. */
-	if (t->flag & T_MODAL) {
-		/* bootstrap mouse input with initial values */
-		applyMouseInput(t, mi, mi->imval, t->values);
-	}
 }
 
 void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float values[3]))
@@ -433,6 +427,17 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
 
 	if (mi->apply != NULL) {
 		mi->apply(t, mi, mval_db, output);
+	}
+
+	if (!is_zero_v3(t->values_modal_offset)) {
+		float values_ofs[3];
+		if (t->con.mode & CON_APPLY) {
+			mul_v3_m3v3(values_ofs, t->spacemtx, t->values_modal_offset);
+		}
+		else {
+			copy_v3_v3(values_ofs, t->values_modal_offset);
+		}
+		add_v3_v3(t->values, values_ofs);
 	}
 
 	if (mi->post) {
