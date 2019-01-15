@@ -158,7 +158,8 @@ float ED_object_new_primitive_matrix(
         const float loc[3], const float rot[3], float primmat[4][4]);
 
 
-/* Avoid allowing too much insane values even by typing (typos can hang/crash Blender otherwise). */
+/* Avoid allowing too much insane values even by typing
+ * (typos can hang/crash Blender otherwise). */
 #define OBJECT_ADD_SIZE_MAXF 1.0e12f
 
 void ED_object_add_unit_props(struct wmOperatorType *ot);

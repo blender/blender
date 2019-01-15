@@ -55,9 +55,12 @@ typedef struct ActKeyColumn {
 	struct ActKeyColumn *next, *prev;
 
 	/* sorting-tree linkage */
-	struct ActKeyColumn *left, *right;  /* 'children' of this node, less than and greater than it (respectively) */
-	struct ActKeyColumn *parent;        /* parent of this node in the tree */
-	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
+	/** 'children' of this node, less than and greater than it (respectively) */
+	struct ActKeyColumn *left, *right;
+	/** parent of this node in the tree */
+	struct ActKeyColumn *parent;
+	/** DLRB_BLACK or DLRB_RED */
+	char tree_col;
 
 	/* keyframe info */
 	char key_type;                      /* eBezTripe_KeyframeType */

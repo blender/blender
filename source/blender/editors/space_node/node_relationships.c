@@ -1179,7 +1179,8 @@ static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeTree *ntree = snode->edittree;
 	bNode *node, *frame;
 
-	/* XXX save selection: node_add_node call below sets the new frame as single active+selected node */
+	/* XXX save selection: node_add_node call below sets the new frame as single
+	 * active+selected node */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_SELECT)
 			node->flag |= NODE_TEST;
@@ -1455,11 +1456,13 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 			float dist = FLT_MAX;
 			int i;
 
-			/* loop over link coords to find shortest dist to upper left node edge of a intersected line segment */
+			/* loop over link coords to find shortest dist to
+			 * upper left node edge of a intersected line segment */
 			for (i = 0; i < NODE_LINK_RESOL; i++) {
 				/* check if the node rect intersetcts the line from this point to next one */
 				if (BLI_rctf_isect_segment(&select->totr, coord_array[i], coord_array[i + 1])) {
-					/* store the shortest distance to the upper left edge of all intersetctions found so far */
+					/* store the shortest distance to the upper left edge
+					 * of all intersetctions found so far */
 					const float node_xy[] = {select->totr.xmin, select->totr.ymax};
 
 					/* to be precise coord_array should be clipped by select->totr,
@@ -1645,10 +1648,12 @@ static void node_link_insert_offset_ntree(
 	/* NODE_TEST will be used later, so disable for all nodes */
 	ntreeNodeFlagSet(ntree, NODE_TEST, false);
 
-	/* insert->totr isn't updated yet, so totr_insert is used to get the correct worldspace coords */
+	/* insert->totr isn't updated yet,
+	 * so totr_insert is used to get the correct worldspace coords */
 	node_to_updated_rect(insert, &totr_insert);
 
-	/* frame attachment wasn't handled yet so we search the frame that the node will be attached to later */
+	/* frame attachment wasn't handled yet
+	 * so we search the frame that the node will be attached to later */
 	insert->parent = node_find_frame_to_attach(ar, ntree, mouse_xy);
 
 	/* this makes sure nodes are also correctly offset when inserting a node on top of a frame

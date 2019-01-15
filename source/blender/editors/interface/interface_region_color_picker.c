@@ -155,7 +155,8 @@ static void ui_update_color_picker_buts_rgb(
 	if (block->color_profile)
 		display = ui_block_cm_display_get(block);
 
-	/* this updates button strings, is hackish... but button pointers are on stack of caller function */
+	/* this updates button strings,
+	 * is hackish... but button pointers are on stack of caller function */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		if (bt->custom_data != cpicker)
 			continue;

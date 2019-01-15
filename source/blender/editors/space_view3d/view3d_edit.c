@@ -447,8 +447,8 @@ static void viewops_data_create(
 
 				negate_v3_v3(my_origin, rv3d->ofs);             /* ofs is flipped */
 
-				/* Set the dist value to be the distance from this 3d point
-				 * this means youll always be able to zoom into it and panning wont go bad when dist was zero */
+				/* Set the dist value to be the distance from this 3d point this means youll
+				 * always be able to zoom into it and panning wont go bad when dist was zero */
 
 				/* remove dist value */
 				upvec[0] = upvec[1] = 0;
@@ -459,7 +459,8 @@ static void viewops_data_create(
 				sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
 				negate_v3(my_pivot);                /* ofs is flipped */
 
-				/* find a new ofs value that is along the view axis (rather than the mouse location) */
+				/* find a new ofs value that is along the view axis
+				 * (rather than the mouse location) */
 				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
 				vod->init.dist = rv3d->dist = len_v3v3(my_pivot, dvec);
 
@@ -1219,7 +1220,8 @@ void view3d_ndof_fly(
 		}
 
 		if (!is_zero_v3(trans)) {
-			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+			/* move center of view opposite of hand motion
+			 * (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, trans);
 			has_translate = true;
 		}
@@ -3103,7 +3105,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 /** \name View Camera Center Operator
  * \{ */
 
-static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
+static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	float xfac, yfac;
@@ -3154,7 +3156,7 @@ void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
 /** \name View Lock Center Operator
  * \{ */
 
-static int view3d_center_lock_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
+static int view3d_center_lock_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -4597,7 +4599,8 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 			}
 		}
 		else {
-			/* Cursor may be outside of the view, prevent it getting 'lost', see: T40353 & T45301 */
+			/* Cursor may be outside of the view,
+			 * prevent it getting 'lost', see: T40353 & T45301 */
 			zero_v2(rv3d->ofs_lock);
 		}
 	}

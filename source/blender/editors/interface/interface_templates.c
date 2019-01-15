@@ -813,7 +813,9 @@ void uiTemplateAnyID(
 	}
 
 	/* Start drawing UI Elements using standard defines */
-	split = uiLayoutSplit(layout, 0.33f, false);  /* NOTE: split amount here needs to be synced with normal labels */
+
+	/* NOTE: split amount here needs to be synced with normal labels */
+	split = uiLayoutSplit(layout, 0.33f, false);
 
 	/* FIRST PART ................................................ */
 	row = uiLayoutRow(split, false);
@@ -831,14 +833,20 @@ void uiTemplateAnyID(
 	row = uiLayoutRow(split, true);
 
 	/* ID-Type Selector - just have a menu of icons */
-	sub = uiLayoutRow(row, true);                     /* HACK: special group just for the enum, otherwise we */
-	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);  /*       we get ugly layout with text included too...  */
+
+	/* HACK: special group just for the enum,
+	 * otherwise we get ugly layout with text included too... */
+	sub = uiLayoutRow(row, true);
+	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
 	uiItemFullR(sub, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 	/* ID-Block Selector - just use pointer widget... */
-	sub = uiLayoutRow(row, true);                       /* HACK: special group to counteract the effects of the previous */
-	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);  /*       enum, which now pushes everything too far right         */
+
+	/* HACK: special group to counteract the effects of the previous enum,
+	 * which now pushes everything too far right. */
+	sub = uiLayoutRow(row, true);
+	uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
 
 	uiItemFullR(sub, ptr, propID, 0, 0, 0, "", ICON_NONE);
 }
@@ -874,7 +882,8 @@ void uiTemplatePathBuilder(
 	/* Path (existing string) Widget */
 	uiItemR(row, ptr, propname, 0, text, ICON_RNA);
 
-	/* TODO: attach something to this to make allow searching of nested properties to 'build' the path */
+	/* TODO: attach something to this to make allow
+	 * searching of nested properties to 'build' the path */
 }
 
 /************************ Modifier Template *************************/
@@ -912,7 +921,8 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-/* Check whether Modifier is a simulation or not, this is used for switching to the physics/particles context tab */
+/* Check whether Modifier is a simulation or not,
+ * this is used for switching to the physics/particles context tab */
 static int modifier_is_simulation(ModifierData *md)
 {
 	/* Physic Tab */
@@ -1040,7 +1050,8 @@ static uiLayout *draw_modifier(
 		UI_block_align_end(block);
 
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
-		/* When Modifier is a simulation, show button to switch to context rather than the delete button. */
+		/* When Modifier is a simulation,
+		 * show button to switch to context rather than the delete button. */
 		if (modifier_can_delete(md) &&
 		    (!modifier_is_simulation(md) ||
 		     STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME)))
@@ -2205,7 +2216,8 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	rna_update_cb(C, cb_v, NULL);
 }
 
-/* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
+/* still unsure how this call evolves...
+ * we use labeltype for defining what curve-channels to show */
 static void curvemap_buttons_layout(
         uiLayout *layout, PointerRNA *ptr, char labeltype, bool levels,
         bool brush, bool neg_slope, RNAUpdateCb *cb)
@@ -2969,7 +2981,8 @@ static void uilist_prepare(
 		rows = min_ii(dyn_data->height, maxrows);
 	}
 
-	/* If list length changes or list is tagged to check this, and active is out of view, scroll to it .*/
+	/* If list length changes or list is tagged to check this,
+	 * and active is out of view, scroll to it .*/
 	if (ui_list->list_last_len != len || ui_list->flag & UILST_SCROLL_TO_ACTIVE_ITEM) {
 		if (activei_row < ui_list->list_scroll) {
 			ui_list->list_scroll = activei_row;
@@ -3595,7 +3608,8 @@ void uiTemplateOperatorPropertyButs(
 
 	/* menu */
 	if (op->type->flag & OPTYPE_PRESET) {
-		/* XXX, no simple way to get WM_MT_operator_presets.bl_label from python! Label remains the same always! */
+		/* XXX, no simple way to get WM_MT_operator_presets.bl_label
+		 * from python! Label remains the same always! */
 		PointerRNA op_ptr;
 		uiLayout *row;
 
@@ -4024,7 +4038,8 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 			if (but->rnaprop) {
 				UI_but_func_set(but, keymap_item_modified, ptr->data, NULL);
 
-				/* Otherwise the keymap will be re-generated which we're trying to edit, see: T47685 */
+				/* Otherwise the keymap will be re-generated which we're trying to edit,
+				 * see: T47685 */
 				UI_but_flag_enable(but, UI_BUT_UPDATE_DELAY);
 			}
 		}

@@ -104,7 +104,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	if (ob->type != OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); /* error_libdata(); */
+		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -731,7 +731,8 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 		}
 	}
 
-	/* Clear also Bendy Bone stuff - Roll is obvious, but Curve X/Y stuff is also kindof rotational in nature... */
+	/* Clear also Bendy Bone stuff - Roll is obvious,
+	 * but Curve X/Y stuff is also kindof rotational in nature... */
 	pchan->roll1 = 0.0f;
 	pchan->roll2 = 0.0f;
 

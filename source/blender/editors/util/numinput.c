@@ -49,7 +49,9 @@
 #include "UI_interface.h"
 
 
-/* NumInput.flag */
+/** #NumInput.flag
+ * (1 << 8) and below are reserved for public flags!
+ */
 enum {
 	/* (1 << 8) and below are reserved for public flags! */
 	NUM_EDIT_FULL       = (1 << 9),   /* Enable full editing, with units and math operators support. */
@@ -126,7 +128,8 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 					               n->unit_sys, n->unit_type[i], true, false);
 				}
 
-				BLI_strncpy(before_cursor, n->str, n->str_cur + 1);  /* +1 because of trailing '\0' */
+				/* +1 because of trailing '\0' */
+				BLI_strncpy(before_cursor, n->str, n->str_cur + 1);
 				BLI_snprintf(&str[j * ln], ln, "[%s%s|%s%s] = %s",
 				             heading_exp, before_cursor, &n->str[n->str_cur], trailing_exp, val);
 			}
@@ -147,7 +150,8 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 			const char *cur = (i == n->idx) ? "|" : "";
 			BLI_snprintf(&str[j * ln], ln, "%sNONE%s", cur, cur);
 		}
-		/* We might have cut some multi-bytes utf8 chars (e.g. trailing '°' of degrees values can become only 'A')... */
+		/* We might have cut some multi-bytes utf8 chars
+		 * (e.g. trailing '°' of degrees values can become only 'A')... */
 		BLI_utf8_invalid_strip(&str[j * ln], strlen(&str[j * ln]));
 	}
 }
@@ -294,7 +298,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 				updated = true;
 				break;
 			}
-			/* Else, common behavior with DELKEY, only difference is remove char(s) before/after the cursor. */
+			/* Else, common behavior with DELKEY,
+			 * only difference is remove char(s) before/after the cursor. */
 			dir = STRCUR_DIR_PREV;
 			ATTR_FALLTHROUGH;
 		case DELKEY:
@@ -309,7 +314,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 						SWAP(int, t_cur, cur);
 						n->str_cur = cur;
 					}
-					memmove(&n->str[cur], &n->str[t_cur], strlen(&n->str[t_cur]) + 1);  /* +1 for trailing '\0'. */
+					/* +1 for trailing '\0'. */
+					memmove(&n->str[cur], &n->str[t_cur], strlen(&n->str[t_cur]) + 1);
 					updated = true;
 				}
 				if (!n->str[0]) {
@@ -361,7 +367,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			return true;
 		case PADPERIOD:
 		case PERIODKEY:
-			/* Force numdot, some OSs/countries generate a comma char in this case, sic...  (T37992) */
+			/* Force numdot, some OSs/countries generate a comma char in this case,
+			 * sic...  (T37992) */
 			ascii[0] = '.';
 			utf8_buf = ascii;
 			break;
@@ -475,7 +482,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		return false;
 	}
 
-	/* At this point, our value has changed, try to interpret it with python (if str is not empty!). */
+	/* At this point, our value has changed, try to interpret it with python
+	 * (if str is not empty!). */
 	if (n->str[0]) {
 		const float val_prev = n->val[idx];
 		double val;
@@ -516,7 +524,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 		if (n->val_flag[idx] & NUM_INVERSE) {
 			val = n->val[idx];
-			/* If we invert on radians when user is in degrees, you get unexpected results... See T53463. */
+			/* If we invert on radians when user is in degrees,
+			 * you get unexpected results... See T53463. */
 			if (!n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
 				val = RAD2DEG(val);
 			}

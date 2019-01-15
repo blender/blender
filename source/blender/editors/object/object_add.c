@@ -1404,8 +1404,9 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		BLI_ghash_insert(dupli_gh, dob, ob_dst);
 		if (parent_gh) {
 			void **val;
-			/* Due to nature of hash/comparison of this ghash, a lot of duplis may be considered as 'the same',
-			 * this avoids trying to insert same key several time and raise asserts in debug builds... */
+			/* Due to nature of hash/comparison of this ghash, a lot of duplis may be considered as
+			 * 'the same', this avoids trying to insert same key several time and
+			 * raise asserts in debug builds... */
 			if (!BLI_ghash_ensure_p(parent_gh, dob, &val)) {
 				*val = ob_dst;
 			}

@@ -93,18 +93,26 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
 	PropertyRNA *prop;
 
-	if (flag & SEQPROP_STARTFRAME)
-		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
+	if (flag & SEQPROP_STARTFRAME) {
+		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX,
+		            "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
+	}
 
-	if (flag & SEQPROP_ENDFRAME)
-		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX);  /* not usual since most strips have a fixed length */
+	if (flag & SEQPROP_ENDFRAME) {
+		/* not usual since most strips have a fixed length */
+		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX,
+		            "End Frame", "End frame for the color strip", INT_MIN, INT_MAX);
+	}
 
-	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
+	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ,
+	            "Channel", "Channel to place this strip into", 1, MAXSEQ);
 
-	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "Replace the current selection");
+	RNA_def_boolean(ot->srna, "replace_sel", 1,
+	                "Replace Selection", "Replace the current selection");
 
 	/* only for python scripts which import strips and place them after */
-	prop = RNA_def_boolean(ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
+	prop = RNA_def_boolean(ot->srna, "overlap", 0,
+	                       "Allow Overlap", "Don't correct overlap on new sequence strips");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -190,11 +198,13 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, bContext *C, wmOperato
 	seq_load->len =          1; // images only, if endframe isn't set!
 
 	if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
-		RNA_property_string_get(op->ptr, prop, seq_load->path); /* full path, file is set by the caller */
+		/* full path, file is set by the caller */
+		RNA_property_string_get(op->ptr, prop, seq_load->path);
 		is_file = 1;
 	}
 	else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-		RNA_property_string_get(op->ptr, prop, seq_load->path); /* full path, file is set by the caller */
+		/* full path, file is set by the caller */
+		RNA_property_string_get(op->ptr, prop, seq_load->path);
 		is_file = 0;
 	}
 
@@ -249,7 +259,8 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, bContext *C, wmOperato
 			seq_load->views_format = imf->views_format;
 			seq_load->flag |= SEQ_USE_VIEWS;
 
-			/* operator custom data is always released after the SeqLoadInfo, no need to handle the memory here */
+			/* operator custom data is always released after the SeqLoadInfo,
+			 * no need to handle the memory here */
 			seq_load->stereo3d_format = &imf->stereo3d_format;
 		}
 	}

@@ -91,7 +91,8 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 		}
 	}
 
-	/* when an NLA track is tagged "solo", action doesn't contribute, so shouldn't be as prominent */
+	/* when an NLA track is tagged "solo", action doesn't contribute,
+	 * so shouldn't be as prominent */
 	if (adt && (adt->flag & ADT_NLA_SOLO_TRACK))
 		color[3] *= 0.15f;
 }
@@ -349,7 +350,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		glEnable(GL_BLEND);
 
 		switch (strip->extendmode) {
-			/* since this does both sides, only do the 'before' side, and leave the rest to the next case */
+			/* since this does both sides,
+			 * only do the 'before' side, and leave the rest to the next case */
 			case NLASTRIP_EXTEND_HOLD:
 				/* only need to draw here if there's no strip before since
 				 * it only applies in such a situation
@@ -422,7 +424,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		nla_draw_strip_curves(strip, yminc, ymaxc);
 
 
-	/* draw markings indicating locations of local markers (useful for lining up different actions) */
+	/* draw markings indicating locations of local markers
+	 * (useful for lining up different actions) */
 	if ((snla->flag & SNLA_NOLOCALMARKERS) == 0)
 		nla_strip_draw_markers(strip, yminc, ymaxc);
 
@@ -461,7 +464,8 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 				fdrawline(repeatPos, yminc + 4, repeatPos, ymaxc - 4);
 		}
 	}
-	/* or if meta-strip, draw lines delimiting extents of sub-strips (in same color as outline, if more than 1 exists) */
+	/* or if meta-strip, draw lines delimiting extents of sub-strips
+	 * (in same color as outline, if more than 1 exists) */
 	else if ((strip->type == NLASTRIP_TYPE_META) && (strip->strips.first != strip->strips.last)) {
 		NlaStrip *cs;
 		float y = (ymaxc - yminc) / 2.0f + yminc;
@@ -712,7 +716,8 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *ar)
 	 * (NOTE: this is ok here, the configuration is pretty straightforward)
 	 */
 	v2d->tot.ymin = (float)(-height);
-	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
+	/* need to do a view-sync here, so that the keys area doesn't jump around
+	 * (it must copy this) */
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
 
 	/* draw channels */

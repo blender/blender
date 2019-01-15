@@ -325,7 +325,8 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
 	bAnimListElem *ale;
 	int filter;
 
-	short found = 0; /* NOTE: not bool, since we want prioritise individual channels over expanders */
+	/* NOTE: not bool, since we want prioritise individual channels over expanders */
+	short found = 0;
 	float y;
 
 	/* get all items - we need to do it this way */
@@ -535,8 +536,9 @@ static short paste_action_keys(bAnimContext *ac,
 	 */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 
-	if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0)
+	if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0) {
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	}
 
 	/* paste keyframes */
 	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode, flip);
@@ -681,8 +683,12 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
-	if (mode == 2) filter |= ANIMFILTER_SEL;
-	else if (mode == 3) filter |= ANIMFILTER_ACTGROUPED;
+	if (mode == 2) {
+		filter |= ANIMFILTER_SEL;
+	}
+	else if (mode == 3) {
+		filter |= ANIMFILTER_ACTGROUPED;
+	}
 
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
@@ -819,10 +825,12 @@ static void duplicate_action_keys(bAnimContext *ac)
 	int filter;
 
 	/* filter data */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* loop through filtered data and delete selected keys */
@@ -887,10 +895,12 @@ static bool delete_action_keys(bAnimContext *ac)
 	bool changed_final = false;
 
 	/* filter data */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* loop through filtered data and delete selected keys */
@@ -1574,10 +1584,12 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	KeyframeEditFunc edit_cb;
 
 	/* filter data */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* get beztriple editing callbacks */
@@ -1697,10 +1709,12 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	}
 
 	/* filter data */
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-	else
+	}
+	else {
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
 	/* mirror keyframes */

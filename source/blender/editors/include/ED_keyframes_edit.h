@@ -155,20 +155,30 @@ typedef enum eKeyframeIterFlags {
 
 typedef struct KeyframeEditData {
 	/* generic properties/data access */
-	ListBase list;              /* temp list for storing custom list of data to check */
-	struct Scene *scene;        /* pointer to current scene - many tools need access to cfra/etc.  */
-	void *data;                 /* pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
-	float f1, f2;               /* storage of times/values as 'decimals' */
-	int i1, i2;                 /* storage of times/values/flags as 'whole' numbers */
+	/** temp list for storing custom list of data to check */
+	ListBase list;
+	/** pointer to current scene - many tools need access to cfra/etc.  */
+	struct Scene *scene;
+	/** pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
+	void *data;
+	/** storage of times/values as 'decimals' */
+	float f1, f2;
+	/** storage of times/values/flags as 'whole' numbers */
+	int i1, i2;
 
 	/* current iteration data */
-	struct FCurve *fcu;         /* F-Curve that is being iterated over */
-	int curIndex;               /* index of current keyframe being iterated over */
-	float channel_y;            /* y-position of midpoint of the channel (for the dopesheet) */
+	/** F-Curve that is being iterated over */
+	struct FCurve *fcu;
+	/** index of current keyframe being iterated over */
+	int curIndex;
+	/** y-position of midpoint of the channel (for the dopesheet) */
+	float channel_y;
 
 	/* flags */
-	eKeyframeVertOk curflags;        /* current flags for the keyframe we're reached in the iteration process */
-	eKeyframeIterFlags iterflags;    /* settings for iteration process */
+	/** current flags for the keyframe we're reached in the iteration process */
+	eKeyframeVertOk curflags;
+	/** settings for iteration process */
+	eKeyframeIterFlags iterflags;
 } KeyframeEditData;
 
 /* ------- Function Pointer Typedefs ---------------- */
@@ -213,7 +223,8 @@ typedef enum eKeyMergeMode {
 /* ---------------- Looping API --------------------- */
 
 /* functions for looping over keyframes */
-/* function for working with F-Curve data only (i.e. when filters have been chosen to explicitly use this) */
+/* function for working with F-Curve data only
+ * (i.e. when filters have been chosen to explicitly use this) */
 short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, struct FCurve *fcu, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb);
 /* function for working with any type (i.e. one of the known types) of animation channel
  * - filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
@@ -267,7 +278,8 @@ short bezt_to_cfraelem(KeyframeEditData *ked, struct BezTriple *bezt);
 void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* ------ 1.5-D Region Testing Uitls (Lasso/Circle Select) ------- */
-/* XXX: These are temporary, until we can unify GP/Mask Keyframe handling and standard FCurve Keyframe handling */
+/* XXX: These are temporary,
+ * until we can unify GP/Mask Keyframe handling and standard FCurve Keyframe handling */
 
 bool keyframe_region_lasso_test(
         const KeyframeEdit_LassoData *data_lasso,

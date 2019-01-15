@@ -610,8 +610,9 @@ static BMEdge *bm_face_split_edge_find(
 					ok = false;
 				}
 				else if (found_other_face) {
-					/* double check that _all_ the faces used by v_pivot's edges are attached to this edge
-					 * otherwise don't attempt the split since it will give non-deterministic results */
+					/* double check that _all_ the faces used by v_pivot's edges are attached
+					 * to this edge otherwise don't attempt the split since it will give
+					 * non-deterministic results */
 					BMLoop *l_radial_iter = l_iter->radial_next;
 					int other_face_shared = 0;
 					if (l_radial_iter != l_iter) {

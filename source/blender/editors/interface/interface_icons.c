@@ -473,7 +473,10 @@ static void init_internal_icons(void)
 
 		if (icondir) {
 			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
-			bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL); /* if the image is missing bbuf will just be NULL */
+
+			/* if the image is missing bbuf will just be NULL */
+			bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL);
+
 			if (bbuf && (bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H)) {
 				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
@@ -1142,7 +1145,8 @@ static void icon_draw_size(
 static void ui_id_preview_image_render_size(
         const bContext *C, Scene *scene, ID *id, PreviewImage *pi, int size, const bool use_job)
 {
-	if (((pi->flag[size] & PRV_CHANGED) || !pi->rect[size])) { /* changed only ever set by dynamic icons */
+	/* changed only ever set by dynamic icons */
+	if (((pi->flag[size] & PRV_CHANGED) || !pi->rect[size])) {
 		/* create the rect if necessary */
 		icon_set_image(C, scene, id, pi, size, use_job);
 
@@ -1155,10 +1159,14 @@ void UI_id_icon_render(const bContext *C, Scene *scene, ID *id, const bool big, 
 	PreviewImage *pi = BKE_previewimg_id_ensure(id);
 
 	if (pi) {
-		if (big)
-			ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_PREVIEW, use_job);  /* bigger preview size */
-		else
-			ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_ICON, use_job);     /* icon size */
+		if (big) {
+			/* bigger preview size */
+			ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_PREVIEW, use_job);
+		}
+		else {
+			/* icon size */
+			ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_ICON, use_job);
+		}
 	}
 }
 

@@ -84,7 +84,8 @@ typedef struct StitchPreviewer {
 	unsigned int *uvs_per_polygon;
 	/*number of preview polygons */
 	unsigned int num_polys;
-	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
+	/* preview data. These will be either the previewed vertices or edges
+	 * depending on stitch mode settings */
 	float *preview_stitchable;
 	float *preview_unstitchable;
 	/* here we'll store the number of elements to be drawn */
@@ -129,16 +130,19 @@ typedef struct UVVertAverage {
 } UVVertAverage;
 
 typedef struct UvEdge {
-	/* index to uv buffer */
+	/** index to uv buffer */
 	unsigned int uv1;
 	unsigned int uv2;
-	/* general use flag (Used to check if edge is boundary here, and propagates to adjacency elements) */
+	/** general use flag
+	 * (Used to check if edge is boundary here, and propagates to adjacency elements) */
 	unsigned char flag;
-	/* element that guarantees element->face has the edge on element->tfindex and element->tfindex+1 is the second uv */
+	/** element that guarantees element->face
+	 * has the edge on element->tfindex and element->tfindex+1 is the second uv */
 	UvElement *element;
-	/* next uv edge with the same exact vertices as this one.. Calculated at startup to save time */
+	/** next uv edge with the same exact vertices as this one.
+	 * Calculated at startup to save time */
 	struct UvEdge *next;
-	/* point to first of common edges. Needed for iteration */
+	/** point to first of common edges. Needed for iteration */
 	struct UvEdge *first;
 } UvEdge;
 
@@ -525,8 +529,9 @@ static void stitch_island_calculate_edge_rotation(
 		index1 = edge->uv1;
 		index2 = edge->uv2;
 	}
-	/* the idea here is to take the directions of the edges and find the rotation between final and initial
-	 * direction. This, using inner and outer vector products, gives the angle. Directions are differences so... */
+	/* the idea here is to take the directions of the edges and find the rotation between
+	 * final and initial direction. This, using inner and outer vector products,
+	 * gives the angle. Directions are differences so... */
 	uv1[0] = luv2->uv[0] - luv1->uv[0];
 	uv1[1] = luv2->uv[1] - luv1->uv[1];
 
@@ -714,7 +719,8 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 						 * I am not too sure we want this though */
 						last_set->next = edge2;
 						last_set = edge2;
-						/* set first, similarly to uv elements. Now we can iterate among common edges easily */
+						/* set first, similarly to uv elements.
+						 * Now we can iterate among common edges easily */
 						edge2->first = edge;
 					}
 				}
@@ -1047,7 +1053,8 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 
 		/* copy data from MLoopUVs to the preview display buffers */
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-			/* just to test if face was added for processing. uvs of unselected vertices will return NULL */
+			/* just to test if face was added for processing.
+			 * uvs of unselected vertices will return NULL */
 			UvElement *element = BM_uv_element_get(state->element_map, efa, BM_FACE_FIRST_LOOP(efa));
 
 			if (element) {
@@ -1705,7 +1712,8 @@ static int stitch_init(bContext *C, wmOperator *op)
 		}
 	}
 
-	/* explicitly set preview to NULL, to avoid deleting an invalid pointer on stitch_process_data */
+	/* explicitly set preview to NULL,
+	 * to avoid deleting an invalid pointer on stitch_process_data */
 	state->stitch_preview = NULL;
 	/* Allocate the unique uv buffers */
 	state->uvs = MEM_mallocN(sizeof(*state->uvs) * counter, "uv_stitch_unique_uvs");

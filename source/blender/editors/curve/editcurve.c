@@ -156,8 +156,9 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 			pt_index = 0;
 			while (a--) {
 				/* We cannot keep *any* reference to curve obdata,
-				 * it might be replaced and freed while editcurve remain in use (in viewport render case e.g.).
-				 * Note that we could use a pool to avoid lots of malloc's here, but... not really a problem for now. */
+				 * it might be replaced and freed while editcurve remain in use
+				 * (in viewport render case e.g.). Note that we could use a pool to avoid
+				 * lots of malloc's here, but... not really a problem for now. */
 				BezTriple *origbezt_cpy = MEM_mallocN(sizeof(*origbezt), __func__);
 				*origbezt_cpy = *origbezt;
 				keyIndex = init_cvKeyIndex(origbezt_cpy, key_index, nu_index, pt_index, vertex_index);
@@ -176,8 +177,9 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 			pt_index = 0;
 			while (a--) {
 				/* We cannot keep *any* reference to curve obdata,
-				 * it might be replaced and freed while editcurve remain in use (in viewport render case e.g.).
-				 * Note that we could use a pool to avoid lots of malloc's here, but... not really a problem for now. */
+				 * it might be replaced and freed while editcurve remain in use
+				 * (in viewport render case e.g.). Note that we could use a pool to avoid
+				 * lots of malloc's here, but... not really a problem for now. */
 				BPoint *origbp_cpy = MEM_mallocN(sizeof(*origbp_cpy), __func__);
 				*origbp_cpy = *origbp;
 				keyIndex = init_cvKeyIndex(origbp_cpy, key_index, nu_index, pt_index, vertex_index);
@@ -1259,8 +1261,9 @@ void ED_curve_editnurb_make(Object *obedit)
 
 		if (actkey) {
 			editnurb->shapenr = obedit->shapenr;
-			/* Apply shapekey to new nurbs of editnurb, not those of original curve (and *after* we generated keyIndex),
-			 * else we do not have valid 'original' data to properly restore curve when leaving editmode. */
+			/* Apply shapekey to new nurbs of editnurb, not those of original curve
+			 * (and *after* we generated keyIndex), else we do not have valid 'original' data
+			 * to properly restore curve when leaving editmode. */
 			BKE_keyblock_convert_to_curve(actkey, cu, &editnurb->nurbs);
 		}
 	}
@@ -2137,7 +2140,8 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 									newu++;
 									for (c = a / nu->pntsu, bp3 = bp2; c < nu->pntsv; c++, bp3 += nu->pntsu) {
 										if (bp3->f1 & flag) {
-											bp3->f1 |= SURF_SEEN; /* flag as seen so skipped on future iterations */
+											/* flag as seen so skipped on future iterations */
+											bp3->f1 |= SURF_SEEN;
 											if (newu == 1) newv++;
 										}
 										else {
@@ -2621,7 +2625,8 @@ static void curve_smooth_value(ListBase *editnurb,
 			for (last_sel = 0; last_sel < nu->pntsu; last_sel++) {
 				/* loop over selection segments of a curve, smooth each */
 
-				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
+				/* Start BezTriple code,
+				 * this is duplicated below for points, make sure these functions stay in sync */
 				start_sel = -1;
 				for (bezt = &nu->bezt[last_sel], a = last_sel; a < nu->pntsu; a++, bezt++) {
 					if (bezt->f2 & SELECT) {
@@ -2691,7 +2696,8 @@ static void curve_smooth_value(ListBase *editnurb,
 			for (last_sel = 0; last_sel < nu->pntsu; last_sel++) {
 				/* loop over selection segments of a curve, smooth each */
 
-				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
+				/* Start BezTriple code,
+				 * this is duplicated below for points, make sure these functions stay in sync */
 				start_sel = -1;
 				for (bp = &nu->bp[last_sel], a = last_sel; a < nu->pntsu; a++, bp++) {
 					if (bp->f1 & SELECT) {

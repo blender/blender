@@ -499,7 +499,8 @@ void ED_object_parent_clear(Object *ob, const int type)
 	switch (type) {
 		case CLEAR_PARENT_ALL:
 		{
-			/* for deformers, remove corresponding modifiers to prevent a large number of modifiers building up */
+			/* for deformers, remove corresponding modifiers to prevent
+			 * a large number of modifiers building up */
 			object_remove_parent_deform_modifiers(ob, ob->parent);
 
 			/* clear parenting relationship completely */
@@ -508,14 +509,16 @@ void ED_object_parent_clear(Object *ob, const int type)
 		}
 		case CLEAR_PARENT_KEEP_TRANSFORM:
 		{
-			/* remove parent, and apply the parented transform result as object's local transforms */
+			/* remove parent, and apply the parented transform
+			 * result as object's local transforms */
 			ob->parent = NULL;
 			BKE_object_apply_mat4(ob, ob->obmat, true, false);
 			break;
 		}
 		case CLEAR_PARENT_INVERSE:
 		{
-			/* object stays parented, but the parent inverse (i.e. offset from parent to retain binding state)
+			/* object stays parented, but the parent inverse
+			 * (i.e. offset from parent to retain binding state)
 			 * is cleared. In other words: nothing to do here! */
 			break;
 		}
@@ -1567,7 +1570,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						/* new approach, using functions from kernel */
 						for (a = 0; a < ob_src->totcol; a++) {
 							Material *ma = give_current_material(ob_src, a + 1);
-							assign_material(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF); /* also works with ma==NULL */
+							/* also works with `ma == NULL` */
+							assign_material(bmain, ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF);
 						}
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 						break;
@@ -1960,7 +1964,8 @@ static void single_mat_users(Main *bmain, Scene *scene, const int flag, const bo
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
 				if (ma) {
-					/* do not test for LIB_TAG_NEW or use newid: this functions guaranteed delivers single_users! */
+					/* do not test for LIB_TAG_NEW or use newid:
+					 * this functions guaranteed delivers single_users! */
 
 					if (ma->id.us > 1) {
 						man = BKE_material_copy(bmain, ma);

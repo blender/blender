@@ -3149,7 +3149,10 @@ static void brush_puff(PEData *data, int point_index)
 			/* find root coordinate and normal on emitter */
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			mul_v3_m4v3(kco, data->ob->imat, co); /* use 'kco' as the object space version of worldspace 'co', ob->imat is set before calling */
+
+			/* use 'kco' as the object space version of worldspace 'co',
+			 * ob->imat is set before calling */
+			mul_v3_m4v3(kco, data->ob->imat, co);
 
 			point_index = BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL);
 			if (point_index == -1) return;
@@ -3233,7 +3236,10 @@ static void brush_puff(PEData *data, int point_index)
 						float oco[3], onor[3];
 						copy_v3_v3(oco, key->co);
 						mul_m4_v3(mat, oco);
-						mul_v3_m4v3(kco, data->ob->imat, oco); /* use 'kco' as the object space version of worldspace 'co', ob->imat is set before calling */
+
+						/* use 'kco' as the object space version of worldspace 'co',
+						 * ob->imat is set before calling */
+						mul_v3_m4v3(kco, data->ob->imat, oco);
 
 						point_index = BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL);
 						if (point_index != -1) {

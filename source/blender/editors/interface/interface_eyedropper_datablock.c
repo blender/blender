@@ -114,7 +114,8 @@ static int datadropper_init(bContext *C, wmOperator *op)
 	type = RNA_property_pointer_type(&ddr->ptr, ddr->prop);
 	ddr->idcode = RNA_type_to_ID_code(type);
 	BLI_assert(ddr->idcode != 0);
-	/* Note we can translate here (instead of on draw time), because this struct has very short lifetime. */
+	/* Note we can translate here (instead of on draw time),
+	 * because this struct has very short lifetime. */
 	ddr->idcode_name = TIP_(BKE_idcode_to_name(ddr->idcode));
 
 	PointerRNA ptr = RNA_property_pointer_get(&ddr->ptr, ddr->prop);

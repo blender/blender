@@ -1534,7 +1534,8 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	/* loop through twice, first unselected, then selected */
 	for (j = 0; j < 2; j++) {
 		Sequence *seq;
-		int outline_tint = (j) ? -60 : -150; /* highlighting around strip edges indicating selection */
+		/* highlighting around strip edges indicating selection */
+		int outline_tint = (j) ? -60 : -150;
 
 		/* loop through strips, checking for those that are visible */
 		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -1554,7 +1555,8 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 		sel = SELECT;
 	}
 
-	/* draw the last selected last (i.e. 'active' in other parts of Blender), removes some overlapping error */
+	/* draw the last selected last (i.e. 'active' in other parts of Blender),
+	 * removes some overlapping error */
 	if (last_seq)
 		draw_seq_strip(C, sseq, scene, ar, last_seq, 120, pixelx);
 

@@ -984,7 +984,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
-		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
+		/* this is a bit dodjy, there should only be ONE object with this name,
+		 * but library objects can mess this up */
 		if (STREQ(name, base->object->id.name + 2)) {
 			ED_base_object_activate(C, base);
 			ED_base_object_select(base, BA_SELECT);
@@ -1401,7 +1402,9 @@ static bool ed_object_select_pick(
 	startbase =  FIRSTBASE;
 	if (BASACT && BASACT->next) startbase = BASACT->next;
 
-	/* This block uses the control key to make the object selected by its center point rather than its contents */
+	/* This block uses the control key to make the object selected
+	 * by its center point rather than its contents */
+
 	/* in editmode do not activate */
 	if (obcenter) {
 
@@ -1472,7 +1475,8 @@ static bool ed_object_select_pick(
 							}
 
 							/* index of bundle is 1<<16-based. if there's no "bone" index
-							 * in height word, this buffer value belongs to camera. not to bundle */
+							 * in height word, this buffer value belongs to camera. not to bundle
+							 */
 							if (buffer[4 * i + 3] & 0xFFFF0000) {
 								MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
 								MovieTracking *tracking = &clip->tracking;

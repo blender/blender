@@ -135,7 +135,8 @@ void ED_editors_exit(bContext *C)
 	/* frees all editmode undos */
 	if (G_MAIN->wm.first) {
 		wmWindowManager *wm = G_MAIN->wm.first;
-		/* normally we don't check for NULL undo stack, do here since it may run in different context. */
+		/* normally we don't check for NULL undo stack,
+		 * do here since it may run in different context. */
 		if (wm->undo_stack) {
 			BKE_undosys_stack_destroy(wm->undo_stack);
 			wm->undo_stack = NULL;
@@ -181,7 +182,8 @@ bool ED_editors_flush_edits(const bContext *C, bool for_render)
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->mode & OB_MODE_SCULPT) {
 			/* Don't allow flushing while in the middle of a stroke (frees data in use).
-			 * Auto-save prevents this from happening but scripts may cause a flush on saving: T53986. */
+			 * Auto-save prevents this from happening but scripts
+			 * may cause a flush on saving: T53986. */
 			if ((ob->sculpt && ob->sculpt->cache) == 0) {
 				/* flush multires changes (for sculpt) */
 				multires_force_update(ob);

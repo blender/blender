@@ -879,7 +879,8 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				break;
 			}
 			case ANIMTYPE_FCURVE:
-			case ANIMTYPE_NLACURVE: /* practically the same as ANIMTYPE_FCURVE. Differences are applied post-creation */
+			case ANIMTYPE_NLACURVE: /* practically the same as ANIMTYPE_FCURVE.
+			                         * Differences are applied post-creation */
 			{
 				FCurve *fcu = (FCurve *)data;
 
@@ -972,7 +973,8 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 	if (fcu->grp != NULL && fcu->grp->flag & ADT_CURVES_ALWAYS_VISIBLE) {
 		return false;
 	}
-	/* hidden items should be skipped if we only care about visible data, but we aren't interested in hidden stuff */
+	/* hidden items should be skipped if we only care about visible data,
+	 * but we aren't interested in hidden stuff */
 	const bool skip_hidden = (filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN);
 
 	if (GS(owner_id->name) == ID_OB) {
@@ -1266,8 +1268,11 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 	 *     - Hierarchy matters: this hack should be applied
 	 *     - Hierarchy ignored: cases like [#21276] won't work properly, unless we skip this hack
 	 */
-	if ( ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp) == 0) &&     /* care about hierarchy but group isn't expanded */
-	     (filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL)) )                          /* care about selection status */
+	if (
+	        /* care about hierarchy but group isn't expanded */
+	        ((filter_mode & ANIMFILTER_LIST_VISIBLE) && EXPANDED_AGRP(ac, agrp) == 0) &&
+	        /* care about selection status */
+	        (filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL)) )
 	{
 		/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
 		if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)
@@ -1289,9 +1294,9 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 	{
 		/* special filter so that we can get just the F-Curves within the active group */
 		if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
-			/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
-			 * but to do this, we need to check that the group doesn't have it's not-visible flag set preventing
-			 * all its sub-curves to be shown
+			/* for the Graph Editor, curves may be set to not be visible in the view to lessen
+			 * clutter, but to do this, we need to check that the group doesn't have it's
+			 * not-visible flag set preventing all its sub-curves to be shown
 			 */
 			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE)) {
 				/* group must be editable for its children to be editable (if we care about this) */
@@ -1314,7 +1319,8 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 			/* restore original filter mode so that this next step works ok... */
 			//filter_mode = ofilter;
 
-			/* filter selection of channel specially here again, since may be open and not subject to previous test */
+			/* filter selection of channel specially here again,
+			 * since may be open and not subject to previous test */
 			if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
 				ANIMCHANNEL_NEW_CHANNEL(agrp, ANIMTYPE_GROUP, owner_id);
 			}
@@ -1727,7 +1733,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 	else {
 		bGPdata *gpd;
 
-		/* Grab all Grease Pencil datablocks directly from main, but only those that seem to be useful somewhere */
+		/* Grab all Grease Pencil datablocks directly from main,
+		 * but only those that seem to be useful somewhere */
 		for (gpd = ac->bmain->gpencil.first; gpd; gpd = gpd->id.next) {
 			/* only show if gpd is used by something... */
 			if (ID_REAL_USERS(gpd) < 1)
@@ -3252,7 +3259,8 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_F
 			case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
 			case ANIMCONT_NLA:     /* NLA Editor */
 			{
-				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
+				/* all of these editors use the basic DopeSheet data for filtering options,
+				 * but don't have all the same features */
 				items = animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
 				break;
 			}

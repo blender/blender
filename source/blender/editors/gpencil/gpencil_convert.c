@@ -1165,7 +1165,8 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 		const bool add_start_point = (link_strokes && !(prev_gps));
 		const bool add_end_point = (link_strokes && !(gps->next));
 
-		/* Detect new strokes created because of GP_STROKE_BUFFER_MAX reached, and stitch them to previous one. */
+		/* Detect new strokes created because of GP_STROKE_BUFFER_MAX reached,
+		 * and stitch them to previous one. */
 		bool stitch = false;
 		if (prev_gps) {
 			bGPDspoint *pt1 = &prev_gps->points[prev_gps->totpoints - 1];

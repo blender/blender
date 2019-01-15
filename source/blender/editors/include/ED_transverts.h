@@ -61,9 +61,12 @@ enum {
 
 /* mode flags: */
 enum {
-	TM_ALL_JOINTS      = (1 << 0),  /* all joints (for bones only) */
-	TM_SKIP_HANDLES    = (1 << 1),  /* skip handles when control point is selected (for curves only) */
-	TM_CALC_NORMALS    = (1 << 2),  /* fill in normals when available */
+	/** all joints (for bones only) */
+	TM_ALL_JOINTS      = (1 << 0),
+	/** skip handles when control point is selected (for curves only) */
+	TM_SKIP_HANDLES    = (1 << 1),
+	/** fill in normals when available */
+	TM_CALC_NORMALS    = (1 << 2),
 };
 
 enum {

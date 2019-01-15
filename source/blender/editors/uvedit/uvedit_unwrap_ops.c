@@ -377,7 +377,8 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	/* number of vertices and faces for subsurfed mesh*/
 	int numOfEdges, numOfFaces;
 
-	/* holds a map to editfaces for every subsurfed MFace. These will be used to get hidden/ selected flags etc. */
+	/* holds a map to editfaces for every subsurfed MFace.
+	 * These will be used to get hidden/ selected flags etc. */
 	BMFace **faceMap;
 	/* similar to the above, we need a way to map edges to their original ones */
 	BMEdge **edgeMap;

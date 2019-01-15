@@ -362,7 +362,8 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
 			if (ED_view3d_project_int_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
-				adr[0] = (int)2140000000.0f;  /* this is what was done in 2.64, perhaps we can be smarter? */
+				/* this is what was done in 2.64, perhaps we can be smarter? */
+				adr[0] = (int)2140000000.0f;
 				adr[1] = (int)2140000000.0f;
 			}
 		}
@@ -990,7 +991,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
 		copy_v2_v2_int(t->mval, event->mval);
 
-		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
+		/* Use this for soft redraw. Might cause flicker in object mode */
+		// t->redraw |= TREDRAW_SOFT;
 		t->redraw |= TREDRAW_HARD;
 
 		if (t->state == TRANS_STARTING) {
@@ -1807,7 +1809,8 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 	drawVertSlide(t);
 }
 
-/* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
+/* just draw a little warning message in the top-right corner of the viewport
+ * to warn that autokeying is enabled */
 static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 {
 	rcti rect;
@@ -2139,9 +2142,13 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 	initSnapSpatial(t, t->snap_spatial);
 
-	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
+	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected.
+	 * will be removed (ton) */
+
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
-	/* EVIL3: extend mode for animation editors also switches modes... but is best way to avoid duplicate code */
+
+	/* EVIL3: extend mode for animation editors also switches modes...
+	 * but is best way to avoid duplicate code */
 	mode = t->mode;
 
 	calculatePropRatio(t);
@@ -3896,7 +3903,7 @@ static void ElementRotation_ex(TransInfo *t, TransData *td, float mat[3][3], con
 				mul_m3_m3m3(smat, td->smtx, totmat);
 
 				/* calculate the total rotatation in eulers */
-				add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+				add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* correct for delta rot */
 				eulO_to_mat3(obmat, eul, td->ext->rotOrder);
 				/* mat = transform, obmat = object rotation */
 				mul_m3_m3m3(fmat, smat, obmat);
@@ -5563,9 +5570,12 @@ static void slide_origdata_interp_data_vert(
 			bool co_next_ok;
 
 
-			/* In the unlikely case that we're next to a zero length edge - walk around the to the next.
+			/* In the unlikely case that we're next to a zero length edge -
+			 * walk around the to the next.
+			 *
 			 * Since we only need to check if the vertex is in this corner,
-			 * its not important _which_ loop - as long as its not overlapping 'sv->co_orig_3d', see: T45096. */
+			 * its not important _which_ loop - as long as its not overlapping
+			 * 'sv->co_orig_3d', see: T45096. */
 			project_plane_normalized_v3_v3v3(v_proj[0], co_prev, v_proj_axis);
 			while (UNLIKELY(((co_prev_ok = (len_squared_v3v3(v_proj[1], v_proj[0]) > eps)) == false) &&
 			                ((l_prev = l_prev->prev) != l->next)))
@@ -6403,7 +6413,9 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 					else if (l_b == NULL && l_a && (l_a->radial_next != l_a)) l_b = l_a->radial_next;
 				}
 				else if (e->l != NULL) {
-					/* if there are non-contiguous faces, we can still recover the loops of the new edges faces */
+					/* if there are non-contiguous faces, we can still recover
+					 * the loops of the new edges faces */
+
 					/* note!, the behavior in this case means edges may move in opposite directions,
 					 * this could be made to work more usefully. */
 
@@ -7941,7 +7953,8 @@ static void initSeqSlide(TransInfo *t)
 
 	copy_v3_fl(t->num.val_inc, t->snap[1]);
 	t->num.unit_sys = t->scene->unit.system;
-	/* Would be nice to have a time handling in units as well (supporting frames in addition to "natural" time...). */
+	/* Would be nice to have a time handling in units as well
+	 * (supporting frames in addition to "natural" time...). */
 	t->num.unit_type[0] = B_UNIT_NONE;
 	t->num.unit_type[1] = B_UNIT_NONE;
 }

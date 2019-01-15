@@ -766,7 +766,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 1;
 	}
 	else if (CTX_data_equals(member, "scene")) {
-		/* Do not return one here if scene not found in path, in this case we want to get default context scene! */
+		/* Do not return one here if scene not found in path,
+		 * in this case we want to get default context scene! */
 		return set_pointer_type(path, result, &RNA_Scene);
 	}
 	else if (CTX_data_equals(member, "world")) {
@@ -1146,7 +1147,7 @@ void buttons_context_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype buttons panel context");
 	strcpy(pt->idname, "BUTTONS_PT_context");
-	strcpy(pt->label, N_("Context"));  /* XXX C panels are not available through RNA (bpy.types)! */
+	strcpy(pt->label, N_("Context"));  /* XXX C panels unavailable through RNA bpy.types! */
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = buttons_panel_context;
 	pt->flag = PNL_NO_HEADER;

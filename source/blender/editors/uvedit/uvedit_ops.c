@@ -2172,7 +2172,9 @@ static int uv_mouse_select(bContext *C, const float co[2], bool extend, bool loo
 	UvNearestHit hit = UV_NEAREST_HIT_INIT;
 	int i, selectmode, sticky, sync, *hitv = NULL;
 	bool select = true;
-	int flush = 0, hitlen = 0; /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+	/* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+	int flush = 0;
+	int hitlen = 0;
 	float limit[2], **hituv = NULL;
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);

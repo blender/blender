@@ -213,7 +213,8 @@ static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-/* helper function for ANIM_nla_mapping_apply_fcurve() -> "apply", i.e. mapping points to NLA-mapped global time */
+/* helper function for ANIM_nla_mapping_apply_fcurve() -> "apply",
+ * i.e. mapping points to NLA-mapped global time */
 static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */

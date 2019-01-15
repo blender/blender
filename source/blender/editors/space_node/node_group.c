@@ -256,7 +256,8 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 		LinkData *ld, *ldn = NULL;
 		bAction *waction;
 
-		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
+		/* firstly, wgroup needs to temporary dummy action
+		 * that can be destroyed, as it shares copies */
 		waction = wgroup->adt->action = BKE_action_copy(bmain, wgroup->adt->action);
 
 		/* now perform the moving */
@@ -305,7 +306,9 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 				/* XXX TODO bNodeSocket *sock = node_group_find_input_socket(gnode, identifier);
 				BLI_assert(sock);*/
 
-				/* XXX TODO nodeSocketCopy(ntree, link->tosock->new_sock, link->tonode->new_node, ntree, sock, gnode);*/
+				/* XXX TODO
+				 * nodeSocketCopy(ntree, link->tosock->new_sock, link->tonode->new_node,
+				 *                ntree, sock, gnode);*/
 			}
 		}
 	}
@@ -333,7 +336,8 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 				/* XXX TODO bNodeSocket *sock = node_group_find_output_socket(gnode, identifier);
 				BLI_assert(sock);*/
 
-				/* XXX TODO nodeSocketCopy(ntree, link->tosock, link->tonode, ntree, sock, gnode); */
+				/* XXX TODO
+				 * nodeSocketCopy(ntree, link->tosock, link->tonode, ntree, sock, gnode); */
 			}
 		}
 	}

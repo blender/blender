@@ -2156,13 +2156,15 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* Geometry - Snap to surfaces of visible geometry */
-					/* XXX: There will be precision loss (possible stairstep artifacts) from this conversion to satisfy the API's */
+					/* XXX: There will be precision loss (possible stairstep artifacts)
+					 * from this conversion to satisfy the API's */
 					const int screen_co[2] = {(int)xy[0], (int)xy[1]};
 
 					int depth_margin = 0; // XXX: 4 for strokes, 0 for normal
 					float depth;
 
-					/* XXX: The proper procedure computes the depths into an array, to have smooth transitions when all else fails... */
+					/* XXX: The proper procedure computes the depths into an array,
+					 * to have smooth transitions when all else fails... */
 					if (ED_view3d_autodist_depth(gsc.ar, screen_co, depth_margin, &depth)) {
 						ED_view3d_autodist_simple(gsc.ar, screen_co, &pt->x, 0, &depth);
 					}

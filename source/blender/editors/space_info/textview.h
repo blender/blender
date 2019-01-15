@@ -48,7 +48,8 @@ typedef struct TextViewContext {
 	int (*step)(struct TextViewContext *tvc);
 	int (*line_get)(struct TextViewContext *tvc, const char **, int *);
 	int (*line_color)(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3]);
-	void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);  /* constant theme colors */
+	/* constant theme colors */
+	void (*const_colors)(struct TextViewContext *tvc, unsigned char bg_sel[4]);
 	void *iter;
 	int iter_index;
 	int iter_char;		/* char intex, used for multi-line report display */

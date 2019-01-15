@@ -407,7 +407,8 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
 
 	SpaceNla *snla = (SpaceNla *)ac->sl;
 	const float half_height = NLACHANNEL_HEIGHT_HALF(snla);
-	short found = 0; /* NOTE: not bool, since we want prioritise individual channels over expanders */
+	/* NOTE: not bool, since we want prioritise individual channels over expanders */
+	short found = 0;
 	float y;
 
 	/* get all items - we need to do it this way */
@@ -469,7 +470,8 @@ static int nlaedit_viewall(bContext *C, const bool only_sel)
 
 	/* set vertical range */
 	if (only_sel == false) {
-		/* view all -> the summary channel is usually the shows everything, and resides right at the top... */
+		/* view all -> the summary channel is usually the shows everything,
+		 * and resides right at the top... */
 		v2d->cur.ymax = 0.0f;
 		v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
 	}
@@ -569,7 +571,8 @@ void NLA_OT_view_frame(wmOperatorType *ot)
 /* NLA Editing Operations (Constructive/Destructive) */
 
 /* ******************** Add Action-Clip Operator ***************************** */
-/* Add a new Action-Clip strip to the active track (or the active block if no space in the track) */
+/* Add a new Action-Clip strip to the active track
+ * (or the active block if no space in the track) */
 
 
 /* add the specified action as new strip */
@@ -603,7 +606,8 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else if (act->idroot == 0) {
-		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
+		/* hopefully in this case (i.e. library of userless actions),
+		 * the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
 		            "Action '%s' does not specify what data-blocks it can be used on "
 		            "(try setting the 'ID Root Type' setting from the data-blocks editor "
@@ -628,7 +632,8 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* for every active track, try to add strip to free space in track or to the top of the stack if no space */
+	/* for every active track,
+	 * try to add strip to free space in track or to the top of the stack if no space */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		NlaTrack *nlt = (NlaTrack *)ale->data;
 		AnimData *adt = ale->adt;
@@ -1059,7 +1064,8 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 				/* make a copy (assume that this is possible) */
 				nstrip = BKE_nlastrip_copy(ac.bmain, strip, linked);
 
-				/* in case there's no space in the track above, or we haven't got a reference to it yet, try adding */
+				/* in case there's no space in the track above,
+				 * or we haven't got a reference to it yet, try adding */
 				if (BKE_nlatrack_add_strip(nlt->next, nstrip) == 0) {
 					/* need to add a new track above the one above the current one
 					 * - if the current one is the last one, nlt->next will be NULL, which defaults to adding
@@ -1538,7 +1544,8 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 			            nlt->name);
 		}
 		else if (sa == NULL) {
-			/* no warning as this is just a common case, and it may get annoying when doing multiple tracks */
+			/* no warning as this is just a common case,
+			 * and it may get annoying when doing multiple tracks */
 		}
 		else if (sb == NULL) {
 			/* too few selected warning */
@@ -1549,7 +1556,8 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 		else {
 			float nsa[2], nsb[2];
 
-			/* remove these strips from the track, so that we can test if they can fit in the proposed places */
+			/* remove these strips from the track,
+			 * so that we can test if they can fit in the proposed places */
 			BLI_remlink(&nlt->strips, sa);
 			BLI_remlink(&nlt->strips, sb);
 
@@ -1662,7 +1670,8 @@ static int nlaedit_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 			if (strip->flag & NLASTRIP_FLAG_SELECT) {
 				/* check if the track above has room for this strip */
 				if (BKE_nlatrack_has_space(nltn, strip->start, strip->end)) {
-					/* remove from its current track, and add to the one above (it 'should' work, so no need to worry) */
+					/* remove from its current track, and add to the one above
+					 * (it 'should' work, so no need to worry) */
 					BLI_remlink(&nlt->strips, strip);
 					BKE_nlatrack_add_strip(nltn, strip);
 				}
@@ -1736,7 +1745,8 @@ static int nlaedit_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 			if (strip->flag & NLASTRIP_FLAG_SELECT) {
 				/* check if the track below has room for this strip */
 				if (BKE_nlatrack_has_space(nltp, strip->start, strip->end)) {
-					/* remove from its current track, and add to the one above (it 'should' work, so no need to worry) */
+					/* remove from its current track, and add to the one above
+					 * (it 'should' work, so no need to worry) */
 					BLI_remlink(&nlt->strips, strip);
 					BKE_nlatrack_add_strip(nltp, strip);
 				}
@@ -1969,21 +1979,25 @@ static int nlaedit_apply_scale_exec(bContext *C, wmOperator *UNUSED(op))
 		NlaStrip *strip;
 
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
-			/* strip must be selected, and must be action-clip only (transitions don't have scale) */
+			/* strip must be selected, and must be action-clip only
+			 * (transitions don't have scale) */
 			if ((strip->flag & NLASTRIP_FLAG_SELECT) && (strip->type == NLASTRIP_TYPE_CLIP)) {
-				/* if the referenced action is used by other strips, make this strip use its own copy */
+				/* if the referenced action is used by other strips,
+				 * make this strip use its own copy */
 				if (strip->act == NULL)
 					continue;
 				if (strip->act->id.us > 1) {
 					/* make a copy of the Action to work on */
 					bAction *act = BKE_action_copy(bmain, strip->act);
 
-					/* set this as the new referenced action, decrementing the users of the old one */
+					/* set this as the new referenced action,
+					 * decrementing the users of the old one */
 					id_us_min(&strip->act->id);
 					strip->act = act;
 				}
 
-				/* setup iterator, and iterate over all the keyframes in the action, applying this scaling */
+				/* setup iterator, and iterate over all the keyframes in the action,
+				 * applying this scaling */
 				ked.data = strip;
 				ANIM_animchanneldata_keyframes_loop(&ked, ac.ads, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve);
 
@@ -2047,7 +2061,8 @@ static int nlaedit_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 		NlaStrip *strip;
 
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
-			/* strip must be selected, and must be action-clip only (transitions don't have scale) */
+			/* strip must be selected, and must be action-clip only
+			 * (transitions don't have scale) */
 			if ((strip->flag & NLASTRIP_FLAG_SELECT) && (strip->type == NLASTRIP_TYPE_CLIP)) {
 				PointerRNA strip_ptr;
 
@@ -2189,7 +2204,8 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
 				track = BKE_nlatrack_add(adt, nlt);
 				BKE_nlatrack_add_strip(track, strip);
 
-				/* clear temp meta-strips on this new track, as we may not be able to get back to it */
+				/* clear temp meta-strips on this new track,
+				 * as we may not be able to get back to it */
 				BKE_nlastrips_clear_metas(&track->strips, 0, 1);
 			}
 		}

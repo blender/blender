@@ -355,7 +355,8 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, const rcti *re
 	float maxxi = maxx - U.pixelsize;
 	float minyi = miny + U.pixelsize;
 	float maxyi = maxy - U.pixelsize;
-	float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f; /* for uv, can divide by zero */
+	/* for uv, can divide by zero */
+	float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f;
 	float facyi = (maxyi != minyi) ? 1.0f / (maxyi - minyi) : 0.0f;
 	int a, tot = 0, minsize;
 	const int hnum = (
@@ -1032,7 +1033,8 @@ float UI_text_clip_middle_ex(
 	float strwidth;
 
 	/* Add some epsilon to OK width, avoids 'ellipsing' text that nearly fits!
-	 * Better to have a small piece of the last char cut out, than two remaining chars replaced by an ellipsis... */
+	 * Better to have a small piece of the last char cut out,
+	 * than two remaining chars replaced by an ellipsis... */
 	okwidth += 1.0f + UI_DPI_FAC;
 
 	BLI_assert(str[0]);
@@ -1261,7 +1263,8 @@ static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti
 			const char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
 			int bytes = cp2 - prev_utf8;
 
-			/* shift the text after and including cp2 back by 1 char, +1 to include null terminator */
+			/* shift the text after and including cp2 back by 1 char,
+			 * +1 to include null terminator */
 			memmove(cp2 - bytes, cp2, drawstr_len + 1);
 			cp2 -= bytes;
 
@@ -2082,7 +2085,8 @@ static void widget_state(uiWidgetType *wt, int state)
 static void widget_state_numslider(uiWidgetType *wt, int state)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
-	float blend = wcol_state->blend - 0.2f; /* XXX special tweak to make sure that bar will still be visible */
+	/* XXX special tweak to make sure that bar will still be visible */
+	float blend = wcol_state->blend - 0.2f;
 
 	/* call this for option button */
 	widget_state(wt, state);
@@ -3871,7 +3875,8 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 
 			case UI_BTYPE_HSVCUBE:
-				if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {  /* vertical V slider, uses new widget draw now */
+				if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
+					/* vertical V slider, uses new widget draw now */
 					ui_draw_but_HSV_v(but, rect);
 				}
 				else {  /* other HSV pickers... */

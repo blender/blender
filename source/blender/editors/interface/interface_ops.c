@@ -461,7 +461,8 @@ bool UI_context_copy_to_selected_list(
 		}
 		else if (GS(id->name) == ID_SCE) {
 			/* Sequencer's ID is scene :/ */
-			/* Try to recursively find an RNA_Sequence ancestor, to handle situations like T41062... */
+			/* Try to recursively find an RNA_Sequence ancestor,
+			 * to handle situations like T41062... */
 			if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) != NULL) {
 				*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
 			}

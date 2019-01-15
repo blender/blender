@@ -473,8 +473,10 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 		/* flag object caches as outdated */
 		BKE_ptcache_ids_from_object(bmain, &pidlist, obedit, scene, 0);
 		for (pid = pidlist.first; pid; pid = pid->next) {
-			if (pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
+			/* particles don't need reset on geometry change */
+			if (pid->type != PTCACHE_TYPE_PARTICLES) {
 				pid->cache->flag |= PTCACHE_OUTDATED;
+			}
 		}
 		BLI_freelistN(&pidlist);
 

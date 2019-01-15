@@ -64,7 +64,8 @@
 #include "nla_intern.h" // own include
 
 /* *********************************************** */
-/* Operators for NLA channels-list which need to be different from the standard Animation Editor ones */
+/* Operators for NLA channels-list which need to be different
+ * from the standard Animation Editor ones */
 
 /* ******************** Mouse-Click Operator *********************** */
 /* Depending on the channel that was clicked on, the mouse click will activate whichever
@@ -256,7 +257,8 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 					nlt->flag |= NLATRACK_SELECTED;
 				}
 
-				/* if NLA-Track is selected now, make NLA-Track the 'active' one in the visible list */
+				/* if NLA-Track is selected now,
+				 * make NLA-Track the 'active' one in the visible list */
 				if (nlt->flag & NLATRACK_SELECTED)
 					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
 
@@ -601,7 +603,8 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 				added = true;
 			}
 			else if ((lastAdt == NULL) || (adt != lastAdt)) {
-				/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
+				/* add one track to the top of the owning AnimData's stack,
+				 * then don't add anymore to this stack */
 				BKE_nlatrack_add(adt, NULL);
 				lastAdt = adt;
 				added = true;

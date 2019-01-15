@@ -144,7 +144,8 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 	/* properties */
 	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 100, "Number of Cuts", "", 1, 10);
-	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
+	/* avoid re-using last var because it can cause
+	 * _very_ high poly meshes and annoy users (or worse crash) */
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1e3f, "Smoothness", "Smoothness factor", 0.0f, 1.0f);
@@ -2946,8 +2947,10 @@ static float bm_edge_seg_isect(
 		y12 = mouse_path[i][1];
 
 		/* Perp. Distance from point to line */
-		if (m2 != MAXSLOPE) dist = (y12 - m2 * x12 - b2);  /* /sqrt(m2 * m2 + 1); Only looking for */
-		/* change in sign.  Skip extra math */
+		if (m2 != MAXSLOPE) {
+			/* /sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
+			dist = (y12 - m2 * x12 - b2);
+		}
 		else dist = x22 - x12;
 
 		if (i == 0) lastdist = dist;
@@ -3074,7 +3077,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 	/* TODO, investigate using index lookup for screen_vert_coords() rather then a hash table */
 
-	/* the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer */
+	/* the floating point coordinates of verts in screen space will be
+	 * stored in a hash table according to the vertices pointer */
 	screen_vert_coords = sco = MEM_mallocN(bm->totvert * sizeof(float) * 2, __func__);
 
 	BM_ITER_MESH_INDEX (bv, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -4933,7 +4937,8 @@ static void sort_bmelem_flag(
 		float fact = reverse ? -1.0 : 1.0;
 		int coidx = (action == SRT_VIEW_ZAXIS) ? 2 : 0;
 
-		mul_m4_m4m4(mat, rv3d->viewmat, ob->obmat);  /* Apply the view matrix to the object matrix. */
+		/* Apply the view matrix to the object matrix. */
+		mul_m4_m4m4(mat, rv3d->viewmat, ob->obmat);
 
 		if (totelem[0]) {
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
@@ -5074,9 +5079,11 @@ static void sort_bmelem_flag(
 				float srt = reverse ? (float)(MAXMAT - fa->mat_nr) : (float)fa->mat_nr;
 				pb[i] = false;
 				sb[affected[2]].org_idx = i;
-				/* Multiplying with totface and adding i ensures us we keep current order for all faces of same mat. */
+				/* Multiplying with totface and adding i ensures us
+				 * we keep current order for all faces of same mat. */
 				sb[affected[2]++].srt = srt * ((float)totelem[2]) + ((float)i);
-/*				printf("e: %d; srt: %f; final: %f\n", i, srt, srt * ((float)totface) + ((float)i));*/
+				// printf("e: %d; srt: %f; final: %f\n",
+				//        i, srt, srt * ((float)totface) + ((float)i));
 			}
 			else {
 				pb[i] = true;

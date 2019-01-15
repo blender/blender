@@ -181,7 +181,8 @@ void image_preview_event(int event)
 
 		BIF_store_spare();
 
-		ntreeCompositExecTree(scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);   /* 1 is do_previews */
+		/* 1 is do_previews */
+		ntreeCompositExecTree(scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);
 
 		G.scene->nodetree->timecursor = NULL;
 		G.scene->nodetree->test_break = NULL;
