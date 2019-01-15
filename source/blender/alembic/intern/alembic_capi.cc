@@ -364,6 +364,7 @@ bool ABC_export(
 	job->settings.export_hair = params->export_hair;
 	job->settings.export_particles = params->export_particles;
 	job->settings.apply_subdiv = params->apply_subdiv;
+	job->settings.curves_as_mesh = params->curves_as_mesh;
 	job->settings.flatten_hierarchy = params->flatten_hierarchy;
 
 	/* TODO(Sybren): visible_layer & renderable only is ignored for now,

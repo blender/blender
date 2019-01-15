@@ -194,6 +194,27 @@ void AbcCurveWriter::do_write()
 	m_schema.set(m_sample);
 }
 
+
+AbcCurveMeshWriter::AbcCurveMeshWriter(Object *ob,
+                                       AbcTransformWriter *parent,
+                                       uint32_t time_sampling,
+                                       ExportSettings &settings)
+    : AbcGenericMeshWriter(ob, parent, time_sampling, settings)
+{}
+
+Mesh *AbcCurveMeshWriter::getEvaluatedMesh(Scene * /*scene_eval*/, Object *ob_eval, bool &r_needsfree)
+{
+	if (ob_eval->runtime.mesh_eval != NULL) {
+		/* Mesh_eval only exists when generative modifiers are in use. */
+		r_needsfree = false;
+		return ob_eval->runtime.mesh_eval;
+	}
+
+	r_needsfree = true;
+	return BKE_mesh_new_nomain_from_curve(ob_eval);
+}
+
+
 /* ************************************************************************** */
 
 AbcCurveReader::AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings)

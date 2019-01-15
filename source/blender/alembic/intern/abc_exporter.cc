@@ -598,7 +598,13 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcNurbsWriter(ob, xform, m_shape_sampling_index, m_settings));
+			AbcObjectWriter *writer;
+			if (m_settings.curves_as_mesh) {
+				writer = new AbcCurveMeshWriter(ob, xform, m_shape_sampling_index, m_settings);
+			} else {
+				writer = new AbcNurbsWriter(ob, xform, m_shape_sampling_index, m_settings);
+			}
+			m_shapes.push_back(writer);
 			break;
 		}
 		case OB_CURVE:
@@ -609,7 +615,13 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcCurveWriter(ob, xform, m_shape_sampling_index, m_settings));
+			AbcObjectWriter *writer;
+			if (m_settings.curves_as_mesh) {
+				writer = new AbcCurveMeshWriter(ob, xform, m_shape_sampling_index, m_settings);
+			} else {
+				writer = new AbcCurveWriter(ob, xform, m_shape_sampling_index, m_settings);
+			}
+			m_shapes.push_back(writer);
 			break;
 		}
 		case OB_CAMERA:

@@ -26,6 +26,7 @@
 #define __ABC_CURVES_H__
 
 #include "abc_object.h"
+#include "abc_mesh.h"
 
 struct Curve;
 
@@ -41,7 +42,19 @@ public:
 	               uint32_t time_sampling,
 	               ExportSettings &settings);
 
+protected:
 	void do_write();
+};
+
+class AbcCurveMeshWriter : public AbcGenericMeshWriter {
+public:
+	AbcCurveMeshWriter(Object *ob,
+	                   AbcTransformWriter *parent,
+	                   uint32_t time_sampling,
+	                   ExportSettings &settings);
+
+protected:
+	Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree);
 };
 
 /* ************************************************************************** */

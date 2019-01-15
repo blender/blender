@@ -52,9 +52,9 @@ protected:
 
 public:
 	AbcGenericMeshWriter(Object *ob,
-	              AbcTransformWriter *parent,
-	              uint32_t time_sampling,
-	              ExportSettings &settings);
+	                     AbcTransformWriter *parent,
+	                     uint32_t time_sampling,
+	                     ExportSettings &settings);
 
 	~AbcGenericMeshWriter();
 	void setIsAnimated(bool is_animated);
@@ -62,9 +62,9 @@ public:
 protected:
 	virtual void do_write();
 	virtual bool isAnimated() const;
-	virtual struct Mesh *getEvaluatedMesh(struct Scene *scene_eval, struct Object *ob_eval, bool &r_needsfree) = 0;
+	virtual Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) = 0;
 
-	struct Mesh *getFinalMesh(bool &r_needsfree);
+	Mesh *getFinalMesh(bool &r_needsfree);
 
 	void writeMesh(struct Mesh *mesh);
 	void writeSubD(struct Mesh *mesh);
@@ -89,8 +89,7 @@ public:
 
 	~AbcMeshWriter();
 protected:
-	bool isAnimated() const override;
-	virtual struct Mesh *getEvaluatedMesh(struct Scene *scene_eval, struct Object *ob_eval, bool &r_needsfree) override;
+	virtual Mesh *getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &r_needsfree) override;
 };
 
 

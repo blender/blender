@@ -38,6 +38,8 @@ extern "C" {
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
 
+#include "BKE_animsys.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -338,10 +340,23 @@ AbcGenericMeshWriter::~AbcGenericMeshWriter()
 
 bool AbcGenericMeshWriter::isAnimated() const
 {
+	if (m_object->data != NULL) {
+		AnimData *adt = BKE_animdata_from_id(static_cast<ID*>(m_object->data));
+		/* TODO(Sybren): make this check more strict, as the AnimationData may
+		 * actually be empty (no fcurves, drivers, etc.) and thus effectively
+		 * have no animation at all. */
+		if (adt != NULL) {
+			return true;
+		}
+	}
+	if (BKE_key_from_object(m_object) != NULL) {
+		return true;
+	}
+
 	/* Test modifiers. */
 	ModifierData *md = static_cast<ModifierData *>(m_object->modifiers.first);
-
 	while (md) {
+
 		if (md->type != eModifierType_Subsurf) {
 			return true;
 		}
@@ -656,24 +671,9 @@ AbcMeshWriter::AbcMeshWriter(Object *ob,
 AbcMeshWriter::~AbcMeshWriter()
 {}
 
-struct Mesh *AbcMeshWriter::getEvaluatedMesh(struct Scene *scene_eval, struct Object *ob_eval,
-                                             bool &UNUSED(r_needsfree))
+Mesh *AbcMeshWriter::getEvaluatedMesh(Scene *scene_eval, Object *ob_eval, bool &UNUSED(r_needsfree))
 {
 	return mesh_get_eval_final(m_settings.depsgraph, scene_eval, ob_eval, CD_MASK_MESH);
-}
-
-
-bool AbcMeshWriter::isAnimated() const
-{
-	Mesh *me = static_cast<Mesh *>(m_object->data);
-	if (me->key != NULL) {
-		return true;
-	}
-	if (me->adt != NULL) {
-		return true;
-	}
-
-	return AbcGenericMeshWriter::isAnimated();
 }
 
 
