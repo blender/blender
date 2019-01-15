@@ -756,13 +756,11 @@ static void create_mesh(Scene *scene,
 		return;
 	}
 
-	BL::Mesh::vertices_iterator v;
-	BL::Mesh::polygons_iterator p;
-
 	if(!subdivision) {
 		numtris = numfaces;
 	}
 	else {
+		BL::Mesh::polygons_iterator p;
 		for(b_mesh.polygons.begin(p); p != b_mesh.polygons.end(); ++p) {
 			numngons += (p->loop_total() == 4)? 0: 1;
 			numcorners += p->loop_total();
@@ -774,6 +772,7 @@ static void create_mesh(Scene *scene,
 	mesh->reserve_subd_faces(numfaces, numngons, numcorners);
 
 	/* create vertex coordinates and normals */
+	BL::Mesh::vertices_iterator v;
 	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
 		mesh->add_vertex(get_float3(v->co()));
 
@@ -808,13 +807,10 @@ static void create_mesh(Scene *scene,
 	}
 
 	/* create faces */
-	vector<int> nverts(numfaces);
-
 	if(!subdivision) {
 		BL::Mesh::loop_triangles_iterator t;
-		int ti = 0;
 
-		for(b_mesh.loop_triangles.begin(t); t != b_mesh.loop_triangles.end(); ++t, ++ti) {
+		for(b_mesh.loop_triangles.begin(t); t != b_mesh.loop_triangles.end(); ++t) {
 			BL::MeshPolygon p = b_mesh.polygons[t->polygon_index()];
 			int3 vi = get_int3(t->vertices());
 
@@ -835,10 +831,10 @@ static void create_mesh(Scene *scene,
 			 * NOTE: Autosmooth is already taken care about.
 			 */
 			mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
-			nverts[ti] = 3;
 		}
 	}
 	else {
+		BL::Mesh::polygons_iterator p;
 		vector<int> vi;
 
 		for(b_mesh.polygons.begin(p); p != b_mesh.polygons.end(); ++p) {
@@ -1065,37 +1061,26 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(requested_geometry_flags != Mesh::GEOMETRY_NONE) {
-		/* mesh objects does have special handle in the dependency graph,
-		 * they're ensured to have properly updated.
-		 *
-		 * updating meshes here will end up having derived mesh referencing
-		 * freed data from the blender side.
-		 */
-		if(preview && b_ob.type() != BL::Object::type_MESH) {
-			b_ob.update_from_editmode(b_data);
-		}
-
-		/* For some reason, meshes do not need this... */
-		bool apply_modifiers = (b_ob.type() != BL::Object::type_MESH);
-		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
-
-		mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
-
-		/* Disable adaptive subdivision while baking as the baking system
-		 * currently doesnt support the topology and will crash.
-		 */
+		/* Adaptive subdivision setup. Not for baking since that requires
+		 * exact mapping to the Blender mesh. */
 		if(scene->bake_manager->get_baking()) {
 			mesh->subdivision_type = Mesh::SUBDIVISION_NONE;
 		}
+		else {
+			mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
+		}
+
+		/* For some reason, meshes do not need this... */
+		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
 
 		BL::Mesh b_mesh = object_to_mesh(b_data,
 		                                 b_ob,
 		                                 b_depsgraph,
-		                                 apply_modifiers,
 		                                 need_undeformed,
 		                                 mesh->subdivision_type);
 
 		if(b_mesh) {
+			/* Sync mesh itself. */
 			if(view_layer.use_surfaces && show_self) {
 				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
 					create_subd_mesh(scene, mesh, b_ob, b_mesh, used_shaders,
@@ -1106,11 +1091,12 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 				create_mesh_volume_attributes(scene, b_ob, mesh, b_scene.frame_current());
 			}
 
-			if(view_layer.use_hair && show_particles && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
+			/* Sync hair curves. */
+			if(view_layer.use_hair && show_particles && mesh->subdivision_type == Mesh::SUBDIVISION_NONE) {
 				sync_curves(mesh, b_mesh, b_ob, false);
+			}
 
-			/* free derived mesh */
-			b_data.meshes.remove(b_mesh, false, true, false);
+			free_object_to_mesh(b_data, b_ob, b_mesh);
 		}
 	}
 	mesh->geometry_flags = requested_geometry_flags;
@@ -1175,7 +1161,6 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 		b_mesh = object_to_mesh(b_data,
 		                        b_ob,
 		                        b_depsgraph,
-		                        false,
 		                        false,
 		                        Mesh::SUBDIVISION_NONE);
 	}
@@ -1287,7 +1272,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 		sync_curves(mesh, b_mesh, b_ob, true, motion_step);
 
 	/* free derived mesh */
-	b_data.meshes.remove(b_mesh, false, true, false);
+	free_object_to_mesh(b_data, b_ob, b_mesh);
 }
 
 CCL_NAMESPACE_END

@@ -47,14 +47,14 @@ void python_thread_state_restore(void **python_thread_state);
 static inline BL::Mesh object_to_mesh(BL::BlendData& data,
                                       BL::Object& object,
                                       BL::Depsgraph& depsgraph,
-                                      bool apply_modifiers,
                                       bool calc_undeformed,
                                       Mesh::SubdivisionType subdivision_type)
 {
+	/* TODO: make this work with copy-on-write, modifiers are already evaluated. */
+#if 0
 	bool subsurf_mod_show_render = false;
 	bool subsurf_mod_show_viewport = false;
 
-	/* TODO: make this work with copy-on-write, modifiers are already evaluated. */
 	if(subdivision_type != Mesh::SUBDIVISION_NONE) {
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
 
@@ -64,30 +64,50 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 		subsurf_mod.show_render(false);
 		subsurf_mod.show_viewport(false);
 	}
+#endif
 
-	BL::Mesh me = data.meshes.new_from_object(depsgraph, object, apply_modifiers, calc_undeformed);
+	BL::Mesh mesh(PointerRNA_NULL);
+	if(object.type() == BL::Object::type_MESH) {
+		/* TODO: calc_undeformed is not used. */
+		mesh = BL::Mesh(object.data());
 
+		/* Make a copy to split faces if we use autosmooth, otherwise not needed. */
+		if (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE) {
+			mesh = data.meshes.new_from_object(depsgraph, object, false, false);
+		}
+	}
+	else {
+		mesh = data.meshes.new_from_object(depsgraph, object, true, calc_undeformed);
+	}
+
+#if 0
 	if(subdivision_type != Mesh::SUBDIVISION_NONE) {
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
 
 		subsurf_mod.show_render(subsurf_mod_show_render);
 		subsurf_mod.show_viewport(subsurf_mod_show_viewport);
 	}
+#endif
 
-	if((bool)me) {
-		if(me.use_auto_smooth()) {
-			if(subdivision_type == Mesh::SUBDIVISION_CATMULL_CLARK) {
-				me.calc_normals_split();
-			}
-			else {
-				me.split_faces(false);
-			}
+	if((bool)mesh && subdivision_type == Mesh::SUBDIVISION_NONE) {
+		if(mesh.use_auto_smooth()) {
+			mesh.split_faces(false);
 		}
-		if(subdivision_type == Mesh::SUBDIVISION_NONE) {
-			me.calc_loop_triangles();
-		}
+
+		mesh.calc_loop_triangles();
 	}
-	return me;
+
+	return mesh;
+}
+
+static inline void free_object_to_mesh(BL::BlendData& data,
+                                       BL::Object& object,
+                                       BL::Mesh& mesh)
+{
+	/* Free mesh if we didn't just use the existing one. */
+	if(object.data().ptr.data != mesh.ptr.data) {
+		data.meshes.remove(mesh, false, true, false);
+	}
 }
 
 static inline void colorramp_to_array(BL::ColorRamp& ramp,

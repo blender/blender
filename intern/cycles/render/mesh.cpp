@@ -580,30 +580,6 @@ void Mesh::clear(bool preserve_voxel_data)
 	patch_table = NULL;
 }
 
-int Mesh::split_vertex(int vertex)
-{
-	/* copy vertex location and vertex attributes */
-	add_vertex_slow(verts[vertex]);
-
-	foreach(Attribute& attr, attributes.attributes) {
-		if(attr.element == ATTR_ELEMENT_VERTEX) {
-			array<char> tmp(attr.data_sizeof());
-			memcpy(tmp.data(), attr.data() + tmp.size()*vertex, tmp.size());
-			attr.add(tmp.data());
-		}
-	}
-
-	foreach(Attribute& attr, subd_attributes.attributes) {
-		if(attr.element == ATTR_ELEMENT_VERTEX) {
-			array<char> tmp(attr.data_sizeof());
-			memcpy(tmp.data(), attr.data() + tmp.size()*vertex, tmp.size());
-			attr.add(tmp.data());
-		}
-	}
-
-	return verts.size() - 1;
-}
-
 void Mesh::add_vertex(float3 P)
 {
 	verts.push_back_reserved(P);

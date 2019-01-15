@@ -274,7 +274,6 @@ public:
 	void add_curve_key(float3 loc, float radius);
 	void add_curve(int first_key, int shader);
 	void add_subd_face(int* corners, int num_corners, int shader_, bool smooth_);
-	int split_vertex(int vertex);
 
 	void compute_bounds();
 	void add_face_normals();
