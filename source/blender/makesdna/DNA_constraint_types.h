@@ -98,15 +98,20 @@ typedef struct bConstraintTarget {
 
 /* bConstraintTarget -> flag */
 typedef enum eConstraintTargetFlag {
-	CONSTRAINT_TAR_TEMP = (1<<0)		/* temporary target-struct that needs to be freed after use */
+	/** temporary target-struct that needs to be freed after use */
+	CONSTRAINT_TAR_TEMP = (1<<0)
 } eConstraintTargetFlag;
 
 /* bConstraintTarget/bConstraintOb -> type */
 typedef enum eConstraintObType {
-	CONSTRAINT_OBTYPE_OBJECT = 1,	/* string is "" */
-	CONSTRAINT_OBTYPE_BONE   = 2,	/* string is bone-name */
-	CONSTRAINT_OBTYPE_VERT   = 3,	/* string is vertex-group name */
-	CONSTRAINT_OBTYPE_CV     = 4	/* string is vertex-group name - is not available until curves get vgroups */
+	/** string is "" */
+	CONSTRAINT_OBTYPE_OBJECT = 1,
+	/** string is bone-name */
+	CONSTRAINT_OBTYPE_BONE   = 2,
+	/** string is vertex-group name */
+	CONSTRAINT_OBTYPE_VERT   = 3,
+	/** string is vertex-group name - is not available until curves get vgroups */
+	CONSTRAINT_OBTYPE_CV     = 4
 } eConstraintObType;
 
 
@@ -150,8 +155,10 @@ typedef struct bKinematicConstraint {
 } bKinematicConstraint;
 
 typedef enum eConstraint_IK_Type {
-	CONSTRAINT_IK_COPYPOSE = 0,		/* 'standard' IK constraint: match position and/or orientation of target */
-	CONSTRAINT_IK_DISTANCE = 1		/* maintain distance with target */
+	/** 'standard' IK constraint: match position and/or orientation of target */
+	CONSTRAINT_IK_COPYPOSE = 0,
+	/** maintain distance with target */
+	CONSTRAINT_IK_DISTANCE = 1
 } eConstraint_IK_Type;
 
 
@@ -471,18 +478,24 @@ typedef struct bTransformCacheConstraint {
  *   broken as their correct value cannot be resolved
  */
 typedef enum eBConstraint_Types {
-	CONSTRAINT_TYPE_NULL = 0,			/* Invalid/legacy constraint */
-	CONSTRAINT_TYPE_CHILDOF = 1,			/* Unimplemented non longer :) - during constraints recode, Aligorith */
+	/** Invalid/legacy constraint */
+	CONSTRAINT_TYPE_NULL = 0,
+	/** Unimplemented non longer :) - during constraints recode, Aligorith */
+	CONSTRAINT_TYPE_CHILDOF = 1,
 	CONSTRAINT_TYPE_TRACKTO = 2,
 	CONSTRAINT_TYPE_KINEMATIC = 3,
 	CONSTRAINT_TYPE_FOLLOWPATH = 4,
-	CONSTRAINT_TYPE_ROTLIMIT = 5,			/* Unimplemented no longer :) - Aligorith */
-	CONSTRAINT_TYPE_LOCLIMIT = 6,			/* Unimplemented no longer :) - Aligorith */
-	CONSTRAINT_TYPE_SIZELIMIT = 7,			/* Unimplemented no longer :) - Aligorith */
+	/** Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_ROTLIMIT = 5,
+	/** Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_LOCLIMIT = 6,
+	/** Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_SIZELIMIT = 7,
 	CONSTRAINT_TYPE_ROTLIKE = 8,
 	CONSTRAINT_TYPE_LOCLIKE = 9,
 	CONSTRAINT_TYPE_SIZELIKE = 10,
-	CONSTRAINT_TYPE_PYTHON = 11,				/* Unimplemented no longer :) - Aligorith. Scripts */
+	/** Unimplemented no longer :) - Aligorith. Scripts */
+	CONSTRAINT_TYPE_PYTHON = 11,
 	CONSTRAINT_TYPE_ACTION = 12,
 	CONSTRAINT_TYPE_LOCKTRACK = 13,			/* New Tracking constraint that locks an axis in place - theeth */
 	CONSTRAINT_TYPE_DISTLIMIT = 14,			/* limit distance */
@@ -508,21 +521,22 @@ typedef enum eBConstraint_Types {
 
 /* bConstraint->flag */
 /* flags 0x2 (1<<1) and 0x8 (1<<3) were used in past */
-/* flag 0x20 (1<<5) was used to indicate that a constraint was evaluated using a 'local' hack for posebones only  */
+/* flag 0x20 (1<<5) was used to indicate that a constraint was evaluated
+ *                  using a 'local' hack for posebones only. */
 typedef enum eBConstraint_Flags {
-		/* expand for UI */
+	/* expand for UI */
 	CONSTRAINT_EXPAND =		(1<<0),
-		/* pre-check for illegal object name or bone name */
+	/* pre-check for illegal object name or bone name */
 	CONSTRAINT_DISABLE = 	(1<<2),
-		/* to indicate which Ipo should be shown, maybe for 3d access later too */
+	/* to indicate which Ipo should be shown, maybe for 3d access later too */
 	CONSTRAINT_ACTIVE = 	(1<<4),
-		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
+	/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
 	CONSTRAINT_SPACEONCE = 	(1<<6),
-		/* influence ipo is on constraint itself, not in action channel */
+	/* influence ipo is on constraint itself, not in action channel */
 	CONSTRAINT_OWN_IPO	= (1<<7),
-		/* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
+	/* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
 	CONSTRAINT_PROXY_LOCAL = (1<<8),
-		/* indicates that constraint is temporarily disabled (only used in GE) */
+	/* indicates that constraint is temporarily disabled (only used in GE) */
 	CONSTRAINT_OFF = (1<<9),
 		/* use bbone curve shape when calculating headtail values */
 	CONSTRAINT_BBONE_SHAPE = (1<<10),

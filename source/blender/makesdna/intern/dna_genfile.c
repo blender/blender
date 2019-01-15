@@ -745,7 +745,8 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
 	else if ( strcmp(dna_type, "double") == 0)                                                 return SDNA_TYPE_DOUBLE;
 	else if ( strcmp(dna_type, "int64_t") == 0)                                                return SDNA_TYPE_INT64;
 	else if ( strcmp(dna_type, "uint64_t") == 0)                                               return SDNA_TYPE_UINT64;
-	else                                                                                       return -1; /* invalid! */
+	/* invalid! */
+	else                                                                                       return -1;
 }
 
 /**
@@ -1056,8 +1057,11 @@ static void reconstruct_elem(
 					             curdata, olddata);
 				}
 				else if (strcmp(type, otype) == 0) {  /* type equal */
-					mul = len / oldsize; /* size of single old array element */
-					mul *= (cursize < oldsize) ? cursize : oldsize; /* smaller of sizes of old and new arrays */
+					/* size of single old array element */
+					mul = len / oldsize;
+					/* smaller of sizes of old and new arrays */
+					mul *= (cursize < oldsize) ? cursize : oldsize;
+
 					memcpy(curdata, olddata, mul);
 
 					if (oldsize > cursize && strcmp(type, "char") == 0) {

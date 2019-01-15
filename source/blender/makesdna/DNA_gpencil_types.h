@@ -335,7 +335,8 @@ typedef enum eGPdata_Flag {
 	GP_DATA_DEPTH_STROKE_ENDPOINTS = (1 << 7),
 /* ------------------------------------------------ DEPRECATED */
 
-	/* Stroke Editing Mode - Toggle to enable alternative keymap for easier editing of stroke points */
+	/* Stroke Editing Mode - Toggle to enable alternative keymap
+	 * for easier editing of stroke points */
 	GP_DATA_STROKE_EDITMODE	= (1 << 8),
 
 	/* Convenience/cache flag to make it easier to quickly toggle onion skinning on/off */

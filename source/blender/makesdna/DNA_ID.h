@@ -267,13 +267,13 @@ typedef enum ID_Type {
 
 /* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')
-			/* constraint */
+/* constraint */
 #define ID_CO		MAKE_ID2('C', 'O')
-			/* pose (action channel, used to be ID_AC in code, so we keep code for backwards compat) */
+/* pose (action channel, used to be ID_AC in code, so we keep code for backwards compat) */
 #define ID_PO		MAKE_ID2('A', 'C')
-			/* used in outliner... */
+/* used in outliner... */
 #define ID_NLA		MAKE_ID2('N', 'L')
-			/* fluidsim Ipo */
+/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 
 #define ID_FAKE_USERS(id) ((((ID *)id)->flag & LIB_FAKEUSER) ? 1 : 0)
@@ -308,31 +308,38 @@ enum {
  *
  * Those flags belong to three different categories, which have different expected handling in code:
  *
- *   - RESET_BEFORE_USE: piece of code that wants to use such flag has to ensure they are properly 'reset' first.
- *   - RESET_AFTER_USE: piece of code that wants to use such flag has to ensure they are properly 'reset' after usage
- *                      (though 'lifetime' of those flags is a bit fuzzy, e.g. _RECALC ones are reset on depsgraph
- *                       evaluation...).
- *   - RESET_NEVER: those flags are 'status' one, and never actually need any reset (except on initialization
- *                  during .blend file reading).
+ * - RESET_BEFORE_USE: piece of code that wants to use such flag
+ *   has to ensure they are properly 'reset' first.
+ * - RESET_AFTER_USE: piece of code that wants to use such flag has to ensure they are properly
+ *   'reset' after usage
+ *   (though 'lifetime' of those flags is a bit fuzzy, e.g. _RECALC ones are reset on depsgraph
+ *   evaluation...).
+ * - RESET_NEVER: those flags are 'status' one, and never actually need any reset
+ *   (except on initialization during .blend file reading).
  */
 enum {
 	/* RESET_NEVER Datablock is from current .blend file. */
 	LIB_TAG_LOCAL           = 0,
-	/* RESET_NEVER Datablock is from a library, but is used (linked) directly by current .blend file. */
+	/* RESET_NEVER Datablock is from a library,
+	 * but is used (linked) directly by current .blend file. */
 	LIB_TAG_EXTERN          = 1 << 0,
-	/* RESET_NEVER Datablock is from a library, and is only used (linked) inderectly through other libraries. */
+	/* RESET_NEVER Datablock is from a library,
+	 * and is only used (linked) inderectly through other libraries. */
 	LIB_TAG_INDIRECT        = 1 << 1,
 
-	/* RESET_AFTER_USE Three flags used internally in readfile.c, to mark IDs needing to be read (only done once). */
+	/* RESET_AFTER_USE Three flags used internally in readfile.c,
+	 * to mark IDs needing to be read (only done once). */
 	LIB_TAG_NEED_EXPAND     = 1 << 3,
 	LIB_TAG_TESTEXT         = (LIB_TAG_NEED_EXPAND | LIB_TAG_EXTERN),
 	LIB_TAG_TESTIND         = (LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT),
-	/* RESET_AFTER_USE Flag used internally in readfile.c, to mark IDs needing to be linked from a library. */
+	/* RESET_AFTER_USE Flag used internally in readfile.c,
+	 * to mark IDs needing to be linked from a library. */
 	LIB_TAG_READ            = 1 << 4,
 	/* RESET_AFTER_USE */
 	LIB_TAG_NEED_LINK       = 1 << 5,
 
-	/* RESET_NEVER tag datablock as a place-holder (because the real one could not be linked from its library e.g.). */
+	/* RESET_NEVER tag datablock as a place-holder
+	 * (because the real one could not be linked from its library e.g.). */
 	LIB_TAG_MISSING         = 1 << 6,
 
 	/* tag datablock has having an extra user. */

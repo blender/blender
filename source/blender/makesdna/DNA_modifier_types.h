@@ -324,7 +324,8 @@ typedef struct BevelModifierData {
 	float profile;        /* controls profile shape (0->1, .5 is round) */
 	/* if the MOD_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
 	float bevel_angle;
-	/* if the MOD_BEVEL_VWEIGHT option is set, this will be the name of the vert group, MAX_VGROUP_NAME */
+	/** if the MOD_BEVEL_VWEIGHT option is set,
+	 * this will be the name of the vert group, MAX_VGROUP_NAME */
 	char defgrp_name[64];
 } BevelModifierData;
 
@@ -821,8 +822,8 @@ typedef struct ShrinkwrapModifierData {
 	float projLimit;          /* limit the projection ray cast */
 	char  projAxis;           /* axis to project over */
 
-	/* If using projection over vertex normal this controls the level of subsurface that must be done
-	 * before getting the vertex coordinates and normal
+	/** If using projection over vertex normal this controls the level of subsurface that must be
+	 * done before getting the vertex coordinates and normal
 	 */
 	char subsurfLevels;
 
@@ -838,14 +839,14 @@ enum {
 
 /* Shrinkwrap->shrinkOpts */
 enum {
-	/* allow shrinkwrap to move the vertex in the positive direction of axis */
+	/** allow shrinkwrap to move the vertex in the positive direction of axis */
 	MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR = (1 << 0),
-	/* allow shrinkwrap to move the vertex in the negative direction of axis */
+	/** allow shrinkwrap to move the vertex in the negative direction of axis */
 	MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR = (1 << 1),
 
-	/* ignore vertex moves if a vertex ends projected on a front face of the target */
+	/** ignore vertex moves if a vertex ends projected on a front face of the target */
 	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE = (1 << 3),
-	/* ignore vertex moves if a vertex ends projected on a back face of the target */
+	/** ignore vertex moves if a vertex ends projected on a back face of the target */
 	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE  = (1 << 4),
 
 	MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE    = (1 << 5),  /* distance is measure to the front face of the target */
@@ -855,7 +856,8 @@ enum {
 
 /* Shrinkwrap->projAxis */
 enum {
-	MOD_SHRINKWRAP_PROJECT_OVER_NORMAL   = 0,        /* projection over normal is used if no axis is selected */
+	/** projection over normal is used if no axis is selected */
+	MOD_SHRINKWRAP_PROJECT_OVER_NORMAL   = 0,
 	MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS   = (1 << 0),
 	MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS   = (1 << 1),
 	MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS   = (1 << 2),

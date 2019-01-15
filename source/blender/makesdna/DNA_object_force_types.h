@@ -40,21 +40,35 @@ extern "C" {
 
 /* pd->forcefield:  Effector Fields types */
 typedef enum ePFieldType {
-	PFIELD_NULL   = 0,	/* (this is used for general effector weight)							*/
-	PFIELD_FORCE  = 1,	/* Force away/towards a point depending on force strength				*/
-	PFIELD_VORTEX = 2,	/* Force around the effector normal										*/
-	PFIELD_MAGNET = 3,	/* Force from the cross product of effector normal and point velocity	*/
-	PFIELD_WIND   = 4,	/* Force away and towards a point depending which side of the effector 	*/
-				/*	 normal the point is												*/
-	PFIELD_GUIDE      = 5,	/* Force along curve for dynamics, a shaping curve for hair paths		*/
-	PFIELD_TEXTURE    = 6,	/* Force based on texture values calculated at point coordinates		*/
-	PFIELD_HARMONIC   = 7,	/* Force of a harmonic (damped) oscillator								*/
-	PFIELD_CHARGE     = 8,	/* Force away/towards a point depending on point charge					*/
-	PFIELD_LENNARDJ   = 9,	/* Force due to a Lennard-Jones potential								*/
-	PFIELD_BOID       = 10,	/* Defines predator / goal for boids									*/
-	PFIELD_TURBULENCE = 11,	/* Force defined by BLI_gTurbulence										*/
-	PFIELD_DRAG       = 12,	/* Linear & quadratic drag												*/
-	PFIELD_SMOKEFLOW  = 13,	/* Force based on smoke simulation air flow								*/
+	/** (this is used for general effector weight). */
+	PFIELD_NULL   = 0,
+	/** Force away/towards a point depending on force strength. */
+	PFIELD_FORCE  = 1,
+	/** Force around the effector normal. */
+	PFIELD_VORTEX = 2,
+	/** Force from the cross product of effector normal and point velocity. */
+	PFIELD_MAGNET = 3,
+	/** Force away and towards a point depending which side of the effector normal the point is. */
+	PFIELD_WIND   = 4,
+	/** Force along curve for dynamics, a shaping curve for hair paths. */
+	PFIELD_GUIDE      = 5,
+	/** Force based on texture values calculated at point coordinates. */
+	PFIELD_TEXTURE    = 6,
+	/** Force of a harmonic (damped) oscillator. */
+	PFIELD_HARMONIC   = 7,
+	/** Force away/towards a point depending on point charge. */
+	PFIELD_CHARGE     = 8,
+	/** Force due to a Lennard-Jones potential. */
+	PFIELD_LENNARDJ   = 9,
+	/** Defines predator / goal for boids. */
+	PFIELD_BOID       = 10,
+	/** Force defined by BLI_gTurbulence. */
+	PFIELD_TURBULENCE = 11,
+	/** Linear & quadratic drag. */
+	PFIELD_DRAG       = 12,
+	/** Force based on smoke simulation air flow. */
+	PFIELD_SMOKEFLOW  = 13,
+
 	NUM_PFIELD_TYPES
 } ePFieldType;
 
@@ -354,19 +368,25 @@ typedef struct SoftBody {
 /* pd->flag: various settings */
 #define PFIELD_USEMAX           (1 << 0)
 /*#define PDEFLE_DEFORM         (1 << 1)*/      /*UNUSED*/
-#define PFIELD_GUIDE_PATH_ADD   (1 << 2)        /* TODO: do_versions for below */
-#define PFIELD_PLANAR           (1 << 3)        /* used for do_versions */
+/** TODO: do_versions for below */
+#define PFIELD_GUIDE_PATH_ADD   (1 << 2)
+/** used for do_versions */
+#define PFIELD_PLANAR           (1 << 3)
 #define PDEFLE_KILL_PART        (1 << 4)
-#define PFIELD_POSZ             (1 << 5)        /* used for do_versions */
+/** used for do_versions */
+#define PFIELD_POSZ             (1 << 5)
 #define PFIELD_TEX_OBJECT       (1 << 6)
-#define PFIELD_GLOBAL_CO        (1 << 6)        /* used for turbulence */
+/** used for turbulence */
+#define PFIELD_GLOBAL_CO        (1 << 6)
 #define PFIELD_TEX_2D           (1 << 7)
-#define PFIELD_MULTIPLE_SPRINGS (1 << 7)        /* used for harmonic force */
+/** used for harmonic force */
+#define PFIELD_MULTIPLE_SPRINGS (1 << 7)
 #define PFIELD_USEMIN           (1 << 8)
 #define PFIELD_USEMAXR          (1 << 9)
 #define PFIELD_USEMINR          (1 << 10)
 #define PFIELD_TEX_ROOTCO       (1 << 11)
-#define PFIELD_SURFACE          (1 << 12)       /* used for do_versions */
+/** used for do_versions */
+#define PFIELD_SURFACE          (1 << 12)
 #define PFIELD_VISIBILITY       (1 << 13)
 #define PFIELD_DO_LOCATION      (1 << 14)
 #define PFIELD_DO_ROTATION      (1 << 15)
@@ -403,13 +423,15 @@ typedef struct SoftBody {
 //#define PTCACHE_BAKE_EDIT         (1 << 4)
 //#define PTCACHE_BAKE_EDIT_ACTIVE  (1 << 5)
 #define PTCACHE_DISK_CACHE          (1 << 6)
-//#define PTCACHE_QUICK_CACHE       (1 << 7)  /* removed since 2.64 - [#30974], could be added back in a more useful way */
+///* removed since 2.64 - [#30974], could be added back in a more useful way */
+//#define PTCACHE_QUICK_CACHE       (1 << 7)
 #define PTCACHE_FRAMES_SKIPPED      (1 << 8)
 #define PTCACHE_EXTERNAL            (1 << 9)
 #define PTCACHE_READ_INFO           (1 << 10)
-/* don't use the filename of the blendfile the data is linked from (write a local cache) */
+/** don't use the filename of the blendfile the data is linked from (write a local cache) */
 #define PTCACHE_IGNORE_LIBPATH      (1 << 11)
-/* high resolution cache is saved for smoke for backwards compatibility, so set this flag to know it's a "fake" cache */
+/** high resolution cache is saved for smoke for backwards compatibility,
+ * so set this flag to know it's a "fake" cache */
 #define PTCACHE_FAKE_SMOKE          (1 << 12)
 #define PTCACHE_IGNORE_CLEAR        (1 << 13)
 

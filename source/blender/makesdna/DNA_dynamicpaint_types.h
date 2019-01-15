@@ -155,9 +155,11 @@ enum {
 	/* This should not be needed, having a valid WEIGHT_MCOL layer should be enough.
 	 * And if not, should be a general flag. But seems unnecessary for now... */
 #if 0
-	MOD_DPAINT_PREVIEW_READY      = 1 << 0,  /* if viewport preview is ready */
+	/** if viewport preview is ready */
+	MOD_DPAINT_PREVIEW_READY      = 1 << 0,
 #endif
-	MOD_DPAINT_BAKING             = 1 << 1,  /* surface is already baking, so it wont get updated (loop) */
+	/** surface is already baking, so it wont get updated (loop) */
+	MOD_DPAINT_BAKING             = 1 << 1,
 };
 
 /* Canvas settings */
