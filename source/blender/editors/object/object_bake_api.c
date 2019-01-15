@@ -635,9 +635,15 @@ static size_t initialize_internal_images(BakeImages *bake_images, ReportList *re
 /* create new mesh with edit mode changes and modifiers applied */
 static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph, Main *bmain, Scene *scene, Object *ob)
 {
-	ED_object_editmode_load(bmain, ob);
+	bool apply_modifiers = false;
 
-	Mesh *me = BKE_mesh_new_from_object(depsgraph, bmain, scene, ob, 1, 0);
+	/* Mesh is already updated and has modifiers applied. */
+	if (ob->type != OB_MESH) {
+		ED_object_editmode_load(bmain, ob);
+		apply_modifiers = true;
+	}
+
+	Mesh *me = BKE_mesh_new_from_object(depsgraph, bmain, scene, ob, apply_modifiers, 0);
 	if (me->flag & ME_AUTOSMOOTH) {
 		BKE_mesh_split_faces(me, true);
 	}
