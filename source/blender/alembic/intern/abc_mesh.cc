@@ -516,10 +516,10 @@ void AbcGenericMeshWriter::writeSubD(struct Mesh *mesh)
 template <typename Schema>
 void AbcGenericMeshWriter::writeFaceSets(struct Mesh *me, Schema &schema)
 {
-	std::map< std::string, std::vector<int32_t> > geo_groups;
+	std::map< std::string, std::vector<int32_t>> geo_groups;
 	getGeoGroups(me, geo_groups);
 
-	std::map< std::string, std::vector<int32_t>  >::iterator it;
+	std::map< std::string, std::vector<int32_t>>::iterator it;
 	for (it = geo_groups.begin(); it != geo_groups.end(); ++it) {
 		OFaceSet face_set = schema.createFaceSet(it->first);
 		OFaceSetSchema::Sample samp;
@@ -620,7 +620,7 @@ void AbcGenericMeshWriter::getVelocities(struct Mesh *mesh, std::vector<Imath::V
 
 void AbcGenericMeshWriter::getGeoGroups(
         struct Mesh *mesh,
-        std::map<std::string, std::vector<int32_t> > &geo_groups)
+        std::map<std::string, std::vector<int32_t>> &geo_groups)
 {
 	const int num_poly = mesh->totpoly;
 	MPoly *polygons = mesh->mpoly;

@@ -209,7 +209,7 @@ bool AbcNurbsReader::valid() const
 		return false;
 	}
 
-	std::vector< std::pair<INuPatchSchema, IObject> >::const_iterator it;
+	std::vector<std::pair<INuPatchSchema, IObject>>::const_iterator it;
 	for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
 		const INuPatchSchema &schema = it->first;
 
@@ -243,7 +243,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
 	Curve *cu = static_cast<Curve *>(BKE_curve_add(bmain, "abc_curve", OB_SURF));
 	cu->actvert = CU_ACT_NONE;
 
-	std::vector< std::pair<INuPatchSchema, IObject> >::iterator it;
+	std::vector<std::pair<INuPatchSchema, IObject>>::iterator it;
 
 	for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
 		Nurb *nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), "abc_getnurb"));

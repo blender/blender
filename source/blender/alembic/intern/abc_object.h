@@ -49,7 +49,7 @@ protected:
 	Imath::Box3d m_bounds;
 	std::vector<AbcObjectWriter *> m_children;
 
-	std::vector< std::pair<std::string, IDProperty *> > m_props;
+	std::vector<std::pair<std::string, IDProperty *>> m_props;
 
 	bool m_first_frame;
 	std::string m_name;
