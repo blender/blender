@@ -340,7 +340,7 @@ bool ABC_export(
 	job->settings.scene = scene;
 	job->settings.depsgraph = DEG_graph_new(scene, job->view_layer, DAG_EVAL_RENDER);
 
-	/* Sybren: for now we only export the active scene layer.
+	/* TODO(Sybren): for now we only export the active scene layer.
 	 * Later in the 2.8 development process this may be replaced by using
 	 * a specific collection for Alembic I/O, which can then be toggled
 	 * between "real" objects and cached Alembic files. */
@@ -353,7 +353,7 @@ bool ABC_export(
 	job->settings.shutter_open = params->shutter_open;
 	job->settings.shutter_close = params->shutter_close;
 
-	/* Sybren: For now this is ignored, until we can get selection
+	/* TODO(Sybren): For now this is ignored, until we can get selection
 	 * detection working through Base pointers (instead of ob->flags). */
 	job->settings.selected_only = params->selected_only;
 
@@ -366,7 +366,7 @@ bool ABC_export(
 	job->settings.apply_subdiv = params->apply_subdiv;
 	job->settings.flatten_hierarchy = params->flatten_hierarchy;
 
-	/* Sybren: visible_layer & renderable only is ignored for now,
+	/* TODO(Sybren): visible_layer & renderable only is ignored for now,
 	 * to be replaced with collections later in the 2.8 dev process
 	 * (also see note above). */
 	job->settings.visible_layers_only = params->visible_layers_only;
