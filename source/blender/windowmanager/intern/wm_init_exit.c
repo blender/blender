@@ -440,15 +440,16 @@ void WM_exit_ext(bContext *C, const bool do_python)
 			struct MemFile *undo_memfile = wm->undo_stack ? ED_undosys_stack_memfile_get_active(wm->undo_stack) : NULL;
 			if ((U.uiflag2 & USER_KEEP_SESSION) || (undo_memfile != NULL)) {
 				/* save the undo state as quit.blend */
+				Main *bmain = CTX_data_main(C);
 				char filename[FILE_MAX];
 				bool has_edited;
 				int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
 				BLI_make_file_string("/", filename, BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
-				has_edited = ED_editors_flush_edits(C, false);
+				has_edited = ED_editors_flush_edits(bmain, false);
 
-				if ((has_edited && BLO_write_file(CTX_data_main(C), filename, fileflags, NULL, NULL)) ||
+				if ((has_edited && BLO_write_file(bmain, filename, fileflags, NULL, NULL)) ||
 				    (undo_memfile && BLO_memfile_write_file(undo_memfile, filename)))
 				{
 					printf("Saved session recovery to '%s'\n", filename);
@@ -480,8 +481,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	WM_uilisttype_free();
 
 	/* all non-screen and non-space stuff editors did, like editmode */
-	if (C)
-		ED_editors_exit(C);
+	if (C) {
+		Main *bmain = CTX_data_main(C);
+		ED_editors_exit(bmain);
+	}
 
 	ED_undosys_type_free();
 

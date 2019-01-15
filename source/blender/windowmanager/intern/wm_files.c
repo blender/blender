@@ -184,7 +184,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	 *     (see T47632), so for now just handling this specific case here. */
 	CTX_wm_menu_set(C, NULL);
 
-	ED_editors_exit(C);
+	ED_editors_exit(G_MAIN);
 }
 
 static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
@@ -1296,7 +1296,7 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
 	/* don't forget not to return without! */
 	WM_cursor_wait(1);
 
-	ED_editors_flush_edits(C, false);
+	ED_editors_flush_edits(bmain, false);
 
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
@@ -1428,12 +1428,13 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 	}
 	else {
 		/*  save as regular blend file */
+		Main *bmain = CTX_data_main(C);
 		int fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);
 
-		ED_editors_flush_edits(C, false);
+		ED_editors_flush_edits(bmain, false);
 
 		/* Error reporting into console */
-		BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
+		BLO_write_file(bmain, filepath, fileflags, NULL, NULL);
 	}
 	/* do timer after file write, just in case file write takes a long time */
 	wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
@@ -1554,7 +1555,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
 	printf("Writing homefile: '%s' ", filepath);
 
-	ED_editors_flush_edits(C, false);
+	ED_editors_flush_edits(bmain, false);
 
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_HISTORY);

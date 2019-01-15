@@ -78,7 +78,7 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
 			ED_object_single_users(bmain, scene_new, false, true);
 		}
 		else if (method == SCE_COPY_FULL) {
-			ED_editors_flush_edits(C, false);
+			ED_editors_flush_edits(bmain, false);
 			ED_object_single_users(bmain, scene_new, true, true);
 		}
 	}
