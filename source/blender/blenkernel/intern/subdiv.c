@@ -66,7 +66,24 @@ BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
 	return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
+/* ================================ SETTINGS ================================ */
+
+bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a,
+                               const SubdivSettings *settings_b)
+{
+	return
+	        (settings_a->is_simple == settings_b->is_simple &&
+	         settings_a->is_adaptive == settings_b->is_adaptive &&
+	         settings_a->level == settings_b->level &&
+	         settings_a->vtx_boundary_interpolation ==
+	                 settings_b->vtx_boundary_interpolation &&
+	         settings_a->fvar_linear_interpolation ==
+	                 settings_b->fvar_linear_interpolation);
+}
+
 /* ============================== CONSTRUCTION ============================== */
+
+/* Creation from scratch. */
 
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter)
@@ -82,7 +99,6 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 		osd_topology_refiner =
 		        openSubdiv_createTopologyRefinerFromConverter(
 		                converter, &topology_refiner_settings);
-
 	}
 	else {
 		/* TODO(sergey): Check whether original geometry had any vertices.
@@ -111,6 +127,53 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
 	BKE_subdiv_converter_free(&converter);
 	return subdiv;
 }
+
+/* Creation with cached-aware semantic. */
+
+Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
+                                         const SubdivSettings *settings,
+                                         OpenSubdiv_Converter *converter)
+{
+	/* Check if the existing descriptor can be re-used. */
+	bool can_reuse_subdiv = true;
+	if (subdiv != NULL && subdiv->topology_refiner != NULL) {
+		if (!BKE_subdiv_settings_equal(&subdiv->settings, settings)) {
+			can_reuse_subdiv = false;
+		}
+		else {
+			BKE_subdiv_stats_begin(
+			        &subdiv->stats, SUBDIV_STATS_TOPOLOGY_COMPARE);
+			can_reuse_subdiv = openSubdiv_topologyRefinerCompareWithConverter(
+			        subdiv->topology_refiner, converter);
+			BKE_subdiv_stats_end(
+			        &subdiv->stats, SUBDIV_STATS_TOPOLOGY_COMPARE);
+		}
+	}
+	else {
+		can_reuse_subdiv = false;
+	}
+	if (can_reuse_subdiv) {
+		return subdiv;
+	}
+	/* Create new subdiv. */
+	if (subdiv != NULL) {
+		BKE_subdiv_free(subdiv);
+	}
+	return BKE_subdiv_new_from_converter(settings, converter);
+}
+
+Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
+                                    const SubdivSettings *settings,
+                                    const Mesh *mesh)
+{
+	OpenSubdiv_Converter converter;
+	BKE_subdiv_converter_init_for_mesh(&converter, settings, mesh);
+	subdiv = BKE_subdiv_update_from_converter(subdiv, settings, &converter);
+	BKE_subdiv_converter_free(&converter);
+	return subdiv;
+}
+
+/* Memory release. */
 
 void BKE_subdiv_free(Subdiv *subdiv)
 {

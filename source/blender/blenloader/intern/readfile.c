@@ -5073,6 +5073,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
 			smd->emCache = smd->mCache = NULL;
+			smd->subdiv = NULL;
 		}
 		else if (md->type == eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData *)md;

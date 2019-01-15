@@ -42,6 +42,7 @@ void BKE_subdiv_stats_init(SubdivStats *stats)
 	stats->evaluator_refine_time = 0.0;
 	stats->subdiv_to_ccg_time = 0.0;
 	stats->subdiv_to_ccg_elements_time = 0.0;
+	stats->topology_compare_time = 0.0;
 }
 
 void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value)
@@ -87,6 +88,9 @@ void BKE_subdiv_stats_print(const SubdivStats *stats)
 	STATS_PRINT_TIME(stats,
 	                 subdiv_to_ccg_elements_time,
 	                 "    Elements time");
+	STATS_PRINT_TIME(stats,
+	                 topology_compare_time,
+	                 "Topology comparison time");
 
 #undef STATS_PRINT_TIME
 }

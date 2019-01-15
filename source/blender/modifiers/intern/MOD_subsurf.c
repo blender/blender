@@ -89,6 +89,9 @@ static void freeData(ModifierData *md)
 		ccgSubSurf_free(smd->emCache);
 		smd->emCache = NULL;
 	}
+	if (smd->subdiv != NULL) {
+		BKE_subdiv_free(smd->subdiv);
+	}
 }
 
 static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
@@ -120,6 +123,20 @@ static void subdiv_settings_init(SubdivSettings *settings,
 	settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
 	settings->fvar_linear_interpolation =
 	        BKE_subdiv_fvar_interpolation_from_uv_smooth(smd->uv_smooth);
+}
+
+/* Main goal of this function is to give usable subdivision surface descriptor
+ * which matches settings and topology. */
+static Subdiv *subdiv_descriptor_ensure(SubsurfModifierData *smd,
+                                        const SubdivSettings *subdiv_settings,
+                                        const Mesh *mesh)
+{
+	Subdiv *subdiv = BKE_subdiv_update_from_mesh(
+	        smd->subdiv, subdiv_settings, mesh);
+	if (false) {
+		smd->subdiv = subdiv;
+	}
+	return subdiv;
 }
 
 /* Subdivide into fully qualified mesh. */
@@ -189,24 +206,23 @@ static Mesh *applyModifier(ModifierData *md,
 	if (subdiv_settings.level == 0) {
 		return result;
 	}
-	/* TODO(sergey): Try to re-use subdiv when possible. */
-	Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, mesh);
+	Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
 	if (subdiv == NULL) {
-		/* Happens on bad topology, ut also on empty input mesh. */
+		/* Happens on bad topology, but also on empty input mesh. */
 		return result;
 	}
 	/* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
-	 * maybe when it is a last modifier in the stack?
-	 */
+	 * maybe when it is a last modifier in the stack? */
 	if (true) {
 		result = subdiv_as_mesh(smd, ctx, mesh, subdiv);
 	}
 	else {
 		result = subdiv_as_ccg(smd, ctx, mesh, subdiv);
 	}
-	/* TODO(sergey): Cache subdiv somehow. */
 	// BKE_subdiv_stats_print(&subdiv->stats);
-	BKE_subdiv_free(subdiv);
+	if (subdiv != smd->subdiv) {
+		BKE_subdiv_free(subdiv);
+	}
 	return result;
 }
 
