@@ -37,6 +37,7 @@
 
 #include "internal/opensubdiv_gl_mesh_fvar.h"
 #include "internal/opensubdiv_gl_mesh_internal.h"
+#include "internal/opensubdiv_util.h"
 #include "opensubdiv_capi.h"
 #include "opensubdiv_gl_mesh_capi.h"
 
@@ -485,7 +486,7 @@ void drawPartitionPatchesRange(GLMeshInterface* mesh,
           start_patch < traversed_patches + num_block_patches) {
         const int num_control_verts = desc.GetNumControlVertices();
         const int start_draw_patch = start_patch - traversed_patches;
-        const int num_draw_patches = std::min(
+        const int num_draw_patches = min(
             num_remained_patches, num_block_patches - start_draw_patch);
         perform_drawElements(
             program, i + start_draw_patch, num_draw_patches * num_control_verts,

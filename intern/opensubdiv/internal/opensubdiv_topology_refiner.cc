@@ -25,6 +25,9 @@
 #include "internal/opensubdiv_converter_internal.h"
 #include "internal/opensubdiv_internal.h"
 #include "internal/opensubdiv_topology_refiner_internal.h"
+#include "internal/opensubdiv_util.h"
+
+using opensubdiv_capi::vector;
 
 namespace {
 
@@ -327,7 +330,7 @@ bool checkGeometryFacesMatch(
   const int num_faces = base_level.GetNumFaces();
   // TODO(sergey): Consider using data structure which keeps handful of
   // elements on stack before doing heep allocation.
-  std::vector<int> conv_face_vertices;
+  vector<int> conv_face_vertices;
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     const ConstIndexArray& face_vertices =
         base_level.GetFaceVertices(face_index);

@@ -106,9 +106,6 @@ typedef Mesh<GLVertexBuffer,
              GLPatchTable> OsdGLSLComputeMesh;
 #endif
 
-#include <string>
-#include <vector>
-
 #include "MEM_guardedalloc.h"
 
 #include "opensubdiv_topology_refiner_capi.h"
@@ -116,6 +113,9 @@ typedef Mesh<GLVertexBuffer,
 #include "internal/opensubdiv_gl_mesh_fvar.h"
 #include "internal/opensubdiv_gl_mesh_internal.h"
 #include "internal/opensubdiv_topology_refiner_internal.h"
+#include "internal/opensubdiv_util.h"
+
+using opensubdiv_capi::vector;
 
 namespace {
 
@@ -267,8 +267,8 @@ struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
   if (osd_topology_refiner->GetNumFVarChannels() > 0) {
     // TODO(sergey): This is a temporary stub to get things compiled. Need
     // to store base level UVs somewhere else.
-    std::vector<float> uvs;
-    std::vector<float> fvar_data_buffer;
+    vector<float> uvs;
+    vector<float> fvar_data_buffer;
     opensubdiv_capi::interpolateFVarData(*osd_topology_refiner,
                                          uvs,
                                          &fvar_data_buffer);

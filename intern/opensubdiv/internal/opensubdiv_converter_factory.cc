@@ -24,15 +24,18 @@
 
 #include <cassert>
 #include <cstdio>
-#include <stack>
-#include <vector>
 
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
 #include "internal/opensubdiv_converter_internal.h"
 #include "internal/opensubdiv_converter_orient.h"
 #include "internal/opensubdiv_internal.h"
+#include "internal/opensubdiv_util.h"
 #include "opensubdiv_converter_capi.h"
+
+using opensubdiv_capi::min;
+using opensubdiv_capi::vector;
+using opensubdiv_capi::stack;
 
 struct TopologyRefinerData {
   const OpenSubdiv_Converter* converter;
@@ -119,8 +122,8 @@ TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
   // TODO(sergey): Find a way to move this to an utility function.
 #ifdef OPENSUBDIV_ORIENT_TOPOLOGY
   // Make face normals consistent.
-  std::vector<bool> face_used(num_faces, false);
-  std::stack<int> traverse_stack;
+  vector<bool> face_used(num_faces, false);
+  stack<int> traverse_stack;
   int face_start = 0, num_traversed_faces = 0;
   // Traverse all islands.
   while (num_traversed_faces != num_faces) {
@@ -182,7 +185,7 @@ TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
 #endif  // OPENSUBDIV_ORIENT_TOPOLOGY
   // Vertex relations.
   const int num_vertices = converter->getNumVertices(converter);
-  std::vector<int> vertex_faces, vertex_edges;
+  vector<int> vertex_faces, vertex_edges;
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
     // Vertex-faces.
     IndexArray dst_vertex_faces = getBaseVertexFaces(refiner, vertex_index);
@@ -199,7 +202,7 @@ TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
 // TODO(sergey): Find a way to move this to an utility function.
 #ifdef OPENSUBDIV_ORIENT_TOPOLOGY
     // Order vertex edges and faces to be in a CCW order.
-    std::fill(face_used.begin(), face_used.end(), false);
+    fill(face_used.begin(), face_used.end(), false);
     // Number of edges and faces added to the ordered array.
     int edge_count_ordered = 0, face_count_ordered = 0;
     // Add loose edges straight into the edges array.
@@ -387,8 +390,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
       const float sharpness0 = refiner._levels[0]->getEdgeSharpness(edge0);
       const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
       // TODO(sergey): Find a better mixing between edge and vertex sharpness.
-      sharpness += std::min(sharpness0, sharpness1);
-      sharpness = std::min(sharpness, 1.0f);
+      sharpness += min(sharpness0, sharpness1);
+      sharpness = min(sharpness, 1.0f);
     }
     setBaseVertexSharpness(refiner, vertex_index, sharpness);
   }

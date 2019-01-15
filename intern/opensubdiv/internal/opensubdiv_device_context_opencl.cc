@@ -36,8 +36,8 @@
 
 #include <cstdio>
 #include <cstring>
-#include <string>
-#include <vector>
+
+#include "internal/opensubdiv_util.h"
 
 #define message(...)  // fprintf(stderr, __VA_ARGS__)
 #define error(...) fprintf(stderr, __VA_ARGS__)
@@ -56,7 +56,7 @@ cl_platform_id findPlatform() {
     error("No OpenCL platform found.\n");
     return NULL;
   }
-  std::vector<cl_platform_id> cl_platform_ids(num_platforms);
+  vector<cl_platform_id> cl_platform_ids(num_platforms);
   ci_error_number = clGetPlatformIDs(num_platforms, &cl_platform_ids[0], NULL);
   char ch_buffer[1024];
   for (cl_uint i = 0; i < num_platforms; ++i) {
@@ -94,7 +94,7 @@ int findExtensionSupportedDevice(cl_device_id* cl_devices,
     }
     if (extensions_size > 0) {
       // Get extensions string.
-      std::string extensions('\0', extensions_size);
+      string extensions('\0', extensions_size);
       cl_error_number = clGetDeviceInfo(cl_devices[i],
                                         CL_DEVICE_EXTENSIONS,
                                         extensions_size,
@@ -109,7 +109,7 @@ int findExtensionSupportedDevice(cl_device_id* cl_devices,
       //
       // The actual string would be "cl_khr_d3d11_sharing"
       //                         or "cl_nv_d3d11_sharing"
-      if (extensions.find(extension_name) != std::string::npos) {
+      if (extensions.find(extension_name) != string::npos) {
         return i;
       }
     }
@@ -203,7 +203,7 @@ bool CLDeviceContext::Initialize() {
     error("No sharable devices.\n");
     return false;
   }
-  std::vector<cl_device_id> cl_devices(num_devices);
+  vector<cl_device_id> cl_devices(num_devices);
   clGetGLContextInfoAPPLE(_clContext, kCGLContext,
                           CL_CGL_DEVICES_FOR_SUPPORTED_VIRTUAL_SCREENS_APPLE,
                           num_devices * sizeof(cl_device_id),
@@ -219,7 +219,7 @@ bool CLDeviceContext::Initialize() {
     return false;
   }
   // Create the device list.
-  std::vector<cl_device_id> cl_devices(num_devices);
+  vector<cl_device_id> cl_devices(num_devices);
   clGetDeviceIDs(cp_platform,
                  CL_DEVICE_TYPE_GPU,
                  num_devices,

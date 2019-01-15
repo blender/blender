@@ -21,9 +21,9 @@
 
 #include "internal/opensubdiv_converter_orient.h"
 
-#include <algorithm>
 #include <cmath>
-#include <utility>
+
+#include "internal/opensubdiv_util.h"
 
 namespace opensubdiv_capi {
 
@@ -54,8 +54,8 @@ inline void reverseFaceLoops(
   for (int i = 0; i < num_face_vertices / 2; ++i) {
     const int j = num_face_vertices - i - 1;
     if (i != j) {
-      std::swap((*face_vertices)[i], (*face_vertices)[j]);
-      std::swap((*face_edges)[i], (*face_edges)[j]);
+      swap((*face_vertices)[i], (*face_vertices)[j]);
+      swap((*face_edges)[i], (*face_edges)[j]);
     }
   }
   reverseFaceVertices(&(*face_vertices)[0], num_face_vertices);

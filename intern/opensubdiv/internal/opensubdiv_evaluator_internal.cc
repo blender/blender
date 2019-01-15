@@ -20,7 +20,6 @@
 
 #include <cassert>
 #include <cstdio>
-#include <vector>
 
 #ifdef _MSC_VER
 #  include <iso646.h>
@@ -39,6 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "internal/opensubdiv_topology_refiner_internal.h"
+#include "internal/opensubdiv_util.h"
 #include "internal/opensubdiv_util.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
@@ -68,7 +68,7 @@ namespace {
 // Helper class to wrap numerous of patch coordinates into a buffer.
 // Used to pass coordinates to the CPU evaluator. Other evaluators are not
 // supported.
-class PatchCoordBuffer : public std::vector<PatchCoord> {
+class PatchCoordBuffer : public vector<PatchCoord> {
  public:
   static PatchCoordBuffer* Create(int size) {
     PatchCoordBuffer* buffer = new PatchCoordBuffer();

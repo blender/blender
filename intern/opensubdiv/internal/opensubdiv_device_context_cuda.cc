@@ -42,8 +42,9 @@
 #include <cuda.h>
 #include <cuda_gl_interop.h>
 #include <cuda_runtime_api.h>
-#include <algorithm>
 #include <cstdio>
+
+#include "internal/opensubdiv_util.h"
 
 #define message(fmt, ...)
 // #define message(fmt, ...)  fprintf(stderr, fmt, __VA_ARGS__)
@@ -125,7 +126,7 @@ int cutGetMaxGflopsDeviceId() {
   while (current_device < device_count) {
     cuDeviceComputeCapability(&compat_major, &compat_minor, current_device);
     if (compat_major > 0 && compat_major < 9999) {
-      best_SM_arch = std::max(best_SM_arch, compat_major);
+      best_SM_arch = max(best_SM_arch, compat_major);
     }
     current_device++;
   }

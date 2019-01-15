@@ -20,12 +20,20 @@
 #ifndef OPENSUBDIV_UTIL_H_
 #define OPENSUBDIV_UTIL_H_
 
+#include <algorithm>
 #include <vector>
+#include <stack>
 #include <string>
+#include <utility>
 
 namespace opensubdiv_capi {
 
+using std::fill;
+using std::max;
+using std::min;
+using std::stack;
 using std::string;
+using std::swap;
 using std::vector;
 
 #define foreach(x, y) for (x : y)
@@ -34,9 +42,9 @@ using std::vector;
 #define STRINGIFY_APPEND(a, b) "" a #b
 #define STRINGIFY(x) STRINGIFY_APPEND("", x)
 
-void stringSplit(std::vector<std::string>* tokens,
-                 const std::string& str,
-                 const std::string& separators,
+void stringSplit(vector<string>* tokens,
+                 const string& str,
+                 const string& separators,
                  bool skip_empty);
 
 }  // namespace opensubdiv_capi

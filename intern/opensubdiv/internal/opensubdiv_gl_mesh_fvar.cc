@@ -21,6 +21,8 @@
 #include <GL/glew.h>
 #include <opensubdiv/far/primvarRefiner.h>
 
+#include "internal/opensubdiv_util.h"
+
 namespace opensubdiv_capi {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +60,7 @@ void GLMeshFVarData::create(
   /// Expand fvar data to per-patch array.
   const int max_level = topology_refiner->GetMaxLevel();
   const int num_channels = patch_table->GetNumFVarChannels();
-  std::vector<float> data;
+  vector<float> data;
   int fvar_data_offset = 0;
   channel_offsets.resize(num_channels);
   for (int channel = 0; channel < num_channels; ++channel) {
@@ -122,8 +124,8 @@ struct FVarVertex {
 };
 
 void interpolateFVarData(const OpenSubdiv::Far::TopologyRefiner& refiner,
-                         const std::vector<float>& uvs,
-                         std::vector<float>* fvar_data) {
+                         const vector<float>& uvs,
+                         vector<float>* fvar_data) {
   const int fvar_width = 2;
   const int max_level = refiner.GetMaxLevel();
   size_t fvar_data_offset = 0, values_offset = 0;
@@ -139,7 +141,7 @@ void interpolateFVarData(const OpenSubdiv::Far::TopologyRefiner& refiner,
     if (refiner.IsUniform()) {
       // For uniform we only keep the highest level of refinement.
       fvar_data->resize(fvar_data->size() + num_values_max * fvar_width);
-      std::vector<FVarVertex> buffer(num_values_total - num_values_max);
+      vector<FVarVertex> buffer(num_values_total - num_values_max);
       FVarVertex* src = &buffer[0];
       memcpy(src, &uvs[values_offset], num_values * sizeof(float));
       // Defer the last level to treat separately with its alternate
