@@ -742,8 +742,11 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 /** See: 'set_pchan_color'*/
 static void update_color(const Object *ob, const float const_color[4])
 {
+	const bArmature *arm = ob->data;
 	g_theme.const_color = const_color;
-	g_theme.const_wire = ((ob->base_flag & BASE_SELECTED) != 0) ? 1.5f : 0.0f;
+	g_theme.const_wire = (
+	        ((ob->base_flag & BASE_SELECTED) ||
+	         (arm->drawtype == ARM_WIRE)) ? 1.5f : 0.0f);
 
 #define NO_ALPHA(c) (((c)[3] = 1.0f), (c))
 
