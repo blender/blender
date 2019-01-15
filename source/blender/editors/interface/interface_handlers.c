@@ -4021,7 +4021,23 @@ static int ui_do_but_TOG(
 #endif
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		bool do_activate = false;
+		if (ELEM(event->type, PADENTER, RETKEY)) {
+			if (event->val == KM_PRESS) {
+				do_activate = true;
+			}
+		}
+		else if (event->type == LEFTMOUSE) {
+			if (ui_block_is_menu(but->block)) {
+				/* Behave like other menu items. */
+				do_activate = (event->val == KM_RELEASE);
+			}
+			else {
+				do_activate = (event->val == KM_PRESS);
+			}
+		}
+
+		if (do_activate) {
 #if 0		/* UNUSED */
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
