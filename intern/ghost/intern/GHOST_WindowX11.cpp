@@ -1515,7 +1515,7 @@ setWindowCursorGrab(
 			 * blender gets can be outside the screen causing menus not to show
 			 * properly unless the user moves the mouse */
 
-#ifdef WITH_X11_XINPUT
+#if defined(WITH_X11_XINPUT) && defined(USE_X11_XINPUT_WARP)
 			if ((m_system->m_xinput_version.present) &&
 			    (m_system->m_xinput_version.major_version >= 2))
 			{

@@ -1671,7 +1671,7 @@ setCursorPosition(
 	}
 #endif
 
-#ifdef WITH_X11_XINPUT
+#if defined(WITH_X11_XINPUT) && defined(USE_X11_XINPUT_WARP)
 	if ((m_xinput_version.present) &&
 	    (m_xinput_version.major_version >= 2))
 	{
