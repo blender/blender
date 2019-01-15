@@ -201,7 +201,8 @@ static bool boundisect(PolyFill *pf2, PolyFill *pf1)
 }
 
 
-static void mergepolysSimp(ScanFillContext *sf_ctx, PolyFill *pf1, PolyFill *pf2)    /* add pf2 to pf1 */
+/* add pf2 to pf1 */
+static void mergepolysSimp(ScanFillContext *sf_ctx, PolyFill *pf1, PolyFill *pf2)
 {
 	ScanFillVert *eve;
 	ScanFillEdge *eed;
@@ -502,7 +503,8 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 				eve->f = SF_VERT_NEW;  /* flag for connectedges later on */
 				sc->vert = eve;
 				sc->edge_first = sc->edge_last = NULL;
-				/* if (even->tmp.v == NULL) eve->tmp.u = verts; */ /* Note, debug print only will work for curve polyfill, union is in use for mesh */
+				/* Note, debug print only will work for curve polyfill, union is in use for mesh */
+				/* if (even->tmp.v == NULL) eve->tmp.u = verts; */
 				sc++;
 			}
 		}
@@ -570,7 +572,8 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 		maxface = 2 * verts;       /* 2*verts: based at a filled circle within a triangle */
 	}
 	else {
-		maxface = verts - 2;       /* when we don't calc any holes, we assume face is a non overlapping loop */
+		/* when we don't calc any holes, we assume face is a non overlapping loop */
+		maxface = verts - 2;
 	}
 
 	sc = scdata;
@@ -593,7 +596,8 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 			ed1 = sc->edge_first;
 			ed2 = ed1->next;
 
-			/* commented out... the ESC here delivers corrupted memory (and doesnt work during grab) */
+			/* commented out... the ESC here delivers corrupted memory
+			 * (and doesnt work during grab) */
 			/* if (callLocalInterruptCallBack()) break; */
 			if (totface >= maxface) {
 				/* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */
@@ -634,15 +638,16 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
 								if (testedgeside(v3->xy, v1->xy, sc1->vert->xy)) {
 									/* point is in triangle */
 
-									/* because multiple points can be inside triangle (concave holes) */
-									/* we continue searching and pick the one with sharpest corner */
-
+									/* Because multiple points can be inside triangle
+									 * (concave holes) we continue searching and pick the
+									 * one with sharpest corner. */
 									if (best_sc == NULL) {
 										/* even without holes we need to keep checking [#35861] */
 										best_sc = sc1;
 									}
 									else {
-										/* prevent angle calc for the simple cases only 1 vertex is found */
+										/* Prevent angle calc for the simple cases
+										 * only 1 vertex is found. */
 										if (firsttime == false) {
 											angle_best_cos = cos_v2v2v2(v2->xy, v1->xy, best_sc->vert->xy);
 											firsttime = true;

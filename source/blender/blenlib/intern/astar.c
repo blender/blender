@@ -236,7 +236,8 @@ bool BLI_astar_graph_solve(
 		LinkData *ld;
 
 		if (BLI_BITMAP_TEST(done_nodes, node_curr_idx)) {
-			/* Might happen, because we always add nodes to heap when evaluating them, without ever removing them. */
+			/* Might happen, because we always add nodes to heap when evaluating them,
+			 * without ever removing them. */
 			continue;
 		}
 

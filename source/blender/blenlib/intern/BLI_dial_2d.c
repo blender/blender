@@ -66,7 +66,8 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
 
 	sub_v2_v2v2(current_direction, current_position, dial->center);
 
-	/* only update when we have enough precision, by having the mouse adequately away from center */
+	/* only update when we have enough precision,
+	 * by having the mouse adequately away from center */
 	if (len_squared_v2(current_direction) > dial->threshold_squared) {
 		float angle;
 		float cosval, sinval;
@@ -86,7 +87,8 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
 		angle = atan2f(sinval, cosval);
 
 		/* change of sign, we passed the 180 degree threshold. This means we need to add a turn.
-		 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2 */
+		 * to distinguish between transition from 0 to -1 and -PI to +PI,
+		 * use comparison with PI/2 */
 		if ((angle * dial->last_angle < 0.0f) &&
 		    (fabsf(dial->last_angle) > (float)M_PI_2))
 		{

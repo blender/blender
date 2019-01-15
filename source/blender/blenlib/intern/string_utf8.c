@@ -48,7 +48,8 @@
 // #define DEBUG_STRSIZE
 
 /* array copied from glib's gutf8.c, */
-/* Note: last two values (0xfe and 0xff) are forbidden in utf-8, so they are considered 1 byte length too. */
+/* Note: last two values (0xfe and 0xff) are forbidden in utf-8,
+ * so they are considered 1 byte length too. */
 static const size_t utf8_skip_data[256] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -90,8 +91,8 @@ ptrdiff_t BLI_utf8_invalid_byte(const char *str, size_t length)
 		if ((c & 0xc0) != 0xc0)
 			goto utf8_error;
 
-		/* Note that since we always increase p (and decrease length) by one byte in main loop, we only add/subtract
-		 * extra utf8 bytes in code below
+		/* Note that since we always increase p (and decrease length) by one byte in main loop,
+		 * we only add/subtract extra utf8 bytes in code below
 		 * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
 		ab = (int)utf8_skip_data[c] - 1;
 		if (length <= ab) {
@@ -272,7 +273,8 @@ char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t 
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict src, const size_t maxncpy)
 {
 	const size_t maxlen = maxncpy - 1;
-	const int64_t maxlen_secured = (int64_t)maxlen - 6;  /* 6 is max utf8 length of an unicode char. */
+	/* 6 is max utf8 length of an unicode char. */
+	const int64_t maxlen_secured = (int64_t)maxlen - 6;
 	size_t len = 0;
 
 	BLI_assert(maxncpy != 0);
@@ -285,8 +287,8 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict
 		len += BLI_str_utf8_from_unicode((uint)*src++, dst + len);
 	}
 
-	/* We have to be more careful for the last six bytes, to avoid buffer overflow in case utf8-encoded char
-	 * would be too long for our dst buffer. */
+	/* We have to be more careful for the last six bytes,
+	 * to avoid buffer overflow in case utf8-encoded char would be too long for our dst buffer. */
 	while (*src) {
 		char t[6];
 		size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);

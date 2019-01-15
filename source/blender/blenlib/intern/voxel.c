@@ -63,7 +63,8 @@ BLI_INLINE int FLOORI(float x)
 	return ((x >= 0.f) || (float)r == x) ? r : (r - 1);
 }
 
-/* clamp function, cannot use the CLAMPIS macro, it sometimes returns unwanted results apparently related to
+/* clamp function, cannot use the CLAMPIS macro,
+ * it sometimes returns unwanted results apparently related to
  * gcc optimization flag -fstrict-overflow which is enabled at -O2
  *
  * this causes the test (x + 2) < 0 with int x == 2147483647 to return false (x being an integer,

@@ -77,7 +77,8 @@ enum {
 
 #ifdef GHASH_INTERNAL_API
 	/* Internal usage only */
-	GHASH_FLAG_IS_GSET      = (1 << 16),  /* Whether the GHash is actually used as GSet (no value storage). */
+	/* Whether the GHash is actually used as GSet (no value storage). */
+	GHASH_FLAG_IS_GSET      = (1 << 16),
 #endif
 };
 

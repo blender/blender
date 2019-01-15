@@ -650,10 +650,13 @@ static PolyIndex *pf_ear_tip_find(
 #endif
 	}
 
-	/* Desperate mode: if no vertex is an ear tip, we are dealing with a degenerate polygon (e.g. nearly collinear).
-	 * Note that the input was not necessarily degenerate, but we could have made it so by clipping some valid ears.
+	/* Desperate mode: if no vertex is an ear tip,
+	 * we are dealing with a degenerate polygon (e.g. nearly collinear).
+	 * Note that the input was not necessarily degenerate,
+	 * but we could have made it so by clipping some valid ears.
 	 *
-	 * Idea taken from Martin Held, "FIST: Fast industrial-strength triangulation of polygons", Algorithmica (1998),
+	 * Idea taken from Martin Held, "FIST: Fast industrial-strength triangulation of polygons",
+	 * Algorithmica (1998),
 	 * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.115.291
 	 *
 	 * Return a convex or tangential vertex if one exists.
@@ -736,19 +739,22 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 	v3 = coords[pi_ear_tip->next->index];
 
 	/* Check if any point is inside the triangle formed by previous, current and next vertices.
-	 * Only consider vertices that are not part of this triangle, or else we'll always find one inside. */
+	 * Only consider vertices that are not part of this triangle,
+	 * or else we'll always find one inside. */
 
 	for (pi_curr = pi_ear_tip->next->next; pi_curr != pi_ear_tip->prev; pi_curr = pi_curr->next) {
-		/* Concave vertices can obviously be inside the candidate ear, but so can tangential vertices
-		 * if they coincide with one of the triangle's vertices. */
+		/* Concave vertices can obviously be inside the candidate ear,
+		 * but so can tangential vertices if they coincide with one of the triangle's vertices. */
 		if (pi_curr->sign != CONVEX) {
 			const float *v = coords[pi_curr->index];
 			/* Because the polygon has clockwise winding order,
 			 * the area sign will be positive if the point is strictly inside.
 			 * It will be 0 on the edge, which we want to include as well. */
 
-			/* note: check (v3, v1) first since it fails _far_ more often then the other 2 checks (those fail equally).
-			 * It's logical - the chance is low that points exist on the same side as the ear we're clipping off. */
+			/* note: check (v3, v1) first since it fails _far_ more often then the other 2 checks
+			 * (those fail equally).
+			 * It's logical - the chance is low that points exist on the
+			 * same side as the ear we're clipping off. */
 			if ((span_tri_v2_sign(v3, v1, v) != CONCAVE) &&
 			    (span_tri_v2_sign(v1, v2, v) != CONCAVE) &&
 			    (span_tri_v2_sign(v2, v3, v) != CONCAVE))

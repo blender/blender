@@ -124,7 +124,8 @@ void BLI_bvhtree_update_tree(BVHTree *tree);
 
 int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
 
-/* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */
+/* collision/overlap: check two trees if they overlap,
+ * alloc's *overlap with length of the int return value */
 BVHTreeOverlap *BLI_bvhtree_overlap(
         const BVHTree *tree1, const BVHTree *tree2, unsigned int *r_overlap_tot,
         BVHTree_OverlapCallback callback, void *userdata);

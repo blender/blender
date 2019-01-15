@@ -40,9 +40,10 @@
 #  include <limits.h>
 #endif
 
-/* The following contortions are an attempt to use the C preprocessor to determine an unsigned integral type
- * that is 32 bits wide. An alternative approach is to use autoconf's AC_CHECK_SIZEOF macro, but doing that
- * would require that the configure script compile and *run* the resulting executable.
+/* The following contortions are an attempt to use the C preprocessor to determine an unsigned
+ * integral type that is 32 bits wide.
+ * An alternative approach is to use autoconf's AC_CHECK_SIZEOF macro, but doing that would require
+ * that the configure script compile and *run* the resulting executable.
  * Locally running cross-compiled executables is usually not possible.
  */
 
@@ -94,7 +95,8 @@ struct md5_ctx {
 #  define SWAP(n) (n)
 #endif
 
-/* This array contains the bytes used to pad the buffer to the next 64-byte boundary.  (RFC 1321, 3.1: Step 1) */
+/* This array contains the bytes used to pad the buffer to the next 64-byte boundary.
+ * (RFC 1321, 3.1: Step 1) */
 static const unsigned char fillbuf[64] = {0x80, 0 /* , 0, 0, ...  */};
 
 /** Initialize structure containing state of computation.
@@ -108,14 +110,16 @@ static void md5_init_ctx(struct md5_ctx *ctx)
 	ctx->D = 0x10325476;
 }
 
-/** Starting with the result of former calls of this function (or the initialization), this function updates
- *  the 'ctx' context for the next 'len' bytes starting at 'buffer'.
- *  It is necessary that 'len' is a multiple of 64!!!
+/**
+ * Starting with the result of former calls of this function (or the initialization),
+ * this function updates the 'ctx' context for the next 'len' bytes starting at 'buffer'.
+ * It is necessary that 'len' is a multiple of 64!!!
  */
 static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ctx)
 {
-/* These are the four functions used in the four steps of the MD5 algorithm and defined in the RFC 1321.
- * The first function is a little bit optimized (as found in Colin Plumbs public domain implementation).
+/* These are the four functions used in the four steps of the MD5 algorithm and defined in the
+ * RFC 1321. The first function is a little bit optimized
+ * (as found in Colin Plumbs public domain implementation).
  */
 /* #define FF(b, c, d) ((b & c) | (~b & d)) */
 #define FF(b, c, d) (d ^ (b & (c ^ d)))
@@ -123,7 +127,8 @@ static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ct
 #define FH(b, c, d) (b ^ c ^ d)
 #define FI(b, c, d) (c ^ (b | ~d))
 
-/* It is unfortunate that C does not provide an operator for cyclic rotation.  Hope the C compiler is smart enough. */
+/* It is unfortunate that C does not provide an operator for cyclic rotation.
+ * Hope the C compiler is smart enough. */
 #define CYCLIC(w, s) (w = (w << s) | (w >> (32 - s)))
 
 	md5_uint32 correct_words[16];
@@ -143,10 +148,11 @@ static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ct
 		md5_uint32 C_save = C;
 		md5_uint32 D_save = D;
 
-		/* First round: using the given function, the context and a constant the next context is computed.
-		 * Because the algorithms processing unit is a 32-bit word and it is determined to work on words in
-		 * little endian byte order we perhaps have to change the byte order before the computation.
-		 * To reduce the work for the next steps we store the swapped words in the array CORRECT_WORDS.
+		/* First round: using the given function, the context and a constant the next context is
+		 * computed. Because the algorithms processing unit is a 32-bit word and it is determined
+		 * to work on words in little endian byte order we perhaps have to change the byte order
+		 * before the computation. To reduce the work for the next steps we store the swapped words
+		 * in the array CORRECT_WORDS.
 		 */
 #define OP(a, b, c, d, s, T)                                   \
 		a += FF(b, c, d) + (*cwp++ = SWAP(*words)) + T;        \
@@ -264,8 +270,10 @@ static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ct
 #undef CYCLIC
 }
 
-/** Put result from 'ctx' in first 16 bytes of 'resbuf'. The result is always in little endian byte order,
- *  so that a byte-wise output yields to the wanted ASCII representation of the message digest.
+/**
+ * Put result from 'ctx' in first 16 bytes of 'resbuf'.
+ * The result is always in little endian byte order,
+ * so that a byte-wise output yields to the wanted ASCII representation of the message digest.
  */
 static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 {
@@ -300,8 +308,9 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
 
 	/* Iterate over full file contents. */
 	while (1) {
-		/* We read the file in blocks of BLOCKSIZE bytes. One call of the computation function processes
-		 * the whole buffer so that with the next round of the loop another block can be read.
+		/* We read the file in blocks of BLOCKSIZE bytes.
+		 * One call of the computation function processes the whole buffer
+		 * so that with the next round of the loop another block can be read.
 		 */
 		size_t n;
 		sum = 0;
@@ -330,7 +339,8 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
 		md5_process_block(buffer, BLOCKSIZE, &ctx);
 	}
 
-	/* We can copy 64 bytes because the buffer is always big enough. 'fillbuf' contains the needed bits. */
+	/* We can copy 64 bytes because the buffer is always big enough.
+	 * 'fillbuf' contains the needed bits. */
 	memcpy(&buffer[sum], fillbuf, 64);
 
 	/* Compute amount of padding bytes needed. Alignment is done to (N + PAD) % 64 == 56.
@@ -373,10 +383,12 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
 	rest = len - blocks;
 	/* Copy to own buffer.  */
 	memcpy(restbuf, &buffer[blocks], rest);
-	/* Append needed fill bytes at end of buffer. We can copy 64 bytes because the buffer is always big enough. */
+	/* Append needed fill bytes at end of buffer.
+	 * We can copy 64 bytes because the buffer is always big enough. */
 	memcpy(&restbuf[rest], fillbuf, 64);
 
-	/* PAD bytes are used for padding to correct alignment. Note that always at least one byte is padded. */
+	/* PAD bytes are used for padding to correct alignment.
+	 * Note that always at least one byte is padded. */
 	pad = rest >= 56 ? 64 + 56 - rest : 56 - rest;
 
 	/* Put length of buffer in *bits* in last eight bytes. */
