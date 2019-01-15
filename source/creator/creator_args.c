@@ -1824,7 +1824,8 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 		}
 
 		if (BLO_has_bfile_extension(filename)) {
-			/* Just pretend a file was loaded, so the user can press Save and it'll save at the filename from the CLI. */
+			/* Just pretend a file was loaded, so the user can press Save and it'll
+			 * save at the filename from the CLI. */
 			BLI_strncpy(G_MAIN->name, filename, FILE_MAX);
 			G.relbase_valid = true;
 			G.save_over = true;
