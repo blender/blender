@@ -65,16 +65,7 @@ private:
 	void writeMesh(struct Mesh *mesh);
 	void writeSubD(struct Mesh *mesh);
 
-	void getMeshInfo(struct Mesh *mesh, std::vector<float> &points,
-	                 std::vector<int32_t> &facePoints,
-	                 std::vector<int32_t> &faceCounts,
-	                 std::vector<int32_t> &creaseIndices,
-	                 std::vector<int32_t> &creaseLengths,
-	                 std::vector<float> &creaseSharpness);
-
 	struct Mesh *getFinalMesh(bool &r_needsfree);
-
-	void getMaterialIndices(struct Mesh *mesh, std::vector<int32_t> &indices);
 
 	void writeArbGeoParams(struct Mesh *mesh);
 	void getGeoGroups(struct Mesh *mesh, std::map<std::string, std::vector<int32_t> > &geoGroups);
