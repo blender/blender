@@ -219,10 +219,10 @@ static void deformStroke(
 		/* apply randomness to thickness */
 		if (mmd->flag & GP_NOISE_MOD_THICKNESS) {
 			if (vdir > 0.5f) {
-				pt1->pressure -= pt1->pressure * vran * mmd->factor;
+				pt1->pressure -= pt1->pressure * vran * mmd->factor * weight;
 			}
 			else {
-				pt1->pressure += pt1->pressure * vran * mmd->factor;
+				pt1->pressure += pt1->pressure * vran * mmd->factor * weight;
 			}
 			CLAMP_MIN(pt1->pressure, GPENCIL_STRENGTH_MIN);
 		}
@@ -230,20 +230,20 @@ static void deformStroke(
 		/* apply randomness to color strength */
 		if (mmd->flag & GP_NOISE_MOD_STRENGTH) {
 			if (vdir > 0.5f) {
-				pt1->strength -= pt1->strength * vran * mmd->factor;
+				pt1->strength -= pt1->strength * vran * mmd->factor * weight;
 			}
 			else {
-				pt1->strength += pt1->strength * vran * mmd->factor;
+				pt1->strength += pt1->strength * vran * mmd->factor * weight;
 			}
 			CLAMP_MIN(pt1->strength, GPENCIL_STRENGTH_MIN);
 		}
 		/* apply randomness to uv rotation */
 		if (mmd->flag & GP_NOISE_MOD_UV) {
 			if (vdir > 0.5f) {
-				pt1->uv_rot -= pt1->uv_rot * vran * mmd->factor;
+				pt1->uv_rot -= pt1->uv_rot * vran * mmd->factor * weight;
 			}
 			else {
-				pt1->uv_rot += pt1->uv_rot * vran * mmd->factor;
+				pt1->uv_rot += pt1->uv_rot * vran * mmd->factor * weight;
 			}
 			CLAMP(pt1->uv_rot, -M_PI_2, M_PI_2);
 		}
