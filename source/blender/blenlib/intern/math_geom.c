@@ -860,6 +860,10 @@ float dist_squared_to_projected_aabb(
 	float rtmin, rtmax;
 	int main_axis;
 
+	r_axis_closest[0] = false;
+	r_axis_closest[1] = false;
+	r_axis_closest[2] = false;
+
 	if ((tmax[0] <= tmax[1]) && (tmax[0] <= tmax[2])) {
 		rtmax = tmax[0];
 		va[0] = vb[0] = local_bvmax[0];
