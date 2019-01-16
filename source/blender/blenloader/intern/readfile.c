@@ -10841,7 +10841,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				FileData *fd = mainptr->curlib->filedata;
 
 				if (fd == NULL) {
-
 					/* printf and reports for now... its important users know this */
 
 					/* if packed file... */
@@ -10866,30 +10865,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						        library_parent_filepath(mainptr->curlib));
 						fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 					}
-					/* allow typing in a new lib path */
-					if (G.debug_value == -666) {
-						while (fd == NULL) {
-							char newlib_path[FILE_MAX] = {0};
-							printf("Missing library...'\n");
-							printf("\tcurrent file: %s\n", BKE_main_blendfile_path_from_global());
-							printf("\tabsolute lib: %s\n", mainptr->curlib->filepath);
-							printf("\trelative lib: %s\n", mainptr->curlib->name);
-							printf("  enter a new path:\n");
-
-							if (scanf("%1023s", newlib_path) > 0) {  /* Warning, keep length in sync with FILE_MAX! */
-								BLI_strncpy(mainptr->curlib->name, newlib_path, sizeof(mainptr->curlib->name));
-								BLI_strncpy(mainptr->curlib->filepath, newlib_path, sizeof(mainptr->curlib->filepath));
-								BLI_cleanup_path(BKE_main_blendfile_path_from_global(), mainptr->curlib->filepath);
-
-								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
-
-								if (fd) {
-									fd->mainlist = mainlist;
-									printf("found: '%s', party on macuno!\n", mainptr->curlib->filepath);
-								}
-							}
-						}
-					}
 
 					if (fd) {
 						/* share the mainlist, so all libraries are added immediately in a
@@ -10913,7 +10888,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 #ifdef USE_GHASH_BHEAD
 						read_file_bhead_idname_map_create(fd);
 #endif
-
 					}
 					else {
 						mainptr->curlib->filedata = NULL;
