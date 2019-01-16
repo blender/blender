@@ -527,6 +527,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--log-level");
 	BLI_argsPrintArgDoc(ba, "--log-show-basename");
 	BLI_argsPrintArgDoc(ba, "--log-show-backtrace");
+	BLI_argsPrintArgDoc(ba, "--log-show-timestamp");
 	BLI_argsPrintArgDoc(ba, "--log-file");
 
 	printf("\n");
@@ -746,6 +747,15 @@ static int arg_handle_log_show_backtrace_set(int UNUSED(argc), const char **UNUS
 	/* Ensure types don't become incompatible. */
 	void (*fn)(FILE *fp) = BLI_system_backtrace;
 	CLG_backtrace_fn_set((void (*)(void *))fn);
+	return 0;
+}
+
+static const char arg_handle_log_show_timestamp_set_doc[] =
+"\n\tShow a timestamp for each log message in seconds since start."
+;
+static int arg_handle_log_show_timestamp_set(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	CLG_output_use_timestamp_set(true);
 	return 0;
 }
 
@@ -1876,6 +1886,7 @@ void main_args_setup(bContext *C, bArgs *ba)
 	BLI_argsAdd(ba, 1, NULL, "--log-level", CB(arg_handle_log_level_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-show-basename", CB(arg_handle_log_show_basename_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-show-backtrace", CB(arg_handle_log_show_backtrace_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log-show-timestamp", CB(arg_handle_log_show_timestamp_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", CB(arg_handle_debug_mode_set), ba);

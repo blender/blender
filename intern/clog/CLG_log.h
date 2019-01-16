@@ -140,6 +140,7 @@ void CLG_exit(void);
 
 void CLG_output_set(void *file_handle);
 void CLG_output_use_basename_set(int value);
+void CLG_output_use_timestamp_set(int value);
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle));
 void CLG_backtrace_fn_set(void (*fatal_fn)(void *file_handle));
 
