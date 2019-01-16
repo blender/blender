@@ -219,7 +219,7 @@ typedef void (*outliner_operation_cb)(
 
 void outliner_do_object_operation_ex(
         struct bContext *C, struct ReportList *reports, struct Scene *scene, struct SpaceOops *soops,
-        struct ListBase *lb, outliner_operation_cb operation_cb, bool recurse_selected);
+        struct ListBase *lb, outliner_operation_cb operation_cb, void *user_data, bool recurse_selected);
 void outliner_do_object_operation(
         struct bContext *C, struct ReportList *reports, struct Scene *scene, struct SpaceOops *soops,
         struct ListBase *lb, outliner_operation_cb operation_cb);
