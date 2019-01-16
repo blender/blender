@@ -436,17 +436,24 @@ PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *for
 	if (PyErr_Occurred()) {
 		PyObject *error_type, *error_value, *error_traceback;
 		PyErr_Fetch(&error_type, &error_value, &error_traceback);
-		PyErr_Format(exception_type_prefix,
-		             "%S, %.200s(%S)",
-		             error_value_prefix,
-		             Py_TYPE(error_value)->tp_name,
-		             error_value
-		             );
+
+		if (PyUnicode_Check(error_value)) {
+			PyErr_Format(exception_type_prefix,
+			             "%S, %S",
+			             error_value_prefix,
+			             error_value);
+		}
+		else {
+			PyErr_Format(exception_type_prefix,
+			             "%S, %.200s(%S)",
+			             error_value_prefix,
+			             Py_TYPE(error_value)->tp_name,
+			             error_value);
+		}
 	}
 	else {
 		PyErr_SetObject(exception_type_prefix,
-		                error_value_prefix
-		                );
+		                error_value_prefix);
 	}
 
 	Py_XDECREF(error_value_prefix);
