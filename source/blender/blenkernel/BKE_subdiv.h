@@ -188,6 +188,8 @@ void BKE_subdiv_stats_init(SubdivStats *stats);
 void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value);
 void BKE_subdiv_stats_end(SubdivStats *stats, eSubdivStatsValue value);
 
+void BKE_subdiv_stats_reset(SubdivStats *stats, eSubdivStatsValue value);
+
 void BKE_subdiv_stats_print(const SubdivStats *stats);
 
 /* ================================ SETTINGS ================================ */

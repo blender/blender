@@ -56,6 +56,11 @@ void BKE_subdiv_stats_end(SubdivStats *stats, eSubdivStatsValue value)
 	        PIL_check_seconds_timer() - stats->begin_timestamp_[value];
 }
 
+void BKE_subdiv_stats_reset(SubdivStats *stats, eSubdivStatsValue value)
+{
+	stats->values_[value] = 0.0;
+}
+
 void BKE_subdiv_stats_print(const SubdivStats *stats)
 {
 #define STATS_PRINT_TIME(stats, value, description)                 \
