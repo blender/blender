@@ -24,6 +24,7 @@
 
 #include "util/util_foreach.h"
 #include "util/util_function.h"
+#include "util/util_logging.h"
 #include "util/util_math_cdf.h"
 #include "util/util_vector.h"
 
@@ -502,9 +503,13 @@ void Camera::device_update_volume(Device * /*device*/,
 		   viewplane_boundbox.intersects(object->bounds))
 		{
 			/* TODO(sergey): Consider adding more grained check. */
+			VLOG(1) << "Detected camera inside volume.";
 			kcam->is_inside_volume = 1;
 			break;
 		}
+	}
+	if(!kcam->is_inside_volume) {
+		VLOG(1) << "Camera is outside of the volume.";
 	}
 	need_device_update = false;
 	need_flags_update = false;
