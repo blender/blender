@@ -309,18 +309,7 @@ GPUTexture *GPU_texture_from_blender(
 	bool use_high_bit_depth = false, do_color_management = false;
 
 	if (ibuf->rect_float) {
-		if (U.use_16bit_textures) {
-			/* use high precision textures. This is relatively harmless because OpenGL gives us
-			 * a high precision format only if it is available */
-			use_high_bit_depth = true;
-		}
-		else if (ibuf->rect == NULL) {
-			IMB_rect_from_float(ibuf);
-		}
-		/* we may skip this in high precision, but if not, we need to have a valid buffer here */
-		else if (ibuf->userflags & IB_RECT_INVALID) {
-			IMB_rect_from_float(ibuf);
-		}
+		use_high_bit_depth = true;
 
 		/* TODO unneeded when float images are correctly treated as linear always */
 		if (!is_data) {

@@ -694,12 +694,11 @@ typedef struct UserDef {
 	/** Seconds to zoom around current frame. */
 	float view_frame_seconds;
 
-	char _pad1[4];
+	char _pad1[6];
 
 	/** Private, defaults to 20 for 72 DPI setting. */
 	short widget_unit;
 	short anisotropic_filter;
-	short use_16bit_textures;
 
 	/** Tablet API to use (Windows only). */
 	short tablet_api;

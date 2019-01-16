@@ -191,12 +191,6 @@ static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, Point
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_gl_use_16bit_textures(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	GPU_free_images(bmain);
-	rna_userdef_update(bmain, scene, ptr);
-}
-
 static void rna_userdef_undo_steps_set(PointerRNA *ptr, int value)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -4472,11 +4466,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* Textures */
-
-	prop = RNA_def_property(srna, "use_16bit_textures", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "use_16bit_textures", 1);
-	RNA_def_property_ui_text(prop, "16 Bit Float Textures", "Use 16 bit per component texture for float images");
-	RNA_def_property_update(prop, 0, "rna_userdef_gl_use_16bit_textures");
 
 	prop = RNA_def_property(srna, "image_draw_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_draw_methods);

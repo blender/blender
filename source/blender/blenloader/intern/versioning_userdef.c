@@ -308,10 +308,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		BKE_addon_ensure(&userdef->addons, "cycles");
 	}
 
-	if (!USER_VERSION_ATLEAST(261, 4)) {
-		userdef->use_16bit_textures = true;
-	}
-
 	if (!USER_VERSION_ATLEAST(267, 0)) {
 
 		/* GL Texture Garbage Collection */

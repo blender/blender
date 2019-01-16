@@ -656,8 +656,6 @@ class USERPREF_PT_system_opengl_textures(PreferencePanel):
         flow.prop(system, "texture_collection_rate", text="Garbage Collection Rate")
         flow.prop(system, "image_draw_method", text="Image Display Method")
 
-        flow.prop(system, "use_16bit_textures")
-
 
 class USERPREF_PT_system_opengl_selection(PreferencePanel):
     bl_label = "Selection"
