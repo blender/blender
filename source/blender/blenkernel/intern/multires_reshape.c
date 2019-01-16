@@ -330,8 +330,7 @@ typedef struct MultiresPropagateData {
 	/* Resolution level up to which displacement is known. */
 	int reshape_level;
 	/* Resolution up to which propagation is happening, affecting all the
-	 * levels in [reshape_level + 1, top_level].
-	 */
+	 * levels in [reshape_level + 1, top_level]. */
 	int top_level;
 	/* Grid sizes at the corresponding levels. */
 	int reshape_grid_size;
@@ -340,8 +339,7 @@ typedef struct MultiresPropagateData {
 	CCGKey reshape_level_key;
 	CCGKey top_level_key;
 	/* Original grid data, before any updates for reshape.
-	 * Contains data at the reshape_level resolution level.
-	 */
+	 * Contains data at the reshape_level resolution level. */
 	CCGElem **orig_grids_data;
 	/* Custom data layers from a coarse mesh. */
 	MDisps *mdisps;
@@ -468,8 +466,7 @@ static void multires_reshape_propagate_prepare(
 	multires_reshape_init_level_key(
 	        &data->top_level_key, data, data->top_level);
 	/* Make a copy of grids before reshaping, so we can calculate deltas
-	 * later on.
-	 */
+	 * later on. */
 	multires_reshape_store_original_grids(data);
 }
 
@@ -491,16 +488,14 @@ static void multires_reshape_propagate_prepare_from_mmd(
 
 /* Calculate delta of changed reshape level data layers. Delta goes to a
  * grids at top level (meaning, the result grids are only partially filled
- * in).
- */
+ * in). */
 static void multires_reshape_calculate_delta(
         MultiresPropagateData *data,
         CCGElem **delta_grids_data)
 {
 	const int num_grids = data->num_grids;
 	/* At this point those custom data layers has updated data for the
-	 * level we are propagating from.
-	 */
+	 * level we are propagating from. */
 	const MDisps *mdisps = data->mdisps;
 	const GridPaintMask *grid_paint_mask = data->grid_paint_mask;
 	CCGKey *reshape_key = &data->reshape_level_key;
@@ -539,8 +534,7 @@ static void multires_reshape_calculate_delta(
 
 /* Makes it so delta is propagated onto all the higher levels, but is also
  * that this delta is smoothed in a way that it does not cause artifacts on
- * boundaries.
- */
+ * boundaries. */
 
 typedef struct MultiresPropagateCornerData {
 	float coord_delta[3];
@@ -678,8 +672,7 @@ static void multires_reshape_propagate_apply_delta(
 {
 	const int num_grids = data->num_grids;
 	/* At this point those custom data layers has updated data for the
-	 * level we are propagating from.
-	 */
+	 * level we are propagating from. */
 	MDisps *mdisps = data->mdisps;
 	GridPaintMask *grid_paint_mask = data->grid_paint_mask;
 	CCGKey *orig_key = &data->reshape_level_key;
@@ -689,8 +682,7 @@ static void multires_reshape_propagate_apply_delta(
 	const int top_grid_size = data->top_grid_size;
 	const int skip = (top_grid_size - 1) / (orig_grid_size - 1);
 	/* Restore grid values at the reshape level. Those values are to be changed
-	 * to the accommodate for the smooth delta.
-	 */
+	 * to the accommodate for the smooth delta. */
 	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
 		CCGElem *orig_grid = orig_grids_data[grid_index];
 		for (int y = 0; y < orig_grid_size; y++) {
@@ -880,8 +872,7 @@ static bool multires_reshape_from_vertcos(
 	 * levels.
 	 *
 	 * TODO(sergey): At this point it should be possible to always use
-	 * mdisps->level.
-	 */
+	 * mdisps->level. */
 	const int top_level = max_ii(mmd->totlvl, mdisps->level);
 	/* Make sure displacement grids are ready. */
 	multires_reshape_ensure_grids(coarse_mesh, top_level);
@@ -938,8 +929,7 @@ static bool multires_reshape_from_vertcos(
 /* Returns truth on success, false otherwise.
  *
  * This function might fail in cases like source and destination not having
- * matched amount of vertices.
- */
+ * matched amount of vertices. */
 bool multiresModifier_reshapeFromObject(
         struct Depsgraph *depsgraph,
         MultiresModifierData *mmd,
@@ -948,8 +938,7 @@ bool multiresModifier_reshapeFromObject(
 {
 	/* Would be cool to support this eventually, but it is very tricky to match
 	 * vertices order even for meshes, when mixing meshes and other objects it's
-	 * even more tricky.
-	 */
+	 * even more tricky. */
 	if (src->type != OB_MESH) {
 		return false;
 	}
@@ -992,8 +981,7 @@ bool multiresModifier_reshapeFromDeformModifier(
 	 * simplifications and calculate deformation modifier for the highest
 	 * possible multires level.
 	 * Alternative would be propagate displacement from current level to a
-	 * higher ones, but that is likely to cause artifacts.
-	 */
+	 * higher ones, but that is likely to cause artifacts. */
 	multires_reshape_init_mmd_top_level(&highest_mmd, mmd);
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	/* Perform sanity checks and early output. */
@@ -1003,8 +991,7 @@ bool multiresModifier_reshapeFromDeformModifier(
 		return false;
 	}
 	/* Create mesh for the multires, ignoring any further modifiers (leading
-	 * deformation modifiers will be applied though).
-	 */
+	 * deformation modifiers will be applied though). */
 	Mesh *multires_mesh = BKE_multires_create_mesh(
 	        depsgraph, scene_eval, &highest_mmd, object);
 	int num_deformed_verts;
@@ -1177,8 +1164,7 @@ bool multiresModifier_reshapeFromCCG(
 	 * levels.
 	 *
 	 * TODO(sergey): At this point it should be possible to always use
-	 * mdisps->level.
-	 */
+	 * mdisps->level. */
 	const int top_level = max_ii(tot_level, mdisps->level);
 	/* Make sure displacement grids are ready. */
 	multires_reshape_ensure_grids(coarse_mesh, top_level);
