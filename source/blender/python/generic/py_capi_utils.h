@@ -38,7 +38,10 @@ PyObject *PyC_ExceptionBuffer(void);
 PyObject *PyC_ExceptionBuffer_Simple(void);
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *PyC_FrozenSetFromStrings(const char **strings);
+
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
+PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *str);
+
 void      PyC_Err_PrintWithFunc(PyObject *py_func);
 
 void	PyC_FileAndNum(const char **filename, int *lineno);

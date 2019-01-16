@@ -455,6 +455,11 @@ PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *for
 	return NULL;
 }
 
+PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *str)
+{
+	return PyC_Err_Format_Prefix(exception_type_prefix, "%s", str);
+}
+
 /**
  * Use for Python callbacks run directly from C,
  * when we can't use normal methods of raising exceptions.
