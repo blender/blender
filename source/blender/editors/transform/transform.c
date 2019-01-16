@@ -3534,7 +3534,19 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 			add_v3_v3(vec, center);
 			sub_v3_v3(vec, co);
 
-			mul_v3_fl(vec, td->factor);
+			if (t->options & CTX_GPENCIL_STROKES) {
+				/* grease pencil multiframe falloff */
+				bGPDstroke *gps = (bGPDstroke *)td->extra;
+				if (gps != NULL) {
+					mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
+				}
+				else {
+					mul_v3_fl(vec, td->factor);
+				}
+			}
+			else {
+				mul_v3_fl(vec, td->factor);
+			}
 
 			add_v3_v3v3(td->loc, td->iloc, vec);
 		}
