@@ -65,7 +65,10 @@ void BKE_main_free(Main *mainvar)
 	int a;
 
 	/* Since we are removing whole main, no need to bother 'properly' (and slowly) removing each ID from it. */
-	const int free_flag = LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_USER_REFCOUNT;
+	const int free_flag = (LIB_ID_FREE_NO_MAIN |
+	                       LIB_ID_FREE_NO_UI_USER |
+	                       LIB_ID_FREE_NO_USER_REFCOUNT |
+	                       LIB_ID_FREE_NO_DEG_TAG);
 
 	MEM_SAFE_FREE(mainvar->blen_thumb);
 
