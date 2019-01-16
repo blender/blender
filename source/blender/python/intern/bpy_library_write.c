@@ -134,7 +134,7 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 
 			if (!pyrna_id_FromPyObject(key, &id_store->id)) {
 				PyErr_Format(PyExc_TypeError,
-				             "Expected and ID type, not %.200s",
+				             "Expected an ID type, not %.200s",
 				             Py_TYPE(key)->tp_name);
 				ret = NULL;
 				goto finally;
