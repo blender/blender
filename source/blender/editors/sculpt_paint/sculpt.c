@@ -5600,7 +5600,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 	BM_mesh_toolflags_set(ss->bm, true);
 
 	/* Symmetrize and re-triangulate */
-	BMO_op_callf(ss->bm, BMO_FLAG_DEFAULTS,
+	BMO_op_callf(ss->bm, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "symmetrize input=%avef direction=%i  dist=%f",
 	             sd->symmetrize_direction, 0.00001f);
 	sculpt_dynamic_topology_triangulate(ss->bm);

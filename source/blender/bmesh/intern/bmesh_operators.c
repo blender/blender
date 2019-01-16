@@ -1851,7 +1851,12 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
 							BMO_slot_buffer_from_disabled_hflag(bm, op, op->slots_in, slot_name, htype, va_arg(vlist, int));
 						}
 						else if (type == 'a') {
-							BMO_slot_buffer_from_all(bm, op, op->slots_in, slot_name, htype);
+							if ((op->flag & BMO_FLAG_RESPECT_HIDE) == 0) {
+								BMO_slot_buffer_from_all(bm, op, op->slots_in, slot_name, htype);
+							}
+							else {
+								BMO_slot_buffer_from_disabled_hflag(bm, op, op->slots_in, slot_name, htype, BM_ELEM_HIDDEN);
+							}
 						}
 						else if (type == 'f') {
 							BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_in, slot_name, htype, va_arg(vlist, int));
