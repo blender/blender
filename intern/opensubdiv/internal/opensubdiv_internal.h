@@ -27,9 +27,4 @@
 #  define OPENSUBDIV_VALIDATE_TOPOLOGY
 #endif
 
-// Currently OpenSubdiv expects topology to be oriented, but sometimes it's
-// handy to disable orientation code to check whether it causes some weird
-// issues by using pre-oriented model.
-#define OPENSUBDIV_ORIENT_TOPOLOGY
-
 #endif  // OPENSUBDIV_INTERNAL_H_
