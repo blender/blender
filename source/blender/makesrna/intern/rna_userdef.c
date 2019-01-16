@@ -4875,7 +4875,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_hidden_files_datablocks", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_DOT);
-	RNA_def_property_ui_text(prop, "Hide Dot Files/Data-Blocks", "Hide files/data-blocks that start with a dot (.*)");
+	RNA_def_property_ui_text(prop, "Hide Dot Files/Libraries", "Hide files and data-blocks if their name start with a dot (.*)");
 
 	prop = RNA_def_property(srna, "use_filter_files", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);
@@ -5068,27 +5068,28 @@ void RNA_def_userdef(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem preference_section_items[] = {
-		{0, "", ICON_USER, "User", ""},
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
 		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
+		{USER_SECTION_VIEWPORT, "VIEWPORT", 0, "Viewport", ""},
 		{USER_SECTION_LIGHT, "LIGHTS", 0, "Lights", ""},
-		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
-		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
-		{USER_SECTION_KEYMAP, "KEYMAP", 0, "Keymap", ""},
+		{USER_SECTION_EDITING, "EDITING", 0, "Editing", ""},
+		{USER_SECTION_ANIMATION, "ANIMATION", 0, "Animation", ""},
+		{0, "", 0, NULL, NULL},
 		{USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
-#ifdef WITH_USERDEF_WORKSPACES
-		{0, "", ICON_WORKSPACE, "Workspaces", ""},
+#if 0 //def WITH_USERDEF_WORKSPACES
+		{0, "", 0, NULL, NULL},
 		{USER_SECTION_WORKSPACE_CONFIG, "WORKSPACE_CONFIG", 0, "Configuration File", ""},
 		{USER_SECTION_WORKSPACE_ADDONS, "WORKSPACE_ADDONS", 0, "Add-on Overrides", ""},
 		{USER_SECTION_WORKSPACE_KEYMAPS, "WORKSPACE_KEYMAPS", 0, "Keymap Overrides", ""},
 #endif
-		{0, "", ICON_SYSTEM, "System", ""},
-		{USER_SECTION_SYSTEM_GENERAL, "SYSTEM_GENERAL", 0, "General", ""},
-		{USER_SECTION_SYSTEM_FILES,   "SYSTEM_FILES",   0, "Files",   ""},
-#ifdef WITH_USERDEF_SYSTEM_SPLIT
-		{USER_SECTION_SYSTEM_DISPLAY, "SYSTEM_DISPLAY", 0, "Display", ""},
-		{USER_SECTION_SYSTEM_DEVICES, "SYSTEM_DEVICES", 0, "Devices", ""},
-#endif
+		{0, "", 0, NULL, NULL},
+		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
+		{USER_SECTION_NAVIGATION, "NAVIGATION", 0, "Navigation", ""},
+		{USER_SECTION_KEYMAP, "KEYMAP", 0, "Keymap", ""},
+		{0, "", 0, NULL, NULL},
+		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},
+		{USER_SECTION_SAVE_LOAD, "SAVE_LOAD",   0, "Save & Load",   ""},
+		{USER_SECTION_FILE_PATHS, "FILE_PATHS",   0, "File Paths",   ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

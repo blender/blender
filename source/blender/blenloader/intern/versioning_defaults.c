@@ -107,6 +107,9 @@ void BLO_update_defaults_userpref_blend(void)
 	/* Init weight paint range. */
 	BKE_colorband_init(&U.coba_weight, true);
 
+	/* Default visible section. */
+	U.userpref = USER_SECTION_INTERFACE;
+
 	/* Default to left click select. */
 	BKE_keyconfig_pref_set_select_mouse(&U, 0, true);
 }
