@@ -140,15 +140,16 @@ enum {
 	LIB_ID_FREE_NO_UI_USER         = 1 << 9,  /* Do not attempt to remove freed ID from UI data/notifiers/... */
 };
 
-void  BKE_libblock_free_datablock(struct ID *id, const int flag) ATTR_NONNULL();
-void  BKE_libblock_free_data(struct ID *id, const bool do_id_user) ATTR_NONNULL();
+void BKE_libblock_free_datablock(struct ID *id, const int flag) ATTR_NONNULL();
+void BKE_libblock_free_data(struct ID *id, const bool do_id_user) ATTR_NONNULL();
 
 void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, const bool use_flag_from_idtag);
 void BKE_id_free(struct Main *bmain, void *idv);
 
-void  BKE_id_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
+void BKE_id_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 
-void  BKE_id_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
+void BKE_id_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
+void BKE_id_multi_tagged_delete(struct Main *bmain) ATTR_NONNULL();
 
 void BKE_libblock_management_main_add(struct Main *bmain, void *idv);
 void BKE_libblock_management_main_remove(struct Main *bmain, void *idv);
