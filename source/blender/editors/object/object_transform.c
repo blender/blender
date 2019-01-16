@@ -811,7 +811,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *tob;
-	float cursor[3], cent[3], cent_neg[3], centn[3];
+	float cent[3], cent_neg[3], centn[3];
+	const float *cursor = scene->cursor.location;
 	int centermode = RNA_enum_get(op->ptr, "type");
 
 	ListBase ctx_data_list;

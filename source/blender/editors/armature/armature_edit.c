@@ -141,7 +141,7 @@ void ED_armature_transform(Main *bmain, bArmature *arm, float mat[4][4], const b
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void ED_armature_origin_set(Main *bmain, Object *ob, float cursor[3], int centermode, int around)
+void ED_armature_origin_set(Main *bmain, Object *ob, const float cursor[3], int centermode, int around)
 {
 	const bool is_editmode = BKE_object_is_in_editmode(ob);
 	EditBone *ebone;
