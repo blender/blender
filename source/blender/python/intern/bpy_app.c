@@ -297,7 +297,7 @@ static PyObject *bpy_app_binary_path_python_get(PyObject *self, void *UNUSED(clo
 }
 
 PyDoc_STRVAR(bpy_app_debug_value_doc,
-"Int, number which can be set to non-zero values for testing purposes"
+"Short, number which can be set to non-zero values for testing purposes"
 );
 static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(closure))
 {
@@ -313,7 +313,13 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 		return -1;
 	}
 
-	G.debug_value = param;
+	if (param < SHRT_MIN || param > SHRT_MAX) {
+		PyErr_SetString(PyExc_ValueError,
+		                "bpy.app.debug_value can only be set to short range [-32768, 32767]");
+		return -1;
+	}
+
+	G.debug_value = (short)param;
 
 	WM_main_add_notifier(NC_WINDOW, NULL);
 

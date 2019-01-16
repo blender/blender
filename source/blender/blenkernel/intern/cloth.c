@@ -515,8 +515,9 @@ void cloth_free_modifier(ClothModifierData *clmd )
 void cloth_free_modifier_extern(ClothModifierData *clmd )
 {
 	Cloth	*cloth = NULL;
-	if (G.debug_value > 0)
+	if (G.debug & G_DEBUG_SIMDATA) {
 		printf("cloth_free_modifier_extern\n");
+	}
 
 	if ( !clmd )
 		return;
@@ -524,8 +525,9 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 	cloth = clmd->clothObject;
 
 	if ( cloth ) {
-		if (G.debug_value > 0)
+		if (G.debug & G_DEBUG_SIMDATA) {
 			printf("cloth_free_modifier_extern in\n");
+		}
 
 		BPH_cloth_solver_free(clmd);
 
@@ -728,8 +730,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, Mesh *mesh, fl
 	// If we have a clothObject, free it.
 	if ( clmd->clothObject != NULL ) {
 		cloth_free_modifier ( clmd );
-		if (G.debug_value > 0)
+		if (G.debug & G_DEBUG_SIMDATA) {
 			printf("cloth_free_modifier cloth_from_object\n");
+		}
 	}
 
 	// Allocate a new cloth object.

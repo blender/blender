@@ -210,7 +210,7 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 	 * The click_rect is the same as defined in fullscreen_click_rcti_init
 	 * Keep them both in sync */
 
-	if (G.debug_value == 1) {
+	if (G.debug_value == 101) {
 		rcti click_rect;
 		float icon_size = UI_DPI_ICON_SIZE + 7 * UI_DPI_FAC;
 

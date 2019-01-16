@@ -141,8 +141,9 @@ static void deformVerts(
 
 		current_time = DEG_get_ctime(ctx->depsgraph);
 
-		if (G.debug_value > 0)
+		if (G.debug & G_DEBUG_SIMDATA) {
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
+		}
 
 		mvert_num = mesh_src->totvert;
 

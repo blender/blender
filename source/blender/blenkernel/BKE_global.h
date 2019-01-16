@@ -73,7 +73,21 @@ typedef struct Global {
 	/* to indicate render is busy, prevent renderwindow events etc */
 	bool is_rendering;
 
-	/* debug value, can be set from the UI and python, used for testing nonstandard features */
+	/* Debug value, can be set from the UI and python, used for testing nonstandard features.
+	 * DO NOT abuse it with generic checks like `if (G.debug_value > 0)`. Do not use it as bitflags.
+	 * Only precise specific values should be checked for, to avoid unpredictable side-effects.
+	 * Please document here the value(s) you are using (or a range of values reserved to some area).
+	 *   * -16384 and below: Reserved for python (add-ons) usage.
+	 *   *     -1: Disable faster motion paths computation (since 08/2018).
+	 *   * 1 - 30: EEVEE debug/stats values (01/2018).
+	 *   *    101: Enable UI debug drawing of fullscreen area's corner widget (10/2014).
+	 *   *    527: Old mysterious switch in behavior of MeshDeform modifier (before 04/2010).
+	 *   *    777: Enable UI node panel's sockets polling (11/2011).
+	 *   *    799: Enable some mysterious new depsgraph behavior (05/2015).
+	 *   *   1112: Disable new Cloth internal springs hanlding (09/2014).
+	 *   *   1234: Disable new dyntopo code fixing skinny faces generation (04/2015).
+	 *   * 16384 and above: Reserved for python (add-ons) usage.
+	 */
 	short debug_value;
 
 	/* saved to the blend file as FileGlobal.globalf,
