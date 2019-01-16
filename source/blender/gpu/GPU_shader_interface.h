@@ -94,6 +94,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program_id);
 void GPU_shaderinterface_discard(GPUShaderInterface *);
 
 const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *, const char *name);
+const GPUShaderInput *GPU_shaderinterface_uniform_ensure(const GPUShaderInterface *, const char *name);
 const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *, GPUUniformBuiltin);
 const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *, const char *name);
 const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *, const char *name);

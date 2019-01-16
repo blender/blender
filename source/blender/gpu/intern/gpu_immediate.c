@@ -703,16 +703,16 @@ void immVertex2iv(uint attrib_id, const int data[2])
 
 #if 0
 #  if TRUST_NO_ONE
-#    define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); assert(uniform);
+#    define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform_ensure(imm.shader_interface, name); assert(uniform);
 #  else
-#    define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name);
+#    define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform_ensure(imm.shader_interface, name);
 #  endif
 #else
 	/* NOTE: It is possible to have uniform fully optimized out from the shader.
 	 *       In this case we can't assert failure or allow NULL-pointer dereference.
 	 * TODO(sergey): How can we detect existing-but-optimized-out uniform but still
 	 *               catch typos in uniform names passed to immUniform*() functions? */
-#  define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); if (uniform == NULL) return;
+#  define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform_ensure(imm.shader_interface, name); if (uniform == NULL) return;
 #endif
 
 void immUniform1f(const char *name, float x)

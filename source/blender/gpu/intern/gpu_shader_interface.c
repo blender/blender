@@ -311,8 +311,13 @@ void GPU_shaderinterface_discard(GPUShaderInterface *shaderface)
 
 const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shaderface, const char *name)
 {
+	return buckets_lookup(shaderface->uniform_buckets, shaderface->name_buffer, name);
+}
+
+const GPUShaderInput *GPU_shaderinterface_uniform_ensure(const GPUShaderInterface *shaderface, const char *name)
+{
 	/* TODO: Warn if we find a matching builtin, since these can be looked up much quicker. */
-	const GPUShaderInput *input = buckets_lookup(shaderface->uniform_buckets, shaderface->name_buffer, name);
+	const GPUShaderInput *input = GPU_shaderinterface_uniform(shaderface, name);
 	/* If input is not found add it so it's found next time. */
 	if (input == NULL) {
 		input = add_uniform((GPUShaderInterface *)shaderface, name);
