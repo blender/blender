@@ -657,7 +657,6 @@ class USERPREF_PT_system_opengl_textures(PreferencePanel):
         flow.prop(system, "image_draw_method", text="Image Display Method")
 
         flow.prop(system, "use_16bit_textures")
-        flow.prop(system, "use_gpu_mipmap")
 
 
 class USERPREF_PT_system_opengl_selection(PreferencePanel):

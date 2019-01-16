@@ -125,22 +125,9 @@ static struct GPUTextureState {
 	bool texpaint;
 
 	float anisotropic;
-	int gpu_mipmap;
-} GTS = {1, 0, 0, 1.0f, 0};
+} GTS = {1, 0, 0, 1.0f};
 
 /* Mipmap settings */
-
-void GPU_set_gpu_mipmapping(Main *bmain, int gpu_mipmap)
-{
-	int old_value = GTS.gpu_mipmap;
-
-	/* only actually enable if it's supported */
-	GTS.gpu_mipmap = gpu_mipmap;
-
-	if (old_value != GTS.gpu_mipmap) {
-		GPU_free_images(bmain);
-	}
-}
 
 void GPU_set_mipmap(Main *bmain, bool mipmap)
 {
@@ -479,31 +466,7 @@ void GPU_create_gl_tex(
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 		if (GPU_get_mipmap() && mipmap) {
-			if (GTS.gpu_mipmap) {
-				glGenerateMipmap(GL_TEXTURE_2D);
-			}
-			else {
-				int i;
-				if (!ibuf) {
-					if (use_high_bit_depth) {
-						ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
-					}
-					else {
-						ibuf = IMB_allocFromBuffer(rect, NULL, tpx, tpy);
-					}
-				}
-				IMB_makemipmap(ibuf, true);
-
-				for (i = 1; i < ibuf->miptot; i++) {
-					ImBuf *mip = ibuf->mipmap[i - 1];
-					if (use_high_bit_depth) {
-						glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16F, mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
-					}
-					else {
-						glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA8, mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
-					}
-				}
-			}
+			glGenerateMipmap(GL_TEXTURE_2D);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 			if (ima)
 				ima->tpageflag |= IMA_MIPMAP_COMPLETE;
@@ -527,38 +490,7 @@ void GPU_create_gl_tex(
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 			if (GPU_get_mipmap() && mipmap) {
-				if (GTS.gpu_mipmap) {
-					glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-				}
-				else {
-					if (!ibuf) {
-						if (use_high_bit_depth) {
-							ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
-						}
-						else {
-							ibuf = IMB_allocFromBuffer(rect, NULL, tpx, tpy);
-						}
-					}
-
-					IMB_makemipmap(ibuf, true);
-
-					for (int i = 1; i < ibuf->miptot; i++) {
-						ImBuf *mip = ibuf->mipmap[i - 1];
-						void **mip_cube_map = gpu_gen_cube_map(
-						        mip->rect, mip->rect_float,
-						        mip->x, mip->y, use_high_bit_depth);
-						int mipw = mip->x / 3, miph = mip->y / 2;
-
-						if (mip_cube_map) {
-							for (int j = 0; j < 6; j++) {
-								glTexImage2D(
-								        GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
-								        informat, mipw, miph, 0, GL_RGBA, type, mip_cube_map[j]);
-							}
-						}
-						gpu_del_cube_map(mip_cube_map);
-					}
-				}
+				glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 
 				if (ima)
@@ -799,8 +731,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 
-	if ((!GTS.gpu_mipmap && GPU_get_mipmap()) ||
-	    (ima->gputexture[TEXTARGET_TEXTURE_2D] == NULL) ||
+	if ((ima->gputexture[TEXTARGET_TEXTURE_2D] == NULL) ||
 	    (ibuf == NULL) ||
 	    (w == 0) || (h == 0))
 	{
@@ -829,8 +760,6 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 
 			MEM_freeN(buffer);
 
-			/* we have already accounted for the case where GTS.gpu_mipmap is false
-			 * so we will be using GPU mipmap generation here */
 			if (GPU_get_mipmap()) {
 				glGenerateMipmap(GL_TEXTURE_2D);
 			}

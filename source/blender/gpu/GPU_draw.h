@@ -80,9 +80,6 @@ void GPU_paint_set_mipmap(struct Main *bmain, bool mipmap);
 void GPU_set_anisotropic(struct Main *bmain, float value);
 float GPU_get_anisotropic(void);
 
-/* enable gpu mipmapping */
-void GPU_set_gpu_mipmapping(struct Main *bmain, int gpu_mipmap);
-
 /* Image updates and free
  * - these deal with images bound as opengl textures */
 
