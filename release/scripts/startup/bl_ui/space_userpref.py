@@ -727,15 +727,16 @@ class USERPREF_PT_theme(Panel):
     def draw(self, _context):
         layout = self.layout
 
-        row = layout.row()
+        split = layout.split(factor=0.6)
 
+        row = split.row(align=True)
+        row.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
+        row.operator("wm.interface_theme_preset_add", text="", icon='ADD')
+        row.operator("wm.interface_theme_preset_add", text="", icon='REMOVE').remove_active = True
+
+        row = split.row(align=True)
         row.operator("wm.theme_install", text="Install...", icon='IMPORT')
         row.operator("ui.reset_default_theme", text="Reset", icon='LOOP_BACK')
-
-        subrow = row.row(align=True)
-        subrow.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
-        subrow.operator("wm.interface_theme_preset_add", text="", icon='ADD')
-        subrow.operator("wm.interface_theme_preset_add", text="", icon='REMOVE').remove_active = True
 
 
 class USERPREF_PT_theme_user_interface(PreferencePanel):
@@ -1568,39 +1569,10 @@ class USERPREF_PT_keymap(Panel):
 
         # start = time.time()
 
-        col = layout.column()
-
         # Keymap Settings
-        draw_keymaps(context, col)
+        draw_keymaps(context, layout)
 
         # print("runtime", time.time() - start)
-
-
-class USERPREF_MT_addons_online_resources(Menu):
-    bl_label = "Online Resources"
-
-    # menu to open web-pages with addons development guides
-    def draw(self, _context):
-        layout = self.layout
-
-        layout.operator(
-            "wm.url_open", text="Add-ons Catalog", icon='URL',
-        ).url = "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts"
-
-        layout.separator()
-
-        layout.operator(
-            "wm.url_open", text="How to share your add-on", icon='URL',
-        ).url = "http://wiki.blender.org/index.php/Dev:Py/Sharing"
-        layout.operator(
-            "wm.url_open", text="Add-on Guidelines", icon='URL',
-        ).url = "http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons"
-        layout.operator(
-            "wm.url_open", text="API Concepts", icon='URL',
-        ).url = bpy.types.WM_OT_doc_view._prefix + "/info_quickstart.html"
-        layout.operator(
-            "wm.url_open", text="Add-on Tutorial", icon='URL',
-        ).url = bpy.types.WM_OT_doc_view._prefix + "/info_tutorial_addon.html"
 
 
 class USERPREF_PT_addons(Panel):
@@ -1675,15 +1647,16 @@ class USERPREF_PT_addons(Panel):
             for mod in addon_utils.modules(refresh=False)
         ]
 
-        row = layout.row()
+        split = layout.split(factor=0.6)
+
+        row = split.row()
+        row.prop(context.window_manager, "addon_support", expand=True)
+
+        row = split.row(align=True)
         row.operator("wm.addon_install", icon='IMPORT', text="Install...")
         row.operator("wm.addon_refresh", icon='FILE_REFRESH', text="Refresh")
-        row.menu("USERPREF_MT_addons_online_resources", text="Online Resources")
-
-        layout.separator()
 
         row = layout.row()
-        row.prop(context.window_manager, "addon_support", expand=True)
         row.prop(context.window_manager, "addon_filter", text="")
         row.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
 
@@ -2085,7 +2058,6 @@ classes += (
     USERPREF_PT_input_view_fly_walk_gravity,
 
     USERPREF_PT_keymap,
-    USERPREF_MT_addons_online_resources,
     USERPREF_PT_addons,
 
     USERPREF_PT_studiolight_add,

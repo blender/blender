@@ -368,22 +368,14 @@ def draw_keymaps(context, layout):
     kc_active = wm.keyconfigs.active
     spref = context.space_data
 
-    subsplit = layout.split()
-    subcol = subsplit.column()
-
-    col = subcol.column()
-
     # row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config")
     text = bpy.path.display_name(kc_active.name)
     if not text:
         text = "Blender (default)"
 
-    row = col.row()
+    split = layout.split(factor=0.6)
 
-    row.operator("wm.keyconfig_import", text="Import...", icon='IMPORT')
-    row.operator("wm.keyconfig_export", text="Export...", icon='EXPORT')
-
-    row.separator()
+    row = split.row()
 
     rowsub = row.row(align=True)
 
@@ -391,10 +383,16 @@ def draw_keymaps(context, layout):
     rowsub.operator("wm.keyconfig_preset_add", text="", icon='ADD')
     rowsub.operator("wm.keyconfig_preset_add", text="", icon='REMOVE').remove_active = True
 
+    rowsub = split.row(align=True)
+    rowsub.operator("wm.keyconfig_import", text="Import...", icon='IMPORT')
+    rowsub.operator("wm.keyconfig_export", text="Export...", icon='EXPORT')
+
+    row = layout.row()
+    col = layout.column()
+
     # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
     # row.operator("wm.keyconfig_remove", text="", icon='X')
-    row.separator()
-    rowsub = row.split(factor=0.33, align=True)
+    rowsub = row.split(factor=0.3, align=True)
     # postpone drawing into rowsub, so we can set alert!
 
     layout.separator()
