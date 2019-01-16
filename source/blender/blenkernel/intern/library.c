@@ -566,10 +566,6 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
                             ID_IP  /* Deprecated */
 
 	BLI_assert(test || (r_newid != NULL));
-	/* Early output is source is NULL. */
-	if (id == NULL) {
-		return false;
-	}
 	/* Make sure destination pointer is all good. */
 	if ((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
 		if (r_newid != NULL) {
@@ -578,10 +574,15 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
 	}
 	else {
 		if (r_newid != NULL && *r_newid != NULL) {
-			/* Allow some garbage non-initialized memory to go in. */
+			/* Allow some garbage non-initialized memory to go in, and clean it up here. */
 			const size_t size = BKE_libblock_get_alloc_info(GS(id->name), NULL);
 			memset(*r_newid, 0, size);
 		}
+	}
+
+	/* Early output is source is NULL. */
+	if (id == NULL) {
+		return false;
 	}
 	if (ELEM(GS(id->name), LIB_ID_TYPES_NOCOPY)) {
 		return false;
