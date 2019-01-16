@@ -1399,7 +1399,10 @@ void copy_matcopybuf(Main *bmain, Material *ma)
 
 	memcpy(&matcopybuf, ma, sizeof(Material));
 
-	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
+	if (ma->nodetree != NULL) {
+		matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, bmain, false);
+	}
+
 	matcopybuf.preview = NULL;
 	BLI_listbase_clear(&matcopybuf.gpumaterial);
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
@@ -1425,7 +1428,9 @@ void paste_matcopybuf(Main *bmain, Material *ma)
 	memcpy(ma, &matcopybuf, sizeof(Material));
 	(ma->id) = id;
 
-	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
+	if (matcopybuf.nodetree != NULL) {
+		ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, bmain, false);
+	}
 }
 
 void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
