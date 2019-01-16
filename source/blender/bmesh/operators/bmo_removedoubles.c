@@ -202,7 +202,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			BMO_vert_flag_enable(bm, v1, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
-			BM_elem_flag_merge(v1, v2);
+			BM_elem_flag_merge_ex(v1, v2, BM_ELEM_HIDDEN);
 		}
 	}
 
@@ -231,7 +231,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				if (e_new == NULL) {
 					e_new = BM_edge_create(bm, v1, v2, e, BM_CREATE_NOP);
 				}
-				BM_elem_flag_merge(e_new, e);
+				BM_elem_flag_merge_ex(e_new, e, BM_ELEM_HIDDEN);
 			}
 
 			BMO_edge_flag_enable(bm, e, ELE_DEL);
