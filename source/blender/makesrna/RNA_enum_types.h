@@ -147,6 +147,7 @@ extern const EnumPropertyItem rna_enum_light_type_items[];
 extern const EnumPropertyItem rna_enum_unpack_method_items[];
 
 extern const EnumPropertyItem rna_enum_object_type_items[];
+extern const EnumPropertyItem rna_enum_object_rotation_mode_items[];
 
 extern const EnumPropertyItem rna_enum_object_type_curve_items[];
 
@@ -173,8 +174,6 @@ extern const EnumPropertyItem rna_enum_wm_report_items[];
 extern const EnumPropertyItem rna_enum_transform_pivot_items_full[];
 extern const EnumPropertyItem rna_enum_transform_orientation_items[];
 extern const EnumPropertyItem rna_enum_transform_mode_types[];
-
-extern const EnumPropertyItem rna_enum_posebone_rotmode_items[];
 
 extern const EnumPropertyItem rna_enum_property_type_items[];
 extern const EnumPropertyItem rna_enum_property_subtype_items[];

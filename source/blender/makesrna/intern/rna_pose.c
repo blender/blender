@@ -48,23 +48,6 @@
 
 #include "WM_types.h"
 
-
-
-/* XXX: this RNA enum define is currently duplicated for objects,
- * since there is some text here which is not applicable */
-const EnumPropertyItem rna_enum_posebone_rotmode_items[] = {
-	{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
-	{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order (prone to Gimbal Lock)"},
-	{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order (prone to Gimbal Lock)"},
-	{ROT_MODE_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order (prone to Gimbal Lock)"},
-	{ROT_MODE_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order (prone to Gimbal Lock)"},
-	{ROT_MODE_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order (prone to Gimbal Lock)"},
-	{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order (prone to Gimbal Lock)"},
-	{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle",
-	                     "Axis Angle (W+XYZ), defines a rotation around some axis defined by 3D-Vector"},
-	{0, NULL, 0, NULL, NULL}
-};
-
 /* Bone and Group Color Sets */
 const EnumPropertyItem rna_enum_color_sets_items[] = {
 	{0, "DEFAULT", 0, "Default Colors", ""},
@@ -973,7 +956,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
-	RNA_def_property_enum_items(prop, rna_enum_posebone_rotmode_items); /* XXX move to using a single define of this someday */
+	RNA_def_property_enum_items(prop, rna_enum_object_rotation_mode_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
 	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");

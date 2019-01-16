@@ -684,7 +684,8 @@ void POSE_OT_rotation_mode_set(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_posebone_rotmode_items, 0, "Rotation Mode", "");
+	ot->prop = RNA_def_enum(
+	        ot->srna, "type", rna_enum_object_rotation_mode_items, 0, "Rotation Mode", "");
 }
 
 /* ********************************************** */
