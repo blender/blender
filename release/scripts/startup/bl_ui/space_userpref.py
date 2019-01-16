@@ -1853,28 +1853,6 @@ class USERPREF_PT_addons(Panel):
                 row.label(text=module_name, translate=False)
 
 
-class USERPREF_PT_studiolight_add(PreferencePanel):
-    bl_space_type = 'PREFERENCES'
-    bl_label = "Add Lights"
-    bl_region_type = 'WINDOW'
-    bl_options = {'HIDE_HEADER'}
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'LIGHTS')
-
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.row()
-        row.operator("wm.studiolight_install", icon='IMPORT', text="Add MatCap...").type = 'MATCAP'
-        row.operator("wm.studiolight_install", icon='IMPORT', text="Add LookDev HDRI...").type = 'WORLD'
-        op = row.operator("wm.studiolight_install", icon='IMPORT', text="Add Studio Light...")
-        op.type = 'STUDIO'
-        op.filter_glob = ".sl"
-
-
 class StudioLightPanelMixin():
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -1896,7 +1874,7 @@ class StudioLightPanelMixin():
 
     def draw_light_list(self, layout, lights):
         if lights:
-            flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
+            flow = layout.grid_flow(row_major=False, columns=4, even_columns=True, even_rows=True, align=False)
             for studio_light in lights:
                 self.draw_studio_light(flow, studio_light)
         else:
@@ -1906,7 +1884,7 @@ class StudioLightPanelMixin():
         box = layout.box()
         row = box.row()
 
-        row.template_icon(layout.icon(studio_light), scale=6.0)
+        row.template_icon(layout.icon(studio_light), scale=3.0)
         col = row.column()
         op = col.operator("wm.studiolight_uninstall", text="", icon='REMOVE')
         op.index = studio_light.index
@@ -1922,19 +1900,36 @@ class USERPREF_PT_studiolight_matcaps(Panel, StudioLightPanelMixin):
     bl_label = "MatCaps"
     sl_type = 'MATCAP'
 
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.operator("wm.studiolight_install", icon='IMPORT', text="Install...").type = 'MATCAP'
+        layout.separator()
+
 
 class USERPREF_PT_studiolight_world(Panel, StudioLightPanelMixin):
     bl_label = "LookDev HDRIs"
     sl_type = 'WORLD'
+
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.operator("wm.studiolight_install", icon='IMPORT', text="Install...").type = 'WORLD'
+        layout.separator()
 
 
 class USERPREF_PT_studiolight_lights(Panel, StudioLightPanelMixin):
     bl_label = "Studio Lights"
     sl_type = 'STUDIO'
 
+    def draw_header_preset(self, context):
+        layout = self.layout
+        op = layout.operator("wm.studiolight_install", icon='IMPORT', text="Install...")
+        op.type = 'STUDIO'
+        op.filter_glob = ".sl"
+        layout.separator()
+
 
 class USERPREF_PT_studiolight_light_editor(Panel):
-    bl_label = "Studio Light Editor"
+    bl_label = "Editor"
     bl_parent_id = "USERPREF_PT_studiolight_lights"
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2060,7 +2055,6 @@ classes += (
     USERPREF_PT_keymap,
     USERPREF_PT_addons,
 
-    USERPREF_PT_studiolight_add,
     USERPREF_PT_studiolight_lights,
     USERPREF_PT_studiolight_light_editor,
     USERPREF_PT_studiolight_matcaps,
