@@ -306,20 +306,16 @@ static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
 {
-	int param = PyC_Long_AsI32(value);
+	short param = PyC_Long_AsI16(value);
 
 	if (param == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "bpy.app.debug_value can only be set to a whole number");
+		PyC_Err_SetString_Prefix(
+		        PyExc_TypeError,
+		        "bpy.app.debug_value can only be set to a whole number");
 		return -1;
 	}
 
-	if (param < SHRT_MIN || param > SHRT_MAX) {
-		PyErr_SetString(PyExc_ValueError,
-		                "bpy.app.debug_value can only be set to short range [-32768, 32767]");
-		return -1;
-	}
-
-	G.debug_value = (short)param;
+	G.debug_value = param;
 
 	WM_main_add_notifier(NC_WINDOW, NULL);
 
