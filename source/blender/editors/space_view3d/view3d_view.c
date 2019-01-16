@@ -949,8 +949,7 @@ int view3d_opengl_select(
 	const bool is_pick_select = (U.gpu_select_pick_deph != 0);
 	const bool do_passes = (
 	        (is_pick_select == false) &&
-	        (select_mode == VIEW3D_SELECT_PICK_NEAREST) &&
-	        GPU_select_query_check_active());
+	        (select_mode == VIEW3D_SELECT_PICK_NEAREST));
 	const bool use_nearest = (is_pick_select && select_mode == VIEW3D_SELECT_PICK_NEAREST);
 	bool draw_surface = true;
 

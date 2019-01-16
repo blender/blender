@@ -667,7 +667,6 @@ class USERPREF_PT_system_opengl_selection(PreferencePanel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(system, "select_method", text="Selection Method")
         flow.prop(system, "use_select_pick_depth")
 
 

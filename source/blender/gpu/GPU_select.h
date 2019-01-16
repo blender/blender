@@ -49,7 +49,6 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const struct r
 bool GPU_select_load_id(unsigned int id);
 void GPU_select_finalize(void);
 unsigned int GPU_select_end(void);
-bool GPU_select_query_check_active(void);
 
 /* cache selection region */
 bool GPU_select_is_cached(void);

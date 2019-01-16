@@ -520,22 +520,18 @@ static int gizmo_find_intersected_3d_intern(
 	/* Almost certainly overkill, but allow for many custom gizmos. */
 	GLuint buffer[MAXPICKBUF];
 	short hits;
-	const bool do_passes = GPU_select_query_check_active();
 
 	BLI_rcti_init_pt_radius(&rect, co, hotspot);
 
 	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_depsgraph(C), CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
 
-	if (do_passes)
-		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
-	else
-		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_ALL, 0);
+	GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_FIRST_PASS, 0);
 	/* do the drawing */
 	gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop);
 
 	hits = GPU_select_end();
 
-	if (do_passes && (hits > 0)) {
+	if (hits > 0) {
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 		gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop);
 		GPU_select_end();

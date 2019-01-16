@@ -4354,13 +4354,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem gpu_select_method_items[] = {
-	    {USER_SELECT_AUTO, "AUTO", 0, "Automatic", ""},
-	    {USER_SELECT_USE_SELECT_RENDERMODE, "GL_SELECT", 0, "OpenGL Select", ""},
-	    {USER_SELECT_USE_OCCLUSION_QUERY, "GL_QUERY", 0, "OpenGL Occlusion Queries", ""},
-	    {0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "PreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "Preferences");
@@ -4502,12 +4495,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	                         "Number of seconds between each run of the GL texture garbage collector");
 
 	/* Select */
-
-	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "gpu_select_method");
-	RNA_def_property_enum_items(prop, gpu_select_method_items);
-	RNA_def_property_ui_text(prop, "Selection Method",
-	                         "Use OpenGL occlusion queries or selection render mode to accelerate selection");
 
 	prop = RNA_def_property(srna, "use_select_pick_depth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gpu_select_pick_deph", 1);
