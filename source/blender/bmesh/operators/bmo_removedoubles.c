@@ -39,7 +39,6 @@
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"
 
-
 static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot *slot_targetmap)
 {
 	BMIter liter;
@@ -190,19 +189,20 @@ finally:
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
-	BMVert *v1, *v2;
+	BMVert *v;
 	BMEdge *e;
 	BMLoop *l;
 	BMFace *f;
 	BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
 
 	/* mark merge verts for deletion */
-	BM_ITER_MESH (v1, &iter, bm, BM_VERTS_OF_MESH) {
-		if ((v2 = BMO_slot_map_elem_get(slot_targetmap, v1))) {
-			BMO_vert_flag_enable(bm, v1, ELE_DEL);
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		BMVert *v_dst = BMO_slot_map_elem_get(slot_targetmap, v);
+		if (v_dst != NULL) {
+			BMO_vert_flag_enable(bm, v, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
-			BM_elem_flag_merge_ex(v1, v2, BM_ELEM_HIDDEN);
+			BM_elem_flag_merge_ex(v, v_dst, BM_ELEM_HIDDEN);
 		}
 	}
 
@@ -213,6 +213,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BMVert *v1, *v2;
 		const bool is_del_v1 = BMO_vert_flag_test_bool(bm, (v1 = e->v1), ELE_DEL);
 		const bool is_del_v2 = BMO_vert_flag_test_bool(bm, (v2 = e->v2), ELE_DEL);
 
