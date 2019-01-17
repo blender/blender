@@ -213,10 +213,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 	else if (ob->type == OB_LAMP) {
 		/* lamp object */
 		Lamp *la = ob->data;
-		float fac = cosf(la->spotsize * 0.5f);
-		float phi = acosf(fac);
-
-		params->lens = 16.0f * fac / sinf(phi);
+		params->lens = 16.0f / tanf(la->spotsize * 0.5f);
 		if (params->lens == 0.0f)
 			params->lens = 35.0f;
 

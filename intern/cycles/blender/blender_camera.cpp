@@ -228,12 +228,17 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 			bcam->sensor_fit = BlenderCamera::HORIZONTAL;
 		else
 			bcam->sensor_fit = BlenderCamera::VERTICAL;
+	}
+	else if(b_ob_data.is_a(&RNA_Light)) {
+		/* Can also look through spot light. */
+		BL::SpotLight b_light(b_ob_data);
+		float lens = 16.0f / tanf(b_light.spot_size() * 0.5f);
+		if (lens > 0.0f) {
+			bcam->lens = lens;
+		}
+	}
 
-		bcam->motion_steps = object_motion_steps(b_ob, b_ob);
-	}
-	else {
-		/* from light not implemented yet */
-	}
+	bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 }
 
 static Transform blender_camera_matrix(const Transform& tfm,
