@@ -320,6 +320,18 @@ static bool bm_edge_has_visible_face(const BMEdge *e)
 	return false;
 }
 
+BLI_INLINE bool bm_vert_is_loose_and_visible(const BMVert *v)
+{
+	return (!BM_elem_flag_test(v, BM_ELEM_HIDDEN) &&
+	        (v->e == NULL || !bm_vert_has_visible_edge(v)));
+}
+
+BLI_INLINE bool bm_edge_is_loose_and_visible(const BMEdge *e)
+{
+	return (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) &&
+	        (e->l == NULL || !bm_edge_has_visible_face(e)));
+}
+
 /* Return true is all layers in _b_ are inside _a_. */
 static bool mesh_cd_layers_type_overlap(
         const uchar av[CD_NUMTYPES], const ushort al[CD_NUMTYPES],
@@ -677,11 +689,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
 				for (int i = 0; i < bm->totvert; i++) {
 					const BMVert *eve = BM_vert_at_index(bm, i);
-					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-						/* Loose vert */
-						if (eve->e == NULL || !bm_vert_has_visible_edge(eve)) {
-							lverts[rdata->loose_vert_len++] = i;
-						}
+					if (bm_vert_is_loose_and_visible(eve)) {
+						lverts[rdata->loose_vert_len++] = i;
 					}
 				}
 				rdata->loose_verts = MEM_reallocN(lverts, rdata->loose_vert_len * sizeof(int));
@@ -698,11 +707,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 						const int v_orig = v_origindex[i];
 						if (v_orig != ORIGINDEX_NONE) {
 							BMVert *eve = BM_vert_at_index(bm, v_orig);
-							if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-								/* Loose vert */
-								if (eve->e == NULL || !bm_vert_has_visible_edge(eve)) {
-									lverts[rdata->mapped.loose_vert_len++] = i;
-								}
+							if (bm_vert_is_loose_and_visible(eve)) {
+								lverts[rdata->mapped.loose_vert_len++] = i;
 							}
 						}
 					}
@@ -720,11 +726,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
 				for (int i = 0; i < bm->totedge; i++) {
 					const BMEdge *eed = BM_edge_at_index(bm, i);
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-						/* Loose edge */
-						if (eed->l == NULL || !bm_edge_has_visible_face(eed)) {
-							ledges[rdata->loose_edge_len++] = i;
-						}
+					if (bm_edge_is_loose_and_visible(eed)) {
+						ledges[rdata->loose_edge_len++] = i;
 					}
 				}
 				rdata->loose_edges = MEM_reallocN(ledges, rdata->loose_edge_len * sizeof(int));
@@ -741,11 +744,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 						const int e_orig = e_origindex[i];
 						if (e_orig != ORIGINDEX_NONE) {
 							BMEdge *eed = BM_edge_at_index(bm, e_orig);
-							if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-								/* Loose edge */
-								if (eed->l == NULL || !bm_edge_has_visible_face(eed)) {
-									ledges[rdata->mapped.loose_edge_len++] = i;
-								}
+							if (bm_edge_is_loose_and_visible(eed)) {
+								ledges[rdata->mapped.loose_edge_len++] = i;
 							}
 						}
 					}
@@ -2672,9 +2672,7 @@ static void mesh_create_edit_select_id(
 		}
 		/* Loose edges */
 		BM_ITER_MESH (eed, &iter_edge, bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
-			    (eed->l == NULL || !bm_edge_has_visible_face(eed)))
-			{
+			if (bm_edge_is_loose_and_visible(eed)) {
 				BM_ITER_ELEM (eve, &iter_vert, eed, BM_VERTS_OF_EDGE) {
 					if (vbo_pos) {
 						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
@@ -2692,9 +2690,7 @@ static void mesh_create_edit_select_id(
 		}
 		/* Loose verts */
 		BM_ITER_MESH (eve, &iter_vert, bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) &&
-			    (eve->e == NULL || !bm_vert_has_visible_edge(eve)))
-			{
+			if (bm_vert_is_loose_and_visible(eve)) {
 				if (vbo_pos) {
 					copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
 				}
@@ -4044,9 +4040,7 @@ static void mesh_create_loose_edges_lines(
 			BMIter eiter;
 			BMEdge *eed;
 			BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
-				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
-				    (eed->l == NULL || !bm_edge_has_visible_face(eed)))
-				{
+				if (bm_edge_is_loose_and_visible(eed)) {
 					GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
 				}
 			}
