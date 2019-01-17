@@ -42,6 +42,7 @@
 #include <string.h>
 
 #define DEBUG_SHADER_INTERFACE 0
+#define DEBUG_SHADER_UNIFORMS 0
 
 #if DEBUG_SHADER_INTERFACE
 #  include <stdio.h>
@@ -326,6 +327,16 @@ const GPUShaderInput *GPU_shaderinterface_uniform_ensure(const GPUShaderInterfac
 			fprintf(stderr, "GPUShaderInterface: Warning: Uniform '%s' not found!\n", name);
 		}
 	}
+
+#if DEBUG_SHADER_UNIFORMS
+	if ((G.debug & G_DEBUG_GPU) &&
+	    input->builtin_type != GPU_UNIFORM_NONE &&
+	    input->builtin_type != GPU_UNIFORM_CUSTOM)
+	{
+		/* Warn if we find a matching builtin, since these can be looked up much quicker. */
+		fprintf(stderr, "GPUShaderInterface: Warning: Uniform '%s' is a builtin uniform but not queried as such!\n", name);
+	}
+#endif
 	return (input->location != -1) ? input : NULL;
 }
 
