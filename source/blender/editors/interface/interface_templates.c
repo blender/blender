@@ -3464,10 +3464,14 @@ void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propn
 
 	block = uiLayoutGetBlock(layout);
 
-	but = uiDefIconTextButO(block, UI_BTYPE_BUT, "UI_OT_eyedropper_color_crypto", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, RNA_property_ui_name(prop), 0, 0, UI_UNIT_X, UI_UNIT_Y, RNA_property_ui_description(prop));
+	but = uiDefIconTextButO(block, UI_BTYPE_BUT, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, RNA_property_ui_name(prop), 0, 0, UI_UNIT_X, UI_UNIT_Y, RNA_property_ui_description(prop));
 	but->rnapoin = *ptr;
 	but->rnaprop = prop;
 	but->rnaindex = -1;
+
+	PointerRNA *opptr = UI_but_operator_ptr_get(but);
+	/* Important for crypto-matte operation. */
+	RNA_boolean_set(opptr, "use_accumulate", false);
 }
 
 /********************* Layer Buttons Template ************************/

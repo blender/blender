@@ -1630,7 +1630,6 @@ void ED_operatortypes_ui(void)
 
 	/* external */
 	WM_operatortype_append(UI_OT_eyedropper_color);
-	WM_operatortype_append(UI_OT_eyedropper_color_crypto);
 	WM_operatortype_append(UI_OT_eyedropper_colorband);
 	WM_operatortype_append(UI_OT_eyedropper_colorband_point);
 	WM_operatortype_append(UI_OT_eyedropper_id);

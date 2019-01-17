@@ -53,6 +53,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_define.h"
+
 #include "interface_intern.h"
 
 #include "ED_image.h"
@@ -74,7 +76,7 @@ typedef struct Eyedropper {
 	float accum_col[3];
 	int   accum_tot;
 
-	bool accumulate; /* Color picking for cryptomatte, without accumulation. */
+	bool use_accum;
 } Eyedropper;
 
 static bool eyedropper_init(bContext *C, wmOperator *op)
@@ -83,7 +85,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 	Eyedropper *eye;
 
 	op->customdata = eye = MEM_callocN(sizeof(Eyedropper), "Eyedropper");
-	eye->accumulate = !STREQ(op->type->idname, "UI_OT_eyedropper_color_crypto");
+	eye->use_accum = RNA_boolean_get(op->ptr, "use_accumulate");
 
 	UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
 
@@ -217,7 +219,7 @@ static void eyedropper_color_sample(bContext *C, Eyedropper *eye, int mx, int my
 	float col[3];
 	eyedropper_color_sample_fl(C, mx, my, col);
 
-	if (eye->accumulate) {
+	if (eye->use_accum) {
 		add_v3_v3(eye->accum_col, col);
 		eye->accum_tot++;
 	}
@@ -342,22 +344,11 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
-}
 
-void UI_OT_eyedropper_color_crypto(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Cryptomatte Eyedropper";
-	ot->idname = "UI_OT_eyedropper_color_crypto";
-	ot->description = "Pick a color from Cryptomatte node Pick output image";
+	/* properties */
+	PropertyRNA *prop;
 
-	/* api callbacks */
-	ot->invoke = eyedropper_invoke;
-	ot->modal = eyedropper_modal;
-	ot->cancel = eyedropper_cancel;
-	ot->exec = eyedropper_exec;
-	ot->poll = eyedropper_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+	/* Needed for color picking with crypto-matte. */
+	prop = RNA_def_boolean(ot->srna, "use_accumulate", true, "Accumulate", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
