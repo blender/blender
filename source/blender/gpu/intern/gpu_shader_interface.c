@@ -30,6 +30,7 @@
  */
 
 #include "MEM_guardedalloc.h"
+#include "BKE_global.h"
 
 #include "GPU_shader_interface.h"
 
@@ -316,11 +317,14 @@ const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shad
 
 const GPUShaderInput *GPU_shaderinterface_uniform_ensure(const GPUShaderInterface *shaderface, const char *name)
 {
-	/* TODO: Warn if we find a matching builtin, since these can be looked up much quicker. */
 	const GPUShaderInput *input = GPU_shaderinterface_uniform(shaderface, name);
 	/* If input is not found add it so it's found next time. */
 	if (input == NULL) {
 		input = add_uniform((GPUShaderInterface *)shaderface, name);
+
+		if ((G.debug & G_DEBUG_GPU) && (input->location == -1)) {
+			fprintf(stderr, "GPUShaderInterface: Warning: Uniform '%s' not found!\n", name);
+		}
 	}
 	return (input->location != -1) ? input : NULL;
 }
