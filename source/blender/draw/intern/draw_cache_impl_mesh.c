@@ -2672,10 +2672,29 @@ static void mesh_create_edit_select_id(
 		}
 		/* Loose edges */
 		BM_ITER_MESH (eed, &iter_edge, bm, BM_EDGES_OF_MESH) {
-			if (eed->l != NULL) {
-				continue;
+			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
+			    (eed->l == NULL || !bm_edge_has_visible_face(eed)))
+			{
+				BM_ITER_ELEM (eve, &iter_vert, eed, BM_VERTS_OF_EDGE) {
+					if (vbo_pos) {
+						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
+					}
+					if (vbo_verts) {
+						int vidx = BM_elem_index_get(eve);
+						mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+					}
+					if (vbo_edges) {
+						int eidx = BM_elem_index_get(eed);
+						mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+					}
+				}
 			}
-			BM_ITER_ELEM (eve, &iter_vert, eed, BM_VERTS_OF_EDGE) {
+		}
+		/* Loose verts */
+		BM_ITER_MESH (eve, &iter_vert, bm, BM_VERTS_OF_MESH) {
+			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) &&
+			    (eve->e == NULL || !bm_vert_has_visible_edge(eve)))
+			{
 				if (vbo_pos) {
 					copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
 				}
@@ -2683,23 +2702,6 @@ static void mesh_create_edit_select_id(
 					int vidx = BM_elem_index_get(eve);
 					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
 				}
-				if (vbo_edges) {
-					int eidx = BM_elem_index_get(eed);
-					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
-				}
-			}
-		}
-		/* Loose verts */
-		BM_ITER_MESH (eve, &iter_vert, bm, BM_VERTS_OF_MESH) {
-			if (eve->e != NULL) {
-				continue;
-			}
-			if (vbo_pos) {
-				copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
-			}
-			if (vbo_verts) {
-				int vidx = BM_elem_index_get(eve);
-				mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
 			}
 		}
 	}
