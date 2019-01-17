@@ -100,22 +100,21 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 
 	eye->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
+	float col[4];
+	RNA_property_float_get_array(&eye->ptr, eye->prop, col);
 	if (RNA_property_subtype(eye->prop) != PROP_COLOR) {
 		Scene *scene = CTX_data_scene(C);
 		const char *display_device;
-		float col[4];
 
 		display_device = scene->display_settings.display_device;
 		eye->display = IMB_colormanagement_display_get_named(display_device);
 
 		/* store initial color */
-		RNA_property_float_get_array(&eye->ptr, eye->prop, col);
 		if (eye->display) {
 			IMB_colormanagement_display_to_scene_linear_v3(col, eye->display);
 		}
-		copy_v3_v3(eye->init_col, col);
 	}
-
+	copy_v3_v3(eye->init_col, col);
 
 	return true;
 }
