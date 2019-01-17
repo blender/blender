@@ -55,6 +55,7 @@
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_override.h"
@@ -901,6 +902,80 @@ static void object_delete_hierarchy_cb(
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 }
 
+static Base *outline_batch_delete_hierarchy(
+        ReportList *reports, Main *bmain, ViewLayer *view_layer, Scene *scene, Base *base)
+{
+	Base *child_base, *base_next;
+	Object *object, *parent;
+
+	if (!base) {
+		return NULL;
+	}
+
+	object = base->object;
+	for (child_base = view_layer->object_bases.first; child_base; child_base = base_next) {
+		base_next = child_base->next;
+		for (parent = child_base->object->parent; parent && (parent != object); parent = parent->parent);
+		if (parent) {
+			base_next = outline_batch_delete_hierarchy(reports, bmain, view_layer, scene, child_base);
+		}
+	}
+
+	base_next = base->next;
+
+	if (object->id.tag & LIB_TAG_INDIRECT) {
+		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
+		return base_next;
+	}
+	else if (BKE_library_ID_is_indirectly_used(bmain, object) &&
+	         ID_REAL_USERS(object) <= 1 && ID_EXTRA_USERS(object) == 0)
+	{
+		BKE_reportf(reports, RPT_WARNING,
+		            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
+		            object->id.name + 2, scene->id.name + 2);
+		return base_next;
+	}
+
+	DEG_id_tag_update_ex(bmain, &object->id, ID_RECALC_BASE_FLAGS);
+	BKE_scene_collections_object_remove(bmain, scene, object, false);
+
+	if (object->id.us == 0) {
+		object->id.tag |= LIB_TAG_DOIT;
+	}
+
+	return base_next;
+}
+
+static void object_batch_delete_hierarchy_cb(
+        bContext *C, ReportList *reports, Scene *scene,
+        TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = (Base *)te->directdata;
+	Object *obedit = CTX_data_edit_object(C);
+
+	if (!base) {
+		base = BKE_view_layer_base_find(view_layer, (Object *)tselem->id);
+	}
+	if (base) {
+		/* Check also library later. */
+		for (; obedit && (obedit != base->object); obedit = obedit->parent);
+		if (obedit == base->object) {
+			ED_object_editmode_exit(C, EM_FREEDATA);
+		}
+
+		outline_batch_delete_hierarchy(reports, CTX_data_main(C), view_layer, scene, base);
+		/* leave for ED_outliner_id_unref to handle */
+#if 0
+		te->directdata = NULL;
+		tselem->id = NULL;
+#endif
+	}
+
+	DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+}
+
 /* **************************************** */
 
 enum {
@@ -992,8 +1067,20 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
 	else if (event == OL_OP_DELETE_HIERARCHY) {
-		outliner_do_object_operation_ex(
-		            C, op->reports, scene, soops, &soops->tree, object_delete_hierarchy_cb, NULL, false);
+		/* For now, usage of batch-deletion of objects it hidden behind that debug value,
+		 * until we get some more testing of it - *should* be safe, but... */
+		if (G.debug_value == 666) {
+			BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+			outliner_do_object_operation_ex(
+			            C, op->reports, scene, soops, &soops->tree, object_batch_delete_hierarchy_cb, NULL, false);
+
+			BKE_id_multi_tagged_delete(bmain);
+		}
+		else {
+			outliner_do_object_operation_ex(
+			            C, op->reports, scene, soops, &soops->tree, object_delete_hierarchy_cb, NULL, false);
+		}
 
 		/* XXX: See OL_OP_DELETE comment above. */
 		outliner_cleanup_tree(soops);
