@@ -123,6 +123,7 @@ static struct WMInitStruct {
 /* ******** win open & close ************ */
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
+static int wm_window_timer(const bContext *C);
 
 /* XXX this one should correctly check for apple top header...
  * done for Cocoa : returns window contents (and not frame) max size*/
@@ -1422,6 +1423,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
 #if defined(__APPLE__) || defined(WIN32)
 						/* OSX and Win32 don't return to the mainloop while resize */
+						wm_window_timer(C);
+						wm_event_do_handlers(C);
 						wm_event_do_notifiers(C);
 						wm_draw_update(C);
 
