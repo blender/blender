@@ -70,12 +70,9 @@ typedef struct DriverDropper {
 
 static bool driverdropper_init(bContext *C, wmOperator *op)
 {
-	DriverDropper *ddr;
-	uiBut *but;
+	DriverDropper *ddr = MEM_callocN(sizeof(DriverDropper), __func__);
 
-	op->customdata = ddr = MEM_callocN(sizeof(DriverDropper), "DriverDropper");
-
-	but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &ddr->index);
+	uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &ddr->index);
 
 	if ((ddr->ptr.data == NULL) ||
 	    (ddr->prop == NULL) ||
@@ -83,8 +80,10 @@ static bool driverdropper_init(bContext *C, wmOperator *op)
 	    (RNA_property_animateable(&ddr->ptr, ddr->prop) == false) ||
 	    (but->flag & UI_BUT_DRIVEN))
 	{
+		MEM_freeN(ddr);
 		return false;
 	}
+	op->customdata = ddr;
 
 	return true;
 }
@@ -185,7 +184,6 @@ static int driverdropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
-		driverdropper_exit(C, op);
 		return OPERATOR_CANCELLED;
 	}
 }

@@ -89,7 +89,6 @@ static void depthdropper_draw_cb(const struct bContext *C, ARegion *ar, void *ar
 
 static int depthdropper_init(bContext *C, wmOperator *op)
 {
-	DepthDropper *ddr;
 	int index_dummy;
 
 	SpaceType *st;
@@ -98,7 +97,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 	st = BKE_spacetype_from_id(SPACE_VIEW3D);
 	art = BKE_regiontype_from_id(st, RGN_TYPE_WINDOW);
 
-	op->customdata = ddr = MEM_callocN(sizeof(DepthDropper), "DepthDropper");
+	DepthDropper *ddr = MEM_callocN(sizeof(DepthDropper), __func__);
 
 	UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
@@ -119,8 +118,10 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 	    (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
 	    (RNA_property_type(ddr->prop) != PROP_FLOAT))
 	{
+		MEM_freeN(ddr);
 		return false;
 	}
+	op->customdata = ddr;
 
 	ddr->art = art;
 	ddr->draw_handle_pixel = ED_region_draw_cb_activate(art, depthdropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
@@ -312,7 +313,6 @@ static int depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
-		depthdropper_exit(C, op);
 		return OPERATOR_CANCELLED;
 	}
 }

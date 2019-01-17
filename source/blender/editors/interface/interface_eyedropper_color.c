@@ -81,10 +81,7 @@ typedef struct Eyedropper {
 
 static bool eyedropper_init(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	Eyedropper *eye;
-
-	op->customdata = eye = MEM_callocN(sizeof(Eyedropper), "Eyedropper");
+	Eyedropper *eye = MEM_callocN(sizeof(Eyedropper), __func__);
 	eye->use_accum = RNA_boolean_get(op->ptr, "use_accumulate");
 
 	UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
@@ -95,10 +92,13 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 	    (RNA_property_array_length(&eye->ptr, eye->prop) < 3) ||
 	    (RNA_property_type(eye->prop) != PROP_FLOAT))
 	{
+		MEM_freeN(eye);
 		return false;
 	}
+	op->customdata = eye;
 
 	if (RNA_property_subtype(eye->prop) != PROP_COLOR) {
+		Scene *scene = CTX_data_scene(C);
 		const char *display_device;
 		float col[4];
 
@@ -112,6 +112,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 		}
 		copy_v3_v3(eye->init_col, col);
 	}
+
 
 	return true;
 }
@@ -298,7 +299,6 @@ static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
-		eyedropper_exit(C, op);
 		return OPERATOR_PASS_THROUGH;
 	}
 }

@@ -83,7 +83,6 @@ struct EyedropperColorband_Context {
 static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 {
 	ColorBand *band = NULL;
-	EyedropperColorband *eye;
 
 	uiBut *but = UI_context_active_but_get(C);
 
@@ -99,10 +98,11 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 		band = (ColorBand *)but->custom_data;
 	}
 
-	if (!band)
+	if (!band) {
 		return false;
+	}
 
-	op->customdata = eye = MEM_callocN(sizeof(EyedropperColorband), __func__);
+	EyedropperColorband *eye = MEM_callocN(sizeof(EyedropperColorband), __func__);
 	eye->color_buffer_alloc = 16;
 	eye->color_buffer = MEM_mallocN(sizeof(*eye->color_buffer) * eye->color_buffer_alloc, __func__);
 	eye->color_buffer_len = 0;
@@ -110,6 +110,8 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 	eye->init_color_band = *eye->color_band;
 	eye->ptr = ((Colorband_RNAUpdateCb *)but->func_argN)->ptr;
 	eye->prop  = ((Colorband_RNAUpdateCb *)but->func_argN)->prop;
+
+	op->customdata = eye;
 
 	return true;
 }
@@ -266,7 +268,6 @@ static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEven
 		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
-		eyedropper_colorband_exit(C, op);
 		return OPERATOR_CANCELLED;
 	}
 }
