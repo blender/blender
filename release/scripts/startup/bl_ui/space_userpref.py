@@ -420,6 +420,12 @@ class USERPREF_PT_animation_timeline(PreferencePanel):
     def draw_props(self, context, layout):
         prefs = context.preferences
         view = prefs.view
+        edit = prefs.edit
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow.prop(edit, "use_negative_frames")
+
+        layout.separator()
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
@@ -446,7 +452,6 @@ class USERPREF_PT_animation_keyframes(PreferencePanel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(edit, "use_negative_frames")
         flow.prop(edit, "use_visual_keying")
         flow.prop(edit, "use_keyframe_insert_needed", text="Only Insert Needed")
 
