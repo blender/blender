@@ -35,6 +35,10 @@ class USERPREF_HT_header(Header):
 
         layout.template_header()
 
+        layout.separator_spacer()
+
+        layout.operator("wm.save_userpref")
+
 
 class USERPREF_PT_navigation_bar(Panel):
     bl_label = "Preferences Navigation"
@@ -59,6 +63,15 @@ class USERPREF_PT_save_preferences(Panel):
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'EXECUTE'
     bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        # Hide when header is visible
+        for region in context.area.regions:
+            if region.type == 'HEADER' and region.height <= 1:
+                return True
+
+        return False
 
     def draw(self, _context):
         layout = self.layout

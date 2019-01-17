@@ -53,7 +53,7 @@
 
 /* ******************** default callbacks for userpref space ***************** */
 
-static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *userpref_new(const ScrArea *area, const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceUserPref *spref;
@@ -75,6 +75,11 @@ static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 	BLI_addtail(&spref->regionbase, ar);
 	ar->regiontype = RGN_TYPE_NAV_BAR;
 	ar->alignment = RGN_ALIGN_LEFT;
+
+	/* Use smaller size when opened in area like properties editor. */
+	if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_DPI_FAC) {
+		ar->sizex = UI_NARROW_NAVIGATION_REGION_WIDTH;
+	}
 
 	/* execution region */
 	ar = MEM_callocN(sizeof(ARegion), "execution region for userpref");
