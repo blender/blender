@@ -256,8 +256,8 @@ BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level);
  *
  * NOTE: Output coordinates are in ptex coordinates. */
 BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
-        const float u, const float v,
-        float *r_u, float *r_v);
+        const float quad_u, const float quad_v,
+        float *r_corner_u, float *r_corner_v);
 
 #include "intern/subdiv_inline.h"
 

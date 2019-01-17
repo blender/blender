@@ -49,30 +49,30 @@ BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level)
 }
 
 BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
-        const float u, const float v,
-        float *r_u, float *r_v)
+        const float quad_u, const float quad_v,
+        float *r_corner_u, float *r_corner_v)
 {
 	int corner;
-	if (u <= 0.5f && v <= 0.5f) {
+	if (quad_u <= 0.5f && quad_v <= 0.5f) {
 		corner = 0;
-		*r_u = 2.0f * u;
-		*r_v = 2.0f * v;
+		*r_corner_u = 2.0f * quad_u;
+		*r_corner_v = 2.0f * quad_v;
 	}
-	else if (u > 0.5f  && v <= 0.5f) {
+	else if (quad_u > 0.5f  && quad_v <= 0.5f) {
 		corner = 1;
-		*r_u = 2.0f * v;
-		*r_v = 2.0f * (1.0f - u);
+		*r_corner_u = 2.0f * quad_v;
+		*r_corner_v = 2.0f * (1.0f - quad_u);
 	}
-	else if (u > 0.5f  && v > 0.5f) {
+	else if (quad_u > 0.5f  && quad_v > 0.5f) {
 		corner = 2;
-		*r_u = 2.0f * (1.0f - u);
-		*r_v = 2.0f * (1.0f - v);
+		*r_corner_u = 2.0f * (1.0f - quad_u);
+		*r_corner_v = 2.0f * (1.0f - quad_v);
 	}
 	else {
-		BLI_assert(u <= 0.5f && v >= 0.5f);
+		BLI_assert(quad_u <= 0.5f && quad_v >= 0.5f);
 		corner = 3;
-		*r_u = 2.0f * (1.0f - v);
-		*r_v = 2.0f * u;
+		*r_corner_u = 2.0f * (1.0f - quad_v);
+		*r_corner_v = 2.0f * quad_u;
 	}
 	return corner;
 }
