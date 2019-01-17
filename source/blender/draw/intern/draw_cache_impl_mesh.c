@@ -2644,7 +2644,7 @@ static void mesh_create_edit_select_id(
 
 	if (rdata->edit_bmesh && rdata->mapped.use == false) {
 		BMesh *bm = rdata->edit_bmesh->bm;
-		BMIter iter_efa, iter_loop, iter_edge, iter_vert;
+		BMIter iter_efa, iter_loop, iter_vert;
 		BMFace *efa;
 		BMEdge *eed;
 		BMVert *eve;
@@ -2671,26 +2671,9 @@ static void mesh_create_edit_select_id(
 			}
 		}
 		/* Loose edges */
-		BM_ITER_MESH (eed, &iter_edge, bm, BM_EDGES_OF_MESH) {
-			if (bm_edge_is_loose_and_visible(eed)) {
-				BM_ITER_ELEM (eve, &iter_vert, eed, BM_VERTS_OF_EDGE) {
-					if (vbo_pos) {
-						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
-					}
-					if (vbo_verts) {
-						int vidx = BM_elem_index_get(eve);
-						mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
-					}
-					if (vbo_edges) {
-						int eidx = BM_elem_index_get(eed);
-						mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
-					}
-				}
-			}
-		}
-		/* Loose verts */
-		BM_ITER_MESH (eve, &iter_vert, bm, BM_VERTS_OF_MESH) {
-			if (bm_vert_is_loose_and_visible(eve)) {
+		for (int e = 0; e < ledge_len; e++) {
+			eed = BM_edge_at_index(bm, rdata->loose_edges[e]);
+			BM_ITER_ELEM (eve, &iter_vert, eed, BM_VERTS_OF_EDGE) {
 				if (vbo_pos) {
 					copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
 				}
@@ -2698,6 +2681,21 @@ static void mesh_create_edit_select_id(
 					int vidx = BM_elem_index_get(eve);
 					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
 				}
+				if (vbo_edges) {
+					int eidx = BM_elem_index_get(eed);
+					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
+				}
+			}
+		}
+		/* Loose verts */
+		for (int e = 0; e < lvert_len; e++) {
+			eve = BM_vert_at_index(bm, rdata->loose_verts[e]);
+			if (vbo_pos) {
+				copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
+			}
+			if (vbo_verts) {
+				int vidx = BM_elem_index_get(eve);
+				mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
 			}
 		}
 	}
@@ -2706,7 +2704,6 @@ static void mesh_create_edit_select_id(
 		const MEdge *medge = rdata->mapped.me_cage->medge;
 		const MVert *mvert = rdata->mapped.me_cage->mvert;
 		const MLoop *mloop = rdata->mapped.me_cage->mloop;
-		BMesh *bm = rdata->edit_bmesh->bm;
 
 		const int *v_origindex = rdata->mapped.v_origindex;
 		const int *e_origindex = rdata->mapped.e_origindex;
@@ -2734,36 +2731,32 @@ static void mesh_create_edit_select_id(
 			}
 		}
 		/* Loose edges */
-		for (int e = 0; e < edge_len; e++, medge++) {
-			int eidx = e_origindex[e];
-			if (eidx != ORIGINDEX_NONE && (medge->flag & ME_LOOSEEDGE)) {
-				for (int i = 0; i < 2; ++i) {
-					int vidx = (i == 0) ? medge->v1 : medge->v2;
-					if (vbo_pos) {
-						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert[vidx].co);
-					}
-					if (vbo_verts) {
-						mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
-					}
-					if (vbo_edges) {
-						mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
-					}
+		for (int j = 0; j < ledge_len; j++) {
+			const int e = rdata->mapped.loose_edges[j];
+			for (int i = 0; i < 2; ++i) {
+				int v = (i == 0) ? medge[e].v1 : medge[e].v2;
+				if (vbo_pos) {
+					copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert[v].co);
+				}
+				if (vbo_verts) {
+					int vidx = v_origindex[v];
+					mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
+				}
+				if (vbo_edges) {
+					int eidx = e_origindex[e];
+					mesh_edit_add_select_index(&raw_edges, edge_comp, eidx);
 				}
 			}
 		}
 		/* Loose verts */
-		for (int v = 0; v < vert_len; v++, mvert++) {
-			int vidx = v_origindex[v];
-			if (vidx != ORIGINDEX_NONE) {
-				BMVert *eve = BM_vert_at_index(bm, vidx);
-				if (eve->e == NULL) {
-					if (vbo_pos) {
-						copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert->co);
-					}
-					if (vbo_verts) {
-						mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
-					}
-				}
+		for (int i = 0; i < lvert_len; i++) {
+			const int v = rdata->mapped.loose_verts[i];
+			if (vbo_pos) {
+				copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert[v].co);
+			}
+			if (vbo_verts) {
+				int vidx = v_origindex[v];
+				mesh_edit_add_select_index(&raw_verts, vert_comp, vidx);
 			}
 		}
 	}
@@ -4138,16 +4131,12 @@ static void mesh_create_loops_tris(
 
 static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexBuf *ibo_verts, GPUIndexBuf *ibo_edges)
 {
-	BMIter iter_efa, iter_loop, iter_edge, iter_vert;
+	BMIter iter_efa, iter_loop;
 	BMFace *efa;
-	BMEdge *eed;
-	BMVert *eve;
 	BMLoop *loop;
 	int i;
 
 	const int loop_len = mesh_render_data_loops_len_get_maybe_mapped(rdata);
-	const int edge_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
-	const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
 	const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
 	const int lvert_len = mesh_render_data_loose_verts_len_get_maybe_mapped(rdata);
 	const int ledge_len = mesh_render_data_loose_edges_len_get_maybe_mapped(rdata);
@@ -4181,31 +4170,21 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 			loop_idx += efa->len;
 		}
 		/* Loose edges */
-		if (ibo_verts || ibo_edges) {
-			BM_ITER_MESH (eed, &iter_edge, bm, BM_EDGES_OF_MESH) {
-				if (eed->l == NULL) {
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-						if (ibo_verts) {
-							GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + 0);
-							GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + 1);
-						}
-						if (ibo_edges) {
-							GPU_indexbuf_add_line_verts(&elb_edge, loop_idx + 0, loop_idx + 1);
-						}
-					}
-					loop_idx += 2;
-				}
+		for (i = 0; i < ledge_len; ++i) {
+			if (ibo_verts) {
+				GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + 0);
+				GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + 1);
 			}
+			if (ibo_edges) {
+				GPU_indexbuf_add_line_verts(&elb_edge, loop_idx + 0, loop_idx + 1);
+			}
+			loop_idx += 2;
 		}
 		/* Loose verts */
 		if (ibo_verts) {
-			BM_ITER_MESH (eve, &iter_vert, bm, BM_VERTS_OF_MESH) {
-				if (eve->e == NULL) {
-					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-						GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx);
-					}
-					loop_idx += 1;
-				}
+			for (i = 0; i < lvert_len; ++i) {
+				GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx);
+				loop_idx += 1;
 			}
 		}
 	}
@@ -4240,39 +4219,32 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 			loop_idx += mpoly->totloop;
 		}
 		/* Loose edges */
-		for (int e = 0; e < edge_len; e++, medge++) {
-			if (medge->flag & ME_LOOSEEDGE) {
-				int eidx = e_origindex[e];
-				if (eidx != ORIGINDEX_NONE) {
-					eed = BM_edge_at_index(bm, eidx);
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-						for (int j = 0; j < 2; ++j) {
-							int v = (j == 0) ? medge->v1 : medge->v2;
-							if (ibo_verts && (v_origindex[v] != ORIGINDEX_NONE)) {
-								GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + j);
-							}
-							if (ibo_edges) {
-								GPU_indexbuf_add_generic_vert(&elb_edge, loop_idx + j);
-							}
-						}
+		for (i = 0; i < ledge_len; ++i) {
+			int eidx = e_origindex[rdata->mapped.loose_edges[i]];
+			if (eidx != ORIGINDEX_NONE) {
+				if (ibo_verts) {
+					const MEdge *ed = &medge[rdata->mapped.loose_edges[i]];
+					if (v_origindex[ed->v1] != ORIGINDEX_NONE) {
+						GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + 0);
+					}
+					if (v_origindex[ed->v2] != ORIGINDEX_NONE) {
+						GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + 1);
 					}
 				}
-				loop_idx += 2;
+				if (ibo_edges) {
+					GPU_indexbuf_add_line_verts(&elb_edge, loop_idx + 0, loop_idx + 1);
+				}
 			}
+			loop_idx += 2;
 		}
 		/* Loose verts */
-		for (int v = 0; v < vert_len; v++) {
-			int vidx = v_origindex[v];
-			if (vidx != ORIGINDEX_NONE) {
-				eve = BM_vert_at_index(bm, vidx);
-				if (eve->e == NULL) {
-					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-						if (ibo_verts) {
-							GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx);
-						}
-					}
-					loop_idx += 1;
+		if (ibo_verts) {
+			for (i = 0; i < lvert_len; ++i) {
+				int vidx = v_origindex[rdata->mapped.loose_edges[i]];
+				if (vidx != ORIGINDEX_NONE) {
+					GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx);
 				}
+				loop_idx += 1;
 			}
 		}
 	}
