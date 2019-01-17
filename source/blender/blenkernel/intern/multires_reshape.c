@@ -143,119 +143,63 @@ static void multires_reshape_ensure_grids(Mesh *mesh, const int grid_level)
 	multires_reshape_ensure_mask_grids(mesh, grid_level);
 }
 
-static void multires_reshape_vertex_copy_to_next(
-        MultiresReshapeContext *ctx,
+/* Convert normalized coordinate within a grid to a normalized coordinate within
+ * a ptex face. */
+static void multires_reshape_grid_coord_to_ptex(
         const MPoly *coarse_poly,
-        const int current_corner,
-        const MDisps *current_displacement_grid,
-        const GridPaintMask *current_mask_grid,
-        const int current_grid_x, const int current_grid_y)
+        const int corner, const float corner_u, const float corner_v,
+        float *r_ptex_face_u, float *r_ptex_face_v)
 {
-	const int grid_size = ctx->top_grid_size;
-	const int next_current_corner = (current_corner + 1) % coarse_poly->totloop;
-	const int next_grid_x = 0;
-	const int next_grid_y = current_grid_x;
-	const int current_index = current_grid_y * grid_size + current_grid_x;
-	const int next_index = next_grid_y * grid_size + next_grid_x;
-	/* Copy displacement. */
-	MDisps *next_displacement_grid = &ctx->mdisps[
-	        coarse_poly->loopstart + next_current_corner];
-	float *next_displacement = next_displacement_grid->disps[next_index];
-	copy_v3_v3(next_displacement,
-	           current_displacement_grid->disps[current_index]);
-	SWAP(float, next_displacement[0], next_displacement[1]);
-	next_displacement[0] = -next_displacement[0];
-	/* Copy mask, if exists. */
-	if (current_mask_grid != NULL) {
-		GridPaintMask *next_mask_grid = &ctx->grid_paint_mask[
-		        coarse_poly->loopstart + next_current_corner];
-		next_mask_grid->data[next_index] =
-		        current_mask_grid->data[current_index];
+	if (coarse_poly->totloop == 4) {
+		float grid_u, grid_v;
+		BKE_subdiv_ptex_face_uv_to_grid_uv(
+		        corner_u, corner_v, &grid_u, &grid_v);
+		BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v,
+		                               r_ptex_face_u, r_ptex_face_v);
+	}
+	else {
+		*r_ptex_face_u = corner_u;
+		*r_ptex_face_v = corner_v;
 	}
 }
 
-static void multires_reshape_vertex_copy_to_prev(
-        MultiresReshapeContext *ctx,
+/* NOTE: The tangent vectors are measured in ptex face normalized coordinates,
+ * which is different from grid tangent. */
+static void multires_reshape_sample_surface(
+        Subdiv *subdiv,
         const MPoly *coarse_poly,
-        const int current_corner,
-        const MDisps *current_displacement_grid,
-        const GridPaintMask *current_mask_grid,
-        const int current_grid_x, const int current_grid_y)
+        const int corner, const float corner_u, const float corner_v,
+        const int ptex_face_index,
+        float r_P[3], float r_dPdu[3], float r_dPdv[3])
 {
-	const int grid_size = ctx->top_grid_size;
-	const int prev_current_corner =
-	        (current_corner - 1 + coarse_poly->totloop) % coarse_poly->totloop;
-	const int prev_grid_x = current_grid_y;
-	const int prev_grid_y = 0;
-	const int current_index = current_grid_y * grid_size + current_grid_x;
-	const int prev_index = prev_grid_y * grid_size + prev_grid_x;
-	/* Copy displacement. */
-	MDisps *prev_displacement_grid = &ctx->mdisps[
-	        coarse_poly->loopstart + prev_current_corner];
-	float *prev_displacement = prev_displacement_grid->disps[prev_index];
-	copy_v3_v3(prev_displacement,
-	           current_displacement_grid->disps[current_index]);
-	SWAP(float, prev_displacement[0], prev_displacement[1]);
-	prev_displacement[1] = -prev_displacement[1];
-	/* Copy mask, if exists. */
-	if (current_mask_grid != NULL) {
-		GridPaintMask *prev_mask_grid = &ctx->grid_paint_mask[
-		        coarse_poly->loopstart + prev_current_corner];
-		prev_mask_grid->data[prev_index] =
-		        current_mask_grid->data[current_index];
-	}
+	float ptex_face_u, ptex_face_v;
+	multires_reshape_grid_coord_to_ptex(coarse_poly, corner, corner_u, corner_v,
+	                                    &ptex_face_u, &ptex_face_v);
+	BKE_subdiv_eval_limit_point_and_derivatives(
+	        subdiv,
+	        ptex_face_index, ptex_face_u, ptex_face_v,
+	        r_P, r_dPdu, r_dPdv);
 }
 
-static void copy_boundary_displacement(
-        MultiresReshapeContext *ctx,
+static void multires_reshape_tangent_matrix_for_corner(
         const MPoly *coarse_poly,
-        const int corner,
-        const int grid_x, const int grid_y,
-        const MDisps *displacement_grid,
-        const GridPaintMask *mask_grid)
+        const int coarse_corner,
+        const float dPdu[3], const float dPdv[3],
+        float r_tangent_matrix[3][3])
 {
-	if (grid_x == 0 && grid_y == 0) {
-		for (int i = 0; i < coarse_poly->totloop; i++) {
-			const int current_face_corner =
-			        (corner + i) % coarse_poly->totloop;
-			const int grid_index = coarse_poly->loopstart + current_face_corner;
-			MDisps *current_displacement_grid = &ctx->mdisps[grid_index];
-			GridPaintMask *current_mask_grid =
-			        mask_grid != NULL ? &ctx->grid_paint_mask[grid_index]
-			                          : NULL;
-			multires_reshape_vertex_copy_to_next(
-			        ctx,
-			        coarse_poly,
-			        current_face_corner,
-			        current_displacement_grid,
-			        current_mask_grid,
-			        0, 0);
-		}
-	}
-	else if (grid_x == 0) {
-		multires_reshape_vertex_copy_to_prev(
-		        ctx,
-		        coarse_poly,
-		        corner,
-		        displacement_grid,
-		        mask_grid,
-		        grid_x, grid_y);
-	}
-	else if (grid_y == 0) {
-		multires_reshape_vertex_copy_to_next(
-		        ctx,
-		        coarse_poly,
-		        corner,
-		        displacement_grid,
-		        mask_grid,
-		        grid_x, grid_y);
-	}
+	/* For a quad faces we would need to flip the tangent, since they will use
+	 * use different coordinates within displacement grid comparent to ptex
+	 * face. */
+	const bool is_quad = (coarse_poly->totloop == 4);
+	const int tangent_corner = is_quad ? coarse_corner : 0;
+	BKE_multires_construct_tangent_matrix(
+	        r_tangent_matrix, dPdu, dPdv, tangent_corner);
 }
 
 static void multires_reshape_vertex_from_final_data(
         MultiresReshapeContext *ctx,
         const int ptex_face_index,
-        const float u, const float v,
+        const float corner_u, const float corner_v,
         const int coarse_poly_index,
         const int coarse_corner,
         const float final_P[3], const float final_mask)
@@ -268,61 +212,38 @@ static void multires_reshape_vertex_from_final_data(
 	const int loop_index = coarse_poly->loopstart + coarse_corner;
 	/* Evaluate limit surface. */
 	float P[3], dPdu[3], dPdv[3];
-	BKE_subdiv_eval_limit_point_and_derivatives(
-	        subdiv, ptex_face_index, u, v, P, dPdu, dPdv);
-	/* Get coordinate and corner configuration. */
-	float grid_u, grid_v;
-	MDisps *displacement_grid;
-	GridPaintMask *grid_paint_mask = NULL;
-	int face_corner = coarse_corner;
-	int grid_corner = 0;
-	int grid_index;
-	if (coarse_poly->totloop == 4) {
-		float corner_u, corner_v;
-		face_corner = BKE_subdiv_rotate_quad_to_corner(
-		        u, v, &corner_u, &corner_v);
-		grid_corner = face_corner;
-		grid_index = loop_index + face_corner;
-		BKE_subdiv_ptex_face_uv_to_grid_uv(
-		        corner_u, corner_v, &grid_u, &grid_v);
-	}
-	else {
-		grid_index = loop_index;
-		BKE_subdiv_ptex_face_uv_to_grid_uv(u, v, &grid_u, &grid_v);
-	}
-	displacement_grid = &ctx->mdisps[grid_index];
-	if (ctx->grid_paint_mask != NULL) {
-		grid_paint_mask = &ctx->grid_paint_mask[grid_index];
-		BLI_assert(grid_paint_mask->level == displacement_grid->level);
-	}
+	multires_reshape_sample_surface(
+	        subdiv,
+	        coarse_poly,
+	        coarse_corner, corner_u, corner_v,
+	        ptex_face_index,
+	        P, dPdu, dPdv);
+	/* Construct tangent matrix which matches orientation of the current
+	 * displacement grid. */
+	float tangent_matrix[3][3], inv_tangent_matrix[3][3];
+	multires_reshape_tangent_matrix_for_corner(coarse_poly, coarse_corner,
+	                                           dPdu, dPdv,
+	                                           tangent_matrix);
+	invert_m3_m3(inv_tangent_matrix, tangent_matrix);
 	/* Convert object coordinate to a tangent space of displacement grid. */
 	float D[3];
 	sub_v3_v3v3(D, final_P, P);
-	float tangent_matrix[3][3];
-	BKE_multires_construct_tangent_matrix(
-	        tangent_matrix, dPdu, dPdv, grid_corner);
-	float inv_tangent_matrix[3][3];
-	invert_m3_m3(inv_tangent_matrix, tangent_matrix);
 	float tangent_D[3];
 	mul_v3_m3v3(tangent_D, inv_tangent_matrix, D);
-	/* Write tangent displacement. */
+	/* Calculate index of element within the grid. */
+	float grid_u, grid_v;
+	BKE_subdiv_ptex_face_uv_to_grid_uv(corner_u, corner_v, &grid_u, &grid_v);
 	const int grid_x = (grid_u * (grid_size - 1) + 0.5f);
 	const int grid_y = (grid_v * (grid_size - 1) + 0.5f);
 	const int index = grid_y * grid_size + grid_x;
+	/* Write tangent displacement. */
+	MDisps *displacement_grid = &ctx->mdisps[loop_index];
 	copy_v3_v3(displacement_grid->disps[index], tangent_D);
 	/* Write mask grid. */
-	if (grid_paint_mask != NULL) {
+	if (ctx->grid_paint_mask != NULL) {
+		GridPaintMask *grid_paint_mask = &ctx->grid_paint_mask[loop_index];
+		BLI_assert(grid_paint_mask->level == displacement_grid->level);
 		grid_paint_mask->data[index] = final_mask;
-	}
-	/* Copy boundary to the next/previous grids.
-	 *
-	 * NOTE: Only do this for quads faces, since other ones will call reshape
-	 * for every boundary vertex, ensuring proper continuity across boundaries.
-	*/
-	if (coarse_poly->totloop == 4) {
-		copy_boundary_displacement(
-		        ctx, coarse_poly, face_corner, grid_x, grid_y,
-		        displacement_grid, grid_paint_mask);
 	}
 }
 
@@ -779,11 +700,25 @@ static void multires_reshape_vertex(
         const int subdiv_vertex_index)
 {
 	const float *final_P = ctx->deformed_verts[subdiv_vertex_index];
+	const Mesh *coarse_mesh = ctx->reshape_ctx.coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
+	float corner_u, corner_v;
+	int actual_coarse_corner;
+	if (coarse_poly->totloop == 4) {
+		actual_coarse_corner = BKE_subdiv_rotate_quad_to_corner(
+		        u, v, &corner_u, &corner_v);
+	}
+	else {
+		actual_coarse_corner = coarse_corner;
+		corner_u = u;
+		corner_v = v;
+	}
 	multires_reshape_vertex_from_final_data(
 	        &ctx->reshape_ctx,
-	        ptex_face_index, u, v,
+	        ptex_face_index, corner_u, corner_v,
 	        coarse_poly_index,
-	        coarse_corner,
+	        actual_coarse_corner,
 	        final_P, 0.0f);
 }
 
@@ -1037,72 +972,35 @@ typedef struct ReshapeFromCCGTaskData {
 	/*const*/ CCGElem **grids;
 } ReshapeFromCCGTaskData;
 
-static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
-                                          const MPoly *coarse_poly)
+static void reshape_from_ccg_task(
+        void *__restrict userdata,
+        const int coarse_poly_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
+	ReshapeFromCCGTaskData *data = userdata;
 	const CCGKey *key = data->key;
 	/*const*/ CCGElem **grids = data->grids;
 	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const int key_grid_size = key->grid_size;
-	const int key_grid_size_1 = key_grid_size - 1;
-	const int resolution = 2 * key_grid_size - 1;
-	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
-	const int coarse_poly_index = coarse_poly - coarse_mpoly;
-	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
-	for (int y = 0; y < resolution; y++) {
-		const float v = y * resolution_1_inv;
-		for (int x = 0; x < resolution; x++) {
-			const float u = x * resolution_1_inv;
-			float corner_u, corner_v;
-			float grid_u, grid_v;
-			const int face_corner = BKE_subdiv_rotate_quad_to_corner(
-			        u, v, &corner_u, &corner_v);
-			BKE_subdiv_ptex_face_uv_to_grid_uv(
-			        corner_u, corner_v, &grid_u, &grid_v);
-			/*const*/ CCGElem *grid =
-			        grids[coarse_poly->loopstart + face_corner];
-			/*const*/ CCGElem *grid_element = CCG_grid_elem(
-			        key,
-			        grid,
-			        key_grid_size_1 * grid_u,
-			        key_grid_size_1 * grid_v);
-			const float *final_P = CCG_elem_co(key, grid_element);
-			float final_mask = 0.0f;
-			if (key->has_mask) {
-				final_mask = *CCG_elem_mask(key, grid_element);
-			}
-			multires_reshape_vertex_from_final_data(
-			        &data->reshape_ctx,
-			        ptex_face_index,
-			        u, v,
-			        coarse_poly_index,
-			        0,
-			        final_P, final_mask);
-		}
-	}
-}
-
-static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
-                                          const MPoly *coarse_poly)
-{
-	const CCGKey *key = data->key;
-	/*const*/ CCGElem **grids = data->grids;
-	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
-	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
 	const int key_grid_size = key->grid_size;
 	const int key_grid_size_1 = key_grid_size - 1;
 	const int resolution = key_grid_size;
 	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
-	const int coarse_poly_index = coarse_poly - coarse_mpoly;
-	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
+	const int start_ptex_face_index = data->face_ptex_offset[coarse_poly_index];
+	const bool is_quad = (coarse_poly->totloop == 4);
 	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
 		for (int y = 0; y < resolution; y++) {
-			const float v = y * resolution_1_inv;
+			const float corner_v = y * resolution_1_inv;
 			for (int x = 0; x < resolution; x++) {
-				const float u = x * resolution_1_inv;
+				const float corner_u = x * resolution_1_inv;
+				/* Quad faces consists of a single ptex face. */
+				const int ptex_face_index =
+				        is_quad ? start_ptex_face_index
+				                : start_ptex_face_index + corner;
 				float grid_u, grid_v;
-				BKE_subdiv_ptex_face_uv_to_grid_uv(u, v, &grid_u, &grid_v);
+				BKE_subdiv_ptex_face_uv_to_grid_uv(
+				        corner_u, corner_v, &grid_u, &grid_v);
 				/*const*/ CCGElem *grid =
 				        grids[coarse_poly->loopstart + corner];
 				/*const*/ CCGElem *grid_element = CCG_grid_elem(
@@ -1117,30 +1015,13 @@ static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
 				}
 				multires_reshape_vertex_from_final_data(
 				        &data->reshape_ctx,
-				        ptex_face_index + corner,
-				        u, v,
+				        ptex_face_index,
+				        corner_u, corner_v,
 				        coarse_poly_index,
 				        corner,
 				        final_P, final_mask);
 			}
 		}
-	}
-}
-
-static void reshape_from_ccg_task(
-        void *__restrict userdata,
-        const int coarse_poly_index,
-        const ParallelRangeTLS *__restrict UNUSED(tls))
-{
-	ReshapeFromCCGTaskData *data = userdata;
-	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
-	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
-	if (coarse_poly->totloop == 4) {
-		reshape_from_ccg_regular_face(data, coarse_poly);
-	}
-	else {
-		reshape_from_ccg_special_face(data, coarse_poly);
 	}
 }
 
