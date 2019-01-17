@@ -314,10 +314,16 @@ static void multires_reshape_vertex_from_final_data(
 	if (grid_paint_mask != NULL) {
 		grid_paint_mask->data[index] = final_mask;
 	}
-	/* Copy boundary to the next/previous grids */
-	copy_boundary_displacement(
-	        ctx, coarse_poly, face_corner, grid_x, grid_y,
-	        displacement_grid, grid_paint_mask);
+	/* Copy boundary to the next/previous grids.
+	 *
+	 * NOTE: Only do this for quads faces, since other ones will call reshape
+	 * for every boundary vertex, ensuring proper continuity across boundaries.
+	*/
+	if (coarse_poly->totloop == 4) {
+		copy_boundary_displacement(
+		        ctx, coarse_poly, face_corner, grid_x, grid_y,
+		        displacement_grid, grid_paint_mask);
+	}
 }
 
 /* =============================================================================
