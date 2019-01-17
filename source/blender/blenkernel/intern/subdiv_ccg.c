@@ -227,7 +227,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data,
 			for (int x = 0; x < grid_size; x++) {
 				const float grid_u = (float)x * grid_size_1_inv;
 				float u, v;
-				BKE_subdiv_rotate_corner_to_quad(
+				BKE_subdiv_rotate_grid_to_quad(
 				        corner, grid_u, grid_v, &u, &v);
 				const size_t grid_element_index = (size_t)y * grid_size + x;
 				const size_t grid_element_offset =

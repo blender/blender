@@ -259,10 +259,11 @@ BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
         const float quad_u, const float quad_v,
         float *r_corner_u, float *r_corner_v);
 
-/* Inverse of above. */
-BLI_INLINE void BKE_subdiv_rotate_corner_to_quad(
+/* Converts (u, v) coordinate from within a grid to a quad coordinate in
+ * normalized ptex coordinates. */
+BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
         const int corner,
-        const float corner_u, const float corner_v,
+        const float grid_u, const float grid_v,
         float *r_quad_u, float *r_quad_v);
 
 #include "intern/subdiv_inline.h"
