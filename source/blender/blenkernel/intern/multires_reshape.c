@@ -148,7 +148,7 @@ static void multires_reshape_ensure_grids(Mesh *mesh, const int grid_level)
 
 /* Convert normalized coordinate within a grid to a normalized coordinate within
  * a ptex face. */
-static void multires_reshape_grid_coord_to_ptex(
+static void multires_reshape_corner_coord_to_ptex(
         const MPoly *coarse_poly,
         const int corner, const float corner_u, const float corner_v,
         float *r_ptex_face_u, float *r_ptex_face_v)
@@ -176,8 +176,9 @@ static void multires_reshape_sample_surface(
         float r_P[3], float r_dPdu[3], float r_dPdv[3])
 {
 	float ptex_face_u, ptex_face_v;
-	multires_reshape_grid_coord_to_ptex(coarse_poly, corner, corner_u, corner_v,
-	                                    &ptex_face_u, &ptex_face_v);
+	multires_reshape_corner_coord_to_ptex(
+	        coarse_poly, corner, corner_u, corner_v,
+	        &ptex_face_u, &ptex_face_v);
 	BKE_subdiv_eval_limit_point_and_derivatives(
 	        subdiv,
 	        ptex_face_index, ptex_face_u, ptex_face_v,

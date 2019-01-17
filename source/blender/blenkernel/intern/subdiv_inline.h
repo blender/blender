@@ -43,6 +43,14 @@ BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(
 	*r_grid_v = 1.0f - ptex_u;
 }
 
+BLI_INLINE void BKE_subdiv_grid_uv_to_ptex_face_uv(
+        const float grid_u, const float grid_v,
+        float *r_ptex_u, float *r_ptex_v)
+{
+	*r_ptex_u = 1.0f - grid_v;
+	*r_ptex_v = 1.0f - grid_u;
+}
+
 BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level)
 {
 	return (1 << (level - 1)) + 1;

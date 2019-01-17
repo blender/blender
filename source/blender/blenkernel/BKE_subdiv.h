@@ -246,6 +246,11 @@ BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(
         const float ptex_u, const float ptex_v,
         float *r_grid_u, float *r_grid_v);
 
+/* Onverse of above. */
+BLI_INLINE void BKE_subdiv_grid_uv_to_ptex_face_uv(
+        const float grid_u, const float grid_v,
+        float *r_ptex_u, float *r_ptex_v);
+
 /* For a given subdivision level (which is NOT refinement level) get size of
  * CCG grid (number of grid points on a side).
  */
