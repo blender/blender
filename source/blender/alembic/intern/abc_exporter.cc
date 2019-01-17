@@ -601,7 +601,8 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 			AbcObjectWriter *writer;
 			if (m_settings.curves_as_mesh) {
 				writer = new AbcCurveMeshWriter(ob, xform, m_shape_sampling_index, m_settings);
-			} else {
+			}
+			else {
 				writer = new AbcNurbsWriter(ob, xform, m_shape_sampling_index, m_settings);
 			}
 			m_shapes.push_back(writer);
@@ -618,7 +619,8 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 			AbcObjectWriter *writer;
 			if (m_settings.curves_as_mesh) {
 				writer = new AbcCurveMeshWriter(ob, xform, m_shape_sampling_index, m_settings);
-			} else {
+			}
+			else {
 				writer = new AbcCurveWriter(ob, xform, m_shape_sampling_index, m_settings);
 			}
 			m_shapes.push_back(writer);

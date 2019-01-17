@@ -818,7 +818,7 @@ static void gpencil_draw_strokes(
 				/* stroke */
 				/* No fill strokes, must show stroke always */
 				if (((gp_style->flag & GP_STYLE_STROKE_SHOW) ||
-					(gps->flag & GP_STROKE_NOFILL)) &&
+				     (gps->flag & GP_STROKE_NOFILL)) &&
 				    ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 				     (gpl->blend_mode == eGplBlendMode_Normal)))
 				{
@@ -1212,7 +1212,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 
 				/* No fill strokes, must show stroke always */
 				if ((gp_style->flag & GP_STYLE_STROKE_SHOW) ||
-					(gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL))
+				    (gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL))
 				{
 					DRW_shgroup_call_add(
 					        stl->g_data->shgrps_drawing_stroke,

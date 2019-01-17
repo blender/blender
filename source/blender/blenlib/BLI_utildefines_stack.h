@@ -25,7 +25,7 @@
  *  \ingroup bli
  *
  * Macro's for a simple array based stack
- * \note Caller handles alloc & free).
+ * \note Caller handles alloc & free.
  */
 
 /* only validate array-bounds in debug mode */
