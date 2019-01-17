@@ -151,7 +151,10 @@ static void rna_DepsgraphObjectInstance_matrix_world_get(PointerRNA *ptr, float 
 		copy_m4_m4((float(*)[4])mat, deg_iter->dupli_object_current->mat);
 	}
 	else {
-		unit_m4((float(*)[4])mat);
+		/* We can return actual object's matrix here, no reason to return identity matrix
+		 * when this is not actually an instance... */
+		Object *ob = (Object *)iterator->current;
+		copy_m4_m4((float(*)[4])mat, ob->obmat);
 	}
 }
 
