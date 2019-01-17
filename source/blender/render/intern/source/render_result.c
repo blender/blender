@@ -509,6 +509,7 @@ void render_result_add_pass(RenderResult *rr, const char *name, int channels, co
 			for (rp = rl->passes.first; rp; rp = rp->next) {
 				if (!STREQ(rp->name, name)) continue;
 				if (!STREQ(rp->view, view)) continue;
+				break;
 			}
 
 			if (!rp) {
