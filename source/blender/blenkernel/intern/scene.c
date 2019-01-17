@@ -929,12 +929,12 @@ void BKE_scene_init(Scene *sce)
 	copy_v3_fl(sce->eevee.bloom_color, 1.0f);
 	sce->eevee.bloom_threshold = 0.8f;
 	sce->eevee.bloom_knee = 0.5f;
-	sce->eevee.bloom_intensity = 0.8f;
+	sce->eevee.bloom_intensity = 0.05f;
 	sce->eevee.bloom_radius = 6.5f;
-	sce->eevee.bloom_clamp = 1.0f;
+	sce->eevee.bloom_clamp = 0.0f;
 
 	sce->eevee.motion_blur_samples = 8;
-	sce->eevee.motion_blur_shutter = 1.0f;
+	sce->eevee.motion_blur_shutter = 0.5f;
 
 	sce->eevee.shadow_method = SHADOW_ESM;
 	sce->eevee.shadow_cube_size = 512;

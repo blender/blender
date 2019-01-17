@@ -6176,17 +6176,17 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "bloom_clamp", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Clamp", "Maximum intensity a bloom pixel can have");
-	RNA_def_property_range(prop, 0.0f, 1000.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_float_default(prop, 0.0f);
+	RNA_def_property_ui_text(prop, "Clamp", "Maximum intensity a bloom pixel can have (0 to disabled)");
+	RNA_def_property_range(prop, 0.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 1, 3);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "bloom_intensity", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_float_default(prop, 0.8f);
+	prop = RNA_def_property(srna, "bloom_intensity", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_default(prop, 0.05f);
 	RNA_def_property_ui_text(prop, "Intensity", "Blend factor");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+	RNA_def_property_ui_range(prop, 0.0f, 0.1f, 1, 3);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	/* Motion blur */

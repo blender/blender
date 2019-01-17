@@ -164,9 +164,11 @@ vec4 step_blit(void)
 	/* Combine and apply the brightness response curve. */
 	m *= max(rq, br - curveThreshold.w) / max(1e-5, br);
 
-	/* Clamp pixel intensity */
-	br = max(1e-5, brightness(m));
-	m *= 1.0 - max(0.0, br - clampIntensity) / br;
+	/* Clamp pixel intensity if clamping enabled */
+	if (clampIntensity > 0.0) {
+		br = max(1e-5, brightness(m));
+		m *= 1.0 - max(0.0, br - clampIntensity) / br;
+	}
 
 	return vec4(m, 1.0);
 }
