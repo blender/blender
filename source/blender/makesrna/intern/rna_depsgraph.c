@@ -668,7 +668,10 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                  "rna_Depsgraph_object_instances_end",
 	                                  "rna_Depsgraph_object_instances_get",
 	                                  NULL, NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Object Instances", "All object instances to display or render");
+	RNA_def_property_ui_text(prop, "Object Instances",
+	                         "All object instances to display or render "
+	                         "(WARNING: only use this as an iterator, never as a sequence, "
+	                         "and do not keep any references to its items)");
 
 	prop = RNA_def_property(srna, "updates", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "DepsgraphUpdate");
