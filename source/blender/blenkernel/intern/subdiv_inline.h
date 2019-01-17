@@ -77,4 +77,28 @@ BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
 	return corner;
 }
 
+BLI_INLINE void BKE_subdiv_rotate_corner_to_quad(
+        const int corner,
+        const float corner_u, const float corner_v,
+        float *r_quad_u, float *r_quad_v)
+{
+	if (corner == 0) {
+		*r_quad_u = 0.5f - corner_v * 0.5f;
+		*r_quad_v = 0.5f - corner_u * 0.5f;
+	}
+	else if (corner == 1) {
+		*r_quad_u = 0.5f + corner_u * 0.5f;
+		*r_quad_v = 0.5f - corner_v * 0.5f;
+	}
+	else if (corner == 2) {
+		*r_quad_u = 0.5f + corner_v * 0.5f;
+		*r_quad_v = 0.5f + corner_u * 0.5f;
+	}
+	else {
+		BLI_assert(corner == 3);
+		*r_quad_u = 0.5f - corner_u * 0.5f;
+		*r_quad_v = 0.5f + corner_v * 0.5f;
+	}
+}
+
 #endif  /* __SUBDIV_INLINE_H__ */

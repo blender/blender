@@ -208,30 +208,6 @@ static void subdiv_ccg_eval_grid_element(
 	}
 }
 
-BLI_INLINE void rotate_corner_to_quad(
-        const int corner,
-        const float u, const float v,
-        float *r_u, float *r_v)
-{
-	if (corner == 0) {
-		*r_u = 0.5f - v * 0.5f;
-		*r_v = 0.5f - u * 0.5f;
-	}
-	else if (corner == 1) {
-		*r_u = 0.5f + u * 0.5f;
-		*r_v = 0.5f - v * 0.5f;
-	}
-	else if (corner == 2) {
-		*r_u = 0.5f + v * 0.5f;
-		*r_v = 0.5f + u * 0.5f;
-	}
-	else {
-		BLI_assert(corner == 3);
-		*r_u = 0.5f - u * 0.5f;
-		*r_v = 0.5f + v * 0.5f;
-	}
-}
-
 static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data,
                                          const int face_index)
 {
@@ -251,7 +227,8 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data,
 			for (int x = 0; x < grid_size; x++) {
 				const float grid_u = (float)x * grid_size_1_inv;
 				float u, v;
-				rotate_corner_to_quad(corner, grid_u, grid_v, &u, &v);
+				BKE_subdiv_rotate_corner_to_quad(
+				        corner, grid_u, grid_v, &u, &v);
 				const size_t grid_element_index = (size_t)y * grid_size + x;
 				const size_t grid_element_offset =
 				        grid_element_index * element_size;
