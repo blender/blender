@@ -43,6 +43,9 @@
 #include "bmesh.h"
 #include "bmesh_structure.h"
 
+/* For '_FLAG_OVERLAP'. */
+#include "bmesh_private.h"
+
 static void recount_totsels(BMesh *bm)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
@@ -1056,6 +1059,68 @@ GHash *BM_select_history_map_create(BMesh *bm)
 	}
 
 	return map;
+}
+
+/**
+ * Map arguments may all be the same pointer.
+ */
+void BM_select_history_merge_from_targetmap(
+        BMesh *bm,
+        GHash *vert_map,
+        GHash *edge_map,
+        GHash *face_map,
+        const bool use_chain)
+{
+
+#ifdef DEBUG
+	for (BMEditSelection *ese = bm->selected.first; ese; ese = ese->next) {
+		BLI_assert(BM_ELEM_API_FLAG_TEST(ese->ele, _FLAG_OVERLAP) == 0);
+	}
+#endif
+
+	for (BMEditSelection *ese = bm->selected.first; ese; ese = ese->next) {
+		BM_ELEM_API_FLAG_ENABLE(ese->ele, _FLAG_OVERLAP);
+
+		/* Only loop when (use_chain == true). */
+		GHash *map = NULL;
+		switch (ese->ele->head.htype) {
+			case BM_VERT: map = vert_map; break;
+			case BM_EDGE: map = edge_map; break;
+			case BM_FACE: map = face_map; break;
+			default: BMESH_ASSERT(0);     break;
+		}
+		if (map != NULL) {
+			BMElem *ele_dst = ese->ele;
+			while (true) {
+				BMElem *ele_dst_next = BLI_ghash_lookup(map, ele_dst);
+				BLI_assert(ele_dst != ele_dst_next);
+				if (ele_dst_next == NULL) {
+					break;
+				}
+				ele_dst = ele_dst_next;
+				/* Break loop on circular reference (should never happen). */
+				if (UNLIKELY(ele_dst == ese->ele)) {
+					BLI_assert(0);
+					break;
+				}
+				if (use_chain == false) {
+					break;
+				}
+			}
+			ese->ele = ele_dst;
+		}
+	}
+
+	/* Remove overlapping duplicates. */
+	for (BMEditSelection *ese = bm->selected.first, *ese_next; ese; ese = ese_next) {
+		ese_next = ese->next;
+		if (BM_ELEM_API_FLAG_TEST(ese->ele, _FLAG_OVERLAP)) {
+			BM_ELEM_API_FLAG_DISABLE(ese->ele, _FLAG_OVERLAP);
+		}
+		else {
+			BLI_freelinkN(&bm->selected, ese);
+		}
+	}
 }
 
 void BM_mesh_elem_hflag_disable_test(
