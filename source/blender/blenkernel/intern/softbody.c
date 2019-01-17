@@ -1503,16 +1503,6 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 	}
 }
 
-
-static void scan_for_ext_spring_forces(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float timenow)
-{
-	SoftBody *sb = ob->soft;
-
-	ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, sb->effector_weights);
-	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, effectors);
-	BKE_effectors_free(effectors);
-}
-
 static void *exec_scan_for_ext_spring_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;

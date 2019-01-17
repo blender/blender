@@ -437,9 +437,6 @@ void GPU_create_gl_tex(
 {
 	ImBuf *ibuf = NULL;
 
-	int tpx = rectw;
-	int tpy = recth;
-
 	/* create image */
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture(textarget, *bind);
