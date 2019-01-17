@@ -77,6 +77,9 @@ typedef struct MultiresReshapeContext {
 	GridPaintMask *grid_paint_mask;
 	int top_grid_size;
 	int top_level;
+	/* Indexed by coarse face index, returns first ptex face index corresponding
+	 * to that coarse face. */
+	int *face_ptex_offset;
 } MultiresReshapeContext;
 
 static void multires_reshape_allocate_displacement_grid(
@@ -691,6 +694,73 @@ static bool multires_reshape_topology_info(
 	return true;
 }
 
+/* Will run reshaping for all grid elements which are adjacent to the given
+ * one. This is the way to ensure continuity of displacement stored in the
+ * grids across the inner boundaries of the grids. */
+static void multires_reshape_neighour_boundary_vertices(
+        MultiresReshapeContext *ctx,
+        const int UNUSED(ptex_face_index),
+        const float corner_u, const float corner_v,
+        const int coarse_poly_index,
+        const int coarse_corner,
+        const float final_P[3], const float final_mask)
+{
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
+	const int num_corners = coarse_poly->totloop;
+	const int start_ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
+	const bool is_quad = (coarse_poly->totloop == 4);
+	if (corner_u == 1.0f && corner_v == 1.0f) {
+		for (int current_corner = 0;
+		     current_corner < num_corners;
+		     ++current_corner)
+		{
+			if (current_corner == coarse_corner) {
+				continue;
+			}
+			const int current_ptex_face_index =
+			        is_quad ? start_ptex_face_index
+			                : start_ptex_face_index + current_corner;
+			multires_reshape_vertex_from_final_data(
+			        ctx,
+			        current_ptex_face_index, 1.0f, 1.0f,
+			        coarse_poly_index,
+			        current_corner,
+			        final_P, final_mask);
+		}
+	}
+	else if (corner_u == 1.0f) {
+		const float next_corner_index = (coarse_corner + 1) % num_corners;
+		const float next_corner_u = corner_v;
+		const float next_corner_v = 1.0f;
+		const int next_ptex_face_index =
+		        is_quad ? start_ptex_face_index
+		                : start_ptex_face_index + next_corner_index;
+		multires_reshape_vertex_from_final_data(
+		        ctx,
+		        next_ptex_face_index, next_corner_u, next_corner_v,
+		        coarse_poly_index,
+		        next_corner_index,
+		        final_P, final_mask);
+	}
+	else if (corner_v == 1.0f) {
+		const float prev_corner_index =
+		        (coarse_corner + num_corners - 1) % num_corners;
+		const float prev_corner_u = 1.0f;
+		const float prev_corner_v = corner_u;
+		const int prev_ptex_face_index =
+		        is_quad ? start_ptex_face_index
+		                : start_ptex_face_index + prev_corner_index;
+		multires_reshape_vertex_from_final_data(
+		        ctx,
+		        prev_ptex_face_index, prev_corner_u, prev_corner_v,
+		        coarse_poly_index,
+		        prev_corner_index,
+		        final_P, final_mask);
+	}
+}
+
 static void multires_reshape_vertex(
         MultiresReshapeFromDeformedVertsContext *ctx,
         const int ptex_face_index,
@@ -703,9 +773,10 @@ static void multires_reshape_vertex(
 	const Mesh *coarse_mesh = ctx->reshape_ctx.coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
 	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
+	const bool is_quad = (coarse_poly->totloop == 4);
 	float corner_u, corner_v;
 	int actual_coarse_corner;
-	if (coarse_poly->totloop == 4) {
+	if (is_quad) {
 		actual_coarse_corner = BKE_subdiv_rotate_quad_to_corner(
 		        u, v, &corner_u, &corner_v);
 	}
@@ -715,6 +786,12 @@ static void multires_reshape_vertex(
 		corner_v = v;
 	}
 	multires_reshape_vertex_from_final_data(
+	        &ctx->reshape_ctx,
+	        ptex_face_index, corner_u, corner_v,
+	        coarse_poly_index,
+	        actual_coarse_corner,
+	        final_P, 0.0f);
+	multires_reshape_neighour_boundary_vertices(
 	        &ctx->reshape_ctx,
 	        ptex_face_index, corner_u, corner_v,
 	        coarse_poly_index,
@@ -817,14 +894,21 @@ static bool multires_reshape_from_vertcos(
 	const int top_level = max_ii(mmd->totlvl, mdisps->level);
 	/* Make sure displacement grids are ready. */
 	multires_reshape_ensure_grids(coarse_mesh, top_level);
+	/* Initialize subdivision surface. */
+	Subdiv *subdiv = multires_create_subdiv_for_reshape(depsgraph, object, mmd);
+	if (subdiv == NULL) {
+		return false;
+	}
 	/* Construct context. */
 	MultiresReshapeFromDeformedVertsContext reshape_deformed_verts_ctx = {
 	        .reshape_ctx = {
+	                .subdiv = subdiv,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps = mdisps,
 	                .grid_paint_mask = NULL,
 	                .top_grid_size = BKE_subdiv_grid_size_from_level(top_level),
 	                .top_level = top_level,
+	                .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 	        },
 	        .deformed_verts = deformed_verts,
 	        .num_deformed_verts = num_deformed_verts,
@@ -836,12 +920,6 @@ static bool multires_reshape_from_vertcos(
 	        .vertex_every_corner = multires_reshape_vertex_every_corner,
 	        .user_data = &reshape_deformed_verts_ctx,
 	};
-	/* Initialize subdivision surface. */
-	Subdiv *subdiv = multires_create_subdiv_for_reshape(depsgraph, object, mmd);
-	if (subdiv == NULL) {
-		return false;
-	}
-	reshape_deformed_verts_ctx.reshape_ctx.subdiv = subdiv;
 	/* Initialize mesh rasterization settings. */
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
@@ -967,7 +1045,6 @@ bool multiresModifier_reshapeFromDeformModifier(
 
 typedef struct ReshapeFromCCGTaskData {
 	MultiresReshapeContext reshape_ctx;
-	int *face_ptex_offset;
 	const CCGKey *key;
 	/*const*/ CCGElem **grids;
 } ReshapeFromCCGTaskData;
@@ -987,7 +1064,8 @@ static void reshape_from_ccg_task(
 	const int key_grid_size_1 = key_grid_size - 1;
 	const int resolution = key_grid_size;
 	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
-	const int start_ptex_face_index = data->face_ptex_offset[coarse_poly_index];
+	const int start_ptex_face_index =
+	        data->reshape_ctx.face_ptex_offset[coarse_poly_index];
 	const bool is_quad = (coarse_poly->totloop == 4);
 	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
 		for (int y = 0; y < resolution; y++) {
@@ -1064,8 +1142,8 @@ bool multiresModifier_reshapeFromCCG(
 			.grid_paint_mask = grid_paint_mask,
 			.top_grid_size = BKE_subdiv_grid_size_from_level(top_level),
 			.top_level = top_level,
+			.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 		},
-		.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 		.key = &key,
 		.grids = subdiv_ccg->grids,
 	};
