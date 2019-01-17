@@ -296,72 +296,77 @@ const Channel* ChannelMapperReader::CHANNEL_MAPS[] =
 	ChannelMapperReader::SURROUND71_MAP
 };
 
+constexpr float deg2rad(double angle)
+{
+	return float(angle * M_PI / 180.0);
+}
+
 const float ChannelMapperReader::MONO_ANGLES[] =
 {
-	0.0f * M_PI / 180.0f
+	deg2rad(0.0)
 };
 
 const float ChannelMapperReader::STEREO_ANGLES[] =
 {
-	-90.0f * M_PI / 180.0f,
-	 90.0f * M_PI / 180.0f
+	deg2rad(-90.0),
+	deg2rad( 90.0)
 };
 
 const float ChannelMapperReader::STEREO_LFE_ANGLES[] =
 {
-	-90.0f * M_PI / 180.0f,
-	 90.0f * M_PI / 180.0f,
-	  0.0f * M_PI / 180.0f
+	deg2rad(-90.0),
+	deg2rad( 90.0),
+	deg2rad(  0.0)
 };
 
 const float ChannelMapperReader::SURROUND4_ANGLES[] =
 {
-	 -45.0f * M_PI / 180.0f,
-	  45.0f * M_PI / 180.0f,
-	-135.0f * M_PI / 180.0f,
-	 135.0f * M_PI / 180.0f
+	deg2rad( -45.0),
+	deg2rad(  45.0),
+	deg2rad(-135.0),
+	deg2rad( 135.0)
 };
 
 const float ChannelMapperReader::SURROUND5_ANGLES[] =
 {
-	 -30.0f * M_PI / 180.0f,
-	  30.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	-110.0f * M_PI / 180.0f,
-	 110.0f * M_PI / 180.0f
+	deg2rad( -30.0),
+	deg2rad(  30.0),
+	deg2rad(   0.0),
+	deg2rad(-110.0),
+	deg2rad( 110.0)
 };
 
 const float ChannelMapperReader::SURROUND51_ANGLES[] =
 {
-	  -30.0f * M_PI / 180.0f,
-	   30.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	-110.0f * M_PI / 180.0f,
-	 110.0f * M_PI / 180.0f
+	deg2rad( -30.0),
+	deg2rad(  30.0),
+	deg2rad(   0.0),
+	deg2rad(   0.0),
+	deg2rad(-110.0),
+	deg2rad( 110.0)
 };
 
 const float ChannelMapperReader::SURROUND61_ANGLES[] =
 {
-	  -30.0f * M_PI / 180.0f,
-	   30.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	 180.0f * M_PI / 180.0f,
-	-110.0f * M_PI / 180.0f,
-	 110.0f * M_PI / 180.0f
+	deg2rad( -30.0),
+	deg2rad(  30.0),
+	deg2rad(   0.0),
+	deg2rad(   0.0),
+	deg2rad( 180.0),
+	deg2rad(-110.0),
+	deg2rad( 110.0)
 };
 
 const float ChannelMapperReader::SURROUND71_ANGLES[] =
 {
-	  -30.0f * M_PI / 180.0f,
-	   30.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	   0.0f * M_PI / 180.0f,
-	-110.0f * M_PI / 180.0f,
-	 110.0f * M_PI / 180.0f,
-	-150.0f * M_PI / 180.0f,
-	 150.0f * M_PI / 180.0f
+	deg2rad( -30.0),
+	deg2rad(  30.0),
+	deg2rad(   0.0),
+	deg2rad(   0.0),
+	deg2rad(-110.0),
+	deg2rad( 110.0),
+	deg2rad(-150.0),
+	deg2rad( 150.0)
 };
 
 const float* ChannelMapperReader::CHANNEL_ANGLES[] =

@@ -261,6 +261,8 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 	case CHANNELS_SURROUND71:
 		channel_layout = AV_CH_LAYOUT_7POINT1;
 		break;
+	default:
+		AUD_THROW(FileException, "File couldn't be written, channel layout not supported.");
 	}
 
 	try

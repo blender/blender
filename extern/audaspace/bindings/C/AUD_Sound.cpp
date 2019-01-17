@@ -212,7 +212,7 @@ AUD_API const char* AUD_Sound_write(AUD_Sound* sound, const char* filename, AUD_
 		std::shared_ptr<IWriter> writer = FileWriter::createWriter(filename, specs, static_cast<Container>(container), static_cast<Codec>(codec), bitrate);
 		FileWriter::writeReader(reader, writer, 0, buffersize);
 	}
-	catch(Exception& e)
+	catch(Exception&)
 	{
 		return "An exception occured while writing.";
 	}

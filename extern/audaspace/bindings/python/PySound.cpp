@@ -140,8 +140,6 @@ Sound_data(Sound* self)
 
 	std::memcpy(data, buffer->getBuffer(), buffer->getSize());
 
-	Py_INCREF(array);
-
 	return reinterpret_cast<PyObject*>(array);
 }
 

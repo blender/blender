@@ -61,10 +61,58 @@ bool OpenALDevice::OpenALHandle::pause(bool keep)
 	return false;
 }
 
+bool OpenALDevice::OpenALHandle::reinitialize()
+{
+	DeviceSpecs specs = m_device->m_specs;
+	specs.specs = m_reader->getSpecs();
+
+	ALenum format;
+
+	if(!m_device->getFormat(format, specs.specs))
+		return true;
+
+	m_format = format;
+
+	// OpenAL playback code
+	alGenBuffers(CYCLE_BUFFERS, m_buffers);
+	if(alGetError() != AL_NO_ERROR)
+		return true;
+
+	m_device->m_buffer.assureSize(m_device->m_buffersize * AUD_DEVICE_SAMPLE_SIZE(specs));
+	int length;
+	bool eos;
+
+	for(m_current = 0; m_current < CYCLE_BUFFERS; m_current++)
+	{
+		length = m_device->m_buffersize;
+		m_reader->read(length, eos, m_device->m_buffer.getBuffer());
+
+		if(length == 0)
+			break;
+
+		alBufferData(m_buffers[m_current], m_format, m_device->m_buffer.getBuffer(), length * AUD_DEVICE_SAMPLE_SIZE(specs), specs.rate);
+
+		if(alGetError() != AL_NO_ERROR)
+			return true;
+	}
+
+	alGenSources(1, &m_source);
+	if(alGetError() != AL_NO_ERROR)
+		return true;
+
+	alSourceQueueBuffers(m_source, m_current, m_buffers);
+	if(alGetError() != AL_NO_ERROR)
+		return true;
+
+	alSourcei(m_source, AL_SOURCE_RELATIVE, m_relative);
+
+	return false;
+}
+
 OpenALDevice::OpenALHandle::OpenALHandle(OpenALDevice* device, ALenum format, std::shared_ptr<IReader> reader, bool keep) :
 	m_isBuffered(false), m_reader(reader), m_keep(keep), m_format(format),
 	m_eos(false), m_loopcount(0), m_stop(nullptr), m_stop_data(nullptr), m_status(STATUS_PLAYING),
-	m_device(device)
+	m_relative(1), m_device(device)
 {
 	DeviceSpecs specs = m_device->m_specs;
 	specs.specs = m_reader->getSpecs();
@@ -161,6 +209,9 @@ bool OpenALDevice::OpenALHandle::stop()
 
 	if(!m_status)
 		return false;
+
+	if(m_stop)
+		m_stop(m_stop_data);
 
 	m_status = STATUS_INVALID;
 
@@ -525,8 +576,6 @@ bool OpenALDevice::OpenALHandle::setOrientation(const Quaternion& orientation)
 
 bool OpenALDevice::OpenALHandle::isRelative()
 {
-	int result;
-
 	if(!m_status)
 		return false;
 
@@ -535,9 +584,9 @@ bool OpenALDevice::OpenALHandle::isRelative()
 	if(!m_status)
 		return false;
 
-	alGetSourcei(m_source, AL_SOURCE_RELATIVE, &result);
+	alGetSourcei(m_source, AL_SOURCE_RELATIVE, &m_relative);
 
-	return result;
+	return m_relative;
 }
 
 bool OpenALDevice::OpenALHandle::setRelative(bool relative)
@@ -550,7 +599,9 @@ bool OpenALDevice::OpenALHandle::setRelative(bool relative)
 	if(!m_status)
 		return false;
 
-	alSourcei(m_source, AL_SOURCE_RELATIVE, relative);
+	m_relative = relative;
+
+	alSourcei(m_source, AL_SOURCE_RELATIVE, m_relative);
 
 	return true;
 }
@@ -852,6 +903,80 @@ void OpenALDevice::updateStreams()
 	{
 		lock();
 
+		if(m_checkDisconnect)
+		{
+			ALCint connected;
+			alcGetIntegerv(m_device, alcGetEnumValue(m_device, "ALC_CONNECTED"), 1, &connected);
+
+			if(!connected)
+			{
+				// quit OpenAL
+				alcMakeContextCurrent(nullptr);
+				alcDestroyContext(m_context);
+				alcCloseDevice(m_device);
+
+				// restart
+				if(m_name.empty())
+					m_device = alcOpenDevice(nullptr);
+				else
+					m_device = alcOpenDevice(m_name.c_str());
+
+				// if device opening failed, there's really nothing we can do
+				if(m_device)
+				{
+					// at least try to set the frequency
+
+					ALCint attribs[] = { ALC_FREQUENCY, (ALCint)specs.rate, 0 };
+					ALCint* attributes = attribs;
+					if(specs.rate == RATE_INVALID)
+						attributes = nullptr;
+
+					m_context = alcCreateContext(m_device, attributes);
+					alcMakeContextCurrent(m_context);
+
+					m_checkDisconnect = alcIsExtensionPresent(m_device, "ALC_EXT_disconnect");
+
+					alcGetIntegerv(m_device, ALC_FREQUENCY, 1, (ALCint*)&specs.rate);
+
+					// check for specific formats and channel counts to be played back
+					if(alIsExtensionPresent("AL_EXT_FLOAT32") == AL_TRUE)
+						specs.format = FORMAT_FLOAT32;
+					else
+						specs.format = FORMAT_S16;
+
+					// if the format of the device changed, all handles are invalidated
+					// this is unlikely to happen though
+					if(specs.format != m_specs.format)
+						stopAll();
+
+					m_useMC = alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE;
+
+					if((!m_useMC && specs.channels > CHANNELS_STEREO) ||
+							specs.channels == CHANNELS_STEREO_LFE ||
+							specs.channels == CHANNELS_SURROUND5)
+						specs.channels = CHANNELS_STEREO;
+
+					alGetError();
+					alcGetError(m_device);
+
+					m_specs = specs;
+
+					std::list<std::shared_ptr<OpenALHandle> > stopSounds;
+
+					for(auto& handle : m_playingSounds)
+						if(handle->reinitialize())
+							stopSounds.push_back(handle);
+
+					for(auto& handle : m_pausedSounds)
+						if(handle->reinitialize())
+							stopSounds.push_back(handle);
+
+					for(auto& sound : stopSounds)
+						sound->stop();
+				}
+			}
+		}
+
 		alcSuspendContext(m_context);
 		cerr = alcGetError(m_device);
 		if(cerr == ALC_NO_ERROR)
@@ -957,12 +1082,14 @@ void OpenALDevice::updateStreams()
 					// if it really stopped
 					if(sound->m_eos && info != AL_INITIAL)
 					{
-						if(sound->m_stop)
-							sound->m_stop(sound->m_stop_data);
-
 						// pause or
 						if(sound->m_keep)
+						{
+							if(sound->m_stop)
+								sound->m_stop(sound->m_stop_data);
+
 							pauseSounds.push_back(sound);
+						}
 						// stop
 						else
 							stopSounds.push_back(sound);
@@ -1005,16 +1132,16 @@ void OpenALDevice::updateStreams()
 /******************************************************************************/
 
 OpenALDevice::OpenALDevice(DeviceSpecs specs, int buffersize, std::string name) :
-	m_playing(false), m_buffersize(buffersize)
+	m_name(name), m_playing(false), m_buffersize(buffersize)
 {
 	// cannot determine how many channels or which format OpenAL uses, but
 	// it at least is able to play 16 bit stereo audio
 	specs.format = FORMAT_S16;
 
-	if(name.empty())
+	if(m_name.empty())
 		m_device = alcOpenDevice(nullptr);
 	else
-		m_device = alcOpenDevice(name.c_str());
+		m_device = alcOpenDevice(m_name.c_str());
 
 	if(!m_device)
 		AUD_THROW(DeviceException, "The audio device couldn't be opened with OpenAL.");
@@ -1027,6 +1154,8 @@ OpenALDevice::OpenALDevice(DeviceSpecs specs, int buffersize, std::string name) 
 
 	m_context = alcCreateContext(m_device, attributes);
 	alcMakeContextCurrent(m_context);
+
+	m_checkDisconnect = alcIsExtensionPresent(m_device, "ALC_EXT_disconnect");
 
 	alcGetIntegerv(m_device, ALC_FREQUENCY, 1, (ALCint*)&specs.rate);
 
