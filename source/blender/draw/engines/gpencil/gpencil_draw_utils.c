@@ -816,7 +816,9 @@ static void gpencil_draw_strokes(
 						opacity, tintcolor, false, custonion);
 				}
 				/* stroke */
-				if ((gp_style->flag & GP_STYLE_STROKE_SHOW) &&
+				/* No fill strokes, must show stroke always */
+				if (((gp_style->flag & GP_STYLE_STROKE_SHOW) ||
+					(gps->flag & GP_STROKE_NOFILL)) &&
 				    ((gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 				     (gpl->blend_mode == eGplBlendMode_Normal)))
 				{
