@@ -78,7 +78,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 /**
  * helper function for bmo_weld_verts_exec so we can use stack memory
  */
-static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap)
+static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap, bool *r_created)
 {
 	BMEdge *e_new;
 
@@ -94,6 +94,7 @@ static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_target
 	STACK_INIT(loops, f->len);
 	STACK_INIT(verts, f->len);
 
+	*r_created = false;
 
 	{
 #define LOOP_MAP_VERT_INIT(l_init, v_map, is_del) \
@@ -160,20 +161,23 @@ finally:
 	}
 
 	if (STACK_SIZE(edges) >= 3) {
-		if (!BM_face_exists(verts, STACK_SIZE(edges))) {
-			BMFace *f_new = BM_face_create(bm, verts, edges, STACK_SIZE(edges), f, BM_CREATE_NOP);
-			BLI_assert(f_new != f);
+		BMFace *f_new = BM_face_exists(verts, STACK_SIZE(verts));
+		if (f_new) {
+			return f_new;
+		}
+		f_new = BM_face_create(bm, verts, edges, STACK_SIZE(edges), f, BM_CREATE_NOP);
+		BLI_assert(f_new != f);
 
-			if (f_new) {
-				uint i = 0;
-				BMLoop *l_iter, *l_first;
-				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
-				do {
-					BM_elem_attrs_copy(bm, bm, loops[i], l_iter);
-				} while ((void)i++, (l_iter = l_iter->next) != l_first);
+		if (f_new) {
+			uint i = 0;
+			BMLoop *l_iter, *l_first;
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
+			do {
+				BM_elem_attrs_copy(bm, bm, loops[i], l_iter);
+			} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
-				return f_new;
-			}
+			*r_created = true;
+			return f_new;
 		}
 	}
 
@@ -258,19 +262,24 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			BMO_face_flag_enable(bm, f, ELE_DEL);
 
 			if (f->len - edge_collapse >= 3) {
-				BMFace *f_new = remdoubles_createface(bm, f, slot_targetmap);
+				bool created;
+				BMFace *f_new = remdoubles_createface(bm, f, slot_targetmap, &created);
 
 				/* do this so we don't need to return a list of created faces */
 				if (f_new) {
-					bmesh_face_swap_data(f_new, f);
+					if (created) {
+						bmesh_face_swap_data(f_new, f);
 
-					if (bm->use_toolflags) {
-						SWAP(BMFlagLayer *, ((BMFace_OFlag *)f)->oflags, ((BMFace_OFlag *)f_new)->oflags);
+						if (bm->use_toolflags) {
+							SWAP(BMFlagLayer *, ((BMFace_OFlag *)f)->oflags, ((BMFace_OFlag *)f_new)->oflags);
+						}
+
+						BMO_face_flag_disable(bm, f, ELE_DEL);
+						BM_face_kill(bm, f_new);
 					}
-
-					BMO_face_flag_disable(bm, f, ELE_DEL);
-
-					BM_face_kill(bm, f_new);
+					else {
+						BM_elem_flag_merge_ex(f_new, f, BM_ELEM_HIDDEN);
+					}
 				}
 			}
 		}
