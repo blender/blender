@@ -69,6 +69,7 @@ typedef struct DepthDropper {
 	PropertyRNA *prop;
 	bool is_undo;
 
+	bool is_set;
 	float init_depth; /* for resetting on cancel */
 
 	bool  accum_start; /* has mouse been presed */
@@ -219,6 +220,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 static void depthdropper_depth_set(bContext *C, DepthDropper *ddr, const float depth)
 {
 	RNA_property_float_set(&ddr->ptr, ddr->prop, depth);
+	ddr->is_set = true;
 	RNA_property_update(C, &ddr->ptr, ddr->prop);
 }
 
@@ -255,7 +257,9 @@ static void depthdropper_depth_sample_accum(bContext *C, DepthDropper *ddr, int 
 static void depthdropper_cancel(bContext *C, wmOperator *op)
 {
 	DepthDropper *ddr = op->customdata;
-	depthdropper_depth_set(C, ddr, ddr->init_depth);
+	if (ddr->is_set) {
+		depthdropper_depth_set(C, ddr, ddr->init_depth);
+	}
 	depthdropper_exit(C, op);
 }
 

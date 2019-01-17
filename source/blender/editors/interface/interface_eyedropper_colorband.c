@@ -73,6 +73,7 @@ typedef struct EyedropperColorband {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	bool is_undo;
+	bool is_set;
 } EyedropperColorband;
 
 /* For user-data only. */
@@ -132,6 +133,7 @@ static void eyedropper_colorband_sample_point(bContext *C, EyedropperColorband *
 		eye->color_buffer_len += 1;
 		eye->last_x = mx;
 		eye->last_y = my;
+		eye->is_set = true;
 	}
 }
 
@@ -172,14 +174,17 @@ static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
 	/* Always filter, avoids noise in resulting color-band. */
 	bool filter_samples = true;
 	BKE_colorband_init_from_table_rgba(eye->color_band, eye->color_buffer, eye->color_buffer_len, filter_samples);
+	eye->is_set = true;
 	RNA_property_update(C, &eye->ptr, eye->prop);
 }
 
 static void eyedropper_colorband_cancel(bContext *C, wmOperator *op)
 {
 	EyedropperColorband *eye = op->customdata;
-	*eye->color_band = eye->init_color_band;
-	RNA_property_update(C, &eye->ptr, eye->prop);
+	if (eye->is_set) {
+		*eye->color_band = eye->init_color_band;
+		RNA_property_update(C, &eye->ptr, eye->prop);
+	}
 	eyedropper_colorband_exit(C, op);
 }
 

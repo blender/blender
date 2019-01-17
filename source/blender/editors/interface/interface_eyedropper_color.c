@@ -71,6 +71,7 @@ typedef struct Eyedropper {
 	int index;
 	bool is_undo;
 
+	bool is_set;
 	float init_col[3]; /* for resetting on cancel */
 
 	bool  accum_start; /* has mouse been pressed */
@@ -212,6 +213,7 @@ static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3
 	}
 
 	RNA_property_float_set_array(&eye->ptr, eye->prop, col_conv);
+	eye->is_set = true;
 
 	RNA_property_update(C, &eye->ptr, eye->prop);
 }
@@ -245,7 +247,9 @@ static void eyedropper_color_sample(bContext *C, Eyedropper *eye, int mx, int my
 static void eyedropper_cancel(bContext *C, wmOperator *op)
 {
 	Eyedropper *eye = op->customdata;
-	eyedropper_color_set(C, eye, eye->init_col);
+	if (eye->is_set) {
+		eyedropper_color_set(C, eye, eye->init_col);
+	}
 	eyedropper_exit(C, op);
 }
 
