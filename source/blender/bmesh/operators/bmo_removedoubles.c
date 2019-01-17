@@ -31,6 +31,7 @@
 #include "BLI_math.h"
 #include "BLI_alloca.h"
 #include "BLI_kdtree.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines_stack.h"
 #include "BLI_stack.h"
 
@@ -199,6 +200,15 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
 
+	/* Maintain selection history. */
+	const bool has_selected = !BLI_listbase_is_empty(&bm->selected);
+	const bool use_targetmap_all = has_selected;
+	GHash *targetmap_all = NULL;
+	if (use_targetmap_all) {
+		/* Map deleted to keep elem. */
+		targetmap_all = BLI_ghash_ptr_new(__func__);
+	}
+
 	/* mark merge verts for deletion */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMVert *v_dst = BMO_slot_map_elem_get(slot_targetmap, v);
@@ -207,6 +217,11 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
 			BM_elem_flag_merge_ex(v, v_dst, BM_ELEM_HIDDEN);
+
+			if (use_targetmap_all) {
+				BLI_assert(v != v_dst);
+				BLI_ghash_insert(targetmap_all, v, v_dst);
+			}
 		}
 	}
 
@@ -237,6 +252,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 					e_new = BM_edge_create(bm, v1, v2, e, BM_CREATE_NOP);
 				}
 				BM_elem_flag_merge_ex(e_new, e, BM_ELEM_HIDDEN);
+				if (use_targetmap_all) {
+					BLI_assert(e != e_new);
+					BLI_ghash_insert(targetmap_all, e, e_new);
+				}
 			}
 
 			BMO_edge_flag_enable(bm, e, ELE_DEL);
@@ -259,12 +278,13 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (vert_delete) {
+			bool use_in_place = false;
+			BMFace *f_new = NULL;
 			BMO_face_flag_enable(bm, f, ELE_DEL);
 
 			if (f->len - edge_collapse >= 3) {
 				bool created;
-				BMFace *f_new = remdoubles_createface(bm, f, slot_targetmap, &created);
-
+				f_new = remdoubles_createface(bm, f, slot_targetmap, &created);
 				/* do this so we don't need to return a list of created faces */
 				if (f_new) {
 					if (created) {
@@ -276,13 +296,32 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
 						BMO_face_flag_disable(bm, f, ELE_DEL);
 						BM_face_kill(bm, f_new);
+						use_in_place = true;
 					}
 					else {
 						BM_elem_flag_merge_ex(f_new, f, BM_ELEM_HIDDEN);
 					}
 				}
 			}
+
+			if ((use_in_place == false) && (f_new != NULL)) {
+				BLI_assert(f != f_new);
+				if (use_targetmap_all) {
+					BLI_ghash_insert(targetmap_all, f, f_new);
+				}
+				if (bm->act_face && (f == bm->act_face)) {
+					bm->act_face = f_new;
+				}
+			}
 		}
+	}
+
+	if (has_selected) {
+		BM_select_history_merge_from_targetmap(bm, targetmap_all, targetmap_all, targetmap_all, true);
+	}
+
+	if (use_targetmap_all) {
+		BLI_ghash_free(targetmap_all, NULL, NULL);
 	}
 
 	BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED);
