@@ -64,6 +64,7 @@ typedef struct DriverDropper {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
+	bool is_undo;
 
 	// TODO: new target?
 } DriverDropper;
@@ -84,6 +85,8 @@ static bool driverdropper_init(bContext *C, wmOperator *op)
 		return false;
 	}
 	op->customdata = ddr;
+
+	ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
 	return true;
 }
@@ -153,18 +156,24 @@ static void driverdropper_cancel(bContext *C, wmOperator *op)
 /* main modal status check */
 static int driverdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	DriverDropper *ddr = op->customdata;
+
 	/* handle modal keymap */
 	if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case EYE_MODAL_CANCEL:
+			{
 				driverdropper_cancel(C, op);
 				return OPERATOR_CANCELLED;
-
+			}
 			case EYE_MODAL_SAMPLE_CONFIRM:
+			{
+				const bool is_undo = ddr->is_undo;
 				driverdropper_sample(C, op, event);
 				driverdropper_exit(C, op);
-
-				return OPERATOR_FINISHED;
+				/* Could support finished & undo-skip. */
+				return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+			}
 		}
 	}
 
@@ -224,7 +233,7 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot)
 	ot->poll = driverdropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "mapping_type", prop_driver_create_mapping_types, 0,

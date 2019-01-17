@@ -68,6 +68,7 @@ typedef struct DataDropper {
 	PropertyRNA *prop;
 	short idcode;
 	const char *idcode_name;
+	bool is_undo;
 
 	ID *init_id; /* for resetting on cancel */
 
@@ -97,7 +98,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
 	DataDropper *ddr = MEM_callocN(sizeof(DataDropper), __func__);
 
-	UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
+	uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
 	if ((ddr->ptr.data == NULL) ||
 	    (ddr->prop == NULL) ||
@@ -108,6 +109,8 @@ static int datadropper_init(bContext *C, wmOperator *op)
 		return false;
 	}
 	op->customdata = ddr;
+
+	ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
 	ddr->art = art;
 	ddr->draw_handle_pixel = ED_region_draw_cb_activate(art, datadropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
@@ -254,13 +257,12 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				return OPERATOR_CANCELLED;
 			case EYE_MODAL_SAMPLE_CONFIRM:
 			{
-				bool success;
-
-				success = datadropper_id_sample(C, ddr, event->x, event->y);
+				const bool is_undo = ddr->is_undo;
+				const bool success = datadropper_id_sample(C, ddr, event->x, event->y);
 				datadropper_exit(C, op);
-
 				if (success) {
-					return OPERATOR_FINISHED;
+					/* Could support finished & undo-skip. */
+					return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 				}
 				else {
 					BKE_report(op->reports, RPT_WARNING, "Failed to set value");
@@ -349,7 +351,7 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
 	ot->poll = datadropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 }

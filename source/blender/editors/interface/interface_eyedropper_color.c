@@ -69,6 +69,7 @@ typedef struct Eyedropper {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
+	bool is_undo;
 
 	float init_col[3]; /* for resetting on cancel */
 
@@ -84,7 +85,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 	Eyedropper *eye = MEM_callocN(sizeof(Eyedropper), __func__);
 	eye->use_accum = RNA_boolean_get(op->ptr, "use_accumulate");
 
-	UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
+	uiBut *but = UI_context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
 
 	if ((eye->ptr.data == NULL) ||
 	    (eye->prop == NULL) ||
@@ -96,6 +97,8 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 		return false;
 	}
 	op->customdata = eye;
+
+	eye->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
 	if (RNA_property_subtype(eye->prop) != PROP_COLOR) {
 		Scene *scene = CTX_data_scene(C);
@@ -259,11 +262,15 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				eyedropper_cancel(C, op);
 				return OPERATOR_CANCELLED;
 			case EYE_MODAL_SAMPLE_CONFIRM:
+			{
+				const bool is_undo = eye->is_undo;
 				if (eye->accum_tot == 0) {
 					eyedropper_color_sample(C, eye, event->x, event->y);
 				}
 				eyedropper_exit(C, op);
-				return OPERATOR_FINISHED;
+				/* Could support finished & undo-skip. */
+				return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+			}
 			case EYE_MODAL_SAMPLE_BEGIN:
 				/* enable accum and make first sample */
 				eye->accum_start = true;
@@ -343,7 +350,7 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 	ot->poll = eyedropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 	PropertyRNA *prop;

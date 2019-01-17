@@ -67,6 +67,7 @@
 typedef struct DepthDropper {
 	PointerRNA ptr;
 	PropertyRNA *prop;
+	bool is_undo;
 
 	float init_depth; /* for resetting on cancel */
 
@@ -99,7 +100,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 
 	DepthDropper *ddr = MEM_callocN(sizeof(DepthDropper), __func__);
 
-	UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
+	uiBut *but = UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
 
 	/* fallback to the active camera's dof */
 	if (ddr->prop == NULL) {
@@ -122,6 +123,8 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 		return false;
 	}
 	op->customdata = ddr;
+
+	ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
 	ddr->art = art;
 	ddr->draw_handle_pixel = ED_region_draw_cb_activate(art, depthdropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
@@ -268,6 +271,8 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				depthdropper_cancel(C, op);
 				return OPERATOR_CANCELLED;
 			case EYE_MODAL_SAMPLE_CONFIRM:
+			{
+				const bool is_undo = ddr->is_undo;
 				if (ddr->accum_tot == 0) {
 					depthdropper_depth_sample(C, ddr, event->x, event->y);
 				}
@@ -275,7 +280,9 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					depthdropper_depth_set_accum(C, ddr);
 				}
 				depthdropper_exit(C, op);
-				return OPERATOR_FINISHED;
+				/* Could support finished & undo-skip. */
+				return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+			}
 			case EYE_MODAL_SAMPLE_BEGIN:
 				/* enable accum and make first sample */
 				ddr->accum_start = true;
@@ -380,7 +387,7 @@ void UI_OT_eyedropper_depth(wmOperatorType *ot)
 	ot->poll = depthdropper_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
 }
