@@ -627,8 +627,8 @@ static void subdiv_foreach_edge_vertices_special_do(
 			        corner,
 			        subdiv_vertex_index);
 		}
-		const int next_ptex_face_index =
-		        ptex_face_start_index + (corner + 1) % coarse_poly->totloop;
+		const int next_corner = (corner + 1) % coarse_poly->totloop;
+		const int next_ptex_face_index = ptex_face_start_index + next_corner;
 		for (int vertex_index = 1;
 		     vertex_index < num_vertices_per_ptex_edge - 1;
 		     vertex_index++, subdiv_vertex_index += veretx_delta)
@@ -641,7 +641,7 @@ static void subdiv_foreach_edge_vertices_special_do(
 			        0.0f, v,
 			        coarse_edge_index,
 			        coarse_poly_index,
-			        corner,
+			        next_corner,
 			        subdiv_vertex_index);
 		}
 	}
