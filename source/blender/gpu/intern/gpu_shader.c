@@ -563,18 +563,7 @@ int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
 	const GPUShaderInput *uniform = GPU_shaderinterface_uniform(shader->interface, name);
-#if 1 /* Remove this when we have transitionned all uniforms. */
-	if (uniform == NULL) {
-#  ifndef NDEBUG
-		printf("Uniform \"%s\" needs to be added to shader interface after shader creation.\n", name);
-#  endif
-		/* Fallback to avoid issues. */
-		return GPU_shader_get_uniform_ensure(shader, name);
-	}
-#else
-	BLI_assert(uniform);
-#endif
-	return uniform->location;
+	return uniform ? uniform->location : -2;
 }
 
 int GPU_shader_get_uniform_ensure(GPUShader *shader, const char *name)

@@ -103,6 +103,17 @@ extern struct GPUUniformBuffer *view_ubo; /* draw_manager_exec.c */
 static void drw_state_prepare_clean_for_draw(DRWManager *dst)
 {
 	memset(dst, 0x0, offsetof(DRWManager, gl_context));
+
+	/* Maybe not the best place for this. */
+	if (!DST.uniform_names.buffer) {
+		DST.uniform_names.buffer = MEM_callocN(DRW_UNIFORM_BUFFER_NAME, "Name Buffer");
+		DST.uniform_names.buffer_len = DRW_UNIFORM_BUFFER_NAME;
+	}
+	else if (DST.uniform_names.buffer_len > DRW_UNIFORM_BUFFER_NAME) {
+		DST.uniform_names.buffer = MEM_reallocN(DST.uniform_names.buffer, DRW_UNIFORM_BUFFER_NAME);
+		DST.uniform_names.buffer_len = DRW_UNIFORM_BUFFER_NAME;
+	}
+	DST.uniform_names.buffer_ofs = 0;
 }
 
 /* This function is used to reset draw manager to a state
@@ -2615,6 +2626,8 @@ void DRW_engines_free(void)
 	MEM_SAFE_FREE(DST.RST.bound_tex_slots);
 	MEM_SAFE_FREE(DST.RST.bound_ubos);
 	MEM_SAFE_FREE(DST.RST.bound_ubo_slots);
+
+	MEM_SAFE_FREE(DST.uniform_names.buffer);
 
 	DRW_opengl_context_disable();
 }

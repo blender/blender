@@ -1050,6 +1050,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 	/* Binding Uniform */
 	for (DRWUniform *uni = shgroup->uniforms; uni; uni = uni->next) {
+		if (uni->location == -2) {
+			uni->location = GPU_shader_get_uniform_ensure(shgroup->shader, DST.uniform_names.buffer + uni->name_ofs);
+			if (uni->location == -1) {
+				continue;
+			}
+		}
 		switch (uni->type) {
 			case DRW_UNIFORM_SHORT_TO_INT:
 				val = (int)*((short *)uni->pvalue);
