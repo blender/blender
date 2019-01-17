@@ -58,6 +58,8 @@
 
 #include "intern/openexr/openexr_multi.h"
 
+#include "RE_engine.h"
+
 #include "render_result.h"
 #include "render_types.h"
 
@@ -1114,8 +1116,25 @@ void render_result_save_empty_result_tiles(Render *re)
 	}
 }
 
+static void render_result_register_pass_cb(RenderEngine *engine, Scene *UNUSED(scene), SceneRenderLayer *srl,
+                                           const char *name, int channels, const char *chanid, int UNUSED(type))
+{
+	RE_engine_add_pass(engine, name, channels, chanid, srl->name);
+}
+
+static void render_result_create_all_passes(RenderEngine *engine, Render *re, RenderLayer *rl)
+{
+	if (engine && engine->type->update_render_passes) {
+		SceneRenderLayer *srl;
+		srl = BLI_findstring(&re->r.layers, rl->name, offsetof(SceneRenderLayer, name));
+		if (srl) {
+			RE_engine_update_render_passes(engine, re->scene, srl, render_result_register_pass_cb);
+		}
+	}
+}
+
 /* begin write of exr tile file */
-void render_result_exr_file_begin(Render *re)
+void render_result_exr_file_begin(Render *re, RenderEngine *engine)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -1123,6 +1142,8 @@ void render_result_exr_file_begin(Render *re)
 
 	for (rr = re->result; rr; rr = rr->next) {
 		for (rl = rr->layers.first; rl; rl = rl->next) {
+			render_result_create_all_passes(engine, re, rl);
+
 			render_result_exr_file_path(re->scene, rl->name, rr->sample_nr, str);
 			printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 			IMB_exrtile_begin_write(rl->exrhandle, str, 0, rr->rectx, rr->recty, re->partx, re->party);
@@ -1131,7 +1152,7 @@ void render_result_exr_file_begin(Render *re)
 }
 
 /* end write of exr tile file, read back first sample */
-void render_result_exr_file_end(Render *re)
+void render_result_exr_file_end(Render *re, RenderEngine *engine)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -1148,7 +1169,7 @@ void render_result_exr_file_end(Render *re)
 	render_result_free_list(&re->fullresult, re->result);
 	re->result = NULL;
 
-	render_result_exr_file_read_sample(re, 0);
+	render_result_exr_file_read_sample(re, 0, engine);
 }
 
 /* save part into exr file */
@@ -1178,7 +1199,7 @@ void render_result_exr_file_path(Scene *scene, const char *layname, int sample, 
 }
 
 /* only for temp buffer, makes exact copy of render result */
-int render_result_exr_file_read_sample(Render *re, int sample)
+int render_result_exr_file_read_sample(Render *re, int sample, RenderEngine *engine)
 {
 	RenderLayer *rl;
 	char str[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
@@ -1188,6 +1209,8 @@ int render_result_exr_file_read_sample(Render *re, int sample)
 	re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
 
 	for (rl = re->result->layers.first; rl; rl = rl->next) {
+		render_result_create_all_passes(engine, re, rl);
+
 		render_result_exr_file_path(re->scene, rl->name, sample, str);
 		printf("read exr tmp file: %s\n", str);
 

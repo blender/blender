@@ -1350,7 +1350,7 @@ static void main_render_result_end(Render *re)
 {
 	if (re->result->do_exr_tile) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-		render_result_exr_file_end(re);
+		render_result_exr_file_end(re, NULL);
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 
@@ -1382,7 +1382,7 @@ static void main_render_result_new(Render *re)
 
 	if (re->result) {
 		if (re->result->do_exr_tile) {
-			render_result_exr_file_begin(re);
+			render_result_exr_file_begin(re, NULL);
 		}
 	}
 }
@@ -2347,7 +2347,7 @@ static void composite_freestyle_renders(Render *re, int sample)
 
 				/* may be NULL in case of empty render layer */
 				if (freestyle_render) {
-					render_result_exr_file_read_sample(freestyle_render, sample);
+					render_result_exr_file_read_sample(freestyle_render, sample, NULL);
 					FRS_composite_result(re, srl, freestyle_render);
 					RE_FreeRenderResult(freestyle_render->result);
 					freestyle_render->result = NULL;
@@ -2446,7 +2446,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 				if (re1 && (re1->r.scemode & R_FULL_SAMPLE)) {
 					if (sample) {
 						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-						render_result_exr_file_read_sample(re1, sample);
+						render_result_exr_file_read_sample(re1, sample, NULL);
 #ifdef WITH_FREESTYLE
 						if (re1->r.mode & R_EDGE_FRS)
 							composite_freestyle_renders(re1, sample);
