@@ -455,12 +455,6 @@ class USERPREF_PT_animation_autokey(PreferencePanel):
     bl_label = "Auto-Keyframing"
     bl_parent_id = "USERPREF_PT_animation_keyframes"
 
-    def draw_header(self, context):
-        prefs = context.preferences
-        edit = prefs.edit
-
-        self.layout.prop(edit, "use_auto_keying", text="")
-
     def draw_props(self, context, layout):
         prefs = context.preferences
         edit = prefs.edit
@@ -469,6 +463,7 @@ class USERPREF_PT_animation_autokey(PreferencePanel):
 
         flow.prop(edit, "use_auto_keying_warning", text="Show Warning")
         flow.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
+        flow.prop(edit, "use_auto_keying", text="Enable in New Scenes")
 
 
 class USERPREF_PT_animation_fcurves(PreferencePanel):
