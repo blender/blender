@@ -3057,6 +3057,13 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{ 0, NULL, 0, NULL, NULL },
 	};
 
+	static EnumPropertyItem prop_miter_items[] = {
+		{ MOD_BEVEL_MITER_SHARP, "MITER_SHARP", 0, "Sharp", "Default sharp miter" },
+		{ MOD_BEVEL_MITER_PATCH, "MITER_PATCH", 0, "Patch", "Miter with extra corner" },
+		{ MOD_BEVEL_MITER_ARC, "MITER_ARC", 0, "Arc", "Miter with curved arc" },
+		{ 0, NULL, 0, NULL, NULL },
+	};
+
 	srna = RNA_def_struct(brna, "BevelModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Bevel Modifier", "Bevel modifier to make edges and vertices more rounded");
 	RNA_def_struct_sdna(srna, "BevelModifierData");
@@ -3154,13 +3161,32 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "harden_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_HARDEN_NORMALS);
 	RNA_def_property_ui_text(prop, "Harden Normals",
-	                         "Match normals of new faces to adjacent faces");
+		"Match normals of new faces to adjacent faces");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "face_strength_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "face_str_mode");
 	RNA_def_property_enum_items(prop, prop_harden_normals_items);
 	RNA_def_property_ui_text(prop, "Set Face Strength", "Whether to set face strength, and which faces to set it on");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "miter_outer", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "miter_outer");
+	RNA_def_property_enum_items(prop, prop_miter_items);
+	RNA_def_property_ui_text(prop, "Outer Miter", "Pattern to use for outside of miters");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "miter_inner", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "miter_inner");
+	RNA_def_property_enum_items(prop, prop_miter_items);
+	RNA_def_property_ui_text(prop, "Inner Miter", "Pattern to use for inside of miters");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "spread", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1, 4);
+	RNA_def_property_ui_text(prop, "Spread", "Spread distance for inner miter arcs");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

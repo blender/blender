@@ -34,6 +34,7 @@ void BM_mesh_bevel(
         const float profile, const bool vertex_only, const bool use_weights,
         const bool limit_offset, const struct MDeformVert *dvert, const int vertex_group,
         const int mat, const bool loop_slide, const bool mark_seam, const bool mark_sharp,
-        const bool harden_normals, const int face_strength_mode, const float smoothresh);
+        const bool harden_normals, const int face_strength_mode, const int miter_outer,
+        const int miter_inner, const float spread, const float smoothresh);
 
 #endif /* __BMESH_BEVEL_H__ */

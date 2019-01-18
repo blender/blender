@@ -125,6 +125,13 @@ enum {
 	BEVEL_FACE_STRENGTH_ALL,
 };
 
+/* Bevel miter slot values */
+enum {
+	BEVEL_MITER_SHARP,
+	BEVEL_MITER_PATCH,
+	BEVEL_MITER_ARC,
+};
+
 extern const BMOpDefine *bmo_opdefines[];
 extern const int         bmo_opdefines_total;
 

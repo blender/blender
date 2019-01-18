@@ -166,6 +166,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Set Face Strength Mode")
         layout.row().prop(md, "face_strength_mode", expand=True)
 
+        layout.label(text="Miter Patterns")
+        layout.row().prop(md, "miter_outer")
+        layout.row().prop(md, "miter_inner")
+        layout.row().prop(md, "spread")
+
     def BOOLEAN(self, layout, ob, md):
         split = layout.split()
 

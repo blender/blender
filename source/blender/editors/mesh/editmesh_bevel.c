@@ -156,7 +156,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 
 	{
 		uint ob_store_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &ob_store_len);
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+			view_layer, CTX_wm_view3d(C), &ob_store_len);
 		opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
 		for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
 			Object *obedit = objects[ob_index];
@@ -234,7 +235,9 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
 	const bool harden_normals = RNA_boolean_get(op->ptr, "harden_normals");
 	const int face_strength_mode = RNA_enum_get(op->ptr, "face_strength_mode");
-
+	const int miter_outer = RNA_enum_get(op->ptr, "miter_outer");
+	const int miter_inner = RNA_enum_get(op->ptr, "miter_inner");
+	const float spread = RNA_float_get(op->ptr, "spread");
 
 	for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
 		em = opdata->ob_store[ob_index].em;
@@ -259,10 +262,11 @@ static bool edbm_bevel_calc(wmOperator *op)
 		        em, &bmop, op,
 		        "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f "
 		        "clamp_overlap=%b material=%i loop_slide=%b mark_seam=%b mark_sharp=%b "
-		        "harden_normals=%b face_strength_mode=%i smoothresh=%f",
+		        "harden_normals=%b face_strength_mode=%i "
+		        "miter_outer=%i miter_inner=%i spread=%f smoothresh=%f",
 		        BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
 		        clamp_overlap, material, loop_slide, mark_seam, mark_sharp, harden_normals, face_strength_mode,
-		        me->smoothresh);
+		        miter_outer, miter_inner, spread, me->smoothresh);
 
 		BMO_op_exec(em->bm, &bmop);
 
@@ -691,6 +695,19 @@ void MESH_OT_bevel(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL},
 	};
 
+	static const EnumPropertyItem miter_outer_items[] = {
+		{BEVEL_MITER_SHARP, "SHARP", 0, "Sharp", "Outside of miter is sharp"},
+		{BEVEL_MITER_PATCH, "PATCH", 0, "Patch", "Outside of miter is squared-off patch"},
+		{BEVEL_MITER_ARC, "ARC", 0, "Arc", "Outside of miter is arc"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
+	static const EnumPropertyItem miter_inner_items[] = {
+		{BEVEL_MITER_SHARP, "SHARP", 0, "Sharp", "Inside of miter is sharp"},
+		{BEVEL_MITER_ARC, "ARC", 0, "Arc", "Inside of miter is arc"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
 	/* identifiers */
 	ot->name = "Bevel";
 	ot->description = "Edge Bevel";
@@ -720,9 +737,16 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mark_sharp", false, "Mark Sharp", "Mark beveled edges as sharp");
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material",
 		"Material for bevel faces (-1 means use adjacent faces)", -1, 100);
-	RNA_def_boolean(ot->srna, "harden_normals", false, "Harden Normals", "Match normals of new faces to adjacent faces");
+	RNA_def_boolean(ot->srna, "harden_normals", false, "Harden Normals",
+		"Match normals of new faces to adjacent faces");
 	RNA_def_enum(ot->srna, "face_strength_mode", face_strength_mode_items, BEVEL_FACE_STRENGTH_NONE,
 		"Face Strength Mode", "Whether to set face strength, and which faces to set face strength on");
+	RNA_def_enum(ot->srna, "miter_outer", miter_outer_items, BEVEL_MITER_SHARP,
+		"Outer Miter", "Pattern to use for outside of miters");
+	RNA_def_enum(ot->srna, "miter_inner", miter_inner_items, BEVEL_MITER_SHARP,
+		"Inner Miter", "Pattern to use for inside of miters");
+	RNA_def_float(ot->srna, "spread", 0.1f, 0.0f, 1e6f, "Spread",
+		"Amount to spread arcs for arc inner miters", 0.0f, 100.0f);
 	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 

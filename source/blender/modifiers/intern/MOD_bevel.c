@@ -67,6 +67,9 @@ static void initData(ModifierData *md)
 	bmd->e_flags = 0;
 	bmd->edge_flags = 0;
 	bmd->face_str_mode = MOD_BEVEL_FACE_STRENGTH_NONE;
+	bmd->miter_inner = MOD_BEVEL_MITER_SHARP;
+	bmd->miter_outer = MOD_BEVEL_MITER_SHARP;
+	bmd->spread = 0.1f;
 	bmd->mat = -1;
 	bmd->profile = 0.5f;
 	bmd->bevel_angle = DEG2RADF(30.0f);
@@ -119,6 +122,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const bool mark_sharp = (bmd->edge_flags & MOD_BEVEL_MARK_SHARP);
 	bool harden_normals = (bmd->flags & MOD_BEVEL_HARDEN_NORMALS);
 	const int face_strength_mode = bmd->face_str_mode;
+	const int miter_outer = bmd->miter_outer;
+	const int miter_inner = bmd->miter_inner;
+	const float spread = bmd->spread;
 
 	bm = BKE_mesh_to_bmesh_ex(
 	        mesh,
@@ -196,7 +202,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	BM_mesh_bevel(bm, value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide, mark_seam, mark_sharp,
-	              harden_normals, face_strength_mode, mesh->smoothresh);
+	              harden_normals, face_strength_mode,
+	              miter_outer, miter_inner, spread, mesh->smoothresh);
 
 	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 

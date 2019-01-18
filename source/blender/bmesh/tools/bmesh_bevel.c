@@ -154,6 +154,8 @@ typedef struct BoundVert {
 	Profile profile;    /* edge profile between this and next BoundVert */
 	bool any_seam;      /* are any of the edges attached here seams? */
 	bool visited;       /* used during delta adjust pass */
+	bool is_arc_start;	/* this boundvert begins an arc profile */
+	bool is_patch_start; /* this boundvert begins a patch profile */
 	int seam_len;		/* length of seam starting from current boundvert to next boundvert with ccw ordering */
 	int sharp_len;		/* Same as seam_len but defines length of sharp edges */
 //	int _pad;
@@ -222,6 +224,9 @@ typedef struct BevelParams {
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
 	int mat_nr;             /* if >= 0, material number for bevel; else material comes from adjacent faces */
 	int face_strength_mode; /* setting face strength if > 0 */
+	int miter_outer;        /* what kind of miter pattern to use on reflex angles */
+	int miter_inner;		/* what kind of miter pattern to use on non-reflex angles */
+	float spread;			/* amount to spread when doing inside miter */
 	float smoothresh;		/* mesh's smoothresh, used if hardening */
 } BevelParams;
 
@@ -306,6 +311,9 @@ static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, const float
 	ans->adjchain = NULL;
 	ans->sinratio = 1.0f;
 	ans->visited = false;
+	ans->any_seam = false;
+	ans->is_arc_start = false;
+	ans->is_patch_start = false;
 	vm->count++;
 	return ans;
 }
@@ -450,7 +458,7 @@ static BMFace *boundvert_rep_face(BoundVert *v, BMFace **r_fother)
 		if (v->efirst->fprev != frep)
 			frep2 = v->efirst->fprev;
 	}
-	else {
+	else if (v->efirst) {
 		frep = v->efirst->fprev;
 		if (frep) {
 			if (v->elast->fnext != frep)
@@ -468,6 +476,18 @@ static BMFace *boundvert_rep_face(BoundVert *v, BMFace **r_fother)
 		else if (v->elast->fprev) {
 			frep = v->elast->fprev;
 		}
+	}
+	else if (v->prev->elast) {
+		frep = v->prev->elast->fnext;
+		if (v->next->efirst) {
+			if (frep)
+				frep2 = v->next->efirst->fprev;
+			else
+				frep = v->next->efirst->fprev;
+		}
+	}
+	else {
+		frep = NULL;
 	}
 	if (r_fother)
 		*r_fother = frep2;
@@ -735,6 +755,33 @@ static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_
 	else {
 		return false;
 	}
+}
+
+/* Return -1, 0, or 1 as angle from e1 to e2 is <. =, or > 180 degrees */
+static int edges_angle_kind(EdgeHalf *e1, EdgeHalf *e2, BMVert *v)
+{
+	BMVert *v1, *v2;
+	float dir1[3], dir2[3], cross[3], *no, dot;
+
+	v1 = BM_edge_other_vert(e1->e, v);
+	v2 = BM_edge_other_vert(e2->e, v);
+	sub_v3_v3v3(dir1, v->co, v1->co);
+	sub_v3_v3v3(dir2, v->co, v2->co);
+	/* angles are in [0,pi]. need to compare cross product with normal to see if they are reflex */
+	cross_v3_v3v3(cross, dir1, dir2);
+	if (e1->fnext)
+		no = e1->fnext->no;
+	else if (e2->fprev)
+		no = e2->fprev->no;
+	else
+		no = v->no;
+	dot = dot_v3v3(cross, no);
+	if (fabsf(dot) < BEVEL_EPSILON_BIG)
+		return 0;
+	else if (dot < 0.0f)
+		return 1;
+	else
+		return -1;
 }
 
 /* co should be approximately on the plane between e1 and e2, which share common vert v
@@ -1180,6 +1227,16 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 			}
 		}
 		copy_v3_v3(pro->plane_co, co1);
+	}
+	else if (bndv->is_arc_start) {
+		/* assume pro->midco was alredy set */
+		copy_v3_v3(pro->coa, co1);
+		copy_v3_v3(pro->cob, co2);
+		pro->super_r = PRO_CIRCLE_R;
+		zero_v3(pro->plane_co);
+		zero_v3(pro->plane_no);
+		zero_v3(pro->proj_dir);
+		do_linear_interp = false;
 	}
 	if (do_linear_interp) {
 		pro->super_r = PRO_LINE_R;
@@ -2129,6 +2186,87 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 	}
 }
 
+/* Helper for build_boundary to handle special miters */
+static void adjust_miter_coords(BevelParams *bp, BevVert *bv, EdgeHalf *emiter)
+{
+	float co1[3], co2[3], co3[3], edge_dir[3], line_p[3];
+	BoundVert *v1, *v2, *v3, *v1prev, *v3next;
+	BMVert *vother;
+	EdgeHalf *emiter_other;
+	int miter_outer = bp->miter_outer;
+
+	v1 = emiter->rightv;
+	if (miter_outer == BEVEL_MITER_PATCH) {
+		v2 = v1->next;
+		v3 = v2->next;
+	}
+	else {
+		BLI_assert(miter_outer == BEVEL_MITER_ARC);
+		v2 = NULL;
+		v3 = v1->next;
+	}
+	v1prev = v1->prev;
+	v3next = v3->next;
+	copy_v3_v3(co2, v1->nv.co);
+	if (v1->is_arc_start)
+		copy_v3_v3(v1->profile.midco, co2);
+
+	/* co1 is intersection of line through co2 in dir of emiter->e
+	 * and plane with normal the dir of emiter->e and through v1prev */
+	vother = BM_edge_other_vert(emiter->e, bv->v);
+	sub_v3_v3v3(edge_dir, bv->v->co, vother->co);
+	normalize_v3(edge_dir);
+	float d = bp->offset / (bp->seg / 2.0f);  /* a fallback amount to move */
+	madd_v3_v3v3fl(line_p, co2, edge_dir, d);
+	if (!isect_line_plane_v3(co1, co2, line_p, v1prev->nv.co, edge_dir)) {
+		copy_v3_v3(co1, line_p);
+	}
+	adjust_bound_vert(v1, co1);
+
+	/* co3 is similar, but plane is through v3next and line is other side of miter edge */
+	emiter_other = v3->efirst;
+	vother = BM_edge_other_vert(emiter_other->e, bv->v);
+	sub_v3_v3v3(edge_dir, bv->v->co,  vother->co);
+	normalize_v3(edge_dir);
+	madd_v3_v3v3fl(line_p, co2, edge_dir, d);
+	if (!isect_line_plane_v3(co3, co2, line_p, v3next->nv.co, edge_dir)) {
+		copy_v3_v3(co1, line_p);
+	}
+	adjust_bound_vert(v3, co3);
+}
+
+static void adjust_miter_inner_coords(BevelParams *bp, BevVert *bv, EdgeHalf *emiter)
+{
+	BoundVert *v, *vstart, *v3;
+	EdgeHalf *e;
+	BMVert *vother;
+	float edge_dir[3], co[3];
+
+	v = vstart = bv->vmesh->boundstart;
+	do {
+		if (v->is_arc_start) {
+			v3 = v->next;
+			e = v->efirst;
+			if (e != emiter) {
+				copy_v3_v3(co, v->nv.co);
+				vother = BM_edge_other_vert(e->e, bv->v);
+				sub_v3_v3v3(edge_dir, vother->co, bv->v->co);
+				normalize_v3(edge_dir);
+				madd_v3_v3v3fl(v->nv.co, co, edge_dir, bp->spread);
+				e = v3->elast;
+				vother = BM_edge_other_vert(e->e, bv->v);
+				sub_v3_v3v3(edge_dir, vother->co, bv->v->co);
+				normalize_v3(edge_dir);
+				madd_v3_v3v3fl(v3->nv.co, co, edge_dir, bp->spread);
+			}
+			v = v3->next;
+		}
+		else {
+			v = v->next;
+		}
+	} while (v != vstart);
+}
+
 /* Make a circular list of BoundVerts for bv, each of which has the coordinates
  * of a vertex on the boundary of the beveled vertex bv->v.
  * This may adjust some EdgeHalf widths, and there might have to be
@@ -2144,11 +2282,12 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 {
 	MemArena *mem_arena = bp->mem_arena;
-	EdgeHalf *efirst, *e, *e2, *e3, *enip, *eip, *eon;
-	BoundVert *v;
+	EdgeHalf *efirst, *e, *e2, *e3, *enip, *eip, *eon, *emiter;
+	BoundVert *v, *v1, *v2, *v3;
 	VMesh *vm;
 	float co[3], r;
-	int nip, nnip;
+	int nip, nnip, miter_outer, miter_inner;
+	int ang_kind;
 
 	/* Current bevel does nothing if only one edge into a vertex */
 	if (bv->edgecount <= 1)
@@ -2170,6 +2309,13 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		build_boundary_terminal_edge(bp, bv, efirst, construct);
 		return;
 	}
+
+	/* Special miters outside only for 3 or more beveled edges */
+	miter_outer = (bv->selcount >= 3) ? bp->miter_outer : BEVEL_MITER_SHARP;
+	miter_inner = bp->miter_inner;
+
+	/* keep track of the first beveled edge of an outside miter (there can be at most 1 per bv */
+	emiter = NULL;
 
 	/* Here: there is more than one beveled edge.
 	 * We make BoundVerts to connect the sides of the beveled edges.
@@ -2231,12 +2377,91 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 			for (e3 = e->next; e3 != e2; e3 = e3->next) {
 				e3->leftv = e3->rightv = v;
 			}
+			ang_kind = edges_angle_kind(e, e2, bv->v);
+			if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == 1) ||
+				(miter_inner != BEVEL_MITER_SHARP && ang_kind == -1))
+			{
+				if (ang_kind == 1)
+					emiter = e;  /* a reflex angle, i.e., the (only) outer miter, if any */
+				/* make one or two more boundverts; for now all will have same co */
+				v1 = v;
+				v1->ebev = NULL;
+				if (ang_kind == 1 && miter_outer == BEVEL_MITER_PATCH) {
+					v1->is_patch_start = true;
+					v2 = add_new_bound_vert(mem_arena, vm, co);
+					v2->eon = v1->eon;
+					v2->sinratio = v1->sinratio;
+					v2->ebev = NULL;
+					v1->eon = NULL;
+					v1->sinratio = 1.0f;
+					v1->elast = e;
+					if (e->next == e2) {
+						v2->efirst = NULL;
+						v2->elast = NULL;
+					}
+					else {
+						v2->efirst = e->next;
+						for (e3 = e->next; e3 != e2; e3 = e3->next) {
+							e3->leftv = e3->rightv = v2;
+							v2->elast = e3;
+						}
+					}
+				}
+				else {
+					v1->is_arc_start = true;
+					copy_v3_v3(v1->profile.midco, co);
+					v2 = NULL;
+					if (e->next == e2) {
+						v1->elast = v1->efirst;
+					}
+					else {
+						for (e3 = e->next; e3 != e2; e3 = e3->next) {
+							v1->elast = e3;
+						}
+					}
+				}
+				v3 = add_new_bound_vert(mem_arena, vm, co);
+				v3->ebev = e2;
+				v3->efirst = e2;
+				v3->elast = e2;
+				v3->eon = NULL;
+				e2->leftv = v3;
+			}
 		}
 		else {
-			adjust_bound_vert(e->rightv, co);
+			ang_kind = edges_angle_kind(e, e2, bv->v);
+			if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == 1) ||
+				(miter_inner != BEVEL_MITER_SHARP && ang_kind == -1))
+			{
+				if (ang_kind == 1)
+					emiter = e;
+				v1 = e->rightv;
+				if (ang_kind == 1  && miter_outer == BEVEL_MITER_PATCH) {
+					v2 = v1->next;
+					v3 = v2->next;
+				}
+				else {
+					v2 = NULL;
+					v3 = v1->next;
+				}
+				adjust_bound_vert(v1, co);
+				if (v2)
+					adjust_bound_vert(v2, co);
+				adjust_bound_vert(v3, co);
+			}
+			else {
+				adjust_bound_vert(e->rightv, co);
+			}
 		}
 		e = e2;
 	} while (e != efirst);
+
+	if (miter_inner != BEVEL_MITER_SHARP) {
+		adjust_miter_inner_coords(bp, bv, emiter);
+	}
+	if (emiter) {
+		adjust_miter_coords(bp, bv, emiter);
+	}
 
 	calculate_vm_profiles(bp, bv, vm);
 
@@ -3304,6 +3529,8 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
 
 	if (bp->vertex_only)
 		return -1;
+	if (bv->vmesh->count != 3)
+		return 0;
 	totang = 0.0f;
 	for (i = 0; i < bv->edgecount; i++) {
 		e = &bv->edges[i];
@@ -3658,10 +3885,11 @@ static void closer_v3_v3v3v3(float r[3], float a[3], float b[3], float v[3])
  * We have to move the boundary edges too -- the usual method is to make one profile plane between
  * successive BoundVerts, but for the effect we want here, there will be two planes, one on each side
  * of the original edge.
+ * At the moment, this is not called for odd number of segments, though code does something if it is.
  */
 static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
 {
-	int n, ns, ns2, odd, i, j, k, ikind, im1, clstride;
+	int n, ns, ns2, odd, i, j, k, ikind, im1, clstride, iprev, akind;
 	float bndco[3], dir1[3], dir2[3], co1[3], co2[3], meet1[3], meet2[3], v1co[3], v2co[3];
 	float *on_edge_cur, *on_edge_prev, *p;
 	float ns2inv, finalfrac, ang;
@@ -3669,6 +3897,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
 	EdgeHalf *e1, *e2;
 	VMesh *vm;
 	float *centerline;
+	bool *cset, v1set, v2set;
 
 	n = bv->vmesh->count;
 	ns = bv->vmesh->seg;
@@ -3678,52 +3907,118 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
 	vm = new_adj_vmesh(bp->mem_arena, n, ns, bv->vmesh->boundstart);
 	clstride = 3 * (ns2 + 1);
 	centerline = MEM_mallocN(clstride * n * sizeof(float), "bevel");
+	cset = MEM_callocN(n * sizeof(bool), "bevel");
 
 	/* find on_edge, place on bndv[i]'s elast where offset line would meet,
-	 * averaging with position where next sector's offset line would meet */
+	 * taking min-distance-to bv->v with position where next sector's offset line would meet */
 	bndv = vm->boundstart;
 	for (i = 0; i < n; i++) {
 		copy_v3_v3(bndco, bndv->nv.co);
 		e1 = bndv->efirst;
 		e2 = bndv->elast;
-		sub_v3_v3v3(dir1, e1->e->v1->co, e1->e->v2->co);
-		sub_v3_v3v3(dir2, e2->e->v1->co, e2->e->v2->co);
-		add_v3_v3v3(co1, bndco, dir1);
-		add_v3_v3v3(co2, bndco, dir2);
-		/* intersect e1 with line through bndv parallel to e2 to get v1co */
-		ikind = isect_line_line_v3(e1->e->v1->co, e1->e->v2->co, bndco, co2, meet1, meet2);
+		akind = 0;
+		if (e1 && e2)
+			akind = edges_angle_kind(e1, e2, bv->v);
+		if (bndv->is_patch_start) {
+			mid_v3_v3v3(centerline + clstride * i, bndv->nv.co, bndv->next->nv.co);
+			cset[i] = true;
+			bndv = bndv->next;
+			i++;
+			mid_v3_v3v3(centerline + clstride * i, bndv->nv.co, bndv->next->nv.co);
+			cset[i] = true;
+			bndv = bndv->next;
+			i++;
+			/* leave cset[i] where it was - probably false, unless i == n - 1 */
+		}
+		else if (bndv->is_arc_start) {
+			e1 = bndv->efirst;
+			e2 = bndv->next->efirst;
+			copy_v3_v3(centerline + clstride * i, bndv->profile.midco);
+			bndv = bndv->next;
+			cset[i] = true;
+			i++;
+			/* leave cset[i] where it was - probably false, unless i == n - 1 */
+		}
+		else if (akind < 0) {
+			sub_v3_v3v3(dir1, e1->e->v1->co, e1->e->v2->co);
+			sub_v3_v3v3(dir2, e2->e->v1->co, e2->e->v2->co);
+			add_v3_v3v3(co1, bndco, dir1);
+			add_v3_v3v3(co2, bndco, dir2);
+			/* intersect e1 with line through bndv parallel to e2 to get v1co */
+			ikind = isect_line_line_v3(e1->e->v1->co, e1->e->v2->co, bndco, co2, meet1, meet2);
+			if (ikind == 0) {
+				v1set = false;
+			}
+			else {
+				/* if the lines are skew (ikind == 2), want meet1 which is on e1 */
+				copy_v3_v3(v1co, meet1);
+				v1set = true;
+			}
+			/* intersect e2 with line through bndv parallel to e1 to get v2co */
+			ikind = isect_line_line_v3(e2->e->v1->co, e2->e->v2->co, bndco, co1, meet1, meet2);
+			if (ikind == 0) {
+				v2set = false;
+			}
+			else {
+				v2set = true;
+				copy_v3_v3(v2co, meet1);
+			}
 
-		if (ikind == 0) {
-			/* Placeholder: this should get eliminated by min dist test with adjacent edge */
-			mid_v3_v3v3(v1co, e1->e->v1->co, e1->e->v2->co);
+			/* want on_edge[i] to be min dist to bv->v of v2co and the v1co of next iteration */
+			on_edge_cur = centerline + clstride * i;
+			iprev = (i == 0) ? n - 1 : i - 1;
+			on_edge_prev = centerline + clstride * iprev;
+			if (v2set) {
+				if (cset[i]) {
+					closer_v3_v3v3v3(on_edge_cur, on_edge_cur, v2co, bv->v->co);
+				}
+				else {
+					copy_v3_v3(on_edge_cur, v2co);
+					cset[i] = true;
+				}
+			}
+			if (v1set) {
+				if (cset[iprev]) {
+					closer_v3_v3v3v3(on_edge_prev, on_edge_prev, v1co, bv->v->co);
+				}
+				else {
+					copy_v3_v3(on_edge_prev, v1co);
+					cset[iprev] = true;
+				}
+			}
 		}
-		else {
-			/* if the lines are skew (ikind == 2), want meet1 which is on e1 */
-			copy_v3_v3(v1co, meet1);
-		}
-		/* intersect e2 with line through bndv parallel to e1 to get v2co */
-		ikind = isect_line_line_v3(e2->e->v1->co, e2->e->v2->co, bndco, co1, meet1, meet2);
-		if (ikind == 0) {
-			mid_v3_v3v3(v2co, e2->e->v1->co, e2->e->v2->co);
-		}
-		else {
-			copy_v3_v3(v2co, meet1);
-		}
-
-		/* want on_edge[i] to be min dist to bv->v of v2co and the v1co of next iteration */
-		on_edge_cur = centerline + clstride * i;
-		on_edge_prev = centerline + clstride * ((i == 0) ? n - 1 : i - 1);
-		if (i == 0) {
-			copy_v3_v3(on_edge_cur, v2co);
-			copy_v3_v3(on_edge_prev, v1co);
-		}
-		else if (i == n - 1) {
-			closer_v3_v3v3v3(on_edge_cur, on_edge_cur, v2co, bv->v->co);
-			closer_v3_v3v3v3(on_edge_prev, on_edge_prev, v1co, bv->v->co);
-		}
-		else {
-			copy_v3_v3(on_edge_cur, v2co);
-			closer_v3_v3v3v3(on_edge_prev, on_edge_prev, v1co, bv->v->co);
+		bndv = bndv->next;
+	}
+	/* Maybe not everything was set by the previous loop */
+	bndv = vm->boundstart;
+	for (i = 0; i < n; i++) {
+		if (!cset[i]) {
+			on_edge_cur = centerline + clstride * i;
+			e1 = bndv->next->efirst;
+			copy_v3_v3(co1, bndv->nv.co);
+			copy_v3_v3(co2, bndv->next->nv.co);
+			if (e1) {
+				if (bndv->prev->is_arc_start && bndv->next->is_arc_start) {
+					ikind = isect_line_line_v3(e1->e->v1->co, e1->e->v2->co, co1, co2, meet1, meet2);
+					if (ikind != 0) {
+						copy_v3_v3(on_edge_cur, meet1);
+						cset[i] = true;
+					}
+				}
+				else {
+					if (bndv->prev->is_arc_start) {
+						closest_to_line_segment_v3(on_edge_cur, co1, e1->e->v1->co, e1->e->v2->co);
+					}
+					else {
+						closest_to_line_segment_v3(on_edge_cur, co2, e1->e->v1->co, e1->e->v2->co);
+					}
+					cset[i] = true;
+				}
+			}
+			if (!cset[i]) {
+				mid_v3_v3v3(on_edge_cur, co1, co2);
+				cset[i] = true;
+			}
 		}
 		bndv = bndv->next;
 	}
@@ -3806,6 +4101,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
 	vmesh_copy_equiv_verts(vm);
 
 	MEM_freeN(centerline);
+	MEM_freeN(cset);
 	return vm;
 }
 
@@ -3889,8 +4185,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 			e = v->efirst;
 		else
 			e = v->ebev;
-		BLI_assert(e != NULL);
-		bme = e->e;
+		bme = e ? e->e : NULL;
 		/* For odd ns, make polys with lower left corner at (i,j,k) for
 		 *    j in [0, ns2-1], k in [0, ns2].  And then the center ngon.
 		 * For even ns,
@@ -3930,7 +4225,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 				else { /* edge bevel */
 					if (odd) {
 						if (k == ns2) {
-							if (e->is_seam) {
+							if (e && e->is_seam) {
 								r_f = bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f, f, f, f,
 								                   NULL, bme, bme, NULL, mat_nr);
 							}
@@ -3944,7 +4239,9 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 					}
 					else {
 						bme1 = k == ns2 - 1 ? bme : NULL;
-						bme3 = j == ns2 - 1 ? v->prev->ebev->e : NULL;
+						bme3 = NULL;
+						if (j == ns2 - 1 && v->prev->ebev)
+							bme3 = v->prev->ebev->e;
 						bme2 = bme1 != NULL ? bme1 : bme3;
 						r_f = bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f, f, f, f,
 						                   NULL, bme1, bme2, bme3, mat_nr);
@@ -5714,12 +6011,14 @@ static void bevel_limit_offset(BevelParams *bp)
  * \warning all tagged edges _must_ be manifold.
  */
 void BM_mesh_bevel(
-        BMesh *bm, const float offset, const int offset_type,
-        const float segments, const float profile,
-        const bool vertex_only, const bool use_weights, const bool limit_offset,
-        const struct MDeformVert *dvert, const int vertex_group, const int mat,
-        const bool loop_slide, const bool mark_seam, const bool mark_sharp,
-        const bool harden_normals, const int face_strength_mode, const float smoothresh)
+	BMesh *bm, const float offset, const int offset_type,
+	const float segments, const float profile,
+	const bool vertex_only, const bool use_weights, const bool limit_offset,
+	const struct MDeformVert *dvert, const int vertex_group, const int mat,
+	const bool loop_slide, const bool mark_seam, const bool mark_sharp,
+	const bool harden_normals, const int face_strength_mode,
+	const int miter_outer, const int miter_inner, const float spread,
+	const float smoothresh)
 {
 	BMIter iter, liter;
 	BMVert *v, *v_next;
@@ -5738,7 +6037,7 @@ void BM_mesh_bevel(
 	bp.use_weights = use_weights;
 	bp.loop_slide = loop_slide;
 	bp.limit_offset = limit_offset;
-	bp.offset_adjust = true;
+	bp.offset_adjust = false; // DEBUG true;
 	bp.dvert = dvert;
 	bp.vertex_group = vertex_group;
 	bp.mat_nr = mat;
@@ -5746,6 +6045,9 @@ void BM_mesh_bevel(
 	bp.mark_sharp = mark_sharp;
 	bp.harden_normals = harden_normals;
 	bp.face_strength_mode = face_strength_mode;
+	bp.miter_outer = miter_outer;
+	bp.miter_inner = miter_inner;
+	bp.spread = spread;
 	bp.smoothresh = smoothresh;
 	bp.face_hash = NULL;
 

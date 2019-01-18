@@ -384,12 +384,16 @@ typedef struct BevelModifierData {
 	short mat;
 	short edge_flags;
 	short face_str_mode;
+	/* patterns to use for mitering non-reflex and reflex miter edges */
+	short miter_inner;
+	short miter_outer;
 	short pad2;
 	/** Controls profile shape (0->1, .5 is round). */
 	float profile;
 	/** if the MOD_BEVEL_ANGLE is set,
 	 * this will be how "sharp" an edge must be before it gets beveled */
 	float bevel_angle;
+	float spread;
 	/** if the MOD_BEVEL_VWEIGHT option is set,
 	 * this will be the name of the vert group, MAX_VGROUP_NAME */
 	char defgrp_name[64];
@@ -437,6 +441,13 @@ enum {
 	MOD_BEVEL_FACE_STRENGTH_NEW,
 	MOD_BEVEL_FACE_STRENGTH_AFFECTED,
 	MOD_BEVEL_FACE_STRENGTH_ALL,
+};
+
+/* BevelModifier->miter_inner and ->miter_outer */
+enum {
+	MOD_BEVEL_MITER_SHARP,
+	MOD_BEVEL_MITER_PATCH,
+	MOD_BEVEL_MITER_ARC,
 };
 
 typedef struct SmokeModifierData {

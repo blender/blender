@@ -246,7 +246,7 @@ typedef struct BMOpSlot {
 	           ((slot >= (op)->slots_out) && (slot < &(op)->slots_out[BMO_OP_MAX_SLOTS])))
 
 /* way more than probably needed, compiler complains if limit hit */
-#define BMO_OP_MAX_SLOTS 16
+#define BMO_OP_MAX_SLOTS 20
 
 /* BMOpDefine->type_flag */
 typedef enum {
