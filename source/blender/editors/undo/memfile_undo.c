@@ -53,11 +53,19 @@ typedef struct MemFileUndoStep {
 	MemFileUndoData *data;
 } MemFileUndoStep;
 
-static bool memfile_undosys_poll(bContext *UNUSED(C))
+static bool memfile_undosys_poll(bContext *C)
 {
 	/* other poll functions must run first, this is a catch-all. */
 
 	if ((U.uiflag & USER_GLOBALUNDO) == 0) {
+		return false;
+	}
+
+	/* Allow a single memfile undo step (the first). */
+	UndoStack *ustack = ED_undo_stack_get();
+	if ((ustack->step_active != NULL) &&
+	    (ED_undo_is_memfile_compatible(C) == false))
+	{
 		return false;
 	}
 	return true;

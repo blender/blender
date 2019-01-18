@@ -273,6 +273,23 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 	return BKE_undosys_stack_has_undo(wm->undo_stack, undoname);
 }
 
+bool ED_undo_is_memfile_compatible(const bContext *C)
+{
+	/* Some modes don't co-exist with memfile undo, disable their use: T60593
+	 * (this matches 2.7x behavior). */
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	if (view_layer != NULL) {
+		Object *obact = OBACT(view_layer);
+		if (obact != NULL) {
+			if (obact->mode & (OB_MODE_SCULPT | OB_MODE_EDIT)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
 /**
  * Ideally we wont access the stack directly,
  * this is needed for modes which handle undo themselves (bypassing #ED_undo_push).
