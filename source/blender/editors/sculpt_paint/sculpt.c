@@ -5739,11 +5739,18 @@ void ED_object_sculptmode_enter_ex(
 		}
 
 		if (message_unsupported == NULL) {
+			/* Needed because we may be entering this mode before the undo system loads. */
+			wmWindowManager *wm = bmain->wm.first;
+			bool has_undo = wm->undo_stack != NULL;
 			/* undo push is needed to prevent memory leak */
-			sculpt_undo_push_begin("Dynamic topology enable");
+			if (has_undo) {
+				sculpt_undo_push_begin("Dynamic topology enable");
+			}
 			sculpt_dynamic_topology_enable_ex(depsgraph, scene, ob);
-			sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-			sculpt_undo_push_end();
+			if (has_undo) {
+				sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+				sculpt_undo_push_end();
+			}
 		}
 		else {
 			BKE_reportf(reports, RPT_WARNING,

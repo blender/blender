@@ -95,15 +95,14 @@ void ED_editors_init(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 
-	if (wm->undo_stack == NULL) {
-		wm->undo_stack = BKE_undosys_stack_create();
-	}
-
 	/* This is called during initialization, so we don't want to store any reports */
 	ReportList *reports = CTX_wm_reports(C);
 	int reports_flag_prev = reports->flag & ~RPT_STORE;
 
 	SWAP(int, reports->flag, reports_flag_prev);
+
+	/* Don't do undo pushes when calling an operator. */
+	wm->op_undo_depth++;
 
 	/* toggle on modes for objects that were saved with these enabled. for
 	 * e.g. linked objects we have to ensure that they are actually the
@@ -177,6 +176,7 @@ void ED_editors_init(bContext *C)
 	}
 
 	SWAP(int, reports->flag, reports_flag_prev);
+	wm->op_undo_depth--;
 }
 
 /* frees all editmode stuff */
