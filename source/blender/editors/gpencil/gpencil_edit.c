@@ -3497,6 +3497,12 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, gpd_src)) {
 		return OPERATOR_CANCELLED;
 	}
+
+	if ((mode == GP_SEPARATE_LAYER) && (BLI_listbase_count(&gpd_src->layers) == 1)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot separate an object with one layer only");
+		return OPERATOR_CANCELLED;
+	}
+
 	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_src);
 
 	/* create a new object */
@@ -3504,7 +3510,6 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 	ob_dst = base_new->object;
 	ob_dst->mode = OB_MODE_OBJECT;
 	/* create new grease pencil datablock */
-	// XXX: check usercounts
 	gpd_dst = BKE_gpencil_data_addnew(bmain, gpd_src->id.name + 2);
 	ob_dst->data = (bGPdata *)gpd_dst;
 
@@ -3632,8 +3637,35 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 			gpl->prev = gpl->next = NULL;
 			/* relink to destination datablock */
 			BLI_addtail(&gpd_dst->layers, gpl);
+
+			/* add duplicate materials */
+			for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+				for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false) {
+						continue;
+					}
+					ma = give_current_material(ob, gps->mat_nr + 1);
+					idx = BKE_gpencil_get_material_index(ob_dst, ma);
+					if (idx == 0) {
+						totadd++;
+						ob_dst->actcol = totadd;
+						ob_dst->totcol = totadd;
+
+						if (totadd > totslots) {
+							BKE_object_material_slot_add(bmain, ob_dst);
+						}
+
+						assign_material(bmain, ob_dst, ma, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
+						idx = totadd;
+					}
+					/* reasign material */
+					gps->mat_nr = idx - 1;
+				}
+			}
 		}
 	}
+
 	DEG_id_tag_update(&gpd_src->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 	DEG_id_tag_update(&gpd_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
