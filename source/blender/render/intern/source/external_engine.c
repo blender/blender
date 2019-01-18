@@ -150,6 +150,8 @@ RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport)
 		BLI_threaded_malloc_begin();
 	}
 
+	BLI_mutex_init(&engine->update_render_passes_mutex);
+
 	return engine;
 }
 
@@ -164,6 +166,8 @@ void RE_engine_free(RenderEngine *engine)
 	if (engine->flag & RE_ENGINE_USED_FOR_VIEWPORT) {
 		BLI_threaded_malloc_end();
 	}
+
+	BLI_mutex_end(&engine->update_render_passes_mutex);
 
 	MEM_freeN(engine);
 }
@@ -711,7 +715,7 @@ int RE_engine_render(Render *re, int do_all)
 	engine->tile_y = re->party;
 
 	if (re->result->do_exr_tile)
-		render_result_exr_file_begin(re);
+		render_result_exr_file_begin(re, engine);
 
 	/* Clear UI drawing locks. */
 	if (re->draw_lock) {
@@ -765,17 +769,17 @@ int RE_engine_render(Render *re, int do_all)
 
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
+	if (re->result->do_exr_tile) {
+		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+		render_result_save_empty_result_tiles(re);
+		render_result_exr_file_end(re, engine);
+		BLI_rw_mutex_unlock(&re->resultmutex);
+	}
+
 	/* re->engine becomes zero if user changed active render engine during render */
 	if (!persistent_data || !re->engine) {
 		RE_engine_free(engine);
 		re->engine = NULL;
-	}
-
-	if (re->result->do_exr_tile) {
-		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-		render_result_save_empty_result_tiles(re);
-		render_result_exr_file_end(re);
-		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 
 	if (re->r.scemode & R_EXR_CACHE_FILE) {
@@ -798,27 +802,29 @@ int RE_engine_render(Render *re, int do_all)
 	return 1;
 }
 
-void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
-                             const char *name, int UNUSED(channels), const char *UNUSED(chanid), int type)
+void RE_engine_update_render_passes(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
+                                    update_render_passes_cb_t callback)
 {
-	/* The channel information is currently not used, but is part of the API in case it's needed in the future. */
-
-	if (!(scene && view_layer && engine)) {
+	if (!(scene && view_layer && engine && callback && engine->type->update_render_passes)) {
 		return;
 	}
 
-	/* Register the pass in all scenes that have a render layer node for this layer.
-	 * Since multiple scenes can be used in the compositor, the code must loop over all scenes
-	 * and check whether their nodetree has a node that needs to be updated. */
-	/* NOTE: using G_MAIN seems valid here,
-	 * unless we want to register that for every other temp Main we could generate??? */
-	ntreeCompositRegisterPass(scene->nodetree, scene, view_layer, name, type);
+	BLI_mutex_lock(&engine->update_render_passes_mutex);
 
-	for (Scene *sce = G_MAIN->scene.first; sce; sce = sce->id.next) {
-		if (sce->nodetree && sce != scene) {
-			ntreeCompositRegisterPass(sce->nodetree, scene, view_layer, name, type);
-		}
+	engine->update_render_passes_cb = callback;
+	engine->type->update_render_passes(engine, scene, view_layer);
+
+	BLI_mutex_unlock(&engine->update_render_passes_mutex);
+}
+
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
+                             const char *name, int channels, const char *chanid, int type)
+{
+	if (!(scene && view_layer && engine && engine->update_render_passes_cb)) {
+		return;
 	}
+
+	engine->update_render_passes_cb(engine, scene, view_layer, name, channels, chanid, type);
 }
 
 void RE_engine_free_blender_memory(RenderEngine *engine)
