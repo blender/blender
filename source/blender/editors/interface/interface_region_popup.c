@@ -75,6 +75,10 @@ void ui_popup_translate(ARegion *ar, const int mdiff[2])
 
 	/* update blocks */
 	for (block = ar->uiblocks.first; block; block = block->next) {
+		uiPopupBlockHandle *handle = block->handle;
+		/* Make empty, will be initialized on next use, see T60608. */
+		BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
+
 		uiSafetyRct *saferct;
 		for (saferct = block->saferct.first; saferct; saferct = saferct->next) {
 			BLI_rctf_translate(&saferct->parent, UNPACK2(mdiff));
