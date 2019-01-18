@@ -54,10 +54,6 @@ public:
 	static void *run(void *arg);
 	bool join();
 
-	/* For an existing thread descriptor which is NOT running yet, assign node
-	 * on which it should be running. */
-	void schedule_to_node(int node);
-
 protected:
 	function<void()> run_cb_;
 	std::thread thread_;
