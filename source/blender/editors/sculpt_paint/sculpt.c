@@ -5743,6 +5743,7 @@ void ED_object_sculptmode_enter_ex(
 			sculpt_undo_push_begin("Dynamic topology enable");
 			sculpt_dynamic_topology_enable_ex(depsgraph, scene, ob);
 			sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+			sculpt_undo_push_end();
 		}
 		else {
 			BKE_reportf(reports, RPT_WARNING,
