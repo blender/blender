@@ -647,7 +647,7 @@ void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
 		                                          node->get_group());
 		requested_features->nodes_features |= node->get_feature();
 		if(node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
-			BsdfNode *bsdf_node = static_cast<BsdfNode*>(node);
+			BsdfBaseNode *bsdf_node = static_cast<BsdfBaseNode*>(node);
 			if(CLOSURE_IS_VOLUME(bsdf_node->closure)) {
 				requested_features->nodes_features |= NODE_FEATURE_VOLUME;
 			}
