@@ -532,21 +532,26 @@ static void draw_clipping_setup_from_view(void)
 
 	/* Compute clip planes using the world space frustum corners. */
 	for (int p = 0; p < 6; p++) {
-		int q, r;
+		int q, r, s;
 		switch (p) {
-			case 0:  q = 1; r = 2; break; /* -X */
-			case 1:  q = 0; r = 5; break; /* -Y */
-			case 2:  q = 1; r = 5; break; /* +Z (far) */
-			case 3:  q = 2; r = 6; break; /* +Y */
-			case 4:  q = 0; r = 3; break; /* -Z (near) */
-			default: q = 4; r = 7; break; /* +X */
+			case 0:  q = 1; r = 2; s = 3; break; /* -X */
+			case 1:  q = 0; r = 4; s = 5; break; /* -Y */
+			case 2:  q = 1; r = 5; s = 6; break; /* +Z (far) */
+			case 3:  q = 2; r = 6; s = 7; break; /* +Y */
+			case 4:  q = 0; r = 3; s = 7; break; /* -Z (near) */
+			default: q = 4; r = 7; s = 6; break; /* +X */
 		}
 		if (DST.frontface == GL_CW) {
 			SWAP(int, q, r);
 		}
 
-		normal_tri_v3(DST.clipping.frustum_planes[p], bbox.vec[p], bbox.vec[q], bbox.vec[r]);
-		DST.clipping.frustum_planes[p][3] = -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[p]);
+		normal_quad_v3(DST.clipping.frustum_planes[p], bbox.vec[p], bbox.vec[q], bbox.vec[r], bbox.vec[s]);
+		/* Increase precision and use the mean of all 4 corners. */
+		DST.clipping.frustum_planes[p][3]  = -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[p]);
+		DST.clipping.frustum_planes[p][3] += -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[q]);
+		DST.clipping.frustum_planes[p][3] += -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[r]);
+		DST.clipping.frustum_planes[p][3] += -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[s]);
+		DST.clipping.frustum_planes[p][3] *= 0.25f;
 	}
 
 	/* Extract Bounding Sphere */
