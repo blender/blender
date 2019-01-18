@@ -92,8 +92,7 @@ static void subdiv_ccg_init_layers(SubdivCCG *subdiv_ccg,
 	/* Normals.
 	 *
 	 * NOTE: Keep them at the end, matching old CCGDM. Doesn't really matter
-	 * here, but some other area might in theory depend memory layout.
-	 */
+	 * here, but some other area might in theory depend memory layout. */
 	if (settings->need_normal) {
 		subdiv_ccg->has_normal = true;
 		subdiv_ccg->normal_offset = layer_offset;
@@ -119,8 +118,7 @@ static int topology_refiner_count_face_corners(
 }
 
 /* NOTE: Grid size and layer flags are to be filled in before calling this
- * function.
- */
+ * function. */
 static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
 {
 	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
@@ -313,8 +311,7 @@ static bool subdiv_ccg_evaluate_grids(
 	                        subdiv_ccg_eval_grids_task,
 	                        &parallel_range_settings);
 	/* If displacement is used, need to calculate normals after all final
-	 * coordinates are known.
-	 */
+	 * coordinates are known. */
 	if (subdiv->displacement_evaluator != NULL) {
 		BKE_subdiv_ccg_recalc_normals(subdiv_ccg);
 	}
@@ -322,8 +319,7 @@ static bool subdiv_ccg_evaluate_grids(
 }
 
 /* Initialize face descriptors, assuming memory for them was already
- * allocated.
- */
+ * allocated. */
 static void subdiv_ccg_init_faces(SubdivCCG *subdiv_ccg)
 {
 	Subdiv *subdiv = subdiv_ccg->subdiv;
@@ -443,8 +439,7 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
 		topology_refiner->getFaceVertices(
 		        topology_refiner, face_index, face_vertices);
 		/* Note that order of edges is same as order of MLoops, which also
-		 * means it's the same as order of grids.
-		 */
+		 * means it's the same as order of grids. */
 		int *face_edges = static_or_heap_storage_get(
 		        &face_edges_storage, num_face_edges);
 		topology_refiner->getFaceEdges(
@@ -521,8 +516,7 @@ static void subdiv_ccg_allocate_adjacent_vertices(SubdivCCG *subdiv_ccg,
 }
 
 /* Returns storage where corner elements are to be stored. This is a pointer
- * to the actual storage.
- */
+ * to the actual storage. */
 static CCGElem **subdiv_ccg_adjacent_vertex_add_face(
         SubdivCCGAdjacentVertex *adjacent_vertex,
         SubdivCCGFace *face)
@@ -733,8 +727,7 @@ typedef struct RecalcInnerNormalsTLSData {
  *
  *   {(x, y), {x + 1, y}, {x + 1, y + 1}, {x, y + 1}}
  *
- * The result is stored in normals storage from TLS.
- */
+ * The result is stored in normals storage from TLS. */
 static void subdiv_ccg_recalc_inner_face_normals(
         RecalcInnerNormalsData *data,
         RecalcInnerNormalsTLSData *tls,
@@ -972,16 +965,14 @@ static void subdiv_ccg_average_grids_boundary(
 	/* Incrementall average result to elements of a first adjacent face.
 	 *
 	 * Arguably, this is less precise than accumulating and then diving once,
-	 * but on another hand this is more stable when coordinates are big.
-	 */
+	 * but on another hand this is more stable when coordinates are big. */
 	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
 		/* NOTE: We ignore very first and very last elements, they correspond
 		 * to corner vertices, and they can belong to multiple edges.
 		 * The fact, that they can belong to multiple edges means we can't
 		 * safely average them.
 		 * The fact, that they correspond to a corner elements, means they will
-		 * be handled at the upcoming pass over corner elements.
-		 */
+		 * be handled at the upcoming pass over corner elements. */
 		for (int i = 1; i < grid_size2 - 1; i++) {
 			CCGElem *grid_element_0 =
 			        adjacent_edge->boundary_elements[0][i];
@@ -1037,8 +1028,7 @@ static void subdiv_ccg_average_grids_corners(
 		return;
 	}
 	/* Incrementall average result to elements of a first adjacent face.
-	 * See comment to the boundary averaging.
-	 */
+	 * See comment to the boundary averaging. */
 	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
 		CCGElem *grid_element_0 =
 		        adjacent_vertex->corner_elements[0];
@@ -1108,8 +1098,7 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
 	/* Average inner boundaries of grids (within one face), across faces
-	 * from different face-corners.
-	 */
+	 * from different face-corners. */
 	AverageInnerGridsData inner_data = {
 	        .subdiv_ccg = subdiv_ccg,
 	        .key = &key,
@@ -1159,8 +1148,7 @@ void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
 	                        subdiv_ccg_stitch_face_inner_grids_task,
 	                        &parallel_range_settings);
 	/* TODO(sergey): Only average elements which are adjacent to modified
-	 * faces.
-	 */
+	 * faces. */
 	subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
 }
 

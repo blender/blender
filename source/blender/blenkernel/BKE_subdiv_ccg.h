@@ -73,8 +73,7 @@ typedef struct SubdivToCCGSettings {
 	 * evaluated. This defines how many vertices final mesh will have: every
 	 * regular ptex has resolution^2 vertices. Special (irregular, or ptex
 	 * created for a corner of non-quad polygon) will have resolution of
-	 * `resolution - 1`.
-	 */
+	 * `resolution - 1`. */
 	int resolution;
 	/* Denotes which extra layers to be added to CCG elements. */
 	bool need_normal;
@@ -86,8 +85,7 @@ typedef struct SubdivCCGFace {
 	/* Total number of grids in this face.
 	 *
 	 * This 1:1 corresponds to a number of corners (or loops) from a coarse
-	 * face.
-	 */
+	 * face. */
 	int num_grids;
 	/* Index of first grid from this face in SubdivCCG->grids array. */
 	int start_grid_index;
@@ -99,8 +97,7 @@ typedef struct SubdivCCGAdjacentEdge {
 	/* Indexed by adjacent face index. */
 	SubdivCCGFace **faces;
 	/* Indexed by adjacent face index, then by point index on the edge.
-	 * points to a grid element.
-	 */
+	 * points to a grid element. */
 	struct CCGElem ***boundary_elements;
 } SubdivCCGAdjacentEdge;
 
@@ -109,8 +106,7 @@ typedef struct SubdivCCGAdjacentVertex {
 	int num_adjacent_faces;
 	/* Indexed by adjacent face index. */
 	SubdivCCGFace **faces;
-	/* Indexed by adjacent face index, points to a grid element.
-	 */
+	/* Indexed by adjacent face index, points to a grid element. */
 	struct CCGElem **corner_elements;
 } SubdivCCGAdjacentVertex;
 
@@ -119,37 +115,31 @@ typedef struct SubdivCCG {
 	/* This is a subdivision surface this CCG was created for.
 	 *
 	 * TODO(sergey): Make sure the whole descriptor is valid, including all the
-	 * displacement attached to the surface.
-	 */
+	 * displacement attached to the surface. */
 	struct Subdiv *subdiv;
 	/* A level at which geometry was subdivided. This is what defines grid
-	 * resolution. It is NOT the topology refinement level.
-	 */
+	 * resolution. It is NOT the topology refinement level. */
 	int level;
 	/* Resolution of grid. All grids have matching resolution, and resolution
-	 * is same as ptex created for non-quad polygons.
-	 */
+	 * is same as ptex created for non-quad polygons. */
 	int grid_size;
 	/* Grids represent limit surface, with displacement applied. Grids are
 	 * corresponding to face-corners of coarse mesh, each grid has
 	 * grid_size^2 elements.
 	 */
 	/* Indexed by a grid index, points to a grid data which is stored in
-	 * grids_storage.
-	 */
+	 * grids_storage. */
 	struct CCGElem **grids;
 	/* Flat array of all grids' data. */
 	unsigned char *grids_storage;
 	int num_grids;
 	/* Loose edges, each array element contains grid_size elements
-	 * corresponding to vertices created by subdividing coarse edges.
-	 */
+	 * corresponding to vertices created by subdividing coarse edges. */
 	struct CCGElem **edges;
 	int num_edges;
 	/* Loose vertices. Every element corresponds to a loose vertex from a coarse
 	 * mesh, every coarse loose vertex corresponds to a single sundivided
-	 * element.
-	 */
+	 * element. */
 	struct CCGElem *vertices;
 	int num_vertices;
 	/* Denotes which layers present in the elements.
@@ -194,8 +184,7 @@ typedef struct SubdivCCG {
 
 	/* Integration with sculpting. */
 	/* TODO(sergey): Is this really best way to go? Kind of annoying to have
-	 * such use-related flags in a more or less generic structure.
-	 */
+	 * such use-related flags in a more or less generic structure. */
 	struct {
 		/* Corresponds to MULTIRES_COORDS_MODIFIED. */
 		bool coords;
@@ -211,8 +200,7 @@ typedef struct SubdivCCG {
  *
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
  * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
- * same Subsurf without conflicts.
- */
+ * same Subsurf without conflicts. */
 struct SubdivCCG *BKE_subdiv_to_ccg(
         struct Subdiv *subdiv,
         const SubdivToCCGSettings *settings,
