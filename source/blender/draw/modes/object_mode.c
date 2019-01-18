@@ -326,14 +326,12 @@ static struct {
 	GPUShader *lightprobe_grid_sh;
 	GPUShader *loose_points_sh;
 	float camera_pos[3];
-	float screenvecs[3][4];
 	float grid_settings[5];
+	float grid_mesh_size;
 	int grid_flag;
-	float grid_normal[3];
 	float grid_axes[3];
 	int zpos_flag;
 	int zneg_flag;
-	float zplane_normal[3];
 	float zplane_axes[3];
 	float inv_viewport_size[2];
 	bool draw_grid;
@@ -565,37 +563,9 @@ static void OBJECT_engine_init(void *vedata)
 			}
 		}
 
-		e_data.grid_normal[0] = (float)((e_data.grid_flag & PLANE_YZ) != 0);
-		e_data.grid_normal[1] = (float)((e_data.grid_flag & PLANE_XZ) != 0);
-		e_data.grid_normal[2] = (float)((e_data.grid_flag & PLANE_XY) != 0);
-
 		e_data.grid_axes[0] = (float)((e_data.grid_flag & (PLANE_XZ | PLANE_XY)) != 0);
 		e_data.grid_axes[1] = (float)((e_data.grid_flag & (PLANE_YZ | PLANE_XY)) != 0);
 		e_data.grid_axes[2] = (float)((e_data.grid_flag & (PLANE_YZ | PLANE_XZ)) != 0);
-
-		/* Vectors to recover pixel world position. Fix grid precision issue. */
-		/* Using pixel at z = 0.0f in ndc space : gives average precision between
-		 * near and far plane. Note that it might not be the best choice. */
-		copy_v4_fl4(e_data.screenvecs[0],  1.0f, -1.0f, 0.0f, 1.0f);
-		copy_v4_fl4(e_data.screenvecs[1], -1.0f,  1.0f, 0.0f, 1.0f);
-		copy_v4_fl4(e_data.screenvecs[2], -1.0f, -1.0f, 0.0f, 1.0f);
-
-		for (int i = 0; i < 3; i++) {
-			/* Doing 2 steps to recover world position of the corners of the frustum.
-			 * Using the inverse perspective matrix is giving very low precision output. */
-			mul_m4_v4(invwinmat, e_data.screenvecs[i]);
-			e_data.screenvecs[i][0] /= e_data.screenvecs[i][3]; /* perspective divide */
-			e_data.screenvecs[i][1] /= e_data.screenvecs[i][3]; /* perspective divide */
-			e_data.screenvecs[i][2] /= e_data.screenvecs[i][3]; /* perspective divide */
-			e_data.screenvecs[i][3] = 1.0f;
-			/* main instability come from this one */
-			/* TODO : to make things even more stable, don't use
-			 * invviewmat and derive vectors from camera properties */
-			mul_m4_v4(invviewmat, e_data.screenvecs[i]);
-		}
-
-		sub_v3_v3(e_data.screenvecs[0], e_data.screenvecs[2]);
-		sub_v3_v3(e_data.screenvecs[1], e_data.screenvecs[2]);
 
 		/* Z axis if needed */
 		if (((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) && show_axis_z) {
@@ -627,10 +597,6 @@ static void OBJECT_engine_init(void *vedata)
 				e_data.zneg_flag |= CLIP_ZPOS;
 			}
 
-			e_data.zplane_normal[0] = (float)((e_data.zpos_flag & PLANE_YZ) != 0);
-			e_data.zplane_normal[1] = (float)((e_data.zpos_flag & PLANE_XZ) != 0);
-			e_data.zplane_normal[2] = (float)((e_data.zpos_flag & PLANE_XY) != 0);
-
 			e_data.zplane_axes[0] = (float)((e_data.zpos_flag & (PLANE_XZ | PLANE_XY)) != 0);
 			e_data.zplane_axes[1] = (float)((e_data.zpos_flag & (PLANE_YZ | PLANE_XY)) != 0);
 			e_data.zplane_axes[2] = (float)((e_data.zpos_flag & (PLANE_YZ | PLANE_XZ)) != 0);
@@ -654,6 +620,14 @@ static void OBJECT_engine_init(void *vedata)
 		e_data.grid_settings[2] = grid_scale; /* gridScale */
 		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
 		e_data.grid_settings[4] = (v3d->gridsubdiv > 1) ? 1.0f / logf(v3d->gridsubdiv) : 0.0f; /* 1/log(gridSubdiv) */
+
+		if (winmat[3][3] == 0.0f) {
+			e_data.grid_mesh_size = dist;
+		}
+		else {
+			float viewdist = 1.0f / min_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+			e_data.grid_mesh_size = viewdist * dist;
+		}
 	}
 
 	copy_v2_v2(e_data.inv_viewport_size, DRW_viewport_size_get());
@@ -1109,21 +1083,18 @@ static void OBJECT_cache_init(void *vedata)
 		/* Create 3 quads to render ordered transparency Z axis */
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
-		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
-		DRW_shgroup_uniform_vec4(grp, "screenvecs[0]", e_data.screenvecs[0], 3);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
 		DRW_shgroup_uniform_float_copy(grp, "lineKernel", grid_line_size);
+		DRW_shgroup_uniform_float_copy(grp, "meshSize", e_data.grid_mesh_size);
 		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, geom, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
-		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.grid_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
@@ -1131,7 +1102,6 @@ static void OBJECT_cache_init(void *vedata)
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
-		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);

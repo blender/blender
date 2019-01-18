@@ -2,16 +2,18 @@
 /* Infinite grid
  * Author: Clément Foucault */
 
+/* We use the normalized local position to avoid precision
+ * loss during interpolation. */
+in vec3 local_pos;
+
 out vec4 FragColor;
 
 uniform mat4 ProjectionMatrix;
 uniform vec3 cameraPos;
-uniform vec3 planeNormal;
 uniform vec3 planeAxes;
 uniform vec3 eye;
 uniform vec4 gridSettings;
-uniform vec2 viewportSize;
-uniform vec4 screenvecs[3];
+uniform float meshSize;
 uniform float lineKernel = 0.0;
 uniform float gridOneOverLogSubdiv;
 uniform sampler2D depthBuffer;
@@ -70,52 +72,11 @@ vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
 	return 1.0 - smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, axes_domain - (line_size + lineKernel));
 }
 
-vec3 get_floor_pos(vec2 uv, out vec3 wPos)
-{
-	vec3 camera_vec, camera_pos, corner_pos;
-	vec3 floored_pos = planeAxes * floor(screenvecs[2].xyz);
-	corner_pos = screenvecs[2].xyz - floored_pos;
-
-	vec3 pixel_pos = corner_pos + uv.x * screenvecs[0].xyz + uv.y * screenvecs[1].xyz;
-
-	/* if perspective */
-	if (ProjectionMatrix[3][3] == 0.0) {
-		camera_pos = cameraPos - floored_pos;
-		camera_vec = normalize(pixel_pos - camera_pos);
-	}
-	else {
-		camera_pos = pixel_pos;
-		camera_vec = normalize(eye);
-	}
-
-	float plane_normal_dot_camera_vec = dot(planeNormal, camera_vec);
-	float p = -dot(planeNormal, camera_pos);
-	if (plane_normal_dot_camera_vec != 0) {
-		p /= plane_normal_dot_camera_vec;
-	}
-	vec3 plane = camera_pos + camera_vec * p;
-
-	/* fix residual imprecision */
-	plane *= planeAxes;
-
-	/* Recover non-offseted world position */
-	wPos = plane + floored_pos;
-
-	return plane;
-}
-
 void main()
 {
-	vec2 sPos = gl_FragCoord.xy / viewportSize; /* Screen [0,1] position */
-
-	/* To reduce artifacts, use a local version of the positions
-	 * to compute derivatives since they are not position dependent.
-	 * This gets rid of the blocky artifacts. Unfortunately we still
-	 * need the world position for the grid to scale properly from the origin. */
-	vec3 gPos, wPos; /* Grid pos., World pos. */
-	gPos = get_floor_pos(sPos, wPos);
-
-	vec3 fwidthPos = fwidth(gPos);
+	vec3 wPos = local_pos * meshSize;
+	vec3 fwidthPos = fwidth(wPos);
+	wPos += cameraPos * planeAxes;
 
 	float dist, fade;
 	/* if persp */
@@ -228,7 +189,7 @@ void main()
 	/* Add a small bias so the grid will always
 	 * be on top of a mesh with the same depth. */
 	float grid_depth = gl_FragCoord.z - 6e-8 - fwidth(gl_FragCoord.z);
-	float scene_depth = texture(depthBuffer, sPos).r;
+	float scene_depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
 	if ((gridFlag & GRID_BACK) != 0) {
 		fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
 	}
