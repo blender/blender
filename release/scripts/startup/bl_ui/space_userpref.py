@@ -216,7 +216,9 @@ class USERPREF_PT_interface_editors(PreferencePanel):
         flow.prop(view, "color_picker_type")
 
 
-class USERPREF_PT_interface_menus(PreferencePanel):
+class USERPREF_PT_interface_menus(Panel):
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
     bl_label = "Menus"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -225,20 +227,13 @@ class USERPREF_PT_interface_menus(PreferencePanel):
         prefs = context.preferences
         return (prefs.active_section == 'INTERFACE')
 
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        view = prefs.view
-        system = prefs.system
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(view, "use_quit_dialog")
+    def draw(self, context):
+        pass
 
 
 class USERPREF_PT_interface_menus_mouse_over(PreferencePanel):
     bl_label = "Open on Mouse Over"
     bl_parent_id = "USERPREF_PT_interface_menus"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         prefs = context.preferences
@@ -261,7 +256,6 @@ class USERPREF_PT_interface_menus_mouse_over(PreferencePanel):
 class USERPREF_PT_interface_menus_pie(PreferencePanel):
     bl_label = "Pie Menus"
     bl_parent_id = "USERPREF_PT_interface_menus"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -277,13 +271,22 @@ class USERPREF_PT_interface_menus_pie(PreferencePanel):
         flow.prop(view, "pie_menu_confirm")
 
 
-class USERPREF_PT_edit_objects(PreferencePanel):
+class USERPREF_PT_edit_objects(Panel):
     bl_label = "Objects"
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
 
     @classmethod
     def poll(cls, context):
         prefs = context.preferences
         return (prefs.active_section == 'EDITING')
+
+    def draw(self, context):
+        pass
+
+class USERPREF_PT_edit_objects_new(PreferencePanel):
+    bl_label = "New Objects"
+    bl_parent_id = "USERPREF_PT_edit_objects"
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -292,37 +295,13 @@ class USERPREF_PT_edit_objects(PreferencePanel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         flow.prop(edit, "material_link", text="Link Materials to")
-        flow.prop(edit, "object_align", text="Align New Objects to")
-        flow.prop(edit, "use_enter_edit_mode", text="Enter Edit Mode for New Objects")
+        flow.prop(edit, "object_align", text="Align to")
+        flow.prop(edit, "use_enter_edit_mode", text="Enter Edit Mode")
 
 
-class USERPREF_PT_edit_cursor(PreferencePanel):
-    bl_label = "3D Cursor"
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
-
-    def draw_props(self, context, layout):
-        prefs = context.preferences
-        edit = prefs.edit
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
-
-        flow.prop(edit, "use_mouse_depth_cursor")
-        flow.prop(edit, "use_cursor_lock_adjust")
-
-
-class USERPREF_PT_edit_duplicate_data(PreferencePanel):
+class USERPREF_PT_edit_objects_duplicate_data(PreferencePanel):
     bl_label = "Duplicate Data"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "USERPREF_PT_edit_objects"
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'EDITING')
 
     def draw_props(self, context, layout):
         prefs = context.preferences
@@ -345,6 +324,24 @@ class USERPREF_PT_edit_duplicate_data(PreferencePanel):
         col.prop(edit, "use_duplicate_surface", text="Surface")
         col.prop(edit, "use_duplicate_text", text="Text")
         col.prop(edit, "use_duplicate_texture", text="Texture")
+
+
+class USERPREF_PT_edit_cursor(PreferencePanel):
+    bl_label = "3D Cursor"
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return (prefs.active_section == 'EDITING')
+
+    def draw_props(self, context, layout):
+        prefs = context.preferences
+        edit = prefs.edit
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+
+        flow.prop(edit, "use_mouse_depth_cursor")
+        flow.prop(edit, "use_cursor_lock_adjust")
 
 
 class USERPREF_PT_edit_gpencil(PreferencePanel):
@@ -386,6 +383,7 @@ class USERPREF_PT_edit_annotations(PreferencePanel):
 
 class USERPREF_PT_edit_weight_paint(PreferencePanel):
     bl_label = "Weight Paint"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -654,7 +652,7 @@ class USERPREF_PT_viewport_selection(PreferencePanel):
 
 
 class USERPREF_PT_system_memory(PreferencePanel):
-    bl_label = "Memory/Limits"
+    bl_label = "Memory & Limits"
 
     @classmethod
     def poll(cls, context):
@@ -1215,11 +1213,7 @@ class USERPREF_PT_file_paths_development(FilePathsPanel):
 
 class USERPREF_PT_saveload_autorun(PreferencePanel):
     bl_label = "Auto Run Python Scripts"
-
-    @classmethod
-    def poll(cls, context):
-        prefs = context.preferences
-        return (prefs.active_section == 'SAVE_LOAD')
+    bl_parent_id = "USERPREF_PT_saveload_blend"
 
     def draw_header(self, context):
         prefs = context.preferences
@@ -1259,6 +1253,7 @@ class USERPREF_PT_saveload_blend(PreferencePanel):
     def draw_props(self, context, layout):
         prefs = context.preferences
         paths = prefs.filepaths
+        view = prefs.view
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
@@ -1267,6 +1262,7 @@ class USERPREF_PT_saveload_blend(PreferencePanel):
         flow.prop(paths, "use_load_ui")
         flow.prop(paths, "use_save_preview_images")
         flow.prop(paths, "use_tabs_as_spaces")
+        flow.prop(view, "use_quit_dialog")
 
         layout.separator()
 
@@ -1419,15 +1415,13 @@ class USERPREF_PT_navigation_orbit(PreferencePanel):
         flow.prop(inputs, "use_rotate_around_active")
         flow.prop(inputs, "use_auto_perspective")
         flow.prop(inputs, "use_mouse_depth_navigate")
+        if sys.platform == "darwin":
+            flow.prop(inputs, "use_trackpad_natural", text="Natural Trackpad Direction")
 
         flow.separator()
 
         flow.prop(view, "smooth_view")
         flow.prop(view, "rotation_angle")
-
-        if sys.platform == "darwin":
-            flow.separator()
-            flow.prop(inputs, "use_trackpad_natural", text="Natural Trackpad Direction")
 
 
 class USERPREF_PT_navigation_zoom(PreferencePanel):
@@ -2044,8 +2038,9 @@ classes += (
     USERPREF_PT_viewport_selection,
 
     USERPREF_PT_edit_objects,
+    USERPREF_PT_edit_objects_new,
+    USERPREF_PT_edit_objects_duplicate_data,
     USERPREF_PT_edit_cursor,
-    USERPREF_PT_edit_duplicate_data,
     USERPREF_PT_edit_annotations,
     USERPREF_PT_edit_weight_paint,
     USERPREF_PT_edit_gpencil,
