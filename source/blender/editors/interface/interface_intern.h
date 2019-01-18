@@ -339,8 +339,11 @@ typedef struct uiButTab {
 
 typedef struct ColorPicker {
 	struct ColorPicker *next, *prev;
-	float color_data[3]; /* colr data may be HSV or HSL for now */
-	int representation; /* store hsv/hsl value */
+	/** Color data, may be HSV or HSL. */
+	float color_data[3];
+	/** Initial color data (detect changes). */
+	float color_data_init[3];
+	bool is_init;
 } ColorPicker;
 
 typedef struct ColorPickerData {

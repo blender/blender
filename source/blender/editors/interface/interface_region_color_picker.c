@@ -301,8 +301,13 @@ static void ui_popup_close_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 	uiBut *but = (uiBut *)bt1;
 	uiPopupBlockHandle *popup = but->block->handle;
 
-	if (popup)
-		popup->menuretval = UI_RETURN_OK;
+	if (popup) {
+		ColorPicker *cpicker = but->custom_data;
+		BLI_assert(cpicker->is_init);
+		popup->menuretval = (
+		        equals_v3v3(cpicker->color_data, cpicker->color_data_init) ?
+		        UI_RETURN_CANCEL : UI_RETURN_OK);
+	}
 }
 
 static void ui_colorpicker_hide_reveal(uiBlock *block, short colormode)
@@ -420,6 +425,10 @@ static void ui_block_colorpicker(
 	copy_v3_v3(rgb_perceptual, rgba);
 	ui_scene_linear_to_color_picker_space(from_but, rgb_perceptual);
 	ui_rgb_to_color_picker_v(rgb_perceptual, hsv);
+	if (cpicker->is_init == false) {
+		copy_v3_v3(cpicker->color_data_init, cpicker->color_data);
+		cpicker->is_init = true;
+	}
 
 	/* when the softmax isn't defined in the RNA,
 	 * using very large numbers causes sRGB/linear round trip to fail. */
