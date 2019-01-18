@@ -924,6 +924,7 @@ protected:
 			kg.decoupled_volume_steps[i] = NULL;
 		}
 		kg.decoupled_volume_steps_index = 0;
+		kg.coverage_asset = kg.coverage_object = kg.coverage_material = NULL;
 #ifdef WITH_OSL
 		OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
