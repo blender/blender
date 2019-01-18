@@ -3069,8 +3069,11 @@ static void gpencil_guide_event_handling(bContext *C, wmOperator *op, const wmEv
 	/* Point guide */
 	else if ((event->type == CKEY) && (event->val == KM_RELEASE)) {
 		add_notifier = true;
-		guide->use_guide = true;
-		if (guide->type == GP_GUIDE_CIRCULAR) {
+		if (!guide->use_guide) {
+			guide->use_guide = true;
+			guide->type = GP_GUIDE_CIRCULAR;
+		}
+		else if (guide->type == GP_GUIDE_CIRCULAR) {
 			guide->type = GP_GUIDE_RADIAL;
 		}
 		else if (guide->type == GP_GUIDE_RADIAL) {
@@ -3632,7 +3635,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* handle drawing event */
 			/* printf("\t\tGP - add point\n"); */
 
-			gpencil_add_missing_events(C, op, event, p);
+			if ((!(p->flags & GP_PAINTFLAG_FIRSTRUN)) && guide->use_guide) {
+				gpencil_add_missing_events(C, op, event, p);
+			}
 
 			gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph(C), 0.0f, 0.0f);
 
