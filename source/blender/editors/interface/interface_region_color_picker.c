@@ -452,6 +452,7 @@ static void ui_block_colorpicker(
 	bt = uiDefButS(
 	        block, UI_BTYPE_ROW, 0, IFACE_("RGB"), 0, yco, width / 3, UI_UNIT_Y,
 	        &colormode, 0.0, 0.0, 0, 0, "");
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 	UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
 	bt->custom_data = cpicker;
 	if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
@@ -464,11 +465,13 @@ static void ui_block_colorpicker(
 		        block, UI_BTYPE_ROW, 0, IFACE_("HSV"), width / 3, yco, width / 3, UI_UNIT_Y,
 		        &colormode, 0.0, 1.0, 0, 0, "");
 	}
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 	UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
 	bt->custom_data = cpicker;
 	bt = uiDefButS(
 	        block, UI_BTYPE_ROW, 0, IFACE_("Hex"), 2 * width / 3, yco, width / 3, UI_UNIT_Y,
 	        &colormode, 0.0, 2.0, 0, 0, "");
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 	UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
 	bt->custom_data = cpicker;
 	UI_block_align_end(block);
@@ -478,10 +481,13 @@ static void ui_block_colorpicker(
 		bt = uiDefIconButO(
 		        block, UI_BTYPE_BUT, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER,
 		        butwidth + 10, yco, UI_UNIT_X, UI_UNIT_Y, NULL);
+		UI_but_flag_disable(bt, UI_BUT_UNDO);
 		UI_but_drawflag_disable(bt, UI_BUT_ICON_LEFT);
 		UI_but_func_set(bt, ui_popup_close_cb, bt, NULL);
 		bt->custom_data = cpicker;
 	}
+
+	/* Note: don't disable UI_BUT_UNDO for RGBA values, since these don't add undo steps. */
 
 	/* RGB values */
 	UI_block_align_begin(block);
@@ -510,11 +516,13 @@ static void ui_block_colorpicker(
 	bt = uiDefButF(
 	        block, UI_BTYPE_NUM_SLIDER, 0, IFACE_("H:"),   0, yco, butwidth,
 	        UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, TIP_("Hue"));
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 	UI_but_func_set(bt, ui_color_wheel_rna_cb, bt, hsv);
 	bt->custom_data = cpicker;
 	bt = uiDefButF(
 	        block, UI_BTYPE_NUM_SLIDER, 0, IFACE_("S:"),   0, yco -= UI_UNIT_Y,
 	        butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 	UI_but_func_set(bt, ui_color_wheel_rna_cb, bt, hsv);
 	bt->custom_data = cpicker;
 	if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
@@ -527,6 +535,7 @@ static void ui_block_colorpicker(
 		        block, UI_BTYPE_NUM_SLIDER, 0, IFACE_("V:"),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y,
 		        hsv + 2, 0.0, softmax, 10, 3, TIP_("Value"));
 	}
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 
 	bt->hardmax = hardmax;  /* not common but rgb  may be over 1.0 */
 	UI_but_func_set(bt, ui_color_wheel_rna_cb, bt, hsv);
@@ -562,6 +571,7 @@ static void ui_block_colorpicker(
 	bt = uiDefBut(
 	        block, UI_BTYPE_TEXT, 0, IFACE_("Hex: "), 0, yco, butwidth, UI_UNIT_Y,
 	        hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
+	UI_but_flag_disable(bt, UI_BUT_UNDO);
 	UI_but_func_set(bt, ui_colorpicker_hex_rna_cb, bt, hexcol);
 	bt->custom_data = cpicker;
 	uiDefBut(
