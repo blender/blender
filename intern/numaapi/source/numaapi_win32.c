@@ -163,7 +163,7 @@ NUMAAPI_Result numaAPI_Initialize(void) {
 ////////////////////////////////////////////////////////////////////////////////
 // Internal helpers.
 
-static int countNumSetBits(int64_t mask) {
+static int countNumSetBits(ULONGLONG mask) {
   // TODO(sergey): There might be faster way calculating number of set bits.
   int num_bits = 0;
   while (mask != 0) {
