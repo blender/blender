@@ -225,9 +225,9 @@ int get_num_total_processors(const vector<int>& num_per_node_processors)
 
 /* Assign every thread a node on which is should be running, for the best
  * performance. */
-void distribute_threads_on_nodes(const vector<thread*>& threads)
+vector<int> distribute_threads_on_nodes(const int num_threads)
 {
-	const int num_threads = threads.size();
+	vector<int> thread_nodes(num_threads, -1);
 	const int num_active_group_processors =
 	        system_cpu_num_active_group_processors();
 	VLOG(1) << "Detected " << num_active_group_processors << " processors "
@@ -241,14 +241,14 @@ void distribute_threads_on_nodes(const vector<thread*>& threads)
 		 * have two Cycles/Blender instances running manually set to a different
 		 * dies on a CPU. */
 		VLOG(1) << "Not setting thread group affinity.";
-		return;
+		return thread_nodes;
 	}
 	vector<int> num_per_node_processors;
 	get_per_node_num_processors(&num_per_node_processors);
 	if(num_per_node_processors.size() == 0) {
 		/* Error was already repported, here we can't do anything, so we simply
 		 * leave default affinity to all the worker threads. */
-		return;
+		return thread_nodes;
 	}
 	const int num_nodes = num_per_node_processors.size();
 	int thread_index = 0;
@@ -273,11 +273,11 @@ void distribute_threads_on_nodes(const vector<thread*>& threads)
 		{
 			VLOG(1) << "Scheduling thread " << thread_index << " to node "
 			        << current_node_index << ".";
-			threads[thread_index]->schedule_to_node(current_node_index);
+			thread_nodes[thread_index] = current_node_index;
 			++thread_index;
 			if(thread_index == num_threads) {
 				/* All threads are scheduled on their nodes. */
-				return;
+				return thread_nodes;
 			}
 		}
 		++current_node_index;
@@ -305,6 +305,8 @@ void distribute_threads_on_nodes(const vector<thread*>& threads)
 		++thread_index;
 		current_node_index = (current_node_index + 1) % num_nodes;
 	}
+
+	return thread_nodes;
 }
 
 }  // namespace
@@ -325,13 +327,17 @@ void TaskScheduler::init(int num_threads)
 		num_threads = system_cpu_thread_count();
 	}
 	VLOG(1) << "Creating pool of " << num_threads << " threads.";
+
+	/* Compute distribution on NUMA nodes. */
+	vector<int> thread_nodes = distribute_threads_on_nodes(num_threads);
+
 	/* Launch threads that will be waiting for work. */
 	threads.resize(num_threads);
 	for(int thread_index = 0; thread_index < num_threads; ++thread_index) {
 		threads[thread_index] = new thread(
-		        function_bind(&TaskScheduler::thread_run, thread_index + 1));
+		        function_bind(&TaskScheduler::thread_run, thread_index + 1),
+		        thread_nodes[thread_index]);
 	}
-	distribute_threads_on_nodes(threads);
 }
 
 void TaskScheduler::exit()

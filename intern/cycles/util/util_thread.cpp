@@ -58,9 +58,4 @@ bool thread::join()
 	}
 }
 
-void thread::schedule_to_node(int node)
-{
-	node_ = node;
-}
-
 CCL_NAMESPACE_END
