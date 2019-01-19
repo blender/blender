@@ -3314,26 +3314,26 @@ static const EnumPropertyItem node_glass_items[] = {
 	{SHD_GLOSSY_BECKMANN,          "BECKMANN",          0, "Beckmann", ""},
 	{SHD_GLOSSY_GGX,               "GGX",               0, "GGX",      ""},
 	{SHD_GLOSSY_MULTI_GGX,         "MULTI_GGX",         0, "Multiscatter GGX", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_refraction_items[] = {
 	{SHD_GLOSSY_SHARP,             "SHARP",             0, "Sharp",    ""},
 	{SHD_GLOSSY_BECKMANN,          "BECKMANN",          0, "Beckmann", ""},
 	{SHD_GLOSSY_GGX,               "GGX",               0, "GGX",      ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_toon_items[] = {
 	{SHD_TOON_DIFFUSE,    "DIFFUSE",  0, "Diffuse", ""},
 	{SHD_TOON_GLOSSY,     "GLOSSY",   0, "Glossy",  ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_hair_items[] = {
 	{SHD_HAIR_REFLECTION,     "Reflection",    0,   "Reflection", ""},
 	{SHD_HAIR_TRANSMISSION,   "Transmission",    0,  "Transmission", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem node_principled_hair_items[] = {

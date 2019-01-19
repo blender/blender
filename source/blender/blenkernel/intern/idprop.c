@@ -62,7 +62,7 @@ static size_t idp_size_table[] = {
 	0, /*arrays don't have a fixed size*/
 	sizeof(ListBase), /*Group type*/
 	sizeof(void *),
-	sizeof(double)
+	sizeof(double),
 };
 
 

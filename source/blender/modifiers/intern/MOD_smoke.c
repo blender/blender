@@ -201,5 +201,5 @@ ModifierTypeInfo modifierType_Smoke = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     foreachIDLink,
-	/* foreachTexLink */    NULL
+	/* foreachTexLink */    NULL,
 };

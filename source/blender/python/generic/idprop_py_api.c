@@ -1520,7 +1520,7 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
 static PyMappingMethods BPy_IDArray_AsMapping = {
 	(lenfunc)BPy_IDArray_Len,
 	(binaryfunc)BPy_IDArray_subscript,
-	(objobjargproc)BPy_IDArray_ass_subscript
+	(objobjargproc)BPy_IDArray_ass_subscript,
 };
 
 static int itemsize_by_idarray_type(int array_type)
@@ -1640,7 +1640,7 @@ PyTypeObject BPy_IDArray_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 /*********** ID Property Group iterator ********/

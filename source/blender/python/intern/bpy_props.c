@@ -3193,7 +3193,7 @@ static struct PyModuleDef props_module = {
 	".. note:: All parameters to these functions must be passed as keywords.\n",
 	-1, /* multiple "initialization" just copies the module dict. */
 	props_methods,
-	NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL,
 };
 
 PyObject *BPY_rna_props(void)

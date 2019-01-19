@@ -1036,7 +1036,7 @@ static PySequenceMethods Quaternion_SeqMethods = {
 static PyMappingMethods Quaternion_AsMapping = {
 	(lenfunc)Quaternion_len,
 	(binaryfunc)Quaternion_subscript,
-	(objobjargproc)Quaternion_ass_subscript
+	(objobjargproc)Quaternion_ass_subscript,
 };
 
 static PyNumberMethods Quaternion_NumMethods = {

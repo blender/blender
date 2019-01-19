@@ -398,7 +398,7 @@ static PyMethodDef PyKDTree_methods[] = {
 	{"find", (PyCFunction)py_kdtree_find, METH_VARARGS | METH_KEYWORDS, py_kdtree_find_doc},
 	{"find_n", (PyCFunction)py_kdtree_find_n, METH_VARARGS | METH_KEYWORDS, py_kdtree_find_n_doc},
 	{"find_range", (PyCFunction)py_kdtree_find_range, METH_VARARGS | METH_KEYWORDS, py_kdtree_find_range_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(py_KDtree_doc,

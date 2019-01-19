@@ -1364,7 +1364,7 @@ static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(sa))
 }
 
 const char *view3d_context_dir[] = {
-	"active_base", "active_object", NULL
+	"active_base", "active_object", NULL,
 };
 
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)

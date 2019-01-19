@@ -2170,7 +2170,7 @@ static int Vector_ass_subscript(VectorObject *self, PyObject *item, PyObject *va
 static PyMappingMethods Vector_AsMapping = {
 	(lenfunc)Vector_len,
 	(binaryfunc)Vector_subscript,
-	(objobjargproc)Vector_ass_subscript
+	(objobjargproc)Vector_ass_subscript,
 };
 
 
@@ -3064,7 +3064,7 @@ PyTypeObject vector_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 PyObject *Vector_CreatePyObject(

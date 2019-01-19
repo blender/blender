@@ -137,7 +137,7 @@ static int ptcache_data_size[] = {
 
 static int ptcache_extra_datasize[] = {
 	0,
-	sizeof(ParticleSpring)
+	sizeof(ParticleSpring),
 };
 
 /* forward declarations */

@@ -167,7 +167,7 @@ static PyTypeObject bpy_lib_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 PyDoc_STRVAR(bpy_lib_load_doc,

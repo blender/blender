@@ -232,7 +232,7 @@ static PyTypeObject bmesh_op_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 
@@ -350,7 +350,7 @@ static PyTypeObject bmesh_ops_fakemod_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 PyObject *BPyInit_bmesh_ops(void)

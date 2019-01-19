@@ -801,7 +801,7 @@ static struct PyModuleDef module = {
 	"Blender cycles render integration",
 	-1,
 	methods,
-	NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL,
 };
 
 CCL_NAMESPACE_END

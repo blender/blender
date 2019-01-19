@@ -92,14 +92,14 @@ const char *imb_ext_image[] = {
 #ifdef WITH_OPENIMAGEIO
 	".psd", ".pdd", ".psb",
 #endif
-	NULL
+	NULL,
 };
 
 const char *imb_ext_image_filepath_only[] = {
 #ifdef WITH_OPENIMAGEIO
 	".psd", ".pdd", ".psb",
 #endif
-	NULL
+	NULL,
 };
 
 const char *imb_ext_movie[] = {
@@ -131,7 +131,7 @@ const char *imb_ext_movie[] = {
 	".xvid",
 	".mxf",
 	".webm",
-	NULL
+	NULL,
 };
 
 /* sort of wrong being here... */
@@ -150,7 +150,7 @@ const char *imb_ext_audio[] = {
 	".aiff",
 	".m4a",
 	".mka",
-	NULL
+	NULL,
 };
 
 int IMB_ispic_type(const char *name)

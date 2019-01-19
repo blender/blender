@@ -438,7 +438,7 @@ static struct PyModuleDef bpy_ops_module = {
 	NULL,
 	-1, /* multiple "initialization" just copies the module dict. */
 	bpy_ops_methods,
-	NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL,
 };
 
 PyObject *BPY_operator_module(void)

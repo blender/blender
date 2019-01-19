@@ -513,7 +513,7 @@ static Mathutils_Callback mathutils_rna_array_cb = {
 	(BaseMathGetFunc)       mathutils_rna_vector_get,
 	(BaseMathSetFunc)       mathutils_rna_vector_set,
 	(BaseMathGetIndexFunc)  mathutils_rna_vector_get_index,
-	(BaseMathSetIndexFunc)  mathutils_rna_vector_set_index
+	(BaseMathSetIndexFunc)  mathutils_rna_vector_set_index,
 };
 
 
@@ -569,7 +569,7 @@ static Mathutils_Callback mathutils_rna_matrix_cb = {
 	mathutils_rna_matrix_get,
 	mathutils_rna_matrix_set,
 	NULL,
-	NULL
+	NULL,
 };
 
 static short pyrna_rotation_euler_order_get(
@@ -5277,7 +5277,7 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_array_methods[] = {
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyMethodDef pyrna_prop_collection_methods[] = {
@@ -5977,7 +5977,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 
@@ -6067,7 +6067,7 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
@@ -6152,7 +6152,7 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 PyTypeObject pyrna_prop_array_Type = {
@@ -6235,7 +6235,7 @@ PyTypeObject pyrna_prop_array_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 PyTypeObject pyrna_prop_collection_Type = {
@@ -6319,7 +6319,7 @@ PyTypeObject pyrna_prop_collection_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 /* only for add/remove/move methods */
@@ -6404,7 +6404,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
@@ -6489,7 +6489,7 @@ PyTypeObject pyrna_func_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 #ifdef USE_PYRNA_ITER
@@ -6592,7 +6592,7 @@ static PyTypeObject pyrna_prop_collection_iter_Type = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 static PyObject *pyrna_prop_collection_iter_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
@@ -8312,7 +8312,7 @@ PyDoc_STRVAR(pyrna_unregister_class_doc,
 "   before unregistering.\n"
 );
 PyMethodDef meth_bpy_unregister_class = {
-	"unregister_class", pyrna_unregister_class, METH_O, pyrna_unregister_class_doc
+	"unregister_class", pyrna_unregister_class, METH_O, pyrna_unregister_class_doc,
 };
 static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_class)
 {

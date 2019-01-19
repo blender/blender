@@ -41,7 +41,7 @@ static PyStructSequence_Field app_ocio_info_fields[] = {
 	{(char *)"supported", (char *)("Boolean, True when Blender is built with OpenColorIO support")},
 	{(char *)("version"), (char *)("The OpenColorIO version as a tuple of 3 numbers")},
 	{(char *)("version_string"), (char *)("The OpenColorIO version formatted as a string")},
-	{NULL}
+	{NULL},
 };
 
 static PyStructSequence_Desc app_ocio_info_desc = {

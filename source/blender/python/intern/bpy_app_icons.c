@@ -160,7 +160,7 @@ static struct PyMethodDef M_AppIcons_methods[] = {
 	 METH_VARARGS | METH_KEYWORDS, bpy_app_icons_new_triangles_from_file_doc},
 	{"release", (PyCFunction)bpy_app_icons_release,
 	 METH_VARARGS | METH_KEYWORDS, bpy_app_icons_release_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef M_AppIcons_module_def = {

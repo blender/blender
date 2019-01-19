@@ -158,7 +158,7 @@ Mathutils_Callback mathutils_matrix_row_cb = {
 	mathutils_matrix_row_get,
 	mathutils_matrix_row_set,
 	mathutils_matrix_row_get_index,
-	mathutils_matrix_row_set_index
+	mathutils_matrix_row_set_index,
 };
 
 
@@ -250,7 +250,7 @@ Mathutils_Callback mathutils_matrix_col_cb = {
 	mathutils_matrix_col_get,
 	mathutils_matrix_col_set,
 	mathutils_matrix_col_get_index,
-	mathutils_matrix_col_set_index
+	mathutils_matrix_col_set_index,
 };
 
 
@@ -327,7 +327,7 @@ Mathutils_Callback mathutils_matrix_translation_cb = {
 	mathutils_matrix_translation_get,
 	mathutils_matrix_translation_set,
 	mathutils_matrix_translation_get_index,
-	mathutils_matrix_translation_set_index
+	mathutils_matrix_translation_set_index,
 };
 
 
@@ -2652,7 +2652,7 @@ static int Matrix_ass_subscript(MatrixObject *self, PyObject *item, PyObject *va
 static PyMappingMethods Matrix_AsMapping = {
 	(lenfunc)Matrix_len,
 	(binaryfunc)Matrix_subscript,
-	(objobjargproc)Matrix_ass_subscript
+	(objobjargproc)Matrix_ass_subscript,
 };
 
 
@@ -3314,7 +3314,7 @@ static PyObject *MatrixAccess_iter(MatrixAccessObject *self)
 static PyMappingMethods MatrixAccess_AsMapping = {
 	(lenfunc)MatrixAccess_len,
 	(binaryfunc)MatrixAccess_subscript,
-	(objobjargproc) MatrixAccess_ass_subscript
+	(objobjargproc) MatrixAccess_ass_subscript,
 };
 
 PyTypeObject matrix_access_Type = {

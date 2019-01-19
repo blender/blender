@@ -533,7 +533,7 @@ static PySequenceMethods Buffer_SeqMethods = {
 static PyMappingMethods Buffer_AsMapping = {
 	(lenfunc)Buffer_len,
 	(binaryfunc)Buffer_subscript,
-	(objobjargproc)Buffer_ass_subscript
+	(objobjargproc)Buffer_ass_subscript,
 };
 
 static void Buffer_dealloc(Buffer *self);

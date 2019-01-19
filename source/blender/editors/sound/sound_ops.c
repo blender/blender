@@ -420,7 +420,7 @@ static const char *snd_ext_sound[] = {
 	".mp3",
 	".ogg",
 	".wav",
-	NULL
+	NULL,
 };
 
 static bool sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)

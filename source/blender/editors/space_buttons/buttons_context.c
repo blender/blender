@@ -711,7 +711,7 @@ const char *buttons_context_dir[] = {
 	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint",
-	"line_style", "collection", NULL
+	"line_style", "collection", NULL,
 };
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)

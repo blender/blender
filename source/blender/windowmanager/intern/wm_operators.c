@@ -2797,7 +2797,7 @@ static const EnumPropertyItem redraw_timer_type_items[] = {
 	{eRTAnimationStep, "ANIM_STEP", 0, "Anim Step", "Animation Steps"},
 	{eRTAnimationPlay, "ANIM_PLAY", 0, "Anim Play", "Animation Playback"},
 	{eRTUndo, "UNDO", 0, "Undo/Redo", "Undo/Redo"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -3050,7 +3050,7 @@ static const EnumPropertyItem preview_id_type_items[] = {
 #if 0  /* XXX TODO */
     {FILTER_ID_BR, "BRUSH", 0, "Brushes", ""},
 #endif
-    {0, NULL, 0, NULL, NULL}
+    {0, NULL, 0, NULL, NULL},
 };
 
 static int previews_clear_exec(bContext *C, wmOperator *op)

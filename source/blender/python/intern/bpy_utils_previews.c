@@ -174,7 +174,7 @@ static struct PyModuleDef bpy_utils_previews_module = {
 	bpy_utils_previews_doc,
 	0,
 	bpy_utils_previews_methods,
-	NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL,
 };
 
 

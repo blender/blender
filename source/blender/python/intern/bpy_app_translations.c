@@ -782,7 +782,7 @@ static PyTypeObject BlenderAppTranslationsType = {
 	NULL,                       /* PyObject *tp_cache; */
 	NULL,                       /* PyObject *tp_subclasses; */
 	NULL,                       /* PyObject *tp_weaklist; */
-	NULL
+	NULL,
 };
 
 PyObject *BPY_app_translations_struct(void)

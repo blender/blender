@@ -743,7 +743,7 @@ static boid_rule_cb boid_rules[] = {
 	//rule_protect,
 	//rule_hide,
 	//rule_follow_path,
-	//rule_follow_wall
+	//rule_follow_wall,
 };
 
 static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *pa)

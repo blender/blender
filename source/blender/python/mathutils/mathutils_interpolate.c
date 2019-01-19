@@ -115,7 +115,7 @@ static PyMethodDef M_Interpolate_methods[] = {
 #ifndef MATH_STANDALONE
 	{"poly_3d_calc", (PyCFunction) M_Interpolate_poly_3d_calc, METH_VARARGS, M_Interpolate_poly_3d_calc_doc},
 #endif
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef M_Interpolate_module_def = {

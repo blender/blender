@@ -377,7 +377,7 @@ static struct PyMethodDef BPy_msgbus_methods[] = {
 	{"subscribe_rna", (PyCFunction)bpy_msgbus_subscribe_rna, METH_VARARGS | METH_KEYWORDS, bpy_msgbus_subscribe_rna_doc},
 	{"publish_rna", (PyCFunction)bpy_msgbus_publish_rna, METH_VARARGS | METH_KEYWORDS, bpy_msgbus_publish_rna_doc},
 	{"clear_by_owner", (PyCFunction)bpy_msgbus_clear_by_owner, METH_O, bpy_msgbus_clear_by_owner_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef _bpy_msgbus_def = {

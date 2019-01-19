@@ -602,7 +602,7 @@ static PySequenceMethods Euler_SeqMethods = {
 static PyMappingMethods Euler_AsMapping = {
 	(lenfunc)Euler_len,
 	(binaryfunc)Euler_subscript,
-	(objobjargproc)Euler_ass_subscript
+	(objobjargproc)Euler_ass_subscript,
 };
 
 /* euler axis, euler.x/y/z */

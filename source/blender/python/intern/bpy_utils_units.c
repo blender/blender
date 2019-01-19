@@ -301,7 +301,7 @@ static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyOb
 static PyMethodDef bpyunits_methods[] = {
 	{"to_value", (PyCFunction)bpyunits_to_value, METH_VARARGS | METH_KEYWORDS, bpyunits_to_value_doc},
 	{"to_string", (PyCFunction)bpyunits_to_string, METH_VARARGS | METH_KEYWORDS, bpyunits_to_string_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpyunits_doc,
@@ -314,7 +314,7 @@ static struct PyModuleDef bpyunits_module = {
 	bpyunits_doc,
 	-1, /* multiple "initialization" just copies the module dict. */
 	bpyunits_methods,
-	NULL, NULL, NULL, NULL
+	NULL, NULL, NULL, NULL,
 };
 
 PyObject *BPY_utils_units(void)
