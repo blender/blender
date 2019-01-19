@@ -3183,7 +3183,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "spread", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_float_sdna(prop, NULL, "spread");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1, 4);
 	RNA_def_property_ui_text(prop, "Spread", "Spread distance for inner miter arcs");
