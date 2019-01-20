@@ -471,7 +471,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {
 					CALLBACK_INVOKE(marker->camera, IDWALK_CB_NOP);
 				}
-				
+
 				if (toolsett) {
 					CALLBACK_INVOKE(toolsett->particle.scene, IDWALK_CB_NOP);
 					CALLBACK_INVOKE(toolsett->particle.object, IDWALK_CB_NOP);

@@ -397,7 +397,7 @@ GPUBatch *DRW_gpencil_get_buffer_ctrlpoint_geom(bGPdata *gpd)
 	if (ts->gp_sculpt.guide.use_guide) {
 		totpoints++;
 	}
-	
+
 	static GPUVertFormat format = { 0 };
 	static uint pos_id, color_id, size_id;
 	if (format.attr_len == 0) {
