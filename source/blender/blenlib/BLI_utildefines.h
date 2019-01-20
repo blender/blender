@@ -224,45 +224,6 @@ extern "C" {
 	b = tmp;                                                                  \
 } (void)0
 
-#define VECCOPY(v1, v2) {                                                     \
-		*(v1) =   *(v2);                                                      \
-		*(v1 + 1) = *(v2 + 1);                                                \
-		*(v1 + 2) = *(v2 + 2);                                                \
-} (void)0
-#define VECCOPY2D(v1, v2) {                                                   \
-		*(v1) =   *(v2);                                                      \
-		*(v1 + 1) = *(v2 + 1);                                                \
-} (void)0
-#define VECADD(v1, v2, v3) {                                                  \
-		*(v1) =   *(v2)   + *(v3);                                            \
-		*(v1 + 1) = *(v2 + 1) + *(v3 + 1);                                    \
-		*(v1 + 2) = *(v2 + 2) + *(v3 + 2);                                    \
-} (void)0
-#define VECSUB(v1, v2, v3) {                                                  \
-		*(v1) =   *(v2)   - *(v3);                                            \
-		*(v1 + 1) = *(v2 + 1) - *(v3 + 1);                                    \
-		*(v1 + 2) = *(v2 + 2) - *(v3 + 2);                                    \
-} (void)0
-#define VECSUB2D(v1, v2, v3)     {                                            \
-		*(v1) =   *(v2)   - *(v3);                                            \
-		*(v1 + 1) = *(v2 + 1) - *(v3 + 1);                                    \
-} (void)0
-#define VECADDFAC(v1, v2, v3, fac) {                                          \
-		*(v1) =   *(v2)   + *(v3) * (fac);                                    \
-		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (fac);                            \
-		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (fac);                            \
-} (void)0
-#define VECMADD(v1, v2, v3, v4) {                                             \
-		*(v1) =   *(v2)   + *(v3) * (*(v4));                                  \
-		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (*(v4 + 1));                      \
-		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (*(v4 + 2));                      \
-} (void)0
-#define VECSUBFAC(v1, v2, v3, fac) {                                          \
-		*(v1) =   *(v2)   - *(v3) * (fac);                                    \
-		*(v1 + 1) = *(v2 + 1) - *(v3 + 1) * (fac);                            \
-		*(v1 + 2) = *(v2 + 2) - *(v3 + 2) * (fac);                            \
-} (void)0
-
 /* some misc stuff.... */
 
 /* avoid multiple access for supported compilers */

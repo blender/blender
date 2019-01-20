@@ -296,12 +296,12 @@ static int smokeModifier_init(SmokeModifierData *smd, Object *ob, int scene_fram
 			res[0] = res[1] = res[2] = 1; /* use minimum res for adaptive init */
 		}
 		else {
-			VECCOPY(res, sds->base_res);
+			copy_v3_v3_int(res, sds->base_res);
 		}
-		VECCOPY(sds->res, res);
+		copy_v3_v3_int(sds->res, res);
 		sds->total_cells = sds->res[0] * sds->res[1] * sds->res[2];
 		sds->res_min[0] = sds->res_min[1] = sds->res_min[2] = 0;
-		VECCOPY(sds->res_max, res);
+		copy_v3_v3_int(sds->res_max, res);
 
 		/* allocate fluid */
 		smoke_reallocate_fluid(sds, sds->dx, sds->res, 0);
@@ -881,7 +881,7 @@ static void obstacles_from_mesh(
 			normal_float_to_short_v3(mvert[i].no, n);
 
 			/* vert velocity */
-			VECADD(co, mvert[i].co, sds->shift);
+			add_v3fl_v3fl_v3i(co, mvert[i].co, sds->shift);
 			if (has_velocity)
 			{
 				sub_v3_v3v3(&vert_vel[i * 3], co, &scs->verts_old[i * 3]);
@@ -1254,8 +1254,7 @@ static void emit_from_particles_task_cb(
 					                       1.0f : (1.0f - (nearest.dist - data->solid) / data->smooth);
 					/* Uses particle velocity as initial velocity for smoke */
 					if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (sfs->psys->part->phystype != PART_PHYS_NO)) {
-						VECADDFAC(&em->velocity[index * 3], &em->velocity[index * 3],
-						          &data->particle_vel[nearest.index * 3], sfs->vel_multi);
+						madd_v3_v3fl(&em->velocity[index * 3], &data->particle_vel[nearest.index * 3], sfs->vel_multi);
 					}
 				}
 			}
@@ -1414,7 +1413,7 @@ static void emit_from_particles(
 				/* Uses particle velocity as initial velocity for smoke */
 				if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
 				{
-					VECADDFAC(&em->velocity[index * 3], &em->velocity[index * 3], &particle_vel[p * 3], sfs->vel_multi);
+					madd_v3_v3fl(&em->velocity[index * 3], &particle_vel[p * 3], sfs->vel_multi);
 				}
 			}   // particles loop
 		}
@@ -1736,7 +1735,7 @@ static void emit_from_mesh(Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowS
 			/* vert velocity */
 			if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY) {
 				float co[3];
-				VECADD(co, mvert[i].co, sds->shift);
+				add_v3fl_v3fl_v3i(co, mvert[i].co, sds->shift);
 				if (has_velocity) {
 					sub_v3_v3v3(&vert_vel[i * 3], co, &sfs->verts_old[i * 3]);
 					mul_v3_fl(&vert_vel[i * 3], sds->dx / dt);
@@ -2052,9 +2051,9 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 			smoke_turbulence_free(turb_old);
 
 		/* set new domain dimensions */
-		VECCOPY(sds->res_min, min);
-		VECCOPY(sds->res_max, max);
-		VECCOPY(sds->res, res);
+		copy_v3_v3_int(sds->res_min, min);
+		copy_v3_v3_int(sds->res_max, max);
+		copy_v3_v3_int(sds->res, res);
 		sds->total_cells = total_cells;
 	}
 }
@@ -2150,7 +2149,7 @@ static void update_flowsfluids(
 
 		mul_m4_v3(ob->obmat, ob_loc);
 
-		VECSUB(frame_shift_f, ob_loc, sds->prev_loc);
+		sub_v3_v3v3(frame_shift_f, ob_loc, sds->prev_loc);
 		copy_v3_v3(sds->prev_loc, ob_loc);
 		/* convert global space shift to local "cell" space */
 		mul_mat3_m4_v3(sds->imat, frame_shift_f);
@@ -2158,12 +2157,12 @@ static void update_flowsfluids(
 		frame_shift_f[1] = frame_shift_f[1] / sds->cell_size[1];
 		frame_shift_f[2] = frame_shift_f[2] / sds->cell_size[2];
 		/* add to total shift */
-		VECADD(sds->shift_f, sds->shift_f, frame_shift_f);
+		add_v3_v3(sds->shift_f, frame_shift_f);
 		/* convert to integer */
-		total_shift[0] = floor(sds->shift_f[0]);
-		total_shift[1] = floor(sds->shift_f[1]);
-		total_shift[2] = floor(sds->shift_f[2]);
-		VECSUB(new_shift, total_shift, sds->shift);
+		total_shift[0] = (int)(floorf(sds->shift_f[0]));
+		total_shift[1] = (int)(floorf(sds->shift_f[1]));
+		total_shift[2] = (int)(floorf(sds->shift_f[2]));
+		sub_v3_v3v3_int(new_shift, total_shift, sds->shift);
 		copy_v3_v3_int(sds->shift, total_shift);
 
 		/* calculate new domain boundary points so that smoke doesn't slide on sub-cell movement */
@@ -2689,8 +2688,8 @@ static Mesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 
 	if (num_verts) {
 		/* volume bounds */
-		VECMADD(min, sds->p0, sds->cell_size, sds->res_min);
-		VECMADD(max, sds->p0, sds->cell_size, sds->res_max);
+		madd_v3fl_v3fl_v3fl_v3i(min, sds->p0, sds->cell_size, sds->res_min);
+		madd_v3fl_v3fl_v3fl_v3i(max, sds->p0, sds->cell_size, sds->res_max);
 
 		/* set vertices */
 		/* top slab */
@@ -2729,7 +2728,7 @@ static Mesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->obmat, ob_loc);
 		mul_m4_v3(sds->obmat, ob_cache_loc);
-		VECSUB(sds->obj_shift_f, ob_cache_loc, ob_loc);
+		sub_v3_v3v3(sds->obj_shift_f, ob_cache_loc, ob_loc);
 		/* convert shift to local space and apply to vertices */
 		mul_mat3_m4_v3(ob->imat, sds->obj_shift_f);
 		/* apply */

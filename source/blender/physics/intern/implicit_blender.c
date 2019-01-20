@@ -216,7 +216,7 @@ DO_INLINE void add_lfvector_lfvector(float(*to)[3], float(*fLongVectorA)[3], flo
 	unsigned int i = 0;
 
 	for (i = 0; i < verts; i++) {
-		VECADD(to[i], fLongVectorA[i], fLongVectorB[i]);
+		add_v3_v3v3(to[i], fLongVectorA[i], fLongVectorB[i]);
 	}
 
 }
@@ -431,9 +431,9 @@ DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][3], float from[3])
 /* 3x3 matrix addition with 3x3 matrix */
 DO_INLINE void add_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
-	VECADD(to[0], matrixA[0], matrixB[0]);
-	VECADD(to[1], matrixA[1], matrixB[1]);
-	VECADD(to[2], matrixA[2], matrixB[2]);
+	add_v3_v3v3(to[0], matrixA[0], matrixB[0]);
+	add_v3_v3v3(to[1], matrixA[1], matrixB[1]);
+	add_v3_v3v3(to[2], matrixA[2], matrixB[2]);
 }
 /* A -= B*x + C*y (3x3 matrix sub-addition with 3x3 matrix) */
 DO_INLINE void subadd_fmatrixS_fmatrixS(float to[3][3], float matrixA[3][3], float aS, float matrixB[3][3], float bS)

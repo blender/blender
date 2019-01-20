@@ -238,7 +238,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
 
 	copy_v3_v3(oldcurs, cursor->location);
 
-	VECCOPY2D(mval_f, event->mval);
+	copy_v2fl_v2i(mval_f, event->mval);
 	ED_view3d_win_to_3d(v3d, ar, cursor->location, mval_f, tvec);
 	copy_v3_v3(cursor->location, tvec);
 

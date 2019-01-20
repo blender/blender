@@ -68,6 +68,13 @@ MINLINE void copy_v3_v3(float r[3], const float a[3])
 	r[2] = a[2];
 }
 
+MINLINE void copy_v3fl_v3s(float r[3], const short a[3])
+{
+	r[0] = (float)a[0];
+	r[1] = (float)a[1];
+	r[2] = (float)a[2];
+}
+
 MINLINE void copy_v4_v4(float r[4], const float a[4])
 {
 	r[0] = a[0];
@@ -378,6 +385,20 @@ MINLINE void add_v3_v3v3(float r[3], const float a[3], const float b[3])
 	r[2] = a[2] + b[2];
 }
 
+MINLINE void add_v3fl_v3fl_v3i(float r[3], const float a[3], const int b[3])
+{
+	r[0] = a[0] + (float)b[0];
+	r[1] = a[1] + (float)b[1];
+	r[2] = a[2] + (float)b[2];
+}
+
+MINLINE void add_v3fl_v3fl_v3s(float r[3], const float a[3], const short b[3])
+{
+	r[0] = a[0] + (float)b[0];
+	r[1] = a[1] + (float)b[1];
+	r[2] = a[2] + (float)b[2];
+}
+
 MINLINE void add_v4_v4(float r[4], const float a[4])
 {
 	r[0] += a[0];
@@ -424,6 +445,20 @@ MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3])
 	r[0] = a[0] - b[0];
 	r[1] = a[1] - b[1];
 	r[2] = a[2] - b[2];
+}
+
+MINLINE void sub_v3_v3v3_int(int r[3], const int a[3], const int b[3])
+{
+	r[0] = a[0] - b[0];
+	r[1] = a[1] - b[1];
+	r[2] = a[2] - b[2];
+}
+
+MINLINE void sub_v3db_v3fl_v3fl(double r[3], const float a[3], const float b[3])
+{
+	r[0] = (double)a[0] - (double)b[0];
+	r[1] = (double)a[1] - (double)b[1];
+	r[2] = (double)a[2] - (double)b[2];
 }
 
 MINLINE void sub_v4_v4(float r[4], const float a[4])
@@ -620,6 +655,13 @@ MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], cons
 	r[0] = a[0] + b[0] * c[0];
 	r[1] = a[1] + b[1] * c[1];
 	r[2] = a[2] + b[2] * c[2];
+}
+
+MINLINE void madd_v3fl_v3fl_v3fl_v3i(float r[3], const float a[3], const float b[3], const int c[3])
+{
+	r[0] = a[0] + b[0] * (float)c[0];
+	r[1] = a[1] + b[1] * (float)c[1];
+	r[2] = a[2] + b[2] * (float)c[2];
 }
 
 MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f)
