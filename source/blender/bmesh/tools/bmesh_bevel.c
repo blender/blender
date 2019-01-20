@@ -2379,7 +2379,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 			}
 			ang_kind = edges_angle_kind(e, e2, bv->v);
 			if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == 1) ||
-				(miter_inner != BEVEL_MITER_SHARP && ang_kind == -1))
+			    (miter_inner != BEVEL_MITER_SHARP && ang_kind == -1))
 			{
 				if (ang_kind == 1)
 					emiter = e;  /* a reflex angle, i.e., the (only) outer miter, if any */
@@ -2431,7 +2431,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		else {
 			ang_kind = edges_angle_kind(e, e2, bv->v);
 			if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == 1) ||
-				(miter_inner != BEVEL_MITER_SHARP && ang_kind == -1))
+			    (miter_inner != BEVEL_MITER_SHARP && ang_kind == -1))
 			{
 				if (ang_kind == 1)
 					emiter = e;
