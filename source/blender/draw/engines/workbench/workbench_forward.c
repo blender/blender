@@ -647,6 +647,7 @@ void workbench_forward_draw_finish(WORKBENCH_Data *vedata)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 
+	workbench_private_draw_finish(wpd);
 	workbench_private_data_free(wpd);
 	workbench_volume_smoke_textures_free(wpd);
 }

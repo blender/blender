@@ -88,6 +88,18 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	wd->curvature_ridge = 0.5f / max_ff(SQUARE(wpd->shading.curvature_ridge_factor), 1e-4f);
 	wd->curvature_valley = 0.7f / max_ff(SQUARE(wpd->shading.curvature_valley_factor), 1e-4f);
 
+	{
+		RegionView3D *rv3d = draw_ctx->rv3d;
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			memcpy(wpd->world_clip_planes, rv3d->clip, sizeof(float[6][4]));
+			wpd->world_clip_planes_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
+			DRW_state_clip_planes_count_set(6);
+		}
+		else {
+			wpd->world_clip_planes_len = 0;
+		}
+	}
+
 	wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), &wpd->world_data);
 
 	/* Cavity settings */
@@ -170,6 +182,13 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	mul_v3_mat3_m4v3(wd->shadow_direction_vs, view_matrix, r_light_direction);
 
 	DRW_uniformbuffer_update(wpd->world_ubo, wd);
+}
+
+void workbench_private_draw_finish(WORKBENCH_PrivateData *wpd)
+{
+	if (wpd->world_clip_planes_len) {
+		DRW_state_clip_planes_reset();
+	}
 }
 
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)

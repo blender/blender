@@ -110,6 +110,9 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	if (is_hair) {
 		BLI_dynstr_appendf(ds, "#define HAIR_SHADER\n");
 	}
+	if (wpd->world_clip_planes_len) {
+		BLI_dynstr_appendf(ds, "#define USE_WORLD_CLIP_PLANES\n");
+	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -168,6 +171,7 @@ int workbench_material_get_prepass_shader_index(
 	SET_FLAG_FROM_TEST(index, NORMAL_VIEWPORT_PASS_ENABLED(wpd), 1 << 3);
 	SET_FLAG_FROM_TEST(index, MATCAP_ENABLED(wpd), 1 << 4);
 	SET_FLAG_FROM_TEST(index, use_textures, 1 << 5);
+	SET_FLAG_FROM_TEST(index, wpd->world_clip_planes_len != 0, 1 << 6);
 	return index;
 }
 
@@ -235,6 +239,12 @@ void workbench_material_shgroup_uniform(
 			DRW_shgroup_uniform_vec3(grp, "materialSpecularColor", material->specular_color, 1);
 		}
 		DRW_shgroup_uniform_float(grp, "materialRoughness", &material->roughness, 1);
+	}
+
+	if (wpd->world_clip_planes_len) {
+		DRW_shgroup_uniform_vec4(grp, "WorldClipPlanes", wpd->world_clip_planes[0], wpd->world_clip_planes_len);
+		DRW_shgroup_uniform_int(grp, "WorldClipPlanesLen", &wpd->world_clip_planes_len, 1);
+		DRW_shgroup_state_enable(grp, DRW_STATE_CLIP_PLANES);
 	}
 }
 
