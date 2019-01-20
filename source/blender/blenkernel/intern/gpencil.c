@@ -1209,6 +1209,15 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 							if (dw != NULL) {
 								defvert_remove_group(dvert, dw);
 							}
+							else {
+								/* reorganize weights in other strokes */
+								for (int g = 0; g < gps->dvert->totweight; g++) {
+									MDeformWeight *dw = &dvert->dw[g];
+									if ((dw != NULL) && (dw->def_nr > def_nr)) {
+										dw->def_nr--;
+									}
+								}
+							}
 						}
 					}
 				}
