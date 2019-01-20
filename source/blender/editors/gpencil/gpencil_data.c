@@ -1835,6 +1835,7 @@ static int gpencil_vertex_group_smooth_exec(bContext *C, wmOperator *op)
 				MDeformWeight *dw = defvert_verify_index(dvertb, def_nr);
 				if (dw) {
 					dw->weight = interpf(wb, optimal, fac);
+					CLAMP(dw->weight, 0.0, 1.0f);
 				}
 			}
 		}
