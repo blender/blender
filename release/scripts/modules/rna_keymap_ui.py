@@ -190,11 +190,11 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
             subrow = sub.row()
             subrow.scale_x = 0.75
-            subrow.prop(kmi, "any")
-            subrow.prop(kmi, "shift")
-            subrow.prop(kmi, "ctrl")
-            subrow.prop(kmi, "alt")
-            subrow.prop(kmi, "oskey", text="Cmd")
+            subrow.prop(kmi, "any", toggle=True)
+            subrow.prop(kmi, "shift", toggle=True)
+            subrow.prop(kmi, "ctrl", toggle=True)
+            subrow.prop(kmi, "alt", toggle=True)
+            subrow.prop(kmi, "oskey", text="Cmd", toggle=True)
             subrow.prop(kmi, "key_modifier", text="", event=True)
 
         # Operator properties
