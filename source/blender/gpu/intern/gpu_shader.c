@@ -361,7 +361,7 @@ GPUShader *GPU_shader_create_ex(
 #endif
 
 	/* At least a vertex shader and a fragment shader are required. */
-	// BLI_assert((fragcode != NULL) && (vertexcode != NULL));
+	BLI_assert((fragcode != NULL) && (vertexcode != NULL));
 
 	if (vertexcode)
 		shader->vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -386,11 +386,12 @@ GPUShader *GPU_shader_create_ex(
 	gpu_shader_standard_extensions(standard_extensions);
 
 	if (vertexcode) {
-		const char *source[5];
+		const char *source[6];
 		/* custom limit, may be too small, beware */
 		int num_source = 0;
 
 		source[num_source++] = gpu_shader_version();
+		source[num_source++] = "#define GPU_VERTEX_SHADER\n";
 		source[num_source++] = standard_extensions;
 		source[num_source++] = standard_defines;
 
@@ -419,6 +420,7 @@ GPUShader *GPU_shader_create_ex(
 		int num_source = 0;
 
 		source[num_source++] = gpu_shader_version();
+		source[num_source++] = "#define GPU_FRAGMENT_SHADER\n";
 		source[num_source++] = standard_extensions;
 		source[num_source++] = standard_defines;
 
@@ -448,6 +450,7 @@ GPUShader *GPU_shader_create_ex(
 		int num_source = 0;
 
 		source[num_source++] = gpu_shader_version();
+		source[num_source++] = "#define GPU_GEOMETRY_SHADER\n";
 		source[num_source++] = standard_extensions;
 		source[num_source++] = standard_defines;
 
