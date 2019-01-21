@@ -109,7 +109,7 @@ typedef struct EDIT_MESH_Data {
 #define DEF_WORLD_CLIP_STR "#define USE_WORLD_CLIP_PLANES\n"
 
 /** Can only contain shaders (freed as array). */
-typedef struct EDIT_MESH_ShaderData {
+typedef struct EDIT_MESH_Shaders {
 	/* weight */
 	GPUShader *weight_face;
 
@@ -127,12 +127,12 @@ typedef struct EDIT_MESH_ShaderData {
 	GPUShader *normals;
 	GPUShader *depth;
 	GPUShader *ghost_clear_depth;
-} EDIT_MESH_ShaderData;
+} EDIT_MESH_Shaders;
 
 /* *********** STATIC *********** */
 static struct {
 	/* 0: normal, 1: clipped. */
-	EDIT_MESH_ShaderData sh_data[2];
+	EDIT_MESH_Shaders sh_data[2];
 
 	/* temp buffer texture */
 	struct GPUTexture *occlude_wire_depth_tx;
@@ -240,7 +240,7 @@ static char *EDIT_MESH_sh_lib(void)
 }
 
 static GPUShader *EDIT_MESH_ensure_shader(
-        EDIT_MESH_ShaderData *sh_data,
+        EDIT_MESH_Shaders *sh_data,
         ToolSettings *tsettings, RegionView3D *rv3d, bool supports_fast_mode, bool looseedge)
 {
 	const int index = EDIT_MESH_sh_index(tsettings, rv3d, supports_fast_mode);
@@ -282,7 +282,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	EDIT_MESH_ShaderData *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	const float *viewport_size = DRW_viewport_size_get();
@@ -409,7 +409,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
 	const int fast_mode = rv3d->rflag & RV3D_NAVIGATING;
-	EDIT_MESH_ShaderData *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
 
 	ledge_sh = EDIT_MESH_ensure_shader(sh_data, tsettings, rv3d, false, true);
 	tri_sh = EDIT_MESH_ensure_shader(sh_data, tsettings, rv3d, true, false);
@@ -500,7 +500,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
-	EDIT_MESH_ShaderData *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
 	static float zero = 0.0f;
 
 	if (!stl->g_data) {
@@ -874,11 +874,11 @@ static void EDIT_MESH_draw_scene(void *vedata)
 static void EDIT_MESH_engine_free(void)
 {
 	for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
-		EDIT_MESH_ShaderData *sh_data = &e_data.sh_data[sh_data_index];
+		EDIT_MESH_Shaders *sh_data = &e_data.sh_data[sh_data_index];
 		/* Don't free builtins. */
 		sh_data->depth = NULL;
 		GPUShader **sh_data_as_array = (GPUShader **)sh_data;
-		for (int i = 0; i < (sizeof(EDIT_MESH_ShaderData) / sizeof(GPUShader *)); i++) {
+		for (int i = 0; i < (sizeof(EDIT_MESH_Shaders) / sizeof(GPUShader *)); i++) {
 			DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
 		}
 	}

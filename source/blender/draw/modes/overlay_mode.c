@@ -67,19 +67,19 @@ typedef struct OVERLAY_PrivateData {
 
 #define DEF_WORLD_CLIP_STR "#define USE_WORLD_CLIP_PLANES\n"
 
-typedef struct OVERLAY_ShaderData {
+typedef struct OVERLAY_Shaders {
 	/* Face orientation shader */
 	struct GPUShader *face_orientation_sh;
 	/* Wireframe shader */
 	struct GPUShader *select_wireframe_sh;
 	struct GPUShader *face_wireframe_sh;
 	struct GPUShader *face_wireframe_sculpt_sh;
-} OVERLAY_ShaderData;
+} OVERLAY_Shaders;
 
 /* *********** STATIC *********** */
 static struct {
 	/* 0: normal, 1: clipped. */
-	OVERLAY_ShaderData sh_data[2];
+	OVERLAY_Shaders sh_data[2];
 } e_data = {NULL};
 
 extern char datatoc_common_world_clip_lib_glsl[];
@@ -110,7 +110,7 @@ static void overlay_engine_init(void *vedata)
 	OVERLAY_StorageList *stl = data->stl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	OVERLAY_ShaderData *sh_data = &e_data.sh_data[OVERLAY_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	OVERLAY_Shaders *sh_data = &e_data.sh_data[OVERLAY_sh_data_index_from_rv3d(draw_ctx->rv3d)];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
@@ -167,7 +167,7 @@ static void overlay_cache_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	OVERLAY_ShaderData *sh_data = &e_data.sh_data[OVERLAY_sh_data_index_from_rv3d(rv3d)];
+	OVERLAY_Shaders *sh_data = &e_data.sh_data[OVERLAY_sh_data_index_from_rv3d(rv3d)];
 
 	const DRWContextState *DCS = DRW_context_state_get();
 
@@ -427,9 +427,9 @@ static void overlay_draw_scene(void *vedata)
 static void overlay_engine_free(void)
 {
 	for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
-		OVERLAY_ShaderData *sh_data = &e_data.sh_data[sh_data_index];
+		OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_data_index];
 		GPUShader **sh_data_as_array = (GPUShader **)sh_data;
-		for (int i = 0; i < (sizeof(OVERLAY_ShaderData) / sizeof(GPUShader *)); i++) {
+		for (int i = 0; i < (sizeof(OVERLAY_Shaders) / sizeof(GPUShader *)); i++) {
 			DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
 		}
 	}
