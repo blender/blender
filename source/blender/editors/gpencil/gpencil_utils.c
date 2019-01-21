@@ -2057,6 +2057,11 @@ static bool gpencil_check_collision(
 static void gp_copy_points(
 	bGPDstroke *gps, bGPDspoint *pt, bGPDspoint *pt_final, int i, int i2)
 {
+	/* don't copy same point */
+	if (i == i2) {
+		return;
+	}
+
 	copy_v3_v3(&pt_final->x, &pt->x);
 	pt_final->pressure = pt->pressure;
 	pt_final->strength = pt->strength;
@@ -2068,9 +2073,16 @@ static void gp_copy_points(
 	if (gps->dvert != NULL) {
 		MDeformVert *dvert = &gps->dvert[i];
 		MDeformVert *dvert_final = &gps->dvert[i2];
+		MEM_SAFE_FREE(dvert_final->dw);
 
 		dvert_final->totweight = dvert->totweight;
-		dvert_final->dw = dvert->dw;
+		if (dvert->dw == NULL) {
+			dvert_final->dw = NULL;
+			dvert_final->totweight = 0;
+		}
+		else {
+			dvert_final->dw = MEM_dupallocN(dvert->dw);
+		}
 	}
 
 }

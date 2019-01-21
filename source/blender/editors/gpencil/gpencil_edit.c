@@ -1843,7 +1843,6 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 	bool in_island  = false;
 	int num_islands = 0;
 
-
 	/* First Pass: Identify start/end of islands */
 	bGPDspoint *pt = gps->points;
 	for (int i = 0; i < gps->totpoints; i++, pt++) {
@@ -1902,13 +1901,14 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 				/* Copy weights */
 				int e = island->start_idx;
 				for (int i = 0; i < new_stroke->totpoints; i++) {
-					MDeformVert *dvert_dst = &gps->dvert[e];
-					MDeformVert *dvert_src = &new_stroke->dvert[i];
-					dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
+					MDeformVert *dvert_src = &gps->dvert[e];
+					MDeformVert *dvert_dst = &new_stroke->dvert[i];
+					if (dvert_src->dw) {
+						dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
+					}
 					e++;
 				}
 			}
-
 			/* Each island corresponds to a new stroke. We must adjust the
 			 * timings of these new strokes:
 			 *
@@ -1954,17 +1954,8 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 	MEM_freeN(islands);
 
 	/* Delete the old stroke */
-	if (gps->points) {
-		MEM_freeN(gps->points);
-	}
-	if (gps->dvert) {
-		BKE_gpencil_free_stroke_weights(gps);
-		MEM_freeN(gps->dvert);
-	}
-	if (gps->triangles) {
-		MEM_freeN(gps->triangles);
-	}
-	BLI_freelinkN(&gpf->strokes, gps);
+	BLI_remlink(&gpf->strokes, gps);
+	BKE_gpencil_free_stroke(gps);
 }
 
 /* Split selected strokes into segments, splitting on selected points */
