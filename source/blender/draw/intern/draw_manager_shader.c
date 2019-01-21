@@ -267,6 +267,72 @@ GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *fra
 	return GPU_shader_create(vert, frag, geom, NULL, defines, __func__);
 }
 
+static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_is_alloc)
+{
+	bool is_alloc = false;
+	if (str_arr == NULL) {
+		*r_is_alloc = false;
+		return NULL;
+	}
+	/* Skip empty strings (avoid alloc if we can). */
+	while (str_arr[0] && str_arr[0][0] == '\0') {
+		str_arr++;
+	}
+	int i;
+	for (i = 0; str_arr[i]; i++) {
+		if (i != 0 && str_arr[i][0] != '\0') {
+			is_alloc = true;
+		}
+	}
+	*r_is_alloc = is_alloc;
+	if (is_alloc) {
+		return BLI_string_join_arrayN(str_arr, i);
+	}
+	else {
+		return str_arr[0];
+	}
+}
+
+/**
+ * Use via #DRW_shader_create_from_arrays macro (avoids passing in param).
+ *
+ * Similar to #DRW_shader_create_with_lib with the ability to include libs for each type of shader.
+ *
+ * It has the advantage that each item can be conditionally included
+ * without having to build the string inline, then free it.
+ *
+ * \param params: NULL terminated arrays of strings.
+ *
+ * Example:
+ * \code{.c}
+ * sh = DRW_shader_create_from_arrays({
+ *         .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
+ *         .geom = (const char *[]){shader_geom_glsl, NULL},
+ *         .frag = (const char *[]){shader_frag_glsl, NULL},
+ *         .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL}});
+ * \endcode
+ *
+ */
+struct GPUShader *DRW_shader_create_from_arrays_impl(
+        const struct DRW_ShaderCreateFromArray_Params *params)
+{
+	struct { const char *str; bool is_alloc;} str_dst[4] = {0};
+	const char **str_src[4] = {params->vert, params->geom, params->frag, params->defs};
+
+	for (int i = 0; i < ARRAY_SIZE(str_src); i++) {
+		str_dst[i].str = string_join_array_maybe_alloc(str_src[i], &str_dst[i].is_alloc);
+	}
+
+	GPUShader *sh = DRW_shader_create(str_dst[0].str, str_dst[1].str, str_dst[2].str, str_dst[3].str);
+
+	for (int i = 0; i < ARRAY_SIZE(str_dst); i++) {
+		if (str_dst[i].is_alloc) {
+			MEM_freeN((void *)str_dst[i].str);
+		}
+	}
+	return sh;
+}
+
 GPUShader *DRW_shader_create_with_lib(
         const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
 {

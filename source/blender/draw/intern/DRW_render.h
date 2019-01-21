@@ -243,6 +243,11 @@ void DRW_multisamples_resolve(
 /* Shaders */
 struct GPUShader *DRW_shader_create(
         const char *vert, const char *geom, const char *frag, const char *defines);
+struct DRW_ShaderCreateFromArray_Params { const char **vert, **geom, **frag, **defs; };
+struct GPUShader *DRW_shader_create_from_arrays_impl(
+        const struct DRW_ShaderCreateFromArray_Params *params);
+#define DRW_shader_create_from_arrays(...) \
+	DRW_shader_create_from_arrays_impl(&(const struct DRW_ShaderCreateFromArray_Params)__VA_ARGS__)
 struct GPUShader *DRW_shader_create_with_lib(
         const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);
 struct GPUShader *DRW_shader_create_with_transform_feedback(
