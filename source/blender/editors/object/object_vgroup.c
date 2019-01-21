@@ -2683,8 +2683,10 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove all vertex groups");
-	RNA_def_boolean(ot->srna, "all_unlocked", 0, "All Unlocked", "Remove all unlocked vertex groups");
+	PropertyRNA *prop = RNA_def_boolean(ot->srna, "all", 0, "All", "Remove all vertex groups");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "all_unlocked", 0, "All Unlocked", "Remove all unlocked vertex groups");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int vertex_group_assign_exec(bContext *C, wmOperator *UNUSED(op))
