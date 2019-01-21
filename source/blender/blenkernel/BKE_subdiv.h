@@ -194,6 +194,9 @@ void BKE_subdiv_stats_print(const SubdivStats *stats);
 
 /* ================================ SETTINGS ================================ */
 
+void BKE_subdiv_settings_validate_for_mesh(SubdivSettings *settings,
+                                           const struct Mesh *mesh);
+
 bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a,
                                const SubdivSettings *settings_b);
 

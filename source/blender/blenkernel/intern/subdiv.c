@@ -30,6 +30,7 @@
 #include "BKE_subdiv.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"
@@ -67,6 +68,28 @@ BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
 }
 
 /* ================================ SETTINGS ================================ */
+
+static bool check_mesh_has_non_quad(const Mesh *mesh)
+{
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mesh->mpoly[poly_index];
+		if (poly->totloop != 4) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void BKE_subdiv_settings_validate_for_mesh(SubdivSettings *settings,
+                                           const Mesh *mesh)
+{
+	if (settings->level != 1) {
+		return;
+	}
+	if (check_mesh_has_non_quad(mesh)) {
+		settings->level = 2;
+	}
+}
 
 bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a,
                                const SubdivSettings *settings_b)

@@ -206,6 +206,7 @@ static Mesh *applyModifier(ModifierData *md,
 	if (subdiv_settings.level == 0) {
 		return result;
 	}
+	BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
 	Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
 	if (subdiv == NULL) {
 		/* Happens on bad topology, but also on empty input mesh. */
