@@ -3157,18 +3157,18 @@ static void OBJECT_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	int id_ct_select =       g_data->id_ofs_select;
-	int id_ct_select_dupli = g_data->id_ofs_select_dupli;
-	int id_ct_active =       g_data->id_ofs_active;
-	int id_ct_transform =    g_data->id_ofs_transform;
+	int id_len_select =       g_data->id_ofs_select;
+	int id_len_select_dupli = g_data->id_ofs_select_dupli;
+	int id_len_active =       g_data->id_ofs_active;
+	int id_len_transform =    g_data->id_ofs_transform;
 
-	int id_ct_prb_select =       g_data->id_ofs_prb_select;
-	int id_ct_prb_select_dupli = g_data->id_ofs_prb_select_dupli;
-	int id_ct_prb_active =       g_data->id_ofs_prb_active;
-	int id_ct_prb_transform =    g_data->id_ofs_prb_transform;
+	int id_len_prb_select =       g_data->id_ofs_prb_select;
+	int id_len_prb_select_dupli = g_data->id_ofs_prb_select_dupli;
+	int id_len_prb_active =       g_data->id_ofs_prb_active;
+	int id_len_prb_transform =    g_data->id_ofs_prb_transform;
 
-	int outline_calls = id_ct_select + id_ct_select_dupli + id_ct_active + id_ct_transform;
-	outline_calls += id_ct_prb_select + id_ct_prb_select_dupli + id_ct_prb_active + id_ct_prb_transform;
+	int outline_calls = id_len_select + id_len_select_dupli + id_len_active + id_len_transform;
+	outline_calls += id_len_prb_select + id_len_prb_select_dupli + id_len_prb_active + id_len_prb_transform;
 
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -3192,14 +3192,14 @@ static void OBJECT_draw_scene(void *vedata)
 		DRW_stats_group_start("Outlines");
 
 		g_data->id_ofs_active = 1;
-		g_data->id_ofs_select =       g_data->id_ofs_active + id_ct_active + id_ct_prb_active + 1;
-		g_data->id_ofs_select_dupli = g_data->id_ofs_select + id_ct_select + id_ct_prb_select + 1;
-		g_data->id_ofs_transform =    g_data->id_ofs_select_dupli + id_ct_select_dupli + id_ct_prb_select_dupli + 1;
+		g_data->id_ofs_select =       g_data->id_ofs_active + id_len_active + id_len_prb_active + 1;
+		g_data->id_ofs_select_dupli = g_data->id_ofs_select + id_len_select + id_len_prb_select + 1;
+		g_data->id_ofs_transform =    g_data->id_ofs_select_dupli + id_len_select_dupli + id_len_prb_select_dupli + 1;
 
-		g_data->id_ofs_prb_active =       g_data->id_ofs_active       + id_ct_active;
-		g_data->id_ofs_prb_select =       g_data->id_ofs_select       + id_ct_select;
-		g_data->id_ofs_prb_select_dupli = g_data->id_ofs_select_dupli + id_ct_select_dupli;
-		g_data->id_ofs_prb_transform =    g_data->id_ofs_transform    + id_ct_transform;
+		g_data->id_ofs_prb_active =       g_data->id_ofs_active       + id_len_active;
+		g_data->id_ofs_prb_select =       g_data->id_ofs_select       + id_len_select;
+		g_data->id_ofs_prb_select_dupli = g_data->id_ofs_select_dupli + id_len_select_dupli;
+		g_data->id_ofs_prb_transform =    g_data->id_ofs_transform    + id_len_transform;
 
 		/* Render filled polygon on a separate framebuffer */
 		GPU_framebuffer_bind(fbl->outlines_fb);
