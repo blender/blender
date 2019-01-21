@@ -967,7 +967,7 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 }
 
 /********************* Add Gpencil Operator ********************/
-bool object_gpencil_add_poll(bContext *C)
+static bool object_gpencil_add_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
