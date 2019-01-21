@@ -65,8 +65,6 @@ typedef struct OVERLAY_PrivateData {
 	bool show_overlays;
 } OVERLAY_PrivateData; /* Transient data */
 
-#define DEF_WORLD_CLIP_STR "#define USE_WORLD_CLIP_PLANES\n"
-
 typedef struct OVERLAY_Shaders {
 	/* Face orientation shader */
 	struct GPUShader *face_orientation;
@@ -123,38 +121,34 @@ static void overlay_engine_init(void *vedata)
 	}
 	stl->g_data->ghost_stencil_test = false;
 
+	const char *world_clip_lib_or_empty = is_clip ? datatoc_common_world_clip_lib_glsl : "";
+	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+
 	if (!sh_data->face_orientation) {
 		/* Face orientation */
-		sh_data->face_orientation = DRW_shader_create_with_lib(
-		        datatoc_overlay_face_orientation_vert_glsl, NULL,
-		        datatoc_overlay_face_orientation_frag_glsl,
-		        datatoc_common_world_clip_lib_glsl,
-		        is_clip ? NULL : DEF_WORLD_CLIP_STR);
+		sh_data->face_orientation = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_orientation_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_overlay_face_orientation_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 	}
 
 	if (!sh_data->face_wireframe) {
-		sh_data->select_wireframe = DRW_shader_create_with_lib(
-		        datatoc_overlay_face_wireframe_vert_glsl,
-		        datatoc_overlay_face_wireframe_geom_glsl,
-		        datatoc_gpu_shader_depth_only_frag_glsl,
-		        datatoc_common_world_clip_lib_glsl,
-		        DEF_WORLD_CLIP_STR "#define SELECT_EDGES\n" +
-		        (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
+		sh_data->select_wireframe = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_vert_glsl, NULL},
+		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_geom_glsl, NULL},
+		        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, "#define SELECT_EDGES\n", NULL}});
 
-		sh_data->face_wireframe = DRW_shader_create_with_lib(
-		        datatoc_overlay_face_wireframe_vert_glsl,
-		        NULL,
-		        datatoc_overlay_face_wireframe_frag_glsl,
-		        datatoc_common_world_clip_lib_glsl,
-		        is_clip ? DEF_WORLD_CLIP_STR : NULL);
+		sh_data->face_wireframe = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 
-		sh_data->face_wireframe_sculpt = DRW_shader_create_with_lib(
-		        datatoc_overlay_face_wireframe_vert_glsl,
-		        datatoc_overlay_face_wireframe_geom_glsl,
-		        datatoc_overlay_face_wireframe_frag_glsl,
-		        datatoc_common_world_clip_lib_glsl,
-		        DEF_WORLD_CLIP_STR "#define USE_SCULPT\n" +
-		        (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
+		sh_data->face_wireframe_sculpt = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_vert_glsl, NULL},
+		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_geom_glsl, NULL},
+		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, "#define USE_SCULPT\n", NULL}});
 	}
 }
 
