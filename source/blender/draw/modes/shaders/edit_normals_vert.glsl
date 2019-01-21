@@ -2,9 +2,13 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 ProjectionMatrix;
+uniform mat4 ModelMatrix;
 uniform float normalSize;
 
 in vec3 pos;
+#ifdef USE_WORLD_CLIP_PLANES
+flat out vec3 wsPos;
+#endif
 
 #ifdef LOOP_NORMALS
 in vec3 lnor;
@@ -27,4 +31,7 @@ void main()
 	v1 = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	vec3 n = normalize(NormalMatrix * nor); /* viewspace */
 	v2 = v1 + ProjectionMatrix * vec4(n * normalSize, 0.0);
+#ifdef USE_WORLD_CLIP_PLANES
+	wsPos = (ModelMatrix * vec4(pos, 1.0)).xyz;
+#endif
 }

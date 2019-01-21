@@ -321,7 +321,6 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 /* workbench_data.c */
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
-void workbench_private_draw_finish(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float r_light_direction[3]);
 

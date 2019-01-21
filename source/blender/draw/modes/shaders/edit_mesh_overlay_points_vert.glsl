@@ -3,7 +3,13 @@ uniform mat3 NormalMatrix;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 uniform float ofs = 3e-5;
+
+#ifdef USE_WORLD_CLIP_PLANES
+uniform vec4 WorldClipPlanes[6];
+uniform int  WorldClipPlanesLen;
+#endif
 
 in vec3 pos;
 in ivec4 data;
@@ -48,4 +54,13 @@ void main()
 		gl_Position = vec4(0.0);
 		gl_PointSize = 0.0;
 	}
+
+#ifdef USE_WORLD_CLIP_PLANES
+	{
+		vec3 worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
+		for (int i = 0; i < WorldClipPlanesLen; i++) {
+			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
+		}
+	}
+#endif
 }

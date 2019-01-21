@@ -184,13 +184,6 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	DRW_uniformbuffer_update(wpd->world_ubo, wd);
 }
 
-void workbench_private_draw_finish(WORKBENCH_PrivateData *wpd)
-{
-	if (wpd->world_clip_planes_len) {
-		DRW_state_clip_planes_reset();
-	}
-}
-
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
 	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
