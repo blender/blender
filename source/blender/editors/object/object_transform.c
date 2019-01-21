@@ -786,9 +786,9 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
-	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
-	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "");
+	RNA_def_boolean(ot->srna, "location", true, "Location", "");
+	RNA_def_boolean(ot->srna, "rotation", true, "Rotation", "");
+	RNA_def_boolean(ot->srna, "scale", true, "Scale", "");
 	RNA_def_boolean(ot->srna, "properties", true, "Apply Properties",
 	                "Modify properties such as curve vertex radius, font size and bone envelope");
 }
