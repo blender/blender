@@ -3571,7 +3571,7 @@ static void nodelink_batch_draw(SpaceNode *snode)
 	UI_GetThemeColor4fv(TH_EDGE_SELECT, colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
 	UI_GetThemeColor4fv(TH_REDALERT,    colors[nodelink_get_color_id(TH_REDALERT)]);
 
-	GPU_vertbuf_vertex_count_set(g_batch_link.inst_vbo, g_batch_link.count);
+	GPU_vertbuf_data_len_set(g_batch_link.inst_vbo, g_batch_link.count);
 	GPU_vertbuf_use(g_batch_link.inst_vbo); /* force update. */
 
 	GPU_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);

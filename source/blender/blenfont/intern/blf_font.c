@@ -191,7 +191,7 @@ void blf_batch_draw(void)
 	UI_widgetbase_draw_cache_flush();
 
 	GPU_texture_bind(g_batch.tex_bind_state, 0);
-	GPU_vertbuf_vertex_count_set(g_batch.verts, g_batch.glyph_len);
+	GPU_vertbuf_data_len_set(g_batch.verts, g_batch.glyph_len);
 	GPU_vertbuf_use(g_batch.verts); /* send data */
 
 	GPUBuiltinShader shader = (g_batch.simple_shader) ? GPU_SHADER_TEXT_SIMPLE : GPU_SHADER_TEXT;

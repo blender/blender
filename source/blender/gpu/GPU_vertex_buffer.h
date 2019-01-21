@@ -77,7 +77,7 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *, const GPUVertFormat *, GPUUsa
 uint GPU_vertbuf_size_get(const GPUVertBuf *);
 void GPU_vertbuf_data_alloc(GPUVertBuf *, uint v_len);
 void GPU_vertbuf_data_resize(GPUVertBuf *, uint v_len);
-void GPU_vertbuf_vertex_count_set(GPUVertBuf *, uint v_len);
+void GPU_vertbuf_data_len_set(GPUVertBuf *, uint v_len);
 
 /* The most important set_attrib variant is the untyped one. Get it right first. */
 /* It takes a void* so the app developer is responsible for matching their app data types */
