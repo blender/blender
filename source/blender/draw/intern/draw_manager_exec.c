@@ -447,6 +447,19 @@ void DRW_state_clip_planes_reset(void)
 	DST.clip_planes_len = 0;
 }
 
+void DRW_state_clip_planes_set_from_rv3d(RegionView3D *rv3d)
+{
+	int max_len = 6;
+	int real_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : max_len;
+	while (real_len < max_len) {
+		/* Fill in dummy values that wont change results (6 is hard coded in shaders). */
+		copy_v4_v4(rv3d->clip[real_len], rv3d->clip[3]);
+		real_len++;
+	}
+
+	DRW_state_clip_planes_len_set(max_len);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

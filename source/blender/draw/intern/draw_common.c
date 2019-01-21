@@ -302,7 +302,6 @@ void DRW_shgroup_world_clip_planes_from_rv3d(DRWShadingGroup *shgrp, const Regio
 {
 	int world_clip_planes_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
 	DRW_shgroup_uniform_vec4(shgrp, "WorldClipPlanes", rv3d->clip[0], world_clip_planes_len);
-	DRW_shgroup_uniform_int_copy(shgrp, "WorldClipPlanesLen", world_clip_planes_len);
 	DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
 }
 

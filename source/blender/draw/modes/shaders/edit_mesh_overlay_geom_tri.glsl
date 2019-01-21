@@ -15,10 +15,6 @@ uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 uniform bool isXray = false;
 
-#ifdef USE_WORLD_CLIP_PLANES
-uniform int  WorldClipPlanesLen;
-#endif
-
 in vec4 pPos[];
 #ifdef USE_WORLD_CLIP_PLANES
 /* Worldspace position. */
@@ -77,9 +73,7 @@ void doVertex(int v)
 	gl_Position = pPos[v];
 
 #ifdef USE_WORLD_CLIP_PLANES
-	for (int i = 0; i < WorldClipPlanesLen; i++) {
-		gl_ClipDistance[i] = gl_in[v].gl_ClipDistance[i];
-	}
+	world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
 #endif
 
 	EmitVertex();
@@ -98,9 +92,7 @@ void doVertexOfs(int v, vec2 fixvec)
 	gl_Position = pPos[v] + vec4(fixvec * pPos[v].w, z_ofs, 0.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-	for (int i = 0; i < WorldClipPlanesLen; i++) {
-		gl_ClipDistance[i] = gl_in[v].gl_ClipDistance[i];
-	}
+	world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
 #endif
 
 	EmitVertex();

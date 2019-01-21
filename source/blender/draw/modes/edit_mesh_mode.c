@@ -42,12 +42,15 @@
 #include "BKE_object.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 
 
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
 extern struct GPUTexture *globals_weight_ramp; /* draw_common.c */
+
+extern char datatoc_common_world_clip_lib_glsl[];
 
 extern char datatoc_paint_weight_vert_glsl[];
 extern char datatoc_paint_weight_frag_glsl[];
@@ -229,6 +232,7 @@ static char *EDIT_MESH_sh_lib(void)
 
 	BLI_dynstr_append(ds, datatoc_common_globals_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_edit_mesh_overlay_common_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_common_world_clip_lib_glsl);
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -295,15 +299,19 @@ static void EDIT_MESH_engine_init(void *vedata)
 	});
 
 	if (is_clip) {
-		DRW_state_clip_planes_len_set((draw_ctx->rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6);
+		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
 	}
 
 	if (!sh_data->weight_face) {
+		char *lib = BLI_string_joinN(
+		        datatoc_common_world_clip_lib_glsl,
+		        datatoc_common_globals_lib_glsl);
 		sh_data->weight_face = DRW_shader_create_with_lib(
 		        datatoc_paint_weight_vert_glsl, NULL,
 		        datatoc_paint_weight_frag_glsl,
-		        datatoc_common_globals_lib_glsl,
+		        lib,
 		        is_clip ? DEF_WORLD_CLIP_STR : NULL);
+		MEM_freeN(lib);
 	}
 
 	if (!sh_data->overlay_vert) {
@@ -322,50 +330,61 @@ static void EDIT_MESH_engine_init(void *vedata)
 		MEM_freeN(lib);
 	}
 	if (!sh_data->overlay_facedot) {
+		char *lib = BLI_string_joinN(
+		        datatoc_common_world_clip_lib_glsl,
+		        datatoc_common_globals_lib_glsl);
 		const char *defs =
 			DEF_WORLD_CLIP_STR
 			"#define VERTEX_FACING\n" ;
 		sh_data->overlay_facedot = DRW_shader_create_with_lib(
 		        datatoc_edit_mesh_overlay_facedot_vert_glsl, NULL,
 		        datatoc_edit_mesh_overlay_facedot_frag_glsl,
-		        datatoc_common_globals_lib_glsl,
+		        lib,
 		        defs + (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
+		MEM_freeN(lib);
 	}
 	if (!sh_data->overlay_mix) {
 		sh_data->overlay_mix = DRW_shader_create_fullscreen(datatoc_edit_mesh_overlay_mix_frag_glsl, NULL);
 	}
 	if (!sh_data->overlay_facefill) {
+		char *lib = BLI_string_joinN(
+		        datatoc_common_world_clip_lib_glsl,
+		        datatoc_common_globals_lib_glsl);
 		sh_data->overlay_facefill = DRW_shader_create_with_lib(
 		        datatoc_edit_mesh_overlay_facefill_vert_glsl, NULL,
 		        datatoc_edit_mesh_overlay_facefill_frag_glsl,
-		        datatoc_common_globals_lib_glsl,
+		        lib,
 		        is_clip ? DEF_WORLD_CLIP_STR : NULL);
+		MEM_freeN(lib);
 	}
 	if (!sh_data->normals_face) {
 		const char *defs =
 			DEF_WORLD_CLIP_STR
 			"#define FACE_NORMALS\n";
-		sh_data->normals_face = DRW_shader_create(
+		sh_data->normals_face = DRW_shader_create_with_lib(
 		        datatoc_edit_normals_vert_glsl,
 		        datatoc_edit_normals_geom_glsl,
 		        datatoc_gpu_shader_uniform_color_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        defs + (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
 	}
 	if (!sh_data->normals_loop) {
 		const char *defs =
 			DEF_WORLD_CLIP_STR
 			"#define LOOP_NORMALS\n";
-		sh_data->normals_loop = DRW_shader_create(
+		sh_data->normals_loop = DRW_shader_create_with_lib(
 		        datatoc_edit_normals_vert_glsl,
 		        datatoc_edit_normals_geom_glsl,
 		        datatoc_gpu_shader_uniform_color_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        defs + (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
 	}
 	if (!sh_data->normals) {
-		sh_data->normals = DRW_shader_create(
+		sh_data->normals = DRW_shader_create_with_lib(
 		        datatoc_edit_normals_vert_glsl,
 		        datatoc_edit_normals_geom_glsl,
 		        datatoc_gpu_shader_uniform_color_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        is_clip ? DEF_WORLD_CLIP_STR : NULL);
 	}
 	if (!sh_data->depth) {

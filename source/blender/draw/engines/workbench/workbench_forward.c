@@ -29,6 +29,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_node.h"
@@ -66,6 +67,7 @@ static struct {
 } e_data = {{NULL}};
 
 /* Shaders */
+extern char datatoc_common_world_clip_lib_glsl[];
 extern char datatoc_common_hair_lib_glsl[];
 
 extern char datatoc_workbench_forward_composite_frag_glsl[];
@@ -85,12 +87,15 @@ static char *workbench_build_forward_vert(bool is_hair)
 {
 	char *str = NULL;
 	if (!is_hair) {
-		return BLI_strdup(datatoc_workbench_prepass_vert_glsl);
+		return BLI_string_joinN(
+		        datatoc_common_world_clip_lib_glsl,
+		        datatoc_workbench_prepass_vert_glsl);
 	}
 
 	DynStr *ds = BLI_dynstr_new();
 
 	BLI_dynstr_append(ds, datatoc_common_hair_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_common_world_clip_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_prepass_vert_glsl);
 
 	str = BLI_dynstr_get_cstring(ds);

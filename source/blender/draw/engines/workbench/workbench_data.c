@@ -91,12 +91,11 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	{
 		RegionView3D *rv3d = draw_ctx->rv3d;
 		if (rv3d->rflag & RV3D_CLIPPING) {
-			wpd->world_clip_planes_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
-			memcpy(wpd->world_clip_planes, rv3d->clip, sizeof(float[4]) * wpd->world_clip_planes_len);
-			DRW_state_clip_planes_len_set(wpd->world_clip_planes_len);
+			wpd->world_clip_planes = rv3d->clip;
+			DRW_state_clip_planes_set_from_rv3d(rv3d);
 		}
 		else {
-			wpd->world_clip_planes_len = 0;
+			wpd->world_clip_planes = NULL;
 		}
 	}
 

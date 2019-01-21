@@ -82,6 +82,8 @@ static struct {
 	OVERLAY_ShaderData sh_data[2];
 } e_data = {NULL};
 
+extern char datatoc_common_world_clip_lib_glsl[];
+
 /* Shaders */
 extern char datatoc_overlay_face_orientation_frag_glsl[];
 extern char datatoc_overlay_face_orientation_vert_glsl[];
@@ -112,7 +114,7 @@ static void overlay_engine_init(void *vedata)
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
-		DRW_state_clip_planes_len_set((draw_ctx->rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6);
+		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
 	}
 
 	if (!stl->g_data) {
@@ -123,30 +125,34 @@ static void overlay_engine_init(void *vedata)
 
 	if (!sh_data->face_orientation_sh) {
 		/* Face orientation */
-		sh_data->face_orientation_sh = DRW_shader_create(
+		sh_data->face_orientation_sh = DRW_shader_create_with_lib(
 		        datatoc_overlay_face_orientation_vert_glsl, NULL,
 		        datatoc_overlay_face_orientation_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        is_clip ? NULL : DEF_WORLD_CLIP_STR);
 	}
 
 	if (!sh_data->face_wireframe_sh) {
-		sh_data->select_wireframe_sh = DRW_shader_create(
+		sh_data->select_wireframe_sh = DRW_shader_create_with_lib(
 		        datatoc_overlay_face_wireframe_vert_glsl,
 		        datatoc_overlay_face_wireframe_geom_glsl,
 		        datatoc_gpu_shader_depth_only_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        DEF_WORLD_CLIP_STR "#define SELECT_EDGES\n" +
 		        (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
 
-		sh_data->face_wireframe_sh = DRW_shader_create(
+		sh_data->face_wireframe_sh = DRW_shader_create_with_lib(
 		        datatoc_overlay_face_wireframe_vert_glsl,
 		        NULL,
 		        datatoc_overlay_face_wireframe_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        is_clip ? DEF_WORLD_CLIP_STR : NULL);
 
-		sh_data->face_wireframe_sculpt_sh = DRW_shader_create(
+		sh_data->face_wireframe_sculpt_sh = DRW_shader_create_with_lib(
 		        datatoc_overlay_face_wireframe_vert_glsl,
 		        datatoc_overlay_face_wireframe_geom_glsl,
 		        datatoc_overlay_face_wireframe_frag_glsl,
+		        datatoc_common_world_clip_lib_glsl,
 		        DEF_WORLD_CLIP_STR "#define USE_SCULPT\n" +
 		        (is_clip ? 0 : strlen(DEF_WORLD_CLIP_STR)));
 	}

@@ -8,10 +8,6 @@ layout(line_strip, max_vertices = 6) out;
 layout(triangle_strip, max_vertices = 3) out;
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-uniform int  WorldClipPlanesLen;
-#endif
-
 in float facing_g[];
 in float edgeSharpness_g[];
 
@@ -25,9 +21,7 @@ void vert_from_gl_in(int v)
 {
 	gl_Position = gl_in[v].gl_Position;
 #ifdef USE_WORLD_CLIP_PLANES
-	for (int i = 0; i < WorldClipPlanesLen; i++) {
-		gl_ClipDistance[i] = gl_in[v].gl_ClipDistance[i];
-	}
+	world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
 #endif
 }
 

@@ -200,8 +200,7 @@ typedef struct WORKBENCH_PrivateData {
 	bool shadow_changed;
 	bool is_playback;
 
-	float world_clip_planes[6][4];
-	int   world_clip_planes_len;
+	float (*world_clip_planes)[4];
 
 	/* Volumes */
 	bool volumes_do;

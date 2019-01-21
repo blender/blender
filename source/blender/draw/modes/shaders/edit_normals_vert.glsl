@@ -5,11 +5,6 @@ uniform mat4 ProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform float normalSize;
 
-#ifdef USE_WORLD_CLIP_PLANES
-uniform vec4 WorldClipPlanes[6];
-uniform int  WorldClipPlanesLen;
-#endif
-
 in vec3 pos;
 
 #ifdef LOOP_NORMALS
@@ -34,11 +29,6 @@ void main()
 	vec3 n = normalize(NormalMatrix * nor); /* viewspace */
 	v2 = v1 + ProjectionMatrix * vec4(n * normalSize, 0.0);
 #ifdef USE_WORLD_CLIP_PLANES
-	{
-		vec3 worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
-		for (int i = 0; i < WorldClipPlanesLen; i++) {
-			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
-		}
-	}
+	world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
 #endif
 }
