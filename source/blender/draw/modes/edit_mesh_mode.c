@@ -864,7 +864,9 @@ static void EDIT_MESH_engine_free(void)
 {
 	for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
 		EDIT_MESH_ShaderData *sh_data = &e_data.sh_data[sh_data_index];
-		GPUShader **sh_data_as_array = (GPUShader **)&sh_data->weight_face;
+		/* Don't free builtins. */
+		sh_data->depth = NULL;
+		GPUShader **sh_data_as_array = (GPUShader **)sh_data;
 		for (int i = 0; i < (sizeof(EDIT_MESH_ShaderData) / sizeof(GPUShader *)); i++) {
 			DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
 		}
