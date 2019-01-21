@@ -555,7 +555,7 @@ static void draw_clipping_setup_from_view(void)
 			default: q = 4; r = 7; s = 6; break; /* +X */
 		}
 		if (DST.frontface == GL_CW) {
-			SWAP(int, q, r);
+			SWAP(int, q, s);
 		}
 
 		normal_quad_v3(DST.clipping.frustum_planes[p], bbox.vec[p], bbox.vec[q], bbox.vec[r], bbox.vec[s]);
