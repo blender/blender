@@ -223,10 +223,10 @@ int get_num_total_processors(const vector<int>& num_per_node_processors)
 	return num_total_processors;
 }
 
-/* Assign every thread a node on which is should be running, for the best
- * performance. */
+/* Compute NUMA node for every thread to run on, for the best performance. */
 vector<int> distribute_threads_on_nodes(const int num_threads)
 {
+	/* Start with all threads unassigned to any specific NUMA node. */
 	vector<int> thread_nodes(num_threads, -1);
 	const int num_active_group_processors =
 	        system_cpu_num_active_group_processors();
