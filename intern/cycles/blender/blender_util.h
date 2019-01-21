@@ -71,8 +71,12 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 		/* TODO: calc_undeformed is not used. */
 		mesh = BL::Mesh(object.data());
 
-		/* Make a copy to split faces if we use autosmooth, otherwise not needed. */
-		if (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE) {
+		/* Make a copy to split faces if we use autosmooth, otherwise not needed.
+		 * Also in edit mode do we need to make a copy, to ensure data layers like
+		 * UV are not empty. */
+		if (mesh.is_editmode() ||
+		    (mesh.use_auto_smooth() && subdivision_type == Mesh::SUBDIVISION_NONE))
+		{
 			mesh = data.meshes.new_from_object(depsgraph, object, false, false);
 		}
 	}
