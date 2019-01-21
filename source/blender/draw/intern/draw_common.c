@@ -298,6 +298,14 @@ void DRW_globals_free(void)
 	}
 }
 
+void DRW_shgroup_world_clip_planes_from_rv3d(DRWShadingGroup *shgrp, const RegionView3D *rv3d)
+{
+	int world_clip_planes_len = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
+	DRW_shgroup_uniform_vec4(shgrp, "WorldClipPlanes", rv3d->clip[0], world_clip_planes_len);
+	DRW_shgroup_uniform_int_copy(shgrp, "WorldClipPlanesLen", world_clip_planes_len);
+	DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
+}
+
 DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);

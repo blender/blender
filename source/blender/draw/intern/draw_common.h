@@ -125,6 +125,8 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 void DRW_globals_update(void);
 void DRW_globals_free(void);
 
+void DRW_shgroup_world_clip_planes_from_rv3d(struct DRWShadingGroup *shgrp, const RegionView3D *rv3d);
+
 struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass, float color[4]);
 struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, float color[4], float *size);

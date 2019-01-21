@@ -1,8 +1,14 @@
 
 uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 uniform mat3 NormalMatrix;
 
 uniform vec2 wireStepParam;
+
+#ifdef USE_WORLD_CLIP_PLANES
+uniform vec4 WorldClipPlanes[6];
+uniform int  WorldClipPlanesLen;
+#endif
 
 vec3 get_edge_sharpness(vec3 wd)
 {
@@ -76,6 +82,15 @@ void main()
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
 	facing = normalize(NormalMatrix * nor).z;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	{
+		vec3 worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
+		for (int i = 0; i < WorldClipPlanesLen; i++) {
+			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
+		}
+	}
+#endif
 }
 
 #endif /* SELECT_EDGES */
