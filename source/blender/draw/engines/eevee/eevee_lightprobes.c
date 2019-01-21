@@ -898,7 +898,7 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 	sldata->clip_data.clip_planes[0][3] += eplanar->clipsta;
 	/* Set clipping plane */
 	DRW_uniformbuffer_update(sldata->clip_ubo, &sldata->clip_data);
-	DRW_state_clip_planes_count_set(1);
+	DRW_state_clip_planes_len_set(1);
 
 	GPU_framebuffer_bind(fbl->planarref_fb);
 	GPU_framebuffer_clear_depth(fbl->planarref_fb, 1.0);

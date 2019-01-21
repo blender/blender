@@ -362,7 +362,7 @@ typedef struct DRWManager {
 	/* View dependent uniforms. */
 	DRWMatrixState original_mat; /* Original rv3d matrices. */
 	int override_mat;            /* Bitflag of which matrices are overridden. */
-	int num_clip_planes;         /* Number of active clipplanes. */
+	int clip_planes_len;         /* Number of active clipplanes. */
 	bool dirty_mat;
 
 	/* keep in sync with viewBlock */

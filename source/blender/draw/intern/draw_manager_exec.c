@@ -270,7 +270,7 @@ void drw_state_set(DRWState state)
 		int test;
 		if ((test = CHANGED_TO(DRW_STATE_CLIP_PLANES))) {
 			if (test == 1) {
-				for (int i = 0; i < DST.num_clip_planes; ++i) {
+				for (int i = 0; i < DST.clip_planes_len; ++i) {
 					glEnable(GL_CLIP_DISTANCE0 + i);
 				}
 			}
@@ -436,15 +436,15 @@ void DRW_state_invert_facing(void)
  * and if the shaders have support for it (see usage of gl_ClipDistance).
  * Be sure to call DRW_state_clip_planes_reset() after you finish drawing.
  **/
-void DRW_state_clip_planes_count_set(uint plane_len)
+void DRW_state_clip_planes_len_set(uint plane_len)
 {
 	BLI_assert(plane_len <= MAX_CLIP_PLANES);
-	DST.num_clip_planes = plane_len;
+	DST.clip_planes_len = plane_len;
 }
 
 void DRW_state_clip_planes_reset(void)
 {
-	DST.num_clip_planes = 0;
+	DST.clip_planes_len = 0;
 }
 
 /** \} */
