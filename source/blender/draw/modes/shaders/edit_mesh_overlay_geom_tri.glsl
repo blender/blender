@@ -16,7 +16,6 @@ uniform vec2 viewportSize;
 uniform bool isXray = false;
 
 #ifdef USE_WORLD_CLIP_PLANES
-uniform vec4 WorldClipPlanes[6];
 uniform int  WorldClipPlanesLen;
 #endif
 
@@ -78,13 +77,11 @@ void doVertex(int v)
 	gl_Position = pPos[v];
 
 #ifdef USE_WORLD_CLIP_PLANES
-	{
-		vec3 worldPosition = wsPos[v];
-		for (int i = 0; i < WorldClipPlanesLen; i++) {
-			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
-		}
+	for (int i = 0; i < WorldClipPlanesLen; i++) {
+		gl_ClipDistance[i] = gl_in[v].gl_ClipDistance[i];
 	}
 #endif
+
 	EmitVertex();
 }
 
@@ -101,13 +98,11 @@ void doVertexOfs(int v, vec2 fixvec)
 	gl_Position = pPos[v] + vec4(fixvec * pPos[v].w, z_ofs, 0.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-	{
-		vec3 worldPosition = wsPos[v];
-		for (int i = 0; i < WorldClipPlanesLen; i++) {
-			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
-		}
+	for (int i = 0; i < WorldClipPlanesLen; i++) {
+		gl_ClipDistance[i] = gl_in[v].gl_ClipDistance[i];
 	}
 #endif
+
 	EmitVertex();
 }
 

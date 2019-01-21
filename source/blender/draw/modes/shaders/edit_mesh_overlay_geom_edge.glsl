@@ -10,15 +10,10 @@ uniform mat4 ViewProjectionMatrixInverse;
 uniform vec2 viewportSize;
 
 #ifdef USE_WORLD_CLIP_PLANES
-uniform vec4 WorldClipPlanes[6];
 uniform int  WorldClipPlanesLen;
 #endif
 
 in vec4 pPos[];
-#ifdef USE_WORLD_CLIP_PLANES
-/* Worldspace position. */
-in vec3 wsPos[];
-#endif
 in ivec4 vData[];
 #ifdef VERTEX_FACING
 in float vFacing[];
@@ -68,11 +63,8 @@ void doVertex(int v, vec4 pos)
 	gl_Position = pos;
 
 #ifdef USE_WORLD_CLIP_PLANES
-	{
-		vec3 worldPosition = wsPos[v];
-		for (int i = 0; i < WorldClipPlanesLen; i++) {
-			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
-		}
+	for (int i = 0; i < WorldClipPlanesLen; i++) {
+		gl_ClipDistance[i] = gl_in[v].gl_ClipDistance[i];
 	}
 #endif
 

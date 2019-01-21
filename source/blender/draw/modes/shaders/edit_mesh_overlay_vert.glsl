@@ -24,9 +24,6 @@ in vec3 vnor;
 in ivec4 data;
 
 out vec4 pPos;
-#ifdef USE_WORLD_CLIP_PLANES
-out vec3 wsPos;
-#endif
 out ivec4 vData;
 #  ifdef VERTEX_FACING
 out float vFacing;
@@ -45,9 +42,14 @@ void main()
 	vFacing = dot(view_vec, view_normal);
 #  endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-	wsPos = (ModelMatrix * vec4(pos, 1.0)).xyz;
-#endif
+#  ifdef USE_WORLD_CLIP_PLANES
+	{
+		vec3 worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
+		for (int i = 0; i < WorldClipPlanesLen; i++) {
+			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
+		}
+	}
+#  endif
 }
 
 #else /* EDGE_FIX */
@@ -112,14 +114,14 @@ void main()
 	facing = dot(view_vec, view_normal);
 #  endif
 
-#ifdef USE_WORLD_CLIP_PLANES
+#  ifdef USE_WORLD_CLIP_PLANES
 	{
 		vec3 worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
 		for (int i = 0; i < WorldClipPlanesLen; i++) {
 			gl_ClipDistance[i] = dot(WorldClipPlanes[i].xyz, worldPosition) + WorldClipPlanes[i].w;
 		}
 	}
-#endif
+#  endif
 }
 
 #endif
