@@ -250,7 +250,7 @@ static GPUShader *EDIT_MESH_ensure_shader(
 			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true, false);
 			sh_data->overlay_tri_cache[index] = DRW_shader_create_from_arrays({
 			        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
-			        .geom = (const char *[]){lib, fast_mode ? NULL : datatoc_edit_mesh_overlay_geom_tri_glsl, NULL},
+			        .geom = fast_mode ? NULL : (const char *[]){lib, datatoc_edit_mesh_overlay_geom_tri_glsl, NULL},
 			        .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_frag_glsl, NULL},
 			        .defs = (const char *[]){world_clip_def_or_empty, defines, NULL},
 			});
