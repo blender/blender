@@ -527,12 +527,12 @@ class CpuEvalOutput : public VolatileEvalOutput<CpuVertexBuffer,
                            CpuVertexBuffer,
                            StencilTable,
                            CpuPatchTable,
-                           CpuEvaluator> (vertex_stencils,
-                                          varying_stencils,
-                                          all_face_varying_stencils,
-                                          face_varying_width,
-                                          patch_table,
-                                          evaluator_cache) {
+                           CpuEvaluator>(vertex_stencils,
+                                         varying_stencils,
+                                         all_face_varying_stencils,
+                                         face_varying_width,
+                                         patch_table,
+                                         evaluator_cache) {
   }
 };
 
