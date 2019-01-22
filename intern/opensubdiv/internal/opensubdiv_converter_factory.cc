@@ -192,7 +192,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
       const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
       // TODO(sergey): Find a better mixing between edge and vertex sharpness.
       sharpness += min(sharpness0, sharpness1);
-      sharpness = min(sharpness, 1.0f);
+      sharpness = min(sharpness, 10.0f);
     }
     setBaseVertexSharpness(refiner, vertex_index, sharpness);
   }
