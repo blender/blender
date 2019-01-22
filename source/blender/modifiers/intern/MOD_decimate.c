@@ -89,8 +89,10 @@ static DecimateModifierData *getOriginalModifierData(
 }
 
 static void updateFaceCount(
-        const ModifierEvalContext *ctx, const DecimateModifierData *dmd, int face_count)
+        const ModifierEvalContext *ctx, DecimateModifierData *dmd, int face_count)
 {
+	dmd->face_count = face_count;
+
 	if (DEG_is_active(ctx->depsgraph)) {
 		/* update for display only */
 		DecimateModifierData *dmd_orig = getOriginalModifierData(dmd, ctx);
