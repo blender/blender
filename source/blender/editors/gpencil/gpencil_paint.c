@@ -755,9 +755,9 @@ static short gp_stroke_addpoint(
 		pt->time = (float)(curtime - p->inittime);
 
 		/* point uv (only 3d view) */
-		if ((p->sa->spacetype == SPACE_VIEW3D) && (gpd->runtime.sbuffer_size > 1)) {
+		if ((p->sa->spacetype == SPACE_VIEW3D) && (gpd->runtime.sbuffer_size > 0)) {
 			float pixsize = gp_style->texture_pixsize / 1000000.0f;
-			tGPspoint *ptb = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 2;
+			tGPspoint *ptb = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 1;
 			bGPDspoint spt, spt2;
 
 			/* get origin to reproject point */

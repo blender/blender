@@ -926,11 +926,11 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 		tpt->strength = strength;
 		tpt->time = p2d->time;
 
-		/* point uv (only 3d view) */
-		if (gpd->runtime.sbuffer_size > 1) {
+		/* point uv */
+		if (gpd->runtime.sbuffer_size > 0) {
 			MaterialGPencilStyle *gp_style = tgpi->mat->gp_style;
 			const float pixsize = gp_style->texture_pixsize / 1000000.0f;
-			tGPspoint *tptb = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 2;
+			tGPspoint *tptb = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 1;
 			bGPDspoint spt, spt2;
 
 			/* get origin to reproject point */
