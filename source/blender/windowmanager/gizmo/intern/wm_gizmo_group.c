@@ -819,6 +819,7 @@ void WM_gizmomaptype_group_init_runtime_with_region(
 {
 	wmGizmoMap *gzmap = ar->gizmo_map;
 	BLI_assert(gzmap && gzmap->type == gzmap_type);
+	UNUSED_VARS_NDEBUG(gzmap_type);
 
 	wm_gizmogroup_new_from_type(gzmap, gzgt);
 
