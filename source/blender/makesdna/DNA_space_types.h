@@ -1020,9 +1020,10 @@ typedef struct SpaceImage {
 	char dt_uvstretch;
 	char around;
 
-	int pad2;
-
 	int flag;
+
+	char pixel_snap_mode;
+	char pad[3];
 
 	MaskSpaceInfo mask_info;
 } SpaceImage;
@@ -1041,6 +1042,13 @@ typedef enum eSpaceImage_UVDT_Stretch {
 	SI_UVDT_STRETCH_ANGLE = 0,
 	SI_UVDT_STRETCH_AREA = 1,
 } eSpaceImage_UVDT_Stretch;
+
+/* SpaceImage.pixel_snap_mode */
+typedef enum eSpaceImage_PixelSnapMode {
+	SI_PIXEL_SNAP_DISABLED = 0,
+	SI_PIXEL_SNAP_CENTER = 1,
+	SI_PIXEL_SNAP_CORNER = 2,
+} eSpaceImage_Snap_Mode;
 
 /* SpaceImage.mode */
 typedef enum eSpaceImage_Mode {
@@ -1071,7 +1079,7 @@ typedef enum eSpaceImage_Flag {
 	SI_FLAG_DEPRECATED_7  = (1 << 7),  /* cleared */
 	SI_FLAG_DEPRECATED_8  = (1 << 8),  /* cleared */
 	SI_COORDFLOATS        = (1 << 9),
-	SI_PIXELSNAP          = (1 << 10),
+	SI_FLAG_DEPRECATED_10 = (1 << 10),
 	SI_LIVE_UNWRAP        = (1 << 11),
 	SI_USE_ALPHA          = (1 << 12),
 	SI_SHOW_ALPHA         = (1 << 13),

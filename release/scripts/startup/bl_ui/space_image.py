@@ -353,7 +353,7 @@ class IMAGE_MT_uvs(Menu):
         uv = sima.uv_editor
         tool_settings = context.tool_settings
 
-        layout.prop(uv, "use_snap_to_pixels")
+        layout.prop_menu_enum(uv, "pixel_snap_mode")
         layout.prop(uv, "lock_bounds")
 
         layout.separator()
