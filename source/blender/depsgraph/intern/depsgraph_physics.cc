@@ -148,14 +148,22 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 		if (relation->pd->forcefield == skip_forcefield) {
 			continue;
 		}
+
+		/* Relation to forcefield object, optionally including geometry.
+		 * Use special point cache relations for automatic cache clearing. */
 		DEG_add_object_pointcache_relation(
 		        handle, relation->ob, DEG_OB_COMP_TRANSFORM, name);
-		if (relation->psys) {
+
+		if (relation->psys ||
+		    ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS))
+		{
 			/* TODO(sergey): Consider going more granular with more dedicated
 			 * particle system operation. */
 			DEG_add_object_pointcache_relation(
 			        handle, relation->ob, DEG_OB_COMP_GEOMETRY, name);
 		}
+
+		/* Smoke flow relations. */
 		if (relation->pd->forcefield == PFIELD_SMOKEFLOW &&
 		    relation->pd->f_source != NULL)
 		{
@@ -168,6 +176,8 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 			                                   DEG_OB_COMP_GEOMETRY,
 			                                   "Smoke Force Domain");
 		}
+
+		/* Absorption forces need collision relation. */
 		if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
 			DEG_add_collision_relations(handle,
 			                            object,

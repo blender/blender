@@ -359,7 +359,7 @@ DepsRelation *DepsgraphRelationBuilder::add_operation_relation(
 	return NULL;
 }
 
-void DepsgraphRelationBuilder::add_collision_relations(
+void DepsgraphRelationBuilder::add_particle_collision_relations(
         const OperationKey &key,
         Object *object,
         Collection *collection,
@@ -378,7 +378,7 @@ void DepsgraphRelationBuilder::add_collision_relations(
 	}
 }
 
-void DepsgraphRelationBuilder::add_forcefield_relations(
+void DepsgraphRelationBuilder::add_particle_forcefield_relations(
         const OperationKey &key,
         Object *object,
         ParticleSystem *psys,
@@ -390,9 +390,16 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
 
 	LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
 		if (relation->ob != object) {
+			/* Relation to forcefield object, optionally including geometry. */
 			ComponentKey eff_key(&relation->ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(eff_key, key, name);
 
+			if (ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS)) {
+				ComponentKey mod_key(&relation->ob->id, DEG_NODE_TYPE_GEOMETRY);
+				add_relation(mod_key, key, name);
+			}
+
+			/* Smoke flow relations. */
 			if (relation->pd->forcefield == PFIELD_SMOKEFLOW && relation->pd->f_source) {
 				ComponentKey trf_key(&relation->pd->f_source->id,
 				                     DEG_NODE_TYPE_TRANSFORM);
@@ -401,13 +408,16 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
 				                     DEG_NODE_TYPE_GEOMETRY);
 				add_relation(eff_key, key, "Smoke Force Domain");
 			}
+
+			/* Absorption forces need collision relation. */
 			if (add_absorption && (relation->pd->flag & PFIELD_VISIBILITY)) {
-				add_collision_relations(key,
-				                        object,
-				                        NULL,
-				                        "Force Absorption");
+				add_particle_collision_relations(key,
+				                                 object,
+				                                 NULL,
+				                                 "Force Absorption");
 			}
 		}
+
 		if (relation->psys) {
 			if (relation->ob != object) {
 				ComponentKey eff_key(&relation->ob->id,
@@ -1748,27 +1758,27 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 		add_relation(psys_key, obdata_ubereval_key, "PSys -> UberEval");
 		/* Collisions */
 		if (part->type != PART_HAIR) {
-			add_collision_relations(psys_key,
-			                        object,
-			                        part->collision_group,
-			                        "Particle Collision");
+			add_particle_collision_relations(psys_key,
+			                                 object,
+			                                 part->collision_group,
+			                                 "Particle Collision");
 		}
 		else if ((psys->flag & PSYS_HAIR_DYNAMICS) &&
 		         psys->clmd != NULL &&
 		         psys->clmd->coll_parms != NULL)
 		{
-			add_collision_relations(psys_key,
-			                        object,
-			                        psys->clmd->coll_parms->group,
-			                        "Hair Collision");
+			add_particle_collision_relations(psys_key,
+			                                 object,
+			                                 psys->clmd->coll_parms->group,
+			                                 "Hair Collision");
 		}
 		/* Effectors. */
-		add_forcefield_relations(psys_key,
-		                         object,
-		                         psys,
-		                         part->effector_weights,
-		                         part->type == PART_HAIR,
-		                         "Particle Field");
+		add_particle_forcefield_relations(psys_key,
+		                                  object,
+		                                  psys,
+		                                  part->effector_weights,
+		                                  part->type == PART_HAIR,
+		                                  "Particle Field");
 		/* Boids .*/
 		if (part->boids) {
 			LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {

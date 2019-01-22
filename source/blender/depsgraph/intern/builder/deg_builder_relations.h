@@ -286,15 +286,15 @@ struct DepsgraphRelationBuilder
 	void build_nested_nodetree(ID *owner, bNodeTree *ntree);
 	void build_nested_shapekey(ID *owner, Key *key);
 
-	void add_collision_relations(const OperationKey &key,
-	                             Object *object,
-	                             Collection *collection,
-	                             const char *name);
-	void add_forcefield_relations(const OperationKey &key,
-	                              Object *object,
-	                              ParticleSystem *psys,
-	                              EffectorWeights *eff,
-	                              bool add_absorption, const char *name);
+	void add_particle_collision_relations(const OperationKey &key,
+	                                      Object *object,
+	                                      Collection *collection,
+	                                      const char *name);
+	void add_particle_forcefield_relations(const OperationKey &key,
+	                                       Object *object,
+	                                       ParticleSystem *psys,
+	                                       EffectorWeights *eff,
+	                                       bool add_absorption, const char *name);
 
 	void build_copy_on_write_relations();
 	void build_copy_on_write_relations(IDDepsNode *id_node);
