@@ -93,6 +93,11 @@ void depsgraph_geometry_tag_to_component(const ID *id,
 	}
 }
 
+bool is_selectable_data_id_type(const ID_Type id_type)
+{
+	return ELEM(id_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_GD);
+}
+
 void depsgraph_select_tag_to_component_opcode(
         const ID *id,
         eDepsNode_Type *component_type,
@@ -120,9 +125,13 @@ void depsgraph_select_tag_to_component_opcode(
 		*component_type = DEG_NODE_TYPE_BATCH_CACHE;
 		*operation_code = DEG_OPCODE_MOVIECLIP_SELECT_UPDATE;
 	}
-	else {
+	else if (is_selectable_data_id_type(id_type)) {
 		*component_type = DEG_NODE_TYPE_BATCH_CACHE;
 		*operation_code = DEG_OPCODE_GEOMETRY_SELECT_UPDATE;
+	}
+	else {
+		*component_type = DEG_NODE_TYPE_COPY_ON_WRITE;
+		*operation_code = DEG_OPCODE_COPY_ON_WRITE;
 	}
 }
 

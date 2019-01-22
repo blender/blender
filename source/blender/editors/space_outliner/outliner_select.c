@@ -549,7 +549,7 @@ static eOLDrawState tree_element_active_posechannel(
 			}
 
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
-
+			DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
 		}
 	}
 	else {
