@@ -45,36 +45,65 @@
 #include "BKE_appdir.h"
 
 #ifdef WITH_INTERNATIONAL
-static const char unifont_filename[] = "droidsans.ttf.gz";
-static unsigned char *unifont_ttf = NULL;
-static int unifont_size = 0;
-static const char unifont_mono_filename[] = "bmonofont-i18n.ttf.gz";
-static unsigned char *unifont_mono_ttf = NULL;
-static int unifont_mono_size = 0;
-#endif  /* WITH_INTERNATIONAL */
 
-unsigned char *BLF_get_unifont(int *r_unifont_size)
+struct FontBuf {
+	const char *filename;
+	uchar *data;
+	int data_len;
+};
+
+static struct FontBuf unifont_ttf =  {"droidsans.ttf.gz"};
+static struct FontBuf unifont_mono_ttf = {"bmonofont-i18n.ttf.gz"};
+
+static void fontbuf_load(struct FontBuf *fb)
+{
+	const char *fontpath = BKE_appdir_folder_id(BLENDER_DATAFILES, "fonts");
+	uchar *data = NULL;
+	if (fontpath) {
+		char unifont_path[1024];
+		BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, fb->filename);
+		fb->data = (uchar *)BLI_file_ungzip_to_mem(unifont_path, &fb->data_len);
+
+	}
+	else {
+		printf("%s: 'fonts' data path not found for '%s', continuing\n", __func__, fb->filename);
+	}
+}
+
+static void fontbuf_free(struct FontBuf *fb)
+{
+	MEM_SAFE_FREE(fb->data);
+	fb->data_len = 0;
+}
+
+static uchar *fontbuf_get_mem(struct FontBuf *fb, int *r_size)
+{
+	if (fb->data == NULL) {
+		fontbuf_load(fb);
+	}
+	*r_size = fb->data_len;
+	return fb->data;
+}
+
+#endif /* WITH_INTERNATIONAL */
+
+
+uchar *BLF_get_unifont(int *r_unifont_size)
 {
 #ifdef WITH_INTERNATIONAL
-	if (unifont_ttf == NULL) {
-		const char * const fontpath = BKE_appdir_folder_id(BLENDER_DATAFILES, "fonts");
-		if (fontpath) {
-			char unifont_path[1024];
-
-			BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, unifont_filename);
-
-			unifont_ttf = (unsigned char *)BLI_file_ungzip_to_mem(unifont_path, &unifont_size);
-		}
-		else {
-			printf("%s: 'fonts' data path not found for international font, continuing\n", __func__);
-		}
-	}
-
-	*r_unifont_size = unifont_size;
-
-	return unifont_ttf;
+	return fontbuf_get_mem(&unifont_ttf, r_unifont_size);
 #else
-	(void)r_unifont_size;
+	UNUSED_VARS(r_unifont_size);
+	return NULL;
+#endif
+}
+
+uchar *BLF_get_unifont_mono(int *r_unifont_size)
+{
+#ifdef WITH_INTERNATIONAL
+	return fontbuf_get_mem(&unifont_mono_ttf, r_unifont_size);
+#else
+	UNUSED_VARS(r_unifont_size);
 	return NULL;
 #endif
 }
@@ -82,43 +111,13 @@ unsigned char *BLF_get_unifont(int *r_unifont_size)
 void BLF_free_unifont(void)
 {
 #ifdef WITH_INTERNATIONAL
-	if (unifont_ttf)
-		MEM_freeN(unifont_ttf);
-#else
-#endif
-}
-
-unsigned char *BLF_get_unifont_mono(int *r_unifont_size)
-{
-#ifdef WITH_INTERNATIONAL
-	if (unifont_mono_ttf == NULL) {
-		const char *fontpath = BKE_appdir_folder_id(BLENDER_DATAFILES, "fonts");
-		if (fontpath) {
-			char unifont_path[1024];
-
-			BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, unifont_mono_filename);
-
-			unifont_mono_ttf = (unsigned char *)BLI_file_ungzip_to_mem(unifont_path, &unifont_mono_size);
-		}
-		else {
-			printf("%s: 'fonts' data path not found for international monospace font, continuing\n", __func__);
-		}
-	}
-
-	*r_unifont_size = unifont_mono_size;
-
-	return unifont_mono_ttf;
-#else
-	(void)r_unifont_size;
-	return NULL;
+	fontbuf_free(&unifont_ttf);
 #endif
 }
 
 void BLF_free_unifont_mono(void)
 {
 #ifdef WITH_INTERNATIONAL
-	if (unifont_mono_ttf)
-		MEM_freeN(unifont_mono_ttf);
-#else
+	fontbuf_free(&unifont_mono_ttf);
 #endif
 }
