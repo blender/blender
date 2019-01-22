@@ -718,6 +718,12 @@ void SCENE_OT_view_layer_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+static bool view_layer_remove_poll(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	return (scene->view_layers.first != scene->view_layers.last);
+}
+
 static int view_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
@@ -742,6 +748,7 @@ void SCENE_OT_view_layer_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = view_layer_remove_exec;
+	ot->poll = view_layer_remove_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

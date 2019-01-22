@@ -238,6 +238,12 @@ static void SCENE_OT_new(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
+static bool scene_delete_poll(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	return (scene->id.prev || scene->id.next);
+}
+
 static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -263,6 +269,7 @@ static void SCENE_OT_delete(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = scene_delete_exec;
+	ot->poll = scene_delete_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
