@@ -1112,6 +1112,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(
 			data_cp.vert = mesh->mvert;
 
 			if (data_cp.cached == false) {
+				/* TODO: a global mutex lock held during the expensive operation of
+				 * building the BVH tree is really bad for performance. */
 				BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
 				data_cp.cached = bvhcache_find(
 				        mesh->runtime.bvh_cache, type, &data_cp.tree);

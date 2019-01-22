@@ -96,8 +96,15 @@ static void deformVerts(
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	const int cfra = (int)DEG_get_ctime(ctx->depsgraph);
 
+	/* Free mesh and BVH cache. */
+	if (surmd->bvhtree) {
+		free_bvhtree_from_mesh(surmd->bvhtree);
+		MEM_SAFE_FREE(surmd->bvhtree);
+	}
+
 	if (surmd->mesh) {
 		BKE_id_free(NULL, surmd->mesh);
+		surmd->mesh = NULL;
 	}
 
 	if (mesh) {
@@ -168,10 +175,7 @@ static void deformVerts(
 
 		surmd->cfra = cfra;
 
-		if (surmd->bvhtree)
-			free_bvhtree_from_mesh(surmd->bvhtree);
-		else
-			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
+		surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
 		if (surmd->mesh->totpoly)
 			BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_LOOPTRI, 2);

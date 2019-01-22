@@ -908,23 +908,17 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 
 
 fail:
-	MEM_SAFE_FREE(tree->nodes);
-	MEM_SAFE_FREE(tree->nodebv);
-	MEM_SAFE_FREE(tree->nodechild);
-	MEM_SAFE_FREE(tree->nodearray);
-
-	MEM_freeN(tree);
-
+	BLI_bvhtree_free(tree);
 	return NULL;
 }
 
 void BLI_bvhtree_free(BVHTree *tree)
 {
 	if (tree) {
-		MEM_freeN(tree->nodes);
-		MEM_freeN(tree->nodearray);
-		MEM_freeN(tree->nodebv);
-		MEM_freeN(tree->nodechild);
+		MEM_SAFE_FREE(tree->nodes);
+		MEM_SAFE_FREE(tree->nodearray);
+		MEM_SAFE_FREE(tree->nodebv);
+		MEM_SAFE_FREE(tree->nodechild);
 		MEM_freeN(tree);
 	}
 }
