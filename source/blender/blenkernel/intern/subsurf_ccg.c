@@ -2873,17 +2873,20 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
         float (*vertCos)[3],
         SubsurfFlags flags)
 {
-	int useSimple = (smd->subdivType == ME_SIMPLE_SUBSURF) ? CCG_SIMPLE_SUBDIV : 0;
-	CCGFlags useAging = (smd->flags & eSubsurfModifierFlag_DebugIncr) ? CCG_USE_AGING : 0;
-	int useSubsurfUv = (smd->uv_smooth != SUBSURF_UV_SMOOTH_NONE);
-	int drawInteriorEdges = !(smd->flags & eSubsurfModifierFlag_ControlEdges);
+	const int useSimple = (smd->subdivType == ME_SIMPLE_SUBSURF) ? CCG_SIMPLE_SUBDIV : 0;
+	const CCGFlags useAging = (smd->flags & eSubsurfModifierFlag_DebugIncr) ? CCG_USE_AGING : 0;
+	const int useSubsurfUv = (smd->uv_smooth != SUBSURF_UV_SMOOTH_NONE);
+	const int drawInteriorEdges = !(smd->flags & eSubsurfModifierFlag_ControlEdges);
+	const bool use_gpu_backend = subsurf_use_gpu_backend(flags);
+	const bool ignore_simplify = (flags & SUBSURF_IGNORE_SIMPLIFY);
 	CCGDerivedMesh *result;
-	bool use_gpu_backend = subsurf_use_gpu_backend(flags);
 
 	/* note: editmode calculation can only run once per
 	 * modifier stack evaluation (uses freed cache) [#36299] */
 	if (flags & SUBSURF_FOR_EDIT_MODE) {
-		int levels = (scene != NULL) ? get_render_subsurf_level(&scene->r, smd->levels, false) : smd->levels;
+		int levels = (scene != NULL && !ignore_simplify)
+		        ? get_render_subsurf_level(&scene->r, smd->levels, false)
+		        : smd->levels;
 
 		/* TODO(sergey): Same as emCache below. */
 		if ((flags & SUBSURF_IN_EDIT_MODE) && smd->mCache) {
@@ -2904,7 +2907,9 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	else if (flags & SUBSURF_USE_RENDER_PARAMS) {
 		/* Do not use cache in render mode. */
 		CCGSubSurf *ss;
-		int levels = (scene != NULL) ? get_render_subsurf_level(&scene->r, smd->renderLevels, true) : smd->renderLevels;
+		int levels = (scene != NULL && !ignore_simplify)
+		        ? get_render_subsurf_level(&scene->r, smd->renderLevels, true)
+		        : smd->renderLevels;
 
 		if (levels == 0)
 			return dm;
@@ -2920,7 +2925,9 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	}
 	else {
 		int useIncremental = (smd->flags & eSubsurfModifierFlag_Incremental);
-		int levels = (scene != NULL) ? get_render_subsurf_level(&scene->r, smd->levels, false) : smd->levels;
+		int levels = (scene != NULL && !ignore_simplify)
+		        ? get_render_subsurf_level(&scene->r, smd->levels, false)
+		        : smd->levels;
 		CCGSubSurf *ss;
 
 		/* It is quite possible there is a much better place to do this. It

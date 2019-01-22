@@ -62,6 +62,7 @@ typedef enum {
 	SUBSURF_IN_EDIT_MODE = 8,
 	SUBSURF_ALLOC_PAINT_MASK = 16,
 	SUBSURF_USE_GPU_BACKEND = 32,
+	SUBSURF_IGNORE_SIMPLIFY = 64,
 } SubsurfFlags;
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
