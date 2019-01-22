@@ -192,7 +192,6 @@ int BLF_default(void)
 int BLF_load(const char *name)
 {
 	FontBLF *font;
-	char *filename;
 	int i;
 
 	/* check if we already load this font. */
@@ -203,29 +202,7 @@ int BLF_load(const char *name)
 		return i;
 	}
 
-	i = blf_search_available();
-	if (i == -1) {
-		printf("Too many fonts!!!\n");
-		return -1;
-	}
-
-	filename = blf_dir_search(name);
-	if (!filename) {
-		printf("Can't find font: %s\n", name);
-		return -1;
-	}
-
-	font = blf_font_new(name, filename);
-	MEM_freeN(filename);
-
-	if (!font) {
-		printf("Can't load font: %s\n", name);
-		return -1;
-	}
-
-	font->reference_count = 1;
-	global_font[i] = font;
-	return i;
+	return BLF_load_unique(name);
 }
 
 int BLF_load_unique(const char *name)
@@ -273,7 +250,6 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
 
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 {
-	FontBLF *font;
 	int i;
 
 	i = blf_search(name);
@@ -281,27 +257,7 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 		/*font = global_font[i];*/ /*UNUSED*/
 		return i;
 	}
-
-	i = blf_search_available();
-	if (i == -1) {
-		printf("Too many fonts!!!\n");
-		return -1;
-	}
-
-	if (!mem_size) {
-		printf("Can't load font: %s from memory!!\n", name);
-		return -1;
-	}
-
-	font = blf_font_new_from_mem(name, mem, mem_size);
-	if (!font) {
-		printf("Can't load font: %s from memory!!\n", name);
-		return -1;
-	}
-
-	font->reference_count = 1;
-	global_font[i] = font;
-	return i;
+	return BLF_load_mem_unique(name, mem, mem_size);
 }
 
 int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
