@@ -277,8 +277,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			scene->r.cfra = 1.0f;
 			scene->r.displaymode = R_OUTPUT_WINDOW;
 
-			/* AV Sync break physics sim caching, disable until that is fixed. */
-			if (!(app_template && STREQ(app_template, "Video_Editing"))) {
+			if (app_template && STREQ(app_template, "Video_Editing")) {
+				/* Filmic is too slow, use default until it is optimized. */
+				STRNCPY(scene->view_settings.view_transform, "Default");
+			}
+			else {
+				/* AV Sync break physics sim caching, disable until that is fixed. */
 				scene->audio.flag &= ~AUDIO_SYNC;
 				scene->flag &= ~SCE_FRAME_DROP;
 			}
