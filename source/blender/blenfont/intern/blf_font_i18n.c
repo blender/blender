@@ -58,7 +58,6 @@ static struct FontBuf unifont_mono_ttf = {"bmonofont-i18n.ttf.gz"};
 static void fontbuf_load(struct FontBuf *fb)
 {
 	const char *fontpath = BKE_appdir_folder_id(BLENDER_DATAFILES, "fonts");
-	uchar *data = NULL;
 	if (fontpath) {
 		char unifont_path[1024];
 		BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, fb->filename);
