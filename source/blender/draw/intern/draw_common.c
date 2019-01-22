@@ -319,7 +319,7 @@ DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, float color[4])
+DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, const float color[4])
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -335,7 +335,7 @@ DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, float colo
 	return grp;
 }
 
-DRWShadingGroup *shgroup_dynpoints_uniform_color(DRWPass *pass, float color[4], float *size)
+DRWShadingGroup *shgroup_dynpoints_uniform_color(DRWPass *pass, const float color[4], const float *size)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
@@ -347,7 +347,7 @@ DRWShadingGroup *shgroup_dynpoints_uniform_color(DRWPass *pass, float color[4], 
 	return grp;
 }
 
-DRWShadingGroup *shgroup_groundlines_uniform_color(DRWPass *pass, float color[4])
+DRWShadingGroup *shgroup_groundlines_uniform_color(DRWPass *pass, const float color[4])
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_GROUNDLINE);
 
@@ -357,7 +357,7 @@ DRWShadingGroup *shgroup_groundlines_uniform_color(DRWPass *pass, float color[4]
 	return grp;
 }
 
-DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, float color[4])
+DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, const float color[4])
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_GROUNDPOINT);
 
@@ -368,7 +368,7 @@ DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, float color[4
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct GPUBatch *geom, float *size)
+DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct GPUBatch *geom, const float *size)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR);
 
