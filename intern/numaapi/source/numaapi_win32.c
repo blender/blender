@@ -165,6 +165,7 @@ NUMAAPI_Result numaAPI_Initialize(void) {
 
 static int countNumSetBits(ULONGLONG mask) {
   // TODO(sergey): There might be faster way calculating number of set bits.
+  // NOTE: mask must be unsigned, there is undefined behavior for signed ints.
   int num_bits = 0;
   while (mask != 0) {
     num_bits += (mask & 1);
