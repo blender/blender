@@ -142,7 +142,7 @@ static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args
 				break;
 			case BMO_OP_SLOT_INT:
 				if (ELEM(slot->slot_subtype.intg, BMO_OP_SLOT_SUBTYPE_INT_ENUM, BMO_OP_SLOT_SUBTYPE_INT_FLAG)) {
-					slot->data.enum_flags = slot_types[i].enum_flags;
+					slot->data.enum_data.flags = slot_types[i].enum_flags;
 				}
 			default:
 				break;

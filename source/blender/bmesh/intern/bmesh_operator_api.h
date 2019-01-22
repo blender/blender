@@ -228,7 +228,11 @@ typedef struct BMOpSlot {
 		float vec[3];
 		void **buf;
 		GHash *ghash;
-		BMO_FlagSet *enum_flags;
+		struct {
+			/** Don't clobber (i) when assigning flags, see #eBMOpSlotSubType_Int. */
+			int _i;
+			BMO_FlagSet *flags;
+		} enum_data;
 	} data;
 } BMOpSlot;
 
