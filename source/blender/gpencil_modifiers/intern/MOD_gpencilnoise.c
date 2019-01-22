@@ -138,13 +138,13 @@ static void deformStroke(
 			continue;
 		}
 
-		/* last point is special */
-		if (i == gps->totpoints) {
+		/* first point is special */
+		if (i == 0) {
 			if (gps->dvert) {
-				dvert = &gps->dvert[i - 2];
+				dvert = &gps->dvert[0];
 			}
-			pt0 = &gps->points[i - 2];
-			pt1 = &gps->points[i - 1];
+			pt0 = &gps->points[1];
+			pt1 = &gps->points[0];
 		}
 		else {
 			int prev_idx = i - 1;
