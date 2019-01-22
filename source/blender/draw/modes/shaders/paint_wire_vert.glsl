@@ -1,5 +1,6 @@
 
 uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 
 in vec3 pos;
 in vec4 nor; /* flag stored in w */
@@ -28,4 +29,8 @@ void main()
 
 	finalColor = (is_select) ? colSel : colorWire;
 	finalColor.a = nor.w;
+
+#ifdef USE_WORLD_CLIP_PLANES
+       world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+#endif
 }
