@@ -709,90 +709,97 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName,
+static bool fcurves_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName,
                                     const char *oldKey, const char *newKey, ListBase *curves, bool verify_paths)
 {
 	FCurve *fcu;
-
-	/* we need to check every curve... */
+	bool is_changed = false;
+	/* We need to check every curve. */
 	for (fcu = curves->first; fcu; fcu = fcu->next) {
-		if (fcu->rna_path) {
-			const char *old_path = fcu->rna_path;
-
-			/* firstly, handle the F-Curve's own path */
-			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
-
-			/* if path changed and the F-Curve is grouped, check if its group also needs renaming
-			 * (i.e. F-Curve is first of a bone's F-Curves; hence renaming this should also trigger rename)
-			 */
-			if (fcu->rna_path != old_path) {
-				bActionGroup *agrp = fcu->grp;
-
-				if ((agrp) && STREQ(oldName, agrp->name)) {
-					BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
-				}
+		if (fcu->rna_path == NULL) {
+			continue;
+		}
+		const char *old_path = fcu->rna_path;
+		/* Firstly, handle the F-Curve's own path. */
+		fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
+		/* if path changed and the F-Curve is grouped, check if its group also needs renaming
+		 * (i.e. F-Curve is first of a bone's F-Curves; hence renaming this should also trigger rename) */
+		if (fcu->rna_path != old_path) {
+			bActionGroup *agrp = fcu->grp;
+			is_changed = true;
+			if ((agrp != NULL) && STREQ(oldName, agrp->name)) {
+				BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
 			}
 		}
 	}
+	return is_changed;
 }
 
 /* Check RNA-Paths for a list of Drivers */
-static void drivers_path_rename_fix(ID *owner_id, ID *ref_id, const char *prefix, const char *oldName, const char *newName,
+static bool drivers_path_rename_fix(ID *owner_id, ID *ref_id, const char *prefix, const char *oldName, const char *newName,
                                     const char *oldKey, const char *newKey, ListBase *curves, bool verify_paths)
 {
+	bool is_changed = false;
 	FCurve *fcu;
-
-	/* we need to check every curve - drivers are F-Curves too! */
+	/* We need to check every curve - drivers are F-Curves too. */
 	for (fcu = curves->first; fcu; fcu = fcu->next) {
 		/* firstly, handle the F-Curve's own path */
-		if (fcu->rna_path)
+		if (fcu->rna_path != NULL) {
+			const char *old_rna_path = fcu->rna_path;
 			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
-
-		/* driver? */
-		if (fcu->driver) {
-			ChannelDriver *driver = fcu->driver;
-			DriverVar *dvar;
-
-			/* driver variables */
-			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				/* only change the used targets, since the others will need fixing manually anyway */
-				DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
-				{
-					/* rename RNA path */
-					if (dtar->rna_path && dtar->id)
-						dtar->rna_path = rna_path_rename_fix(dtar->id, prefix, oldKey, newKey, dtar->rna_path, verify_paths);
-
-					/* also fix the bone-name (if applicable) */
-					if (strstr(prefix, "bones")) {
-						if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB) && (!ref_id || ((Object *)(dtar->id))->data == ref_id)) &&
-						     (dtar->pchan_name[0]) && STREQ(oldName, dtar->pchan_name) )
-						{
-							BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
-						}
+			is_changed |= (fcu->rna_path != old_rna_path);
+		}
+		if (fcu->driver == NULL) {
+			continue;
+		}
+		ChannelDriver *driver = fcu->driver;
+		DriverVar *dvar;
+		/* driver variables */
+		for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
+			/* only change the used targets, since the others will need fixing manually anyway */
+			DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
+			{
+				/* rename RNA path */
+				if (dtar->rna_path && dtar->id) {
+					const char *old_rna_path = dtar->rna_path;
+					dtar->rna_path = rna_path_rename_fix(dtar->id, prefix, oldKey, newKey, dtar->rna_path, verify_paths);
+					is_changed |= (dtar->rna_path != old_rna_path);
+				}
+				/* also fix the bone-name (if applicable) */
+				if (strstr(prefix, "bones")) {
+					if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB) && (!ref_id || ((Object *)(dtar->id))->data == ref_id)) &&
+					     (dtar->pchan_name[0]) && STREQ(oldName, dtar->pchan_name) )
+					{
+						is_changed = true;
+						BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
 					}
 				}
-				DRIVER_TARGETS_LOOPER_END;
 			}
+			DRIVER_TARGETS_LOOPER_END;
 		}
 	}
+	return is_changed;
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName,
+static bool nlastrips_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName,
                                       const char *oldKey, const char *newKey, ListBase *strips, bool verify_paths)
 {
 	NlaStrip *strip;
-
-	/* recursively check strips, fixing only actions... */
+	bool is_changed = false;
+	/* Recursively check strips, fixing only actions. */
 	for (strip = strips->first; strip; strip = strip->next) {
 		/* fix strip's action */
-		if (strip->act)
-			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
-		/* ignore own F-Curves, since those are local...  */
-
-		/* check sub-strips (if metas) */
-		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldKey, newKey, &strip->strips, verify_paths);
+		if (strip->act != NULL) {
+			is_changed |= fcurves_path_rename_fix(
+			        owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
+		}
+		/* Ignore own F-Curves, since those are local.  */
+		/* Check sub-strips (if metas) */
+		is_changed |= nlastrips_path_rename_fix(
+		        owner_id, prefix, oldName, newName, oldKey, newKey, &strip->strips, verify_paths);
 	}
+	return is_changed;
 }
 
 /* Rename Sub-ID Entities in RNA Paths ----------------------- */
@@ -900,14 +907,14 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 {
 	NlaTrack *nlt;
 	char *oldN, *newN;
-
-	/* if no AnimData, no need to proceed */
-	if (ELEM(NULL, owner_id, adt))
+	/* If no AnimData, no need to proceed. */
+	if (ELEM(NULL, owner_id, adt)) {
 		return;
-
-	/* Name sanitation logic - shared with BKE_action_fix_paths_rename() */
+	}
+	bool is_self_changed = false;
+	/* Name sanitation logic - shared with BKE_action_fix_paths_rename(). */
 	if ((oldName != NULL) && (newName != NULL)) {
-		/* pad the names with [" "] so that only exact matches are made */
+		/* Pad the names with [" "] so that only exact matches are made. */
 		const size_t name_old_len = strlen(oldName);
 		const size_t name_new_len = strlen(newName);
 		char *name_old_esc = BLI_array_alloca(name_old_esc, (name_old_len * 2) + 1);
@@ -922,20 +929,33 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 		oldN = BLI_sprintfN("[%d]", oldSubscript);
 		newN = BLI_sprintfN("[%d]", newSubscript);
 	}
-
-	/* Active action and temp action */
-	if (adt->action)
-		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->action->curves, verify_paths);
-	if (adt->tmpact)
-		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->tmpact->curves, verify_paths);
-
+	/* Active action and temp action. */
+	if (adt->action != NULL) {
+		if (fcurves_path_rename_fix(owner_id, prefix, oldName, newName,
+		                            oldN, newN, &adt->action->curves, verify_paths))
+		{
+			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+		}
+	}
+	if (adt->tmpact) {
+		if (fcurves_path_rename_fix(owner_id, prefix, oldName, newName,
+		                            oldN, newN, &adt->tmpact->curves, verify_paths))
+		{
+			DEG_id_tag_update(&adt->tmpact->id, ID_RECALC_COPY_ON_WRITE);
+		}
+	}
 	/* Drivers - Drivers are really F-Curves */
-	drivers_path_rename_fix(owner_id, ref_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
-
+	is_self_changed |= drivers_path_rename_fix(
+	         owner_id, ref_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
 	/* NLA Data - Animation Data for Strips */
-	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next)
-		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
-
+	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		is_self_changed |= nlastrips_path_rename_fix(
+		        owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
+	}
+	/* Tag owner ID if it */
+	if (is_self_changed) {
+		DEG_id_tag_update(owner_id, ID_RECALC_COPY_ON_WRITE);
+	}
 	/* free the temp names */
 	MEM_freeN(oldN);
 	MEM_freeN(newN);
