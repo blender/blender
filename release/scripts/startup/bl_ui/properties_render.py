@@ -411,8 +411,8 @@ class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
         props = scene.eevee
 
         col = layout.column()
-        col.prop(props, "taa_samples")
-        col.prop(props, "taa_render_samples")
+        col.prop(props, "taa_render_samples", text="Render")
+        col.prop(props, "taa_samples", text="Viewport")
         col.prop(props, "use_taa_reprojection")
 
 
