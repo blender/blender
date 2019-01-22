@@ -2057,7 +2057,12 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 						wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
 						if (gzgt != NULL) {
 							if ((gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) != 0) {
-								WM_gizmo_group_type_ensure_ptr(gzgt);
+								ARegion *ar = CTX_wm_region(C);
+								if (ar != NULL) {
+									wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
+									WM_gizmo_group_type_ensure_ptr_ex(gzgt, gzmap_type);
+									WM_gizmomaptype_group_init_runtime_with_region(gzmap_type, gzgt, ar);
+								}
 							}
 						}
 					}

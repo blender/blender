@@ -792,6 +792,11 @@ void WM_gizmomaptype_group_init_runtime(
         const Main *bmain, wmGizmoMapType *gzmap_type,
         wmGizmoGroupType *gzgt)
 {
+	/* Tools add themselves. */
+	if (gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) {
+		return;
+	}
+
 	/* now create a gizmo for all existing areas */
 	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
 		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
@@ -800,11 +805,7 @@ void WM_gizmomaptype_group_init_runtime(
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
 					wmGizmoMap *gzmap = ar->gizmo_map;
 					if (gzmap && gzmap->type == gzmap_type) {
-						wm_gizmogroup_new_from_type(gzmap, gzgt);
-
-						/* just add here, drawing will occur on next update */
-						wm_gizmomap_highlight_set(gzmap, NULL, NULL, 0);
-						ED_region_tag_redraw(ar);
+						WM_gizmomaptype_group_init_runtime_with_region(gzmap_type, gzgt, ar);
 					}
 				}
 			}
@@ -812,6 +813,18 @@ void WM_gizmomaptype_group_init_runtime(
 	}
 }
 
+void WM_gizmomaptype_group_init_runtime_with_region(
+        wmGizmoMapType *gzmap_type,
+        wmGizmoGroupType *gzgt, ARegion *ar)
+{
+	wmGizmoMap *gzmap = ar->gizmo_map;
+	BLI_assert(gzmap && gzmap->type == gzmap_type);
+
+	wm_gizmogroup_new_from_type(gzmap, gzgt);
+
+	wm_gizmomap_highlight_set(gzmap, NULL, NULL, 0);
+	ED_region_tag_redraw(ar);
+}
 
 /**
  * Unlike #WM_gizmomaptype_group_unlink this doesn't maintain correct state, simply free.

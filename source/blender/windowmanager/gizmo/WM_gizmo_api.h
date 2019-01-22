@@ -297,6 +297,9 @@ void WM_gizmomaptype_group_init_runtime_keymap(
 void WM_gizmomaptype_group_init_runtime(
         const struct Main *bmain, struct wmGizmoMapType *gzmap_type,
         struct wmGizmoGroupType *gzgt);
+void WM_gizmomaptype_group_init_runtime_with_region(
+        struct wmGizmoMapType *gzmap_type,
+        struct wmGizmoGroupType *gzgt, struct ARegion *ar);
 void WM_gizmomaptype_group_unlink(
         struct bContext *C, struct Main *bmain, struct wmGizmoMapType *gzmap_type,
         const struct wmGizmoGroupType *gzgt);
