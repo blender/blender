@@ -2898,15 +2898,21 @@ struct Mesh *smokeModifier_do(
 		BLI_rw_mutex_unlock(smd->domain->fluid_mutex);
 
 	/* return generated geometry for adaptive domain */
+	Mesh *result;
 	if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain &&
 	    smd->domain->flags & MOD_SMOKE_ADAPTIVE_DOMAIN &&
 	    smd->domain->base_res[0])
 	{
-		return createDomainGeometry(smd->domain, ob);
+		result = createDomainGeometry(smd->domain, ob);
 	}
 	else {
-		return BKE_mesh_copy_for_eval(me, false);
+		result = BKE_mesh_copy_for_eval(me, false);
 	}
+	/* XXX This is really not a nice hack, but until root of the problem is understood,
+	 * this should be an acceptable workaround I think.
+	 * See T58492 for details on the issue. */
+	result->texflag |= ME_AUTOSPACE;
+	return result;
 }
 
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct)

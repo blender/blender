@@ -2052,7 +2052,11 @@ static void mesh_build_data(
 #endif
 
 	BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
-	BKE_mesh_texspace_copy_from_object(ob->runtime.mesh_eval, ob);
+	/* Only copy texspace from orig mesh if some modifier (hint: smoke sim, see T58492)
+	 * did not re-enable that flag (which always get disabled for eval mesh as a start). */
+	if (!(ob->runtime.mesh_eval->texflag & ME_AUTOSPACE)) {
+		BKE_mesh_texspace_copy_from_object(ob->runtime.mesh_eval, ob);
+	}
 
 	mesh_finalize_eval(ob);
 
