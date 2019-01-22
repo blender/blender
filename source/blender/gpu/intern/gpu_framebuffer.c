@@ -792,6 +792,11 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 
 	ofs = MEM_callocN(sizeof(GPUOffScreen), "GPUOffScreen");
 
+	/* Sometimes areas can have 0 height or width and this will
+	 * create a 1D texture which we don't want. */
+	height = max_ii(1, height);
+	width  = max_ii(1, width);
+
 	ofs->color = GPU_texture_create_2D_multisample(
 	        width, height,
 	        (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL, samples, err_out);

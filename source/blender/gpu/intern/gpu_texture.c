@@ -994,6 +994,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 GPUTexture *GPU_texture_create_1D(
         int w, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
+	BLI_assert(w > 0);
 	eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
 	return GPU_texture_create_nD(w, 0, 0, 1, pixels, tex_format, data_format, 0, false, err_out);
 }
@@ -1001,6 +1002,7 @@ GPUTexture *GPU_texture_create_1D(
 GPUTexture *GPU_texture_create_1D_array(
         int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
+	BLI_assert(w > 0 && h > 0);
 	eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
 	return GPU_texture_create_nD(w, h, 0, 1, pixels, tex_format, data_format, 0, false, err_out);
 }
@@ -1008,6 +1010,7 @@ GPUTexture *GPU_texture_create_1D_array(
 GPUTexture *GPU_texture_create_2D(
         int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
+	BLI_assert(w > 0 && h > 0);
 	eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, tex_format, data_format, 0, false, err_out);
 }
@@ -1015,6 +1018,7 @@ GPUTexture *GPU_texture_create_2D(
 GPUTexture *GPU_texture_create_2D_multisample(
         int w, int h, eGPUTextureFormat tex_format, const float *pixels, int samples, char err_out[256])
 {
+	BLI_assert(w > 0 && h > 0);
 	eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, tex_format, data_format, samples, false, err_out);
 }
@@ -1022,6 +1026,7 @@ GPUTexture *GPU_texture_create_2D_multisample(
 GPUTexture *GPU_texture_create_2D_array(
         int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
+	BLI_assert(w > 0 && h > 0 && d > 0);
 	eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
 	return GPU_texture_create_nD(w, h, d, 2, pixels, tex_format, data_format, 0, false, err_out);
 }
@@ -1029,6 +1034,7 @@ GPUTexture *GPU_texture_create_2D_array(
 GPUTexture *GPU_texture_create_3D(
         int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {
+	BLI_assert(w > 0 && h > 0 && d > 0);
 	eGPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
 	return GPU_texture_create_nD(w, h, d, 3, pixels, tex_format, data_format, 0, true, err_out);
 }
@@ -1036,6 +1042,7 @@ GPUTexture *GPU_texture_create_3D(
 GPUTexture *GPU_texture_create_cube(
         int w, eGPUTextureFormat tex_format, const float *fpixels, char err_out[256])
 {
+	BLI_assert(w > 0);
 	const float *fpixels_px, *fpixels_py, *fpixels_pz, *fpixels_nx, *fpixels_ny, *fpixels_nz;
 	const int channels = gpu_get_component_count(tex_format);
 
