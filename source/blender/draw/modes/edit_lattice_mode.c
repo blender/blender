@@ -35,12 +35,6 @@
 
 #include "draw_mode_engines.h"
 
-/* If needed, contains all global/Theme colors
- * Add needed theme colors / values to DRW_globals_update() and update UBO
- * Not needed for constant color. */
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GlobalsUboStorage ts; /* draw_common.c */
-
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_edit_lattice_overlay_loosevert_vert_glsl[];
 extern char datatoc_edit_lattice_overlay_frag_glsl[];
@@ -180,7 +174,7 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_POINT);
 		stl->g_data->vert_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->vert_pass);
 
-		DRW_shgroup_uniform_block(stl->g_data->vert_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(stl->g_data->vert_shgrp, "globalsBlock", G_draw.block_ubo);
 	}
 }
 

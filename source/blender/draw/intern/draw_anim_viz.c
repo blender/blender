@@ -64,8 +64,6 @@
 
 #include "draw_mode_engines.h"
 
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-
 /* ********************************* Lists ************************************** */
 /* All lists are per viewport specific datas.
  * They are all free when viewport changes engines
@@ -230,7 +228,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
 		DRW_shgroup_uniform_bool_copy(shgrp, "selected", sel);
 		DRW_shgroup_uniform_bool_copy(shgrp, "useCustomColor", use_custom_col);
 		DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_block(shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 		if (use_custom_col) {
 			DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
 		}
@@ -247,7 +245,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
 	DRW_shgroup_uniform_bool_copy(shgrp, "selected", sel);
 	DRW_shgroup_uniform_bool_copy(shgrp, "showKeyFrames", show_keyframes);
 	DRW_shgroup_uniform_bool_copy(shgrp, "useCustomColor", use_custom_col);
-	DRW_shgroup_uniform_block(shgrp, "globalsBlock", globals_ubo);
+	DRW_shgroup_uniform_block(shgrp, "globalsBlock", G_draw.block_ubo);
 	if (use_custom_col) {
 		DRW_shgroup_uniform_vec3(shgrp, "customColor", mpath->color, 1);
 	}

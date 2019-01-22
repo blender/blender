@@ -42,8 +42,6 @@
 /* If needed, contains all global/Theme colors
  * Add needed theme colors / values to DRW_globals_update() and update UBO
  * Not needed for constant color. */
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GlobalsUboStorage ts; /* draw_common.c */
 
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_edit_curve_overlay_loosevert_vert_glsl[];
@@ -159,12 +157,12 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 
 		grp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorWireEdit, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
 		stl->g_data->wire_shgrp = grp;
 
 
 		grp = DRW_shgroup_create(e_data.wire_normals_sh, psl->wire_pass);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorWireEdit, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", G_draw.block.colorWireEdit, 1);
 		DRW_shgroup_uniform_float_copy(grp, "normalSize", v3d->overlay.normals_length);
 		stl->g_data->wire_normals_shgrp = grp;
 
@@ -173,7 +171,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 
 		grp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_bool(grp, "showCurveHandles", &stl->g_data->show_handles, 1);
 		stl->g_data->overlay_edge_shgrp = grp;
@@ -184,7 +182,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_POINT);
 
 		grp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_vert_pass);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		stl->g_data->overlay_vert_shgrp = grp;
 	}
 }

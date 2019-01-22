@@ -40,12 +40,6 @@
 
 #include "draw_mode_engines.h"
 
-/* If needed, contains all global/Theme colors
- * Add needed theme colors / values to DRW_globals_update() and update UBO
- * Not needed for constant color. */
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GlobalsUboStorage ts; /* draw_common.c */
-
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.
  * They are all free when viewport changes engines
@@ -190,8 +184,8 @@ static void EDIT_TEXT_cache_init(void *vedata)
 		psl->text_box_pass = DRW_pass_create(
 		        "Font Text Boxes",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH);
-		stl->g_data->box_shgrp = shgroup_dynlines_dashed_uniform_color(psl->text_box_pass, ts.colorWire);
-		stl->g_data->box_active_shgrp = shgroup_dynlines_dashed_uniform_color(psl->text_box_pass, ts.colorActive);
+		stl->g_data->box_shgrp = shgroup_dynlines_dashed_uniform_color(psl->text_box_pass, G_draw.block.colorWire);
+		stl->g_data->box_active_shgrp = shgroup_dynlines_dashed_uniform_color(psl->text_box_pass, G_draw.block.colorActive);
 	}
 }
 

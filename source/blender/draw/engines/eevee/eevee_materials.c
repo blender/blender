@@ -108,7 +108,6 @@ extern char datatoc_volumetric_lib_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 extern Material defmaterial;
-extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 
@@ -961,7 +960,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		Scene *scene = draw_ctx->scene;
 		World *wo = scene->world;
 
-		float *col = ts.colorBackground;
+		const float *col = G_draw.block.colorBackground;
 
 		/* LookDev */
 		EEVEE_lookdev_cache_init(vedata, &grp, psl->background_pass, wo, NULL);

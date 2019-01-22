@@ -204,4 +204,18 @@ void DRW_hair_free(void);
 bool DRW_pose_mode_armature(
     struct Object *ob, struct Object *active_ob);
 
+/* draw_common.c */
+struct DRW_Global {
+	/** If needed, contains all global/Theme colors
+	 * Add needed theme colors / values to DRW_globals_update() and update UBO
+	 * Not needed for constant color. */
+	GlobalsUboStorage block;
+	/** Define "globalsBlock" uniform for 'block'.  */
+	struct GPUUniformBuffer *block_ubo;
+
+	struct GPUTexture *ramp;
+	struct GPUTexture *weight_ramp;
+};
+extern struct DRW_Global G_draw;
+
 #endif /* __DRAW_COMMON_H__ */

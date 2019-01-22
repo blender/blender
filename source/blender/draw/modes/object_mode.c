@@ -79,10 +79,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GPUTexture *globals_ramp; /* draw_common.c */
-extern GlobalsUboStorage ts;
-
 extern char datatoc_object_outline_prepass_vert_glsl[];
 extern char datatoc_object_outline_prepass_geom_glsl[];
 extern char datatoc_object_outline_prepass_frag_glsl[];
@@ -679,7 +675,7 @@ static DRWShadingGroup *shgroup_points(DRWPass *pass, const float col[4], GPUSha
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
-	DRW_shgroup_uniform_vec4(grp, "innerColor", ts.colorEditMeshMiddle, 1);
+	DRW_shgroup_uniform_vec4(grp, "innerColor", G_draw.block.colorEditMeshMiddle, 1);
 
 	return grp;
 }
@@ -957,6 +953,7 @@ static void DRW_shgroup_empty_image(
 
 static void OBJECT_cache_init(void *vedata)
 {
+	const GlobalsUboStorage *gb = &G_draw.block;
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -1033,7 +1030,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(grp, "outlineId", &e_data.outlines_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_float_copy(grp, "alphaOcclu", alphaOcclu);
 		DRW_shgroup_uniform_int(grp, "idOffsets", &stl->g_data->id_ofs_active, 4);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -1089,21 +1086,21 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_float_copy(grp, "lineKernel", grid_line_size);
 		DRW_shgroup_uniform_float_copy(grp, "meshSize", e_data.grid_mesh_size);
 		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, geom, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, geom, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, geom, mat);
 	}
@@ -1252,23 +1249,23 @@ static void OBJECT_cache_init(void *vedata)
 
 		/* Wires (for loose edges) */
 		sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-		sgl->wire = shgroup_wire(sgl->non_meshes, ts.colorWire, sh);
-		sgl->wire_select = shgroup_wire(sgl->non_meshes, ts.colorSelect, sh);
-		sgl->wire_transform = shgroup_wire(sgl->non_meshes, ts.colorTransform, sh);
-		sgl->wire_active = shgroup_wire(sgl->non_meshes, ts.colorActive, sh);
+		sgl->wire = shgroup_wire(sgl->non_meshes, gb->colorWire, sh);
+		sgl->wire_select = shgroup_wire(sgl->non_meshes, gb->colorSelect, sh);
+		sgl->wire_transform = shgroup_wire(sgl->non_meshes, gb->colorTransform, sh);
+		sgl->wire_active = shgroup_wire(sgl->non_meshes, gb->colorActive, sh);
 		/* Wire (duplicator) */
-		sgl->wire_dupli = shgroup_wire(sgl->non_meshes, ts.colorDupli, sh);
-		sgl->wire_dupli_select = shgroup_wire(sgl->non_meshes, ts.colorDupliSelect, sh);
+		sgl->wire_dupli = shgroup_wire(sgl->non_meshes, gb->colorDupli, sh);
+		sgl->wire_dupli_select = shgroup_wire(sgl->non_meshes, gb->colorDupliSelect, sh);
 
 		/* Points (loose points) */
 		sh = e_data.loose_points_sh;
-		sgl->points = shgroup_points(sgl->non_meshes, ts.colorWire, sh);
-		sgl->points_select = shgroup_points(sgl->non_meshes, ts.colorSelect, sh);
-		sgl->points_transform = shgroup_points(sgl->non_meshes, ts.colorTransform, sh);
-		sgl->points_active = shgroup_points(sgl->non_meshes, ts.colorActive, sh);
+		sgl->points = shgroup_points(sgl->non_meshes, gb->colorWire, sh);
+		sgl->points_select = shgroup_points(sgl->non_meshes, gb->colorSelect, sh);
+		sgl->points_transform = shgroup_points(sgl->non_meshes, gb->colorTransform, sh);
+		sgl->points_active = shgroup_points(sgl->non_meshes, gb->colorActive, sh);
 		/* Points (duplicator) */
-		sgl->points_dupli = shgroup_points(sgl->non_meshes, ts.colorDupli, sh);
-		sgl->points_dupli_select = shgroup_points(sgl->non_meshes, ts.colorDupliSelect, sh);
+		sgl->points_dupli = shgroup_points(sgl->non_meshes, gb->colorDupli, sh);
+		sgl->points_dupli_select = shgroup_points(sgl->non_meshes, gb->colorDupliSelect, sh);
 		DRW_shgroup_state_disable(sgl->points, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_select, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_transform, DRW_STATE_BLEND);
@@ -1288,18 +1285,18 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_single_line_get();
 		sgl->lamp_buflimit = shgroup_distance_lines_instance(sgl->non_meshes, geom);
 
-		sgl->lamp_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, ts.colorLampNoAlpha, &ts.sizeLampCenter);
+		sgl->lamp_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, gb->colorLampNoAlpha, &gb->sizeLampCenter);
 
 		geom = DRW_cache_lamp_get();
-		sgl->lamp_circle = shgroup_instance_screenspace(sgl->non_meshes, geom, &ts.sizeLampCircle);
+		sgl->lamp_circle = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle);
 		geom = DRW_cache_lamp_shadows_get();
-		sgl->lamp_circle_shadow = shgroup_instance_screenspace(sgl->non_meshes, geom, &ts.sizeLampCircleShadow);
+		sgl->lamp_circle_shadow = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircleShadow);
 
 		geom = DRW_cache_lamp_sunrays_get();
-		sgl->lamp_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &ts.sizeLampCircle);
+		sgl->lamp_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle);
 
-		sgl->lamp_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, ts.colorLamp);
-		sgl->lamp_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, ts.colorLamp);
+		sgl->lamp_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, gb->colorLamp);
+		sgl->lamp_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, gb->colorLamp);
 
 		geom = DRW_cache_screenspace_circle_get();
 		sgl->lamp_area_sphere = shgroup_instance_screen_aligned(sgl->non_meshes, geom);
@@ -1334,8 +1331,8 @@ static void OBJECT_cache_init(void *vedata)
 		/* -------- STIPPLES ------- */
 
 		/* Relationship Lines */
-		sgl->relationship_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, ts.colorWire);
-		sgl->constraint_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, ts.colorGridAxisZ);
+		sgl->relationship_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, gb->colorWire);
+		sgl->constraint_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, gb->colorGridAxisZ);
 
 		/* Force Field Curve Guide End (here because of stipple) */
 		/* TODO port to shader stipple */
@@ -1389,28 +1386,28 @@ static void OBJECT_cache_init(void *vedata)
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_float(grp, "size", &size, 1);
 		DRW_shgroup_uniform_float(grp, "outlineWidth", &outlineWidth, 1);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorActive, 1);
-		DRW_shgroup_uniform_vec4(grp, "outlineColor", ts.colorOutline, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", gb->colorActive, 1);
+		DRW_shgroup_uniform_vec4(grp, "outlineColor", gb->colorOutline, 1);
 		stl->g_data->center_active = grp;
 
 		/* Select */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorSelect, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", gb->colorSelect, 1);
 		stl->g_data->center_selected = grp;
 
 		/* Deselect */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorDeselect, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", gb->colorDeselect, 1);
 		stl->g_data->center_deselected = grp;
 
 		/* Select (library) */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorLibrarySelect, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", gb->colorLibrarySelect, 1);
 		stl->g_data->center_selected_lib = grp;
 
 		/* Deselect (library) */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
-		DRW_shgroup_uniform_vec4(grp, "color", ts.colorLibrary, 1);
+		DRW_shgroup_uniform_vec4(grp, "color", gb->colorLibrary, 1);
 		stl->g_data->center_deselected_lib = grp;
 	}
 
@@ -2797,14 +2794,14 @@ static void OBJECT_cache_populate_particles(Object *ob,
 					DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
 					DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
 					DRW_shgroup_uniform_float(shgrp, "size", &part->draw_size, 1);
-					DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+					DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
 					DRW_shgroup_call_add(shgrp, geom, mat);
 					break;
 				case PART_DRAW_CROSS:
 					shgrp = DRW_shgroup_instance_create(
 					        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS),
 					        e_data.particle_format);
-					DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+					DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
 					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 					DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 					break;
@@ -2812,7 +2809,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 					shgrp = DRW_shgroup_instance_create(
 					        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC),
 					        e_data.particle_format);
-					DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+					DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
 					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 					DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
 					break;

@@ -65,7 +65,6 @@ static struct {
 	struct GPUVertFormat *format_probe_display_planar;
 } e_data = {NULL}; /* Engine data */
 
-extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 
@@ -316,7 +315,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		Scene *scene = draw_ctx->scene;
 		World *wo = scene->world;
 
-		float *col = ts.colorBackground;
+		const float *col = G_draw.block.colorBackground;
 
 		/* LookDev */
 		EEVEE_lookdev_cache_init(vedata, &grp, psl->probe_background, wo, pinfo);

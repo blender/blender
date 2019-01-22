@@ -50,8 +50,6 @@ extern char datatoc_particle_strand_vert_glsl[];
 extern char datatoc_particle_strand_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-
 /* *********** LISTS *********** */
 
 typedef struct PARTICLE_PassList {
@@ -147,9 +145,9 @@ static void particle_cache_init(void *vedata)
 	stl->g_data->inner_points_group = DRW_shgroup_create(e_data.points_shader, psl->psys_edit_pass);
 	stl->g_data->tip_points_group = DRW_shgroup_create(e_data.points_shader, psl->psys_edit_pass);
 
-	DRW_shgroup_uniform_block(stl->g_data->strands_group, "globalsBlock", globals_ubo);
-	DRW_shgroup_uniform_block(stl->g_data->inner_points_group, "globalsBlock", globals_ubo);
-	DRW_shgroup_uniform_block(stl->g_data->tip_points_group, "globalsBlock", globals_ubo);
+	DRW_shgroup_uniform_block(stl->g_data->strands_group, "globalsBlock", G_draw.block_ubo);
+	DRW_shgroup_uniform_block(stl->g_data->inner_points_group, "globalsBlock", G_draw.block_ubo);
+	DRW_shgroup_uniform_block(stl->g_data->tip_points_group, "globalsBlock", G_draw.block_ubo);
 }
 
 static void particle_edit_cache_populate(void *vedata,

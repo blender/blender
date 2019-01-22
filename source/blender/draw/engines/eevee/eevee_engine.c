@@ -44,7 +44,6 @@
 
 #define EEVEE_ENGINE "BLENDER_EEVEE"
 
-extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 

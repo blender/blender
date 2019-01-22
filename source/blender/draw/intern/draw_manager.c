@@ -2591,9 +2591,6 @@ void DRW_engines_register(void)
 }
 
 extern struct GPUVertFormat *g_pos_format; /* draw_shgroup.c */
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GPUTexture *globals_ramp; /* draw_common.c */
-extern struct GPUTexture *globals_weight_ramp; /* draw_common.c */
 void DRW_engines_free(void)
 {
 	DRW_opengl_context_enable();
@@ -2616,10 +2613,10 @@ void DRW_engines_free(void)
 		}
 	}
 
-	DRW_UBO_FREE_SAFE(globals_ubo);
+	DRW_UBO_FREE_SAFE(G_draw.block_ubo);
 	DRW_UBO_FREE_SAFE(view_ubo);
-	DRW_TEXTURE_FREE_SAFE(globals_ramp);
-	DRW_TEXTURE_FREE_SAFE(globals_weight_ramp);
+	DRW_TEXTURE_FREE_SAFE(G_draw.ramp);
+	DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
 	MEM_SAFE_FREE(g_pos_format);
 
 	MEM_SAFE_FREE(DST.RST.bound_texs);

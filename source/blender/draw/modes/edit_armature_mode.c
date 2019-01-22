@@ -33,7 +33,7 @@
 
 #include "draw_mode_engines.h"
 
-extern GlobalsUboStorage ts;
+
 
 /* *********** LISTS *********** */
 typedef struct EDIT_ARMATURE_PassList {

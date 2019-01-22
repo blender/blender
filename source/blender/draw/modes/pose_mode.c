@@ -37,7 +37,6 @@
 
 #include "draw_mode_engines.h"
 
-extern GlobalsUboStorage ts;
 
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.

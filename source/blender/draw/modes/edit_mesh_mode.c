@@ -44,12 +44,6 @@
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.h"
 
-
-extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
-extern struct GlobalsUboStorage ts; /* draw_common.c */
-
-extern struct GPUTexture *globals_weight_ramp; /* draw_common.c */
-
 extern char datatoc_common_world_clip_lib_glsl[];
 
 extern char datatoc_paint_weight_vert_glsl[];
@@ -378,7 +372,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 
 	if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
 		*r_lverts_shgrp = DRW_shgroup_create(sh_data->overlay_lvert, pass);
-		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", edge_width_scale, 1);
 		DRW_shgroup_state_enable(*r_lverts_shgrp, DRW_STATE_WRITE_DEPTH);
@@ -388,7 +382,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 		}
 
 		*r_verts_shgrp = DRW_shgroup_create(sh_data->overlay_vert, pass);
-		DRW_shgroup_uniform_block(*r_verts_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(*r_verts_shgrp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_vec2(*r_verts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_float(*r_verts_shgrp, "edgeScale", edge_width_scale, 1);
 		DRW_shgroup_state_enable(*r_verts_shgrp, DRW_STATE_WRITE_DEPTH);
@@ -400,7 +394,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 
 	if ((tsettings->selectmode & SCE_SELECT_FACE) != 0) {
 		*r_facedot_shgrp = DRW_shgroup_create(sh_data->overlay_facedot, pass);
-		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", edge_width_scale, 1);
 		DRW_shgroup_state_enable(*r_facedot_shgrp, DRW_STATE_WRITE_DEPTH);
 		if (rv3d->rflag & RV3D_CLIPPING) {
@@ -409,7 +403,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	}
 
 	*r_face_shgrp = DRW_shgroup_create(tri_sh, pass);
-	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", globals_ubo);
+	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", G_draw.block_ubo);
 	DRW_shgroup_uniform_vec2(*r_face_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", face_alpha, 1);
 	DRW_shgroup_uniform_float(*r_face_shgrp, "edgeScale", edge_width_scale, 1);
@@ -431,7 +425,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	DRW_shgroup_state_enable(*r_face_cage_shgrp, DRW_STATE_OFFSET_NEGATIVE);
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
-	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
+	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", G_draw.block_ubo);
 	DRW_shgroup_uniform_vec2(*r_ledges_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(*r_ledges_shgrp, "edgeScale", edge_width_scale, 1);
 	DRW_shgroup_uniform_ivec4(*r_ledges_shgrp, "dataMask", data_mask, 1);
@@ -522,8 +516,8 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 		static float alpha = 1.0f;
 		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "opacity", &alpha, 1);
-		DRW_shgroup_uniform_texture(stl->g_data->fweights_shgrp, "colorramp", globals_weight_ramp);
-		DRW_shgroup_uniform_block(stl->g_data->fweights_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_texture(stl->g_data->fweights_shgrp, "colorramp", G_draw.weight_ramp);
+		DRW_shgroup_uniform_block(stl->g_data->fweights_shgrp, "globalsBlock", G_draw.block_ubo);
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->fweights_shgrp, rv3d);
 		}
@@ -556,21 +550,21 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 		stl->g_data->fnormals_shgrp = DRW_shgroup_create(sh_data->normals_face, psl->normals);
 		DRW_shgroup_uniform_float(stl->g_data->fnormals_shgrp, "normalSize", &size_normal, 1);
-		DRW_shgroup_uniform_vec4(stl->g_data->fnormals_shgrp, "color", ts.colorNormal, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->fnormals_shgrp, "color", G_draw.block.colorNormal, 1);
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->fnormals_shgrp, rv3d);
 		}
 
 		stl->g_data->vnormals_shgrp = DRW_shgroup_create(sh_data->normals, psl->normals);
 		DRW_shgroup_uniform_float(stl->g_data->vnormals_shgrp, "normalSize", &size_normal, 1);
-		DRW_shgroup_uniform_vec4(stl->g_data->vnormals_shgrp, "color", ts.colorVNormal, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->vnormals_shgrp, "color", G_draw.block.colorVNormal, 1);
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->vnormals_shgrp, rv3d);
 		}
 
 		stl->g_data->lnormals_shgrp = DRW_shgroup_create(sh_data->normals_loop, psl->normals);
 		DRW_shgroup_uniform_float(stl->g_data->lnormals_shgrp, "normalSize", &size_normal, 1);
-		DRW_shgroup_uniform_vec4(stl->g_data->lnormals_shgrp, "color", ts.colorLNormal, 1);
+		DRW_shgroup_uniform_vec4(stl->g_data->lnormals_shgrp, "color", G_draw.block.colorLNormal, 1);
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->lnormals_shgrp, rv3d);
 		}
@@ -605,7 +599,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		        "Front Face Color",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 		stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(sh_data->overlay_facefill, psl->facefill_occlude);
-		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_ivec4(stl->g_data->facefill_occluded_shgrp, "dataMask", stl->g_data->data_mask, 1);
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->facefill_occluded_shgrp, rv3d);

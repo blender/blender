@@ -97,7 +97,6 @@ extern char datatoc_effect_velocity_resolve_frag_glsl[];
 /* Temporal Sampling */
 extern char datatoc_effect_temporal_aa_glsl[];
 
-extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 

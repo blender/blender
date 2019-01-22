@@ -91,8 +91,6 @@ extern char datatoc_overlay_face_wireframe_geom_glsl[];
 extern char datatoc_overlay_face_wireframe_frag_glsl[];
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 
-extern struct GlobalsUboStorage ts; /* draw_common.c */
-
 static int OVERLAY_sh_data_index_from_rv3d(const RegionView3D *rv3d)
 {
 	if (rv3d->rflag & RV3D_CLIPPING) {
@@ -293,40 +291,40 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			const float *rim_col = NULL;
 			const float *wire_col = NULL;
 			if (UNLIKELY(ob->base_flag & BASE_FROM_SET)) {
-				rim_col = ts.colorDupli;
-				wire_col = ts.colorDupli;
+				rim_col = G_draw.block.colorDupli;
+				wire_col = G_draw.block.colorDupli;
 			}
 			else if (UNLIKELY(ob->base_flag & BASE_FROM_DUPLI)) {
 				if (ob->base_flag & BASE_SELECTED) {
 					if (G.moving & G_TRANSFORM_OBJ) {
-						rim_col = ts.colorTransform;
+						rim_col = G_draw.block.colorTransform;
 					}
 					else {
-						rim_col = ts.colorDupliSelect;
+						rim_col = G_draw.block.colorDupliSelect;
 					}
 				}
 				else {
-					rim_col = ts.colorDupli;
+					rim_col = G_draw.block.colorDupli;
 				}
-				wire_col = ts.colorDupli;
+				wire_col = G_draw.block.colorDupli;
 			}
 			else if ((ob->base_flag & BASE_SELECTED) &&
 			         (!is_edit_mode && !is_sculpt_mode && !has_edit_mesh_cage))
 			{
 				if (G.moving & G_TRANSFORM_OBJ) {
-					rim_col = ts.colorTransform;
+					rim_col = G_draw.block.colorTransform;
 				}
 				else if (ob == draw_ctx->obact) {
-					rim_col = ts.colorActive;
+					rim_col = G_draw.block.colorActive;
 				}
 				else {
-					rim_col = ts.colorSelect;
+					rim_col = G_draw.block.colorSelect;
 				}
-				wire_col = ts.colorWire;
+				wire_col = G_draw.block.colorWire;
 			}
 			else {
-				rim_col = ts.colorWire;
-				wire_col = ts.colorWire;
+				rim_col = G_draw.block.colorWire;
+				wire_col = G_draw.block.colorWire;
 			}
 			BLI_assert(rim_col && wire_col);
 
