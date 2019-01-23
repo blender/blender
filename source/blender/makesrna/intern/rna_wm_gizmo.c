@@ -407,6 +407,7 @@ RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_hide, flag, WM_GIZMO_HIDDEN);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_hide_select, flag, WM_GIZMO_HIDDEN_SELECT);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_grab_cursor, flag, WM_GIZMO_MOVE_CURSOR);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_select_background, flag, WM_GIZMO_SELECT_BACKGROUND);
+RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_operator_tool_properties, flag, WM_GIZMO_OPERATOR_TOOL_INIT);
 
 /* wmGizmo.state */
 RNA_GIZMO_FLAG_RO_DEF(state_is_highlight, state, WM_GIZMO_STATE_HIGHLIGHT);
@@ -1198,6 +1199,14 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_boolean_funcs(
 	        prop, "rna_Gizmo_flag_use_select_background_get", "rna_Gizmo_flag_use_select_background_set");
 	RNA_def_property_ui_text(prop, "Select Background", "Don't write into the depth buffer");
+	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+
+	/* WM_GIZMO_OPERATOR_TOOL_INIT */
+	prop = RNA_def_property(srna, "use_operator_tool_properties", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(
+	        prop, "rna_Gizmo_flag_use_operator_tool_properties_get", "rna_Gizmo_flag_use_operator_tool_properties_set");
+	RNA_def_property_ui_text(prop, "Tool Property Init",
+	                         "Merge active tool properties on activation (does not overwrite existing)");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 
 	/* wmGizmo.state (readonly) */
