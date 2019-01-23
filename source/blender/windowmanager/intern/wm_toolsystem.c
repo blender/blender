@@ -897,6 +897,13 @@ IDProperty *WM_toolsystem_ref_properties_ensure_idprops(bToolRef *tref)
 	return tref->properties;
 }
 
+bool WM_toolsystem_ref_properties_get_ex(bToolRef *tref, const char *idname, StructRNA *type, PointerRNA *r_ptr)
+{
+	IDProperty *group = tref->properties;
+	IDProperty *prop = group ? IDP_GetPropertyFromGroup(group, idname) : NULL;
+	RNA_pointer_create(NULL, type, prop, r_ptr);
+	return (prop != NULL);
+}
 
 void WM_toolsystem_ref_properties_ensure_ex(bToolRef *tref, const char *idname, StructRNA *type, PointerRNA *r_ptr)
 {

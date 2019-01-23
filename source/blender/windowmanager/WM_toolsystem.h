@@ -103,8 +103,15 @@ void WM_toolsystem_ref_properties_ensure_ex(
 
 #define WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, r_ptr) \
 	WM_toolsystem_ref_properties_ensure_ex(tref, (ot)->idname, (ot)->srna, r_ptr)
-#define WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, ot, r_ptr) \
-	WM_toolsystem_ref_properties_ensure_ex(tref, (ot)->idname, (ot)->srna, r_ptr)
+#define WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup, r_ptr) \
+	WM_toolsystem_ref_properties_ensure_ex(tref, (gzgroup)->idname, (gzgroup)->srna, r_ptr)
+
+bool WM_toolsystem_ref_properties_get_ex(
+        struct bToolRef *tref, const char *idname, struct StructRNA *type, struct PointerRNA *r_ptr);
+#define WM_toolsystem_ref_properties_get_from_operator(tref, ot, r_ptr) \
+	WM_toolsystem_ref_properties_get_ex(tref, (ot)->idname, (ot)->srna, r_ptr)
+#define WM_toolsystem_ref_properties_get_from_gizmo_group(tref, gzgroup, r_ptr) \
+	WM_toolsystem_ref_properties_get_ex(tref, (gzgroup)->idname, (gzgroup)->srna, r_ptr)
 
 void WM_toolsystem_ref_properties_init_for_keymap(
         struct bToolRef *tref, struct PointerRNA *dst_ptr, struct PointerRNA *src_ptr, struct wmOperatorType *ot);
