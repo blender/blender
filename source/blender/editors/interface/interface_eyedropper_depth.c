@@ -111,8 +111,12 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 			if (v3d->camera && v3d->camera->data && !ID_IS_LINKED(v3d->camera->data)) {
 				RNA_id_pointer_create(v3d->camera->data, &ddr->ptr);
 				ddr->prop = RNA_struct_find_property(&ddr->ptr, "dof_distance");
+				ddr->is_undo = true;
 			}
 		}
+	}
+	else {
+		ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 	}
 
 	if ((ddr->ptr.data == NULL) ||
@@ -124,8 +128,6 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 		return false;
 	}
 	op->customdata = ddr;
-
-	ddr->is_undo = UI_but_flag_is_set(but, UI_BUT_UNDO);
 
 	ddr->art = art;
 	ddr->draw_handle_pixel = ED_region_draw_cb_activate(art, depthdropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
