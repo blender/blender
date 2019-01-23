@@ -625,13 +625,13 @@ static void gradientVertUpdate__mapFunc(
         const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	WPGradient_userData *grad_data = userData;
-	Mesh *me = grad_data->me;
-	if ((grad_data->use_select == false) || (me->mvert[index].flag & SELECT)) {
-		WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
-		if (vs->sco[0] != FLT_MAX) {
-			gradientVert_update(grad_data, index);
-		}
+	WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
+
+	if (vs->sco[0] == FLT_MAX) {
+		return;
 	}
+
+	gradientVert_update(grad_data, index);
 }
 
 static void gradientVertInit__mapFunc(
@@ -640,42 +640,41 @@ static void gradientVertInit__mapFunc(
 {
 	WPGradient_userData *grad_data = userData;
 	Mesh *me = grad_data->me;
+	WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
-	if ((grad_data->use_select == false) || (me->mvert[index].flag & SELECT)) {
-		/* run first pass only,
-		 * the screen coords of the verts need to be cached because
-		 * updating the mesh may move them about (entering feedback loop) */
-
-		if (BLI_BITMAP_TEST(grad_data->vert_visit, index) == 0) {
-			WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
-			if (ED_view3d_project_float_object(
-			            grad_data->ar,
-			            co, vs->sco,
-			            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
-			{
-				/* ok */
-				MDeformVert *dv = &me->dvert[index];
-				const MDeformWeight *dw;
-				dw = defvert_find_index(dv, grad_data->def_nr);
-				if (dw) {
-					vs->weight_orig = dw->weight;
-					vs->flag = VGRAD_STORE_DW_EXIST;
-				}
-				else {
-					vs->weight_orig = 0.0f;
-					vs->flag = VGRAD_STORE_NOP;
-				}
-
-				BLI_BITMAP_ENABLE(grad_data->vert_visit, index);
-
-				gradientVert_update(grad_data, index);
-			}
-			else {
-				/* no go */
-				copy_v2_fl(vs->sco, FLT_MAX);
-			}
-		}
+	if (grad_data->use_select && !(me->mvert[index].flag & SELECT)) {
+		copy_v2_fl(vs->sco, FLT_MAX);
+		return;
 	}
+
+	/* run first pass only,
+	 * the screen coords of the verts need to be cached because
+	 * updating the mesh may move them about (entering feedback loop) */
+	if (BLI_BITMAP_TEST(grad_data->vert_visit, index)) {
+		copy_v2_fl(vs->sco, FLT_MAX);
+		return;
+	}
+
+	if (ED_view3d_project_float_object(
+	            grad_data->ar,
+	            co, vs->sco,
+	            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK)
+	{
+		return;
+	}
+
+	MDeformVert *dv = &me->dvert[index];
+	const MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
+	if (dw) {
+		vs->weight_orig = dw->weight;
+		vs->flag = VGRAD_STORE_DW_EXIST;
+	}
+	else {
+		vs->weight_orig = 0.0f;
+		vs->flag = VGRAD_STORE_NOP;
+	}
+	BLI_BITMAP_ENABLE(grad_data->vert_visit, index);
+	gradientVert_update(grad_data, index);
 }
 
 static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
