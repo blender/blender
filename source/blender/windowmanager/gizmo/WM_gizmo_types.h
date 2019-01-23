@@ -56,8 +56,10 @@ struct wmKeyConfig;
  * #wmGizmo.state
  */
 typedef enum eWM_GizmoFlagState {
-	WM_GIZMO_STATE_HIGHLIGHT   = (1 << 0), /* while hovered */
-	WM_GIZMO_STATE_MODAL       = (1 << 1), /* while dragging */
+	/** While hovered. */
+	WM_GIZMO_STATE_HIGHLIGHT   = (1 << 0),
+	/** While dragging. */
+	WM_GIZMO_STATE_MODAL       = (1 << 1),
 	WM_GIZMO_STATE_SELECT      = (1 << 2),
 } eWM_GizmoFlagState;
 
@@ -67,9 +69,12 @@ typedef enum eWM_GizmoFlagState {
  * Flags for individual gizmos.
  */
 typedef enum eWM_GizmoFlag {
-	WM_GIZMO_DRAW_HOVER    = (1 << 0), /* draw *only* while hovering */
-	WM_GIZMO_DRAW_MODAL    = (1 << 1), /* draw while dragging */
-	WM_GIZMO_DRAW_VALUE    = (1 << 2), /* draw an indicator for the current value while dragging */
+	/** Draw *only* while hovering. */
+	WM_GIZMO_DRAW_HOVER    = (1 << 0),
+	/** Draw while dragging. */
+	WM_GIZMO_DRAW_MODAL    = (1 << 1),
+	/** Draw an indicator for the current value while dragging. */
+	WM_GIZMO_DRAW_VALUE    = (1 << 2),
 	WM_GIZMO_HIDDEN        = (1 << 3),
 	WM_GIZMO_HIDDEN_SELECT = (1 << 4),
 	/**
@@ -104,7 +109,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
 	WM_GIZMOGROUPTYPE_SCALE    = (1 << 1),
 	/** Gizmos can be depth culled with scene objects (covered by other geometry - TODO) */
 	WM_GIZMOGROUPTYPE_DEPTH_3D = (1 << 2),
-	/** Gizmos can be selected */
+	/** Gizmos can be selected. */
 	WM_GIZMOGROUPTYPE_SELECT  = (1 << 3),
 	/** The gizmo group is to be kept (not removed on loading a new file for eg). */
 	WM_GIZMOGROUPTYPE_PERSISTENT = (1 << 4),
@@ -119,7 +124,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
 	 * The main issue is controlling how a gizmo is activated with a tool
 	 * when a tool can activate multiple operators based on the key-map.
 	 * We could even move the options into the key-map item.
-	 * ~ campbell */
+	 * ~ campbell. */
 	WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 6),
 } eWM_GizmoFlagGroupTypeFlag;
 
@@ -128,7 +133,7 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
  * #wmGizmoGroup.init_flag
  */
 typedef enum eWM_GizmoFlagGroupInitFlag {
-	/* mgroup has been initialized */
+	/** Gizmo-group has been initialized. */
 	WM_GIZMOGROUP_INIT_SETUP = (1 << 0),
 	WM_GIZMOGROUP_INIT_REFRESH = (1 << 1),
 } eWM_GizmoFlagGroupInitFlag;
@@ -138,11 +143,11 @@ typedef enum eWM_GizmoFlagGroupInitFlag {
  * Gizmo-map type update flag
  */
 typedef enum eWM_GizmoFlagMapTypeUpdateFlag {
-	/* A new type has been added, needs to be initialized for all views. */
+	/** A new type has been added, needs to be initialized for all views. */
 	WM_GIZMOMAPTYPE_UPDATE_INIT = (1 << 0),
 	WM_GIZMOMAPTYPE_UPDATE_REMOVE = (1 << 1),
 
-	/* Needed because keymap may be registered before and after window initialization.
+	/** Needed because keymap may be registered before and after window initialization.
 	 * So we need to keep track of keymap initialization separately. */
 	WM_GIZMOMAPTYPE_KEYMAP_INIT = (1 << 2),
 } eWM_GizmoFlagMapTypeUpdateFlag;
@@ -167,8 +172,8 @@ typedef enum {
 
 typedef struct wmGizmoOpElem {
 	struct wmOperatorType *type;
-	/* operator properties if gizmo spawns and controls an operator,
-	 * or owner pointer if gizmo spawns and controls a property */
+	/** Operator properties if gizmo spawns and controls an operator,
+	 * or owner pointer if gizmo spawns and controls a property. */
 	PointerRNA ptr;
 
 	bool is_redo;
@@ -178,33 +183,34 @@ typedef struct wmGizmoOpElem {
 struct wmGizmo {
 	struct wmGizmo *next, *prev;
 
-	/* While we don't have a real type, use this to put type-like vars. */
+	/** While we don't have a real type, use this to put type-like vars. */
 	const struct wmGizmoType *type;
 
-	/* Overrides 'type->modal' when set.
+	/** Overrides 'type->modal' when set.
 	 * Note that this is a workaround, remove if we can. */
 	wmGizmoFnModal custom_modal;
 
-	/* pointer back to group this gizmo is in (just for quick access) */
+	/** Pointer back to group this gizmo is in (just for quick access). */
 	struct wmGizmoGroup *parent_gzgroup;
 
 	void *py_instance;
 
-	/* rna pointer to access properties */
+	/** Rna pointer to access properties. */
 	struct PointerRNA *ptr;
 
-	/* flags that influence the behavior or how the gizmos are drawn */
+	/** Flags that influence the behavior or how the gizmos are drawn. */
 	eWM_GizmoFlag flag;
-	/* state flags (active, highlighted, selected) */
+	/** State flags (active, highlighted, selected) */
 	eWM_GizmoFlagState state;
 
-	/* Optional ID for highlighting different parts of this gizmo.
+	/** Optional ID for highlighting different parts of this gizmo.
 	 * -1 when unset, otherwise a valid index. (Used as index to 'op_data'). */
 	int highlight_part;
-	/* For single click button gizmos, use a different part as a fallback, -1 when unused. */
+	/** For single click button gizmos, use a different part as a fallback, -1 when unused. */
 	int drag_part;
 
-	/* Transformation of the gizmo in 2d or 3d space.
+	/**
+	 * Transformation of the gizmo in 2d or 3d space.
 	 * - Matrix axis are expected to be unit length (scale is applied after).
 	 * - Behavior when axis aren't orthogonal depends on each gizmo.
 	 * - Typically the +Z is the primary axis for gizmos to use.
@@ -213,32 +219,32 @@ struct wmGizmo {
 	 *   rotation components are used for drawing and interaction.
 	 */
 
-	/* The space this gizmo is being modified in. */
+	/** The space this gizmo is being modified in. */
 	float matrix_space[4][4];
-	/* Transformation of this gizmo. */
+	/** Transformation of this gizmo. */
 	float matrix_basis[4][4];
-	/* custom offset from origin */
+	/** Custom offset from origin. */
 	float matrix_offset[4][4];
-	/* runtime property, set the scale while drawing on the viewport */
+	/** Runtime property, set the scale while drawing on the viewport. */
 	float scale_final;
-	/* user defined scale, in addition to the original one */
+	/** User defined scale, in addition to the original one. */
 	float scale_basis;
-	/* user defined width for line drawing */
+	/** User defined width for line drawing. */
 	float line_width;
-	/* gizmo colors (uses default fallbacks if not defined) */
+	/** Gizmo colors (uses default fallbacks if not defined). */
 	float color[4], color_hi[4];
 
-	/* data used during interaction */
+	/** Data used during interaction. */
 	void *interaction_data;
 
-	/* Operator to spawn when activating the gizmo (overrides property editing),
+	/** Operator to spawn when activating the gizmo (overrides property editing),
 	 * an array of items (aligned with #wmGizmo.highlight_part). */
 	wmGizmoOpElem *op_data;
 	int op_data_len;
 
 	struct IDProperty *properties;
 
-	/* Temporary data (assume dirty). */
+	/** Temporary data (assume dirty). */
 	union {
 		float f;
 	} temp;
@@ -246,7 +252,7 @@ struct wmGizmo {
 	/* over alloc target_properties after 'wmGizmoType.struct_size' */
 };
 
-/* Similar to PropertyElemRNA, but has an identifier. */
+/** Similar to #PropertyElemRNA, but has an identifier. */
 typedef struct wmGizmoProperty {
 	const struct wmGizmoPropertyType *type;
 
@@ -267,14 +273,14 @@ typedef struct wmGizmoProperty {
 
 typedef struct wmGizmoPropertyType {
 	struct wmGizmoPropertyType *next, *prev;
-	/* PropertyType, typically 'PROP_FLOAT' */
+	/** #PropertyType, typically #PROP_FLOAT. */
 	int data_type;
 	int array_length;
 
 	/* index within 'wmGizmoType' */
 	int index_in_type;
 
-	/* over alloc */
+	/** over alloc. */
 	char idname[0];
 } wmGizmoPropertyType;
 
@@ -295,30 +301,30 @@ typedef struct wmGizmoType {
 
 	const char *idname; /* MAX_NAME */
 
-	/* Set to 'sizeof(wmGizmo)' or larger for instances of this type,
+	/** Set to 'sizeof(wmGizmo)' or larger for instances of this type,
 	 * use so we can cant to other types without the hassle of a custom-data pointer. */
 	uint struct_size;
 
-	/* Initialize struct (calloc'd 'struct_size' region). */
+	/** Initialize struct (calloc'd 'struct_size' region). */
 	wmGizmoFnSetup setup;
 
-	/* draw gizmo */
+	/** Draw gizmo. */
 	wmGizmoFnDraw draw;
 
-	/* determines 3d intersection by rendering the gizmo in a selection routine. */
+	/** Determines 3d intersection by rendering the gizmo in a selection routine. */
 	wmGizmoFnDrawSelect draw_select;
 
-	/* Determine if the mouse intersects with the gizmo.
+	/** Determine if the mouse intersects with the gizmo.
 	 * The calculation should be done in the callback itself, -1 for no seleciton. */
 	wmGizmoFnTestSelect test_select;
 
-	/* handler used by the gizmo. Usually handles interaction tied to a gizmo type */
+	/** Handler used by the gizmo. Usually handles interaction tied to a gizmo type. */
 	wmGizmoFnModal modal;
 
-	/* gizmo-specific handler to update gizmo attributes based on the property value */
+	/** Gizmo-specific handler to update gizmo attributes based on the property value. */
 	wmGizmoFnPropertyUpdate property_update;
 
-	/* Returns the final transformation which may be different from the 'matrix',
+	/** Returns the final transformation which may be different from the 'matrix',
 	 * depending on the gizmo.
 	 * Notes:
 	 * - Scale isn't applied (wmGizmo.scale/user_scale).
@@ -326,24 +332,24 @@ typedef struct wmGizmoType {
 	 */
 	wmGizmoFnMatrixBasisGet matrix_basis_get;
 
-	/* activate a gizmo state when the user clicks on it */
+	/** Activate a gizmo state when the user clicks on it. */
 	wmGizmoFnInvoke invoke;
 
-	/* called when gizmo tweaking is done - used to free data and reset property when cancelling */
+	/** Called when gizmo tweaking is done - used to free data and reset property when cancelling. */
 	wmGizmoFnExit exit;
 
 	wmGizmoFnCursorGet cursor_get;
 
-	/* called when gizmo selection state changes */
+	/** Called when gizmo selection state changes. */
 	wmGizmoFnSelectRefresh select_refresh;
 
-	/* Free data (not the gizmo it's self), use when the gizmo allocates it's own members. */
+	/** Free data (not the gizmo it's self), use when the gizmo allocates it's own members. */
 	wmGizmoFnFree free;
 
-	/* RNA for properties */
+	/** RNA for properties. */
 	struct StructRNA *srna;
 
-	/* RNA integration */
+	/** RNA integration. */
 	ExtensionRNA ext;
 
 	ListBase target_property_defs;
@@ -355,7 +361,7 @@ typedef struct wmGizmoType {
 /* -------------------------------------------------------------------- */
 /* wmGizmoGroup */
 
-/* factory class for a gizmo-group type, gets called every time a new area is spawned */
+/** Factory class for a gizmo-group type, gets called every time a new area is spawned. */
 typedef struct wmGizmoGroupTypeRef {
 	struct wmGizmoGroupTypeRef *next, *prev;
 	struct wmGizmoGroupType *type;
@@ -364,49 +370,50 @@ typedef struct wmGizmoGroupTypeRef {
 /* factory class for a gizmo-group type, gets called every time a new area is spawned */
 typedef struct wmGizmoGroupType {
 	const char *idname;  /* MAX_NAME */
-	const char *name; /* gizmo-group name - displayed in UI (keymap editor) */
+	/** Gizmo-group name - displayed in UI (keymap editor). */
+	const char *name;
 	char owner_id[64];  /* MAX_NAME */
 
-	/* poll if gizmo-map should be visible */
+	/** Poll if gizmo-map should be visible. */
 	wmGizmoGroupFnPoll poll;
-	/* initially create gizmos and set permanent data - stuff you only need to do once */
+	/** Initially create gizmos and set permanent data - stuff you only need to do once. */
 	wmGizmoGroupFnInit setup;
-	/* refresh data, only called if recreate flag is set (WM_gizmomap_tag_refresh) */
+	/** Refresh data, only called if recreate flag is set (WM_gizmomap_tag_refresh). */
 	wmGizmoGroupFnRefresh refresh;
-	/* refresh data for drawing, called before each redraw */
+	/** Refresh data for drawing, called before each redraw. */
 	wmGizmoGroupFnDrawPrepare draw_prepare;
-	/* Initialize data for before invoke. */
+	/** Initialize data for before invoke. */
 	wmGizmoGroupFnInvokePrepare invoke_prepare;
 
-	/* Keymap init callback for this gizmo-group (optional),
+	/** Keymap init callback for this gizmo-group (optional),
 	 * will fall back to default tweak keymap when left NULL. */
 	wmGizmoGroupFnSetupKeymap setup_keymap;
 
-	/* Optionally subscribe to wmMsgBus events,
+	/** Optionally subscribe to wmMsgBus events,
 	 * these are calculated automatically from RNA properties,
 	 * only needed if gizmos depend indirectly on properties. */
 	wmGizmoGroupFnMsgBusSubscribe message_subscribe;
 
-	/* keymap created with callback from above */
+	/** Keymap created with callback from above. */
 	struct wmKeyMap *keymap;
-	/* Only for convenient removal. */
+	/** Only for convenient removal. */
 	struct wmKeyConfig *keyconf;
 
 	/* Note: currently gizmo-group instances don't store properties,
 	 * they're kept in the tool properties. */
 
-	/* RNA for properties */
+	/** RNA for properties. */
 	struct StructRNA *srna;
 
-	/* RNA integration */
+	/** RNA integration. */
 	ExtensionRNA ext;
 
 	eWM_GizmoFlagGroupTypeFlag flag;
 
-	/* So we know which group type to update. */
+	/** So we know which group type to update. */
 	eWM_GizmoFlagMapTypeUpdateFlag type_update_flag;
 
-	/* same as gizmo-maps, so registering/unregistering goes to the correct region */
+	/** Same as gizmo-maps, so registering/unregistering goes to the correct region. */
 	struct wmGizmoMapType_Params gzmap_params;
 
 } wmGizmoGroupType;
@@ -419,11 +426,14 @@ typedef struct wmGizmoGroup {
 
 	struct wmGizmoMap *parent_gzmap;
 
-	void *py_instance;            /* python stores the class instance here */
-	struct ReportList *reports;   /* errors and warnings storage */
+	/** Python stores the class instance here. */
+	void *py_instance;
+	/** Errors and warnings storage. */
+	struct ReportList *reports;
 
 	void *customdata;
-	void (*customdata_free)(void *); /* for freeing customdata from above */
+	/** For freeing customdata from above. */
+	void (*customdata_free)(void *);
 	eWM_GizmoFlagGroupInitFlag init_flag;
 } wmGizmoGroup;
 
