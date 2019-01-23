@@ -144,7 +144,7 @@ static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *
 			WM_gizmo_set_scale(gz, scale_button);
 			gz->color[3] = 0.6f;
 
-			gz->flag |= WM_GIZMO_DRAW_OFFSET_SCALE;
+			gz->flag |= WM_GIZMO_DRAW_OFFSET_SCALE | WM_GIZMO_OPERATOR_TOOL_INIT;
 
 			ggd->gizmos.icon_button[i][j] = gz;
 		}
