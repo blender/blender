@@ -48,6 +48,7 @@
 #include "BKE_idprop.h"
 
 #include "WM_api.h"
+#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
@@ -269,6 +270,23 @@ PointerRNA *WM_gizmo_operator_set(
 	}
 
 	return &gzop->ptr;
+}
+
+int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop)
+{
+	if (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT) {
+		/* Merge toolsettings into the gizmo properties. */
+		PointerRNA tref_ptr;
+		bToolRef *tref = WM_toolsystem_ref_from_context(C);
+		if (tref && WM_toolsystem_ref_properties_get_from_operator(tref, gzop->type, &tref_ptr)) {
+			if (gzop->ptr.data == NULL) {
+				IDPropertyTemplate val = {0};
+				gzop->ptr.data = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+			}
+			IDP_MergeGroup(gzop->ptr.data, tref_ptr.data, false);
+		}
+	}
+	return WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr);
 }
 
 static void wm_gizmo_set_matrix_rotation_from_z_axis__internal(

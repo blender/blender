@@ -404,7 +404,7 @@ static bool gizmo_tweak_start_and_finish(
 				gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz);
 			}
 			/* Allow for 'button' gizmos, single click to run an action. */
-			WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr);
+			WM_gizmo_operator_invoke(C, gz, gzop);
 		}
 		return true;
 	}

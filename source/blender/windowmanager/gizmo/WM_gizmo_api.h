@@ -83,6 +83,8 @@ struct wmGizmoOpElem *WM_gizmo_operator_get(
 struct PointerRNA *WM_gizmo_operator_set(
         struct wmGizmo *gz, int part_index,
         struct wmOperatorType *ot, struct IDProperty *properties);
+int WM_gizmo_operator_invoke(
+        struct bContext *C, struct wmGizmo *gz, struct wmGizmoOpElem *gzop);
 
 /* callbacks */
 void WM_gizmo_set_fn_custom_modal(struct wmGizmo *gz, wmGizmoFnModal fn);

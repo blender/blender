@@ -87,6 +87,9 @@ typedef enum eWM_GizmoFlag {
 	WM_GIZMO_MOVE_CURSOR = (1 << 7),
 	/** Don't write into the depth buffer when selecting. */
 	WM_GIZMO_SELECT_BACKGROUND  = (1 << 8),
+
+	/** Use the active tools operator properties when running as an operator. */
+	WM_GIZMO_OPERATOR_TOOL_INIT  = (1 << 9),
 } eWM_GizmoFlag;
 
 /**
