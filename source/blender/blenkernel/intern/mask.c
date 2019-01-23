@@ -207,6 +207,7 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
 	masklay_new->blend = masklay->blend;
 	masklay_new->blend_flag = masklay->blend_flag;
 	masklay_new->flag = masklay->flag;
+	masklay_new->falloff = masklay->falloff;
 	masklay_new->restrictflag = masklay->restrictflag;
 
 	for (spline = masklay->splines.first; spline; spline = spline->next) {
