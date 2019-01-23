@@ -35,7 +35,7 @@ def act_strip(context):
         return None
 
 
-def sel_sequences(context):
+def selected_sequences_len(context):
     selected_sequences = getattr(context, "selected_sequences", None)
     if not selected_sequences:
         return 0
@@ -393,7 +393,7 @@ class SEQUENCER_MT_add(Menu):
 
         col = layout.column()
         col.menu("SEQUENCER_MT_add_transitions")
-        col.enabled = sel_sequences(context) >= 2
+        col.enabled = selected_sequences_len(context) >= 2
 
 
 class SEQUENCER_MT_add_empty(Menu):
@@ -419,7 +419,7 @@ class SEQUENCER_MT_add_transitions(Menu):
         col.separator()
 
         col.operator("sequencer.effect_strip_add", text="Wipe").type = 'WIPE'
-        col.enabled = sel_sequences(context) >= 2
+        col.enabled = selected_sequences_len(context) >= 2
 
 
 class SEQUENCER_MT_add_effect(Menu):
@@ -438,7 +438,7 @@ class SEQUENCER_MT_add_effect(Menu):
         col.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
         col.operator("sequencer.effect_strip_add", text="Alpha Under").type = 'ALPHA_UNDER'
         col.operator("sequencer.effect_strip_add", text="Color Mix").type = 'COLORMIX'
-        col.enabled = sel_sequences(context) >= 2
+        col.enabled = selected_sequences_len(context) >= 2
 
         layout.separator()
 
@@ -454,7 +454,7 @@ class SEQUENCER_MT_add_effect(Menu):
 
         col.operator("sequencer.effect_strip_add", text="Glow").type = 'GLOW'
         col.operator("sequencer.effect_strip_add", text="Gaussian Blur").type = 'GAUSSIAN_BLUR'
-        col.enabled = sel_sequences(context) != 0
+        col.enabled = selected_sequences_len(context) != 0
 
 
 class SEQUENCER_MT_strip_transform(Menu):
