@@ -2192,14 +2192,14 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 		GPU_matrix_push();
 
 		/* draw original angle line */
-		GPU_matrix_rotate_2d(RAD2DEGF(rc->initial_value));
+		GPU_matrix_rotate_3f(RAD2DEGF(rc->initial_value), 0.0f, 0.0f, 1.0f);
 		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		immEnd();
 
 		/* draw new angle line */
-		GPU_matrix_rotate_2d(RAD2DEGF(rc->current_value - rc->initial_value));
+		GPU_matrix_rotate_3f(RAD2DEGF(rc->current_value - rc->initial_value), 0.0f, 0.0f, 1.0f);
 		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
