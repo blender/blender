@@ -920,7 +920,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-	Object *ob = ED_object_active_context(C);
+	Object *parent = ED_object_active_context(C);
 	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
@@ -940,26 +940,46 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", true);
 #endif
-	/* ob becomes parent, make the associated menus */
-	if (ob->type == OB_ARMATURE) {
+
+	struct {
+		bool mesh, gpencil;
+	} has_children_of_type = { 0 };
+
+	CTX_DATA_BEGIN (C, Object *, child, selected_editable_objects)
+	{
+		if (child == parent) {
+			continue;
+		}
+		if (child->type == OB_MESH) {
+			has_children_of_type.mesh = true;
+		}
+		if (child->type == OB_GPENCIL) {
+			has_children_of_type.gpencil = true;
+		}
+	}
+	CTX_DATA_END;
+
+	if (parent->type == OB_ARMATURE) {
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_NAME);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
-		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
+		if (has_children_of_type.mesh || has_children_of_type.gpencil) {
+			uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
+		}
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE_RELATIVE);
 	}
-	else if (ob->type == OB_CURVE) {
+	else if (parent->type == OB_CURVE) {
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_CURVE);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_FOLLOW);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_PATH_CONST);
 	}
-	else if (ob->type == OB_LATTICE) {
+	else if (parent->type == OB_LATTICE) {
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_LATTICE);
 	}
 
 	/* vertex parenting */
-	if (OB_TYPE_SUPPORT_PARVERT(ob->type)) {
+	if (OB_TYPE_SUPPORT_PARVERT(parent->type)) {
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_VERTEX_TRI);
 	}
