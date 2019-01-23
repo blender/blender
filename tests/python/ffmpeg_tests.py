@@ -42,15 +42,29 @@ class AbstractFFmpegSequencerTest(AbstractFFmpegTest):
             "bpy.context.scene.sequence_editor_create(); " \
             "strip = bpy.context.scene.sequence_editor.sequences.new_movie(" \
             "'test_movie', %r, channel=1, frame_start=1); " \
-            "print(f'fps:{strip.fps}')" % movie.as_posix()
+            "print(f'fps:{strip.fps}'); " \
+            "print(f'duration:{strip.frame_final_duration}'); " % movie.as_posix()
 
-    def get_movie_file_fps(self, filename: pathlib.Path) -> float:
+    def get_movie_file_field(self, filename: pathlib.Path, field: str) -> str:
         script = self.get_script_for_file(filename)
         output = self.run_blender('', script)
+        prefix = field + ":"
         for line in output.splitlines():
-            if line.startswith('fps:'):
-                return float(line.split(':')[1])
-        return 0.0
+            if line.startswith(prefix):
+                return line.split(':')[1]
+        return ""
+
+    def get_movie_file_field_float(self, filename: pathlib.Path, field: str) -> float:
+        return float(self.get_movie_file_field(filename, field))
+
+    def get_movie_file_field_int(self, filename: pathlib.Path, field: str) -> float:
+        return int(self.get_movie_file_field(filename, field))
+
+    def get_movie_file_fps(self, filename: pathlib.Path) -> float:
+        return self.get_movie_file_field_float(filename, "fps")
+
+    def get_movie_file_duration(self, filename: pathlib.Path) -> float:
+        return self.get_movie_file_field_int(filename, "duration")
 
 
 class FPSDetectionTest(AbstractFFmpegSequencerTest):
@@ -71,6 +85,11 @@ class FPSDetectionTest(AbstractFFmpegSequencerTest):
             self.get_movie_file_fps('T54148_magn_0.mkv'),
             1.0,
             places=2)
+
+    def test_T54834(self):
+        self.assertEqual(
+            self.get_movie_file_duration('T54834.ogg'),
+            50)
 
 
 if __name__ == '__main__':

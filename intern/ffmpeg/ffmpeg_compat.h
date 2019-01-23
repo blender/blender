@@ -520,6 +520,14 @@ AVRational av_get_r_frame_rate_compat(AVFormatContext *ctx,
 	/* For until r_frame_rate was deprecated use it. */
 	return stream->r_frame_rate;
 #else
+#  ifdef AV_USING_FFMPEG
+	/* Some of the videos might have average frame rate set to, while the
+	 * r_frame_rate will show a correct value. This happens, for example, for
+	 * OGG video files saved with Blender. */
+	if (stream->avg_frame_rate.den == 0) {
+		return stream->r_frame_rate;
+	}
+#  endif
 	return stream->avg_frame_rate;
 #endif
 }
