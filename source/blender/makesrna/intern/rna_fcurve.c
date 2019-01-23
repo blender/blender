@@ -1404,9 +1404,9 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_MUTED);
-	RNA_def_property_ui_text(prop, "Muted", "F-Curve Modifier will not be evaluated");
+	RNA_def_property_ui_text(prop, "Muted", "Disable F-Curve Modifier evaluation");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, "rna_FModifier_update");
-	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_DEHLT, 1);
+	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, -1);
 
 	prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2008,7 +2008,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_MUTED);
-	RNA_def_property_ui_text(prop, "Muted", "F-Curve is not evaluated");
+	RNA_def_property_ui_text(prop, "Muted", "Disable F-Curve Modifier evaluation");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, "rna_FCurve_update_eval");
 
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
