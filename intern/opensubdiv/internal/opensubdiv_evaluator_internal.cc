@@ -130,7 +130,7 @@ template <int element_size, int num_vertices>
 class StackAllocatedBuffer {
  public:
   static PatchCoordBuffer* Create(int /*size*/) {
-    // TODO(sergey): Validate that requested dize is smaller than static
+    // TODO(sergey): Validate that requested size is smaller than static
     // stack memory size.
     return new StackAllocatedBuffer<element_size, num_vertices>();
   }
