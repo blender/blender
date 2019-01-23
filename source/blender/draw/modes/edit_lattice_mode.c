@@ -105,8 +105,7 @@ static struct {
 	 * init in EDIT_LATTICE_engine_init();
 	 * free in EDIT_LATTICE_engine_free(); */
 
-	/* 0: normal, 1: clipped. */
-	EDIT_LATTICE_Shaders sh_data[2];
+	EDIT_LATTICE_Shaders sh_data[DRW_SHADER_SLOT_LEN];
 
 } e_data = {NULL}; /* Engine data */
 
@@ -118,14 +117,6 @@ typedef struct EDIT_LATTICE_PrivateData {
 } EDIT_LATTICE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
-
-static int EDIT_LATTICE_sh_data_index_from_rv3d(const RegionView3D *rv3d)
-{
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		return 1;
-	}
-	return 0;
-}
 
 /* Init Textures, Framebuffers, Storage and Shaders.
  * It is called for every frames.
@@ -154,7 +145,7 @@ static void EDIT_LATTICE_engine_init(void *vedata)
 	 */
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[EDIT_LATTICE_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 	if (is_clip) {
 		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
@@ -191,7 +182,7 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[EDIT_LATTICE_sh_data_index_from_rv3d(rv3d)];
+	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */

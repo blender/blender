@@ -84,7 +84,7 @@ typedef struct PAINT_VERTEX_Shaders {
 /* *********** STATIC *********** */
 
 static struct {
-	PAINT_VERTEX_Shaders sh_data[2];
+	PAINT_VERTEX_Shaders sh_data[DRW_SHADER_SLOT_LEN];
 } e_data = {NULL}; /* Engine data */
 
 typedef struct PAINT_VERTEX_PrivateData {
@@ -96,18 +96,10 @@ typedef struct PAINT_VERTEX_PrivateData {
 
 /* *********** FUNCTIONS *********** */
 
-static int PAINT_VERTEX_sh_data_index_from_rv3d(const RegionView3D *rv3d)
-{
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		return 1;
-	}
-	return 0;
-}
-
 static void PAINT_VERTEX_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[PAINT_VERTEX_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
@@ -147,7 +139,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const View3D *v3d = draw_ctx->v3d;
 	const RegionView3D *rv3d = draw_ctx->rv3d;
-	PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[PAINT_VERTEX_sh_data_index_from_rv3d(rv3d)];
+	PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */

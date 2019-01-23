@@ -327,8 +327,7 @@ static struct {
 	struct GPUVertFormat *empty_image_format;
 	struct GPUVertFormat *empty_image_wire_format;
 
-	/* 0: normal, 1: clipped. */
-	OBJECT_Shaders sh_data[2];
+	OBJECT_Shaders sh_data[DRW_SHADER_SLOT_LEN];
 
 	float camera_pos[3];
 	float grid_settings[5];
@@ -367,14 +366,6 @@ enum {
 static void DRW_shgroup_empty_ex(OBJECT_ShadingGroupList *sgl, float mat[4][4], float *draw_size, char draw_type, float *color);
 
 /* *********** FUNCTIONS *********** */
-
-static int OBJECT_sh_data_index_from_rv3d(const RegionView3D *rv3d)
-{
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		return 1;
-	}
-	return 0;
-}
 
 static void OBJECT_engine_init(void *vedata)
 {
@@ -416,7 +407,7 @@ static void OBJECT_engine_init(void *vedata)
 
 	/* Shaders */
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	OBJECT_Shaders *sh_data = &e_data.sh_data[OBJECT_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	OBJECT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
 	if (!sh_data->outline_resolve) {
 		/* Outline */
@@ -971,7 +962,7 @@ static void OBJECT_cache_init(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	OBJECT_Shaders *sh_data = &e_data.sh_data[OBJECT_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	OBJECT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
 	const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
 	const bool do_outline_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
@@ -2866,9 +2857,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	ModifierData *md = NULL;
 	int theme_id = TH_UNDEFINED;
 	const int ob_visibility = DRW_object_visibility_in_active_context(ob);
-
-	/* TODO(campbell): we shouldn't need to get this per object. */
-	OBJECT_Shaders *sh_data = &e_data.sh_data[OBJECT_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	OBJECT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
 	/* Handle particles first in case the emitter itself shouldn't be rendered. */
 	if (ob_visibility & OB_VISIBLE_PARTICLES) {

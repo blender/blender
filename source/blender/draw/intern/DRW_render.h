@@ -567,6 +567,16 @@ bool DRW_state_show_text(void);
 bool DRW_state_draw_support(void);
 bool DRW_state_draw_background(void);
 
+/**
+ * Support selecting shaders with different options compiled in.
+ * Needed for clipping support because it means using a separate set of shaders.
+ */
+typedef enum eDRW_ShaderSlot {
+	DRW_SHADER_SLOT_DEFAULT = 0,
+	DRW_SHADER_SLOT_CLIPPED = 1,
+} eDRW_ShaderSlot;
+#define DRW_SHADER_SLOT_LEN 2
+
 /* Avoid too many lookups while drawing */
 typedef struct DRWContextState {
 
@@ -585,6 +595,8 @@ typedef struct DRWContextState {
 	struct Depsgraph *depsgraph;
 
 	eObjectMode object_mode;
+
+	eDRW_ShaderSlot shader_slot;
 
 	/* Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */

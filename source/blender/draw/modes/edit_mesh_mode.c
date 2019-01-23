@@ -126,8 +126,7 @@ typedef struct EDIT_MESH_Shaders {
 
 /* *********** STATIC *********** */
 static struct {
-	/* 0: normal, 1: clipped. */
-	EDIT_MESH_Shaders sh_data[2];
+	EDIT_MESH_Shaders sh_data[DRW_SHADER_SLOT_LEN];
 
 	/* temp buffer texture */
 	struct GPUTexture *occlude_wire_depth_tx;
@@ -163,14 +162,6 @@ typedef struct EDIT_MESH_PrivateData {
 } EDIT_MESH_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
-
-static int EDIT_MESH_sh_data_index_from_rv3d(const RegionView3D *rv3d)
-{
-	if (rv3d->rflag & RV3D_CLIPPING) {
-		return 1;
-	}
-	return 0;
-}
 
 static int EDIT_MESH_sh_index(ToolSettings *tsettings, RegionView3D *rv3d, bool supports_fast_mode)
 {
@@ -263,7 +254,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	const float *viewport_size = DRW_viewport_size_get();
@@ -364,7 +355,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
 	const int fast_mode = rv3d->rflag & RV3D_NAVIGATING;
-	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
 	ledge_sh = EDIT_MESH_ensure_shader(sh_data, tsettings, rv3d, false, true);
 	tri_sh = EDIT_MESH_ensure_shader(sh_data, tsettings, rv3d, true, false);
@@ -455,7 +446,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
-	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[EDIT_MESH_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 	static float zero = 0.0f;
 
 	if (!stl->g_data) {

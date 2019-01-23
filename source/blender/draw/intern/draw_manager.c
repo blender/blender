@@ -543,6 +543,11 @@ static void drw_context_state_init(void)
 	else {
 		DST.draw_ctx.object_pose = NULL;
 	}
+
+	DST.draw_ctx.shader_slot = DRW_SHADER_SLOT_DEFAULT;
+	if (DST.draw_ctx.rv3d && DST.draw_ctx.rv3d->rflag & RV3D_CLIPPING) {
+		DST.draw_ctx.shader_slot = DRW_SHADER_SLOT_CLIPPED;
+	}
 }
 
 /* It also stores viewport variable to an immutable place: DST
