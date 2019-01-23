@@ -291,16 +291,20 @@ typedef enum {
 	DRW_STATE_CULL_FRONT    = (1 << 9),
 	DRW_STATE_WIRE          = (1 << 10),
 	DRW_STATE_POINT         = (1 << 11),
-	DRW_STATE_OFFSET_POSITIVE = (1 << 12), /* Polygon offset. Does not work with lines and points. */
-	DRW_STATE_OFFSET_NEGATIVE = (1 << 13), /* Polygon offset. Does not work with lines and points. */
+	/** Polygon offset. Does not work with lines and points. */
+	DRW_STATE_OFFSET_POSITIVE = (1 << 12),
+	/** Polygon offset. Does not work with lines and points. */
+	DRW_STATE_OFFSET_NEGATIVE = (1 << 13),
 	/* DRW_STATE_STIPPLE_4     = (1 << 14), */ /* Not used */
 	DRW_STATE_BLEND         = (1 << 15),
 	DRW_STATE_ADDITIVE      = (1 << 16),
 	DRW_STATE_MULTIPLY      = (1 << 17),
 	/* DRW_STATE_TRANSMISSION  = (1 << 18), */ /* Not used */
 	DRW_STATE_CLIP_PLANES   = (1 << 19),
-	DRW_STATE_ADDITIVE_FULL = (1 << 20), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
-	DRW_STATE_BLEND_PREMUL  = (1 << 21), /* Use that if color is already premult by alpha. */
+	/** Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
+	DRW_STATE_ADDITIVE_FULL = (1 << 20),
+	/** Use that if color is already premult by alpha. */
+	DRW_STATE_BLEND_PREMUL  = (1 << 21),
 	DRW_STATE_WIRE_SMOOTH   = (1 << 22),
 	DRW_STATE_TRANS_FEEDBACK = (1 << 23),
 	DRW_STATE_BLEND_OIT     = (1 << 24),
@@ -598,7 +602,7 @@ typedef struct DRWContextState {
 
 	eDRW_ShaderSlot shader_slot;
 
-	/* Last resort (some functions take this as an arg so we can't easily avoid).
+	/** Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */
 	const struct bContext *evil_C;
 
