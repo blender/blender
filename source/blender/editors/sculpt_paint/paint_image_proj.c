@@ -79,6 +79,7 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
@@ -5607,6 +5608,15 @@ void PAINT_OT_project_image(wmOperatorType *ot)
 	ot->prop = prop;
 }
 
+static bool texture_paint_image_from_view_poll(bContext *C)
+{
+	if (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) == NULL) {
+		CTX_wm_operator_poll_msg_set(C, "No 3D viewport found to create image from");
+		return false;
+	}
+	return true;
+}
+
 static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 {
 	Image *image;
@@ -5617,12 +5627,23 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	int w = settings->imapaint.screen_grab_size[0];
 	int h = settings->imapaint.screen_grab_size[1];
 	int maxsize;
 	char err_out[256] = "unknown";
+
+	ScrArea *sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
+	if (!sa) {
+		BKE_report(op->reports, RPT_ERROR, "No 3D viewport found to create image from");
+		return OPERATOR_CANCELLED;
+	}
+	View3D *v3d = sa->spacedata.first;
+	ARegion *ar = BKE_area_find_region_active_win(sa);
+	if (!ar) {
+		BKE_report(op->reports, RPT_ERROR, "No 3D viewport found to create image from");
+		return OPERATOR_CANCELLED;
+	}
+	RegionView3D *rv3d = ar->regiondata;
 
 	RNA_string_get(op->ptr, "filepath", filename);
 
@@ -5633,7 +5654,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
 	ibuf = ED_view3d_draw_offscreen_imbuf(
 	        depsgraph, scene, v3d->shading.type,
-	        v3d, CTX_wm_region(C),
+	        v3d, ar,
 	        w, h, IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 	        NULL, err_out);
 	if (!ibuf) {
@@ -5680,11 +5701,11 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Image from View";
 	ot->idname = "PAINT_OT_image_from_view";
-	ot->description = "Make an image from the current 3D view for re-projection";
+	ot->description = "Make an image from biggest 3D view for re-projection";
 
 	/* api callbacks */
 	ot->exec = texture_paint_image_from_view_exec;
-	ot->poll = ED_operator_region_view3d_active;
+	ot->poll = texture_paint_image_from_view_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
