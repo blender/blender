@@ -76,6 +76,7 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
+#include "UI_view2d.h"
 
 #include "file_intern.h"
 #include "filelist.h"
@@ -547,7 +548,9 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight * 3 / 2;
 		layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
-		layout->rows = layout->height / (layout->tile_h + 2 * layout->tile_border_y);
+		/* Padding by full scrollbar H is too much, can overlap tile border Y. */
+		layout->rows = (layout->height - V2D_SCROLL_HEIGHT + layout->tile_border_y) /
+			           (layout->tile_h + 2 * layout->tile_border_y);
 
 		column_widths(params, layout);
 
