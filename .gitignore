@@ -11,6 +11,10 @@ __pycache__/
 *.swo
 *#
 
+# Indexes for emacs, vi & others
+TAGS
+tags
+
 # QtCreator
 CMakeLists.txt.user
 
