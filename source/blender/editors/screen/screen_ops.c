@@ -709,7 +709,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *sa, const int xy[2], const boo
 					}
 					else {
 						const int mouse_sq = SQUARE(xy[0] - az->x2) + SQUARE(xy[1] - az->y2);
-						const int spot_sq = SQUARE(AZONESPOT);
+						const int spot_sq = SQUARE(AZONESPOTW);
 						const int fadein_sq = SQUARE(AZONEFADEIN);
 						const int fadeout_sq = SQUARE(AZONEFADEOUT);
 
@@ -916,10 +916,19 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			const int delta_x = (event->x - sad->x);
 			const int delta_y = (event->y - sad->y);
 
-			/* calculate gesture direction */
+			/* Movement in dominant direction. */
+			const int delta_max = max_ii(ABS(delta_x), ABS(delta_y));
+			/* Movement in secondary direction. */
+			const int delta_min = min_ii(ABS(delta_x), ABS(delta_y));
+			/* Movement required in dominant direction. */
+			const int delta_threshold = (0.2 * U.widget_unit);
+			/* Must be over threshold and 2:1 ratio or more. */
+			const int delta_okay = (delta_max > delta_threshold) && (delta_min * 2 <= delta_max);
+
+			/* Calculate gesture cardinal direction. */
 			if (delta_y > ABS(delta_x))
 				sad->gesture_dir = 'n';
-			else if (delta_x > ABS(delta_y))
+			else if (delta_x >= ABS(delta_y))
 				sad->gesture_dir = 'e';
 			else if (delta_y < -ABS(delta_x))
 				sad->gesture_dir = 's';
@@ -933,13 +942,12 @@ static int actionzone_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				WM_window_screen_rect_calc(win, &screen_rect);
 				/* once we drag outside the actionzone, register a gesture
 				 * check we're not on an edge so join finds the other area */
-				is_gesture = ((ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
+				is_gesture = (delta_okay && (ED_area_actionzone_find_xy(sad->sa1, &event->x) != sad->az) &&
 				              (screen_geom_area_map_find_active_scredge(
 				                   AREAMAP_FROM_SCREEN(sc), &screen_rect, event->x, event->y) == NULL));
 			}
 			else {
-				const int delta_min = 1;
-				is_gesture = (ABS(delta_x) > delta_min || ABS(delta_y) > delta_min);
+				is_gesture = delta_okay;
 			}
 
 			/* gesture is large enough? */
@@ -1272,7 +1280,7 @@ static void area_move_set_limits(
 			int size_min = ED_area_global_min_size_y(area) - 1;
 			int size_max = ED_area_global_max_size_y(area) - 1;
 
-			size_min = MAX2(size_min, 0);
+			size_min = max_ii(size_min, 0);
 			BLI_assert(size_min < size_max);
 
 			/* logic here is only tested for lower edge :) */
