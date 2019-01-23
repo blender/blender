@@ -144,6 +144,28 @@ typedef struct OBJECT_Data {
 	OBJECT_StorageList *stl;
 } OBJECT_Data;
 
+typedef struct OBJECT_Shaders {
+	/* fullscreen shaders */
+	GPUShader *outline_prepass;
+	GPUShader *outline_prepass_wire;
+	GPUShader *outline_resolve;
+	GPUShader *outline_resolve_aa;
+	GPUShader *outline_detect;
+	GPUShader *outline_detect_wire;
+	GPUShader *outline_fade;
+	GPUShader *outline_fade_large;
+
+	/* regular shaders */
+	GPUShader *object_empty_image;
+	GPUShader *object_empty_image_wire;
+	GPUShader *grid;
+	GPUShader *part_dot;
+	GPUShader *part_prim;
+	GPUShader *part_axis;
+	GPUShader *lightprobe_grid;
+	GPUShader *loose_points;
+} OBJECT_Shaders;
+
 /* *********** STATIC *********** */
 
 typedef struct OBJECT_ShadingGroupList {
@@ -305,25 +327,9 @@ static struct {
 	struct GPUVertFormat *empty_image_format;
 	struct GPUVertFormat *empty_image_wire_format;
 
-	/* fullscreen shaders */
-	GPUShader *outline_prepass_sh;
-	GPUShader *outline_prepass_wire_sh;
-	GPUShader *outline_resolve_sh;
-	GPUShader *outline_resolve_aa_sh;
-	GPUShader *outline_detect_sh;
-	GPUShader *outline_detect_wire_sh;
-	GPUShader *outline_fade_sh;
-	GPUShader *outline_fade_large_sh;
+	/* 0: normal, 1: clipped. */
+	OBJECT_Shaders sh_data[2];
 
-	/* regular shaders */
-	GPUShader *object_empty_image_sh;
-	GPUShader *object_empty_image_wire_sh;
-	GPUShader *grid_sh;
-	GPUShader *part_dot_sh;
-	GPUShader *part_prim_sh;
-	GPUShader *part_axis_sh;
-	GPUShader *lightprobe_grid_sh;
-	GPUShader *loose_points_sh;
 	float camera_pos[3];
 	float grid_settings[5];
 	float grid_mesh_size;
@@ -361,6 +367,14 @@ enum {
 static void DRW_shgroup_empty_ex(OBJECT_ShadingGroupList *sgl, float mat[4][4], float *draw_size, char draw_type, float *color);
 
 /* *********** FUNCTIONS *********** */
+
+static int OBJECT_sh_data_index_from_rv3d(const RegionView3D *rv3d)
+{
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		return 1;
+	}
+	return 0;
+}
 
 static void OBJECT_engine_init(void *vedata)
 {
@@ -401,39 +415,42 @@ static void OBJECT_engine_init(void *vedata)
 	}
 
 	/* Shaders */
-	if (!e_data.outline_resolve_sh) {
-		/* Outline */
-		e_data.outline_prepass_sh = DRW_shader_create_3D(datatoc_object_outline_prepass_frag_glsl, NULL);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	OBJECT_Shaders *sh_data = &e_data.sh_data[OBJECT_sh_data_index_from_rv3d(draw_ctx->rv3d)];
 
-		e_data.outline_prepass_wire_sh = DRW_shader_create(
+	if (!sh_data->outline_resolve) {
+		/* Outline */
+		sh_data->outline_prepass = DRW_shader_create_3D(datatoc_object_outline_prepass_frag_glsl, NULL);
+
+		sh_data->outline_prepass_wire = DRW_shader_create(
 		            datatoc_object_outline_prepass_vert_glsl,
 		            datatoc_object_outline_prepass_geom_glsl,
 		            datatoc_object_outline_prepass_frag_glsl, NULL);
 
-		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
+		sh_data->outline_resolve = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
 
-		e_data.outline_resolve_aa_sh = DRW_shader_create_with_lib(
+		sh_data->outline_resolve_aa = DRW_shader_create_with_lib(
 		            datatoc_common_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_resolve_frag_glsl,
 		            datatoc_common_fxaa_lib_glsl,
 		            "#define FXAA_ALPHA\n"
 		            "#define USE_FXAA\n");
 
-		e_data.outline_detect_sh = DRW_shader_create_with_lib(
+		sh_data->outline_detect = DRW_shader_create_with_lib(
 		            datatoc_common_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_detect_frag_glsl,
 		            datatoc_common_globals_lib_glsl,
 		            NULL);
 
-		e_data.outline_detect_wire_sh = DRW_shader_create_with_lib(
+		sh_data->outline_detect_wire = DRW_shader_create_with_lib(
 		            datatoc_common_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_detect_frag_glsl,
 		            datatoc_common_globals_lib_glsl,
 		            "#define WIRE\n");
 
 
-		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
-		e_data.outline_fade_large_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, "#define LARGE_OUTLINE\n");
+		sh_data->outline_fade = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
+		sh_data->outline_fade_large = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, "#define LARGE_OUTLINE\n");
 
 		/* Empty images */
 #		define EMPTY_IMAGE_SHADER_DEFINES \
@@ -441,12 +458,12 @@ static void OBJECT_engine_init(void *vedata)
 		        "#define DEPTH_FRONT " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_FRONT) "\n" \
 		        "#define DEPTH_BACK " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_BACK) "\n"
 
-		e_data.object_empty_image_sh = DRW_shader_create(
+		sh_data->object_empty_image = DRW_shader_create(
 		        datatoc_object_empty_image_vert_glsl, NULL,
 		        datatoc_object_empty_image_frag_glsl,
 		        EMPTY_IMAGE_SHADER_DEFINES);
 
-		e_data.object_empty_image_wire_sh = DRW_shader_create(
+		sh_data->object_empty_image_wire = DRW_shader_create(
 		        datatoc_object_empty_image_vert_glsl, NULL,
 		        datatoc_object_empty_image_frag_glsl,
 		        EMPTY_IMAGE_SHADER_DEFINES
@@ -455,35 +472,34 @@ static void OBJECT_engine_init(void *vedata)
 #		undef EMPTY_IMAGE_SHADER_DEFINES
 
 		/* Grid */
-		e_data.grid_sh = DRW_shader_create_with_lib(
+		sh_data->grid = DRW_shader_create_with_lib(
 		        datatoc_object_grid_vert_glsl, NULL,
 		        datatoc_object_grid_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 
 		/* Particles */
-		e_data.part_prim_sh = DRW_shader_create(
+		sh_data->part_prim = DRW_shader_create(
 		        datatoc_object_particle_prim_vert_glsl, NULL, datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 
-		e_data.part_axis_sh = DRW_shader_create(
+		sh_data->part_axis = DRW_shader_create(
 		        datatoc_object_particle_prim_vert_glsl, NULL, datatoc_gpu_shader_flat_color_frag_glsl,
 		        "#define USE_AXIS\n");
 
-		e_data.part_dot_sh = DRW_shader_create(
+		sh_data->part_dot = DRW_shader_create(
 		        datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
 
 		/* Lightprobes */
-		e_data.lightprobe_grid_sh = DRW_shader_create(
+		sh_data->lightprobe_grid = DRW_shader_create(
 		        datatoc_object_lightprobe_grid_vert_glsl, NULL, datatoc_gpu_shader_flat_id_frag_glsl, NULL);
 
 		/* Loose Points */
-		e_data.loose_points_sh = DRW_shader_create_3D(datatoc_object_loose_points_frag_glsl, NULL);
+		sh_data->loose_points = DRW_shader_create_3D(datatoc_object_loose_points_frag_glsl, NULL);
 	}
 
 	{
 		/* Grid precompute */
 		float invviewmat[4][4], invwinmat[4][4];
 		float viewmat[4][4], winmat[4][4];
-		const DRWContextState *draw_ctx = DRW_context_state_get();
 		View3D *v3d = draw_ctx->v3d;
 		Scene *scene = draw_ctx->scene;
 		RegionView3D *rv3d = draw_ctx->rv3d;
@@ -638,22 +654,14 @@ static void OBJECT_engine_free(void)
 	MEM_SAFE_FREE(e_data.particle_format);
 	MEM_SAFE_FREE(e_data.empty_image_format);
 	MEM_SAFE_FREE(e_data.empty_image_wire_format);
-	DRW_SHADER_FREE_SAFE(e_data.outline_prepass_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_prepass_wire_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_aa_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_detect_wire_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_fade_sh);
-	DRW_SHADER_FREE_SAFE(e_data.outline_fade_large_sh);
-	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_sh);
-	DRW_SHADER_FREE_SAFE(e_data.object_empty_image_wire_sh);
-	DRW_SHADER_FREE_SAFE(e_data.grid_sh);
-	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
-	DRW_SHADER_FREE_SAFE(e_data.part_axis_sh);
-	DRW_SHADER_FREE_SAFE(e_data.part_dot_sh);
-	DRW_SHADER_FREE_SAFE(e_data.lightprobe_grid_sh);
-	DRW_SHADER_FREE_SAFE(e_data.loose_points_sh);
+
+	for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
+		OBJECT_Shaders *sh_data = &e_data.sh_data[sh_data_index];
+		GPUShader **sh_data_as_array = (GPUShader **)sh_data;
+		for (int i = 0; i < (sizeof(OBJECT_Shaders) / sizeof(GPUShader *)); i++) {
+			DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
+		}
+	}
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const int *ofs, GPUShader *sh)
@@ -899,7 +907,8 @@ static void image_calc_aspect(Image *ima, const int size[2], float r_image_aspec
 }
 
 static void DRW_shgroup_empty_image(
-        OBJECT_ShadingGroupList *sgl, Object *ob, const float color[3], RegionView3D *rv3d)
+        OBJECT_Shaders *sh_data, OBJECT_ShadingGroupList *sgl,
+        Object *ob, const float color[3], RegionView3D *rv3d)
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
 
@@ -929,7 +938,7 @@ static void DRW_shgroup_empty_image(
 	 * ob->col[3] == 1.0f,  we could remove it from the sorting pass. */
 
 	if (tex && (ob->col[3] > 0.0f)) {
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.object_empty_image_sh, sgl->image_empties);
+		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->object_empty_image, sgl->image_empties);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
 		/* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
 		DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
@@ -942,7 +951,7 @@ static void DRW_shgroup_empty_image(
 	}
 
 	{
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.object_empty_image_wire_sh, sgl->non_meshes);
+		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->object_empty_image_wire, sgl->non_meshes);
 		/* TODO(fclem) implement DRW_shgroup_uniform_vec2_copy */
 		DRW_shgroup_uniform_float_copy(grp, "aspectX", image_aspect[0]);
 		DRW_shgroup_uniform_float_copy(grp, "aspectY", image_aspect[1]);
@@ -962,6 +971,7 @@ static void OBJECT_cache_init(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	OBJECT_Shaders *sh_data = &e_data.sh_data[OBJECT_sh_data_index_from_rv3d(draw_ctx->rv3d)];
 
 	const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
 	const bool do_outline_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
@@ -979,10 +989,10 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE;
 		psl->outlines = DRW_pass_create("Outlines Depth Pass", state);
 
-		GPUShader *sh = e_data.outline_prepass_sh;
+		GPUShader *sh = sh_data->outline_prepass;
 
 		if (g_data->xray_enabled) {
-			sh = e_data.outline_prepass_wire_sh;
+			sh = sh_data->outline_prepass_wire;
 		}
 
 		g_data->outlines_select = shgroup_outline(psl->outlines, &g_data->id_ofs_select, sh);
@@ -1028,7 +1038,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		psl->outlines_search = DRW_pass_create("Outlines Detect Pass", state);
 
-		GPUShader *sh = (g_data->xray_enabled) ? e_data.outline_detect_wire_sh : e_data.outline_detect_sh;
+		GPUShader *sh = (g_data->xray_enabled) ? sh_data->outline_detect_wire : sh_data->outline_detect;
 		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->outlines_search);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineId", &e_data.outlines_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
@@ -1039,7 +1049,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		/* This is the bleed pass if do_outline_expand is false. */
-		GPUShader *fade_sh = (do_large_expand) ? e_data.outline_fade_large_sh : e_data.outline_fade_sh;
+		GPUShader *fade_sh = (do_large_expand) ? sh_data->outline_fade_large : sh_data->outline_fade;
 		psl->outlines_expand = DRW_pass_create("Outlines Expand Pass", state);
 
 		grp = DRW_shgroup_create(fade_sh, psl->outlines_expand);
@@ -1050,7 +1060,7 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_bleed = DRW_pass_create("Outlines Bleed Pass", state);
 
 		if (do_outline_expand) {
-			grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_bleed);
+			grp = DRW_shgroup_create(sh_data->outline_fade, psl->outlines_bleed);
 			DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_color_tx);
 			DRW_shgroup_uniform_bool_copy(grp, "doExpand", false);
 			DRW_shgroup_call_add(grp, quad, NULL);
@@ -1064,7 +1074,7 @@ static void OBJECT_cache_init(void *vedata)
 		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 		GPUTexture **outline_tx = (do_outline_expand) ? &e_data.outlines_blur_tx : &e_data.outlines_color_tx;
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_aa_sh, psl->outlines_resolve);
+		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->outline_resolve_aa, psl->outlines_resolve);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineBluredColor", outline_tx);
 		DRW_shgroup_uniform_vec2(grp, "rcpDimensions", e_data.inv_viewport_size, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -1081,7 +1091,7 @@ static void OBJECT_cache_init(void *vedata)
 		unit_m4(mat);
 
 		/* Create 3 quads to render ordered transparency Z axis */
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		DRWShadingGroup *grp = DRW_shgroup_create(sh_data->grid, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
@@ -1093,14 +1103,14 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, geom, mat);
 
-		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		grp = DRW_shgroup_create(sh_data->grid, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, geom, mat);
 
-		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
+		grp = DRW_shgroup_create(sh_data->grid, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -1261,7 +1271,7 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->wire_dupli_select = shgroup_wire(sgl->non_meshes, gb->colorDupliSelect, sh);
 
 		/* Points (loose points) */
-		sh = e_data.loose_points_sh;
+		sh = sh_data->loose_points;
 		sgl->points = shgroup_points(sgl->non_meshes, gb->colorWire, sh);
 		sgl->points_select = shgroup_points(sgl->non_meshes, gb->colorSelect, sh);
 		sgl->points_transform = shgroup_points(sgl->non_meshes, gb->colorTransform, sh);
@@ -2078,7 +2088,9 @@ static void DRW_shgroup_empty_ex(
 	}
 }
 
-static void DRW_shgroup_empty(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer, RegionView3D *rv3d)
+static void DRW_shgroup_empty(
+        OBJECT_Shaders *sh_data, OBJECT_ShadingGroupList *sgl,
+        Object *ob, ViewLayer *view_layer, RegionView3D *rv3d)
 {
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
@@ -2094,7 +2106,7 @@ static void DRW_shgroup_empty(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLaye
 			DRW_shgroup_empty_ex(sgl, ob->obmat, &ob->empty_drawsize, ob->empty_drawtype, color);
 			break;
 		case OB_EMPTY_IMAGE:
-			DRW_shgroup_empty_image(sgl, ob, color, rv3d);
+			DRW_shgroup_empty_image(sh_data, sgl, ob, color, rv3d);
 			break;
 	}
 }
@@ -2303,7 +2315,9 @@ typedef struct OBJECT_LightProbeEngineData {
 	float corner[3];
 } OBJECT_LightProbeEngineData;
 
-static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, ViewLayer *view_layer)
+static void DRW_shgroup_lightprobe(
+        OBJECT_Shaders *sh_data, OBJECT_StorageList *stl, OBJECT_PassList *psl,
+        Object *ob, ViewLayer *view_layer)
 {
 	float *color;
 	static float one = 1.0f;
@@ -2357,7 +2371,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			sub_v3_v3(prb_data->increment_z, prb_data->corner);
 
 			uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
-			DRWShadingGroup *grp = DRW_shgroup_create(e_data.lightprobe_grid_sh, psl->lightprobes);
+			DRWShadingGroup *grp = DRW_shgroup_create(sh_data->lightprobe_grid, psl->lightprobes);
 			DRW_shgroup_uniform_int_copy(grp, "call_id", *call_id);
 			DRW_shgroup_uniform_int(grp, "baseId", call_id, 1); /* that's correct */
 			DRW_shgroup_uniform_vec3(grp, "corner", prb_data->corner, 1);
@@ -2761,8 +2775,10 @@ static void DRW_shgroup_bounds(OBJECT_ShadingGroupList *sgl, Object *ob, int the
 	}
 }
 
-static void OBJECT_cache_populate_particles(Object *ob,
-                                            OBJECT_PassList *psl)
+static void OBJECT_cache_populate_particles(
+        OBJECT_Shaders *sh_data,
+        Object *ob,
+        OBJECT_PassList *psl)
 {
 	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
 		if (!psys_check_enabled(ob, psys, false)) {
@@ -2792,7 +2808,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 
 			switch (draw_as) {
 				case PART_DRAW_DOT:
-					shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
+					shgrp = DRW_shgroup_create(sh_data->part_dot, psl->particle);
 					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 					DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
 					DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
@@ -2802,7 +2818,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 					break;
 				case PART_DRAW_CROSS:
 					shgrp = DRW_shgroup_instance_create(
-					        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS),
+					        sh_data->part_prim, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS),
 					        e_data.particle_format);
 					DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
 					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
@@ -2810,7 +2826,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 					break;
 				case PART_DRAW_CIRC:
 					shgrp = DRW_shgroup_instance_create(
-					        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC),
+					        sh_data->part_prim, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC),
 					        e_data.particle_format);
 					DRW_shgroup_uniform_texture(shgrp, "ramp", G_draw.ramp);
 					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
@@ -2818,7 +2834,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 					break;
 				case PART_DRAW_AXIS:
 					shgrp = DRW_shgroup_instance_create(
-					        e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS),
+					        sh_data->part_axis, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS),
 					        e_data.particle_format);
 					DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 					break;
@@ -2851,9 +2867,12 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	int theme_id = TH_UNDEFINED;
 	const int ob_visibility = DRW_object_visibility_in_active_context(ob);
 
+	/* TODO(campbell): we shouldn't need to get this per object. */
+	OBJECT_Shaders *sh_data = &e_data.sh_data[OBJECT_sh_data_index_from_rv3d(draw_ctx->rv3d)];
+
 	/* Handle particles first in case the emitter itself shouldn't be rendered. */
 	if (ob_visibility & OB_VISIBLE_PARTICLES) {
-		OBJECT_cache_populate_particles(ob, psl);
+		OBJECT_cache_populate_particles(sh_data, ob, psl);
 	}
 
 	if ((ob_visibility & OB_VISIBLE_SELF) == 0) {
@@ -3007,7 +3026,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (hide_object_extra) {
 				break;
 			}
-			DRW_shgroup_empty(sgl, ob, view_layer, rv3d);
+			DRW_shgroup_empty(sh_data, sgl, ob, view_layer, rv3d);
 			break;
 		case OB_GPENCIL:
 			if (hide_object_extra) {
@@ -3029,7 +3048,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (hide_object_extra) {
 				break;
 			}
-			DRW_shgroup_lightprobe(stl, psl, ob, view_layer);
+			DRW_shgroup_lightprobe(sh_data, stl, psl, ob, view_layer);
 			break;
 		case OB_ARMATURE:
 		{
