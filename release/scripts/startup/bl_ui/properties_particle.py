@@ -128,18 +128,19 @@ class PARTICLE_UL_particle_systems(bpy.types.UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             md = find_modifier(ob, psys)
+            row = layout.row(align=True)
 
-            layout.prop(psys, "name", text="", emboss=False, icon_value=icon)
+            row.prop(psys, "name", text="", emboss=False, icon_value=icon)
             if md:
-                layout.prop(
+                row.prop(
                     md,
-                    "show_render",
+                    "show_viewport",
                     emboss=False,
                     icon_only=True,
                 )
-                layout.prop(
+                row.prop(
                     md,
-                    "show_viewport",
+                    "show_render",
                     emboss=False,
                     icon_only=True,
                 )
