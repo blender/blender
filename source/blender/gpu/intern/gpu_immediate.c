@@ -154,7 +154,7 @@ void immBindProgram(GLuint program, const GPUShaderInterface *shaderface)
 	GPU_matrix_bind(shaderface);
 }
 
-void immBindBuiltinProgram(GPUBuiltinShader shader_id)
+void immBindBuiltinProgram(eGPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	immBindProgram(shader->program, shader->interface);

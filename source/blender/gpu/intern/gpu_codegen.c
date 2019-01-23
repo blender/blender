@@ -146,12 +146,12 @@ typedef enum {
 
 typedef struct GPUFunction {
 	char name[MAX_FUNCTION_NAME];
-	GPUType paramtype[MAX_PARAMETER];
+	eGPUType paramtype[MAX_PARAMETER];
 	GPUFunctionQual paramqual[MAX_PARAMETER];
 	int totparam;
 } GPUFunction;
 
-/* Indices match the GPUType enum */
+/* Indices match the eGPUType enum */
 static const char *GPU_DATATYPE_STR[17] = {
 	"", "float", "vec2", "vec3", "vec4",
 	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"
@@ -215,7 +215,7 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 static void gpu_parse_functions_string(GHash *hash, char *code)
 {
 	GPUFunction *function;
-	GPUType type;
+	eGPUType type;
 	GPUFunctionQual qual;
 	int i;
 
@@ -442,7 +442,7 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 	}
 }
 
-static void codegen_print_datatype(DynStr *ds, const GPUType type, float *data)
+static void codegen_print_datatype(DynStr *ds, const eGPUType type, float *data)
 {
 	int i;
 
@@ -465,7 +465,7 @@ static int codegen_input_has_texture(GPUInput *input)
 		return (input->source == GPU_SOURCE_TEX);
 }
 
-const char *GPU_builtin_name(GPUBuiltin builtin)
+const char *GPU_builtin_name(eGPUBuiltin builtin)
 {
 	if (builtin == GPU_VIEW_MATRIX)
 		return "unfviewmat";
@@ -1321,7 +1321,7 @@ static GPUNode *GPU_node_begin(const char *name)
 	return node;
 }
 
-static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType type)
+static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType type)
 {
 	GPUInput *input;
 	GPUNode *outnode;
@@ -1474,7 +1474,7 @@ static void gpu_node_input_socket(GPUMaterial *material, bNode *bnode, GPUNode *
 	}
 }
 
-static void gpu_node_output(GPUNode *node, const GPUType type, GPUNodeLink **link)
+static void gpu_node_output(GPUNode *node, const eGPUType type, GPUNodeLink **link)
 {
 	GPUOutput *output = MEM_callocN(sizeof(GPUOutput), "GPUOutput");
 
@@ -1627,7 +1627,7 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
 	return link;
 }
 
-GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
+GPUNodeLink *GPU_builtin(eGPUBuiltin builtin)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 	link->link_type = GPU_NODE_LINK_BUILTIN;

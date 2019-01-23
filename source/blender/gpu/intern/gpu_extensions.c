@@ -77,9 +77,9 @@ static struct GPUGlobal {
 	GLint maxubobinds;
 	int colordepth;
 	int samples_color_texture_max;
-	GPUDeviceType device;
-	GPUOSType os;
-	GPUDriverType driver;
+	eGPUDeviceType device;
+	eGPUOSType os;
+	eGPUDriverType driver;
 	float line_width_range[2];
 	/* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
 	 * calculate dfdy in shader differently when drawing to an offscreen buffer. First
@@ -132,7 +132,7 @@ static void gpu_detect_mip_render_workaround(void)
 
 /* GPU Types */
 
-bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
+bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)
 {
 	return (GG.device & device) && (GG.os & os) && (GG.driver & driver);
 }

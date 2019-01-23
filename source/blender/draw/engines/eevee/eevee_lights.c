@@ -528,7 +528,7 @@ void EEVEE_lights_cache_shcaster_object_add(EEVEE_ViewLayerData *sldata, Object 
 void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_LampsInfo *linfo = sldata->lamps;
-	GPUTextureFormat shadow_pool_format = GPU_R32F;
+	eGPUTextureFormat shadow_pool_format = GPU_R32F;
 
 	sldata->common_data.la_num_light = linfo->num_light;
 

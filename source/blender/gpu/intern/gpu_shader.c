@@ -339,7 +339,7 @@ GPUShader *GPU_shader_create_ex(
         const char *geocode,
         const char *libcode,
         const char *defines,
-        const GPUShaderTFBType tf_type,
+        const eGPUShaderTFBType tf_type,
         const char **tf_names,
         const int tf_count,
         const char *shname)
@@ -971,7 +971,7 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 
 /* just a few special cases */
 static const char *gpu_shader_get_builtin_shader_defines(
-        GPUBuiltinShader shader)
+        eGPUBuiltinShader shader)
 {
 	switch (shader) {
 		case GPU_SHADER_2D_IMAGE_MULTISAMPLE_2:
@@ -1036,7 +1036,7 @@ static const char *gpu_shader_get_builtin_shader_defines(
 	}
 }
 
-GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
+GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
 {
 	BLI_assert(shader != GPU_NUM_BUILTIN_SHADERS); /* don't be a troll */
 
@@ -1072,7 +1072,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 }
 
 void GPU_shader_get_builtin_shader_code(
-        GPUBuiltinShader shader,
+        eGPUBuiltinShader shader,
         const char **r_vert, const char **r_frag,
         const char **r_geom, const char **r_defines)
 {

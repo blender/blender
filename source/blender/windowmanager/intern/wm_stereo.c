@@ -65,7 +65,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-static GPUInterlaceShader interlace_gpu_id_from_type(eStereo3dInterlaceType interlace_type)
+static eGPUInterlaceShader interlace_gpu_id_from_type(eStereo3dInterlaceType interlace_type)
 {
 	switch (interlace_type) {
 		case S3D_INTERLACE_ROW:

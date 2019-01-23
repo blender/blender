@@ -363,7 +363,7 @@ GPUShader *DRW_shader_create_with_lib(
 
 GPUShader *DRW_shader_create_with_transform_feedback(
         const char *vert, const char *geom, const char *defines,
-        const GPUShaderTFBType prim_type, const char **varying_names, const int varying_count)
+        const eGPUShaderTFBType prim_type, const char **varying_names, const int varying_count)
 {
 	return GPU_shader_create_ex(vert,
 	                            datatoc_gpu_shader_depth_only_frag_glsl,

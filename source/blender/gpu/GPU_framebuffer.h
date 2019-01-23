@@ -43,11 +43,11 @@ typedef struct GPUAttachment {
 	int mip, layer;
 } GPUAttachment;
 
-typedef enum GPUFrameBufferBits {
+typedef enum eGPUFrameBufferBits {
 	GPU_COLOR_BIT    = (1 << 0),
 	GPU_DEPTH_BIT    = (1 << 1),
 	GPU_STENCIL_BIT  = (1 << 2),
-} GPUFrameBufferBits;
+} eGPUFrameBufferBits;
 
 typedef struct GPUFrameBuffer GPUFrameBuffer;
 typedef struct GPUOffScreen GPUOffScreen;
@@ -140,7 +140,7 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *confi
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h);
 
 void GPU_framebuffer_clear(
-        GPUFrameBuffer *fb, GPUFrameBufferBits buffers,
+        GPUFrameBuffer *fb, eGPUFrameBufferBits buffers,
         const float clear_col[4], float clear_depth, unsigned int clear_stencil);
 
 #define GPU_framebuffer_clear_color(fb, col) \
@@ -168,7 +168,7 @@ void GPU_framebuffer_read_color(
 void GPU_framebuffer_blit(
         GPUFrameBuffer *fb_read, int read_slot,
         GPUFrameBuffer *fb_write, int write_slot,
-        GPUFrameBufferBits blit_buffers);
+        eGPUFrameBufferBits blit_buffers);
 
 void GPU_framebuffer_recursive_downsample(
         GPUFrameBuffer *fb, int max_lvl,
@@ -195,7 +195,7 @@ void GPU_offscreen_viewport_data_get(
         GPUFrameBuffer **r_fb, struct GPUTexture **r_color, struct GPUTexture **r_depth);
 
 void GPU_clear_color(float red, float green, float blue, float alpha);
-void GPU_clear(GPUFrameBufferBits flags);
+void GPU_clear(eGPUFrameBufferBits flags);
 
 #ifdef __cplusplus
 }

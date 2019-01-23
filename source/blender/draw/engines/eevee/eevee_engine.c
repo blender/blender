@@ -256,7 +256,7 @@ static void eevee_draw_background(void *vedata)
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 		GPU_framebuffer_bind(fbl->main_fb);
-		GPUFrameBufferBits clear_bits = GPU_DEPTH_BIT;
+		eGPUFrameBufferBits clear_bits = GPU_DEPTH_BIT;
 		clear_bits |= (DRW_state_draw_background()) ? 0 : GPU_COLOR_BIT;
 		clear_bits |= ((stl->effects->enabled_effects & EFFECT_SSS) != 0) ? GPU_STENCIL_BIT : 0;
 		GPU_framebuffer_clear(fbl->main_fb, clear_bits, clear_col, clear_depth, clear_stencil);

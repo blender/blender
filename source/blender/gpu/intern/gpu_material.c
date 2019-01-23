@@ -70,7 +70,7 @@ struct GPUMaterial {
 	Scene *scene; /* DEPRECATED was only useful for lamps */
 	Material *ma;
 
-	GPUMaterialStatus status;
+	eGPUMaterialStatus status;
 
 	const void *engine_type;   /* attached engine type */
 	int options;    /* to identify shader variations (shadow, probe, world background...) */
@@ -215,7 +215,7 @@ void GPU_material_free(ListBase *gpumaterial)
 	BLI_freelistN(gpumaterial);
 }
 
-GPUBuiltin GPU_get_material_builtins(GPUMaterial *material)
+eGPUBuiltin GPU_get_material_builtins(GPUMaterial *material)
 {
 	return material->builtins;
 }
@@ -586,7 +586,7 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 }
 
 /* Return true if the material compilation has not yet begin or begin. */
-GPUMaterialStatus GPU_material_status(GPUMaterial *mat)
+eGPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 {
 	return mat->status;
 }
@@ -611,12 +611,12 @@ bool GPU_material_use_domain_volume(GPUMaterial *mat)
 	return (mat->domain & GPU_DOMAIN_VOLUME);
 }
 
-void GPU_material_flag_set(GPUMaterial *mat, GPUMatFlag flag)
+void GPU_material_flag_set(GPUMaterial *mat, eGPUMatFlag flag)
 {
 	mat->flag |= flag;
 }
 
-bool GPU_material_flag_get(GPUMaterial *mat, GPUMatFlag flag)
+bool GPU_material_flag_get(GPUMaterial *mat, eGPUMatFlag flag)
 {
 	return (mat->flag & flag);
 }

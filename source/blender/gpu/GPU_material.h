@@ -68,7 +68,7 @@ typedef struct GPUParticleInfo GPUParticleInfo;
 
 /* Functions to create GPU Materials nodes */
 
-typedef enum GPUType {
+typedef enum eGPUType {
 	/* Keep in sync with GPU_DATATYPE_STR */
 	/* The value indicates the number of elements in each type */
 	GPU_NONE = 0,
@@ -91,9 +91,9 @@ typedef enum GPUType {
 
 	/* Opengl Attributes */
 	GPU_ATTRIB = 3001,
-} GPUType;
+} eGPUType;
 
-typedef enum GPUBuiltin {
+typedef enum eGPUBuiltin {
 	GPU_VIEW_MATRIX =           (1 << 0),
 	GPU_OBJECT_MATRIX =         (1 << 1),
 	GPU_INVERSE_VIEW_MATRIX =   (1 << 2),
@@ -115,26 +115,26 @@ typedef enum GPUBuiltin {
 	GPU_VOLUME_TEMPERATURE =    (1 << 18),
 	GPU_BARYCENTRIC_TEXCO =     (1 << 19),
 	GPU_BARYCENTRIC_DIST =      (1 << 20),
-} GPUBuiltin;
+} eGPUBuiltin;
 
-typedef enum GPUMatFlag {
+typedef enum eGPUMatFlag {
 	GPU_MATFLAG_DIFFUSE       = (1 << 0),
 	GPU_MATFLAG_GLOSSY        = (1 << 1),
 	GPU_MATFLAG_REFRACT       = (1 << 2),
 	GPU_MATFLAG_SSS           = (1 << 3),
-} GPUMatFlag;
+} eGPUMatFlag;
 
-typedef enum GPUBlendMode {
+typedef enum eGPUBlendMode {
 	GPU_BLEND_SOLID = 0,
 	GPU_BLEND_ADD = 1,
 	GPU_BLEND_ALPHA = 2,
 	GPU_BLEND_CLIP = 4,
 	GPU_BLEND_ALPHA_SORT = 8,
 	GPU_BLEND_ALPHA_TO_COVERAGE = 16,
-} GPUBlendMode;
+} eGPUBlendMode;
 
 typedef struct GPUNodeStack {
-	GPUType type;
+	eGPUType type;
 	float vec[4];
 	struct GPUNodeLink *link;
 	bool hasinput;
@@ -143,18 +143,18 @@ typedef struct GPUNodeStack {
 	bool end;
 } GPUNodeStack;
 
-typedef enum GPUMaterialStatus {
+typedef enum eGPUMaterialStatus {
 	GPU_MAT_FAILED = 0,
 	GPU_MAT_QUEUED,
 	GPU_MAT_SUCCESS,
-} GPUMaterialStatus;
+} eGPUMaterialStatus;
 
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
 GPUNodeLink *GPU_constant(float *num);
 GPUNodeLink *GPU_uniform(float *num);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, bool is_data);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
-GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
+GPUNodeLink *GPU_builtin(eGPUBuiltin builtin);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
 bool GPU_stack_link(GPUMaterial *mat, struct bNode *node, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
@@ -163,7 +163,7 @@ GPUNodeLink *GPU_uniformbuffer_link_out(
         struct GPUNodeStack *stack, const int index);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
-GPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
+eGPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
 
 void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], short *falloff_type, float *sharpness);
 struct GPUUniformBuffer *GPU_material_sss_profile_get(
@@ -183,7 +183,7 @@ void GPU_materials_free(struct Main *bmain);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct ListBase *GPU_material_get_inputs(GPUMaterial *material);
-GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
+eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
@@ -197,8 +197,8 @@ bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);
 bool GPU_material_use_domain_volume(GPUMaterial *mat);
 
-void GPU_material_flag_set(GPUMaterial *mat, GPUMatFlag flag);
-bool GPU_material_flag_get(GPUMaterial *mat, GPUMatFlag flag);
+void GPU_material_flag_set(GPUMaterial *mat, eGPUMatFlag flag);
+bool GPU_material_flag_get(GPUMaterial *mat, eGPUMatFlag flag);
 
 void GPU_pass_cache_init(void);
 void GPU_pass_cache_garbage_collect(void);

@@ -108,7 +108,7 @@ static GPUAttachmentType attachment_type_from_tex(GPUTexture *tex, int slot)
 	}
 }
 
-static GLenum convert_buffer_bits_to_gl(GPUFrameBufferBits bits)
+static GLenum convert_buffer_bits_to_gl(eGPUFrameBufferBits bits)
 {
 	GLbitfield mask = 0;
 	mask |= (bits & GPU_DEPTH_BIT) ? GL_DEPTH_BUFFER_BIT : 0;
@@ -576,7 +576,7 @@ void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h
 }
 
 void GPU_framebuffer_clear(
-        GPUFrameBuffer *fb, GPUFrameBufferBits buffers,
+        GPUFrameBuffer *fb, eGPUFrameBufferBits buffers,
         const float clear_col[4], float clear_depth, uint clear_stencil)
 {
 	CHECK_FRAMEBUFFER_IS_BOUND(fb);
@@ -630,7 +630,7 @@ void GPU_framebuffer_read_color(
 void GPU_framebuffer_blit(
         GPUFrameBuffer *fb_read, int read_slot,
         GPUFrameBuffer *fb_write, int write_slot,
-        GPUFrameBufferBits blit_buffers)
+        eGPUFrameBufferBits blit_buffers)
 {
 	BLI_assert(blit_buffers != 0);
 
@@ -967,7 +967,7 @@ void GPU_clear_color(float red, float green, float blue, float alpha)
 	glClearColor(red, green, blue, alpha);
 }
 
-void GPU_clear(GPUFrameBufferBits flags)
+void GPU_clear(eGPUFrameBufferBits flags)
 {
 	glClear(convert_buffer_bits_to_gl(flags));
 }

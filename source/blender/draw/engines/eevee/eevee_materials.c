@@ -1164,14 +1164,14 @@ static void material_opaque(
 		        scene, ma, vedata, false, false, use_ssrefract,
 		        use_sss, use_translucency, linfo->shadow_method);
 
-		GPUMaterialStatus status_mat_surface = GPU_material_status(*gpumat);
+		eGPUMaterialStatus status_mat_surface = GPU_material_status(*gpumat);
 
 		/* Alpha CLipped : Discard pixel from depth pass, then
 		 * fail the depth test for shading. */
 		if (ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED)) {
 			*gpumat_depth = EEVEE_material_mesh_depth_get(scene, ma, (ma->blend_method == MA_BM_HASHED), false);
 
-			GPUMaterialStatus status_mat_depth = GPU_material_status(*gpumat_depth);
+			eGPUMaterialStatus status_mat_depth = GPU_material_status(*gpumat_depth);
 			if (status_mat_depth != GPU_MAT_SUCCESS) {
 				/* Mixing both flags. If depth shader fails, show it to the user by not using
 				 * the surface shader. */

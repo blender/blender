@@ -111,7 +111,7 @@ static void GPENCIL_create_framebuffers(void *vedata)
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 
 	/* Go full 32bits for rendering */
-	GPUTextureFormat fb_format = DRW_state_is_image_render() ? GPU_RGBA32F : GPU_RGBA16F;
+	eGPUTextureFormat fb_format = DRW_state_is_image_render() ? GPU_RGBA32F : GPU_RGBA16F;
 
 	if (DRW_state_is_fbo()) {
 		const float *viewport_size = DRW_viewport_size_get();

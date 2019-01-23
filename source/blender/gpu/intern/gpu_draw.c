@@ -916,7 +916,7 @@ static GPUTexture *create_density_texture(SmokeDomainSettings *sds, int highres)
 	int cell_count = (highres) ? smoke_turbulence_get_cells(sds->wt) : sds->total_cells;
 	const bool has_color = (highres) ? smoke_turbulence_has_colors(sds->wt) : smoke_has_colors(sds->fluid);
 	int *dim = (highres) ? sds->res_wt : sds->res;
-	GPUTextureFormat format = (has_color) ? GPU_RGBA8 : GPU_R8;
+	eGPUTextureFormat format = (has_color) ? GPU_RGBA8 : GPU_R8;
 
 	if (has_color) {
 		data = MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");

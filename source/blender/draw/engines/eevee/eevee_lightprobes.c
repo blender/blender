@@ -330,7 +330,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 				static float error_col[3] = {1.0f, 0.0f, 1.0f};
 				struct GPUMaterial *gpumat = EEVEE_material_world_lightprobe_get(scene, wo);
 
-				GPUMaterialStatus status = GPU_material_status(gpumat);
+				eGPUMaterialStatus status = GPU_material_status(gpumat);
 
 				switch (status) {
 					case GPU_MAT_SUCCESS:

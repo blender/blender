@@ -670,7 +670,7 @@ void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
 /** \name Utilities
  * \{ */
 
-void GPU_batch_program_set_builtin(GPUBatch *batch, GPUBuiltinShader shader_id)
+void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	GPU_batch_program_set(batch, shader->program, shader->interface);

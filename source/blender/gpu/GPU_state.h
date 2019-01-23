@@ -28,25 +28,25 @@
 #define __GPU_STATE_H__
 
 /* These map directly to the GL_ blend functions, to minimize API add as needed*/
-typedef enum GPUBlendFunction {
+typedef enum eGPUBlendFunction {
 	GPU_ONE,
 	GPU_SRC_ALPHA,
 	GPU_ONE_MINUS_SRC_ALPHA,
 	GPU_DST_COLOR,
 	GPU_ZERO,
-} GPUBlendFunction;
+} eGPUBlendFunction;
 
 /* These map directly to the GL_ filter functions, to minimize API add as needed*/
-typedef enum GPUFilterFunction {
+typedef enum eGPUFilterFunction {
 	GPU_NEAREST,
 	GPU_LINEAR
-} GPUFilterFunction;
+} eGPUFilterFunction;
 
 void GPU_blend(bool enable);
-void GPU_blend_set_func(GPUBlendFunction sfactor, GPUBlendFunction dfactor);
+void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor);
 void GPU_blend_set_func_separate(
-        GPUBlendFunction src_rgb, GPUBlendFunction dst_rgb,
-        GPUBlendFunction src_alpha, GPUBlendFunction dst_alpha);
+        eGPUBlendFunction src_rgb, eGPUBlendFunction dst_rgb,
+        eGPUBlendFunction src_alpha, eGPUBlendFunction dst_alpha);
 void GPU_depth_range(float near, float far);
 void GPU_depth_test(bool enable);
 bool GPU_depth_test_enabled(void);

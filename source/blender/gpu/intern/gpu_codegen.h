@@ -51,7 +51,7 @@ struct PreviewImage;
  *   at the end if used.
  */
 
-typedef enum GPUDataSource {
+typedef enum eGPUDataSource {
 	GPU_SOURCE_OUTPUT,
 	GPU_SOURCE_CONSTANT,
 	GPU_SOURCE_UNIFORM,
@@ -59,7 +59,7 @@ typedef enum GPUDataSource {
 	GPU_SOURCE_BUILTIN,
 	GPU_SOURCE_STRUCT,
 	GPU_SOURCE_TEX,
-} GPUDataSource;
+} eGPUDataSource;
 
 typedef enum {
 	GPU_NODE_LINK_NONE = 0,
@@ -94,7 +94,7 @@ struct GPUNodeLink {
 		/* GPU_NODE_LINK_CONSTANT | GPU_NODE_LINK_UNIFORM */
 		float *data;
 		/* GPU_NODE_LINK_BUILTIN */
-		GPUBuiltin builtin;
+		eGPUBuiltin builtin;
 		/* GPU_NODE_LINK_COLORBAND */
 		struct GPUTexture **coba;
 		/* GPU_NODE_LINK_OUTPUT */
@@ -117,7 +117,7 @@ typedef struct GPUOutput {
 	struct GPUOutput *next, *prev;
 
 	GPUNode *node;
-	GPUType type;      /* data type = length of vector/matrix */
+	eGPUType type;      /* data type = length of vector/matrix */
 	GPUNodeLink *link; /* output link */
 	int id;            /* unique id as created by code generator */
 } GPUOutput;
@@ -126,21 +126,21 @@ typedef struct GPUInput {
 	struct GPUInput *next, *prev;
 
 	GPUNode *node;
-	GPUType type;                /* datatype */
+	eGPUType type;                /* datatype */
 	GPUNodeLink *link;
 	int id;                      /* unique id as created by code generator */
 
-	GPUDataSource source;        /* data source */
+	eGPUDataSource source;        /* data source */
 
 	int shaderloc;               /* id from opengl */
 	char shadername[32];         /* name in shader */
 
-	/* Content based on GPUDataSource */
+	/* Content based on eGPUDataSource */
 	union {
 		/* GPU_SOURCE_CONSTANT | GPU_SOURCE_UNIFORM */
 		float vec[16];                   /* vector data */
 		/* GPU_SOURCE_BUILTIN */
-		GPUBuiltin builtin;              /* builtin uniform */
+		eGPUBuiltin builtin;              /* builtin uniform */
 		/* GPU_SOURCE_TEX */
 		struct {
 			struct GPUTexture **coba;    /* input texture, only set at runtime */
@@ -149,7 +149,7 @@ typedef struct GPUInput {
 			bool image_isdata;           /* image does not contain color data */
 			bool bindtex;                /* input is responsible for binding the texture? */
 			int texid;                   /* number for multitexture, starting from zero */
-			GPUType textype;             /* texture type (2D, 1D Array ...) */
+			eGPUType textype;             /* texture type (2D, 1D Array ...) */
 		};
 		/* GPU_SOURCE_ATTRIB */
 		struct {
@@ -200,7 +200,7 @@ void gpu_codegen_exit(void);
 
 /* Material calls */
 
-const char *GPU_builtin_name(GPUBuiltin builtin);
+const char *GPU_builtin_name(eGPUBuiltin builtin);
 void gpu_material_add_node(struct GPUMaterial *material, struct GPUNode *node);
 struct GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat, int size, float *pixels, float *row);
 

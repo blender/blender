@@ -123,7 +123,7 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 
 void GPU_batch_program_set_no_use(GPUBatch *, uint32_t program, const GPUShaderInterface *);
 void GPU_batch_program_set(GPUBatch *, uint32_t program, const GPUShaderInterface *);
-void GPU_batch_program_set_builtin(GPUBatch *batch, GPUBuiltinShader shader_id);
+void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id);
 /* Entire batch draws with one shader program, but can be redrawn later with another program. */
 /* Vertex shader's inputs must be compatible with the batch's vertex format. */
 
