@@ -364,6 +364,16 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 
+	if (draw_ctx->rv3d && (draw_ctx->rv3d->rflag & RV3D_CLIPPING) && draw_ctx->rv3d->clipbb) {
+		psl->background_pass = DRW_pass_create(
+		        "Background", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+		GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR_BACKGROUND);
+		grp = DRW_shgroup_create(shader, psl->background_pass);
+		wpd->world_clip_planes_batch = DRW_draw_background_clipping_batch_from_rv3d(draw_ctx->rv3d);
+		DRW_shgroup_call_add(grp, wpd->world_clip_planes_batch, NULL);
+		DRW_shgroup_uniform_vec4(grp, "color", &wpd->world_clip_planes_color[0], 1);
+	}
+
 	{
 		workbench_aa_create_pass(vedata, &e_data.transparent_accum_tx);
 	}
@@ -641,6 +651,11 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	GPU_framebuffer_bind(fbl->composite_fb);
 	DRW_draw_pass(psl->composite_pass);
 	DRW_draw_pass(psl->volume_pass);
+
+	/* Only when clipping is enabled. */
+	if (psl->background_pass) {
+		DRW_draw_pass(psl->background_pass);
+	}
 
 	/* Color correct and Anti aliasing */
 	workbench_aa_draw_pass(vedata, e_data.composite_buffer_tx);

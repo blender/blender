@@ -18,4 +18,8 @@ void main()
 #else
 	fragColor = color;
 #endif
+
+#if defined(USE_BACKGROUND)
+	gl_FragDepth = 1.0;
+#endif
 }

@@ -126,6 +126,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
 	struct DRWPass *background_pass;
+	struct DRWPass *background_pass_clip;
 	struct DRWPass *ghost_resolve_pass;
 	struct DRWPass *effect_aa_pass;
 	struct DRWPass *volume_pass;
@@ -204,6 +205,8 @@ typedef struct WORKBENCH_PrivateData {
 	bool is_playback;
 
 	float (*world_clip_planes)[4];
+	struct GPUBatch *world_clip_planes_batch;
+	float world_clip_planes_color[4];
 
 	/* Volumes */
 	bool volumes_do;

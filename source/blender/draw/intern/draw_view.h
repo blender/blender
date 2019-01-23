@@ -35,4 +35,6 @@ void DRW_draw_cursor(void);
 void DRW_draw_gizmo_3d(void);
 void DRW_draw_gizmo_2d(void);
 
+struct GPUBatch *DRW_draw_background_clipping_batch_from_rv3d(const struct RegionView3D *rv3d);
+
 #endif /* __DRAW_VIEW_H__ */

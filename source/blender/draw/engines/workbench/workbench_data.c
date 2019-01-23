@@ -28,6 +28,8 @@
 
 #include "UI_resources.h"
 
+#include "GPU_batch.h"
+
 
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info)
 {
@@ -118,6 +120,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			wpd->world_clip_planes = rv3d->clip;
 			DRW_state_clip_planes_set_from_rv3d(rv3d);
+			UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, wpd->world_clip_planes_color);
 		}
 		else {
 			wpd->world_clip_planes = NULL;
@@ -212,4 +215,5 @@ void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
 	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
+	GPU_BATCH_DISCARD_SAFE(wpd->world_clip_planes_batch);
 }
