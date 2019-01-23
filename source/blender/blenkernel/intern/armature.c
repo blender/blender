@@ -1377,9 +1377,7 @@ void armature_deform_verts(
 				smat = summat;
 			}
 			else {
-				if (target->type != OB_GPENCIL) {
-					mul_v3_fl(vec, armature_weight / contrib);
-				}
+				mul_v3_fl(vec, armature_weight / contrib);
 				add_v3_v3v3(co, vec, co);
 			}
 
