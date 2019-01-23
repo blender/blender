@@ -1644,7 +1644,7 @@ typedef struct {
 	const float *ray_start, *ray_normal;
 	bool hit;
 	float depth;
-	float detail;
+	float edge_length;
 } SculptDetailRaycastData;
 
 typedef struct {
@@ -4684,7 +4684,7 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
 		SculptDetailRaycastData *srd = data_v;
 		if (BKE_pbvh_bmesh_node_raycast_detail(node, srd->ray_start, srd->ray_normal,
-		                                       &srd->depth, &srd->detail))
+		                                       &srd->depth, &srd->edge_length))
 		{
 			srd->hit = 1;
 			*tmin = srd->depth;
@@ -4972,7 +4972,8 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	sculpt_restore_mesh(sd, ob);
 
 	if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / sd->constant_detail);
+		float object_space_constant_detail = sd->constant_detail * mat4_to_scale(ob->imat);
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / object_space_constant_detail);
 	}
 	else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, ss->cache->radius * sd->detail_percent / 100.0f);
@@ -5915,7 +5916,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 	size = max_fff(dim[0], dim[1], dim[2]);
 
 	/* update topology size */
-	BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / sd->constant_detail);
+	float object_space_constant_detail = sd->constant_detail * mat4_to_scale(ob->imat);
+	BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / object_space_constant_detail);
 
 	sculpt_undo_push_begin("Dynamic topology flood fill");
 	sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
@@ -5988,14 +5990,14 @@ static void sample_detail(bContext *C, int mx, int my)
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
 	srd.depth = depth;
-	srd.detail = sd->constant_detail;
+	srd.edge_length = 0.0f;
 
 	BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd,
 	                 ray_start, ray_normal, false);
 
-	if (srd.hit) {
-		/* convert edge length to detail resolution */
-		sd->constant_detail = 1.0f / srd.detail;
+	if (srd.hit && srd.edge_length > 0.0f) {
+		/* Convert edge length to world space detail resolution. */
+		sd->constant_detail = mat4_to_scale(ob->obmat) / srd.edge_length;
 	}
 
 	/* Restore context. */

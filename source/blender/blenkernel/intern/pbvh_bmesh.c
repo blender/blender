@@ -1549,7 +1549,7 @@ bool pbvh_bmesh_node_raycast(
 bool BKE_pbvh_bmesh_node_raycast_detail(
         PBVHNode *node,
         const float ray_start[3], const float ray_normal[3],
-        float *depth, float *r_detail)
+        float *depth, float *r_edge_length)
 {
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
@@ -1588,7 +1588,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 		float len3 = len_squared_v3v3(v_tri[2]->co, v_tri[0]->co);
 
 		/* detail returned will be set to the maximum allowed size, so take max here */
-		*r_detail = sqrtf(max_fff(len1, len2, len3));
+		*r_edge_length = sqrtf(max_fff(len1, len2, len3));
 	}
 
 	return hit;

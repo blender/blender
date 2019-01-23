@@ -108,7 +108,7 @@ bool BKE_pbvh_node_raycast(
 bool BKE_pbvh_bmesh_node_raycast_detail(
         PBVHNode *node,
         const float ray_start[3], const float ray_normal[3],
-        float *depth, float *r_detail);
+        float *depth, float *r_edge_length);
 
 /* for orthographic cameras, project the far away ray segment points to the root node so
  * we can have better precision. */
