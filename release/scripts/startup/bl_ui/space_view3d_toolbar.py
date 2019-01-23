@@ -271,8 +271,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 brush_basic_sculpt_settings(col, context, brush)
 
             # topology_rake_factor
-            if capabilities.has_topology_rake and \
-               context.sculpt_object.use_dynamic_topology_sculpting:
+            if (capabilities.has_topology_rake and
+                context.sculpt_object.use_dynamic_topology_sculpting
+            ):
                 col.separator()
                 row = col.row()
                 row.prop(brush, "topology_rake_factor", slider=True)

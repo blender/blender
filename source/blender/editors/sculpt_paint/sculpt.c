@@ -2160,10 +2160,10 @@ static void bmesh_topology_rake(
 		settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
 
 		BLI_task_parallel_range(
-			0, totnode,
-			&data,
-			do_topology_rake_bmesh_task_cb_ex,
-			&settings);
+		        0, totnode,
+		        &data,
+		        do_topology_rake_bmesh_task_cb_ex,
+		        &settings);
 	}
 }
 
@@ -4625,6 +4625,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 					mul_mat3_m4_v3(imat, cache->grab_delta);
 					break;
 				default:
+					/* Use for 'Brush.topology_rake_factor'. */
 					sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
 					break;
 
