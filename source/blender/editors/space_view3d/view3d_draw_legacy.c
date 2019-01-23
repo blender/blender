@@ -140,24 +140,6 @@ void ED_view3d_clipping_enable(void)
 	}
 }
 
-static bool view3d_clipping_test(const float co[3], const float clip[6][4])
-{
-	if (plane_point_side_v3(clip[0], co) > 0.0f)
-		if (plane_point_side_v3(clip[1], co) > 0.0f)
-			if (plane_point_side_v3(clip[2], co) > 0.0f)
-				if (plane_point_side_v3(clip[3], co) > 0.0f)
-					return false;
-
-	return true;
-}
-
-/* for 'local' ED_view3d_clipping_local must run first
- * then all comparisons can be done in localspace */
-bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const bool is_local)
-{
-	return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);
-}
-
 /* *********************** backdraw for selection *************** */
 
 static void backdrawview3d(

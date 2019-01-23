@@ -1731,3 +1731,79 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Viewport Clipping
+ * \{ */
+
+void ED_view3d_draw_clipping(const RegionView3D *rv3d)
+{
+	const BoundBox *bb = rv3d->clipbb;
+	if (bb == NULL) {
+		return;
+	}
+
+	const uint clipping_index[6][4] = {
+		{0, 1, 2, 3},
+		{0, 4, 5, 1},
+		{4, 7, 6, 5},
+		{7, 3, 2, 6},
+		{1, 5, 6, 2},
+		{7, 4, 0, 3}
+	};
+
+	GPUVertBuf *vbo;
+	GPUIndexBuf *el;
+	GPUIndexBufBuilder elb = {0};
+
+	/* Elements */
+	GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, ARRAY_SIZE(clipping_index) * 2, ARRAY_SIZE(bb->vec));
+	for (int i = 0; i < ARRAY_SIZE(clipping_index); i++) {
+		const uint *idx = clipping_index[i];
+		GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
+		GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[2], idx[3]);
+	}
+	el = GPU_indexbuf_build(&elb);
+
+	GPUVertFormat format = {0};
+	uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+	vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, ARRAY_SIZE(bb->vec));
+	GPU_vertbuf_attr_fill(vbo, pos_id, bb->vec);
+
+	GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, el, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+
+	float color[4];
+	UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, color);
+
+	GPU_batch_uniform_4fv(batch, "color", color);
+
+	/* Draw. */
+	glEnable(GL_BLEND);
+	GPU_batch_draw(batch);
+	GPU_batch_discard(batch);
+	glDisable(GL_BLEND);
+}
+
+static bool view3d_clipping_test(const float co[3], const float clip[6][4])
+{
+	if (plane_point_side_v3(clip[0], co) > 0.0f)
+		if (plane_point_side_v3(clip[1], co) > 0.0f)
+			if (plane_point_side_v3(clip[2], co) > 0.0f)
+				if (plane_point_side_v3(clip[3], co) > 0.0f)
+					return false;
+
+	return true;
+}
+
+/* for 'local' ED_view3d_clipping_local must run first
+ * then all comparisons can be done in localspace */
+bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const bool is_local)
+{
+	return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);
+}
+
+
+/** \} */

@@ -452,6 +452,8 @@ void ED_view3d_draw_setup_view(
         struct wmWindow *win, struct Depsgraph *depsgraph, struct Scene *scene, struct ARegion *ar, struct View3D *v3d,
         float viewmat[4][4], float winmat[4][4], const struct rcti *rect);
 
+void ED_view3d_draw_clipping(const struct RegionView3D *rv3d);
+
 enum {
 	V3D_OFSDRAW_NONE             = (0),
 
