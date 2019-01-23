@@ -36,7 +36,10 @@ def act_strip(context):
 
 
 def sel_sequences(context):
-    return len(getattr(context, "selected_sequences", ()))
+    selected_sequences = getattr(context, "selected_sequences", None)
+    if not selected_sequences:
+        return 0
+    return len(selected_sequences)
 
 
 def draw_color_balance(layout, color_balance):
