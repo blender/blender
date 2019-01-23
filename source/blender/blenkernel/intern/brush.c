@@ -79,6 +79,7 @@ static void brush_defaults(Brush *brush)
 	brush->size = 35; /* radius of the brush in pixels */
 	brush->alpha = 0.5f; /* brush strength/intensity probably variable should be renamed? */
 	brush->autosmooth_factor = 0.0f;
+	brush->topology_rake_factor = 0.0f;
 	brush->crease_pinch_factor = 0.5f;
 	brush->sculpt_plane = SCULPT_DISP_DIR_AREA;
 	brush->plane_offset = 0.0f; /* how far above or below the plane that is found by averaging the faces */
@@ -738,6 +739,8 @@ void BKE_brush_debug_print_state(Brush *br)
 	BR_TEST(plane_offset, f);
 
 	BR_TEST(autosmooth_factor, f);
+
+	BR_TEST(topology_rake_factor, f);
 
 	BR_TEST(crease_pinch_factor, f);
 

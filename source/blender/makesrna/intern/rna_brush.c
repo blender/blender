@@ -174,6 +174,12 @@ static bool rna_BrushCapabilitiesSculpt_has_accumulate_get(PointerRNA *ptr)
 	return SCULPT_TOOL_HAS_ACCUMULATE(br->sculpt_tool);
 }
 
+static bool rna_BrushCapabilitiesSculpt_has_topology_rake_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return SCULPT_TOOL_HAS_TOPOLOGY_RAKE(br->sculpt_tool);
+}
+
 static bool rna_BrushCapabilitiesSculpt_has_auto_smooth_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -866,6 +872,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 
 	SCULPT_TOOL_CAPABILITY(has_accumulate, "Has Accumulate");
 	SCULPT_TOOL_CAPABILITY(has_auto_smooth, "Has Auto Smooth");
+	SCULPT_TOOL_CAPABILITY(has_topology_rake, "Has Topology Rake");
 	SCULPT_TOOL_CAPABILITY(has_height, "Has Height");
 	SCULPT_TOOL_CAPABILITY(has_jitter, "Has Jitter");
 	SCULPT_TOOL_CAPABILITY(has_normal_weight, "Has Crease/Pinch Factor");
@@ -1608,6 +1615,17 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Autosmooth", "Amount of smoothing to automatically apply to each stroke");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "topology_rake_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "topology_rake_factor");
+	RNA_def_property_float_default(prop, 0);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+	RNA_def_property_ui_text(prop, "Topology Rake", "Automatically align edges to the brush direction to "
+	                                                "to generate cleaner topology and define sharp features "
+	                                                "dynamic topology. Best used on low-poly meshes as it has "
+	                                                "a performance impact");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "stencil_pos", PROP_FLOAT, PROP_XYZ);

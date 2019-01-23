@@ -272,9 +272,11 @@ typedef struct Brush {
 	char mask_tool;
 	/** Active grease pencil tool. */
 	char gpencil_tool;
-	char _pad0[6];
+	char _pad0[2];
 
 	float autosmooth_factor;
+
+	float topology_rake_factor;
 
 	float crease_pinch_factor;
 
@@ -466,6 +468,14 @@ typedef enum eBrushSculptTool {
 	/* These brushes could handle dynamic topology, \
 	 * but user feedback indicates it's better not to */ \
 	SCULPT_TOOL_SMOOTH, \
+	SCULPT_TOOL_MASK \
+	) == 0)
+
+#define SCULPT_TOOL_HAS_TOPOLOGY_RAKE(t) (ELEM(t, \
+	/* These brushes, as currently coded, cannot support topology rake. */ \
+	SCULPT_TOOL_GRAB, \
+	SCULPT_TOOL_ROTATE, \
+	SCULPT_TOOL_THUMB, \
 	SCULPT_TOOL_MASK \
 	) == 0)
 

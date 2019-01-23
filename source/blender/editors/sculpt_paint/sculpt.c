@@ -142,13 +142,22 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 	            SCULPT_TOOL_LAYER);
 }
 
+static bool sculpt_brush_use_topology_rake(
+        const SculptSession *ss, const Brush *brush)
+{
+	return SCULPT_TOOL_HAS_TOPOLOGY_RAKE(brush->sculpt_tool) &&
+	       (brush->topology_rake_factor > 0.0f) &&
+	       (ss->bm != NULL);
+}
+
 /**
  * Test whether the #StrokeCache.sculpt_normal needs update in #do_brush_action
  */
-static int sculpt_brush_needs_normal(const Brush *brush, float normal_weight)
+static int sculpt_brush_needs_normal(
+        const SculptSession *ss, const Brush *brush)
 {
 	return ((SCULPT_TOOL_HAS_NORMAL_WEIGHT(brush->sculpt_tool) &&
-	         (normal_weight > 0.0f)) ||
+	         (ss->cache->normal_weight > 0.0f)) ||
 
 	        ELEM(brush->sculpt_tool,
 	             SCULPT_TOOL_BLOB,
@@ -159,7 +168,8 @@ static int sculpt_brush_needs_normal(const Brush *brush, float normal_weight)
 	             SCULPT_TOOL_ROTATE,
 	             SCULPT_TOOL_THUMB) ||
 
-	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
+	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)) ||
+	        sculpt_brush_use_topology_rake(ss, brush);
 }
 /** \} */
 
@@ -1598,6 +1608,94 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 	copy_v3_v3(avg, v->co);
 }
 
+/* For bmesh: average only the four most aligned (parallel and perpendicular) edges
+ * relative to a direction. Naturally converges to a quad-like tesselation. */
+static void bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
+{
+	/* Logic for 3 or more is identical. */
+	const int vfcount = BM_vert_face_count_at_most(v, 3);
+
+	/* Don't modify corner vertices. */
+	if (vfcount < 2) {
+		copy_v3_v3(avg, v->co);
+		return;
+	}
+
+	/* Project the direction to the vertex normal and create an aditional
+	 * parallel vector. */
+	float dir_a[3], dir_b[3];
+	cross_v3_v3v3(dir_a, direction, v->no);
+	cross_v3_v3v3(dir_b, dir_a, v->no);
+
+	/* The four vectors which will be used for smoothing.
+	 * Ocasionally less than 4 verts match the requirements in that case
+	 * use v as fallback. */
+	BMVert *pos_a = v;
+	BMVert *neg_a = v;
+	BMVert *pos_b = v;
+	BMVert *neg_b = v;
+
+	float pos_score_a = 0.0f;
+	float neg_score_a = 0.0f;
+	float pos_score_b = 0.0f;
+	float neg_score_b = 0.0f;
+
+	BMIter liter;
+	BMLoop *l;
+
+	BM_ITER_ELEM(l, &liter, v, BM_LOOPS_OF_VERT) {
+		BMVert *adj_v[2] = { l->prev->v, l->next->v };
+
+		for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
+			BMVert *v_other = adj_v[i];
+
+			if (vfcount != 2 || BM_vert_face_count_at_most(v_other, 2) <= 2) {
+				float vec[3];
+				sub_v3_v3v3(vec, v_other->co, v->co);
+				normalize_v3(vec);
+
+				/* The score is a measure of how orthogonal the edge is. */
+				float score = dot_v3v3(vec, dir_a);
+
+				if (score >= pos_score_a) {
+					pos_a = v_other;
+					pos_score_a = score;
+				}
+				else if (score < neg_score_a) {
+					neg_a = v_other;
+					neg_score_a = score;
+				}
+				/* The same scoring but for the perpendicular direction. */
+				score = dot_v3v3(vec, dir_b);
+
+				if (score >= pos_score_b) {
+					pos_b = v_other;
+					pos_score_b = score;
+				}
+				else if (score < neg_score_b) {
+					neg_b = v_other;
+					neg_score_b = score;
+				}
+			}
+		}
+	}
+
+	/* Average everything together. */
+	zero_v3(avg);
+	add_v3_v3(avg, pos_a->co);
+	add_v3_v3(avg, neg_a->co);
+	add_v3_v3(avg, pos_b->co);
+	add_v3_v3(avg, neg_b->co);
+	mul_v3_fl(avg, 0.25f);
+
+	/* Preserve volume. */
+	float vec[3];
+	sub_v3_v3(avg, v->co);
+	mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no));
+	sub_v3_v3(avg, vec);
+	add_v3_v3(avg, v->co);
+}
+
 /* Same logic as neighbor_average_mask(), but for bmesh rather than mesh */
 static float bmesh_neighbor_average_mask(BMVert *v, const int cd_vert_mask_offset)
 {
@@ -1748,6 +1846,62 @@ static void do_smooth_brush_bmesh_task_cb_ex(
 
 				sculpt_clip(sd, ss, vd.co, val);
 			}
+
+			if (vd.mvert)
+				vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+		}
+	}
+	BKE_pbvh_vertex_iter_end;
+}
+
+static void do_topology_rake_bmesh_task_cb_ex(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
+{
+	SculptThreadedTaskData *data = userdata;
+	SculptSession *ss = data->ob->sculpt;
+	Sculpt *sd = data->sd;
+	const Brush *brush = data->brush;
+
+	float direction[3];
+	copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
+
+	float tmp[3];
+	mul_v3_v3fl(
+		tmp, ss->cache->sculpt_normal_symm,
+		dot_v3v3(ss->cache->sculpt_normal_symm, direction));
+	sub_v3_v3(direction, tmp);
+
+	/* Cancel if there's no grab data. */
+	if (is_zero_v3(direction)) {
+		return;
+	}
+
+	float bstrength = data->strength;
+	CLAMP(bstrength, 0.0f, 1.0f);
+
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+		sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+
+	PBVHVertexIter vd;
+	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+	{
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+			const float fade = bstrength * tex_strength(
+				ss, brush, vd.co, sqrtf(test.dist),
+				vd.no, vd.fno, *vd.mask, tls->thread_id) * ss->cache->pressure;
+
+			float avg[3], val[3];
+
+			bmesh_four_neighbor_average(avg, direction, vd.bm_vert);
+
+			sub_v3_v3v3(val, avg, vd.co);
+
+			madd_v3_v3v3fl(val, vd.co, val, fade);
+
+			sculpt_clip(sd, ss, vd.co, val);
 
 			if (vd.mvert)
 				vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -1979,6 +2133,37 @@ static void smooth(
 
 		if (ss->multires)
 			multires_stitch_grids(ob);
+	}
+}
+
+static void bmesh_topology_rake(
+	Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
+{
+	Brush *brush = BKE_paint_brush(&sd->paint);
+	CLAMP(bstrength, 0.0f, 1.0f);
+
+	/* Interactions increase both strength and quality. */
+	const int iterations = 3;
+
+	int iteration;
+	const int count = iterations * bstrength + 1;
+	const float factor = iterations * bstrength / count;
+
+	for (iteration = 0; iteration <= count; ++iteration) {
+
+		SculptThreadedTaskData data = {
+			.sd = sd,.ob = ob,.brush = brush,.nodes = nodes,
+			.strength = factor,
+		};
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
+
+		BLI_task_parallel_range(
+			0, totnode,
+			&data,
+			do_topology_rake_bmesh_task_cb_ex,
+			&settings);
 	}
 }
 
@@ -3607,7 +3792,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 		            do_brush_action_task_cb,
 		            &settings);
 
-		if (sculpt_brush_needs_normal(brush, ss->cache->normal_weight))
+		if (sculpt_brush_needs_normal(ss, brush))
 			update_sculpt_normal(sd, ob, nodes, totnode);
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)
@@ -3680,6 +3865,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 			else {
 				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false);
 			}
+		}
+
+		if (sculpt_brush_use_topology_rake(ss, brush)) {
+			bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
 		}
 
 		if (ss->cache->supports_gravity)
@@ -4394,7 +4583,8 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 	if (ELEM(tool,
 	         SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
 	         SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_SNAKE_HOOK,
-	         SCULPT_TOOL_THUMB))
+	         SCULPT_TOOL_THUMB) ||
+	    sculpt_brush_use_topology_rake(ss, brush))
 	{
 		float grab_location[3], imat[4][4], delta[3], loc[3];
 
@@ -4434,6 +4624,10 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 					invert_m4_m4(imat, ob->obmat);
 					mul_mat3_m4_v3(imat, cache->grab_delta);
 					break;
+				default:
+					sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+					break;
+
 			}
 		}
 		else {
