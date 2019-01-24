@@ -966,13 +966,6 @@ void RE_SetOrtho(Render *re, const rctf *viewplane, float clipsta, float clipend
 	                re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
-void RE_SetView(Render *re, float mat[4][4])
-{
-	/* re->ok flag? */
-	copy_m4_m4(re->viewmat, mat);
-	invert_m4_m4(re->viewinv, re->viewmat);
-}
-
 void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
 {
 	*r_viewplane = re->viewplane;
@@ -984,11 +977,6 @@ void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
 	else {
 		BLI_rcti_init(r_disprect, 0, 0, 0, 0);
 	}
-}
-
-void RE_GetView(Render *re, float mat[4][4])
-{
-	copy_m4_m4(mat, re->viewmat);
 }
 
 /* image and movie output has to move to either imbuf or kernel */
@@ -2055,28 +2043,6 @@ void RE_RenderFreestyleExternal(Render *re)
 
 		for (rv = re->result->views.first; rv; rv = rv->next) {
 			RE_SetActiveRenderView(re, rv->name);
-
-			/* scene needs to be set to get camera */
-			Object *camera = RE_GetCamera(re);
-
-			/* if no camera, viewmat should have been set! */
-			if (camera) {
-				/* called before but need to call again in case of lens animation from the
-				 * above call to BKE_scene_graph_update_for_newframe, fixes bug. [#22702].
-				 * following calls don't depend on 'RE_SetCamera' */
-				float mat[4][4];
-
-				RE_SetCamera(re, camera);
-				RE_GetCameraModelMatrix(re, camera, mat);
-				invert_m4(mat);
-				RE_SetView(re, mat);
-
-				/* force correct matrix for scaled cameras */
-				DEG_id_tag_update_ex(re->main, &camera->id, ID_RECALC_TRANSFORM);
-			}
-
-			printf("add freestyle\n");
-
 			add_freestyle(re, 1);
 		}
 	}

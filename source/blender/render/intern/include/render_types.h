@@ -103,8 +103,6 @@ struct Render {
 	int partx, party;
 
 	/* Camera transform, only used by Freestyle. */
-	float viewmat[4][4], viewinv[4][4];
-	float viewmat_orig[4][4];	/* for incremental render */
 	float winmat[4][4];
 
 	/* clippping */

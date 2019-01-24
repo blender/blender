@@ -257,7 +257,6 @@ void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clipsta, float 
 void RE_SetView(struct Render *re, float mat[4][4]);
 
 /* get current view and window transform */
-void RE_GetView(struct Render *re, float mat[4][4]);
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 
 /* set the render threads based on the commandline and autothreads setting */

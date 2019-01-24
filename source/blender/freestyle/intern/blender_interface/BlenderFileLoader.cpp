@@ -408,9 +408,15 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 	FreestyleEdge *fed = (FreestyleEdge*)CustomData_get_layer(&me->edata, CD_FREESTYLE_EDGE);
 	FreestyleFace *ffa = (FreestyleFace*)CustomData_get_layer(&me->pdata, CD_FREESTYLE_FACE);
 
+	// Compute view matrix
+	Object *ob_camera_eval = DEG_get_evaluated_object(_depsgraph, RE_GetCamera(_re));
+	float viewinv[4][4], viewmat[4][4];
+	RE_GetCameraModelMatrix(_re, ob_camera_eval, viewinv);
+	invert_m4_m4(viewmat, viewinv);
+
 	// Compute matrix including camera transform
 	float obmat[4][4], nmat[4][4];
-	mul_m4_m4m4(obmat, _re->viewmat, ob->obmat);
+	mul_m4_m4m4(obmat, viewmat, ob->obmat);
 	invert_m4_m4(nmat, obmat);
 	transpose_m4(nmat);
 
