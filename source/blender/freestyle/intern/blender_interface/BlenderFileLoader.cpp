@@ -105,6 +105,10 @@ NodeGroup *BlenderFileLoader::Load()
 			break;
 		}
 
+		if (ob->base_flag & (BASE_HOLDOUT | BASE_INDIRECT_ONLY)) {
+			continue;
+		}
+
 		bool apply_modifiers = false;
 		bool calc_undeformed = false;
 		Mesh *mesh = BKE_mesh_new_from_object(depsgraph,
