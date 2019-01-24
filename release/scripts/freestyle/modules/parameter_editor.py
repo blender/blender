@@ -927,7 +927,7 @@ class ObjectNamesUP1D(UnaryPredicate1D):
         self.negative = negative
 
     def getViewShapeName(self, vs):
-        if vs.library_path is not None:
+        if vs.library_path is not None and len(vs.library_path):
             return vs.library_path + '/' + vs.name
         return vs.name
 
