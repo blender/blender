@@ -858,7 +858,7 @@ void hue_sat(float hue, float sat, float value, float fac, vec4 col, out vec4 ou
 
 	hsv[0] = fract(hsv[0] + (hue - 0.5));
 	hsv[1] = clamp(hsv[1] * sat, 0.0, 1.0);
-	hsv[2] = clamp(hsv[2] * value, 0.0, 1.0);
+	hsv[2] = hsv[2] * value;
 
 	hsv_to_rgb(hsv, outcol);
 
