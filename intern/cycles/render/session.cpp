@@ -886,7 +886,7 @@ bool Session::update_scene()
 		}
 		else {
 			/* Currently viewport render is faster with higher max_closures, needs investigating. */
-			kintegrator->max_closures = 64;
+			kintegrator->max_closures = MAX_CLOSURE;
 		}
 
 		progress.set_status("Updating Scene");
@@ -1086,6 +1086,20 @@ int Session::get_max_closure_count()
 		max_closures = max(max_closures, num_closures);
 	}
 	max_closure_global = max(max_closure_global, max_closures);
+
+	if (max_closure_global > MAX_CLOSURE) {
+		/* This is usually harmless as more complex shader tend to get many
+		 * closures discarded due to mixing or low weights. We need to limit
+		 * to MAX_CLOSURE as this is hardcoded in CPU/mega kernels, and it
+		 * avoids excessive memory usage for split kernels. */
+		VLOG(2) << "Maximum number of closures exceeded: "
+				<< max_closure_global
+				<< " > "
+				<< MAX_CLOSURE;
+
+		max_closure_global = MAX_CLOSURE;
+	}
+
 	return max_closure_global;
 }
 
