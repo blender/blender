@@ -3780,7 +3780,6 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
 
 	/* guides */
 	prop = RNA_def_float(ot->srna, "guide_last_angle", 0.0f, -10000.0f, 10000.0f, "Angle", "Speed guide angle", -10000.0f, 10000.0f);
-	prop = RNA_def_float_vector(ot->srna, "guide_origin", 3, NULL, -10000.0f, 10000.0f, "Origin", "Speed guide origin", -10000.0f, 10000.0f);
 }
 
 /* additional OPs */
