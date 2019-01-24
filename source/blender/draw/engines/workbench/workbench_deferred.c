@@ -343,6 +343,9 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PassList *psl = vedata->psl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	RegionView3D *rv3d = draw_ctx->rv3d;
+	View3D *v3d = draw_ctx->v3d;
+	Object *camera = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : NULL;
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -406,6 +409,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	workbench_private_data_init(wpd);
 
+	workbench_dof_engine_init(vedata, camera);
+
 	{
 		const float *viewport_size = DRW_viewport_size_get();
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
@@ -448,7 +453,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 			GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
 		});
-		GPU_framebuffer_ensure_config(&fbl->volume_fb, {
+		GPU_framebuffer_ensure_config(&fbl->color_only_fb, {
 			GPU_ATTACHMENT_NONE,
 			GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
 		});
@@ -512,6 +517,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 
 	{
 		workbench_aa_create_pass(vedata, &e_data.color_buffer_tx);
+	}
+
+	{
+		workbench_dof_create_pass(vedata, &e_data.composite_buffer_tx);
 	}
 
 	if (CAVITY_ENABLED(wpd)) {
@@ -583,6 +592,7 @@ void workbench_deferred_engine_free(void)
 	workbench_volume_engine_free();
 	workbench_fxaa_engine_free();
 	workbench_taa_engine_free();
+	workbench_dof_engine_free();
 }
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
@@ -1089,10 +1099,11 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	DRW_draw_pass(psl->background_pass);
 
 	if (wpd->volumes_do) {
-		GPU_framebuffer_bind(fbl->volume_fb);
+		GPU_framebuffer_bind(fbl->color_only_fb);
 		DRW_draw_pass(psl->volume_pass);
 	}
 
+	workbench_dof_draw_pass(vedata);
 	workbench_aa_draw_pass(vedata, e_data.composite_buffer_tx);
 }
 

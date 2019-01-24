@@ -92,7 +92,14 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *effect_fb;
 	struct GPUFrameBuffer *effect_taa_fb;
 	struct GPUFrameBuffer *depth_buffer_fb;
-	struct GPUFrameBuffer *volume_fb;
+	struct GPUFrameBuffer *color_only_fb;
+
+	struct GPUFrameBuffer *dof_downsample_fb;
+	struct GPUFrameBuffer *dof_coc_tile_h_fb;
+	struct GPUFrameBuffer *dof_coc_tile_v_fb;
+	struct GPUFrameBuffer *dof_coc_dilate_fb;
+	struct GPUFrameBuffer *dof_blur1_fb;
+	struct GPUFrameBuffer *dof_blur2_fb;
 
 	/* Forward render buffers */
 	struct GPUFrameBuffer *object_outline_fb;
@@ -129,6 +136,14 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *background_pass_clip;
 	struct DRWPass *ghost_resolve_pass;
 	struct DRWPass *effect_aa_pass;
+	struct DRWPass *dof_down_ps;
+	struct DRWPass *dof_flatten_v_ps;
+	struct DRWPass *dof_flatten_h_ps;
+	struct DRWPass *dof_dilate_h_ps;
+	struct DRWPass *dof_dilate_v_ps;
+	struct DRWPass *dof_blur1_ps;
+	struct DRWPass *dof_blur2_ps;
+	struct DRWPass *dof_resolve_ps;
 	struct DRWPass *volume_pass;
 
 	/* forward rendering */
@@ -218,6 +233,18 @@ typedef struct WORKBENCH_PrivateData {
 	float ssao_params[4];
 	float ssao_settings[4];
 
+	/* Dof */
+	struct GPUTexture *half_res_col_tx;
+	struct GPUTexture *dof_blur_tx;
+	struct GPUTexture *coc_halfres_tx;
+	struct GPUTexture *coc_temp_tx;
+	struct GPUTexture *coc_tiles_tx[2];
+	float dof_aperturesize;
+	float dof_distance;
+	float dof_invsensorsize;
+	float dof_near_far[2];
+	bool dof_enabled;
+
 	/* Color Management */
 	bool use_color_view_settings;
 } WORKBENCH_PrivateData; /* Transient data */
@@ -301,6 +328,12 @@ void workbench_taa_draw_scene_start(WORKBENCH_Data *vedata);
 void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata);
 void workbench_taa_view_updated(WORKBENCH_Data *vedata);
 int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
+
+/* workbench_effect_dof.c */
+void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera);
+void workbench_dof_engine_free(void);
+void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input);
+void workbench_dof_draw_pass(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *ob);
