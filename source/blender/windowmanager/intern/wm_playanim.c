@@ -930,7 +930,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				{
 					if (val == 0) break;
 					if (g_WS.qual & WS_QUAL_CTRL) {
-						playanim_window_zoom(ps, 1.0f);
+						playanim_window_zoom(ps, 0.1f);
 					}
 					else {
 						if (swaptime > ps->fstep / 60.0) {
@@ -945,7 +945,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				{
 					if (val == 0) break;
 					if (g_WS.qual & WS_QUAL_CTRL) {
-						playanim_window_zoom(ps, -1.0f);
+						playanim_window_zoom(ps, -0.1f);
 					}
 					else {
 						if (swaptime < ps->fstep / 5.0) {
@@ -1047,10 +1047,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
 			/* zoom always show entire image */
 			ps->zoom = MIN2(zoomx, zoomy);
-
-			/* zoom steps of 2 for speed */
-			ps->zoom = floor(ps->zoom + 0.5f);
-			if (ps->zoom < 1.0f) ps->zoom = 1.0f;
 
 			glViewport(0, 0, ps->win_x, ps->win_y);
 			glScissor(0, 0, ps->win_x, ps->win_y);
