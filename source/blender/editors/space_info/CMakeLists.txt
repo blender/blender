@@ -40,12 +40,12 @@ set(INC_SYS
 )
 
 set(SRC
-	info_ops.c
-	info_stats.c
 	info_draw.c
+	info_ops.c
 	info_report.c
-	textview.c
+	info_stats.c
 	space_info.c
+	textview.c
 
 	info_intern.h
 	textview.h

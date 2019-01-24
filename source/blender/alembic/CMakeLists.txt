@@ -48,8 +48,8 @@ set(INC_SYS
 set(SRC
 	intern/abc_archive.cc
 	intern/abc_camera.cc
-	intern/abc_customdata.cc
 	intern/abc_curves.cc
+	intern/abc_customdata.cc
 	intern/abc_exporter.cc
 	intern/abc_hair.cc
 	intern/abc_mball.cc
@@ -64,8 +64,8 @@ set(SRC
 	ABC_alembic.h
 	intern/abc_archive.h
 	intern/abc_camera.h
-	intern/abc_customdata.h
 	intern/abc_curves.h
+	intern/abc_customdata.h
 	intern/abc_exporter.h
 	intern/abc_hair.h
 	intern/abc_mball.h

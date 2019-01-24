@@ -49,13 +49,13 @@ set(SRC
 	RAS_2DFilterManager.cpp
 	RAS_BucketManager.cpp
 	RAS_FramingManager.cpp
+	RAS_ICanvas.cpp
 	RAS_IPolygonMaterial.cpp
 	RAS_MaterialBucket.cpp
 	RAS_MeshObject.cpp
 	RAS_Polygon.cpp
 	RAS_TexVert.cpp
 	RAS_texmatrix.cpp
-	RAS_ICanvas.cpp
 
 	RAS_2DFilterManager.h
 	RAS_BucketManager.h
@@ -63,10 +63,10 @@ set(SRC
 	RAS_Deformer.h
 	RAS_FramingManager.h
 	RAS_ICanvas.h
-	RAS_IPolygonMaterial.h
-	RAS_IRasterizer.h
 	RAS_ILightObject.h
 	RAS_IOffScreen.h
+	RAS_IPolygonMaterial.h
+	RAS_IRasterizer.h
 	RAS_ISync.h
 	RAS_MaterialBucket.h
 	RAS_MeshObject.h

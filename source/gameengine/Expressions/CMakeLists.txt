@@ -42,19 +42,19 @@ set(SRC
 	intern/ErrorValue.cpp
 	intern/Expression.cpp
 	intern/FloatValue.cpp
+	intern/HashedPtr.cpp
 	intern/IdentifierExpr.cpp
 	intern/IfExpr.cpp
 	intern/InputParser.cpp
 	intern/IntValue.cpp
-	intern/HashedPtr.cpp
 	intern/ListValue.cpp
+	intern/ListWrapper.cpp
 	intern/Operator1Expr.cpp
 	intern/Operator2Expr.cpp
 	intern/PyObjectPlus.cpp
 	intern/StringValue.cpp
 	intern/Value.cpp
 	intern/VectorValue.cpp
-	intern/ListWrapper.cpp
 
 	EXP_BoolValue.h
 	EXP_ConstExpr.h
@@ -68,6 +68,7 @@ set(SRC
 	EXP_InputParser.h
 	EXP_IntValue.h
 	EXP_ListValue.h
+	EXP_ListWrapper.h
 	EXP_Operator1Expr.h
 	EXP_Operator2Expr.h
 	EXP_PyObjectPlus.h
@@ -76,7 +77,6 @@ set(SRC
 	EXP_Value.h
 	EXP_VectorValue.h
 	EXP_VoidValue.h
-	EXP_ListWrapper.h
 
 )
 

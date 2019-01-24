@@ -51,8 +51,8 @@ set(SRC
 	editarmature_undo.c
 	meshlaplacian.c
 	pose_edit.c
-	pose_lib.c
 	pose_group.c
+	pose_lib.c
 	pose_select.c
 	pose_slide.c
 	pose_transform.c

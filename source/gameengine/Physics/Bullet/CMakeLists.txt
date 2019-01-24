@@ -52,9 +52,9 @@ set(INC_SYS
 )
 
 set(SRC
-	CcdPhysicsEnvironment.cpp
-	CcdPhysicsController.cpp
 	CcdGraphicController.cpp
+	CcdPhysicsController.cpp
+	CcdPhysicsEnvironment.cpp
 
 	CcdGraphicController.h
 	CcdPhysicsController.h

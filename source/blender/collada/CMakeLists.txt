@@ -60,8 +60,8 @@ set(INC_SYS
 )
 
 set(SRC
-	AnimationImporter.cpp
 	AnimationExporter.cpp
+	AnimationImporter.cpp
 	ArmatureExporter.cpp
 	ArmatureImporter.cpp
 	CameraExporter.cpp
@@ -71,25 +71,25 @@ set(SRC
 	EffectExporter.cpp
 	ErrorHandler.cpp
 	ExportSettings.cpp
-	ImportSettings.cpp
 	ExtraHandler.cpp
 	ExtraTags.cpp
 	GeometryExporter.cpp
 	ImageExporter.cpp
+	ImportSettings.cpp
 	InstanceWriter.cpp
 	LightExporter.cpp
 	MaterialExporter.cpp
 	MeshImporter.cpp
-	SkinInfo.cpp
 	SceneExporter.cpp
+	SkinInfo.cpp
 	TransformReader.cpp
 	TransformWriter.cpp
 	collada.cpp
 	collada_internal.cpp
 	collada_utils.cpp
 
-	AnimationImporter.h
 	AnimationExporter.h
+	AnimationImporter.h
 	ArmatureExporter.h
 	ArmatureImporter.h
 	CameraExporter.h
@@ -99,17 +99,17 @@ set(SRC
 	EffectExporter.h
 	ErrorHandler.h
 	ExportSettings.h
-	ImportSettings.h
 	ExtraHandler.h
 	ExtraTags.h
 	GeometryExporter.h
 	ImageExporter.h
+	ImportSettings.h
 	InstanceWriter.h
 	LightExporter.h
 	MaterialExporter.h
 	MeshImporter.h
-	SkinInfo.h
 	SceneExporter.h
+	SkinInfo.h
 	TransformReader.h
 	TransformWriter.h
 	collada.h
