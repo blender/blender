@@ -531,31 +531,15 @@ static void rna_SpaceView3D_camera_update(Main *bmain, Scene *scene, PointerRNA 
 	}
 }
 
-static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, bool value)
+static void rna_SpaceView3D_use_local_camera_set(PointerRNA *ptr, bool value)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 
-	v3d->scenelock = value;
+	v3d->scenelock = !value;
 
-	if (value) {
+	if (!value) {
 		Scene *scene = ED_screen_scene_find(sc, G_MAIN->wm.first);
-
-		/* TODO: restore local view. */
-#if 0
-		int bit;
-		v3d->lay = scene->lay;
-
-		/* seek for layact */
-		bit = 0;
-		while (bit < 32) {
-			if (v3d->lay & (1u << bit)) {
-				v3d->layact = (1u << bit);
-				break;
-			}
-			bit++;
-		}
-#endif
 		v3d->camera = scene->camera;
 	}
 }
@@ -3189,12 +3173,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tool Gizmo", "Active tool gizmo");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scenelock", 1);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_lock_camera_and_layers_set");
-	RNA_def_property_ui_text(prop, "Lock Camera and Layers",
-	                         "Use the scene's active camera and layers in this view, rather than local layers");
-	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
+	prop = RNA_def_property(srna, "use_local_camera", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "scenelock", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_use_local_camera_set");
+	RNA_def_property_ui_text(prop, "Use Local Camera",
+	                         "Use a local camera in this view, rather than scene's active camera camera");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "region_3d", PROP_POINTER, PROP_NONE);

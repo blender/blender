@@ -4206,7 +4206,10 @@ class VIEW3D_PT_view3d_properties(Panel):
         col = flow.column()
 
         subcol = col.column()
-        subcol.enabled = not view.lock_camera_and_layers
+        subcol.prop(view, "use_local_camera")
+
+        subcol = col.column()
+        subcol.enabled = view.use_local_camera
         subcol.prop(view, "camera", text="Local Camera")
 
         subcol = col.column(align=True)

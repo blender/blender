@@ -133,7 +133,7 @@ class SelectCamera(Operator):
         scene = context.scene
         view_layer = context.view_layer
         view = context.space_data
-        if view.type == 'VIEW_3D' and not view.lock_camera_and_layers:
+        if view.type == 'VIEW_3D' and view.use_local_camera:
             camera = view.camera
         else:
             camera = scene.camera
