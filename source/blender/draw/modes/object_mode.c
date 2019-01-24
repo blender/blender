@@ -418,12 +418,15 @@ static void OBJECT_engine_init(void *vedata)
 
 	if (!sh_data->outline_resolve) {
 		/* Outline */
-		sh_data->outline_prepass = DRW_shader_create_3D(datatoc_object_outline_prepass_frag_glsl, NULL);
-
-		sh_data->outline_prepass_wire = DRW_shader_create(
-		            datatoc_object_outline_prepass_vert_glsl,
-		            datatoc_object_outline_prepass_geom_glsl,
-		            datatoc_object_outline_prepass_frag_glsl, NULL);
+		sh_data->outline_prepass = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_drw_shader_3D_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
+		sh_data->outline_prepass_wire = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_outline_prepass_vert_glsl, NULL},
+		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_object_outline_prepass_geom_glsl, NULL},
+		        .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 
 		sh_data->outline_resolve = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
 
@@ -665,11 +668,14 @@ static void OBJECT_engine_free(void)
 	}
 }
 
-static DRWShadingGroup *shgroup_outline(DRWPass *pass, const int *ofs, GPUShader *sh)
+static DRWShadingGroup *shgroup_outline(DRWPass *pass, const int *ofs, GPUShader *sh, eDRW_ShaderSlot shader_slot)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_int(grp, "baseId", ofs, 1);
 
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
@@ -1002,10 +1008,10 @@ static void OBJECT_cache_init(void *vedata)
 			sh = sh_data->outline_prepass_wire;
 		}
 
-		g_data->outlines_select = shgroup_outline(psl->outlines, &g_data->id_ofs_select, sh);
-		g_data->outlines_select_dupli = shgroup_outline(psl->outlines, &g_data->id_ofs_select_dupli, sh);
-		g_data->outlines_transform = shgroup_outline(psl->outlines, &g_data->id_ofs_transform, sh);
-		g_data->outlines_active = shgroup_outline(psl->outlines, &g_data->id_ofs_active, sh);
+		g_data->outlines_select = shgroup_outline(psl->outlines, &g_data->id_ofs_select, sh, draw_ctx->shader_slot);
+		g_data->outlines_select_dupli = shgroup_outline(psl->outlines, &g_data->id_ofs_select_dupli, sh, draw_ctx->shader_slot);
+		g_data->outlines_transform = shgroup_outline(psl->outlines, &g_data->id_ofs_transform, sh, draw_ctx->shader_slot);
+		g_data->outlines_active = shgroup_outline(psl->outlines, &g_data->id_ofs_active, sh, draw_ctx->shader_slot);
 
 		g_data->id_ofs_select = 0;
 		g_data->id_ofs_select_dupli = 0;

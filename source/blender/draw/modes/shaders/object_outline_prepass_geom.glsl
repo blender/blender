@@ -7,6 +7,14 @@ uniform mat4 ProjectionMatrix;
 in vec4 pPos[];
 in vec3 vPos[];
 
+void vert_from_gl_in(int v)
+{
+	gl_Position = pPos[v];
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
+#endif
+}
+
 void main()
 {
 	bool is_persp = (ProjectionMatrix[3][3] == 0.0);
@@ -34,7 +42,11 @@ void main()
 	// if (dot(n0, v13) > 0.01)
 	// 	return;
 
-	gl_Position = pPos[1]; EmitVertex();
-	gl_Position = pPos[2]; EmitVertex();
+	vert_from_gl_in(1);
+	EmitVertex();
+
+	vert_from_gl_in(2);
+	EmitVertex();
+
 	EndPrimitive();
 }
