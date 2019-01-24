@@ -3721,7 +3721,7 @@ static int convert_key(GHOST_TKey key)
 	}
 }
 
-static void wm_eventemulation(wmEvent *event)
+static void wm_eventemulation(wmEvent *event, bool test_only)
 {
 	/* Store last mmb/rmb event value to make emulation work when modifier keys
 	 * are released first. This really should be in a data structure somewhere. */
@@ -3734,13 +3734,19 @@ static void wm_eventemulation(wmEvent *event)
 			if (event->val == KM_PRESS && event->alt) {
 				event->type = MIDDLEMOUSE;
 				event->alt = 0;
-				emulating_event = MIDDLEMOUSE;
+
+				if (!test_only) {
+					emulating_event = MIDDLEMOUSE;
+				}
 			}
 #ifdef __APPLE__
 			else if (event->val == KM_PRESS && event->oskey) {
 				event->type = RIGHTMOUSE;
 				event->oskey = 0;
-				emulating_event = RIGHTMOUSE;
+
+				if (!test_only) {
+					emulating_event = RIGHTMOUSE;
+				}
 			}
 #endif
 			else if (event->val == KM_RELEASE) {
@@ -3753,7 +3759,10 @@ static void wm_eventemulation(wmEvent *event)
 					event->type = RIGHTMOUSE;
 					event->oskey = 0;
 				}
-				emulating_event = EVENT_NONE;
+
+				if (!test_only) {
+					emulating_event = EVENT_NONE;
+				}
 			}
 		}
 
@@ -4036,7 +4045,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			else
 				event.type = MIDDLEMOUSE;
 
-			wm_eventemulation(&event);
+			wm_eventemulation(&event, false);
 
 			/* copy previous state to prev event state (two old!) */
 			evt->prevval = evt->val;
@@ -4096,7 +4105,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf)); /* might be not null terminated*/
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
-			wm_eventemulation(&event);
+			wm_eventemulation(&event, false);
 
 			/* copy previous state to prev event state (two old!) */
 			evt->prevval = evt->val;
@@ -4674,7 +4683,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 		wmEvent test_event = *win->eventstate;
 		test_event.type = event_data[data_index].event_type;
 		test_event.val = event_data[data_index].event_value;
-		wm_eventemulation(&test_event);
+		wm_eventemulation(&test_event, true);
 		wmKeyMapItem *kmi = NULL;
 		for (int handler_index = 0; handler_index < ARRAY_SIZE(handlers); handler_index++) {
 			kmi = wm_kmi_from_event(C, wm, handlers[handler_index], &test_event);
