@@ -15,7 +15,7 @@ if not exist "%vs_where%" (
 )
 
 if NOT "%verbose%" == "" (
-		echo "%vs_where%" -latest %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64`
+		echo "%vs_where%" -latest %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64
 	)
 
 for /f "usebackq tokens=1* delims=: " %%i in (`"%vs_where%" -latest %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64`) do (
