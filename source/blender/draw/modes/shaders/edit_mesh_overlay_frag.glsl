@@ -148,5 +148,7 @@ void main()
 #endif
 
 	/* don't write depth if not opaque */
-	if (FragColor.a == 0.0) discard;
+	if (FragColor.a == 0.0) {
+		discard;
+	}
 }

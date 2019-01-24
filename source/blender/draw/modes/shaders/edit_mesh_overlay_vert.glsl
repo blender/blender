@@ -82,14 +82,18 @@ void main()
 	}
 
 	/* Face */
-	if ((vData[0].x & FACE_ACTIVE) != 0)
+	if ((vData[0].x & FACE_ACTIVE) != 0) {
 		faceColor = colorFaceSelect;
-	else if ((vData[0].x & FACE_SELECTED) != 0)
+	}
+	else if ((vData[0].x & FACE_SELECTED) != 0) {
 		faceColor = colorFaceSelect;
-	else if ((vData[0].x & FACE_FREESTYLE) != 0)
+	}
+	else if ((vData[0].x & FACE_FREESTYLE) != 0) {
 		faceColor = colorFaceFreestyle;
-	else
+	}
+	else {
 		faceColor = colorFace;
+	}
 
 #  ifdef VERTEX_SELECTION
 	vertexColor = EDIT_MESH_vertex_color(data0.x).rgb;

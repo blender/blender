@@ -128,8 +128,9 @@ static void external_cache_populate(void *vedata, Object *ob)
 {
 	EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
 
-	if (!DRW_object_is_renderable(ob))
+	if (!DRW_object_is_renderable(ob)) {
 		return;
+	}
 
 	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {

@@ -39,12 +39,15 @@ void main()
 	}
 
 #ifdef USE_AXIS
-	if (axis == 0)
+	if (axis == 0) {
 		finalColor = vec4(1.0, 0.0, 0.0, 1.0);
-	else if (axis == 1)
+	}
+	else if (axis == 1) {
 		finalColor = vec4(0.0, 1.0, 0.0, 1.0);
-	else
+	}
+	else {
 		finalColor = vec4(0.0, 0.0, 1.0, 1.0);
+	}
 #else
 	if (val < 0.0) {
 		finalColor = vec4(color, 1.0);

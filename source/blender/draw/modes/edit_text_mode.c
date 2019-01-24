@@ -219,10 +219,12 @@ static void edit_text_cache_populate_select(void *vedata, Object *ob)
 
 		float selboxw;
 		if (i + 1 != ef->selboxes_len) {
-			if (ef->selboxes[i + 1].y == sb->y)
+			if (ef->selboxes[i + 1].y == sb->y) {
 				selboxw = ef->selboxes[i + 1].x - sb->x;
-			else
+			}
+			else {
 				selboxw = sb->w;
+			}
 		}
 		else {
 			selboxw = sb->w;

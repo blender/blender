@@ -156,8 +156,9 @@ static bool gpencil_can_draw_stroke(
         const bool onion, const bool is_mat_preview)
 {
 	/* skip stroke if it doesn't have any valid data */
-	if ((gps->points == NULL) || (gps->totpoints < 1) || (gp_style == NULL))
+	if ((gps->points == NULL) || (gps->totpoints < 1) || (gp_style == NULL)) {
 		return false;
+	}
 
 	/* if mat preview render always visible */
 	if (is_mat_preview) {
@@ -1130,8 +1131,9 @@ void DRW_gpencil_triangulate_stroke_fill(Object *ob, bGPDstroke *gps)
 	}
 	else {
 		/* No triangles needed - Free anything allocated previously */
-		if (gps->triangles)
+		if (gps->triangles) {
 			MEM_freeN(gps->triangles);
+		}
 
 		gps->triangles = NULL;
 	}
@@ -1496,8 +1498,9 @@ void DRW_gpencil_populate_multiedit(
 	/* draw strokes */
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* don't draw layer if hidden */
-		if (gpl->flag & GP_LAYER_HIDE)
+		if (gpl->flag & GP_LAYER_HIDE) {
 			continue;
+		}
 
 		/* list of frames to draw */
 		if (!playing) {
@@ -1603,8 +1606,9 @@ void DRW_gpencil_populate_datablock(
 		}
 
 		gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
-		if (gpf == NULL)
+		if (gpf == NULL) {
 			continue;
+		}
 
 		/* if solo mode, display only frames with keyframe in the current frame */
 		if ((is_solomode) && (gpf->framenum != remap_cfra)) {

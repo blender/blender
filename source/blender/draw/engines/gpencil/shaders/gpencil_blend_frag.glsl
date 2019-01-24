@@ -79,10 +79,12 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 blend_color)
 
 float linearrgb_to_srgb(float c)
 {
-	if (c < 0.0031308)
+	if (c < 0.0031308) {
 		return (c < 0.0) ? 0.0 : c * 12.92;
-	else
+	}
+	else {
 		return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+	}
 }
 
 vec4 tone(vec4 stroke_color)

@@ -75,12 +75,14 @@ void main()
 
 #if defined(USE_ALPHA_HASH)
 	/* Hashed Alpha Testing */
-	if (cl.opacity < hashed_alpha_threshold(worldPosition))
+	if (cl.opacity < hashed_alpha_threshold(worldPosition)) {
 		discard;
+	}
 #elif defined(USE_ALPHA_CLIP)
 	/* Alpha clip */
-	if (cl.opacity <= alphaThreshold)
+	if (cl.opacity <= alphaThreshold) {
 		discard;
+	}
 #endif
 #endif
 }

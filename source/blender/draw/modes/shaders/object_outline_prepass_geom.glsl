@@ -33,8 +33,9 @@ void main()
 
 	/* If both adjacent verts are facing the camera the same way,
 	 * then it isn't an outline edge. */
-	if (sign(fac0) == sign(fac3))
+	if (sign(fac0) == sign(fac3)) {
 		return;
+	}
 
 	/* Don't outline if concave edge. */
 	/* That would hide a lot of non useful edge but it flickers badly.

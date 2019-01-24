@@ -1309,8 +1309,9 @@ static void particle_batch_cache_ensure_pos(
 	if (psys->part->phystype == PART_PHYS_KEYED) {
 		if (psys->flag & PSYS_KEYED) {
 			psys_count_keyed_targets(&sim);
-			if (psys->totkeyed == 0)
+			if (psys->totkeyed == 0) {
 				return;
+			}
 		}
 	}
 

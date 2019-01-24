@@ -52,8 +52,9 @@ float shadow_test(ShadowSample moments, float dist, ShadowData sd)
 {
 	float p = 0.0;
 
-	if (dist <= moments.x)
+	if (dist <= moments.x) {
 		p = 1.0;
+	}
 
 	float variance = moments.y - (moments.x * moments.x);
 	variance = max(variance, sd.sh_bias / 10.0);

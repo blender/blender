@@ -8,10 +8,12 @@ out vec4 FragColor;
 
 void main()
 {
-	if (isSelected != 0)
+	if (isSelected != 0) {
 		FragColor = colorFaceDot;
-	else
+	}
+	else {
 		FragColor = colorVertex;
+	}
 
 #ifdef VERTEX_FACING
 	FragColor.a *= 1.0 - abs(facing) * 0.4;

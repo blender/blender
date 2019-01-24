@@ -498,8 +498,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 	Scene *scene = draw_ctx->scene;
 	const bool is_wire = (ob->dt == OB_WIRE);
 
-	if (!DRW_object_is_renderable(ob))
+	if (!DRW_object_is_renderable(ob)) {
 		return;
+	}
 
 	if (ob->type == OB_MESH) {
 		workbench_forward_cache_populate_particles(vedata, ob);

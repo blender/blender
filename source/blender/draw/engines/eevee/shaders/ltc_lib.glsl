@@ -93,10 +93,12 @@ vec3 solve_cubic(vec4 coefs)
 		float x_3d = 2.0 * sqrt(-C_d) * cos(theta + (2.0 / 3.0) * M_PI);
 
 		float xs;
-		if (x_1d + x_3d < 2.0 * C)
+		if (x_1d + x_3d < 2.0 * C) {
 			xs = x_1d;
-		else
+		}
+		else {
 			xs = x_3d;
+		}
 
 		xsc = vec2(-D, xs + C);
 	}
@@ -279,8 +281,9 @@ float ltc_evaluate_disk(vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
 	/* Now find front facing ellipse with same solid angle. */
 
 	vec3 V3 = normalize(cross(V1, V2));
-	if (dot(C, V3) < 0.0)
+	if (dot(C, V3) < 0.0) {
 		V3 *= -1.0;
+	}
 
 	float L  = dot(V3, C);
 	float x0 = dot(V1, C) / L;

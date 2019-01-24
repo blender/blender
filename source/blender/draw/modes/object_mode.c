@@ -542,12 +542,15 @@ static void OBJECT_engine_init(void *vedata)
 			grid_res = fabsf(tanf(fov)) / grid_scale;
 
 			e_data.grid_flag = (1 << 4); /* XY plane */
-			if (show_axis_x)
+			if (show_axis_x) {
 				e_data.grid_flag |= SHOW_AXIS_X;
-			if (show_axis_y)
+			}
+			if (show_axis_y) {
 				e_data.grid_flag |= SHOW_AXIS_Y;
-			if (show_floor)
+			}
+			if (show_floor) {
 				e_data.grid_flag |= SHOW_GRID;
+			}
 
 		}
 		else {
@@ -925,8 +928,9 @@ static void DRW_shgroup_empty_image(
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
 
-	if (!BKE_object_empty_image_is_visible_in_view3d(ob, rv3d))
+	if (!BKE_object_empty_image_is_visible_in_view3d(ob, rv3d)) {
 		return;
+	}
 
 	/* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead, see: T59347 */
 	int size[2] = {0};

@@ -288,8 +288,9 @@ static void eevee_render_result_normal(
 	EEVEE_PrivateData *g_data = stl->g_data;
 
 	/* Only read the center texel. */
-	if (stl->effects->taa_current_sample > 1)
+	if (stl->effects->taa_current_sample > 1) {
 		return;
+	}
 
 	if ((view_layer->passflag & SCE_PASS_NORMAL) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_NORMAL, viewname);
@@ -336,8 +337,9 @@ static void eevee_render_result_z(
 	EEVEE_PrivateData *g_data = stl->g_data;
 
 	/* Only read the center texel. */
-	if (stl->effects->taa_current_sample > 1)
+	if (stl->effects->taa_current_sample > 1) {
 		return;
+	}
 
 	if ((view_layer->passflag & SCE_PASS_Z) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);

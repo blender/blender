@@ -69,13 +69,15 @@ void main(void)
 	if (abs(fac0) > 1e-5 && abs(fac3) > 1e-5) {
 		/* If both adjacent verts are facing the camera the same way,
 		 * then it isn't an outline edge. */
-		if (sign(fac0) == sign(fac3))
+		if (sign(fac0) == sign(fac3)) {
 			return;
+		}
 	}
 
 	/* Don't outline if concave edge. */
-	if (dot(n0, v13) > 0.0001)
+	if (dot(n0, v13) > 0.0001) {
 		return;
+	}
 
 	vec2 thick = vColSize[0].w * (lineThickness / viewportSize);
 	vec2 edge_dir = compute_dir(ssPos[1], ssPos[2]);

@@ -3623,10 +3623,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
 			float x = f10 * cosf(angle);
 			float y = f10 * sinf(angle);
 
-			if (i % 2 == 0)
-				GPU_vertbuf_attr_set(vbo, attr_id.color, v, red);
-			else
-				GPU_vertbuf_attr_set(vbo, attr_id.color, v, white);
+			GPU_vertbuf_attr_set(vbo, attr_id.color, v, (i % 2 == 0) ? red : white);
 
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){x, y});
 			GPU_indexbuf_add_generic_vert(&elb, v++);

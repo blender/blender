@@ -521,8 +521,9 @@ static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbo
 
 static void draw_clipping_setup_from_view(void)
 {
-	if (DST.clipping.updated)
+	if (DST.clipping.updated) {
 		return;
+	}
 
 	float (*viewinv)[4] = DST.view_data.matstate.mat[DRW_MAT_VIEWINV];
 	float (*projmat)[4] = DST.view_data.matstate.mat[DRW_MAT_WIN];
@@ -684,14 +685,16 @@ bool DRW_culling_sphere_test(BoundSphere *bsphere)
 	draw_clipping_setup_from_view();
 
 	/* Bypass test if radius is negative. */
-	if (bsphere->radius < 0.0f)
+	if (bsphere->radius < 0.0f) {
 		return true;
+	}
 
 	/* Do a rough test first: Sphere VS Sphere intersect. */
 	BoundSphere *frustum_bsphere = &DST.clipping.frustum_bsphere;
 	float center_dist = len_squared_v3v3(bsphere->center, frustum_bsphere->center);
-	if (center_dist > SQUARE(bsphere->radius + frustum_bsphere->radius))
+	if (center_dist > SQUARE(bsphere->radius + frustum_bsphere->radius)) {
 		return false;
+	}
 
 	/* Test against the 6 frustum planes. */
 	for (int p = 0; p < 6; p++) {
@@ -1012,8 +1015,9 @@ static void release_texture_slots(bool with_persist)
 	}
 	else {
 		for (int i = 0; i < GPU_max_textures(); ++i) {
-			if (DST.RST.bound_tex_slots[i] != BIND_PERSIST)
+			if (DST.RST.bound_tex_slots[i] != BIND_PERSIST) {
 				DST.RST.bound_tex_slots[i] = BIND_NONE;
+			}
 		}
 	}
 
@@ -1029,8 +1033,9 @@ static void release_ubo_slots(bool with_persist)
 	}
 	else {
 		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
-			if (DST.RST.bound_ubo_slots[i] != BIND_PERSIST)
+			if (DST.RST.bound_ubo_slots[i] != BIND_PERSIST) {
 				DST.RST.bound_ubo_slots[i] = BIND_NONE;
+			}
 		}
 	}
 
@@ -1317,8 +1322,9 @@ static void drw_update_view(void)
 
 static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
 {
-	if (start_group == NULL)
+	if (start_group == NULL) {
 		return;
+	}
 
 	DST.shader = NULL;
 

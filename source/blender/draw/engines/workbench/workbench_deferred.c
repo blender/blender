@@ -813,8 +813,9 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
 
-	if (!DRW_object_is_renderable(ob))
+	if (!DRW_object_is_renderable(ob)) {
 		return;
+	}
 
 	if (ob->type == OB_MESH) {
 		workbench_cache_populate_particles(vedata, ob);

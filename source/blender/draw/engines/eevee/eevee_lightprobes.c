@@ -78,15 +78,18 @@ bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
 	EEVEE_ObjectEngineData *oed = (EEVEE_ObjectEngineData *)user_data;
 
 	/* test disabled if group is NULL */
-	if (oed->test_data->collection == NULL)
+	if (oed->test_data->collection == NULL) {
 		return vis_in;
+	}
 
-	if (oed->test_data->cached == false)
+	if (oed->test_data->cached == false) {
 		oed->ob_vis_dirty = true;
+	}
 
 	/* early out, don't need to compute ob_vis yet. */
-	if (vis_in == false)
+	if (vis_in == false) {
 		return vis_in;
+	}
 
 	if (oed->ob_vis_dirty) {
 		oed->ob_vis_dirty = false;

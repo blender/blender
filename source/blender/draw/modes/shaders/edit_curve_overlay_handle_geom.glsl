@@ -37,8 +37,9 @@ void main()
 	int color_id = (vertFlag[1] >> 4);
 
 	/* Don't output any edges if we don't show handles */
-	if (!showCurveHandles && (color_id < 5))
+	if (!showCurveHandles && (color_id < 5)) {
 		return;
+	}
 
 	bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERTEX_SELECTED) != 0);
 

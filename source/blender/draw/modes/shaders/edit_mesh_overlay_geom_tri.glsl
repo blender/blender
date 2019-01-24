@@ -150,14 +150,18 @@ void main()
 
 	/* Face */
 	vec4 fcol;
-	if ((vData[0].x & FACE_ACTIVE) != 0)
+	if ((vData[0].x & FACE_ACTIVE) != 0) {
 		fcol = colorFaceSelect;
-	else if ((vData[0].x & FACE_SELECTED) != 0)
+	}
+	else if ((vData[0].x & FACE_SELECTED) != 0) {
 		fcol = colorFaceSelect;
-	else if ((vData[0].x & FACE_FREESTYLE) != 0)
+	}
+	else if ((vData[0].x & FACE_FREESTYLE) != 0) {
 		fcol = colorFaceFreestyle;
-	else
+	}
+	else {
 		fcol = colorFace;
+	}
 
 	/* Vertex */
 	ssPos[0] = proj(pPos[0]);

@@ -92,13 +92,15 @@ static bool effect_is_active(bGPdata *gpd, ShaderFxData *fx, bool is_render)
 static bool get_normal_vector(bGPdata *gpd, float r_point[3], float r_normal[3])
 {
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		if (gpl->flag & GP_LAYER_HIDE)
+		if (gpl->flag & GP_LAYER_HIDE) {
 			continue;
+		}
 
 		/* get frame  */
 		bGPDframe *gpf = gpl->actframe;
-		if (gpf == NULL)
+		if (gpf == NULL) {
 			continue;
+		}
 		for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 			if (gps->totpoints >= 3) {
 				bGPDspoint *pt = &gps->points[0];

@@ -784,8 +784,9 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(
 		options |= VAR_MAT_CLIP;
 	}
 
-	if (is_shadow)
+	if (is_shadow) {
 		options |= VAR_MAT_SHADOW;
+	}
 
 	GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options, true);
 	if (mat) {
@@ -1485,8 +1486,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 			shgrp_depth_array[i] = NULL;
 			shgrp_depth_clip_array[i] = NULL;
 
-			if (ma == NULL)
+			if (ma == NULL) {
 				ma = &defmaterial;
+			}
 
 			switch (ma->blend_method) {
 				case MA_BM_SOLID:
@@ -1536,8 +1538,9 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 					EEVEE_ObjectEngineData *oedata = NULL;
 					Material *ma = give_current_material(ob, i + 1);
 
-					if (ma == NULL)
+					if (ma == NULL) {
 						ma = &defmaterial;
+					}
 
 					/* Do not render surface if we are rendering a volume object
 					 * and do not have a surface closure. */

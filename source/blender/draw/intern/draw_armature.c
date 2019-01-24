@@ -516,8 +516,9 @@ static void set_pchan_colorset(Object *ob, bPoseChannel *pchan)
 		 */
 		if (pchan->agrp_index) {
 			grp = (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
-			if (grp)
+			if (grp) {
 				color_index = grp->customCol;
+			}
 		}
 	}
 
@@ -775,8 +776,9 @@ static const float *get_bone_solid_color(
         const EditBone *UNUSED(eBone), const bPoseChannel *pchan, const bArmature *arm,
         const int boneflag, const short constflag)
 {
-	if (g_theme.const_color)
+	if (g_theme.const_color) {
 		return g_theme.bone_solid_color;
+	}
 
 	if (arm->flag & ARM_POSEMODE) {
 		static float disp_color[4];
@@ -792,8 +794,9 @@ static const float *get_bone_solid_with_consts_color(
         const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
         const int boneflag, const short constflag)
 {
-	if (g_theme.const_color)
+	if (g_theme.const_color) {
 		return g_theme.bone_solid_color;
+	}
 
 	const float *col = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 
@@ -809,12 +812,15 @@ static const float *get_bone_solid_with_consts_color(
 
 static float get_bone_wire_thickness(int boneflag)
 {
-	if (g_theme.const_color)
+	if (g_theme.const_color) {
 		return g_theme.const_wire;
-	else if (boneflag & (BONE_DRAW_ACTIVE | BONE_SELECTED))
+	}
+	else if (boneflag & (BONE_DRAW_ACTIVE | BONE_SELECTED)) {
 		return 2.0f;
-	else
+	}
+	else {
 		return 1.0f;
+	}
 }
 
 static const float *get_bone_wire_color(
@@ -1576,8 +1582,9 @@ static void pchan_draw_ik_lines(bPoseChannel *pchan, const bool only_temp, const
 	float *line_start = NULL, *line_end = NULL;
 
 	for (con = pchan->constraints.first; con; con = con->next) {
-		if (con->enforce == 0.0f)
+		if (con->enforce == 0.0f) {
 			continue;
+		}
 
 		switch (con->type) {
 			case CONSTRAINT_TYPE_KINEMATIC:
@@ -1586,8 +1593,9 @@ static void pchan_draw_ik_lines(bPoseChannel *pchan, const bool only_temp, const
 				int segcount = 0;
 
 				/* if only_temp, only draw if it is a temporary ik-chain */
-				if (only_temp && !(data->flag & CONSTRAINT_IK_TEMP))
+				if (only_temp && !(data->flag & CONSTRAINT_IK_TEMP)) {
 					continue;
+				}
 
 				/* exclude tip from chain? */
 				parchan = ((data->flag & CONSTRAINT_IK_TIP) == 0) ? pchan->parent : pchan;
@@ -1605,10 +1613,12 @@ static void pchan_draw_ik_lines(bPoseChannel *pchan, const bool only_temp, const
 				if (parchan) {
 					line_end = parchan->pose_head;
 
-					if (constflag & PCHAN_HAS_TARGET)
+					if (constflag & PCHAN_HAS_TARGET) {
 						drw_shgroup_bone_ik_lines(line_start, line_end);
-					else
+					}
+					else {
 						drw_shgroup_bone_ik_no_target_lines(line_start, line_end);
+					}
 				}
 				break;
 			}
@@ -1618,8 +1628,9 @@ static void pchan_draw_ik_lines(bPoseChannel *pchan, const bool only_temp, const
 				int segcount = 0;
 
 				/* don't draw if only_temp, as Spline IK chains cannot be temporary */
-				if (only_temp)
+				if (only_temp) {
 					continue;
+				}
 
 				parchan = pchan;
 				line_start = parchan->pose_tail;
@@ -1826,8 +1837,9 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				}
 
 				/* set temporary flag for drawing bone as active, but only if selected */
-				if (bone == arm->act_bone)
+				if (bone == arm->act_bone) {
 					boneflag |= BONE_DRAW_ACTIVE;
+				}
 
 				draw_bone_relations(NULL, pchan, arm, boneflag, constflag, show_relations);
 

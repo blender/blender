@@ -674,24 +674,33 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	shgroup->callid = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_CALLID);
 
 	shgroup->matflag = 0;
-	if (shgroup->modelinverse > -1)
+	if (shgroup->modelinverse > -1) {
 		shgroup->matflag |= DRW_CALL_MODELINVERSE;
-	if (shgroup->modelview > -1)
+	}
+	if (shgroup->modelview > -1) {
 		shgroup->matflag |= DRW_CALL_MODELVIEW;
-	if (shgroup->modelviewinverse > -1)
+	}
+	if (shgroup->modelviewinverse > -1) {
 		shgroup->matflag |= DRW_CALL_MODELVIEWINVERSE;
-	if (shgroup->modelviewprojection > -1)
+	}
+	if (shgroup->modelviewprojection > -1) {
 		shgroup->matflag |= DRW_CALL_MODELVIEWPROJECTION;
-	if (shgroup->normalview > -1)
+	}
+	if (shgroup->normalview > -1) {
 		shgroup->matflag |= DRW_CALL_NORMALVIEW;
-	if (shgroup->normalworld > -1)
+	}
+	if (shgroup->normalworld > -1) {
 		shgroup->matflag |= DRW_CALL_NORMALWORLD;
-	if (shgroup->orcotexfac > -1)
+	}
+	if (shgroup->orcotexfac > -1) {
 		shgroup->matflag |= DRW_CALL_ORCOTEXFAC;
-	if (shgroup->objectinfo > -1)
+	}
+	if (shgroup->objectinfo > -1) {
 		shgroup->matflag |= DRW_CALL_OBJECTINFO;
-	if (shgroup->eye > -1)
+	}
+	if (shgroup->eye > -1) {
 		shgroup->matflag |= DRW_CALL_EYEVEC;
+	}
 }
 
 static void drw_shgroup_instance_init(

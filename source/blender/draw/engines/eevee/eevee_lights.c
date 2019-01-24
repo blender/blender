@@ -457,8 +457,9 @@ void EEVEE_lights_cache_shcaster_material_add(
 	DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
-	if (alpha_threshold != NULL)
+	if (alpha_threshold != NULL) {
 		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
+	}
 
 	DRW_shgroup_call_object_add(grp, geom, ob);
 }
@@ -599,8 +600,9 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 float light_attenuation_radius_get(Lamp *la, float light_threshold)
 {
-	if (la->mode & LA_CUSTOM_ATTENUATION)
+	if (la->mode & LA_CUSTOM_ATTENUATION) {
 		return la->att_dist;
+	}
 
 	/* Compute max light power. */
 	float power = max_fff(la->r, la->g, la->b);

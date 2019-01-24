@@ -108,15 +108,17 @@ layout(location = 1) out float fragAlpha;
 void main(void)
 {
 	/* Discard to avoid bleeding onto the next layer */
-	if (int(gl_FragCoord.x) * edge.x + edge.y > 0)
+	if (int(gl_FragCoord.x) * edge.x + edge.y > 0) {
 		discard;
+	}
 
 	/* Circle Dof */
 	float dist = length(particlecoord);
 
 	/* Ouside of bokeh shape */
-	if (dist > 1.0)
+	if (dist > 1.0) {
 		discard;
+	}
 
 	/* Regular Polygon Dof */
 	if (bokeh_sides.x > 0.0) {
@@ -134,8 +136,9 @@ void main(void)
 		dist /= r;
 
 		/* Ouside of bokeh shape */
-		if (dist > 1.0)
+		if (dist > 1.0) {
 			discard;
+		}
 	}
 
 	fragColor = color;

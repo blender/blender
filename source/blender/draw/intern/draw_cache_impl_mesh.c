@@ -1491,11 +1491,13 @@ static uchar mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *
 {
 	uchar fflag = 0;
 
-	if (efa == rdata->efa_act)
+	if (efa == rdata->efa_act) {
 		fflag |= VFLAG_FACE_ACTIVE;
+	}
 
-	if (BM_elem_flag_test(efa, BM_ELEM_SELECT))
+	if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 		fflag |= VFLAG_FACE_SELECTED;
+	}
 
 #ifdef WITH_FREESTYLE
 	if (rdata->cd.offset.freestyle_face != -1) {
@@ -1515,17 +1517,21 @@ static void mesh_render_data_edge_flag(
 {
 	eattr->e_flag |= VFLAG_EDGE_EXISTS;
 
-	if (eed == rdata->eed_act)
+	if (eed == rdata->eed_act) {
 		eattr->e_flag |= VFLAG_EDGE_ACTIVE;
+	}
 
-	if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
+	if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 		eattr->e_flag |= VFLAG_EDGE_SELECTED;
+	}
 
-	if (BM_elem_flag_test(eed, BM_ELEM_SEAM))
+	if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
 		eattr->e_flag |= VFLAG_EDGE_SEAM;
+	}
 
-	if (!BM_elem_flag_test(eed, BM_ELEM_SMOOTH))
+	if (!BM_elem_flag_test(eed, BM_ELEM_SMOOTH)) {
 		eattr->e_flag |= VFLAG_EDGE_SHARP;
+	}
 
 	/* Use a byte for value range */
 	if (rdata->cd.offset.crease != -1) {
@@ -1558,11 +1564,13 @@ static uchar mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *e
 	uchar vflag = VFLAG_VERTEX_EXISTS;
 
 	/* Current vertex */
-	if (eve == rdata->eve_act)
+	if (eve == rdata->eve_act) {
 		vflag |= VFLAG_VERTEX_ACTIVE;
+	}
 
-	if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
+	if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 		vflag |= VFLAG_VERTEX_SELECTED;
+	}
 
 	return vflag;
 }
@@ -4803,8 +4811,9 @@ static void uvedit_fill_buffer_data(
 		float (*av)[3], (*auv)[2];
 		ushort area_stretch;
 		/* Skip hidden faces. */
-		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
+		if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 			continue;
+		}
 
 		uchar face_flag = edit_uv_get_face_flag(efa, efa_act, cd_loop_uv_offset, &scene);
 		/* Face preprocess */

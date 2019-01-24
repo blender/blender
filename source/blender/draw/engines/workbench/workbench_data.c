@@ -169,8 +169,9 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 			/* normalized trick see:
 			 * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
 			mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][3]);
-			if (is_persp)
+			if (is_persp) {
 				mul_v3_fl(viewvecs[i], 1.0f / viewvecs[i][2]);
+			}
 			viewvecs[i][3] = 1.0;
 
 			copy_v4_v4(wpd->viewvecs[i], viewvecs[i]);

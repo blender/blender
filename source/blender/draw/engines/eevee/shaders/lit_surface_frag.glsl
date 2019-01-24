@@ -217,8 +217,9 @@ void CLOSURE_NAME(
 
 		float l_vis = light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
 
-		if (l_vis < 1e-8)
+		if (l_vis < 1e-8) {
 			continue;
+		}
 
 		vec3 l_color_vis = ld.l_color * l_vis;
 

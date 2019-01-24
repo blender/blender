@@ -150,8 +150,9 @@ void DRW_batching_buffer_request(
 	}
 	int new_id = 0; /* Find insertion point. */
 	for (; new_id < chunk->alloc_size; ++new_id) {
-		if (chunk->bbufs[new_id].format == NULL)
+		if (chunk->bbufs[new_id].format == NULL) {
 			break;
+		}
 	}
 	/* If there is no batch left. Allocate more. */
 	if (new_id == chunk->alloc_size) {
@@ -191,8 +192,9 @@ void DRW_instancing_buffer_request(
 	}
 	int new_id = 0; /* Find insertion point. */
 	for (; new_id < chunk->alloc_size; ++new_id) {
-		if (chunk->ibufs[new_id].format == NULL)
+		if (chunk->ibufs[new_id].format == NULL) {
 			break;
+		}
 	}
 	/* If there is no batch left. Allocate more. */
 	if (new_id == chunk->alloc_size) {

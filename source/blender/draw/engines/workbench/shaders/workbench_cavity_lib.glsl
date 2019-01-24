@@ -9,8 +9,9 @@ void ssao_factors(
 {
 	cavities = edges = 0.0;
 	/* early out if there is no need for SSAO */
-	if (ssao_factor_cavity == 0.0 && ssao_factor_edge == 0.0)
+	if (ssao_factor_cavity == 0.0 && ssao_factor_edge == 0.0) {
 		return;
+	}
 
 	/* take the normalized ray direction here */
 	vec3 noise = texture(ssao_jitter, screenco.xy * jitter_tilling).rgb;
@@ -45,8 +46,9 @@ void ssao_factors(
 
 		vec2 uvcoords = screenco.xy + dir_jittered * offset;
 
-		if (uvcoords.x > 1.0 || uvcoords.x < 0.0 || uvcoords.y > 1.0 || uvcoords.y < 0.0)
+		if (uvcoords.x > 1.0 || uvcoords.x < 0.0 || uvcoords.y > 1.0 || uvcoords.y < 0.0) {
 			continue;
+		}
 
 		float depth_new = texture(depthBuffer, uvcoords).r;
 
@@ -56,8 +58,9 @@ void ssao_factors(
 		/* This trick provide good edge effect even if no neighboor is found. */
 		vec3 pos_new = get_view_space_from_depth(uvcoords, (is_background) ? depth : depth_new);
 
-		if (is_background)
+		if (is_background) {
 			pos_new.z -= ssao_distance;
+		}
 
 		vec3 dir = pos_new - position;
 		float len = length(dir);
@@ -68,11 +71,13 @@ void ssao_factors(
 		float attenuation = 1.0 / (len * (1.0 + len * len * ssao_attenuation));
 
 		/* use minor bias here to avoid self shadowing */
-		if (f_cavities > -f_bias)
+		if (f_cavities > -f_bias) {
 			cavities += f_cavities * attenuation;
+		}
 
-		if (f_edge > f_bias)
+		if (f_edge > f_bias) {
 			edges += f_edge * attenuation;
+		}
 	}
 
 	cavities /= ssao_samples_num;

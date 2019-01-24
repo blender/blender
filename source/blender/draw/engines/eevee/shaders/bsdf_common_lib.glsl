@@ -244,8 +244,9 @@ float line_unit_sphere_intersect_dist(vec3 lineorigin, vec3 linedirection)
 
 	float dist = 1e15;
 	float determinant = b * b - a * c;
-	if (determinant >= 0)
+	if (determinant >= 0) {
 		dist = (sqrt(determinant) - b) / a;
+	}
 
 	return dist;
 }

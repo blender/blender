@@ -91,8 +91,9 @@ void main()
 
 	/* Early out */
 	/* We can't do discard because we don't clear the render target. */
-	if (depth == 1.0)
+	if (depth == 1.0) {
 		return;
+	}
 
 	vec2 uvs = vec2(fullres_texel) / vec2(textureSize(depthBuffer, 0));
 
@@ -105,16 +106,18 @@ void main()
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
 
 	/* Early out */
-	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
+	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0) {
 		return;
+	}
 
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);
 	float a2 = roughnessSquared * roughnessSquared;
 
 	/* Early out */
-	if (roughness > ssrMaxRoughness + 0.2)
+	if (roughness > ssrMaxRoughness + 0.2) {
 		return;
+	}
 
 	vec4 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0);
 
@@ -394,8 +397,9 @@ void main()
 	float depth = textureLod(depthBuffer, uvs, 0.0).r;
 
 	/* Early out */
-	if (depth == 1.0)
+	if (depth == 1.0) {
 		discard;
+	}
 
 	/* Using world space */
 	vec3 viewPosition = get_view_space_from_depth(uvs, depth); /* Needed for viewCameraVec */
@@ -406,8 +410,9 @@ void main()
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
 
 	/* Early out */
-	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
+	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0) {
 		discard;
+	}
 
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);

@@ -514,8 +514,9 @@ wmJob *EEVEE_lightbake_job_create(
 	EEVEE_LightBake *lbake = NULL;
 
 	/* only one render job at a time */
-	if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER))
+	if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
 		return NULL;
+	}
 
 	wmJob *wm_job = WM_jobs_get(wm, win, scene, "Bake Lighting",
 	                            WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS, WM_JOB_TYPE_LIGHT_BAKE);

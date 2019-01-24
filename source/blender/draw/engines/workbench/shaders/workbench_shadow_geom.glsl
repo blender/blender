@@ -64,8 +64,9 @@ void main()
 	bvec2 degen_faces = lessThan(abs(faces_area), vec2(DEGENERATE_THRESHOLD));
 
 	/* Both triangles are degenerate, abort. */
-	if (all(degen_faces))
+	if (all(degen_faces)) {
 		return;
+	}
 #endif
 
 	vec2 facing = vec2(dot(n1, lightDirection),
@@ -92,8 +93,9 @@ void main()
 #endif
 
 	/* If both faces face the same direction it's not an outline edge. */
-	if (backface.x == backface.y)
+	if (backface.x == backface.y) {
 		return;
+	}
 
 #ifdef USE_INVOC_EXT
 	if (gl_InvocationID == 0) {

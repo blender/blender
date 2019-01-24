@@ -842,8 +842,9 @@ static bool id_type_can_have_drawdata(const short id_type)
 static bool id_can_have_drawdata(const ID *id)
 {
 	/* sanity check */
-	if (id == NULL)
+	if (id == NULL) {
 		return false;
+	}
 
 	return id_type_can_have_drawdata(GS(id->name));
 }
@@ -861,16 +862,18 @@ DrawDataList *DRW_drawdatalist_from_id(ID *id)
 		IdDdtTemplate *idt = (IdDdtTemplate *)id;
 		return &idt->drawdata;
 	}
-	else
+	else {
 		return NULL;
+	}
 }
 
 DrawData *DRW_drawdata_get(ID *id, DrawEngineType *engine_type)
 {
 	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
 
-	if (drawdata == NULL)
+	if (drawdata == NULL) {
 		return NULL;
+	}
 
 	LISTBASE_FOREACH(DrawData *, dd, drawdata) {
 		if (dd->engine_type == engine_type) {
@@ -930,8 +933,9 @@ void DRW_drawdata_free(ID *id)
 {
 	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
 
-	if (drawdata == NULL)
+	if (drawdata == NULL) {
 		return;
+	}
 
 	LISTBASE_FOREACH(DrawData *, dd, drawdata) {
 		if (dd->free != NULL) {
@@ -948,8 +952,9 @@ static void drw_drawdata_unlink_dupli(ID *id)
 	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROM_DUPLI) != 0) {
 		DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
 
-		if (drawdata == NULL)
+		if (drawdata == NULL) {
 			return;
+		}
 
 		BLI_listbase_clear((ListBase *)drawdata);
 	}

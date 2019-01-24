@@ -18,15 +18,17 @@ float contours(float value, float steps, float width_px, float max_rel_width, fl
 	/* Don't draw lines at 0 or 1. */
 	float rel_value = value * steps;
 
-	if (rel_value < 0.5 || rel_value > steps - 0.5)
+	if (rel_value < 0.5 || rel_value > steps - 0.5) {
 		return 0.0;
+	}
 
 	/* Check if completely invisible due to fade out. */
 	float rel_gradient = gradient * steps;
 	float rel_min_width = min_width_px * rel_gradient;
 
-	if (max_rel_width <= rel_min_width)
+	if (max_rel_width <= rel_min_width) {
 		return 0.0;
+	}
 
 	/* Main shape of the line, accounting for width bias and maximum weight space width. */
 	float rel_width = width_px * rel_gradient;
@@ -48,8 +50,9 @@ vec4 contour_grid(float weight, float weight_gradient)
 	/* Fade away when the gradient is too low to avoid big fills and noise. */
 	float flt_eps = max(1e-8, 1e-6 * weight);
 
-	if (weight_gradient <= flt_eps)
+	if (weight_gradient <= flt_eps) {
 		return vec4(0.0);
+	}
 
 	/* Three levels of grid lines */
 	float grid10 = contours(weight, 10.0, 5.0, 0.3, weight_gradient);
