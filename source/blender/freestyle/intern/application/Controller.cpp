@@ -232,9 +232,9 @@ bool Controller::hitViewMapCache()
 	return false;
 }
 
-int Controller::LoadMesh(Render *re, ViewLayer *view_layer)
+int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 {
-	BlenderFileLoader loader(re, view_layer);
+	BlenderFileLoader loader(re, view_layer, depsgraph);
 
 	loader.setRenderMonitor(_pRenderMonitor);
 

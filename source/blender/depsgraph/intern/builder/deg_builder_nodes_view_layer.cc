@@ -42,8 +42,9 @@
 #include "BLI_string.h"
 
 extern "C" {
-#include "DNA_node_types.h"
+#include "DNA_freestyle_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -154,6 +155,12 @@ void DepsgraphNodeBuilder::build_view_layer(
 	/* Material override. */
 	if (view_layer->mat_override != NULL) {
 		build_material(view_layer->mat_override);
+	}
+	/* Freestyle collections. */
+	LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
+		if (fls->group != NULL) {
+			build_collection(NULL, fls->group);
+		}
 	}
 	/* Collections. */
 	add_operation_node(&scene->id,

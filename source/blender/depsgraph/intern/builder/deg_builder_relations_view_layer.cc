@@ -136,6 +136,12 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	if (view_layer->mat_override != NULL) {
 		build_material(view_layer->mat_override);
 	}
+	/* Freestyle collections. */
+	LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
+		if (fls->group != NULL) {
+			build_collection(NULL, NULL, fls->group);
+		}
+	}
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
 		ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);

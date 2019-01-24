@@ -51,6 +51,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
+#include "BKE_scene.h"
 #include "BKE_text.h"
 
 #include "BLT_translation.h"
@@ -61,6 +62,8 @@ extern "C" {
 #include "BLI_callbacks.h"
 
 #include "BPY_extern.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "renderpipeline.h"
 
@@ -282,13 +285,13 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 	return true;
 }
 
-static void prepare(Render *re, ViewLayer *view_layer)
+static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 {
 	// load mesh
 	re->i.infostr = IFACE_("Freestyle: Mesh loading");
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
-	if (controller->LoadMesh(re, view_layer)) // returns if scene cannot be loaded or if empty
+	if (controller->LoadMesh(re, view_layer, depsgraph)) // returns if scene cannot be loaded or if empty
 		return;
 	if (re->test_break(re->tbh))
 		return;
@@ -606,12 +609,17 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
 		cout << "----------------------------------------------------------" << endl;
 	}
 
+	/* Create depsgraph and evaluate scene. */
+	ViewLayer *scene_view_layer = (ViewLayer*)BLI_findstring(&re->scene->view_layers, view_layer->name, offsetof(ViewLayer, name));
+	Depsgraph *depsgraph = DEG_graph_new(re->scene, scene_view_layer, DAG_EVAL_RENDER);
+	BKE_scene_graph_update_tagged(depsgraph, re->main);
+
 	// prepare Freestyle:
 	//   - load mesh
 	//   - add style modules
 	//   - set parameters
 	//   - compute view map
-	prepare(re, view_layer);
+	prepare(re, view_layer, depsgraph);
 
 	if (re->test_break(re->tbh)) {
 		controller->CloseFile();
@@ -626,7 +634,7 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
 			re->i.infostr = IFACE_("Freestyle: Stroke rendering");
 			re->stats_draw(re->sdh, &re->i);
 			re->i.infostr = NULL;
-			g_freestyle.scene = re->scene;
+			g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);
 			int strokeCount = controller->DrawStrokes();
 			if (strokeCount > 0) {
 				freestyle_render = controller->RenderStrokes(re, true);
@@ -642,6 +650,8 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
 			}
 		}
 	}
+
+	DEG_graph_free(depsgraph);
 
 	return freestyle_render;
 }

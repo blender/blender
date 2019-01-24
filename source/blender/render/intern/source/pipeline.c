@@ -1335,19 +1335,21 @@ static void add_freestyle(Render *re, int render)
 /* releases temporary scenes and renders for Freestyle stroke rendering */
 static void free_all_freestyle_renders(void)
 {
-	Render *re1, *freestyle_render;
-	Scene *freestyle_scene;
+	Render *re1;
 	LinkData *link;
 
 	for (re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
-			freestyle_render = (Render *)link->data;
+			Render *freestyle_render = (Render *)link->data;
 
 			if (freestyle_render) {
-				freestyle_scene = freestyle_render->scene;
+				Scene *freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
-				BKE_libblock_unlink(re1->freestyle_bmain, freestyle_scene, false, false);
-				BKE_id_free(re1->freestyle_bmain, freestyle_scene);
+
+				if (freestyle_scene) {
+					BKE_libblock_unlink(re1->freestyle_bmain, freestyle_scene, false, false);
+					BKE_id_free(re1->freestyle_bmain, freestyle_scene);
+				}
 			}
 		}
 		BLI_freelistN(&re1->freestyle_renders);

@@ -89,7 +89,7 @@ class BlenderFileLoader
 {
 public:
 	/*! Builds a MaxFileLoader */
-	BlenderFileLoader(Render *re, ViewLayer *view_layer);
+	BlenderFileLoader(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph);
 	virtual ~BlenderFileLoader();
 
 	/*! Loads the 3D scene and returns a pointer to the scene root node */
@@ -124,7 +124,7 @@ protected:
 		unsigned n;
 	};
 	Render *_re;
-	ViewLayer *_view_layer;
+	Depsgraph *_depsgraph;
 	NodeGroup *_Scene;
 	unsigned _numFacesRead;
 #if 0
