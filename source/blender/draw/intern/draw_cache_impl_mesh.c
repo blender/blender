@@ -4240,7 +4240,7 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 		/* Loose verts */
 		if (ibo_verts) {
 			for (i = 0; i < lvert_len; ++i) {
-				int vidx = v_origindex[rdata->mapped.loose_edges[i]];
+				int vidx = v_origindex[rdata->mapped.loose_verts[i]];
 				if (vidx != ORIGINDEX_NONE) {
 					GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx);
 				}
