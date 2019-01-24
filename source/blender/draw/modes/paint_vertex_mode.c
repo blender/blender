@@ -85,7 +85,7 @@ typedef struct PAINT_VERTEX_Shaders {
 
 static struct {
 	PAINT_VERTEX_Shaders sh_data[DRW_SHADER_SLOT_LEN];
-} e_data = {NULL}; /* Engine data */
+} e_data = {{{NULL}}}; /* Engine data */
 
 typedef struct PAINT_VERTEX_PrivateData {
 	DRWShadingGroup *fvcolor_shgrp;

@@ -97,12 +97,14 @@ static GPUShader *drw_shader_get_builtin_shader_clipped(eGPUBuiltinShader shader
 	return shader;
 }
 
+#ifndef NDEBUG
 static bool drw_shader_get_builtin_shader_test_all(eGPUBuiltinShader shader_id)
 {
 	bool test = false;
 	drw_shader_get_builtin_shader_clipped(shader_id, &test);
 	return test;
 }
+#endif
 
 GPUShader *DRW_shader_get_builtin_shader(eGPUBuiltinShader shader_id, eDRW_ShaderSlot slot)
 {
@@ -123,6 +125,7 @@ GPUShader *DRW_shader_get_builtin_shader(eGPUBuiltinShader shader_id, eDRW_Shade
 	}
 	else {
 		BLI_assert(0);
+		return NULL;
 	}
 }
 
