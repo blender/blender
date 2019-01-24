@@ -118,6 +118,7 @@
 #endif
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 
 static void rna_idname_validate(const char *name, char *r_name)
@@ -135,6 +136,8 @@ static void rna_Main_ID_remove(
 	if (do_unlink) {
 		BKE_id_delete(bmain, id);
 		RNA_POINTER_INVALIDATE(id_ptr);
+		/* Force full redraw, mandatory to avoid crashes when running this from UI... */
+		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
 	else if (ID_REAL_USERS(id) <= 0) {
 		const int flag = (do_id_user ? 0 : LIB_ID_FREE_NO_USER_REFCOUNT) |

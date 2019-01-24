@@ -44,6 +44,9 @@
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "bpy_capi_utils.h"
 #include "bpy_rna_id_collection.h"
 
@@ -351,6 +354,8 @@ static PyObject *bpy_batch_remove(PyObject *UNUSED(self), PyObject *args, PyObje
 		Py_DECREF(ids_fast);
 
 		BKE_id_multi_tagged_delete(bmain);
+		/* Force full redraw, mandatory to avoid crashes when running this from UI... */
+		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
 	else {
 		goto error;
