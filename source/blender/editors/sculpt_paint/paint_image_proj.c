@@ -6083,8 +6083,12 @@ static void get_default_texture_layer_name_for_object(Object *ob, int texture_ty
 
 static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	/* Get material and default color to display in the popup. */
 	Object *ob = ED_object_active_context(C);
+	Material *ma = get_or_create_current_material(C, ob);
+
 	int type = get_texture_layer_type(op, "type");
+	proj_paint_default_color(op, type, ma);
 
 	char imagename[MAX_ID_NAME - 2];
 	get_default_texture_layer_name_for_object(ob, type, (char *)&imagename, sizeof(imagename));
