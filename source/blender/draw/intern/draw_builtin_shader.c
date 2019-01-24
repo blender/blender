@@ -19,7 +19,7 @@
  *
  */
 
-/** \file draw_armature.c
+/** \file draw_builtin_shader.c
  *  \ingroup draw
  * Draw manager versions of #eGPUBuiltinShader, see #GPU_shader_get_builtin_shader.
  *
