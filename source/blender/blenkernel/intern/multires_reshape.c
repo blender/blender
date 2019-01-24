@@ -89,6 +89,9 @@ static void multires_reshape_allocate_displacement_grid(
 	const int grid_area = grid_size * grid_size;
 	float (*disps)[3] = MEM_calloc_arrayN(
 	        grid_area, 3 * sizeof(float), "multires disps");
+	if (displacement_grid->disps != NULL) {
+		MEM_freeN(displacement_grid->disps);
+	}
 	displacement_grid->disps = disps;
 	displacement_grid->totdisp = grid_area;
 	displacement_grid->level = level;
@@ -97,7 +100,7 @@ static void multires_reshape_allocate_displacement_grid(
 static void multires_reshape_ensure_displacement_grid(
         MDisps *displacement_grid, const int level)
 {
-	if (displacement_grid->disps != NULL) {
+	if (displacement_grid->disps != NULL && displacement_grid->level == level) {
 		return;
 	}
 	multires_reshape_allocate_displacement_grid(
