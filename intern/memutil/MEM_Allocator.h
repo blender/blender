@@ -43,8 +43,8 @@ struct MEM_Allocator
 	typedef _Tp        value_type;
 
 	template<typename _Tp1>
-        struct rebind { 
-		typedef MEM_Allocator<_Tp1> other; 
+        struct rebind {
+		typedef MEM_Allocator<_Tp1> other;
 	};
 
 	MEM_Allocator() throw() {}
@@ -75,16 +75,16 @@ struct MEM_Allocator
 		MEM_freeN(__p);
 	}
 
-	size_type max_size() const throw() { 
-		return size_t(-1) / sizeof(_Tp); 
+	size_type max_size() const throw() {
+		return size_t(-1) / sizeof(_Tp);
 	}
 
-	void construct(pointer __p, const _Tp& __val) { 
-		new(__p) _Tp(__val); 
+	void construct(pointer __p, const _Tp& __val) {
+		new(__p) _Tp(__val);
 	}
 
-	void destroy(pointer __p) { 
-		__p->~_Tp(); 
+	void destroy(pointer __p) {
+		__p->~_Tp();
 	}
 };
 

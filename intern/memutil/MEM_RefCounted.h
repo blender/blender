@@ -58,19 +58,19 @@ public:
 	{
 	}
 
-	/** 
+	/**
 	 * Returns the reference count of this object.
 	 * @return the reference count.
 	 */
 	inline virtual int getRef() const;
 
-	/** 
+	/**
 	 * Increases the reference count of this object.
 	 * @return the new reference count.
 	 */
 	inline virtual int incRef();
 
-	/** 
+	/**
 	 * Decreases the reference count of this object.
 	 * If the reference count reaches zero, the object self-destructs.
 	 * @return the new reference count.
@@ -113,4 +113,3 @@ inline int MEM_RefCounted::decRef()
 }
 
 #endif // __MEM_REFCOUNTED_H__
-

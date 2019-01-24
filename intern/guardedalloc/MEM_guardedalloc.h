@@ -48,11 +48,11 @@
  *
  * There are currently no known issues with MEM. Note that there is a
  * second intern/ module with MEM_ prefix, for use in c++.
- * 
+ *
  * \subsection memdependencies Dependencies
  * - stdlib
  * - stdio
- * 
+ *
  * \subsection memdocs API Documentation
  * See \ref MEM_guardedalloc.h
  */
@@ -146,11 +146,11 @@ extern "C" {
 	extern void *(*MEM_mapallocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
 	/** Print a list of the names and sizes of all allocated memory
-	 * blocks. as a python dict for easy investigation */ 
+	 * blocks. as a python dict for easy investigation */
 	extern void (*MEM_printmemlist_pydict)(void);
 
 	/** Print a list of the names and sizes of all allocated memory
-	 * blocks. */ 
+	 * blocks. */
 	extern void (*MEM_printmemlist)(void);
 
 	/** calls the function on all allocated memory blocks. */
@@ -158,7 +158,7 @@ extern "C" {
 
 	/** Print statistics about memory usage */
 	extern void (*MEM_printmemlist_stats)(void);
-	
+
 	/** Set the callback function for error output. */
 	extern void (*MEM_set_error_callback)(void (*func)(const char *));
 
@@ -171,7 +171,7 @@ extern "C" {
 	/** Set thread locking functions for safe memory allocation from multiple
 	 * threads, pass NULL pointers to disable thread locking again. */
 	extern void (*MEM_set_lock_callback)(void (*lock)(void), void (*unlock)(void));
-	
+
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	extern void (*MEM_set_memory_debug)(void);
 

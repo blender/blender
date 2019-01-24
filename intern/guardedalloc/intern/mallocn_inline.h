@@ -53,4 +53,3 @@ MEM_INLINE bool MEM_size_safe_multiply(size_t a, size_t b, size_t *result)
 }
 
 #endif  /* __MALLOCN_INLINE_H__ */
-

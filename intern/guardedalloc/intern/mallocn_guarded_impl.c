@@ -197,7 +197,7 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 /* vars                                                                  */
 /* --------------------------------------------------------------------- */
-	
+
 
 static unsigned int totblock = 0;
 static size_t mem_in_use = 0, mmap_in_use = 0, peak_mem = 0;
@@ -289,7 +289,7 @@ bool MEM_guarded_consistency_check(void)
 	/* check_memlist starts from the front, and runs until it finds
 	 * the requested chunk. For this test, that's the last one. */
 	listend = membase->last;
-	
+
 	err_val = check_memlist(listend);
 
 	return (err_val == NULL);
@@ -316,7 +316,7 @@ size_t MEM_guarded_allocN_len(const void *vmemh)
 {
 	if (vmemh) {
 		const MemHead *memh = vmemh;
-	
+
 		memh--;
 		return memh->len;
 	}
@@ -328,7 +328,7 @@ size_t MEM_guarded_allocN_len(const void *vmemh)
 void *MEM_guarded_dupallocN(const void *vmemh)
 {
 	void *newp = NULL;
-	
+
 	if (vmemh) {
 		const MemHead *memh = vmemh;
 		memh--;
@@ -378,7 +378,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
 void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
 {
 	void *newp = NULL;
-	
+
 	if (vmemh) {
 		MemHead *memh = vmemh;
 		memh--;
@@ -485,7 +485,7 @@ static void print_memhead_backtrace(MemHead *memh)
 static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 {
 	MemTail *memt;
-	
+
 	memh->tag1 = MEMTAG1;
 	memh->name = str;
 	memh->nextname = NULL;
@@ -522,7 +522,7 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
 	MemHead *memh;
 
 	len = SIZET_ALIGN_4(len);
-	
+
 	memh = (MemHead *)malloc(len + sizeof(MemHead) + sizeof(MemTail));
 
 	if (LIKELY(memh)) {
@@ -785,7 +785,7 @@ void MEM_guarded_printmemlist_stats(void)
 		       (double)pb->len / 1024.0 / (double)pb->items, pb->name);
 	}
 	free(printblock);
-	
+
 	mem_unlock_thread();
 
 #ifdef HAVE_MALLOC_STATS
@@ -823,7 +823,7 @@ static void MEM_guarded_printmemlist_internal(int pydict)
 
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
-	
+
 	if (pydict) {
 		print_error("# membase_debug.py\n");
 		print_error("membase = [\n");
@@ -856,7 +856,7 @@ static void MEM_guarded_printmemlist_internal(int pydict)
 		print_error("]\n\n");
 		print_error(mem_printmemlist_pydict_script);
 	}
-	
+
 	mem_unlock_thread();
 }
 
@@ -940,7 +940,7 @@ void MEM_guarded_freeN(void *vmemh)
 			return;
 		}
 	}
-	
+
 	memh--;
 	if (memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
 		MemorY_ErroR(memh->name, "double free");
@@ -953,7 +953,7 @@ void MEM_guarded_freeN(void *vmemh)
 	{
 		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + memh->len);
 		if (memt->tag3 == MEMTAG3) {
-			
+
 			memh->tag1 = MEMFREE;
 			memh->tag2 = MEMFREE;
 			memt->tag3 = MEMFREE;
