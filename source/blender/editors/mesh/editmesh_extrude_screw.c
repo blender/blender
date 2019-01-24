@@ -207,8 +207,8 @@ void MESH_OT_screw(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "steps", 9, 1, 100000, "Steps", "Steps", 3, 256);
 	RNA_def_int(ot->srna, "turns", 1, 1, 100000, "Turns", "Turns", 1, 256);
 
-	RNA_def_float_vector(ot->srna, "center", 3, NULL, -1e12f, 1e12f,
-	                     "Center", "Center in global view space", -1e4f, 1e4f);
+	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -1e12f, 1e12f,
+	                         "Center", "Center in global view space", -1e4f, 1e4f);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f,
 	                     "Axis", "Axis in global view space", -1.0f, 1.0f);
 }
