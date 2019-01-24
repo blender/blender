@@ -167,6 +167,8 @@ static void DRW_gpencil_fx_blur(
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	DRWShadingGroup *fx_shgrp;
+	bGPdata *gpd = cache->gpd;
+	copy_v3_v3(fxd->runtime.loc, cache->loc);
 
 	fxd->blur[0] = fxd->radius[0];
 	fxd->blur[1] = fxd->radius[1];
@@ -224,9 +226,9 @@ static void DRW_gpencil_fx_blur(
 	DRW_shgroup_uniform_vec2(fx_shgrp, "Viewport", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_int(fx_shgrp, "blur", &fxd->blur[0], 2);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
 }
@@ -335,7 +337,7 @@ static void DRW_gpencil_fx_light(
 	DRW_shgroup_uniform_float(fx_shgrp, "ambient", &fxd->ambient, 1);
 
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
 }
@@ -354,6 +356,7 @@ static void DRW_gpencil_fx_pixel(
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	DRWShadingGroup *fx_shgrp;
 	bGPdata *gpd = cache->gpd;
+	copy_v3_v3(fxd->runtime.loc, cache->loc);
 
 	fxd->size[2] = (int)fxd->flag & FX_PIXEL_USE_LINES;
 
@@ -365,7 +368,7 @@ static void DRW_gpencil_fx_pixel(
 	DRW_shgroup_uniform_int(fx_shgrp, "size", &fxd->size[0], 3);
 	DRW_shgroup_uniform_vec4(fx_shgrp, "color", &fxd->rgba[0], 1);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
@@ -381,12 +384,15 @@ static void DRW_gpencil_fx_rim(
 		return;
 	}
 	RimShaderFxData *fxd = (RimShaderFxData *)fx;
+	bGPdata *gpd = cache->gpd;
 
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	DRWShadingGroup *fx_shgrp;
 
 	GPUBatch *fxquad = DRW_cache_fullscreen_quad_get();
+	copy_v3_v3(fxd->runtime.loc, cache->loc);
+
 	/* prepare pass */
 	fx_shgrp = DRW_shgroup_create(
 	        e_data->gpencil_fx_rim_prepare_sh,
@@ -400,9 +406,9 @@ static void DRW_gpencil_fx_rim(
 	DRW_shgroup_uniform_vec3(fx_shgrp, "rim_color", &fxd->rim_rgb[0], 1);
 	DRW_shgroup_uniform_vec3(fx_shgrp, "mask_color", &fxd->mask_rgb[0], 1);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
 
@@ -416,9 +422,9 @@ static void DRW_gpencil_fx_rim(
 	DRW_shgroup_uniform_vec2(fx_shgrp, "Viewport", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_int(fx_shgrp, "blur", &fxd->blur[0], 2);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh_b = fx_shgrp;
 
@@ -455,6 +461,8 @@ static void DRW_gpencil_fx_shadow(
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	DRWShadingGroup *fx_shgrp;
+	bGPdata *gpd = cache->gpd;
+	copy_v3_v3(fxd->runtime.loc, cache->loc);
 
 	GPUBatch *fxquad = DRW_cache_fullscreen_quad_get();
 	/* prepare pass */
@@ -475,7 +483,7 @@ static void DRW_gpencil_fx_shadow(
 		DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->object->obmat[3], 1);
 	}
 	else {
-		DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+		DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	}
 
 	const int nowave = -1;
@@ -490,7 +498,7 @@ static void DRW_gpencil_fx_shadow(
 	DRW_shgroup_uniform_float(fx_shgrp, "phase", &fxd->phase, 1);
 
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
 
@@ -504,9 +512,9 @@ static void DRW_gpencil_fx_shadow(
 	DRW_shgroup_uniform_vec2(fx_shgrp, "Viewport", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_int(fx_shgrp, "blur", &fxd->blur[0], 2);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh_b = fx_shgrp;
 
@@ -532,6 +540,8 @@ static void DRW_gpencil_fx_glow(
 		return;
 	}
 	GlowShaderFxData *fxd = (GlowShaderFxData *)fx;
+	bGPdata *gpd = cache->gpd;
+	copy_v3_v3(fxd->runtime.loc, cache->loc);
 
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
@@ -563,9 +573,9 @@ static void DRW_gpencil_fx_glow(
 	DRW_shgroup_uniform_vec2(fx_shgrp, "Viewport", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_int(fx_shgrp, "blur", &fxd->blur[0], 2);
 
-	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", fxd->runtime.loc, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh_b = fx_shgrp;
 
@@ -601,6 +611,7 @@ static void DRW_gpencil_fx_swirl(
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	DRWShadingGroup *fx_shgrp;
+	bGPdata *gpd = cache->gpd;
 
 	fxd->transparent = (int)fxd->flag & FX_SWIRL_MAKE_TRANSPARENT;
 
@@ -619,7 +630,7 @@ static void DRW_gpencil_fx_swirl(
 	DRW_shgroup_uniform_int(fx_shgrp, "transparent", &fxd->transparent, 1);
 
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
 }

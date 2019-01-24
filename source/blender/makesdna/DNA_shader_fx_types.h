@@ -76,6 +76,8 @@ typedef struct ShaderFxData {
 
 /* Runtime temp data */
 typedef struct ShaderFxData_Runtime {
+	float loc[3];
+	char _pad[4];
 	struct DRWShadingGroup *fx_sh;
 	struct DRWShadingGroup *fx_sh_b;
 	struct DRWShadingGroup *fx_sh_c;
