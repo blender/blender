@@ -570,44 +570,33 @@ static void action_listener(
 			}
 			break;
 		case NC_SCENE:
-			if (saction->mode == SACTCONT_TIMELINE) {
-				switch (wmn->data) {
-					case ND_RENDER_RESULT:
-						ED_area_tag_redraw(sa);
-						break;
-					case ND_OB_ACTIVE:
-					case ND_FRAME:
-						ED_area_tag_refresh(sa);
-						break;
-					case ND_FRAME_RANGE:
-					{
-						ARegion *ar;
-						Scene *scene = wmn->reference;
-
-						for (ar = sa->regionbase.first; ar; ar = ar->next) {
-							if (ar->regiontype == RGN_TYPE_WINDOW) {
-								ar->v2d.tot.xmin = (float)(SFRA - 4);
-								ar->v2d.tot.xmax = (float)(EFRA + 4);
-								break;
-							}
+			switch (wmn->data) {
+				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
+					/* Selection changed, so force refresh to flush
+					 * (needs flag set to do syncing). */
+					saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+					ED_area_tag_refresh(sa);
+					break;
+				case ND_RENDER_RESULT:
+					ED_area_tag_redraw(sa);
+					break;
+				case ND_FRAME_RANGE:
+					for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+						if (ar->regiontype == RGN_TYPE_WINDOW) {
+							Scene *scene = wmn->reference;
+							ar->v2d.tot.xmin = (float)(SFRA - 4);
+							ar->v2d.tot.xmax = (float)(EFRA + 4);
+							break;
 						}
-						break;
 					}
-				}
-			}
-			else {
-				switch (wmn->data) {
-					case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush
-					                     * (needs flag set to do syncing) */
-					case ND_OB_SELECT:
-						saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
-						ED_area_tag_refresh(sa);
-						break;
-
-					default: /* just redrawing the view will do */
+					break;
+				default:
+					if (saction->mode != SACTCONT_TIMELINE) {
+						/* Just redrawing the view will do. */
 						ED_area_tag_redraw(sa);
-						break;
-				}
+					}
+					break;
 			}
 			break;
 		case NC_OBJECT:
