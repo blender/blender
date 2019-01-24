@@ -1112,6 +1112,7 @@ void workbench_deferred_draw_finish(WORKBENCH_Data *vedata)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 
+	/* XXX TODO(fclem) do not discard UBOS after drawing! Store them per viewport. */
 	workbench_private_data_free(wpd);
 	workbench_volume_smoke_textures_free(wpd);
 }

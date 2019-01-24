@@ -46,6 +46,88 @@ static struct {
 extern char datatoc_workbench_effect_dof_frag_glsl[];
 
 /* *********** Functions *********** */
+
+/**
+ * Transform [-1..1] square to unit circle.
+ **/
+static void square_to_circle(float x, float y, float *r, float *T)
+{
+	if (x > -y) {
+		if (x > y) {
+			*r = x;
+			*T = (M_PI / 4.0f) * (y / x);
+		}
+		else {
+			*r = y;
+			*T = (M_PI / 4.0f) * (2 - (x / y));
+		}
+	}
+	else {
+		if (x < y) {
+			*r = -x;
+			*T = (M_PI / 4.0f) * (4 + (y / x));
+		}
+		else {
+			*r = -y;
+			if (y != 0) {
+				*T = (M_PI / 4.0f) * (6 - (x / y));
+			}
+			else {
+				*T = 0.0f;
+			}
+		}
+	}
+}
+
+#define KERNEL_RAD 3
+#define SAMP_LEN   SQUARE(KERNEL_RAD * 2 + 1)
+
+static void workbench_dof_setup_samples(
+        struct GPUUniformBuffer **ubo, float **data,
+        float bokeh_sides, float bokeh_rotation, float bokeh_ratio)
+{
+	if (*data == NULL) {
+		*data = MEM_callocN(sizeof(float) * 4 * SAMP_LEN, "workbench dof samples");
+	}
+	if (*ubo == NULL) {
+		*ubo = DRW_uniformbuffer_create(sizeof(float) * 4 * SAMP_LEN, NULL);
+	}
+
+	float *samp = *data;
+	for (int i = 0; i <= KERNEL_RAD; ++i) {
+		for (int j = -KERNEL_RAD; j <= KERNEL_RAD; ++j) {
+			for (int k = -KERNEL_RAD; k <= KERNEL_RAD; ++k) {
+				if (abs(j) > i || abs(k) > i) {
+					continue;
+				}
+				if (abs(j) < i && abs(k) < i) {
+					continue;
+				}
+				float x = ((float)j) / KERNEL_RAD;
+				float y = ((float)k) / KERNEL_RAD;
+
+				float r, T;
+				square_to_circle(x, y, &r, &T);
+				samp[2] = r;
+
+				/* Bokeh shape parametrisation */
+				if (bokeh_sides > 1.0f) {
+					float denom = T - (2.0 * M_PI / bokeh_sides) * floorf((bokeh_sides * T + M_PI) / (2.0 * M_PI));
+					r *= cosf(M_PI / bokeh_sides) / cosf(denom);
+				}
+
+				T += bokeh_rotation;
+
+				samp[0] = r * cosf(T) * bokeh_ratio;
+				samp[1] = r * sinf(T);
+				samp += 4;
+			}
+		}
+	}
+
+	DRW_uniformbuffer_update(*ubo, *data);
+}
+
 void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
@@ -93,22 +175,27 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 
 	const float *full_size = DRW_viewport_size_get();
 	int size[2] = {full_size[0] / 2, full_size[1] / 2};
+#if 0
 	/* NOTE: We Ceil here in order to not miss any edge texel if using a NPO2 texture.  */
 	int shrink_h_size[2] = {ceilf(size[0] / 8.0f), size[1]};
 	int shrink_w_size[2] = {shrink_h_size[0], ceilf(size[1] / 8.0f)};
+#endif
 
 	wpd->half_res_col_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
 	wpd->dof_blur_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
 	wpd->coc_halfres_tx  = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG8, &draw_engine_workbench_solid);
+#if 0
 	wpd->coc_temp_tx     = DRW_texture_pool_query_2D(shrink_h_size[0], shrink_h_size[1], GPU_RG8, &draw_engine_workbench_solid);
 	wpd->coc_tiles_tx[0] = DRW_texture_pool_query_2D(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
 	wpd->coc_tiles_tx[1] = DRW_texture_pool_query_2D(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
+#endif
 
 	GPU_framebuffer_ensure_config(&fbl->dof_downsample_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(wpd->half_res_col_tx),
 		GPU_ATTACHMENT_TEXTURE(wpd->coc_halfres_tx),
 	});
+#if 0
 	GPU_framebuffer_ensure_config(&fbl->dof_coc_tile_h_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(wpd->coc_temp_tx),
@@ -121,6 +208,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(wpd->coc_tiles_tx[1]),
 	});
+#endif
 	GPU_framebuffer_ensure_config(&fbl->dof_blur1_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(wpd->dof_blur_tx),
@@ -166,6 +254,21 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 
 		wpd->dof_near_far[0] = -cam->clipsta;
 		wpd->dof_near_far[1] = -cam->clipend;
+
+		float blades = cam->gpu_dof.num_blades;
+		float rotation = cam->gpu_dof.rotation;
+		float ratio = 1.0f / cam->gpu_dof.ratio;
+
+		if (wpd->dof_ubo == NULL ||
+		    blades != wpd->dof_blades ||
+		    rotation != wpd->dof_rotation ||
+		    ratio != wpd->dof_ratio)
+		{
+			wpd->dof_blades = blades;
+			wpd->dof_rotation = rotation;
+			wpd->dof_ratio = ratio;
+			workbench_dof_setup_samples(&wpd->dof_ubo, &stl->dof_ubo_data, blades, rotation, ratio);
+		}
 	}
 
 	wpd->dof_enabled = true;
@@ -202,6 +305,7 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
 		DRW_shgroup_uniform_vec2(grp, "nearFar", wpd->dof_near_far, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
+#if 0
 	{
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_flatten_h_sh, psl->dof_flatten_h_ps);
 		DRW_shgroup_uniform_texture(grp, "inputCocTex", wpd->coc_halfres_tx);
@@ -222,10 +326,11 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
 		DRW_shgroup_uniform_texture(grp, "inputCocTex", wpd->coc_tiles_tx[1]);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
+#endif
 	{
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_blur1_sh, psl->dof_blur1_ps);
+		DRW_shgroup_uniform_block(grp, "dofSamplesBlock", wpd->dof_ubo);
 		DRW_shgroup_uniform_texture(grp, "inputCocTex", wpd->coc_halfres_tx);
-		DRW_shgroup_uniform_texture(grp, "maxCocTilesTex", wpd->coc_tiles_tx[0]);
 		DRW_shgroup_uniform_texture(grp, "halfResColorTex", wpd->half_res_col_tx);
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -271,9 +376,12 @@ void workbench_dof_draw_pass(WORKBENCH_Data *vedata)
 		return;
 	}
 
+	DRW_stats_group_start("Depth Of Field");
+
 	GPU_framebuffer_bind(fbl->dof_downsample_fb);
 	DRW_draw_pass(psl->dof_down_ps);
 
+#if 0
 	GPU_framebuffer_bind(fbl->dof_coc_tile_h_fb);
 	DRW_draw_pass(psl->dof_flatten_h_ps);
 
@@ -285,6 +393,7 @@ void workbench_dof_draw_pass(WORKBENCH_Data *vedata)
 
 	GPU_framebuffer_bind(fbl->dof_coc_tile_v_fb);
 	DRW_draw_pass(psl->dof_dilate_h_ps);
+#endif
 
 	GPU_framebuffer_bind(fbl->dof_blur1_fb);
 	DRW_draw_pass(psl->dof_blur1_ps);
@@ -294,4 +403,6 @@ void workbench_dof_draw_pass(WORKBENCH_Data *vedata)
 
 	GPU_framebuffer_bind(fbl->color_only_fb);
 	DRW_draw_pass(psl->dof_resolve_ps);
+
+	DRW_stats_group_end();
 }

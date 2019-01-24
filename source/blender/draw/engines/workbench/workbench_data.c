@@ -217,5 +217,6 @@ void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
 	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
+	DRW_UBO_FREE_SAFE(wpd->dof_ubo);
 	GPU_BATCH_DISCARD_SAFE(wpd->world_clip_planes_batch);
 }

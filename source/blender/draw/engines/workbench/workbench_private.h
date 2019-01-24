@@ -115,6 +115,7 @@ typedef struct WORKBENCH_TextureList {
 typedef struct WORKBENCH_StorageList {
 	struct WORKBENCH_PrivateData *g_data;
 	struct WORKBENCH_EffectInfo *effects;
+	float *dof_ubo_data;
 } WORKBENCH_StorageList;
 
 typedef struct WORKBENCH_PassList {
@@ -239,10 +240,14 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUTexture *coc_halfres_tx;
 	struct GPUTexture *coc_temp_tx;
 	struct GPUTexture *coc_tiles_tx[2];
+	struct GPUUniformBuffer *dof_ubo;
 	float dof_aperturesize;
 	float dof_distance;
 	float dof_invsensorsize;
 	float dof_near_far[2];
+	float dof_blades;
+	float dof_rotation;
+	float dof_ratio;
 	bool dof_enabled;
 
 	/* Color Management */
