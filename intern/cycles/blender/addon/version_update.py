@@ -461,3 +461,11 @@ def do_versions(self):
                     cworld.sampling_method = 'NONE'
 
         ambient_occlusion_nodes_relink()
+
+    if bpy.data.version <= (2, 79, 6) or \
+       (bpy.data.version >= (2, 80, 0) and bpy.data.version <= (2, 80, 41)):
+        # Change default to bump again.
+        for mat in bpy.data.materials:
+            cmat = mat.cycles
+            if not cmat.is_property_set("displacement_method"):
+                cmat.displacement_method = 'DISPLACEMENT'
