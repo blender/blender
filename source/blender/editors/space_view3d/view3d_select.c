@@ -1585,11 +1585,15 @@ static bool ed_object_select_pick(
         bool extend, bool deselect, bool toggle, bool obcenter, bool enumerate, bool object)
 {
 	ViewContext vc;
+	/* setup view context for argument to callbacks */
+	ED_view3d_viewcontext_init(C, &vc);
+
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	const Base *oldbasact = BASACT(view_layer);
+	/* Don't set when the context has no active object (hidden), see: T60807. */
+	const Base *oldbasact = vc.obact ? BASACT(view_layer) : NULL;
 	Base *base, *startbase = NULL, *basact = NULL;
 	const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
 	bool is_obedit;
@@ -1598,8 +1602,6 @@ static bool ed_object_select_pick(
 	int hits;
 	const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 
-	/* setup view context for argument to callbacks */
-	ED_view3d_viewcontext_init(C, &vc);
 
 	is_obedit = (vc.obedit != NULL);
 	if (object) {
@@ -1820,7 +1822,7 @@ static bool ed_object_select_pick(
 	}
 
 	/* Ensure code above doesn't change the active base. */
-	BLI_assert(oldbasact == BASACT(view_layer));
+	BLI_assert(oldbasact == (vc.obact ? BASACT(view_layer) : NULL));
 
 	/* so, do we have something selected? */
 	if (basact) {
