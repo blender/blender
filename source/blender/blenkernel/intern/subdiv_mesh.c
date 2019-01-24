@@ -1131,6 +1131,9 @@ static void subdiv_mesh_vertex_of_loose_edge_interpolate(
 		                  coarse_vertex_indices,
 		                  interpolation_weights, NULL,
 		                  2, subdiv_vertex_index);
+		if (ctx->vert_origindex != NULL) {
+			ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
+		}
 	}
 }
 
