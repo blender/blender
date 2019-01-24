@@ -892,7 +892,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
             name="Displacement Method",
             description="Method to use for the displacement",
             items=enum_displacement_methods,
-            default='DISPLACEMENT',
+            default='BUMP',
         )
 
     @classmethod
