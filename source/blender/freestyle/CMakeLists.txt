@@ -392,12 +392,12 @@ set(SRC
 	intern/scene_graph/NodeGroup.h
 	intern/scene_graph/NodeLight.cpp
 	intern/scene_graph/NodeLight.h
-	intern/scene_graph/NodeViewLayer.cpp
-	intern/scene_graph/NodeViewLayer.h
 	intern/scene_graph/NodeShape.cpp
 	intern/scene_graph/NodeShape.h
 	intern/scene_graph/NodeTransform.cpp
 	intern/scene_graph/NodeTransform.h
+	intern/scene_graph/NodeViewLayer.cpp
+	intern/scene_graph/NodeViewLayer.h
 	intern/scene_graph/OrientedLineRep.cpp
 	intern/scene_graph/OrientedLineRep.h
 	intern/scene_graph/Rep.cpp

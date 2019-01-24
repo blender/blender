@@ -47,8 +47,8 @@ set(SRC
 	node_buttons.c
 	node_draw.c
 	node_edit.c
-	node_group.c
 	node_gizmo.c
+	node_group.c
 	node_ops.c
 	node_relationships.c
 	node_select.c

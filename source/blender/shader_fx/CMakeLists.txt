@@ -42,7 +42,6 @@ set(INC_SYS
 set(SRC
 	intern/FX_shader_util.h
 
-	intern/FX_shader_util.c
 	intern/FX_shader_blur.c
 	intern/FX_shader_colorize.c
 	intern/FX_shader_flip.c
@@ -52,6 +51,7 @@ set(SRC
 	intern/FX_shader_rim.c
 	intern/FX_shader_shadow.c
 	intern/FX_shader_swirl.c
+	intern/FX_shader_util.c
 	intern/FX_shader_wave.c
 
 	FX_shader_types.h

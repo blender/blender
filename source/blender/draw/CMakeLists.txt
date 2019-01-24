@@ -70,10 +70,10 @@ set(SRC
 	intern/draw_manager.c
 	intern/draw_manager_data.c
 	intern/draw_manager_exec.c
+	intern/draw_manager_profiling.c
 	intern/draw_manager_shader.c
 	intern/draw_manager_text.c
 	intern/draw_manager_texture.c
-	intern/draw_manager_profiling.c
 	intern/draw_view.c
 	modes/edit_armature_mode.c
 	modes/edit_curve_mode.c
@@ -110,26 +110,26 @@ set(SRC
 	engines/eevee/eevee_subsurface.c
 	engines/eevee/eevee_temporal_sampling.c
 	engines/eevee/eevee_volumes.c
+	engines/workbench/solid_mode.c
+	engines/workbench/transparent_mode.c
 	engines/workbench/workbench_data.c
-	engines/workbench/workbench_engine.c
 	engines/workbench/workbench_deferred.c
 	engines/workbench/workbench_effect_aa.c
 	engines/workbench/workbench_effect_fxaa.c
 	engines/workbench/workbench_effect_taa.c
+	engines/workbench/workbench_engine.c
 	engines/workbench/workbench_forward.c
 	engines/workbench/workbench_materials.c
 	engines/workbench/workbench_render.c
 	engines/workbench/workbench_studiolight.c
 	engines/workbench/workbench_volume.c
-	engines/workbench/solid_mode.c
-	engines/workbench/transparent_mode.c
 	engines/external/external_engine.c
-	engines/gpencil/gpencil_engine.h
-	engines/gpencil/gpencil_engine.c
-	engines/gpencil/gpencil_render.c
 	engines/gpencil/gpencil_cache_utils.c
-	engines/gpencil/gpencil_draw_utils.c
 	engines/gpencil/gpencil_draw_cache_impl.c
+	engines/gpencil/gpencil_draw_utils.c
+	engines/gpencil/gpencil_engine.c
+	engines/gpencil/gpencil_engine.h
+	engines/gpencil/gpencil_render.c
 	engines/gpencil/gpencil_shader_fx.c
 
 	DRW_engine.h
@@ -142,8 +142,8 @@ set(SRC
 	intern/draw_hair_private.h
 	intern/draw_instance_data.h
 	intern/draw_manager.h
-	intern/draw_manager_text.h
 	intern/draw_manager_profiling.h
+	intern/draw_manager_text.h
 	intern/draw_view.h
 	modes/draw_mode_engines.h
 	modes/edit_mesh_mode_intern.h

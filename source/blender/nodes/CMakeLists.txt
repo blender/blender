@@ -50,26 +50,31 @@ set(SRC
 	composite/nodes/node_composite_alphaOver.c
 	composite/nodes/node_composite_bilateralblur.c
 	composite/nodes/node_composite_blur.c
+	composite/nodes/node_composite_bokehblur.c
+	composite/nodes/node_composite_bokehimage.c
+	composite/nodes/node_composite_boxmask.c
 	composite/nodes/node_composite_brightness.c
 	composite/nodes/node_composite_channelMatte.c
 	composite/nodes/node_composite_chromaMatte.c
 	composite/nodes/node_composite_colorMatte.c
 	composite/nodes/node_composite_colorSpill.c
 	composite/nodes/node_composite_colorbalance.c
+	composite/nodes/node_composite_colorcorrection.c
 	composite/nodes/node_composite_common.c
 	composite/nodes/node_composite_composite.c
 	composite/nodes/node_composite_cornerpin.c
 	composite/nodes/node_composite_crop.c
 	composite/nodes/node_composite_cryptomatte.c
 	composite/nodes/node_composite_curves.c
-	composite/nodes/node_composite_despeckle.c
-	composite/nodes/node_composite_doubleEdgeMask.c
 	composite/nodes/node_composite_defocus.c
+	composite/nodes/node_composite_despeckle.c
 	composite/nodes/node_composite_diffMatte.c
 	composite/nodes/node_composite_dilate.c
 	composite/nodes/node_composite_directionalblur.c
 	composite/nodes/node_composite_displace.c
 	composite/nodes/node_composite_distanceMatte.c
+	composite/nodes/node_composite_doubleEdgeMask.c
+	composite/nodes/node_composite_ellipsemask.c
 	composite/nodes/node_composite_filter.c
 	composite/nodes/node_composite_flip.c
 	composite/nodes/node_composite_gamma.c
@@ -80,22 +85,23 @@ set(SRC
 	composite/nodes/node_composite_image.c
 	composite/nodes/node_composite_inpaint.c
 	composite/nodes/node_composite_invert.c
-	composite/nodes/node_composite_keyingscreen.c
 	composite/nodes/node_composite_keying.c
+	composite/nodes/node_composite_keyingscreen.c
 	composite/nodes/node_composite_lensdist.c
 	composite/nodes/node_composite_levels.c
 	composite/nodes/node_composite_lummaMatte.c
+	composite/nodes/node_composite_mapRange.c
 	composite/nodes/node_composite_mapUV.c
 	composite/nodes/node_composite_mapValue.c
-	composite/nodes/node_composite_mapRange.c
-	composite/nodes/node_composite_math.c
 	composite/nodes/node_composite_mask.c
+	composite/nodes/node_composite_math.c
 	composite/nodes/node_composite_mixrgb.c
 	composite/nodes/node_composite_movieclip.c
 	composite/nodes/node_composite_moviedistortion.c
 	composite/nodes/node_composite_normal.c
 	composite/nodes/node_composite_normalize.c
 	composite/nodes/node_composite_outputFile.c
+	composite/nodes/node_composite_pixelate.c
 	composite/nodes/node_composite_planetrackdeform.c
 	composite/nodes/node_composite_premulkey.c
 	composite/nodes/node_composite_rgb.c
@@ -109,6 +115,8 @@ set(SRC
 	composite/nodes/node_composite_splitViewer.c
 	composite/nodes/node_composite_stabilize2d.c
 	composite/nodes/node_composite_sunbeams.c
+	composite/nodes/node_composite_switch.c
+	composite/nodes/node_composite_switchview.c
 	composite/nodes/node_composite_texture.c
 	composite/nodes/node_composite_tonemap.c
 	composite/nodes/node_composite_trackpos.c
@@ -119,83 +127,68 @@ set(SRC
 	composite/nodes/node_composite_vecBlur.c
 	composite/nodes/node_composite_viewer.c
 	composite/nodes/node_composite_zcombine.c
-	composite/nodes/node_composite_bokehblur.c
-	composite/nodes/node_composite_bokehimage.c
-	composite/nodes/node_composite_boxmask.c
-	composite/nodes/node_composite_ellipsemask.c
-	composite/nodes/node_composite_switch.c
-	composite/nodes/node_composite_switchview.c
-	composite/nodes/node_composite_colorcorrection.c
-	composite/nodes/node_composite_pixelate.c
 
 	composite/node_composite_tree.c
 	composite/node_composite_util.c
 
-	shader/nodes/node_shader_camera.c
-	shader/nodes/node_shader_common.c
-	shader/nodes/node_shader_curves.c
-	shader/nodes/node_shader_gamma.c
-	shader/nodes/node_shader_brightness.c
-	shader/nodes/node_shader_hueSatVal.c
-	shader/nodes/node_shader_invert.c
-	shader/nodes/node_shader_mapping.c
-	shader/nodes/node_shader_math.c
-	shader/nodes/node_shader_mixRgb.c
-	shader/nodes/node_shader_normal.c
-	shader/nodes/node_shader_rgb.c
-	shader/nodes/node_shader_sepcombRGB.c
-	shader/nodes/node_shader_sepcombHSV.c
-	shader/nodes/node_shader_sepcombXYZ.c
-	shader/nodes/node_shader_squeeze.c
-	shader/nodes/node_shader_valToRgb.c
-	shader/nodes/node_shader_value.c
-	shader/nodes/node_shader_wireframe.c
-	shader/nodes/node_shader_wavelength.c
-	shader/nodes/node_shader_blackbody.c
-	shader/nodes/node_shader_vectMath.c
-	shader/nodes/node_shader_vectTransform.c
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_ambient_occlusion.c
 	shader/nodes/node_shader_attribute.c
 	shader/nodes/node_shader_background.c
+	shader/nodes/node_shader_bevel.c
+	shader/nodes/node_shader_blackbody.c
+	shader/nodes/node_shader_brightness.c
 	shader/nodes/node_shader_bsdf_anisotropic.c
 	shader/nodes/node_shader_bsdf_diffuse.c
-	shader/nodes/node_shader_bsdf_principled.c
 	shader/nodes/node_shader_bsdf_glass.c
 	shader/nodes/node_shader_bsdf_glossy.c
-	shader/nodes/node_shader_bsdf_toon.c
+	shader/nodes/node_shader_bsdf_hair.c
+	shader/nodes/node_shader_bsdf_hair_principled.c
+	shader/nodes/node_shader_bsdf_principled.c
 	shader/nodes/node_shader_bsdf_refraction.c
+	shader/nodes/node_shader_bsdf_toon.c
 	shader/nodes/node_shader_bsdf_translucent.c
 	shader/nodes/node_shader_bsdf_transparent.c
 	shader/nodes/node_shader_bsdf_velvet.c
-	shader/nodes/node_shader_bsdf_hair.c
-	shader/nodes/node_shader_bsdf_hair_principled.c
 	shader/nodes/node_shader_bump.c
+	shader/nodes/node_shader_camera.c
+	shader/nodes/node_shader_common.c
+	shader/nodes/node_shader_curves.c
+	shader/nodes/node_shader_displacement.c
+	shader/nodes/node_shader_eevee_specular.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c
+	shader/nodes/node_shader_gamma.c
 	shader/nodes/node_shader_geometry.c
+	shader/nodes/node_shader_hair_info.c
 	shader/nodes/node_shader_holdout.c
+	shader/nodes/node_shader_hueSatVal.c
 	shader/nodes/node_shader_ies_light.c
+	shader/nodes/node_shader_invert.c
 	shader/nodes/node_shader_layer_weight.c
 	shader/nodes/node_shader_light_falloff.c
 	shader/nodes/node_shader_light_path.c
+	shader/nodes/node_shader_mapping.c
+	shader/nodes/node_shader_math.c
+	shader/nodes/node_shader_mixRgb.c
 	shader/nodes/node_shader_mix_shader.c
-	shader/nodes/node_shader_shaderToRgb.c
+	shader/nodes/node_shader_normal.c
 	shader/nodes/node_shader_normal_map.c
 	shader/nodes/node_shader_object_info.c
-	shader/nodes/node_shader_hair_info.c
-	shader/nodes/node_shader_eevee_specular.c
 	shader/nodes/node_shader_output_lamp.c
+	shader/nodes/node_shader_output_linestyle.c
 	shader/nodes/node_shader_output_material.c
 	shader/nodes/node_shader_output_world.c
-	shader/nodes/node_shader_output_linestyle.c
 	shader/nodes/node_shader_particle_info.c
+	shader/nodes/node_shader_rgb.c
 	shader/nodes/node_shader_script.c
+	shader/nodes/node_shader_sepcombHSV.c
+	shader/nodes/node_shader_sepcombRGB.c
+	shader/nodes/node_shader_sepcombXYZ.c
+	shader/nodes/node_shader_shaderToRgb.c
+	shader/nodes/node_shader_squeeze.c
 	shader/nodes/node_shader_subsurface_scattering.c
 	shader/nodes/node_shader_tangent.c
-	shader/nodes/node_shader_bevel.c
-	shader/nodes/node_shader_displacement.c
-	shader/nodes/node_shader_vector_displacement.c
 	shader/nodes/node_shader_tex_brick.c
 	shader/nodes/node_shader_tex_checker.c
 	shader/nodes/node_shader_tex_coord.c
@@ -209,11 +202,18 @@ set(SRC
 	shader/nodes/node_shader_tex_sky.c
 	shader/nodes/node_shader_tex_voronoi.c
 	shader/nodes/node_shader_tex_wave.c
-	shader/nodes/node_shader_volume_scatter.c
-	shader/nodes/node_shader_volume_absorption.c
-	shader/nodes/node_shader_volume_principled.c
 	shader/nodes/node_shader_uvAlongStroke.c
 	shader/nodes/node_shader_uvmap.c
+	shader/nodes/node_shader_valToRgb.c
+	shader/nodes/node_shader_value.c
+	shader/nodes/node_shader_vectMath.c
+	shader/nodes/node_shader_vectTransform.c
+	shader/nodes/node_shader_vector_displacement.c
+	shader/nodes/node_shader_volume_absorption.c
+	shader/nodes/node_shader_volume_principled.c
+	shader/nodes/node_shader_volume_scatter.c
+	shader/nodes/node_shader_wavelength.c
+	shader/nodes/node_shader_wireframe.c
 	shader/node_shader_tree.c
 	shader/node_shader_util.c
 
@@ -243,10 +243,10 @@ set(SRC
 	texture/node_texture_tree.c
 	texture/node_texture_util.c
 
-	intern/node_util.c
-	intern/node_exec.c
 	intern/node_common.c
+	intern/node_exec.c
 	intern/node_socket.c
+	intern/node_util.c
 
 	composite/node_composite_util.h
 	shader/node_shader_util.h
@@ -255,12 +255,12 @@ set(SRC
 	NOD_common.h
 	NOD_composite.h
 	NOD_shader.h
-	NOD_texture.h
 	NOD_socket.h
 	NOD_static_types.h
-	intern/node_util.h
-	intern/node_exec.h
+	NOD_texture.h
 	intern/node_common.h
+	intern/node_exec.h
+	intern/node_util.h
 )
 
 if(WITH_PYTHON)

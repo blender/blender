@@ -58,8 +58,8 @@ set(SRC
 	tracking_ops_orient.c
 	tracking_ops_plane.c
 	tracking_ops_solve.c
-	tracking_ops_track.c
 	tracking_ops_stabilize.c
+	tracking_ops_track.c
 	tracking_ops_utils.c
 	tracking_select.c
 

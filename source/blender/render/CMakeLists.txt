@@ -60,15 +60,15 @@ set(SRC
 	intern/source/render_texture.c
 	intern/source/zbuf.c
 
-	extern/include/RE_engine.h
 	extern/include/RE_bake.h
+	extern/include/RE_engine.h
 	extern/include/RE_multires_bake.h
 	extern/include/RE_pipeline.h
 	extern/include/RE_render_ext.h
 	extern/include/RE_shader_ext.h
 	intern/include/initrender.h
-	intern/include/render_types.h
 	intern/include/render_result.h
+	intern/include/render_types.h
 	intern/include/renderpipeline.h
 	intern/include/texture.h
 	intern/include/zbuf.h
