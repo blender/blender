@@ -325,8 +325,6 @@ data_to_c_simple(modes/shaders/particle_strand_frag.glsl SRC)
 data_to_c_simple(modes/shaders/particle_strand_vert.glsl SRC)
 data_to_c_simple(modes/shaders/sculpt_mask_vert.glsl SRC)
 data_to_c_simple(modes/shaders/volume_velocity_vert.glsl SRC)
-data_to_c_simple(modes/shaders/drw_shader_3D_vert.glsl SRC)
-data_to_c_simple(modes/shaders/drw_shader_3D_smooth_color_vert.glsl SRC)
 
 data_to_c_simple(engines/gpencil/shaders/gpencil_fill_vert.glsl SRC)
 data_to_c_simple(engines/gpencil/shaders/gpencil_fill_frag.glsl SRC)

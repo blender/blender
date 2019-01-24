@@ -105,7 +105,7 @@ extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_id_frag_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
-extern char datatoc_drw_shader_3D_vert_glsl[];
+extern char datatoc_gpu_shader_3D_vert_glsl[];
 
 /* *********** LISTS *********** */
 typedef struct OBJECT_PassList {
@@ -419,7 +419,7 @@ static void OBJECT_engine_init(void *vedata)
 	if (!sh_data->outline_resolve) {
 		/* Outline */
 		sh_data->outline_prepass = DRW_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_drw_shader_3D_vert_glsl, NULL},
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_gpu_shader_3D_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 		sh_data->outline_prepass_wire = DRW_shader_create_from_arrays({
@@ -495,7 +495,7 @@ static void OBJECT_engine_init(void *vedata)
 
 		/* Loose Points */
 		sh_data->loose_points = DRW_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_drw_shader_3D_vert_glsl, NULL},
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_gpu_shader_3D_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_object_loose_points_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 	}
