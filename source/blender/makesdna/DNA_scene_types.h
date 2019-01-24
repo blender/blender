@@ -1568,7 +1568,7 @@ typedef struct PhysicsSettings {
 } PhysicsSettings;
 
 /* ------------------------------------------- */
-/* Safe Area options used in Camera View & VSE
+/* Safe Area options used in Camera View & Sequencer
  */
 typedef struct DisplaySafeAreas {
 	/* each value represents the (x,y) margins as a multiplier.
