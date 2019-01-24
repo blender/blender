@@ -94,16 +94,6 @@ typedef struct BoundSphere {
 	float center[3], radius;
 } BoundSphere;
 
-/**
- * Support selecting shaders with different options compiled in.
- * Needed for clipping support because it means using a separate set of shaders.
- */
-typedef enum eDRW_ShaderSlot {
-	DRW_SHADER_SLOT_DEFAULT = 0,
-	DRW_SHADER_SLOT_CLIPPED = 1,
-} eDRW_ShaderSlot;
-#define DRW_SHADER_SLOT_LEN 2
-
 /* declare members as empty (unused) */
 typedef char DRWViewportEmptyList;
 

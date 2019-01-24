@@ -39,6 +39,16 @@ struct ModifierData;
 struct ParticleSystem;
 struct PTCacheEdit;
 
+/**
+ * Support selecting shaders with different options compiled in.
+ * Needed for clipping support because it means using a separate set of shaders.
+ */
+typedef enum eDRW_ShaderSlot {
+	DRW_SHADER_SLOT_DEFAULT = 0,
+	DRW_SHADER_SLOT_CLIPPED = 1,
+} eDRW_ShaderSlot;
+#define DRW_SHADER_SLOT_LEN 2
+
 #define UBO_FIRST_COLOR colorWire
 #define UBO_LAST_COLOR colorGridAxisZ
 
@@ -144,7 +154,7 @@ struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct GPU
 struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_alpha(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct GPUBatch *geom, int *baseid);
-struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct GPUBatch *geom);
+struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass);

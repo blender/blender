@@ -1243,13 +1243,13 @@ static void OBJECT_cache_init(void *vedata)
 
 		/* Camera */
 		geom = DRW_cache_camera_get();
-		sgl->camera = shgroup_camera_instance(sgl->non_meshes, geom);
+		sgl->camera = shgroup_camera_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_camera_frame_get();
-		sgl->camera_frame = shgroup_camera_instance(sgl->non_meshes, geom);
+		sgl->camera_frame = shgroup_camera_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_camera_tria_get();
-		sgl->camera_tria = shgroup_camera_instance(sgl->non_meshes, geom);
+		sgl->camera_tria = shgroup_camera_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_plain_axes_get();
 		sgl->camera_focus = shgroup_instance(sgl->non_meshes, geom);

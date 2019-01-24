@@ -38,6 +38,7 @@
 #include "BKE_colorband.h"
 
 #include "draw_common.h"
+#include "draw_builtin_shader.h"
 
 #if 0
 #define UI_COLOR_RGB_FROM_U8(r, g, b, v4) \
@@ -515,9 +516,9 @@ DRWShadingGroup *shgroup_instance_outline(DRWPass *pass, struct GPUBatch *geom, 
 	return grp;
 }
 
-DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_CAMERA);
+	GPUShader *sh_inst = DRW_shader_get_builtin_shader(GPU_SHADER_CAMERA, shader_slot);
 
 	DRW_shgroup_instance_format(g_formats.instance_camera, {
 		{"color",               DRW_ATTRIB_FLOAT, 3},
@@ -528,7 +529,9 @@ DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct GPUBatch *geom)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_camera);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
