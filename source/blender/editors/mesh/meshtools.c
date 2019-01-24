@@ -586,7 +586,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	/* free temp copy of destination shapekeys (if applicable) */
 	if (nkey) {
 		/* We can assume nobody is using that ID currently. */
-		BKE_id_free_ex(bmain, nkey, LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_USER_REFCOUNT, false);
+		BKE_id_free_ex(bmain, nkey, LIB_ID_FREE_NO_UI_USER, false);
 	}
 
 	/* ensure newly inserted keys are time sorted */
