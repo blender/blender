@@ -1034,6 +1034,7 @@ static void find_edge_neighbors(const SubdivMeshContext *ctx,
 	const MEdge *coarse_medge = coarse_mesh->medge;
 	neighbors[0] = NULL;
 	neighbors[1] = NULL;
+	int neighbor_counters[2] = {0, 0};
 	for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
 		const MEdge *current_edge = &coarse_medge[edge_index];
 		if (current_edge == edge) {
@@ -1041,10 +1042,21 @@ static void find_edge_neighbors(const SubdivMeshContext *ctx,
 		}
 		if (ELEM(edge->v1, current_edge->v1, current_edge->v2)) {
 			neighbors[0] = current_edge;
+			++neighbor_counters[0];
 		}
 		if (ELEM(edge->v2, current_edge->v1, current_edge->v2)) {
 			neighbors[1] = current_edge;
+			++neighbor_counters[1];
 		}
+	}
+	/* Vertices which has more than one neighbor are considered infinitely
+	 * sharp. This is also how topology factory treats vertices of a surface
+	 * which are adjacent to a loose edge. */
+	if (neighbor_counters[0] > 1) {
+		neighbors[0] = NULL;
+	}
+	if (neighbor_counters[1] > 1) {
+		neighbors[1] = NULL;
 	}
 }
 
@@ -1144,7 +1156,6 @@ static void subdiv_mesh_vertex_of_loose_edge(
 	/* Perform interpolation. */
 	float weights[4];
 	key_curve_position_weights(u, weights, KEY_BSPLINE);
-
 	/* Interpolate custom data. */
 	subdiv_mesh_vertex_of_loose_edge_interpolate(
 	        ctx, coarse_edge, u, subdiv_vertex_index);
