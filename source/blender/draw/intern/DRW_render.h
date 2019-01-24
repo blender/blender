@@ -94,6 +94,16 @@ typedef struct BoundSphere {
 	float center[3], radius;
 } BoundSphere;
 
+/**
+ * Support selecting shaders with different options compiled in.
+ * Needed for clipping support because it means using a separate set of shaders.
+ */
+typedef enum eDRW_ShaderSlot {
+	DRW_SHADER_SLOT_DEFAULT = 0,
+	DRW_SHADER_SLOT_CLIPPED = 1,
+} eDRW_ShaderSlot;
+#define DRW_SHADER_SLOT_LEN 2
+
 /* declare members as empty (unused) */
 typedef char DRWViewportEmptyList;
 
@@ -259,7 +269,7 @@ struct GPUShader *DRW_shader_create_with_transform_feedback(
 struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
-struct GPUShader *DRW_shader_create_3D_depth_only(void);
+struct GPUShader *DRW_shader_create_3D_depth_only(eDRW_ShaderSlot slot);
 struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_create_from_world(
@@ -570,16 +580,6 @@ bool DRW_state_is_playback(void);
 bool DRW_state_show_text(void);
 bool DRW_state_draw_support(void);
 bool DRW_state_draw_background(void);
-
-/**
- * Support selecting shaders with different options compiled in.
- * Needed for clipping support because it means using a separate set of shaders.
- */
-typedef enum eDRW_ShaderSlot {
-	DRW_SHADER_SLOT_DEFAULT = 0,
-	DRW_SHADER_SLOT_CLIPPED = 1,
-} eDRW_ShaderSlot;
-#define DRW_SHADER_SLOT_LEN 2
 
 /* Avoid too many lookups while drawing */
 typedef struct DRWContextState {

@@ -334,7 +334,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 	}
 	if (!sh_data->depth) {
-		sh_data->depth = DRW_shader_create_3D_depth_only();
+		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->shader_slot);
 	}
 	if (!sh_data->ghost_clear_depth) {
 		sh_data->ghost_clear_depth = DRW_shader_create_fullscreen(datatoc_gpu_shader_depth_only_frag_glsl, NULL);
@@ -525,6 +525,9 @@ static void EDIT_MESH_cache_init(void *vedata)
 		        "Depth Pass Hidden Wire",
 		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_hidden_wire = DRW_shgroup_create(sh_data->depth, psl->depth_hidden_wire);
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->fweights_shgrp, rv3d);
+		}
 	}
 
 	{

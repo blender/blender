@@ -26,8 +26,7 @@
  *  \ingroup draw
  */
 
-#include "draw_manager.h"
-
+#include "DNA_object_types.h"
 #include "DNA_world_types.h"
 #include "DNA_material_types.h"
 
@@ -47,6 +46,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "draw_manager.h"
+#include "draw_builtin_shader.h"
 
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
@@ -386,9 +388,9 @@ GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
 	return GPU_shader_create(datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
-GPUShader *DRW_shader_create_3D_depth_only(void)
+GPUShader *DRW_shader_create_3D_depth_only(eDRW_ShaderSlot slot)
 {
-	return GPU_shader_get_builtin_shader(GPU_SHADER_3D_DEPTH_ONLY);
+	return DRW_shader_get_builtin_shader(GPU_SHADER_3D_DEPTH_ONLY, slot);
 }
 
 GPUMaterial *DRW_shader_find_from_world(World *wo, const void *engine_type, int options, bool deferred)
