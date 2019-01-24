@@ -681,6 +681,8 @@ void smokeModifier_copy(const struct SmokeModifierData *smd, struct SmokeModifie
 		if (sds->coba) {
 			tsds->coba = MEM_dupallocN(sds->coba);
 		}
+
+		tsds->clipping = sds->clipping;
 	}
 	else if (tsmd->flow) {
 		SmokeFlowSettings *tsfs = tsmd->flow;
