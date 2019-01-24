@@ -3359,7 +3359,7 @@ static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (lastop) {
 		WM_operator_free_all_after(wm, lastop);
-		WM_operator_repeat(C, lastop);
+		WM_operator_repeat_interactive(C, lastop);
 	}
 
 	return OPERATOR_CANCELLED;
