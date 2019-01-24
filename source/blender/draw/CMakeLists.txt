@@ -55,6 +55,7 @@ set(INC_SYS
 set(SRC
 	intern/draw_anim_viz.c
 	intern/draw_armature.c
+	intern/draw_builtin_shader.c
 	intern/draw_cache.c
 	intern/draw_cache_impl_curve.c
 	intern/draw_cache_impl_displist.c
@@ -133,6 +134,7 @@ set(SRC
 
 	DRW_engine.h
 	intern/DRW_render.h
+	intern/draw_builtin_shader.h
 	intern/draw_cache.h
 	intern/draw_cache_impl.h
 	intern/draw_common.h
@@ -323,6 +325,8 @@ data_to_c_simple(modes/shaders/particle_strand_frag.glsl SRC)
 data_to_c_simple(modes/shaders/particle_strand_vert.glsl SRC)
 data_to_c_simple(modes/shaders/sculpt_mask_vert.glsl SRC)
 data_to_c_simple(modes/shaders/volume_velocity_vert.glsl SRC)
+data_to_c_simple(modes/shaders/drw_shader_3D_vert.glsl SRC)
+data_to_c_simple(modes/shaders/drw_shader_3D_smooth_color_vert.glsl SRC)
 
 data_to_c_simple(engines/gpencil/shaders/gpencil_fill_vert.glsl SRC)
 data_to_c_simple(engines/gpencil/shaders/gpencil_fill_frag.glsl SRC)

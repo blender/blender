@@ -82,6 +82,7 @@
 #include "draw_cache_impl.h"
 
 #include "draw_mode_engines.h"
+#include "draw_builtin_shader.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
 #include "engines/workbench/workbench_engine.h"
@@ -2610,6 +2611,7 @@ void DRW_engines_free(void)
 	DRW_shape_cache_free();
 	DRW_stats_free();
 	DRW_globals_free();
+	DRW_shader_free_builtin_shaders();
 
 	DrawEngineType *next;
 	for (DrawEngineType *type = DRW_engines.first; type; type = next) {

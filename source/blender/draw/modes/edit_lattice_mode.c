@@ -37,6 +37,7 @@
 #include "draw_common.h"
 
 #include "draw_mode_engines.h"
+#include "draw_builtin_shader.h"
 
 extern char datatoc_common_world_clip_lib_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
@@ -154,7 +155,7 @@ static void EDIT_LATTICE_engine_init(void *vedata)
 	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
 
 	if (!sh_data->wire) {
-		sh_data->wire = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SMOOTH_COLOR);
+		sh_data->wire = DRW_shader_get_builtin_shader(GPU_SHADER_3D_SMOOTH_COLOR, draw_ctx->shader_slot);
 	}
 
 	if (!sh_data->overlay_vert) {
@@ -194,6 +195,9 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 		        "Lattice Wire",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 		stl->g_data->wire_shgrp = DRW_shgroup_create(sh_data->wire, psl->wire_pass);
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->wire_shgrp, rv3d);
+		}
 
 		psl->vert_pass = DRW_pass_create(
 		        "Lattice Verts",

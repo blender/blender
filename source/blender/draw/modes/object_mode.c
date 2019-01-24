@@ -79,9 +79,11 @@
 #include "draw_mode_engines.h"
 #include "draw_manager_text.h"
 #include "draw_common.h"
+#include "draw_builtin_shader.h"
 
 #include "DEG_depsgraph_query.h"
 
+extern char datatoc_common_world_clip_lib_glsl[];
 extern char datatoc_object_outline_prepass_vert_glsl[];
 extern char datatoc_object_outline_prepass_geom_glsl[];
 extern char datatoc_object_outline_prepass_frag_glsl[];
@@ -103,6 +105,7 @@ extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_id_frag_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
+extern char datatoc_drw_shader_3D_vert_glsl[];
 
 /* *********** LISTS *********** */
 typedef struct OBJECT_PassList {
@@ -409,6 +412,10 @@ static void OBJECT_engine_init(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	OBJECT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
 
+	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
+	const char *world_clip_lib_or_empty = is_clip ? datatoc_common_world_clip_lib_glsl : "";
+	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+
 	if (!sh_data->outline_resolve) {
 		/* Outline */
 		sh_data->outline_prepass = DRW_shader_create_3D(datatoc_object_outline_prepass_frag_glsl, NULL);
@@ -484,7 +491,10 @@ static void OBJECT_engine_init(void *vedata)
 		        datatoc_object_lightprobe_grid_vert_glsl, NULL, datatoc_gpu_shader_flat_id_frag_glsl, NULL);
 
 		/* Loose Points */
-		sh_data->loose_points = DRW_shader_create_3D(datatoc_object_loose_points_frag_glsl, NULL);
+		sh_data->loose_points = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_drw_shader_3D_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_object_loose_points_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 	}
 
 	{
@@ -664,21 +674,27 @@ static DRWShadingGroup *shgroup_outline(DRWPass *pass, const int *ofs, GPUShader
 }
 
 /* currently same as 'shgroup_outline', new function to avoid confustion */
-static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], GPUShader *sh)
+static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], GPUShader *sh, eDRW_ShaderSlot shader_slot)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
 
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
 /* currently same as 'shgroup_outline', new function to avoid confustion */
-static DRWShadingGroup *shgroup_points(DRWPass *pass, const float col[4], GPUShader *sh)
+static DRWShadingGroup *shgroup_points(DRWPass *pass, const float col[4], GPUShader *sh, eDRW_ShaderSlot shader_slot)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
 	DRW_shgroup_uniform_vec4(grp, "innerColor", G_draw.block.colorEditMeshMiddle, 1);
 
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
@@ -1252,24 +1268,24 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->texspace = shgroup_instance(sgl->non_meshes, geom);
 
 		/* Wires (for loose edges) */
-		sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-		sgl->wire = shgroup_wire(sgl->non_meshes, gb->colorWire, sh);
-		sgl->wire_select = shgroup_wire(sgl->non_meshes, gb->colorSelect, sh);
-		sgl->wire_transform = shgroup_wire(sgl->non_meshes, gb->colorTransform, sh);
-		sgl->wire_active = shgroup_wire(sgl->non_meshes, gb->colorActive, sh);
+		sh = DRW_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR, draw_ctx->shader_slot);
+		sgl->wire = shgroup_wire(sgl->non_meshes, gb->colorWire, sh, draw_ctx->shader_slot);
+		sgl->wire_select = shgroup_wire(sgl->non_meshes, gb->colorSelect, sh, draw_ctx->shader_slot);
+		sgl->wire_transform = shgroup_wire(sgl->non_meshes, gb->colorTransform, sh, draw_ctx->shader_slot);
+		sgl->wire_active = shgroup_wire(sgl->non_meshes, gb->colorActive, sh, draw_ctx->shader_slot);
 		/* Wire (duplicator) */
-		sgl->wire_dupli = shgroup_wire(sgl->non_meshes, gb->colorDupli, sh);
-		sgl->wire_dupli_select = shgroup_wire(sgl->non_meshes, gb->colorDupliSelect, sh);
+		sgl->wire_dupli = shgroup_wire(sgl->non_meshes, gb->colorDupli, sh, draw_ctx->shader_slot);
+		sgl->wire_dupli_select = shgroup_wire(sgl->non_meshes, gb->colorDupliSelect, sh, draw_ctx->shader_slot);
 
 		/* Points (loose points) */
 		sh = sh_data->loose_points;
-		sgl->points = shgroup_points(sgl->non_meshes, gb->colorWire, sh);
-		sgl->points_select = shgroup_points(sgl->non_meshes, gb->colorSelect, sh);
-		sgl->points_transform = shgroup_points(sgl->non_meshes, gb->colorTransform, sh);
-		sgl->points_active = shgroup_points(sgl->non_meshes, gb->colorActive, sh);
+		sgl->points = shgroup_points(sgl->non_meshes, gb->colorWire, sh, draw_ctx->shader_slot);
+		sgl->points_select = shgroup_points(sgl->non_meshes, gb->colorSelect, sh, draw_ctx->shader_slot);
+		sgl->points_transform = shgroup_points(sgl->non_meshes, gb->colorTransform, sh, draw_ctx->shader_slot);
+		sgl->points_active = shgroup_points(sgl->non_meshes, gb->colorActive, sh, draw_ctx->shader_slot);
 		/* Points (duplicator) */
-		sgl->points_dupli = shgroup_points(sgl->non_meshes, gb->colorDupli, sh);
-		sgl->points_dupli_select = shgroup_points(sgl->non_meshes, gb->colorDupliSelect, sh);
+		sgl->points_dupli = shgroup_points(sgl->non_meshes, gb->colorDupli, sh, draw_ctx->shader_slot);
+		sgl->points_dupli_select = shgroup_points(sgl->non_meshes, gb->colorDupliSelect, sh, draw_ctx->shader_slot);
 		DRW_shgroup_state_disable(sgl->points, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_select, DRW_STATE_BLEND);
 		DRW_shgroup_state_disable(sgl->points_transform, DRW_STATE_BLEND);
