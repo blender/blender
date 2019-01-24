@@ -1589,7 +1589,8 @@ static bool ed_object_select_pick(
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = BASACT(view_layer);
+	const Base *oldbasact = BASACT(view_layer);
+	Base *base, *startbase = NULL, *basact = NULL;
 	const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
@@ -1611,7 +1612,7 @@ static bool ed_object_select_pick(
 
 	/* always start list from basact in wire mode */
 	startbase =  FIRSTBASE(view_layer);
-	if (BASACT(view_layer) && BASACT(view_layer)->next) startbase = BASACT(view_layer)->next;
+	if (oldbasact && oldbasact->next) startbase = oldbasact->next;
 
 	/* This block uses the control key to make the object selected
 	 * by its center point rather than its contents */
@@ -1633,7 +1634,7 @@ static bool ed_object_select_pick(
 					            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 					{
 						float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
-						if (base == BASACT(view_layer)) dist_temp += 10.0f;
+						if (base == oldbasact) dist_temp += 10.0f;
 						if (dist_temp < dist) {
 							dist = dist_temp;
 							basact = base;
@@ -1690,7 +1691,7 @@ static bool ed_object_select_pick(
 
 			if (has_bones && basact) {
 				if (basact->object->type == OB_CAMERA) {
-					if (BASACT(view_layer) == basact) {
+					if (oldbasact == basact) {
 						int i, hitresult;
 						bool changed = false;
 
@@ -1766,14 +1767,14 @@ static bool ed_object_select_pick(
 
 					/* in weightpaint, we use selected bone to select vertexgroup,
 					 * so no switch to new active object */
-					if (BASACT(view_layer) && (BASACT(view_layer)->object->mode & OB_MODE_WEIGHT_PAINT)) {
+					if (oldbasact && (oldbasact->object->mode & OB_MODE_WEIGHT_PAINT)) {
 						/* prevent activating */
 						basact = NULL;
 					}
 
 				}
 				/* prevent bone selecting to pass on to object selecting */
-				if (basact == BASACT(view_layer))
+				if (basact == oldbasact)
 					basact = NULL;
 			}
 
@@ -1806,6 +1807,9 @@ static bool ed_object_select_pick(
 			}
 		}
 	}
+
+	/* Ensure code above doesn't change the active base. */
+	BLI_assert(oldbasact == BASACT(view_layer));
 
 	/* so, do we have something selected? */
 	if (basact) {
