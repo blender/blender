@@ -1189,22 +1189,11 @@ class ImageScopesPanel:
         return True
 
 
-class IMAGE_PT_view_scopes(ImageScopesPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "Image"
-    bl_label = "Scopes"
-
-    def draw(self, layout):
-        return  # nothing to draw.
-
-
 class IMAGE_PT_view_histogram(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Scopes"
     bl_label = "Histogram"
-    bl_parent_id = 'IMAGE_PT_view_scopes'
 
     def draw(self, context):
         layout = self.layout
@@ -1222,9 +1211,8 @@ class IMAGE_PT_view_histogram(ImageScopesPanel, Panel):
 class IMAGE_PT_view_waveform(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Scopes"
     bl_label = "Waveform"
-    bl_parent_id = 'IMAGE_PT_view_scopes'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1241,9 +1229,8 @@ class IMAGE_PT_view_waveform(ImageScopesPanel, Panel):
 class IMAGE_PT_view_vectorscope(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Scopes"
     bl_label = "Vectorscope"
-    bl_parent_id = 'IMAGE_PT_view_scopes'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1257,9 +1244,8 @@ class IMAGE_PT_view_vectorscope(ImageScopesPanel, Panel):
 class IMAGE_PT_sample_line(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Scopes"
     bl_label = "Sample Line"
-    bl_parent_id = 'IMAGE_PT_view_scopes'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1279,9 +1265,8 @@ class IMAGE_PT_sample_line(ImageScopesPanel, Panel):
 class IMAGE_PT_scope_sample(ImageScopesPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Image"
+    bl_category = "Scopes"
     bl_label = "Samples"
-    bl_parent_id = 'IMAGE_PT_view_scopes'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1351,7 +1336,6 @@ classes = (
     IMAGE_PT_tools_brush_appearance,
     IMAGE_PT_uv_sculpt,
     IMAGE_PT_uv_sculpt_curve,
-    IMAGE_PT_view_scopes,
     IMAGE_PT_view_histogram,
     IMAGE_PT_view_waveform,
     IMAGE_PT_view_vectorscope,

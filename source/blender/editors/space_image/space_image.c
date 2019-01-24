@@ -793,6 +793,27 @@ static void image_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_buttons_region_draw(const bContext *C, ARegion *ar)
 {
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	void *lock;
+	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
+	/* XXX performance regression if name of scopes category changes! */
+	PanelCategoryStack *category = UI_panel_category_active_find(ar, "Scopes");
+
+	/* only update scopes if scope category is active */
+	if (category) {
+		if (ibuf) {
+			if (!sima->scopes.ok) {
+				BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, &scene->view_settings, &scene->display_settings);
+			}
+			if (sima->image->flag & IMA_VIEW_AS_RENDER)
+				ED_space_image_scopes_update(C, sima, ibuf, true);
+			else
+				ED_space_image_scopes_update(C, sima, ibuf, false);
+		}
+	}
+	ED_space_image_release_buffer(sima, ibuf, lock);
+
 	ED_region_panels(C, ar);
 }
 
@@ -847,27 +868,6 @@ static void image_tools_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_tools_region_draw(const bContext *C, ARegion *ar)
 {
-	SpaceImage *sima = CTX_wm_space_image(C);
-	Scene *scene = CTX_data_scene(C);
-	void *lock;
-	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	/* XXX performance regression if name of scopes category changes! */
-	PanelCategoryStack *category = UI_panel_category_active_find(ar, "Scopes");
-
-	/* only update scopes if scope category is active */
-	if (category) {
-		if (ibuf) {
-			if (!sima->scopes.ok) {
-				BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, &scene->view_settings, &scene->display_settings);
-			}
-			if (sima->image->flag & IMA_VIEW_AS_RENDER)
-				ED_space_image_scopes_update(C, sima, ibuf, true);
-			else
-				ED_space_image_scopes_update(C, sima, ibuf, false);
-		}
-	}
-	ED_space_image_release_buffer(sima, ibuf, lock);
-
 	ED_region_panels(C, ar);
 }
 
@@ -1041,7 +1041,7 @@ void ED_spacetype_image(void)
 	art->listener = image_main_region_listener;
 	BLI_addhead(&st->regiontypes, art);
 
-	/* regions: listview/buttons */
+	/* regions: listview/buttons/scopes */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex = 220; // XXX
@@ -1054,7 +1054,7 @@ void ED_spacetype_image(void)
 	ED_uvedit_buttons_register(art);
 	image_buttons_register(art);
 
-	/* regions: statistics/scope buttons */
+	/* regions: tool(bar) */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_TOOLS;
 	art->prefsizex = 58; /* XXX */
