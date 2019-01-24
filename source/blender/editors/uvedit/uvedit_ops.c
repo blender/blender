@@ -4568,6 +4568,8 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, ((View3D *)NULL), &objects_len);
 
+	bool changed = false;
+
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		Mesh *me = (Mesh *)ob->data;
@@ -4580,8 +4582,6 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 
 		const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-		bool changed = false;
-
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
@@ -4592,14 +4592,15 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
-			if (scene->toolsettings->edge_mode_live_unwrap) {
-				ED_unwrap_lscm(scene, ob, false, false);
-			}
-
 			DEG_id_tag_update(&me->id, 0);
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 		}
 	}
+
+	if (changed) {
+		ED_uvedit_live_unwrap(scene, objects, objects_len);
+	}
+
 	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
