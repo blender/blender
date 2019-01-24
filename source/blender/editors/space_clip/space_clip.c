@@ -227,6 +227,12 @@ static void clip_scopes_check_gpencil_change(ScrArea *sa)
 	}
 }
 
+static void clip_area_sync_frame_from_scene(ScrArea *sa, Scene *scene)
+{
+	SpaceClip *space_clip = (SpaceClip *)sa->spacedata.first;
+	BKE_movieclip_user_set_frame(&space_clip->user, scene->r.cfra);
+}
+
 /* ******************** default callbacks for clip space ***************** */
 
 static SpaceLink *clip_new(const ScrArea *sa, const Scene *scene)
@@ -324,7 +330,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	return (SpaceLink *)scn;
 }
 
-static void clip_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
+static void clip_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *scene)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -388,6 +394,9 @@ static void clip_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, S
 			switch (wmn->data) {
 				case ND_ANIMPLAY:
 					ED_area_tag_redraw(sa);
+					break;
+				case ND_LAYOUTSET:
+					clip_area_sync_frame_from_scene(sa, scene);
 					break;
 			}
 			break;
