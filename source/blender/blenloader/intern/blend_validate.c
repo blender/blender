@@ -46,8 +46,8 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "BLO_blend_validate.h"
 #include "BLO_readfile.h"
-#include "BLO_writefile.h"
 
 #include "readfile.h"
 

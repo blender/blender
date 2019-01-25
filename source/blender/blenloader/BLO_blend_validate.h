@@ -25,23 +25,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLO_WRITEFILE_H__
-#define __BLO_WRITEFILE_H__
+#ifndef __BLO_BLEND_VALIDATE_H__
+#define __BLO_BLEND_VALIDATE_H__
 
-/** \file BLO_writefile.h
+/** \file BLO_blend_validate.h
  *  \ingroup blenloader
- *  \brief external writefile function prototypes.
+ *  \brief Utils ensuring .blend file (i.e. Main) is in valid state during write and/or read process.
  */
 
-struct BlendThumbnail;
-struct MemFile;
 struct Main;
 struct ReportList;
 
-extern bool BLO_write_file(
-        struct Main *mainvar, const char *filepath, int write_flags,
-        struct ReportList *reports, const struct BlendThumbnail *thumb);
-extern bool BLO_write_file_mem(
-        struct Main *mainvar, struct MemFile *compare, struct MemFile *current, int write_flags);
+bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports);
 
 #endif

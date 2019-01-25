@@ -56,7 +56,7 @@
 #include "BKE_workspace.h"
 #include "BKE_paint.h"
 
-#include "BLO_writefile.h"
+#include "BLO_blend_validate.h"
 
 #include "ED_gpencil.h"
 #include "ED_render.h"

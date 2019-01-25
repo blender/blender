@@ -188,10 +188,11 @@
 #endif
 
 
-#include "BLO_writefile.h"
+#include "BLO_blend_defs.h"
+#include "BLO_blend_validate.h"
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
-#include "BLO_blend_defs.h"
+#include "BLO_writefile.h"
 
 #include "readfile.h"
 

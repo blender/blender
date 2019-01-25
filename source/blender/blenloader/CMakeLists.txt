@@ -64,6 +64,7 @@ set(SRC
 	intern/writefile.c
 
 	BLO_blend_defs.h
+	BLO_blend_validate.h
 	BLO_readfile.h
 	BLO_undofile.h
 	BLO_writefile.h
