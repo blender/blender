@@ -449,6 +449,12 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 	scene->integrator->tag_update(scene);
 
 	BL::RenderResult::views_iterator b_view_iter;
+
+	int num_views = 0;
+	for(b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end(); ++b_view_iter) {
+		num_views++;
+	}
+
 	int view_index = 0;
 	for(b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end(); ++b_view_iter, ++view_index) {
 		b_rview_name = b_view_iter->name();
@@ -470,7 +476,12 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 		/* Attempt to free all data which is held by Blender side, since at this
 		 * point we knwo that we've got everything to render current view layer.
 		 */
-		free_blender_memory_if_possible();
+		/* At the moment we only free if we are not doing multi-view (or if we are rendering the last view).
+		 * See T58142/D4239 for discussion.
+		 */
+		if(view_index == num_views - 1) {
+			free_blender_memory_if_possible();
+		}
 
 		/* Make sure all views have different noise patterns. - hardcoded value just to make it random */
 		if(view_index != 0) {
