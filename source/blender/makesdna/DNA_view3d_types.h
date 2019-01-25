@@ -439,6 +439,7 @@ enum {
 	V3D_SHADING_XRAY_BONE           = (1 << 8),
 	V3D_SHADING_WORLD_ORIENTATION   = (1 << 9),
 	V3D_SHADING_BACKFACE_CULLING    = (1 << 10),
+	V3D_SHADING_DEPTH_OF_FIELD      = (1 << 11),
 };
 
 /* View3DShading->color_type */

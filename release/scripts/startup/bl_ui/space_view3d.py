@@ -4593,6 +4593,10 @@ class VIEW3D_PT_shading_options(Panel):
                     sub.prop(shading, "curvature_ridge_factor", text="Ridge")
                     sub.prop(shading, "curvature_valley_factor", text="Valley")
 
+            row = col.row()
+            row.active = not shading.show_xray
+            row.prop(shading, "use_dof", text="Depth Of Field")
+
         if shading.type in {'WIREFRAME', 'SOLID'}:
             row = layout.split()
             row.prop(shading, "show_object_outline")
