@@ -4392,7 +4392,11 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 			int span;
 			int offset;
 
-			if (RNA_property_is_set(op->ptr, prop_span)) {
+			/* Only reuse on redo because these settings need to match the current selection.
+			 * We never want to use them on other geometry, repeat last for eg, see: T60777. */
+			if ((op->flag & OP_IS_REPEAT) &&
+			    RNA_property_is_set(op->ptr, prop_span))
+			{
 				span = RNA_property_int_get(op->ptr, prop_span);
 				span = min_ii(span, (clamp / 2) - 1);
 				calc_span = false;
