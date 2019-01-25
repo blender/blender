@@ -764,6 +764,10 @@ void BKE_undosys_type_free_all(void)
  * Unfortunately we need this for a handful of places.
  */
 
+/* Disable for now since it accesses freed memory.
+ * The pointer can only be a key, we can't read it's contents. */
+#define USE_LIB_SKIP
+
 static void UNUSED_FUNCTION(BKE_undosys_foreach_ID_ref(
         UndoStack *ustack, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data))
 {
@@ -870,9 +874,11 @@ void BKE_undosys_ID_map_destroy(UndoIDPtrMap *idpmap)
 void BKE_undosys_ID_map_add(UndoIDPtrMap *map, ID *id)
 {
 	uint index;
+#ifdef USE_LIB_SKIP
 	if (id->lib != NULL) {
 		return;
 	}
+#endif
 
 	if (undosys_ID_map_lookup_index(map, id, &index)) {
 		return;  /* exists. */
@@ -932,7 +938,11 @@ ID *BKE_undosys_ID_map_lookup_with_prev(const UndoIDPtrMap *map, ID *id_src, ID 
 		return id_prev_match[1];
 	}
 	else {
+#ifdef USE_LIB_SKIP
+		ID *id_dst = BKE_undosys_ID_map_lookup(map, id_src);
+#else
 		ID *id_dst = (id_src->lib == NULL) ? BKE_undosys_ID_map_lookup(map, id_src) : id_src;
+#endif
 		id_prev_match[0] = id_src;
 		id_prev_match[1] = id_dst;
 		return id_dst;
