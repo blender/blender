@@ -584,6 +584,9 @@ eDepsNode_Type deg_geometry_tag_to_component(const ID *id)
 			break;
 		}
 		case ID_ME:
+		case ID_CU:
+		case ID_LT:
+		case ID_MB:
 			return DEG_NODE_TYPE_GEOMETRY;
 		case ID_PA: /* Particles */
 			return DEG_NODE_TYPE_UNDEFINED;
