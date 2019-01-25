@@ -185,10 +185,11 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	// compositor has finished.
 
 	// release objects and data blocks
+	Base *base_next = NULL;
 	ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
-	for (Base *b = (Base *)view_layer->object_bases.first; b; b = b->next) {
+	for (Base *b = (Base *)view_layer->object_bases.first; b; b = base_next) {
+		base_next = b->next;
 		Object *ob = b->object;
-		void *data = ob->data;
 		char *name = ob->id.name;
 #if 0
 		if (G.debug & G_DEBUG_FREESTYLE) {
@@ -196,22 +197,19 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		}
 #endif
 		switch (ob->type) {
-			case OB_MESH:
-				BKE_id_free(freestyle_bmain, ob);
-				BKE_id_free(freestyle_bmain, data);
-				break;
 			case OB_CAMERA:
-				BKE_id_free(freestyle_bmain, ob);
-				BKE_id_free(freestyle_bmain, data);
 				freestyle_scene->camera = NULL;
+				ATTR_FALLTHROUGH;
+			case OB_MESH:
+				BKE_scene_collections_object_remove(freestyle_bmain,
+				                                    freestyle_scene,
+				                                    ob,
+				                                    true);
 				break;
 			default:
 				cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name + 2) << endl;
 		}
 	}
-
-	// Make sure we don't have any bases which might reference freed objects.
-	BKE_main_collection_sync(freestyle_bmain);
 
 	// release materials
 	Link *lnk = (Link *)freestyle_bmain->mat.first;
