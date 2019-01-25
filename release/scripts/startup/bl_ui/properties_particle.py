@@ -279,10 +279,6 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
             col.prop(part, "hair_length")
             col.prop(part, "hair_step")
 
-            if not part.use_advanced_hair:
-                col.prop(part, "use_modifier_stack")
-                return
-
         if part.type != 'HAIR':
 
             col = layout.column()
