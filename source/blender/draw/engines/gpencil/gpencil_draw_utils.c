@@ -361,7 +361,8 @@ bool DRW_gpencil_onion_active(bGPdata *gpd)
 /* create shading group for strokes */
 DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass, GPUShader *shader, Object *ob,
-        bGPdata *gpd, bGPDstroke *gps, MaterialGPencilStyle *gp_style, int id, bool onion)
+        bGPdata *gpd, bGPDstroke *gps, MaterialGPencilStyle *gp_style, int id,
+		bool onion, const float scale)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const float *viewport_size = DRW_viewport_size_get();
@@ -380,7 +381,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 
 	/* object scale and depth */
 	if ((ob) && (id > -1)) {
-		stl->shgroups[id].obj_scale = mat4_to_scale(ob->obmat);
+		stl->shgroups[id].obj_scale = scale;
 		DRW_shgroup_uniform_float(grp, "objscale", &stl->shgroups[id].obj_scale, 1);
 		stl->shgroups[id].keep_size = (int)((gpd) && (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
 		DRW_shgroup_uniform_int(grp, "keep_size", &stl->shgroups[id].keep_size, 1);
@@ -457,7 +458,7 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 /* create shading group for points */
 static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass, GPUShader *shader, Object *ob,
-        bGPdata *gpd, MaterialGPencilStyle *gp_style, int id, bool onion)
+        bGPdata *gpd, MaterialGPencilStyle *gp_style, int id, bool onion, const float scale)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const float *viewport_size = DRW_viewport_size_get();
@@ -475,7 +476,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 
 	/* object scale and depth */
 	if ((ob) && (id > -1)) {
-		stl->shgroups[id].obj_scale = mat4_to_scale(ob->obmat);
+		stl->shgroups[id].obj_scale = scale;
 		DRW_shgroup_uniform_float(grp, "objscale", &stl->shgroups[id].obj_scale, 1);
 		stl->shgroups[id].keep_size = (int)((gpd) && (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
 		DRW_shgroup_uniform_int(grp, "keep_size", &stl->shgroups[id].keep_size, 1);
@@ -1191,11 +1192,12 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				if ((gp_style) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_stroke_create(
 						e_data, vedata, psl->drawing_pass, e_data->gpencil_stroke_sh, NULL,
-						gpd, NULL, gp_style, -1, false);
+						gpd, NULL, gp_style, -1, false, 1.0f);
 				}
 				else {
 					stl->g_data->shgrps_drawing_stroke = DRW_gpencil_shgroup_point_create(
-						e_data, vedata, psl->drawing_pass, e_data->gpencil_point_sh, NULL, gpd, gp_style, -1, false);
+						e_data, vedata, psl->drawing_pass, e_data->gpencil_point_sh, NULL,
+						gpd, gp_style, -1, false, 1.0f);
 				}
 
 				/* clean previous version of the batch */
@@ -1332,6 +1334,7 @@ static void DRW_gpencil_shgroups_create(
 	for (int i = 0; i < cache->grp_used; i++) {
 		elm = &cache->grp_cache[i];
 		array_elm = &cache_ob->shgrp_array[idx];
+		const float scale = cache_ob->scale;
 
 		/* save last group when change */
 		if (gpl_prev == NULL) {
@@ -1371,7 +1374,7 @@ static void DRW_gpencil_shgroups_create(
 
 				shgrp = DRW_gpencil_shgroup_stroke_create(
 				        e_data, vedata, psl->stroke_pass, e_data->gpencil_stroke_sh,
-				        ob, gpd, gps, gp_style, stl->storage->shgroup_id, elm->onion);
+				        ob, gpd, gps, gp_style, stl->storage->shgroup_id, elm->onion, scale);
 
 				DRW_shgroup_call_range_add(
 				        shgrp, cache->b_stroke.batch,
@@ -1388,7 +1391,7 @@ static void DRW_gpencil_shgroups_create(
 
 				shgrp = DRW_gpencil_shgroup_point_create(
 				        e_data, vedata, psl->stroke_pass, e_data->gpencil_point_sh,
-				        ob, gpd, gp_style, stl->storage->shgroup_id, elm->onion);
+				        ob, gpd, gp_style, stl->storage->shgroup_id, elm->onion, scale);
 
 				DRW_shgroup_call_range_add(
 				        shgrp, cache->b_point.batch,

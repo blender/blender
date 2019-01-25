@@ -95,6 +95,7 @@ typedef struct tGPencilObjectCache {
 	float obmat[4][4];
 	float zdepth;  /* z-depth value to sort gp object */
 	bool is_dup_ob;  /* flag to tag duplicate objects */
+	float scale;
 
 	/* GPU data size */
 	int tot_vertex;
@@ -369,7 +370,7 @@ typedef struct GpencilBatchCache {
 struct DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         struct GPENCIL_e_data *e_data, struct GPENCIL_Data *vedata, struct DRWPass *pass, struct GPUShader *shader,
         struct Object *ob, struct bGPdata *gpd, struct bGPDstroke *gps,
-        struct MaterialGPencilStyle *gp_style, int id, bool onion);
+        struct MaterialGPencilStyle *gp_style, int id, bool onion, const float scale);
 void DRW_gpencil_populate_datablock(
         struct GPENCIL_e_data *e_data, void *vedata,
         struct Object *ob, struct tGPencilObjectCache *cache_ob);
