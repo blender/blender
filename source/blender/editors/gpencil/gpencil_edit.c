@@ -4005,6 +4005,8 @@ static int gpencil_cutter_lasso_select(
 		for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
 			if (gps->flag & GP_STROKE_SELECT) {
+				/* disable cyclic */
+				gps->flag &= ~GP_STROKE_CYCLIC;
 				gpencil_cutter_dissolve(gpl, gps);
 			}
 		}
