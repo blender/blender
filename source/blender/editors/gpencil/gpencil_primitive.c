@@ -174,7 +174,14 @@ static void gp_init_colors(tGPDprimitive *p)
 	if (gp_style) {
 
 		/* set colors */
-		copy_v4_v4(gpd->runtime.scolor, gp_style->stroke_rgba);
+		if (gp_style->flag & GP_STYLE_STROKE_SHOW) {
+			copy_v4_v4(gpd->runtime.scolor, gp_style->stroke_rgba);
+		}
+		else {
+			/* if no stroke, use fill */
+			copy_v4_v4(gpd->runtime.scolor, gp_style->fill_rgba);
+		}
+
 		copy_v4_v4(gpd->runtime.sfill, gp_style->fill_rgba);
 		/* add some alpha to make easy the filling without hide strokes */
 		if (gpd->runtime.sfill[3] > 0.8f) {

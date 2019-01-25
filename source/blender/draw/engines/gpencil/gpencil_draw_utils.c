@@ -1215,15 +1215,11 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 						gpd, lthick);
 				}
 
-				/* No fill strokes, must show stroke always */
-				if ((gp_style->flag & GP_STYLE_STROKE_SHOW) ||
-				    (gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL))
-				{
-					DRW_shgroup_call_add(
-					        stl->g_data->shgrps_drawing_stroke,
-					        e_data->batch_buffer_stroke,
-					        stl->storage->unit_matrix);
-				}
+				/* buffer strokes, must show stroke always */
+				DRW_shgroup_call_add(
+					    stl->g_data->shgrps_drawing_stroke,
+					    e_data->batch_buffer_stroke,
+					    stl->storage->unit_matrix);
 
 				if ((gpd->runtime.sbuffer_size >= 3) &&
 				    (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
