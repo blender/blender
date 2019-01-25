@@ -1256,7 +1256,6 @@ class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
     bl_label = "Line"
     bl_parent_id = "PARTICLE_PT_render"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
@@ -1282,7 +1281,6 @@ class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
     bl_label = "Path"
     bl_parent_id = "PARTICLE_PT_render"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
@@ -1346,7 +1344,6 @@ class PARTICLE_PT_render_path_timing(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_render_object(ParticleButtonsPanel, Panel):
     bl_label = "Object"
     bl_parent_id = "PARTICLE_PT_render"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
@@ -1372,7 +1369,6 @@ class PARTICLE_PT_render_object(ParticleButtonsPanel, Panel):
 class PARTICLE_PT_render_collection(ParticleButtonsPanel, Panel):
     bl_label = "Collection"
     bl_parent_id = "PARTICLE_PT_render"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
