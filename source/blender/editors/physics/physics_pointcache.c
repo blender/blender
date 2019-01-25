@@ -47,6 +47,8 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_particle.h"
 
 #include "WM_api.h"
@@ -384,10 +386,11 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 		PointCache *cache_new = BKE_ptcache_add(pid.ptcaches);
 		cache_new->step = pid.default_step;
 		*(pid.cache_ptr) = cache_new;
-	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
+		DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+		WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -404,9 +407,10 @@ static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_remlink(pid.ptcaches, pid.cache);
 		BKE_ptcache_free(pid.cache);
 		*(pid.cache_ptr) = pid.ptcaches->first;
-	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
+		DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+		WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
+	}
 
 	return OPERATOR_FINISHED;
 }
