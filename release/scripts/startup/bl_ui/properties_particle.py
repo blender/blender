@@ -313,7 +313,6 @@ class PARTICLE_PT_emission_source(ParticleButtonsPanel, Panel):
         if part.emit_from == 'VERT':
             col.prop(part, "use_emit_random", text="Random Order")
         elif part.distribution == 'GRID':
-            col.label(text="Grid")
             col.prop(part, "invert_grid")
             col.prop(part, "hexagonal_grid")
         else:
