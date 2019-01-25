@@ -387,7 +387,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 		cache_new->step = pid.default_step;
 		*(pid.cache_ptr) = cache_new;
 
-		DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+		DEG_id_tag_update(&ob->id, ID_RECALC_POINT_CACHE);
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 	}
