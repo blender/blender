@@ -41,21 +41,17 @@ float decode_signed_coc(vec2 cocs) { return ((cocs.x > cocs.y) ? cocs.x : -cocs.
 
 /**
  * ----------------- STEP 0 ------------------
- * Coc aware downsample.
+ * Custom Coc aware downsampling. Half res pass.
  **/
 #ifdef PREPARE
 
-layout(location = 0) out vec4 backgroundColorCoc;
+layout(location = 0) out vec4 halfResColor;
 layout(location = 1) out vec2 normalizedCoc;
 
 void main()
 {
-	/* Half Res pass */
-	vec2 uv = (floor(gl_FragCoord.xy) * 2.0 + 0.5) * invertedViewportSize;
-
 	ivec4 texel = ivec4(gl_FragCoord.xyxy) * 2 + ivec4(0, 0, 1, 1);
 
-	/* custom downsampling */
 	vec4 color1 = texelFetch(sceneColorTex, texel.xy, 0);
 	vec4 color2 = texelFetch(sceneColorTex, texel.zw, 0);
 	vec4 color3 = texelFetch(sceneColorTex, texel.zy, 0);
@@ -81,16 +77,11 @@ void main()
 	vec4 far_weights  = step(0.0, cocs_far)  * clamp(1.0 - abs(coc_far  - cocs_far),  0.0, 1.0);
 
 	/* now write output to weighted buffers. */
-	// backgroundColorCoc   = weighted_sum(color1, color2, color3, color4, cocs_far, coc_far);
-	float tot_weight_near = dot(near_weights, vec4(1.0));
-	float tot_weight_far  = dot(far_weights, vec4(1.0));
-	backgroundColorCoc    = weighted_sum(color1, color2, color3, color4, near_weights, tot_weight_near);
-	backgroundColorCoc   += weighted_sum(color1, color2, color3, color4, far_weights, tot_weight_far);
-	if (tot_weight_near > 0.0 && tot_weight_far > 0.0) {
-		backgroundColorCoc   *= 0.5;
-	}
+	vec4 w = near_weights + far_weights;
+	float tot_weight = dot(w, vec4(1.0));
+	halfResColor = weighted_sum(color1, color2, color3, color4, w, tot_weight);
 
-	normalizedCoc = encode_coc(cocs_near.x, cocs_far.x);
+	normalizedCoc = encode_coc(coc_near, coc_far);
 }
 #endif
 
@@ -173,7 +164,6 @@ layout(location = 0) out vec4 blurColor;
 
 #define NUM_SAMPLES 49
 
-/* keep in sync with GlobalsUboStorage */
 layout(std140) uniform dofSamplesBlock {
 	vec4 samples[NUM_SAMPLES];
 };
@@ -216,18 +206,15 @@ void main()
 #else
 void main()
 {
-	/* Half Res pass */
 	vec2 uv = gl_FragCoord.xy * invertedViewportSize * 2.0;
 
 	vec2 size = vec2(textureSize(halfResColorTex, 0).xy);
 	ivec2 texel = ivec2(uv * size);
 
+	vec4 color = vec4(0.0);
+	float tot = 1e-4;
+
 	float coc = decode_coc(texelFetch(inputCocTex, texel, 0).rg);
-	float tot = max(0.5, coc);
-
-	vec4 color = texelFetch(halfResColorTex, texel, 0);
-	color *= tot;
-
 	float max_radius = coc;
 	for (int i = 0; i < NUM_SAMPLES; ++i) {
 		vec2 tc = uv + samples[i].xy * invertedViewportSize * max_radius;
@@ -237,9 +224,10 @@ void main()
 		coc = decode_coc(texture(inputCocTex, tc).rg);
 
 		float radius = samples[i].z * max_radius;
-		coc *= smoothstep(radius - 0.5, radius + 0.5, coc);
-		color += samp * coc;
-		tot += coc;
+		float weight = coc * smoothstep(radius - 0.5, radius + 0.5, coc);
+
+		color += samp * weight;
+		tot += weight;
 	}
 
 	blurColor = color / tot;
