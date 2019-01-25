@@ -1057,7 +1057,7 @@ bool UI_view2d_tab_set(View2D *v2d, int tab)
 
 void UI_view2d_zoom_cache_reset(void)
 {
-	/* TODO(sergey): This way we avoid threading conflict with VSE rendering
+	/* TODO(sergey): This way we avoid threading conflict with sequencer rendering
 	 * text strip. But ideally we want to make glyph cache to be fully safe
 	 * for threading.
 	 */
