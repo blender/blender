@@ -66,6 +66,8 @@ float *BKE_key_evaluate_object_ex(
 float *BKE_key_evaluate_object(
         struct Object *ob, int *r_totelem);
 
+bool BKE_key_idtype_support(const short id_type);
+
 struct Key     **BKE_key_from_id_p(struct ID *id);
 struct Key      *BKE_key_from_id(struct ID *id);
 struct Key     **BKE_key_from_object_p(struct Object *ob);

@@ -1374,6 +1374,18 @@ float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
 	return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0);
 }
 
+bool BKE_key_idtype_support(const short id_type)
+{
+	switch (id_type) {
+		case ID_ME:
+		case ID_CU:
+		case ID_LT:
+			return true;
+		default:
+			return false;
+	}
+}
+
 Key **BKE_key_from_id_p(ID *id)
 {
 	switch (GS(id->name)) {
