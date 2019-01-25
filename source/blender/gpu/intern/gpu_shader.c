@@ -1111,28 +1111,28 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 
 GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
 {
-	BLI_assert(shader != GPU_NUM_BUILTIN_SHADERS); /* don't be a troll */
+	BLI_assert(shader < GPU_NUM_BUILTIN_SHADERS);
 
 	if (builtin_shaders[shader] == NULL) {
+		GPUShaderStages stages_legacy = {NULL};
 		const GPUShaderStages *stages = &builtin_shader_stages[shader];
 
-		if (shader == GPU_SHADER_EDGES_FRONT_BACK_PERSP && !GLEW_VERSION_3_2) {
+		if (shader == GPU_SHADER_EDGES_FRONT_BACK_PERSP) {
 			/* TODO: remove after switch to core profile (maybe) */
-			static const GPUShaderStages legacy_fancy_edges = {
-				.vert = datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl,
-				.frag = datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl,
-			};
-			stages = &legacy_fancy_edges;
+			if (!GLEW_VERSION_3_2) {
+				stages_legacy.vert = datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl;
+				stages_legacy.frag = datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl;
+				stages = &stages_legacy;
+			}
 		}
-
-		if (shader == GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR && !GLEW_VERSION_3_2) {
+		else if (shader == GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR) {
 			/* Dashed need geometry shader, which are not supported by legacy OpenGL, fallback to solid lines. */
 			/* TODO: remove after switch to core profile (maybe) */
-			static const GPUShaderStages legacy_dashed_lines = {
-				.vert = datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl,
-				.frag = datatoc_gpu_shader_2D_line_dashed_frag_glsl,
-			};
-			stages = &legacy_dashed_lines;
+			if (!GLEW_VERSION_3_2) {
+				stages_legacy.vert = datatoc_gpu_shader_3D_line_dashed_uniform_color_legacy_vert_glsl;
+				stages_legacy.frag = datatoc_gpu_shader_2D_line_dashed_frag_glsl;
+				stages = &stages_legacy;
+			}
 		}
 
 		/* common case */
