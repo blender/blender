@@ -1384,7 +1384,7 @@ class PARTICLE_PT_render_collection(ParticleButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.prop(part, "instance_collection")
+        col.prop(part, "instance_collection", text="Instance Collection")
 
         col.prop(part, "use_whole_collection")
         sub = col.column()
