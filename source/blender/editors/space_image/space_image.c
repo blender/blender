@@ -635,7 +635,8 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 	gpu_batch_presets_reset();
 
 	/* TODO(fclem) port to draw manager and remove the depth buffer allocation. */
-	DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(ar->draw_buffer->viewport[0]);
+	GPUViewport *viewport = ar->draw_buffer->viewport[ar->draw_buffer->stereo ? sima->iuser.multiview_eye : 0];
+	DefaultFramebufferList *fbl = GPU_viewport_framebuffer_list_get(viewport);
 	GPU_framebuffer_bind(fbl->color_only_fb);
 
 	/* XXX not supported yet, disabling for now */
