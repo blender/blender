@@ -4131,6 +4131,7 @@ bool BLO_write_file(
 	if (G.debug & G_DEBUG_IO && mainvar->lock != NULL) {
 		BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");
 		BLO_main_validate_libraries(mainvar, reports);
+		BLO_main_validate_shapekeys(mainvar, reports);
 	}
 
 	/* open temporary file, so we preserve the original in case we crash */

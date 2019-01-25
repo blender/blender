@@ -37,5 +37,6 @@ struct Main;
 struct ReportList;
 
 bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports);
+bool BLO_main_validate_shapekeys(struct Main *bmain, struct ReportList *reports);
 
 #endif
