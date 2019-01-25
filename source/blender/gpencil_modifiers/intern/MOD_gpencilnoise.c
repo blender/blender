@@ -170,7 +170,12 @@ static void deformStroke(
 		}
 
 		/* initial vector (p0 -> p1) */
-		sub_v3_v3v3(vec1, &pt1->x, &pt0->x);
+		if (i == 0) {
+			sub_v3_v3v3(vec1, &pt0->x, &pt1->x);
+		}
+		else {
+			sub_v3_v3v3(vec1, &pt1->x, &pt0->x);
+		}
 		vran = len_v3(vec1);
 		/* vector orthogonal to normal */
 		cross_v3_v3v3(vec2, vec1, normal);
