@@ -940,7 +940,9 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 }
 
 /* if repeat is true, it doesn't register again, nor does it free */
-static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, const bool store)
+static int wm_operator_exec(
+        bContext *C, wmOperator *op,
+        const bool repeat, const bool use_repeat_op_flag, const bool store)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	int retval = OPERATOR_CANCELLED;
@@ -958,12 +960,12 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
 			wm->op_undo_depth++;
 		}
 
-		if (repeat) {
+		if (repeat && use_repeat_op_flag) {
 			op->flag |= OP_IS_REPEAT;
 		}
 		retval = op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
-		if (repeat) {
+		if (repeat && use_repeat_op_flag) {
 			op->flag &= ~OP_IS_REPEAT;
 		}
 
@@ -1015,7 +1017,7 @@ static int wm_operator_exec_notest(bContext *C, wmOperator *op)
 int WM_operator_call_ex(bContext *C, wmOperator *op,
                         const bool store)
 {
-	return wm_operator_exec(C, op, false, store);
+	return wm_operator_exec(C, op, false, false, store);
 }
 
 int WM_operator_call(bContext *C, wmOperator *op)
@@ -1038,7 +1040,11 @@ int WM_operator_call_notest(bContext *C, wmOperator *op)
  */
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
-	return wm_operator_exec(C, op, true, true);
+	return wm_operator_exec(C, op, true, true, true);
+}
+int WM_operator_repeat_interactive(bContext *C, wmOperator *op)
+{
+	return wm_operator_exec(C, op, true, false, true);
 }
 /**
  * \return true if #WM_operator_repeat can run
