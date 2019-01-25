@@ -1384,7 +1384,8 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain), bNodeTree *ntree_dst, const bN
 bNodeTree *ntreeCopyTree_ex(const bNodeTree *ntree, Main *bmain, const bool do_id_user)
 {
 	bNodeTree *ntree_copy;
-	BKE_id_copy_ex(bmain, (ID *)ntree, (ID **)&ntree_copy, do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT, false);
+	const int flag = do_id_user ? LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN : 0;
+	BKE_id_copy_ex(bmain, (ID *)ntree, (ID **)&ntree_copy, flag, false);
 	return ntree_copy;
 }
 bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree)
