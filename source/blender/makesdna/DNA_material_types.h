@@ -210,7 +210,7 @@ typedef struct Material {
 
 /* flag */
 		/* for render */
-#define MA_IS_USED      (1 << 0)
+/* #define MA_IS_USED      (1 << 0) */ /* UNUSED */
 		/* for dopesheet */
 #define MA_DS_EXPAND    (1 << 1)
 		/* for dopesheet (texture stack expander)
@@ -241,24 +241,24 @@ typedef struct Material {
 
 /* texco */
 #define TEXCO_ORCO      (1 << 0)
-#define TEXCO_REFL      (1 << 1)
-#define TEXCO_NORM      (1 << 2)
+/* #define TEXCO_REFL      (1 << 1) */ /* deprecated */
+/* #define TEXCO_NORM      (1 << 2) */ /* deprecated */
 #define TEXCO_GLOB      (1 << 3)
 #define TEXCO_UV        (1 << 4)
 #define TEXCO_OBJECT    (1 << 5)
-#define TEXCO_LAVECTOR  (1 << 6)
-#define TEXCO_VIEW      (1 << 7)
-#define TEXCO_STICKY_   (1 << 8)  // DEPRECATED
-#define TEXCO_OSA       (1 << 9)
+/* #define TEXCO_LAVECTOR  (1 << 6) */ /* deprecated */
+/* #define TEXCO_VIEW      (1 << 7) */ /* deprecated */
+/* #define TEXCO_STICKY   (1 << 8) */ /* deprecated */
+/* #define TEXCO_OSA       (1 << 9) */ /* deprecated */
 #define TEXCO_WINDOW    (1 << 10)
-#define NEED_UV         (1 << 11)
-#define TEXCO_TANGENT   (1 << 12)
+/* #define NEED_UV         (1 << 11) */ /* deprecated */
+/* #define TEXCO_TANGENT   (1 << 12) */ /* deprecated */
 	/* still stored in vertex->accum, 1 D */
 #define TEXCO_STRAND    (1 << 13)
 /** strand is used for normal materials, particle for halo materials */
 #define TEXCO_PARTICLE  (1 << 13)
-#define TEXCO_STRESS    (1 << 14)
-#define TEXCO_SPEED     (1 << 15)
+/* #define TEXCO_STRESS    (1 << 14) */ /* deprecated */
+/* #define TEXCO_SPEED     (1 << 15) */ /* deprecated */
 
 /* mapto */
 #define MAP_COL			(1 << 0)

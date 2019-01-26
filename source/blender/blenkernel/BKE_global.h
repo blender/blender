@@ -172,20 +172,8 @@ enum {
 
 #define G_FILE_USERPREFS         (1 << 9)
 #define G_FILE_NO_UI             (1 << 10)
-#ifdef DNA_DEPRECATED_ALLOW
-/* #define G_FILE_GAME_TO_IPO    (1 << 11) */           /* deprecated */
-#define G_FILE_GAME_MAT          (1 << 12)              /* deprecated */
-/* #define G_FILE_DISPLAY_LISTS  (1 << 13) */           /* deprecated */
-#define G_FILE_SHOW_PHYSICS      (1 << 14)              /* deprecated */
-#define G_FILE_GAME_MAT_GLSL     (1 << 15)              /* deprecated */
-/* #define G_FILE_GLSL_NO_LIGHTS     (1 << 16) */       /* deprecated */
-#define G_FILE_GLSL_NO_SHADERS   (1 << 17)              /* deprecated */
-#define G_FILE_GLSL_NO_SHADOWS   (1 << 18)              /* deprecated */
-#define G_FILE_GLSL_NO_RAMPS     (1 << 19)              /* deprecated */
-#define G_FILE_GLSL_NO_NODES     (1 << 20)              /* deprecated */
-#define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)              /* deprecated */
-#define G_FILE_IGNORE_DEPRECATION_WARNINGS  (1 << 22)   /* deprecated */
-#endif  /* DNA_DEPRECATED_ALLOW */
+
+/* Bits 11 to 22 (inclusive) are deprecated & need to be cleared */
 
 /* On read, use #FileGlobal.filename instead of the real location on-disk,
  * needed for recovering temp files so relative paths resolve */
@@ -198,7 +186,7 @@ enum {
 // #define G_FILE_MESH_COMPAT       (1 << 26)
 /* On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
 #define G_FILE_SAVE_COPY         (1 << 27)
-#define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28)
+/* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
 
 #define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
 

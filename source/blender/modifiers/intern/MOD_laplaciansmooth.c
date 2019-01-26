@@ -48,11 +48,6 @@
 
 #include "eigen_capi.h"
 
-#if 0
-#define MOD_LAPLACIANSMOOTH_MAX_EDGE_PERCENTAGE 1.8f
-#define MOD_LAPLACIANSMOOTH_MIN_EDGE_PERCENTAGE 0.02f
-#endif
-
 struct BLaplacianSystem {
 	float *eweights;        /* Length weights per Edge */
 	float (*fweights)[3];   /* Cotangent weights per face */

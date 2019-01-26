@@ -150,8 +150,8 @@ typedef struct Lamp {
 /* area shape */
 #define LA_AREA_SQUARE	0
 #define LA_AREA_RECT	1
-#define LA_AREA_CUBE	2
-#define LA_AREA_BOX		3
+/* #define LA_AREA_CUBE 2 */ /* UNUSED */
+/* #define LA_AREA_BOX  3 */ /* UNUSED */
 #define LA_AREA_DISK	4
 #define LA_AREA_ELLIPSE	5
 

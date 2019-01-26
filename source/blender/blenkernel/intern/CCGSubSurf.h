@@ -71,8 +71,6 @@ typedef enum {
 
 /***/
 
-#define CCG_OMP_LIMIT	1000000
-
 /* TODO(sergey): This actually depends on subsurf level as well. */
 #define CCG_TASK_LIMIT 16
 

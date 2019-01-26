@@ -95,7 +95,7 @@ struct Depsgraph;
 struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */
-#define SUB_ELEMS_VERT 0
+// #define SUB_ELEMS_VERT 0 /* UNUSED */
 #define SUB_ELEMS_EDGE 2
 #define SUB_ELEMS_FACE 50
 

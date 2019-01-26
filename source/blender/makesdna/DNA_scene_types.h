@@ -252,7 +252,7 @@ typedef struct SceneRenderLayer {
 	/* flags between (1 << 8) and (1 << 15) are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z       (1 << 15)
-#define SCE_LAY_XOR         (1 << 16)
+/* #define SCE_LAY_XOR         (1 << 16) */  /* UNUSED */
 #define SCE_LAY_DISABLE     (1 << 17)
 #define SCE_LAY_ZMASK       (1 << 18)
 #define SCE_LAY_NEG_ZMASK   (1 << 19)

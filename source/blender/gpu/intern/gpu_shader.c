@@ -1155,8 +1155,6 @@ void GPU_shader_get_builtin_shader_code(
 	*r_defines = stages->defs;
 }
 
-#define MAX_DEFINES 100
-
 void GPU_shader_free_builtin_shaders(void)
 {
 	for (int i = 0; i < GPU_NUM_BUILTIN_SHADERS; ++i) {

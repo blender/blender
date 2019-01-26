@@ -426,16 +426,6 @@ void modwrap_deformVertsEM(
         struct BMEditMesh *em, struct Mesh *me,
         float (*vertexCos)[3], int numVerts);
 
-#define applyModifier_DM_wrapper(NEW_FUNC_NAME, OLD_FUNC_NAME) \
-	static Mesh *NEW_FUNC_NAME(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh) \
-	{ \
-		DerivedMesh *dm = CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_EVERYTHING); \
-		DerivedMesh *ndm = OLD_FUNC_NAME(md, ctx, dm); \
-		if (ndm != dm) dm->release(dm); \
-		DM_to_mesh(ndm, mesh, ctx->object, CD_MASK_EVERYTHING, true); \
-		return mesh; \
-	}
-
 /* wrappers for modifier callbacks that accept Mesh and select the proper implementation
  * depending on if the modifier has been ported to Mesh or is still using DerivedMesh
  */

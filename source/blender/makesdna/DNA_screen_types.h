@@ -477,7 +477,6 @@ enum {
 	AREA_FLAG_ACTIONZONES_UPDATE = (1 << 8),
 };
 
-#define EDGEWIDTH	1
 #define AREAGRID	4
 #define AREAMINX	32
 #define HEADERY		26

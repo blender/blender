@@ -3,7 +3,6 @@ flat in vec4 finalColor;
 out vec4 fragColor;
 
 #define VERTEX_SELECTED (1 << 0)
-#define VERTEX_HIDE     (1 << 4)
 
 void main()
 {

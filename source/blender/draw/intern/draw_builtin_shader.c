@@ -38,15 +38,6 @@
 
 extern char datatoc_common_world_clip_lib_glsl[];
 
-extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
-extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
-extern char datatoc_gpu_shader_3D_vert_glsl[];
-extern char datatoc_gpu_shader_depth_only_frag_glsl[];
-extern char datatoc_gpu_shader_flat_color_frag_glsl[];
-extern char datatoc_gpu_shader_instance_camera_vert_glsl[];
-extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[];
-extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
-
 /* Add shaders to this list when support is added. */
 #define GPU_SHADER_IS_SUPPORTED(shader_id) \
 	ELEM(shader_id, \

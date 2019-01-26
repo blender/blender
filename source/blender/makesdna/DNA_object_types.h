@@ -632,12 +632,6 @@ enum {
 #  define OB_FLAG_DEPRECATED_12        (1 << 12)  /* cleared */
 #endif
 
-/* controller state */
-#define OB_MAX_STATES       30
-
-/* collision masks */
-#define OB_MAX_COL_MASKS    16
-
 /* ob->restrictflag */
 enum {
 	OB_RESTRICT_VIEW    = 1 << 0,

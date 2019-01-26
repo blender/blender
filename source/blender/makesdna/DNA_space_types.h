@@ -785,7 +785,6 @@ enum eFileSortType {
 
 #define FILE_LOADLIB        1
 #define FILE_MAIN           2
-#define FILE_LOADFONT       3
 
 /* filesel op property -> action */
 typedef enum eFileSel_Action {
@@ -845,8 +844,6 @@ typedef enum eDirEntry_SelectFlag {
 	FILE_SEL_SELECTED       = (1 << 3),
 	FILE_SEL_EDITING        = (1 << 4),
 } eDirEntry_SelectFlag;
-
-#define FILE_LIST_MAX_RECURSION 4
 
 /* ***** Related to file browser, but never saved in DNA, only here to help with RNA. ***** */
 

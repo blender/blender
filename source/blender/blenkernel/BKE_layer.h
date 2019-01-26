@@ -40,8 +40,6 @@ extern "C" {
 #define TODO_LAYER_OPERATORS /* collection mamanger and property panel operators */
 #define TODO_LAYER /* generic todo */
 
-#define ROOT_PROP "root"
-
 struct Base;
 struct Collection;
 struct Depsgraph;
