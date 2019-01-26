@@ -47,98 +47,45 @@ extern char datatoc_gpu_shader_instance_camera_vert_glsl[];
 extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
+/* Add shaders to this list when support is added. */
+#define GPU_SHADER_IS_SUPPORTED(shader_id) \
+	ELEM(shader_id, \
+	     GPU_SHADER_3D_UNIFORM_COLOR, \
+	     GPU_SHADER_3D_SMOOTH_COLOR, \
+	     GPU_SHADER_3D_DEPTH_ONLY, \
+	     GPU_SHADER_CAMERA, \
+	     GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE, \
+	     GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE)
+
 /* cache of built-in shaders (each is created on first use) */
 static struct {
 	GPUShader *builtin_shaders[GPU_NUM_BUILTIN_SHADERS];
 } g_sh_data[DRW_SHADER_SLOT_LEN - 1] = {{{NULL}}};
 
-static GPUShader *drw_shader_get_builtin_shader_clipped(eGPUBuiltinShader shader_id, bool *r_test_only)
+static GPUShader *drw_shader_get_builtin_shader_clipped(eGPUBuiltinShader shader_id)
 {
 	const char *world_clip_lib = datatoc_common_world_clip_lib_glsl;
 	const char *world_clip_def = "#define USE_WORLD_CLIP_PLANES\n";
 
-	if (r_test_only) {
-		*r_test_only = true;
-	}
+	struct  { const char *vert, *frag, *geom, *defs; } shader_code;
+	GPU_shader_get_builtin_shader_code(
+	        shader_id,
+	        &shader_code.vert,
+	        &shader_code.frag,
+	        &shader_code.geom,
+	        &shader_code.defs);
 
-	GPUShader *shader = NULL;
-	switch (shader_id) {
-		case GPU_SHADER_3D_UNIFORM_COLOR:
-			if (r_test_only) {
-				break;
-			}
-			shader = DRW_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_3D_vert_glsl, NULL},
-			        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def, NULL}});
-			break;
-		case GPU_SHADER_3D_SMOOTH_COLOR:
-			if (r_test_only) {
-				break;
-			}
-			shader = DRW_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_3D_smooth_color_vert_glsl, NULL},
-			        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def, NULL}});
-			break;
-		case GPU_SHADER_3D_DEPTH_ONLY:
-			if (r_test_only) {
-				break;
-			}
-			shader = DRW_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_3D_vert_glsl, NULL},
-			        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def, NULL}});
-			break;
-		case GPU_SHADER_CAMERA:
-			if (r_test_only) {
-				break;
-			}
-			shader = DRW_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_instance_camera_vert_glsl, NULL},
-			        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def, NULL}});
-			break;
-
-		case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE:
-			if (r_test_only) {
-				break;
-			}
-			shader = DRW_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl, NULL},
-			        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def, "#define UNIFORM_SCALE\n", NULL}});
-			break;
-		case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE:
-			if (r_test_only) {
-				break;
-			}
-			shader = DRW_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl, NULL},
-			        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def, NULL}});
-			break;
-		default:
-			/* Unsupported, caller asserts. */
-			if (r_test_only) {
-				*r_test_only = false;
-			}
-	}
-	return shader;
+	return DRW_shader_create_from_arrays({
+	        .vert = (const char *[]){world_clip_lib, shader_code.vert, NULL},
+	        .geom = (const char *[]){shader_code.geom, NULL},
+	        .frag = (const char *[]){shader_code.frag, NULL},
+	        .defs = (const char *[]){world_clip_def, shader_code.defs, NULL}});
 }
-
-#ifndef NDEBUG
-static bool drw_shader_get_builtin_shader_test_all(eGPUBuiltinShader shader_id)
-{
-	bool test = false;
-	drw_shader_get_builtin_shader_clipped(shader_id, &test);
-	return test;
-}
-#endif
 
 GPUShader *DRW_shader_get_builtin_shader(eGPUBuiltinShader shader_id, eDRW_ShaderSlot slot)
 {
-	BLI_assert(drw_shader_get_builtin_shader_test_all(shader_id));
+	BLI_assert(GPU_SHADER_IS_SUPPORTED(shader_id));
+
 	if (slot == DRW_SHADER_SLOT_DEFAULT) {
 		return GPU_shader_get_builtin_shader(shader_id);
 	}
@@ -150,7 +97,7 @@ GPUShader *DRW_shader_get_builtin_shader(eGPUBuiltinShader shader_id, eDRW_Shade
 	}
 
 	if (slot == DRW_SHADER_SLOT_CLIPPED) {
-		builtin_shaders[shader_id] = drw_shader_get_builtin_shader_clipped(shader_id, NULL);
+		builtin_shaders[shader_id] = drw_shader_get_builtin_shader_clipped(shader_id);
 		return builtin_shaders[shader_id];
 	}
 	else {
