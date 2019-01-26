@@ -210,32 +210,6 @@ void ED_render_engine_changed(Main *bmain)
  * editor level updates when the ID changes. when these ID blocks are in *
  * the dependency graph, we can get rid of the manual dependency checks  */
 
-static void render_engine_flag_changed(Main *bmain, int update_flag)
-{
-	bScreen *sc;
-	ScrArea *sa;
-	ARegion *ar;
-
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			if (sa->spacetype != SPACE_VIEW3D)
-				continue;
-
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				RegionView3D *rv3d;
-
-				if (ar->regiontype != RGN_TYPE_WINDOW)
-					continue;
-
-				rv3d = ar->regiondata;
-				if (rv3d->render_engine)
-					rv3d->render_engine->update_flag |= update_flag;
-
-			}
-		}
-	}
-}
-
 static void material_changed(Main *UNUSED(bmain), Material *ma)
 {
 	/* icons */
@@ -317,7 +291,6 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 	switch (GS(id->name)) {
 		case ID_MA:
 			material_changed(bmain, (Material *)id);
-			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_MA);
 			break;
 		case ID_TE:
 			texture_changed(bmain, (Tex *)id);
@@ -333,10 +306,8 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 			break;
 		case ID_SCE:
 			scene_changed(bmain, (Scene *)id);
-			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);
 			break;
 		default:
-			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);
 			break;
 	}
 }
