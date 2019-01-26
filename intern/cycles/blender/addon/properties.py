@@ -360,7 +360,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Distance between volume shader samples when rendering the volume "
         "(lower values give more accurate and detailed results, but also increased render time)",
         default=0.1,
-        min=0.0000001, max=100000.0, soft_min=0.01, soft_max=1.0, precision=4
+        min=0.0000001, max=100000.0, soft_min=0.01, soft_max=1.0, precision=4,
+        unit='LENGTH'
     )
 
     volume_max_steps: IntProperty(
@@ -376,14 +377,14 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Size of a micropolygon in pixels",
         min=0.1, max=1000.0, soft_min=0.5,
         default=1.0,
-        subtype="PIXEL"
+        subtype='PIXEL'
     )
     preview_dicing_rate: FloatProperty(
         name="Preview Dicing Rate",
         description="Size of a micropolygon in pixels during preview render",
         min=0.1, max=1000.0, soft_min=0.5,
         default=8.0,
-        subtype="PIXEL"
+        subtype='PIXEL'
     )
 
     max_subdivisions: IntProperty(
@@ -456,6 +457,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Pixel filter width",
         min=0.01, max=10.0,
         default=1.5,
+        subtype='PIXEL'
     )
 
     seed: IntProperty(
@@ -502,6 +504,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         "progressively increasing it to the full viewport size",
         min=8, max=16384,
         default=64,
+        subtype='PIXEL'
     )
 
     debug_reset_timeout: FloatProperty(
@@ -596,7 +599,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Camera Cull Margin",
         description="Margin for the camera space culling",
         default=0.1,
-        min=0.0, max=5.0
+        min=0.0, max=5.0,
+        subtype='FACTOR'
     )
 
     use_distance_cull: BoolProperty(
@@ -609,7 +613,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Cull Distance",
         description="Cull objects which are further away from camera than this distance",
         default=50,
-        min=0.0
+        min=0.0,
+        unit='LENGTH'
     )
 
     motion_blur_position: EnumProperty(
@@ -1196,12 +1201,14 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         description="Minimal pixel width for strands (0 - deactivated)",
         min=0.0, max=100.0,
         default=0.0,
+        subtype='PIXEL'
     )
     maximum_width: FloatProperty(
         name="Maximal width",
         description="Maximum extension that strand radius can be increased by",
         min=0.0, max=100.0,
         default=0.1,
+        subtype='PIXEL'
     )
     subdivisions: IntProperty(
         name="Subdivisions",
