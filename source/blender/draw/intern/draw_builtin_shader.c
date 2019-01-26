@@ -44,6 +44,7 @@ extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_instance_camera_vert_glsl[];
+extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* cache of built-in shaders (each is created on first use) */
@@ -95,6 +96,25 @@ static GPUShader *drw_shader_get_builtin_shader_clipped(eGPUBuiltinShader shader
 			}
 			shader = DRW_shader_create_from_arrays({
 			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_instance_camera_vert_glsl, NULL},
+			        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+			        .defs = (const char *[]){world_clip_def, NULL}});
+			break;
+
+		case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE:
+			if (r_test_only) {
+				break;
+			}
+			shader = DRW_shader_create_from_arrays({
+			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl, NULL},
+			        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+			        .defs = (const char *[]){world_clip_def, "#define UNIFORM_SCALE\n", NULL}});
+			break;
+		case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE:
+			if (r_test_only) {
+				break;
+			}
+			shader = DRW_shader_create_from_arrays({
+			        .vert = (const char *[]){world_clip_lib, datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl, NULL},
 			        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
 			        .defs = (const char *[]){world_clip_def, NULL}});
 			break;

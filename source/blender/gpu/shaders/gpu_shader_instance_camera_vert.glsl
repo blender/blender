@@ -52,6 +52,6 @@ void main()
 	finalColor = vec4(color, 1.0);
 
 #ifdef USE_WORLD_CLIP_PLANES
-       world_clip_planes_calc_clip_distance((ModelMatrix * InstanceModelMatrix * vec4(pPos, 1.0)).xyz);
+	world_clip_planes_calc_clip_distance((ModelMatrix * InstanceModelMatrix * vec4(pPos, 1.0)).xyz);
 #endif
 }

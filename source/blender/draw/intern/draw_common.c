@@ -236,6 +236,7 @@ extern char datatoc_armature_stick_frag_glsl[];
 extern char datatoc_armature_dof_vert_glsl[];
 
 extern char datatoc_common_globals_lib_glsl[];
+extern char datatoc_common_world_clip_lib_glsl[];
 
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
@@ -244,7 +245,7 @@ extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
 extern char datatoc_object_mball_handles_vert_glsl[];
 extern char datatoc_object_empty_axes_vert_glsl[];
 
-static struct {
+typedef struct COMMON_Shaders {
 	struct GPUShader *shape_outline;
 	struct GPUShader *shape_solid;
 	struct GPUShader *bone_axes;
@@ -264,7 +265,9 @@ static struct {
 	struct GPUShader *empty_axes_sh;
 
 	struct GPUShader *mball_handles;
-} g_shaders = {NULL};
+} COMMON_Shaders;
+
+static COMMON_Shaders g_shaders[DRW_SHADER_SLOT_LEN] = {{NULL}};
 
 static struct {
 	struct GPUVertFormat *instance_screenspace;
@@ -295,9 +298,11 @@ void DRW_globals_free(void)
 		MEM_SAFE_FREE(*format);
 	}
 
-	struct GPUShader **shader = &g_shaders.shape_outline;
-	for (int i = 0; i < sizeof(g_shaders) / sizeof(void *); ++i, ++shader) {
-		DRW_SHADER_FREE_SAFE(*shader);
+	for (int j = 0; j < DRW_SHADER_SLOT_LEN; j++) {
+		struct GPUShader **shader = &g_shaders[j].shape_outline;
+		for (int i = 0; i < sizeof(g_shaders[j]) / sizeof(void *); ++i, ++shader) {
+			DRW_SHADER_FREE_SAFE(*shader);
+		}
 	}
 }
 
@@ -434,9 +439,9 @@ DRWShadingGroup *shgroup_instance_screen_aligned(DRWPass *pass, struct GPUBatch 
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE);
+	GPUShader *sh_inst = DRW_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE, shader_slot);
 
 	DRW_shgroup_instance_format(g_formats.instance_scaled, {
 		{"color",               DRW_ATTRIB_FLOAT, 3},
@@ -445,13 +450,15 @@ DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct GPUBatch *geom)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_scaled);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_instance(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
+	GPUShader *sh_inst = DRW_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE, shader_slot);
 
 	DRW_shgroup_instance_format(g_formats.instance_sized, {
 		{"color",               DRW_ATTRIB_FLOAT, 4},
@@ -461,13 +468,15 @@ DRWShadingGroup *shgroup_instance(DRWPass *pass, struct GPUBatch *geom)
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_sized);
 	DRW_shgroup_state_disable(grp, DRW_STATE_BLEND);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_alpha(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_instance_alpha(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
+	GPUShader *sh_inst = DRW_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE, shader_slot);
 
 	DRW_shgroup_instance_format(g_formats.instance_sized, {
 		{"color",               DRW_ATTRIB_FLOAT, 4},
@@ -476,16 +485,22 @@ DRWShadingGroup *shgroup_instance_alpha(DRWPass *pass, struct GPUBatch *geom)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_sized);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_empty_axes(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_instance_empty_axes(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	if (g_shaders.empty_axes_sh == NULL) {
-		g_shaders.empty_axes_sh = DRW_shader_create(
-		        datatoc_object_empty_axes_vert_glsl, NULL,
-		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[shader_slot];
+	const char *world_clip_lib_or_empty = (shader_slot == DRW_SHADER_SLOT_CLIPPED) ? datatoc_common_world_clip_lib_glsl : "";
+	const char *world_clip_def_or_empty = (shader_slot == DRW_SHADER_SLOT_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+	if (sh_data->empty_axes_sh == NULL) {
+		sh_data->empty_axes_sh = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_empty_axes_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_sized, {
@@ -494,9 +509,11 @@ DRWShadingGroup *shgroup_instance_empty_axes(DRWPass *pass, struct GPUBatch *geo
 		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
 	});
 
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.empty_axes_sh, pass, geom, g_formats.instance_sized);
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_data->empty_axes_sh, pass, geom, g_formats.instance_sized);
 	DRW_shgroup_uniform_vec3(grp, "screenVecs[0]", DRW_viewport_screenvecs_get(), 2);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
@@ -574,10 +591,11 @@ DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct GPUBatch *geom)
 
 DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass)
 {
-	if (g_shaders.bone_axes == NULL) {
-		g_shaders.bone_axes = DRW_shader_create(
-		            datatoc_armature_axes_vert_glsl, NULL,
-		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_axes == NULL) {
+		sh_data->bone_axes = DRW_shader_create(
+		        datatoc_armature_axes_vert_glsl, NULL,
+		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_color, {
@@ -586,7 +604,7 @@ DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_axes,
+	        sh_data->bone_axes,
 	        pass, DRW_cache_bone_arrows_get(),
 	        g_formats.instance_color);
 	DRW_shgroup_uniform_vec3(grp, "screenVecs[0]", DRW_viewport_screenvecs_get(), 2);
@@ -596,10 +614,11 @@ DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass)
 
 DRWShadingGroup *shgroup_instance_bone_envelope_outline(DRWPass *pass)
 {
-	if (g_shaders.bone_envelope_outline == NULL) {
-		g_shaders.bone_envelope_outline = DRW_shader_create(
-		            datatoc_armature_envelope_outline_vert_glsl, NULL,
-		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_envelope_outline == NULL) {
+		sh_data->bone_envelope_outline = DRW_shader_create(
+		        datatoc_armature_envelope_outline_vert_glsl, NULL,
+		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_envelope_outline, {
@@ -610,7 +629,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_outline(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_envelope_outline,
+	        sh_data->bone_envelope_outline,
 	        pass, DRW_cache_bone_envelope_outline_get(),
 	        g_formats.instance_bone_envelope_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
@@ -620,10 +639,11 @@ DRWShadingGroup *shgroup_instance_bone_envelope_outline(DRWPass *pass)
 
 DRWShadingGroup *shgroup_instance_bone_envelope_distance(DRWPass *pass)
 {
-	if (g_shaders.bone_envelope_distance == NULL) {
-		g_shaders.bone_envelope_distance = DRW_shader_create(
-		            datatoc_armature_envelope_solid_vert_glsl, NULL,
-		            datatoc_armature_envelope_distance_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_envelope_distance == NULL) {
+		sh_data->bone_envelope_distance = DRW_shader_create(
+		        datatoc_armature_envelope_solid_vert_glsl, NULL,
+		        datatoc_armature_envelope_distance_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_envelope_distance, {
@@ -633,7 +653,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_distance(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_envelope_distance,
+	        sh_data->bone_envelope_distance,
 	        pass, DRW_cache_bone_envelope_solid_get(),
 	        g_formats.instance_bone_envelope_distance);
 
@@ -642,10 +662,11 @@ DRWShadingGroup *shgroup_instance_bone_envelope_distance(DRWPass *pass)
 
 DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, bool transp)
 {
-	if (g_shaders.bone_envelope == NULL) {
-		g_shaders.bone_envelope = DRW_shader_create(
-		            datatoc_armature_envelope_solid_vert_glsl, NULL,
-		            datatoc_armature_envelope_solid_frag_glsl, "#define SMOOTH_ENVELOPE\n");
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_envelope == NULL) {
+		sh_data->bone_envelope = DRW_shader_create(
+		        datatoc_armature_envelope_solid_vert_glsl, NULL,
+		        datatoc_armature_envelope_solid_frag_glsl, "#define SMOOTH_ENVELOPE\n");
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_envelope, {
@@ -657,7 +678,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, bool transp
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_envelope,
+	        sh_data->bone_envelope,
 	        pass, DRW_cache_bone_envelope_solid_get(),
 	        g_formats.instance_bone_envelope);
 	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.6f : 1.0f);
@@ -667,10 +688,11 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, bool transp
 
 DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass)
 {
-	if (g_shaders.mball_handles == NULL) {
-		g_shaders.mball_handles = DRW_shader_create(
-		            datatoc_object_mball_handles_vert_glsl, NULL,
-		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->mball_handles == NULL) {
+		sh_data->mball_handles = DRW_shader_create(
+		        datatoc_object_mball_handles_vert_glsl, NULL,
+		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_mball_handles, {
@@ -680,7 +702,7 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.mball_handles, pass,
+	        sh_data->mball_handles, pass,
 	        DRW_cache_screenspace_circle_get(),
 	        g_formats.instance_mball_handles);
 	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
@@ -691,12 +713,13 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass)
 /* Only works with batches with adjacency infos. */
 DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct GPUBatch *geom)
 {
-	if (g_shaders.shape_outline == NULL) {
-		g_shaders.shape_outline = DRW_shader_create(
-		            datatoc_armature_shape_outline_vert_glsl,
-		            datatoc_armature_shape_outline_geom_glsl,
-		            datatoc_gpu_shader_flat_color_frag_glsl,
-		            NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->shape_outline == NULL) {
+		sh_data->shape_outline = DRW_shader_create(
+		        datatoc_armature_shape_outline_vert_glsl,
+		        datatoc_armature_shape_outline_geom_glsl,
+		        datatoc_gpu_shader_flat_color_frag_glsl,
+		        NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_outline, {
@@ -705,7 +728,7 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct GPUBa
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.shape_outline,
+	        sh_data->shape_outline,
 	        pass, geom, g_formats.instance_bone_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 
@@ -714,10 +737,11 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct GPUBa
 
 DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatch *geom, bool transp)
 {
-	if (g_shaders.shape_solid == NULL) {
-		g_shaders.shape_solid = DRW_shader_create(
-		            datatoc_armature_shape_solid_vert_glsl, NULL,
-		            datatoc_armature_shape_solid_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->shape_solid == NULL) {
+		sh_data->shape_solid = DRW_shader_create(
+		        datatoc_armature_shape_solid_vert_glsl, NULL,
+		        datatoc_armature_shape_solid_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone, {
@@ -727,7 +751,7 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatc
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.shape_solid,
+	        sh_data->shape_solid,
 	        pass, geom, g_formats.instance_bone);
 	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.6f : 1.0f);
 
@@ -736,10 +760,11 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatc
 
 DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp)
 {
-	if (g_shaders.bone_sphere == NULL) {
-		g_shaders.bone_sphere = DRW_shader_create(
-		            datatoc_armature_sphere_solid_vert_glsl, NULL,
-		            datatoc_armature_sphere_solid_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_sphere == NULL) {
+		sh_data->bone_sphere = DRW_shader_create(
+		        datatoc_armature_sphere_solid_vert_glsl, NULL,
+		        datatoc_armature_sphere_solid_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone, {
@@ -749,7 +774,7 @@ DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_sphere,
+	        sh_data->bone_sphere,
 	        pass, DRW_cache_bone_point_get(), g_formats.instance_bone);
 	/* More transparent than the shape to be less distractive. */
 	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.4f : 1.0f);
@@ -759,10 +784,11 @@ DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp)
 
 DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 {
-	if (g_shaders.bone_sphere_outline == NULL) {
-		g_shaders.bone_sphere_outline = DRW_shader_create(
-		            datatoc_armature_sphere_outline_vert_glsl, NULL,
-		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_sphere_outline == NULL) {
+		sh_data->bone_sphere_outline = DRW_shader_create(
+		        datatoc_armature_sphere_outline_vert_glsl, NULL,
+		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_outline, {
@@ -771,7 +797,7 @@ DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_sphere_outline,
+	        sh_data->bone_sphere_outline,
 	        pass, DRW_cache_bone_point_wire_outline_get(),
 	        g_formats.instance_bone_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
@@ -781,10 +807,11 @@ DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 
 DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 {
-	if (g_shaders.bone_stick == NULL) {
-		g_shaders.bone_stick = DRW_shader_create(
-		            datatoc_armature_stick_vert_glsl, NULL,
-		            datatoc_armature_stick_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_stick == NULL) {
+		sh_data->bone_stick = DRW_shader_create(
+		        datatoc_armature_stick_vert_glsl, NULL,
+		        datatoc_armature_stick_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_stick, {
@@ -797,7 +824,7 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_stick,
+	        sh_data->bone_stick,
 	        pass, DRW_cache_bone_stick_get(),
 	        g_formats.instance_bone_stick);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
@@ -808,10 +835,11 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 
 struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct GPUBatch *geom)
 {
-	if (g_shaders.bone_dofs == NULL) {
-		g_shaders.bone_dofs = DRW_shader_create(
-		            datatoc_armature_dof_vert_glsl, NULL,
-		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->bone_dofs == NULL) {
+		sh_data->bone_dofs = DRW_shader_create(
+		        datatoc_armature_dof_vert_glsl, NULL,
+		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_dof, {
@@ -822,7 +850,7 @@ struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct G
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
-	        g_shaders.bone_dofs,
+	        sh_data->bone_dofs,
 	        pass, geom,
 	        g_formats.instance_bone_dof);
 
@@ -831,48 +859,51 @@ struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct G
 
 struct GPUShader *mpath_line_shader_get(void)
 {
-	if (g_shaders.mpath_line_sh == NULL) {
-		g_shaders.mpath_line_sh = DRW_shader_create_with_lib(
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->mpath_line_sh == NULL) {
+		sh_data->mpath_line_sh = DRW_shader_create_with_lib(
 		        datatoc_animviz_mpath_lines_vert_glsl,
 		        datatoc_animviz_mpath_lines_geom_glsl,
 		        datatoc_gpu_shader_3D_smooth_color_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        NULL);
 	}
-	return g_shaders.mpath_line_sh;
+	return sh_data->mpath_line_sh;
 }
 
 
 struct GPUShader *mpath_points_shader_get(void)
 {
-	if (g_shaders.mpath_points_sh == NULL) {
-		g_shaders.mpath_points_sh = DRW_shader_create_with_lib(
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
+	if (sh_data->mpath_points_sh == NULL) {
+		sh_data->mpath_points_sh = DRW_shader_create_with_lib(
 		        datatoc_animviz_mpath_points_vert_glsl,
 		        NULL,
 		        datatoc_gpu_shader_point_varying_color_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        NULL);
 	}
-	return g_shaders.mpath_points_sh;
+	return sh_data->mpath_points_sh;
 }
 
 struct GPUShader *volume_velocity_shader_get(bool use_needle)
 {
+	COMMON_Shaders *sh_data = &g_shaders[DRW_SHADER_SLOT_DEFAULT];
 	if (use_needle) {
-		if (g_shaders.volume_velocity_needle_sh == NULL) {
-			g_shaders.volume_velocity_needle_sh = DRW_shader_create(
+		if (sh_data->volume_velocity_needle_sh == NULL) {
+			sh_data->volume_velocity_needle_sh = DRW_shader_create(
 			        datatoc_volume_velocity_vert_glsl, NULL,
 			        datatoc_gpu_shader_flat_color_frag_glsl, "#define USE_NEEDLE");
 		}
-		return g_shaders.volume_velocity_needle_sh;
+		return sh_data->volume_velocity_needle_sh;
 	}
 	else {
-		if (g_shaders.volume_velocity_sh == NULL) {
-			g_shaders.volume_velocity_sh = DRW_shader_create(
+		if (sh_data->volume_velocity_sh == NULL) {
+			sh_data->volume_velocity_sh = DRW_shader_create(
 			        datatoc_volume_velocity_vert_glsl, NULL,
 			        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 		}
-		return g_shaders.volume_velocity_sh;
+		return sh_data->volume_velocity_sh;
 	}
 }
 
