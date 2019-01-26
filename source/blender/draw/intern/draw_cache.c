@@ -39,14 +39,11 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_listbase.h"
 
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_object_deform.h"
 
 #include "GPU_batch.h"
-#include "GPU_batch_presets.h"
 #include "GPU_batch_utils.h"
 
 #include "MEM_guardedalloc.h"

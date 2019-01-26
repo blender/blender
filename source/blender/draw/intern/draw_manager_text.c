@@ -28,17 +28,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_math.h"
 
-#include "BIF_gl.h"
 
 #include "GPU_matrix.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "UI_resources.h"
 #include "UI_interface.h"
 
 #include "WM_api.h"

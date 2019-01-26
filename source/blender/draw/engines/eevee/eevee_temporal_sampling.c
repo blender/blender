@@ -33,7 +33,6 @@
 #include "ED_screen.h"
 
 #include "BLI_rand.h"
-#include "BLI_string_utils.h"
 
 #include "DEG_depsgraph_query.h"
 

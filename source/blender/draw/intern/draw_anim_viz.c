@@ -33,20 +33,14 @@
 
 #include "BLI_sys_types.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_dlrbTree.h"
 
-#include "BKE_animsys.h"
-#include "BKE_action.h"
 
-#include "ED_keyframes_draw.h"
 
 #include "UI_resources.h"
 
@@ -57,12 +51,10 @@
 
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
-#include "GPU_matrix.h"
 
 #include "draw_common.h"
 #include "draw_manager_text.h"
 
-#include "draw_mode_engines.h"
 
 /* ********************************* Lists ************************************** */
 /* All lists are per viewport specific datas.

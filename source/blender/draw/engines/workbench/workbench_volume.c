@@ -28,7 +28,6 @@
 
 #include "workbench_private.h"
 
-#include "BKE_modifier.h"
 #include "BKE_object.h"
 
 #include "BLI_rand.h"

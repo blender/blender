@@ -30,32 +30,19 @@
 
 #include "DRW_render.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_rand.h"
-
-#include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_object_force_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_global.h" /* for G.debug_value */
 #include "BKE_camera.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_animsys.h"
-#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "eevee_private.h"
-#include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
-
-#include "ED_screen.h"
 
 static struct {
 	/* Depth Of Field */

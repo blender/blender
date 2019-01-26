@@ -35,7 +35,6 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -45,12 +44,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
-#include "ED_uvedit.h"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "UI_resources.h"
 
 /* *********** STATIC *********** */
 static struct {

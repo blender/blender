@@ -27,20 +27,14 @@
  */
 #include "DNA_gpencil_types.h"
 #include "DNA_shader_fx_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_camera_types.h"
 
 #include "BKE_gpencil.h"
-#include "BKE_shader_fx.h"
 
-#include "DRW_engine.h"
 #include "DRW_render.h"
 
 #include "BKE_camera.h"
-
-#include "ED_view3d.h"
-#include "ED_gpencil.h"
 
 #include "gpencil_engine.h"
 

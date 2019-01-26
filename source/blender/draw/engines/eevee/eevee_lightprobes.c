@@ -29,7 +29,6 @@
 #include "DRW_render.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_string_utils.h"
 #include "BLI_rand.h"
 
 #include "DNA_world_types.h"
@@ -44,15 +43,12 @@
 
 #include "GPU_material.h"
 #include "GPU_texture.h"
-#include "GPU_glew.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "eevee_engine.h"
 #include "eevee_lightcache.h"
 #include "eevee_private.h"
 
-#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

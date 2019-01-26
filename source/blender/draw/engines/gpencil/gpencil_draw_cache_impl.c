@@ -35,14 +35,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_action.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 
 #include "DRW_render.h"
 
-#include "GPU_immediate.h"
-#include "GPU_draw.h"
 
 #include "ED_gpencil.h"
 #include "ED_view3d.h"

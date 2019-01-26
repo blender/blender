@@ -34,10 +34,6 @@
 
 #include "draw_common.h"
 
-#include "draw_mode_engines.h"
-
-
-
 /* *********** LISTS *********** */
 typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *bone_solid[2];

@@ -27,13 +27,11 @@
  */
 #include "BKE_studiolight.h"
 
-#include "DRW_engine.h"
 #include "workbench_private.h"
 
 #include "BKE_object.h"
 
 #include "BLI_math.h"
-#include "BKE_global.h"
 
 void studiolight_update_world(WORKBENCH_PrivateData *wpd, StudioLight *studiolight, WORKBENCH_UBO_World *wd)
 {

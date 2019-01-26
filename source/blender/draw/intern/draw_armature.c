@@ -30,35 +30,22 @@
 #include <string.h>
 #include <math.h>
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_object_types.h"
 
 #include "DRW_render.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_global.h"
-#include "BKE_modifier.h"
-#include "BKE_nla.h"
-#include "BKE_curve.h"
 
-#include "BIF_gl.h"
 
 #include "ED_armature.h"
-#include "ED_keyframes_draw.h"
 
-#include "GPU_select.h"
 
 #include "UI_resources.h"
 

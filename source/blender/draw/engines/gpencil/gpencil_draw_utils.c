@@ -28,10 +28,8 @@
 
 #include "BLI_polyfill_2d.h"
 
-#include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BKE_brush.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_image.h"
@@ -39,7 +37,6 @@
 #include "BKE_paint.h"
 
 #include "ED_gpencil.h"
-#include "ED_view3d.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"

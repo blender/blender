@@ -38,11 +38,9 @@
 
 #include "BKE_colortools.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_workspace.h"
 
 #include "draw_manager.h"
 #include "DNA_camera_types.h"
@@ -53,7 +51,6 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_gpencil.h"
-#include "ED_particle.h"
 #include "ED_view3d.h"
 
 #include "GPU_draw.h"
@@ -69,7 +66,6 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"

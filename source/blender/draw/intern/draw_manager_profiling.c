@@ -37,13 +37,10 @@
 
 #include "draw_manager.h"
 
-#include "GPU_glew.h"
 #include "GPU_texture.h"
 
 #include "UI_resources.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "draw_manager_profiling.h"
 

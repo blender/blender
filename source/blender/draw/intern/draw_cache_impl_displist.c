@@ -29,7 +29,6 @@
  * \note DispList may be removed soon! This is a utility for object types that use render.
  */
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"

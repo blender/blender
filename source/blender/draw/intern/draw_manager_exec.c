@@ -30,18 +30,14 @@
 
 #include "BLI_mempool.h"
 
-#include "BIF_glutil.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "intern/gpu_shader_private.h"
 
 #ifdef USE_GPU_SELECT
-#  include "ED_view3d.h"
-#  include "ED_armature.h"
 #  include "GPU_select.h"
 #endif
 

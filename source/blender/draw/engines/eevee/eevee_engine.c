@@ -28,21 +28,15 @@
 
 #include "DRW_render.h"
 
-#include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
 #include "BKE_object.h"
 #include "BKE_global.h" /* for G.debug_value */
-#include "BKE_screen.h"
 
 #include "DNA_world_types.h"
 
-#include "ED_screen.h"
 
-#include "GPU_material.h"
-#include "GPU_glew.h"
 
-#include "eevee_engine.h"
 #include "eevee_private.h"
 
 #define EEVEE_ENGINE "BLENDER_EEVEE"

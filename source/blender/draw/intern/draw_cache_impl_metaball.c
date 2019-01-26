@@ -39,7 +39,6 @@
 
 #include "GPU_batch.h"
 
-#include "DRW_render.h"
 
 #include "draw_cache_impl.h"  /* own include */
 

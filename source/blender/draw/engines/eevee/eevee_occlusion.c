@@ -32,7 +32,6 @@
 
 #include "BLI_string_utils.h"
 
-#include "DNA_anim_types.h"
 
 #include "DEG_depsgraph_query.h"
 

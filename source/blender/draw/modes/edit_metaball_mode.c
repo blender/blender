@@ -26,23 +26,19 @@
  *  \ingroup draw
  */
 
-#include "DRW_engine.h"
 #include "DRW_render.h"
 
 #include "DNA_meta_types.h"
 
 #include "BKE_object.h"
-#include "BKE_mball.h"
 
 #include "ED_mball.h"
 
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
-#include "GPU_select.h"
 
 #include "draw_common.h"
 
-#include "draw_mode_engines.h"
 
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.

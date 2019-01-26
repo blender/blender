@@ -44,9 +44,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_customdata_types.h"
 
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 

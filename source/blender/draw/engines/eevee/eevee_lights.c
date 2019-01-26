@@ -36,7 +36,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "eevee_engine.h"
 #include "eevee_private.h"
 
 #define SHADOW_CASTER_ALLOC_CHUNK 16

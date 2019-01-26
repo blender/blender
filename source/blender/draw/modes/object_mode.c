@@ -45,24 +45,19 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "BIF_gl.h"
 
-#include "BLI_string_utils.h"
 
 #include "BKE_anim.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"
-#include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_image.h"
-#include "BKE_texture.h"
 #include "BKE_tracking.h"
 
 #include "ED_view3d.h"

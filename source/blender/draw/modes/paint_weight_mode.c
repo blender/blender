@@ -26,7 +26,6 @@
  *  \ingroup draw
  */
 
-#include "DRW_engine.h"
 #include "DRW_render.h"
 
 /* If builtin shaders are needed */
@@ -34,12 +33,8 @@
 
 #include "draw_common.h"
 
-#include "draw_mode_engines.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
-
-#include "BKE_mesh.h"
 
 #include "DEG_depsgraph_query.h"
 

@@ -31,10 +31,8 @@
 #include "DNA_material_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
-#include "BLI_task.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"

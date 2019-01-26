@@ -31,9 +31,6 @@
 
 #include "DRW_render.h"
 
-#include "BKE_icons.h"
-#include "BKE_idprop.h"
-#include "BKE_main.h"
 #include "BKE_particle.h"
 
 #include "DNA_particle_types.h"

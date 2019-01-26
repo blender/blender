@@ -35,7 +35,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_bits.h"
-#include "BLI_math_color.h"
 #include "BLI_string.h"
 #include "BLI_alloca.h"
 #include "BLI_edgehash.h"
@@ -43,7 +42,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_customdata.h"
@@ -54,23 +52,16 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_object.h"
 #include "BKE_object_deform.h"
-#include "BKE_colorband.h"
-#include "BKE_cdderivedmesh.h"
 
-#include "DEG_depsgraph_query.h"
 
 #include "bmesh.h"
 
 #include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_draw.h"
 #include "GPU_material.h"
 
 #include "DRW_render.h"
 
-#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 

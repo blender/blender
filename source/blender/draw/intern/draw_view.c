@@ -31,27 +31,21 @@
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_world_types.h"
 #include "DNA_view3d_types.h"
 
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "GPU_draw.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
 #include "UI_resources.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
-#include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_unit.h"
 
 #include "DRW_render.h"
 

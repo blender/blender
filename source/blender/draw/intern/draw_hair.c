@@ -34,18 +34,12 @@
 #include "BLI_utildefines.h"
 #include "BLI_string_utils.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_customdata_types.h"
 
 #include "BKE_anim.h"
-#include "BKE_mesh.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
 
-#include "ED_particle.h"
 
 #include "GPU_batch.h"
 #include "GPU_shader.h"

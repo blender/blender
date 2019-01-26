@@ -26,28 +26,20 @@
  *  \ingroup draw
  */
 
-#include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
 #include "GPU_shader.h"
-#include "GPU_batch.h"
 
 #include "draw_common.h"
-
-#include "draw_mode_engines.h"
 
 #include "ED_particle.h"
 
 #include "DEG_depsgraph_query.h"
-
-#include "draw_cache_impl.h"
 
 extern char datatoc_particle_strand_vert_glsl[];
 extern char datatoc_particle_strand_frag_glsl[];

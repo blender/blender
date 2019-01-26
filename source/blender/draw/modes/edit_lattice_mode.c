@@ -36,7 +36,6 @@
 
 #include "draw_common.h"
 
-#include "draw_mode_engines.h"
 #include "draw_builtin_shader.h"
 
 extern char datatoc_common_world_clip_lib_glsl[];

@@ -37,10 +37,8 @@
 #include "DNA_smoke_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_global.h" /* for G.debug_value */
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 
 #include "ED_screen.h"
 

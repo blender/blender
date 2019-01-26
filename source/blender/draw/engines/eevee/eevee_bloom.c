@@ -30,11 +30,8 @@
 
 #include "DRW_render.h"
 
-#include "BLI_dynstr.h"
 
-#include "BKE_global.h" /* for G.debug_value */
 
-#include "GPU_extensions.h"
 #include "GPU_texture.h"
 
 #include "DEG_depsgraph_query.h"

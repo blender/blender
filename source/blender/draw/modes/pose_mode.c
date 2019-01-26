@@ -38,9 +38,6 @@
 
 #include "draw_common.h"
 
-#include "draw_mode_engines.h"
-
-
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.
  * They are all free when viewport changes engines

@@ -34,19 +34,13 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_icons.h"
-#include "BKE_idprop.h"
-#include "BKE_main.h"
 
-#include "ED_view3d.h"
 #include "ED_screen.h"
 
-#include "GPU_glew.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_viewport.h"
 
-#include "external_engine.h"
 /* Shaders */
 
 #define EXTERNAL_ENGINE "BLENDER_EXTERNAL"

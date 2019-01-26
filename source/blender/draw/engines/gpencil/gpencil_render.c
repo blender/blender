@@ -27,10 +27,8 @@
  */
 #include "BLI_rect.h"
 
-#include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BKE_camera.h"
 #include "BKE_object.h"
 
 #include "DNA_gpencil_types.h"

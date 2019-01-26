@@ -35,9 +35,6 @@
 
 #include "ED_view3d.h"
 
-#include "GPU_shader.h"
-#include "GPU_viewport.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

@@ -32,8 +32,6 @@
 
 #include "BKE_global.h" /* for G.debug_value */
 
-#include "BLI_string_utils.h"
-
 #include "eevee_private.h"
 #include "GPU_texture.h"
 #include "GPU_extensions.h"

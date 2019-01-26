@@ -36,7 +36,6 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_camera.h"
 #include "BKE_object.h"
 
 #include "BLI_rand.h"
@@ -45,7 +44,6 @@
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_framebuffer.h"
-#include "GPU_glew.h"
 #include "GPU_state.h"
 
 #include "RE_pipeline.h"

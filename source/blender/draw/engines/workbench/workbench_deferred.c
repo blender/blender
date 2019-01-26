@@ -28,7 +28,6 @@
 
 #include "workbench_private.h"
 
-#include "BIF_gl.h"
 
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
@@ -36,7 +35,6 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
-#include "BKE_node.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -46,7 +44,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
-#include "ED_uvedit.h"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"

@@ -36,15 +36,10 @@
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
 
-#include "DEG_depsgraph.h"
-
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
-#include "GPU_matrix.h"
 
 #include "draw_common.h"
-
-#include "draw_mode_engines.h"
 
 extern char datatoc_sculpt_mask_vert_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];

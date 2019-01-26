@@ -31,7 +31,6 @@
 #include "DRW_render.h"
 
 #include "BKE_global.h"
-#include "BKE_blender.h"
 
 #include "BLI_threads.h"
 

@@ -28,10 +28,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "BKE_camera.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
-#include "BKE_gpencil.h"
 #include "BKE_shader_fx.h"
 
 #include "DNA_gpencil_types.h"
@@ -39,7 +36,6 @@
 
 #include "draw_mode_engines.h"
 
-#include "UI_resources.h"
 
 #include "GPU_texture.h"
 
@@ -48,9 +44,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_screen.h"
-#include "ED_gpencil.h"
 
-#include "WM_api.h"
 
 extern char datatoc_gpencil_fill_vert_glsl[];
 extern char datatoc_gpencil_fill_frag_glsl[];

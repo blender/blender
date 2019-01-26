@@ -34,10 +34,8 @@
 #include "BKE_global.h"
 
 #include "GPU_shader.h"
-#include "GPU_extensions.h"
 #include "DRW_render.h"
 
-#include "draw_mode_engines.h"
 
 /* Structures */
 typedef struct OVERLAY_StorageList {
