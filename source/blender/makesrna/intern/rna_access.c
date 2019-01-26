@@ -6937,7 +6937,7 @@ static int rna_function_format_array_length(const char *format, int ofs, int fle
 	int idx = 0;
 
 	if (format[ofs++] == '[')
-		for (; ofs < flen && format[ofs] != ']' && idx < sizeof(*lenbuf) - 1; idx++, ofs++)
+		for (; ofs < flen && format[ofs] != ']' && idx < sizeof(lenbuf) - 1; idx++, ofs++)
 			lenbuf[idx] = format[ofs];
 
 	if (ofs < flen && format[ofs + 1] == ']') {
