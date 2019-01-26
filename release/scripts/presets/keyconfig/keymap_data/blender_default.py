@@ -2946,8 +2946,6 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("gpencil.paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
         # Snap
         op_menu("GPENCIL_MT_snap", {"type": 'S', "value": 'PRESS', "shift": True}),
-        # Convert to geometry
-        ("gpencil.convert", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         # Show/hide
         ("gpencil.reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         ("gpencil.hide", {"type": 'H', "value": 'PRESS'},
@@ -2992,6 +2990,12 @@ def km_grease_pencil_stroke_edit_mode(params):
         items.extend([
             ("gpencil.copy", {"type": 'C', "value": 'PRESS', "oskey": True}, None),
             ("gpencil.paste", {"type": 'V', "value": 'PRESS', "oskey": True}, None),
+        ])
+
+    if params.legacy:
+        items.extend([
+            # Convert to geometry
+            ("gpencil.convert", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         ])
 
     return keymap
