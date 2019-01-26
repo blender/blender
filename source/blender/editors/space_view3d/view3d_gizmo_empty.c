@@ -50,7 +50,6 @@
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Empty Image Gizmos
  * \{ */
 

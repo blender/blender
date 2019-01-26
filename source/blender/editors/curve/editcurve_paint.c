@@ -78,7 +78,6 @@
 #define STROKE_CYCLIC_DIST_PX     8
 
 /* -------------------------------------------------------------------- */
-
 /** \name StrokeElem / #RNA_OperatorStrokeElement Conversion Functions
  * \{ */
 
@@ -298,7 +297,6 @@ static bool stroke_elem_project_fallback_elem(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Operator/Stroke Conversion
  * \{ */
 
@@ -352,7 +350,6 @@ static void curve_draw_stroke_from_operator(wmOperator *op)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Operator Callbacks & Helpers
  * \{ */
 

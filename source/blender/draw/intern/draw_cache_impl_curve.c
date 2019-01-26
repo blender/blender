@@ -544,7 +544,6 @@ void DRW_curve_batch_cache_free(Curve *cu)
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Private Curve Cache API
  * \{ */
 
@@ -825,7 +824,6 @@ static void curve_create_edit_data_and_handles(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public Object/Curve API
  * \{ */
 

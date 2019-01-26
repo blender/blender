@@ -43,7 +43,6 @@
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Local utility defines for wrapping OpenGL
  * \{ */
 
@@ -456,7 +455,6 @@ static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value);
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Utility Functions
  * \{ */
 
@@ -512,7 +510,6 @@ static bool compare_dimensions(int ndim, int *dim1, Py_ssize_t *dim2)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Buffer API
  * \{ */
 
@@ -1055,7 +1052,6 @@ static PyObject *Buffer_repr(Buffer *self)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name OpenGL API Wrapping
  * \{ */
 
@@ -1336,7 +1332,6 @@ BGL_Wrap(TexImage3DMultisample,     void,      (GLenum, GLsizei, GLenum, GLsizei
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Module Definition
  * \{ */
 

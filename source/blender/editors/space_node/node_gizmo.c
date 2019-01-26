@@ -49,7 +49,6 @@
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Local Utilities
  * \{ */
 
@@ -78,7 +77,6 @@ static void node_gizmo_calc_matrix_space_with_image_dims(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Backdrop Gizmo
  * \{ */
 
@@ -201,7 +199,6 @@ void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Crop Gizmo
  * \{ */
 
@@ -404,7 +401,6 @@ void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Sun Beams
  * \{ */
 
@@ -509,7 +505,6 @@ void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Corner Pin
  * \{ */
 

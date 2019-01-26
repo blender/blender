@@ -69,7 +69,6 @@
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Docstring (snippets)
  * \{ */
 
@@ -119,7 +118,6 @@ typedef struct {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Utility helper functions
  * \{ */
 
@@ -152,7 +150,6 @@ static PyObject *bvhtree_CreatePyObject(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BVHTreeRayHit to Python utilities
  * \{ */
 
@@ -209,7 +206,6 @@ static PyObject *py_bvhtree_raycast_to_py_and_check(const BVHTreeRayHit *hit)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BVHTreeNearest to Python utilities
  * \{ */
 
@@ -281,7 +277,6 @@ static void py_bvhtree__tp_dealloc(PyBVHTree *self)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Methods
  * \{ */
 
@@ -661,7 +656,6 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Class Methods
  * \{ */
 
@@ -1240,7 +1234,6 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Module & Type definition
  * \{ */
 

@@ -743,7 +743,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Rendering
  * \{ */
 
@@ -954,7 +953,6 @@ static void eevee_lightbake_render_scene_to_planars(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Filtering
  * \{ */
 

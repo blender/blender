@@ -429,7 +429,6 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 #ifdef USE_GIZMO
 
 /* -------------------------------------------------------------------- */
-
 /** \name Bisect Gizmo
  * \{ */
 

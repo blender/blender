@@ -69,7 +69,6 @@
 #endif
 
 /* -------------------------------------------------------------------- */
-
 /** \name High Level `.blend` file read/write.
  * \{ */
 
@@ -622,7 +621,6 @@ void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Partial `.blend` file save.
  * \{ */
 

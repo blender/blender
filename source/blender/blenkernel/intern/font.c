@@ -1610,7 +1610,6 @@ bool BKE_vfont_to_curve(Object *ob, int mode)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name VFont Clipboard
  * \{ */
 

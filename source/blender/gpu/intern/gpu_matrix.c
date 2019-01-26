@@ -629,7 +629,6 @@ bool GPU_matrix_dirty_get(void)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Python API Helpers
  * \{ */
 BLI_STATIC_ASSERT(GPU_PY_MATRIX_STACK_LEN + 1 == MATRIX_STACK_DEPTH, "define mismatch");

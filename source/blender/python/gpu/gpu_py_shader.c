@@ -99,7 +99,6 @@ static int bpygpu_uniform_location_get(GPUShader *shader, const char *name, cons
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Shader Type
  * \{ */
 
@@ -682,7 +681,6 @@ PyTypeObject BPyGPUShader_Type = {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name gpu.shader Module API
  * \{ */
 
@@ -812,7 +810,6 @@ static PyModuleDef BPyGPU_shader_module_def = {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public API
  * \{ */
 

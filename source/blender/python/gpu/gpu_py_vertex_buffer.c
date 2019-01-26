@@ -40,7 +40,6 @@
 #include "gpu_py_vertex_buffer.h" /* own include */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Utility Functions
  * \{ */
 
@@ -216,7 +215,6 @@ static int bpygpu_attr_fill(GPUVertBuf *buf, int id, PyObject *py_seq_data, cons
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name VertBuf Type
  * \{ */
 
@@ -335,7 +333,6 @@ PyTypeObject BPyGPUVertBuf_Type = {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public API
  * \{ */
 

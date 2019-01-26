@@ -1248,7 +1248,6 @@ bool PyC_RunString_AsString(const char *imports[], const char *expr, const char 
 #endif  /* #ifndef MATH_STANDALONE */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Int Conversion
  *
  * \note Python doesn't provide overflow checks for specific bit-widths.
@@ -1340,7 +1339,6 @@ uint32_t PyC_Long_AsU32(PyObject *value)
  */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Py_buffer Utils
  *
  * \{ */

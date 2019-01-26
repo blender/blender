@@ -195,7 +195,6 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Validation
  * \{ */
 
@@ -1037,7 +1036,6 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Stripping (removing invalid data)
  * \{ */
 
@@ -1176,7 +1174,6 @@ void BKE_mesh_strip_loose_edges(Mesh *me)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Edge Calculation
  * \{ */
 

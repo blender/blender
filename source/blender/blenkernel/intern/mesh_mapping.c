@@ -45,7 +45,6 @@
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Connectivity Mapping
  * \{ */
 
@@ -590,7 +589,6 @@ void BKE_mesh_origindex_map_create_looptri(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh loops/poly islands.
  * Used currently for UVs and 'smooth groups'.
  * \{ */

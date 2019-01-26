@@ -156,7 +156,6 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Settings
  * \{ */
 
@@ -259,7 +258,6 @@ struct DupliObject *DRW_object_get_dupli(const Object *UNUSED(ob))
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Color Management
  * \{ */
 
@@ -362,7 +360,6 @@ void DRW_transform_none(GPUTexture *tex)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Multisample Resolve
  * \{ */
 
@@ -434,7 +431,6 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Viewport (DRW_viewport)
  * \{ */
 
@@ -804,7 +800,6 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*cal
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw Data (DRW_drawdata)
  * \{ */
 
@@ -960,7 +955,6 @@ static void drw_drawdata_unlink_dupli(ID *id)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Rendering (DRW_engines)
  * \{ */
 
@@ -1346,7 +1340,6 @@ static uint DRW_engines_get_hash(void)
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name View Update
  * \{ */
 
@@ -1405,7 +1398,6 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Main Draw Loops (DRW_draw)
  * \{ */
 
@@ -2401,7 +2393,6 @@ void DRW_draw_depth_loop(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw Manager State (DRW_state)
  * \{ */
 
@@ -2507,7 +2498,6 @@ bool DRW_state_draw_background(void)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Context State (DRW_context_state)
  * \{ */
 
@@ -2520,7 +2510,6 @@ const DRWContextState *DRW_context_state_get(void)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Init/Exit (DRW_engines)
  * \{ */
 

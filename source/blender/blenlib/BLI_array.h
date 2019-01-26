@@ -69,7 +69,6 @@ void _bli_array_grow_func(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public defines
  * \{ */
 
@@ -170,7 +169,6 @@ void _bli_array_grow_func(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Generic Array Utils
  * other useful defines
  * (unrelated to the main array macros)

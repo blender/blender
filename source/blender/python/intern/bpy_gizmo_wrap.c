@@ -48,7 +48,6 @@
 /* we may want to add, but not now */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Gizmo
  * \{ */
 
@@ -186,7 +185,6 @@ void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Gizmo Group
  * \{ */
 

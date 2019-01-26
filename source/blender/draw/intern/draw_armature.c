@@ -118,7 +118,6 @@ static struct {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Shader Groups (DRW_shgroup)
  * \{ */
 
@@ -459,7 +458,6 @@ static void drw_shgroup_bone_ik_spline_lines(const float start[3], const float e
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Drawing Theme Helpers
  *
  * Note, this section is duplicate of code in 'drawarmature.c'.
@@ -726,7 +724,6 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Drawing Color Helpers
  * \{ */
 
@@ -881,7 +878,6 @@ static const float *get_bone_hint_color(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Helper Utils
  * \{ */
 
@@ -1253,7 +1249,6 @@ static void draw_points(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw Bones
  * \{ */
 
@@ -1481,7 +1476,6 @@ static void draw_bone_octahedral(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw Degrees of Freedom
  * \{ */
 
@@ -1558,7 +1552,6 @@ static void draw_bone_dofs(bPoseChannel *pchan)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw Relationships
  * \{ */
 
@@ -1681,7 +1674,6 @@ static void draw_bone_relations(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Main Draw Loops
  * \{ */
 

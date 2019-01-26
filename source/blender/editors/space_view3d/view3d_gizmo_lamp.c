@@ -49,7 +49,6 @@
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Spot Lamp Gizmos
  * \{ */
 
@@ -127,7 +126,6 @@ void VIEW3D_GGT_lamp_spot(wmGizmoGroupType *gzgt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Area Lamp Gizmos
  * \{ */
 
@@ -244,7 +242,6 @@ void VIEW3D_GGT_lamp_area(wmGizmoGroupType *gzgt)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Lamp Target Gizmo
  * \{ */
 

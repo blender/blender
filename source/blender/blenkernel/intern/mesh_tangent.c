@@ -53,7 +53,6 @@
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Tangent Calculations (Single Layer)
  * \{ */
 
@@ -202,7 +201,6 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh, const char *uvmap, float (*r_
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Tangent Calculations (All Layers)
  * \{ */
 

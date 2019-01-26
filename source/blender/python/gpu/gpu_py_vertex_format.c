@@ -49,7 +49,6 @@
 #endif
 
 /* -------------------------------------------------------------------- */
-
 /** \name Enum Conversion
  *
  * Use with PyArg_ParseTuple's "O&" formatting.
@@ -148,7 +147,6 @@ static int bpygpu_ParseVertFetchMode(PyObject *o, void *p)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name VertFormat Type
  * \{ */
 
@@ -241,7 +239,6 @@ PyTypeObject BPyGPUVertFormat_Type = {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public API
  * \{ */
 

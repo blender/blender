@@ -54,7 +54,6 @@ void DRW_select_load_id(uint id)
 struct GPUUniformBuffer *view_ubo;
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw State (DRW_state)
  * \{ */
 
@@ -462,7 +461,6 @@ void DRW_state_clip_planes_set_from_rv3d(RegionView3D *rv3d)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Clipping (DRW_clipping)
  * \{ */
 
@@ -761,7 +759,6 @@ void DRW_culling_frustum_planes_get(float planes[6][4])
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw (DRW_draw)
  * \{ */
 

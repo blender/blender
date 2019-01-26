@@ -68,7 +68,6 @@
 #endif
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Normal Calculation
  * \{ */
 
@@ -1891,7 +1890,6 @@ void BKE_mesh_normals_loop_to_vertex(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Polygon Calculations
  * \{ */
 
@@ -2222,7 +2220,6 @@ void BKE_mesh_poly_edgebitmap_insert(unsigned int *edge_bitmap, const MPoly *mp,
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Center Calculation
  * \{ */
 
@@ -2324,7 +2321,6 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Volume Calculation
  * \{ */
 
@@ -2430,7 +2426,6 @@ void BKE_mesh_calc_volume(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name NGon Tessellation (NGon/Tessface Conversion)
  * \{ */
 
@@ -3400,7 +3395,6 @@ void BKE_mesh_polygons_flip(
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Flag Flushing
  * \{ */
 
@@ -3591,7 +3585,6 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Mesh Spatial Calculation
  * \{ */
 

@@ -83,7 +83,6 @@
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Struct Definitions
  * \{ */
 
@@ -199,7 +198,6 @@ const float bvhtree_kdop_axes[13][3] = {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Utility Functions
  * \{ */
 
@@ -238,7 +236,6 @@ static void node_minmax_init(const BVHTree *tree, BVHNode *node)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Balance Utility Functions
  * \{ */
 
@@ -826,7 +823,6 @@ static void non_recursive_bvh_div_nodes(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree API
  * \{ */
 
@@ -1042,7 +1038,6 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree_overlap
  * \{ */
 
@@ -1260,7 +1255,6 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree_find_nearest
  * \{ */
 
@@ -1429,7 +1423,6 @@ int BLI_bvhtree_find_nearest(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree_ray_cast
  *
  * raycast is done by performing a DFS on the BVHTree and saving the closest hit.
@@ -1725,7 +1718,6 @@ void BLI_bvhtree_ray_cast_all(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree_range_query
  *
  * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius).
@@ -1811,7 +1803,6 @@ int BLI_bvhtree_range_query(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree_nearest_projected
 * \{ */
 
@@ -2003,7 +1994,6 @@ int BLI_bvhtree_find_nearest_projected(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name BLI_bvhtree_walk_dfs
  * \{ */
 

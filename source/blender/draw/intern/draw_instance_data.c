@@ -90,7 +90,6 @@ struct DRWInstanceDataList {
 static ListBase g_idatalists = {NULL, NULL};
 
 /* -------------------------------------------------------------------- */
-
 /** \name Instance Buffer Management
  * \{ */
 
@@ -288,7 +287,6 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Instance Data (DRWInstanceData)
  * \{ */
 
@@ -347,7 +345,6 @@ DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Instance Data List (DRWInstanceDataList)
  * \{ */
 

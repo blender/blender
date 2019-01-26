@@ -407,7 +407,6 @@ void WM_gizmo_set_fn_custom_modal(struct wmGizmo *gz, wmGizmoFnModal fn)
 
 
 /* -------------------------------------------------------------------- */
-
 /**
  * Add/Remove \a gizmo to selection.
  * Reallocates memory for selected gizmos so better not call for selecting multiple ones.

@@ -648,7 +648,6 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
 }
 
 /* -------------------------------------------------------------------------- */
-
 /**
  * \note group can be a pointer array or a group.
  * assume we already checked key is a string.

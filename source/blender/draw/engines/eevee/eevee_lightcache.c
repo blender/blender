@@ -150,7 +150,6 @@ typedef struct EEVEE_LightBake {
 } EEVEE_LightBake;
 
 /* -------------------------------------------------------------------- */
-
 /** \name Light Cache
  * \{ */
 
@@ -370,7 +369,6 @@ void EEVEE_lightcache_free(LightCache *lcache)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Light Bake Context
  * \{ */
 
@@ -403,7 +401,6 @@ static void eevee_lightbake_context_disable(EEVEE_LightBake *lbake)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Light Bake Job
  * \{ */
 

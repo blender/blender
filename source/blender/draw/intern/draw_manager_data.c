@@ -50,7 +50,6 @@ struct GPUVertFormat *g_pos_format = NULL;
 extern struct GPUUniformBuffer *view_ubo; /* draw_manager_exec.c */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Uniform Buffer Object (DRW_uniformbuffer)
  * \{ */
 
@@ -72,7 +71,6 @@ void DRW_uniformbuffer_free(GPUUniformBuffer *ubo)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Uniforms (DRW_shgroup_uniform)
  * \{ */
 
@@ -271,7 +269,6 @@ void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Draw Call (DRW_calls)
  * \{ */
 
@@ -627,7 +624,6 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Shading Groups (DRW_shgroup)
  * \{ */
 
@@ -1076,7 +1072,6 @@ DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Passes (DRW_pass)
  * \{ */
 

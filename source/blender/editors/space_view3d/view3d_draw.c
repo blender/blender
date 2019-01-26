@@ -1374,7 +1374,6 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Offscreen Drawing
  * \{ */
 

@@ -845,7 +845,6 @@ float BKE_defvert_multipaint_collective_weight(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Defvert Array functions
  * \{ */
 
@@ -997,7 +996,6 @@ void BKE_defvert_extract_vgroup_to_polyweights(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Data Transfer
  * \{ */
 
@@ -1296,7 +1294,6 @@ bool data_transfer_layersmapping_vgroups(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Various utils & helpers.
  * \{ */
 

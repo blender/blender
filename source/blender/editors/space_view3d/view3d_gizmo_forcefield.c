@@ -46,7 +46,6 @@
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Force Field Gizmos
  * \{ */
 

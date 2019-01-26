@@ -149,7 +149,6 @@ static GPUVertBuf *mball_batch_cache_get_pos_and_normals(Object *ob, MetaBallBat
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public Object/MetaBall API
  * \{ */
 

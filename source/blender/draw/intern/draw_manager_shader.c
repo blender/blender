@@ -56,7 +56,6 @@ extern char datatoc_common_fullscreen_vert_glsl[];
 #define USE_DEFERRED_COMPILATION 1
 
 /* -------------------------------------------------------------------- */
-
 /** \name Deferred Compilation (DRW_deferred)
  *
  * Since compiling shader can take a long time, we do it in a non blocking

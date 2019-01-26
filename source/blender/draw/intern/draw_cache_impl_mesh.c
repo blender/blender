@@ -90,7 +90,6 @@ enum {
 };
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Mesh/BMesh Interface (direct access to basic data).
  * \{ */
 
@@ -128,7 +127,6 @@ static int UNUSED_FUNCTION(mesh_render_loops_len_get)(Mesh *me)
 
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
@@ -1126,7 +1124,6 @@ static MeshRenderData *mesh_render_data_create(Mesh *me, const int types)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Accessor Functions
  * \{ */
 
@@ -1474,7 +1471,6 @@ fallback:
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Internal Cache Generation
  * \{ */
 
@@ -1916,7 +1912,6 @@ static bool add_edit_facedot_mapped(
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Vertex Group Selection
  * \{ */
 
@@ -1992,7 +1987,6 @@ static void drw_mesh_weight_state_extract(
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Mesh GPUBatch Cache
  * \{ */
 
@@ -4372,7 +4366,6 @@ static void mesh_create_edit_loops_tris(MeshRenderData *rdata, GPUIndexBuf *ibo)
 
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Public API
  * \{ */
 
@@ -4569,7 +4562,6 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(Mesh *me)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Edit Mode selection API
  * \{ */
 
@@ -4600,7 +4592,6 @@ GPUBatch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *me)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-
 /** \name UV Image editor API
  * \{ */
 
@@ -4969,7 +4960,6 @@ static void mesh_create_uvedit_buffers(
 
 
 /* ---------------------------------------------------------------------- */
-
 /** \name Grouped batch generation
  * \{ */
 

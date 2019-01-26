@@ -1291,7 +1291,6 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Transform Axis Target
  *
  * Note this is an experemental operator to point lamps/cameras at objects.

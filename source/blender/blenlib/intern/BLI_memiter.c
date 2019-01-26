@@ -121,7 +121,6 @@ static void memiter_init(BLI_memiter *mi)
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public API's
  * \{ */
 
@@ -252,7 +251,6 @@ uint BLI_memiter_count(const BLI_memiter *mi)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Helper API's
  * \{ */
 
@@ -286,7 +284,6 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Iterator API's
  *
  * \note We could loop over elements until a NULL chunk is found,

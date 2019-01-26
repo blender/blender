@@ -45,7 +45,6 @@
 #include "wm_gizmo_intern.h"
 
 /* -------------------------------------------------------------------- */
-
 /** \name Property Definition
  * \{ */
 
@@ -165,7 +164,6 @@ void WM_gizmo_target_property_clear_rna(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Property Access
  * \{ */
 
@@ -282,7 +280,6 @@ int WM_gizmo_target_property_array_length(
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Property Define
  * \{ */
 
@@ -312,7 +309,6 @@ void WM_gizmotype_target_property_def(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Property Utilities
  * \{ */
 
