@@ -30,7 +30,6 @@
 #include "DNA_ID.h"
 
 #include "BKE_idcode.h"
-#include "BKE_library.h"
 #include "BKE_library_idmap.h"  /* own include */
 #include "BKE_main.h"
 

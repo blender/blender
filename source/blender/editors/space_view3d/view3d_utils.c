@@ -47,14 +47,12 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_matrix.h"

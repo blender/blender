@@ -43,7 +43,6 @@
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_path_util.h"
-#include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 

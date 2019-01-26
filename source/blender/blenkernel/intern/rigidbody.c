@@ -39,7 +39,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #ifdef WITH_BULLET
@@ -57,10 +56,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
-#include "BKE_library_query.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -68,6 +64,11 @@
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
+#ifdef WITH_BULLET
+#  include "BKE_global.h"
+#  include "BKE_library.h"
+#  include "BKE_library_query.h"
+#endif
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

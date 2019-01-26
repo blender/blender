@@ -42,7 +42,6 @@
 #include "DNA_shader_fx_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 
 #include "BKE_camera.h"
 #include "BKE_collection.h"

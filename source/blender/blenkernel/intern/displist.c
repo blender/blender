@@ -48,12 +48,10 @@
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
 #include "BKE_displist.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_mesh.h"

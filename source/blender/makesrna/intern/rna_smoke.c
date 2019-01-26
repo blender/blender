@@ -30,7 +30,6 @@
 #include <limits.h>
 
 #include "BLI_sys_types.h"
-#include "BLI_threads.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -51,6 +50,8 @@
 
 
 #ifdef RNA_RUNTIME
+
+#include "BLI_threads.h"
 
 #include "BKE_colorband.h"
 #include "BKE_context.h"

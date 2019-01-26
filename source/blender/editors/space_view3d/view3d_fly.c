@@ -44,7 +44,6 @@
 
 #include "BLT_translation.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

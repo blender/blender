@@ -27,7 +27,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
-#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
@@ -45,6 +44,8 @@
 #include <string.h>
 
 #ifdef WITH_MOD_REMESH
+#  include "BLI_math_vector.h"
+
 #  include "dualcon.h"
 #endif
 

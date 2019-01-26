@@ -32,7 +32,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_alloca.h"
 
-#include "BKE_main.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

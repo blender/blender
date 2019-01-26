@@ -30,9 +30,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_math_base.h"
 
-#include "BKE_context.h"
 #include "BKE_image.h"
 
 #include "DEG_depsgraph.h"
@@ -63,6 +61,8 @@ static const EnumPropertyItem image_source_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#include "BLI_math_base.h"
 
 #include "BKE_global.h"
 

@@ -35,7 +35,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
 #include "BKE_subdiv.h"

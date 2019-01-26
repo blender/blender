@@ -34,7 +34,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_array_utils.h"
-#include "BLI_alloca.h"
 
 #include "BKE_context.h"
 #include "BKE_key.h"

@@ -25,7 +25,6 @@
 #include <string.h>
 
 #include "BLI_array.h"
-#include "BLI_listbase.h"
 
 #include "BKE_collection.h"
 #include "BKE_editmesh.h"

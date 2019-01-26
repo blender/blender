@@ -38,7 +38,6 @@
 #include "DNA_workspace_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -48,7 +47,6 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
-#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"

@@ -31,7 +31,6 @@
  * \brief Gizmo to use as a fallback (catch events).
  */
 
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 

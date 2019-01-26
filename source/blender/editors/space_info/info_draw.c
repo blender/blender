@@ -33,7 +33,6 @@
 #include <sys/stat.h>
 #include <limits.h>
 
-
 #include "BLI_utildefines.h"
 
 #include "DNA_space_types.h"
@@ -41,9 +40,6 @@
 
 // #include "BKE_suggestions.h"
 #include "BKE_report.h"
-
-#include "BIF_gl.h"
-
 
 #include "UI_resources.h"
 #include "UI_interface.h"

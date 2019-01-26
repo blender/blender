@@ -59,8 +59,6 @@
 #include "BKE_workspace.h"
 #include "BKE_object.h"
 
-#include "BIF_gl.h"
-
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"

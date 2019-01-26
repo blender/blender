@@ -36,7 +36,6 @@
 
 #include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

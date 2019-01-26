@@ -41,7 +41,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
-#include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
 

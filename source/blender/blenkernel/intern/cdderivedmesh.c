@@ -37,13 +37,10 @@
 #include "atomic_ops.h"
 
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
-#include "BLI_utildefines_stack.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"

@@ -78,9 +78,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
-#include "BLI_mempool.h"
 #include "BLI_string_utils.h"
-#include "BLI_threads.h"
 
 #include "BLT_translation.h"
 
@@ -104,7 +102,6 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
-#include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_linestyle.h"

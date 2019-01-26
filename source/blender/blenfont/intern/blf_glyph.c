@@ -52,7 +52,6 @@
 #include "BLI_rect.h"
 #include "BLI_threads.h"
 
-#include "BIF_gl.h"
 #include "BLF_api.h"
 
 #ifndef BLF_STANDALONE

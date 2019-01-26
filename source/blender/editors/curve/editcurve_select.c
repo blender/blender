@@ -37,7 +37,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
-#include "BLI_heap.h"
 #include "BLI_heap_simple.h"
 #include "BLI_kdtree.h"
 

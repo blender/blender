@@ -37,7 +37,6 @@
 #include "BLI_linklist.h"
 #include "BLI_alloca.h"
 #include "BLI_memarena.h"
-#include "BLI_edgehash.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_utildefines_stack.h"

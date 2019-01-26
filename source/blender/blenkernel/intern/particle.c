@@ -48,7 +48,6 @@
 #include "DNA_dynamicpaint_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_noise.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_kdopbvh.h"
@@ -68,7 +67,6 @@
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
 
@@ -77,8 +75,6 @@
 #include "BKE_material.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
-#include "BKE_library_query.h"
-#include "BKE_library_remap.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"  /* for weight_to_rgb() */

@@ -32,8 +32,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
-#include "BLI_listbase.h"
-#include "BLI_threads.h"
 
 #include "BKE_global.h"
 

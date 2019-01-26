@@ -37,7 +37,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 
 #include "BPY_extern.h"
 #include "bpy_operator.h"

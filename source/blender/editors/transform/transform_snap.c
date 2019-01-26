@@ -52,7 +52,6 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"  /* for duplis */

@@ -63,7 +63,6 @@
 
 #include "BKE_image.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_matrix.h"

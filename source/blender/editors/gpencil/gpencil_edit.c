@@ -43,7 +43,6 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -66,7 +65,6 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_workspace.h"
 
 #include "UI_interface.h"

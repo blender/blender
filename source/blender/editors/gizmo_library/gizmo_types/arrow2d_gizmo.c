@@ -31,15 +31,12 @@
  * \brief Simple arrow gizmo which is dragged into a certain direction.
  */
 
-#include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_rect.h"
 
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 
-#include "BIF_gl.h"
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"

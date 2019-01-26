@@ -44,11 +44,8 @@
 #include "BLI_listbase.h"
 
 #include "BKE_animsys.h"
-#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_library.h"
-#include "BKE_library_query.h"
-#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_world.h"

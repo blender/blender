@@ -26,10 +26,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_array_utils.h"
 #include "BLI_bitmap.h"
-#include "BLI_task.h"
-#include "BLI_string_utils.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

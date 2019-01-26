@@ -47,8 +47,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_buffer.h"
-#include "BLI_bitmap.h"
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
@@ -56,8 +54,6 @@
 #include "BKE_layer.h"
 
 #include "BKE_scene.h"
-
-#include "BIF_glutil.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

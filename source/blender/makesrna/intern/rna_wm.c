@@ -32,7 +32,6 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -48,6 +47,7 @@
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
+
 static const EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
@@ -482,6 +482,8 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 #ifdef RNA_RUNTIME
 
 #include <assert.h>
+
+#include "BLI_string_utils.h"
 
 #include "WM_api.h"
 

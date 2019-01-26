@@ -41,7 +41,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_fileops_types.h"
 #include "BLI_math_vector.h"
 
 #include "DNA_brush_types.h"
@@ -55,8 +54,6 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_appdir.h"
 #include "BKE_studiolight.h"
@@ -65,7 +62,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_glutil.h"
 #include "BLF_api.h"
 
 #include "DEG_depsgraph.h"

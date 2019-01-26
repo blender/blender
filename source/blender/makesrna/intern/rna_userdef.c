@@ -36,7 +36,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_appdir.h"
 #include "BKE_sound.h"
@@ -96,6 +95,8 @@ static const EnumPropertyItem rna_enum_studio_light_type_items[] = {
 
 
 #ifdef RNA_RUNTIME
+
+#include "BLI_math_vector.h"
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"

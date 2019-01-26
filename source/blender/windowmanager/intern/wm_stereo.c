@@ -39,7 +39,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BIF_gl.h"

@@ -44,8 +44,6 @@
 
 #include "BKE_context.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

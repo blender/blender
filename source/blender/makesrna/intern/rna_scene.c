@@ -43,7 +43,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "BLI_math.h"
-#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -483,6 +482,8 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#include "BLI_string_utils.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_color_types.h"

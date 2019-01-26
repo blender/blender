@@ -51,10 +51,8 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_paint.h"
-#include "BKE_main.h"
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
-#include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_workspace.h"
 

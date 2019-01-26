@@ -41,7 +41,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
-#include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_material.h"
 #include "BKE_gpencil.h"

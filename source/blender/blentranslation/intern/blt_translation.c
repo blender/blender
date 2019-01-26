@@ -38,10 +38,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
 
 #include "DNA_userdef_types.h" /* For user settings. */
 

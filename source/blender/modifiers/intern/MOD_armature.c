@@ -40,7 +40,6 @@
 #include "DNA_mesh_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"

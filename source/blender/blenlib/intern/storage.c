@@ -74,7 +74,6 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 #include "BLI_fileops.h"
-#include "BLI_fileops_types.h"
 #include "BLI_path_util.h"
 
 /**

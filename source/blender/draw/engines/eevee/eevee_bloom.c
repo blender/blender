@@ -30,8 +30,6 @@
 
 #include "DRW_render.h"
 
-
-
 #include "GPU_texture.h"
 
 #include "DEG_depsgraph_query.h"

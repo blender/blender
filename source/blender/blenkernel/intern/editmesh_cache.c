@@ -28,7 +28,6 @@
 
 #include "DNA_mesh_types.h"
 
-#include "BLI_math.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"  /* own include */

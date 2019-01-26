@@ -50,8 +50,6 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
-#include "BIF_gl.h"
-
 #include "BLF_api.h"
 #include "blf_internal_types.h"
 #include "blf_internal.h"

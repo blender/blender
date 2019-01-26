@@ -37,7 +37,6 @@
 
 #include "BKE_dynamicpaint.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"

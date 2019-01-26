@@ -46,7 +46,6 @@
 
 
 #include "BKE_camera.h"
-#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"

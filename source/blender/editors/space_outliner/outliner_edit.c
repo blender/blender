@@ -43,9 +43,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
-#include "BLI_mempool.h"
-#include "BLI_stack.h"
-#include "BLI_string.h"
 
 #include "BLT_translation.h"
 

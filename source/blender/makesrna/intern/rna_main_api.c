@@ -39,7 +39,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_path_util.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"

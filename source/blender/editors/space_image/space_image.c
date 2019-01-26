@@ -71,7 +71,6 @@
 #include "ED_uvedit.h"
 #include "ED_transform.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -37,7 +37,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
-#include "BLI_string.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_global.h"

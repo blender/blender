@@ -51,8 +51,6 @@
 #include "WM_message.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-
 #include "RNA_access.h"
 
 #include "DNA_scene_types.h"

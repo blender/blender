@@ -35,7 +35,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
 #include "BLI_mempool.h"
 
 #include "BIF_gl.h"
@@ -43,7 +42,6 @@
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_global.h"
 
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"

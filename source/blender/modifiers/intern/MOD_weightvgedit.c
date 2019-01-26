@@ -41,7 +41,6 @@
 
 #include "BKE_colortools.h"       /* CurveMapping. */
 #include "BKE_deform.h"
-#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */

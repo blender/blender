@@ -47,7 +47,6 @@
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_customdata.h"
-#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"

@@ -29,7 +29,6 @@
 
 #include "DNA_text_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_array_utils.h"
 
 #include "BLT_translation.h"

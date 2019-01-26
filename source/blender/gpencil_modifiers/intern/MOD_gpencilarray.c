@@ -45,7 +45,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_modifier.h"
-#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_main.h"

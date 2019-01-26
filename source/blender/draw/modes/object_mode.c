@@ -45,8 +45,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-
-
 #include "BKE_anim.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"

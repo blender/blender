@@ -33,7 +33,6 @@
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 
-#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
@@ -52,6 +51,8 @@
 #include <stddef.h>
 
 #include "DNA_object_types.h"
+
+#include "BLI_string_utils.h"
 
 #include "BKE_animsys.h"
 #include "BKE_key.h"

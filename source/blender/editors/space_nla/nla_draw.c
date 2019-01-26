@@ -53,7 +53,6 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
 
-#include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

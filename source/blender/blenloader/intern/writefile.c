@@ -157,7 +157,6 @@
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
-#include "BLI_linklist.h"
 #include "BLI_mempool.h"
 
 #include "BKE_action.h"

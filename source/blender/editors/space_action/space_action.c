@@ -28,7 +28,6 @@
  *  \ingroup spaction
  */
 
-
 #include <string.h>
 #include <stdio.h>
 
@@ -40,7 +39,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -53,8 +51,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_message.h"
-
-#include "BIF_gl.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

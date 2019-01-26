@@ -55,7 +55,6 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
-#include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -63,7 +62,6 @@
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_scene.h"
-
 
 #include "RNA_access.h"
 

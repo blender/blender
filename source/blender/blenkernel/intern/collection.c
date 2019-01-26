@@ -33,7 +33,6 @@
 #include "BLI_math_base.h"
 #include "BLI_threads.h"
 #include "BLT_translation.h"
-#include "BLI_string_utils.h"
 
 #include "BKE_collection.h"
 #include "BKE_icons.h"

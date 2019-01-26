@@ -41,9 +41,7 @@
 #include "RNA_enum_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_fileops.h"
-#include "BLI_math_geom.h"
 #include "BLI_path_util.h"
 
 #include "BKE_context.h"

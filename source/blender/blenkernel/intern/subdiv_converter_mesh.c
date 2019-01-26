@@ -36,7 +36,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_bitmap.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
 #include "BKE_mesh_mapping.h"

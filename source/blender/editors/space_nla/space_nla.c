@@ -42,8 +42,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_screen.h"
 
 #include "ED_space_api.h"
@@ -51,7 +49,6 @@
 #include "ED_markers.h"
 #include "ED_screen.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

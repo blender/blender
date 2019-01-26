@@ -36,7 +36,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
 
 #include "GPU_batch.h"
 

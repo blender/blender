@@ -25,8 +25,6 @@
  *  \ingroup collada
  */
 
-
-
 #include "MaterialExporter.h"
 #include "COLLADABUUtils.h"
 #include "collada_internal.h"

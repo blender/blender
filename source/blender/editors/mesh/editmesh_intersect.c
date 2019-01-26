@@ -30,7 +30,6 @@
 #include "BLI_memarena.h"
 #include "BLI_stack.h"
 #include "BLI_buffer.h"
-#include "BLI_kdopbvh.h"
 #include "BLI_linklist_stack.h"
 
 #include "BKE_layer.h"

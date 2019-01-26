@@ -28,11 +28,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
-#include "BKE_global.h"
 
 #include "GPU_batch.h"
 #include "GPU_draw.h"

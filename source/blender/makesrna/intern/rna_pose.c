@@ -40,7 +40,6 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
-#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -77,6 +76,9 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_ghash.h"
+#include "BLI_string_utils.h"
+
 #include "BIK_api.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -84,8 +86,6 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_constraint.h"

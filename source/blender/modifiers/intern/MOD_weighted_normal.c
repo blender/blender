@@ -32,7 +32,6 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_library.h"
-#include "BKE_library_query.h"
 #include "BKE_mesh.h"
 
 #include "BLI_math.h"

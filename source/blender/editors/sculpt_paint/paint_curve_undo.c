@@ -29,7 +29,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_string.h"
 #include "BLI_array_utils.h"
 
 #include "BKE_context.h"

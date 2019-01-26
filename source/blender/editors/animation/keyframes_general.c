@@ -48,7 +48,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_report.h"
 #include "BKE_main.h"
-#include "BKE_global.h"
 #include "BKE_deform.h"
 
 #include "RNA_access.h"

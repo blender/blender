@@ -30,7 +30,6 @@
  * Functions for dealing with append/link operators and helpers.
  */
 
-
 #include <float.h>
 #include <string.h>
 #include <ctype.h>
@@ -45,8 +44,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
-
-
 
 #include "BLI_blenlib.h"
 #include "BLI_bitmap.h"

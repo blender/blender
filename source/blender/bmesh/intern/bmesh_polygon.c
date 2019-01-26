@@ -40,7 +40,6 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_linklist.h"
-#include "BLI_edgehash.h"
 #include "BLI_heap.h"
 
 #include "bmesh.h"

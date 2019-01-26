@@ -84,7 +84,6 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "BIF_gl.h"
 
 #include "IMB_colormanagement.h"
 

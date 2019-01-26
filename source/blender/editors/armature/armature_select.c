@@ -45,8 +45,6 @@
 #include "BKE_report.h"
 #include "BKE_layer.h"
 
-#include "BIF_gl.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 

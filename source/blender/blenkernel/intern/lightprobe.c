@@ -32,11 +32,9 @@
 #include "DNA_object_types.h"
 #include "DNA_lightprobe_types.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_lightprobe.h"
 #include "BKE_main.h"

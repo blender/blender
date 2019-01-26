@@ -39,12 +39,9 @@
 #include "DNA_modifier_types.h"
 #include "BLI_math.h"
 
-#include "BLI_listbase.h"
-#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_lattice.h"
-#include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_modifier.h"

@@ -30,15 +30,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math.h"
 
 #include "DNA_collection_types.h"
 
 #include "BLT_translation.h"
 
-#include "BKE_context.h"
-#include "BKE_main.h"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"

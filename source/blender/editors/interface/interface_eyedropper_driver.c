@@ -38,7 +38,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_animsys.h"

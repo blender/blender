@@ -37,8 +37,6 @@
 #include "BLI_threads.h"
 #include "BLI_jitter_2d.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BKE_camera.h"
 #include "BKE_collection.h"

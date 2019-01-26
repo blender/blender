@@ -36,13 +36,11 @@
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 
-#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "IMB_colormanagement.h"

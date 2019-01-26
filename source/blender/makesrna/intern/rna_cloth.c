@@ -31,8 +31,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_base.h"
-
 #include "RNA_define.h"
 
 #include "rna_internal.h"

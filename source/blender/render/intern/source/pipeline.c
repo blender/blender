@@ -56,7 +56,6 @@
 #include "BLI_timecode.h"
 #include "BLI_fileops.h"
 #include "BLI_threads.h"
-#include "BLI_rand.h"
 #include "BLI_callbacks.h"
 
 #include "BLT_translation.h"

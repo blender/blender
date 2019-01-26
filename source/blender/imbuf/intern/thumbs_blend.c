@@ -29,8 +29,6 @@
 #include <string.h>
 
 #include "BLI_utildefines.h"
-#include "BLI_endian_switch.h"
-#include "BLI_fileops.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"  /* Needed due to import of BLO_readfile.h */
 

@@ -82,8 +82,6 @@
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 
-#include "BIF_gl.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 

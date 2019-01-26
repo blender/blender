@@ -36,7 +36,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_scene.h"
 

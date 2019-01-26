@@ -34,7 +34,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
-#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_layer.h"
 
@@ -48,7 +47,6 @@
 #include "ED_view3d.h"
 #include "ED_curve.h"
 
-#include "BIF_gl.h"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"

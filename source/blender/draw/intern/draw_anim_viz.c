@@ -40,8 +40,6 @@
 
 #include "BLI_math.h"
 
-
-
 #include "UI_resources.h"
 
 #include "DEG_depsgraph_query.h"
@@ -54,7 +52,6 @@
 
 #include "draw_common.h"
 #include "draw_manager_text.h"
-
 
 /* ********************************* Lists ************************************** */
 /* All lists are per viewport specific datas.

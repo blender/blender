@@ -40,7 +40,6 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_main.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"

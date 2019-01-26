@@ -38,7 +38,6 @@
  * - `matrix[2]` is the arrow direction (for all arrowes).
  */
 
-#include "BIF_gl.h"
 
 #include "BLI_math.h"
 

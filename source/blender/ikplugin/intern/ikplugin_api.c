@@ -31,7 +31,6 @@
  */
 
 #include "BIK_api.h"
-#include "BLI_blenlib.h"
 
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"

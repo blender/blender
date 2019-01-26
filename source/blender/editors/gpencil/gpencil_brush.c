@@ -63,7 +63,6 @@
 #include "BKE_material.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 
 #include "UI_interface.h"
 

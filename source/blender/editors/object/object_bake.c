@@ -43,15 +43,12 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_blender.h"
-#include "BKE_screen.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"

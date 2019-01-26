@@ -35,7 +35,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
-#include "BLI_task.h"
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"

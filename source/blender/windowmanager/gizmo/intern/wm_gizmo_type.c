@@ -25,8 +25,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utils.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"

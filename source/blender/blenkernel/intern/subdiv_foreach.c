@@ -35,9 +35,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_key_types.h"
 
-#include "BLI_alloca.h"
 #include "BLI_bitmap.h"
-#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "BKE_mesh.h"

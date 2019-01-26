@@ -34,7 +34,6 @@
 #include "DNA_object_types.h"
 #include "DNA_gpencil_types.h"
 
-#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "FX_shader_types.h"

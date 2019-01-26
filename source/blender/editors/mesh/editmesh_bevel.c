@@ -30,7 +30,6 @@
 
 #include "BLI_string.h"
 #include "BLI_math.h"
-#include "BLI_linklist_stack.h"
 
 #include "BLT_translation.h"
 

@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
@@ -43,8 +42,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
-#include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"

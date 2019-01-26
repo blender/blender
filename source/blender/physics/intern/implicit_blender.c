@@ -42,7 +42,6 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_math.h"
-#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cloth.h"

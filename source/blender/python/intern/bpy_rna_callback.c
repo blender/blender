@@ -33,7 +33,6 @@
 #include "RNA_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"

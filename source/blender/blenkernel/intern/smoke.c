@@ -42,12 +42,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_voxel.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -72,9 +69,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -104,6 +99,10 @@
 #include "smoke_API.h"
 
 #ifdef WITH_SMOKE
+
+#include "BLI_task.h"
+#include "BLI_kdtree.h"
+#include "BLI_voxel.h"
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
 

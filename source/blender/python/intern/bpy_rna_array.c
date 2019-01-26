@@ -35,7 +35,6 @@
 #include "RNA_types.h"
 
 #include "bpy_rna.h"
-#include "BKE_global.h"
 
 #include "MEM_guardedalloc.h"
 

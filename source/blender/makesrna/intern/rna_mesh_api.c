@@ -39,7 +39,6 @@
 #include "BLI_sys_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_math.h"
 
 #include "rna_internal.h"  /* own include */
 

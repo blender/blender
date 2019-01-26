@@ -29,7 +29,6 @@
 #include <string.h>
 
 #include "BLI_utildefines.h"
-#include "BLI_path_util.h"
 
 #include "RNA_define.h"
 

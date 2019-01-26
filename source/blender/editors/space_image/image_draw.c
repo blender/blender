@@ -56,7 +56,6 @@
 #include "IMB_moviecache.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
 

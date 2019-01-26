@@ -33,7 +33,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_math_base.h"
 
 #include "BKE_icons.h"
 #include "BKE_library.h"
@@ -93,6 +92,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 #include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 
 #include "BKE_font.h"
 #include "BKE_idprop.h"

@@ -37,7 +37,6 @@
 
 #include "BKE_context.h"
 
-#include "BIF_gl.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

@@ -22,7 +22,6 @@
  *  \ingroup wm
  */
 
-
 #include <stdio.h>
 
 #include "CLG_log.h"
@@ -39,7 +38,6 @@
 #include "message_bus/intern/wm_message_bus_intern.h"
 
 #include "RNA_access.h"
-
 
 /* -------------------------------------------------------------------------- */
 

@@ -48,7 +48,6 @@
 
 #include "BKE_mesh.h"
 
-#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -133,6 +132,7 @@ static const EnumPropertyItem part_hair_ren_as_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_boids.h"
 #include "BKE_context.h"

@@ -24,10 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_stack.h"
 #include "BLI_math.h"
 
-#include "BKE_context.h"
 #include "BKE_editmesh.h"
 
 #include "GPU_immediate.h"

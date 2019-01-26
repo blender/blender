@@ -52,7 +52,6 @@
 
 #include "RNA_access.h"
 
-#include "BIF_gl.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

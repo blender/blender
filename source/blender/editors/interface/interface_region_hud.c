@@ -39,18 +39,15 @@
 #include "BLI_rect.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "BLI_math_color.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_main.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 
-#include "BIF_gl.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"

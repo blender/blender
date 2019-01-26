@@ -35,12 +35,9 @@
 
 #include "DNA_world_types.h"
 
-
-
 #include "eevee_private.h"
 
 #define EEVEE_ENGINE "BLENDER_EEVEE"
-
 
 /* *********** FUNCTIONS *********** */
 

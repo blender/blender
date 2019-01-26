@@ -33,8 +33,6 @@
 #include <structmember.h>
 
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
-#include "BLI_ghash.h"
 
 #include "BPY_extern.h"
 #include "bpy_app_translations.h"
@@ -47,6 +45,11 @@
 #include "RNA_types.h"
 
 #include "../generic/python_utildefines.h"
+
+#ifdef WITH_INTERNATIONAL
+#  include "BLI_string.h"
+#  include "BLI_ghash.h"
+#endif
 
 typedef struct {
 	PyObject_HEAD

@@ -31,7 +31,6 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -50,6 +49,8 @@
 #ifdef RNA_RUNTIME
 
 #include <assert.h>
+
+#include "BLI_string_utils.h"
 
 #include "WM_api.h"
 

@@ -34,7 +34,6 @@
 #include "BLI_alloca.h"
 #include "BLI_utildefines_stack.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_sort.h"
 #include "BLI_sort_utils.h"
 #include "BLI_kdopbvh.h"
 

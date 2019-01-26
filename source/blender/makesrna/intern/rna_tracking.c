@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -47,6 +46,8 @@
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
+
+#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
 

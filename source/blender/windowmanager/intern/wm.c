@@ -43,7 +43,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -51,7 +50,6 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_workspace.h"
 
 #include "WM_api.h"

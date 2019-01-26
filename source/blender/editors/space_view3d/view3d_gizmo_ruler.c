@@ -44,8 +44,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BIF_gl.h"
-
 #include "ED_gizmo_utils.h"
 #include "ED_gpencil.h"
 #include "ED_screen.h"
@@ -71,7 +69,6 @@
 #include "GPU_state.h"
 
 #include "BLF_api.h"
-
 
 static const char *view3d_gzgt_ruler_id = "VIEW3D_GGT_ruler";
 

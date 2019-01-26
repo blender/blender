@@ -39,7 +39,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BIF_gl.h"
 #include "GPU_immediate.h"
 
 #include "UI_interface.h"

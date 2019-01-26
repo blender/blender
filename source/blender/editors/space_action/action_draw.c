@@ -55,7 +55,6 @@
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */
 
-#include "BIF_gl.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

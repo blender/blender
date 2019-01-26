@@ -32,14 +32,12 @@
 #include "BLI_sys_types.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_sort_utils.h"
 
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
 #include "BKE_library_override.h"
 #include "BKE_main.h"
 #include "BKE_undo_system.h"

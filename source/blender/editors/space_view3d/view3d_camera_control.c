@@ -54,7 +54,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_object.h"
-#include "BKE_context.h"
 
 #include "DEG_depsgraph.h"
 

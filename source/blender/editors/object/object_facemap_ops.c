@@ -33,8 +33,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
 #include "BLI_listbase.h"
 
 #include "DNA_object_types.h"

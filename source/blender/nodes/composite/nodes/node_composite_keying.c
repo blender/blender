@@ -35,7 +35,6 @@
 #include "DNA_movieclip_types.h"
 
 #include "BLI_math_base.h"
-#include "BLI_math_color.h"
 
 #include "node_composite_util.h"
 

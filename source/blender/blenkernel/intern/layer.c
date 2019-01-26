@@ -26,7 +26,6 @@
 
 #include <string.h>
 
-#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -37,7 +36,6 @@
 #include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_freestyle.h"
-#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"

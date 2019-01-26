@@ -36,7 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -98,6 +97,7 @@ static EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BLI_ghash.h"
+#include "BLI_string_utils.h"
 
 #include "WM_api.h"
 

@@ -42,7 +42,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_brush.h"

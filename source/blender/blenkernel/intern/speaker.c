@@ -33,8 +33,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_library.h"
-#include "BKE_library_query.h"
-#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 

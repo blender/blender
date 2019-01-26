@@ -39,13 +39,14 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_report.h"
+#ifdef WITH_AVI
+#  include "BLI_blenlib.h"
+
+#  include "BKE_main.h"
+#endif
 
 #include "BKE_writeavi.h"
 

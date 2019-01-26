@@ -46,9 +46,6 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
 #include "BLT_translation.h"
 
 #include "BKE_context.h"

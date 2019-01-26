@@ -55,22 +55,18 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_fileops_types.h"
 #include "BLI_fnmatch.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "BLF_api.h"
-
 
 #include "ED_fileselect.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
-
 
 #include "RNA_access.h"
 

@@ -33,7 +33,6 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 
 #include "BKE_main.h"
 #include "BKE_context.h"

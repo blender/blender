@@ -46,7 +46,6 @@
 #include "BLI_math.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
@@ -67,7 +66,6 @@
 
 #include "DEG_depsgraph.h"
 
-#include "BIF_gl.h"
 
 #include "ED_object.h"
 #include "ED_physics.h"

@@ -92,7 +92,6 @@
 #include "BKE_customdata.h"
 #include "BKE_multires.h"
 
-#include "BKE_global.h" /* ugh - for looping over all objects */
 #include "BKE_main.h"
 #include "BKE_key.h"
 

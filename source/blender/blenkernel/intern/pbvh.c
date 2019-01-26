@@ -36,7 +36,6 @@
 #include "BKE_ccg.h"
 #include "BKE_subsurf.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_paint.h"
 

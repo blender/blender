@@ -45,9 +45,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_string_utils.h"
 #include "BLI_math_vector.h"
 #include "BLI_listbase.h"
 
@@ -61,7 +59,6 @@
 #include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
-#include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_image.h"
 #include "BKE_key.h"

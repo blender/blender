@@ -45,8 +45,6 @@
 
 #include "BKE_global.h"
 
-#include "BIF_gl.h"
-
 #include "BLF_api.h"
 #ifdef WITH_INTERNATIONAL
 #  include "BLT_translation.h"

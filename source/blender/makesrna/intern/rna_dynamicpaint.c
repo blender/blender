@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "BLI_math_base.h"
 
 #include "BKE_modifier.h"
 #include "BKE_dynamicpaint.h"

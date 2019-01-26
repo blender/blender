@@ -41,15 +41,11 @@
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_path_util.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_fluidsim.h"
-#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -69,7 +65,12 @@
 /* enable/disable overall compilation */
 #ifdef WITH_MOD_FLUID
 
+#include "BLI_blenlib.h"
+#include "BLI_path_util.h"
+#include "BLI_math.h"
+
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "WM_api.h"
 

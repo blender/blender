@@ -36,8 +36,6 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_color.h"
-#include "BLI_rand.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -46,7 +44,6 @@
 #include "DNA_gpencil_modifier_types.h"
 
 #include "BKE_deform.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_lattice.h"

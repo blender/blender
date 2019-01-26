@@ -41,7 +41,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
-#include "BLI_string.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -51,14 +50,16 @@
 #include "IMB_anim.h"
 
 #ifdef WITH_FFMPEG
-#include "BKE_global.h"  /* G.debug */
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavdevice/avdevice.h>
-#include <libavutil/log.h>
+#  include "BLI_string.h"  /* BLI_vsnprintf */
 
-#include "ffmpeg_compat.h"
+#  include "BKE_global.h"  /* G.debug */
 
+#  include <libavcodec/avcodec.h>
+#  include <libavformat/avformat.h>
+#  include <libavdevice/avdevice.h>
+#  include <libavutil/log.h>
+
+#  include "ffmpeg_compat.h"
 #endif
 
 #define UTIL_DEBUG 0

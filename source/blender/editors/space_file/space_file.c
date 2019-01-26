@@ -33,11 +33,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BIF_gl.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_fileops_types.h"
 
 
 #include "BKE_appdir.h"

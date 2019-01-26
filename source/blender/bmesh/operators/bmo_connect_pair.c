@@ -37,7 +37,6 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 #include "BLI_mempool.h"
-#include "BLI_listbase.h"
 
 /**
  * Method for connecting across many faces.

@@ -37,11 +37,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_rect.h"
 
 #include "BKE_context.h"
-
-#include "BIF_gl.h"
 
 #include "GPU_matrix.h"
 #include "GPU_shader.h"

@@ -38,10 +38,8 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 

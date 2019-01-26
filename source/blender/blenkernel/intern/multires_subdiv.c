@@ -34,7 +34,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"

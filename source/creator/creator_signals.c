@@ -64,7 +64,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-
 #include <signal.h>
 
 #include "creator_intern.h"  /* own include */

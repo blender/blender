@@ -28,7 +28,6 @@
 #include <stdlib.h>
 
 #include "BLI_utildefines.h"
-#include "BLI_string_utils.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -98,6 +97,8 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#include "BLI_string_utils.h"
 
 #include "BKE_linestyle.h"
 #include "BKE_texture.h"

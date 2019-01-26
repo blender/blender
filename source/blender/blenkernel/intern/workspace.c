@@ -30,16 +30,13 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_listbase.h"
 
-#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 #include "BKE_object.h"
 #include "BKE_workspace.h"
 

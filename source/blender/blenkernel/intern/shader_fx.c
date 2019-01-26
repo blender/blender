@@ -45,7 +45,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_shader_fx_types.h"
 
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_gpencil.h"

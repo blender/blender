@@ -42,8 +42,6 @@
 #include "BLT_translation.h"
 #include "BLT_lang.h"  /* own include */
 
-#include "BLI_fileops.h"
-#include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -59,6 +57,9 @@ static bool ime_is_lang_supported = false;
 static void blt_lang_check_ime_supported(void);
 
 #ifdef WITH_INTERNATIONAL
+
+#include "BLI_fileops.h"
+#include "BLI_linklist.h"
 
 #include "boost_locale_wrapper.h"
 

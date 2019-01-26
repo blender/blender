@@ -36,8 +36,6 @@
 #include "BLI_path_util.h"
 #include "BLI_math.h"
 
-#include "BKE_global.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"

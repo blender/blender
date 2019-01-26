@@ -31,7 +31,6 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"

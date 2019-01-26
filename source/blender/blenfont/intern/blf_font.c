@@ -53,9 +53,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
-#include "BLI_alloca.h"
 
-#include "BIF_gl.h"
 #include "BLF_api.h"
 
 #include "UI_interface.h"
