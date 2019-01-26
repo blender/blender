@@ -23,7 +23,8 @@ ExternalProject_Add(external_openmp
 	URL_HASH MD5=${OPENMP_HASH}
 	PREFIX ${BUILD_DIR}/openmp
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openmp ${DEFAULT_CMAKE_FLAGS}
-	INSTALL_DIR ${LIBDIR}/clang
+	INSTALL_COMMAND cd ${BUILD_DIR}/openmp/src/external_openmp-build && install_name_tool -id '@executable_path/../Resources/lib/libomp.dylib' runtime/src/libomp.dylib && make install
+	INSTALL_PATH ${LIBDIR}/openmp
 )
 
 add_dependencies(

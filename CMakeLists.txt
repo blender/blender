@@ -1177,7 +1177,10 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure OpenMP.
 if(WITH_OPENMP)
-	find_package(OpenMP)
+	if(NOT OPENMP_CUSTOM)
+		find_package(OpenMP)
+	endif()
+
 	if(OPENMP_FOUND)
 		if(NOT WITH_OPENMP_STATIC)
 			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")

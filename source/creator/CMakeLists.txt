@@ -914,6 +914,13 @@ elseif(APPLE)
 		blender.app/Contents/
 	)
 
+	if(WITH_OPENMP AND OPENMP_CUSTOM)
+		install(
+			FILES ${LIBDIR}/openmp/lib/libomp.dylib
+			DESTINATION blender.app/Contents/Resources/lib
+		)
+	endif()
+
 	if(WITH_LLVM AND NOT LLVM_STATIC)
 		install(
 			FILES ${LIBDIR}/llvm/lib/libLLVM-3.4.dylib
