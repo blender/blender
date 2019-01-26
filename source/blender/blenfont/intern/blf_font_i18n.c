@@ -43,6 +43,9 @@
 
 #ifdef WITH_INTERNATIONAL
 
+#include "BLI_fileops.h"
+#include "BLI_string.h"
+
 struct FontBuf {
 	const char *filename;
 	uchar *data;
