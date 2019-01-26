@@ -203,7 +203,6 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 	struct ImBuf *ibuf = NULL;
 	int width, height, components;
 	bool is_float, is_alpha;
-	TypeDesc typedesc;
 	int basesize;
 	char file_colorspace[IM_MAX_SPACE];
 

@@ -52,7 +52,7 @@ protected:
 	virtual BVHNode *widen_children_nodes(const BVHNode *root) override;
 
 	/* pack */
-	void pack_nodes(const BVHNode *root);
+	void pack_nodes(const BVHNode *root) override;
 
 	void pack_leaf(const BVHStackEntry& e,
 	               const LeafNode *leaf);
@@ -81,7 +81,7 @@ protected:
 	                         uint visibility0, uint visibility1);
 
 	/* refit */
-	void refit_nodes();
+	void refit_nodes() override;
 	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
 };
 
