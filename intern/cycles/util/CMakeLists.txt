@@ -33,6 +33,9 @@ if(WITH_CYCLES_STANDALONE)
 			util_view.cpp
 		)
 	endif()
+endif()
+
+if(CYCLES_STANDALONE_REPOSITORY)
 	list(APPEND INC_SYS ../../third_party/numaapi/include)
 else()
 	list(APPEND INC_SYS ../../numaapi/include)
