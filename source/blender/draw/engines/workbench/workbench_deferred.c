@@ -342,7 +342,15 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	View3D *v3d = draw_ctx->v3d;
-	Object *camera = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : NULL;
+	Scene *scene = draw_ctx->scene;
+	Object *camera;
+
+	if (v3d && rv3d) {
+		camera = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : NULL;
+	}
+	else {
+		camera = scene->camera;
+	}
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -473,7 +481,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		Scene *scene = draw_ctx->scene;
 		/* AO Samples Tex */
 		int num_iterations = workbench_taa_calculate_num_iterations(vedata);
 
@@ -497,7 +504,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	/* Prepass */
 	{
 		DRWShadingGroup *grp;
-		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
+		const bool do_cull = (v3d && (v3d->shading.flag & V3D_SHADING_BACKFACE_CULLING));
 
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->prepass_pass = DRW_pass_create("Prepass", (do_cull) ? state | DRW_STATE_CULL_BACK : state);
