@@ -379,7 +379,10 @@ static Mesh *applyModifier(
 		CustomData_copy_data(&mesh->edata, &result->edata, 0, (int)numEdges, (int)numEdges);
 
 		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)numLoops);
-		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, (int)numLoops, (int)numLoops);
+		/* DO NOT copy here the 'copied' part of loop data, we want to reverse loops
+		 * (so that winding of copied face get reversed, so that normals get reversed
+		 * and point in expected direction...).
+		 * If we also copy data here, then this data get overwritten (and allocated memory becomes memleak). */
 
 		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numFaces);
 		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)numFaces, (int)numFaces);
