@@ -2776,6 +2776,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", ME_AUTOSPACE);
 	RNA_def_property_ui_text(prop, "Auto Texture Space",
 	                         "Adjust active object's texture space automatically when transforming object");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 #if 0
 	prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
