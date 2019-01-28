@@ -8,6 +8,7 @@ uniform mat4 ProjectionMatrix;
 uniform vec2 invertedViewportSize;
 uniform vec2 nearFar;
 uniform vec3 dofParams;
+uniform float noiseOffset;
 uniform sampler2D inputCocTex;
 uniform sampler2D maxCocTilesTex;
 uniform sampler2D sceneColorTex;
@@ -15,6 +16,7 @@ uniform sampler2D sceneDepthTex;
 uniform sampler2D backgroundTex;
 uniform sampler2D halfResColorTex;
 uniform sampler2D blurTex;
+uniform sampler2D noiseTex;
 
 #define dof_aperturesize    dofParams.x
 #define dof_distance        dofParams.y
@@ -57,7 +59,6 @@ void main()
 	vec4 color3 = texelFetch(sceneColorTex, texel.zy, 0);
 	vec4 color4 = texelFetch(sceneColorTex, texel.xw, 0);
 
-	vec3 ofs = vec3(invertedViewportSize.xy, 0.0);
 	vec4 depths;
 	depths.x = texelFetch(sceneDepthTex, texel.xy, 0).x;
 	depths.y = texelFetch(sceneDepthTex, texel.zw, 0).x;
@@ -77,11 +78,57 @@ void main()
 	vec4 far_weights  = step(0.0, cocs_far)  * clamp(1.0 - abs(coc_far  - cocs_far),  0.0, 1.0);
 
 	/* now write output to weighted buffers. */
-	vec4 w = near_weights + far_weights;
+	/* Take far plane pixels in priority. */
+	vec4 w = any(notEqual(far_weights, vec4(0.0))) ? far_weights : near_weights;
 	float tot_weight = dot(w, vec4(1.0));
 	halfResColor = weighted_sum(color1, color2, color3, color4, w, tot_weight);
+	halfResColor = clamp(halfResColor, 0.0, 3.0);
 
 	normalizedCoc = encode_coc(coc_near, coc_far);
+}
+#endif
+
+/**
+ * ----------------- STEP 0.5 ------------------
+ * Custom Coc aware downsampling. Quater res pass.
+ **/
+#ifdef DOWNSAMPLE
+
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec2 outCocs;
+
+void main()
+{
+	ivec4 texel = ivec4(gl_FragCoord.xyxy) * 2 + ivec4(0, 0, 1, 1);
+
+	vec4 color1 = texelFetch(sceneColorTex, texel.xy, 0);
+	vec4 color2 = texelFetch(sceneColorTex, texel.zw, 0);
+	vec4 color3 = texelFetch(sceneColorTex, texel.zy, 0);
+	vec4 color4 = texelFetch(sceneColorTex, texel.xw, 0);
+
+	vec4 depths;
+	vec2 cocs1 = texelFetch(inputCocTex, texel.xy, 0).rg;
+	vec2 cocs2 = texelFetch(inputCocTex, texel.zw, 0).rg;
+	vec2 cocs3 = texelFetch(inputCocTex, texel.zy, 0).rg;
+	vec2 cocs4 = texelFetch(inputCocTex, texel.xw, 0).rg;
+
+	vec4 cocs_near = vec4(cocs1.r, cocs2.r, cocs3.r, cocs4.r) * MAX_COC_SIZE;
+	vec4 cocs_far  = vec4(cocs1.g, cocs2.g, cocs3.g, cocs4.g) * MAX_COC_SIZE;
+
+	float coc_near = max_v4(cocs_near);
+	float coc_far  = max_v4(cocs_far);
+
+	/* now we need to write the near-far fields premultiplied by the coc
+	 * also use bilateral weighting by each coc values to avoid bleeding. */
+	vec4 near_weights = step(0.0, cocs_near) * clamp(1.0 - abs(coc_near - cocs_near), 0.0, 1.0);
+	vec4 far_weights  = step(0.0, cocs_far)  * clamp(1.0 - abs(coc_far  - cocs_far),  0.0, 1.0);
+
+	/* now write output to weighted buffers. */
+	vec4 w = any(notEqual(far_weights, vec4(0.0))) ? far_weights : near_weights;
+	float tot_weight = dot(w, vec4(1.0));
+	outColor = weighted_sum(color1, color2, color3, color4, w, tot_weight);
+
+	outCocs = encode_coc(coc_near, coc_far);
 }
 #endif
 
@@ -168,42 +215,17 @@ layout(std140) uniform dofSamplesBlock {
 	vec4 samples[NUM_SAMPLES];
 };
 
-#if 0 /* Spilar sampling. Better but slower */
-void main()
+vec2 get_random_vector(float offset)
 {
-	/* Half Res pass */
-	vec2 uv = gl_FragCoord.xy * invertedViewportSize * 2.0;
-
-	vec2 size = vec2(textureSize(halfResColorTex, 0).xy);
-	ivec2 texel = ivec2(uv * size);
-
-	vec4 color = texelFetch(halfResColorTex, texel, 0);
-	float coc = decode_signed_coc(texelFetch(inputCocTex, texel, 0).rg);
-
-	/* TODO Ensure alignement */
-	vec2 max_radii = texture(maxCocTilesTex, (0.5 + floor(gl_FragCoord.xy / 8.0)) / vec2(textureSize(maxCocTilesTex, 0))).rg;
-	float max_radius = decode_coc(max_radii);
-
-	float center_coc = coc;
-	float tot = 1.0;
-
-	for (int i = 0; i < NUM_SAMPLES; ++i) {
-		vec2 tc = uv + samples[i].xy * invertedViewportSize * max_radius;
-
-		vec4 samp = texture(halfResColorTex, tc);
-		coc = decode_signed_coc(texture(inputCocTex, tc).rg);
-		if (coc > center_coc) {
-			coc = clamp(abs(coc), 0.0, abs(center_coc) * 2.0);
-		}
-		float radius = max_radius * float(i + 1) / float(NUM_SAMPLES);
-		float m = smoothstep(radius - 0.5, radius + 0.5, abs(coc));
-		color += mix(color / tot, samp, m);
-		tot += 1.0;
-	}
-
-	blurColor = color / tot;
+	/* Interlieved gradient noise by Jorge Jimenez
+	 * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare */
+	float ign = fract(offset + 52.9829189 * fract(0.06711056 * gl_FragCoord.x + 0.00583715 * gl_FragCoord.y));
+	float bn = texelFetch(noiseTex, ivec2(gl_FragCoord.xy) % 64, 0).a;
+	float ang = M_PI * 2.0 * fract(bn + offset);
+	return vec2(cos(ang), sin(ang)) * sqrt(ign);
+	// return noise.rg * sqrt(ign);
 }
-#else
+
 void main()
 {
 	vec2 uv = gl_FragCoord.xy * invertedViewportSize * 2.0;
@@ -216,15 +238,18 @@ void main()
 
 	float coc = decode_coc(texelFetch(inputCocTex, texel, 0).rg);
 	float max_radius = coc;
+	vec2 noise = get_random_vector(noiseOffset) * 0.2 * clamp(max_radius * 0.2 - 4.0, 0.0, 1.0);
 	for (int i = 0; i < NUM_SAMPLES; ++i) {
-		vec2 tc = uv + samples[i].xy * invertedViewportSize * max_radius;
+		vec2 tc = uv + (noise + samples[i].xy) * invertedViewportSize * max_radius;
 
-		vec4 samp = texture(halfResColorTex, tc);
+		/* decode_signed_coc return biggest coc. */
+		coc = abs(decode_signed_coc(texture(inputCocTex, tc).rg));
 
-		coc = decode_coc(texture(inputCocTex, tc).rg);
+		float lod = log2(clamp((coc + min(coc, max_radius)) * 0.5 - 21.0, 0.0, 16.0) * 0.25);
+		vec4 samp = textureLod(halfResColorTex, tc, lod);
 
 		float radius = samples[i].z * max_radius;
-		float weight = coc * smoothstep(radius - 0.5, radius + 0.5, coc);
+		float weight = abs(coc) * smoothstep(radius - 0.5, radius + 0.5, abs(coc));
 
 		color += samp * weight;
 		tot += weight;
@@ -233,11 +258,38 @@ void main()
 	blurColor = color / tot;
 }
 #endif
-#endif
 
 /**
  * ----------------- STEP 3 ------------------
- * Additional 3x3 blur
+ * 3x3 Median Filter
+ * Morgan McGuire and Kyle Whitson
+ * http://graphics.cs.williams.edu
+ *
+ *
+ * Copyright (c) Morgan McGuire and Williams College, 2006
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 #ifdef BLUR2
 out vec4 finalColor;
@@ -252,18 +304,42 @@ void main()
 	 * since this filter is not weighted by CoC
 	 * and can bleed a bit. */
 	float rad = clamp(coc - 9.0, 0.0, 1.0);
-	rad *= 1.5; /* If not, it's a gaussian filter. */
-	finalColor  = texture(blurTex, uv + pixel_size * vec2(-1.0, -1.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2(-1.0,  0.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2(-1.0,  1.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2( 0.0, -1.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2( 0.0,  0.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2( 0.0,  1.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2( 1.0, -1.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2( 1.0,  0.0) * rad);
-	finalColor += texture(blurTex, uv + pixel_size * vec2( 1.0,  1.0) * rad);
-	finalColor *= 1.0 / 9.0;
+
+#define vec vec4
+#define toVec(x) x.rgba
+
+#define s2(a, b)				temp = a; a = min(a, b); b = max(temp, b);
+#define mn3(a, b, c)			s2(a, b); s2(a, c);
+#define mx3(a, b, c)			s2(b, c); s2(a, c);
+
+#define mnmx3(a, b, c)			mx3(a, b, c); s2(a, b);                                   // 3 exchanges
+#define mnmx4(a, b, c, d)		s2(a, b); s2(c, d); s2(a, c); s2(b, d);                   // 4 exchanges
+#define mnmx5(a, b, c, d, e)	s2(a, b); s2(c, d); mn3(a, c, e); mx3(b, d, e);           // 6 exchanges
+#define mnmx6(a, b, c, d, e, f) s2(a, d); s2(b, e); s2(c, f); mn3(a, b, c); mx3(d, e, f); // 7 exchanges
+
+	vec v[9];
+
+	/* Add the pixels which make up our window to the pixel array. */
+	for(int dX = -1; dX <= 1; ++dX) {
+		for(int dY = -1; dY <= 1; ++dY) {
+			vec2 offset = vec2(float(dX), float(dY));
+			/* If a pixel in the window is located at (x+dX, y+dY), put it at index (dX + R)(2R + 1) + (dY + R) of the
+			 * pixel array. This will fill the pixel array, with the top left pixel of the window at pixel[0] and the
+			 * bottom right pixel of the window at pixel[N-1]. */
+			v[(dX + 1) * 3 + (dY + 1)] = toVec(texture(blurTex, uv + offset * pixel_size * rad));
+		}
+	}
+
+	vec temp;
+
+	/* Starting with a subset of size 6, remove the min and max each time */
+	mnmx6(v[0], v[1], v[2], v[3], v[4], v[5]);
+	mnmx5(v[1], v[2], v[3], v[4], v[6]);
+	mnmx4(v[2], v[3], v[4], v[7]);
+	mnmx3(v[3], v[4], v[8]);
+	toVec(finalColor) = v[4];
 }
+
 #endif
 
 /**

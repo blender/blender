@@ -305,7 +305,7 @@ static float *create_disk_samples(int num_samples, int num_iterations)
 
 static struct GPUTexture *create_jitter_texture(int num_samples)
 {
-	float jitter[64 * 64][3];
+	float jitter[64 * 64][4];
 	const float num_samples_inv = 1.0f / num_samples;
 
 	for (int i = 0; i < 64 * 64; i++) {
@@ -317,11 +317,12 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 		float bn = blue_noise[i][1] - 0.5f;
 		CLAMP(bn, -0.499f, 0.499f); /* fix fireflies */
 		jitter[i][2] = bn * num_samples_inv;
+		jitter[i][3] = blue_noise[i][1];
 	}
 
 	UNUSED_VARS(bsdf_split_sum_ggx, btdf_split_sum_ggx, ltc_mag_ggx, ltc_mat_ggx, ltc_disk_integral);
 
-	return DRW_texture_create_2D(64, 64, GPU_RGB16F, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
+	return DRW_texture_create_2D(64, 64, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
 }
 /* Functions */
 
@@ -524,7 +525,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		workbench_dof_create_pass(vedata, &e_data.composite_buffer_tx);
+		workbench_dof_create_pass(vedata, &e_data.composite_buffer_tx, e_data.jitter_tx);
 	}
 
 	if (CAVITY_ENABLED(wpd)) {

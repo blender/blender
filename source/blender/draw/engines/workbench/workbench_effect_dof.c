@@ -33,6 +33,7 @@
 /* *********** STATIC *********** */
 static struct {
 	struct GPUShader *effect_dof_prepare_sh;
+	struct GPUShader *effect_dof_downsample_sh;
 	struct GPUShader *effect_dof_flatten_v_sh;
 	struct GPUShader *effect_dof_flatten_h_sh;
 	struct GPUShader *effect_dof_dilate_v_sh;
@@ -130,6 +131,7 @@ static void workbench_dof_setup_samples(
 
 void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 {
+	WORKBENCH_TextureList *txl = vedata->txl;
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
@@ -145,6 +147,10 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 		e_data.effect_dof_prepare_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_effect_dof_frag_glsl,
 		        "#define PREPARE\n");
+
+		e_data.effect_dof_downsample_sh = DRW_shader_create_fullscreen(
+		        datatoc_workbench_effect_dof_frag_glsl,
+		        "#define DOWNSAMPLE\n");
 
 		e_data.effect_dof_flatten_v_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_effect_dof_frag_glsl,
@@ -183,9 +189,9 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 	int shrink_w_size[2] = {shrink_h_size[0], ceilf(size[1] / 8.0f)};
 #endif
 
-	wpd->half_res_col_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
+	DRW_texture_ensure_2D(&txl->dof_source_tx, size[0], size[1], GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+	DRW_texture_ensure_2D(&txl->coc_halfres_tx, size[0], size[1], GPU_RG8, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 	wpd->dof_blur_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R11F_G11F_B10F, &draw_engine_workbench_solid);
-	wpd->coc_halfres_tx  = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG8, &draw_engine_workbench_solid);
 #if 0
 	wpd->coc_temp_tx     = DRW_texture_pool_query_2D(shrink_h_size[0], shrink_h_size[1], GPU_RG8, &draw_engine_workbench_solid);
 	wpd->coc_tiles_tx[0] = DRW_texture_pool_query_2D(shrink_w_size[0], shrink_w_size[1], GPU_RG8, &draw_engine_workbench_solid);
@@ -194,8 +200,8 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 
 	GPU_framebuffer_ensure_config(&fbl->dof_downsample_fb, {
 		GPU_ATTACHMENT_NONE,
-		GPU_ATTACHMENT_TEXTURE(wpd->half_res_col_tx),
-		GPU_ATTACHMENT_TEXTURE(wpd->coc_halfres_tx),
+		GPU_ATTACHMENT_TEXTURE(txl->dof_source_tx),
+		GPU_ATTACHMENT_TEXTURE(txl->coc_halfres_tx),
 	});
 #if 0
 	GPU_framebuffer_ensure_config(&fbl->dof_coc_tile_h_fb, {
@@ -217,7 +223,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 	});
 	GPU_framebuffer_ensure_config(&fbl->dof_blur2_fb, {
 		GPU_ATTACHMENT_NONE,
-		GPU_ATTACHMENT_TEXTURE(wpd->half_res_col_tx),
+		GPU_ATTACHMENT_TEXTURE(txl->dof_source_tx),
 	});
 
 	{
@@ -276,9 +282,10 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 	wpd->dof_enabled = true;
 }
 
-void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
+void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input, GPUTexture *noise_tex)
 {
 	WORKBENCH_PassList *psl = vedata->psl;
+	WORKBENCH_TextureList *txl = vedata->txl;
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
@@ -290,6 +297,7 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	psl->dof_down_ps = DRW_pass_create("DoF DownSample", DRW_STATE_WRITE_COLOR);
+	psl->dof_down2_ps = DRW_pass_create("DoF DownSample", DRW_STATE_WRITE_COLOR);
 	psl->dof_flatten_h_ps = DRW_pass_create("DoF Flatten Coc H", DRW_STATE_WRITE_COLOR);
 	psl->dof_flatten_v_ps = DRW_pass_create("DoF Flatten Coc V", DRW_STATE_WRITE_COLOR);
 	psl->dof_dilate_h_ps = DRW_pass_create("DoF Dilate Coc H", DRW_STATE_WRITE_COLOR);
@@ -307,10 +315,17 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
 		DRW_shgroup_uniform_vec2(grp, "nearFar", wpd->dof_near_far, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
+
+	{
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_downsample_sh, psl->dof_down2_ps);
+		DRW_shgroup_uniform_texture(grp, "sceneColorTex", txl->dof_source_tx);
+		DRW_shgroup_uniform_texture(grp, "inputCocTex", txl->coc_halfres_tx);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
 #if 0
 	{
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_flatten_h_sh, psl->dof_flatten_h_ps);
-		DRW_shgroup_uniform_texture(grp, "inputCocTex", wpd->coc_halfres_tx);
+		DRW_shgroup_uniform_texture(grp, "inputCocTex", txl->coc_halfres_tx);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 	{
@@ -330,23 +345,26 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
 	}
 #endif
 	{
+		float offset = stl->effects->jitter_index / (float)workbench_taa_calculate_num_iterations(vedata);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_blur1_sh, psl->dof_blur1_ps);
 		DRW_shgroup_uniform_block(grp, "dofSamplesBlock", wpd->dof_ubo);
-		DRW_shgroup_uniform_texture(grp, "inputCocTex", wpd->coc_halfres_tx);
-		DRW_shgroup_uniform_texture(grp, "halfResColorTex", wpd->half_res_col_tx);
+		DRW_shgroup_uniform_texture(grp, "noiseTex", noise_tex);
+		DRW_shgroup_uniform_texture(grp, "inputCocTex", txl->coc_halfres_tx);
+		DRW_shgroup_uniform_texture(grp, "halfResColorTex", txl->dof_source_tx);
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
+		DRW_shgroup_uniform_float_copy(grp, "noiseOffset", offset);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 	{
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_blur2_sh, psl->dof_blur2_ps);
-		DRW_shgroup_uniform_texture(grp, "inputCocTex", wpd->coc_halfres_tx);
+		DRW_shgroup_uniform_texture(grp, "inputCocTex", txl->coc_halfres_tx);
 		DRW_shgroup_uniform_texture(grp, "blurTex", wpd->dof_blur_tx);
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 	{
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.effect_dof_resolve_sh, psl->dof_resolve_ps);
-		DRW_shgroup_uniform_texture(grp, "halfResColorTex", wpd->half_res_col_tx);
+		DRW_shgroup_uniform_texture(grp, "halfResColorTex", txl->dof_source_tx);
 		DRW_shgroup_uniform_texture(grp, "sceneDepthTex", dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_uniform_vec3(grp, "dofParams", &wpd->dof_aperturesize, 1);
@@ -358,6 +376,7 @@ void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input)
 void workbench_dof_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_prepare_sh);
+	DRW_SHADER_FREE_SAFE(e_data.effect_dof_downsample_sh);
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_flatten_v_sh);
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_flatten_h_sh);
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_dilate_v_sh);
@@ -365,6 +384,12 @@ void workbench_dof_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_blur1_sh);
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_blur2_sh);
 	DRW_SHADER_FREE_SAFE(e_data.effect_dof_resolve_sh);
+}
+
+static void workbench_dof_downsample_level(void *userData, int UNUSED(level))
+{
+	WORKBENCH_PassList *psl = (WORKBENCH_PassList *)userData;
+	DRW_draw_pass(psl->dof_down2_ps);
 }
 
 void workbench_dof_draw_pass(WORKBENCH_Data *vedata)
@@ -382,6 +407,8 @@ void workbench_dof_draw_pass(WORKBENCH_Data *vedata)
 
 	GPU_framebuffer_bind(fbl->dof_downsample_fb);
 	DRW_draw_pass(psl->dof_down_ps);
+
+	GPU_framebuffer_recursive_downsample(fbl->dof_downsample_fb, 2, workbench_dof_downsample_level, psl);
 
 #if 0
 	GPU_framebuffer_bind(fbl->dof_coc_tile_h_fb);

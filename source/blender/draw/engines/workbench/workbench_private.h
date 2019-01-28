@@ -108,6 +108,8 @@ typedef struct WORKBENCH_FramebufferList {
 } WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_TextureList {
+	struct GPUTexture *dof_source_tx;
+	struct GPUTexture *coc_halfres_tx;
 	struct GPUTexture *history_buffer_tx;
 	struct GPUTexture *depth_buffer_tx;
 } WORKBENCH_TextureList;
@@ -138,6 +140,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *ghost_resolve_pass;
 	struct DRWPass *effect_aa_pass;
 	struct DRWPass *dof_down_ps;
+	struct DRWPass *dof_down2_ps;
 	struct DRWPass *dof_flatten_v_ps;
 	struct DRWPass *dof_flatten_h_ps;
 	struct DRWPass *dof_dilate_h_ps;
@@ -235,9 +238,7 @@ typedef struct WORKBENCH_PrivateData {
 	float ssao_settings[4];
 
 	/* Dof */
-	struct GPUTexture *half_res_col_tx;
 	struct GPUTexture *dof_blur_tx;
-	struct GPUTexture *coc_halfres_tx;
 	struct GPUTexture *coc_temp_tx;
 	struct GPUTexture *coc_tiles_tx[2];
 	struct GPUUniformBuffer *dof_ubo;
@@ -337,7 +338,7 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
 /* workbench_effect_dof.c */
 void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera);
 void workbench_dof_engine_free(void);
-void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input);
+void workbench_dof_create_pass(WORKBENCH_Data *vedata, GPUTexture **dof_input, GPUTexture *noise_tex);
 void workbench_dof_draw_pass(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
