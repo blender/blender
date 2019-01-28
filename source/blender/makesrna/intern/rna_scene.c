@@ -691,6 +691,11 @@ static void rna_Scene_volume_set(PointerRNA *ptr, float value)
 		BKE_sound_set_scene_volume(scene, value);
 }
 
+static const char *rna_Scene_statistics_string_get(Scene *scene, Main *bmain, ViewLayer *view_layer)
+{
+	return ED_info_stats_string(bmain, scene, view_layer);
+}
+
 static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	scene->r.framelen = (float)scene->r.framapto / (float)scene->r.images;
@@ -6633,7 +6638,8 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, "rna_Scene_volume_set", NULL);
 
 	/* Statistics */
-	func = RNA_def_function(srna, "statistics", "ED_info_stats_string");
+	func = RNA_def_function(srna, "statistics", "rna_Scene_statistics_string_get");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Active layer");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_string(func, "statistics", NULL, 0, "Statistics", "");

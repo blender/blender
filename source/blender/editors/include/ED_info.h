@@ -27,8 +27,10 @@
 #ifndef __ED_INFO_H__
 #define __ED_INFO_H__
 
+struct Main;
+
 /* info_stats.c */
 void ED_info_stats_clear(struct ViewLayer *view_layer);
-const char *ED_info_stats_string(struct Scene *scene, struct ViewLayer *view_layer);
+const char *ED_info_stats_string(struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer);
 
 #endif /*  __ED_INFO_H__ */

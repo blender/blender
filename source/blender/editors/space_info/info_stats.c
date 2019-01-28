@@ -38,6 +38,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -52,6 +53,7 @@
 #include "BKE_displist.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
+#include "BKE_main.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_editmesh.h"
@@ -597,8 +599,15 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 	}
 }
 
-const char *ED_info_stats_string(Scene *scene, ViewLayer *view_layer)
+const char *ED_info_stats_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
+	/* Loopin through dependency graph when interface is locked in not safe.
+	 * Thew interface is marked as locked when jobs wants to modify the
+	 * dependency graph. */
+	wmWindowManager *wm = bmain->wm.first;
+	if (wm->is_interface_locked) {
+		return "";
+	}
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	if (!view_layer->stats) {
 		stats_update(depsgraph, view_layer);
