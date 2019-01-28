@@ -1066,19 +1066,18 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
 	else if (event == OL_OP_DELETE_HIERARCHY) {
-		/* For now, usage of batch-deletion of objects it hidden behind that debug value,
-		 * until we get some more testing of it - *should* be safe, but... */
+		/* Keeping old 'safe and slow' code for a bit (new one enabled on 28/01/2019). */
 		if (G.debug_value == 666) {
+			outliner_do_object_operation_ex(
+			            C, op->reports, scene, soops, &soops->tree, object_delete_hierarchy_cb, NULL, false);
+		}
+		else {
 			BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
 			outliner_do_object_operation_ex(
 			            C, op->reports, scene, soops, &soops->tree, object_batch_delete_hierarchy_cb, NULL, false);
 
 			BKE_id_multi_tagged_delete(bmain);
-		}
-		else {
-			outliner_do_object_operation_ex(
-			            C, op->reports, scene, soops, &soops->tree, object_delete_hierarchy_cb, NULL, false);
 		}
 
 		/* XXX: See OL_OP_DELETE comment above. */
