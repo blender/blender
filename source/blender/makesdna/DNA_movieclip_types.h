@@ -39,13 +39,13 @@
 #include "DNA_tracking_types.h"
 #include "DNA_color_types.h"  /* for color management */
 
-struct anim;
 struct AnimData;
-struct bGPdata;
 struct ImBuf;
 struct MovieClipProxy;
-struct MovieTrackingTrack;
 struct MovieTrackingMarker;
+struct MovieTrackingTrack;
+struct anim;
+struct bGPdata;
 
 typedef struct MovieClipUser {
 	/** Current frame number. */

@@ -34,27 +34,27 @@
 extern "C" {
 #endif
 
-struct Main;
-struct ListBase;
 struct ID;
+struct ListBase;
+struct Main;
 struct Scene;
 
 struct KeyingSet;
 
-struct bAction;
-struct FCurve;
 struct BezTriple;
+struct FCurve;
+struct bAction;
 
 struct bPoseChannel;
 
-struct bContext;
 struct ReportList;
+struct bContext;
 
 struct Depsgraph;
 
+struct EnumPropertyItem;
 struct PointerRNA;
 struct PropertyRNA;
-struct EnumPropertyItem;
 
 struct NlaKeyframingContext;
 
@@ -133,8 +133,8 @@ short delete_keyframe(
 /* ************ Keying Sets ********************** */
 
 /* forward decl. for this struct which is declared a bit later... */
-struct KeyingSetInfo;
 struct ExtensionRNA;
+struct KeyingSetInfo;
 
 /* Polling Callback for KeyingSets */
 typedef bool (*cbKeyingSet_Poll)(struct KeyingSetInfo *ksi, struct bContext *C);

@@ -31,11 +31,11 @@
 #ifndef __ED_MASK_H__
 #define __ED_MASK_H__
 
-struct bContext;
-struct wmKeyConfig;
+struct KeyframeEditData;
 struct MaskLayer;
 struct MaskLayerShape;
-struct KeyframeEditData;
+struct bContext;
+struct wmKeyConfig;
 
 /* mask_edit.c */
 void ED_mask_get_size(struct ScrArea *sa, int *width, int *height);

@@ -38,13 +38,13 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"  /* for ReportType */
 
-struct OldNewMap;
-struct MemFile;
-struct ReportList;
-struct Object;
-struct PartEff;
-struct View3D;
 struct Key;
+struct MemFile;
+struct Object;
+struct OldNewMap;
+struct PartEff;
+struct ReportList;
+struct View3D;
 
 typedef struct FileData {
 	// linked list of BHeadN's

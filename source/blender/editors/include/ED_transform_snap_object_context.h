@@ -25,18 +25,18 @@
 #ifndef __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__
 #define __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__
 
-struct BMVert;
 struct BMEdge;
 struct BMFace;
+struct BMVert;
 
+struct ARegion;
 struct Depsgraph;
 struct ListBase;
-struct Scene;
-struct ViewLayer;
 struct Main;
 struct Object;
-struct ARegion;
+struct Scene;
 struct View3D;
+struct ViewLayer;
 struct bContext;
 
 /* transform_snap_object.c */

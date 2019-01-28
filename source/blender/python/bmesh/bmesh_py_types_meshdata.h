@@ -40,9 +40,9 @@ typedef struct BPy_BMGenericMeshData {
 	void *data;
 } BPy_BMGenericMeshData;
 
-struct MLoopUV;
-struct MLoopCol;
 struct MDeformVert;
+struct MLoopCol;
+struct MLoopUV;
 struct MVertSkin;
 
 int       BPy_BMLoopUV_AssignPyObject(struct MLoopUV *data, PyObject *value);

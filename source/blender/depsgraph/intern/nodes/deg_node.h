@@ -34,14 +34,14 @@
 
 #include "BLI_utildefines.h"
 
-struct ID;
 struct GHash;
+struct ID;
 struct Scene;
 
 namespace DEG {
 
-struct Depsgraph;
 struct DepsRelation;
+struct Depsgraph;
 struct OperationDepsNode;
 
 /* *********************************** */

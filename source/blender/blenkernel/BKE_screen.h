@@ -34,6 +34,7 @@
  */
 
 struct ARegion;
+struct GPUFXSettings;
 struct Header;
 struct ID;
 struct ListBase;
@@ -41,25 +42,24 @@ struct Menu;
 struct Panel;
 struct Scene;
 struct ScrArea;
+struct ScrAreaMap;
 struct ScrVert;
 struct SpaceType;
 struct TransformOrientation;
 struct View3D;
 struct View3DShading;
+struct WorkSpace;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
 struct uiLayout;
 struct uiList;
-struct wmKeyConfig;
 struct wmGizmoMap;
+struct wmKeyConfig;
+struct wmMsgBus;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
-struct WorkSpace;
-struct GPUFXSettings;
-struct wmMsgBus;
-struct ScrAreaMap;
 
 #include "BLI_compiler_attrs.h"
 

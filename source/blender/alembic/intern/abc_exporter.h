@@ -34,12 +34,12 @@ class AbcObjectWriter;
 class AbcTransformWriter;
 class ArchiveWriter;
 
+struct Base;
 struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
 struct ViewLayer;
-struct Base;
 
 struct ExportSettings {
 	ExportSettings();

@@ -45,12 +45,12 @@
 #include <vector>
 #include <algorithm>
 
-struct bAction;
 struct ChannelDriver;
+struct Depsgraph;
+struct FCurve;
 struct ModifierData;
 struct PointerRNA;
-struct FCurve;
-struct Depsgraph;
+struct bAction;
 
 namespace DEG {
 

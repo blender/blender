@@ -47,8 +47,8 @@
 
 #include "RNA_access.h"
 
-struct bNodeTree;
 struct bNode;
+struct bNodeTree;
 
 /* data for initializing node execution */
 typedef struct bNodeExecContext {

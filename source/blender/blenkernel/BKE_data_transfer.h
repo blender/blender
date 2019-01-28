@@ -40,9 +40,9 @@ extern "C" {
 
 struct Depsgraph;
 struct Object;
+struct ReportList;
 struct Scene;
 struct SpaceTransform;
-struct ReportList;
 
 /* Warning, those def are stored in files (TransferData modifier), *DO NOT* modify those values. */
 enum {

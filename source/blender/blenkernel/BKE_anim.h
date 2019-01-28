@@ -32,9 +32,6 @@
  *  \author nzc
  *  \since March 2001
  */
-struct bAnimVizSettings;
-struct bMotionPath;
-struct bPoseChannel;
 struct Depsgraph;
 struct ListBase;
 struct Main;
@@ -43,6 +40,9 @@ struct ParticleSystem;
 struct Path;
 struct ReportList;
 struct Scene;
+struct bAnimVizSettings;
+struct bMotionPath;
+struct bPoseChannel;
 
 /* ---------------------------------------------------- */
 /* Animation Visualization */

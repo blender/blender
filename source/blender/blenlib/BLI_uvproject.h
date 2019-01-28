@@ -24,8 +24,8 @@
  *  \ingroup bli
  */
 
-struct ProjCameraInfo;
 struct Object;
+struct ProjCameraInfo;
 
 /* create uv info from the camera, needs to be freed */
 struct ProjCameraInfo *BLI_uvproject_camera_info(struct Object *ob, float rotmat[4][4], float winx, float winy);

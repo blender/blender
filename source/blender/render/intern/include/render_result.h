@@ -40,6 +40,8 @@
 #define RR_ALL_LAYERS	NULL
 #define RR_ALL_VIEWS	NULL
 
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 struct ImBuf;
 struct ListBase;
 struct Render;
@@ -49,8 +51,6 @@ struct RenderLayer;
 struct RenderResult;
 struct Scene;
 struct rcti;
-struct ColorManagedDisplaySettings;
-struct ColorManagedViewSettings;
 
 /* New */
 

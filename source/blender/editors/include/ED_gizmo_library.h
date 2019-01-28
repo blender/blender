@@ -47,9 +47,9 @@ void ED_gizmotypes_value_2d(void);
 /* gizmo group types */
 void ED_gizmogrouptypes_value_2d(void);
 
-struct bContext;
 struct Object;
 struct Scene;
+struct bContext;
 struct wmGizmo;
 struct wmGizmoGroup;
 

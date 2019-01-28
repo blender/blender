@@ -49,8 +49,8 @@
 extern "C" {
 #endif
 
-struct BlendThumbnail;
 struct BLI_mempool;
+struct BlendThumbnail;
 struct Depsgraph;
 struct GHash;
 struct ImBuf;

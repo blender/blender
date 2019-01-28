@@ -38,9 +38,9 @@
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0
 
-struct rctf;
 struct ColorManagedDisplay;
 struct ResultBLF;
+struct rctf;
 
 int BLF_init(void);
 void BLF_exit(void);

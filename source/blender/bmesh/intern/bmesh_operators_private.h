@@ -27,8 +27,8 @@
  *  \ingroup bmesh
  */
 
-struct BMesh;
 struct BMOperator;
+struct BMesh;
 
 void bmo_automerge_exec(BMesh *bm, BMOperator *op);
 void bmo_average_vert_facedata_exec(BMesh *bm, BMOperator *op);

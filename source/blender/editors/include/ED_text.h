@@ -30,10 +30,10 @@
 #ifndef __ED_TEXT_H__
 #define __ED_TEXT_H__
 
-struct SpaceText;
 struct ARegion;
-struct UndoType;
+struct SpaceText;
 struct TextUndoBuf;
+struct UndoType;
 
 bool ED_text_region_location_from_cursor(struct SpaceText *st, struct ARegion *ar, const int cursor_co[2], int r_pixel_co[2]);
 

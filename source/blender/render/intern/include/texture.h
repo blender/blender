@@ -63,11 +63,11 @@
 		}                                                                     \
 	}                                                                         \
 
-struct TexResult;
-struct Tex;
-struct Image;
 struct ImBuf;
+struct Image;
 struct ImagePool;
+struct Tex;
+struct TexResult;
 
 /* imagetexture.h */
 

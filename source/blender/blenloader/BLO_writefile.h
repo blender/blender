@@ -34,8 +34,8 @@
  */
 
 struct BlendThumbnail;
-struct MemFile;
 struct Main;
+struct MemFile;
 struct ReportList;
 
 extern bool BLO_write_file(

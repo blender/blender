@@ -31,11 +31,11 @@
 #ifndef __OBJECT_INTERN_H__
 #define __OBJECT_INTERN_H__
 
-struct wmOperatorType;
 struct Object;
-struct bContext;
 struct StructRNA;
+struct bContext;
 struct wmOperator;
+struct wmOperatorType;
 
 struct ModifierData;
 

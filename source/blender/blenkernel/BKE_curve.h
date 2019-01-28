@@ -35,15 +35,15 @@
 
 struct BezTriple;
 struct Curve;
-struct EditNurb;
 struct Depsgraph;
+struct EditNurb;
 struct GHash;
 struct ListBase;
 struct Main;
 struct Nurb;
 struct Object;
-struct Scene;
 struct Path;
+struct Scene;
 struct TextBox;
 struct rctf;
 

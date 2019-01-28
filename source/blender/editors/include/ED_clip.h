@@ -32,14 +32,14 @@
 #define __ED_CLIP_H__
 
 struct ARegion;
-struct bContext;
-struct bScreen;
 struct ImBuf;
 struct Main;
 struct Mask;
 struct MovieClip;
-struct SpaceClip;
 struct Scene;
+struct SpaceClip;
+struct bContext;
+struct bScreen;
 
 /*  ** clip_editor.c ** */
 

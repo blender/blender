@@ -34,8 +34,8 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct MemArena;
 struct BLI_mempool;
+struct MemArena;
 
 typedef void (*LinkNodeFreeFP)(void *link);
 typedef void (*LinkNodeApplyFP)(void *link, void *userdata);

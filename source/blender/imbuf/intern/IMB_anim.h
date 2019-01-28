@@ -90,9 +90,9 @@
 
 #define MAXNUMSTREAMS       50
 
+struct IDProperty;
 struct _AviMovie;
 struct anim_index;
-struct IDProperty;
 
 struct anim {
 	int ib_flags;

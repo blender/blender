@@ -31,17 +31,17 @@
 extern "C" {
 #endif
 
+struct IDProperty;
+struct Main;
+struct PointerRNA;
+struct ScrArea;
+struct StructRNA;
+struct WorkSpace;
 struct bContext;
 struct bToolRef_Runtime;
-struct IDProperty;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmOperatorType;
-struct PointerRNA;
-struct ScrArea;
-struct Main;
-struct StructRNA;
-struct WorkSpace;
 
 /* wm_toolsystem.c  */
 

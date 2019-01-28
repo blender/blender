@@ -80,19 +80,19 @@
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 
+struct BMEditMesh;
 struct CCGElem;
 struct CCGKey;
-struct MVert;
+struct Depsgraph;
 struct MEdge;
 struct MFace;
-struct Object;
-struct Scene;
-struct Mesh;
 struct MLoopNorSpaceArray;
-struct BMEditMesh;
+struct MVert;
+struct Mesh;
 struct ModifierData;
-struct Depsgraph;
+struct Object;
 struct PBVH;
+struct Scene;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 // #define SUB_ELEMS_VERT 0 /* UNUSED */

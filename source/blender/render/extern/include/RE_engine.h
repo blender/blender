@@ -39,8 +39,6 @@
 
 #include "BLI_threads.h"
 
-struct bNode;
-struct bNodeTree;
 struct BakePixel;
 struct Depsgraph;
 struct IDProperty;
@@ -55,6 +53,8 @@ struct RenderResult;
 struct ReportList;
 struct Scene;
 struct ViewLayer;
+struct bNode;
+struct bNodeTree;
 
 /* External Engine */
 

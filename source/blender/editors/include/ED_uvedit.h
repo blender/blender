@@ -31,19 +31,19 @@
 #define __ED_UVEDIT_H__
 
 struct ARegionType;
-struct BMesh;
 struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
+struct BMesh;
 struct Depsgraph;
 struct Image;
 struct ImageUser;
 struct Main;
 struct Object;
 struct Scene;
+struct SpaceImage;
 struct View3D;
 struct ViewLayer;
-struct SpaceImage;
 struct bNode;
 struct wmKeyConfig;
 

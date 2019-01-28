@@ -26,8 +26,8 @@
  *  \brief Efficient in-memory storage of multiple similar arrays.
  */
 
-typedef struct BArrayStore BArrayStore;
 typedef struct BArrayState BArrayState;
+typedef struct BArrayStore BArrayStore;
 
 BArrayStore *BLI_array_store_create(
         unsigned int stride, unsigned int chunk_count);

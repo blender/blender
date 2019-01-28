@@ -43,14 +43,14 @@
 
 #include "BLI_kdopbvh.h"
 
-struct CollisionModifierData;
 struct Collection;
+struct CollisionModifierData;
+struct Depsgraph;
 struct MFace;
 struct MVert;
+struct MVertTri;
 struct Object;
 struct Scene;
-struct Depsgraph;
-struct MVertTri;
 
 ////////////////////////////////////////
 // used for collisions in collision.c

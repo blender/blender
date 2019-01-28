@@ -39,8 +39,8 @@
 extern "C" {
 #endif
 
-struct FreestyleLineStyle;
 struct Collection;
+struct FreestyleLineStyle;
 struct Text;
 
 /* FreestyleConfig::flags */

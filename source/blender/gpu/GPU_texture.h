@@ -38,10 +38,10 @@
 extern "C" {
 #endif
 
+struct GPUVertBuf;
 struct Image;
 struct ImageUser;
 struct PreviewImage;
-struct GPUVertBuf;
 
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;

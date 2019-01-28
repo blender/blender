@@ -37,20 +37,20 @@
 /* internal exports only */
 
 struct ARegion;
+struct EditBone;
+struct ID;
 struct ListBase;
-struct wmOperatorType;
+struct Main;
+struct Object;
+struct Scene;
 struct TreeElement;
 struct TreeStoreElem;
-struct Main;
-struct bContext;
-struct Scene;
 struct ViewLayer;
-struct ID;
-struct Object;
+struct bContext;
 struct bPoseChannel;
-struct EditBone;
 struct wmEvent;
 struct wmKeyConfig;
+struct wmOperatorType;
 
 typedef enum TreeElementInsertType {
 	TE_INSERT_BEFORE,

@@ -27,12 +27,12 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct bScreen;
-struct bToolRef;
 struct Main;
 struct Scene;
 struct TransformOrientation;
 struct ViewLayer;
+struct bScreen;
+struct bToolRef;
 
 /* -------------------------------------------------------------------- */
 /* Create, delete, init */

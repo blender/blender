@@ -32,11 +32,11 @@
 #ifndef __UI_INTERFACE_ICONS_H__
 #define __UI_INTERFACE_ICONS_H__
 
-struct bContext;
 struct ID;
-struct Scene;
-struct PreviewImage;
 struct PointerRNA;
+struct PreviewImage;
+struct Scene;
+struct bContext;
 
 enum eIconSizes;
 

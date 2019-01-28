@@ -32,8 +32,8 @@
 #define __WM_H__
 
 struct ARegion;
-struct wmWindow;
 struct ReportList;
+struct wmWindow;
 
 #include "gizmo/wm_gizmo_wmapi.h"
 

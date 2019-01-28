@@ -45,30 +45,30 @@
 
 /* ************************** Types ***************************** */
 
+struct ARegion;
 struct Depsgraph;
-struct TransInfo;
-struct TransDataContainer;
-struct TransData;
-struct TransformOrientation;
-struct TransSnap;
+struct EditBone;
 struct NumInput;
 struct Object;
-struct View3D;
-struct ScrArea;
+struct RNG;
+struct RenderEngineType;
+struct ReportList;
 struct Scene;
+struct ScrArea;
+struct SnapObjectContext;
+struct TransData;
+struct TransDataContainer;
+struct TransInfo;
+struct TransSnap;
+struct TransformOrientation;
+struct View3D;
 struct ViewLayer;
 struct bConstraint;
-struct wmKeyMap;
-struct wmKeyConfig;
 struct bContext;
 struct wmEvent;
+struct wmKeyConfig;
+struct wmKeyMap;
 struct wmTimer;
-struct ARegion;
-struct ReportList;
-struct RNG;
-struct EditBone;
-struct RenderEngineType;
-struct SnapObjectContext;
 
 #include "DNA_object_enums.h"
 
@@ -261,8 +261,8 @@ typedef struct TransDataNla {
 	int handle;
 } TransDataNla;
 
-struct LinkNode;
 struct GHash;
+struct LinkNode;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
 typedef struct TransDataGenericSlideVert {

@@ -36,8 +36,8 @@
 extern "C" {
 #endif
 
-struct IDProperty;
 struct ID;
+struct IDProperty;
 
 typedef union IDPropertyTemplate {
 	int i;

@@ -33,11 +33,11 @@
 #ifndef __MOD_FLUIDSIM_UTIL_H__
 #define __MOD_FLUIDSIM_UTIL_H__
 
-struct Object;
-struct Scene;
 struct FluidsimModifierData;
 struct Mesh;
 struct ModifierEvalContext;
+struct Object;
+struct Scene;
 
 /* new fluid-modifier interface */
 void fluidsim_init(struct FluidsimModifierData *fluidmd);

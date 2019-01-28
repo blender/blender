@@ -33,11 +33,11 @@ struct DRWPass;
 struct DRWShadingGroup;
 struct GPUBatch;
 struct GPUMaterial;
-struct Object;
-struct ViewLayer;
 struct ModifierData;
-struct ParticleSystem;
+struct Object;
 struct PTCacheEdit;
+struct ParticleSystem;
+struct ViewLayer;
 
 /**
  * Support selecting shaders with different options compiled in.

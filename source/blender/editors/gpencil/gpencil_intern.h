@@ -38,27 +38,27 @@
 
 
 /* internal exports only */
-struct bGPdata;
-struct bGPDstroke;
-struct bGPDspoint;
-struct tGPspoint;
 struct Material;
+struct bGPDspoint;
+struct bGPDstroke;
+struct bGPdata;
+struct tGPspoint;
 
 struct GHash;
 struct RNG;
 
+struct ARegion;
 struct Brush;
 struct Scene;
-struct ARegion;
-struct View3D;
 struct View2D;
+struct View3D;
 struct wmOperatorType;
 
 struct Depsgraph;
 
+struct EnumPropertyItem;
 struct PointerRNA;
 struct PropertyRNA;
-struct EnumPropertyItem;
 
 
 /* ***************************************************** */

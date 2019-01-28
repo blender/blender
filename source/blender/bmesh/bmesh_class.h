@@ -32,11 +32,11 @@
 /* dissable holes for now, these are ifdef'd because they use more memory and cant be saved in DNA currently */
 // #define USE_BMESH_HOLES
 
-struct BMesh;
-struct BMVert;
 struct BMEdge;
-struct BMLoop;
 struct BMFace;
+struct BMLoop;
+struct BMVert;
+struct BMesh;
 
 struct MLoopNorSpaceArray;
 

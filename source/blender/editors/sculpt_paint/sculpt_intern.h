@@ -42,11 +42,11 @@
 
 #include "BKE_pbvh.h"
 
-struct bContext;
 struct KeyBlock;
 struct Object;
-struct SculptUndoNode;
 struct SculptOrigVertData;
+struct SculptUndoNode;
+struct bContext;
 
 bool sculpt_mode_poll(struct bContext *C);
 bool sculpt_mode_poll_view3d(struct bContext *C);

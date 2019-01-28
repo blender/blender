@@ -46,41 +46,41 @@
 extern "C" {
 #endif
 
+struct ARegion;
+struct GHashIterator;
+struct GPUViewport;
+struct IDProperty;
+struct ImBuf;
+struct ImageFormatData;
+struct Main;
+struct MenuType;
+struct PointerRNA;
+struct PropertyRNA;
+struct ScrArea;
+struct ViewLayer;
 struct bContext;
 struct bToolRef_Runtime;
-struct GHashIterator;
-struct IDProperty;
+struct rcti;
+struct wmDrag;
+struct wmDropBox;
 struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
 struct wmJob;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
-struct wmOperatorType;
 struct wmOperator;
+struct wmOperatorType;
 struct wmPaintCursor;
-struct rcti;
-struct PointerRNA;
-struct PropertyRNA;
-struct MenuType;
-struct wmDropBox;
-struct wmDrag;
-struct ImBuf;
-struct ImageFormatData;
-struct ARegion;
-struct ScrArea;
-struct Main;
-struct ViewLayer;
-struct GPUViewport;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
 #endif
 
-typedef struct wmJob wmJob;
 typedef struct wmGizmo wmGizmo;
 typedef struct wmGizmoMap wmGizmoMap;
 typedef struct wmGizmoMapType wmGizmoMapType;
+typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_init_state_app_template_set(const char *app_template);

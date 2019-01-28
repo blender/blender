@@ -31,27 +31,27 @@
   *  \author Joshua Leung
   */
 
+struct ArrayGpencilModifierData;
+struct BoundBox;
+struct Brush;
 struct CurveMapping;
 struct Depsgraph;
 struct GpencilModifierData;
-struct ToolSettings;
+struct LatticeGpencilModifierData;
 struct ListBase;
-struct bGPdata;
-struct bGPDlayer;
-struct bGPDframe;
-struct bGPDspoint;
-struct bGPDstroke;
+struct Main;
 struct Material;
+struct Object;
+struct SimplifyGpencilModifierData;
+struct ToolSettings;
+struct bDeformGroup;
+struct bGPDframe;
+struct bGPDlayer;
 struct bGPDpalette;
 struct bGPDpalettecolor;
-struct Main;
-struct BoundBox;
-struct Brush;
-struct Object;
-struct bDeformGroup;
-struct SimplifyGpencilModifierData;
-struct ArrayGpencilModifierData;
-struct LatticeGpencilModifierData;
+struct bGPDspoint;
+struct bGPDstroke;
+struct bGPdata;
 
 struct MDeformVert;
 struct MDeformWeight;

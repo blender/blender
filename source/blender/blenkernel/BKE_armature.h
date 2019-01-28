@@ -33,18 +33,18 @@
  *  \author nzc
  */
 
-struct bPose;
 struct Bone;
 struct Depsgraph;
 struct GHash;
+struct ListBase;
 struct Main;
-struct bArmature;
-struct bPoseChannel;
-struct bConstraint;
-struct Scene;
 struct Object;
 struct PoseTree;
-struct ListBase;
+struct Scene;
+struct bArmature;
+struct bConstraint;
+struct bPose;
+struct bPoseChannel;
 
 typedef struct PoseTarget {
 	struct PoseTarget *next, *prev;

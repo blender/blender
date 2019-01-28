@@ -44,8 +44,8 @@ struct FreestyleModuleConfig;
 struct Main;
 
 /* RNA aliases */
-typedef struct FreestyleSettings FreestyleSettings;
 typedef struct FreestyleModuleSettings FreestyleModuleSettings;
+typedef struct FreestyleSettings FreestyleSettings;
 
 /* FreestyleConfig */
 void BKE_freestyle_config_init(FreestyleConfig *config);

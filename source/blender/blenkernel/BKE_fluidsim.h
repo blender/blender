@@ -32,11 +32,11 @@
  *  \ingroup bke
  */
 
-struct Object;
-struct Scene;
+struct Depsgraph;
 struct FluidsimSettings;
 struct MVert;
-struct Depsgraph;
+struct Object;
+struct Scene;
 
 /* old interface */
 

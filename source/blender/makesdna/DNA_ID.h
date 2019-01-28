@@ -39,11 +39,11 @@
 extern "C" {
 #endif
 
-struct Library;
 struct FileData;
-struct ID;
-struct PackedFile;
 struct GPUTexture;
+struct ID;
+struct Library;
+struct PackedFile;
 
 /* Runtime display data */
 struct DrawData;

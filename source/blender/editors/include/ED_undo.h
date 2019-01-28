@@ -27,11 +27,11 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct bContext;
 struct CLG_LogRef;
+struct UndoStack;
+struct bContext;
 struct wmOperator;
 struct wmOperatorType;
-struct UndoStack;
 
 /* undo.c */
 void    ED_undo_push(struct bContext *C, const char *str);

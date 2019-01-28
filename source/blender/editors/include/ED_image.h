@@ -30,16 +30,16 @@
 #ifndef __ED_IMAGE_H__
 #define __ED_IMAGE_H__
 
-struct SpaceImage;
-struct bContext;
+struct ARegion;
+struct ImBuf;
 struct Image;
 struct ImageUser;
-struct ImBuf;
-struct ToolSettings;
-struct wmWindowManager;
-struct ARegion;
 struct Scene;
+struct SpaceImage;
+struct ToolSettings;
 struct ViewLayer;
+struct bContext;
+struct wmWindowManager;
 
 /* image_edit.c, exported for transform */
 struct Image *ED_space_image(struct SpaceImage *sima);

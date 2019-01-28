@@ -36,17 +36,17 @@
 extern "C" {
 #endif
 
+struct DupliObject;
 struct ImBuf;
 struct Image;
 struct ImageUser;
 struct Main;
 struct Object;
-struct Scene;
-struct ViewLayer;
-struct View3D;
 struct RegionView3D;
+struct Scene;
 struct SmokeModifierData;
-struct DupliObject;
+struct View3D;
+struct ViewLayer;
 
 #include "DNA_object_enums.h"
 

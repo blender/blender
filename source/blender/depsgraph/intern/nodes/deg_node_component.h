@@ -35,16 +35,16 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+struct GHash;
 struct ID;
 struct bPoseChannel;
-struct GHash;
 
 namespace DEG {
 
-struct Depsgraph;
-struct OperationDepsNode;
 struct BoneComponentDepsNode;
+struct Depsgraph;
 struct IDDepsNode;
+struct OperationDepsNode;
 
 /* ID Component - Base type for all components */
 struct ComponentDepsNode : public DepsNode {

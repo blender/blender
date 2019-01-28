@@ -48,9 +48,9 @@
 #include "DNA_vfont_types.h"
 
 struct Ipo;
+struct MovieClip;
 struct Scene;
 struct bSound;
-struct MovieClip;
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 

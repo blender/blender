@@ -35,33 +35,33 @@
 extern "C" {
 #endif
 
-struct bFaceMap;
 struct Base;
+struct Depsgraph;
+struct EnumPropertyItem;
 struct EnumPropertyItem;
 struct ID;
 struct Main;
 struct Menu;
 struct ModifierData;
-struct ShaderFxData;
 struct Object;
+struct PointerRNA;
+struct PropertyRNA;
 struct ReportList;
 struct Scene;
+struct ShaderFxData;
 struct View3D;
 struct ViewLayer;
 struct bConstraint;
 struct bContext;
+struct bFaceMap;
 struct bPoseChannel;
+struct uiLayout;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
-struct PointerRNA;
-struct PropertyRNA;
-struct EnumPropertyItem;
-struct Depsgraph;
-struct uiLayout;
 
 #include "DNA_object_enums.h"
 #include "BLI_compiler_attrs.h"

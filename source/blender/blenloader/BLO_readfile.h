@@ -36,20 +36,20 @@
 extern "C" {
 #endif
 
+struct BHead;
 struct BlendThumbnail;
-struct bScreen;
+struct FileData;
 struct LinkNode;
 struct ListBase;
 struct Main;
 struct MemFile;
 struct ReportList;
 struct Scene;
-struct ViewLayer;
 struct UserDef;
 struct View3D;
+struct ViewLayer;
 struct bContext;
-struct BHead;
-struct FileData;
+struct bScreen;
 struct wmWindowManager;
 
 typedef struct BlendHandle BlendHandle;

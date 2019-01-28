@@ -26,8 +26,8 @@
  *  \ingroup bke
  */
 
-struct ID;
 struct BLI_mempool;
+struct ID;
 struct TreeStoreElem;
 
 /* create and fill hashtable with treestore elements */

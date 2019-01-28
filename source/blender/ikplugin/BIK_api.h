@@ -38,12 +38,12 @@
 extern "C" {
 #endif
 
+struct Depsgraph;
 struct Object;
-struct bPoseChannel;
-struct bPose;
 struct Scene;
 struct bConstraint;
-struct Depsgraph;
+struct bPose;
+struct bPoseChannel;
 
 enum BIK_ParamType {
 	BIK_PARAM_TYPE_FLOAT = 0,

@@ -31,27 +31,27 @@
 #ifndef __ED_ANIM_API_H__
 #define __ED_ANIM_API_H__
 
+struct AnimData;
 struct ID;
 struct ListBase;
-struct AnimData;
 
-struct bContext;
+struct ARegion;
 struct Main;
-struct wmKeyConfig;
 struct ReportList;
 struct ScrArea;
 struct SpaceLink;
-struct ARegion;
 struct View2D;
+struct bContext;
+struct wmKeyConfig;
 
-struct Scene;
 struct Object;
+struct Scene;
 
 struct bDopeSheet;
 
-struct bAction;
 struct FCurve;
 struct FModifier;
+struct bAction;
 
 struct uiBlock;
 struct uiLayout;

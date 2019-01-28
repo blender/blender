@@ -38,10 +38,10 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct wmGizmoMapType;
-struct wmGizmoGroupType;
-struct wmGizmoGroup;
 struct wmGizmo;
+struct wmGizmoGroup;
+struct wmGizmoGroupType;
+struct wmGizmoMapType;
 struct wmGizmoProperty;
 struct wmKeyConfig;
 

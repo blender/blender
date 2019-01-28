@@ -41,10 +41,10 @@
 #include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
 
-struct SpaceLink;
-struct Object;
 struct Collection;
 struct GHash;
+struct Object;
+struct SpaceLink;
 
 /* ************************************************ */
 /* Visualization */
@@ -221,8 +221,8 @@ typedef struct bPoseChannelDrawData {
 	float bbone_matrix[0][4][4];
 } bPoseChannelDrawData;
 
-struct Mat4;
 struct DualQuat;
+struct Mat4;
 
 typedef struct bPoseChannelRuntime {
 	int bbone_segments;

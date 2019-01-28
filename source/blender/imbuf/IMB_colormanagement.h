@@ -41,18 +41,18 @@
 #define BCM_CONFIG_FILE "config.ocio"
 
 
-struct bContext;
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ColormanageProcessor;
 struct EnumPropertyItem;
 struct ImBuf;
-struct Main;
 struct ImageFormatData;
+struct Main;
+struct bContext;
 
-struct ColorSpace;
 struct ColorManagedDisplay;
+struct ColorSpace;
 
 /* ** Generic functions ** */
 

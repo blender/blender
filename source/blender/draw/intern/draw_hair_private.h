@@ -35,10 +35,10 @@
 #define MAX_THICKRES        2 /* see eHairType */
 #define MAX_HAIR_SUBDIV     4 /* see hair_subdiv rna */
 
-struct Object;
-struct ParticleSystem;
 struct ModifierData;
+struct Object;
 struct ParticleHairCache;
+struct ParticleSystem;
 
 typedef struct ParticleHairFinalCache {
 	/* Output of the subdivision stage: vertex buff sized to subdiv level. */

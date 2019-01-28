@@ -33,20 +33,20 @@
 #include "RNA_types.h"
 
 struct BlenderRNA;
-struct ContainerRNA;
-struct StructRNA;
-struct PropertyRNA;
-struct PointerRNA;
-struct FunctionRNA;
 struct CollectionPropertyIterator;
-struct bContext;
+struct ContainerRNA;
+struct FunctionRNA;
+struct GHash;
 struct IDOverrideStatic;
 struct IDOverrideStaticProperty;
 struct IDOverrideStaticPropertyOperation;
 struct IDProperty;
-struct GHash;
 struct Main;
+struct PointerRNA;
+struct PropertyRNA;
 struct Scene;
+struct StructRNA;
+struct bContext;
 
 /* store local properties here */
 #define RNA_IDP_UI "_RNA_UI"

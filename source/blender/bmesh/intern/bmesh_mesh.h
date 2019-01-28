@@ -28,8 +28,8 @@
  */
 
 struct BMAllocTemplate;
-struct MLoopNorSpaceArray;
 struct BMLoopNorEditDataArray;
+struct MLoopNorSpaceArray;
 
 void   BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void   BM_mesh_elem_toolflags_clear(BMesh *bm);

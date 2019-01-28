@@ -30,24 +30,24 @@
 #include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
 
-struct ID;
+struct BMEditMesh;
+struct DepsNodeHandle;
 struct Depsgraph;
 struct DerivedMesh;
-struct bContext; /* NOTE: bakeModifier() - called from UI - needs to create new datablocks, hence the need for this */
+struct GpencilModifierData;
+struct ID;
+struct ListBase;
+struct Main;
 struct Mesh;
+struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct Scene;
 struct ViewLayer;
-struct ListBase;
 struct bArmature;
-struct Main;
-struct GpencilModifierData;
-struct BMEditMesh;
-struct DepsNodeHandle;
-struct bGPDlayer;
+struct bContext; /* NOTE: bakeModifier() - called from UI - needs to create new datablocks, hence the need for this */
 struct bGPDframe;
+struct bGPDlayer;
 struct bGPDstroke;
-struct ModifierUpdateDepsgraphContext;
 
 #define GPENCIL_MODIFIER_ACTIVE(_md, _is_render) \
 	((((_md)->mode & eGpencilModifierMode_Realtime) && (_is_render == false)) || \

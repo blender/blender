@@ -41,8 +41,8 @@ struct Depsgraph;
 /* ------------------------------------------------ */
 
 struct CacheFile;
-struct EffectorWeights;
 struct Collection;
+struct EffectorWeights;
 struct ID;
 struct Main;
 struct ModifierData;

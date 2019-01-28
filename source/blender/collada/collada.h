@@ -40,10 +40,10 @@ extern "C" {
 #include "BLI_path_util.h"
 #include "RNA_types.h"
 
-struct bContext;
 struct Depsgraph;
 struct Scene;
 struct ViewLayer;
+struct bContext;
 
 /*
  * both return 1 on success, 0 on error

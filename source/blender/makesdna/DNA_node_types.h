@@ -38,17 +38,17 @@
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 
-struct ID;
-struct ListBase;
-struct bNodeLink;
-struct bNodeType;
-struct bNodeTreeExec;
-struct bNodePreview;
-struct bNodeInstanceHash;
 struct AnimData;
-struct bGPdata;
-struct uiBlock;
+struct ID;
 struct Image;
+struct ListBase;
+struct bGPdata;
+struct bNodeInstanceHash;
+struct bNodeLink;
+struct bNodePreview;
+struct bNodeTreeExec;
+struct bNodeType;
+struct uiBlock;
 
 /* In writefile.c: write deprecated DNA data,
  * to ensure forward compatibility in 2.6x versions.

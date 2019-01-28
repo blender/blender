@@ -28,10 +28,10 @@
 #ifndef __WM_GIZMO_INTERN_H__
 #define __WM_GIZMO_INTERN_H__
 
-struct wmKeyConfig;
-struct wmGizmoMap;
-struct GizmoGeomInfo;
 struct GHashIterator;
+struct GizmoGeomInfo;
+struct wmGizmoMap;
+struct wmKeyConfig;
 
 #include "wm_gizmo_fn.h"
 

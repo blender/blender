@@ -38,8 +38,8 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
-struct Object;
 struct Collection;
+struct Object;
 
 typedef struct CollectionObject {
 	struct CollectionObject *next, *prev;

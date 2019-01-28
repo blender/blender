@@ -31,15 +31,15 @@
 #ifndef __ACTION_INTERN_H__
 #define __ACTION_INTERN_H__
 
-struct bContext;
-struct bAnimContext;
-struct Scene;
-struct Object;
-struct SpaceAction;
-struct ScrArea;
 struct ARegion;
 struct ARegionType;
+struct Object;
+struct Scene;
+struct ScrArea;
+struct SpaceAction;
 struct View2D;
+struct bAnimContext;
+struct bContext;
 struct wmOperatorType;
 
 /* internal exports only */

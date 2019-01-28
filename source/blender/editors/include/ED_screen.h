@@ -41,29 +41,29 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct ARegion;
 struct Depsgraph;
-struct wmWindowManager;
-struct wmWindow;
-struct wmNotifier;
-struct wmEvent;
-struct wmKeyConfig;
+struct IDProperty;
+struct Main;
+struct MenuType;
+struct PropertyRNA;
+struct Scene;
+struct ViewLayer;
 struct WorkSpace;
 struct WorkSpaceInstanceHook;
 struct bContext;
-struct Scene;
-struct ViewLayer;
 struct bScreen;
-struct ARegion;
-struct uiBlock;
 struct rcti;
-struct Main;
+struct uiBlock;
+struct wmEvent;
+struct wmKeyConfig;
 struct wmMsgBus;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
+struct wmNotifier;
 struct wmOperatorType;
-struct IDProperty;
-struct MenuType;
-struct PropertyRNA;
+struct wmWindow;
+struct wmWindowManager;
 
 /* regions */
 void    ED_region_do_listen(

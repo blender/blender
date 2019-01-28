@@ -36,8 +36,8 @@
 extern "C" {
 #endif
 
-struct Object;
 struct AnimData;
+struct Object;
 
 typedef struct LightProbe {
 	ID id;

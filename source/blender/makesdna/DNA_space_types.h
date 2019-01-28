@@ -47,25 +47,25 @@
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
-struct ID;
-struct Text;
-struct Script;
-struct Image;
-struct Scopes;
-struct Histogram;
-struct SpaceIpo;
-struct bNodeTree;
-struct FileList;
-struct bGPdata;
-struct bDopeSheet;
-struct FileSelectParams;
+struct BLI_mempool;
 struct FileLayout;
-struct wmOperator;
-struct wmTimer;
+struct FileList;
+struct FileSelectParams;
+struct Histogram;
+struct ID;
+struct Image;
+struct Mask;
 struct MovieClip;
 struct MovieClipScopes;
-struct Mask;
-struct BLI_mempool;
+struct Scopes;
+struct Script;
+struct SpaceIpo;
+struct Text;
+struct bDopeSheet;
+struct bGPdata;
+struct bNodeTree;
+struct wmOperator;
+struct wmTimer;
 
 /* TODO 2.8: We don't write the global areas to files currently. Uncomment
  * define to enable writing (should become the default in a bit). */

@@ -30,14 +30,14 @@
 
 #include "DNA_vec_types.h"
 
-struct bContext;
 struct DEGEditorUpdateContext;
 struct ID;
-struct Main;
 struct MTex;
+struct Main;
 struct Render;
 struct Scene;
 struct ScrArea;
+struct bContext;
 struct wmWindowManager;
 
 /* render_ops.c */

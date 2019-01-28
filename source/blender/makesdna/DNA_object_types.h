@@ -44,21 +44,21 @@
 extern "C" {
 #endif
 
-struct Object;
 struct AnimData;
-struct Ipo;
 struct BoundBox;
-struct Path;
-struct Material;
-struct PartDeflect;
-struct SoftBody;
-struct FluidsimSettings;
-struct ParticleSystem;
 struct DerivedMesh;
-struct SculptSession;
-struct bGPdata;
-struct RigidBodyOb;
+struct FluidsimSettings;
 struct GpencilBatchCache;
+struct Ipo;
+struct Material;
+struct Object;
+struct PartDeflect;
+struct ParticleSystem;
+struct Path;
+struct RigidBodyOb;
+struct SculptSession;
+struct SoftBody;
+struct bGPdata;
 
 /* Vertex Groups - Name Info */
 typedef struct bDeformGroup {

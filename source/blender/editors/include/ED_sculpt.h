@@ -31,14 +31,14 @@
 #define __ED_SCULPT_H__
 
 struct ARegion;
-struct bContext;
+struct ListBase;
 struct Object;
 struct RegionView3D;
-struct ViewContext;
-struct rcti;
 struct UndoStep;
 struct UndoType;
-struct ListBase;
+struct ViewContext;
+struct bContext;
+struct rcti;
 
 /* sculpt.c */
 void ED_operatortypes_sculpt(void);

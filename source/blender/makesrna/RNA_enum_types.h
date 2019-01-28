@@ -29,9 +29,9 @@
 
 #include "RNA_types.h"
 
+struct bNodeSocketType;
 struct bNodeTreeType;
 struct bNodeType;
-struct bNodeSocketType;
 
 /* Types */
 
@@ -236,9 +236,9 @@ struct bNodeSocketType *rna_node_socket_type_from_enum(int value);
 const EnumPropertyItem *rna_node_socket_type_itemf(
         void *data, bool (*poll)(void *data, struct bNodeSocketType *), bool *r_free);
 
-struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
+struct bContext;
 
 const EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 

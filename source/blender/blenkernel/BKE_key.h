@@ -32,15 +32,15 @@
  *  \since March 2001
  *  \author nzc
  */
+struct Curve;
+struct ID;
 struct Key;
 struct KeyBlock;
-struct ID;
-struct ListBase;
-struct Curve;
-struct Object;
 struct Lattice;
+struct ListBase;
 struct Main;
 struct Mesh;
+struct Object;
 struct WeightsArrayCache;
 
 /* Kernel prototypes */

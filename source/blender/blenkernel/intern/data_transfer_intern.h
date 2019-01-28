@@ -33,8 +33,8 @@
 
 #include "BKE_customdata.h"  /* For cd_datatransfer_interp */
 
-struct CustomDataTransferLayerMap;
 struct CustomData;
+struct CustomDataTransferLayerMap;
 struct ListBase;
 
 float data_transfer_interp_float_do(

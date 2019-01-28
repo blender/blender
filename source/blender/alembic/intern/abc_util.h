@@ -46,9 +46,9 @@ using Alembic::Abc::chrono_t;
 class AbcObjectReader;
 struct ImportSettings;
 
+struct Base;
 struct ID;
 struct Object;
-struct Base;
 
 std::string get_id_name(const ID * const id);
 std::string get_id_name(const Object * const ob);

@@ -33,14 +33,14 @@
  */
 
 struct Depsgraph;
-struct ImageUser;
 struct Image;
+struct ImageUser;
 struct ListBase;
 struct Main;
 struct Mask;
-struct MaskParent;
 struct MaskLayer;
 struct MaskLayerShape;
+struct MaskParent;
 struct MaskSpline;
 struct MaskSplinePoint;
 struct MaskSplinePointUW;

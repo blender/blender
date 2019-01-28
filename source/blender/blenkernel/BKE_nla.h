@@ -37,9 +37,9 @@ struct AnimData;
 struct Main;
 struct NlaStrip;
 struct NlaTrack;
-struct bAction;
 struct Scene;
 struct Speaker;
+struct bAction;
 
 struct PointerRNA;
 struct PropertyRNA;

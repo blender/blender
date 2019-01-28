@@ -39,19 +39,19 @@
 #include "DNA_listBase.h"
 
 struct ARegion;
+struct ID;
+struct ImBuf;
+struct Scene;
 struct bContext;
+struct bContextStore;
 struct uiHandleButtonData;
+struct uiLayout;
+struct uiStyle;
+struct uiWidgetColors;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmOperatorType;
 struct wmTimer;
-struct uiStyle;
-struct uiWidgetColors;
-struct uiLayout;
-struct bContextStore;
-struct Scene;
-struct ID;
-struct ImBuf;
 
 /* ****************** general defines ************** */
 

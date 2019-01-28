@@ -31,15 +31,15 @@
 
 #include "GPU_batch.h"
 
-struct tGPspoint;
-struct bGPDstroke;
-struct ModifierData;
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;
-struct Object;
 struct MaterialGPencilStyle;
+struct ModifierData;
+struct Object;
 struct RenderEngine;
 struct RenderLayer;
+struct bGPDstroke;
+struct tGPspoint;
 
 #define GPENCIL_CACHE_BLOCK_SIZE 8
 #define GPENCIL_MAX_SHGROUPS 65536

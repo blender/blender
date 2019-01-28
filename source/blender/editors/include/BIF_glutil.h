@@ -30,13 +30,13 @@
 #ifndef __BIF_GLUTIL_H__
 #define __BIF_GLUTIL_H__
 
-struct rcti;
 struct rctf;
+struct rcti;
 
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 struct ImBuf;
 struct bContext;
-struct ColorManagedViewSettings;
-struct ColorManagedDisplaySettings;
 
 /* A few functions defined here are being DEPRECATED for Blender 2.8
  *

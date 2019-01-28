@@ -26,9 +26,9 @@
  */
 
 struct CustomData;
-struct Mesh;
 struct MVert;
 struct MemArena;
+struct Mesh;
 
 /* Generic ways to map some geometry elements from a source mesh to a dest one. */
 

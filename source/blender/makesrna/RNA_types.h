@@ -33,14 +33,14 @@
 extern "C" {
 #endif
 
-struct ParameterList;
-struct FunctionRNA;
-struct PropertyRNA;
-struct StructRNA;
 struct BlenderRNA;
-struct bContext;
+struct FunctionRNA;
 struct Main;
+struct ParameterList;
+struct PropertyRNA;
 struct ReportList;
+struct StructRNA;
+struct bContext;
 
 /** Pointer
  *

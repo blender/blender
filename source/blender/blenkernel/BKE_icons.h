@@ -78,9 +78,9 @@ struct Icon_Geom {
 
 typedef struct Icon Icon;
 
+struct ID;
 struct ImBuf;
 struct PreviewImage;
-struct ID;
 struct StudioLight;
 struct bGPDlayer;
 

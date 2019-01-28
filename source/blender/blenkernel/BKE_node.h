@@ -51,35 +51,35 @@
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	512
 
-struct bContext;
-struct bNode;
-struct bNodeLink;
-struct bNodeSocket;
-struct bNodeStack;
-struct bNodeTree;
-struct bNodeTreeType;
-struct bNodeTreeExec;
-struct bNodeExecContext;
-struct bNodeExecData;
+struct ARegion;
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 struct GPUMaterial;
 struct GPUNodeStack;
 struct ID;
 struct ImBuf;
 struct ImageFormatData;
 struct ListBase;
-struct Main;
-struct uiLayout;
 struct MTex;
+struct Main;
 struct PointerRNA;
 struct RenderData;
 struct Scene;
+struct SpaceNode;
 struct Tex;
 struct ViewRender;
-struct SpaceNode;
-struct ARegion;
-struct ColorManagedViewSettings;
-struct ColorManagedDisplaySettings;
+struct bContext;
+struct bNode;
+struct bNodeExecContext;
+struct bNodeExecData;
 struct bNodeInstanceHash;
+struct bNodeLink;
+struct bNodeSocket;
+struct bNodeStack;
+struct bNodeTree;
+struct bNodeTreeExec;
+struct bNodeTreeType;
+struct uiLayout;
 
 /* -------------------------------------------------------------------- */
 /** \name Node Type Definitions

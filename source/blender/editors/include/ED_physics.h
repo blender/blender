@@ -32,12 +32,12 @@
 #ifndef __ED_PHYSICS_H__
 #define __ED_PHYSICS_H__
 
-struct bContext;
 struct ReportList;
+struct bContext;
 struct wmKeyConfig;
 
-struct Scene;
 struct Object;
+struct Scene;
 
 /* particle_edit.c */
 bool PE_poll(struct bContext *C);

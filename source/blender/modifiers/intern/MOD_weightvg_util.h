@@ -37,9 +37,9 @@ struct MDeformWeight;
 struct Mesh;
 struct ModifierEvalContext;
 struct Object;
-struct Tex;
-struct Scene;
 struct RNG;
+struct Scene;
+struct Tex;
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,

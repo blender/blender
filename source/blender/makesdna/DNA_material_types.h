@@ -40,10 +40,10 @@
 #define MAX_MTEX	18
 #endif
 
-struct Image;
-struct bNodeTree;
 struct AnimData;
+struct Image;
 struct Ipo;
+struct bNodeTree;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 

@@ -38,47 +38,47 @@
 #include "intern/nodes/deg_node_id.h"
 
 struct Base;
-struct bArmature;
-struct bAction;
 struct CacheFile;
 struct Camera;
-struct bGPdata;
-struct ListBase;
+struct Collection;
+struct FCurve;
 struct GHash;
 struct ID;
 struct Image;
-struct FCurve;
-struct Collection;
 struct Key;
 struct Lamp;
 struct LayerCollection;
 struct LightProbe;
-struct Main;
-struct Material;
-struct Mask;
+struct ListBase;
 struct MTex;
+struct Main;
+struct Mask;
+struct Material;
 struct MovieClip;
-struct bNodeTree;
 struct Object;
 struct ParticleSettings;
 struct Probe;
-struct bPoseChannel;
-struct bConstraint;
 struct Scene;
 struct Speaker;
 struct Tex;
 struct World;
+struct bAction;
+struct bArmature;
+struct bConstraint;
+struct bGPdata;
+struct bNodeTree;
+struct bPoseChannel;
 
 struct PropertyRNA;
 
 namespace DEG {
 
-struct Depsgraph;
-struct DepsNode;
-struct IDDepsNode;
-struct TimeSourceDepsNode;
 struct ComponentDepsNode;
+struct DepsNode;
+struct Depsgraph;
+struct IDDepsNode;
 struct OperationDepsNode;
+struct TimeSourceDepsNode;
 
 struct DepsgraphNodeBuilder {
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);

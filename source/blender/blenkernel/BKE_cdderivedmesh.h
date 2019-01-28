@@ -38,10 +38,10 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 
-struct DerivedMesh;
 struct BMEditMesh;
-struct Mesh;
+struct DerivedMesh;
 struct MLoopNorSpaceArray;
+struct Mesh;
 struct Object;
 
 /* creates a new CDDerivedMesh */

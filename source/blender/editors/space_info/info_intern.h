@@ -33,9 +33,9 @@
 
 /* internal exports only */
 
+struct ReportList;
 struct SpaceInfo;
 struct wmOperatorType;
-struct ReportList;
 
 void FILE_OT_autopack_toggle(struct wmOperatorType *ot);
 void FILE_OT_pack_all(struct wmOperatorType *ot);

@@ -34,8 +34,8 @@
 #ifndef __GPU_BATCH_PRESETS_H__
 #define __GPU_BATCH_PRESETS_H__
 
-struct rctf;
 struct GPUVertFormat;
+struct rctf;
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"

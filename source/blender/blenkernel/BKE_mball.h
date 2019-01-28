@@ -36,9 +36,9 @@ struct BoundBox;
 struct Depsgraph;
 struct Main;
 struct MetaBall;
+struct MetaElem;
 struct Object;
 struct Scene;
-struct MetaElem;
 
 void BKE_mball_free(struct MetaBall *mb);
 void BKE_mball_init(struct MetaBall *mb);

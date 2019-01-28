@@ -40,15 +40,15 @@ extern "C" {
 
 struct Camera;
 struct Depsgraph;
+struct GPUFXSettings;
 struct Main;
 struct Object;
 struct RegionView3D;
 struct RenderData;
 struct Scene;
+struct View3D;
 struct ViewLayer;
 struct rctf;
-struct View3D;
-struct GPUFXSettings;
 
 /* Camera Datablock */
 

@@ -38,8 +38,8 @@ extern "C" {
 
 /* Structs */
 
-struct Base;
 struct BLI_Iterator;
+struct Base;
 struct Collection;
 struct Depsgraph;
 struct ID;

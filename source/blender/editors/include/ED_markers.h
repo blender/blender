@@ -31,12 +31,12 @@
 #ifndef __ED_MARKERS_H__
 #define __ED_MARKERS_H__
 
-struct wmKeyConfig;
-struct wmKeyMap;
-struct bContext;
-struct bAnimContext;
 struct Scene;
 struct TimeMarker;
+struct bAnimContext;
+struct bContext;
+struct wmKeyConfig;
+struct wmKeyMap;
 
 /* Drawing API ------------------------------ */
 

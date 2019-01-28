@@ -47,13 +47,13 @@
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
-struct Object;
-struct Mesh;
-struct MVert;
-struct MDeformVert;
-struct ModifierEvalContext;
-struct ShrinkwrapModifierData;
 struct BVHTree;
+struct MDeformVert;
+struct MVert;
+struct Mesh;
+struct ModifierEvalContext;
+struct Object;
+struct ShrinkwrapModifierData;
 struct SpaceTransform;
 
 /* Information about boundary edges in the mesh. */

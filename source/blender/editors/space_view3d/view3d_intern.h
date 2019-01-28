@@ -39,20 +39,20 @@ struct ARegion;
 struct ARegionType;
 struct Base;
 struct BoundBox;
-struct GPUBatch;
 struct Depsgraph;
+struct GPUBatch;
+struct Mesh;
 struct Object;
 struct SmokeDomainSettings;
+struct ViewLayer;
 struct bAnimVizSettings;
 struct bContext;
 struct bMotionPath;
 struct bPoseChannel;
-struct Mesh;
-struct ViewLayer;
-struct wmOperatorType;
-struct wmKeyConfig;
 struct wmGizmoGroupType;
 struct wmGizmoType;
+struct wmKeyConfig;
+struct wmOperatorType;
 struct wmWindowManager;
 
 /* drawing flags: */

@@ -48,8 +48,8 @@ extern "C" {
 
 #include "DEG_depsgraph_debug.h"
 
-struct DEGEditorUpdateContext;
 struct Collection;
+struct DEGEditorUpdateContext;
 struct ListBase;
 struct Main;
 struct Scene;

@@ -49,10 +49,10 @@
 
 #include "intern/depsgraph_types.h"
 
-struct ID;
 struct GHash;
-struct Main;
 struct GSet;
+struct ID;
+struct Main;
 struct PointerRNA;
 struct PropertyRNA;
 struct Scene;
@@ -60,11 +60,11 @@ struct ViewLayer;
 
 namespace DEG {
 
-struct DepsNode;
-struct TimeSourceDepsNode;
-struct IDDepsNode;
 struct ComponentDepsNode;
+struct DepsNode;
+struct IDDepsNode;
 struct OperationDepsNode;
+struct TimeSourceDepsNode;
 
 /* *************************** */
 /* Relationships Between Nodes */

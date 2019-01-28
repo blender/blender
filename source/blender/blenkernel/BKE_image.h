@@ -37,18 +37,18 @@
 extern "C" {
 #endif
 
-struct Image;
 struct ImBuf;
-struct ImbFormatOptions;
-struct anim;
-struct Scene;
-struct Object;
+struct Image;
 struct ImageFormatData;
 struct ImagePool;
+struct ImbFormatOptions;
 struct Main;
-struct ReportList;
+struct Object;
 struct RenderResult;
+struct ReportList;
+struct Scene;
 struct StampData;
+struct anim;
 
 #define IMA_MAX_SPACE       64
 

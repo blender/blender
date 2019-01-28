@@ -40,9 +40,9 @@
 struct Depsgraph;
 struct ImagePool;
 struct MTex;
+struct Render;
 struct Scene;
 struct ViewLayer;
-struct Render;
 
 /* render_texture.c */
 /* used by particle.c, effect.c, editmesh_modes.c and brush.c, returns 1 if rgb, 0 otherwise */

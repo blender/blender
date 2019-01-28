@@ -33,13 +33,13 @@
 #ifndef __MOD_GPENCIL_UTIL_H__
 #define __MOD_GPENCIL_UTIL_H__
 
+struct GHash;
+struct MDeformVert;
 struct Main;
+struct Material;
 struct Object;
 struct bGPDlayer;
 struct bGPDstroke;
-struct MDeformVert;
-struct Material;
-struct GHash;
 
 bool is_stroke_affected_by_modifier(
         struct Object *ob, char *mlayername, int mpassindex,

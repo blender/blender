@@ -39,10 +39,10 @@ struct ColorBand;
 struct CustomData;
 struct Depsgraph;
 struct KeyBlock;
-struct Mesh;
 struct MLoop;
 struct MLoopTri;
 struct MVertTri;
+struct Mesh;
 struct Object;
 struct Scene;
 

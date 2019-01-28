@@ -30,15 +30,15 @@
 #define __DRAW_CACHE_IMPL_H__
 
 struct CurveCache;
-struct GPUMaterial;
-struct GPUTexture;
 struct GPUBatch;
 struct GPUIndexBuf;
+struct GPUMaterial;
+struct GPUTexture;
 struct GPUVertBuf;
 struct ListBase;
 struct ModifierData;
-struct ParticleSystem;
 struct PTCacheEdit;
+struct ParticleSystem;
 struct SpaceImage;
 struct ToolSettings;
 

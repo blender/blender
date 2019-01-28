@@ -157,8 +157,8 @@ void BLI_timer_free()
 	remove_tagged_functions();
 }
 
-struct Main;
 struct ID;
+struct Main;
 static void remove_non_persistent_functions(struct Main *UNUSED(_1), struct ID *UNUSED(_2), void *UNUSED(_3))
 {
 	LISTBASE_FOREACH(TimedFunction *, timed_func, &GlobalTimer.funcs) {

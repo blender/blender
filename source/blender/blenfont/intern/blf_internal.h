@@ -31,10 +31,10 @@
 #ifndef __BLF_INTERNAL_H__
 #define __BLF_INTERNAL_H__
 
-struct ResultBLF;
 struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
+struct ResultBLF;
 struct rctf;
 
 void blf_batch_draw_vao_clear(void);

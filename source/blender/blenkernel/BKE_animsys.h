@@ -40,6 +40,7 @@ struct KS_Path;
 struct KeyingSet;
 struct ListBase;
 struct Main;
+struct NlaKeyframingContext;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
@@ -48,7 +49,6 @@ struct Scene;
 struct bAction;
 struct bActionGroup;
 struct bContext;
-struct NlaKeyframingContext;
 
 /* ************************************* */
 /* AnimData API */

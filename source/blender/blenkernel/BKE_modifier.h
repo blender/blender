@@ -32,19 +32,19 @@
 #include "BLI_compiler_attrs.h"
 #include "BKE_customdata.h"
 
-struct ID;
+struct BMEditMesh;
+struct DepsNodeHandle;
 struct Depsgraph;
 struct DerivedMesh;
+struct ID;
+struct ListBase;
+struct Main;
 struct Mesh;
+struct ModifierData;
 struct Object;
 struct Scene;
 struct ViewLayer;
-struct ListBase;
 struct bArmature;
-struct Main;
-struct ModifierData;
-struct BMEditMesh;
-struct DepsNodeHandle;
 
 typedef enum {
 	/* Should not be used, only for None modifier type */

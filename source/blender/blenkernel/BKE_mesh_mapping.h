@@ -31,12 +31,12 @@
  *  \ingroup bke
  */
 
-struct MVert;
 struct MEdge;
-struct MPoly;
 struct MLoop;
-struct MLoopUV;
 struct MLoopTri;
+struct MLoopUV;
+struct MPoly;
+struct MVert;
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 

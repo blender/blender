@@ -44,11 +44,11 @@ struct Main;
 struct Object;
 struct RenderData;
 struct Scene;
-struct ViewLayer;
+struct TransformOrientation;
 struct UnitSettings;
+struct ViewLayer;
 struct ViewRender;
 struct WorkSpace;
-struct TransformOrientation;
 
 typedef enum eSceneCopyMethod {
 	SCE_COPY_NEW       = 0,

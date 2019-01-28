@@ -38,8 +38,8 @@
 
 struct ID;
 
-struct Base;
 struct BLI_Iterator;
+struct Base;
 struct Depsgraph;
 struct DupliObject;
 struct ListBase;

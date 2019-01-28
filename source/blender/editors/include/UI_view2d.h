@@ -134,13 +134,13 @@ struct View2D;
 struct View2DGrid;
 struct View2DScrollers;
 
-struct wmKeyConfig;
-struct bScreen;
+struct ARegion;
 struct Scene;
 struct ScrArea;
-struct ARegion;
 struct bContext;
+struct bScreen;
 struct rctf;
+struct wmKeyConfig;
 
 typedef struct View2DGrid View2DGrid;
 typedef struct View2DScrollers View2DScrollers;

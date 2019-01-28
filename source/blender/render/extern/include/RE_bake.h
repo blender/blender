@@ -32,10 +32,10 @@
 #ifndef __RE_BAKE_H__
 #define __RE_BAKE_H__
 
-struct ImBuf;
-struct Render;
-struct Mesh;
 struct Depsgraph;
+struct ImBuf;
+struct Mesh;
+struct Render;
 
 typedef struct BakeImage {
 	struct Image *image;

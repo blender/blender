@@ -33,8 +33,8 @@
 #include "DEG_depsgraph.h"
 
 struct Colllection;
-struct Depsgraph;
 struct DepsNodeHandle;
+struct Depsgraph;
 struct EffectorWeights;
 struct ListBase;
 struct Object;

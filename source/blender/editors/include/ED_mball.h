@@ -31,10 +31,10 @@
 #ifndef __ED_MBALL_H__
 #define __ED_MBALL_H__
 
-struct bContext;
 struct Object;
-struct wmKeyConfig;
 struct UndoType;
+struct bContext;
+struct wmKeyConfig;
 
 void ED_operatortypes_metaball(void);
 void ED_operatormacros_metaball(void);

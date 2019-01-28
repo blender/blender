@@ -33,9 +33,9 @@
 #ifndef __IMB_METADATA_H__
 #define __IMB_METADATA_H__
 
-struct anim;
-struct ImBuf;
 struct IDProperty;
+struct ImBuf;
+struct anim;
 
 /** The metadata is a list of key/value pairs (both char *) that can me
  * saved in the header of several image formats.

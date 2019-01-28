@@ -33,8 +33,8 @@ extern "C" {
 #define PASS_VECTOR_MAX 10000.0f
 
 /* Forward declarations */
-struct ZSpan;
 struct DrawBufPixel;
+struct ZSpan;
 void zbuf_accumulate_vecblur(
         NodeBlurData *nbd, int xsize, int ysize, float *newrect,
         const float *imgrect, float *vecbufrect, const float *zbufrect);

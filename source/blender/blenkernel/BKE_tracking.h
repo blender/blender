@@ -32,22 +32,22 @@
  *  \author Sergey Sharybin
  */
 
+struct Camera;
 struct Depsgraph;
-struct bGPDlayer;
 struct ImBuf;
 struct ListBase;
-struct MovieReconstructContext;
-struct MovieTrackingTrack;
-struct MovieTrackingMarker;
-struct MovieTrackingPlaneTrack;
-struct MovieTrackingPlaneMarker;
-struct MovieTracking;
-struct MovieTrackingObject;
 struct MovieClipUser;
 struct MovieDistortion;
-struct Camera;
+struct MovieReconstructContext;
+struct MovieTracking;
+struct MovieTrackingMarker;
+struct MovieTrackingObject;
+struct MovieTrackingPlaneMarker;
+struct MovieTrackingPlaneTrack;
+struct MovieTrackingTrack;
 struct Object;
 struct Scene;
+struct bGPDlayer;
 struct rcti;
 
 /* **** Common functions **** */

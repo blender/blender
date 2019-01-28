@@ -28,13 +28,13 @@
  *  \ingroup bke
  */
 
-struct Mesh;
-struct MVert;
 struct MEdge;
-struct MPoly;
 struct MLoop;
-struct MLoopUV;
 struct MLoopTri;
+struct MLoopUV;
+struct MPoly;
+struct MVert;
+struct Mesh;
 
 typedef enum MeshForeachFlag {
 	MESH_FOREACH_NOP = 0,

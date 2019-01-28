@@ -32,9 +32,9 @@
 extern "C" {
 #endif
 
-struct bFaceMap;
 struct ListBase;
 struct Object;
+struct bFaceMap;
 
 struct bFaceMap *BKE_object_facemap_add(struct Object *ob);
 struct bFaceMap *BKE_object_facemap_add_name(struct Object *ob, const char *name);

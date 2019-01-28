@@ -58,15 +58,15 @@ extern "C" {
 
 struct BlendThumbnail;
 struct GHash;
-struct ListBase;
 struct ID;
 struct ImBuf;
-struct Main;
 struct Library;
-struct wmWindowManager;
-struct bContext;
+struct ListBase;
+struct Main;
 struct PointerRNA;
 struct PropertyRNA;
+struct bContext;
+struct wmWindowManager;
 
 size_t BKE_libblock_get_alloc_info(short type, const char **name);
 void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;

@@ -31,9 +31,9 @@
 #ifndef __SCREEN_INTERN_H__
 #define __SCREEN_INTERN_H__
 
+struct Main;
 struct bContext;
 struct bContextDataResult;
-struct Main;
 
 /* internal exports only */
 

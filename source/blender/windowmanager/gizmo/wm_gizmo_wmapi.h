@@ -40,8 +40,8 @@
 
 struct wmEventHandler;
 struct wmGizmoMap;
-struct wmOperatorType;
 struct wmOperator;
+struct wmOperatorType;
 
 
 /* -------------------------------------------------------------------- */

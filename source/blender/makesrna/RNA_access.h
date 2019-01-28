@@ -37,7 +37,6 @@
 extern "C" {
 #endif
 
-struct bContext;
 struct ID;
 struct IDOverrideStatic;
 struct IDOverrideStaticProperty;
@@ -46,6 +45,7 @@ struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
+struct bContext;
 
 /* Types */
 extern BlenderRNA BLENDER_RNA;

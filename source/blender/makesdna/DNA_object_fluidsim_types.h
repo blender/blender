@@ -39,8 +39,8 @@
 extern "C" {
 #endif
 
-struct Mesh;
 struct Ipo;
+struct Mesh;
 
 typedef struct FluidVertexVelocity {
 	float vel[3];

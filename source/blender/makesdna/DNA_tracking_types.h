@@ -42,13 +42,13 @@
 
 /* match-moving data */
 
-struct bGPdata;
 struct Image;
 struct MovieReconstructedCamera;
+struct MovieTracking;
 struct MovieTrackingCamera;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
-struct MovieTracking;
+struct bGPdata;
 
 typedef struct MovieReconstructedCamera {
 	int framenr;

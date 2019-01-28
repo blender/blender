@@ -50,53 +50,53 @@
 #include "intern/nodes/deg_node_operation.h"
 
 struct Base;
-struct bArmature;
-struct bAction;
-struct bGPdata;
 struct CacheFile;
 struct Camera;
-struct ListBase;
+struct Collection;
+struct EffectorWeights;
+struct FCurve;
 struct GHash;
 struct ID;
-struct FCurve;
-struct Collection;
 struct Key;
 struct Lamp;
 struct LayerCollection;
 struct LightProbe;
+struct ListBase;
+struct MTex;
 struct Main;
 struct Mask;
 struct Material;
-struct MTex;
 struct ModifierData;
 struct MovieClip;
-struct bNodeTree;
 struct Object;
-struct bPoseChannel;
-struct bConstraint;
-struct ParticleSystem;
 struct ParticleSettings;
+struct ParticleSystem;
 struct Scene;
 struct Speaker;
-struct ViewLayer;
 struct Tex;
+struct ViewLayer;
 struct World;
-struct EffectorWeights;
+struct bAction;
+struct bArmature;
+struct bConstraint;
+struct bGPdata;
+struct bNodeTree;
+struct bPoseChannel;
 
 struct PropertyRNA;
 
 namespace DEG {
 
-struct Depsgraph;
+struct ComponentDepsNode;
 struct DepsNode;
 struct DepsNodeHandle;
 struct DepsRelation;
-struct RootDepsNode;
+struct Depsgraph;
 struct IDDepsNode;
-struct TimeSourceDepsNode;
-struct ComponentDepsNode;
 struct OperationDepsNode;
+struct RootDepsNode;
 struct RootPChanMap;
+struct TimeSourceDepsNode;
 
 struct TimeSourceKey
 {

@@ -34,9 +34,9 @@
 
 #include "DNA_listBase.h"
 
-struct bAction;
 struct Ipo;
 struct Object;
+struct bAction;
 
 /* simple uniform modifier structure, assumed it can hold all type info */
 typedef struct bActionModifier {

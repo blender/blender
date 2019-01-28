@@ -32,10 +32,10 @@
 #ifndef __TRACKING_OPS_INTERN_H__
 #define __TRACKING_OPS_INTERN_H__
 
-struct bContext;
 struct ListBase;
 struct MovieClip;
 struct SpaceClip;
+struct bContext;
 
 /* tracking_utils.c */
 

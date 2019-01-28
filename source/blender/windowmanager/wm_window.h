@@ -33,10 +33,10 @@
 #define __WM_WINDOW_H__
 
 struct EnumPropertyItem;
-struct wmEvent;
-struct wmOperator;
 struct PointerRNA;
 struct PropertyRNA;
+struct wmEvent;
+struct wmOperator;
 
 /* *************** internal api ************** */
 void		wm_ghost_init			(bContext *C);

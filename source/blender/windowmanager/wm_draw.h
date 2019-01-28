@@ -35,8 +35,8 @@
 #include "GPU_glew.h"
 
 struct GPUOffScreen;
-struct GPUViewport;
 struct GPUTexture;
+struct GPUViewport;
 
 typedef struct wmDrawBuffer {
 	struct GPUOffScreen *offscreen[2];
@@ -45,9 +45,9 @@ typedef struct wmDrawBuffer {
 	int bound_view;
 } wmDrawBuffer;
 
+struct ARegion;
 struct bContext;
 struct wmWindow;
-struct ARegion;
 
 /* wm_draw.c */
 void wm_draw_update(struct bContext *C);

@@ -32,19 +32,19 @@
 #ifndef __DNA_VIEW3D_TYPES_H__
 #define __DNA_VIEW3D_TYPES_H__
 
-struct ViewDepths;
-struct Object;
-struct Image;
-struct SpaceLink;
 struct BoundBox;
+struct GPUViewport;
+struct Image;
+struct Material;
 struct MovieClip;
 struct MovieClipUser;
+struct Object;
 struct RenderEngine;
-struct bGPdata;
 struct SmoothView3DStore;
+struct SpaceLink;
+struct ViewDepths;
+struct bGPdata;
 struct wmTimer;
-struct Material;
-struct GPUViewport;
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"

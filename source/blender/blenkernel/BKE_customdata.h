@@ -44,8 +44,8 @@ extern "C" {
 #include "DNA_customdata_types.h"
 
 struct BMesh;
-struct ID;
 struct CustomData;
+struct ID;
 typedef uint64_t CustomDataMask;
 
 /*a data type large enough to hold 1 element from any customdata layer type*/
@@ -420,8 +420,8 @@ void CustomData_external_reload(struct CustomData *data,
 
 /* Mesh-to-mesh transfer data. */
 
-struct MeshPairRemap;
 struct CustomDataTransferLayerMap;
+struct MeshPairRemap;
 
 typedef void (*cd_datatransfer_interp)(
         const struct CustomDataTransferLayerMap *laymap, void *dest,

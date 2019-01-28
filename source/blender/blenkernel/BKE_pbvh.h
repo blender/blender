@@ -30,20 +30,20 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
-struct GPUBatch;
+struct BMLog;
+struct BMesh;
+struct CCGDerivedMesh;
 struct CCGElem;
 struct CCGKey;
-struct CCGDerivedMesh;
 struct CustomData;
 struct DMFlagMat;
-struct MPoly;
+struct GPUBatch;
 struct MLoop;
 struct MLoopTri;
+struct MPoly;
 struct MVert;
 struct PBVH;
 struct PBVHNode;
-struct BMesh;
-struct BMLog;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;

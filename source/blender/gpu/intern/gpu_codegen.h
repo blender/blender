@@ -38,11 +38,11 @@
 #include "GPU_material.h"
 #include "GPU_glew.h"
 
-struct ListBase;
-struct GPUShader;
-struct GPUOutput;
 struct GPUNode;
+struct GPUOutput;
+struct GPUShader;
 struct GPUVertexAttribs;
+struct ListBase;
 struct PreviewImage;
 
 /* Pass Generation

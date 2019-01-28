@@ -31,14 +31,14 @@
 #ifndef __GRAPH_INTERN_H__
 #define __GRAPH_INTERN_H__
 
-struct bContext;
-struct bAnimContext;
-struct bAnimListElem;
-struct SpaceIpo;
-struct ScrArea;
 struct ARegion;
 struct ARegionType;
+struct ScrArea;
+struct SpaceIpo;
 struct View2DGrid;
+struct bAnimContext;
+struct bAnimListElem;
+struct bContext;
 
 /* internal exports only */
 

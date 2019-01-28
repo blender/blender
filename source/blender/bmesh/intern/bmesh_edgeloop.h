@@ -28,9 +28,9 @@
  *  \ingroup bmesh
  */
 
-struct ListBase;
 struct BMEdgeLoopStore;
 struct GSet;
+struct ListBase;
 
 /* multiple edgeloops (ListBase) */
 int                 BM_mesh_edgeloops_find(

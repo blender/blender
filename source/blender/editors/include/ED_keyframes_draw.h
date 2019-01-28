@@ -32,21 +32,21 @@
 #ifndef __ED_KEYFRAMES_DRAW_H__
 #define __ED_KEYFRAMES_DRAW_H__
 
-struct bAnimContext;
 struct AnimData;
 struct CacheFile;
+struct DLRBT_Tree;
 struct FCurve;
-struct bDopeSheet;
-struct bAction;
-struct bActionGroup;
-struct Object;
 struct ListBase;
-struct bGPDlayer;
-struct Palette;
 struct MaskLayer;
+struct Object;
+struct Palette;
 struct Scene;
 struct View2D;
-struct DLRBT_Tree;
+struct bAction;
+struct bActionGroup;
+struct bAnimContext;
+struct bDopeSheet;
+struct bGPDlayer;
 
 /* ****************************** Base Structs ****************************** */
 

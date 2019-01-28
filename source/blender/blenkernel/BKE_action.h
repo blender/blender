@@ -38,14 +38,14 @@
 #include "DNA_listBase.h"
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
-struct bAction;
-struct bActionGroup;
 struct FCurve;
-struct bPose;
-struct bItasc;
-struct bPoseChannel;
 struct Main;
 struct Object;
+struct bAction;
+struct bActionGroup;
+struct bItasc;
+struct bPose;
+struct bPoseChannel;
 
 /* Kernel prototypes */
 #ifdef __cplusplus

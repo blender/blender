@@ -58,9 +58,9 @@ enum {
 /* prototypes */
 
 struct Depsgraph;
-struct Mesh;
 struct ListBase;
 struct Main;
+struct Mesh;
 struct Object;
 struct Scene;
 

@@ -28,16 +28,16 @@
  */
 
 enum eCurveMappingPreset;
-struct bContext;
 struct Brush;
-struct Paint;
 struct ImBuf;
 struct ImagePool;
 struct Main;
+struct Material;
+struct Paint;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;
-struct Material;
+struct bContext;
 
 // enum eCurveMappingPreset;
 

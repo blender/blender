@@ -91,11 +91,11 @@ typedef struct PHash {
 
 
 
-struct PVert;
+struct PChart;
 struct PEdge;
 struct PFace;
-struct PChart;
 struct PHandle;
+struct PVert;
 
 /* Simplices */
 

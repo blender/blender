@@ -33,8 +33,8 @@
  *  \brief General operations for probes.
  */
 
-struct Main;
 struct LightProbe;
+struct Main;
 
 void BKE_lightprobe_init(struct LightProbe *probe);
 void *BKE_lightprobe_add(struct Main *bmain, const char *name);

@@ -35,13 +35,13 @@
 #include <float.h>
 #include "BLI_math_inline.h"
 
-struct Object;
-struct Scene;
-struct Mesh;
-struct MFace;
 struct ClothModifierData;
 struct CollisionModifierData;
 struct Depsgraph;
+struct MFace;
+struct Mesh;
+struct Object;
+struct Scene;
 
 #define DO_INLINE MALWAYS_INLINE
 

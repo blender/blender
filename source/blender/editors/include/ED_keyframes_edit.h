@@ -31,12 +31,12 @@
 #ifndef __ED_KEYFRAMES_EDIT_H__
 #define __ED_KEYFRAMES_EDIT_H__
 
+struct BezTriple;
+struct FCurve;
+struct Scene;
 struct bAnimContext;
 struct bAnimListElem;
 struct bDopeSheet;
-struct FCurve;
-struct BezTriple;
-struct Scene;
 
 /* ************************************************ */
 /* Common Macros and Defines */

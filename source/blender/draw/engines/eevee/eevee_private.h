@@ -31,12 +31,12 @@
 
 #include "DNA_lightprobe_types.h"
 
-struct Object;
 struct EEVEE_BoundSphere;
 struct EEVEE_ShadowCasterBuffer;
+struct GPUFrameBuffer;
+struct Object;
 struct RenderLayer;
 struct RenderResult;
-struct GPUFrameBuffer;
 
 extern struct DrawEngineType draw_engine_eevee_type;
 

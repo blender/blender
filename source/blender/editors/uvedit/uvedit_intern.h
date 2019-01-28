@@ -32,14 +32,14 @@
 #ifndef __UVEDIT_INTERN_H__
 #define __UVEDIT_INTERN_H__
 
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
 struct Image;
 struct Object;
 struct Scene;
 struct SpaceImage;
 struct wmOperatorType;
-struct BMEditMesh;
-struct BMFace;
-struct BMLoop;
 
 /* geometric utilities */
 void  uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);

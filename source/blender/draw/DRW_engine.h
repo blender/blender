@@ -33,28 +33,28 @@
 
 struct ARegion;
 struct CollectionEngineSettings;
-struct Depsgraph;
-struct DRWPass;
 struct DRWInstanceDataList;
-struct Main;
-struct Material;
-struct Scene;
+struct DRWPass;
+struct Depsgraph;
 struct DrawEngineType;
-struct ID;
-struct IDProperty;
-struct bContext;
-struct Object;
-struct ViewLayer;
-struct ViewContext;
-struct ViewportEngineData;
-struct View3D;
-struct rcti;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUViewport;
+struct ID;
+struct IDProperty;
+struct Main;
+struct Material;
+struct Object;
 struct RenderEngine;
 struct RenderEngineType;
+struct Scene;
+struct View3D;
+struct ViewContext;
+struct ViewLayer;
+struct ViewportEngineData;
 struct WorkSpace;
+struct bContext;
+struct rcti;
 
 #include "DNA_object_enums.h"
 

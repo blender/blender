@@ -53,22 +53,22 @@ extern "C" {
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-struct CurveMapping;
-struct Object;
-struct Brush;
-struct World;
-struct Scene;
-struct Image;
-struct Collection;
-struct Text;
-struct bNodeTree;
 struct AnimData;
-struct Editing;
-struct SceneStats;
-struct bGPdata;
-struct MovieClip;
+struct Brush;
+struct Collection;
 struct ColorSpace;
+struct CurveMapping;
+struct Editing;
+struct Image;
+struct MovieClip;
+struct Object;
+struct Scene;
 struct SceneCollection;
+struct SceneStats;
+struct Text;
+struct World;
+struct bGPdata;
+struct bNodeTree;
 
 /* ************************************************************* */
 /* Scene Data */

@@ -25,8 +25,8 @@
 #ifndef __BPY_GIZMO_WRAP_H__
 #define __BPY_GIZMO_WRAP_H__
 
-struct wmGizmoType;
 struct wmGizmoGroupType;
+struct wmGizmoType;
 
 /* exposed to rna/wm api */
 void BPY_RNA_gizmo_wrapper(struct wmGizmoType *gzt, void *userdata);

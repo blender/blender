@@ -33,9 +33,9 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct Main;
 struct bContext;
 struct wmOperatorType;
-struct Main;
 
 /* ed_util.c */
 void ED_editors_init(struct bContext *C);

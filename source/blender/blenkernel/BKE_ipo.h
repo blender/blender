@@ -38,8 +38,8 @@
 extern "C" {
 #endif
 
-struct Main;
 struct Ipo;
+struct Main;
 
 void do_versions_ipos_to_animato(struct Main *main);
 
