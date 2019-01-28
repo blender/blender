@@ -1210,13 +1210,13 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->field_wind = shgroup_instance_scaled(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_field_force_get();
-		sgl->field_force = shgroup_instance_screen_aligned(sgl->non_meshes, geom);
+		sgl->field_force = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_field_vortex_get();
 		sgl->field_vortex = shgroup_instance_scaled(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_screenspace_circle_get();
-		sgl->field_curve_sta = shgroup_instance_screen_aligned(sgl->non_meshes, geom);
+		sgl->field_curve_sta = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		/* Grease Pencil */
 		geom = DRW_cache_gpencil_axes_get();
@@ -1229,14 +1229,14 @@ static void OBJECT_cache_init(void *vedata)
 		/* Probe */
 		static float probeSize = 14.0f;
 		geom = DRW_cache_lightprobe_cube_get();
-		sgl->probe_cube = shgroup_instance_screenspace(sgl->non_meshes, geom, &probeSize);
+		sgl->probe_cube = shgroup_instance_screenspace(sgl->non_meshes, geom, &probeSize, draw_ctx->shader_slot);
 
 		geom = DRW_cache_lightprobe_grid_get();
-		sgl->probe_grid = shgroup_instance_screenspace(sgl->non_meshes, geom, &probeSize);
+		sgl->probe_grid = shgroup_instance_screenspace(sgl->non_meshes, geom, &probeSize, draw_ctx->shader_slot);
 
 		static float probePlanarSize = 20.0f;
 		geom = DRW_cache_lightprobe_planar_get();
-		sgl->probe_planar = shgroup_instance_screenspace(sgl->non_meshes, geom, &probePlanarSize);
+		sgl->probe_planar = shgroup_instance_screenspace(sgl->non_meshes, geom, &probePlanarSize, draw_ctx->shader_slot);
 
 		/* Camera */
 		geom = DRW_cache_camera_get();
@@ -1312,21 +1312,21 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_single_line_get();
 		sgl->lamp_buflimit = shgroup_distance_lines_instance(sgl->non_meshes, geom);
 
-		sgl->lamp_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, gb->colorLampNoAlpha, &gb->sizeLampCenter);
+		sgl->lamp_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, gb->colorLampNoAlpha, &gb->sizeLampCenter, draw_ctx->shader_slot);
 
 		geom = DRW_cache_lamp_get();
-		sgl->lamp_circle = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle);
+		sgl->lamp_circle = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle, draw_ctx->shader_slot);
 		geom = DRW_cache_lamp_shadows_get();
-		sgl->lamp_circle_shadow = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircleShadow);
+		sgl->lamp_circle_shadow = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircleShadow, draw_ctx->shader_slot);
 
 		geom = DRW_cache_lamp_sunrays_get();
-		sgl->lamp_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle);
+		sgl->lamp_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle, draw_ctx->shader_slot);
 
 		sgl->lamp_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, gb->colorLamp);
 		sgl->lamp_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, gb->colorLamp);
 
 		geom = DRW_cache_screenspace_circle_get();
-		sgl->lamp_area_sphere = shgroup_instance_screen_aligned(sgl->non_meshes, geom);
+		sgl->lamp_area_sphere = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_lamp_area_square_get();
 		sgl->lamp_area_square = shgroup_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
@@ -1364,7 +1364,7 @@ static void OBJECT_cache_init(void *vedata)
 		/* Force Field Curve Guide End (here because of stipple) */
 		/* TODO port to shader stipple */
 		geom = DRW_cache_screenspace_circle_get();
-		sgl->field_curve_end = shgroup_instance_screen_aligned(sgl->non_meshes, geom);
+		sgl->field_curve_end = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		/* Force Field Limits */
 		/* TODO port to shader stipple */
@@ -1407,7 +1407,8 @@ static void OBJECT_cache_init(void *vedata)
 		outlineWidth = 1.0f * U.pixelsize;
 		size = U.obcenter_dia * U.pixelsize + outlineWidth;
 
-		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
+		GPUShader *sh = DRW_shader_get_builtin_shader(
+		        GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA, draw_ctx->shader_slot);
 
 		/* Active */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
@@ -1415,26 +1416,41 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_float(grp, "outlineWidth", &outlineWidth, 1);
 		DRW_shgroup_uniform_vec4(grp, "color", gb->colorActive, 1);
 		DRW_shgroup_uniform_vec4(grp, "outlineColor", gb->colorOutline, 1);
+		if (draw_ctx->shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, draw_ctx->rv3d);
+		}
 		stl->g_data->center_active = grp;
 
 		/* Select */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", gb->colorSelect, 1);
+		if (draw_ctx->shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, draw_ctx->rv3d);
+		}
 		stl->g_data->center_selected = grp;
 
 		/* Deselect */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", gb->colorDeselect, 1);
+		if (draw_ctx->shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, draw_ctx->rv3d);
+		}
 		stl->g_data->center_deselected = grp;
 
 		/* Select (library) */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", gb->colorLibrarySelect, 1);
+		if (draw_ctx->shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, draw_ctx->rv3d);
+		}
 		stl->g_data->center_selected_lib = grp;
 
 		/* Deselect (library) */
 		grp = DRW_shgroup_point_batch_create(sh, psl->ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", gb->colorLibrary, 1);
+		if (draw_ctx->shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, draw_ctx->rv3d);
+		}
 		stl->g_data->center_deselected_lib = grp;
 	}
 

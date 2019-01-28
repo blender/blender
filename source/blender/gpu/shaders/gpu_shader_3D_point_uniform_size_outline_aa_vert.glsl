@@ -1,5 +1,8 @@
 
 uniform mat4 ModelViewProjectionMatrix;
+#ifdef USE_WORLD_CLIP_PLANES
+uniform mat4 ModelMatrix;
+#endif
 uniform float size;
 uniform float outlineWidth;
 
@@ -7,7 +10,8 @@ in vec3 pos;
 out vec4 radii;
 
 void main() {
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	vec4 pos_4d = vec4(pos, 1.0);
+	gl_Position = ModelViewProjectionMatrix * pos_4d;
 	gl_PointSize = size;
 
 	// calculate concentric radii in pixels
@@ -21,4 +25,8 @@ void main() {
 
 	// convert to PointCoord units
 	radii /= size;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+#endif
 }
