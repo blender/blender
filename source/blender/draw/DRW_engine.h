@@ -32,7 +32,6 @@
 #include "BLI_sys_types.h"  /* for bool */
 
 struct ARegion;
-struct CollectionEngineSettings;
 struct DRWInstanceDataList;
 struct DRWPass;
 struct Depsgraph;

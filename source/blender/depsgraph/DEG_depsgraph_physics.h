@@ -32,7 +32,6 @@
 
 #include "DEG_depsgraph.h"
 
-struct Colllection;
 struct DepsNodeHandle;
 struct Depsgraph;
 struct EffectorWeights;

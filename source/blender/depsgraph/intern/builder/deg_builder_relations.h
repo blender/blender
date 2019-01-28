@@ -94,7 +94,6 @@ struct DepsRelation;
 struct Depsgraph;
 struct IDDepsNode;
 struct OperationDepsNode;
-struct RootDepsNode;
 struct RootPChanMap;
 struct TimeSourceDepsNode;
 

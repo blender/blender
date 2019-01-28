@@ -59,7 +59,6 @@ struct UndoStep;
 struct bContext;
 struct bScreen;
 struct uiLayout;
-struct wmSubWindow;
 struct wmTimer;
 
 #define OP_MAX_TYPENAME 64

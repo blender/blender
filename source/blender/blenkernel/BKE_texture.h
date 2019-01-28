@@ -45,7 +45,6 @@ struct Lamp;
 struct MTex;
 struct Main;
 struct Material;
-struct OceanTex;
 struct ParticleSettings;
 struct PointDensity;
 struct Tex;
