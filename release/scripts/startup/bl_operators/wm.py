@@ -2171,7 +2171,10 @@ class WM_OT_addon_remove(Operator):
 
         import shutil
         if isdir:
-            shutil.rmtree(path)
+            if os.path.islink(path):
+                os.remove(path)
+            else:
+                shutil.rmtree(path)
         else:
             os.remove(path)
 
