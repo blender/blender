@@ -66,6 +66,15 @@ static void initData(ModifierData *md)
 	mmd->quality = 3;
 }
 
+static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)
+{
+	MultiresModifierData *mmd_dst = (MultiresModifierData *)md_dst;
+
+	modifier_copyData_generic(md_src, md_dst, flag);
+
+	mmd_dst->subdiv = NULL;
+}
+
 static void freeData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *) md;
@@ -193,7 +202,7 @@ ModifierTypeInfo modifierType_Multires = {
 	                        eModifierTypeFlag_SupportsMapping |
 	                        eModifierTypeFlag_RequiresOriginalData,
 
-	/* copyData */          modifier_copyData_generic,
+	/* copyData */          copyData,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

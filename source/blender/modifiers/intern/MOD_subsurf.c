@@ -75,6 +75,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 	modifier_copyData_generic(md, target, flag);
 
 	tsmd->emCache = tsmd->mCache = NULL;
+	tsmd->subdiv = NULL;
 }
 
 static void freeData(ModifierData *md)
