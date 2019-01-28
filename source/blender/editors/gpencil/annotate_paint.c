@@ -1911,6 +1911,11 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	Scene *scene = CTX_data_scene(C);
 	tGPsdata *p = NULL;
 
+	/* support for tablets eraser pen */
+	if (gpencil_is_tablet_eraser_active(event)) {
+		RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
+	}
+
 	/* if try to do annotations with a gp object selected, first
 	 * unselect the object to avoid conflicts.
 	 * The solution is not perfect but we can keep running the annotations while
