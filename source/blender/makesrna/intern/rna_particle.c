@@ -1793,14 +1793,14 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, texco_items);
 	RNA_def_property_ui_text(prop, "Texture Coordinates",
 	                         "Texture coordinates used to map the texture onto the background");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset_dependency");
 
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset_dependency");
 
 	prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "uvname");

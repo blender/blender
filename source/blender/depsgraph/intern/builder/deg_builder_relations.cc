@@ -1868,6 +1868,14 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 		             particle_settings_reset_key,
 		             "Particle Texture",
 		             DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY);
+		/* TODO(sergey): Consider moving texture space handling to an own
+		 * function. */
+		if (mtex->texco == TEXCO_OBJECT && mtex->object != NULL) {
+			ComponentKey object_key(&mtex->object->id, DEG_NODE_TYPE_TRANSFORM);
+			add_relation(object_key,
+			             particle_settings_eval_key,
+			             "Particle Texture Space");
+		}
 	}
 	if (check_id_has_anim_component(&part->id)) {
 		ComponentKey animation_key(&part->id, DEG_NODE_TYPE_ANIMATION);
