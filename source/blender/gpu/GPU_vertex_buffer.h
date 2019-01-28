@@ -35,11 +35,13 @@
 #include "GPU_vertex_format.h"
 
 #define VRAM_USAGE 1
-/* How to create a GPUVertBuf: */
-/* 1) verts = GPU_vertbuf_create() or GPU_vertbuf_init(verts) */
-/* 2) GPU_vertformat_attr_add(verts->format, ...) */
-/* 3) GPU_vertbuf_data_alloc(verts, vertex_len) <-- finalizes/packs vertex format */
-/* 4) GPU_vertbuf_attr_fill(verts, pos, application_pos_buffer) */
+/**
+ * How to create a #GPUVertBuf:
+ * 1) verts = GPU_vertbuf_create() or GPU_vertbuf_init(verts)
+ * 2) GPU_vertformat_attr_add(verts->format, ...)
+ * 3) GPU_vertbuf_data_alloc(verts, vertex_len) <-- finalizes/packs vertex format
+ * 4) GPU_vertbuf_attr_fill(verts, pos, application_pos_buffer)
+ */
 
 /* Is GPUVertBuf always used as part of a GPUBatch? */
 
@@ -116,17 +118,6 @@ GPU_INLINE uint GPU_vertbuf_raw_used(GPUVertBufRaw *a)
 }
 
 void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *, uint a_idx, GPUVertBufRaw *access);
-
-/* TODO: decide whether to keep the functions below */
-/* doesn't immediate mode satisfy these needs? */
-
-/*	void setAttrib1f(uint a_idx, uint v_idx, float x); */
-/*	void setAttrib2f(uint a_idx, unsigned v_idx, float x, float y); */
-/*	void setAttrib3f(unsigned a_idx, unsigned v_idx, float x, float y, float z); */
-/*	void setAttrib4f(unsigned a_idx, unsigned v_idx, float x, float y, float z, float w); */
-
-/*	void setAttrib3ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b); */
-/*	void setAttrib4ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b, unsigned char a); */
 
 void GPU_vertbuf_use(GPUVertBuf *);
 
