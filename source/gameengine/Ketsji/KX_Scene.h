@@ -55,8 +55,6 @@
 /**
  * \section Forward declarations
  */
-struct SM_MaterialProps;
-struct SM_ShapeProps;
 struct Scene;
 
 class CTR_HashedPtr;

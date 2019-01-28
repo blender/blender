@@ -42,7 +42,6 @@ struct CCGElem;
 struct CCGFace;
 struct CCGVert;
 struct DMFlagMat;
-struct DMGridAdjacency;
 struct DerivedMesh;
 struct EdgeHash;
 struct MPoly;

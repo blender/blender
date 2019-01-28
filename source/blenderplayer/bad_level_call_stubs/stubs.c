@@ -47,8 +47,6 @@ struct BMEditMesh;
 struct Base;
 struct BoundBox;
 struct Brush;
-struct CSG_FaceIteratorDescriptor;
-struct CSG_VertexIteratorDescriptor;
 struct ChannelDriver;
 struct ColorBand;
 struct Context;
