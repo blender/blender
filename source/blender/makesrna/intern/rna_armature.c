@@ -782,7 +782,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 
 	/* Number values */
 	/* envelope deform settings */
-	prop = RNA_def_property(srna, "envelope_distance", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "envelope_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Envelope Deform Distance", "Bone deformation distance (for Envelope deform only)");
@@ -794,7 +794,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Envelope Deform Weight", "Bone deformation weight (for Envelope deform only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
-	prop = RNA_def_property(srna, "head_radius", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "head_radius", PROP_FLOAT, PROP_DISTANCE);
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_float_sdna(prop, NULL, "rad_head");
@@ -803,7 +803,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
 
-	prop = RNA_def_property(srna, "tail_radius", PROP_FLOAT, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "tail_radius", PROP_FLOAT, PROP_DISTANCE);
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_float_sdna(prop, NULL, "rad_tail");
