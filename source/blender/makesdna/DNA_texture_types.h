@@ -65,7 +65,8 @@ typedef struct MTex {
 	char pad[2];
 	float ofs[3], size[3], rot, random_angle;
 
-	short texflag, colormodel, pmapto, pmaptoneg;
+	char _pad0[2];
+	short colormodel, pmapto, pmaptoneg;
 	short normapspace, which_output;
 	float r, g, b, k;
 	float def_var, rt;
@@ -426,24 +427,6 @@ typedef struct ColorMapping {
 #define PROJ_X			1
 #define PROJ_Y			2
 #define PROJ_Z			3
-
-/* texflag */
-#define MTEX_RGBTOINT		(1 << 0)
-#define MTEX_STENCIL		(1 << 1)
-#define MTEX_NEGATIVE		(1 << 2)
-#define MTEX_ALPHAMIX		(1 << 3)
-#define MTEX_VIEWSPACE		(1 << 4)
-#define MTEX_DUPLI_MAPTO	(1 << 5)
-#define MTEX_OB_DUPLI_ORIG	(1 << 6)
-#define MTEX_COMPAT_BUMP	(1 << 7)
-#define MTEX_3TAP_BUMP		(1 << 8)
-#define MTEX_5TAP_BUMP		(1 << 9)
-#define MTEX_BUMP_OBJECTSPACE	(1 << 10)
-#define MTEX_BUMP_TEXTURESPACE	(1 << 11)
-/* #define MTEX_BUMP_FLIPPED 	(1 << 12) */ /* UNUSED */
-#define MTEX_TIPS				(1 << 12)  /* should use with_freestyle flag?  */
-#define MTEX_BICUBIC_BUMP		(1 << 13)
-#define MTEX_MAPTO_BOUNDS		(1 << 14)
 
 /* blendtype */
 #define MTEX_BLEND		0

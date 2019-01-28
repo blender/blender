@@ -621,24 +621,6 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blend Type", "Mode used to apply the texture");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
-	prop = RNA_def_property(srna, "use_stencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_STENCIL);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_ui_text(prop, "Stencil", "Use this texture as a blending value on the next texture");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-
-	prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_NEGATIVE);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_ui_text(prop, "Negate", "Invert the values of the texture to reverse its effect");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-
-	prop = RNA_def_property(srna, "use_rgb_to_intensity", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_RGBTOINT);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_ui_text(prop, "RGB to Intensity", "Convert texture RGB values to intensity (gray) values");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
