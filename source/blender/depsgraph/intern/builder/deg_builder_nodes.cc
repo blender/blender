@@ -1061,37 +1061,28 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 	/* Create nodes --------------------------------------------------------- */
 
 	/* XXX: is this the right component, or do we want to use another one
-	 * instead?
-	 */
+	 * instead? */
 
-	/* init/rebuild operation */
-	/*OperationDepsNode *init_node =*/ add_operation_node(
-	        &scene->id, DEG_NODE_TYPE_TRANSFORM,
-	        function_bind(BKE_rigidbody_rebuild_sim, _1, scene_cow),
-	        DEG_OPCODE_RIGIDBODY_REBUILD);
-
-	/* do-sim operation */
-	// XXX: what happens if we need to split into several groups?
+	/* Init/rebuild operation. */
+	add_operation_node(&scene->id, DEG_NODE_TYPE_TRANSFORM,
+	                  function_bind(BKE_rigidbody_rebuild_sim, _1, scene_cow),
+	                  DEG_OPCODE_RIGIDBODY_REBUILD);
+	/* Do-sim operation. */
 	OperationDepsNode *sim_node = add_operation_node(
 	        &scene->id, DEG_NODE_TYPE_TRANSFORM,
 	        function_bind(BKE_rigidbody_eval_simulation, _1, scene_cow),
 	        DEG_OPCODE_RIGIDBODY_SIM);
-
-	/* XXX: For now, the sim node is the only one that really matters here.
-	 * If any other sims get added later, we may have to remove these hacks...
-	 */
+	sim_node->set_as_entry();
+	sim_node->set_as_exit();
 	sim_node->owner->entry_operation = sim_node;
-	sim_node->owner->exit_operation  = sim_node;
-
-	/* objects - simulation participants */
-	if (rbw->group) {
+	/* Objects - simulation participants. */
+	if (rbw->group  != NULL) {
 		build_collection(NULL, rbw->group);
-
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 		{
-			if (object->type != OB_MESH)
+			if (object->type != OB_MESH) {
 				continue;
-
+			}
 			/* 2) create operation for flushing results */
 			/* object's transform component - where the rigidbody operation
 			 * lives. */
@@ -1102,6 +1093,22 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 			                           scene_cow,
 			                           get_cow_datablock(object)),
 			                   DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
+		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+	}
+	/* Constraints. */
+	if (rbw->constraints != NULL) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, object)
+		{
+			RigidBodyCon *rbc = object->rigidbody_constraint;
+			if (rbc == NULL || rbc->ob1 == NULL || rbc->ob2 == NULL) {
+				/* When either ob1 or ob2 is NULL, the constraint doesn't work. */
+				continue;
+			}
+			/* Make sure indirectly linked objects are fully built. */
+			build_object(-1, object, DEG_ID_LINKED_INDIRECTLY, false);
+			build_object(-1, rbc->ob1, DEG_ID_LINKED_INDIRECTLY, false);
+			build_object(-1, rbc->ob2, DEG_ID_LINKED_INDIRECTLY, false);
 		}
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
