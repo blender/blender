@@ -2,7 +2,7 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat3 WorldNormalMatrix;
-#ifndef ATTRIB
+#ifndef USE_ATTR
 uniform mat4 ModelMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 ModelMatrixInverse;
@@ -73,7 +73,7 @@ void main()
 	/* Used for planar reflections */
 	gl_ClipDistance[0] = dot(vec4(worldPosition, 1.0), ClipPlanes[0]);
 
-#ifdef ATTRIB
-	pass_attrib(pos);
+#ifdef USE_ATTR
+	pass_attr(pos);
 #endif
 }

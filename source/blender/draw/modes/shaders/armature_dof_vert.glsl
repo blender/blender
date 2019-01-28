@@ -1,10 +1,10 @@
 
 uniform mat4 ViewProjectionMatrix;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec2 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 /* Assumed to be in world coordinate already. */
 in mat4 InstanceModelMatrix;
 in vec4 color;

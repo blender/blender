@@ -383,20 +383,20 @@ void GPU_shader_free_builtin_shaders(void);
 
 /* Vertex attributes for shaders */
 
-#define GPU_MAX_ATTRIB 32
+#define GPU_MAX_ATTR 32
 
-typedef struct GPUVertexAttribs {
+typedef struct GPUVertAttrLayers {
 	struct {
 		int type;
 		int glindex;
 		int glinfoindoex;
 		int gltexco;
-		int attribid;
+		int attr_id;
 		char name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
-	} layer[GPU_MAX_ATTRIB];
+	} layer[GPU_MAX_ATTR];
 
 	int totlayer;
-} GPUVertexAttribs;
+} GPUVertAttrLayers;
 
 #ifdef __cplusplus
 }

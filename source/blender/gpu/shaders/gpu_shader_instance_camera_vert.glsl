@@ -4,10 +4,10 @@ uniform mat4 ViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 #endif
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in float pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in vec3 color;
 in vec4 corners[2]; /* trouble fetching vec2 */
 in float depth;

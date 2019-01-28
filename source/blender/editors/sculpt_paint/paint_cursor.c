@@ -807,7 +807,7 @@ static void paint_draw_alpha_overlay(
 	 * secondary is used for alpha/mask control */
 	bool col = ELEM(mode, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D, PAINT_MODE_VERTEX) ? true : false;
 	eOverlayControlFlags flags = BKE_paint_get_overlay_flags();
-	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
+	gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
 	/* Translate to region. */
 	GPU_matrix_push();
@@ -832,7 +832,7 @@ static void paint_draw_alpha_overlay(
 	}
 
 	GPU_matrix_pop();
-	gpuPopAttrib();
+	gpuPopAttr();
 }
 
 

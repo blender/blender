@@ -1,10 +1,10 @@
 
 uniform mat4 ViewProjectionMatrix;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec3 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in vec3 color;
 in float start;
 in float end;

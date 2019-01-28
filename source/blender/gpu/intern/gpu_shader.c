@@ -674,8 +674,8 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
-	const GPUShaderInput *attrib = GPU_shaderinterface_attr(shader->interface, name);
-	return attrib ? attrib->location : -1;
+	const GPUShaderInput *attr = GPU_shaderinterface_attr(shader->interface, name);
+	return attr ? attr->location : -1;
 }
 
 static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {

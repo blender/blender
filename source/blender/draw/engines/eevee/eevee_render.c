@@ -478,7 +478,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 	/* Sort transparents before the loop. */
 	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
-	/* Push instances attribs to the GPU. */
+	/* Push instances attributes to the GPU. */
 	DRW_render_instance_buffer_finish();
 
 	/* Need to be called after DRW_render_instance_buffer_finish() */

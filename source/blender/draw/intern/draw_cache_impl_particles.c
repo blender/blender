@@ -1174,8 +1174,8 @@ static void particle_batch_cache_ensure_pos_and_seg(
 	attr_id.ind = GPU_vertformat_attr_add(&format, "ind", GPU_COMP_I32, 1, GPU_FETCH_INT);
 
 	if (psmd) {
-		uv_id = MEM_mallocN(sizeof(*uv_id) * num_uv_layers, "UV attrib format");
-		col_id = MEM_mallocN(sizeof(*col_id) * num_col_layers, "Col attrib format");
+		uv_id = MEM_mallocN(sizeof(*uv_id) * num_uv_layers, "UV attr format");
+		col_id = MEM_mallocN(sizeof(*col_id) * num_col_layers, "Col attr format");
 
 		for (int i = 0; i < num_uv_layers; i++) {
 			const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);

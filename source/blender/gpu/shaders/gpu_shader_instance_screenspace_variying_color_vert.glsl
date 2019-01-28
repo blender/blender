@@ -4,10 +4,10 @@ uniform vec3 screen_vecs[2];
 uniform float size;
 uniform float pixel_size;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec2 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in vec3 world_pos;
 in vec3 color;
 

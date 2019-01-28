@@ -11,7 +11,7 @@ in vec2 pos; /* verts position in the curve tangent space */
 in vec2 expand;
 
 #ifdef USE_INSTANCE
-/* Instance attrib */
+/* Instance attrs. */
 in vec2 P0;
 in vec2 P1;
 in vec2 P2;

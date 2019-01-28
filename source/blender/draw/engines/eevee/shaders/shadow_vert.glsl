@@ -3,7 +3,7 @@ uniform mat4 ModelViewProjectionMatrix;
 #ifdef MESH_SHADER
 uniform mat4 ModelViewMatrix;
 uniform mat3 WorldNormalMatrix;
-#  ifndef ATTRIB
+#  ifndef USE_ATTR
 uniform mat4 ModelMatrix;
 uniform mat3 NormalMatrix;
 #  endif
@@ -26,8 +26,8 @@ void main() {
 	worldPosition = (ModelMatrix * vec4(pos, 1.0)).xyz;
 	viewNormal = normalize(NormalMatrix * nor);
 	worldNormal = normalize(WorldNormalMatrix * nor);
-#ifdef ATTRIB
-	pass_attrib(pos);
+#ifdef USE_ATTR
+	pass_attr(pos);
 #endif
 #endif
 }

@@ -4,7 +4,7 @@ uniform mat4 ViewProjectionMatrix;
 uniform mat4 ViewMatrix;
 uniform vec2 viewportSize;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec2 pos; /* bone aligned screen space */
 in uint flag;
 
@@ -17,7 +17,7 @@ in uint flag;
 #define POS_TAIL 32u /* (1 << 5) */ /* UNUSED */
 #define POS_BONE 64u /* (1 << 6) */
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in vec3 boneStart;
 in vec3 boneEnd;
 in vec4 wireColor; /* alpha encode if we do wire. If 0.0 we dont. */

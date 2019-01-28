@@ -40,13 +40,18 @@
 #include "GPU_immediate_util.h"
 #include "GPU_shader.h"
 
-GPUVertFormat *immVertexFormat(void); /* returns a cleared vertex format, ready for add_attrib. */
+/** Returns a cleared vertex format, ready for #add_attr. */
+GPUVertFormat *immVertexFormat(void);
 
-void immBindProgram(uint32_t program, const GPUShaderInterface *); /* every immBegin must have a program bound first. */
-void immUnbindProgram(void); /* call after your last immEnd, or before binding another program. */
+/** Every immBegin must have a program bound first. */
+void immBindProgram(uint32_t program, const GPUShaderInterface *);
+/** Call after your last immEnd, or before binding another program. */
+void immUnbindProgram(void);
 
-void immBegin(GPUPrimType, uint vertex_len); /* must supply exactly vertex_len vertices. */
-void immBeginAtMost(GPUPrimType, uint max_vertex_len); /* can supply fewer vertices. */
+/** Must supply exactly vertex_len vertices. */
+void immBegin(GPUPrimType, uint vertex_len);
+/** Can supply fewer vertices. */
+void immBeginAtMost(GPUPrimType, uint max_vertex_len);
 void immEnd(void); /* finishes and draws. */
 
 /* ImmBegin a batch, then use standard immFunctions as usual. */

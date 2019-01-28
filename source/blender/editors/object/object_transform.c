@@ -1134,7 +1134,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						float inverse_diff_mat[4][4];
 
 						/* recalculate all strokes
-						 * (all layers are considered without evaluating lock attributtes) */
+						 * (all layers are considered without evaluating lock attributes) */
 						for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 							/* calculate difference matrix */
 							ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);

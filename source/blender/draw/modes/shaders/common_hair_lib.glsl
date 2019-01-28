@@ -71,7 +71,7 @@ int hair_get_base_id(float local_time, int strand_segments, out float interp_tim
 	return int(ratio);
 }
 
-void hair_get_interp_attribs(out vec4 data0, out vec4 data1, out vec4 data2, out vec4 data3, out float interp_time)
+void hair_get_interp_attrs(out vec4 data0, out vec4 data1, out vec4 data2, out vec4 data3, out float interp_time)
 {
 	float local_time = float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
 

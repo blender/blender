@@ -55,7 +55,7 @@ void GPU_vertformat_clear(GPUVertFormat *format)
 	format->name_len = 0;
 
 	for (uint i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
-		format->attribs[i].name_len = 0;
+		format->attrs[i].name_len = 0;
 	}
 #endif
 }
@@ -66,8 +66,8 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src)
 	memcpy(dest, src, sizeof(GPUVertFormat));
 
 	for (uint i = 0; i < dest->attr_len; i++) {
-		for (uint j = 0; j < dest->attribs[i].name_len; j++) {
-			dest->attribs[i].name[j] = (char *)dest + (src->attribs[i].name[j] - ((char *)src));
+		for (uint j = 0; j < dest->attrs[i].name_len; j++) {
+			dest->attrs[i].name[j] = (char *)dest + (src->attrs[i].name[j] - ((char *)src));
 		}
 	}
 }
@@ -98,7 +98,7 @@ static uint comp_sz(GPUVertCompType type)
 	return sizes[type];
 }
 
-static uint attrib_sz(const GPUVertAttr *a)
+static uint attr_sz(const GPUVertAttr *a)
 {
 	if (a->comp_type == GPU_COMP_I10) {
 		return 4; /* always packed as 10_10_10_2 */
@@ -106,7 +106,7 @@ static uint attrib_sz(const GPUVertAttr *a)
 	return a->comp_len * comp_sz(a->comp_type);
 }
 
-static uint attrib_align(const GPUVertAttr *a)
+static uint attr_align(const GPUVertAttr *a)
 {
 	if (a->comp_type == GPU_COMP_I10) {
 		return 4; /* always packed as 10_10_10_2 */
@@ -128,7 +128,7 @@ uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
 	return format->stride * vertex_len;
 }
 
-static const char *copy_attrib_name(GPUVertFormat *format, const char *name, const char *suffix)
+static const char *copy_attr_name(GPUVertFormat *format, const char *name, const char *suffix)
 {
 	/* strncpy does 110% of what we need; let's do exactly 100% */
 	char *name_copy = format->names + format->name_offset;
@@ -196,37 +196,37 @@ uint GPU_vertformat_attr_add(
 #endif
 	format->name_len++; /* multiname support */
 
-	const uint attrib_id = format->attr_len++;
-	GPUVertAttr *attrib = format->attribs + attrib_id;
+	const uint attr_id = format->attr_len++;
+	GPUVertAttr *attr = &format->attrs[attr_id];
 
-	attrib->name[attrib->name_len++] = copy_attrib_name(format, name, NULL);
-	attrib->comp_type = comp_type;
-	attrib->gl_comp_type = convert_comp_type_to_gl(comp_type);
-	attrib->comp_len = (comp_type == GPU_COMP_I10) ? 4 : comp_len; /* system needs 10_10_10_2 to be 4 or BGRA */
-	attrib->sz = attrib_sz(attrib);
-	attrib->offset = 0; /* offsets & stride are calculated later (during pack) */
-	attrib->fetch_mode = fetch_mode;
+	attr->name[attr->name_len++] = copy_attr_name(format, name, NULL);
+	attr->comp_type = comp_type;
+	attr->gl_comp_type = convert_comp_type_to_gl(comp_type);
+	attr->comp_len = (comp_type == GPU_COMP_I10) ? 4 : comp_len; /* system needs 10_10_10_2 to be 4 or BGRA */
+	attr->sz = attr_sz(attr);
+	attr->offset = 0; /* offsets & stride are calculated later (during pack) */
+	attr->fetch_mode = fetch_mode;
 
-	return attrib_id;
+	return attr_id;
 }
 
 void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
 {
-	GPUVertAttr *attrib = format->attribs + (format->attr_len - 1);
+	GPUVertAttr *attr = &format->attrs[format->attr_len - 1];
 #if TRUST_NO_ONE
 	assert(format->name_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
-	assert(attrib->name_len < GPU_VERT_ATTR_MAX_NAMES);
+	assert(attr->name_len < GPU_VERT_ATTR_MAX_NAMES);
 #endif
 	format->name_len++; /* multiname support */
-	attrib->name[attrib->name_len++] = copy_attrib_name(format, alias, NULL);
+	attr->name[attr->name_len++] = copy_attr_name(format, alias, NULL);
 }
 
 int GPU_vertformat_attr_id_get(const GPUVertFormat *format, const char *name)
 {
 	for (int i = 0; i < format->attr_len; i++) {
-		const GPUVertAttr *attrib = format->attribs + i;
-		for (int j = 0; j < attrib->name_len; j++) {
-			if (STREQ(name, attrib->name[j])) {
+		const GPUVertAttr *attr = &format->attrs[i];
+		for (int j = 0; j < attr->name_len; j++) {
+			if (STREQ(name, attr->name[j])) {
 				return i;
 			}
 		}
@@ -246,25 +246,25 @@ void GPU_vertformat_triple_load(GPUVertFormat *format)
 
 	uint old_attr_len = format->attr_len;
 	for (uint a_idx = 0; a_idx < old_attr_len; ++a_idx) {
-		GPUVertAttr *attrib = format->attribs + a_idx;
-		/* Duplicate attrib twice */
+		GPUVertAttr *attr = &format->attrs[a_idx];
+		/* Duplicate attr twice */
 		for (int i = 1; i < 3; ++i) {
-			GPUVertAttr *dst_attrib = format->attribs + format->attr_len;
-			memcpy(dst_attrib, attrib, sizeof(GPUVertAttr));
+			GPUVertAttr *dst_attr = &format->attrs[format->attr_len];
+			memcpy(dst_attr, attr, sizeof(GPUVertAttr));
 			/* Increase offset to the next vertex. */
-			dst_attrib->offset += format->stride * i;
+			dst_attr->offset += format->stride * i;
 			/* Only copy first name for now. */
-			dst_attrib->name_len = 0;
-			dst_attrib->name[dst_attrib->name_len++] = copy_attrib_name(format, attrib->name[0], (i == 1) ? "1" : "2");
+			dst_attr->name_len = 0;
+			dst_attr->name[dst_attr->name_len++] = copy_attr_name(format, attr->name[0], (i == 1) ? "1" : "2");
 			format->attr_len++;
 		}
 
 #if TRUST_NO_ONE
-		assert(attrib->name_len < GPU_VERT_ATTR_MAX_NAMES);
+		assert(attr->name_len < GPU_VERT_ATTR_MAX_NAMES);
 #endif
-		/* Add alias to first attrib. */
+		/* Add alias to first attr. */
 		format->name_len++;
-		attrib->name[attrib->name_len++] = copy_attrib_name(format, attrib->name[0], "0");
+		attr->name[attr->name_len++] = copy_attr_name(format, attr->name[0], "0");
 	}
 }
 
@@ -290,14 +290,14 @@ static void show_pack(uint a_idx, uint sz, uint pad)
 void VertexFormat_pack(GPUVertFormat *format)
 {
 	/* For now, attributes are packed in the order they were added,
-	 * making sure each attrib is naturally aligned (add padding where necessary)
+	 * making sure each attribute is naturally aligned (add padding where necessary)
 	 * Later we can implement more efficient packing w/ reordering
-	 * (keep attrib ID order, adjust their offsets to reorder in buffer). */
+	 * (keep attribute ID order, adjust their offsets to reorder in buffer). */
 
 	/* TODO: realloc just enough to hold the final combo string. And just enough to
-	 * hold used attribs, not all 16. */
+	 * hold used attributes, not all 16. */
 
-	GPUVertAttr *a0 = format->attribs + 0;
+	GPUVertAttr *a0 = &format->attrs[0];
 	a0->offset = 0;
 	uint offset = a0->sz;
 
@@ -306,8 +306,8 @@ void VertexFormat_pack(GPUVertFormat *format)
 #endif
 
 	for (uint a_idx = 1; a_idx < format->attr_len; ++a_idx) {
-		GPUVertAttr *a = format->attribs + a_idx;
-		uint mid_padding = padding(offset, attrib_align(a));
+		GPUVertAttr *a = &format->attrs[a_idx];
+		uint mid_padding = padding(offset, attr_align(a));
 		offset += mid_padding;
 		a->offset = offset;
 		offset += a->sz;
@@ -317,7 +317,7 @@ void VertexFormat_pack(GPUVertFormat *format)
 #endif
 	}
 
-	uint end_padding = padding(offset, attrib_align(a0));
+	uint end_padding = padding(offset, attr_align(a0));
 
 #if PACK_DEBUG
 	show_pack(0, 0, end_padding);
@@ -412,7 +412,7 @@ void GPU_vertformat_from_interface(GPUVertFormat *format, const GPUShaderInterfa
 	const char *name_buffer = shaderface->name_buffer;
 
 	for (int i = 0; i < GPU_NUM_SHADERINTERFACE_BUCKETS; i++) {
-		const GPUShaderInput *input = shaderface->attrib_buckets[i];
+		const GPUShaderInput *input = shaderface->attr_buckets[i];
 		if (input == NULL) {
 			continue;
 		}
@@ -425,13 +425,13 @@ void GPU_vertformat_from_interface(GPUVertFormat *format, const GPUShaderInterfa
 			format->name_len++; /* multiname support */
 			format->attr_len++;
 
-			GPUVertAttr *attrib = format->attribs + input->location;
+			GPUVertAttr *attr = &format->attrs[input->location];
 
-			attrib->name[attrib->name_len++] = copy_attrib_name(format, name_buffer + input->name_offset, NULL);
-			attrib->offset = 0; /* offsets & stride are calculated later (during pack) */
-			attrib->comp_len = calc_input_component_size(input);
-			attrib->sz = attrib->comp_len * 4;
-			get_fetch_mode_and_comp_type(input->gl_type, &attrib->comp_type, &attrib->gl_comp_type, &attrib->fetch_mode);
+			attr->name[attr->name_len++] = copy_attr_name(format, name_buffer + input->name_offset, NULL);
+			attr->offset = 0; /* offsets & stride are calculated later (during pack) */
+			attr->comp_len = calc_input_component_size(input);
+			attr->sz = attr->comp_len * 4;
+			get_fetch_mode_and_comp_type(input->gl_type, &attr->comp_type, &attr->gl_comp_type, &attr->fetch_mode);
 		}
 	}
 }

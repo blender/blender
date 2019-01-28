@@ -101,7 +101,7 @@ static bool bpygpu_vertbuf_fill_impl(
 	const char *exc_str_size_mismatch = "Expected a %s of size %d, got %u";
 
 	bool ok = true;
-	const GPUVertAttr *attr = &vbo->format.attribs[data_id];
+	const GPUVertAttr *attr = &vbo->format.attrs[data_id];
 
 	if (PyObject_CheckBuffer(seq)) {
 		Py_buffer pybuffer;

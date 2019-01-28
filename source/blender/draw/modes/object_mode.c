@@ -2832,7 +2832,7 @@ static void OBJECT_cache_populate_particles(
 			static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
 
 			/* Dummy particle format for instancing to work. */
-			DRW_shgroup_instance_format(e_data.particle_format, {{"dummy", DRW_ATTRIB_FLOAT, 1}});
+			DRW_shgroup_instance_format(e_data.particle_format, {{"dummy", DRW_ATTR_FLOAT, 1}});
 
 			Material *ma = give_current_material(ob, part->omat);
 

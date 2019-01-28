@@ -197,7 +197,7 @@ int GPU_batch_vertbuf_add_ex(
 			assert(verts->vertex_len == batch->verts[0]->vertex_len);
 #endif
 			batch->verts[v] = verts;
-			/* TODO: mark dirty so we can keep attrib bindings up-to-date */
+			/* TODO: mark dirty so we can keep attribute bindings up-to-date */
 			if (own_vbo)
 				batch->owns_flag |= (1 << v);
 			return v;
@@ -351,7 +351,7 @@ static void create_bindings(
 	GPU_vertbuf_use(verts);
 
 	for (uint a_idx = 0; a_idx < attr_len; ++a_idx) {
-		const GPUVertAttr *a = format->attribs + a_idx;
+		const GPUVertAttr *a = &format->attrs[a_idx];
 		const GLvoid *pointer = (const GLubyte *)0 + a->offset + v_first * stride;
 
 		for (uint n_idx = 0; n_idx < a->name_len; ++n_idx) {

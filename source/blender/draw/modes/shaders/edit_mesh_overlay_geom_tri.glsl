@@ -182,7 +182,7 @@ void main()
 #endif
 
 	/* Remember that we are assuming the last vertex
-	 * of a triangle is the provoking vertex (decide what flat attribs are). */
+	 * of a triangle is the provoking vertex (decide what flat attributes are). */
 
 	if ((eflag[2] & EDGE_EXISTS) != 0) {
 		/* Do 0 -> 1 edge strip */

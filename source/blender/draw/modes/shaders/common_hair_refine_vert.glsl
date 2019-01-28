@@ -48,7 +48,7 @@ void main(void)
 {
 	float interp_time;
 	vec4 data0, data1, data2, data3;
-	hair_get_interp_attribs(data0, data1, data2, data3, interp_time);
+	hair_get_interp_attrs(data0, data1, data2, data3, interp_time);
 
 	vec4 weights = get_weights_cardinal(interp_time);
 	outData = interp_data(data0, data1, data2, data3, weights);

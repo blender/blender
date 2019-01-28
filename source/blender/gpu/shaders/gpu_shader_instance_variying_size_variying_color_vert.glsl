@@ -2,10 +2,10 @@
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec3 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in mat4 InstanceModelMatrix;
 in vec4 color;
 #ifdef UNIFORM_SCALE

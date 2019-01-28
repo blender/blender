@@ -169,7 +169,7 @@ void GPU_vertbuf_data_len_set(GPUVertBuf *verts, uint v_len)
 void GPU_vertbuf_attr_set(GPUVertBuf *verts, uint a_idx, uint v_idx, const void *data)
 {
 	const GPUVertFormat *format = &verts->format;
-	const GPUVertAttr *a = format->attribs + a_idx;
+	const GPUVertAttr *a = &format->attrs[a_idx];
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -183,7 +183,7 @@ void GPU_vertbuf_attr_set(GPUVertBuf *verts, uint a_idx, uint v_idx, const void 
 void GPU_vertbuf_attr_fill(GPUVertBuf *verts, uint a_idx, const void *data)
 {
 	const GPUVertFormat *format = &verts->format;
-	const GPUVertAttr *a = format->attribs + a_idx;
+	const GPUVertAttr *a = &format->attrs[a_idx];
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -196,7 +196,7 @@ void GPU_vertbuf_attr_fill(GPUVertBuf *verts, uint a_idx, const void *data)
 void GPU_vertbuf_attr_fill_stride(GPUVertBuf *verts, uint a_idx, uint stride, const void *data)
 {
 	const GPUVertFormat *format = &verts->format;
-	const GPUVertAttr *a = format->attribs + a_idx;
+	const GPUVertAttr *a = &format->attrs[a_idx];
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -220,7 +220,7 @@ void GPU_vertbuf_attr_fill_stride(GPUVertBuf *verts, uint a_idx, uint stride, co
 void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *verts, uint a_idx, GPUVertBufRaw *access)
 {
 	const GPUVertFormat *format = &verts->format;
-	const GPUVertAttr *a = format->attribs + a_idx;
+	const GPUVertAttr *a = &format->attrs[a_idx];
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);

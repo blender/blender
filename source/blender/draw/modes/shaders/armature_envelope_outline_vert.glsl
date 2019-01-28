@@ -7,12 +7,12 @@ uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 uniform float lineThickness = 2.0;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec2 pos0;
 in vec2 pos1;
 in vec2 pos2;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 /* Assumed to be in world coordinate already. */
 in vec4 headSphere;
 in vec4 tailSphere;

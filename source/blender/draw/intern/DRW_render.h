@@ -319,21 +319,21 @@ typedef enum {
 #define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)
 
 typedef enum {
-	DRW_ATTRIB_INT,
-	DRW_ATTRIB_FLOAT,
-} DRWAttribType;
+	DRW_ATTR_INT,
+	DRW_ATTR_FLOAT,
+} eDRWAttrType;
 
-typedef struct DRWInstanceAttribFormat {
+typedef struct DRWInstanceAttrFormat {
 	char name[32];
-	DRWAttribType type;
+	eDRWAttrType type;
 	int components;
-} DRWInstanceAttribFormat;
+} DRWInstanceAttrFormat;
 
-struct GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttribFormat attribs[], int arraysize);
+struct GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFormat attrs[], int arraysize);
 #define DRW_shgroup_instance_format(format, ...) do { \
 	if (format == NULL) { \
-		DRWInstanceAttribFormat drw_format[] = __VA_ARGS__;\
-		format = DRW_shgroup_instance_format_array(drw_format, (sizeof(drw_format) / sizeof(DRWInstanceAttribFormat))); \
+		DRWInstanceAttrFormat drw_format[] = __VA_ARGS__;\
+		format = DRW_shgroup_instance_format_array(drw_format, (sizeof(drw_format) / sizeof(DRWInstanceAttrFormat))); \
 	} \
 } while (0)
 
@@ -383,7 +383,7 @@ void DRW_shgroup_call_object_add_ex(
 void DRW_shgroup_call_object_add_with_callback(
         DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, struct Material *ma,
         DRWCallVisibilityFn *callback, void *user_data);
-/* Used for drawing a batch with instancing without instance attribs. */
+/* Used for drawing a batch with instancing without instance attributes. */
 void DRW_shgroup_call_instances_add(
         DRWShadingGroup *shgroup, struct GPUBatch *geom, float (*obmat)[4], uint *count);
 void DRW_shgroup_call_object_instances_add(

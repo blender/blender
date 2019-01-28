@@ -5,10 +5,10 @@ uniform mat4 ModelMatrix;
 #endif
 uniform vec3 screen_vecs[2];
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec3 pos; /* using Z as axis id */
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in mat4 InstanceModelMatrix;
 in vec3 color;
 in float size;

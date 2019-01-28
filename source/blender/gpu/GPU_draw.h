@@ -112,16 +112,16 @@ void	GPU_select_index_get(int index, int *r_col);
 int		GPU_select_to_index(unsigned int col);
 void	GPU_select_to_index_array(unsigned int *col, const unsigned int size);
 
-typedef enum eGPUAttribMask {
+typedef enum eGPUAttrMask {
 	GPU_DEPTH_BUFFER_BIT = (1 << 0),
 	GPU_ENABLE_BIT = (1 << 1),
 	GPU_SCISSOR_BIT = (1 << 2),
 	GPU_VIEWPORT_BIT = (1 << 3),
 	GPU_BLEND_BIT = (1 << 4),
-} eGPUAttribMask;
+} eGPUAttrMask;
 
-void gpuPushAttrib(eGPUAttribMask mask);
-void gpuPopAttrib(void);
+void gpuPushAttr(eGPUAttrMask mask);
+void gpuPopAttr(void);
 
 #ifdef __cplusplus
 }

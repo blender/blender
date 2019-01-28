@@ -21,7 +21,7 @@ void main()
 	worldNormal = viewNormal = normalize(-viewPosition);
 #endif
 
-#ifdef ATTRIB
-	pass_attrib(viewPosition);
+#ifdef USE_ATTR
+	pass_attr(viewPosition);
 #endif
 }

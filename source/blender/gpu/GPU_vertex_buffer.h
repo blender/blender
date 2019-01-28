@@ -79,10 +79,10 @@ void GPU_vertbuf_data_alloc(GPUVertBuf *, uint v_len);
 void GPU_vertbuf_data_resize(GPUVertBuf *, uint v_len);
 void GPU_vertbuf_data_len_set(GPUVertBuf *, uint v_len);
 
-/* The most important set_attrib variant is the untyped one. Get it right first. */
-/* It takes a void* so the app developer is responsible for matching their app data types */
-/* to the vertex attribute's type and component count. They're in control of both, so this */
-/* should not be a problem. */
+/* The most important #set_attr variant is the untyped one. Get it right first.
+ * It takes a void* so the app developer is responsible for matching their app data types
+ * to the vertex attribute's type and component count. They're in control of both, so this
+ * should not be a problem. */
 
 void GPU_vertbuf_attr_set(GPUVertBuf *, uint a_idx, uint v_idx, const void *data);
 void GPU_vertbuf_attr_fill(GPUVertBuf *, uint a_idx, const void *data); /* tightly packed, non interleaved input data */

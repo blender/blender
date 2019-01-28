@@ -47,7 +47,7 @@ struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUTexture;
 struct GPUUniformBuffer;
-struct GPUVertexAttribs;
+struct GPUVertAttrLayers;
 struct Image;
 struct ImageUser;
 struct ListBase;
@@ -90,7 +90,7 @@ typedef enum eGPUType {
 	GPU_CLOSURE = 1006,
 
 	/* Opengl Attributes */
-	GPU_ATTRIB = 3001,
+	GPU_ATTR = 3001,
 } eGPUType;
 
 typedef enum eGPUBuiltin {
@@ -189,9 +189,9 @@ struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void);
 
-void GPU_material_vertex_attributes(
+void GPU_material_vertex_attrs(
         GPUMaterial *material,
-        struct GPUVertexAttribs *attrib);
+        struct GPUVertAttrLayers *attrs);
 
 bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);

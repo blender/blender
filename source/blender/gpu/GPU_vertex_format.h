@@ -71,13 +71,17 @@ typedef struct GPUVertAttr {
 } GPUVertAttr;
 
 typedef struct GPUVertFormat {
-	uint attr_len; /* 0 to 16 (GPU_VERT_ATTR_MAX_LEN) */
-	uint name_len; /* total count of active vertex attrib */
-	uint stride; /* stride in bytes, 1 to 256 */
+	/** 0 to 16 (GPU_VERT_ATTR_MAX_LEN). */
+	uint attr_len;
+	/** Total count of active vertex attribute. */
+	uint name_len;
+	/** Stride in bytes, 1 to 256. */
+	uint stride;
 	uint name_offset;
 	bool packed;
 	char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
-	GPUVertAttr attribs[GPU_VERT_ATTR_MAX_LEN]; /* TODO: variable-size attribs array */
+	/** TODO: variable-size array */
+	GPUVertAttr attrs[GPU_VERT_ATTR_MAX_LEN];
 } GPUVertFormat;
 
 struct GPUShaderInterface;
@@ -93,7 +97,7 @@ void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
 int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
 
 /**
- * This makes the "virtual" attribs with suffixes "0", "1", "2" to access triangle data in the vertex
+ * This makes the "virtual" attributes with suffixes "0", "1", "2" to access triangle data in the vertex
  * shader.
  *
  * IMPORTANT:

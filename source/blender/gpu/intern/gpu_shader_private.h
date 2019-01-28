@@ -29,13 +29,18 @@
 #include "GPU_shader_interface.h"
 
 struct GPUShader {
-	GLuint program;  /* handle for full program (links shader stages below) */
+	/** Handle for full program (links shader stages below). */
+	GLuint program;
 
-	GLuint vertex;   /* handle for vertex shader */
-	GLuint geometry; /* handle for geometry shader */
-	GLuint fragment; /* handle for fragment shader */
+	/** Handle for vertex shader. */
+	GLuint vertex;
+	/** Handle for geometry shader. */
+	GLuint geometry;
+	/** Handle for fragment shader. */
+	GLuint fragment;
 
-	GPUShaderInterface *interface; /* cached uniform & attrib interface for shader */
+	/** Cached uniform & attribute interface for shader. */
+	GPUShaderInterface *interface;
 
 	int feedback_transform_type;
 #ifndef NDEBUG

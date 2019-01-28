@@ -2,10 +2,10 @@
 uniform mat4 ViewProjectionMatrix;
 uniform int baseId;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec3 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in mat4 InstanceModelMatrix;
 #ifdef UNIFORM_SCALE
 in float size;

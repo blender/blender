@@ -290,24 +290,24 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 /** \name Instance Data (DRWInstanceData)
  * \{ */
 
-static DRWInstanceData *drw_instance_data_create(DRWInstanceDataList *idatalist, uint attrib_size)
+static DRWInstanceData *drw_instance_data_create(DRWInstanceDataList *idatalist, uint attr_size)
 {
 	DRWInstanceData *idata = MEM_callocN(sizeof(DRWInstanceData), "DRWInstanceData");
 	idata->next = NULL;
 	idata->used = true;
-	idata->data_size = attrib_size;
+	idata->data_size = attr_size;
 	idata->mempool = BLI_mempool_create(sizeof(float) * idata->data_size, 0, 16, 0);
 
-	BLI_assert(attrib_size > 0);
+	BLI_assert(attr_size > 0);
 
 	/* Push to linked list. */
-	if (idatalist->idata_head[attrib_size - 1] == NULL) {
-		idatalist->idata_head[attrib_size - 1] = idata;
+	if (idatalist->idata_head[attr_size - 1] == NULL) {
+		idatalist->idata_head[attr_size - 1] = idata;
 	}
 	else {
-		idatalist->idata_tail[attrib_size - 1]->next = idata;
+		idatalist->idata_tail[attr_size - 1]->next = idata;
 	}
-	idatalist->idata_tail[attrib_size - 1] = idata;
+	idatalist->idata_tail[attr_size - 1] = idata;
 
 	return idata;
 }
@@ -325,11 +325,11 @@ void *DRW_instance_data_next(DRWInstanceData *idata)
 	return BLI_mempool_alloc(idata->mempool);
 }
 
-DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint attrib_size)
+DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint attr_size)
 {
-	BLI_assert(attrib_size > 0 && attrib_size <= MAX_INSTANCE_DATA_SIZE);
+	BLI_assert(attr_size > 0 && attr_size <= MAX_INSTANCE_DATA_SIZE);
 
-	DRWInstanceData *idata = idatalist->idata_head[attrib_size - 1];
+	DRWInstanceData *idata = idatalist->idata_head[attr_size - 1];
 
 	/* Search for an unused data chunk. */
 	for (; idata; idata = idata->next) {
@@ -339,7 +339,7 @@ DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint 
 		}
 	}
 
-	return drw_instance_data_create(idatalist, attrib_size);
+	return drw_instance_data_create(idatalist, attr_size);
 }
 
 /** \} */

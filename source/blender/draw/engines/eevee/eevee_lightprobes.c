@@ -408,8 +408,8 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 		/* Planar Display */
 		DRW_shgroup_instance_format(e_data.format_probe_display_planar, {
-		    {"probe_id", DRW_ATTRIB_INT, 1},
-		    {"probe_mat", DRW_ATTRIB_FLOAT, 16},
+		    {"probe_id", DRW_ATTR_INT, 1},
+		    {"probe_mat", DRW_ATTR_FLOAT, 16},
 		});
 
 		DRWShadingGroup *grp = DRW_shgroup_instance_create(

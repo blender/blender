@@ -35,16 +35,16 @@
 #include <stdlib.h>
 
 #if GPU_VERT_ATTR_MAX_LEN != 16
-#  error "attrib binding code assumes GPU_VERT_ATTR_MAX_LEN = 16"
+#  error "attribute binding code assumes GPU_VERT_ATTR_MAX_LEN = 16"
 #endif
 
-void AttribBinding_clear(GPUAttrBinding *binding)
+void AttrBinding_clear(GPUAttrBinding *binding)
 {
 	binding->loc_bits = 0;
 	binding->enabled_bits = 0;
 }
 
-uint read_attrib_location(const GPUAttrBinding *binding, uint a_idx)
+uint read_attr_location(const GPUAttrBinding *binding, uint a_idx)
 {
 #if TRUST_NO_ONE
 	assert(a_idx < GPU_VERT_ATTR_MAX_LEN);
@@ -53,7 +53,7 @@ uint read_attrib_location(const GPUAttrBinding *binding, uint a_idx)
 	return (binding->loc_bits >> (4 * a_idx)) & 0xF;
 }
 
-static void write_attrib_location(GPUAttrBinding *binding, uint a_idx, uint location)
+static void write_attr_location(GPUAttrBinding *binding, uint a_idx, uint location)
 {
 #if TRUST_NO_ONE
 	assert(a_idx < GPU_VERT_ATTR_MAX_LEN);
@@ -61,25 +61,25 @@ static void write_attrib_location(GPUAttrBinding *binding, uint a_idx, uint loca
 #endif
 	const uint shift = 4 * a_idx;
 	const uint64_t mask = ((uint64_t)0xF) << shift;
-	/* overwrite this attrib's previous location */
+	/* overwrite this attr's previous location */
 	binding->loc_bits = (binding->loc_bits & ~mask) | (location << shift);
-	/* mark this attrib as enabled */
+	/* mark this attr as enabled */
 	binding->enabled_bits |= 1 << a_idx;
 }
 
-void get_attrib_locations(const GPUVertFormat *format, GPUAttrBinding *binding, const GPUShaderInterface *shaderface)
+void get_attr_locations(const GPUVertFormat *format, GPUAttrBinding *binding, const GPUShaderInterface *shaderface)
 {
-	AttribBinding_clear(binding);
+	AttrBinding_clear(binding);
 
 	for (uint a_idx = 0; a_idx < format->attr_len; ++a_idx) {
-		const GPUVertAttr *a = format->attribs + a_idx;
+		const GPUVertAttr *a = &format->attrs[a_idx];
 		for (uint n_idx = 0; n_idx < a->name_len; ++n_idx) {
 			const GPUShaderInput *input = GPU_shaderinterface_attr(shaderface, a->name[n_idx]);
 #if TRUST_NO_ONE
 			assert(input != NULL);
 			/* TODO: make this a recoverable runtime error? indicates mismatch between vertex format and program */
 #endif
-			write_attrib_location(binding, a_idx, input->location);
+			write_attr_location(binding, a_idx, input->location);
 		}
 	}
 }

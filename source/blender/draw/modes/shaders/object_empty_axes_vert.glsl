@@ -4,11 +4,11 @@ uniform mat4 ModelMatrix;
 
 uniform vec3 screenVecs[3];
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in float axis; /* position on the axis. [0.0-1.0] is X axis, [1.0-2.0] is Y, etc... */
 in vec2 screenPos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in vec3 color;
 in float size;
 in mat4 InstanceModelMatrix;

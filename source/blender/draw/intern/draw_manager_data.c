@@ -608,7 +608,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	}
 #endif
 
-	BLI_assert(attr_len == shgroup->attribs_count);
+	BLI_assert(attr_len == shgroup->attrs_count);
 	UNUSED_VARS_NDEBUG(attr_len);
 
 	for (int i = 0; i < attr_len; ++i) {
@@ -638,7 +638,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	shgroup->override_selectid = -1;
 #endif
 #ifndef NDEBUG
-	shgroup->attribs_count = 0;
+	shgroup->attrs_count = 0;
 #endif
 
 	int view_ubo_location = GPU_shader_get_uniform_block(shader, "viewBlock");
@@ -710,7 +710,7 @@ static void drw_shgroup_instance_init(
 
 	shgroup->instance_geom = batch;
 #ifndef NDEBUG
-	shgroup->attribs_count = format->attr_len;
+	shgroup->attrs_count = format->attr_len;
 #endif
 
 	DRW_instancing_buffer_request(DST.idatalist, format, batch, shgroup,
@@ -738,7 +738,7 @@ static void drw_shgroup_batching_init(
 	drw_shgroup_init(shgroup, shader);
 
 #ifndef NDEBUG
-	shgroup->attribs_count = (format != NULL) ? format->attr_len : 0;
+	shgroup->attrs_count = (format != NULL) ? format->attr_len : 0;
 #endif
 	BLI_assert(format != NULL);
 
@@ -844,15 +844,16 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct
 	return grp;
 }
 
-GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttribFormat attribs[], int arraysize)
+GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFormat attrs[], int arraysize)
 {
 	GPUVertFormat *format = MEM_callocN(sizeof(GPUVertFormat), "GPUVertFormat");
 
 	for (int i = 0; i < arraysize; ++i) {
-		GPU_vertformat_attr_add(format, attribs[i].name,
-		                        (attribs[i].type == DRW_ATTRIB_INT) ? GPU_COMP_I32 : GPU_COMP_F32,
-		                        attribs[i].components,
-		                        (attribs[i].type == DRW_ATTRIB_INT) ? GPU_FETCH_INT : GPU_FETCH_FLOAT);
+		GPU_vertformat_attr_add(
+		        format, attrs[i].name,
+		        (attrs[i].type == DRW_ATTR_INT) ? GPU_COMP_I32 : GPU_COMP_F32,
+		        attrs[i].components,
+		        (attrs[i].type == DRW_ATTR_INT) ? GPU_FETCH_INT : GPU_FETCH_FLOAT);
 	}
 	return format;
 }
@@ -929,7 +930,7 @@ DRWShadingGroup *DRW_shgroup_instance_create(
 
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass)
 {
-	DRW_shgroup_instance_format(g_pos_format, {{"pos", DRW_ATTRIB_FLOAT, 3}});
+	DRW_shgroup_instance_format(g_pos_format, {{"pos", DRW_ATTR_FLOAT, 3}});
 
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 	shgroup->type = DRW_SHG_POINT_BATCH;
@@ -952,14 +953,16 @@ DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(
 
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass)
 {
-	DRW_shgroup_instance_format(g_pos_format, {{"pos", DRW_ATTRIB_FLOAT, 3}});
+	DRW_shgroup_instance_format(g_pos_format, {{"pos", DRW_ATTR_FLOAT, 3}});
 
 	return DRW_shgroup_line_batch_create_with_format(shader, pass, g_pos_format);
 }
 
-/* Very special batch. Use this if you position
+/**
+ * Very special batch. Use this if you position
  * your vertices with the vertex shader
- * and dont need any VBO attrib */
+ * and dont need any VBO attribute.
+ */
 DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int tri_count)
 {
 #ifdef USE_GPU_SELECT
@@ -989,13 +992,15 @@ DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader,
 	return shgroup;
 }
 
-/* Specify an external batch instead of adding each attrib one by one. */
+/**
+ * Specify an external batch instead of adding each attribute one by one.
+ */
 void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct GPUBatch *batch)
 {
 	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
 	BLI_assert(shgroup->instance_count == 0);
 	/* You cannot use external instancing batch without a dummy format. */
-	BLI_assert(shgroup->attribs_count != 0);
+	BLI_assert(shgroup->attrs_count != 0);
 
 	shgroup->type = DRW_SHG_INSTANCE_EXTERNAL;
 	drw_call_calc_orco(NULL, shgroup->instance_orcofac);

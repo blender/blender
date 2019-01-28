@@ -2,10 +2,10 @@
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec2 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in mat4 InstanceModelMatrix;
 in vec3 stateColor;
 in vec3 boneColor;

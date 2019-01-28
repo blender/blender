@@ -7,10 +7,10 @@
 uniform mat4 ViewProjectionMatrix;
 uniform vec3 screen_vecs[2];
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec2 pos;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in mat3x4 ScaleTranslationMatrix;
 in float radius;
 in vec3 color;

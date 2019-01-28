@@ -221,15 +221,15 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 	printf("GPUShaderInterface %p, program %d\n", shaderface, program);
 #endif
 
-	GLint max_attrib_name_len, attr_len;
-	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attrib_name_len);
+	GLint max_attr_name_len, attr_len;
+	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attr_name_len);
 	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &attr_len);
 
 	GLint max_ubo_name_len, ubo_len;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &max_ubo_name_len);
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_len);
 
-	const uint32_t name_buffer_len = attr_len * max_attrib_name_len + ubo_len * max_ubo_name_len;
+	const uint32_t name_buffer_len = attr_len * max_attr_name_len + ubo_len * max_ubo_name_len;
 	shaderface->name_buffer = MEM_mallocN(name_buffer_len, "name_buffer");
 
 	/* Attributes */
@@ -253,10 +253,10 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 
 		set_input_name(shaderface, input, name, name_len);
 
-		shader_input_to_bucket(input, shaderface->attrib_buckets);
+		shader_input_to_bucket(input, shaderface->attr_buckets);
 
 #if DEBUG_SHADER_INTERFACE
-		printf("attrib[%u] '%s' at location %d\n", i, name, input->location);
+		printf("attr[%u] '%s' at location %d\n", i, name, input->location);
 #endif
 	}
 	/* Uniform Blocks */
@@ -296,7 +296,7 @@ void GPU_shaderinterface_discard(GPUShaderInterface *shaderface)
 {
 	/* Free memory used by buckets and has entries. */
 	buckets_free(shaderface->uniform_buckets);
-	buckets_free(shaderface->attrib_buckets);
+	buckets_free(shaderface->attr_buckets);
 	buckets_free(shaderface->ubo_buckets);
 	/* Free memory used by name_buffer. */
 	MEM_freeN(shaderface->name_buffer);
@@ -358,7 +358,7 @@ const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *shaderfa
 
 const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *shaderface, const char *name)
 {
-	return buckets_lookup(shaderface->attrib_buckets, shaderface->name_buffer, name);
+	return buckets_lookup(shaderface->attr_buckets, shaderface->name_buffer, name);
 }
 
 void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)

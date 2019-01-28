@@ -78,14 +78,14 @@ static char *glsl_material_library = NULL;
 static GPUPass *pass_cache = NULL;
 static SpinLock pass_cache_spin;
 
-static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, GPUVertexAttribs *attribs)
+static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, GPUVertAttrLayers *attrs)
 {
 	BLI_HashMurmur2A hm2a;
 	BLI_hash_mm2a_init(&hm2a, 0);
 	BLI_hash_mm2a_add(&hm2a, (uchar *)frag_gen, strlen(frag_gen));
-	if (attribs) {
-		for (int att_idx = 0; att_idx < attribs->totlayer; att_idx++) {
-			char *name = attribs->layer[att_idx].name;
+	if (attrs) {
+		for (int att_idx = 0; att_idx < attrs->totlayer; att_idx++) {
+			char *name = attrs->layer[att_idx].name;
 			BLI_hash_mm2a_add(&hm2a, (uchar *)name, strlen(name));
 		}
 	}
@@ -636,10 +636,10 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 				codegen_print_datatype(ds, input->type, input->vec);
 				BLI_dynstr_append(ds, ";\n");
 			}
-			else if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+			else if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
 				BLI_dynstr_appendf(
 				        ds, "in %s var%d;\n",
-				        GPU_DATATYPE_STR[input->type], input->attribid);
+				        GPU_DATATYPE_STR[input->type], input->attr_id);
 			}
 		}
 	}
@@ -743,8 +743,8 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 			else if (input->source == GPU_SOURCE_CONSTANT) {
 				BLI_dynstr_appendf(ds, "cons%d", input->id);
 			}
-			else if (input->source == GPU_SOURCE_ATTRIB) {
-				BLI_dynstr_appendf(ds, "var%d", input->attribid);
+			else if (input->source == GPU_SOURCE_ATTR) {
+				BLI_dynstr_appendf(ds, "var%d", input->attr_id);
 			}
 
 			BLI_dynstr_append(ds, ", ");
@@ -841,7 +841,7 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 	return code;
 }
 
-static const char *attrib_prefix_get(CustomDataType type)
+static const char *attr_prefix_get(CustomDataType type)
 {
 	switch (type) {
 		case CD_ORCO:           return "orco";
@@ -861,13 +861,13 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	char *code;
 	int builtins = 0;
 
-	/* Hairs uv and col attribs are passed by bufferTextures. */
+	/* Hairs uv and col attributes are passed by bufferTextures. */
 	BLI_dynstr_append(
 	        ds,
 	        "#ifdef HAIR_SHADER\n"
-	        "#define DEFINE_ATTRIB(type, attr) uniform samplerBuffer attr\n"
+	        "#define DEFINE_ATTR(type, attr) uniform samplerBuffer attr\n"
 	        "#else\n"
-	        "#define DEFINE_ATTRIB(type, attr) in type attr\n"
+	        "#define DEFINE_ATTR(type, attr) in type attr\n"
 	        "#endif\n"
 	);
 
@@ -876,35 +876,35 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 			if (input->source == GPU_SOURCE_BUILTIN) {
 				builtins |= input->builtin;
 			}
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+			if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
 				/* XXX FIXME : see notes in mesh_render_data_create() */
 				/* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
-				if (input->attribtype == CD_ORCO) {
+				if (input->attr_type == CD_ORCO) {
 					/* orco is computed from local positions, see below */
 					BLI_dynstr_appendf(ds, "uniform vec3 OrcoTexCoFactors[2];\n");
 				}
-				else if (input->attribname[0] == '\0') {
-					BLI_dynstr_appendf(ds, "DEFINE_ATTRIB(%s, %s);\n", GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype));
-					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attribid, attrib_prefix_get(input->attribtype));
+				else if (input->attr_name[0] == '\0') {
+					BLI_dynstr_appendf(ds, "DEFINE_ATTR(%s, %s);\n", GPU_DATATYPE_STR[input->type], attr_prefix_get(input->attr_type));
+					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attr_id, attr_prefix_get(input->attr_type));
 				}
 				else {
-					uint hash = BLI_ghashutil_strhash_p(input->attribname);
+					uint hash = BLI_ghashutil_strhash_p(input->attr_name);
 					BLI_dynstr_appendf(
-					        ds, "DEFINE_ATTRIB(%s, %s%u);\n",
-					        GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
+					        ds, "DEFINE_ATTR(%s, %s%u);\n",
+					        GPU_DATATYPE_STR[input->type], attr_prefix_get(input->attr_type), hash);
 					BLI_dynstr_appendf(
 					        ds, "#define att%d %s%u\n",
-					        input->attribid, attrib_prefix_get(input->attribtype), hash);
-					/* Auto attrib can be vertex color byte buffer.
+					        input->attr_id, attr_prefix_get(input->attr_type), hash);
+					/* Auto attribute can be vertex color byte buffer.
 					 * We need to know and convert them to linear space in VS. */
-					if (!use_geom && input->attribtype == CD_AUTO_FROM_NAME) {
+					if (!use_geom && input->attr_type == CD_AUTO_FROM_NAME) {
 						BLI_dynstr_appendf(ds, "uniform bool ba%u;\n", hash);
-						BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%u\n", input->attribid, hash);
+						BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%u\n", input->attr_id, hash);
 					}
 				}
 				BLI_dynstr_appendf(
 				        ds, "out %s var%d%s;\n",
-				        GPU_DATATYPE_STR[input->type], input->attribid, use_geom ? "g" : "");
+				        GPU_DATATYPE_STR[input->type], input->attr_id, use_geom ? "g" : "");
 			}
 		}
 	}
@@ -924,11 +924,11 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
 	BLI_dynstr_append(
 	        ds,
-	        "#define ATTRIB\n"
+	        "#define USE_ATTR\n"
 	        "uniform mat3 NormalMatrix;\n"
 	        "uniform mat4 ModelMatrixInverse;\n"
 	        "uniform mat4 ModelMatrix;\n"
-	        "vec3 srgb_to_linear_attrib(vec3 c) {\n"
+	        "vec3 srgb_to_linear_attr(vec3 c) {\n"
 	        "\tc = max(c, vec3(0.0));\n"
 	        "\tvec3 c1 = c * (1.0 / 12.92);\n"
 	        "\tvec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));\n"
@@ -947,7 +947,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	        "\n"
 	);
 
-	BLI_dynstr_append(ds, "void pass_attrib(in vec3 position) {\n");
+	BLI_dynstr_append(ds, "void pass_attr(in vec3 position) {\n");
 
 	BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
 
@@ -971,22 +971,22 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				if (input->attribtype == CD_TANGENT) {
+			if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
+				if (input->attr_type == CD_TANGENT) {
 					/* Not supported by hairs */
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s = vec4(0.0);\n",
-					        input->attribid, use_geom ? "g" : "");
+					        input->attr_id, use_geom ? "g" : "");
 				}
-				else if (input->attribtype == CD_ORCO) {
+				else if (input->attr_type == CD_ORCO) {
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s = OrcoTexCoFactors[0] + (ModelMatrixInverse * vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1];\n",
-					        input->attribid, use_geom ? "g" : "");
+					        input->attr_id, use_geom ? "g" : "");
 				}
 				else {
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s = hair_get_customdata_%s(att%d);\n",
-					        input->attribid, use_geom ? "g" : "", GPU_DATATYPE_STR[input->type], input->attribid);
+					        input->attr_id, use_geom ? "g" : "", GPU_DATATYPE_STR[input->type], input->attr_id);
 				}
 			}
 		}
@@ -1009,35 +1009,35 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				if (input->attribtype == CD_TANGENT) { /* silly exception */
+			if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
+				if (input->attr_type == CD_TANGENT) { /* silly exception */
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s.xyz = normalize(NormalMatrix * att%d.xyz);\n",
-					        input->attribid, use_geom ? "g" : "", input->attribid);
+					        input->attr_id, use_geom ? "g" : "", input->attr_id);
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s.w = att%d.w;\n",
-					        input->attribid, use_geom ? "g" : "", input->attribid);
+					        input->attr_id, use_geom ? "g" : "", input->attr_id);
 				}
-				else if (input->attribtype == CD_ORCO) {
+				else if (input->attr_type == CD_ORCO) {
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
-					        input->attribid, use_geom ? "g" : "");
+					        input->attr_id, use_geom ? "g" : "");
 				}
-				else if (input->attribtype == CD_MCOL) {
+				else if (input->attr_type == CD_MCOL) {
 					BLI_dynstr_appendf(
-					        ds, "\tvar%d%s = srgb_to_linear_attrib(att%d);\n",
-					        input->attribid, use_geom ? "g" : "", input->attribid);
+					        ds, "\tvar%d%s = srgb_to_linear_attr(att%d);\n",
+					        input->attr_id, use_geom ? "g" : "", input->attr_id);
 				}
-				else if (input->attribtype == CD_AUTO_FROM_NAME) {
+				else if (input->attr_type == CD_AUTO_FROM_NAME) {
 					BLI_dynstr_appendf(
-					        ds, "\tvar%d%s = (att%d_is_srgb) ? srgb_to_linear_attrib(att%d) : att%d;\n",
-					        input->attribid, use_geom ? "g" : "",
-					        input->attribid, input->attribid, input->attribid);
+					        ds, "\tvar%d%s = (att%d_is_srgb) ? srgb_to_linear_attr(att%d) : att%d;\n",
+					        input->attr_id, use_geom ? "g" : "",
+					        input->attr_id, input->attr_id, input->attr_id);
 				}
 				else {
 					BLI_dynstr_appendf(
 					        ds, "\tvar%d%s = att%d;\n",
-					        input->attribid, use_geom ? "g" : "", input->attribid);
+					        input->attr_id, use_geom ? "g" : "", input->attr_id);
 				}
 			}
 		}
@@ -1088,9 +1088,9 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 	int builtins = 0;
 
 	/* Create prototype because attributes cannot be declared before layout. */
-	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert);\n");
+	BLI_dynstr_appendf(ds, "void pass_attr(in int vert);\n");
 	BLI_dynstr_appendf(ds, "void calc_barycentric_distances(vec3 pos0, vec3 pos1, vec3 pos2);\n");
-	BLI_dynstr_append(ds, "#define ATTRIB\n");
+	BLI_dynstr_append(ds, "#define USE_ATTR\n");
 
 	/* Generate varying declarations. */
 	for (node = nodes->first; node; node = node->next) {
@@ -1098,15 +1098,15 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 			if (input->source == GPU_SOURCE_BUILTIN) {
 				builtins |= input->builtin;
 			}
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
+			if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
 				BLI_dynstr_appendf(
 				        ds, "in %s var%dg[];\n",
 				        GPU_DATATYPE_STR[input->type],
-				        input->attribid);
+				        input->attr_id);
 				BLI_dynstr_appendf(
 				        ds, "out %s var%d;\n",
 				        GPU_DATATYPE_STR[input->type],
-				        input->attribid);
+				        input->attr_id);
 			}
 		}
 	}
@@ -1150,15 +1150,15 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 			}
 
 			BLI_dynstr_appendf(ds, "\tgl_Position = gl_in[0].gl_Position;\n");
-			BLI_dynstr_appendf(ds, "\tpass_attrib(0);\n");
+			BLI_dynstr_appendf(ds, "\tpass_attr(0);\n");
 			BLI_dynstr_appendf(ds, "\tEmitVertex();\n");
 
 			BLI_dynstr_appendf(ds, "\tgl_Position = gl_in[1].gl_Position;\n");
-			BLI_dynstr_appendf(ds, "\tpass_attrib(1);\n");
+			BLI_dynstr_appendf(ds, "\tpass_attr(1);\n");
 			BLI_dynstr_appendf(ds, "\tEmitVertex();\n");
 
 			BLI_dynstr_appendf(ds, "\tgl_Position = gl_in[2].gl_Position;\n");
-			BLI_dynstr_appendf(ds, "\tpass_attrib(2);\n");
+			BLI_dynstr_appendf(ds, "\tpass_attr(2);\n");
 			BLI_dynstr_appendf(ds, "\tEmitVertex();\n");
 			BLI_dynstr_appendf(ds, "};\n");
 		}
@@ -1186,7 +1186,7 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 	}
 
 	/* Generate varying assignments. */
-	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert) {\n");
+	BLI_dynstr_appendf(ds, "void pass_attr(in int vert) {\n");
 
 	/* XXX HACK: Eevee specific. */
 	if (geom_code == NULL) {
@@ -1202,9 +1202,9 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				/* TODO let shader choose what to do depending on what the attrib is. */
-				BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];\n", input->attribid, input->attribid);
+			if (input->source == GPU_SOURCE_ATTR && input->attr_first) {
+				/* TODO let shader choose what to do depending on what the attribute is. */
+				BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];\n", input->attr_id, input->attr_id);
 			}
 		}
 	}
@@ -1262,7 +1262,7 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 			/* attributes don't need to be bound, they already have
 			 * an id that the drawing functions will use. Builtins have
 			 * constant names. */
-			if (ELEM(input->source, GPU_SOURCE_ATTRIB, GPU_SOURCE_BUILTIN)) {
+			if (ELEM(input->source, GPU_SOURCE_ATTR, GPU_SOURCE_BUILTIN)) {
 				continue;
 			}
 
@@ -1367,10 +1367,10 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
 			input->iuser = link->iuser;
 			input->image_isdata = link->image_isdata;
 			break;
-		case GPU_NODE_LINK_ATTRIB:
-			input->source = GPU_SOURCE_ATTRIB;
-			input->attribtype = link->attribtype;
-			BLI_strncpy(input->attribname, link->attribname, sizeof(input->attribname));
+		case GPU_NODE_LINK_ATTR:
+			input->source = GPU_SOURCE_ATTR;
+			input->attr_type = link->attr_type;
+			BLI_strncpy(input->attr_name, link->attr_name, sizeof(input->attr_name));
 			break;
 		case GPU_NODE_LINK_CONSTANT:
 			input->source = (type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
@@ -1533,7 +1533,7 @@ static void gpu_nodes_free(ListBase *nodes)
 
 /* vertex attributes */
 
-void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
+void GPU_nodes_get_vertex_attrs(ListBase *nodes, GPUVertAttrLayers *attrs)
 {
 	GPUNode *node;
 	GPUInput *input;
@@ -1542,32 +1542,32 @@ void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 	/* convert attributes requested by node inputs to an array of layers,
 	 * checking for duplicates and assigning id's starting from zero. */
 
-	memset(attribs, 0, sizeof(*attribs));
+	memset(attrs, 0, sizeof(*attrs));
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_ATTRIB) {
-				for (a = 0; a < attribs->totlayer; a++) {
-					if (attribs->layer[a].type == input->attribtype &&
-					    STREQ(attribs->layer[a].name, input->attribname))
+			if (input->source == GPU_SOURCE_ATTR) {
+				for (a = 0; a < attrs->totlayer; a++) {
+					if (attrs->layer[a].type == input->attr_type &&
+					    STREQ(attrs->layer[a].name, input->attr_name))
 					{
 						break;
 					}
 				}
 
-				if (a < GPU_MAX_ATTRIB) {
-					if (a == attribs->totlayer) {
-						input->attribid = attribs->totlayer++;
-						input->attribfirst = true;
+				if (a < GPU_MAX_ATTR) {
+					if (a == attrs->totlayer) {
+						input->attr_id = attrs->totlayer++;
+						input->attr_first = true;
 
-						attribs->layer[a].type = input->attribtype;
-						attribs->layer[a].attribid = input->attribid;
+						attrs->layer[a].type = input->attr_type;
+						attrs->layer[a].attr_id = input->attr_id;
 						BLI_strncpy(
-						        attribs->layer[a].name, input->attribname,
-						        sizeof(attribs->layer[a].name));
+						        attrs->layer[a].name, input->attr_name,
+						        sizeof(attrs->layer[a].name));
 					}
 					else {
-						input->attribid = attribs->layer[a].attribid;
+						input->attr_id = attrs->layer[a].attr_id;
 					}
 				}
 			}
@@ -1580,14 +1580,14 @@ void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-	link->link_type = GPU_NODE_LINK_ATTRIB;
-	link->attribname = name;
+	link->link_type = GPU_NODE_LINK_ATTR;
+	link->attr_name = name;
 	/* Fall back to the UV layer, which matches old behavior. */
 	if (type == CD_AUTO_FROM_NAME && name[0] == '\0') {
-		link->attribtype = CD_MTFACE;
+		link->attr_type = CD_MTFACE;
 	}
 	else {
-		link->attribtype = type;
+		link->attr_type = type;
 	}
 	return link;
 }
@@ -1787,7 +1787,7 @@ static bool gpu_pass_is_valid(GPUPass *pass)
 GPUPass *GPU_generate_pass(
         GPUMaterial *material,
         GPUNodeLink *frag_outlink,
-        struct GPUVertexAttribs *attribs,
+        struct GPUVertAttrLayers *attrs,
         ListBase *nodes,
         int *builtins,
         const char *vert_code,
@@ -1801,13 +1801,13 @@ GPUPass *GPU_generate_pass(
 	/* prune unused nodes */
 	GPU_nodes_prune(nodes, frag_outlink);
 
-	GPU_nodes_get_vertex_attributes(nodes, attribs);
+	GPU_nodes_get_vertex_attrs(nodes, attrs);
 
 	/* generate code */
 	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, builtins);
 
 	/* Cache lookup: Reuse shaders already compiled */
-	uint32_t hash = gpu_pass_hash(fragmentgen, defines, attribs);
+	uint32_t hash = gpu_pass_hash(fragmentgen, defines, attrs);
 	pass_hash = gpu_pass_cache_lookup(hash);
 
 	if (pass_hash && (pass_hash->next == NULL || pass_hash->next->hash != hash)) {

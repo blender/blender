@@ -808,7 +808,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 		return NULL;
 	}
 
-	gpuPushAttrib(GPU_VIEWPORT_BIT);
+	gpuPushAttr(GPU_VIEWPORT_BIT);
 
 	GPU_framebuffer_ensure_config(&ofs->fb, {
 		GPU_ATTACHMENT_TEXTURE(ofs->depth),
@@ -818,13 +818,13 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 	/* check validity at the very end! */
 	if (!GPU_framebuffer_check_valid(ofs->fb, err_out)) {
 		GPU_offscreen_free(ofs);
-		gpuPopAttrib();
+		gpuPopAttr();
 		return NULL;
 	}
 
 	GPU_framebuffer_restore();
 
-	gpuPopAttrib();
+	gpuPopAttr();
 
 	return ofs;
 }
@@ -844,7 +844,7 @@ void GPU_offscreen_free(GPUOffScreen *ofs)
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
 	if (save) {
-		gpuPushAttrib(GPU_SCISSOR_BIT | GPU_VIEWPORT_BIT);
+		gpuPushAttr(GPU_SCISSOR_BIT | GPU_VIEWPORT_BIT);
 		GPUFrameBuffer *fb = GPU_framebuffer_active_get();
 		gpuPushFrameBuffer(fb);
 	}
@@ -857,7 +857,7 @@ void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
 	GPUFrameBuffer *fb = NULL;
 
 	if (restore) {
-		gpuPopAttrib();
+		gpuPopAttr();
 		fb = gpuPopFrameBuffer();
 	}
 

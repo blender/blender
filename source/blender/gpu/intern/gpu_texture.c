@@ -1064,7 +1064,7 @@ GPUTexture *GPU_texture_create_cube(
 GPUTexture *GPU_texture_create_from_vertbuf(GPUVertBuf *vert)
 {
 	GPUVertFormat *format = &vert->format;
-	GPUVertAttr *attr = &format->attribs[0];
+	GPUVertAttr *attr = &format->attrs[0];
 
 	/* Detect incompatible cases (not supported by texture buffers) */
 	BLI_assert(format->attr_len == 1 && vert->vbo_id != 0);

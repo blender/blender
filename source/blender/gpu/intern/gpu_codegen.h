@@ -41,7 +41,7 @@
 struct GPUNode;
 struct GPUOutput;
 struct GPUShader;
-struct GPUVertexAttribs;
+struct GPUVertAttrLayers;
 struct ListBase;
 struct PreviewImage;
 
@@ -55,7 +55,7 @@ typedef enum eGPUDataSource {
 	GPU_SOURCE_OUTPUT,
 	GPU_SOURCE_CONSTANT,
 	GPU_SOURCE_UNIFORM,
-	GPU_SOURCE_ATTRIB,
+	GPU_SOURCE_ATTR,
 	GPU_SOURCE_BUILTIN,
 	GPU_SOURCE_STRUCT,
 	GPU_SOURCE_TEX,
@@ -63,7 +63,7 @@ typedef enum eGPUDataSource {
 
 typedef enum {
 	GPU_NODE_LINK_NONE = 0,
-	GPU_NODE_LINK_ATTRIB,
+	GPU_NODE_LINK_ATTR,
 	GPU_NODE_LINK_BUILTIN,
 	GPU_NODE_LINK_COLORBAND,
 	GPU_NODE_LINK_CONSTANT,
@@ -99,10 +99,10 @@ struct GPUNodeLink {
 		struct GPUTexture **coba;
 		/* GPU_NODE_LINK_OUTPUT */
 		struct GPUOutput *output;
-		/* GPU_NODE_LINK_ATTRIB */
+		/* GPU_NODE_LINK_ATTR */
 		struct {
-			const char *attribname;
-			CustomDataType attribtype;
+			const char *attr_name;
+			CustomDataType attr_type;
 		};
 		/* GPU_NODE_LINK_IMAGE_BLENDER */
 		struct {
@@ -151,12 +151,16 @@ typedef struct GPUInput {
 			int texid;                   /* number for multitexture, starting from zero */
 			eGPUType textype;             /* texture type (2D, 1D Array ...) */
 		};
-		/* GPU_SOURCE_ATTRIB */
+		/* GPU_SOURCE_ATTR */
 		struct {
-			char attribname[MAX_CUSTOMDATA_LAYER_NAME]; /* attribute name */
-			int attribid;                /* id for vertex attributes */
-			bool attribfirst;            /* this is the first one that is bound */
-			CustomDataType attribtype;   /* attribute type */
+			/** Attribute name. */
+			char attr_name[MAX_CUSTOMDATA_LAYER_NAME];
+			/** ID for vertex attributes. */
+			int attr_id;
+			/** This is the first one that is bound. */
+			bool attr_first;
+			/** Attribute type. */
+			CustomDataType attr_type;
 		};
 	};
 } GPUInput;
@@ -178,7 +182,7 @@ typedef struct GPUPass GPUPass;
 
 GPUPass *GPU_generate_pass(
         GPUMaterial *material,
-        GPUNodeLink *frag_outlink, struct GPUVertexAttribs *attribs,
+        GPUNodeLink *frag_outlink, struct GPUVertAttrLayers *attrs,
         ListBase *nodes, int *builtins,
         const char *vert_code, const char *geom_code,
         const char *frag_lib, const char *defines);
@@ -186,7 +190,7 @@ GPUPass *GPU_generate_pass(
 struct GPUShader *GPU_pass_shader_get(GPUPass *pass);
 
 void GPU_nodes_extract_dynamic_inputs(struct GPUShader *shader, ListBase *inputs, ListBase *nodes);
-void GPU_nodes_get_vertex_attributes(ListBase *nodes, struct GPUVertexAttribs *attribs);
+void GPU_nodes_get_vertex_attrs(ListBase *nodes, struct GPUVertAttrLayers *attrs);
 void GPU_nodes_prune(ListBase *nodes, struct GPUNodeLink *outlink);
 
 void GPU_pass_compile(GPUPass *pass, const char *shname);

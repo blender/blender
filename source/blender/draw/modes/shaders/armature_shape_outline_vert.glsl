@@ -5,11 +5,11 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 
-/* ---- Instantiated Attribs ---- */
+/* ---- Instantiated Attrs ---- */
 in vec3 pos;
 in vec3 snor;
 
-/* ---- Per instance Attribs ---- */
+/* ---- Per instance Attrs ---- */
 in mat4 InstanceModelMatrix;
 in vec4 outlineColorSize;
 
@@ -28,7 +28,7 @@ vec2 proj(vec4 pos)
 void main()
 {
 	/* This is slow and run per vertex, but it's still faster than
-	 * doing it per instance on CPU and sending it on via instance attrib */
+	 * doing it per instance on CPU and sending it on via instance attribute. */
 	mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
 
 	vec4 viewpos = ViewMatrix * (InstanceModelMatrix * vec4(pos, 1.0));
