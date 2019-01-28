@@ -115,7 +115,7 @@ static bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, Dupl
 	 * visible otherwise. The better solution eventually would be for objects
 	 * to specify which object they instance, instead of through parenting. */
 	if (eval_mode == DAG_EVAL_RENDER || dob) {
-		const int hide_original_types = OB_DUPLIFRAMES | OB_DUPLIVERTS | OB_DUPLIFACES;
+		const int hide_original_types = OB_DUPLIVERTS | OB_DUPLIFACES;
 
 		if (!dob || !(dob->type & hide_original_types)) {
 			if (ob->parent && (ob->parent->transflag & hide_original_types)) {

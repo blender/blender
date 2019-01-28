@@ -135,7 +135,6 @@ static const EnumPropertyItem parent_type_items[] = {
 
 #define INSTANCE_ITEMS_SHARED \
 	{0, "NONE", 0, "None", ""}, \
-	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make instance of object for every frame"}, \
 	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Instantiate child objects on all vertices"}, \
 	{OB_DUPLIFACES, "FACES", 0, "Faces", "Instantiate child objects on all faces"}
 
@@ -2606,21 +2605,6 @@ static void rna_def_object(BlenderRNA *brna)
 	rna_def_animviz_common(srna);
 	rna_def_motionpath_common(srna);
 
-	/* slow parenting */
-	/* XXX: evil old crap */
-	prop = RNA_def_property(srna, "use_slow_parent", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "partype", PARSLOW);
-	RNA_def_property_ui_text(prop, "Slow Parent",
-	                         "Create a delay in the parent relationship (beware: this isn't renderfarm "
-	                         "safe and may be invalid after jumping around the timeline)");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
-
-	prop = RNA_def_property(srna, "slow_parent_offset", PROP_FLOAT, PROP_NONE | PROP_UNIT_TIME);
-	RNA_def_property_float_sdna(prop, NULL, "sf");
-	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Slow Parent Offset", "Delay in the parent relationship");
-	RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
-
 	/* instancing */
 	prop = RNA_def_property(srna, "instance_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
@@ -2628,12 +2612,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_instance_type_itemf");
 	RNA_def_property_ui_text(prop, "Instance Type", "If not None, object instancing method to use");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
-
-	prop = RNA_def_property(srna, "use_instance_frames_speed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
-	RNA_def_property_ui_text(prop, "Instance Frames Speed",
-	                         "Set frames instancing to use the current frame instead of parent curve's evaluation time");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "use_instance_vertices_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
@@ -2658,32 +2636,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_dup_collection_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Instance Collection", "Instance an existing collection");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
-
-	prop = RNA_def_property(srna, "instance_frames_start", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "dupsta");
-	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Instance Frames Start", "Start frame for frame instances");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
-
-	prop = RNA_def_property(srna, "instance_frames_end", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "dupend");
-	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Instance Frames End", "End frame for frame instances");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
-
-	prop = RNA_def_property(srna, "instance_frames_on", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "dupon");
-	RNA_def_property_range(prop, 1, MAXFRAME);
-	RNA_def_property_ui_range(prop, 1, 1500, 1, -1);
-	RNA_def_property_ui_text(prop, "Instance Frames On", "Number of frames to use between DupOff frames");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
-
-	prop = RNA_def_property(srna, "instance_frames_off", PROP_INT, PROP_NONE | PROP_UNIT_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "dupoff");
-	RNA_def_property_range(prop, 0, MAXFRAME);
-	RNA_def_property_ui_range(prop, 0, 1500, 1, -1);
-	RNA_def_property_ui_text(prop, "Instance Frames Off", "Recurring frames to exclude from the frame instances");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
 
 	prop = RNA_def_property(srna, "is_instancer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLI);

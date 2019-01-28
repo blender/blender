@@ -311,74 +311,6 @@ static const DupliGenerator gen_dupli_collection = {
     make_duplis_collection          /* make_duplis */
 };
 
-/* OB_DUPLIFRAMES */
-static void make_duplis_frames(const DupliContext *ctx)
-{
-	Depsgraph *depsgraph = ctx->depsgraph;
-	Scene *scene = ctx->scene;
-	Object *ob = ctx->object;
-	Object copyob;
-	int dupend = ob->dupend;
-
-	/* dupliframes not supported inside collections */
-	if (ctx->collection)
-		return;
-	/* if we don't have any data/settings which will lead to object movement,
-	 * don't waste time trying, as it will all look the same...
-	 */
-	if (ob->parent == NULL && BLI_listbase_is_empty(&ob->constraints) && ob->adt == NULL)
-		return;
-
-	/* make a copy of the object's original data (before any dupli-data overwrites it)
-	 * as we'll need this to keep track of unkeyed data
-	 * - this doesn't take into account other data that can be reached from the object,
-	 *   for example it's shapekeys or bones, hence the need for an update flush at the end
-	 */
-	copyob = *ob;
-
-	/* duplicate over the required range */
-	const int dupli_transflag = (ob->transflag & OB_DUPLINOSPEED);
-	for (int frame = ob->dupsta; frame <= dupend; frame++) {
-		int ok = 1;
-
-		/* - dupoff = how often a frames within the range shouldn't be made into duplis
-		 * - dupon = the length of each "skipping" block in frames
-		 */
-		if (ob->dupoff) {
-			ok = frame - ob->dupsta;
-			ok = ok % (ob->dupon + ob->dupoff);
-			ok = (ok < ob->dupon);
-		}
-
-		if (ok) {
-			/* WARNING: doing animation updates in this way is not terribly accurate, as the dependencies
-			 * and/or other objects which may affect this object's transforms are not updated either.
-			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
-			 */
-			/* ob-eval will do drivers, so we don't need to do them */
-			BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, (float)frame, ADT_RECALC_ANIM);
-			BKE_object_where_is_calc_time_for_dupli(depsgraph, scene, ob, (float)frame, dupli_transflag);
-
-			make_dupli(ctx, ob, ob->obmat, frame);
-		}
-	}
-
-	/* ob-eval will do drivers, so we don't need to do them */
-	const float original_ctime = DEG_get_ctime(depsgraph);
-	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, original_ctime, ADT_RECALC_ANIM);
-	BKE_object_where_is_calc_time(depsgraph, scene, ob, original_ctime);
-
-	/* but, to make sure unkeyed object transforms are still sane,
-	 * let's copy object's original data back over
-	 */
-	*ob = copyob;
-}
-
-static const DupliGenerator gen_dupli_frames = {
-    OB_DUPLIFRAMES,                 /* type */
-    make_duplis_frames              /* make_duplis */
-};
-
 /* OB_DUPLIVERTS */
 typedef struct VertexDupliData {
 	Mesh *me_eval;
@@ -791,7 +723,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	bool for_render = mode == DAG_EVAL_RENDER;
 	bool use_texcoords = for_render;
 
-	Object *ob = NULL, **oblist = NULL, obcopy, *obcopylist = NULL;
+	Object *ob = NULL, **oblist = NULL;
 	DupliObject *dob;
 	ParticleDupliWeight *dw;
 	ParticleSettings *part;
@@ -799,7 +731,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	ChildParticle *cpa = NULL;
 	ParticleKey state;
 	ParticleCacheKey *cache;
-	float ctime, pa_time, scale = 1.0f;
+	float ctime, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
 	float (*obmat)[4];
 	int a, b, hair = 0;
@@ -896,10 +828,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 
-			/* we also copy the actual objects to restore afterwards, since
-			 * BKE_object_where_is_calc_time will change the object which breaks transform */
 			oblist = MEM_callocN((size_t)totcollection * sizeof(Object *), "dupcollection object list");
-			obcopylist = MEM_callocN((size_t)totcollection * sizeof(Object), "dupcollection copy list");
 
 			if (part->draw & PART_DRAW_COUNT_GR) {
 				a = 0;
@@ -909,7 +838,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 						if (dw->ob == object) {
 							for (b = 0; b < dw->count; b++, a++) {
 								oblist[a] = dw->ob;
-								obcopylist[a] = *dw->ob;
 							}
 							break;
 						}
@@ -922,7 +850,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(part->dup_group, object, mode)
 				{
 					oblist[a] = object;
-					obcopylist[a] = *object;
 					a++;
 				}
 				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
@@ -930,7 +857,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		}
 		else {
 			ob = part->dup_ob;
-			obcopy = *ob;
 		}
 
 		if (totchild == 0 || part->draw & PART_DRAW_PARENT)
@@ -945,7 +871,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					continue;
 
 				/* pa_num = pa->num; */ /* UNUSED */
-				pa_time = pa->time;
 				size = pa->size;
 			}
 			else {
@@ -953,7 +878,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				cpa = &psys->child[a - totpart];
 
 				/* pa_num = a; */ /* UNUSED */
-				pa_time = psys->particles[cpa->parent].time;
 				size = psys_get_child_size(psys, cpa, ctime, NULL);
 			}
 
@@ -1043,9 +967,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 			}
 			else {
-				/* to give ipos in object correct offset */
-				BKE_object_where_is_calc_time(ctx->depsgraph, scene, ob, ctime - pa_time);
-
 				copy_v3_v3(vec, obmat[3]);
 				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
 
@@ -1092,22 +1013,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 			}
 		}
 
-		/* restore objects since they were changed in BKE_object_where_is_calc_time */
-		if (part->ren_as == PART_DRAW_GR) {
-			for (a = 0; a < totcollection; a++)
-				*(oblist[a]) = obcopylist[a];
-		}
-		else
-			*ob = obcopy;
-
 		BLI_rng_free(rng);
 	}
 
 	/* clean up */
 	if (oblist)
 		MEM_freeN(oblist);
-	if (obcopylist)
-		MEM_freeN(obcopylist);
 
 	if (psys->lattice_deform_data) {
 		end_latt_deform(psys->lattice_deform_data);
@@ -1164,9 +1075,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 		if (ctx->object->type == OB_MESH)
 			return &gen_dupli_faces;
 	}
-	else if (transflag & OB_DUPLIFRAMES) {
-		return &gen_dupli_frames;
-	}
 	else if (transflag & OB_DUPLICOLLECTION) {
 		return &gen_dupli_collection;
 	}
@@ -1217,11 +1125,6 @@ int count_duplilist(Object *ob)
 						return pdup;
 				}
 			}
-		}
-		else if (ob->transflag & OB_DUPLIFRAMES) {
-			int tot = ob->dupend - ob->dupsta;
-			tot /= (ob->dupon + ob->dupoff);
-			return tot * ob->dupon;
 		}
 	}
 	return 1;

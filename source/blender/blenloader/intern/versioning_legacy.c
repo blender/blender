@@ -544,17 +544,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 		}
 	}
 
-	if (bmain->versionfile <= 105) {
-		Object *ob = bmain->object.first;
-		while (ob) {
-			ob->dupon = 1;
-			ob->dupoff = 0;
-			ob->dupsta = 1;
-			ob->dupend = 100;
-			ob = ob->id.next;
-		}
-	}
-
 	if (bmain->versionfile <= 106) {
 		/* mcol changed */
 		Mesh *me = bmain->mesh.first;

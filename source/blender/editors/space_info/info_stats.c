@@ -387,12 +387,6 @@ static void stats_dupli_object(Object *ob, SceneStats *stats)
 		stats->totobj += tot;
 		stats_object(ob, is_selected, tot, stats);
 	}
-	else if (ob->transflag & OB_DUPLIFRAMES) {
-		/* Dupli Frames */
-		int tot = count_duplilist(ob);
-		stats->totobj += tot;
-		stats_object(ob, is_selected, tot, stats);
-	}
 	else if ((ob->transflag & OB_DUPLICOLLECTION) && ob->dup_group) {
 		/* Dupli Group */
 		int tot = count_duplilist(ob);

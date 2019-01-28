@@ -149,13 +149,6 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
             sub.prop_search(ob, "parent_bone", parent.data, "bones")
         sub.active = (parent is not None)
 
-        col = flow.column()
-        col.active = (ob.parent is not None)
-        col.prop(ob, "use_slow_parent")
-        sub = col.column()
-        sub.active = (ob.use_slow_parent)
-        sub.prop(ob, "slow_parent_offset", text="Offset")
-
         col.separator()
 
         col = flow.column()
@@ -295,20 +288,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
         layout.use_property_split = True
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        if ob.instance_type == 'FRAMES':
-
-            col = flow.column(align=True)
-            col.prop(ob, "instance_frames_start", text="Start")
-            col.prop(ob, "instance_frames_end", text="End")
-
-            col = flow.column(align=True)
-            col.prop(ob, "instance_frames_on", text="On")
-            col.prop(ob, "instance_frames_off", text="Off")
-
-            col = flow.column(align=True)
-            col.prop(ob, "use_instance_frames_speed", text="Speed")
-
-        elif ob.instance_type == 'VERTS':
+        if ob.instance_type == 'VERTS':
             layout.prop(ob, "use_instance_vertices_rotation", text="Rotation")
 
         elif ob.instance_type == 'FACES':

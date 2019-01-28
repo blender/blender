@@ -87,8 +87,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_parent_set);
 	WM_operatortype_append(OBJECT_OT_track_set);
 	WM_operatortype_append(OBJECT_OT_track_clear);
-	WM_operatortype_append(OBJECT_OT_slow_parent_set);
-	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
 	WM_operatortype_append(OBJECT_OT_make_local);
 	WM_operatortype_append(OBJECT_OT_make_override_static);
 	WM_operatortype_append(OBJECT_OT_make_single_user);

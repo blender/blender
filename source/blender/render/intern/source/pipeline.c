@@ -1234,7 +1234,7 @@ bool RE_allow_render_generic_object(Object *ob)
 	if (ob->transflag & OB_DUPLIPARTS) {
 		/* pass */  /* let particle system(s) handle showing vs. not showing */
 	}
-	else if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
+	else if (ob->transflag & OB_DUPLI) {
 		return false;
 	}
 	return true;
