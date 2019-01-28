@@ -34,8 +34,8 @@
 
 #include "BLI_graph.h"
 
-struct GHash;
 struct EdgeHash;
+struct GHash;
 struct ReebArc;
 struct ReebEdge;
 struct ReebNode;
@@ -141,8 +141,8 @@ typedef struct ReebArcIterator {
 } ReebArcIterator;
 
 #if 0
-struct EditMesh;
 struct EdgeIndex;
+struct EditMesh;
 
 int weightToHarmonic(struct EditMesh *em, struct EdgeIndex *indexed_edges);
 int weightFromDistance(struct EditMesh *em, struct EdgeIndex *indexed_edges);

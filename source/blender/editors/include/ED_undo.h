@@ -25,10 +25,10 @@
 #ifndef __ED_UNDO_H__
 #define __ED_UNDO_H__
 
+struct UndoStack;
 struct bContext;
 struct wmOperator;
 struct wmOperatorType;
-struct UndoStack;
 
 /* undo.c */
 void    ED_undo_push(struct bContext *C, const char *str);

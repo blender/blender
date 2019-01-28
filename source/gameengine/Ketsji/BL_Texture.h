@@ -13,8 +13,8 @@
 #include "KX_Camera.h"
 
 // --
-struct Image;
 struct EnvMap;
+struct Image;
 class BL_Material;
 class RAS_Rect;
 class RAS_ICanvas;

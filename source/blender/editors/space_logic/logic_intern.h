@@ -33,9 +33,9 @@
 #define __LOGIC_INTERN_H__
 
 /* internal exports only */
-struct bContext;
 struct ARegion;
 struct ScrArea;
+struct bContext;
 struct wmOperatorType;
 
 /* space_logic.c */

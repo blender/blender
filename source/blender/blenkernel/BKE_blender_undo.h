@@ -28,10 +28,10 @@
 extern "C" {
 #endif
 
-struct bContext;
-struct Scene;
 struct Main;
 struct MemFileUndoData;
+struct Scene;
+struct bContext;
 
 #define BKE_UNDO_STR_MAX 64
 

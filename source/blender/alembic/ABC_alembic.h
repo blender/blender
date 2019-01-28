@@ -27,12 +27,12 @@
 extern "C" {
 #endif
 
-struct bContext;
 struct CacheReader;
 struct DerivedMesh;
 struct ListBase;
 struct Object;
 struct Scene;
+struct bContext;
 
 typedef struct AbcArchiveHandle AbcArchiveHandle;
 

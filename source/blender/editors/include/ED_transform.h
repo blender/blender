@@ -36,16 +36,16 @@
 
 struct ARegion;
 struct ListBase;
+struct Main;
 struct Object;
+struct SnapObjectContext;
+struct SnapObjectParams;
 struct View3D;
 struct bContext;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperatorType;
-struct Main;
-struct SnapObjectContext;
-struct SnapObjectParams;
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -108,18 +108,18 @@ enum TfmMode {
  * */
 bool calculateTransformCenter(struct bContext *C, int centerMode, float cent3d[3], float cent2d[2]);
 
-struct TransInfo;
 struct Base;
-struct Scene;
 struct Object;
+struct Scene;
+struct TransInfo;
 struct wmOperator;
 
 /* UNUSED */
 // int BIF_snappingSupported(struct Object *obedit);
 
+struct ReportList;
 struct TransformOrientation;
 struct bContext;
-struct ReportList;
 
 void BIF_clearTransformOrientation(struct bContext *C);
 void BIF_removeTransformOrientation(struct bContext *C, struct TransformOrientation *ts);

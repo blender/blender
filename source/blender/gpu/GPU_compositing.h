@@ -39,12 +39,12 @@ extern "C" {
 /* opaque handle for framebuffer compositing effects (defined in gpu_compositing.c )*/
 typedef struct GPUFX GPUFX;
 struct GPUDOFSettings;
-struct GPUSSAOSettings;
-struct GPUOffScreen;
 struct GPUFXSettings;
-struct rcti;
-struct Scene;
+struct GPUOffScreen;
+struct GPUSSAOSettings;
 struct GPUShader;
+struct Scene;
+struct rcti;
 enum eGPUFXFlags;
 
 /**** Public API *****/

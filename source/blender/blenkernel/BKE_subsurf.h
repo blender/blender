@@ -37,21 +37,21 @@
 /* Thread sync primitives used directly.  */
 #include "BLI_threads.h"
 
+struct CCGEdge;
 struct CCGElem;
+struct CCGFace;
+struct CCGVert;
 struct DMFlagMat;
 struct DMGridAdjacency;
 struct DerivedMesh;
-struct MeshElemMap;
-struct Mesh;
+struct EdgeHash;
 struct MPoly;
+struct Mesh;
+struct MeshElemMap;
 struct Object;
 struct PBVH;
-struct SubsurfModifierData;
-struct CCGEdge;
-struct CCGFace;
-struct CCGVert;
-struct EdgeHash;
 struct PBVH;
+struct SubsurfModifierData;
 
 /**************************** External *****************************/
 

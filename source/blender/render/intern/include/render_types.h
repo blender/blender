@@ -53,18 +53,18 @@
 #include "BLI_sys_types.h" // for intptr_t support
 
 struct EvaluationContext;
-struct Object;
-struct MemArena;
-struct VertTableNode;
-struct VlakTableNode;
 struct GHash;
+struct ImagePool;
+struct Main;
+struct MemArena;
+struct Object;
 struct ObjectInstanceRen;
-struct RayObject;
 struct RayFace;
+struct RayObject;
 struct RenderEngine;
 struct ReportList;
-struct Main;
-struct ImagePool;
+struct VertTableNode;
+struct VlakTableNode;
 
 #define TABLEINITSIZE 1024
 
@@ -407,8 +407,8 @@ struct halosort {
 };
 
 /* ------------------------------------------------------------------------- */
-struct Material;
 struct ImagePool;
+struct Material;
 
 typedef struct RadFace {
 	float unshot[3], totrad[3];

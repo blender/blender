@@ -39,8 +39,8 @@ extern "C" {
 #endif
 
 struct Object;
-struct bPoseChannel;
 struct Scene;
+struct bPoseChannel;
 
 
 struct IKPlugin {

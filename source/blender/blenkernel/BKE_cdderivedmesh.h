@@ -37,10 +37,10 @@
 
 #include "BKE_DerivedMesh.h"
 
-struct DerivedMesh;
 struct BMEditMesh;
-struct Mesh;
+struct DerivedMesh;
 struct MLoopNorSpaceArray;
+struct Mesh;
 struct Object;
 
 /* creates a new CDDerivedMesh */

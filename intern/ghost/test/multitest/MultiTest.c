@@ -61,8 +61,8 @@ char U[1024] = {0};
 
 /***/
 
-typedef struct _MultiTestApp MultiTestApp;
 typedef struct _LoggerWindow LoggerWindow;
+typedef struct _MultiTestApp MultiTestApp;
 
 void loggerwindow_log(LoggerWindow *lw, char *line);
 

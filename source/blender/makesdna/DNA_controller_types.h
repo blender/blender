@@ -34,8 +34,8 @@
 #ifndef __DNA_CONTROLLER_TYPES_H__
 #define __DNA_CONTROLLER_TYPES_H__
 
-struct bActuator;
 struct Text;
+struct bActuator;
 struct bSensor;
 
 /* ****************** CONTROLLERS ********************* */

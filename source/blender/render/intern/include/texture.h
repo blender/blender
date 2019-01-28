@@ -64,12 +64,12 @@
 	}                                                                         \
 
 struct HaloRen;
-struct ShadeInput;
-struct TexResult;
-struct Tex;
-struct Image;
 struct ImBuf;
+struct Image;
 struct ImagePool;
+struct ShadeInput;
+struct Tex;
+struct TexResult;
 
 /* texture.h */
 

@@ -31,8 +31,8 @@
 #ifndef __WM_H__
 #define __WM_H__
 
-struct wmWindow;
 struct ReportList;
+struct wmWindow;
 
 typedef struct wmPaintCursor {
 	struct wmPaintCursor *next, *prev;

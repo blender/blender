@@ -34,10 +34,10 @@
 #include "DNA_constraint_types.h"
 #include "BKE_constraint.h"
 
-struct Scene;
-struct Group;
 struct EffectorWeights;
+struct Group;
 struct ModifierData;
+struct Scene;
 
 /* **** DAG relation types *** */
 

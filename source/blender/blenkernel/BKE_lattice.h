@@ -36,13 +36,13 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct BPoint;
+struct DerivedMesh;
 struct Lattice;
+struct MDeformVert;
 struct Main;
 struct Object;
 struct Scene;
-struct DerivedMesh;
-struct BPoint;
-struct MDeformVert;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 void BKE_lattice_init(struct Lattice *lt);

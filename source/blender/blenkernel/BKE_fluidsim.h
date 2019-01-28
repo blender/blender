@@ -32,10 +32,10 @@
  *  \ingroup bke
  */
 
-struct Object;
-struct Scene;
 struct FluidsimSettings;
 struct MVert;
+struct Object;
+struct Scene;
 
 /* old interface */
 

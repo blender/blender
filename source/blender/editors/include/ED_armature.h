@@ -34,23 +34,23 @@
 extern "C" {
 #endif
 
-struct bArmature;
 struct Base;
-struct bContext;
 struct Bone;
-struct bPoseChannel;
+struct DerivedMesh;
 struct IDProperty;
 struct ListBase;
 struct Main;
 struct MeshDeformModifierData;
-struct DerivedMesh;
 struct Object;
 struct ReportList;
 struct Scene;
+struct UndoType;
 struct ViewContext;
+struct bArmature;
+struct bContext;
+struct bPoseChannel;
 struct wmKeyConfig;
 struct wmOperator;
-struct UndoType;
 
 typedef struct EditBone {
 	struct EditBone *next, *prev;

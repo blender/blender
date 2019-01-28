@@ -30,8 +30,8 @@
 /* internal exports only */
 
 struct ConsoleLine;
-struct wmOperatorType;
 struct bContext;
+struct wmOperatorType;
 
 /* console_draw.c */
 void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar);

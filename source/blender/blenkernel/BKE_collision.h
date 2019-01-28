@@ -47,9 +47,9 @@ struct CollisionModifierData;
 struct Group;
 struct MFace;
 struct MVert;
+struct MVertTri;
 struct Object;
 struct Scene;
-struct MVertTri;
 
 ////////////////////////////////////////
 // used for collisions in collision.c

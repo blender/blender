@@ -36,8 +36,8 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
-struct BoundBox;
 struct AnimData;
+struct BoundBox;
 struct Ipo;
 struct Material;
 

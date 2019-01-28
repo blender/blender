@@ -31,9 +31,9 @@
 
 #include "DNA_listBase.h"
 
+struct BArc;
 struct BGraph;
 struct BNode;
-struct BArc;
 
 struct RadialArc;
 

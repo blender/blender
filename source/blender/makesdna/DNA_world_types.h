@@ -36,9 +36,9 @@
 #include "DNA_ID.h"
 
 struct AnimData;
-struct bNodeTree;
 struct Ipo;
 struct MTex;
+struct bNodeTree;
 
 #ifndef MAX_MTEX
 #define MAX_MTEX	18

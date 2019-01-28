@@ -49,44 +49,44 @@
 #include "intern/nodes/deg_node_operation.h"
 
 struct Base;
-struct bGPdata;
 struct CacheFile;
-struct ListBase;
-struct GHash;
-struct ID;
+struct EffectorWeights;
 struct FCurve;
+struct GHash;
 struct Group;
+struct ID;
 struct Key;
+struct ListBase;
+struct MTex;
 struct Main;
 struct Mask;
 struct Material;
-struct MTex;
 struct ModifierData;
 struct MovieClip;
-struct bNodeTree;
 struct Object;
-struct bPoseChannel;
-struct bConstraint;
 struct ParticleSystem;
 struct Scene;
 struct Tex;
 struct World;
-struct EffectorWeights;
+struct bConstraint;
+struct bGPdata;
+struct bNodeTree;
+struct bPoseChannel;
 
 struct PropertyRNA;
 
 namespace DEG {
 
-struct Depsgraph;
+struct ComponentDepsNode;
 struct DepsNode;
 struct DepsNodeHandle;
 struct DepsRelation;
-struct RootDepsNode;
+struct Depsgraph;
 struct IDDepsNode;
-struct TimeSourceDepsNode;
-struct ComponentDepsNode;
 struct OperationDepsNode;
+struct RootDepsNode;
 struct RootPChanMap;
+struct TimeSourceDepsNode;
 
 struct TimeSourceKey
 {

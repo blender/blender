@@ -40,9 +40,9 @@
 extern "C" {
 #endif
 
-struct Object;
 struct AnimData;
 struct Ipo;
+struct Object;
 
 /* ------------------------------------------- */
 /* Stereo Settings */

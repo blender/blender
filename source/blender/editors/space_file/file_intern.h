@@ -59,8 +59,8 @@ void file_draw_check_cb(bContext *C, void *arg1, void *arg2);
 bool file_draw_check_exists(SpaceFile *sfile);
 
 /* file_ops.h */
-struct wmOperatorType;
 struct wmOperator;
+struct wmOperatorType;
 
 typedef enum WalkSelectDirection {
 	FILE_SELECT_WALK_UP,

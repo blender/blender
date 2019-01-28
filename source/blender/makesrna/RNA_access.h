@@ -37,12 +37,12 @@
 extern "C" {
 #endif
 
-struct bContext;
 struct ID;
 struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
+struct bContext;
 
 /* Types */
 

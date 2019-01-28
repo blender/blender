@@ -35,15 +35,15 @@
 #define __MESH_INTERN_H__
 
 struct BMEditMesh;
-struct BMOperator;
 struct BMElem;
+struct BMOperator;
 struct EnumPropertyItem;
+struct LinkNode;
 struct bContext;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
-struct LinkNode;
 
 /* *** editmesh_utils.c *** */
 

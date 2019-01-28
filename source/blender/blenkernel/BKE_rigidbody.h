@@ -34,11 +34,11 @@
 #ifndef __BKE_RIGIDBODY_H__
 #define __BKE_RIGIDBODY_H__
 
-struct RigidBodyWorld;
 struct RigidBodyOb;
+struct RigidBodyWorld;
 
-struct Scene;
 struct Object;
+struct Scene;
 
 /* -------------- */
 /* Memory Management */

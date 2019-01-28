@@ -46,8 +46,8 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph.h"
 
-struct Main;
 struct Group;
+struct Main;
 struct Scene;
 
 namespace DEG {

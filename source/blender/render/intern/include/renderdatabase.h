@@ -37,21 +37,21 @@
 extern "C" {
 #endif
 
-struct Object;
-struct VlakRen;
-struct VertRen;
+struct CustomData;
 struct HaloRen;
-struct Main;
-struct Material;
-struct Render;
+struct Isect;
 struct MCol;
 struct MTFace;
-struct CustomData;
-struct StrandBuffer;
-struct StrandRen;
+struct Main;
+struct Material;
+struct Object;
 struct ObjectInstanceRen;
 struct RadFace;
-struct Isect;
+struct Render;
+struct StrandBuffer;
+struct StrandRen;
+struct VertRen;
+struct VlakRen;
 
 #define RE_QUAD_MASK	0x7FFFFFF
 #define RE_QUAD_OFFS	0x8000000

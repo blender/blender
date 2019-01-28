@@ -15,13 +15,13 @@
 #endif
 
 // --
-struct MTex;
-struct Material;
+struct EnvMap;
 struct Image;
 struct MTFace;
 struct MTex;
+struct MTex;
 struct Material;
-struct EnvMap;
+struct Material;
 // --
 
 /** max units

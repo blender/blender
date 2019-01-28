@@ -26,11 +26,11 @@
 #ifndef __BIF_GENERATE_H__
 #define __BIF_GENERATE_H__
 
-struct ToolSettings;
-struct EditBone;
 struct BArcIterator;
-struct bArmature;
+struct EditBone;
 struct ListBase;
+struct ToolSettings;
+struct bArmature;
 
 typedef int (NextSubdivisionFunc)(struct ToolSettings *, struct BArcIterator *, int, int, float[3], float[3]);
 

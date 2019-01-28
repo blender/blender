@@ -36,14 +36,14 @@
 
 /* internal exports only */
 
-struct wmOperatorType;
-struct TreeStoreElem;
-struct bContext;
-struct Scene;
+struct EditBone;
 struct ID;
 struct Object;
+struct Scene;
+struct TreeStoreElem;
+struct bContext;
 struct bPoseChannel;
-struct EditBone;
+struct wmOperatorType;
 
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;

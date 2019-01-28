@@ -41,12 +41,12 @@ struct AviCodecData;
 struct Base;
 struct EvaluationContext;
 struct Main;
+struct Main;
 struct Object;
 struct RenderData;
-struct SceneRenderLayer;
 struct Scene;
+struct SceneRenderLayer;
 struct UnitSettings;
-struct Main;
 
 #define SCE_COPY_NEW        0
 #define SCE_COPY_EMPTY      1

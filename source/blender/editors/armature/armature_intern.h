@@ -34,19 +34,19 @@
 /* internal exports only */
 struct wmOperatorType;
 
-struct bContext;
-struct Scene;
-struct Object;
 struct Base;
+struct Object;
+struct Scene;
 struct bAction;
+struct bContext;
 struct bPoseChannel;
 
-struct bArmature;
-struct EditBone;
 struct Bone;
+struct EditBone;
+struct bArmature;
 
-struct ListBase;
 struct LinkData;
+struct ListBase;
 
 /* ******************************************************* */
 /* Armature EditMode Operators */

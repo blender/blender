@@ -28,17 +28,17 @@
 #ifndef __STRAND_H__
 #define __STRAND_H__
 
-struct StrandVert;
-struct StrandRen;
-struct StrandBuffer;
-struct ShadeSample;
-struct StrandPart;
-struct Render;
-struct ZSpan;
-struct ObjectInstanceRen;
-struct StrandSurface;
 struct DerivedMesh;
+struct ObjectInstanceRen;
 struct ObjectRen;
+struct Render;
+struct ShadeSample;
+struct StrandBuffer;
+struct StrandPart;
+struct StrandRen;
+struct StrandSurface;
+struct StrandVert;
+struct ZSpan;
 
 typedef struct StrandPoint {
 	/* position within segment */

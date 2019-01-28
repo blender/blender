@@ -30,13 +30,13 @@
 #ifndef __BIF_GLUTIL_H__
 #define __BIF_GLUTIL_H__
 
-struct rcti;
 struct rctf;
+struct rcti;
 
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 struct ImBuf;
 struct bContext;
-struct ColorManagedViewSettings;
-struct ColorManagedDisplaySettings;
 
 void fdrawbezier(float vec[4][3]);
 void fdrawline(float x1, float y1, float x2, float y2);

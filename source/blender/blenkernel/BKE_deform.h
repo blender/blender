@@ -35,13 +35,13 @@
  *  \brief support for deformation groups and hooks.
  */
 
-struct Object;
 struct ListBase;
-struct bDeformGroup;
 struct MDeformVert;
 struct MEdge;
 struct MLoop;
 struct MPoly;
+struct Object;
+struct bDeformGroup;
 
 struct bDeformGroup *BKE_defgroup_new(struct Object *ob, const char *name);
 void                 defgroup_copy_list(struct ListBase *lb1, const struct ListBase *lb2);

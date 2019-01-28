@@ -33,29 +33,29 @@
 #define __PAINT_INTERN_H__
 
 struct ARegion;
-struct bContext;
 struct Brush;
-struct ImagePool;
-struct ColorSpace;
 struct ColorManagedDisplay;
+struct ColorSpace;
+struct DMCoNo;
+struct ImagePool;
 struct ListBase;
 struct MTex;
 struct Object;
-struct PaintStroke;
 struct Paint;
 struct PaintCurve;
+struct PaintStroke;
 struct PointerRNA;
-struct rcti;
-struct Scene;
 struct RegionView3D;
+struct Scene;
+struct UndoStep;
 struct VPaint;
 struct ViewContext;
+struct bContext;
+struct rcti;
 struct wmEvent;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
-struct DMCoNo;
-struct UndoStep;
 enum ePaintMode;
 
 /* paint_stroke.c */

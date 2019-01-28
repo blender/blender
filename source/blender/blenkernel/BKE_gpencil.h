@@ -31,15 +31,15 @@
  *  \author Joshua Leung
  */
 
-struct ToolSettings;
 struct ListBase;
-struct bGPdata;
-struct bGPDlayer;
+struct Main;
+struct ToolSettings;
 struct bGPDframe;
-struct bGPDstroke;
+struct bGPDlayer;
 struct bGPDpalette;
 struct bGPDpalettecolor;
-struct Main;
+struct bGPDstroke;
+struct bGPdata;
 
 /* ------------ Grease-Pencil API ------------------ */
 

@@ -37,13 +37,13 @@
 
 #include "BLI_utildefines.h"
 
-struct Object;
-struct Scene;
-struct ListBase;
 struct Group;
-struct ParticleSimulationData;
+struct ListBase;
+struct Object;
 struct ParticleData;
 struct ParticleKey;
+struct ParticleSimulationData;
+struct Scene;
 
 struct EffectorWeights *BKE_effector_add_weights(struct Group *group);
 

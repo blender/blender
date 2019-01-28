@@ -36,18 +36,18 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 
 struct Base;
-struct EvaluationContext;
-struct Scene;
-struct Object;
 struct BoundBox;
-struct View3D;
-struct SoftBody;
 struct BulletSoftBody;
-struct MovieClip;
-struct Main;
-struct RigidBodyWorld;
+struct EvaluationContext;
 struct HookModifierData;
+struct Main;
 struct ModifierData;
+struct MovieClip;
+struct Object;
+struct RigidBodyWorld;
+struct Scene;
+struct SoftBody;
+struct View3D;
 
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);

@@ -33,14 +33,14 @@
 #ifndef __ZBUF_H__
 #define __ZBUF_H__
 
-struct RenderPart;
-struct RenderLayer;
+struct APixstr;
+struct APixstrand;
 struct LampRen;
 struct ListBase;
-struct ZSpan;
-struct APixstrand;
-struct APixstr;
+struct RenderLayer;
+struct RenderPart;
 struct StrandShadeCache;
+struct ZSpan;
 
 void fillrect(int *rect, int x, int y, int val);
 

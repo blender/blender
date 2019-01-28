@@ -32,12 +32,12 @@
 #ifndef __BKE_EDITMESH_BVH_H__
 #define __BKE_EDITMESH_BVH_H__
 
-struct BMEditMesh;
-struct BMesh;
-struct BMFace;
-struct BMVert;
-struct BMLoop;
 struct BMBVHTree;
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
+struct BMVert;
+struct BMesh;
 struct BVHTree;
 
 typedef struct BMBVHTree BMBVHTree;

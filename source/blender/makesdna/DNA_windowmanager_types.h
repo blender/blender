@@ -38,27 +38,27 @@
 #include "DNA_ID.h"
 
 /* defined here: */
-struct wmWindowManager;
 struct wmWindow;
+struct wmWindowManager;
 
 struct wmEvent;
 struct wmGesture;
-struct wmOperatorType;
-struct wmOperator;
-struct wmKeyMap;
 struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmOperatorType;
 
 /* forwards */
-struct bContext;
-struct bScreen;
-struct wmSubWindow;
-struct wmTimer;
 struct PointerRNA;
-struct ReportList;
 struct Report;
-struct uiLayout;
+struct ReportList;
 struct Stereo3dFormat;
 struct UndoStep;
+struct bContext;
+struct bScreen;
+struct uiLayout;
+struct wmSubWindow;
+struct wmTimer;
 
 #define OP_MAX_TYPENAME 64
 #define KMAP_MAX_NAME   64

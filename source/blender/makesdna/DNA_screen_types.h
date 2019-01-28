@@ -36,12 +36,12 @@
 
 #include "DNA_ID.h"
 
-struct SpaceType;
-struct SpaceLink;
 struct ARegion;
 struct ARegionType;
 struct PanelType;
 struct Scene;
+struct SpaceLink;
+struct SpaceType;
 struct uiLayout;
 struct wmTimer;
 struct wmTooltipState;

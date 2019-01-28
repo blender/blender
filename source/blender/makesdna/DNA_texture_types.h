@@ -43,16 +43,16 @@ extern "C" {
 #endif
 
 struct AnimData;
-struct Ipo;
 struct ColorBand;
-struct EnvMap;
-struct Object;
-struct Tex;
-struct Image;
-struct PreviewImage;
-struct ImBuf;
-struct Ocean;
 struct CurveMapping;
+struct EnvMap;
+struct ImBuf;
+struct Image;
+struct Ipo;
+struct Object;
+struct Ocean;
+struct PreviewImage;
+struct Tex;
 
 typedef struct MTex {
 

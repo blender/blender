@@ -39,16 +39,16 @@ struct ARegion;
 struct ARegionType;
 struct BoundBox;
 struct DerivedMesh;
+struct Mesh;
 struct Object;
 struct SmokeDomainSettings;
 struct bAnimVizSettings;
 struct bContext;
 struct bMotionPath;
 struct bPoseChannel;
-struct Mesh;
+struct wmKeyConfig;
 struct wmOperatorType;
 struct wmWindowManager;
-struct wmKeyConfig;
 
 /* drawing flags: */
 enum {

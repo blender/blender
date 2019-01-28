@@ -38,8 +38,8 @@
 #include "DNA_listBase.h"
 
 struct Action;
-struct Text;
 struct Ipo;
+struct Text;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
 // XXX deprecated... old AnimSys

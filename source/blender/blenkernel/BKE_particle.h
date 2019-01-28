@@ -41,27 +41,27 @@
 
 #include "BKE_customdata.h"
 
-struct ParticleSystemModifierData;
-struct ParticleSystem;
 struct ParticleKey;
 struct ParticleSettings;
+struct ParticleSystem;
+struct ParticleSystemModifierData;
 
-struct Main;
-struct Object;
-struct Scene;
-struct DerivedMesh;
-struct ModifierData;
-struct MTFace;
-struct MCol;
-struct MFace;
-struct MVert;
-struct LatticeDeformData;
-struct LinkNode;
-struct KDTree;
-struct RNG;
 struct BVHTreeRay;
 struct BVHTreeRayHit;
+struct DerivedMesh;
 struct EdgeHash;
+struct KDTree;
+struct LatticeDeformData;
+struct LinkNode;
+struct MCol;
+struct MFace;
+struct MTFace;
+struct MVert;
+struct Main;
+struct ModifierData;
+struct Object;
+struct RNG;
+struct Scene;
 
 #define PARTICLE_COLLISION_MAX_COLLISIONS 10
 

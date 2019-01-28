@@ -31,31 +31,31 @@
  *  \ingroup bke
  */
 
-struct ID;
+struct BLI_Stack;
+struct BMesh;
 struct BMeshCreateParams;
 struct BoundBox;
-struct EdgeHash;
-struct ListBase;
-struct LinkNode;
-struct BLI_Stack;
-struct MemArena;
-struct BMesh;
-struct MLoopTri;
-struct Main;
-struct Mesh;
-struct MPoly;
-struct MLoop;
-struct MFace;
-struct MEdge;
-struct MVert;
-struct MDeformVert;
-struct MDisps;
-struct Object;
 struct CustomData;
 struct DerivedMesh;
-struct Scene;
+struct EdgeHash;
+struct ID;
+struct LinkNode;
+struct ListBase;
+struct MDeformVert;
+struct MDisps;
+struct MEdge;
+struct MFace;
+struct MLoop;
+struct MLoopTri;
 struct MLoopUV;
+struct MPoly;
+struct MVert;
+struct Main;
+struct MemArena;
+struct Mesh;
+struct Object;
 struct ReportList;
+struct Scene;
 
 #ifdef __cplusplus
 extern "C" {

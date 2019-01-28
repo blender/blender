@@ -36,21 +36,21 @@
 extern "C" {
 #endif
 
+struct ChannelDriver;
+struct DriverTarget;
+struct DriverVar;
+struct FCM_EnvelopeData;
 struct FCurve;
 struct FModifier;
-struct ChannelDriver;
-struct DriverVar;
-struct DriverTarget;
-struct FCM_EnvelopeData;
 
-struct bContext;
 struct AnimData;
-struct bAction;
 struct BezTriple;
-struct StructRNA;
 struct PathResolvedRNA;
 struct PointerRNA;
 struct PropertyRNA;
+struct StructRNA;
+struct bAction;
+struct bContext;
 
 #include "DNA_curve_types.h"
 

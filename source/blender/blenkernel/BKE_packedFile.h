@@ -36,12 +36,12 @@
 #define RET_ERROR   1
 
 struct ID;
-struct bSound;
 struct Image;
 struct Main;
 struct PackedFile;
 struct ReportList;
 struct VFont;
+struct bSound;
 
 /* pack */
 struct PackedFile *dupPackedFile(const struct PackedFile *pf_src);

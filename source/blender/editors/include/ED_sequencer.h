@@ -27,10 +27,10 @@
 #ifndef __ED_SEQUENCER_H__
 #define __ED_SEQUENCER_H__
 
-struct bContext;
 struct Scene;
 struct Sequence;
 struct SpaceSeq;
+struct bContext;
 
 void ED_sequencer_select_sequence_single(struct Scene *scene, struct Sequence *seq, bool deselect_all);
 void ED_sequencer_deselect_all(struct Scene *scene);

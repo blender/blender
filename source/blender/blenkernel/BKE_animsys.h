@@ -31,22 +31,22 @@
  *  \author Joshua Leung
  */
 
-struct ID;
-struct ListBase;
-struct Main;
 struct AnimData;
 struct FCurve;
-struct KeyingSet;
+struct ID;
 struct KS_Path;
+struct KeyingSet;
+struct ListBase;
+struct Main;
 struct PathResolvedRNA;
 struct bContext;
 
+struct AnimMapper;
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
 struct bAction;
 struct bActionGroup;
-struct AnimMapper;
 
 /* ************************************* */
 /* AnimData API */

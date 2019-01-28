@@ -33,9 +33,9 @@
 extern "C" {
 #endif
 
-struct Object;
 struct ID;
 struct MDeformVert;
+struct Object;
 struct bDeformGroup;
 
 /* General vgroup operations */

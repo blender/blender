@@ -36,10 +36,10 @@
 extern "C" {
 #endif
 
-struct Implicit_Data;
-struct Object;
 struct ClothModifierData;
+struct Implicit_Data;
 struct ListBase;
+struct Object;
 struct VoxelData;
 
 typedef enum eMassSpringSolverStatus {

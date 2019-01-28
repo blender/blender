@@ -31,10 +31,10 @@
 #ifndef __BLF_INTERNAL_H__
 #define __BLF_INTERNAL_H__
 
-struct ResultBLF;
 struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
+struct ResultBLF;
 struct rctf;
 
 unsigned int blf_next_p2(unsigned int x);

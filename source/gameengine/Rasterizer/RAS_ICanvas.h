@@ -37,9 +37,9 @@
 #endif
 
 class RAS_Rect;
-struct TaskScheduler;
-struct TaskPool;
 struct ImageFormatData;
+struct TaskPool;
+struct TaskScheduler;
 
 /**
  * 2D rendering device context. The connection from 3d rendercontext to 2d surface.

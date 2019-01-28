@@ -103,9 +103,9 @@
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
 
+struct DerivedMesh;
 struct Object;
 struct Scene;
-struct DerivedMesh;
 struct SmokeModifierData;
 
 // timestep default value for nice appearance 0.1f

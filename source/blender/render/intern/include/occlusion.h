@@ -34,8 +34,8 @@
 #define __OCCLUSION_H__
 
 struct Render;
-struct ShadeInput;
 struct RenderPart;
+struct ShadeInput;
 struct ShadeSample;
 
 void make_occ_tree(struct Render *re);

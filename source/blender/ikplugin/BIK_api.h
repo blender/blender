@@ -39,10 +39,10 @@ extern "C" {
 #endif
 
 struct Object;
-struct bPoseChannel;
-struct bPose;
 struct Scene;
 struct bConstraint;
+struct bPose;
+struct bPoseChannel;
 
 enum BIK_ParamType {
 	BIK_PARAM_TYPE_FLOAT = 0,

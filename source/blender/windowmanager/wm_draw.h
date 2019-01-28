@@ -45,9 +45,9 @@ typedef struct wmDrawData {
 	wmDrawTriple *triple;
 } wmDrawData;
 
+struct ARegion;
 struct bContext;
 struct wmWindow;
-struct ARegion;
 
 /* wm_draw.c */
 void		wm_draw_update			(struct bContext *C);

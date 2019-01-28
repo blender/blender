@@ -36,8 +36,10 @@
 extern "C" {
 #endif
 
+struct BHead;
+struct BlendFileReadParams;
 struct BlendThumbnail;
-struct bScreen;
+struct FileData;
 struct LinkNode;
 struct Main;
 struct MemFile;
@@ -46,9 +48,7 @@ struct Scene;
 struct UserDef;
 struct View3D;
 struct bContext;
-struct BHead;
-struct FileData;
-struct BlendFileReadParams;
+struct bScreen;
 
 typedef struct BlendHandle BlendHandle;
 

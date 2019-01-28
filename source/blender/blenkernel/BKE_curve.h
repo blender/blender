@@ -41,8 +41,8 @@ struct ListBase;
 struct Main;
 struct Nurb;
 struct Object;
-struct Scene;
 struct Path;
+struct Scene;
 struct TextBox;
 struct rctf;
 

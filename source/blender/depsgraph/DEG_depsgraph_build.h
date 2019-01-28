@@ -40,12 +40,12 @@ struct Depsgraph;
 
 /* ------------------------------------------------ */
 
-struct Main;
-struct Scene;
-struct Group;
 struct EffectorWeights;
+struct Group;
+struct Main;
 struct ModifierData;
 struct Object;
+struct Scene;
 
 #ifdef __cplusplus
 extern "C" {

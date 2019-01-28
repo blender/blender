@@ -29,10 +29,10 @@
 extern "C" {
 #endif
 
-struct Render;
-struct Material;
 struct FreestyleConfig;
 struct FreestyleLineStyle;
+struct Material;
+struct Render;
 
 struct FreestyleGlobals {
 	struct Scene *scene;

@@ -30,13 +30,11 @@
  *  \ingroup bke
  */
 
-struct bContext;
-struct EvaluationContext;
-struct StripColorBalance;
 struct Editing;
-struct GSet;
-struct GPUOffScreen;
+struct EvaluationContext;
 struct GPUFX;
+struct GPUOffScreen;
+struct GSet;
 struct ImBuf;
 struct Main;
 struct Mask;
@@ -44,8 +42,10 @@ struct Scene;
 struct Sequence;
 struct SequenceModifierData;
 struct Stereo3dFormat;
+struct StripColorBalance;
 struct StripElem;
 struct TextVars;
+struct bContext;
 struct bSound;
 
 struct SeqIndexBuildContext;

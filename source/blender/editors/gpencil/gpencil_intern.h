@@ -36,9 +36,9 @@
 
 
 /* internal exports only */
-struct bGPdata;
-struct bGPDstroke;
 struct bGPDspoint;
+struct bGPDstroke;
+struct bGPdata;
 
 struct GHash;
 
@@ -46,9 +46,9 @@ struct ARegion;
 struct View2D;
 struct wmOperatorType;
 
+struct EnumPropertyItem;
 struct PointerRNA;
 struct PropertyRNA;
-struct EnumPropertyItem;
 
 
 /* ***************************************************** */

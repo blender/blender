@@ -28,10 +28,10 @@
 extern "C" {
 #endif
 
-struct bContext;
-struct ReportList;
-struct Main;
 struct ID;
+struct Main;
+struct ReportList;
+struct bContext;
 
 /* copybuffer (wrapper for BKE_blendfile_write_partial) */
 void BKE_copybuffer_begin(struct Main *bmain_src);

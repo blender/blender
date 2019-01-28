@@ -33,12 +33,12 @@
 #define __CURVE_INTERN_H__
 
 /* internal exports only */
-struct ListBase;
 struct EditNurb;
 struct GHash;
+struct ListBase;
 struct Object;
-struct wmOperatorType;
 struct ViewContext;
+struct wmOperatorType;
 
 /* editfont.c */
 enum { DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_NEXT_WORD, DEL_PREV_WORD, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };

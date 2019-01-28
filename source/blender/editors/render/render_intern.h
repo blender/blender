@@ -32,10 +32,10 @@
 #ifndef __RENDER_INTERN_H__
 #define __RENDER_INTERN_H__
 
-struct bContext;
 struct RenderEngine;
-struct wmOperatorType;
 struct ScrArea;
+struct bContext;
+struct wmOperatorType;
 
 /* render_shading.c */
 void OBJECT_OT_material_slot_add(struct wmOperatorType *ot);

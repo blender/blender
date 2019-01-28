@@ -37,10 +37,13 @@ extern "C" {
 
 struct Base;
 struct EnumPropertyItem;
+struct EnumPropertyItem;
 struct ID;
 struct Main;
 struct ModifierData;
 struct Object;
+struct PointerRNA;
+struct PropertyRNA;
 struct ReportList;
 struct Scene;
 struct bConstraint;
@@ -50,9 +53,6 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
-struct PointerRNA;
-struct PropertyRNA;
-struct EnumPropertyItem;
 struct wmWindowManager;
 
 #include "DNA_object_enums.h"

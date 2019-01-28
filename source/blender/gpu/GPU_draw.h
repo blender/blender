@@ -36,16 +36,16 @@
 extern "C" {
 #endif
 
+struct DupliObject;
 struct ImBuf;
 struct Image;
 struct ImageUser;
 struct MTexPoly;
 struct Object;
-struct Scene;
-struct View3D;
 struct RegionView3D;
+struct Scene;
 struct SmokeModifierData;
-struct DupliObject;
+struct View3D;
 
 /* OpenGL drawing functions related to shading. These are also
  * shared with the game engine, where there were previously

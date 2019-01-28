@@ -80,24 +80,24 @@
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 
+struct BMEditMesh;
 struct CCGElem;
 struct CCGKey;
-struct MVert;
+struct ColorBand;
+struct GPUDrawObject;
+struct GPUVertexAttribs;
+struct KeyBlock;
+struct MCol;
 struct MEdge;
 struct MFace;
-struct MTFace;
-struct Object;
-struct Scene;
-struct Mesh;
 struct MLoopNorSpaceArray;
-struct BMEditMesh;
-struct KeyBlock;
+struct MTFace;
+struct MVert;
+struct Mesh;
 struct ModifierData;
-struct MCol;
-struct ColorBand;
-struct GPUVertexAttribs;
-struct GPUDrawObject;
+struct Object;
 struct PBVH;
+struct Scene;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0

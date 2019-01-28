@@ -39,14 +39,14 @@ extern "C" {
 #include "DNA_vec_types.h"
 
 struct Camera;
+struct GPUFXSettings;
 struct Main;
 struct Object;
 struct RegionView3D;
 struct RenderData;
 struct Scene;
-struct rctf;
 struct View3D;
-struct GPUFXSettings;
+struct rctf;
 
 /* Camera Datablock */
 

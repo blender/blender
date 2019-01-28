@@ -40,10 +40,10 @@
 class SCA_IObject;
 class KX_GameObject;
 class BL_ArmatureObject;
-struct bConstraint;
-struct bPoseChannel;
 struct Object;
+struct bConstraint;
 struct bPose;
+struct bPoseChannel;
 
 /**
  * SG_DList : element of controlled constraint list

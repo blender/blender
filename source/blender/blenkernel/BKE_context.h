@@ -38,36 +38,36 @@ extern "C" {
 #endif
 
 struct ARegion;
-struct bScreen;
 struct CacheFile;
+struct EditBone;
+struct ID;
+struct Image;
 struct ListBase;
 struct Main;
 struct Object;
 struct PointerRNA;
+struct RegionView3D;
 struct ReportList;
 struct Scene;
 struct ScrArea;
+struct SpaceClip;
+struct SpaceImage;
 struct SpaceLink;
-struct View3D;
-struct RegionView3D;
+struct SpaceText;
 struct StructRNA;
-struct ToolSettings;
-struct Image;
 struct Text;
-struct EditBone;
-struct bPoseChannel;
-struct bGPdata;
-struct bGPDlayer;
+struct ToolSettings;
+struct View3D;
+struct bGPDbrush;
 struct bGPDframe;
+struct bGPDlayer;
 struct bGPDpalette;
 struct bGPDpalettecolor;
-struct bGPDbrush;
+struct bGPdata;
+struct bPoseChannel;
+struct bScreen;
 struct wmWindow;
 struct wmWindowManager;
-struct SpaceText;
-struct SpaceImage;
-struct SpaceClip;
-struct ID;
 
 /* Structs */
 

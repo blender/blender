@@ -32,8 +32,8 @@
 #ifndef __MASK_INTERN_H__
 #define __MASK_INTERN_H__
 
-struct bContext;
 struct Mask;
+struct bContext;
 struct wmOperatorType;
 
 /* internal exports only */

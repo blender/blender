@@ -44,9 +44,9 @@ extern "C" {
 #define LS_MODIFIER_TYPE_THICKNESS  3
 #define LS_MODIFIER_TYPE_GEOMETRY   4
 
+struct ColorBand;
 struct Main;
 struct Object;
-struct ColorBand;
 struct bContext;
 
 void BKE_linestyle_init(struct FreestyleLineStyle *linestyle);

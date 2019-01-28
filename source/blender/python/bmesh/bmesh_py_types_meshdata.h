@@ -40,10 +40,10 @@ typedef struct BPy_BMGenericMeshData {
 	void *data;
 } BPy_BMGenericMeshData;
 
-struct MTexPoly;
-struct MLoopUV;
-struct MLoopCol;
 struct MDeformVert;
+struct MLoopCol;
+struct MLoopUV;
+struct MTexPoly;
 struct MVertSkin;
 
 int       BPy_BMTexPoly_AssignPyObject(struct MTexPoly *mloopuv, PyObject *value);

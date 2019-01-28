@@ -36,9 +36,9 @@
 extern "C" {
 #endif
 
+struct ID;
 struct Main;
 struct Material;
-struct ID;
 struct Object;
 struct Scene;
 

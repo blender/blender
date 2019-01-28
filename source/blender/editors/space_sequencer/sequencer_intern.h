@@ -36,17 +36,17 @@
 
 /* internal exports only */
 
-struct Sequence;
-struct bContext;
-struct rctf;
-struct SpaceSeq;
-struct ScrArea;
 struct ARegion;
 struct ARegionType;
-struct Scene;
 struct Main;
-struct wmOperator;
+struct Scene;
+struct ScrArea;
+struct Sequence;
+struct SpaceSeq;
 struct StripElem;
+struct bContext;
+struct rctf;
+struct wmOperator;
 
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
@@ -88,8 +88,8 @@ extern EnumPropertyItem sequencer_prop_effect_types[];
 extern EnumPropertyItem prop_side_types[];
 
 /* operators */
-struct wmOperatorType;
 struct wmKeyConfig;
+struct wmOperatorType;
 
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
 void SEQUENCER_OT_slip(struct wmOperatorType *ot);

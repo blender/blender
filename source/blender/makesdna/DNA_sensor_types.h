@@ -36,8 +36,8 @@
 #ifndef __DNA_SENSOR_TYPES_H__
 #define __DNA_SENSOR_TYPES_H__
 
-struct Object;
 struct Material;
+struct Object;
 
 /* ****************** SENSORS ********************* */
 

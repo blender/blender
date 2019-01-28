@@ -32,13 +32,13 @@
 #ifndef __ED_PARTICLE_H__
 #define __ED_PARTICLE_H__
 
-struct bContext;
 struct Object;
-struct ParticleEditSettings;
-struct rcti;
 struct PTCacheEdit;
+struct ParticleEditSettings;
 struct Scene;
 struct UndoType;
+struct bContext;
+struct rcti;
 
 /* particle edit mode */
 void PE_free_ptcache_edit(struct PTCacheEdit *edit);

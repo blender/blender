@@ -25,13 +25,13 @@
 #ifndef __ED_PAINT_H__
 #define __ED_PAINT_H__
 
-struct bContext;
-struct wmKeyConfig;
-struct wmOperator;
 struct ImBuf;
 struct Image;
 struct UndoStep;
 struct UndoType;
+struct bContext;
+struct wmKeyConfig;
+struct wmOperator;
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);

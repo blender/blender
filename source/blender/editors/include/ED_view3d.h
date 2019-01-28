@@ -41,6 +41,9 @@ struct Base;
 struct BezTriple;
 struct BoundBox;
 struct EditBone;
+struct GPUFX;
+struct GPUFXSettings;
+struct GPUOffScreen;
 struct ImBuf;
 struct MVert;
 struct Main;
@@ -63,9 +66,6 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
-struct GPUFX;
-struct GPUOffScreen;
-struct GPUFXSettings;
 enum eGPUFXFlags;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */

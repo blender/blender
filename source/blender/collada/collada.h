@@ -43,8 +43,8 @@ extern "C" {
 
 
 struct EvaluationContext;
-struct bContext;
 struct Scene;
+struct bContext;
 
 /*
  * both return 1 on success, 0 on error

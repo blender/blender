@@ -41,8 +41,8 @@
 
 #include "RNA_types.h"
 
-struct bNodeTree;
 struct bNode;
+struct bNodeTree;
 
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp, int in_out);
 

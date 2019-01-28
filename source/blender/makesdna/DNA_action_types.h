@@ -41,10 +41,10 @@
 #include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
 
-struct SpaceLink;
-struct Object;
-struct Group;
 struct GHash;
+struct Group;
+struct Object;
+struct SpaceLink;
 
 /* ************************************************ */
 /* Visualization */

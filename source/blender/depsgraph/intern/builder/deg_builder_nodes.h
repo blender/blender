@@ -35,37 +35,37 @@
 
 struct Base;
 struct CacheFile;
-struct bGPdata;
-struct ListBase;
+struct FCurve;
 struct GHash;
+struct Group;
 struct ID;
 struct Image;
-struct FCurve;
-struct Group;
 struct Key;
-struct Main;
-struct Material;
-struct Mask;
+struct ListBase;
 struct MTex;
+struct Main;
+struct Mask;
+struct Material;
 struct MovieClip;
-struct bNodeTree;
 struct Object;
-struct bPoseChannel;
-struct bConstraint;
 struct Scene;
 struct Tex;
 struct World;
+struct bConstraint;
+struct bGPdata;
+struct bNodeTree;
+struct bPoseChannel;
 
 struct PropertyRNA;
 
 namespace DEG {
 
-struct Depsgraph;
-struct DepsNode;
-struct IDDepsNode;
-struct TimeSourceDepsNode;
 struct ComponentDepsNode;
+struct DepsNode;
+struct Depsgraph;
+struct IDDepsNode;
 struct OperationDepsNode;
+struct TimeSourceDepsNode;
 
 struct DepsgraphNodeBuilder {
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);

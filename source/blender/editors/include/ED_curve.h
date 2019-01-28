@@ -31,18 +31,18 @@
 #ifndef __ED_CURVE_H__
 #define __ED_CURVE_H__
 
-struct bContext;
-struct BezTriple;
 struct BPoint;
+struct BezTriple;
 struct Curve;
 struct EditNurb;
 struct Main;
 struct Nurb;
 struct Object;
 struct Text;
-struct wmOperator;
-struct wmKeyConfig;
 struct UndoType;
+struct bContext;
+struct wmKeyConfig;
+struct wmOperator;
 
 /* curve_ops.c */
 void    ED_operatortypes_curve(void);

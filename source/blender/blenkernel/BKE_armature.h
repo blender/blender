@@ -35,14 +35,14 @@
 
 struct Bone;
 struct GHash;
+struct ListBase;
 struct Main;
-struct bArmature;
-struct bPoseChannel;
-struct bConstraint;
-struct Scene;
 struct Object;
 struct PoseTree;
-struct ListBase;
+struct Scene;
+struct bArmature;
+struct bConstraint;
+struct bPoseChannel;
 
 typedef struct PoseTarget {
 	struct PoseTarget *next, *prev;
@@ -152,10 +152,10 @@ void BKE_pchan_bbone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 res
 	(PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
 
 /* Evaluation helpers */
+struct EvaluationContext;
 struct bKinematicConstraint;
 struct bPose;
 struct bSplineIKConstraint;
-struct EvaluationContext;
 
 struct bPoseChannel *BKE_armature_ik_solver_find_root(
         struct bPoseChannel *pchan,

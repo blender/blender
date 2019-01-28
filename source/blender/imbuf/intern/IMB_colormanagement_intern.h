@@ -38,8 +38,8 @@
 #include "DNA_listBase.h"
 #include "BLI_sys_types.h"
 
-struct OCIO_ConstProcessorRcPtr;
 struct ImBuf;
+struct OCIO_ConstProcessorRcPtr;
 
 extern float imbuf_luma_coefficients[3];
 

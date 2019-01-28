@@ -39,14 +39,14 @@
 
 struct ARegion;
 struct ARegionType;
+struct Main;
 struct View2D;
 struct bContext;
-struct Main;
-struct wmWindow;
 struct bNode;
-struct bNodeSocket;
 struct bNodeLink;
+struct bNodeSocket;
 struct wmKeyConfig;
+struct wmWindow;
 
 /* temp data to pass on to modal */
 typedef struct bNodeLinkDrag {

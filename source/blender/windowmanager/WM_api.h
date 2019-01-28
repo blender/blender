@@ -46,25 +46,25 @@
 extern "C" {
 #endif
 
-struct bContext;
+struct ARegion;
 struct GHashIterator;
 struct IDProperty;
+struct ImBuf;
+struct ImageFormatData;
+struct MenuType;
+struct PointerRNA;
+struct PropertyRNA;
+struct bContext;
+struct rcti;
+struct wmDrag;
+struct wmDropBox;
 struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
 struct wmJob;
-struct wmOperatorType;
 struct wmOperator;
+struct wmOperatorType;
 struct wmPaintCursor;
-struct rcti;
-struct PointerRNA;
-struct PropertyRNA;
-struct MenuType;
-struct wmDropBox;
-struct wmDrag;
-struct ImBuf;
-struct ImageFormatData;
-struct ARegion;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;

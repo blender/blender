@@ -52,8 +52,8 @@ struct DerivedMesh;
 class KX_GameObject;
 class KX_Scene;
 
-struct PHY_ShapeProps;
 struct PHY_MaterialProps;
+struct PHY_ShapeProps;
 class PHY_IMotionState;
 struct bRigidBodyJointConstraint;
 

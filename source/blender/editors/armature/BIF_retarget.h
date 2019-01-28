@@ -40,10 +40,10 @@ struct bContext;
 
 struct EditBone;
 
-struct RigGraph;
-struct RigNode;
 struct RigArc;
 struct RigEdge;
+struct RigGraph;
+struct RigNode;
 
 #define USE_THREADS
 

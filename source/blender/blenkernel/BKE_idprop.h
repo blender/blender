@@ -32,8 +32,8 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct IDProperty;
 struct ID;
+struct IDProperty;
 
 typedef union IDPropertyTemplate {
 	int i;

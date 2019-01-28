@@ -194,11 +194,11 @@ typedef struct BakeImBufuserData {
 } BakeImBufuserData;
 
 /* node shaders... */
-struct Tex;
-struct MTex;
 struct ImBuf;
 struct ImagePool;
+struct MTex;
 struct Object;
+struct Tex;
 
 /* this one uses nodes */
 int multitex_ext(struct Tex *tex,
@@ -222,8 +222,8 @@ void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, 
 float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta);
 
 /* shaded view and bake */
-struct Render;
 struct Image;
+struct Render;
 
 int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update, float *progress);
 struct Image *RE_bake_shade_get_image(void);

@@ -108,8 +108,8 @@ enum {
 	BC_YELLOW
 };
 
-struct wmWindow;
 struct wmEvent;
+struct wmWindow;
 
 bool wm_cursor_arrow_move(struct wmWindow *win, const struct wmEvent *event);
 

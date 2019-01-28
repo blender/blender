@@ -32,19 +32,19 @@
 #ifndef __BPY_EXTERN_H__
 #define __BPY_EXTERN_H__
 
-struct PathResolvedRNA;
-struct Text; /* defined in DNA_text_types.h */
-struct ID; /* DNA_ID.h */
-struct Object; /* DNA_object_types.h */
 struct ChannelDriver; /* DNA_anim_types.h */
+struct ID; /* DNA_ID.h */
 struct ListBase; /* DNA_listBase.h */
+struct Object; /* DNA_object_types.h */
+struct PathResolvedRNA;
+struct ReportList;
+struct Text; /* defined in DNA_text_types.h */
 struct bConstraint; /* DNA_constraint_types.h */
-struct bPythonConstraint; /* DNA_constraint_types.h */
 struct bConstraintOb; /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct bContext;
 struct bContextDataResult;
-struct ReportList;
+struct bPythonConstraint; /* DNA_constraint_types.h */
 
 #ifdef __cplusplus
 extern "C" {

@@ -41,9 +41,9 @@
 #endif
 
 class RAS_IRasterizer;
+struct Image;
 struct MTexPoly;
 struct Material;
-struct Image;
 struct Scene;
 class SCA_IScene;
 struct GameSettings;

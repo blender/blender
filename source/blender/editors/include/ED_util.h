@@ -31,11 +31,11 @@
 #ifndef __ED_UTIL_H__
 #define __ED_UTIL_H__
 
-struct bContext;
-struct wmOperatorType;
+struct PackedFile;
 struct ScrArea;
 struct SpaceLink;
-struct PackedFile;
+struct bContext;
+struct wmOperatorType;
 
 /* ed_util.c */
 

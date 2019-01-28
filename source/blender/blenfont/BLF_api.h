@@ -35,9 +35,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-struct rctf;
 struct ColorManagedDisplay;
 struct ResultBLF;
+struct rctf;
 
 int BLF_init(void);
 void BLF_exit(void);

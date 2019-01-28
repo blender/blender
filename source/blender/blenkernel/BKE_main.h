@@ -48,11 +48,11 @@
 extern "C" {
 #endif
 
+struct BLI_mempool;
 struct EvaluationContext;
+struct GHash;
 struct Library;
 struct MainLock;
-struct GHash;
-struct BLI_mempool;
 
 /* Blender thumbnail, as written on file (width, height, and data as char RGBA). */
 /* We pack pixel data after that struct. */

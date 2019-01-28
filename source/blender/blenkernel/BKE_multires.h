@@ -43,9 +43,9 @@ struct Object;
 struct Scene;
 
 struct MLoop;
-struct MVert;
-struct MPoly;
 struct MLoopTri;
+struct MPoly;
+struct MVert;
 
 /* Delete mesh mdisps and grid paint masks */
 void multires_customdata_delete(struct Mesh *me);

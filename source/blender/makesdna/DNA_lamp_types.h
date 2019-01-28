@@ -40,10 +40,10 @@
 #endif
 
 struct AnimData;
-struct bNodeTree;
 struct CurveMapping;
 struct Ipo;
 struct MTex;
+struct bNodeTree;
 
 typedef struct Lamp {
 	ID id;

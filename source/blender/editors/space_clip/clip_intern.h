@@ -32,7 +32,6 @@
 #ifndef __CLIP_INTERN_H__
 #define __CLIP_INTERN_H__
 
-struct bContext;
 struct ARegion;
 struct MovieClip;
 struct MovieTrackingMarker;
@@ -40,6 +39,7 @@ struct MovieTrackingTrack;
 struct Scene;
 struct ScrArea;
 struct SpaceClip;
+struct bContext;
 struct wmOperatorType;
 
 /* channel heights */

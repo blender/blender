@@ -34,12 +34,12 @@
 struct ColorManagedColorspaceSettings;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
-struct CurveMapping;
 struct CurveMap;
 struct CurveMapPoint;
-struct Scopes;
+struct CurveMapping;
 struct Histogram;
 struct ImBuf;
+struct Scopes;
 struct rctf;
 
 void                curvemapping_set_defaults(struct CurveMapping *cumap, int tot, float minx, float miny, float maxx, float maxy);

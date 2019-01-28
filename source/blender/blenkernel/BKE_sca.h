@@ -33,9 +33,9 @@
 
 struct Main;
 struct Object;
-struct bSensor;
-struct bController;
 struct bActuator;
+struct bController;
+struct bSensor;
 
 void link_logicbricks(void **poin, void ***ppoin, short *tot, short size);
 void unlink_logicbricks(void **poin, void ***ppoin, short *tot);

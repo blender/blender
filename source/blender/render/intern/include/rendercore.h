@@ -40,12 +40,12 @@
 
 #include "NOD_composite.h"
 
+struct RayObject;
+struct RenderLayer;
+struct RenderPart;
 struct ShadeInput;
 struct ShadeResult;
 struct World;
-struct RenderPart;
-struct RenderLayer;
-struct RayObject;
 
 /* ------------------------------------------------------------------------- */
 

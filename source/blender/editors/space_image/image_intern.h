@@ -33,13 +33,13 @@
 #define __IMAGE_INTERN_H__
 
 /* internal exports only */
-struct bContext;
 struct ARegion;
 struct ARegionType;
 struct ScrArea;
 struct SpaceImage;
-struct wmOperatorType;
+struct bContext;
 struct bNodeTree;
+struct wmOperatorType;
 
 /* space_image.c */
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);

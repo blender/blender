@@ -27,8 +27,8 @@
 #include "BLI_compiler_attrs.h"
 
 struct ID;
-struct Main;
 struct IDNameLib_Map;
+struct Main;
 
 struct IDNameLib_Map *BKE_main_idmap_create(
         struct Main *bmain)

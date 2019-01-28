@@ -40,8 +40,8 @@
 #include <vector>
 #include <algorithm>
 
-struct bArmature;
 struct Bone;
+struct bArmature;
 struct bConstraint;
 class BL_ActionActuator;
 class BL_ArmatureActuator;

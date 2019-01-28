@@ -89,10 +89,10 @@ struct Object;
 struct ParticleKey;
 struct ParticleSystem;
 struct PointCache;
+struct RigidBodyWorld;
 struct Scene;
 struct SmokeModifierData;
 struct SoftBody;
-struct RigidBodyWorld;
 
 struct OpenVDBReader;
 struct OpenVDBWriter;

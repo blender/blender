@@ -39,9 +39,9 @@
 #  include AUD_DEVICE_H
 #endif
 
-struct bSound;
 struct Main;
 struct Sequence;
+struct bSound;
 
 typedef struct SoundWaveform {
 	int length;

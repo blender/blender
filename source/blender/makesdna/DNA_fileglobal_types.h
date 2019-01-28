@@ -32,8 +32,8 @@
 #ifndef __DNA_FILEGLOBAL_TYPES_H__
 #define __DNA_FILEGLOBAL_TYPES_H__
 
-struct bScreen;
 struct Scene;
+struct bScreen;
 
 /**
  * FileGlobal stores a part of the current user-interface settings at

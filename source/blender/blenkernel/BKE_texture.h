@@ -37,16 +37,15 @@
 extern "C" {
 #endif
 
-struct bNode;
 struct Brush;
 struct ColorBand;
 struct EnvMap;
 struct FreestyleLineStyle;
 struct ImagePool;
 struct Lamp;
+struct MTex;
 struct Main;
 struct Material;
-struct MTex;
 struct OceanTex;
 struct ParticleSettings;
 struct PointDensity;
@@ -55,6 +54,7 @@ struct TexMapping;
 struct TexResult;
 struct VoxelData;
 struct World;
+struct bNode;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32

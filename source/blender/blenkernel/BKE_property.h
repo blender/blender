@@ -31,9 +31,9 @@
  *  \ingroup bke
  */
 
-struct bProperty;
 struct ListBase;
 struct Object;
+struct bProperty;
 
 void              BKE_bproperty_free(struct bProperty *prop);
 void              BKE_bproperty_free_list(struct ListBase *lb);

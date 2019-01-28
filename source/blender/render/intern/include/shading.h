@@ -26,16 +26,16 @@
  */
 
 
+struct Isect;
+struct LampRen;
+struct ObjectInstanceRen;
+struct PixStr;
+struct RenderLayer;
+struct RenderPart;
 struct ShadeInput;
 struct ShadeResult;
-struct RenderPart;
-struct RenderLayer;
-struct PixStr;
-struct LampRen;
-struct VlakRen;
 struct StrandPoint;
-struct ObjectInstanceRen;
-struct Isect;
+struct VlakRen;
 
 /* shadeinput.c */
 

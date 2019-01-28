@@ -35,8 +35,7 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-struct bMovieHandle;
-struct bNodeTree;
+struct EnvMap;
 struct Image;
 struct ImageFormatData;
 struct Main;
@@ -47,8 +46,9 @@ struct RenderResult;
 struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
-struct EnvMap;
 struct StampData;
+struct bMovieHandle;
+struct bNodeTree;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */

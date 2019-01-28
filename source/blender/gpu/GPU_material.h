@@ -41,28 +41,28 @@
 extern "C" {
 #endif
 
+struct GPULamp;
+struct GPUMaterial;
+struct GPUNode;
+struct GPUNodeLink;
+struct GPUNodeStack;
+struct GPUTexture;
+struct GPUVertexAttribs;
+struct Image;
 struct Image;
 struct ImageUser;
 struct Main;
 struct Material;
 struct Object;
-struct Image;
+struct PreviewImage;
 struct Scene;
 struct SceneRenderLayer;
-struct GPUVertexAttribs;
-struct GPUNode;
-struct GPUNodeLink;
-struct GPUNodeStack;
-struct GPUMaterial;
-struct GPUTexture;
-struct GPULamp;
-struct PreviewImage;
 struct World;
 
+typedef struct GPULamp GPULamp;
+typedef struct GPUMaterial GPUMaterial;
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
-typedef struct GPUMaterial GPUMaterial;
-typedef struct GPULamp GPULamp;
 typedef struct GPUParticleInfo GPUParticleInfo;
 
 /* Functions to create GPU Materials nodes */

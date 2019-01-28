@@ -28,9 +28,9 @@
 #ifndef __IDPROP_PY_API_H__
 #define __IDPROP_PY_API_H__
 
+struct BPy_IDGroup_Iter;
 struct ID;
 struct IDProperty;
-struct BPy_IDGroup_Iter;
 
 extern PyTypeObject BPy_IDArray_Type;
 extern PyTypeObject BPy_IDGroup_Iter_Type;

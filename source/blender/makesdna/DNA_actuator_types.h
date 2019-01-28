@@ -34,10 +34,10 @@
 #ifndef __DNA_ACTUATOR_TYPES_H__
 #define __DNA_ACTUATOR_TYPES_H__
 
-struct Object;
-struct Mesh;
-struct Scene;
 struct Group;
+struct Mesh;
+struct Object;
+struct Scene;
 struct Text;
 
 /* ****************** ACTUATORS ********************* */

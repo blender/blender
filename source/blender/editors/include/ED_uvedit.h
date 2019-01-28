@@ -31,10 +31,10 @@
 #define __ED_UVEDIT_H__
 
 struct ARegionType;
-struct BMesh;
 struct BMEditMesh;
 struct BMFace;
 struct BMLoop;
+struct BMesh;
 struct Image;
 struct ImageUser;
 struct MTexPoly;

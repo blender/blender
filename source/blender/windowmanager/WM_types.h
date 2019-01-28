@@ -106,11 +106,11 @@
 extern "C" {
 #endif
 
+struct ImBuf;
 struct bContext;
 struct wmEvent;
-struct wmWindowManager;
 struct wmOperator;
-struct ImBuf;
+struct wmWindowManager;
 
 #include "RNA_types.h"
 #include "DNA_listBase.h"

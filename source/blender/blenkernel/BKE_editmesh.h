@@ -34,12 +34,12 @@
 #include "BKE_customdata.h"
 #include "bmesh.h"
 
-struct BMesh;
 struct BMLoop;
-struct Mesh;
-struct Scene;
+struct BMesh;
 struct DerivedMesh;
+struct Mesh;
 struct MeshStatVis;
+struct Scene;
 
 /**
  * This structure is used for mesh edit-mode.

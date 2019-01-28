@@ -49,22 +49,22 @@ extern "C" {
 #include "DNA_gpu_types.h"
 #include "DNA_userdef_types.h"
 
-struct CurveMapping;
-struct Object;
-struct Brush;
-struct World;
-struct Scene;
-struct Image;
-struct Group;
-struct Text;
-struct bNodeTree;
 struct AnimData;
-struct Editing;
-struct SceneStats;
-struct bGPdata;
-struct bGPDbrush;
-struct MovieClip;
+struct Brush;
 struct ColorSpace;
+struct CurveMapping;
+struct Editing;
+struct Group;
+struct Image;
+struct MovieClip;
+struct Object;
+struct Scene;
+struct SceneStats;
+struct Text;
+struct World;
+struct bGPDbrush;
+struct bGPdata;
+struct bNodeTree;
 
 /* ************************************************************* */
 /* Scene Data */

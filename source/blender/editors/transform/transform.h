@@ -41,25 +41,25 @@
 
 /* ************************** Types ***************************** */
 
-struct TransInfo;
-struct TransData;
-struct TransformOrientation;
-struct TransSnap;
+struct ARegion;
+struct EditBone;
 struct NumInput;
 struct Object;
-struct View3D;
-struct ScrArea;
+struct ReportList;
 struct Scene;
+struct ScrArea;
+struct SnapObjectContext;
+struct TransData;
+struct TransInfo;
+struct TransSnap;
+struct TransformOrientation;
+struct View3D;
 struct bConstraint;
-struct wmKeyMap;
-struct wmKeyConfig;
 struct bContext;
 struct wmEvent;
+struct wmKeyConfig;
+struct wmKeyMap;
 struct wmTimer;
-struct ARegion;
-struct ReportList;
-struct EditBone;
-struct SnapObjectContext;
 
 /* transinfo->redraw */
 typedef enum {
@@ -202,8 +202,8 @@ typedef struct TransDataNla {
 	int handle;					/* handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends */
 } TransDataNla;
 
-struct LinkNode;
 struct GHash;
+struct LinkNode;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
 typedef struct TransDataGenericSlideVert {

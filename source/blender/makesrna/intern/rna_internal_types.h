@@ -33,17 +33,17 @@
 #include "RNA_types.h"
 
 struct BlenderRNA;
-struct ContainerRNA;
-struct StructRNA;
-struct PropertyRNA;
-struct PointerRNA;
-struct FunctionRNA;
 struct CollectionPropertyIterator;
-struct bContext;
-struct IDProperty;
+struct ContainerRNA;
+struct FunctionRNA;
 struct GHash;
+struct IDProperty;
 struct Main;
+struct PointerRNA;
+struct PropertyRNA;
 struct Scene;
+struct StructRNA;
+struct bContext;
 
 #ifdef UNIT_TEST
 #define RNA_MAX_ARRAY_LENGTH 64

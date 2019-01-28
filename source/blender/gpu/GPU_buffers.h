@@ -46,12 +46,12 @@ struct CCGElem;
 struct CCGKey;
 struct DMFlagMat;
 struct DerivedMesh;
-struct GSet;
-struct GPUVertPointLink;
 struct GPUDrawObject;
+struct GPUVertPointLink;
+struct GSet;
 struct GridCommonGPUBuffer;
-struct PBVH;
 struct MVert;
+struct PBVH;
 
 typedef struct GPUBuffer {
 	size_t size;        /* in bytes */

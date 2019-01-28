@@ -34,11 +34,11 @@
  */
 
 struct ID;
-struct bConstraint;
-struct bConstraintTarget;
 struct ListBase;
 struct Object;
 struct Scene;
+struct bConstraint;
+struct bConstraintTarget;
 struct bPoseChannel;
 
 /* ---------------------------------------------------------------------------- */

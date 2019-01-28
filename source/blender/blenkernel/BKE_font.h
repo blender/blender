@@ -37,11 +37,11 @@ extern "C" {
 
 #include <wchar.h>
 
-struct VFont;
-struct Object;
-struct Curve;
 struct CharInfo;
+struct Curve;
 struct Main;
+struct Object;
+struct VFont;
 
 struct CharTrans {
 	float xof, yof;

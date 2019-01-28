@@ -46,13 +46,13 @@
  * (So that you don't have to pass an enormous amount of arguments to functions)
  */
 
-struct Object;
-struct DerivedMesh;
-struct MVert;
-struct MDeformVert;
-struct ShrinkwrapModifierData;
-struct MDeformVert;
 struct BVHTree;
+struct DerivedMesh;
+struct MDeformVert;
+struct MDeformVert;
+struct MVert;
+struct Object;
+struct ShrinkwrapModifierData;
 struct SpaceTransform;
 
 

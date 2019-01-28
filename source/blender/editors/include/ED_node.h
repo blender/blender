@@ -34,17 +34,17 @@
 struct ID;
 struct Main;
 struct Scene;
+struct Scene;
+struct ScrArea;
 struct Tex;
+struct View2D;
 struct bContext;
-struct bNodeTree;
 struct bNode;
-struct bNodeType;
 struct bNodeSocketType;
 struct bNodeTree;
+struct bNodeTree;
 struct bNodeTreeType;
-struct ScrArea;
-struct Scene;
-struct View2D;
+struct bNodeType;
 
 typedef enum {
 	NODE_TOP    = 1,

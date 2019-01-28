@@ -32,15 +32,15 @@
 #ifndef __UVEDIT_INTERN_H__
 #define __UVEDIT_INTERN_H__
 
-struct MTexPoly;
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
 struct Image;
+struct MTexPoly;
 struct Object;
 struct Scene;
 struct SpaceImage;
 struct wmOperatorType;
-struct BMEditMesh;
-struct BMFace;
-struct BMLoop;
 
 /* visibility and selection */
 bool uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);

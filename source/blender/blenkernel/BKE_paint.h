@@ -32,31 +32,31 @@
  *  \ingroup bke
  */
 
-struct bContext;
-struct BMesh;
 struct BMFace;
+struct BMesh;
 struct Brush;
 struct CurveMapping;
-struct MeshElemMap;
 struct GridPaintMask;
-struct Main;
+struct ImagePool;
+struct MFace;
 struct MLoop;
 struct MLoopTri;
-struct MFace;
 struct MVert;
+struct Main;
+struct MeshElemMap;
 struct Object;
+struct PBVH;
 struct Paint;
 struct PaintCurve;
 struct Palette;
 struct PaletteColor;
-struct PBVH;
 struct ReportList;
 struct Scene;
 struct Sculpt;
 struct StrokeCache;
 struct Tex;
-struct ImagePool;
 struct UnifiedPaintSettings;
+struct bContext;
 
 enum eOverlayFlags;
 

@@ -37,9 +37,9 @@
 extern "C" {
 #endif
 
-struct bmGlyph;
 struct ImBuf;
 struct bmFont;
+struct bmGlyph;
 
 void printfGlyph(struct bmGlyph *glyph);
 void calcAlpha(struct ImBuf *ibuf);

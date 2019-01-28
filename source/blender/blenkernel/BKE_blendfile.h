@@ -28,13 +28,13 @@
 extern "C" {
 #endif
 
-struct bContext;
+struct BlendFileReadParams;
 struct ID;
 struct Main;
 struct MemFile;
 struct ReportList;
 struct UserDef;
-struct BlendFileReadParams;
+struct bContext;
 
 enum {
 	BKE_BLENDFILE_READ_FAIL             = 0, /* no load */

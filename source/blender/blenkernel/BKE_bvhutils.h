@@ -38,10 +38,10 @@
  * This header encapsulates necessary code to build a BVH
  */
 
-struct DerivedMesh;
 struct BMEditMesh;
-struct MVert;
+struct DerivedMesh;
 struct MFace;
+struct MVert;
 
 typedef struct LinkNode BVHCache;
 

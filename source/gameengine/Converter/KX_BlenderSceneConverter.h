@@ -51,9 +51,9 @@ class RAS_IPolyMaterial;
 class BL_InterpolatorList;
 class BL_Material;
 struct Main;
+struct Material;
 struct Scene;
 struct ThreadInfo;
-struct Material;
 
 typedef map<KX_Scene*, map<Material*, BL_Material*> > MaterialCache;
 typedef map<KX_Scene*, map<Material*, RAS_IPolyMaterial*> > PolyMaterialCache;

@@ -42,8 +42,8 @@
 //#endif
 
 struct CurveMapping;
-struct MTex;
 struct Image;
+struct MTex;
 
 typedef struct BrushClone {
 	struct Image *image;    /* image for clone tool */

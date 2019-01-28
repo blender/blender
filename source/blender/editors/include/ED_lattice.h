@@ -30,9 +30,9 @@
 #ifndef __ED_LATTICE_H__
 #define __ED_LATTICE_H__
 
-struct wmKeyConfig;
-struct UndoType;
 struct Object;
+struct UndoType;
+struct wmKeyConfig;
 
 /* lattice_ops.c */
 void ED_operatortypes_lattice(void);

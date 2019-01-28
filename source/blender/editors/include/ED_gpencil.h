@@ -32,24 +32,24 @@
 
 #include "ED_numinput.h"
 
-struct ID;
-struct ListBase;
-struct bContext;
-struct ScrArea;
 struct ARegion;
-struct View3D;
+struct ID;
+struct KeyframeEditData;
+struct ListBase;
 struct Object;
-struct bGPdata;
-struct bGPDlayer;
+struct PointerRNA;
+struct ScrArea;
+struct View3D;
+struct bAnimContext;
+struct bContext;
 struct bGPDframe;
-struct bGPDstroke;
+struct bGPDlayer;
 struct bGPDpalette;
 struct bGPDpalettecolor;
-struct bAnimContext;
-struct KeyframeEditData;
-struct PointerRNA;
-struct wmWindowManager;
+struct bGPDstroke;
+struct bGPdata;
 struct wmKeyConfig;
+struct wmWindowManager;
 
 
 /* ------------- Grease-Pencil Helpers ---------------- */

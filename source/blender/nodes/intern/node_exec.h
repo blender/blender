@@ -43,9 +43,9 @@
 
 #include "RNA_types.h"
 
-struct bNodeTree;
 struct bNode;
 struct bNodeStack;
+struct bNodeTree;
 
 /* Node execution data */
 typedef struct bNodeExec {

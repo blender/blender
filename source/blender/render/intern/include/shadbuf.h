@@ -64,8 +64,8 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3]);
  * Irregular shadowbuffer
  */
 
-struct MemArena;
 struct APixstr;
+struct MemArena;
 
 void ISB_create(RenderPart *pa, struct APixstr *apixbuf);
 void ISB_free(RenderPart *pa);

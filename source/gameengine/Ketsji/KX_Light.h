@@ -36,9 +36,9 @@
 
 #define MAX_LIGHT_LAYERS ((1 << 20) - 1)
 
+struct Base;
 struct GPULamp;
 struct Scene;
-struct Base;
 class KX_Camera;
 class RAS_IRasterizer;
 class RAS_ILightObject;

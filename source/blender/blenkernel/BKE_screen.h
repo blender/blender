@@ -34,6 +34,7 @@
  */
 
 struct ARegion;
+struct GPUFXSettings;
 struct Header;
 struct ID;
 struct ListBase;
@@ -52,7 +53,6 @@ struct wmKeyConfig;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
-struct GPUFXSettings;
 
 #include "BLI_compiler_attrs.h"
 

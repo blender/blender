@@ -29,8 +29,8 @@
 
 //#define RIGID_DEFORM
 
-struct Object;
 struct Mesh;
+struct Object;
 struct bDeformGroup;
 
 #ifdef RIGID_DEFORM

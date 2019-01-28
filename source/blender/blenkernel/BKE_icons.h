@@ -46,8 +46,8 @@ struct Icon {
 
 typedef struct Icon Icon;
 
-struct PreviewImage;
 struct ID;
+struct PreviewImage;
 
 enum eIconSizes;
 

@@ -55,8 +55,8 @@ extern void SYS_WriteCommandLineString(SYS_SystemHandle sys, const char *paramna
 
 /* Start game engine */
 
-struct bContext;
 struct ARegion;
+struct bContext;
 struct rcti;
 
 extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar,

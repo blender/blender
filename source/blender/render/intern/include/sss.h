@@ -53,8 +53,8 @@ void scatter_tree_free(ScatterTree *tree);
 
 /* Internal renderer API */
 
-struct Render;
 struct Material;
+struct Render;
 
 void make_sss_tree(struct Render *re);
 void sss_add_points(Render *re, float (*co)[3], float (*color)[3], float *area, int totpoint);
