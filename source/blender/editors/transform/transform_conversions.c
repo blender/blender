@@ -2087,7 +2087,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		ParticleEditSettings *pset = PE_settings(t->scene);
 		PTCacheEdit *edit = PE_get_current(t->scene, ob);
 		ParticleSystem *psys = NULL;
-		ParticleSystemModifierData *psmd = NULL;
 		PTCacheEditPoint *point;
 		PTCacheEditKey *key;
 		float mat[4][4];
@@ -2098,9 +2097,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		if (edit == NULL || t->settings->particle.selectmode == SCE_SELECT_PATH) return;
 
 		psys = edit->psys;
-
-		if (psys)
-			psmd = psys_get_modifier(ob, psys);
 
 		for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
 			point->flag &= ~PEP_TRANSFORM;
@@ -2146,8 +2142,10 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 			if (!(point->flag & PEP_TRANSFORM)) continue;
 
-			if (psys && !(psys->flag & PSYS_GLOBAL_HAIR))
-				psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, psys->particles + i, mat);
+			if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
+				ParticleSystemModifierData *psmd_eval = edit->psmd_eval;
+				psys_mat_hair_to_global(ob, psmd_eval->mesh_final, psys->part->from, psys->particles + i, mat);
+			}
 
 			for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
 				if (key->flag & PEK_USE_WCO) {
@@ -2206,16 +2204,12 @@ void flushTransParticles(TransInfo *t)
 		Object *ob = OBACT(view_layer);
 		PTCacheEdit *edit = PE_get_current(scene, ob);
 		ParticleSystem *psys = edit->psys;
-		ParticleSystemModifierData *psmd = NULL;
 		PTCacheEditPoint *point;
 		PTCacheEditKey *key;
 		TransData *td;
 		float mat[4][4], imat[4][4], co[3];
 		int i, k;
 		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-
-		if (psys)
-			psmd = psys_get_modifier(ob, psys);
 
 		/* we do transform in world space, so flush world space position
 		 * back to particle local space (only for hair particles) */
@@ -2224,7 +2218,8 @@ void flushTransParticles(TransInfo *t)
 			if (!(point->flag & PEP_TRANSFORM)) continue;
 
 			if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-				psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, psys->particles + i, mat);
+				ParticleSystemModifierData *psmd_eval = edit->psmd_eval;
+				psys_mat_hair_to_global(ob, psmd_eval->mesh_final, psys->part->from, psys->particles + i, mat);
 				invert_m4_m4(imat, mat);
 
 				for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
@@ -2244,6 +2239,7 @@ void flushTransParticles(TransInfo *t)
 		}
 
 		PE_update_object(t->depsgraph, scene, OBACT(view_layer), 1);
+		DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 	}
 }
 
