@@ -479,6 +479,11 @@ void BKE_subdiv_displacement_attach_from_multires(
 {
 	/* Make sure we don't have previously assigned displacement. */
 	BKE_subdiv_displacement_detach(subdiv);
+	/* It is possible to have mesh without MDISPS layer. Happens when using
+	 * dynamic topology. */
+	if (!CustomData_has_layer(&mesh->ldata, CD_MDISPS)) {
+		return;
+	}
 	/* Allocate all required memory. */
 	SubdivDisplacement *displacement = MEM_callocN(sizeof(SubdivDisplacement),
 	                                               "multires displacement");
