@@ -571,11 +571,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	updateDrawingContext();
 	activateDrawingContext();
 
-	if (m_systemCocoa->m_nativePixel) {
-		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
-		m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
-	}
-	
 	setTitle(title);
 	
 	m_tablet.Active = GHOST_kTabletModeNone;
@@ -598,6 +593,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
+
+	setNativePixelSize();
 
 	[pool drain];
 }
