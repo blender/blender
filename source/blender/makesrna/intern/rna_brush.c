@@ -1512,7 +1512,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gradient Spacing", "Spacing before brush gradient goes full circle");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop = RNA_def_property(srna, "smooth_stroke_radius", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "smooth_stroke_radius", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 10, 200);
 	RNA_def_property_ui_text(prop, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
