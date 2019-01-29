@@ -209,6 +209,7 @@ typedef struct BevelParams {
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int offset_type;        /* how offset is measured; enum defined in bmesh_operators.h */
 	int seg;                /* number of segments in beveled edge profile */
+	float profile;          /* user profile setting */
 	float pro_super_r;      /* superellipse parameter for edge profile */
 	bool vertex_only;       /* bevel vertices only */
 	bool use_weights;       /* bevel amount affected by weights on edges or verts */
@@ -3592,7 +3593,23 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 	float co[3], coa[3], cob[3], dir[3];
 	BoundVert *bndv;
 	MemArena *mem_arena = bp->mem_arena;
-	float r, fac, fullness;
+	float r, p, fullness;
+	/* best fullness for circles, segs = 2,4,6,8,10 */
+#define CIRCLE_FULLNESS_SEGS 11
+	static const float circle_fullness[CIRCLE_FULLNESS_SEGS] = {
+		0.0f,  /* nsegs ==1 */
+		0.559f,  /* 2 */
+		0.642f,  /* 3 */
+		0.551f,  /* 4 */
+		0.646f,  /* 5 */
+		0.624f,  /* 6 */
+		0.646f,  /* 7 */
+		0.619f,  /* 8 */
+		0.647f,  /* 9 */
+		0.639f,  /* 10 */
+		0.647f,  /* 11 */
+		};
+
 	n = bv->vmesh->count;
 
 	/* Same bevel as that of 3 edges of vert in a cube */
@@ -3624,20 +3641,25 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 	mul_v3_fl(co, 1.0f / (float)n);
 	sub_v3_v3v3(cob, co, coa);
 	add_v3_v3(cob, co);
+
+	/* An offline optimization process found fullness that let to closest fit to sphere as
+	 * a function of r and ns (for case of cube corner) */
 	r = bp->pro_super_r;
-	if (r == 1.0f)
+	p = bp->profile;
+	if (r == PRO_LINE_R) {
 		fullness = 0.0f;
-	else if (r > 1.0f) {
-		if (bp->vertex_only)
-			fac = 0.25f;
-		else if (r == PRO_SQUARE_R)
-			fac = -2.0;
-		else
-			fac = 0.5f;
-		fullness = 1.0f - fac / r;
+	}
+	else if (r == PRO_CIRCLE_R && ns > 0 && ns <= CIRCLE_FULLNESS_SEGS) {
+		fullness = circle_fullness[ns - 1];
 	}
 	else {
-		fullness = r - 1.0f;
+		/* linear regression fit found best linear function, separately for even/odd segs */
+		if (ns % 2 == 0) {
+			fullness = 2.4506f * p - 0.00000300f * ns - 0.6266f;
+		}
+		else {
+			fullness = 2.3635f * p + 0.000152f * ns - 0.6060f;
+		}
 	}
 	sub_v3_v3v3(dir, coa, co);
 	if (len_squared_v3(dir) > BEVEL_EPSILON_SQ)
@@ -6030,6 +6052,7 @@ void BM_mesh_bevel(
 	bp.offset = offset;
 	bp.offset_type = offset_type;
 	bp.seg    = segments;
+	bp.profile = profile;
 	bp.pro_super_r = -log(2.0) / log(sqrt(profile));  /* convert to superellipse exponent */
 	bp.vertex_only = vertex_only;
 	bp.use_weights = use_weights;
