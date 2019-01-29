@@ -339,6 +339,19 @@ static void workbench_init_object_data(DrawData *dd)
 	data->shadow_bbox_dirty = true;
 }
 
+static void workbench_init_oit_framebuffer(WORKBENCH_FramebufferList *fbl, DefaultTextureList *dtxl)
+{
+	const float *size = DRW_viewport_size_get();
+	e_data.oit_accum_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
+	e_data.oit_revealage_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16F, &draw_engine_workbench_solid);
+
+	GPU_framebuffer_ensure_config(&fbl->transparent_accum_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+		GPU_ATTACHMENT_TEXTURE(e_data.oit_accum_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.oit_revealage_tx),
+	});
+}
+
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 {
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
@@ -460,10 +473,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		if (CAVITY_ENABLED(wpd)) {
 			e_data.cavity_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16, &draw_engine_workbench_solid);
 		}
-		if (OIT_ENABLED(wpd)) {
-			e_data.oit_accum_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
-			e_data.oit_revealage_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16F, &draw_engine_workbench_solid);
-		}
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -497,13 +506,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 			GPU_framebuffer_ensure_config(&fbl->id_clear_fb, {
 				GPU_ATTACHMENT_NONE,
 				GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
-			});
-		}
-		if (OIT_ENABLED(wpd)) {
-			GPU_framebuffer_ensure_config(&fbl->transparent_accum_fb, {
-				GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-				GPU_ATTACHMENT_TEXTURE(e_data.oit_accum_tx),
-				GPU_ATTACHMENT_TEXTURE(e_data.oit_revealage_tx),
 			});
 		}
 	}
@@ -1180,7 +1182,11 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	GPU_framebuffer_bind(fbl->composite_fb);
 	DRW_draw_pass(psl->background_pass);
 
-	if (OIT_ENABLED(wpd)) {
+	if (OIT_ENABLED(wpd) && !DRW_pass_is_empty(psl->transparent_accum_pass)) {
+		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+		/* meh, late init to not request buffers we won't use. */
+		workbench_init_oit_framebuffer(fbl, dtxl);
+
 		const float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 		GPU_framebuffer_bind(fbl->transparent_accum_fb);
 		GPU_framebuffer_clear_color(fbl->transparent_accum_fb, clear_color);
