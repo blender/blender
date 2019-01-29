@@ -114,6 +114,33 @@ void BLO_update_defaults_userpref_blend(void)
 	BKE_keyconfig_pref_set_select_mouse(&U, 0, true);
 }
 
+
+/**
+ * Rename if the ID doesn't exist.
+ */
+static ID *rename_id_for_versioning(Main *bmain, const short id_type, const char *name_src, const char *name_dst)
+{
+	/* We can ignore libraries */
+	ListBase *lb = which_libbase(bmain, id_type);
+	ID *id = NULL;
+	for (ID *idtest = lb->first; idtest; idtest = idtest->next) {
+		if (idtest->lib == NULL) {
+			if (STREQ(idtest->name + 2, name_src)) {
+				id = idtest;
+			}
+			if (STREQ(idtest->name + 2, name_dst)) {
+				return NULL;
+			}
+		}
+	}
+	if (id != NULL) {
+		BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
+		/* We know it's unique, this just sorts. */
+		BLI_libblock_ensure_unique_name(bmain, id->name);
+	}
+	return id;
+}
+
 /**
  * Update defaults in startup.blend, without having to save and embed the file.
  * This function can be emptied each time the startup.blend is updated. */
@@ -176,6 +203,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 				WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook, workspace);
 				bScreen *screen = layout->screen;
 				BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
+				BLI_libblock_ensure_unique_name(bmain, screen->id.name);
 			}
 		}
 
@@ -300,16 +328,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 		}
 
 		/* Rename lamp objects. */
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-			if (STREQ(ob->id.name, "OBLamp")) {
-				STRNCPY(ob->id.name, "OBLight");
-			}
-		}
-		for (Lamp *lamp = bmain->lamp.first; lamp; lamp = lamp->id.next) {
-			if (STREQ(lamp->id.name, "LALamp")) {
-				STRNCPY(lamp->id.name, "LALight");
-			}
-		}
+		rename_id_for_versioning(bmain, ID_OB, "Lamp", "Light");
+		rename_id_for_versioning(bmain, ID_LA, "Lamp", "Light");
 
 		for (Mesh *mesh = bmain->mesh.first; mesh; mesh = mesh->id.next) {
 			/* Match default for new meshes. */
