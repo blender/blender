@@ -154,7 +154,8 @@ typedef struct Material {
 	float gloss_mir  DNA_DEPRECATED;
 	float roughness;
 	float metallic;
-	float pad4[2];
+	float transparency;
+	float pad4;
 
 	/* Ror buttons and render. */
 	char pr_type, use_nodes;

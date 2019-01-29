@@ -42,6 +42,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene = draw_ctx->scene;
 	wpd->material_hash = BLI_ghash_ptr_new(__func__);
+	wpd->material_transp_hash = BLI_ghash_ptr_new(__func__);
 	wpd->preferences = &U;
 
 	View3D *v3d = draw_ctx->v3d;
@@ -216,6 +217,7 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd)
 {
 	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
+	BLI_ghash_free(wpd->material_transp_hash, NULL, MEM_freeN);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
 	DRW_UBO_FREE_SAFE(wpd->dof_ubo);
 	GPU_BATCH_DISCARD_SAFE(wpd->world_clip_planes_batch);

@@ -61,6 +61,8 @@
 #define CAVITY_ENABLED(wpd) (CURVATURE_ENABLED(wpd) || SSAO_ENABLED(wpd))
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 #define GHOST_ENABLED(psl) (!DRW_pass_is_empty(psl->ghost_prepass_pass) || !DRW_pass_is_empty(psl->ghost_prepass_hair_pass))
+#define CULL_BACKFACE_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_BACKFACE_CULLING) != 0)
+#define OIT_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_MATERIAL_COLOR)
 
 #define IS_NAVIGATING(wpd) ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
 #define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && \
@@ -135,6 +137,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *shadow_depth_fail_caps_mani_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
+	struct DRWPass *oit_composite_pass;
 	struct DRWPass *background_pass;
 	struct DRWPass *background_pass_clip;
 	struct DRWPass *ghost_resolve_pass;
@@ -190,6 +193,7 @@ BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
 typedef struct WORKBENCH_PrivateData {
 	struct GHash *material_hash;
+	struct GHash *material_transp_hash;
 	struct GPUShader *prepass_solid_sh;
 	struct GPUShader *prepass_solid_hair_sh;
 	struct GPUShader *prepass_texture_sh;
@@ -316,6 +320,12 @@ void workbench_forward_draw_finish(WORKBENCH_Data *vedata);
 void workbench_forward_cache_init(WORKBENCH_Data *vedata);
 void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
+
+/* For OIT in deferred */
+void workbench_forward_outline_shaders_ensure(WORKBENCH_PrivateData *wpd);
+void workbench_forward_choose_shaders(WORKBENCH_PrivateData *wpd);
+WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
+        WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int color_type, int interp);
 
 /* workbench_effect_aa.c */
 void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx);
