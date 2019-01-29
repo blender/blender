@@ -124,7 +124,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (is_modal) {
-		RNA_float_set(op->ptr, "thickness", 0.01f);
+		RNA_float_set(op->ptr, "thickness", 0.0f);
 		RNA_float_set(op->ptr, "depth", 0.0f);
 	}
 
@@ -148,7 +148,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		opdata->ob_store_len = objects_used_len;
 	}
 
-	opdata->old_thickness = 0.01;
+	opdata->old_thickness = 0.0;
 	opdata->old_depth = 0.0;
 	opdata->modify_depth = false;
 	opdata->shift = false;
@@ -566,7 +566,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	        ot->srna, "use_edge_rail",
 	        false, "Edge Rail", "Inset the region along existing edges");
 
-	prop = RNA_def_float_distance(ot->srna, "thickness", 0.01f, 0.0f, 1e12f, "Thickness", "", 0.0f, 10.0f);
+	prop = RNA_def_float_distance(ot->srna, "thickness", 0.0f, 0.0f, 1e12f, "Thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
 
