@@ -52,6 +52,10 @@
 /** Make sure all ID's created at the point we add an undo step that uses ID's. */
 #define WITH_GLOBAL_UNDO_ENSURE_UPDATED
 
+/** Make sure we don't apply edits ontop of a newer memfile state, see: T56163.
+ * \note Keep an eye on this, could solve differently. */
+#define WITH_GLOBAL_UNDO_CORRECT_ORDER
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"bke.undosys"};
 
@@ -142,7 +146,7 @@ static void undosys_id_ref_resolve(void *user_data, UndoRefID *id_ref)
 	}
 }
 
-static bool undosys_step_encode(bContext *C, UndoStep *us)
+static bool undosys_step_encode(bContext *C, UndoStack *ustack, UndoStep *us)
 {
 	CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 	UNDO_NESTED_CHECK_BEGIN;
@@ -154,6 +158,11 @@ static bool undosys_step_encode(bContext *C, UndoStep *us)
 			Main *bmain = G.main;
 			us->type->step_foreach_ID_ref(us, undosys_id_ref_store, bmain);
 		}
+#ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
+		if (us->type == BKE_UNDOSYS_TYPE_MEMFILE) {
+			ustack->step_active_memfile = us;
+		}
+#endif
 	}
 	if (ok == false) {
 		CLOG_INFO(&LOG, 2, "encode callback didn't create undo step");
@@ -161,10 +170,28 @@ static bool undosys_step_encode(bContext *C, UndoStep *us)
 	return ok;
 }
 
-static void undosys_step_decode(bContext *C, UndoStep *us, int dir)
+static void undosys_step_decode(bContext *C, UndoStack *ustack, UndoStep *us, int dir)
 {
 	CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
+
 	if (us->type->step_foreach_ID_ref) {
+#ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
+		if (us->type != BKE_UNDOSYS_TYPE_MEMFILE) {
+			for (UndoStep *us_iter = us->prev; us_iter; us_iter = us_iter->prev) {
+				if (us_iter->type == BKE_UNDOSYS_TYPE_MEMFILE) {
+					if (us_iter == ustack->step_active_memfile) {
+						/* Common case, we're already using the last memfile state. */
+					}
+					else {
+						/* Load the previous memfile state so any ID's referenced in this
+						 * undo step will be correctly resolved, see: T56163. */
+						undosys_step_decode(C, ustack, us_iter, dir);
+					}
+					break;
+				}
+			}
+		}
+#endif
 		/* Don't use from context yet because sometimes context is fake and not all members are filled in. */
 		Main *bmain = G.main;
 		us->type->step_foreach_ID_ref(us, undosys_id_ref_resolve, bmain);
@@ -173,6 +200,12 @@ static void undosys_step_decode(bContext *C, UndoStep *us, int dir)
 	UNDO_NESTED_CHECK_BEGIN;
 	us->type->step_decode(C, us, dir);
 	UNDO_NESTED_CHECK_END;
+
+#ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
+	if (us->type == BKE_UNDOSYS_TYPE_MEMFILE) {
+		ustack->step_active_memfile = us;
+	}
+#endif
 }
 
 static void undosys_step_free_and_unlink(UndoStack *ustack, UndoStep *us)
@@ -184,6 +217,12 @@ static void undosys_step_free_and_unlink(UndoStack *ustack, UndoStep *us)
 
 	BLI_remlink(&ustack->steps, us);
 	MEM_freeN(us);
+
+#ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
+	if (ustack->step_active_memfile == us) {
+		ustack->step_active_memfile = NULL;
+	}
+#endif
 }
 
 /** \} */
@@ -484,6 +523,9 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 				UndoStep *us = ustack->steps.last;
 				BLI_assert(STREQ(us->name, name_internal));
 				us->skip = true;
+#ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
+				ustack->step_active_memfile = us;
+#endif
 			}
 		}
 	}
@@ -497,7 +539,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 	us->type = ut;
 	/* initialized, not added yet. */
 
-	if (undosys_step_encode(C, us)) {
+	if (undosys_step_encode(C, ustack, us)) {
 		ustack->step_active = us;
 		BLI_addtail(&ustack->steps, us);
 		undosys_stack_validate(ustack, true);
@@ -604,14 +646,14 @@ bool BKE_undosys_step_undo_with_data_ex(
 			UndoStep *us_iter = ustack->step_active;
 			while (us_iter != us) {
 				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
-					undosys_step_decode(C, us_iter, -1);
+					undosys_step_decode(C, ustack, us_iter, -1);
 				}
 				us_iter = us_iter->prev;
 			}
 		}
 
 		if (us->type->mode != BKE_UNDOTYPE_MODE_ACCUMULATE) {
-			undosys_step_decode(C, us, -1);
+			undosys_step_decode(C, ustack, us, -1);
 		}
 		ustack->step_active = us_prev;
 		undosys_stack_validate(ustack, true);
@@ -659,14 +701,14 @@ bool BKE_undosys_step_redo_with_data_ex(
 			UndoStep *us_iter = ustack->step_active->next;
 			while (us_iter != us) {
 				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
-					undosys_step_decode(C, us_iter, 1);
+					undosys_step_decode(C, ustack, us_iter, 1);
 				}
 				us_iter = us_iter->next;
 			}
 		}
 
 		/* Unlike undo, always redo accumulation state. */
-		undosys_step_decode(C, us, 1);
+		undosys_step_decode(C, ustack, us, 1);
 		ustack->step_active = us_next;
 		if (use_skip) {
 			if (ustack->step_active && ustack->step_active->skip) {

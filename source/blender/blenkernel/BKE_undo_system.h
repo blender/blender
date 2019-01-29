@@ -49,6 +49,11 @@ UNDO_REF_ID_TYPE(Text);
 typedef struct UndoStack {
 	ListBase         steps;
 	struct UndoStep *step_active;
+	/**
+	 * The last memfile state read, used so we can be sure the names from the
+	 * library state matches the state an undo step was written in.
+	 */
+	struct UndoStep *step_active_memfile;
 
 	/**
 	 * Some undo systems require begin/end, see: #UndoType.step_encode_init
