@@ -30,6 +30,7 @@
 #include "render/shader.h"
 #include "render/stats.h"
 
+#include "util/util_algorithm.h"
 #include "util/util_color.h"
 #include "util/util_foreach.h"
 #include "util/util_function.h"
@@ -1395,9 +1396,15 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 		return;
 	}
 
-	const int num_samples_per_chunk = (int)ceilf((float)num_samples / num_resumable_chunks);
+	if (num_resumable_chunks > num_samples) {
+		fprintf(stderr, "Cycles warning: more sample chunks (%d) than samples (%d), "
+		        "this will cause some samples to be included in multiple chunks.\n",
+		        num_resumable_chunks, num_samples);
+	}
 
-	int range_start_sample, range_num_samples;
+	const float num_samples_per_chunk = (float)num_samples / num_resumable_chunks;
+
+	float range_start_sample, range_num_samples;
 	if(current_resumable_chunk != 0) {
 		/* Single chunk rendering. */
 		range_start_sample = num_samples_per_chunk * (current_resumable_chunk - 1);
@@ -1409,19 +1416,25 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 		range_start_sample = num_samples_per_chunk * (start_resumable_chunk - 1);
 		range_num_samples = num_chunks * num_samples_per_chunk;
 	}
+
+	/* Round after doing the multiplications with num_chunks and num_samples_per_chunk
+	 * to allow for many small chunks. */
+	int rounded_range_start_sample = (int)floor(range_start_sample + 0.5f);
+	int rounded_range_num_samples = max((int)floor(range_num_samples + 0.5f), 1);
+
 	/* Make sure we don't overshoot. */
-	if(range_start_sample + range_num_samples > num_samples) {
-		range_num_samples = num_samples - range_num_samples;
+	if(rounded_range_start_sample + rounded_range_num_samples > num_samples) {
+		rounded_range_num_samples = num_samples - rounded_range_num_samples;
 	}
 
 	VLOG(1) << "Samples range start is " << range_start_sample << ", "
 	        << "number of samples to render is " << range_num_samples;
 
-	scene->integrator->start_sample = range_start_sample;
+	scene->integrator->start_sample = rounded_range_start_sample;
 	scene->integrator->tag_update(scene);
 
-	session->tile_manager.range_start_sample = range_start_sample;
-	session->tile_manager.range_num_samples = range_num_samples;
+	session->tile_manager.range_start_sample = rounded_range_start_sample;
+	session->tile_manager.range_num_samples = rounded_range_num_samples;
 }
 
 void BlenderSession::free_blender_memory_if_possible()
