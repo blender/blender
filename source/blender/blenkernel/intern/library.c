@@ -999,6 +999,37 @@ void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
 	}
 }
 
+void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
+{
+	int lb_len = 0;
+	for (ID *id = lb->first; id; id = id->next) {
+		if (id->lib == NULL) {
+			lb_len += 1;
+		}
+	}
+	if (lb_len <= 1) {
+		return;
+	}
+
+	/* Fill an array because renaming sorts. */
+	ID **id_array = MEM_mallocN(sizeof(*id_array) * lb_len, __func__);
+	GSet *gset = BLI_gset_str_new_ex(__func__, lb_len);
+	int i = 0;
+	for (ID *id = lb->first; id; id = id->next) {
+		if (id->lib == NULL) {
+			id_array[i] = id;
+			i++;
+		}
+	}
+	for (i = 0; i < lb_len; i++) {
+		if (!BLI_gset_add(gset, id_array[i]->name + 2)) {
+			new_id(lb, id_array[i], NULL);
+		}
+	}
+	BLI_gset_free(gset, NULL);
+	MEM_freeN(id_array);
+}
+
 void BKE_main_lib_objects_recalc_all(Main *bmain)
 {
 	Object *ob;
