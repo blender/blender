@@ -943,6 +943,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 			if ((ob->col[3] < 1.0f) &&
 			    (wpd->shading.color_type == V3D_SHADING_OBJECT_COLOR))
 			{
+				/* Hack */
 				wpd->shading.xray_alpha = ob->col[3];
 				material = workbench_forward_get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
 				has_transp_mat = true;
@@ -978,10 +979,9 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				for (int i = 0; i < materials_len; ++i) {
 					if (geoms != NULL && geoms[i] != NULL) {
 						Material *mat = give_current_material(ob, i + 1);
-						if (mat != NULL && mat->transparency > 0.0) {
+						if (mat != NULL && mat->a < 1.0f) {
 							/* Hack */
-							wpd->shading.xray_alpha = 1.0f - mat->transparency;
-							CLAMP(wpd->shading.xray_alpha, 0.0, 1.0);
+							wpd->shading.xray_alpha = mat->a;
 							material = workbench_forward_get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR, 0);
 							has_transp_mat = true;
 						}

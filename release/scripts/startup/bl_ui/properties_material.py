@@ -258,7 +258,6 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
         col.prop(mat, "diffuse_color", text="Color")
         col.prop(mat, "metallic")
         col.prop(mat, "roughness")
-        col.prop(mat, "transparency")
 
     def draw(self, context):
         self.draw_shared(self, context.material)

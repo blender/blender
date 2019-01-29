@@ -354,7 +354,7 @@ static void rna_def_material_display(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
-	RNA_def_property_array(prop, 3);
+	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Diffuse Color", "Diffuse color of the material");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
@@ -383,12 +383,6 @@ static void rna_def_material_display(StructRNA *srna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Metallic", "Amount of mirror reflection for raytrace");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
-
-	prop = RNA_def_property(srna, "transparency", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "transparency");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Transparency", "Amount of transparency in solid mode");
-	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	/* Freestyle line color */
 	prop = RNA_def_property(srna, "line_color", PROP_FLOAT, PROP_COLOR);
