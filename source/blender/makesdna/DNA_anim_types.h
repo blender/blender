@@ -520,8 +520,7 @@ typedef enum eDriver_Types {
 typedef enum eDriver_Flags {
 		/* driver has invalid settings (internal flag)  */
 	DRIVER_FLAG_INVALID		= (1<<0),
-		/* driver needs recalculation (set by depsgraph) */
-	DRIVER_FLAG_RECALC		= (1<<1),
+	DRIVER_FLAG_DEPRECATED	= (1<<1),
 		/* driver does replace value, but overrides (for layering of animation over driver) */
 		// TODO: this needs to be implemented at some stage or left out...
 	//DRIVER_FLAG_LAYERING	= (1<<2),
@@ -1058,8 +1057,7 @@ typedef struct AnimData {
 		/* settings for animation evaluation */
 	/** User-defined settings. */
 	int flag;
-	/** Depsgraph recalculation flags. */
-	int recalc;
+	int pad;
 
 		/* settings for active action evaluation (based on NLA strip settings) */
 	/** Accumulation mode for active action. */
@@ -1099,13 +1097,6 @@ typedef enum eAnimData_Flag {
 		/* F-Curves from this AnimData block are always visible */
 	ADT_CURVES_ALWAYS_VISIBLE = (1<<17),
 } eAnimData_Flag;
-
-/* Animation Data recalculation settings (to be set by depsgraph) */
-typedef enum eAnimData_Recalc {
-	ADT_RECALC_DRIVERS      = (1 << 0),
-	ADT_RECALC_ANIM         = (1 << 1),
-	ADT_RECALC_ALL          = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM),
-} eAnimData_Recalc;
 
 /* Base Struct for Anim ------------------------------------- */
 

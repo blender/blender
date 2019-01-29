@@ -1516,7 +1516,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 			}
 
 			/* Force update of animdata */
-			adt->recalc |= ADT_RECALC_ANIM;
+			DEG_id_tag_update(&obact->id, ID_RECALC_ANIMATION);
 		}
 
 		/* force depsgraph flush too */

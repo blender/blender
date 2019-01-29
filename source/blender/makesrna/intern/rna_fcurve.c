@@ -622,8 +622,6 @@ static void rna_FModifier_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	 */
 	DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 	if (adt != NULL) {
-		adt->recalc |= ADT_RECALC_ANIM;
-
 		if (adt->action != NULL) {
 			/* action is separate datablock, needs separate tag */
 			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);

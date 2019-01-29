@@ -1764,7 +1764,7 @@ static void animsys_evaluate_drivers(PointerRNA *ptr, AnimData *adt, float ctime
 		if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
 			/* check if driver itself is tagged for recalculation */
 			/* XXX driver recalc flag is not set yet by depsgraph! */
-			if ((driver) && !(driver->flag & DRIVER_FLAG_INVALID) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {
+			if ((driver) && !(driver->flag & DRIVER_FLAG_INVALID)) {
 				/* evaluate this using values set already in other places
 				 * NOTE: for 'layering' option later on, we should check if we should remove old value before adding
 				 *       new to only be done when drivers only changed */
@@ -1774,9 +1774,6 @@ static void animsys_evaluate_drivers(PointerRNA *ptr, AnimData *adt, float ctime
 					const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
 					ok = animsys_write_rna_setting(&anim_rna, curval);
 				}
-
-				/* clear recalc flag */
-				driver->flag &= ~DRIVER_FLAG_RECALC;
 
 				/* set error-flag if evaluation failed */
 				if (ok == 0)
@@ -3513,7 +3510,7 @@ void BKE_animsys_evaluate_animdata(Depsgraph *depsgraph, Scene *scene, ID *id, A
 	 *   that overrides 'rough' work in NLA
 	 */
 	/* TODO: need to double check that this all works correctly */
-	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM)) {
+	if (recalc & ADT_RECALC_ANIM) {
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF)) {
 			/* evaluate NLA-stack
@@ -3524,9 +3521,6 @@ void BKE_animsys_evaluate_animdata(Depsgraph *depsgraph, Scene *scene, ID *id, A
 		/* evaluate Active Action only */
 		else if (adt->action)
 			animsys_evaluate_action_ex(depsgraph, &id_ptr, adt->action, ctime);
-
-		/* reset tag */
-		adt->recalc &= ~ADT_RECALC_ANIM;
 	}
 
 	/* recalculate drivers
@@ -3534,10 +3528,7 @@ void BKE_animsys_evaluate_animdata(Depsgraph *depsgraph, Scene *scene, ID *id, A
 	 *   or be layered on top of existing animation data.
 	 * - Drivers should be in the appropriate order to be evaluated without problems...
 	 */
-	if ((recalc & ADT_RECALC_DRIVERS)
-	    /* XXX for now, don't check yet, as depsgraph hasn't been updated */
-	    /* && (adt->recalc & ADT_RECALC_DRIVERS)*/)
-	{
+	if (recalc & ADT_RECALC_DRIVERS) {
 		animsys_evaluate_drivers(&id_ptr, adt, ctime);
 	}
 
@@ -3555,9 +3546,6 @@ void BKE_animsys_evaluate_animdata(Depsgraph *depsgraph, Scene *scene, ID *id, A
 		RNA_property_update_cache_flush(bmain, scene);
 		RNA_property_update_cache_free();
 	}
-
-	/* clear recalc flag now */
-	adt->recalc = 0;
 }
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only
@@ -3705,8 +3693,7 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
 	                      * which should get handled as part of the dependency graph instead...
 	                      */
 	DEG_debug_print_eval_time(depsgraph, __func__, id->name, id, ctime);
-	short recalc = ADT_RECALC_ANIM;
-	BKE_animsys_evaluate_animdata(depsgraph, scene, id, adt, ctime, recalc);
+	BKE_animsys_evaluate_animdata(depsgraph, scene, id, adt, ctime, ADT_RECALC_ANIM);
 }
 
 void BKE_animsys_update_driver_array(ID *id)
@@ -3758,7 +3745,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 	if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
 		/* check if driver itself is tagged for recalculation */
 		/* XXX driver recalc flag is not set yet by depsgraph! */
-		if ((driver_orig) && !(driver_orig->flag & DRIVER_FLAG_INVALID) /*&& (driver_orig->flag & DRIVER_FLAG_RECALC)*/) {
+		if ((driver_orig) && !(driver_orig->flag & DRIVER_FLAG_INVALID)) {
 			/* evaluate this using values set already in other places
 			 * NOTE: for 'layering' option later on, we should check if we should remove old value before adding
 			 *       new to only be done when drivers only changed */
@@ -3796,11 +3783,6 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 					}
 				}
 			}
-
-			//printf("\tnew val = %f\n", fcu->curval);
-
-			/* clear recalc flag */
-			driver_orig->flag &= ~DRIVER_FLAG_RECALC;
 
 			/* set error-flag if evaluation failed */
 			if (ok == 0) {

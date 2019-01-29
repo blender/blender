@@ -399,13 +399,6 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 
 		eval_time = domainSettings->bakeStart + i;
 
-		/* XXX: This can't be used due to an anim sys optimization that ignores recalc object animation,
-		 * leaving it for the depgraph (this ignores object animation such as modifier properties though... :/ )
-		 * --> BKE_animsys_evaluate_all_animation(CTX_data_main(C), eval_time);
-		 * This doesn't work with drivers:
-		 * --> BKE_animsys_evaluate_animdata(&fsDomain->id, fsDomain->adt, eval_time, ADT_RECALC_ALL);
-		 */
-
 		/* Modifying the global scene isn't nice, but we can do it in
 		 * this part of the process before a threaded job is created */
 		scene->r.cfra = (int)eval_time;

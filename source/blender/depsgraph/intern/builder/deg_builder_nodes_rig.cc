@@ -166,13 +166,6 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
 	if (object->pose == NULL || (object->pose->flag & POSE_RECALC)) {
 		/* By definition, no need to tag depsgraph as dirty from here, so we can pass NULL bmain. */
 		BKE_pose_rebuild(NULL, object, armature, true);
-		/* XXX: Without this animation gets lost in certain circumstances
-		 * after loading file. Need to investigate further since it does
-		 * not happen with simple scenes..
-		 */
-		if (object->adt) {
-			object->adt->recalc |= ADT_RECALC_ANIM;
-		}
 	}
 	/* Speed optimization for animation lookups. */
 	if (object->pose != NULL) {

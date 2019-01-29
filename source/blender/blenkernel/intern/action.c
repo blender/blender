@@ -1470,7 +1470,6 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 		/* init animdata, and attach to workob */
 		workob->adt = &adt;
 
-		adt.recalc = ADT_RECALC_ANIM;
 		adt.action = act;
 
 		/* execute effects of Action on to workob (or it's PoseChannels) */

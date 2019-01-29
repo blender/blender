@@ -5791,7 +5791,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		skip_invert = true;
 
 	if (skip_invert == false && constinv == false) {
-		ob->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc_time checks this */
+		ob->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc checks this */
 		BKE_object_where_is_calc(t->depsgraph, t->scene, ob);
 		ob->transflag &= ~OB_NO_CONSTRAINTS;
 	}

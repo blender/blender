@@ -5962,8 +5962,6 @@ static int dynamicPaint_doStep(
 					    psys_check_enabled(brushObj, brush->psys, for_render))
 					{
 						/* Paint a particle system */
-						BKE_animsys_evaluate_animdata(depsgraph, scene, &brush->psys->part->id, brush->psys->part->adt,
-						                              BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 						dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
 					}
 					/* Object center distance: */

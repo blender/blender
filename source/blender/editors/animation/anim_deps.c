@@ -77,7 +77,6 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 	/* tag AnimData for refresh so that other views will update in realtime with these changes */
 	adt = BKE_animdata_from_id(id);
 	if (adt) {
-		adt->recalc |= ADT_RECALC_ANIM;
 		DEG_id_tag_update(id, ID_RECALC_ANIMATION);
 		if (adt->action != NULL) {
 			DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
@@ -117,13 +116,6 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
 void ANIM_id_update(Main *bmain, ID *id)
 {
 	if (id) {
-		AnimData *adt = BKE_animdata_from_id(id);
-
-		/* tag AnimData for refresh so that other views will update in realtime with these changes */
-		if (adt)
-			adt->recalc |= ADT_RECALC_ANIM;
-
-		/* set recalc flags */
 		DEG_id_tag_update_ex(bmain, id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION); // XXX or do we want something more restrictive?
 	}
 }

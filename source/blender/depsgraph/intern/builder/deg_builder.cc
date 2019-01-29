@@ -132,12 +132,6 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		ID *id = id_node->id_orig;
 		id_node->finalize_build(graph);
 		int flag = 0;
-		if ((id->recalc & ID_RECALC_ALL)) {
-			AnimData *adt = BKE_animdata_from_id(id);
-			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM) != 0) {
-				flag |= ID_RECALC_ANIMATION;
-			}
-		}
 		/* Tag rebuild if special evaluation flags changed. */
 		if (id_node->eval_flags != id_node->previous_eval_flags) {
 			flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
