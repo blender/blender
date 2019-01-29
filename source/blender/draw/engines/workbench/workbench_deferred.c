@@ -699,11 +699,6 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 		workbench_private_data_get_light_direction(wpd, e_data.display.light_direction);
 		studiolight_update_light(wpd, e_data.display.light_direction);
 
-		float shadow_focus = scene->display.shadow_focus;
-		/* Clamp to avoid overshadowing and shading errors. */
-		CLAMP(shadow_focus, 0.0001f, 0.99999f);
-		shadow_focus = 1.0f - shadow_focus * (1.0f - scene->display.shadow_shift);
-
 		if (SHADOW_ENABLED(wpd)) {
 			psl->composite_pass = DRW_pass_create(
 			        "Composite", DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL | DRW_STATE_DEPTH_GREATER);
@@ -713,7 +708,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_uniform_float_copy(grp, "lightMultiplier", 1.0f);
 			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float_copy(grp, "shadowShift", scene->display.shadow_shift);
-			DRW_shgroup_uniform_float_copy(grp, "shadowFocus", shadow_focus);
+			DRW_shgroup_uniform_float_copy(grp, "shadowFocus", wpd->shadow_focus);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
 			/* Stencil Shadow passes. */
@@ -753,7 +748,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_uniform_float(grp, "lightMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
 			DRW_shgroup_uniform_float_copy(grp, "shadowShift", scene->display.shadow_shift);
-			DRW_shgroup_uniform_float_copy(grp, "shadowFocus", shadow_focus);
+			DRW_shgroup_uniform_float_copy(grp, "shadowFocus", wpd->shadow_focus);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
 		}

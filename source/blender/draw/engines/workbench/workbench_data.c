@@ -76,6 +76,12 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		        wpd->shading.studio_light, STUDIOLIGHT_TYPE_STUDIO);
 	}
 
+
+	float shadow_focus = scene->display.shadow_focus;
+	/* Clamp to avoid overshadowing and shading errors. */
+	CLAMP(shadow_focus, 0.0001f, 0.99999f);
+	wpd->shadow_shift = scene->display.shadow_shift;
+	wpd->shadow_focus = 1.0f - shadow_focus * (1.0f - wpd->shadow_shift);
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
 	WORKBENCH_UBO_World *wd = &wpd->world_data;

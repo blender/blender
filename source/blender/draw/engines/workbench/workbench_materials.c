@@ -179,6 +179,7 @@ int workbench_material_get_composite_shader_index(WORKBENCH_PrivateData *wpd)
 	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_CAVITY, 1 << 3);
 	SET_FLAG_FROM_TEST(index, wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE, 1 << 4);
 	SET_FLAG_FROM_TEST(index, MATDATA_PASS_ENABLED(wpd), 1 << 5);
+	BLI_assert(index < MAX_COMPOSITE_SHADERS);
 	return index;
 }
 
@@ -194,6 +195,7 @@ int workbench_material_get_prepass_shader_index(
 	SET_FLAG_FROM_TEST(index, MATCAP_ENABLED(wpd), 1 << 4);
 	SET_FLAG_FROM_TEST(index, use_textures, 1 << 5);
 	SET_FLAG_FROM_TEST(index, wpd->world_clip_planes != NULL, 1 << 6);
+	BLI_assert(index < MAX_PREPASS_SHADERS);
 	return index;
 }
 
@@ -205,6 +207,9 @@ int workbench_material_get_accum_shader_index(WORKBENCH_PrivateData *wpd, bool u
 	index = SPECULAR_HIGHLIGHT_ENABLED(wpd) ? 3 : wpd->shading.light;
 	SET_FLAG_FROM_TEST(index, use_textures, 1 << 2);
 	SET_FLAG_FROM_TEST(index, is_hair, 1 << 3);
+	/* 1 bits SHADOWS (only facing factor) */
+	SET_FLAG_FROM_TEST(index, SHADOW_ENABLED(wpd), 1 << 4);
+	BLI_assert(index < MAX_ACCUM_SHADERS);
 	return index;
 }
 

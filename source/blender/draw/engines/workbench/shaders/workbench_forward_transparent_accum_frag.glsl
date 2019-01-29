@@ -14,6 +14,11 @@ uniform vec3 materialDiffuseColor;
 uniform vec3 materialSpecularColor;
 uniform float materialRoughness;
 
+uniform float shadowMultiplier = 0.5;
+uniform float lightMultiplier = 1.0;
+uniform float shadowShift = 0.1;
+uniform float shadowFocus = 1.0;
+
 #ifdef NORMAL_VIEWPORT_PASS_ENABLED
 in vec3 normal_viewport;
 #endif /* NORMAL_VIEWPORT_PASS_ENABLED */
@@ -65,6 +70,12 @@ void main()
 	vec3 shaded_color = get_world_lighting(world_data,
 	                                       diffuse_color.rgb, materialSpecularColor, materialRoughness,
 	                                       nor, I_vs);
+#endif
+
+#ifdef V3D_SHADING_SHADOW
+	float light_factor = -dot(nor, world_data.shadow_direction_vs.xyz);
+	float shadow_mix = smoothstep(shadowFocus, shadowShift, light_factor);
+	shaded_color *= mix(lightMultiplier, shadowMultiplier, shadow_mix);
 #endif
 
 	/* Based on :

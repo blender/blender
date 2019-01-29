@@ -182,6 +182,11 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
 		if (SPECULAR_HIGHLIGHT_ENABLED(wpd) || MATCAP_ENABLED(wpd)) {
 			DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		}
+		if (SHADOW_ENABLED(wpd)) {
+			DRW_shgroup_uniform_float_copy(grp, "shadowMultiplier", wpd->shadow_multiplier);
+			DRW_shgroup_uniform_float_copy(grp, "shadowShift", wpd->shadow_shift);
+			DRW_shgroup_uniform_float_copy(grp, "shadowFocus", wpd->shadow_focus);
+		}
 
 		workbench_material_shgroup_uniform(wpd, grp, material, ob, false, false, interp);
 		material->shgrp = grp;
@@ -212,7 +217,6 @@ WORKBENCH_MaterialData *workbench_forward_get_or_create_material_data(
 static GPUShader *ensure_forward_accum_shaders(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair)
 {
 	int index = workbench_material_get_accum_shader_index(wpd, use_textures, is_hair);
-	BLI_assert(index < MAX_ACCUM_SHADERS);
 	if (e_data.transparent_accum_sh_cache[index] == NULL) {
 		char *defines = workbench_material_build_defines(wpd, use_textures, is_hair);
 		char *transparent_accum_vert = workbench_build_forward_vert(is_hair);

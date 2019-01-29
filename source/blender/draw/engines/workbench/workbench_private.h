@@ -45,7 +45,7 @@
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_COMPOSITE_SHADERS (1 << 6)
 #define MAX_PREPASS_SHADERS (1 << 7)
-#define MAX_ACCUM_SHADERS (1 << 4)
+#define MAX_ACCUM_SHADERS (1 << 5)
 #define MAX_CAVITY_SHADERS (1 << 3)
 
 #define TEXTURE_DRAWING_ENABLED(wpd) (wpd->shading.color_type == V3D_SHADING_TEXTURE_COLOR)
@@ -212,6 +212,8 @@ typedef struct WORKBENCH_PrivateData {
 	struct DRWShadingGroup *depth_shgrp;
 	WORKBENCH_UBO_World world_data;
 	float shadow_multiplier;
+	float shadow_shift;
+	float shadow_focus;
 	float cached_shadow_direction[3];
 	float shadow_mat[4][4];
 	float shadow_inv[4][4];
