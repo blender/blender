@@ -938,8 +938,17 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		else if (ELEM(wpd->shading.color_type,
 		              V3D_SHADING_SINGLE_COLOR, V3D_SHADING_OBJECT_COLOR, V3D_SHADING_RANDOM_COLOR))
 		{
-			/* Draw solid color */
-			material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
+			if ((ob->col[3] < 1.0f) &&
+			    (wpd->shading.color_type == V3D_SHADING_OBJECT_COLOR))
+			{
+				wpd->shading.xray_alpha = ob->col[3];
+				material = workbench_forward_get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
+				has_transp_mat = true;
+			}
+			else {
+				/* Draw solid color */
+				material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type, 0);
+			}
 			if (is_sculpt_mode) {
 				DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 			}
