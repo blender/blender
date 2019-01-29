@@ -1155,6 +1155,20 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object,
 		                   NULL,
 		                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 		                   psys->name);
+		/* Keyed particle targets. */
+		if (part->phystype == PART_PHYS_KEYED) {
+			LISTBASE_FOREACH (ParticleTarget *, particle_target, &psys->targets) {
+				if (particle_target->ob == NULL ||
+				    particle_target->ob == object)
+				{
+					continue;
+				}
+				build_object(-1,
+				             particle_target->ob,
+				             DEG_ID_LINKED_INDIRECTLY,
+				             is_object_visible);
+			}
+		}
 		/* Visualization of particle system. */
 		switch (part->ren_as) {
 			case PART_DRAW_OB:

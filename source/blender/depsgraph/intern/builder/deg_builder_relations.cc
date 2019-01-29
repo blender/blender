@@ -1732,32 +1732,28 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 	/* Particle systems. */
 	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		ParticleSettings *part = psys->part;
-
 		/* Build particle settings relations.
-		 *
-		 * NOTE: The call itself ensures settings are only build once.
-		 */
+		 * NOTE: The call itself ensures settings are only build once. */
 		build_particle_settings(part);
-
 		/* This particle system. */
 		OperationKey psys_key(&object->id,
 		                      DEG_NODE_TYPE_PARTICLE_SYSTEM,
 		                      DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 		                      psys->name);
-
 		/* Update particle system when settings changes. */
 		OperationKey particle_settings_key(&part->id,
 		                                   DEG_NODE_TYPE_PARTICLE_SETTINGS,
 		                                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
-		add_relation(particle_settings_key, eval_init_key, "Particle Settings Change");
+		add_relation(particle_settings_key,
+		             eval_init_key,
+		             "Particle Settings Change");
 		add_relation(eval_init_key, psys_key, "Init -> PSys");
 		add_relation(psys_key, eval_done_key, "PSys -> Done");
 		/* TODO(sergey): Currently particle update is just a placeholder,
 		 * hook it to the ubereval node so particle system is getting updated
-		 * on playback.
-		 */
+		 * on playback. */
 		add_relation(psys_key, obdata_ubereval_key, "PSys -> UberEval");
-		/* Collisions */
+		/* Collisions. */
 		if (part->type != PART_HAIR) {
 			add_particle_collision_relations(psys_key,
 			                                 object,
@@ -1765,8 +1761,8 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 			                                 "Particle Collision");
 		}
 		else if ((psys->flag & PSYS_HAIR_DYNAMICS) &&
-		         psys->clmd != NULL &&
-		         psys->clmd->coll_parms != NULL)
+		          psys->clmd != NULL &&
+		          psys->clmd->coll_parms != NULL)
 		{
 			add_particle_collision_relations(psys_key,
 			                                 object,
@@ -1781,7 +1777,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 		                                  part->type == PART_HAIR,
 		                                  "Particle Field");
 		/* Boids .*/
-		if (part->boids) {
+		if (part->boids != NULL) {
 			LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
 				LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
 					Object *ruleob = NULL;
@@ -1791,7 +1787,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 					else if (rule->type == eBoidRuleType_FollowLeader) {
 						ruleob = ((BoidRuleFollowLeader *)rule)->ob;
 					}
-					if (ruleob) {
+					if (ruleob != NULL) {
 						ComponentKey ruleob_key(&ruleob->id,
 						                        DEG_NODE_TYPE_TRANSFORM);
 						add_relation(ruleob_key, psys_key, "Boid Rule");
@@ -1799,6 +1795,24 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 				}
 			}
 		}
+		/* Keyed particle targets. */
+		if (part->phystype == PART_PHYS_KEYED) {
+			LISTBASE_FOREACH (ParticleTarget *, particle_target, &psys->targets) {
+				if (particle_target->ob == NULL ||
+				    particle_target->ob == object)
+				{
+					continue;
+				}
+				/* Make sure target object is pulled into the graph. */
+				build_object(NULL, particle_target->ob);
+				/* Use geometry component, since that's where particles are
+				 * actually evaluated. */
+				ComponentKey target_key(&particle_target->ob->id,
+				                        DEG_NODE_TYPE_GEOMETRY);
+				add_relation(target_key, psys_key, "Keyed Target");
+			}
+		}
+		/* Visualization. */
 		switch (part->ren_as) {
 			case PART_DRAW_OB:
 				if (part->dup_ob != NULL) {
@@ -1820,13 +1834,11 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 				break;
 		}
 	}
-
 	/* Particle depends on the object transform, so that channel is to be ready
 	 * first.
 	 *
 	 * TODO(sergey): This relation should be altered once real granular update
-	 * is implemented.
-	 */
+	 * is implemented. */
 	ComponentKey transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
 	add_relation(transform_key, obdata_ubereval_key, "Particle Eval");
 }
