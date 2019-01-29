@@ -1646,8 +1646,11 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
 
 	id->lib = NULL;
 	id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
-	if (id_in_mainlist)
-		new_id(which_libbase(bmain, GS(id->name)), id, NULL);
+	if (id_in_mainlist) {
+		if (new_id(which_libbase(bmain, GS(id->name)), id, NULL)) {
+			bmain->is_memfile_undo_written = false;
+		}
+	}
 
 	/* Internal bNodeTree blocks inside datablocks also stores id->lib, make sure this stays in sync. */
 	if ((ntree = ntreeFromID(id))) {
@@ -2015,9 +2018,11 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 
 	/* search for id */
 	idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);
-
-	if (idtest && !new_id(lb, idtest, idtest->name + 2)) {
-		id_sort_by_name(lb, idtest);
+	if (idtest != NULL) {
+		if (!new_id(lb, idtest, idtest->name + 2)) {
+			id_sort_by_name(lb, idtest);
+		}
+		bmain->is_memfile_undo_written = false;
 	}
 }
 
@@ -2027,7 +2032,9 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
 	ListBase *lb = which_libbase(bmain, GS(id->name));
-	new_id(lb, id, name);
+	if (new_id(lb, id, name)) {
+		bmain->is_memfile_undo_written = false;
+	}
 }
 
 /**
