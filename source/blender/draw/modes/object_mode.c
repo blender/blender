@@ -1905,7 +1905,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	normalize_m4_m4(cam->drwnormalmat, ob->obmat);
 
 	if (cam->flag & CAM_SHOWLIMITS) {
-		static float col[3] = {0.5f, 0.5f, 0.25f}, col_hi[3] = {1.0f, 1.0f, 0.5f};
+		static float col[4] = {0.5f, 0.5f, 0.25f, 1.0f}, col_hi[4] = {1.0f, 1.0f, 0.5f, 1.0f};
 		float sizemat[4][4], size[3] = {1.0f, 1.0f, 0.0f};
 		float focusdist = BKE_camera_object_dof_distance(ob);
 
@@ -1930,7 +1930,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		World *world = scene->world;
 
 		if (world) {
-			static float col[3] = {0.5f, 0.5f, 0.5f}, col_hi[3] = {1.0f, 1.0f, 1.0f};
+			static float col[4] = {0.5f, 0.5f, 0.5f, 1.0f}, col_hi[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 			world->mistend = world->miststa + world->mistdist;
 			DRW_shgroup_call_dynamic_add(
 			        sgl->camera_mist, color,
