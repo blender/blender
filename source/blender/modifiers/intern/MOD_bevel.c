@@ -130,8 +130,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	        &(struct BMeshFromMeshParams){
 	            .calc_face_normal = true,
 	            .add_key_index = false,
-	            .use_shapekey = true,
-	            .active_shapekey = ctx->object->shapenr,
+	            .use_shapekey = false,
+	            .active_shapekey = 0,
 	            .cd_mask_extra = CD_MASK_ORIGINDEX,
 	        });
 
