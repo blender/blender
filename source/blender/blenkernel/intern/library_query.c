@@ -81,6 +81,7 @@
 #include "BKE_particle.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sequencer.h"
+#include "BKE_shader_fx.h"
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"
 
@@ -195,6 +196,15 @@ static void library_foreach_modifiersForeachIDLink(
 }
 
 static void library_foreach_gpencil_modifiersForeachIDLink(
+        void *user_data, Object *UNUSED(object), ID **id_pointer, int cb_flag)
+{
+	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
+
+	FOREACH_FINALIZE_VOID;
+}
+
+static void library_foreach_shaderfxForeachIDLink(
         void *user_data, Object *UNUSED(object), ID **id_pointer, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
@@ -592,6 +602,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				modifiers_foreachIDLink(object, library_foreach_modifiersForeachIDLink, &data);
 				BKE_gpencil_modifiers_foreachIDLink(object, library_foreach_gpencil_modifiersForeachIDLink, &data);
 				BKE_constraints_id_loop(&object->constraints, library_foreach_constraintObjectLooper, &data);
+				BKE_shaderfx_foreachIDLink(object, library_foreach_shaderfxForeachIDLink, &data);
 
 				for (psys = object->particlesystem.first; psys; psys = psys->next) {
 					BKE_particlesystem_id_loop(psys, library_foreach_particlesystemsObjectLooper, &data);
