@@ -2336,6 +2336,10 @@ class VIEW3D_MT_sculpt(Menu):
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
 
+        layout.operator("sculpt.dynamic_topology_toggle", text="Toggle Dynamic Topology")
+
+        layout.separator()
+
         layout.prop(sculpt, "use_symmetry_x")
         layout.prop(sculpt, "use_symmetry_y")
         layout.prop(sculpt, "use_symmetry_z")
