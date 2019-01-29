@@ -50,7 +50,11 @@ extern char datatoc_common_world_clip_lib_glsl[];
 	     GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA, \
 	     GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA, \
 	     GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR, \
-	     GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED)
+	     GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED, \
+	     GPU_SHADER_3D_GROUNDLINE, \
+	     GPU_SHADER_3D_GROUNDPOINT, \
+	     GPU_SHADER_DISTANCE_LINES, \
+	     GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR)
 
 /* cache of built-in shaders (each is created on first use) */
 static struct {
@@ -70,9 +74,10 @@ static GPUShader *drw_shader_get_builtin_shader_clipped(eGPUBuiltinShader shader
 	        &shader_code.geom,
 	        &shader_code.defs);
 
+	/* In rare cases geometry shaders calculate clipping themselves. */
 	return DRW_shader_create_from_arrays({
 	        .vert = (const char *[]){world_clip_lib, shader_code.vert, NULL},
-	        .geom = (const char *[]){shader_code.geom, NULL},
+	        .geom = (const char *[]){shader_code.geom ? world_clip_lib : NULL, shader_code.geom, NULL},
 	        .frag = (const char *[]){shader_code.frag, NULL},
 	        .defs = (const char *[]){world_clip_def, shader_code.defs, NULL}});
 }

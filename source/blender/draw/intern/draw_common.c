@@ -358,24 +358,28 @@ DRWShadingGroup *shgroup_dynpoints_uniform_color(
 	return grp;
 }
 
-DRWShadingGroup *shgroup_groundlines_uniform_color(DRWPass *pass, const float color[4])
+DRWShadingGroup *shgroup_groundlines_uniform_color(DRWPass *pass, const float color[4], eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_GROUNDLINE);
+	GPUShader *sh = DRW_shader_get_builtin_shader(GPU_SHADER_3D_GROUNDLINE, shader_slot);
 
 	DRWShadingGroup *grp = DRW_shgroup_point_batch_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, const float color[4])
+DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, const float color[4], eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_GROUNDPOINT);
+	GPUShader *sh = DRW_shader_get_builtin_shader(GPU_SHADER_3D_GROUNDPOINT, shader_slot);
 
 	DRWShadingGroup *grp = DRW_shgroup_point_batch_create(sh, pass);
 	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
 	DRW_shgroup_state_enable(grp, DRW_STATE_POINT);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
@@ -561,9 +565,9 @@ DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct GPUBatch *geom, e
 	return grp;
 }
 
-DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_DISTANCE_LINES);
+	GPUShader *sh_inst = DRW_shader_get_builtin_shader(GPU_SHADER_DISTANCE_LINES, shader_slot);
 	static float point_size = 4.0f;
 
 	DRW_shgroup_instance_format(g_formats.instance_distance_lines, {
@@ -575,13 +579,15 @@ DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct GPUBatch 
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_distance_lines);
 	DRW_shgroup_uniform_float(grp, "size", &point_size, 1);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot)
 {
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR);
+	GPUShader *sh_inst = DRW_shader_get_builtin_shader(GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR, shader_slot);
 	static const int True = true;
 	static const int False = false;
 
@@ -594,7 +600,9 @@ DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct GPUBatch *geom)
 	DRW_shgroup_uniform_bool(grp, "drawFront", &False, 1);
 	DRW_shgroup_uniform_bool(grp, "drawBack", &False, 1);
 	DRW_shgroup_uniform_bool(grp, "drawSilhouette", &True, 1);
-
+	if (shader_slot == DRW_SHADER_SLOT_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

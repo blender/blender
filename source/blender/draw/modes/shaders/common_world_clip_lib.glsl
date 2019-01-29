@@ -1,5 +1,5 @@
 #ifdef USE_WORLD_CLIP_PLANES
-#ifdef GPU_VERTEX_SHADER
+#if defined(GPU_VERTEX_SHADER) || defined(GPU_GEOMETRY_SHADER)
 uniform vec4 WorldClipPlanes[6];
 void world_clip_planes_calc_clip_distance(vec3 wpos)
 {

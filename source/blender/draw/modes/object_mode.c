@@ -1252,12 +1252,12 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->camera_focus = shgroup_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_single_line_get();
-		sgl->camera_clip = shgroup_distance_lines_instance(sgl->non_meshes, geom);
-		sgl->camera_mist = shgroup_distance_lines_instance(sgl->non_meshes, geom);
+		sgl->camera_clip = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
+		sgl->camera_mist = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_single_line_endpoints_get();
-		sgl->camera_clip_points = shgroup_distance_lines_instance(sgl->non_meshes, geom);
-		sgl->camera_mist_points = shgroup_distance_lines_instance(sgl->non_meshes, geom);
+		sgl->camera_clip_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
+		sgl->camera_mist_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_quad_get();
 		sgl->camera_stereo_plane = shgroup_instance_alpha(sgl->non_meshes, geom, draw_ctx->shader_slot);
@@ -1310,7 +1310,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		/* start with buflimit because we don't want stipples */
 		geom = DRW_cache_single_line_get();
-		sgl->lamp_buflimit = shgroup_distance_lines_instance(sgl->non_meshes, geom);
+		sgl->lamp_buflimit = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		sgl->lamp_center = shgroup_dynpoints_uniform_color(sgl->non_meshes, gb->colorLampNoAlpha, &gb->sizeLampCenter, draw_ctx->shader_slot);
 
@@ -1322,8 +1322,8 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_lamp_sunrays_get();
 		sgl->lamp_sunrays = shgroup_instance_screenspace(sgl->non_meshes, geom, &gb->sizeLampCircle, draw_ctx->shader_slot);
 
-		sgl->lamp_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, gb->colorLamp);
-		sgl->lamp_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, gb->colorLamp);
+		sgl->lamp_groundline = shgroup_groundlines_uniform_color(sgl->non_meshes, gb->colorLamp, draw_ctx->shader_slot);
+		sgl->lamp_groundpoint = shgroup_groundpoints_uniform_color(sgl->non_meshes, gb->colorLamp, draw_ctx->shader_slot);
 
 		geom = DRW_cache_screenspace_circle_get();
 		sgl->lamp_area_sphere = shgroup_instance_screen_aligned(sgl->non_meshes, geom, draw_ctx->shader_slot);
@@ -1338,13 +1338,13 @@ static void OBJECT_cache_init(void *vedata)
 		sgl->lamp_hemi = shgroup_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_single_line_get();
-		sgl->lamp_distance = shgroup_distance_lines_instance(sgl->non_meshes, geom);
+		sgl->lamp_distance = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_single_line_endpoints_get();
-		sgl->lamp_buflimit_points = shgroup_distance_lines_instance(sgl->non_meshes, geom);
+		sgl->lamp_buflimit_points = shgroup_distance_lines_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_lamp_spot_get();
-		sgl->lamp_spot_cone = shgroup_spot_instance(sgl->non_meshes, geom);
+		sgl->lamp_spot_cone = shgroup_spot_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);
 
 		geom = DRW_cache_circle_get();
 		sgl->lamp_spot_blend = shgroup_instance(sgl->non_meshes, geom, draw_ctx->shader_slot);

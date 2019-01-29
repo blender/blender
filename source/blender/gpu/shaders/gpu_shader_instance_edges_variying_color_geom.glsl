@@ -28,10 +28,18 @@ flat out vec4 finalColor;
 void emitLine(vec4 color)
 {
 	gl_Position = ProjectionMatrix * MV_pos[0];
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[0].gl_ClipDistance);
+#endif
 	EmitVertex();
+
 	gl_Position = ProjectionMatrix * MV_pos[1];
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
+#endif
 	finalColor = color;
 	EmitVertex();
+
 	EndPrimitive();
 }
 
