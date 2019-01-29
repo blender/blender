@@ -444,7 +444,8 @@ class NODE_PT_active_node_properties(Panel):
         elif hasattr(node, "draw_buttons"):
             node.draw_buttons(context, layout)
 
-        # XXX this could be filtered further to exclude socket types which don't have meaningful input values (e.g. cycles shader)
+        # XXX this could be filtered further to exclude socket types
+        # which don't have meaningful input values (e.g. cycles shader)
         value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
         if value_inputs:
             layout.separator()

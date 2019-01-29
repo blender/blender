@@ -451,9 +451,13 @@ class ToolSelectPanelHelper:
                 column_count = 1
 
         if column_count == 1:
-            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout, scale_y=scale_y)
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(
+                layout, scale_y=scale_y,
+            )
         else:
-            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(layout, column_count=column_count, scale_y=scale_y)
+            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(
+                layout, column_count=column_count, scale_y=scale_y,
+            )
 
         return ui_gen, show_text
 

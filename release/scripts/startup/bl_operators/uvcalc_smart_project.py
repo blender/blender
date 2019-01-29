@@ -803,7 +803,8 @@ def main(context,
         if not meshFaces:
             continue
 
-        # Smallest first is slightly more efficient, but if the user cancels early then its better we work on the larger data.
+        # Smallest first is slightly more efficient,
+        # but if the user cancels early then its better we work on the larger data.
 
         # Generate Projection Vecs
         # 0d is   1.0
@@ -812,7 +813,9 @@ def main(context,
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) @ ob.matrix_world.inverted().to_3x3()]  # We add to this along the way
+
+            # We add to this along the way
+            projectVecs = [Vector(Window.GetViewVector()) @ ob.matrix_world.inverted().to_3x3()]
         else:
             projectVecs = []
 

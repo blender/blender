@@ -747,7 +747,12 @@ def BuildRNAInfo():
 
     # for rna_info in InfoStructRNA.global_lookup.values():
     #     print(rna_info)
-    return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
+    return (
+        InfoStructRNA.global_lookup,
+        InfoFunctionRNA.global_lookup,
+        InfoOperatorRNA.global_lookup,
+        InfoPropertyRNA.global_lookup,
+    )
 
 
 def main():

@@ -5128,7 +5128,6 @@ def km_node_editor_tool_links_cut(params):
     )
 
 
-
 def km_3d_view_tool_cursor(params):
     return (
         "3D View Tool: Cursor",

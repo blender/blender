@@ -476,8 +476,6 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
     normalmap_texture = property(normalmap_texture_get)
 
-
-
 class ShaderImageTextureWrapper():
     """
     Generic 'image texture'-like wrapper, handling image node, some mapping (texture coordinates transformations),

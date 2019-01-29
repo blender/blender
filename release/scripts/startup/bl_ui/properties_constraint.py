@@ -68,7 +68,8 @@ class ConstraintButtonsPanel:
                     row = layout.row(align=True)
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
-                    row.prop(con, "use_bbone_shape", text="", icon='IPO_BEZIER')  # XXX icon, and only when bone has segments?
+                    # XXX icon, and only when bone has segments?
+                    row.prop(con, "use_bbone_shape", text="", icon='IPO_BEZIER')
             elif con.target.type in {'MESH', 'LATTICE'}:
                 layout.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 

@@ -240,7 +240,8 @@ class DOPESHEET_HT_editor_buttons(Header):
         tool_settings = context.tool_settings
 
         if st.mode in {'ACTION', 'SHAPEKEY'}:
-            # TODO: These buttons need some tidying up - Probably by using a popover, and bypassing the template_id() here
+            # TODO: These buttons need some tidying up -
+            # Probably by using a popover, and bypassing the template_id() here
             row = layout.row(align=True)
             row.operator("action.layer_prev", text="", icon='TRIA_DOWN')
             row.operator("action.layer_next", text="", icon='TRIA_UP')
