@@ -168,6 +168,7 @@ void id_lib_extern(ID *id)
 		if (id->tag & LIB_TAG_INDIRECT) {
 			id->tag &= ~LIB_TAG_INDIRECT;
 			id->tag |= LIB_TAG_EXTERN;
+			id->lib->parent = NULL;
 		}
 	}
 }
