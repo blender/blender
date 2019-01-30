@@ -268,9 +268,10 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
     @_set_check
     def base_color_set(self, color):
+        color = rgb_to_rgba(color)
         self.material.diffuse_color = color
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Base Color"].default_value = rgb_to_rgba(color)
+            self.node_principled_bsdf.inputs["Base Color"].default_value = color
 
     base_color = property(base_color_get, base_color_set)
 
