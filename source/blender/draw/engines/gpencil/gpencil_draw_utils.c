@@ -1537,8 +1537,7 @@ void DRW_gpencil_populate_datablock(
 	const ViewLayer *view_layer = DEG_get_evaluated_view_layer(draw_ctx->depsgraph);
 	Scene *scene = draw_ctx->scene;
 
-	bGPdata *gpd_eval = (bGPdata *)ob->data;
-	bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
+	bGPdata *gpd = (bGPdata *)ob->data;
 
 	View3D *v3d = draw_ctx->v3d;
 	int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
