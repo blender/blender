@@ -166,7 +166,7 @@ void id_lib_extern(ID *id)
 	if (id && ID_IS_LINKED(id)) {
 		BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
 		if (id->tag & LIB_TAG_INDIRECT) {
-			id->tag -= LIB_TAG_INDIRECT;
+			id->tag &= ~LIB_TAG_INDIRECT;
 			id->tag |= LIB_TAG_EXTERN;
 		}
 	}
