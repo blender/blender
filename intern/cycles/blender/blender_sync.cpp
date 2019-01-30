@@ -741,24 +741,18 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	/* Background */
 	params.background = background;
 
-	/* device type */
-	vector<DeviceInfo>& devices = Device::available_devices();
-
-	/* device default CPU */
-	foreach(DeviceInfo& device, devices) {
-		if(device.type == DEVICE_CPU) {
-			params.device = device;
-			break;
-		}
-	}
+	/* Default to CPU device. */
+	params.device = Device::available_devices(DEVICE_MASK_CPU).front();
 
 	if(get_enum(cscene, "device") == 2) {
-		/* find network device */
-		foreach(DeviceInfo& info, devices)
-			if(info.type == DEVICE_NETWORK)
-				params.device = info;
+		/* Find network device. */
+		vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK_NETWORK);
+		if(!devices.empty()) {
+			params.device = devices.front();
+		}
 	}
 	else if(get_enum(cscene, "device") == 1) {
+		/* Find cycles preferences. */
 		PointerRNA b_preferences;
 
 		BL::Preferences::addons_iterator b_addon_iter;
@@ -769,6 +763,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 			}
 		}
 
+		/* Test if we are using GPU devices. */
 		enum ComputeDevice {
 			COMPUTE_DEVICE_CPU = 0,
 			COMPUTE_DEVICE_CUDA = 1,
@@ -782,15 +777,20 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		                                                       COMPUTE_DEVICE_CPU);
 
 		if(compute_device != COMPUTE_DEVICE_CPU) {
+			/* Query GPU devices with matching types. */
+			uint mask = DEVICE_MASK_CPU;
+			if(compute_device == COMPUTE_DEVICE_CUDA) {
+				mask |= DEVICE_MASK_CUDA;
+			}
+			else if(compute_device == COMPUTE_DEVICE_OPENCL) {
+				mask |= DEVICE_MASK_OPENCL;
+			}
+			vector<DeviceInfo> devices = Device::available_devices(mask);
+
+			/* Match device preferences and available devices. */
 			vector<DeviceInfo> used_devices;
 			RNA_BEGIN(&b_preferences, device, "devices") {
-				ComputeDevice device_type = (ComputeDevice)get_enum(device,
-				                                                    "type",
-				                                                    COMPUTE_DEVICE_NUM,
-				                                                    COMPUTE_DEVICE_CPU);
-
-				if(get_boolean(device, "use") &&
-				   (device_type == compute_device || device_type == COMPUTE_DEVICE_CPU)) {
+				if(get_boolean(device, "use")) {
 					string id = get_string(device, "id");
 					foreach(DeviceInfo& info, devices) {
 						if(info.id == id) {
@@ -801,10 +801,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 				}
 			} RNA_END;
 
-			if(used_devices.size() == 1) {
-				params.device = used_devices[0];
-			}
-			else if(used_devices.size() > 1) {
+			if(!used_devices.empty()) {
 				params.device = Device::get_multi_device(used_devices,
 				                                         params.threads,
 				                                         params.background);

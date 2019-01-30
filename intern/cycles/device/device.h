@@ -40,13 +40,23 @@ class RenderTile;
 /* Device Types */
 
 enum DeviceType {
-	DEVICE_NONE,
+	DEVICE_NONE = 0,
 	DEVICE_CPU,
 	DEVICE_OPENCL,
 	DEVICE_CUDA,
 	DEVICE_NETWORK,
 	DEVICE_MULTI
 };
+
+enum DeviceTypeMask {
+	DEVICE_MASK_CPU = (1 << DEVICE_CPU),
+	DEVICE_MASK_OPENCL = (1 << DEVICE_OPENCL),
+	DEVICE_MASK_CUDA = (1 << DEVICE_CUDA),
+	DEVICE_MASK_NETWORK = (1 << DEVICE_NETWORK),
+	DEVICE_MASK_ALL = ~0
+};
+
+#define DEVICE_MASK(type) (DeviceTypeMask)(1 << type)
 
 class DeviceInfo {
 public:
@@ -342,9 +352,9 @@ public:
 
 	static DeviceType type_from_string(const char *name);
 	static string string_from_type(DeviceType type);
-	static vector<DeviceType>& available_types();
-	static vector<DeviceInfo>& available_devices();
-	static string device_capabilities();
+	static vector<DeviceType> available_types();
+	static vector<DeviceInfo> available_devices(uint device_type_mask = DEVICE_MASK_ALL);
+	static string device_capabilities(uint device_type_mask = DEVICE_MASK_ALL);
 	static DeviceInfo get_multi_device(const vector<DeviceInfo>& subdevices,
 	                                   int threads,
 	                                   bool background);
@@ -371,8 +381,11 @@ private:
 	/* Indicted whether device types and devices lists were initialized. */
 	static bool need_types_update, need_devices_update;
 	static thread_mutex device_mutex;
-	static vector<DeviceType> types;
-	static vector<DeviceInfo> devices;
+	static vector<DeviceInfo> cuda_devices;
+	static vector<DeviceInfo> opencl_devices;
+	static vector<DeviceInfo> cpu_devices;
+	static vector<DeviceInfo> network_devices;
+	static uint devices_initialized_mask;
 };
 
 CCL_NAMESPACE_END

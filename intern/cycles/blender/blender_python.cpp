@@ -388,9 +388,18 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static PyObject *available_devices_func(PyObject * /*self*/, PyObject * /*args*/)
+static PyObject *available_devices_func(PyObject * /*self*/, PyObject * args)
 {
-	vector<DeviceInfo>& devices = Device::available_devices();
+	const char *type_name;
+	if(!PyArg_ParseTuple(args, "s", &type_name)) {
+		return NULL;
+	}
+
+	DeviceType type = Device::type_from_string(type_name);
+	uint mask = (type == DEVICE_NONE) ? DEVICE_MASK_ALL : DEVICE_MASK(type);
+	mask |= DEVICE_MASK_CPU;
+
+	vector<DeviceInfo> devices = Device::available_devices(mask);
 	PyObject *ret = PyTuple_New(devices.size());
 
 	for(size_t i = 0; i < devices.size(); i++) {
@@ -746,11 +755,11 @@ static PyObject *enable_print_stats_func(PyObject * /*self*/, PyObject * /*args*
 
 static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
 {
-	vector<DeviceInfo>& devices = Device::available_devices();
+	vector<DeviceType> device_types = Device::available_types();
 	bool has_cuda = false, has_opencl = false;
-	for(int i = 0; i < devices.size(); i++) {
-		has_cuda   |= (devices[i].type == DEVICE_CUDA);
-		has_opencl |= (devices[i].type == DEVICE_OPENCL);
+	foreach(DeviceType device_type, device_types) {
+		has_cuda   |= (device_type == DEVICE_CUDA);
+		has_opencl |= (device_type == DEVICE_OPENCL);
 	}
 	PyObject *list = PyTuple_New(2);
 	PyTuple_SET_ITEM(list, 0, PyBool_FromLong(has_cuda));
@@ -772,7 +781,7 @@ static PyMethodDef methods[] = {
 	{"osl_update_node", osl_update_node_func, METH_VARARGS, ""},
 	{"osl_compile", osl_compile_func, METH_VARARGS, ""},
 #endif
-	{"available_devices", available_devices_func, METH_NOARGS, ""},
+	{"available_devices", available_devices_func, METH_VARARGS, ""},
 	{"system_info", system_info_func, METH_NOARGS, ""},
 #ifdef WITH_OPENCL
 	{"opencl_disable", opencl_disable_func, METH_NOARGS, ""},

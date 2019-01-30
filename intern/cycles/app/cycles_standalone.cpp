@@ -363,13 +363,8 @@ static void options_parse(int argc, const char **argv)
 	string devicename = "CPU";
 	bool list = false;
 
-	vector<DeviceType>& types = Device::available_types();
-
-	/* TODO(sergey): Here's a feedback loop happens: on the one hand we want
-	 * the device list to be printed in help message, on the other hand logging
-	 * is not initialized yet so we wouldn't have debug log happening in the
-	 * device initialization.
-	 */
+	/* List devices for which support is compiled in. */
+	vector<DeviceType> types = Device::available_types();
 	foreach(DeviceType type, types) {
 		if(device_names != "")
 			device_names += ", ";
@@ -421,7 +416,7 @@ static void options_parse(int argc, const char **argv)
 	}
 
 	if(list) {
-		vector<DeviceInfo>& devices = Device::available_devices();
+		vector<DeviceInfo> devices = Device::available_devices();
 		printf("Devices:\n");
 
 		foreach(DeviceInfo& info, devices) {
@@ -456,15 +451,12 @@ static void options_parse(int argc, const char **argv)
 
 	/* find matching device */
 	DeviceType device_type = Device::type_from_string(devicename.c_str());
-	vector<DeviceInfo>& devices = Device::available_devices();
-	bool device_available = false;
+	vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK(device_type));
 
-	foreach(DeviceInfo& device, devices) {
-		if(device_type == device.type) {
-			options.session_params.device = device;
-			device_available = true;
-			break;
-		}
+	bool device_available = false;
+	if (!devices.empty()) {
+		options.session_params.device = devices.front();
+		device_available = true;
 	}
 
 	/* handle invalid configurations */

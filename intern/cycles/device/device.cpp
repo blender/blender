@@ -36,8 +36,11 @@ CCL_NAMESPACE_BEGIN
 bool Device::need_types_update = true;
 bool Device::need_devices_update = true;
 thread_mutex Device::device_mutex;
-vector<DeviceType> Device::types;
-vector<DeviceInfo> Device::devices;
+vector<DeviceInfo> Device::opencl_devices;
+vector<DeviceInfo> Device::cuda_devices;
+vector<DeviceInfo> Device::cpu_devices;
+vector<DeviceInfo> Device::network_devices;
+uint Device::devices_initialized_mask = 0;
 
 /* Device Requested Features */
 
@@ -423,70 +426,108 @@ string Device::string_from_type(DeviceType type)
 	return "";
 }
 
-vector<DeviceType>& Device::available_types()
+vector<DeviceType> Device::available_types()
 {
-	thread_scoped_lock lock(device_mutex);
-	if(need_types_update) {
-		types.clear();
-		types.push_back(DEVICE_CPU);
+	vector<DeviceType> types;
+	types.push_back(DEVICE_CPU);
 #ifdef WITH_CUDA
-		if(device_cuda_init()) {
-			types.push_back(DEVICE_CUDA);
-		}
+	types.push_back(DEVICE_CUDA);
 #endif
 #ifdef WITH_OPENCL
-		if(device_opencl_init()) {
-			types.push_back(DEVICE_OPENCL);
-		}
+	types.push_back(DEVICE_OPENCL);
 #endif
 #ifdef WITH_NETWORK
-		types.push_back(DEVICE_NETWORK);
+	types.push_back(DEVICE_NETWORK);
 #endif
-		need_types_update = false;
-	}
 	return types;
 }
 
-vector<DeviceInfo>& Device::available_devices()
+vector<DeviceInfo> Device::available_devices(uint mask)
 {
+	/* Lazy initialize devices. On some platforms OpenCL or CUDA drivers can
+	 * be broken and cause crashes when only trying to get device info, so
+	 * we don't want to do any initialization until the user chooses to. */
 	thread_scoped_lock lock(device_mutex);
-	if(need_devices_update) {
-		devices.clear();
+	vector<DeviceInfo> devices;
+
 #ifdef WITH_OPENCL
-		if(device_opencl_init()) {
-			device_opencl_info(devices);
+	if(mask & DEVICE_MASK_OPENCL) {
+		if(!(devices_initialized_mask & DEVICE_MASK_OPENCL)) {
+			if(device_opencl_init()) {
+				device_opencl_info(opencl_devices);
+			}
+			devices_initialized_mask |= DEVICE_MASK_OPENCL;
 		}
-#endif
-#ifdef WITH_CUDA
-		if(device_cuda_init()) {
-			device_cuda_info(devices);
+		foreach(DeviceInfo& info, opencl_devices) {
+			devices.push_back(info);
 		}
-#endif
-		device_cpu_info(devices);
-#ifdef WITH_NETWORK
-		device_network_info(devices);
-#endif
-		need_devices_update = false;
 	}
+#endif
+
+#ifdef WITH_CUDA
+	if(mask & DEVICE_MASK_CUDA) {
+		if(!(devices_initialized_mask & DEVICE_MASK_CUDA)) {
+			if(device_cuda_init()) {
+				device_cuda_info(cuda_devices);
+			}
+			devices_initialized_mask |= DEVICE_MASK_CUDA;
+		}
+		foreach(DeviceInfo& info, cuda_devices) {
+			devices.push_back(info);
+		}
+	}
+#endif
+
+	if(mask & DEVICE_MASK_CPU) {
+		if(!(devices_initialized_mask & DEVICE_MASK_CPU)) {
+			device_cpu_info(cpu_devices);
+			devices_initialized_mask |= DEVICE_MASK_CPU;
+		}
+		foreach(DeviceInfo& info, cpu_devices) {
+			devices.push_back(info);
+		}
+	}
+
+#ifdef WITH_NETWORK
+	if(mask & DEVICE_MASK_NETWORK) {
+		if(!(devices_initialized_mask & DEVICE_MASK_NETWORK)) {
+			device_network_info(network_devices);
+			devices_initialized_mask |= DEVICE_MASK_NETWORK;
+		}
+		foreach(DeviceInfo& info, network_devices) {
+			devices.push_back(info);
+		}
+	}
+#endif
+
 	return devices;
 }
 
-string Device::device_capabilities()
+string Device::device_capabilities(uint mask)
 {
-	string capabilities = "CPU device capabilities: ";
-	capabilities += device_cpu_capabilities() + "\n";
+	thread_scoped_lock lock(device_mutex);
+	string capabilities = "";
+
+	if(mask & DEVICE_MASK_CPU) {
+		capabilities += "\nCPU device capabilities: ";
+		capabilities += device_cpu_capabilities() + "\n";
+	}
 
 #ifdef WITH_OPENCL
-	if(device_opencl_init()) {
-		capabilities += "\nOpenCL device capabilities:\n";
-		capabilities += device_opencl_capabilities();
+	if(mask & DEVICE_MASK_OPENCL) {
+		if(device_opencl_init()) {
+			capabilities += "\nOpenCL device capabilities:\n";
+			capabilities += device_opencl_capabilities();
+		}
 	}
 #endif
 
 #ifdef WITH_CUDA
-	if(device_cuda_init()) {
-		capabilities += "\nCUDA device capabilities:\n";
-		capabilities += device_cuda_capabilities();
+	if(mask & DEVICE_MASK_CUDA) {
+		if(device_cuda_init()) {
+			capabilities += "\nCUDA device capabilities:\n";
+			capabilities += device_cuda_capabilities();
+		}
 	}
 #endif
 
@@ -495,7 +536,12 @@ string Device::device_capabilities()
 
 DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int threads, bool background)
 {
-	assert(subdevices.size() > 1);
+	assert(subdevices.size() > 0);
+
+	if(subdevices.size() == 1) {
+		/* No multi device needed. */
+		return subdevices.front();
+	}
 
 	DeviceInfo info;
 	info.type = DEVICE_MULTI;
@@ -549,16 +595,16 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 
 void Device::tag_update()
 {
-	need_types_update = true;
-	need_devices_update = true;
+	free_memory();
 }
 
 void Device::free_memory()
 {
-	need_types_update = true;
-	need_devices_update = true;
-	types.free_memory();
-	devices.free_memory();
+	devices_initialized_mask = 0;
+	cuda_devices.clear();
+	opencl_devices.clear();
+	cpu_devices.clear();
+	network_devices.clear();
 }
 
 CCL_NAMESPACE_END
