@@ -51,7 +51,7 @@
 
 #include "MOD_modifiertypes.h"
 
-static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd, const ModifierEvalContext *ctx)
+static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd)
 {
 	Mesh *result;
 	BMesh *bm;
@@ -128,7 +128,7 @@ static void initData(ModifierData *md)
 
 static Mesh *applyModifier(
         ModifierData *md,
-        const ModifierEvalContext *ctx,
+        const ModifierEvalContext *UNUSED(ctx),
         Mesh *mesh)
 {
 	Mesh *result;
@@ -137,7 +137,7 @@ static Mesh *applyModifier(
 	if (!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
 		return mesh;
 
-	result = doEdgeSplit(mesh, emd, ctx);
+	result = doEdgeSplit(mesh, emd);
 
 	return result;
 }
