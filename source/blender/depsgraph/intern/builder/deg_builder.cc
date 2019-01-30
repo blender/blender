@@ -43,6 +43,7 @@ extern "C" {
 }
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_intern.h"
 #include "intern/depsgraph_types.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/nodes/deg_node.h"
@@ -150,10 +151,11 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 			}
 		}
 		if (flag != 0) {
-			DEG_graph_id_tag_update(bmain,
-			                        (::Depsgraph *)graph,
+			deg_graph_id_tag_update(bmain,
+			                        graph,
 			                        id_node->id_orig,
-			                        flag);
+			                        flag,
+			                        DEG_UPDATE_SOURCE_RELATIONS);
 		}
 	}
 }

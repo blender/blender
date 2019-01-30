@@ -149,5 +149,7 @@ void deg_clear_physics_relations(Depsgraph *graph);
 /* Tagging Utilities -------------------------------------------------------- */
 
 eDepsNode_Type deg_geometry_tag_to_component(const ID *id);
+void deg_id_tag_update(Main *bmain, ID *id, int flag, eUpdateSource update_source);
+void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag, eUpdateSource update_source);
 
 }  // namespace DEG
