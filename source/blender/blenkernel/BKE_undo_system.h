@@ -73,6 +73,8 @@ typedef struct UndoStep {
 	size_t data_size;
 	/** Users should never see this step (only use for internal consistency). */
 	bool skip;
+	/** Some situations require the global state to be stored, edge cases when exiting modes. */
+	bool use_memfile_step;
 	/* Over alloc 'type->struct_size'. */
 } UndoStep;
 

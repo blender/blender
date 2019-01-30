@@ -1055,6 +1055,11 @@ static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_
 	 * to the current 'SculptUndoStep' added by encode_init. */
 	SculptUndoStep *us = (SculptUndoStep *)us_p;
 	us->step.data_size = us->data.undo_size;
+
+	SculptUndoNode *unode = us->data.nodes.last;
+	if (unode && unode->type == SCULPT_UNDO_DYNTOPO_END) {
+		us->step.use_memfile_step = true;
+	}
 	return true;
 }
 

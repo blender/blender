@@ -512,7 +512,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 	if (ut->step_foreach_ID_ref != NULL) {
 		Main *bmain = G.main;
 		if (bmain->is_memfile_undo_written == false) {
-			const char *name_internal = "MemFile Internal";
+			const char *name_internal = "MemFile Internal (pre)";
 			/* Don't let 'step_init' cause issues when adding memfile undo step. */
 			void *step_init = ustack->step_init;
 			ustack->step_init = NULL;
@@ -531,25 +531,43 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 	}
 #endif
 
-	UndoStep *us = ustack->step_init ? ustack->step_init : MEM_callocN(ut->step_size, __func__);
-	ustack->step_init = NULL;
-	if (us->name[0] == '\0') {
-		BLI_strncpy(us->name, name, sizeof(us->name));
-	}
-	us->type = ut;
-	/* initialized, not added yet. */
+	bool use_memfile_step = false;
+	{
+		UndoStep *us = ustack->step_init ? ustack->step_init : MEM_callocN(ut->step_size, __func__);
+		ustack->step_init = NULL;
+		if (us->name[0] == '\0') {
+			BLI_strncpy(us->name, name, sizeof(us->name));
+		}
+		us->type = ut;
+		/* initialized, not added yet. */
 
-	if (undosys_step_encode(C, ustack, us)) {
+		if (!undosys_step_encode(C, ustack, us)) {
+			MEM_freeN(us);
+			undosys_stack_validate(ustack, true);
+			return false;
+		}
 		ustack->step_active = us;
 		BLI_addtail(&ustack->steps, us);
-		undosys_stack_validate(ustack, true);
-		return true;
+		use_memfile_step = us->use_memfile_step;
 	}
-	else {
-		MEM_freeN(us);
-		undosys_stack_validate(ustack, true);
-		return false;
+
+	if (use_memfile_step) {
+		Main *bmain = G.main;
+		const char *name_internal = "MemFile Internal (post)";
+		const bool ok = undosys_stack_push_main(ustack, name_internal, bmain);
+		if (ok) {
+			UndoStep *us = ustack->steps.last;
+			BLI_assert(STREQ(us->name, name_internal));
+			us->skip = true;
+#ifdef WITH_GLOBAL_UNDO_CORRECT_ORDER
+			ustack->step_active_memfile = us;
+#endif
+			ustack->step_active = us;
+		}
 	}
+
+	undosys_stack_validate(ustack, true);
+	return true;
 }
 
 bool BKE_undosys_step_push(UndoStack *ustack, bContext *C, const char *name)
