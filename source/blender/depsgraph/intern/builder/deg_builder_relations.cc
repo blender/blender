@@ -1260,7 +1260,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 		if (id_node_from != id_node_to) {
 			ComponentKey cow_key(id_node_to->id_orig,
 			                     DEG_NODE_TYPE_COPY_ON_WRITE);
-			add_relation(cow_key, adt_key, "Target CoW -> Animation", true);
+			add_relation(cow_key, adt_key, "Animated CoW -> Animation", true);
 		}
 	}
 }
@@ -1443,8 +1443,8 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 		}
 	}
 	else if (rna_path != NULL && rna_path[0] != '\0') {
-		RNAPathKey target_key(id, rna_path);
-		if (RNA_pointer_is_null(&target_key.ptr)) {
+		RNAPathKey property_key(id, rna_path);
+		if (RNA_pointer_is_null(&property_key.ptr)) {
 			/* TODO(sergey): This would only mean that driver is broken.
 			 * so we can't create relation anyway. However, we need to avoid
 			 * adding drivers which are known to be buggy to a dependency
@@ -1452,7 +1452,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 			 */
 			return;
 		}
-		add_relation(driver_key, target_key, "Driver -> Target");
+		add_relation(driver_key, property_key, "Driver -> Driven Property");
 		/* Similar to the case with f-curves, driver might drive a nested
 		 * datablock, which means driver execution should wait for that
 		 * datablock to be copied.
@@ -1467,20 +1467,20 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 					                     DEG_NODE_TYPE_COPY_ON_WRITE);
 					add_relation(cow_key,
 					             driver_key,
-					             "Target CoW -> Driver",
+					             "Driven CoW -> Driver",
 					             true);
 				}
 			}
 		}
-		if (target_key.prop != NULL &&
-		    RNA_property_is_idprop(target_key.prop))
+		if (property_key.prop != NULL &&
+		    RNA_property_is_idprop(property_key.prop))
 		{
 			OperationKey parameters_key(id,
 			                            DEG_NODE_TYPE_PARAMETERS,
 			                            DEG_OPCODE_PARAMETERS_EVAL);
-			add_relation(target_key,
+			add_relation(property_key,
 			             parameters_key,
-			             "Driver Target -> Properties");
+			             "Driven Property -> Properties");
 		}
 	}
 }
