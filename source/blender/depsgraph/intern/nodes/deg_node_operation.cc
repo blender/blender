@@ -74,7 +74,7 @@ string OperationDepsNode::full_identifier() const
 	return owner_str + "." + identifier();
 }
 
-void OperationDepsNode::tag_update(Depsgraph *graph, eDepsTag_Source source)
+void OperationDepsNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
 	if ((flag & DEPSOP_FLAG_NEEDS_UPDATE) == 0) {
 		graph->add_entry_tag(this);

@@ -61,7 +61,7 @@ struct IDDepsNode : public DepsNode {
 	ComponentDepsNode *add_component(eDepsNode_Type type,
 	                                 const char *name = "");
 
-	virtual void tag_update(Depsgraph *graph, eDepsTag_Source source) override;
+	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
 	void finalize_build(Depsgraph *graph);
 

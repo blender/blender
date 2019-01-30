@@ -44,7 +44,7 @@ struct TimeSourceDepsNode : public DepsNode {
 
 	// TODO: evaluate() operation needed
 
-	virtual void tag_update(Depsgraph *graph, eDepsTag_Source source) override;
+	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
 	DEG_DEPSNODE_DECLARE;
 };

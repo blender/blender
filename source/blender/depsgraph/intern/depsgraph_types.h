@@ -311,7 +311,7 @@ const char *operationCodeAsString(eDepsOperation_Code opcode);
  *
  * NOTE: This is a bit mask, so accumulation of sources is possible.
  */
-typedef enum eDepsTag_Source {
+typedef enum eUpdateSource {
 	/* Update is caused by a time change. */
 	DEG_UPDATE_SOURCE_TIME       = (1 << 0),
 	/* Update caused by user directly or indirectly influencing the node. */
@@ -320,6 +320,6 @@ typedef enum eDepsTag_Source {
 	DEG_UPDATE_SOURCE_RELATIONS  = (1 << 2),
 	/* Update is happening due to visibility change. */
 	DEG_UPDATE_SOURCE_VISIBILITY = (1 << 3),
-} eDepsTag_Source;
+} eUpdateSource;
 
 }  // namespace DEG

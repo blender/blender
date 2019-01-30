@@ -61,7 +61,7 @@ struct OperationDepsNode : public DepsNode {
 	virtual string identifier() const override;
 	string full_identifier() const;
 
-	virtual void tag_update(Depsgraph *graph, eDepsTag_Source source) override;
+	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
 	bool is_noop() const { return (bool)evaluate == false; }
 

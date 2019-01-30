@@ -283,7 +283,7 @@ void ComponentDepsNode::clear_operations()
 	operations.clear();
 }
 
-void ComponentDepsNode::tag_update(Depsgraph *graph, eDepsTag_Source source)
+void ComponentDepsNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
 	OperationDepsNode *entry_op = get_entry_operation();
 	if (entry_op != NULL && entry_op->flag & DEPSOP_FLAG_NEEDS_UPDATE) {

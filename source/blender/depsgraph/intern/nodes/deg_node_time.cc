@@ -37,8 +37,7 @@
 
 namespace DEG {
 
-void TimeSourceDepsNode::tag_update(Depsgraph *graph,
-                                    eDepsTag_Source /*source*/)
+void TimeSourceDepsNode::tag_update(Depsgraph *graph, eUpdateSource /*source*/)
 {
 	foreach (DepsRelation *rel, outlinks) {
 		DepsNode *node = rel->to;

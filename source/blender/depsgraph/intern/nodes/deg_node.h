@@ -98,8 +98,7 @@ struct DepsNode {
 	virtual void init(const ID * /*id*/,
 	                  const char * /*subdata*/) {}
 
-	virtual void tag_update(Depsgraph * /*graph*/,
-	                        eDepsTag_Source /*source*/) {}
+	virtual void tag_update(Depsgraph * /*graph*/, eUpdateSource /*source*/) {}
 
 	virtual OperationDepsNode *get_entry_operation() { return NULL; }
 	virtual OperationDepsNode *get_exit_operation() { return NULL; }

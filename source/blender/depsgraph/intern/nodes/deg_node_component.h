@@ -120,7 +120,7 @@ struct ComponentDepsNode : public DepsNode {
 
 	void clear_operations();
 
-	virtual void tag_update(Depsgraph *graph, eDepsTag_Source source) override;
+	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
 	virtual OperationDepsNode *get_entry_operation() override;
 	virtual OperationDepsNode *get_exit_operation() override;
