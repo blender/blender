@@ -79,7 +79,8 @@ static GPUShader *drw_shader_get_builtin_shader_clipped(eGPUBuiltinShader shader
 	        .vert = (const char *[]){world_clip_lib, shader_code.vert, NULL},
 	        .geom = (const char *[]){shader_code.geom ? world_clip_lib : NULL, shader_code.geom, NULL},
 	        .frag = (const char *[]){shader_code.frag, NULL},
-	        .defs = (const char *[]){world_clip_def, shader_code.defs, NULL}});
+	        .defs = (const char *[]){world_clip_def, shader_code.defs, NULL},
+	});
 }
 
 GPUShader *DRW_shader_get_builtin_shader(eGPUBuiltinShader shader_id, eDRW_ShaderSlot slot)

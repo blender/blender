@@ -168,7 +168,8 @@ static void EDIT_LATTICE_engine_init(void *vedata)
 		            datatoc_common_globals_lib_glsl,
 		            datatoc_edit_lattice_overlay_frag_glsl,
 		            NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 
 	}
 }

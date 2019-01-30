@@ -112,22 +112,26 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 		sh_data->weight_face = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_weight_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_paint_weight_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 
 		sh_data->wire_overlay = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_paint_wire_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define WEIGHT_MODE\n", NULL}});
+		        .defs = (const char *[]){world_clip_def_or_empty, "#define WEIGHT_MODE\n", NULL},
+		});
 
 		sh_data->face_overlay = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_paint_face_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 
 		sh_data->vert_overlay = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_paint_vert_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL}});
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 	}
 }
 

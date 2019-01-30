@@ -43,7 +43,7 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
 	NULL, &DRW_render_to_image, NULL, NULL, NULL, NULL,
 	&workbench_render_update_passes,
 	&draw_engine_workbench_solid,
-	{NULL, NULL, NULL}
+	{NULL, NULL, NULL},
 };
 
 

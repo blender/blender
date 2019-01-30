@@ -226,7 +226,7 @@ RenderEngineType DRW_engine_viewport_external_type = {
 	EXTERNAL_ENGINE, N_("External"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	&draw_engine_external_type,
-	{NULL, NULL, NULL}
+	{NULL, NULL, NULL},
 };
 
 #undef EXTERNAL_ENGINE

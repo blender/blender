@@ -311,7 +311,8 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
  *         .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
  *         .geom = (const char *[]){shader_geom_glsl, NULL},
  *         .frag = (const char *[]){shader_frag_glsl, NULL},
- *         .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL}});
+ *         .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
+ * });
  * \endcode
  *
  */
