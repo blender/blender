@@ -164,16 +164,18 @@ struct OperationKey
 
 struct RNAPathKey
 {
-	/* NOTE: see depsgraph_build.cpp for implementation */
-	RNAPathKey(ID *id, const char *path);
-
-	RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop);
+	RNAPathKey(ID *id, const char *path, RNAPointerSource source);
+	RNAPathKey(ID *id,
+	           const PointerRNA &ptr,
+	           PropertyRNA *prop,
+	           RNAPointerSource source);
 
 	string identifier() const;
 
 	ID *id;
 	PointerRNA ptr;
 	PropertyRNA *prop;
+	RNAPointerSource source;
 };
 
 struct DepsgraphRelationBuilder

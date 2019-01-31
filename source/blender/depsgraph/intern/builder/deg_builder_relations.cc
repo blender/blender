@@ -266,7 +266,7 @@ OperationDepsNode *DepsgraphRelationBuilder::get_node(
 
 DepsNode *DepsgraphRelationBuilder::get_node(const RNAPathKey &key) const
 {
-	return graph_->find_node_from_pointer(&key.ptr, key.prop);
+	return graph_->find_node_from_pointer(&key.ptr, key.prop, key.source);
 }
 
 OperationDepsNode *DepsgraphRelationBuilder::find_node(
@@ -1233,7 +1233,8 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 		{
 			continue;
 		}
-		DepsNode *node_to = graph_->find_node_from_pointer(&ptr, prop);
+		DepsNode *node_to = graph_->find_node_from_pointer(
+		        &ptr, prop, RNAPointerSource::ENTRY);
 		if (node_to == NULL) {
 			continue;
 		}
@@ -1402,7 +1403,6 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
-	const RNAPathKey self_key(id, rna_path);
 	if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
 		/* Drivers on armature-level bone settings (i.e. bbone stuff),
 		 * which will affect the evaluation of corresponding pose bones.
@@ -1443,20 +1443,19 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 		}
 	}
 	else if (rna_path != NULL && rna_path[0] != '\0') {
-		RNAPathKey property_key(id, rna_path);
-		if (RNA_pointer_is_null(&property_key.ptr)) {
+		RNAPathKey property_entry_key(id, rna_path, RNAPointerSource::ENTRY);
+		if (RNA_pointer_is_null(&property_entry_key.ptr)) {
 			/* TODO(sergey): This would only mean that driver is broken.
 			 * so we can't create relation anyway. However, we need to avoid
 			 * adding drivers which are known to be buggy to a dependency
-			 * graph, in order to save computational power.
-			 */
+			 * graph, in order to save computational power. */
 			return;
 		}
-		add_relation(driver_key, property_key, "Driver -> Driven Property");
+		add_relation(
+		        driver_key, property_entry_key, "Driver -> Driven Property");
 		/* Similar to the case with f-curves, driver might drive a nested
 		 * datablock, which means driver execution should wait for that
-		 * datablock to be copied.
-		 */
+		 * datablock to be copied. */
 		{
 			PointerRNA id_ptr;
 			PointerRNA ptr;
@@ -1472,13 +1471,14 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 				}
 			}
 		}
-		if (property_key.prop != NULL &&
-		    RNA_property_is_idprop(property_key.prop))
+		if (property_entry_key.prop != NULL &&
+		    RNA_property_is_idprop(property_entry_key.prop))
 		{
+			RNAPathKey property_exit_key(id, rna_path, RNAPointerSource::EXIT);
 			OperationKey parameters_key(id,
 			                            DEG_NODE_TYPE_PARAMETERS,
 			                            DEG_OPCODE_PARAMETERS_EVAL);
-			add_relation(property_key,
+			add_relation(property_exit_key,
 			             parameters_key,
 			             "Driven Property -> Properties");
 		}
@@ -1494,8 +1494,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
-	const RNAPathKey self_key(id, rna_path);
-
+	const RNAPathKey self_key(id, rna_path, RNAPointerSource::ENTRY);
 	LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
 		/* Only used targets. */
 		DRIVER_TARGETS_USED_LOOPER_BEGIN(dvar)
@@ -1548,22 +1547,28 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 				add_relation(target_key, driver_key, "Target -> Driver");
 			}
 			else if (dtar->rna_path != NULL && dtar->rna_path[0] != '\0') {
-				RNAPathKey variable_key(dtar->id, dtar->rna_path);
-				if (RNA_pointer_is_null(&variable_key.ptr)) {
+				RNAPathKey variable_exit_key(
+				        dtar->id, dtar->rna_path, RNAPointerSource::EXIT);
+				if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
 					continue;
 				}
-				if (is_same_bone_dependency(variable_key, self_key) ||
-				    is_same_nodetree_node_dependency(variable_key, self_key) ||
-				    is_same_shapekey_dependency(variable_key, self_key))
+				if (is_same_bone_dependency(variable_exit_key, self_key) ||
+				    is_same_nodetree_node_dependency(variable_exit_key, self_key) ||
+				    is_same_shapekey_dependency(variable_exit_key, self_key))
 				{
 					continue;
 				}
-				add_relation(variable_key, driver_key, "RNA Target -> Driver");
+				add_relation(variable_exit_key,
+				             driver_key,
+				             "RNA Target -> Driver");
 				if (proxy_from != NULL) {
 					RNAPathKey proxy_from_variable_key(&proxy_from->id,
-					                                   dtar->rna_path);
+					                                   dtar->rna_path,
+					                                   RNAPointerSource::EXIT);
+					RNAPathKey variable_entry_key(
+					        dtar->id, dtar->rna_path, RNAPointerSource::ENTRY);
 					add_relation(proxy_from_variable_key,
-					             variable_key,
+					             variable_entry_key,
 					             "Proxy From -> Variable");
 				}
 			}

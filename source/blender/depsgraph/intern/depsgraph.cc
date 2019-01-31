@@ -121,6 +121,7 @@ Depsgraph::~Depsgraph()
 static bool pointer_to_component_node_criteria(
         const PointerRNA *ptr,
         const PropertyRNA *prop,
+        RNAPointerSource /*source*/,
         ID **id,
         eDepsNode_Type *type,
         const char **subdata,
@@ -287,16 +288,16 @@ static bool pointer_to_component_node_criteria(
 
 /* Convenience wrapper to find node given just pointer + property. */
 DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
-                                            const PropertyRNA *prop) const
+                                            const PropertyRNA *prop,
+                                            RNAPointerSource source) const
 {
 	ID *id;
 	eDepsNode_Type node_type;
 	const char *component_name, *operation_name;
 	eDepsOperation_Code operation_code;
 	int operation_name_tag;
-
 	if (pointer_to_component_node_criteria(
-	                 ptr, prop,
+	                 ptr, prop, source,
 	                 &id, &node_type, &component_name,
 	                 &operation_code, &operation_name, &operation_name_tag))
 	{

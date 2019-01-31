@@ -34,7 +34,7 @@
 
 namespace DEG {
 
-/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Time source.
 
 TimeSourceKey::TimeSourceKey()
@@ -52,7 +52,7 @@ string TimeSourceKey::identifier() const
 	return string("TimeSourceKey");
 }
 
-/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Component.
 
 ComponentKey::ComponentKey()
@@ -82,7 +82,7 @@ string ComponentKey::identifier() const
 	return result;
 }
 
-/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Operation.
 
 OperationKey::OperationKey()
@@ -189,28 +189,33 @@ string OperationKey::identifier() const
 	return result;
 }
 
-/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // RNA path.
 
-RNAPathKey::RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop)
+RNAPathKey::RNAPathKey(ID *id, const char *path, RNAPointerSource source)
         : id(id),
-          ptr(ptr),
-          prop(prop)
+          source(source)
 {
-}
-
-RNAPathKey::RNAPathKey(ID *id, const char *path)
-        : id(id)
-{
-	/* create ID pointer for root of path lookup */
+	/* Create ID pointer for root of path lookup. */
 	PointerRNA id_ptr;
 	RNA_id_pointer_create(id, &id_ptr);
-	/* try to resolve path... */
+	/* Try to resolve path. */
 	int index;
-	if (!RNA_path_resolve_full(&id_ptr, path, &this->ptr, &this->prop, &index)) {
-		this->ptr = PointerRNA_NULL;
-		this->prop = NULL;
+	if (!RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
+		ptr = PointerRNA_NULL;
+		prop = NULL;
 	}
+}
+
+RNAPathKey::RNAPathKey(ID *id,
+                       const PointerRNA &ptr,
+                       PropertyRNA *prop,
+                       RNAPointerSource source)
+        : id(id),
+          ptr(ptr),
+          prop(prop),
+          source(source)
+{
 }
 
 string RNAPathKey::identifier() const
