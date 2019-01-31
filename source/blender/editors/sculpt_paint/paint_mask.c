@@ -535,7 +535,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
 	ot->poll = sculpt_mode_poll;
 
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER;
 
 	/* properties */
 	WM_operator_properties_gesture_lasso(ot);
