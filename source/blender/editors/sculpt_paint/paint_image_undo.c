@@ -346,10 +346,10 @@ static void image_undo_restore_list(ListBase *lb, struct UndoIDPtrMap *id_map)
 
 static void image_undo_free_list(ListBase *lb)
 {
-	UndoImageTile *tile;
-
-	for (tile = lb->first; tile; tile = tile->next) {
+	for (UndoImageTile *tile = lb->first, *tile_next; tile; tile = tile_next) {
+		tile_next = tile->next;
 		MEM_freeN(tile->rect.pt);
+		MEM_freeN(tile);
 	}
 }
 
