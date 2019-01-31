@@ -230,7 +230,7 @@ struct Depsgraph {
 	 */
 	bool is_active;
 
-	/* NITE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
+	/* NOTE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
 	int debug_flags;
 	string debug_name;
 
