@@ -148,6 +148,8 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_textures", text="Textures")
         if bpy.data.shape_keys:
             flow.prop(dopesheet, "show_shapekeys", text="Shape Keys")
+        if bpy.data.cache_files:
+            flow.prop(dopesheet, "show_cache_files", text="Cache Files")
 
         layout.separator()
 
