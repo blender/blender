@@ -26,6 +26,10 @@
 #ifndef __BLI_CONSOLE_H__
 #define __BLI_CONSOLE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \file BLI_console.h
  *  \ingroup bli
  *  \brief Set of utility functions and constants to work with consoles.
@@ -38,5 +42,9 @@
 
 /* Marker which indicates that colored output is finished. */
 #define TRUECOLOR_ANSI_COLOR_FINISH "\x1b[0m"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* __BLI_CONSOLE_H__ */

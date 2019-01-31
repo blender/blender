@@ -25,6 +25,10 @@
  *  \ingroup bli
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BLI_INLINE unsigned int BLI_hash_int_2d(unsigned int kx, unsigned int ky)
 {
 #define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
@@ -79,5 +83,9 @@ BLI_INLINE void BLI_hash_pointer_to_color(const void *ptr, int *r, int *g, int *
 	*g = (hash & 0x00ff00) >> 8;
 	*b = hash & 0x0000ff;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __BLI_HASH_H__
