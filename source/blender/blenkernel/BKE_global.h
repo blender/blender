@@ -43,26 +43,25 @@
 extern "C" {
 #endif
 
-/* forwards */
 struct Main;
 
 typedef struct Global {
 
-	/* active pointers */
+	/** Active pointers. */
 	struct Main *main;
 
-	/* strings: lastsaved */
+	/** Strings: last saved */
 	char ima[1024], lib[1024]; /* 1024 = FILE_MAX */
 
-	/* when set: G_MAIN->name contains valid relative base path */
+	/** When set: `G_MAIN->name` contains valid relative base path. */
 	bool relbase_valid;
 	bool file_loaded;
 	bool save_over;
 
-	/* strings of recent opened files */
+	/** Strings of recent opened files. */
 	struct ListBase recent_files;
 
-	/* has escape been pressed or Ctrl+C pressed in background mode, used for render quit */
+	/** Has escape been pressed or Ctrl+C pressed in background mode, used for render quit. */
 	bool is_break;
 
 	bool background;
@@ -70,10 +69,11 @@ typedef struct Global {
 
 	short moving;
 
-	/* to indicate render is busy, prevent renderwindow events etc */
+	/** To indicate render is busy, prevent renderwindow events etc. */
 	bool is_rendering;
 
-	/* Debug value, can be set from the UI and python, used for testing nonstandard features.
+	/**
+	 * Debug value, can be set from the UI and python, used for testing nonstandard features.
 	 * DO NOT abuse it with generic checks like `if (G.debug_value > 0)`. Do not use it as bitflags.
 	 * Only precise specific values should be checked for, to avoid unpredictable side-effects.
 	 * Please document here the value(s) you are using (or a range of values reserved to some area).
@@ -91,30 +91,30 @@ typedef struct Global {
 	 */
 	short debug_value;
 
-	/* saved to the blend file as FileGlobal.globalf,
-	 * however this is now only used for runtime options */
+	/** Saved to the blend file as #FileGlobal.globalf,
+	 * however this is now only used for runtime options. */
 	int f;
 
 	struct {
-		/* Logging vars (different loggers may use). */
+		/** Logging vars (different loggers may use). */
 		int level;
-		/* FILE handle or use stderr (we own this so close when done). */
+		/** FILE handle or use stderr (we own this so close when done). */
 		void *file;
 	} log;
 
-	/* debug flag, G_DEBUG, G_DEBUG_PYTHON & friends, set python or command line args */
+	/** debug flag, #G_DEBUG, #G_DEBUG_PYTHON & friends, set python or command line args */
 	int debug;
 
-	/* this variable is written to / read from FileGlobal->fileflags */
+	/** This variable is written to / read from #FileGlobal.fileflags */
 	int fileflags;
 
-	/* message to use when autoexec fails */
+	/** Message to use when auto execution fails. */
 	char autoexec_fail[200];
 } Global;
 
 /* **************** GLOBAL ********************* */
 
-/* G.f */
+/** #Global.f */
 #define G_RENDER_OGL    (1 <<  0)
 #define G_SWAP_EXCHANGE (1 <<  1)
 /* #define G_RENDER_SHADOW	(1 <<  3) */ /* temp flag, removed */
@@ -133,7 +133,7 @@ typedef struct Global {
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 
-/* G.debug */
+/** #Global.debug */
 enum {
 	G_DEBUG =           (1 << 0),  /* general debug flag, print more info in unexpected cases */
 	G_DEBUG_FFMPEG =    (1 << 1),
@@ -161,11 +161,12 @@ enum {
 	G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 19),  /* force gpu workarounds bypassing detections. */
 };
 
-#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
-                      G_DEBUG_FREESTYLE | G_DEBUG_DEPSGRAPH | G_DEBUG_GPU_MEM | G_DEBUG_IO | G_DEBUG_GPU_SHADERS)
+#define G_DEBUG_ALL \
+	(G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
+	 G_DEBUG_FREESTYLE | G_DEBUG_DEPSGRAPH | G_DEBUG_GPU_MEM | G_DEBUG_IO | G_DEBUG_GPU_SHADERS)
 
 
-/* G.fileflags */
+/** #Global.fileflags */
 
 #define G_AUTOPACK               (1 << 0)
 #define G_FILE_COMPRESS          (1 << 1)
@@ -175,23 +176,22 @@ enum {
 
 /* Bits 11 to 22 (inclusive) are deprecated & need to be cleared */
 
-/* On read, use #FileGlobal.filename instead of the real location on-disk,
+/** On read, use #FileGlobal.filename instead of the real location on-disk,
  * needed for recovering temp files so relative paths resolve */
 #define G_FILE_RECOVER           (1 << 23)
-/* On write, remap relative file paths to the new file location. */
+/** On write, remap relative file paths to the new file location. */
 #define G_FILE_RELATIVE_REMAP    (1 << 24)
-/* On write, make backup `.blend1`, `.blend2` ... files, when the users preference is enabled */
+/** On write, make backup `.blend1`, `.blend2` ... files, when the users preference is enabled */
 #define G_FILE_HISTORY           (1 << 25)
-/* BMesh option to save as older mesh format */
-// #define G_FILE_MESH_COMPAT       (1 << 26)
-/* On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
+/** BMesh option to save as older mesh format */
+/* #define G_FILE_MESH_COMPAT       (1 << 26) */
+/** On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
 #define G_FILE_SAVE_COPY         (1 << 27)
 /* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
 
 #define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
 
-/* ENDIAN_ORDER: indicates what endianness the platform where the file was
- * written had. */
+/** ENDIAN_ORDER: indicates what endianness the platform where the file was written had. */
 #if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
 #  error Either __BIG_ENDIAN__ or __LITTLE_ENDIAN__ must be defined.
 #endif
@@ -205,18 +205,19 @@ enum {
 #  define ENDIAN_ORDER L_ENDIAN
 #endif
 
-/* G.moving, signals drawing in (3d) window to denote transform */
+/** #Global.moving, signals drawing in (3d) window to denote transform */
 #define G_TRANSFORM_OBJ         1
 #define G_TRANSFORM_EDIT        2
 #define G_TRANSFORM_SEQ         4
 #define G_TRANSFORM_FCURVES     8
 #define G_TRANSFORM_WM          16
 
-/* Memory is allocated where? blender.c */
+/** Defined in blender.c */
 extern Global G;
 
 /**
- * Stupid macro to hide the few *valid* usages of G.main (from startup/exit code e.g.), helps with cleanup task.
+ * Stupid macro to hide the few *valid* usages of `G.main` (from startup/exit code e.g.),
+ * helps with cleanup task.
  */
 #define G_MAIN (G).main
 
