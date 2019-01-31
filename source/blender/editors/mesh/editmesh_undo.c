@@ -723,13 +723,18 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bma
 	return true;
 }
 
-static void mesh_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
+static void mesh_undosys_step_decode(struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir))
 {
-	/* TODO(campbell): undo_system: use low-level API to set mode. */
-	ED_object_mode_set(C, OB_MODE_EDIT);
-	BLI_assert(mesh_undosys_poll(C));
-
 	MeshUndoStep *us = (MeshUndoStep *)us_p;
+
+	Scene *scene = CTX_data_scene(C);
+	for (uint i = 0; i < us->elems_len; i++) {
+		MeshUndoStep_Elem *elem = &us->elems[i];
+		Object *obedit = elem->obedit_ref.ptr;
+		ED_object_editmode_enter_ex(bmain, scene, obedit, EM_NO_CONTEXT);
+	}
+
+	BLI_assert(mesh_undosys_poll(C));
 
 	for (uint i = 0; i < us->elems_len; i++) {
 		MeshUndoStep_Elem *elem = &us->elems[i];
