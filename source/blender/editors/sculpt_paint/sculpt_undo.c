@@ -1031,10 +1031,8 @@ typedef struct SculptUndoStep {
 
 static bool sculpt_undosys_poll(bContext *C)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	if (sa && (sa->spacetype == SPACE_VIEW3D)) {
-		ViewLayer *view_layer = CTX_data_view_layer(C);
-		Object *obact = OBACT(view_layer);
+	Object *obact = CTX_data_active_object(C);
+	if (obact && obact->type == OB_MESH) {
 		if (obact && (obact->mode & OB_MODE_SCULPT)) {
 			return true;
 		}

@@ -418,11 +418,13 @@ static bool image_undosys_poll(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
-		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) ||
+		    (sima->mode == SI_MODE_PAINT))
+		{
 			return true;
 		}
 	}
-	else if (sa && (sa->spacetype == SPACE_VIEW3D)) {
+	else {
 		if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) {
 			return true;
 		}
