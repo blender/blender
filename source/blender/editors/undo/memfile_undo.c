@@ -93,6 +93,10 @@ static void memfile_undosys_step_decode(struct bContext *C, struct Main *bmain, 
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 	BKE_memfile_undo_decode(us->data, C);
 
+	/* bmain has been freed. */
+	bmain = CTX_data_main(C);
+	ED_editors_init_for_undo(bmain);
+
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 }
 

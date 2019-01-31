@@ -46,6 +46,7 @@
 
 #include "ED_paint.h"
 #include "ED_undo.h"
+#include "ED_util.h"
 
 #include "GPU_draw.h"
 
@@ -466,13 +467,16 @@ static bool image_undosys_step_encode(struct bContext *UNUSED(C), struct Main *U
 	return true;
 }
 
-static void image_undosys_step_decode(struct bContext *UNUSED(C), struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
+static void image_undosys_step_decode(struct bContext *UNUSED(C), struct Main *bmain, UndoStep *us_p, int UNUSED(dir))
 {
 	ImageUndoStep *us = (ImageUndoStep *)us_p;
 #if 0
 	paint_undosys_step_decode_restore_ids(us);
 #endif
 	image_undo_restore_list(&us->tiles, us->id_map);
+
+	/* Refresh texture slots. */
+	ED_editors_init_for_undo(bmain);
 }
 
 static void image_undosys_step_free(UndoStep *us_p)
