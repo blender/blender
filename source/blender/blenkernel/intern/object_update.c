@@ -282,7 +282,7 @@ void BKE_object_synchronize_to_original(Depsgraph *depsgraph, Object *object)
 	object_orig->base_flag = object->base_flag;
 	/* Transformation flags. */
 	copy_m4_m4(object_orig->obmat, object->obmat);
-	invert_m4_m4(object_orig->imat, object_orig->obmat);
+	copy_m4_m4(object_orig->imat, object->imat);
 	copy_m4_m4(object_orig->constinv, object->constinv);
 	object_orig->transflag = object->transflag;
 	object_orig->flag = object->flag;
