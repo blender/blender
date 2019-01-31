@@ -2799,6 +2799,14 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 	return evaluate_fcurve_ex(fcu, evaltime, 0.0);
 }
 
+float evaluate_fcurve_only_curve(FCurve *fcu, float evaltime)
+{
+	/* Can be used to evaluate the (keyframed) fcurve only.
+	 * Also works for driver-fcurves when the driver itself is not relevant.
+	 * E.g. when inserting a keyframe in a driver fcurve. */
+	return evaluate_fcurve_ex(fcu, evaltime, 0.0);
+}
+
 float evaluate_fcurve_driver(PathResolvedRNA *anim_rna, FCurve *fcu, ChannelDriver *driver_orig, float evaltime)
 {
 	BLI_assert(fcu->driver != NULL);

@@ -297,6 +297,7 @@ void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2]);
 
 /* evaluate fcurve */
 float evaluate_fcurve(struct FCurve *fcu, float evaltime);
+float evaluate_fcurve_only_curve(struct FCurve *fcu, float evaltime);
 float evaluate_fcurve_driver(struct PathResolvedRNA *anim_rna, struct FCurve *fcu,
                              struct ChannelDriver *driver_orig, float evaltime);
 /* evaluate fcurve and store value */
