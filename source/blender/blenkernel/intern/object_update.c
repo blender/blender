@@ -162,14 +162,6 @@ void BKE_object_handle_data_update(
 
 	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
-	/* TODO: only here to evaluate drivers twice to fix dependency graph
-	 * not handling shape key values that depend on each other. */
-	Key *key = BKE_key_from_object(ob);
-	if (key && key->block.first) {
-		if (!(ob->shapeflag & OB_SHAPE_LOCK))
-			BKE_animsys_evaluate_animdata(depsgraph, scene, &key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
-	}
-
 	/* includes all keys and modifiers */
 	switch (ob->type) {
 		case OB_MESH:
