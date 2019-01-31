@@ -15,47 +15,52 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Blender Foundation.
+ * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
  *
  * Original Author: Sergey Sharybin
- * Contributor(s): Joshua Leung
+ * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder_pchanmap.h
+/** \file blender/depsgraph/intern/debug/deg_debug.h
  *  \ingroup depsgraph
  */
 
 #pragma once
 
-struct GHash;
+#include "intern/depsgraph_type.h"
+
+#include "BKE_global.h"
+
+#include "DEG_depsgraph_debug.h"
 
 namespace DEG {
 
-struct RootPChanMap {
-	/* ctor and dtor - Create and free the internal map respectively. */
-	RootPChanMap();
-	~RootPChanMap();
+#define DEG_DEBUG_PRINTF(depsgraph, type, ...) \
+	do { \
+		if (DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_ ## type) { \
+			DEG_debug_print_begin(depsgraph); \
+			fprintf(stdout, __VA_ARGS__); \
+		} \
+	} while (0)
 
-	/* Debug contents of map. */
-	void print_debug();
+#define DEG_GLOBAL_DEBUG_PRINTF(type, ...) \
+	do { \
+		if (G.debug & G_DEBUG_DEPSGRAPH_ ## type) { \
+			fprintf(stdout, __VA_ARGS__); \
+		} \
+	} while (0)
 
-	/* Add a mapping. */
-	void add_bone(const char *bone, const char *root);
+#define DEG_ERROR_PRINTF(...)               \
+	do {                                    \
+		fprintf(stderr, __VA_ARGS__);       \
+		fflush(stderr);                     \
+	} while (0)
 
-	/* Check if there's a common root bone between two bones. */
-	bool has_common_root(const char *bone1, const char *bone2);
-
-protected:
-	/* The actual map:
-	 * - Keys are "strings" (const char *) - not dynamically allocated.
-	 * - Values are "sets" (const char *) - not dynamically allocated.
-	 *
-	 * We don't use the C++ maps here, as it's more convenient to use
-	 * Blender's GHash and be able to compare by-value instead of by-ref. */
-	struct GHash *map_;
-};
+bool terminal_do_color(void);
+string color_for_pointer(const void *pointer);
+string color_end(void);
 
 }  // namespace DEG

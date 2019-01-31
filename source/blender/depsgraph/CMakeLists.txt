@@ -53,17 +53,19 @@ set(SRC
 	intern/builder/deg_builder_relations_rig.cc
 	intern/builder/deg_builder_relations_view_layer.cc
 	intern/builder/deg_builder_transitive.cc
+	intern/debug/deg_debug.cc
 	intern/debug/deg_debug_relations_graphviz.cc
 	intern/debug/deg_debug_stats_gnuplot.cc
 	intern/eval/deg_eval.cc
 	intern/eval/deg_eval_copy_on_write.cc
 	intern/eval/deg_eval_flush.cc
 	intern/eval/deg_eval_stats.cc
-	intern/nodes/deg_node.cc
-	intern/nodes/deg_node_component.cc
-	intern/nodes/deg_node_id.cc
-	intern/nodes/deg_node_operation.cc
-	intern/nodes/deg_node_time.cc
+	intern/node/deg_node.cc
+	intern/node/deg_node_component.cc
+	intern/node/deg_node_factory.cc
+	intern/node/deg_node_id.cc
+	intern/node/deg_node_operation.cc
+	intern/node/deg_node_time.cc
 	intern/depsgraph.cc
 	intern/depsgraph_build.cc
 	intern/depsgraph_debug.cc
@@ -74,7 +76,8 @@ set(SRC
 	intern/depsgraph_query_foreach.cc
 	intern/depsgraph_query_iter.cc
 	intern/depsgraph_tag.cc
-	intern/depsgraph_type_defines.cc
+	intern/depsgraph_type.cc
+	intern/depsgraph_update.cc
 
 	DEG_depsgraph.h
 	DEG_depsgraph_build.h
@@ -90,21 +93,23 @@ set(SRC
 	intern/builder/deg_builder_relations.h
 	intern/builder/deg_builder_relations_impl.h
 	intern/builder/deg_builder_transitive.h
+	intern/debug/deg_debug.h
 	intern/eval/deg_eval.h
 	intern/eval/deg_eval_copy_on_write.h
 	intern/eval/deg_eval_flush.h
 	intern/eval/deg_eval_stats.h
-	intern/nodes/deg_node.h
-	intern/nodes/deg_node_component.h
-	intern/nodes/deg_node_id.h
-	intern/nodes/deg_node_operation.h
-	intern/nodes/deg_node_time.h
+	intern/node/deg_node.h
+	intern/node/deg_node_component.h
+	intern/node/deg_node_factory.h
+	intern/node/deg_node_factory_impl.h
+	intern/node/deg_node_id.h
+	intern/node/deg_node_operation.h
+	intern/node/deg_node_time.h
 	intern/depsgraph.h
-	intern/depsgraph_intern.h
-	intern/depsgraph_types.h
-
-	util/deg_util_foreach.h
-	util/deg_util_function.h
+	intern/depsgraph_physics.h
+	intern/depsgraph_tag.h
+	intern/depsgraph_type.h
+	intern/depsgraph_update.h
 )
 
 if(WITH_BOOST)

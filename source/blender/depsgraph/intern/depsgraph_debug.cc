@@ -44,12 +44,12 @@ extern "C" {
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "intern/depsgraph_intern.h"
-#include "intern/depsgraph_types.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_time.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph.h"
+#include "intern/depsgraph_type.h"
+#include "intern/debug/deg_debug.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_time.h"
 
 void DEG_debug_flags_set(Depsgraph *depsgraph, int flags)
 {
@@ -94,8 +94,7 @@ bool DEG_debug_compare(const struct Depsgraph *graph1,
 	 *
 	 * Would be cool to make it more robust, but it's good enough
 	 * for now. Also, proper graph check is actually NP-complex
-	 * problem..
-	 */
+	 * problem. */
 	return true;
 }
 
@@ -118,49 +117,46 @@ bool DEG_debug_graph_relations_validate(Depsgraph *graph,
 
 bool DEG_debug_consistency_check(Depsgraph *graph)
 {
-	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-
+	const DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<const DEG::Depsgraph *>(graph);
 	/* Validate links exists in both directions. */
-	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
-		foreach (DEG::DepsRelation *rel, node->outlinks) {
+	for (DEG::OperationNode *node : deg_graph->operations) {
+		for (DEG::Relation *rel : node->outlinks) {
 			int counter1 = 0;
-			foreach (DEG::DepsRelation *tmp_rel, node->outlinks) {
+			for (DEG::Relation *tmp_rel : node->outlinks) {
 				if (tmp_rel == rel) {
 					++counter1;
 				}
 			}
-
 			int counter2 = 0;
-			foreach (DEG::DepsRelation *tmp_rel, rel->to->inlinks) {
+			for (DEG::Relation *tmp_rel : rel->to->inlinks) {
 				if (tmp_rel == rel) {
 					++counter2;
 				}
 			}
-
 			if (counter1 != counter2) {
-				printf("Relation exists in outgoing direction but not in incoming (%d vs. %d).\n",
+				printf("Relation exists in outgoing direction but not in "
+				        "incoming (%d vs. %d).\n",
 				       counter1, counter2);
 				return false;
 			}
 		}
 	}
 
-	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
-		foreach (DEG::DepsRelation *rel, node->inlinks) {
+	for (DEG::OperationNode *node : deg_graph->operations) {
+		for (DEG::Relation *rel : node->inlinks) {
 			int counter1 = 0;
-			foreach (DEG::DepsRelation *tmp_rel, node->inlinks) {
+			for (DEG::Relation *tmp_rel : node->inlinks) {
 				if (tmp_rel == rel) {
 					++counter1;
 				}
 			}
-
 			int counter2 = 0;
-			foreach (DEG::DepsRelation *tmp_rel, rel->from->outlinks) {
+			for (DEG::Relation *tmp_rel : rel->from->outlinks) {
 				if (tmp_rel == rel) {
 					++counter2;
 				}
 			}
-
 			if (counter1 != counter2) {
 				printf("Relation exists in incoming direction but not in outcoming (%d vs. %d).\n",
 				       counter1, counter2);
@@ -169,20 +165,20 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 	}
 
 	/* Validate node valency calculated in both directions. */
-	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
+	for (DEG::OperationNode *node : deg_graph->operations) {
 		node->num_links_pending = 0;
 		node->custom_flags = 0;
 	}
 
-	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
+	for (DEG::OperationNode *node : deg_graph->operations) {
 		if (node->custom_flags) {
 			printf("Node %s is twice in the operations!\n",
 			       node->identifier().c_str());
 			return false;
 		}
-		foreach (DEG::DepsRelation *rel, node->outlinks) {
-			if (rel->to->type == DEG::DEG_NODE_TYPE_OPERATION) {
-				DEG::OperationDepsNode *to = (DEG::OperationDepsNode *)rel->to;
+		for (DEG::Relation *rel : node->outlinks) {
+			if (rel->to->type == DEG::NodeType::OPERATION) {
+				DEG::OperationNode *to = (DEG::OperationNode *)rel->to;
 				BLI_assert(to->num_links_pending < to->inlinks.size());
 				++to->num_links_pending;
 			}
@@ -190,10 +186,10 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 		node->custom_flags = 1;
 	}
 
-	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
+	for (DEG::OperationNode *node : deg_graph->operations) {
 		int num_links_pending = 0;
-		foreach (DEG::DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEG::DEG_NODE_TYPE_OPERATION) {
+		for (DEG::Relation *rel : node->inlinks) {
+			if (rel->from->type == DEG::NodeType::OPERATION) {
 				++num_links_pending;
 			}
 		}
@@ -224,8 +220,7 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 	/* number of operations */
 	if (r_operations) {
 		/* All operations should be in this list, allowing us to count the total
-		 * number of nodes.
-		 */
+		 * number of nodes. */
 		*r_operations = deg_graph->operations.size();
 	}
 
@@ -234,19 +229,19 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 		size_t tot_outer = 0;
 		size_t tot_rels = 0;
 
-		foreach (DEG::IDDepsNode *id_node, deg_graph->id_nodes) {
+		for (DEG::IDNode *id_node : deg_graph->id_nodes) {
 			tot_outer++;
-			GHASH_FOREACH_BEGIN(DEG::ComponentDepsNode *, comp_node, id_node->components)
+			GHASH_FOREACH_BEGIN(DEG::ComponentNode *, comp_node, id_node->components)
 			{
 				tot_outer++;
-				foreach (DEG::OperationDepsNode *op_node, comp_node->operations) {
+				for (DEG::OperationNode *op_node : comp_node->operations) {
 					tot_rels += op_node->inlinks.size();
 				}
 			}
 			GHASH_FOREACH_END();
 		}
 
-		DEG::TimeSourceDepsNode *time_source = deg_graph->find_time_source();
+		DEG::TimeSourceNode *time_source = deg_graph->find_time_source();
 		if (time_source != NULL) {
 			tot_rels += time_source->inlinks.size();
 		}
@@ -254,4 +249,149 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 		if (r_relations) *r_relations = tot_rels;
 		if (r_outer)     *r_outer     = tot_outer;
 	}
+}
+
+bool DEG_debug_is_evaluating(struct Depsgraph *depsgraph)
+{
+	DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	return deg_graph->debug_is_evaluating;
+}
+
+static DEG::string depsgraph_name_for_logging(struct Depsgraph *depsgraph)
+{
+	const char *name = DEG_debug_name_get(depsgraph);
+	if (name[0] == '\0') {
+		return "";
+	}
+	return "[" + DEG::string(name) + "]: ";
+}
+
+void DEG_debug_print_begin(struct Depsgraph *depsgraph)
+{
+	fprintf(stdout, "%s",
+	        depsgraph_name_for_logging(depsgraph).c_str());
+}
+
+void DEG_debug_print_eval(struct Depsgraph *depsgraph,
+                          const char *function_name,
+                          const char *object_name,
+                          const void *object_address)
+{
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	fprintf(stdout,
+	        "%s%s on %s %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
+	        function_name,
+	        object_name,
+	        DEG::color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::color_end().c_str());
+	fflush(stdout);
+}
+
+void DEG_debug_print_eval_subdata(struct Depsgraph *depsgraph,
+                                  const char *function_name,
+                                  const char *object_name,
+                                  const void *object_address,
+                                  const char *subdata_comment,
+                                  const char *subdata_name,
+                                  const void *subdata_address)
+{
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	fprintf(stdout,
+	        "%s%s on %s %s(%p)%s %s %s %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
+	        function_name,
+	        object_name,
+	        DEG::color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::color_end().c_str(),
+	        subdata_comment,
+	        subdata_name,
+	        DEG::color_for_pointer(subdata_address).c_str(),
+	        subdata_address,
+	        DEG::color_end().c_str());
+	fflush(stdout);
+}
+
+void DEG_debug_print_eval_subdata_index(struct Depsgraph *depsgraph,
+                                        const char *function_name,
+                                        const char *object_name,
+                                        const void *object_address,
+                                        const char *subdata_comment,
+                                        const char *subdata_name,
+                                        const void *subdata_address,
+                                        const int subdata_index)
+{
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	fprintf(stdout,
+	        "%s%s on %s %s(%p)%s %s %s[%d] %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
+	        function_name,
+	        object_name,
+	        DEG::color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::color_end().c_str(),
+	        subdata_comment,
+	        subdata_name,
+	        subdata_index,
+	        DEG::color_for_pointer(subdata_address).c_str(),
+	        subdata_address,
+	        DEG::color_end().c_str());
+	fflush(stdout);
+}
+
+void DEG_debug_print_eval_parent_typed(struct Depsgraph *depsgraph,
+                                       const char *function_name,
+                                       const char *object_name,
+                                       const void *object_address,
+                                       const char *parent_comment,
+                                       const char *parent_name,
+                                       const void *parent_address)
+{
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	fprintf(stdout,
+	        "%s%s on %s %s(%p) [%s] %s %s %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
+	        function_name,
+	        object_name,
+	        DEG::color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::color_end().c_str(),
+	        parent_comment,
+	        parent_name,
+	        DEG::color_for_pointer(parent_address).c_str(),
+	        parent_address,
+	        DEG::color_end().c_str());
+	fflush(stdout);
+}
+
+void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
+                               const char *function_name,
+                               const char *object_name,
+                               const void *object_address,
+                               float time)
+{
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	fprintf(stdout,
+	        "%s%s on %s %s(%p)%s at time %f\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
+	        function_name,
+	        object_name,
+	        DEG::color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::color_end().c_str(),
+	        time);
+	fflush(stdout);
 }

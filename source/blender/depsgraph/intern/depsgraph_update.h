@@ -15,19 +15,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
+ * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Sergey Sharybin
- * Contributor(s):
+ * Original Author: Joshua Leung
+ * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/deg_util_foreach.h
+/** \file blender/depsgraph/intern/depsgraph_update.h
  *  \ingroup depsgraph
  */
 
 #pragma once
 
-#define foreach(x, y) for(x : y)
+struct DEGEditorUpdateContext;
+struct ID;
+
+namespace DEG {
+
+void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx,
+                           struct ID *id);
+
+void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
+                              bool updated);
+
+}  // namespace DEG

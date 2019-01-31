@@ -37,9 +37,7 @@
 #include "BLI_math_base.h"
 
 #include "intern/depsgraph.h"
-#include "intern/nodes/deg_node_id.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/node/deg_node_id.h"
 
 extern "C" {
 #include "DNA_ID.h"
@@ -58,7 +56,7 @@ struct DebugContext {
 };
 
 struct StatsEntry {
-	const IDDepsNode *id_node;
+	const IDNode *id_node;
 	double time;
 };
 
@@ -75,7 +73,7 @@ static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
 }
 
 BLI_INLINE double get_node_time(const DebugContext& /*ctx*/,
-                                const DepsNode *node)
+                                const Node *node)
 {
 	// TODO(sergey): Figure out a nice way to define which exact time
 	// we want to show.
@@ -111,7 +109,7 @@ void write_stats_data(const DebugContext& ctx)
 	// Fill in array of all stats which are to be displayed.
 	vector<StatsEntry> stats;
 	stats.reserve(ctx.graph->id_nodes.size());
-	foreach (const IDDepsNode *id_node, ctx.graph->id_nodes) {
+	for (const IDNode *id_node : ctx.graph->id_nodes) {
 		const double time = get_node_time(ctx, id_node);
 		if (time == 0.0) {
 			continue;
@@ -128,7 +126,7 @@ void write_stats_data(const DebugContext& ctx)
 	std::reverse(stats.begin(), stats.end());
 	// Print data to the file stream.
 	deg_debug_fprintf(ctx, "$data << EOD" NL);
-	foreach (const StatsEntry& entry, stats) {
+	for (const StatsEntry& entry : stats) {
 		deg_debug_fprintf(
 		        ctx, "\"[%s] %s\",%f" NL,
 		        gnuplotify_id_code(entry.id_node->id_orig->name).c_str(),

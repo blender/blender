@@ -24,11 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/nodes/deg_node_component.cc
+/** \file blender/depsgraph/intern/node/deg_node_component.cc
  *  \ingroup depsgraph
  */
 
-#include "intern/nodes/deg_node_component.h"
+#include "intern/node/deg_node_component.h"
 
 #include <stdio.h>
 #include <cstring>  /* required for STREQ later on. */
@@ -42,10 +42,9 @@ extern "C" {
 #include "BKE_action.h"
 } /* extern "C" */
 
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_operation.h"
-#include "intern/depsgraph_intern.h"
-#include "util/deg_util_foreach.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_operation.h"
 
 namespace DEG {
 
@@ -54,21 +53,21 @@ namespace DEG {
 
 /* Standard Component Methods ============================= */
 
-ComponentDepsNode::OperationIDKey::OperationIDKey()
-        : opcode(DEG_OPCODE_OPERATION),
+ComponentNode::OperationIDKey::OperationIDKey()
+        : opcode(OperationCode::OPERATION),
           name(""),
           name_tag(-1)
 {
 }
 
-ComponentDepsNode::OperationIDKey::OperationIDKey(eDepsOperation_Code opcode)
+ComponentNode::OperationIDKey::OperationIDKey(OperationCode opcode)
         : opcode(opcode),
           name(""),
           name_tag(-1)
 {
 }
 
-ComponentDepsNode::OperationIDKey::OperationIDKey(eDepsOperation_Code opcode,
+ComponentNode::OperationIDKey::OperationIDKey(OperationCode opcode,
                                                  const char *name,
                                                  int name_tag)
         : opcode(opcode),
@@ -77,14 +76,13 @@ ComponentDepsNode::OperationIDKey::OperationIDKey(eDepsOperation_Code opcode,
 {
 }
 
-string ComponentDepsNode::OperationIDKey::identifier() const
+string ComponentNode::OperationIDKey::identifier() const
 {
-	char codebuf[5];
-	BLI_snprintf(codebuf, sizeof(codebuf), "%d", opcode);
-	return string("OperationIDKey(") + codebuf + ", " + name + ")";
+	const string codebuf = to_string(static_cast<int>(opcode));
+	return "OperationIDKey(" + codebuf + ", " + name + ")";
 }
 
-bool ComponentDepsNode::OperationIDKey::operator==(
+bool ComponentNode::OperationIDKey::operator==(
         const OperationIDKey &other) const
 {
 	return (opcode == other.opcode) &&
@@ -94,35 +92,36 @@ bool ComponentDepsNode::OperationIDKey::operator==(
 
 static unsigned int comp_node_hash_key(const void *key_v)
 {
-	const ComponentDepsNode::OperationIDKey *key =
-	        reinterpret_cast<const ComponentDepsNode::OperationIDKey *>(key_v);
-	return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(key->opcode),
+	const ComponentNode::OperationIDKey *key =
+	        reinterpret_cast<const ComponentNode::OperationIDKey *>(key_v);
+	int opcode_as_int = static_cast<int>(key->opcode);
+	return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(opcode_as_int),
 	                                  BLI_ghashutil_strhash_p(key->name));
 }
 
 static bool comp_node_hash_key_cmp(const void *a, const void *b)
 {
-	const ComponentDepsNode::OperationIDKey *key_a =
-	        reinterpret_cast<const ComponentDepsNode::OperationIDKey *>(a);
-	const ComponentDepsNode::OperationIDKey *key_b =
-	        reinterpret_cast<const ComponentDepsNode::OperationIDKey *>(b);
+	const ComponentNode::OperationIDKey *key_a =
+	        reinterpret_cast<const ComponentNode::OperationIDKey *>(a);
+	const ComponentNode::OperationIDKey *key_b =
+	        reinterpret_cast<const ComponentNode::OperationIDKey *>(b);
 	return !(*key_a == *key_b);
 }
 
 static void comp_node_hash_key_free(void *key_v)
 {
-	typedef ComponentDepsNode::OperationIDKey OperationIDKey;
+	typedef ComponentNode::OperationIDKey OperationIDKey;
 	OperationIDKey *key = reinterpret_cast<OperationIDKey *>(key_v);
 	OBJECT_GUARDED_DELETE(key, OperationIDKey);
 }
 
 static void comp_node_hash_value_free(void *value_v)
 {
-	OperationDepsNode *op_node = reinterpret_cast<OperationDepsNode *>(value_v);
-	OBJECT_GUARDED_DELETE(op_node, OperationDepsNode);
+	OperationNode *op_node = reinterpret_cast<OperationNode *>(value_v);
+	OBJECT_GUARDED_DELETE(op_node, OperationNode);
 }
 
-ComponentDepsNode::ComponentDepsNode() :
+ComponentNode::ComponentNode() :
     entry_operation(NULL),
     exit_operation(NULL),
     affects_directly_visible(false)
@@ -133,7 +132,7 @@ ComponentDepsNode::ComponentDepsNode() :
 }
 
 /* Initialize 'component' node - from pointer data given */
-void ComponentDepsNode::init(const ID * /*id*/,
+void ComponentNode::init(const ID * /*id*/,
                              const char * /*subdata*/)
 {
 	/* hook up eval context? */
@@ -141,7 +140,7 @@ void ComponentDepsNode::init(const ID * /*id*/,
 }
 
 /* Free 'component' node */
-ComponentDepsNode::~ComponentDepsNode()
+ComponentNode::~ComponentNode()
 {
 	clear_operations();
 	if (operations_map != NULL) {
@@ -151,28 +150,25 @@ ComponentDepsNode::~ComponentDepsNode()
 	}
 }
 
-string ComponentDepsNode::identifier() const
+string ComponentNode::identifier() const
 {
-	string idname = this->owner->name;
-
-	char typebuf[16];
-	sprintf(typebuf, "(%d)", type);
-
-	return string(typebuf) + name + " : " + idname +
+	const string idname = this->owner->name;
+	const string typebuf = "" + to_string(static_cast<int>(type)) + ")";
+	return typebuf + name + " : " + idname +
 	       "( affects_directly_visible: " +
 	               (affects_directly_visible ? "true"
 	                                         : "false") + ")";
 ;
 }
 
-OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
+OperationNode *ComponentNode::find_operation(OperationIDKey key) const
 {
-	OperationDepsNode *node = NULL;
+	OperationNode *node = NULL;
 	if (operations_map != NULL) {
-		node = (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
+		node = (OperationNode *)BLI_ghash_lookup(operations_map, &key);
 	}
 	else {
-		foreach (OperationDepsNode *op_node, operations) {
+		for (OperationNode *op_node : operations) {
 			if (op_node->opcode == key.opcode &&
 			    op_node->name_tag == key.name_tag &&
 			    STREQ(op_node->name, key.name))
@@ -185,7 +181,7 @@ OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 	return node;
 }
 
-OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
+OperationNode *ComponentNode::find_operation(OperationCode opcode,
                                                     const char *name,
                                                     int name_tag) const
 {
@@ -193,9 +189,9 @@ OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
 	return find_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::get_operation(OperationIDKey key) const
+OperationNode *ComponentNode::get_operation(OperationIDKey key) const
 {
-	OperationDepsNode *node = find_operation(key);
+	OperationNode *node = find_operation(key);
 	if (node == NULL) {
 		fprintf(stderr, "%s: find_operation(%s) failed\n",
 		        this->identifier().c_str(), key.identifier().c_str());
@@ -205,7 +201,7 @@ OperationDepsNode *ComponentDepsNode::get_operation(OperationIDKey key) const
 	return node;
 }
 
-OperationDepsNode *ComponentDepsNode::get_operation(eDepsOperation_Code opcode,
+OperationNode *ComponentNode::get_operation(OperationCode opcode,
                                                     const char *name,
                                                     int name_tag) const
 {
@@ -213,12 +209,12 @@ OperationDepsNode *ComponentDepsNode::get_operation(eDepsOperation_Code opcode,
 	return get_operation(key);
 }
 
-bool ComponentDepsNode::has_operation(OperationIDKey key) const
+bool ComponentNode::has_operation(OperationIDKey key) const
 {
 	return find_operation(key) != NULL;
 }
 
-bool ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
+bool ComponentNode::has_operation(OperationCode opcode,
                                       const char *name,
                                       int name_tag) const
 {
@@ -226,15 +222,15 @@ bool ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
 	return has_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& op,
-                                                    eDepsOperation_Code opcode,
+OperationNode *ComponentNode::add_operation(const DepsEvalOperationCb& op,
+                                                    OperationCode opcode,
                                                     const char *name,
                                                     int name_tag)
 {
-	OperationDepsNode *op_node = find_operation(opcode, name, name_tag);
+	OperationNode *op_node = find_operation(opcode, name, name_tag);
 	if (!op_node) {
-		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_OPERATION);
-		op_node = (OperationDepsNode *)factory->create_node(this->owner->id_orig, "", name);
+		DepsNodeFactory *factory = type_get_factory(NodeType::OPERATION);
+		op_node = (OperationNode *)factory->create_node(this->owner->id_orig, "", name);
 
 		/* register opnode in this component's operation set */
 		OperationIDKey *key = OBJECT_GUARDED_NEW(OperationIDKey, opcode, name, name_tag);
@@ -258,43 +254,43 @@ OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& o
 	return op_node;
 }
 
-void ComponentDepsNode::set_entry_operation(OperationDepsNode *op_node)
+void ComponentNode::set_entry_operation(OperationNode *op_node)
 {
 	BLI_assert(entry_operation == NULL);
 	entry_operation = op_node;
 }
 
-void ComponentDepsNode::set_exit_operation(OperationDepsNode *op_node)
+void ComponentNode::set_exit_operation(OperationNode *op_node)
 {
 	BLI_assert(exit_operation == NULL);
 	exit_operation = op_node;
 }
 
-void ComponentDepsNode::clear_operations()
+void ComponentNode::clear_operations()
 {
 	if (operations_map != NULL) {
 		BLI_ghash_clear(operations_map,
 		                comp_node_hash_key_free,
 		                comp_node_hash_value_free);
 	}
-	foreach (OperationDepsNode *op_node, operations) {
-		OBJECT_GUARDED_DELETE(op_node, OperationDepsNode);
+	for (OperationNode *op_node : operations) {
+		OBJECT_GUARDED_DELETE(op_node, OperationNode);
 	}
 	operations.clear();
 }
 
-void ComponentDepsNode::tag_update(Depsgraph *graph, eUpdateSource source)
+void ComponentNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
-	OperationDepsNode *entry_op = get_entry_operation();
+	OperationNode *entry_op = get_entry_operation();
 	if (entry_op != NULL && entry_op->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
 		return;
 	}
-	foreach (OperationDepsNode *op_node, operations) {
+	for (OperationNode *op_node : operations) {
 		op_node->tag_update(graph, source);
 	}
 	// It is possible that tag happens before finalization.
 	if (operations_map != NULL) {
-		GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, operations_map)
+		GHASH_FOREACH_BEGIN(OperationNode *, op_node, operations_map)
 		{
 			op_node->tag_update(graph, source);
 		}
@@ -302,15 +298,15 @@ void ComponentDepsNode::tag_update(Depsgraph *graph, eUpdateSource source)
 	}
 }
 
-OperationDepsNode *ComponentDepsNode::get_entry_operation()
+OperationNode *ComponentNode::get_entry_operation()
 {
 	if (entry_operation) {
 		return entry_operation;
 	}
 	else if (operations_map != NULL && BLI_ghash_len(operations_map) == 1) {
-		OperationDepsNode *op_node = NULL;
+		OperationNode *op_node = NULL;
 		/* TODO(sergey): This is somewhat slow. */
-		GHASH_FOREACH_BEGIN(OperationDepsNode *, tmp, operations_map)
+		GHASH_FOREACH_BEGIN(OperationNode *, tmp, operations_map)
 		{
 			op_node = tmp;
 		}
@@ -325,15 +321,15 @@ OperationDepsNode *ComponentDepsNode::get_entry_operation()
 	return NULL;
 }
 
-OperationDepsNode *ComponentDepsNode::get_exit_operation()
+OperationNode *ComponentNode::get_exit_operation()
 {
 	if (exit_operation) {
 		return exit_operation;
 	}
 	else if (operations_map != NULL && BLI_ghash_len(operations_map) == 1) {
-		OperationDepsNode *op_node = NULL;
+		OperationNode *op_node = NULL;
 		/* TODO(sergey): This is somewhat slow. */
-		GHASH_FOREACH_BEGIN(OperationDepsNode *, tmp, operations_map)
+		GHASH_FOREACH_BEGIN(OperationNode *, tmp, operations_map)
 		{
 			op_node = tmp;
 		}
@@ -348,10 +344,10 @@ OperationDepsNode *ComponentDepsNode::get_exit_operation()
 	return NULL;
 }
 
-void ComponentDepsNode::finalize_build(Depsgraph * /*graph*/)
+void ComponentNode::finalize_build(Depsgraph * /*graph*/)
 {
 	operations.reserve(BLI_ghash_len(operations_map));
-	GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, operations_map)
+	GHASH_FOREACH_BEGIN(OperationNode *, op_node, operations_map)
 	{
 		operations.push_back(op_node);
 	}
@@ -365,15 +361,14 @@ void ComponentDepsNode::finalize_build(Depsgraph * /*graph*/)
 /* Bone Component ========================================= */
 
 /* Initialize 'bone component' node - from pointer data given */
-void BoneComponentDepsNode::init(const ID *id, const char *subdata)
+void BoneComponentNode::init(const ID *id, const char *subdata)
 {
 	/* generic component-node... */
-	ComponentDepsNode::init(id, subdata);
+	ComponentNode::init(id, subdata);
 
 	/* name of component comes is bone name */
 	/* TODO(sergey): This sets name to an empty string because subdata is
-	 * empty. Is it a bug?
-	 */
+	 * empty. Is it a bug? */
 	//this->name = subdata;
 
 	/* bone-specific node data */
@@ -410,27 +405,27 @@ DEG_COMPONENT_NODE_DEFINE(GenericDatablock,  GENERIC_DATABLOCK,  0);
 
 void deg_register_component_depsnodes()
 {
-	deg_register_node_typeinfo(&DNTI_ANIMATION);
-	deg_register_node_typeinfo(&DNTI_BONE);
-	deg_register_node_typeinfo(&DNTI_CACHE);
-	deg_register_node_typeinfo(&DNTI_BATCH_CACHE);
-	deg_register_node_typeinfo(&DNTI_COPY_ON_WRITE);
-	deg_register_node_typeinfo(&DNTI_GEOMETRY);
-	deg_register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
-	deg_register_node_typeinfo(&DNTI_PARAMETERS);
-	deg_register_node_typeinfo(&DNTI_PARTICLE_SYSTEM);
-	deg_register_node_typeinfo(&DNTI_PARTICLE_SETTINGS);
-	deg_register_node_typeinfo(&DNTI_POINT_CACHE);
-	deg_register_node_typeinfo(&DNTI_PROXY);
-	deg_register_node_typeinfo(&DNTI_EVAL_POSE);
-	deg_register_node_typeinfo(&DNTI_SEQUENCER);
-	deg_register_node_typeinfo(&DNTI_SHADING);
-	deg_register_node_typeinfo(&DNTI_SHADING_PARAMETERS);
-	deg_register_node_typeinfo(&DNTI_TRANSFORM);
-	deg_register_node_typeinfo(&DNTI_OBJECT_FROM_LAYER);
-	deg_register_node_typeinfo(&DNTI_DUPLI);
-	deg_register_node_typeinfo(&DNTI_SYNCHRONIZE);
-	deg_register_node_typeinfo(&DNTI_GENERIC_DATABLOCK);
+	register_node_typeinfo(&DNTI_ANIMATION);
+	register_node_typeinfo(&DNTI_BONE);
+	register_node_typeinfo(&DNTI_CACHE);
+	register_node_typeinfo(&DNTI_BATCH_CACHE);
+	register_node_typeinfo(&DNTI_COPY_ON_WRITE);
+	register_node_typeinfo(&DNTI_GEOMETRY);
+	register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
+	register_node_typeinfo(&DNTI_PARAMETERS);
+	register_node_typeinfo(&DNTI_PARTICLE_SYSTEM);
+	register_node_typeinfo(&DNTI_PARTICLE_SETTINGS);
+	register_node_typeinfo(&DNTI_POINT_CACHE);
+	register_node_typeinfo(&DNTI_PROXY);
+	register_node_typeinfo(&DNTI_EVAL_POSE);
+	register_node_typeinfo(&DNTI_SEQUENCER);
+	register_node_typeinfo(&DNTI_SHADING);
+	register_node_typeinfo(&DNTI_SHADING_PARAMETERS);
+	register_node_typeinfo(&DNTI_TRANSFORM);
+	register_node_typeinfo(&DNTI_OBJECT_FROM_LAYER);
+	register_node_typeinfo(&DNTI_DUPLI);
+	register_node_typeinfo(&DNTI_SYNCHRONIZE);
+	register_node_typeinfo(&DNTI_GENERIC_DATABLOCK);
 }
 
 }  // namespace DEG

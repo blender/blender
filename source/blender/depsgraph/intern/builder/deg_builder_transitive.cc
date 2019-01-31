@@ -32,14 +32,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_operation.h"
 
 #include "intern/depsgraph.h"
-#include "intern/depsgraph_intern.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/debug/deg_debug.h"
 
 namespace DEG {
 
@@ -63,17 +61,16 @@ enum {
 	OP_REACHABLE = 2,
 };
 
-static void deg_graph_tag_paths_recursive(DepsNode *node)
+static void deg_graph_tag_paths_recursive(Node *node)
 {
 	if (node->custom_flags & OP_VISITED) {
 		return;
 	}
 	node->custom_flags |= OP_VISITED;
-	foreach (DepsRelation *rel, node->inlinks) {
+	for (Relation *rel : node->inlinks) {
 		deg_graph_tag_paths_recursive(rel->from);
 		/* Do this only in inlinks loop, so the target node does not get
-		 * flagged.
-		 */
+		 * flagged. */
 		rel->from->custom_flags |= OP_REACHABLE;
 	}
 }
@@ -81,36 +78,34 @@ static void deg_graph_tag_paths_recursive(DepsNode *node)
 void deg_graph_transitive_reduction(Depsgraph *graph)
 {
 	int num_removed_relations = 0;
-	foreach (OperationDepsNode *target, graph->operations) {
+	for (OperationNode *target : graph->operations) {
 		/* Clear tags. */
-		foreach (OperationDepsNode *node, graph->operations) {
+		for (OperationNode *node : graph->operations) {
 			node->custom_flags = 0;
 		}
 		/* Mark nodes from which we can reach the target
 		 * start with children, so the target node and direct children are not
-		 * flagged.
-		 */
+		 * flagged. */
 		target->custom_flags |= OP_VISITED;
-		foreach (DepsRelation *rel, target->inlinks) {
+		for (Relation *rel : target->inlinks) {
 			deg_graph_tag_paths_recursive(rel->from);
 		}
 		/* Remove redundant paths to the target. */
-		for (DepsNode::Relations::const_iterator it_rel = target->inlinks.begin();
+		for (Node::Relations::const_iterator it_rel = target->inlinks.begin();
 		     it_rel != target->inlinks.end();
 		     )
 		{
-			DepsRelation *rel = *it_rel;
-			if (rel->from->type == DEG_NODE_TYPE_TIMESOURCE) {
+			Relation *rel = *it_rel;
+			if (rel->from->type == NodeType::TIMESOURCE) {
 				/* HACK: time source nodes don't get "custom_flags" flag
 				 * set/cleared. */
 				/* TODO: there will be other types in future, so iterators above
-				 * need modifying.
-				 */
+				 * need modifying. */
 				++it_rel;
 			}
 			else if (rel->from->custom_flags & OP_REACHABLE) {
 				rel->unlink();
-				OBJECT_GUARDED_DELETE(rel, DepsRelation);
+				OBJECT_GUARDED_DELETE(rel, Relation);
 				++num_removed_relations;
 			}
 			else {

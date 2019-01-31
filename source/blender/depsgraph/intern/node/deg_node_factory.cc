@@ -15,53 +15,39 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Blender Foundation.
+ * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Sergey Sharybin
+ * Original Author: Joshua Leung
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder_map.h
+/** \file blender/depsgraph/intern/node/deh_node_factory.cc
  *  \ingroup depsgraph
  */
 
-#pragma once
-
-struct GSet;
-struct ID;
+#include "intern/node/deg_node_factory.h"
 
 namespace DEG {
 
-class BuilderMap {
-public:
-	BuilderMap();
-	~BuilderMap();
+/* Global type registry */
+static DepsNodeFactory *
+node_typeinfo_registry[static_cast<int>(NodeType::NUM_TYPES)] = {NULL};
 
-	/* Check whether given ID is already handled by builder (or if it's being
-	 * handled). */
-	bool checkIsBuilt(ID *id);
+void register_node_typeinfo(DepsNodeFactory *factory)
+{
+	BLI_assert(factory != NULL);
+	const int type_as_int = static_cast<int>(factory->type());
+	node_typeinfo_registry[type_as_int] = factory;
+}
 
-	/* Tag given ID as handled/built. */
-	void tagBuild(ID *id);
-
-	/* Combination of previous two functions, returns truth if ID was already
-	 * handled, or tags is handled otherwise and return false. */
-	bool checkIsBuiltAndTag(ID *id);
-
-	template<typename T> bool checkIsBuilt(T *datablock) {
-		return checkIsBuilt(&datablock->id);
-	}
-	template<typename T> void tagBuild(T *datablock) {
-		tagBuild(&datablock->id);
-	}
-	template<typename T> bool checkIsBuiltAndTag(T *datablock) {
-		return checkIsBuiltAndTag(&datablock->id);
-	}
-
-	GSet *set;
-};
+DepsNodeFactory *type_get_factory(const NodeType type)
+{
+	/* Look up type - at worst, it doesn't exist in table yet, and we fail. */
+	const int type_as_int = static_cast<int>(type);
+	return node_typeinfo_registry[type_as_int];
+}
 
 }  // namespace DEG

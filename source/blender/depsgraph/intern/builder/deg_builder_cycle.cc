@@ -36,11 +36,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_stack.h"
 
-#include "util/deg_util_foreach.h"
-
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_operation.h"
 
 #include "intern/depsgraph.h"
 
@@ -48,19 +46,19 @@ namespace DEG {
 
 namespace {
 
-typedef enum eCyclicCheckVisitedState {
+enum eCyclicCheckVisitedState {
 	/* Not is not visited at all during traversal. */
 	NODE_NOT_VISITED = 0,
 	/* Node has been visited during traversal and not in current stack. */
 	NODE_VISITED = 1,
 	/* Node has been visited during traversal and is in current stack. */
 	NODE_IN_STACK = 2,
-} eCyclicCheckVisitedState;
+};
 
 struct StackEntry {
-	OperationDepsNode *node;
+	OperationNode *node;
 	StackEntry *from;
-	DepsRelation *via_relation;
+	Relation *via_relation;
 };
 
 struct CyclesSolverState {
@@ -83,28 +81,28 @@ struct CyclesSolverState {
 	int num_cycles;
 };
 
-BLI_INLINE void set_node_visited_state(DepsNode *node,
+BLI_INLINE void set_node_visited_state(Node *node,
                                        eCyclicCheckVisitedState state)
 {
 	node->custom_flags = (node->custom_flags & ~0x3) | (int)state;
 }
 
-BLI_INLINE eCyclicCheckVisitedState get_node_visited_state(DepsNode *node)
+BLI_INLINE eCyclicCheckVisitedState get_node_visited_state(Node *node)
 {
 	return (eCyclicCheckVisitedState)(node->custom_flags & 0x3);
 }
 
-BLI_INLINE void set_node_num_visited_children(DepsNode *node, int num_children)
+BLI_INLINE void set_node_num_visited_children(Node *node, int num_children)
 {
 	node->custom_flags = (node->custom_flags & 0x3) | (num_children << 2);
 }
 
-BLI_INLINE int get_node_num_visited_children(DepsNode *node)
+BLI_INLINE int get_node_num_visited_children(Node *node)
 {
 	return node->custom_flags >> 2;
 }
 
-void schedule_node_to_stack(CyclesSolverState *state, OperationDepsNode *node)
+void schedule_node_to_stack(CyclesSolverState *state, OperationNode *node)
 {
 	StackEntry entry;
 	entry.node = node;
@@ -117,10 +115,10 @@ void schedule_node_to_stack(CyclesSolverState *state, OperationDepsNode *node)
 /* Schedule leaf nodes (node without input links) for traversal. */
 void schedule_leaf_nodes(CyclesSolverState *state)
 {
-	foreach (OperationDepsNode *node, state->graph->operations) {
+	for (OperationNode *node : state->graph->operations) {
 		bool has_inlinks = false;
-		foreach (DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
+		for (Relation *rel : node->inlinks) {
+			if (rel->from->type == NodeType::OPERATION) {
 				has_inlinks = true;
 			}
 		}
@@ -139,7 +137,7 @@ void schedule_leaf_nodes(CyclesSolverState *state)
  */
 bool schedule_non_checked_node(CyclesSolverState *state)
 {
-	foreach (OperationDepsNode *node, state->graph->operations) {
+	for (OperationNode *node : state->graph->operations) {
 		if (get_node_visited_state(node) == NODE_NOT_VISITED) {
 			schedule_node_to_stack(state, node);
 			return true;
@@ -148,16 +146,16 @@ bool schedule_non_checked_node(CyclesSolverState *state)
 	return false;
 }
 
-bool check_relation_can_murder(DepsRelation *relation)
+bool check_relation_can_murder(Relation *relation)
 {
-	if (relation->flag & DEPSREL_FLAG_GODMODE) {
+	if (relation->flag & RELATION_FLAG_GODMODE) {
 		return false;
 	}
 	return true;
 }
 
-DepsRelation *select_relation_to_murder(DepsRelation *relation,
-                                        StackEntry *cycle_start_entry)
+Relation *select_relation_to_murder(Relation *relation,
+                                    StackEntry *cycle_start_entry)
 {
 	/* More or less russian roulette solver, which will make sure only
 	 * specially marked relations are kept alive.
@@ -167,7 +165,7 @@ DepsRelation *select_relation_to_murder(DepsRelation *relation,
 		return relation;
 	}
 	StackEntry *current = cycle_start_entry;
-	OperationDepsNode *to_node = (OperationDepsNode *)relation->to;
+	OperationNode *to_node = (OperationNode *)relation->to;
 	while (current->node != to_node) {
 		if (check_relation_can_murder(current->via_relation)) {
 			return current->via_relation;
@@ -183,13 +181,13 @@ void solve_cycles(CyclesSolverState *state)
 	BLI_Stack *traversal_stack = state->traversal_stack;
 	while (!BLI_stack_is_empty(traversal_stack)) {
 		StackEntry *entry = (StackEntry *)BLI_stack_peek(traversal_stack);
-		OperationDepsNode *node = entry->node;
+		OperationNode *node = entry->node;
 		bool all_child_traversed = true;
 		const int num_visited = get_node_num_visited_children(node);
 		for (int i = num_visited; i < node->outlinks.size(); ++i) {
-			DepsRelation *rel = node->outlinks[i];
-			if (rel->to->type == DEG_NODE_TYPE_OPERATION) {
-				OperationDepsNode *to = (OperationDepsNode *)rel->to;
+			Relation *rel = node->outlinks[i];
+			if (rel->to->type == NodeType::OPERATION) {
+				OperationNode *to = (OperationNode *)rel->to;
 				eCyclicCheckVisitedState to_state = get_node_visited_state(to);
 				if (to_state == NODE_IN_STACK) {
 					printf("Dependency cycle detected:\n");
@@ -206,9 +204,9 @@ void solve_cycles(CyclesSolverState *state)
 						       current->via_relation->name);
 						current = current->from;
 					}
-					DepsRelation *sacrificial_relation =
+					Relation *sacrificial_relation =
 					        select_relation_to_murder(rel, entry);
-					sacrificial_relation->flag |= DEPSREL_FLAG_CYCLIC;
+					sacrificial_relation->flag |= RELATION_FLAG_CYCLIC;
 					++state->num_cycles;
 				}
 				else if (to_state == NODE_NOT_VISITED) {
@@ -242,8 +240,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 	/* We are not done yet. It is possible to have closed loop cycle,
 	 * for example A -> B -> C -> A. These nodes were not scheduled
 	 * yet (since they all have inlinks), and were not traversed since
-	 * nobody else points to them.
-	 */
+	 * nobody else points to them. */
 	while (schedule_non_checked_node(&state)) {
 		solve_cycles(&state);
 	}

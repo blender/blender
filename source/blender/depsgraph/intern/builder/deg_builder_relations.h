@@ -33,7 +33,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "intern/depsgraph_types.h"
+#include "intern/depsgraph_type.h"
 
 #include "DNA_ID.h"
 
@@ -45,9 +45,9 @@
 
 #include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph.h"
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_operation.h"
 
 struct Base;
 struct CacheFile;
@@ -87,15 +87,15 @@ struct PropertyRNA;
 
 namespace DEG {
 
-struct ComponentDepsNode;
-struct DepsNode;
+struct ComponentNode;
+struct Node;
 struct DepsNodeHandle;
-struct DepsRelation;
+struct Relation;
 struct Depsgraph;
-struct IDDepsNode;
-struct OperationDepsNode;
+struct IDNode;
+struct OperationNode;
 struct RootPChanMap;
-struct TimeSourceDepsNode;
+struct TimeSourceNode;
 
 struct TimeSourceKey
 {
@@ -110,12 +110,12 @@ struct TimeSourceKey
 struct ComponentKey
 {
 	ComponentKey();
-	ComponentKey(ID *id, eDepsNode_Type type, const char *name = "");
+	ComponentKey(ID *id, NodeType type, const char *name = "");
 
 	string identifier() const;
 
 	ID *id;
-	eDepsNode_Type type;
+	NodeType type;
 	const char *name;
 };
 
@@ -123,41 +123,41 @@ struct OperationKey
 {
 	OperationKey();
 	OperationKey(ID *id,
-	             eDepsNode_Type component_type,
+	             NodeType component_type,
 	             const char *name,
 	             int name_tag = -1);
 	OperationKey(ID *id,
-	             eDepsNode_Type component_type,
+	             NodeType component_type,
 	             const char *component_name,
 	             const char *name,
 	             int name_tag);
 
 	OperationKey(ID *id,
-	             eDepsNode_Type component_type,
-	             eDepsOperation_Code opcode);
+	             NodeType component_type,
+	             OperationCode opcode);
 	OperationKey(ID *id,
-	             eDepsNode_Type component_type,
+	             NodeType component_type,
 	             const char *component_name,
-	             eDepsOperation_Code opcode);
+	             OperationCode opcode);
 
 	OperationKey(ID *id,
-	             eDepsNode_Type component_type,
-	             eDepsOperation_Code opcode,
+	             NodeType component_type,
+	             OperationCode opcode,
 	             const char *name,
 	             int name_tag = -1);
 	OperationKey(ID *id,
-	             eDepsNode_Type component_type,
+	             NodeType component_type,
 	             const char *component_name,
-	             eDepsOperation_Code opcode,
+	             OperationCode opcode,
 	             const char *name,
 	             int name_tag = -1);
 
 	string identifier() const;
 
 	ID *id;
-	eDepsNode_Type component_type;
+	NodeType component_type;
 	const char *component_name;
-	eDepsOperation_Code opcode;
+	OperationCode opcode;
 	const char *name;
 	int name_tag;
 };
@@ -185,31 +185,22 @@ struct DepsgraphRelationBuilder
 	void begin_build();
 
 	template <typename KeyFrom, typename KeyTo>
-	DepsRelation *add_relation(const KeyFrom& key_from,
-	                           const KeyTo& key_to,
-	                           const char *description,
-	                           bool check_unique = false,
-	                           int flags = 0);
-
-	template <typename KeyFrom, typename KeyTo>
-	DepsRelation *add_relation(const KeyFrom& key_from,
-	                           const KeyTo& key_to,
-	                           const char *description,
-	                           eDepsRelation_Flag flag);
+	Relation *add_relation(const KeyFrom& key_from,
+	                       const KeyTo& key_to,
+	                       const char *description,
+	                       int flags = 0);
 
 	template <typename KeyTo>
-	DepsRelation *add_relation(const TimeSourceKey& key_from,
-	                           const KeyTo& key_to,
-	                           const char *description,
-	                           bool check_unique = false,
-	                           int flags = 0);
+	Relation *add_relation(const TimeSourceKey& key_from,
+	                       const KeyTo& key_to,
+	                       const char *description,
+	                       int flags = 0);
 
 	template <typename KeyType>
-	DepsRelation *add_node_handle_relation(const KeyType& key_from,
-	                                       const DepsNodeHandle *handle,
-	                                       const char *description,
-	                                       bool check_unique = false,
-	                                       int flags = 0);
+	Relation *add_node_handle_relation(const KeyType& key_from,
+	                                   const DepsNodeHandle *handle,
+	                                   const char *description,
+	                                   int flags = 0);
 
 	void add_customdata_mask(Object *object, uint64_t mask);
 	void add_special_eval_flag(ID *object, uint32_t flag);
@@ -232,7 +223,7 @@ struct DepsgraphRelationBuilder
 	void build_object_parent(Object *object);
 	void build_object_pointcache(Object *object);
 	void build_constraints(ID *id,
-	                       eDepsNode_Type component_type,
+	                       NodeType component_type,
 	                       const char *component_subdata,
 	                       ListBase *constraints,
 	                       RootPChanMap *root_map);
@@ -240,11 +231,11 @@ struct DepsgraphRelationBuilder
 	void build_animdata_curves(ID *id);
 	void build_animdata_curves_targets(ID *id,
 	                                   ComponentKey &adt_key,
-	                                   OperationDepsNode *operation_from,
+	                                   OperationNode *operation_from,
 	                                   ListBase *curves);
 	void build_animdata_nlastrip_targets(ID *id,
 	                                     ComponentKey &adt_key,
-	                                     OperationDepsNode *operation_from,
+	                                     OperationNode *operation_from,
 	                                     ListBase *strips);
 	void build_animdata_drivers(ID *id);
 	void build_action(bAction *action);
@@ -298,32 +289,30 @@ struct DepsgraphRelationBuilder
 	                                       bool add_absorption, const char *name);
 
 	void build_copy_on_write_relations();
-	void build_copy_on_write_relations(IDDepsNode *id_node);
+	void build_copy_on_write_relations(IDNode *id_node);
 
 	template <typename KeyType>
-	OperationDepsNode *find_operation_node(const KeyType &key);
+	OperationNode *find_operation_node(const KeyType &key);
 
 	Depsgraph *getGraph();
 
 protected:
-	TimeSourceDepsNode *get_node(const TimeSourceKey &key) const;
-	ComponentDepsNode *get_node(const ComponentKey &key) const;
-	OperationDepsNode *get_node(const OperationKey &key) const;
-	DepsNode *get_node(const RNAPathKey &key) const;
+	TimeSourceNode *get_node(const TimeSourceKey &key) const;
+	ComponentNode *get_node(const ComponentKey &key) const;
+	OperationNode *get_node(const OperationKey &key) const;
+	Node *get_node(const RNAPathKey &key) const;
 
-	OperationDepsNode *find_node(const OperationKey &key) const;
+	OperationNode *find_node(const OperationKey &key) const;
 	bool has_node(const OperationKey &key) const;
 
-	DepsRelation *add_time_relation(TimeSourceDepsNode *timesrc,
-	                                DepsNode *node_to,
-	                                const char *description,
-	                                bool check_unique = false,
-	                                int flags = 0);
-	DepsRelation *add_operation_relation(OperationDepsNode *node_from,
-	                                     OperationDepsNode *node_to,
-	                                     const char *description,
-	                                     bool check_unique = false,
-	                                     int flags = 0);
+	Relation *add_time_relation(TimeSourceNode *timesrc,
+	                            Node *node_to,
+	                            const char *description,
+	                            int flags = 0);
+	Relation *add_operation_relation(OperationNode *node_from,
+	                                 OperationNode *node_to,
+	                                 const char *description,
+	                                 int flags = 0);
 
 	template <typename KeyType>
 	DepsNodeHandle create_node_handle(const KeyType& key,
@@ -335,14 +324,12 @@ protected:
 	 *
 	 * This is used by drivers relations builder to avoid possible fake
 	 * dependency cycle when one bone property drives another property of the
-	 * same bone.
-	 */
+	 * same bone. */
 	template <typename KeyFrom, typename KeyTo>
 	bool is_same_bone_dependency(const KeyFrom& key_from, const KeyTo& key_to);
 
 	/* Similar to above, but used to check whether driver is using node from
-	 * the same node tree as a driver variable.
-	 */
+	 * the same node tree as a driver variable. */
 	template <typename KeyFrom, typename KeyTo>
 	bool is_same_nodetree_node_dependency(const KeyFrom& key_from,
 	                                      const KeyTo& key_to);
@@ -375,7 +362,7 @@ private:
 struct DepsNodeHandle
 {
 	DepsNodeHandle(DepsgraphRelationBuilder *builder,
-	               OperationDepsNode *node,
+	               OperationNode *node,
 	               const char *default_name = "")
 	        : builder(builder),
 	          node(node),
@@ -385,7 +372,7 @@ struct DepsNodeHandle
 	}
 
 	DepsgraphRelationBuilder *builder;
-	OperationDepsNode *node;
+	OperationNode *node;
 	const char *default_name;
 };
 

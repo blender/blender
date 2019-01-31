@@ -52,14 +52,16 @@ extern "C" {
 
 #include "DEG_depsgraph.h"
 
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_operation.h"
+#include "intern/debug/deg_debug.h"
+#include "intern/depsgraph.h"
+#include "intern/depsgraph_update.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_operation.h"
 
-#include "intern/depsgraph_intern.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "util/deg_util_foreach.h"
 
 // Invalidate datablock data when update is flushed on it.
 //
@@ -85,7 +87,7 @@ enum {
 	COMPONENT_STATE_DONE      = 2,
 };
 
-typedef std::deque<OperationDepsNode *> FlushQueue;
+typedef std::deque<OperationNode *> FlushQueue;
 
 namespace {
 
@@ -95,7 +97,7 @@ void flush_init_operation_node_func(
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
-	OperationDepsNode *node = graph->operations[i];
+	OperationNode *node = graph->operations[i];
 	node->scheduled = false;
 }
 
@@ -105,9 +107,9 @@ void flush_init_id_node_func(
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
-	IDDepsNode *id_node = graph->id_nodes[i];
+	IDNode *id_node = graph->id_nodes[i];
 	id_node->custom_flags = ID_STATE_NONE;
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+	GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
 		comp_node->custom_flags = COMPONENT_STATE_NONE;
 	GHASH_FOREACH_END();
 }
@@ -138,7 +140,7 @@ BLI_INLINE void flush_prepare(Depsgraph *graph)
 
 BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 {
-	GSET_FOREACH_BEGIN(OperationDepsNode *, op_node, graph->entry_tags)
+	GSET_FOREACH_BEGIN(OperationNode *, op_node, graph->entry_tags)
 	{
 		queue->push_back(op_node);
 		op_node->scheduled = true;
@@ -149,14 +151,14 @@ BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 	GSET_FOREACH_END();
 }
 
-BLI_INLINE void flush_handle_id_node(IDDepsNode *id_node)
+BLI_INLINE void flush_handle_id_node(IDNode *id_node)
 {
 	id_node->custom_flags = ID_STATE_MODIFIED;
 }
 
 /* TODO(sergey): We can reduce number of arguments here. */
-BLI_INLINE void flush_handle_component_node(IDDepsNode *id_node,
-                                            ComponentDepsNode *comp_node,
+BLI_INLINE void flush_handle_component_node(IDNode *id_node,
+                                            ComponentNode *comp_node,
                                             FlushQueue *queue)
 {
 	/* We only handle component once. */
@@ -168,19 +170,18 @@ BLI_INLINE void flush_handle_component_node(IDDepsNode *id_node,
 	 * special component where we don't want all operations to be tagged.
 	 *
 	 * TODO(sergey): Make this a more generic solution. */
-	if (comp_node->type != DEG_NODE_TYPE_PARTICLE_SETTINGS &&
-	    comp_node->type != DEG_NODE_TYPE_PARTICLE_SYSTEM)
+	if (comp_node->type != NodeType::PARTICLE_SETTINGS &&
+	    comp_node->type != NodeType::PARTICLE_SYSTEM)
 	{
-		foreach (OperationDepsNode *op, comp_node->operations) {
+		for (OperationNode *op : comp_node->operations) {
 			op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 		}
 	}
 	/* when some target changes bone, we might need to re-run the
-	 * whole IK solver, otherwise result might be unpredictable.
-	 */
-	if (comp_node->type == DEG_NODE_TYPE_BONE) {
-		ComponentDepsNode *pose_comp =
-		        id_node->find_component(DEG_NODE_TYPE_EVAL_POSE);
+	 * whole IK solver, otherwise result might be unpredictable. */
+	if (comp_node->type == NodeType::BONE) {
+		ComponentNode *pose_comp =
+		        id_node->find_component(NodeType::EVAL_POSE);
 		BLI_assert(pose_comp != NULL);
 		if (pose_comp->custom_flags == COMPONENT_STATE_NONE) {
 			queue->push_front(pose_comp->get_entry_operation());
@@ -195,24 +196,24 @@ BLI_INLINE void flush_handle_component_node(IDDepsNode *id_node,
  * return value, so it can start being handled right away, without building too
  * much of a queue.
  */
-BLI_INLINE OperationDepsNode *flush_schedule_children(
-        OperationDepsNode *op_node,
+BLI_INLINE OperationNode *flush_schedule_children(
+        OperationNode *op_node,
         FlushQueue *queue)
 {
-	OperationDepsNode *result = NULL;
-	foreach (DepsRelation *rel, op_node->outlinks) {
+	OperationNode *result = NULL;
+	for (Relation *rel : op_node->outlinks) {
 		/* Flush is forbidden, completely. */
-		if (rel->flag & DEPSREL_FLAG_NO_FLUSH) {
+		if (rel->flag & RELATION_FLAG_NO_FLUSH) {
 			continue;
 		}
 		/* Relation only allows flushes on user changes, but the node was not
 		 * affected by user. */
-		if ((rel->flag & DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY) &&
+		if ((rel->flag & RELATION_FLAG_FLUSH_USER_EDIT_ONLY) &&
 		    (op_node->flag & DEPSOP_FLAG_USER_MODIFIED) == 0)
 		{
 			continue;
 		}
-		OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
+		OperationNode *to_node = (OperationNode *)rel->to;
 		/* Always flush flushable flags, so children always know what happened
 		 * to their parents. */
 		to_node->flag |= (op_node->flag & DEPSOP_FLAG_FLUSH);
@@ -247,7 +248,7 @@ void flush_editors_id_update(Main *bmain,
                              Depsgraph *graph,
                              const DEGEditorUpdateContext *update_ctx)
 {
-	foreach (IDDepsNode *id_node, graph->id_nodes) {
+	for (IDNode *id_node : graph->id_nodes) {
 		if (id_node->custom_flags != ID_STATE_MODIFIED) {
 			continue;
 		}
@@ -257,16 +258,15 @@ void flush_editors_id_update(Main *bmain,
 		ID *id_cow = id_node->id_cow;
 		/* Copy tag from original data to CoW storage.
 		 * This is because DEG_id_tag_update() sets tags on original
-		 * data.
-		 */
+		 * data. */
 		id_cow->recalc |= (id_orig->recalc & ID_RECALC_ALL);
 		/* Gather recalc flags from all changed components. */
-		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+		GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
 		{
 			if (comp_node->custom_flags != COMPONENT_STATE_DONE) {
 				continue;
 			}
-			DepsNodeFactory *factory = deg_type_get_factory(comp_node->type);
+			DepsNodeFactory *factory = type_get_factory(comp_node->type);
 			BLI_assert(factory != NULL);
 			id_cow->recalc |= factory->id_recalc_tag();
 		}
@@ -330,7 +330,7 @@ void invalidate_tagged_evaluated_geometry(ID *id)
 void invalidate_tagged_evaluated_data(Depsgraph *graph)
 {
 #ifdef INVALIDATE_ON_FLUSH
-	foreach (IDDepsNode *id_node, graph->id_nodes) {
+	for (IDNode *id_node : graph->id_nodes) {
 		if (id_node->custom_flags != ID_STATE_MODIFIED) {
 			continue;
 		}
@@ -338,7 +338,7 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
 		if (!deg_copy_on_write_is_expanded(id_cow)) {
 			continue;
 		}
-		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+		GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
 		{
 			if (comp_node->custom_flags != COMPONENT_STATE_DONE) {
 				continue;
@@ -388,14 +388,14 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	update_ctx.view_layer = graph->view_layer;
 	/* Do actual flush. */
 	while (!queue.empty()) {
-		OperationDepsNode *op_node = queue.front();
+		OperationNode *op_node = queue.front();
 		queue.pop_front();
 		while (op_node != NULL) {
 			/* Tag operation as required for update. */
 			op_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 			/* Inform corresponding ID and component nodes about the change. */
-			ComponentDepsNode *comp_node = op_node->owner;
-			IDDepsNode *id_node = comp_node->owner;
+			ComponentNode *comp_node = op_node->owner;
+			IDNode *id_node = comp_node->owner;
 			flush_handle_id_node(id_node);
 			flush_handle_component_node(id_node,
 			                            comp_node,
@@ -407,8 +407,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	/* Inform editors about all changes. */
 	flush_editors_id_update(bmain, graph, &update_ctx);
 	/* Reset evaluation result tagged which is tagged for update to some state
-	 * which is obvious to catch.
-	 */
+	 * which is obvious to catch. */
 	invalidate_tagged_evaluated_data(graph);
 }
 
@@ -418,7 +417,7 @@ static void graph_clear_operation_func(
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
-	OperationDepsNode *node = graph->operations[i];
+	OperationNode *node = graph->operations[i];
 	/* Clear node's "pending update" settings. */
 	node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED |
 	                DEPSOP_FLAG_NEEDS_UPDATE |

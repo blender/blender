@@ -24,25 +24,29 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/nodes/deg_node_time.cc
+/** \file depsgraph/intern/node/deg_node_time.h
  *  \ingroup depsgraph
  */
 
-#include "intern/nodes/deg_node_time.h"
+#pragma once
 
-#include "intern/depsgraph_intern.h"
-#include "util/deg_util_foreach.h"
-
-#include "DNA_scene_types.h"
+#include "intern/node/deg_node.h"
 
 namespace DEG {
 
-void TimeSourceDepsNode::tag_update(Depsgraph *graph, eUpdateSource /*source*/)
-{
-	foreach (DepsRelation *rel, outlinks) {
-		DepsNode *node = rel->to;
-		node->tag_update(graph, DEG_UPDATE_SOURCE_TIME);
-	}
-}
+/* Time Source Node. */
+struct TimeSourceNode : public Node {
+	/* New "current time". */
+	float cfra;
+
+	/* time-offset relative to the "official" time source that this one has. */
+	float offset;
+
+	// TODO: evaluate() operation needed
+
+	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
+
+	DEG_DEPSNODE_DECLARE;
+};
 
 }  // namespace DEG

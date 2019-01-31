@@ -43,15 +43,13 @@ extern "C" {
 }
 
 #include "intern/depsgraph.h"
-#include "intern/depsgraph_intern.h"
-#include "intern/depsgraph_types.h"
+#include "intern/depsgraph_tag.h"
+#include "intern/depsgraph_type.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_operation.h"
 
 #include "DEG_depsgraph.h"
 
@@ -65,21 +63,21 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 		DEG_NODE_VISITED = (1 << 0),
 	};
 
-	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode *),
+	BLI_Stack *stack = BLI_stack_new(sizeof(OperationNode *),
 	                                 "DEG flush layers stack");
-	foreach (IDDepsNode *id_node, graph->id_nodes) {
-		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+	for (IDNode *id_node : graph->id_nodes) {
+		GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
 		{
 			comp_node->affects_directly_visible |= id_node->is_directly_visible;
 		}
 		GHASH_FOREACH_END();
 	}
-	foreach (OperationDepsNode *op_node, graph->operations) {
+	for (OperationNode *op_node : graph->operations) {
 		op_node->custom_flags = 0;
 		op_node->num_links_pending = 0;
-		foreach (DepsRelation *rel, op_node->outlinks) {
-			if ((rel->from->type == DEG_NODE_TYPE_OPERATION) &&
-			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
+		for (Relation *rel : op_node->outlinks) {
+			if ((rel->from->type == NodeType::OPERATION) &&
+			    (rel->flag & RELATION_FLAG_CYCLIC) == 0)
 			{
 				++op_node->num_links_pending;
 			}
@@ -90,21 +88,21 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 		}
 	}
 	while (!BLI_stack_is_empty(stack)) {
-		OperationDepsNode *op_node;
+		OperationNode *op_node;
 		BLI_stack_pop(stack, &op_node);
 		/* Flush layers to parents. */
-		foreach (DepsRelation *rel, op_node->inlinks) {
-			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
-				OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
+		for (Relation *rel : op_node->inlinks) {
+			if (rel->from->type == NodeType::OPERATION) {
+				OperationNode *op_from = (OperationNode *)rel->from;
 				op_from->owner->affects_directly_visible |=
 				        op_node->owner->affects_directly_visible;
 			}
 		}
 		/* Schedule parent nodes. */
-		foreach (DepsRelation *rel, op_node->inlinks) {
-			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
-				OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
-				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
+		for (Relation *rel : op_node->inlinks) {
+			if (rel->from->type == NodeType::OPERATION) {
+				OperationNode *op_from = (OperationNode *)rel->from;
+				if ((rel->flag & RELATION_FLAG_CYCLIC) == 0) {
 					BLI_assert(op_from->num_links_pending > 0);
 					--op_from->num_links_pending;
 				}
@@ -127,9 +125,8 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 	/* Make sure dependencies of visible ID datablocks are visible. */
 	deg_graph_build_flush_visibility(graph);
 	/* Re-tag IDs for update if it was tagged before the relations
-	 * update tag.
-	 */
-	foreach (IDDepsNode *id_node, graph->id_nodes) {
+	 * update tag. */
+	for (IDNode *id_node : graph->id_nodes) {
 		ID *id = id_node->id_orig;
 		id_node->finalize_build(graph);
 		int flag = 0;
@@ -144,18 +141,17 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			flag |= ID_RECALC_COPY_ON_WRITE;
 			/* This means ID is being added to the dependency graph first
-			 * time, which is similar to "ob-visible-change"
-			 */
+			 * time, which is similar to "ob-visible-change" */
 			if (GS(id->name) == ID_OB) {
 				flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
 			}
 		}
 		if (flag != 0) {
-			deg_graph_id_tag_update(bmain,
-			                        graph,
-			                        id_node->id_orig,
-			                        flag,
-			                        DEG_UPDATE_SOURCE_RELATIONS);
+			graph_id_tag_update(bmain,
+			                    graph,
+			                    id_node->id_orig,
+			                    flag,
+			                    DEG_UPDATE_SOURCE_RELATIONS);
 		}
 	}
 }

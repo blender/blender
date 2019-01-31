@@ -24,17 +24,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/nodes/deg_node_id.cc
+/** \file blender/depsgraph/intern/node/deg_node_id.cc
  *  \ingroup depsgraph
  */
 
-#include "intern/nodes/deg_node_id.h"
+#include "intern/node/deg_node_id.h"
 
 #include <stdio.h>
 #include <cstring>  /* required for STREQ later on. */
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
 
 extern "C" {
 #include "DNA_ID.h"
@@ -47,57 +48,68 @@ extern "C" {
 #include "DEG_depsgraph.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "intern/nodes/deg_node_time.h"
-#include "intern/depsgraph_intern.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_time.h"
 
 namespace DEG {
 
-IDDepsNode::ComponentIDKey::ComponentIDKey(eDepsNode_Type type,
+const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
+{
+	switch (linked_state) {
+		case DEG_ID_LINKED_INDIRECTLY: return "INDIRECTLY";
+		case DEG_ID_LINKED_VIA_SET: return "VIA_SET";
+		case DEG_ID_LINKED_DIRECTLY: return "DIRECTLY";
+	}
+	BLI_assert(!"Unhandled linked state, should never happen.");
+	return "UNKNOW";
+}
+
+IDNode::ComponentIDKey::ComponentIDKey(NodeType type,
                                            const char *name)
         : type(type), name(name)
 {
 }
 
-bool IDDepsNode::ComponentIDKey::operator== (const ComponentIDKey &other) const
+bool IDNode::ComponentIDKey::operator== (const ComponentIDKey &other) const
 {
 	return type == other.type &&
-		STREQ(name, other.name);
+	       STREQ(name, other.name);
 }
 
 static unsigned int id_deps_node_hash_key(const void *key_v)
 {
-	const IDDepsNode::ComponentIDKey *key =
-	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(key_v);
-	return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(key->type),
+	const IDNode::ComponentIDKey *key =
+	        reinterpret_cast<const IDNode::ComponentIDKey *>(key_v);
+	const int type_as_int = static_cast<int>(key->type);
+	return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),
 	                                  BLI_ghashutil_strhash_p(key->name));
 }
 
 static bool id_deps_node_hash_key_cmp(const void *a, const void *b)
 {
-	const IDDepsNode::ComponentIDKey *key_a =
-	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(a);
-	const IDDepsNode::ComponentIDKey *key_b =
-	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(b);
+	const IDNode::ComponentIDKey *key_a =
+	        reinterpret_cast<const IDNode::ComponentIDKey *>(a);
+	const IDNode::ComponentIDKey *key_b =
+	        reinterpret_cast<const IDNode::ComponentIDKey *>(b);
 	return !(*key_a == *key_b);
 }
 
 static void id_deps_node_hash_key_free(void *key_v)
 {
-	typedef IDDepsNode::ComponentIDKey ComponentIDKey;
+	typedef IDNode::ComponentIDKey ComponentIDKey;
 	ComponentIDKey *key = reinterpret_cast<ComponentIDKey *>(key_v);
 	OBJECT_GUARDED_DELETE(key, ComponentIDKey);
 }
 
 static void id_deps_node_hash_value_free(void *value_v)
 {
-	ComponentDepsNode *comp_node = reinterpret_cast<ComponentDepsNode *>(value_v);
-	OBJECT_GUARDED_DELETE(comp_node, ComponentDepsNode);
+	ComponentNode *comp_node = reinterpret_cast<ComponentNode *>(value_v);
+	OBJECT_GUARDED_DELETE(comp_node, ComponentNode);
 }
 
 /* Initialize 'id' node - from pointer data given. */
-void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
+void IDNode::init(const ID *id, const char *UNUSED(subdata))
 {
 	BLI_assert(id != NULL);
 	/* Store ID-pointer. */
@@ -118,12 +130,11 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	                           "Depsgraph id components hash");
 }
 
-void IDDepsNode::init_copy_on_write(ID *id_cow_hint)
+void IDNode::init_copy_on_write(ID *id_cow_hint)
 {
 	/* Create pointer as early as possible, so we can use it for function
 	 * bindings. Rest of data we'll be copying to the new datablock when
-	 * it is actually needed.
-	 */
+	 * it is actually needed. */
 	if (id_cow_hint != NULL) {
 		// BLI_assert(deg_copy_on_write_is_needed(id_orig));
 		if (deg_copy_on_write_is_needed(id_orig)) {
@@ -145,12 +156,12 @@ void IDDepsNode::init_copy_on_write(ID *id_cow_hint)
 }
 
 /* Free 'id' node. */
-IDDepsNode::~IDDepsNode()
+IDNode::~IDNode()
 {
 	destroy();
 }
 
-void IDDepsNode::destroy()
+void IDNode::destroy()
 {
 	if (id_orig == NULL) {
 		return;
@@ -173,7 +184,7 @@ void IDDepsNode::destroy()
 	id_orig = NULL;
 }
 
-string IDDepsNode::identifier() const
+string IDNode::identifier() const
 {
 	char orig_ptr[24], cow_ptr[24];
 	BLI_snprintf(orig_ptr, sizeof(orig_ptr), "%p", id_orig);
@@ -184,20 +195,20 @@ string IDDepsNode::identifier() const
 	                                                        : "false") + ")";
 }
 
-ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,
+ComponentNode *IDNode::find_component(NodeType type,
                                               const char *name) const
 {
 	ComponentIDKey key(type, name);
-	return reinterpret_cast<ComponentDepsNode *>(BLI_ghash_lookup(components, &key));
+	return reinterpret_cast<ComponentNode *>(BLI_ghash_lookup(components, &key));
 }
 
-ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
+ComponentNode *IDNode::add_component(NodeType type,
                                              const char *name)
 {
-	ComponentDepsNode *comp_node = find_component(type, name);
+	ComponentNode *comp_node = find_component(type, name);
 	if (!comp_node) {
-		DepsNodeFactory *factory = deg_type_get_factory(type);
-		comp_node = (ComponentDepsNode *)factory->create_node(this->id_orig, "", name);
+		DepsNodeFactory *factory = type_get_factory(type);
+		comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
 
 		/* Register. */
 		ComponentIDKey *key = OBJECT_GUARDED_NEW(ComponentIDKey, type, name);
@@ -207,19 +218,19 @@ ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
 	return comp_node;
 }
 
-void IDDepsNode::tag_update(Depsgraph *graph, eUpdateSource source)
+void IDNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
+	GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, components)
 	{
 		comp_node->tag_update(graph, source);
 	}
 	GHASH_FOREACH_END();
 }
 
-void IDDepsNode::finalize_build(Depsgraph *graph)
+void IDNode::finalize_build(Depsgraph *graph)
 {
 	/* Finalize build of all components. */
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
+	GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, components)
 	{
 		comp_node->finalize_build(graph);
 	}
@@ -227,14 +238,14 @@ void IDDepsNode::finalize_build(Depsgraph *graph)
 	visible_components_mask = get_visible_components_mask();
 }
 
-IDComponentsMask IDDepsNode::get_visible_components_mask() const {
+IDComponentsMask IDNode::get_visible_components_mask() const {
 	IDComponentsMask result = 0;
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
+	GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, components)
 	{
 		if (comp_node->affects_directly_visible) {
-			const int component_type = comp_node->type;
-			BLI_assert(component_type < 64);
-			result |= (1ULL << component_type);
+			const int component_type_as_int = static_cast<int>(comp_node->type);
+			BLI_assert(component_type_as_int < 64);
+			result |= (1ULL << component_type_as_int);
 		}
 	}
 	GHASH_FOREACH_END();

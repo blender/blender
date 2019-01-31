@@ -46,30 +46,27 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "intern/depsgraph_intern.h"
-
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_operation.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_operation.h"
 
 /* ************************ DEG TRAVERSAL ********************* */
 
 namespace DEG {
 
-typedef std::deque<OperationDepsNode *> TraversalQueue;
+typedef std::deque<OperationNode *> TraversalQueue;
 enum {
 	DEG_NODE_VISITED = (1 << 0),
 };
 
 static void deg_foreach_clear_flags(const Depsgraph *graph)
 {
-	foreach (OperationDepsNode *op_node, graph->operations) {
+	for (OperationNode *op_node : graph->operations) {
 		op_node->scheduled = false;
 	}
-	foreach (IDDepsNode *id_node, graph->id_nodes) {
+	for (IDNode *id_node : graph->id_nodes) {
 		id_node->custom_flags = 0;
 	}
 }
@@ -80,20 +77,19 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
                                      void *user_data)
 {
 	/* Start with getting ID node from the graph. */
-	IDDepsNode *target_id_node = graph->find_id_node(id);
+	IDNode *target_id_node = graph->find_id_node(id);
 	if (target_id_node == NULL) {
 		/* TODO(sergey): Shall we inform or assert here about attempt to start
-		 * iterating over non-existing ID?
-		 */
+		 * iterating over non-existing ID? */
 		return;
 	}
 	/* Make sure all runtime flags are ready and clear. */
 	deg_foreach_clear_flags(graph);
 	/* Start with scheduling all operations from ID node. */
 	TraversalQueue queue;
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, target_id_node->components)
+	GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, target_id_node->components)
 	{
-		foreach (OperationDepsNode *op_node, comp_node->operations) {
+		for (OperationNode *op_node : comp_node->operations) {
 			queue.push_back(op_node);
 			op_node->scheduled = true;
 		}
@@ -103,12 +99,12 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 	/* Process the queue. */
 	while (!queue.empty()) {
 		/* get next operation node to process. */
-		OperationDepsNode *op_node = queue.front();
+		OperationNode *op_node = queue.front();
 		queue.pop_front();
 		for (;;) {
 			/* Check whether we need to inform callee about corresponding ID node. */
-			ComponentDepsNode *comp_node = op_node->owner;
-			IDDepsNode *id_node = comp_node->owner;
+			ComponentNode *comp_node = op_node->owner;
+			IDNode *id_node = comp_node->owner;
 			if ((id_node->custom_flags & DEG_NODE_VISITED) == 0) {
 				/* TODO(sergey): Is it orig or CoW? */
 				callback(id_node->id_orig, user_data);
@@ -116,7 +112,7 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 			}
 			/* Schedule outgoing operation nodes. */
 			if (op_node->outlinks.size() == 1) {
-				OperationDepsNode *to_node = (OperationDepsNode *)op_node->outlinks[0]->to;
+				OperationNode *to_node = (OperationNode *)op_node->outlinks[0]->to;
 				if (to_node->scheduled == false) {
 					to_node->scheduled = true;
 					op_node = to_node;
@@ -126,8 +122,8 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 				}
 			}
 			else {
-				foreach (DepsRelation *rel, op_node->outlinks) {
-					OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
+				for (Relation *rel : op_node->outlinks) {
+					OperationNode *to_node = (OperationNode *)rel->to;
 					if (to_node->scheduled == false) {
 						queue.push_front(to_node);
 						to_node->scheduled = true;
@@ -145,20 +141,19 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
                                      void *user_data)
 {
 	/* Start with getting ID node from the graph. */
-	IDDepsNode *target_id_node = graph->find_id_node(id);
+	IDNode *target_id_node = graph->find_id_node(id);
 	if (target_id_node == NULL) {
 		/* TODO(sergey): Shall we inform or assert here about attempt to start
-		 * iterating over non-existing ID?
-		 */
+		 * iterating over non-existing ID? */
 		return;
 	}
 	/* Make sure all runtime flags are ready and clear. */
 	deg_foreach_clear_flags(graph);
 	/* Start with scheduling all operations from ID node. */
 	TraversalQueue queue;
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, target_id_node->components)
+	GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, target_id_node->components)
 	{
-		foreach (OperationDepsNode *op_node, comp_node->operations) {
+		for (OperationNode *op_node : comp_node->operations) {
 			queue.push_back(op_node);
 			op_node->scheduled = true;
 		}
@@ -168,12 +163,12 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 	/* Process the queue. */
 	while (!queue.empty()) {
 		/* get next operation node to process. */
-		OperationDepsNode *op_node = queue.front();
+		OperationNode *op_node = queue.front();
 		queue.pop_front();
 		for (;;) {
 			/* Check whether we need to inform callee about corresponding ID node. */
-			ComponentDepsNode *comp_node = op_node->owner;
-			IDDepsNode *id_node = comp_node->owner;
+			ComponentNode *comp_node = op_node->owner;
+			IDNode *id_node = comp_node->owner;
 			if ((id_node->custom_flags & DEG_NODE_VISITED) == 0) {
 				/* TODO(sergey): Is it orig or CoW? */
 				callback(id_node->id_orig, user_data);
@@ -181,9 +176,9 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 			}
 			/* Schedule incoming operation nodes. */
 			if (op_node->inlinks.size() == 1) {
-				DepsNode *from = op_node->inlinks[0]->from;
-				if (from->get_class() == DEG_NODE_CLASS_OPERATION) {
-					OperationDepsNode *from_node = (OperationDepsNode *)from;
+				Node *from = op_node->inlinks[0]->from;
+				if (from->get_class() == NodeClass::OPERATION) {
+					OperationNode *from_node = (OperationNode *)from;
 					if (from_node->scheduled == false) {
 						from_node->scheduled = true;
 						op_node = from_node;
@@ -194,10 +189,10 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 				}
 			}
 			else {
-				foreach (DepsRelation *rel, op_node->inlinks) {
-					DepsNode *from = rel->from;
-					if (from->get_class() == DEG_NODE_CLASS_OPERATION) {
-						OperationDepsNode *from_node = (OperationDepsNode *)from;
+				for (Relation *rel : op_node->inlinks) {
+					Node *from = rel->from;
+					if (from->get_class() == NodeClass::OPERATION) {
+						OperationNode *from_node = (OperationNode *)from;
 						if (from_node->scheduled == false) {
 							queue.push_front(from_node);
 							from_node->scheduled = true;
@@ -213,7 +208,7 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 static void deg_foreach_id(const Depsgraph *depsgraph,
                            DEGForeachIDCallback callback, void *user_data)
 {
-	foreach (const IDDepsNode *id_node, depsgraph->id_nodes) {
+	for (const IDNode *id_node : depsgraph->id_nodes) {
 		callback(id_node->id_orig, user_data);
 	}
 }

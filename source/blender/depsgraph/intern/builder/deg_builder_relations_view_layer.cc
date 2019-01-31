@@ -57,15 +57,12 @@ extern "C" {
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_pchanmap.h"
 
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_operation.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_operation.h"
 
-#include "intern/depsgraph_intern.h"
-#include "intern/depsgraph_types.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph_type.h"
 
 namespace DEG {
 
@@ -92,8 +89,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	/* Scene objects. */
 	/* NOTE: Nodes builder requires us to pass CoW base because it's being
 	 * passed to the evaluation functions. During relations builder we only
-	 * do NULL-pointer check of the base, so it's fine to pass original one.
-	 */
+	 * do NULL-pointer check of the base, so it's fine to pass original one. */
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
 		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {

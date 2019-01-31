@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "intern/nodes/deg_node_id.h"
+#include "intern/node/deg_node_id.h"
 
 extern "C" {
 #include "DNA_ID.h"
@@ -39,26 +39,24 @@ extern "C" {
 namespace DEG {
 
 template <typename KeyType>
-OperationDepsNode *DepsgraphRelationBuilder::find_operation_node(const KeyType& key)
+OperationNode *DepsgraphRelationBuilder::find_operation_node(const KeyType& key)
 {
-	DepsNode *node = get_node(key);
+	Node *node = get_node(key);
 	return node != NULL ? node->get_exit_operation() : NULL;
 }
 
 template <typename KeyFrom, typename KeyTo>
-DepsRelation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
-                                                     const KeyTo &key_to,
-                                                     const char *description,
-                                                     bool check_unique,
-                                                     int flags)
+Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
+                                                 const KeyTo &key_to,
+                                                 const char *description,
+                                                 int flags)
 {
-	DepsNode *node_from = get_node(key_from);
-	DepsNode *node_to = get_node(key_to);
-	OperationDepsNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
-	OperationDepsNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
+	Node *node_from = get_node(key_from);
+	Node *node_to = get_node(key_to);
+	OperationNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
+	OperationNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
 	if (op_from && op_to) {
-		return add_operation_relation(
-		        op_from, op_to, description, check_unique, flags);
+		return add_operation_relation(op_from, op_to, description, flags);
 	}
 	else {
 		if (!op_from) {
@@ -83,49 +81,35 @@ DepsRelation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
 	return NULL;
 }
 
-template <typename KeyFrom, typename KeyTo>
-DepsRelation *DepsgraphRelationBuilder::add_relation(
-        const KeyFrom& key_from,
-        const KeyTo& key_to,
-        const char *description,
-        eDepsRelation_Flag flag)
-{
-	return add_relation(
-	        key_from, key_to, description, false, static_cast<int>(flag));
-}
-
 template <typename KeyTo>
-DepsRelation *DepsgraphRelationBuilder::add_relation(
+Relation *DepsgraphRelationBuilder::add_relation(
         const TimeSourceKey &key_from,
         const KeyTo &key_to,
         const char *description,
-        bool check_unique,
         int flags)
 {
-	TimeSourceDepsNode *time_from = get_node(key_from);
-	DepsNode *node_to = get_node(key_to);
-	OperationDepsNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
+	TimeSourceNode *time_from = get_node(key_from);
+	Node *node_to = get_node(key_to);
+	OperationNode *op_to = node_to ? node_to->get_entry_operation() : NULL;
 	if (time_from != NULL && op_to != NULL) {
 		return add_time_relation(
-		        time_from, op_to, description, check_unique, flags);
+		        time_from, op_to, description, flags);
 	}
 	return NULL;
 }
 
 template <typename KeyType>
-DepsRelation *DepsgraphRelationBuilder::add_node_handle_relation(
+Relation *DepsgraphRelationBuilder::add_node_handle_relation(
         const KeyType &key_from,
         const DepsNodeHandle *handle,
         const char *description,
-        bool check_unique,
         int flags)
 {
-	DepsNode *node_from = get_node(key_from);
-	OperationDepsNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
-	OperationDepsNode *op_to = handle->node->get_entry_operation();
+	Node *node_from = get_node(key_from);
+	OperationNode *op_from = node_from ? node_from->get_exit_operation() : NULL;
+	OperationNode *op_to = handle->node->get_entry_operation();
 	if (op_from != NULL && op_to != NULL) {
-		return add_operation_relation(
-		        op_from, op_to, description, check_unique, flags);
+		return add_operation_relation(op_from, op_to, description, flags);
 	}
 	else {
 		if (!op_from) {
@@ -157,13 +141,13 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom& key_from,
                                                        const KeyTo& key_to)
 {
 	/* Get operations for requested keys. */
-	DepsNode *node_from = get_node(key_from);
-	DepsNode *node_to = get_node(key_to);
+	Node *node_from = get_node(key_from);
+	Node *node_to = get_node(key_to);
 	if (node_from == NULL || node_to == NULL) {
 		return false;
 	}
-	OperationDepsNode *op_from = node_from->get_exit_operation();
-	OperationDepsNode *op_to = node_to->get_entry_operation();
+	OperationNode *op_from = node_from->get_exit_operation();
+	OperationNode *op_to = node_to->get_entry_operation();
 	if (op_from == NULL || op_to == NULL) {
 		return false;
 	}
@@ -172,8 +156,8 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom& key_from,
 		return false;
 	}
 	/* We are only interested in relations like BONE_DONE -> BONE_LOCAL... */
-	if (!(op_from->opcode == DEG_OPCODE_BONE_DONE &&
-	      op_to->opcode == DEG_OPCODE_BONE_LOCAL))
+	if (!(op_from->opcode == OperationCode::BONE_DONE &&
+	      op_to->opcode == OperationCode::BONE_LOCAL))
 	{
 		return false;
 	}
@@ -190,13 +174,13 @@ bool DepsgraphRelationBuilder::is_same_nodetree_node_dependency(
         const KeyTo& key_to)
 {
 	/* Get operations for requested keys. */
-	DepsNode *node_from = get_node(key_from);
-	DepsNode *node_to = get_node(key_to);
+	Node *node_from = get_node(key_from);
+	Node *node_to = get_node(key_to);
 	if (node_from == NULL || node_to == NULL) {
 		return false;
 	}
-	OperationDepsNode *op_from = node_from->get_exit_operation();
-	OperationDepsNode *op_to = node_to->get_entry_operation();
+	OperationNode *op_from = node_from->get_exit_operation();
+	OperationNode *op_to = node_to->get_entry_operation();
 	if (op_from == NULL || op_to == NULL) {
 		return false;
 	}
@@ -209,8 +193,8 @@ bool DepsgraphRelationBuilder::is_same_nodetree_node_dependency(
 		return false;
 	}
 	/* We are only interested in relations like BONE_DONE -> BONE_LOCAL... */
-	if (!(op_from->opcode == DEG_OPCODE_PARAMETERS_EVAL &&
-	      op_to->opcode == DEG_OPCODE_PARAMETERS_EVAL))
+	if (!(op_from->opcode == OperationCode::PARAMETERS_EVAL &&
+	      op_to->opcode == OperationCode::PARAMETERS_EVAL))
 	{
 		return false;
 	}

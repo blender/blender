@@ -51,10 +51,8 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "intern/depsgraph_intern.h"
-#include "util/deg_util_foreach.h"
-
-#include "intern/nodes/deg_node_id.h"
+#include "intern/depsgraph.h"
+#include "intern/node/deg_node_id.h"
 
 #ifndef NDEBUG
 #  include "intern/eval/deg_eval_copy_on_write.h"
@@ -177,7 +175,7 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 	return false;
 }
 
-void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
+void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDNode *id_node)
 {
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
@@ -264,7 +262,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	data->eval_mode = DEG_get_mode(depsgraph);
 	deg_invalidate_iterator_work_data(data);
 
-	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
+	DEG::IDNode *id_node = deg_graph->id_nodes[data->id_node_index];
 	deg_iterator_objects_step(iter, id_node);
 
 	if (iter->skip) {
@@ -300,7 +298,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 			return;
 		}
 
-		DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
+		DEG::IDNode *id_node = deg_graph->id_nodes[data->id_node_index];
 		deg_iterator_objects_step(iter, id_node);
 	} while (iter->skip);
 }
@@ -310,15 +308,14 @@ void DEG_iterator_objects_end(BLI_Iterator *iter)
 	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	if (data != NULL) {
 		/* Force crash in case the iterator data is referenced and accessed down
-		 * the line. (T51718)
-		 */
+		 * the line. (T51718) */
 		deg_invalidate_iterator_work_data(data);
 	}
 }
 
 /* ************************ DEG ID ITERATOR ********************* */
 
-static void DEG_iterator_ids_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node, bool only_updated)
+static void DEG_iterator_ids_step(BLI_Iterator *iter, DEG::IDNode *id_node, bool only_updated)
 {
 	ID *id_cow = id_node->id_cow;
 
@@ -358,7 +355,7 @@ void DEG_iterator_ids_begin(BLI_Iterator *iter, DEGIDIterData *data)
 	data->id_node_index = 0;
 	data->num_id_nodes = num_id_nodes;
 
-	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
+	DEG::IDNode *id_node = deg_graph->id_nodes[data->id_node_index];
 	DEG_iterator_ids_step(iter, id_node, data->only_updated);
 
 	if (iter->skip) {
@@ -381,7 +378,7 @@ void DEG_iterator_ids_next(BLI_Iterator *iter)
 			return;
 		}
 
-		DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
+		DEG::IDNode *id_node = deg_graph->id_nodes[data->id_node_index];
 		DEG_iterator_ids_step(iter, id_node, data->only_updated);
 	} while (iter->skip);
 }

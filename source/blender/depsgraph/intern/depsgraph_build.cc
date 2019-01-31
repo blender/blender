@@ -58,45 +58,44 @@ extern "C" {
 #include "builder/deg_builder_relations.h"
 #include "builder/deg_builder_transitive.h"
 
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_operation.h"
+#include "intern/debug/deg_debug.h"
 
-#include "intern/depsgraph_types.h"
-#include "intern/depsgraph_intern.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_operation.h"
 
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph_type.h"
 
 /* ****************** */
 /* External Build API */
 
-static DEG::eDepsNode_Type deg_build_scene_component_type(
+static DEG::NodeType deg_build_scene_component_type(
         eDepsSceneComponentType component)
 {
 	switch (component) {
-		case DEG_SCENE_COMP_PARAMETERS:     return DEG::DEG_NODE_TYPE_PARAMETERS;
-		case DEG_SCENE_COMP_ANIMATION:      return DEG::DEG_NODE_TYPE_ANIMATION;
-		case DEG_SCENE_COMP_SEQUENCER:      return DEG::DEG_NODE_TYPE_SEQUENCER;
+		case DEG_SCENE_COMP_PARAMETERS:     return DEG::NodeType::PARAMETERS;
+		case DEG_SCENE_COMP_ANIMATION:      return DEG::NodeType::ANIMATION;
+		case DEG_SCENE_COMP_SEQUENCER:      return DEG::NodeType::SEQUENCER;
 	}
-	return DEG::DEG_NODE_TYPE_UNDEFINED;
+	return DEG::NodeType::UNDEFINED;
 }
 
-static DEG::eDepsNode_Type deg_build_object_component_type(
+static DEG::NodeType deg_build_object_component_type(
         eDepsObjectComponentType component)
 {
 	switch (component) {
-		case DEG_OB_COMP_PARAMETERS:        return DEG::DEG_NODE_TYPE_PARAMETERS;
-		case DEG_OB_COMP_PROXY:             return DEG::DEG_NODE_TYPE_PROXY;
-		case DEG_OB_COMP_ANIMATION:         return DEG::DEG_NODE_TYPE_ANIMATION;
-		case DEG_OB_COMP_TRANSFORM:         return DEG::DEG_NODE_TYPE_TRANSFORM;
-		case DEG_OB_COMP_GEOMETRY:          return DEG::DEG_NODE_TYPE_GEOMETRY;
-		case DEG_OB_COMP_EVAL_POSE:         return DEG::DEG_NODE_TYPE_EVAL_POSE;
-		case DEG_OB_COMP_BONE:              return DEG::DEG_NODE_TYPE_BONE;
-		case DEG_OB_COMP_SHADING:           return DEG::DEG_NODE_TYPE_SHADING;
-		case DEG_OB_COMP_CACHE:             return DEG::DEG_NODE_TYPE_CACHE;
+		case DEG_OB_COMP_PARAMETERS:        return DEG::NodeType::PARAMETERS;
+		case DEG_OB_COMP_PROXY:             return DEG::NodeType::PROXY;
+		case DEG_OB_COMP_ANIMATION:         return DEG::NodeType::ANIMATION;
+		case DEG_OB_COMP_TRANSFORM:         return DEG::NodeType::TRANSFORM;
+		case DEG_OB_COMP_GEOMETRY:          return DEG::NodeType::GEOMETRY;
+		case DEG_OB_COMP_EVAL_POSE:         return DEG::NodeType::EVAL_POSE;
+		case DEG_OB_COMP_BONE:              return DEG::NodeType::BONE;
+		case DEG_OB_COMP_SHADING:           return DEG::NodeType::SHADING;
+		case DEG_OB_COMP_CACHE:             return DEG::NodeType::CACHE;
 	}
-	return DEG::DEG_NODE_TYPE_UNDEFINED;
+	return DEG::NodeType::UNDEFINED;
 }
 
 static DEG::DepsNodeHandle *get_node_handle(DepsNodeHandle *node_handle)
@@ -109,7 +108,7 @@ void DEG_add_scene_relation(DepsNodeHandle *node_handle,
                             eDepsSceneComponentType component,
                             const char *description)
 {
-	DEG::eDepsNode_Type type = deg_build_scene_component_type(component);
+	DEG::NodeType type = deg_build_scene_component_type(component);
 	DEG::ComponentKey comp_key(&scene->id, type);
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
 	deg_node_handle->builder->add_node_handle_relation(comp_key,
@@ -122,7 +121,7 @@ void DEG_add_object_relation(DepsNodeHandle *node_handle,
                              eDepsObjectComponentType component,
                              const char *description)
 {
-	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::NodeType type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type);
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
 	deg_node_handle->builder->add_node_handle_relation(comp_key,
@@ -135,7 +134,7 @@ void DEG_add_object_cache_relation(DepsNodeHandle *node_handle,
                                    eDepsObjectComponentType component,
                                    const char *description)
 {
-	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::NodeType type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&cache_file->id, type);
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
 	deg_node_handle->builder->add_node_handle_relation(comp_key,
@@ -149,7 +148,7 @@ void DEG_add_bone_relation(DepsNodeHandle *node_handle,
                            eDepsObjectComponentType component,
                            const char *description)
 {
-	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::NodeType type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type, bone_name);
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
 	deg_node_handle->builder->add_node_handle_relation(comp_key,
@@ -162,7 +161,7 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
                                         eDepsObjectComponentType component,
                                         const char *description)
 {
-	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::NodeType type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type);
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
 	DEG::DepsgraphRelationBuilder *relation_builder = deg_node_handle->builder;
@@ -171,11 +170,11 @@ void DEG_add_object_pointcache_relation(struct DepsNodeHandle *node_handle,
 	        comp_key, deg_node_handle, description);
 	/* Node deduct point cache component and connect source to it. */
 	ID *id = DEG_get_id_from_handle(node_handle);
-	DEG::ComponentKey point_cache_key(id, DEG::DEG_NODE_TYPE_POINT_CACHE);
-	DEG::DepsRelation *rel = relation_builder->add_relation(
+	DEG::ComponentKey point_cache_key(id, DEG::NodeType::POINT_CACHE);
+	DEG::Relation *rel = relation_builder->add_relation(
 	        comp_key, point_cache_key, "Point Cache");
 	if (rel != NULL) {
-		rel->flag |= DEG::DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY;
+		rel->flag |= DEG::RELATION_FLAG_FLUSH_USER_EDIT_ONLY;
 	}
 	else {
 		fprintf(stderr,
@@ -191,8 +190,8 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
 {
 	DEG::OperationKey operation_key(
 	        id,
-	        DEG::DEG_NODE_TYPE_GENERIC_DATABLOCK,
-	        DEG::DEG_OPCODE_GENERIC_DATABLOCK_UPDATE);
+	        DEG::NodeType::GENERIC_DATABLOCK,
+	        DEG::OperationCode::GENERIC_DATABLOCK_UPDATE);
 	DEG::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
 	deg_node_handle->builder->add_node_handle_relation(operation_key,
 	                                                   deg_node_handle,
@@ -256,8 +255,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	                               DEG::DEG_ID_LINKED_DIRECTLY);
 	node_builder.end_build();
 	/* Hook up relationships between operations - to determine evaluation
-	 * order.
-	 */
+	 * order. */
 	DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph);
 	relation_builder.begin_build();
 	relation_builder.build_view_layer(scene, view_layer);
@@ -267,8 +265,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	/* Simplify the graph by removing redundant relations (to optimize
 	 * traversal later). */
 	/* TODO: it would be useful to have an option to disable this in cases where
-	 *       it is causing trouble.
-	 */
+	 *       it is causing trouble. */
 	if (G.debug_value == 799) {
 		DEG::deg_graph_transitive_reduction(deg_graph);
 	}
@@ -303,9 +300,8 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 	 * re-create flat array of bases in view layer.
 	 *
 	 * TODO(sergey): Try to make it so we don't flush updates
-	 * to the whole depsgraph.
-	 */
-	DEG::IDDepsNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
+	 * to the whole depsgraph. */
+	DEG::IDNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
 	if (id_node != NULL) {
 		id_node->tag_update(deg_graph, DEG::DEG_UPDATE_SOURCE_RELATIONS);
 	}

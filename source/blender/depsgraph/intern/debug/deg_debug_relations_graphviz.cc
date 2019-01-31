@@ -30,6 +30,8 @@
  * Implementation of tools for debugging the depsgraph
  */
 
+#include <cstdarg>
+
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
@@ -40,11 +42,11 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
 
-#include "intern/depsgraph_intern.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_time.h"
-
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node_time.h"
 
 /* ****************** */
 /* Graphviz Debugging */
@@ -82,36 +84,36 @@ static const char *deg_debug_colors_light[] = {
 
 #ifdef COLOR_SCHEME_NODE_TYPE
 static const int deg_debug_node_type_color_map[][2] = {
-    {DEG_NODE_TYPE_TIMESOURCE,   0},
-    {DEG_NODE_TYPE_ID_REF,       1},
+    {NodeType::TIMESOURCE,   0},
+    {NodeType::ID_REF,       1},
 
     /* Outer Types */
-    {DEG_NODE_TYPE_PARAMETERS,         2},
-    {DEG_NODE_TYPE_PROXY,              3},
-    {DEG_NODE_TYPE_ANIMATION,          4},
-    {DEG_NODE_TYPE_TRANSFORM,          5},
-    {DEG_NODE_TYPE_GEOMETRY,           6},
-    {DEG_NODE_TYPE_SEQUENCER,          7},
-    {DEG_NODE_TYPE_SHADING,            8},
-    {DEG_NODE_TYPE_SHADING_PARAMETERS, 9},
-    {DEG_NODE_TYPE_CACHE,              10},
-    {DEG_NODE_TYPE_POINT_CACHE,        11},
-    {DEG_NODE_TYPE_LAYER_COLLECTIONS,  12},
-    {DEG_NODE_TYPE_COPY_ON_WRITE,      13},
+    {NodeType::PARAMETERS,         2},
+    {NodeType::PROXY,              3},
+    {NodeType::ANIMATION,          4},
+    {NodeType::TRANSFORM,          5},
+    {NodeType::GEOMETRY,           6},
+    {NodeType::SEQUENCER,          7},
+    {NodeType::SHADING,            8},
+    {NodeType::SHADING_PARAMETERS, 9},
+    {NodeType::CACHE,              10},
+    {NodeType::POINT_CACHE,        11},
+    {NodeType::LAYER_COLLECTIONS,  12},
+    {NodeType::COPY_ON_WRITE,      13},
     {-1,                               0}
 };
 #endif
 
-static int deg_debug_node_color_index(const DepsNode *node)
+static int deg_debug_node_color_index(const Node *node)
 {
 #ifdef COLOR_SCHEME_NODE_CLASS
 	/* Some special types. */
 	switch (node->type) {
-		case DEG_NODE_TYPE_ID_REF:
+		case NodeType::ID_REF:
 			return 5;
-		case DEG_NODE_TYPE_OPERATION:
+		case NodeType::OPERATION:
 		{
-			OperationDepsNode *op_node = (OperationDepsNode *)node;
+			OperationNode *op_node = (OperationNode *)node;
 			if (op_node->is_noop())
 				return 8;
 			break;
@@ -122,9 +124,9 @@ static int deg_debug_node_color_index(const DepsNode *node)
 	}
 	/* Do others based on class. */
 	switch (node->get_class()) {
-		case DEG_NODE_CLASS_OPERATION:
+		case NodeClass::OPERATION:
 			return 4;
-		case DEG_NODE_CLASS_COMPONENT:
+		case NodeClass::COMPONENT:
 			return 1;
 		default:
 			return 9;
@@ -185,7 +187,7 @@ static void deg_debug_graphviz_legend(const DebugContext &ctx)
 #ifdef COLOR_SCHEME_NODE_TYPE
 	const int (*pair)[2];
 	for (pair = deg_debug_node_type_color_map; (*pair)[0] >= 0; ++pair) {
-		DepsNodeFactory *nti = deg_type_get_factory((eDepsNode_Type)(*pair)[0]);
+		DepsNodeFactory *nti = type_get_factory((NodeType)(*pair)[0]);
 		deg_debug_graphviz_legend_color(ctx,
 		                                nti->tname().c_str(),
 		                                deg_debug_colors_light[(*pair)[1] % deg_debug_max_colors]);
@@ -200,15 +202,15 @@ static void deg_debug_graphviz_legend(const DebugContext &ctx)
 }
 
 static void deg_debug_graphviz_node_color(const DebugContext &ctx,
-                                          const DepsNode *node)
+                                          const Node *node)
 {
 	const char *color_default = "black";
 	const char *color_modified = "orangered4";
 	const char *color_update = "dodgerblue3";
 	const char *color = color_default;
 	if (ctx.show_tags) {
-		if (node->get_class() == DEG_NODE_CLASS_OPERATION) {
-			OperationDepsNode *op_node = (OperationDepsNode *)node;
+		if (node->get_class() == NodeClass::OPERATION) {
+			OperationNode *op_node = (OperationNode *)node;
 			if (op_node->flag & DEPSOP_FLAG_DIRECTLY_MODIFIED) {
 				color = color_modified;
 			}
@@ -221,15 +223,15 @@ static void deg_debug_graphviz_node_color(const DebugContext &ctx,
 }
 
 static void deg_debug_graphviz_node_penwidth(const DebugContext &ctx,
-                                             const DepsNode *node)
+                                             const Node *node)
 {
 	float penwidth_default = 1.0f;
 	float penwidth_modified = 4.0f;
 	float penwidth_update = 4.0f;
 	float penwidth = penwidth_default;
 	if (ctx.show_tags) {
-		if (node->get_class() == DEG_NODE_CLASS_OPERATION) {
-			OperationDepsNode *op_node = (OperationDepsNode *)node;
+		if (node->get_class() == NodeClass::OPERATION) {
+			OperationNode *op_node = (OperationNode *)node;
 			if (op_node->flag & DEPSOP_FLAG_DIRECTLY_MODIFIED) {
 				penwidth = penwidth_modified;
 			}
@@ -242,7 +244,7 @@ static void deg_debug_graphviz_node_penwidth(const DebugContext &ctx,
 }
 
 static void deg_debug_graphviz_node_fillcolor(const DebugContext &ctx,
-                                              const DepsNode *node)
+                                              const Node *node)
 {
 	const char *defaultcolor = "gainsboro";
 	int color_index = deg_debug_node_color_index(node);
@@ -251,49 +253,49 @@ static void deg_debug_graphviz_node_fillcolor(const DebugContext &ctx,
 }
 
 static void deg_debug_graphviz_relation_color(const DebugContext &ctx,
-                                              const DepsRelation *rel)
+                                              const Relation *rel)
 {
 	const char *color_default = "black";
 	const char *color_cyclic = "red4";  /* The color of crime scene. */
 	const char *color_godmode = "blue4";  /* The color of beautiful sky. */
 	const char *color = color_default;
-	if (rel->flag & DEPSREL_FLAG_CYCLIC) {
+	if (rel->flag & RELATION_FLAG_CYCLIC) {
 		color = color_cyclic;
 	}
-	else if (rel->flag & DEPSREL_FLAG_GODMODE) {
+	else if (rel->flag & RELATION_FLAG_GODMODE) {
 		color = color_godmode;
 	}
 	deg_debug_fprintf(ctx, "%s", color);
 }
 
 static void deg_debug_graphviz_relation_style(const DebugContext &ctx,
-                                              const DepsRelation *rel)
+                                              const Relation *rel)
 {
 	const char *style_default = "solid";
 	const char *style_no_flush = "dashed";
 	const char *style_flush_user_only = "dotted";
 	const char *style = style_default;
-	if (rel->flag & DEPSREL_FLAG_NO_FLUSH) {
+	if (rel->flag & RELATION_FLAG_NO_FLUSH) {
 		style = style_no_flush;
 	}
-	if (rel->flag & DEPSREL_FLAG_FLUSH_USER_EDIT_ONLY) {
+	if (rel->flag & RELATION_FLAG_FLUSH_USER_EDIT_ONLY) {
 		style = style_flush_user_only;
 	}
 	deg_debug_fprintf(ctx, "%s", style);
 }
 
 static void deg_debug_graphviz_relation_arrowhead(const DebugContext &ctx,
-                                                  const DepsRelation *rel)
+                                                  const Relation *rel)
 {
 	const char *shape_default = "normal";
 	const char *shape_no_cow = "box";
 	const char *shape = shape_default;
-	if (rel->from->get_class() == DEG_NODE_CLASS_OPERATION &&
-	    rel->to->get_class() == DEG_NODE_CLASS_OPERATION)
+	if (rel->from->get_class() == NodeClass::OPERATION &&
+	    rel->to->get_class() == NodeClass::OPERATION)
 	{
-		OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
-		OperationDepsNode *op_to = (OperationDepsNode *)rel->to;
-		if (op_from->owner->type == DEG_NODE_TYPE_COPY_ON_WRITE &&
+		OperationNode *op_from = (OperationNode *)rel->from;
+		OperationNode *op_to = (OperationNode *)rel->to;
+		if (op_from->owner->type == NodeType::COPY_ON_WRITE &&
 		    !op_to->owner->need_tag_cow_before_update())
 		{
 			shape = shape_no_cow;
@@ -302,32 +304,32 @@ static void deg_debug_graphviz_relation_arrowhead(const DebugContext &ctx,
 	deg_debug_fprintf(ctx, "%s", shape);
 }
 
-static void deg_debug_graphviz_node_style(const DebugContext &ctx, const DepsNode *node)
+static void deg_debug_graphviz_node_style(const DebugContext &ctx, const Node *node)
 {
 	const char *base_style = "filled"; /* default style */
 	if (ctx.show_tags) {
-		if (node->get_class() == DEG_NODE_CLASS_OPERATION) {
-			OperationDepsNode *op_node = (OperationDepsNode *)node;
+		if (node->get_class() == NodeClass::OPERATION) {
+			OperationNode *op_node = (OperationNode *)node;
 			if (op_node->flag & (DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE)) {
 				base_style = "striped";
 			}
 		}
 	}
 	switch (node->get_class()) {
-		case DEG_NODE_CLASS_GENERIC:
+		case NodeClass::GENERIC:
 			deg_debug_fprintf(ctx, "\"%s\"", base_style);
 			break;
-		case DEG_NODE_CLASS_COMPONENT:
+		case NodeClass::COMPONENT:
 			deg_debug_fprintf(ctx, "\"%s\"", base_style);
 			break;
-		case DEG_NODE_CLASS_OPERATION:
+		case NodeClass::OPERATION:
 			deg_debug_fprintf(ctx, "\"%s,rounded\"", base_style);
 			break;
 	}
 }
 
 static void deg_debug_graphviz_node_single(const DebugContext &ctx,
-                                           const DepsNode *node)
+                                           const Node *node)
 {
 	const char *shape = "box";
 	string name = node->identifier();
@@ -348,7 +350,7 @@ static void deg_debug_graphviz_node_single(const DebugContext &ctx,
 }
 
 static void deg_debug_graphviz_node_cluster_begin(const DebugContext &ctx,
-                                                  const DepsNode *node)
+                                                  const Node *node)
 {
 	string name = node->identifier();
 	deg_debug_fprintf(ctx, "// %s\n", name.c_str());
@@ -383,18 +385,18 @@ static void deg_debug_graphviz_graph_relations(const DebugContext &ctx,
                                                const Depsgraph *graph);
 
 static void deg_debug_graphviz_node(const DebugContext &ctx,
-                                    const DepsNode *node)
+                                    const Node *node)
 {
 	switch (node->type) {
-		case DEG_NODE_TYPE_ID_REF:
+		case NodeType::ID_REF:
 		{
-			const IDDepsNode *id_node = (const IDDepsNode *)node;
+			const IDNode *id_node = (const IDNode *)node;
 			if (BLI_ghash_len(id_node->components) == 0) {
 				deg_debug_graphviz_node_single(ctx, node);
 			}
 			else {
 				deg_debug_graphviz_node_cluster_begin(ctx, node);
-				GHASH_FOREACH_BEGIN(const ComponentDepsNode *, comp, id_node->components)
+				GHASH_FOREACH_BEGIN(const ComponentNode *, comp, id_node->components)
 				{
 					deg_debug_graphviz_node(ctx, comp);
 				}
@@ -403,32 +405,32 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 			}
 			break;
 		}
-		case DEG_NODE_TYPE_PARAMETERS:
-		case DEG_NODE_TYPE_ANIMATION:
-		case DEG_NODE_TYPE_TRANSFORM:
-		case DEG_NODE_TYPE_PROXY:
-		case DEG_NODE_TYPE_GEOMETRY:
-		case DEG_NODE_TYPE_SEQUENCER:
-		case DEG_NODE_TYPE_EVAL_POSE:
-		case DEG_NODE_TYPE_BONE:
-		case DEG_NODE_TYPE_SHADING:
-		case DEG_NODE_TYPE_SHADING_PARAMETERS:
-		case DEG_NODE_TYPE_CACHE:
-		case DEG_NODE_TYPE_POINT_CACHE:
-		case DEG_NODE_TYPE_LAYER_COLLECTIONS:
-		case DEG_NODE_TYPE_PARTICLE_SYSTEM:
-		case DEG_NODE_TYPE_PARTICLE_SETTINGS:
-		case DEG_NODE_TYPE_COPY_ON_WRITE:
-		case DEG_NODE_TYPE_OBJECT_FROM_LAYER:
-		case DEG_NODE_TYPE_BATCH_CACHE:
-		case DEG_NODE_TYPE_DUPLI:
-		case DEG_NODE_TYPE_SYNCHRONIZE:
-		case DEG_NODE_TYPE_GENERIC_DATABLOCK:
+		case NodeType::PARAMETERS:
+		case NodeType::ANIMATION:
+		case NodeType::TRANSFORM:
+		case NodeType::PROXY:
+		case NodeType::GEOMETRY:
+		case NodeType::SEQUENCER:
+		case NodeType::EVAL_POSE:
+		case NodeType::BONE:
+		case NodeType::SHADING:
+		case NodeType::SHADING_PARAMETERS:
+		case NodeType::CACHE:
+		case NodeType::POINT_CACHE:
+		case NodeType::LAYER_COLLECTIONS:
+		case NodeType::PARTICLE_SYSTEM:
+		case NodeType::PARTICLE_SETTINGS:
+		case NodeType::COPY_ON_WRITE:
+		case NodeType::OBJECT_FROM_LAYER:
+		case NodeType::BATCH_CACHE:
+		case NodeType::DUPLI:
+		case NodeType::SYNCHRONIZE:
+		case NodeType::GENERIC_DATABLOCK:
 		{
-			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
+			ComponentNode *comp_node = (ComponentNode *)node;
 			if (!comp_node->operations.empty()) {
 				deg_debug_graphviz_node_cluster_begin(ctx, node);
-				foreach (DepsNode *op_node, comp_node->operations) {
+				for (Node *op_node : comp_node->operations) {
 					deg_debug_graphviz_node(ctx, op_node);
 				}
 				deg_debug_graphviz_node_cluster_end(ctx);
@@ -438,34 +440,34 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 			}
 			break;
 		}
-		case DEG_NODE_TYPE_UNDEFINED:
-		case DEG_NODE_TYPE_TIMESOURCE:
-		case DEG_NODE_TYPE_OPERATION:
+		case NodeType::UNDEFINED:
+		case NodeType::TIMESOURCE:
+		case NodeType::OPERATION:
 			deg_debug_graphviz_node_single(ctx, node);
 			break;
-		case NUM_DEG_NODE_TYPES:
+		case NodeType::NUM_TYPES:
 			break;
 	}
 }
 
-static bool deg_debug_graphviz_is_cluster(const DepsNode *node)
+static bool deg_debug_graphviz_is_cluster(const Node *node)
 {
 	switch (node->type) {
-		case DEG_NODE_TYPE_ID_REF:
+		case NodeType::ID_REF:
 		{
-			const IDDepsNode *id_node = (const IDDepsNode *)node;
+			const IDNode *id_node = (const IDNode *)node;
 			return BLI_ghash_len(id_node->components) > 0;
 		}
-		case DEG_NODE_TYPE_PARAMETERS:
-		case DEG_NODE_TYPE_ANIMATION:
-		case DEG_NODE_TYPE_TRANSFORM:
-		case DEG_NODE_TYPE_PROXY:
-		case DEG_NODE_TYPE_GEOMETRY:
-		case DEG_NODE_TYPE_SEQUENCER:
-		case DEG_NODE_TYPE_EVAL_POSE:
-		case DEG_NODE_TYPE_BONE:
+		case NodeType::PARAMETERS:
+		case NodeType::ANIMATION:
+		case NodeType::TRANSFORM:
+		case NodeType::PROXY:
+		case NodeType::GEOMETRY:
+		case NodeType::SEQUENCER:
+		case NodeType::EVAL_POSE:
+		case NodeType::BONE:
 		{
-			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
+			ComponentNode *comp_node = (ComponentNode *)node;
 			return !comp_node->operations.empty();
 		}
 		default:
@@ -473,20 +475,20 @@ static bool deg_debug_graphviz_is_cluster(const DepsNode *node)
 	}
 }
 
-static bool deg_debug_graphviz_is_owner(const DepsNode *node,
-                                        const DepsNode *other)
+static bool deg_debug_graphviz_is_owner(const Node *node,
+                                        const Node *other)
 {
 	switch (node->get_class()) {
-		case DEG_NODE_CLASS_COMPONENT:
+		case NodeClass::COMPONENT:
 		{
-			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
+			ComponentNode *comp_node = (ComponentNode *)node;
 			if (comp_node->owner == other)
 				return true;
 			break;
 		}
-		case DEG_NODE_CLASS_OPERATION:
+		case NodeClass::OPERATION:
 		{
-			OperationDepsNode *op_node = (OperationDepsNode *)node;
+			OperationNode *op_node = (OperationNode *)node;
 			if (op_node->owner == other)
 				return true;
 			else if (op_node->owner->owner == other)
@@ -499,13 +501,13 @@ static bool deg_debug_graphviz_is_owner(const DepsNode *node,
 }
 
 static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
-                                              const DepsNode *node)
+                                              const Node *node)
 {
-	foreach (DepsRelation *rel, node->inlinks) {
+	for (Relation *rel : node->inlinks) {
 		float penwidth = 2.0f;
 
-		const DepsNode *tail = rel->to; /* same as node */
-		const DepsNode *head = rel->from;
+		const Node *tail = rel->to; /* same as node */
+		const Node *head = rel->from;
 		deg_debug_fprintf(ctx, "// %s -> %s\n",
 		                 head->identifier().c_str(),
 		                 tail->identifier().c_str());
@@ -526,8 +528,7 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 		deg_debug_fprintf(ctx, ",penwidth=\"%f\"", penwidth);
 		/* NOTE: edge from node to own cluster is not possible and gives graphviz
 		 * warning, avoid this here by just linking directly to the invisible
-		 * placeholder node
-		 */
+		 * placeholder node. */
 		if (deg_debug_graphviz_is_cluster(tail) &&
 		    !deg_debug_graphviz_is_owner(head, tail))
 		{
@@ -546,10 +547,10 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx,
                                            const Depsgraph *graph)
 {
-	foreach (DepsNode *node, graph->id_nodes) {
+	for (Node *node : graph->id_nodes) {
 		deg_debug_graphviz_node(ctx, node);
 	}
-	TimeSourceDepsNode *time_source = graph->find_time_source();
+	TimeSourceNode *time_source = graph->find_time_source();
 	if (time_source != NULL) {
 		deg_debug_graphviz_node(ctx, time_source);
 	}
@@ -558,17 +559,17 @@ static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx,
 static void deg_debug_graphviz_graph_relations(const DebugContext &ctx,
                                                const Depsgraph *graph)
 {
-	foreach (IDDepsNode *id_node, graph->id_nodes) {
-		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+	for (IDNode *id_node : graph->id_nodes) {
+		GHASH_FOREACH_BEGIN(ComponentNode *, comp_node, id_node->components)
 		{
-			foreach (OperationDepsNode *op_node, comp_node->operations) {
+			for (OperationNode *op_node : comp_node->operations) {
 				deg_debug_graphviz_node_relations(ctx, op_node);
 			}
 		}
 		GHASH_FOREACH_END();
 	}
 
-	TimeSourceDepsNode *time_source = graph->find_time_source();
+	TimeSourceNode *time_source = graph->find_time_source();
 	if (time_source != NULL) {
 		deg_debug_graphviz_node_relations(ctx, time_source);
 	}

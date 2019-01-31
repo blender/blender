@@ -15,27 +15,32 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
+ * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Lukas Toenne
- * Contributor(s):
+ * Original Author: Sergey Sharybin
+ * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/deg_util_function.h
+/** \file blender/depsgraph/intern/depsgraph_physics.h
  *  \ingroup depsgraph
  */
 
 #pragma once
 
-#include <functional>
+struct Collection;
+struct ListBase;
 
 namespace DEG {
 
-using std::function;
-using namespace std::placeholders;
-#define function_bind std::bind
+struct Depsgraph;
 
-}  // namespace
+ListBase *build_effector_relations(Depsgraph *graph, Collection *collection);
+ListBase *build_collision_relations(Depsgraph *graph,
+                                    Collection *collection,
+                                    unsigned int modifier_type);
+void clear_physics_relations(Depsgraph *graph);
+
+}  // namespace DEG

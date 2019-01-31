@@ -52,6 +52,7 @@ extern "C" {
 
 #include "BKE_scene.h"
 #include "BKE_constraint.h"
+#include "BKE_global.h"
 }
 
 #include <algorithm>
@@ -60,21 +61,20 @@ extern "C" {
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
 
+#include "intern/depsgraph_update.h"
+
 #include "intern/eval/deg_eval_copy_on_write.h"
 
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_id.h"
-#include "intern/nodes/deg_node_operation.h"
-#include "intern/nodes/deg_node_time.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_factory.h"
+#include "intern/node/deg_node_id.h"
+#include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node_time.h"
 
-#include "intern/depsgraph_intern.h"
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph_physics.h"
 
 namespace DEG {
-
-static DEG_EditorUpdateIDCb deg_editor_update_id_cb = NULL;
-static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = NULL;
 
 /* TODO(sergey): Find a better place for this. */
 template <typename T>
@@ -111,7 +111,7 @@ Depsgraph::~Depsgraph()
 	BLI_ghash_free(id_hash, NULL, NULL);
 	BLI_gset_free(entry_tags, NULL);
 	if (time_source != NULL) {
-		OBJECT_GUARDED_DELETE(time_source, TimeSourceDepsNode);
+		OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
 	}
 	BLI_spin_end(&lock);
 }
@@ -123,9 +123,9 @@ static bool pointer_to_component_node_criteria(
         const PropertyRNA *prop,
         RNAPointerSource /*source*/,
         ID **id,
-        eDepsNode_Type *type,
+        NodeType *type,
         const char **component_name,
-        eDepsOperation_Code *operation_code,
+        OperationCode *operation_code,
         const char **operation_name,
         int *operation_name_tag)
 {
@@ -135,27 +135,27 @@ static bool pointer_to_component_node_criteria(
 	/* Set default values for returns. */
 	*id = (ID *)ptr->id.data;
 	*component_name = "";
-	*operation_code = DEG_OPCODE_OPERATION;
+	*operation_code = OperationCode::OPERATION;
 	*operation_name = "";
 	*operation_name_tag = -1;
 	/* Handling of commonly known scenarios. */
 	if (ptr->type == &RNA_PoseBone) {
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 		if (prop != NULL && RNA_property_is_idprop(prop)) {
-			*type = DEG_NODE_TYPE_PARAMETERS;
-			*operation_code = DEG_OPCODE_ID_PROPERTY;
+			*type = NodeType::PARAMETERS;
+			*operation_code = OperationCode::ID_PROPERTY;
 			*operation_name = RNA_property_identifier((PropertyRNA *)prop);
 			*operation_name_tag = -1;
 		}
 		else {
 			/* Bone - generally, we just want the bone component. */
-			*type = DEG_NODE_TYPE_BONE;
+			*type = NodeType::BONE;
 			*component_name = pchan->name;
 			/* But B-Bone properties should connect to the actual operation. */
 			if (!ELEM(NULL, pchan->bone, prop) && pchan->bone->segments > 1 &&
 			    STRPREFIX(RNA_property_identifier(prop), "bbone_"))
 			{
-				*operation_code = DEG_OPCODE_BONE_SEGMENTS;
+				*operation_code = OperationCode::BONE_SEGMENTS;
 			}
 		}
 		return true;
@@ -164,7 +164,7 @@ static bool pointer_to_component_node_criteria(
 		Bone *bone = (Bone *)ptr->data;
 		/* armature-level bone, but it ends up going to bone component anyway */
 		// NOTE: the ID in this case will end up being bArmature.
-		*type = DEG_NODE_TYPE_BONE;
+		*type = NodeType::BONE;
 		*component_name = bone->name;
 		return true;
 	}
@@ -176,15 +176,15 @@ static bool pointer_to_component_node_criteria(
 		 * at a given constraint, but for rigging one might use constraint
 		 * influence to be used to drive some corrective shape keys or so. */
 		if (BLI_findindex(&object->constraints, con) != -1) {
-			*type = DEG_NODE_TYPE_TRANSFORM;
-			*operation_code = DEG_OPCODE_TRANSFORM_LOCAL;
+			*type = NodeType::TRANSFORM;
+			*operation_code = OperationCode::TRANSFORM_LOCAL;
 			return true;
 		}
 		else if (object->pose != NULL) {
 			LISTBASE_FOREACH(bPoseChannel *, pchan, &object->pose->chanbase) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
-					*type = DEG_NODE_TYPE_BONE;
-					*operation_code = DEG_OPCODE_BONE_LOCAL;
+					*type = NodeType::BONE;
+					*operation_code = OperationCode::BONE_LOCAL;
 					*component_name = pchan->name;
 					return true;
 				}
@@ -199,19 +199,19 @@ static bool pointer_to_component_node_criteria(
 		bConstraint *con = BKE_constraint_find_from_target(object, tgt, &pchan);
 		if (con != NULL) {
 			if (pchan != NULL) {
-				*type = DEG_NODE_TYPE_BONE;
-				*operation_code = DEG_OPCODE_BONE_LOCAL;
+				*type = NodeType::BONE;
+				*operation_code = OperationCode::BONE_LOCAL;
 				*component_name = pchan->name;
 			}
 			else {
-				*type = DEG_NODE_TYPE_TRANSFORM;
-				*operation_code = DEG_OPCODE_TRANSFORM_LOCAL;
+				*type = NodeType::TRANSFORM;
+				*operation_code = OperationCode::TRANSFORM_LOCAL;
 			}
 			return true;
 		}
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		*type = DEG_NODE_TYPE_GEOMETRY;
+		*type = NodeType::GEOMETRY;
 		return true;
 	}
 	else if (ptr->type == &RNA_Object) {
@@ -224,13 +224,13 @@ static bool pointer_to_component_node_criteria(
 			    strstr(prop_identifier, "scale") ||
 			    strstr(prop_identifier, "matrix_"))
 			{
-				*type = DEG_NODE_TYPE_TRANSFORM;
+				*type = NodeType::TRANSFORM;
 				return true;
 			}
 			else if (strstr(prop_identifier, "data")) {
 				/* We access object.data, most likely a geometry.
 				 * Might be a bone tho. */
-				*type = DEG_NODE_TYPE_GEOMETRY;
+				*type = NodeType::GEOMETRY;
 				return true;
 			}
 		}
@@ -238,47 +238,47 @@ static bool pointer_to_component_node_criteria(
 	else if (ptr->type == &RNA_ShapeKey) {
 		KeyBlock *key_block = (KeyBlock *)ptr->data;
 		*id = (ID *)ptr->id.data;
-		*type = DEG_NODE_TYPE_PARAMETERS;
-		*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+		*type = NodeType::PARAMETERS;
+		*operation_code = OperationCode::PARAMETERS_EVAL;
 		*operation_name = key_block->name;
 		return true;
 	}
 	else if (ptr->type == &RNA_Key) {
 		*id = (ID *)ptr->id.data;
-		*type = DEG_NODE_TYPE_GEOMETRY;
+		*type = NodeType::GEOMETRY;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
 		Sequence *seq = (Sequence *)ptr->data;
 		/* Sequencer strip */
-		*type = DEG_NODE_TYPE_SEQUENCER;
+		*type = NodeType::SEQUENCER;
 		*component_name = seq->name;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
-		*type = DEG_NODE_TYPE_SHADING;
+		*type = NodeType::SHADING;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
-		*type = DEG_NODE_TYPE_SHADING;
+		*type = NodeType::SHADING;
 		return true;
 	}
 	else if (ELEM(ptr->type, &RNA_Curve, &RNA_TextCurve)) {
 		*id = (ID *)ptr->id.data;
-		*type = DEG_NODE_TYPE_GEOMETRY;
+		*type = NodeType::GEOMETRY;
 		return true;
 	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		if (RNA_property_is_idprop(prop)) {
-			*type = DEG_NODE_TYPE_PARAMETERS;
-			*operation_code = DEG_OPCODE_ID_PROPERTY;
+			*type = NodeType::PARAMETERS;
+			*operation_code = OperationCode::ID_PROPERTY;
 			*operation_name = RNA_property_identifier((PropertyRNA *)prop);
 			*operation_name_tag = -1;
 		}
 		else {
-			*type = DEG_NODE_TYPE_PARAMETERS;
-			*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+			*type = NodeType::PARAMETERS;
+			*operation_code = OperationCode::PARAMETERS_EVAL;
 			*operation_name = "";
 			*operation_name_tag = -1;
 		}
@@ -288,30 +288,30 @@ static bool pointer_to_component_node_criteria(
 }
 
 /* Convenience wrapper to find node given just pointer + property. */
-DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
-                                            const PropertyRNA *prop,
-                                            RNAPointerSource source) const
+Node *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
+                                        const PropertyRNA *prop,
+                                        RNAPointerSource source) const
 {
 	ID *id;
-	eDepsNode_Type node_type;
+	NodeType node_type;
 	const char *component_name, *operation_name;
-	eDepsOperation_Code operation_code;
+	OperationCode operation_code;
 	int operation_name_tag;
 	if (pointer_to_component_node_criteria(
 	                 ptr, prop, source,
 	                 &id, &node_type, &component_name,
 	                 &operation_code, &operation_name, &operation_name_tag))
 	{
-		IDDepsNode *id_node = find_id_node(id);
+		IDNode *id_node = find_id_node(id);
 		if (id_node == NULL) {
 			return NULL;
 		}
-		ComponentDepsNode *comp_node =
+		ComponentNode *comp_node =
 		        id_node->find_component(node_type, component_name);
 		if (comp_node == NULL) {
 			return NULL;
 		}
-		if (operation_code == DEG_OPCODE_OPERATION) {
+		if (operation_code == OperationCode::OPERATION) {
 			return comp_node;
 		}
 		return comp_node->find_operation(operation_code,
@@ -323,38 +323,37 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 
 /* Node Management ---------------------------- */
 
-TimeSourceDepsNode *Depsgraph::add_time_source()
+TimeSourceNode *Depsgraph::add_time_source()
 {
 	if (time_source == NULL) {
-		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_TIMESOURCE);
-		time_source = (TimeSourceDepsNode *)factory->create_node(NULL, "", "Time Source");
+		DepsNodeFactory *factory = type_get_factory(NodeType::TIMESOURCE);
+		time_source = (TimeSourceNode *)factory->create_node(NULL, "", "Time Source");
 	}
 	return time_source;
 }
 
-TimeSourceDepsNode *Depsgraph::find_time_source() const
+TimeSourceNode *Depsgraph::find_time_source() const
 {
 	return time_source;
 }
 
-IDDepsNode *Depsgraph::find_id_node(const ID *id) const
+IDNode *Depsgraph::find_id_node(const ID *id) const
 {
-	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
+	return reinterpret_cast<IDNode *>(BLI_ghash_lookup(id_hash, id));
 }
 
-IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
+IDNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 {
 	BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) == 0);
-	IDDepsNode *id_node = find_id_node(id);
+	IDNode *id_node = find_id_node(id);
 	if (!id_node) {
-		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_ID_REF);
-		id_node = (IDDepsNode *)factory->create_node(id, "", id->name);
+		DepsNodeFactory *factory = type_get_factory(NodeType::ID_REF);
+		id_node = (IDNode *)factory->create_node(id, "", id->name);
 		id_node->init_copy_on_write(id_cow_hint);
 		/* Register node in ID hash.
 		 *
 		 * NOTE: We address ID nodes by the original ID pointer they are
-		 * referencing to.
-		 */
+		 * referencing to. */
 		BLI_ghash_insert(id_hash, id, id_node);
 		id_nodes.push_back(id_node);
 	}
@@ -363,11 +362,10 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 
 void Depsgraph::clear_id_nodes_conditional(const std::function <bool (ID_Type id_type)>& filter)
 {
-	foreach (IDDepsNode *id_node, id_nodes) {
+	for (IDNode *id_node : id_nodes) {
 		if (id_node->id_cow == NULL) {
 			/* This means builder "stole" ownership of the copy-on-written
-			 * datablock for her own dirty needs.
-			 */
+			 * datablock for her own dirty needs. */
 			continue;
 		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
@@ -388,65 +386,52 @@ void Depsgraph::clear_id_nodes()
 	clear_id_nodes_conditional([](ID_Type id_type) { return id_type == ID_SCE; });
 	clear_id_nodes_conditional([](ID_Type id_type) { return id_type != ID_PA; });
 
-	foreach (IDDepsNode *id_node, id_nodes) {
-		OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
+	for (IDNode *id_node : id_nodes) {
+		OBJECT_GUARDED_DELETE(id_node, IDNode);
 	}
 	/* Clear containers. */
 	BLI_ghash_clear(id_hash, NULL, NULL);
 	id_nodes.clear();
 	/* Clear physics relation caches. */
-	deg_clear_physics_relations(this);
-}
-
-/* Add new relationship between two nodes. */
-DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
-                                          OperationDepsNode *to,
-                                          const char *description,
-                                          bool check_unique,
-                                          int flags)
-{
-	DepsRelation *rel = NULL;
-	if (check_unique) {
-		rel = check_nodes_connected(from, to, description);
-	}
-	if (rel != NULL) {
-		rel->flag |= flags;
-		return rel;
-	}
-	/* COW nodes can only depend on other COW nodes. */
-	BLI_assert(to->owner->type != DEG_NODE_TYPE_COPY_ON_WRITE ||
-	           from->owner->type == DEG_NODE_TYPE_COPY_ON_WRITE);
-	/* Create new relation, and add it to the graph. */
-	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
-	rel->flag |= flags;
-	return rel;
+	clear_physics_relations(this);
 }
 
 /* Add new relation between two nodes */
-DepsRelation *Depsgraph::add_new_relation(DepsNode *from, DepsNode *to,
-                                          const char *description,
-                                          bool check_unique,
-                                          int flags)
+Relation *Depsgraph::add_new_relation(Node *from, Node *to,
+                                      const char *description,
+                                      int flags)
 {
-	DepsRelation *rel = NULL;
-	if (check_unique) {
+	Relation *rel = NULL;
+	if (flags & RELATION_CHECK_BEFORE_ADD) {
 		rel = check_nodes_connected(from, to, description);
 	}
 	if (rel != NULL) {
 		rel->flag |= flags;
 		return rel;
 	}
+
+#ifndef NDEBUG
+	if (from->type == NodeType::OPERATION &&
+	    to->type == NodeType::OPERATION)
+	{
+		OperationNode *operation_from = static_cast<OperationNode *>(from);
+		OperationNode *operation_to = static_cast<OperationNode *>(to);
+		BLI_assert(operation_to->owner->type != NodeType::COPY_ON_WRITE ||
+		           operation_from->owner->type == NodeType::COPY_ON_WRITE);
+	}
+#endif
+
 	/* Create new relation, and add it to the graph. */
-	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel = OBJECT_GUARDED_NEW(Relation, from, to, description);
 	rel->flag |= flags;
 	return rel;
 }
 
-DepsRelation *Depsgraph::check_nodes_connected(const DepsNode *from,
-                                               const DepsNode *to,
-                                               const char *description)
+Relation *Depsgraph::check_nodes_connected(const Node *from,
+                                           const Node *to,
+                                           const char *description)
 {
-	foreach (DepsRelation *rel, from->outlinks) {
+	for (Relation *rel : from->outlinks) {
 		BLI_assert(rel->from == from);
 		if (rel->to != to) {
 			continue;
@@ -462,9 +447,7 @@ DepsRelation *Depsgraph::check_nodes_connected(const DepsNode *from,
 /* ************************ */
 /* Relationships Management */
 
-DepsRelation::DepsRelation(DepsNode *from,
-                           DepsNode *to,
-                           const char *description)
+Relation::Relation(Node *from, Node *to, const char *description)
   : from(from),
     to(to),
     name(description),
@@ -482,19 +465,18 @@ DepsRelation::DepsRelation(DepsNode *from,
 	 *   anyway.
 	 *
 	 * - Unregistering relation is not a cheap operation, so better to have it
-	 *   as an explicit call if we need this.
-	 */
+	 *   as an explicit call if we need this. */
 	from->outlinks.push_back(this);
 	to->inlinks.push_back(this);
 }
 
-DepsRelation::~DepsRelation()
+Relation::~Relation()
 {
 	/* Sanity check. */
 	BLI_assert(from != NULL && to != NULL);
 }
 
-void DepsRelation::unlink()
+void Relation::unlink()
 {
 	/* Sanity check. */
 	BLI_assert(from != NULL && to != NULL);
@@ -505,15 +487,16 @@ void DepsRelation::unlink()
 /* Low level tagging -------------------------------------- */
 
 /* Tag a specific node as needing updates. */
-void Depsgraph::add_entry_tag(OperationDepsNode *node)
+void Depsgraph::add_entry_tag(OperationNode *node)
 {
 	/* Sanity check. */
 	if (node == NULL) {
 		return;
 	}
-	/* Add to graph-level set of directly modified nodes to start searching from.
-	 * NOTE: this is necessary since we have several thousand nodes to play with...
-	 */
+	/* Add to graph-level set of directly modified nodes to start searching
+	 * from.
+	 * NOTE: this is necessary since we have several thousand nodes to play
+	 * with. */
 	BLI_gset_insert(entry_tags, node);
 }
 
@@ -521,22 +504,21 @@ void Depsgraph::clear_all_nodes()
 {
 	clear_id_nodes();
 	if (time_source != NULL) {
-		OBJECT_GUARDED_DELETE(time_source, TimeSourceDepsNode);
+		OBJECT_GUARDED_DELETE(time_source, TimeSourceNode);
 		time_source = NULL;
 	}
 }
 
 ID *Depsgraph::get_cow_id(const ID *id_orig) const
 {
-	IDDepsNode *id_node = find_id_node(id_orig);
+	IDNode *id_node = find_id_node(id_orig);
 	if (id_node == NULL) {
 		/* This function is used from places where we expect ID to be either
 		 * already a copy-on-write version or have a corresponding copy-on-write
 		 * version.
 		 *
 		 * We try to enforce that in debug builds, for for release we play a bit
-		 * safer game here.
-		 */
+		 * safer game here. */
 		if ((id_orig->tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
 			/* TODO(sergey): This is nice sanity check to have, but it fails
 			 * in following situations:
@@ -545,53 +527,12 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 			 *   shading system and hence can be ignored at construction.
 			 * - Object or mesh has material at a slot which is not used (for
 			 *   example, object has material slot by materials are set to
-			 *   object data).
-			 */
+			 *   object data). */
 			// BLI_assert(!"Request for non-existing copy-on-write ID");
 		}
 		return (ID *)id_orig;
 	}
 	return id_node->id_cow;
-}
-
-void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx, ID *id)
-{
-	if (deg_editor_update_id_cb != NULL) {
-		deg_editor_update_id_cb(update_ctx, id);
-	}
-}
-
-void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
-                              bool updated)
-{
-	if (deg_editor_update_scene_cb != NULL) {
-		deg_editor_update_scene_cb(update_ctx, updated);
-	}
-}
-
-bool deg_terminal_do_color(void)
-{
-	return (G.debug & G_DEBUG_DEPSGRAPH_PRETTY) != 0;
-}
-
-string deg_color_for_pointer(const void *pointer)
-{
-	if (!deg_terminal_do_color()) {
-		return "";
-	}
-	int r, g, b;
-	BLI_hash_pointer_to_color(pointer, &r, &g, &b);
-	char buffer[64];
-	BLI_snprintf(buffer, sizeof(buffer), TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
-	return string(buffer);
-}
-
-string deg_color_end(void)
-{
-	if (!deg_terminal_do_color()) {
-		return "";
-	}
-	return string(TRUECOLOR_ANSI_COLOR_FINISH);
 }
 
 }  // namespace DEG
@@ -619,22 +560,13 @@ void DEG_graph_free(Depsgraph *graph)
 	OBJECT_GUARDED_DELETE(deg_depsgraph, Depsgraph);
 }
 
-/* Set callbacks which are being called when depsgraph changes. */
-void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
-                               DEG_EditorUpdateSceneCb scene_func)
-{
-	DEG::deg_editor_update_id_cb = id_func;
-	DEG::deg_editor_update_scene_cb = scene_func;
-}
-
 bool DEG_is_active(const struct Depsgraph *depsgraph)
 {
 	if (depsgraph == NULL) {
 		/* Happens for such cases as work object in what_does_obaction(),
 		 * and sine render pipeline parts. Shouldn't really be accepting
 		 * NULL depsgraph, but is quite hard to get proper one in those
-		 * cases.
-		 */
+		 * cases. */
 		return false;
 	}
 	const DEG::Depsgraph *deg_graph =
@@ -653,151 +585,4 @@ void DEG_make_inactive(struct Depsgraph *depsgraph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 	deg_graph->is_active = false;
-}
-
-/* Evaluation and debug */
-
-bool DEG_debug_is_evaluating(struct Depsgraph *depsgraph)
-{
-	DEG::Depsgraph *deg_graph =
-	        reinterpret_cast<DEG::Depsgraph *>(depsgraph);
-	return deg_graph->debug_is_evaluating;
-}
-
-static DEG::string depsgraph_name_for_logging(struct Depsgraph *depsgraph)
-{
-	const char *name = DEG_debug_name_get(depsgraph);
-	if (name[0] == '\0') {
-		return "";
-	}
-	return "[" + DEG::string(name) + "]: ";
-}
-
-void DEG_debug_print_begin(struct Depsgraph *depsgraph)
-{
-	fprintf(stdout, "%s",
-	        depsgraph_name_for_logging(depsgraph).c_str());
-}
-
-void DEG_debug_print_eval(struct Depsgraph *depsgraph,
-                          const char *function_name,
-                          const char *object_name,
-                          const void *object_address)
-{
-	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
-		return;
-	}
-	fprintf(stdout,
-	        "%s%s on %s %s(%p)%s\n",
-	        depsgraph_name_for_logging(depsgraph).c_str(),
-	        function_name,
-	        object_name,
-	        DEG::deg_color_for_pointer(object_address).c_str(),
-	        object_address,
-	        DEG::deg_color_end().c_str());
-	fflush(stdout);
-}
-
-void DEG_debug_print_eval_subdata(struct Depsgraph *depsgraph,
-                                  const char *function_name,
-                                  const char *object_name,
-                                  const void *object_address,
-                                  const char *subdata_comment,
-                                  const char *subdata_name,
-                                  const void *subdata_address)
-{
-	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
-		return;
-	}
-	fprintf(stdout,
-	        "%s%s on %s %s(%p)%s %s %s %s(%p)%s\n",
-	        depsgraph_name_for_logging(depsgraph).c_str(),
-	        function_name,
-	        object_name,
-	        DEG::deg_color_for_pointer(object_address).c_str(),
-	        object_address,
-	        DEG::deg_color_end().c_str(),
-	        subdata_comment,
-	        subdata_name,
-	        DEG::deg_color_for_pointer(subdata_address).c_str(),
-	        subdata_address,
-	        DEG::deg_color_end().c_str());
-	fflush(stdout);
-}
-
-void DEG_debug_print_eval_subdata_index(struct Depsgraph *depsgraph,
-                                        const char *function_name,
-                                        const char *object_name,
-                                        const void *object_address,
-                                        const char *subdata_comment,
-                                        const char *subdata_name,
-                                        const void *subdata_address,
-                                        const int subdata_index)
-{
-	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
-		return;
-	}
-	fprintf(stdout,
-	        "%s%s on %s %s(%p)%s %s %s[%d] %s(%p)%s\n",
-	        depsgraph_name_for_logging(depsgraph).c_str(),
-	        function_name,
-	        object_name,
-	        DEG::deg_color_for_pointer(object_address).c_str(),
-	        object_address,
-	        DEG::deg_color_end().c_str(),
-	        subdata_comment,
-	        subdata_name,
-	        subdata_index,
-	        DEG::deg_color_for_pointer(subdata_address).c_str(),
-	        subdata_address,
-	        DEG::deg_color_end().c_str());
-	fflush(stdout);
-}
-
-void DEG_debug_print_eval_parent_typed(struct Depsgraph *depsgraph,
-                                       const char *function_name,
-                                       const char *object_name,
-                                       const void *object_address,
-                                       const char *parent_comment,
-                                       const char *parent_name,
-                                       const void *parent_address)
-{
-	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
-		return;
-	}
-	fprintf(stdout,
-	        "%s%s on %s %s(%p) [%s] %s %s %s(%p)%s\n",
-	        depsgraph_name_for_logging(depsgraph).c_str(),
-	        function_name,
-	        object_name,
-	        DEG::deg_color_for_pointer(object_address).c_str(),
-	        object_address,
-	        DEG::deg_color_end().c_str(),
-	        parent_comment,
-	        parent_name,
-	        DEG::deg_color_for_pointer(parent_address).c_str(),
-	        parent_address,
-	        DEG::deg_color_end().c_str());
-	fflush(stdout);
-}
-
-void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
-                               const char *function_name,
-                               const char *object_name,
-                               const void *object_address,
-                               float time)
-{
-	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
-		return;
-	}
-	fprintf(stdout,
-	        "%s%s on %s %s(%p)%s at time %f\n",
-	        depsgraph_name_for_logging(depsgraph).c_str(),
-	        function_name,
-	        object_name,
-	        DEG::deg_color_for_pointer(object_address).c_str(),
-	        object_address,
-	        DEG::deg_color_end().c_str(),
-	        time);
-	fflush(stdout);
 }

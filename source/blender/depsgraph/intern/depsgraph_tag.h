@@ -15,38 +15,39 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
+ * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Joshua Leung
+ * Original Author: Sergey Sharybin
  * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file depsgraph/intern/nodes/deg_node_time.h
+/** \file blender/depsgraph/intern/depsgraph_tag.h
  *  \ingroup depsgraph
  */
 
-#pragma once
+#include "intern/node/deg_node.h"
 
-#include "intern/nodes/deg_node.h"
+struct ID;
+struct Main;
 
 namespace DEG {
 
-/* Time Source Node. */
-struct TimeSourceDepsNode : public DepsNode {
-	/* New "current time". */
-	float cfra;
+struct Depsgraph;
 
-	/* time-offset relative to the "official" time source that this one has. */
-	float offset;
+/* Get type of a node which corresponds to a ID_RECALC_GEOMETRY tag.  */
+NodeType geometry_tag_to_component(const ID *id);
 
-	// TODO: evaluate() operation needed
+/* Tag given ID for an update in all registered dependency graphs. */
+void id_tag_update(Main *bmain, ID *id, int flag, eUpdateSource update_source);
 
-	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
-
-	DEG_DEPSNODE_DECLARE;
-};
+/* Tag given ID for an update with in a given dependency graph. */
+void graph_id_tag_update(Main *bmain,
+                         Depsgraph *graph,
+                         ID *id,
+                         int flag,
+                         eUpdateSource update_source);
 
 }  // namespace DEG

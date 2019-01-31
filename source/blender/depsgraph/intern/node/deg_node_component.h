@@ -24,13 +24,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/nodes/deg_node_component.h
+/** \file blender/depsgraph/intern/node/deg_node_component.h
  *  \ingroup depsgraph
  */
 
 #pragma once
 
-#include "intern/nodes/deg_node.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_operation.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -41,23 +42,23 @@ struct bPoseChannel;
 
 namespace DEG {
 
-struct BoneComponentDepsNode;
+struct BoneComponentNode;
 struct Depsgraph;
-struct IDDepsNode;
-struct OperationDepsNode;
+struct IDNode;
+struct OperationNode;
 
 /* ID Component - Base type for all components */
-struct ComponentDepsNode : public DepsNode {
+struct ComponentNode : public Node {
 	/* Key used to look up operations within a component */
 	struct OperationIDKey
 	{
-		eDepsOperation_Code opcode;
+		OperationCode opcode;
 		const char *name;
 		int name_tag;
 
 		OperationIDKey();
-		OperationIDKey(eDepsOperation_Code opcode);
-		OperationIDKey(eDepsOperation_Code opcode,
+		OperationIDKey(OperationCode opcode);
+		OperationIDKey(OperationCode opcode,
 		               const char *name,
 		               int name_tag);
 
@@ -66,30 +67,29 @@ struct ComponentDepsNode : public DepsNode {
 	};
 
 	/* Typedef for container of operations */
-	ComponentDepsNode();
-	~ComponentDepsNode();
+	ComponentNode();
+	~ComponentNode();
 
 	void init(const ID *id, const char *subdata) override;
 
 	virtual string identifier() const override;
 
 	/* Find an existing operation, if requested operation does not exist
-	 * NULL will be returned.
-	 */
-	OperationDepsNode *find_operation(OperationIDKey key) const;
-	OperationDepsNode *find_operation(eDepsOperation_Code opcode,
+	 * NULL will be returned. */
+	OperationNode *find_operation(OperationIDKey key) const;
+	OperationNode *find_operation(OperationCode opcode,
 	                                 const char *name,
 	                                 int name_tag) const;
 
 	/* Find an existing operation, will throw an assert() if it does not exist. */
-	OperationDepsNode *get_operation(OperationIDKey key) const;
-	OperationDepsNode *get_operation(eDepsOperation_Code opcode,
+	OperationNode *get_operation(OperationIDKey key) const;
+	OperationNode *get_operation(OperationCode opcode,
 	                                 const char *name,
 	                                 int name_tag) const;
 
 	/* Check operation exists and return it. */
 	bool has_operation(OperationIDKey key) const;
-	bool has_operation(eDepsOperation_Code opcode,
+	bool has_operation(OperationCode opcode,
 	                   const char *name,
 	                   int name_tag) const;
 
@@ -104,82 +104,77 @@ struct ComponentDepsNode : public DepsNode {
 	 * \param optype: Role that operation plays within component
 	 *                (i.e. where in eval process)
 	 * \param op: The operation to perform
-	 * \param name: Identifier for operation - used to find/locate it again
-	 */
-	OperationDepsNode *add_operation(const DepsEvalOperationCb& op,
-	                                 eDepsOperation_Code opcode,
+	 * \param name: Identifier for operation - used to find/locate it again */
+	OperationNode *add_operation(const DepsEvalOperationCb& op,
+	                                 OperationCode opcode,
 	                                 const char *name,
 	                                 int name_tag);
 
 	/* Entry/exit operations management.
 	 *
-	 * Use those instead of direct set since this will perform sanity checks.
-	 */
-	void set_entry_operation(OperationDepsNode *op_node);
-	void set_exit_operation(OperationDepsNode *op_node);
+	 * Use those instead of direct set since this will perform sanity checks. */
+	void set_entry_operation(OperationNode *op_node);
+	void set_exit_operation(OperationNode *op_node);
 
 	void clear_operations();
 
 	virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 
-	virtual OperationDepsNode *get_entry_operation() override;
-	virtual OperationDepsNode *get_exit_operation() override;
+	virtual OperationNode *get_entry_operation() override;
+	virtual OperationNode *get_exit_operation() override;
 
 	void finalize_build(Depsgraph *graph);
 
-	IDDepsNode *owner;
+	IDNode *owner;
 
 	/* ** Inner nodes for this component ** */
 
 	/* Operations stored as a hash map, for faster build.
-	 * This hash map will be freed when graph is fully built.
-	 */
+	 * This hash map will be freed when graph is fully built. */
 	GHash *operations_map;
 
 	/* This is a "normal" list of operations, used by evaluation
-	 * and other routines after construction.
-	 */
-	vector<OperationDepsNode *> operations;
+	 * and other routines after construction. */
+	vector<OperationNode *> operations;
 
-	OperationDepsNode *entry_operation;
-	OperationDepsNode *exit_operation;
+	OperationNode *entry_operation;
+	OperationNode *exit_operation;
 
 	virtual bool depends_on_cow() { return true; }
 
 	/* Denotes whether COW component is to be tagged when this component
-	 * is tagged for update.
-	 */
+	 * is tagged for update. */
 	virtual bool need_tag_cow_before_update() { return true; }
 
 	/* Denotes whether this component affects (possibly indirectly) on a
-	 * directly visible object.
-	 */
+	 * directly visible object. */
 	bool affects_directly_visible;
 };
 
 /* ---------------------------------------- */
 
-#define DEG_COMPONENT_NODE_DEFINE_TYPEINFO(NodeType, type_, tname_, id_recalc_tag) \
-    const DepsNode::TypeInfo NodeType::typeinfo = \
-        DepsNode::TypeInfo(type_, tname_, id_recalc_tag)
+#define DEG_COMPONENT_NODE_DEFINE_TYPEINFO(\
+        NodeType, type_, type_name_, id_recalc_tag) \
+    const Node::TypeInfo NodeType::typeinfo = \
+        Node::TypeInfo(type_, type_name_, id_recalc_tag)
 
 #define DEG_COMPONENT_NODE_DECLARE DEG_DEPSNODE_DECLARE
 
 #define DEG_COMPONENT_NODE_DEFINE(name, NAME, id_recalc_tag)            \
-    DEG_COMPONENT_NODE_DEFINE_TYPEINFO(name ## ComponentDepsNode,       \
-                                       DEG_NODE_TYPE_ ## NAME,          \
+    DEG_COMPONENT_NODE_DEFINE_TYPEINFO(name ## ComponentNode,       \
+                                       NodeType:: NAME,                 \
                                        #name  " Component",             \
                                        id_recalc_tag) ;                 \
-    static DepsNodeFactoryImpl<name ## ComponentDepsNode> DNTI_ ## NAME
+    static DepsNodeFactoryImpl<name ## ComponentNode> DNTI_ ## NAME
 
 #define DEG_COMPONENT_NODE_DECLARE_GENERIC(name)                   \
-	struct name ## ComponentDepsNode : public ComponentDepsNode {  \
+	struct name ## ComponentNode : public ComponentNode {  \
 		DEG_COMPONENT_NODE_DECLARE;                                \
 	}
 
-#define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(name)      \
-	struct name ## ComponentDepsNode : public ComponentDepsNode {  \
-		DEG_COMPONENT_NODE_DECLARE;                                \
+#define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(name)        \
+	struct name ## ComponentNode : public ComponentNode {    \
+		DEG_COMPONENT_NODE_DECLARE;                                  \
 		virtual bool need_tag_cow_before_update() { return false; }  \
 	}
 
@@ -205,7 +200,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Synchronize);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(GenericDatablock);
 
 /* Bone Component */
-struct BoneComponentDepsNode : public ComponentDepsNode {
+struct BoneComponentNode : public ComponentNode {
 	void init(const ID *id, const char *subdata);
 
 	struct bPoseChannel *pchan;     /* the bone that this component represents */

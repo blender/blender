@@ -57,12 +57,12 @@ string TimeSourceKey::identifier() const
 
 ComponentKey::ComponentKey()
         : id(NULL),
-          type(DEG_NODE_TYPE_UNDEFINED),
+          type(NodeType::UNDEFINED),
           name("")
 {
 }
 
-ComponentKey::ComponentKey(ID *id, eDepsNode_Type type, const char *name)
+ComponentKey::ComponentKey(ID *id, NodeType type, const char *name)
         : id(id),
           type(type),
           name(name)
@@ -87,44 +87,44 @@ string ComponentKey::identifier() const
 
 OperationKey::OperationKey()
         : id(NULL),
-          component_type(DEG_NODE_TYPE_UNDEFINED),
+          component_type(NodeType::UNDEFINED),
           component_name(""),
-          opcode(DEG_OPCODE_OPERATION),
+          opcode(OperationCode::OPERATION),
           name(""),
           name_tag(-1)
 {
 }
 
 OperationKey::OperationKey(ID *id,
-                           eDepsNode_Type component_type,
+                           NodeType component_type,
                            const char *name,
                            int name_tag)
         : id(id),
           component_type(component_type),
           component_name(""),
-          opcode(DEG_OPCODE_OPERATION),
+          opcode(OperationCode::OPERATION),
           name(name),
           name_tag(name_tag)
 {
 }
 
 OperationKey::OperationKey(ID *id,
-                           eDepsNode_Type component_type,
+                           NodeType component_type,
                            const char *component_name,
                            const char *name,
                            int name_tag)
         : id(id),
           component_type(component_type),
           component_name(component_name),
-          opcode(DEG_OPCODE_OPERATION),
+          opcode(OperationCode::OPERATION),
           name(name),
           name_tag(name_tag)
 {
 }
 
 OperationKey::OperationKey(ID *id,
-                           eDepsNode_Type component_type,
-                           eDepsOperation_Code opcode)
+                           NodeType component_type,
+                           OperationCode opcode)
         : id(id),
           component_type(component_type),
           component_name(""),
@@ -135,9 +135,9 @@ OperationKey::OperationKey(ID *id,
 }
 
 OperationKey::OperationKey(ID *id,
-                           eDepsNode_Type component_type,
+                           NodeType component_type,
                            const char *component_name,
-                           eDepsOperation_Code opcode)
+                           OperationCode opcode)
         : id(id),
           component_type(component_type),
           component_name(component_name),
@@ -148,8 +148,8 @@ OperationKey::OperationKey(ID *id,
 }
 
 OperationKey::OperationKey(ID *id,
-                           eDepsNode_Type component_type,
-                           eDepsOperation_Code opcode,
+                           NodeType component_type,
+                           OperationCode opcode,
                            const char *name,
                            int name_tag)
         : id(id),
@@ -162,9 +162,9 @@ OperationKey::OperationKey(ID *id,
 }
 
 OperationKey::OperationKey(ID *id,
-                           eDepsNode_Type component_type,
+                           NodeType component_type,
                            const char *component_name,
-                           eDepsOperation_Code opcode,
+                           OperationCode opcode,
                            const char *name,
                            int name_tag)
         : id(id),

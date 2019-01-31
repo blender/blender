@@ -129,12 +129,10 @@ typedef struct DEGObjectIterData {
 	/* Next duplicated object to step into. */
 	struct DupliObject *dupli_object_next;
 	/* Corresponds to current object: current iterator object is evaluated from
-	 * this duplicated object.
-	 */
+	 * this duplicated object. */
 	struct DupliObject *dupli_object_current;
 	/* Temporary storage to report fully populated DNA to the render engine or
-	 * other users of the iterator.
-	 */
+	 * other users of the iterator. */
 	struct Object temp_dupli_object;
 
 	/* **** Iteration over ID nodes **** */

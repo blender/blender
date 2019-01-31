@@ -82,8 +82,7 @@ void RootPChanMap::add_bone(const char *bone, const char *root)
 {
 	if (BLI_ghash_haskey(map_, bone)) {
 		/* Add new entry, but only add the root if it doesn't already
-		 * exist in there.
-		 */
+		 * exist in there. */
 		GSet *values = (GSet *)BLI_ghash_lookup(map_, bone);
 		BLI_gset_add(values, (void *)root);
 	}

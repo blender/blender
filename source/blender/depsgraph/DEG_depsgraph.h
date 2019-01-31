@@ -79,12 +79,10 @@ typedef enum eEvaluationMode {
 enum {
 	/* Regardless to curve->path animation flag path is to be evaluated anyway,
 	 * to meet dependencies with such a things as curve modifier and other guys
-	 * who're using curve deform, where_on_path and so.
-	 */
+	 * who're using curve deform, where_on_path and so. */
 	DAG_EVAL_NEED_CURVE_PATH = (1 << 0),
 	/* A shrinkwrap modifier or constraint targeting this mesh needs information
-	 * about non-manifold boundary edges for the Target Normal Project mode.
-	 */
+	 * about non-manifold boundary edges for the Target Normal Project mode. */
 	DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY = (1 << 1),
 };
 

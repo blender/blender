@@ -57,12 +57,11 @@ extern "C" {
 #include "DEG_depsgraph_build.h"
 
 #include "intern/builder/deg_builder.h"
-#include "intern/nodes/deg_node.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
-#include "intern/depsgraph_types.h"
-#include "intern/depsgraph_intern.h"
-#include "util/deg_util_foreach.h"
+#include "intern/depsgraph.h"
+#include "intern/node/deg_node.h"
+#include "intern/node/deg_node_component.h"
+#include "intern/node/deg_node_operation.h"
+#include "intern/depsgraph_type.h"
 
 namespace DEG {
 
@@ -103,8 +102,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	int select_color = 1;
 	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
 	 * but object is expected to be an original one. Hence we go into some
-	 * tricks here iterating over the view layer.
-	 */
+	 * tricks here iterating over the view layer. */
 	int base_index = 0;
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
 		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
@@ -164,17 +162,17 @@ void DepsgraphNodeBuilder::build_view_layer(
 	}
 	/* Collections. */
 	add_operation_node(&scene->id,
-	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                   NodeType::LAYER_COLLECTIONS,
 	                   function_bind(BKE_layer_eval_view_layer_indexed,
 	                                 _1,
 	                                 scene_cow,
 	                                 view_layer_index_),
-	                   DEG_OPCODE_VIEW_LAYER_EVAL);
+	                   OperationCode::VIEW_LAYER_EVAL);
 	/* Parameters evaluation for scene relations mainly. */
 	add_operation_node(&scene->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NodeType::PARAMETERS,
 	                   NULL,
-	                   DEG_OPCODE_PLACEHOLDER,
+	                   OperationCode::PLACEHOLDER,
 	                   "Scene Eval");
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
