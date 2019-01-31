@@ -6026,13 +6026,15 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			BKE_texpaint_slot_refresh_cache(scene, ma);
 			BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 			WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
-			DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
-			ED_area_tag_redraw(CTX_wm_area(C));
-
-			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-
-			return true;
 		}
+
+		DEG_id_tag_update(&ntree->id, 0);
+		DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
+		ED_area_tag_redraw(CTX_wm_area(C));
+
+		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+
+		return true;
 	}
 
 	return false;
