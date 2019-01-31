@@ -170,7 +170,9 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	SpaceLink *sl = CTX_wm_space_data(C);
 
 	/* Window */
-	if (STRPREFIX(opname, "WM_OT")) {
+	if (STRPREFIX(opname, "WM_OT") ||
+	    STRPREFIX(opname, "ED_OT_undo"))
+	{
 		if (STREQ(opname, "WM_OT_tool_set_by_name")) {
 			km = WM_keymap_guess_from_context(C);
 		}
