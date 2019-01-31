@@ -4365,6 +4365,9 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 		psys_orig->edit->flags |= PT_CACHE_EDIT_UPDATE_PARTICLE_FROM_EVAL;
 	}
 
+	psys->cfra = cfra;
+	psys->recalc = 0;
+
 	if (DEG_is_active(depsgraph)) {
 		if (psys_orig != psys) {
 			if (psys_orig->edit != NULL &&
@@ -4374,11 +4377,10 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 				psys_orig->edit->psmd_eval = psmd;
 			}
 			psys_orig->flag = (psys->flag & ~PSYS_SHARED_CACHES);
+			psys_orig->cfra = psys->cfra;
+			psys_orig->recalc = psys->recalc;
 		}
 	}
-
-	psys->cfra = cfra;
-	psys->recalc = 0;
 
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	invert_m4_m4(psys->imat, ob->obmat);
