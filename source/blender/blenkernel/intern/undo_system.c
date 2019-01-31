@@ -185,6 +185,8 @@ static void undosys_step_decode(bContext *C, Main *bmain, UndoStack *ustack, Und
 						/* Load the previous memfile state so any ID's referenced in this
 						 * undo step will be correctly resolved, see: T56163. */
 						undosys_step_decode(C, bmain, ustack, us_iter, dir);
+						/* May have been freed on memfile read. */
+						bmain = G.main;
 					}
 					break;
 				}
@@ -485,7 +487,6 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
  */
 bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char *name, const UndoType *ut)
 {
-	Main *bmain = G.main;
 	UNDO_NESTED_ASSERT(false);
 	undosys_stack_validate(ustack, false);
 	bool is_not_empty = ustack->step_active != NULL;
@@ -509,12 +510,12 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 
 #ifdef WITH_GLOBAL_UNDO_ENSURE_UPDATED
 	if (ut->step_foreach_ID_ref != NULL) {
-		if (bmain->is_memfile_undo_written == false) {
+		if (G_MAIN->is_memfile_undo_written == false) {
 			const char *name_internal = "MemFile Internal (pre)";
 			/* Don't let 'step_init' cause issues when adding memfile undo step. */
 			void *step_init = ustack->step_init;
 			ustack->step_init = NULL;
-			const bool ok = undosys_stack_push_main(ustack, name_internal, bmain);
+			const bool ok = undosys_stack_push_main(ustack, name_internal, G_MAIN);
 			/* Restore 'step_init'. */
 			ustack->step_init = step_init;
 			if (ok) {
@@ -539,7 +540,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 		us->type = ut;
 		/* initialized, not added yet. */
 
-		if (!undosys_step_encode(C, bmain, ustack, us)) {
+		if (!undosys_step_encode(C, G_MAIN, ustack, us)) {
 			MEM_freeN(us);
 			undosys_stack_validate(ustack, true);
 			return false;
@@ -551,7 +552,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 
 	if (use_memfile_step) {
 		const char *name_internal = "MemFile Internal (post)";
-		const bool ok = undosys_stack_push_main(ustack, name_internal, bmain);
+		const bool ok = undosys_stack_push_main(ustack, name_internal, G_MAIN);
 		if (ok) {
 			UndoStep *us = ustack->steps.last;
 			BLI_assert(STREQ(us->name, name_internal));
@@ -644,7 +645,6 @@ bool BKE_undosys_step_undo_with_data_ex(
         bool use_skip)
 {
 	UNDO_NESTED_ASSERT(false);
-	Main *bmain = G.main;
 	if (us) {
 		undosys_stack_validate(ustack, true);
 	}
@@ -662,14 +662,14 @@ bool BKE_undosys_step_undo_with_data_ex(
 			UndoStep *us_iter = ustack->step_active;
 			while (us_iter != us) {
 				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
-					undosys_step_decode(C, bmain, ustack, us_iter, -1);
+					undosys_step_decode(C, G_MAIN, ustack, us_iter, -1);
 				}
 				us_iter = us_iter->prev;
 			}
 		}
 
 		if (us->type->mode != BKE_UNDOTYPE_MODE_ACCUMULATE) {
-			undosys_step_decode(C, bmain, ustack, us, -1);
+			undosys_step_decode(C, G_MAIN, ustack, us, -1);
 		}
 		ustack->step_active = us_prev;
 		undosys_stack_validate(ustack, true);
@@ -704,7 +704,6 @@ bool BKE_undosys_step_redo_with_data_ex(
         UndoStack *ustack, bContext *C, UndoStep *us,
         bool use_skip)
 {
-	Main *bmain = G.main;
 	UNDO_NESTED_ASSERT(false);
 	UndoStep *us_next = us ? us->next : NULL;
 	/* Unlike undo accumulate, we always use the next. */
@@ -718,14 +717,14 @@ bool BKE_undosys_step_redo_with_data_ex(
 			UndoStep *us_iter = ustack->step_active->next;
 			while (us_iter != us) {
 				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
-					undosys_step_decode(C, bmain, ustack, us_iter, 1);
+					undosys_step_decode(C, G_MAIN, ustack, us_iter, 1);
 				}
 				us_iter = us_iter->next;
 			}
 		}
 
 		/* Unlike undo, always redo accumulation state. */
-		undosys_step_decode(C, bmain, ustack, us, 1);
+		undosys_step_decode(C, G_MAIN, ustack, us, 1);
 		ustack->step_active = us_next;
 		if (use_skip) {
 			if (ustack->step_active && ustack->step_active->skip) {
