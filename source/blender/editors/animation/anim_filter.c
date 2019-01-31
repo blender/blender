@@ -1903,7 +1903,7 @@ static size_t animdata_filter_mask(Main *bmain, ListBase *anim_data, void *UNUSE
 		if (tmp_items) {
 			/* include data-expand widget first */
 			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-				/* add gpd as channel too (if for drawing, and it has layers) */
+				/* add mask datablock as channel too (if for drawing, and it has layers) */
 				ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL, NULL);
 			}
 
