@@ -78,6 +78,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_editmesh.h"
@@ -537,6 +538,7 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 		}
 		BLI_freelistN(&pidlist);
 
+		BKE_particlesystem_reset_all(obedit);
 		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */

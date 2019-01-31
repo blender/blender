@@ -1705,7 +1705,10 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 	ComponentKey eval_key(&object->id, NodeType::PARTICLE_SYSTEM);
 	if (BKE_ptcache_object_has(scene_, object, 0)) {
 		ComponentKey point_cache_key(&object->id, NodeType::POINT_CACHE);
-		add_relation(eval_key, point_cache_key, "Particle Point Cache");
+		add_relation(eval_key,
+		             point_cache_key,
+		             "Particle Point Cache",
+		             RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
 	}
 	/* Particle systems. */
 	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {

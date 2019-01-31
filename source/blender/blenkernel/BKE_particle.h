@@ -418,6 +418,9 @@ typedef void (*ParticleSystemIDFunc)(struct ParticleSystem *psys, struct ID **id
 
 void BKE_particlesystem_id_loop(struct ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata);
 
+/* Reset all particle systems in the given object. */
+void BKE_particlesystem_reset_all(struct Object *object);
+
 /* ----------- functions needed only inside particlesystem ------------ */
 /* particle.c */
 void psys_disable_all(struct Object *ob);

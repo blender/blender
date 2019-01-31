@@ -67,7 +67,9 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 #include "BKE_pbvh.h"
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_subsurf.h"
@@ -5568,6 +5570,9 @@ void sculpt_dynamic_topology_disable_ex(
 		BM_log_free(ss->bm_log);
 		ss->bm_log = NULL;
 	}
+
+	BKE_particlesystem_reset_all(ob);
+	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED);
 
 	/* Refresh */
 	sculpt_update_after_dynamic_topology_toggle(depsgraph, scene, ob);

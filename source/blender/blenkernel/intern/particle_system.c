@@ -4414,6 +4414,18 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 	}
 }
 
+void BKE_particlesystem_reset_all(struct Object *object)
+{
+	for (ModifierData *md = object->modifiers.first; md != NULL; md = md->next) {
+		if (md->type != eModifierType_ParticleSystem) {
+			continue;
+		}
+		ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+		ParticleSystem *psys = psmd->psys;
+		psys->recalc |= ID_RECALC_PSYS_RESET;
+	}
+}
+
 /* **** Depsgraph evaluation **** */
 
 void BKE_particle_settings_eval_reset(

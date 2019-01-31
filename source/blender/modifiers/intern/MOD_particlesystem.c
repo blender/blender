@@ -187,18 +187,6 @@ static void deformVerts(
 		BKE_id_free(NULL, mesh_src);
 	}
 
-	/* report change in mesh structure */
-	if (psmd->mesh_final->totvert != psmd->totdmvert ||
-	    psmd->mesh_final->totedge != psmd->totdmedge ||
-	    psmd->mesh_final->totface != psmd->totdmface)
-	{
-		psys->recalc |= ID_RECALC_PSYS_RESET;
-
-		psmd->totdmvert = psmd->mesh_final->totvert;
-		psmd->totdmedge = psmd->mesh_final->totedge;
-		psmd->totdmface = psmd->mesh_final->totface;
-	}
-
 	if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
 		struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
