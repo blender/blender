@@ -217,31 +217,4 @@ bool DepsgraphRelationBuilder::is_same_nodetree_node_dependency(
 	return true;
 }
 
-template <typename KeyFrom, typename KeyTo>
-bool DepsgraphRelationBuilder::is_same_shapekey_dependency(
-        const KeyFrom& key_from,
-        const KeyTo& key_to)
-{
-	/* Get operations for requested keys. */
-	DepsNode *node_from = get_node(key_from);
-	DepsNode *node_to = get_node(key_to);
-	if (node_from == NULL || node_to == NULL) {
-		return false;
-	}
-	OperationDepsNode *op_from = node_from->get_exit_operation();
-	OperationDepsNode *op_to = node_to->get_entry_operation();
-	if (op_from == NULL || op_to == NULL) {
-		return false;
-	}
-	/* Check if this is actually a shape key datablock. */
-	if (GS(op_from->owner->owner->id_orig->name) != ID_KE) {
-		return false;
-	}
-	/* Different key data blocks. */
-	if (op_from->owner->owner != op_to->owner->owner) {
-		return false;
-	}
-	return true;
-}
-
 }  // namespace DEG

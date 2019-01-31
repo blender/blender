@@ -124,7 +124,7 @@ static bool pointer_to_component_node_criteria(
         RNAPointerSource /*source*/,
         ID **id,
         eDepsNode_Type *type,
-        const char **subdata,
+        const char **component_name,
         eDepsOperation_Code *operation_code,
         const char **operation_name,
         int *operation_name_tag)
@@ -134,7 +134,7 @@ static bool pointer_to_component_node_criteria(
 	}
 	/* Set default values for returns. */
 	*id = (ID *)ptr->id.data;
-	*subdata = "";
+	*component_name = "";
 	*operation_code = DEG_OPCODE_OPERATION;
 	*operation_name = "";
 	*operation_name_tag = -1;
@@ -150,7 +150,7 @@ static bool pointer_to_component_node_criteria(
 		else {
 			/* Bone - generally, we just want the bone component. */
 			*type = DEG_NODE_TYPE_BONE;
-			*subdata = pchan->name;
+			*component_name = pchan->name;
 			/* But B-Bone properties should connect to the actual operation. */
 			if (!ELEM(NULL, pchan->bone, prop) && pchan->bone->segments > 1 &&
 			    STRPREFIX(RNA_property_identifier(prop), "bbone_"))
@@ -165,7 +165,7 @@ static bool pointer_to_component_node_criteria(
 		/* armature-level bone, but it ends up going to bone component anyway */
 		// NOTE: the ID in this case will end up being bArmature.
 		*type = DEG_NODE_TYPE_BONE;
-		*subdata = bone->name;
+		*component_name = bone->name;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
@@ -174,8 +174,7 @@ static bool pointer_to_component_node_criteria(
 		/* Check whether is object or bone constraint. */
 		/* NOTE: Currently none of the area can address transform of an object
 		 * at a given constraint, but for rigging one might use constraint
-		 * influence to be used to drive some corrective shape keys or so.
-		 */
+		 * influence to be used to drive some corrective shape keys or so. */
 		if (BLI_findindex(&object->constraints, con) != -1) {
 			*type = DEG_NODE_TYPE_TRANSFORM;
 			*operation_code = DEG_OPCODE_TRANSFORM_LOCAL;
@@ -186,7 +185,7 @@ static bool pointer_to_component_node_criteria(
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
 					*type = DEG_NODE_TYPE_BONE;
 					*operation_code = DEG_OPCODE_BONE_LOCAL;
-					*subdata = pchan->name;
+					*component_name = pchan->name;
 					return true;
 				}
 			}
@@ -202,7 +201,7 @@ static bool pointer_to_component_node_criteria(
 			if (pchan != NULL) {
 				*type = DEG_NODE_TYPE_BONE;
 				*operation_code = DEG_OPCODE_BONE_LOCAL;
-				*subdata = pchan->name;
+				*component_name = pchan->name;
 			}
 			else {
 				*type = DEG_NODE_TYPE_TRANSFORM;
@@ -230,16 +229,18 @@ static bool pointer_to_component_node_criteria(
 			}
 			else if (strstr(prop_identifier, "data")) {
 				/* We access object.data, most likely a geometry.
-				 * Might be a bone tho..
-				 */
+				 * Might be a bone tho. */
 				*type = DEG_NODE_TYPE_GEOMETRY;
 				return true;
 			}
 		}
 	}
 	else if (ptr->type == &RNA_ShapeKey) {
+		KeyBlock *key_block = (KeyBlock *)ptr->data;
 		*id = (ID *)ptr->id.data;
-		*type = DEG_NODE_TYPE_GEOMETRY;
+		*type = DEG_NODE_TYPE_PARAMETERS;
+		*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+		*operation_name = key_block->name;
 		return true;
 	}
 	else if (ptr->type == &RNA_Key) {
@@ -251,7 +252,7 @@ static bool pointer_to_component_node_criteria(
 		Sequence *seq = (Sequence *)ptr->data;
 		/* Sequencer strip */
 		*type = DEG_NODE_TYPE_SEQUENCER;
-		*subdata = seq->name; // xxx?
+		*component_name = seq->name;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {

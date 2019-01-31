@@ -347,13 +347,6 @@ protected:
 	bool is_same_nodetree_node_dependency(const KeyFrom& key_from,
 	                                      const KeyTo& key_to);
 
-	/* Similar to above, but used to check whether driver is using key from
-	 * the same key datablock as a driver variable.
-	 */
-	template <typename KeyFrom, typename KeyTo>
-	bool is_same_shapekey_dependency(const KeyFrom& key_from,
-	                                 const KeyTo& key_to);
-
 private:
 	struct BuilderWalkUserData {
 		DepsgraphRelationBuilder *builder;

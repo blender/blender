@@ -1553,8 +1553,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 					continue;
 				}
 				if (is_same_bone_dependency(variable_exit_key, self_key) ||
-				    is_same_nodetree_node_dependency(variable_exit_key, self_key) ||
-				    is_same_shapekey_dependency(variable_exit_key, self_key))
+				    is_same_nodetree_node_dependency(variable_exit_key, self_key))
 				{
 					continue;
 				}
@@ -1929,8 +1928,17 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
 	if (built_map_.checkIsBuiltAndTag(key)) {
 		return;
 	}
-	/* attach animdata to geometry */
+	/* Attach animdata to geometry. */
 	build_animdata(&key->id);
+	/* Connect all blocks properties to the final result evaluation. */
+	ComponentKey geometry_key(&key->id, DEG_NODE_TYPE_GEOMETRY);
+	LISTBASE_FOREACH (KeyBlock *, key_block, &key->block) {
+		OperationKey key_block_key(&key->id,
+		                           DEG_NODE_TYPE_PARAMETERS,
+		                           DEG_OPCODE_PARAMETERS_EVAL,
+		                           key_block->name);
+		add_relation(key_block_key, geometry_key, "Key Block Properties");
+	}
 }
 
 /**

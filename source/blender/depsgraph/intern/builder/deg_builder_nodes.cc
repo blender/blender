@@ -1238,10 +1238,21 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 		return;
 	}
 	build_animdata(&key->id);
+	/* This is an exit operation for the entire key datablock, is what is used
+	 * as dependency for modifiers evaluation. */
 	add_operation_node(&key->id,
 	                   DEG_NODE_TYPE_GEOMETRY,
 	                   NULL,
 	                   DEG_OPCODE_GEOMETRY_SHAPEKEY);
+	/* Create per-key block properties, allowing tricky inter-dependnecies for
+	 * drivers evaluation. */
+	LISTBASE_FOREACH (KeyBlock *, key_block, &key->block) {
+		add_operation_node(&key->id,
+		                   DEG_NODE_TYPE_PARAMETERS,
+		                   NULL,
+		                   DEG_OPCODE_PARAMETERS_EVAL,
+		                   key_block->name);
+	}
 }
 
 /* ObData Geometry Evaluation */
