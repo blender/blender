@@ -221,7 +221,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             split = layout.split()
             if part.type == 'HAIR':
                 if psys is not None and psys.is_edited:
-                    split.operator("particle.edited_clear", text="Free Edit")
+                    split.operator("particle.edited_clear", text="Delete Edit")
                 else:
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)

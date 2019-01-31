@@ -737,7 +737,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
 
         if md.is_cached:
-            layout.operator("object.ocean_bake", text="Free Bake").free = True
+            layout.operator("object.ocean_bake", text="Delete Bake").free = True
         else:
             layout.operator("object.ocean_bake").free = False
 

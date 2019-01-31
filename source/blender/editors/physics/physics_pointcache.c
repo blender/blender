@@ -288,9 +288,9 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
 void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Free All Physics Bakes";
+	ot->name = "Delete All Physics Bakes";
 	ot->idname = "PTCACHE_OT_free_bake_all";
-	ot->description = "Free all baked caches of all objects in the current scene";
+	ot->description = "Delete all baked caches of all objects in the current scene";
 
 	/* api callbacks */
 	ot->exec = ptcache_free_bake_all_exec;
@@ -346,8 +346,8 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Free Physics Bake";
-	ot->description = "Free physics bake";
+	ot->name = "Delete Physics Bake";
+	ot->description = "Delete physics bake";
 	ot->idname = "PTCACHE_OT_free_bake";
 
 	/* api callbacks */
