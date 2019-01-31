@@ -308,8 +308,12 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 	}
 	else if (obact && (obact->mode & OB_MODE_POSE)) {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
-		{
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, CTX_wm_view3d(C),
+		                                                                         &objects_len, OB_MODE_POSE);
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob = objects[ob_index];
 			bPoseChannel *pchan;
 			bArmature *arm = ob->data;
 			float snap_target_local[3];
@@ -373,7 +377,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 			DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 		}
-		CTX_DATA_END;
+		MEM_freeN(objects);
 	}
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
