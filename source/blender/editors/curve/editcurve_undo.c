@@ -214,7 +214,7 @@ static bool curve_undosys_poll(bContext *C)
 	return (obedit != NULL);
 }
 
-static bool curve_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+static bool curve_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	CurveUndoStep *us = (CurveUndoStep *)us_p;
 
@@ -237,7 +237,7 @@ static bool curve_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	return true;
 }
 
-static void curve_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+static void curve_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_EDIT);

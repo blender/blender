@@ -71,12 +71,11 @@ static bool memfile_undosys_poll(bContext *C)
 	return true;
 }
 
-static bool memfile_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+static bool memfile_undosys_step_encode(struct bContext *UNUSED(C), struct Main *bmain, UndoStep *us_p)
 {
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 
 	/* Important we only use 'main' from the context (see: BKE_undosys_stack_init_from_main). */
-	struct Main *bmain = CTX_data_main(C);
 	UndoStack *ustack = ED_undo_stack_get();
 
 	/* can be NULL, use when set. */
@@ -87,9 +86,8 @@ static bool memfile_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	return true;
 }
 
-static void memfile_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+static void memfile_undosys_step_decode(struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir))
 {
-	struct Main *bmain = CTX_data_main(C);
 	ED_editors_exit(bmain, false);
 
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;

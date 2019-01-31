@@ -236,7 +236,7 @@ static bool particle_undosys_poll(struct bContext *C)
 	return (edit != NULL);
 }
 
-static bool particle_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+static bool particle_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -247,7 +247,7 @@ static bool particle_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	return true;
 }
 
-static void particle_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+static void particle_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_PARTICLE_EDIT);

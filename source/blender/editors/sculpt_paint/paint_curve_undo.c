@@ -98,7 +98,7 @@ static void paintcurve_undosys_step_encode_init(struct bContext *C, UndoStep *us
 	UNUSED_VARS(C, us_p);
 }
 
-static bool paintcurve_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+static bool paintcurve_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	Paint *p = BKE_paint_get_active_from_context(C);
 	PaintCurve *pc = p ? (p->brush ? p->brush->paint_curve : NULL) : NULL;
@@ -115,7 +115,7 @@ static bool paintcurve_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	return true;
 }
 
-static void paintcurve_undosys_step_decode(struct bContext *UNUSED(C), UndoStep *us_p, int UNUSED(dir))
+static void paintcurve_undosys_step_decode(struct bContext *UNUSED(C), struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
 	undocurve_to_paintcurve(&us->data, us->pc);

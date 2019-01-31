@@ -94,7 +94,7 @@ static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
 	us->data.pos = -1;
 }
 
-static bool text_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+static bool text_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	TextUndoStep *us = (TextUndoStep *)us_p;
 
@@ -112,7 +112,7 @@ static bool text_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	return true;
 }
 
-static void text_undosys_step_decode(struct bContext *C, UndoStep *us_p, int dir)
+static void text_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int dir)
 {
 	TextUndoStep *us = (TextUndoStep *)us_p;
 	Text *text = us->text_ref.ptr;

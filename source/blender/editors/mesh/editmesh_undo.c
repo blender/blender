@@ -699,7 +699,7 @@ static bool mesh_undosys_poll(bContext *C)
 	return editmesh_object_from_context(C) != NULL;
 }
 
-static bool mesh_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+static bool mesh_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	MeshUndoStep *us = (MeshUndoStep *)us_p;
 
@@ -723,7 +723,7 @@ static bool mesh_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 	return true;
 }
 
-static void mesh_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+static void mesh_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_EDIT);

@@ -436,7 +436,7 @@ static void image_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep 
 	BLI_listbase_clear(&us->tiles);
 }
 
-static bool image_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_p)
+static bool image_undosys_step_encode(struct bContext *UNUSED(C), struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	/* dummy, encoding is done along the way by adding tiles
 	 * to the current 'ImageUndoStep' added by encode_init. */
@@ -466,7 +466,7 @@ static bool image_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_p
 	return true;
 }
 
-static void image_undosys_step_decode(struct bContext *UNUSED(C), UndoStep *us_p, int UNUSED(dir))
+static void image_undosys_step_decode(struct bContext *UNUSED(C), struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	ImageUndoStep *us = (ImageUndoStep *)us_p;
 #if 0

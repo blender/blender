@@ -1049,7 +1049,7 @@ static void sculpt_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep
 	BLI_listbase_clear(&us->data.nodes);
 }
 
-static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_p)
+static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C), struct Main *UNUSED(bmain), UndoStep *us_p)
 {
 	/* dummy, encoding is done along the way by adding tiles
 	 * to the current 'SculptUndoStep' added by encode_init. */
@@ -1063,7 +1063,7 @@ static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_
 	return true;
 }
 
-static void sculpt_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+static void sculpt_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_SCULPT);

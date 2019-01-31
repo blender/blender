@@ -29,6 +29,7 @@ struct UndoStep;
 struct bContext;
 
 /* ID's */
+struct Main;
 struct Mesh;
 struct Object;
 struct Scene;
@@ -115,8 +116,8 @@ typedef struct UndoType {
 	 */
 	void (*step_encode_init)(struct bContext *C, UndoStep *us);
 
-	bool (*step_encode)(struct bContext *C, UndoStep *us);
-	void (*step_decode)(struct bContext *C, UndoStep *us, int dir);
+	bool (*step_encode)(struct bContext *C, struct Main *bmain, UndoStep *us);
+	void (*step_decode)(struct bContext *C, struct Main *bmain, UndoStep *us, int dir);
 
 	/**
 	 * \note When freeing all steps,
