@@ -893,7 +893,7 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 	},
 
 	[GPU_SHADER_3D_GROUNDPOINT] = {
-		.vert= datatoc_gpu_shader_3D_groundpoint_vert_glsl,
+		.vert = datatoc_gpu_shader_3D_groundpoint_vert_glsl,
 		.frag = datatoc_gpu_shader_point_uniform_color_frag_glsl,
 	},
 	[GPU_SHADER_3D_GROUNDLINE] = {

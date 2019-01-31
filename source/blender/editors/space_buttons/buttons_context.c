@@ -653,7 +653,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 				ptr = &path->ptr[path->len - 1];
 
 				if (ptr->type) {
-					if(RNA_struct_is_a(ptr->type, &RNA_Light))
+					if (RNA_struct_is_a(ptr->type, &RNA_Light))
 						sbuts->dataicon = ICON_OUTLINER_DATA_LIGHT;
 					else
 						sbuts->dataicon = RNA_struct_ui_icon(ptr->type);

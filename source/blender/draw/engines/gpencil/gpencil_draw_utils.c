@@ -359,7 +359,7 @@ bool DRW_gpencil_onion_active(bGPdata *gpd)
 DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         GPENCIL_e_data *e_data, GPENCIL_Data *vedata, DRWPass *pass, GPUShader *shader, Object *ob,
         bGPdata *gpd, bGPDstroke *gps, MaterialGPencilStyle *gp_style, int id,
-		bool onion, const float scale)
+        bool onion, const float scale)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const float *viewport_size = DRW_viewport_size_get();

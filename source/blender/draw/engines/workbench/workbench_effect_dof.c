@@ -137,7 +137,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata, Object *camera)
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 
 	if ((wpd->shading.flag & V3D_SHADING_DEPTH_OF_FIELD) == 0 ||
-		(camera == NULL))
+	    (camera == NULL))
 	{
 		wpd->dof_enabled = false;
 		return;

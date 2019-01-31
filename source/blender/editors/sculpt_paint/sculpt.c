@@ -2151,7 +2151,7 @@ static void bmesh_topology_rake(
 	for (iteration = 0; iteration <= count; ++iteration) {
 
 		SculptThreadedTaskData data = {
-			.sd = sd,.ob = ob,.brush = brush,.nodes = nodes,
+			.sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 			.strength = factor,
 		};
 		ParallelRangeSettings settings;

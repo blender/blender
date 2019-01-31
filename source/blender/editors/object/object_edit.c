@@ -649,7 +649,6 @@ bool ED_object_editmode_enter(bContext *C, int flag)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
 
 	/* Active layer checked here for view3d,

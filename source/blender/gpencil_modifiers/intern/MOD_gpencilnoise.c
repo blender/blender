@@ -115,10 +115,10 @@ static void deformStroke(
 	}
 
 	if (!is_stroke_affected_by_modifier(
-		ob,
-		mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-		mmd->flag & GP_NOISE_INVERT_LAYER, mmd->flag & GP_NOISE_INVERT_PASS,
-		mmd->flag & GP_NOISE_INVERT_LAYERPASS))
+	            ob,
+	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
+	            mmd->flag & GP_NOISE_INVERT_LAYER, mmd->flag & GP_NOISE_INVERT_PASS,
+	            mmd->flag & GP_NOISE_INVERT_LAYERPASS))
 	{
 		return;
 	}
@@ -182,7 +182,7 @@ static void deformStroke(
 			sc_diff = abs(mmd->scene_frame - sc_frame);
 			/* only recalc if the gp frame change or the number of scene frames is bigger than step */
 			if ((!gpl->actframe) || (mmd->gp_frame != gpl->actframe->framenum) ||
-				(sc_diff >= mmd->step))
+			    (sc_diff >= mmd->step))
 			{
 				vran = mmd->vrand1 = BLI_rng_get_float(mmd->rng);
 				vdir = mmd->vrand2 = BLI_rng_get_float(mmd->rng);

@@ -3608,7 +3608,7 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 		0.647f,  /* 9 */
 		0.639f,  /* 10 */
 		0.647f,  /* 11 */
-		};
+	};
 
 	n = bv->vmesh->count;
 

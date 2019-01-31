@@ -3349,7 +3349,7 @@ void flushTransUVs(TransInfo *t)
 				td->loc2d[0] *= size[0];
 				td->loc2d[1] *= size[1];
 
-				switch(sima->pixel_snap_mode) {
+				switch (sima->pixel_snap_mode) {
 					case SI_PIXEL_SNAP_CENTER:
 						td->loc2d[0] = roundf(td->loc2d[0] - 0.5f) + 0.5f;
 						td->loc2d[1] = roundf(td->loc2d[1] - 0.5f) + 0.5f;
