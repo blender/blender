@@ -694,7 +694,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 		{0, "RELATIVE", 0,
 		 "Relative Detail", "Mesh detail is relative to the brush size and detail size"},
 		{SCULPT_DYNTOPO_DETAIL_CONSTANT, "CONSTANT", 0,
-		 "Constant Detail", "Mesh detail is constant in object space according to detail size"},
+		 "Constant Detail", "Mesh detail is constant in world space according to detail size"},
 		{SCULPT_DYNTOPO_DETAIL_BRUSH, "BRUSH", 0,
 		 "Brush Detail", "Mesh detail is relative to brush radius"},
 		{SCULPT_DYNTOPO_DETAIL_MANUAL, "MANUAL", 0,
