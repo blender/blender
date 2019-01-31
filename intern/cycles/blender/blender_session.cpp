@@ -692,10 +692,14 @@ void BlenderSession::bake(BL::Depsgraph& b_depsgraph_,
 			}
 		}
 
-		int object = object_index;
+		/* Object might have been disabled for rendering or excluded in some
+		 * other way, in that case Blender will report a warning afterwards. */
+		if (object_index != OBJECT_NONE) {
+			int object = object_index;
 
-		bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
-		populate_bake_data(bake_data, object_id, pixel_array, num_pixels);
+			bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
+			populate_bake_data(bake_data, object_id, pixel_array, num_pixels);
+		}
 
 		/* set number of samples */
 		session->tile_manager.set_samples(session_params.samples);
@@ -706,7 +710,7 @@ void BlenderSession::bake(BL::Depsgraph& b_depsgraph_,
 	}
 
 	/* Perform bake. Check cancel to avoid crash with incomplete scene data. */
-	if(!session->progress.get_cancel()) {
+	if(!session->progress.get_cancel() && bake_data) {
 		scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_pass_filter, bake_data, result);
 	}
 
