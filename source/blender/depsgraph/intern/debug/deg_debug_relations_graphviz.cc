@@ -424,7 +424,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case NodeType::OBJECT_FROM_LAYER:
 		case NodeType::BATCH_CACHE:
 		case NodeType::DUPLI:
-		case NodeType::SYNCHRONIZE:
+		case NodeType::SYNCHRONIZATION:
 		case NodeType::GENERIC_DATABLOCK:
 		{
 			ComponentNode *comp_node = (ComponentNode *)node;

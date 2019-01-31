@@ -86,7 +86,7 @@ const char *nodeTypeAsString(NodeType type)
 		/* Duplication. */
 		case NodeType::DUPLI: return "DUPLI";
 		/* Synchronization. */
-		case NodeType::SYNCHRONIZE: return "SYNCHRONIZE";
+		case NodeType::SYNCHRONIZATION: return "SYNCHRONIZATION";
 		/* Generic datablock. */
 		case NodeType::GENERIC_DATABLOCK: return "GENERIC_DATABLOCK";
 

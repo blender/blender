@@ -657,7 +657,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Syncronization back to original object. */
 	add_operation_node(&object->id,
-	                   NodeType::SYNCHRONIZE,
+	                   NodeType::SYNCHRONIZATION,
 	                   function_bind(BKE_object_synchronize_to_original,
 	                                 _1,
 	                                 object_cow),

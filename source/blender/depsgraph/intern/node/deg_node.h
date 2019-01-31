@@ -127,7 +127,7 @@ enum class NodeType {
 	 * when duplicator is visible. */
 	DUPLI,
 	/* Synchronization back to original datablock. */
-	SYNCHRONIZE,
+	SYNCHRONIZATION,
 
 	/* Total number of meaningful node types. */
 	NUM_TYPES,
