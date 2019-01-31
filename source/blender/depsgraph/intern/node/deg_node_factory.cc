@@ -24,7 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/node/deh_node_factory.cc
+/** \file blender/depsgraph/intern/node/deg_node_factory.cc
+ *
  *  \ingroup depsgraph
  */
 
