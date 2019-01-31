@@ -102,12 +102,12 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 	/* IK target */
 	/* TODO(sergey): This should get handled as part of the constraint code. */
 	if (data->tar != NULL) {
-		/* TODO(sergey): For until we'll store partial matricies in the
+		/* TODO(sergey): For until we'll store partial matrices in the
 		 * depsgraph, we create dependency between target object and pose eval
 		 * component.
 		 *
 		 * This way we ensuring the whole subtree is updated from scratch
-		 * without need of intermediate matricies. This is an overkill, but good
+		 * without need of intermediate matrices. This is an overkill, but good
 		 * enough for testing IK solver. */
 		ComponentKey pose_key(&object->id, NodeType::EVAL_POSE);
 		if ((data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {

@@ -1062,10 +1062,17 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 				         (ct->subtarget[0]))
 				{
 					/* Vertex group. */
-					/* NOTE: for now, we don't need to represent vertex groups
-					 * separately. */
-					ComponentKey target_key(&ct->tar->id, NodeType::GEOMETRY);
-					add_relation(target_key, constraint_op_key, cti->name);
+					/* NOTE: Vertex group is likely to be used to get vertices
+					 * in a world space. This requires to know both geometry
+					 * and transformation of the target object. */
+					ComponentKey target_transform_key(
+					        &ct->tar->id, NodeType::TRANSFORM);
+					ComponentKey target_geometry_key(
+					        &ct->tar->id, NodeType::GEOMETRY);
+					add_relation(
+					        target_transform_key, constraint_op_key, cti->name);
+					add_relation(
+					        target_geometry_key, constraint_op_key, cti->name);
 					add_customdata_mask(ct->tar, CD_MASK_MDEFORMVERT);
 				}
 				else if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
