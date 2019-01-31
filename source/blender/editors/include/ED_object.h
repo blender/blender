@@ -133,8 +133,7 @@ void ED_object_parent(struct Object *ob, struct Object *parent, const int type, 
 /* bitflags for enter/exit editmode */
 enum {
 	EM_FREEDATA         = (1 << 0),
-	EM_IGNORE_LAYER     = (1 << 3),
-	EM_NO_CONTEXT       = (1 << 4),
+	EM_NO_CONTEXT       = (1 << 1),
 };
 bool ED_object_editmode_exit_ex(
         struct Main *bmain, struct Scene *scene, struct Object *obedit, int flag);

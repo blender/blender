@@ -416,8 +416,9 @@ Object *ED_object_add_type(
 		DEG_id_tag_update_ex(bmain, (ID *)ob->data, ID_RECALC_EDITORS);
 	}
 
-	if (enter_editmode)
-		ED_object_editmode_enter(C, EM_IGNORE_LAYER);
+	if (enter_editmode) {
+		ED_object_editmode_enter_ex(bmain, scene, ob, 0);
+	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 

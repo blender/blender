@@ -69,15 +69,15 @@ static Object *make_prim_init(
         const float loc[3], const float rot[3], ushort local_view_bits,
         MakePrimitiveData *r_creation_data)
 {
+	struct Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 
 	r_creation_data->was_editmode = false;
 	if (obedit == NULL || obedit->type != OB_MESH) {
 		obedit = ED_object_add_type(C, OB_MESH, idname, loc, rot, false, local_view_bits);
+		ED_object_editmode_enter_ex(bmain, scene, obedit, 0);
 
-		/* create editmode */
-		/* rare cases the active layer is messed up */
-		ED_object_editmode_enter(C, EM_IGNORE_LAYER);
 		r_creation_data->was_editmode = true;
 	}
 
