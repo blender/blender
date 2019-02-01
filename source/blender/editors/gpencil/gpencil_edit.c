@@ -1812,6 +1812,97 @@ typedef struct tGPDeleteIsland {
 	int end_idx;
 } tGPDeleteIsland;
 
+static void gp_stroke_join_islands(bGPDframe *gpf, bGPDstroke *gps_first, bGPDstroke *gps_last)
+{
+	bGPDspoint *pt = NULL;
+	bGPDspoint *pt_final = NULL;
+	const int totpoints = gps_first->totpoints + gps_last->totpoints;
+
+	/* create new stroke */
+	bGPDstroke *join_stroke = MEM_dupallocN(gps_first);
+
+	join_stroke->points = MEM_callocN(sizeof(bGPDspoint) * totpoints, __func__);
+	join_stroke->totpoints = totpoints;
+	join_stroke->flag &= ~GP_STROKE_CYCLIC;
+
+	/* copy points (last before) */
+	int e1 = 0;
+	int e2 = 0;
+	for (int i = 0; i < totpoints; i++) {
+		pt_final = &join_stroke->points[i];
+		if (i < gps_last->totpoints) {
+			pt = &gps_last->points[e1];
+			e1++;
+		}
+		else {
+			pt = &gps_first->points[e2];
+			e2++;
+		}
+
+		/* copy current point */
+		copy_v3_v3(&pt_final->x, &pt->x);
+		pt_final->pressure = pt->pressure;
+		pt_final->strength = pt->strength;
+		pt_final->time = pt->time;
+		pt_final->flag = pt->flag;
+	}
+
+	/* Copy over vertex weight data (if available) */
+	if ((gps_first->dvert != NULL) || (gps_last->dvert != NULL)) {
+		join_stroke->dvert = MEM_callocN(sizeof(MDeformVert) * totpoints, __func__);
+		MDeformVert *dvert_src = NULL;
+		MDeformVert *dvert_dst = NULL;
+
+		/* Copy weights (last before)*/
+		e1 = 0;
+		e2 = 0;
+		for (int i = 0; i < totpoints; i++) {
+			dvert_dst = &join_stroke->dvert[i];
+			dvert_src = NULL;
+			if (i < gps_last->totpoints) {
+				if (gps_last->dvert) {
+					dvert_src = &gps_last->dvert[e1];
+					e1++;
+				}
+			}
+			else {
+				if (gps_first->dvert) {
+					dvert_src = &gps_first->dvert[e2];
+					e2++;
+				}
+			}
+
+			if ((dvert_src) && (dvert_src->dw)) {
+				dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
+			}
+		}
+	}
+
+	/* retiming with fixed time interval */
+	{
+		float delta = 0.0f;
+		int j;
+
+		join_stroke->inittime = (double)delta;
+		pt = join_stroke->points;
+		for (j = 0; j < join_stroke->totpoints; j++, pt++) {
+			pt->time = delta;
+			delta += 0.01f;
+		}
+	}
+
+	/* add new stroke at head */
+	BLI_addhead(&gpf->strokes, join_stroke);
+
+	/* remove first stroke */
+	BLI_remlink(&gpf->strokes, gps_first);
+	BKE_gpencil_free_stroke(gps_first);
+
+	/* remove last stroke */
+	BLI_remlink(&gpf->strokes, gps_last);
+	BKE_gpencil_free_stroke(gps_last);
+}
+
 
 /* Split the given stroke into several new strokes, partitioning
  * it based on whether the stroke points have a particular flag
@@ -1833,6 +1924,9 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 	tGPDeleteIsland *islands = MEM_callocN(sizeof(tGPDeleteIsland) * (gps->totpoints + 1) / 2, "gp_point_islands");
 	bool in_island  = false;
 	int num_islands = 0;
+
+	bGPDstroke *gps_first = NULL;
+	const bool is_cyclic = (bool)(gps->flag & GP_STROKE_CYCLIC);
 
 	/* First Pass: Identify start/end of islands */
 	bGPDspoint *pt = gps->points;
@@ -1865,15 +1959,22 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 	if (num_islands) {
 		/* there are islands, so create a series of new strokes, adding them before the "next" stroke */
 		int idx;
+		bGPDstroke *new_stroke = NULL;
 
 		/* Create each new stroke... */
 		for (idx = 0; idx < num_islands; idx++) {
 			tGPDeleteIsland *island = &islands[idx];
-			bGPDstroke *new_stroke = MEM_dupallocN(gps);
+			new_stroke = MEM_dupallocN(gps);
+
+			/* if cyclic and first stroke, save to join later */
+			if ((is_cyclic) && (gps_first == NULL)) {
+				gps_first = new_stroke;
+			}
 
 			/* initialize triangle memory  - to be calculated on next redraw */
 			new_stroke->triangles = NULL;
 			new_stroke->flag |= GP_STROKE_RECALC_GEOMETRY;
+			new_stroke->flag &= ~GP_STROKE_CYCLIC;
 			new_stroke->tot_triangles = 0;
 
 			/* Compute new buffer size (+ 1 needed as the endpoint index is "inclusive") */
@@ -1939,6 +2040,11 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 				}
 			}
 		}
+		/* if cyclic, need to join last stroke with first stroke */
+		if ((is_cyclic) && (gps_first != NULL) && (gps_first != new_stroke)) {
+			gp_stroke_join_islands(gpf, gps_first, new_stroke);
+		}
+
 	}
 
 	/* free islands */
@@ -3996,8 +4102,6 @@ static int gpencil_cutter_lasso_select(
 		for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
 			if (gps->flag & GP_STROKE_SELECT) {
-				/* disable cyclic */
-				gps->flag &= ~GP_STROKE_CYCLIC;
 				gpencil_cutter_dissolve(gpl, gps);
 			}
 		}
