@@ -139,7 +139,7 @@ static void rna_def_light(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_default(prop, 10.0f);
-	RNA_def_property_ui_range(prop, 0, 10, 1, 3);
+	RNA_def_property_ui_range(prop, 0, 1000000.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Energy", "Amount of light emitted");
 	RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
