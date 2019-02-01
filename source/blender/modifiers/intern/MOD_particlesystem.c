@@ -127,6 +127,9 @@ static void deformVerts(
 	else if (psmd->flag & eParticleSystemFlag_file_loaded) {
 		/* in file read mesh just wasn't saved in file so no need to reset everything */
 		psmd->flag &= ~eParticleSystemFlag_file_loaded;
+		/* TODO(sergey): With copy-on-write this is more like duplicating an
+		 * object which does need to reset particles. */
+		psys->recalc |= ID_RECALC_PSYS_RESET;
 	}
 	else {
 		/* no dm before, so recalc particles fully */
