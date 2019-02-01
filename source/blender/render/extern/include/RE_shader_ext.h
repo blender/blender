@@ -15,7 +15,6 @@
  *
  * The Original Code is Copyright (C) 2006 by Blender Foundation
  * All rights reserved.
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 /** \file RE_shader_ext.h
  *  \ingroup render

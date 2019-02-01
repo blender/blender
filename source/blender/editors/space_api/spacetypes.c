@@ -14,8 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation, 2008
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 /** \file blender/editors/space_api/spacetypes.c

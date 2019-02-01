@@ -15,7 +15,6 @@
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 /** \file blender/blenkernel/intern/colortools.c
