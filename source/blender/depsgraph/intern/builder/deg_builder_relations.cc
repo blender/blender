@@ -912,23 +912,21 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 	int handled_components = 0;
 	LISTBASE_FOREACH (PTCacheID *, ptcache_id, &ptcache_id_list) {
 		/* Check which components needs the point cache. */
-		int flag;
+		int flag = -1;
 		if (ptcache_id->type == PTCACHE_TYPE_RIGIDBODY) {
 			flag = FLAG_TRANSFORM;
-			ComponentKey transform_key(&object->id,
-			                           NodeType::TRANSFORM);
+			ComponentKey transform_key(&object->id, NodeType::TRANSFORM);
 			add_relation(point_cache_key,
 			             transform_key,
 			             "Point Cache -> Rigid Body");
 		}
 		else {
 			flag = FLAG_GEOMETRY;
-			ComponentKey geometry_key(&object->id,
-			                           NodeType::GEOMETRY);
-			add_relation(point_cache_key,
-			             geometry_key,
-			             "Point Cache -> Geometry");
+			ComponentKey geometry_key(&object->id, NodeType::GEOMETRY);
+			add_relation(
+			        point_cache_key, geometry_key, "Point Cache -> Geometry");
 		}
+		BLI_assert(flag != -1);
 		/* Tag that we did handle that component. */
 		handled_components |= flag;
 		if (handled_components == FLAG_ALL) {
