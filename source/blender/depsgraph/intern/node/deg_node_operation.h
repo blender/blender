@@ -60,6 +60,9 @@ enum class OperationCode {
 	/* Driver */
 	DRIVER,
 
+	/* Scene related. ------------------------------------------------------- */
+	SCENE_EVAL,
+
 	/* Object related. ------------------------------------------------------ */
 	OBJECT_BASE_FLAGS,
 

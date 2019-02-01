@@ -48,6 +48,8 @@ const char *operationCodeAsString(OperationCode opcode)
 		/* Animation, Drivers, etc. */
 		case OperationCode::ANIMATION: return "ANIMATION";
 		case OperationCode::DRIVER: return "DRIVER";
+		/* Scene related. */
+		case OperationCode::SCENE_EVAL: return "SCENE_EVAL";
 		/* Object related. */
 		case OperationCode::OBJECT_BASE_FLAGS: return "OBJECT_BASE_FLAGS";
 		/* Transform. */
