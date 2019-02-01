@@ -941,7 +941,6 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_ui_text(prop, "Description", "A short description of the keying set");
 
 	/* KeyingSetInfo (Type Info) for Builtin Sets only  */
