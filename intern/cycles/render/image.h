@@ -44,6 +44,18 @@ public:
 	/* Automatically set. */
 	ImageDataType type;
 	bool is_linear;
+
+	bool operator==(const ImageMetaData& other) const
+	{
+		return is_float == other.is_float &&
+		       is_half == other.is_half &&
+		       channels == other.channels &&
+		       width == other.width &&
+		       height == other.height &&
+		       depth == other.depth &&
+		       type == other.type &&
+		       is_linear == other.is_linear;
+	}
 };
 
 class ImageManager {

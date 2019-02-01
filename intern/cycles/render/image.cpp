@@ -333,6 +333,10 @@ int ImageManager::add_image(const string& filename,
 				img->use_alpha = use_alpha;
 				img->need_load = true;
 			}
+			if(!(img->metadata == metadata)) {
+				img->metadata = metadata;
+				img->need_load = true;
+			}
 			img->users++;
 			return type_index_to_flattened_slot(slot, type);
 		}
