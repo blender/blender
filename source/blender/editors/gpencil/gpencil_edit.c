@@ -1828,6 +1828,8 @@ static void gp_stroke_join_islands(bGPDframe *gpf, bGPDstroke *gps_first, bGPDst
 	/* copy points (last before) */
 	int e1 = 0;
 	int e2 = 0;
+	float delta = 0.0f;
+
 	for (int i = 0; i < totpoints; i++) {
 		pt_final = &join_stroke->points[i];
 		if (i < gps_last->totpoints) {
@@ -1843,8 +1845,11 @@ static void gp_stroke_join_islands(bGPDframe *gpf, bGPDstroke *gps_first, bGPDst
 		copy_v3_v3(&pt_final->x, &pt->x);
 		pt_final->pressure = pt->pressure;
 		pt_final->strength = pt->strength;
-		pt_final->time = pt->time;
+		pt_final->time = delta;
 		pt_final->flag = pt->flag;
+
+		/* retiming with fixed time interval (we cannot determine real time) */
+		delta += 0.01f;
 	}
 
 	/* Copy over vertex weight data (if available) */
@@ -1875,19 +1880,6 @@ static void gp_stroke_join_islands(bGPDframe *gpf, bGPDstroke *gps_first, bGPDst
 			if ((dvert_src) && (dvert_src->dw)) {
 				dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
 			}
-		}
-	}
-
-	/* retiming with fixed time interval */
-	{
-		float delta = 0.0f;
-		int j;
-
-		join_stroke->inittime = (double)delta;
-		pt = join_stroke->points;
-		for (j = 0; j < join_stroke->totpoints; j++, pt++) {
-			pt->time = delta;
-			delta += 0.01f;
 		}
 	}
 
