@@ -1246,12 +1246,14 @@ void DepsgraphNodeBuilder::build_object_data_geometry(
 	OperationNode *op_node;
 	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *object_cow = get_cow_datablock(object);
-	/* Temporary uber-update node, which does everything.
-	 * It is for the being we're porting old dependencies into the new system.
-	 * We'll get rid of this node as soon as all the granular update functions
-	 * are filled in.
-	 *
-	 * TODO(sergey): Get rid of this node. */
+	/* Entry operation, takes care of initialization, and some other
+	 * relations which needs to be run prior actual geometry evaluation. */
+	op_node = add_operation_node(&object->id,
+	                             NodeType::GEOMETRY,
+	                             NULL,
+	                             OperationCode::GEOMETRY_EVAL_INIT);
+	op_node->set_as_entry();
+	/* Geometry evaluation. */
 	op_node = add_operation_node(&object->id,
 	                             NodeType::GEOMETRY,
 	                             function_bind(BKE_object_eval_uber_data,
@@ -1260,13 +1262,6 @@ void DepsgraphNodeBuilder::build_object_data_geometry(
 	                                           object_cow),
 	                             OperationCode::GEOMETRY_EVAL);
 	op_node->set_as_exit();
-
-	op_node = add_operation_node(&object->id,
-	                             NodeType::GEOMETRY,
-	                             NULL,
-	                             OperationCode::PLACEHOLDER,
-	                             "Eval Init");
-	op_node->set_as_entry();
 	/* Materials. */
 	if (object->totcol != 0) {
 		if (object->type == OB_MESH) {

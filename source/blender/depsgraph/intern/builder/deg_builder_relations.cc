@@ -1936,16 +1936,14 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
  *        and also for the links coming from the shapekey datablocks
  * - Animation/Drivers affecting the parameters of the geometry are made to
  *   trigger updates on the obdata geometry component, which then trigger
- *   downstream re-evaluation of the individual instances of this geometry.
- */
+ *   downstream re-evaluation of the individual instances of this geometry. */
 void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 {
 	ID *obdata = (ID *)object->data;
 	/* Init operation of object-level geometry evaluation. */
 	OperationKey geom_init_key(&object->id,
 	                           NodeType::GEOMETRY,
-	                           OperationCode::PLACEHOLDER,
-	                           "Eval Init");
+	                           OperationCode::GEOMETRY_EVAL_INIT);
 	/* Get nodes for result of obdata's evaluation, and geometry evaluation
 	 * on object. */
 	ComponentKey obdata_geom_key(obdata, NodeType::GEOMETRY);
@@ -1981,7 +1979,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 			}
 		}
 	}
-	/* Grease Pencil Modifiers */
+	/* Grease Pencil Modifiers. */
 	if (object->greasepencil_modifiers.first != NULL) {
 		ModifierUpdateDepsgraphContext ctx = {};
 		ctx.scene = scene_;
@@ -1999,7 +1997,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 			}
 		}
 	}
-	/* Shader FX */
+	/* Shader FX. */
 	if (object->shader_fx.first != NULL) {
 		ModifierUpdateDepsgraphContext ctx = {};
 		ctx.scene = scene_;
@@ -2040,9 +2038,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
 		// add geometry collider relations
 	}
-	/* Make sure uber update is the last in the dependencies.
-	 *
-	 * TODO(sergey): Get rid of this node. */
+	/* Make sure uber update is the last in the dependencies. */
 	if (object->type != OB_ARMATURE) {
 		/* Armatures does no longer require uber node. */
 		OperationKey obdata_ubereval_key(&object->id,

@@ -84,6 +84,9 @@ enum class OperationCode {
 
 	/* Geometry. ------------------------------------------------------------ */
 
+	/* Initialize evaluation of the geometry. Is an entry operation of geometry
+	 * component. */
+	GEOMETRY_EVAL_INIT,
 	/* Evaluate the whole geometry, including modifiers. */
 	GEOMETRY_EVAL,
 	/* Evaluation of a shape key. */
