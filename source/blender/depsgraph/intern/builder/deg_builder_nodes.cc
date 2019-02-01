@@ -647,8 +647,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 		add_operation_node(&object->id,
 		                   NodeType::DUPLI,
 		                   NULL,
-		                   OperationCode::PLACEHOLDER,
-		                   "Dupli");
+		                   OperationCode::DUPLI);
 	}
 	/* Syncronization back to original object. */
 	add_operation_node(&object->id,

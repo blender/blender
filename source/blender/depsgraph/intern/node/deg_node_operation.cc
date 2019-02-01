@@ -123,6 +123,8 @@ const char *operationCodeAsString(OperationCode opcode)
 		/* Generic datablock. */
 		case OperationCode::GENERIC_DATABLOCK_UPDATE:
 			return "GENERIC_DATABLOCK_UPDATE";
+		/* instancing/duplication. */
+		case OperationCode::DUPLI: return "DUPLI";
 	}
 	BLI_assert(!"Unhandled operation code, should never happen.");
 	return "UNKNOWN";

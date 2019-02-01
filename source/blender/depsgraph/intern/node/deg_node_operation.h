@@ -174,6 +174,9 @@ enum class OperationCode {
 
 	/* Generic datablock ---------------------------------------------------- */
 	GENERIC_DATABLOCK_UPDATE,
+
+	/* Duplication/instancing system. --------------------------------------- */
+	DUPLI,
 };
 const char *operationCodeAsString(OperationCode opcode);
 
