@@ -24,9 +24,6 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -45,8 +42,6 @@
  * All rights reserved.
  *
  * The Original Code is: adapted from jemalloc.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __ATOMIC_OPS_UNIX_H__

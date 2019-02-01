@@ -36,7 +36,6 @@
  * other parts of the scene.
  *
  * BVH_MOTION: motion blur rendering
- *
  */
 
 #ifndef __KERNEL_GPU__

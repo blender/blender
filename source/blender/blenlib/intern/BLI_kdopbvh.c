@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,12 +15,6 @@
  *
  * The Original Code is Copyright (C) 2006 by NaN Holding BV.
  * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Daniel Genrich, Andre Pinto
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/blenlib/intern/BLI_kdopbvh.c
@@ -611,8 +603,6 @@ static int implicit_leafs_index(const BVHBuildHelper *data, const int depth, con
  * - No need to store child/parent relations (they are implicit);
  * - Any node child always has an index greater than the parent;
  * - Brother nodes are sequential in memory;
- *
- *
  * Some math relations derived for general implicit trees:
  *
  *   K = tree_type, ( 2 <= K )

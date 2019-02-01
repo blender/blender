@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,8 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/blenlib/intern/BLI_filelist.c
@@ -238,7 +234,6 @@ unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **r
 
 /**
  * Convert given entry's size into human-readable strings.
- *
  */
 void BLI_filelist_entry_size_to_string(
         const struct stat *st, const uint64_t sz, const bool compact, char r_size[FILELIST_DIRENTRY_SIZE_LEN])
@@ -271,7 +266,6 @@ void BLI_filelist_entry_size_to_string(
 
 /**
  * Convert given entry's modes into human-readable strings.
- *
  */
 void BLI_filelist_entry_mode_to_string(
         const struct stat *st, const bool UNUSED(compact), char r_mode1[FILELIST_DIRENTRY_MODE_LEN],
@@ -308,7 +302,6 @@ void BLI_filelist_entry_mode_to_string(
 
 /**
  * Convert given entry's owner into human-readable strings.
- *
  */
 void BLI_filelist_entry_owner_to_string(
         const struct stat *st, const bool UNUSED(compact), char r_owner[FILELIST_DIRENTRY_OWNER_LEN])

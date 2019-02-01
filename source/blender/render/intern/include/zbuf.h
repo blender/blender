@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -19,9 +17,6 @@
  * All rights reserved.
  *
  * Full recode: 2004-2006 Blender Foundation
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 

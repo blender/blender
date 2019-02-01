@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,10 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor(s): Joseph Eagar, Geoffrey Bantle, Campbell Barton
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/bmesh/intern/bmesh_iterators_inline.h
@@ -169,7 +163,6 @@ BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *da
  * it with the appropriate function pointers based
  * upon its type and then calls BMeshIter_step()
  * to return the first element of the iterator.
- *
  */
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
 BLI_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)

@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,10 +15,6 @@
  *
  * The Original Code is Copyright (C) 2018 Blender Foundation, Alexander Gavrilov
  * All rights reserved.
- *
- * Contributor(s): Alexander Gavrilov
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __BLI_EXPR_PYLIKE_EVAL_H__

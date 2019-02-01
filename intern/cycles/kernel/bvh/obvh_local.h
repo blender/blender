@@ -19,7 +19,6 @@
  * versions for each case without new features slowing things down.
  *
  * BVH_MOTION: motion blur rendering
- *
  */
 
 #if BVH_FEATURE(BVH_HAIR)

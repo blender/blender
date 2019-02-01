@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,12 +15,6 @@
  *
  * The Original Code is Copyright (C) Blender Foundation
  * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Janne Karhu, Lukas Toenne
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/physics/intern/hair_volume.cpp
@@ -432,8 +424,6 @@ BLI_INLINE void hair_volume_add_segment_2D(
  *
  * The radius of influence around a segment is assumed to be at most 2*cellsize,
  * i.e. only cells containing the segment and their direct neighbors are examined.
- *
- *
  */
 void BPH_hair_volume_add_segment(
         HairGrid *grid,

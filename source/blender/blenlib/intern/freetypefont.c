@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,11 +15,6 @@
  *
  * The Original Code is written by Rob Haarsma (phase)
  * All rights reserved.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
  * This code parses the Freetype font outline data to chains of Blender's beziertriples.
  * Additional information can be found at the bottom of this file.
  *
@@ -514,8 +507,6 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
  *
  * Each arc is described through a series of start, end and control points. Each point of the outline
  * has a specific tag which indicates whether it is used to describe a line segment or an arc.
- *
- *
  * The following rules are applied to decompose the contour's points into segments and arcs :
  *
  * # two successive "on" points indicate a line segment joining them.
@@ -546,9 +537,6 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
  *                            Two "on" points
  *    Two "on" points       and one "conic" point
  *                             between them
- *
- *
- *
  *                 *
  *   #            __      Two "on" points with two "conic"
  *    \          -  -     points between them. The point
@@ -558,10 +546,6 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
  *         --             It does not appear in the point
  *                        list.
  *         *
- *
- *
- *
- *
  *         *                # on
  *                    *     * off
  *          __---__
@@ -573,8 +557,6 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
  *      Two "on" points
  *    and two "cubic" point
  *       between them
- *
- *
  * Each glyph's original outline points are located on a grid of indivisible units. The points are stored
  * in the font file as 16-bit integer grid coordinates, with the grid origin's being at (0, 0); they thus
  * range from -16384 to 16383.
@@ -586,5 +568,4 @@ VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
  * B1=(P0+2*P1)/3
  * B2=(P2+2*P1)/3
  * B3=P2
- *
  */

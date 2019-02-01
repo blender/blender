@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,13 +15,7 @@
  *
  * The Original Code is Copyright (C) Blender Foundation, 2002-2009
  * All rights reserved.
- *
- * Contributor(s): Antony Riakiotakis
- *
- * ***** END GPL LICENSE BLOCK *****
- *
  * UV Sculpt tools
- *
  */
 
 /** \file blender/editors/sculpt_paint/sculpt_uv.c

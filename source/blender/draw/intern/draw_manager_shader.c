@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -16,10 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Copyright 2016, Blender Foundation.
- * Contributor(s): Blender Institute
- *
- * ***** END GPL LICENSE BLOCK *****
- *
  */
 
 /** \file blender/draw/intern/draw_manager_shader.c
@@ -314,7 +308,6 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
  *         .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
  * });
  * \endcode
- *
  */
 struct GPUShader *DRW_shader_create_from_arrays_impl(
         const struct DRW_ShaderCreateFromArray_Params *params)

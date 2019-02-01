@@ -1,5 +1,4 @@
 /*
-* ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
@@ -17,7 +16,6 @@
 *
 * Contributor(s): Gaia Clary.
 *
-* ***** END GPL LICENSE BLOCK *****
 */
 
 #include "Materials.h"

@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -19,8 +17,6 @@
  * All rights reserved.
  *
  * The Original Code is: some of this file.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/blenlib/intern/math_matrix.c
@@ -2511,7 +2507,6 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
  * (and not translated at all!):
  *   BLI_space_transform_apply_normal(&data, no);
  *   BLI_space_transform_invert_normal(&data, no);
- *
  */
 
 /**

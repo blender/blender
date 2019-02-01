@@ -13,7 +13,6 @@
  *
  * S. Joe and F. Y. Kuo, Constructing Sobol sequences with better two-dimensional
  * projections, SIAM J. Sci. Comput. 30, 2635-2654 (2008)
- *
  */
 
 /* Copyright (c) 2008, Frances Y. Kuo and Stephen Joe

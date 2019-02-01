@@ -16,11 +16,6 @@
  *
  * The Original Code is Copyright (C) 2017, Blender Foundation
  * This is a new part of Blender
- *
- * Contributor(s): Antonio Vazquez
- *
- * ***** END GPL LICENSE BLOCK *****
- *
  */
 
 /** \file blender/gpencil_modifiers/intern/MOD_gpencilsimplify.c

@@ -28,9 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Modifications Copyright 2013, Blender Foundation.
- *
- * Contributor(s): Sergey Sharybin
- *
  */
 
 #include <limits>

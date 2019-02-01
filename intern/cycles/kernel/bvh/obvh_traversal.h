@@ -22,7 +22,6 @@
  * BVH_HAIR: hair curve rendering
  * BVH_HAIR_MINIMUM_WIDTH: hair curve rendering with minimum width
  * BVH_MOTION: motion blur rendering
- *
  */
 
 #if BVH_FEATURE(BVH_HAIR)

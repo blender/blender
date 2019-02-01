@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,11 +15,6 @@
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
- *
- *
- * Contributor(s): Blender Foundation
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/blenfont/BLF_api.h
@@ -89,7 +82,6 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
  *  | m[1]  m[5]  m[9]  m[13] |
  *  | m[2]  m[6]  m[10] m[14] |
  *  | m[3]  m[7]  m[11] m[15] |
- *
  */
 void BLF_matrix(int fontid, const float m[16]);
 

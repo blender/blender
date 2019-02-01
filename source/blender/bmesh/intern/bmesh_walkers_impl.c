@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,10 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor(s): Joseph Eagar, Geoffrey Bantle, Levi Schooley.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/bmesh/intern/bmesh_walkers_impl.c
@@ -603,7 +597,6 @@ static void *bmw_FaceShellWalker_step(BMWalker *walker)
  * Similar to shell walker, but visits vertices instead of edges.
  *
  * Walk from a vertex to all connected vertices.
- *
  */
 static void bmw_ConnectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 {
@@ -867,7 +860,6 @@ static void *bmw_IslandManifoldWalker_step(BMWalker *walker)
  * \{
  *
  * Starts at a tool-flagged edge and walks over the edge loop
- *
  */
 
 /* utility function to see if an edge is apart of an ngon boundary */

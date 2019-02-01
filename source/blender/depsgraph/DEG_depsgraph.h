@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -19,9 +17,6 @@
  * All rights reserved.
  *
  * Original Author: Joshua Leung
- * Contributor(s): None Yet
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/depsgraph/DEG_depsgraph.h
@@ -37,8 +32,6 @@
  * to determine the set of operations need to ensure that all data has been
  * correctly evaluated in response to changes, based on dependencies and visibility
  * of affected data.
- *
- *
  * Evaluation Engine
  * =================
  *
