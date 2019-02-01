@@ -1549,8 +1549,8 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_OBDATA,     "OBDATA", 0, "Object Data", ""},
 		{MAKE_LINKS_MATERIALS,  "MATERIAL", 0, "Materials", ""},
 		{MAKE_LINKS_ANIMDATA,   "ANIMATION", 0, "Animation Data", ""},
-		{MAKE_LINKS_GROUP,      "GROUPS", 0, "Group", ""},
-		{MAKE_LINKS_DUPLICOLLECTION, "DUPLICOLLECTION", 0, "DupliGroup", ""},
+		{MAKE_LINKS_GROUP,      "GROUPS", 0, "Collection", ""},
+		{MAKE_LINKS_DUPLICOLLECTION, "DUPLICOLLECTION", 0, "Instance Collection", ""},
 		{MAKE_LINKS_MODIFIERS,  "MODIFIERS", 0, "Modifiers", ""},
 		{MAKE_LINKS_FONTS,      "FONTS", 0, "Fonts", ""},
 		{0, NULL, 0, NULL, NULL}};
