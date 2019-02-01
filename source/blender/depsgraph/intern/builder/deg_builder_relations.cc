@@ -922,7 +922,9 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 		}
 		else {
 			flag = FLAG_GEOMETRY;
-			ComponentKey geometry_key(&object->id, NodeType::GEOMETRY);
+			OperationKey geometry_key(&object->id,
+			                          NodeType::GEOMETRY,
+			                          OperationCode::GEOMETRY_EVAL);
 			add_relation(
 			        point_cache_key, geometry_key, "Point Cache -> Geometry");
 		}
@@ -932,6 +934,23 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 		if (handled_components == FLAG_ALL) {
 			break;
 		}
+	}
+	/* Manual edits to any dependency (or self) should reset the point cache. */
+	if (!BLI_listbase_is_empty(&ptcache_id_list)) {
+		OperationKey transform_local_key(&object->id,
+		                                 NodeType::TRANSFORM,
+		                                 OperationCode::TRANSFORM_LOCAL);
+		OperationKey geometry_init_key(&object->id,
+		                               NodeType::GEOMETRY,
+		                               OperationCode::GEOMETRY_EVAL_INIT);
+		add_relation(transform_local_key,
+		             point_cache_key,
+		             "Transform Local -> Point Cache",
+		             RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
+		add_relation(geometry_init_key,
+		             point_cache_key,
+		             "Geometry Init -> Point Cache",
+		             RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
 	}
 	BLI_freelistN(&ptcache_id_list);
 }
