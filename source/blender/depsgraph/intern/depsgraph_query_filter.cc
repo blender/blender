@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2018 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Joshua Leung
  */
 
 /** \file blender/depsgraph/intern/depsgraph_query_filter.cc

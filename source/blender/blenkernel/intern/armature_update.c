@@ -16,7 +16,6 @@
  * The Original Code is Copyright (C) 2015 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Joshua Leung
  * Defines and code for core node types
  */
 

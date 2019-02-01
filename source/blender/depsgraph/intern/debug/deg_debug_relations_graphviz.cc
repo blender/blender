@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2014 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Lukas Toenne
  */
 
 /** \file blender/depsgraph/intern/debug/deg_debug_relations_graphviz.cc

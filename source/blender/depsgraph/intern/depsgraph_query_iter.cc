@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2017 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Dalai Felinto
  */
 
 /** \file blender/depsgraph/intern/depsgraph_query_iter.cc

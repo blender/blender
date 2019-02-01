@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Sergey Sharybin
  */
 
 /** \file blender/depsgraph/intern/depsgraph_tag.h

@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2015 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Sergey Sharybin
  */
 
 /** \file blender/depsgraph/intern/builder/deg_builder_pchanmap.h

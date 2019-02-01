@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Joshua Leung
  */
 
 /** \file blender/depsgraph/intern/node/deg_node_factory.h

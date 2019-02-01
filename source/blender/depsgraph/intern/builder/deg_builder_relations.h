@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Lukas Toenne
  */
 
 /** \file blender/depsgraph/intern/builder/deg_builder_relations.h

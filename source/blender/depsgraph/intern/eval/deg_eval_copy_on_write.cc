@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 20137Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Sergey Sharybin
  */
 
 

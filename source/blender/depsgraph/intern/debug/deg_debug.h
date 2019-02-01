@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Sergey Sharybin
  */
 
 /** \file blender/depsgraph/intern/debug/deg_debug.h

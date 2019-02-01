@@ -15,8 +15,6 @@
  *
  * The Original Code is Copyright (C) 2014 Blender Foundation.
  * All rights reserved.
- *
- * Original Author: Lukas Toenne
  */
 
 /** \file blender/depsgraph/intern/depsgraph_debug.cc
