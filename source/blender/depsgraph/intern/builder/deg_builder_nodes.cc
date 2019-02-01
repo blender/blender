@@ -1258,7 +1258,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry(
 	                                           _1,
 	                                           scene_cow,
 	                                           object_cow),
-	                             OperationCode::GEOMETRY_UBEREVAL);
+	                             OperationCode::GEOMETRY_EVAL);
 	op_node->set_as_exit();
 
 	op_node = add_operation_node(&object->id,

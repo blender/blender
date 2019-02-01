@@ -85,7 +85,7 @@ enum class OperationCode {
 	/* Geometry. ------------------------------------------------------------ */
 
 	/* Evaluate the whole geometry, including modifiers. */
-	GEOMETRY_UBEREVAL,
+	GEOMETRY_EVAL,
 	/* Evaluation of a shape key. */
 	GEOMETRY_SHAPEKEY,
 

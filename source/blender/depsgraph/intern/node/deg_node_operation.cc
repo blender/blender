@@ -64,7 +64,7 @@ const char *operationCodeAsString(OperationCode opcode)
 		case OperationCode::RIGIDBODY_TRANSFORM_COPY:
 			return "RIGIDBODY_TRANSFORM_COPY";
 		/* Geometry. */
-		case OperationCode::GEOMETRY_UBEREVAL: return "GEOMETRY_UBEREVAL";
+		case OperationCode::GEOMETRY_EVAL: return "GEOMETRY_EVAL";
 		case OperationCode::GEOMETRY_SHAPEKEY: return "GEOMETRY_SHAPEKEY";
 		/* Object data. */
 		case OperationCode::LIGHT_PROBE_EVAL: return "LIGHT_PROBE_EVAL";

@@ -1695,7 +1695,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 	TimeSourceKey time_src_key;
 	OperationKey obdata_ubereval_key(&object->id,
 	                                 NodeType::GEOMETRY,
-	                                 OperationCode::GEOMETRY_UBEREVAL);
+	                                 OperationCode::GEOMETRY_EVAL);
 	OperationKey eval_init_key(&object->id,
 	                           NodeType::PARTICLE_SYSTEM,
 	                           OperationCode::PARTICLE_SYSTEM_INIT);
@@ -1888,7 +1888,7 @@ void DepsgraphRelationBuilder::build_particle_system_visualization_object(
 	                      psys->name);
 	OperationKey obdata_ubereval_key(&object->id,
 	                                 NodeType::GEOMETRY,
-	                                 OperationCode::GEOMETRY_UBEREVAL);
+	                                 OperationCode::GEOMETRY_EVAL);
 	ComponentKey dup_ob_key(&draw_object->id, NodeType::TRANSFORM);
 	add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
 	if (draw_object->type == OB_MBALL) {
@@ -1954,7 +1954,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 	add_relation(obdata_geom_key, geom_key, "Object Geometry Base Data");
 	OperationKey obdata_ubereval_key(&object->id,
 	                                 NodeType::GEOMETRY,
-	                                 OperationCode::GEOMETRY_UBEREVAL);
+	                                 OperationCode::GEOMETRY_EVAL);
 	/* Special case: modifiers evaluation queries scene for various things like
 	 * data mask to be used. We add relation here to ensure object is never
 	 * evaluated prior to Scene's CoW is ready. */
@@ -2047,7 +2047,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		/* Armatures does no longer require uber node. */
 		OperationKey obdata_ubereval_key(&object->id,
 		                                 NodeType::GEOMETRY,
-		                                 OperationCode::GEOMETRY_UBEREVAL);
+		                                 OperationCode::GEOMETRY_EVAL);
 		add_relation(geom_init_key,
 		             obdata_ubereval_key,
 		             "Object Geometry UberEval");
@@ -2087,7 +2087,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		TimeSourceKey time_key;
 		OperationKey obdata_ubereval_key(&object->id,
 		                                 NodeType::GEOMETRY,
-		                                 OperationCode::GEOMETRY_UBEREVAL);
+		                                 OperationCode::GEOMETRY_EVAL);
 		add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
 	}
 	/* Object data datablock. */
