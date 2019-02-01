@@ -256,7 +256,7 @@ struct DupliObject *DRW_object_get_dupli(const Object *UNUSED(ob))
  * \{ */
 
 /* Use color management profile to draw texture to framebuffer */
-void DRW_transform_to_display(GPUTexture *tex, bool use_view_settings)
+void DRW_transform_to_display(GPUTexture *tex, bool use_view_transform, bool use_render_settings)
 {
 	drw_state_set(DRW_STATE_WRITE_COLOR);
 
@@ -272,19 +272,26 @@ void DRW_transform_to_display(GPUTexture *tex, bool use_view_settings)
 	if (!(DST.options.is_image_render && !DST.options.is_scene_render)) {
 		Scene *scene = DST.draw_ctx.scene;
 		ColorManagedDisplaySettings *display_settings = &scene->display_settings;
-		ColorManagedViewSettings *active_view_settings;
-		ColorManagedViewSettings default_view_settings;
-		if (use_view_settings) {
-			active_view_settings = &scene->view_settings;
+		ColorManagedViewSettings view_settings;
+		if (use_render_settings) {
+			/* Use full render settings, for renders with scene lighting. */
+			view_settings = scene->view_settings;
+		}
+		else if (use_view_transform) {
+			/* Use only view transform + look and nothing else for lookdev without
+			 * scene lighting, as exposure depends on scene light intensity. */
+			BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
+			STRNCPY(view_settings.view_transform, scene->view_settings.view_transform);
+			STRNCPY(view_settings.look, scene->view_settings.look);
 		}
 		else {
-			BKE_color_managed_view_settings_init_render(
-			        &default_view_settings,
-			        display_settings);
-			active_view_settings = &default_view_settings;
+			/* For workbench use only default view transform in configuration,
+			 * using no scene settings. */
+			BKE_color_managed_view_settings_init_render(&view_settings, display_settings, NULL);
 		}
+
 		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space(
-		        active_view_settings, display_settings, NULL, dither, false);
+		        &view_settings, display_settings, NULL, dither, false);
 	}
 
 	if (!use_ocio) {

@@ -252,7 +252,7 @@ typedef struct WORKBENCH_PrivateData {
 	bool dof_enabled;
 
 	/* Color Management */
-	bool use_color_view_settings;
+	bool use_color_render_settings;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_EffectInfo {

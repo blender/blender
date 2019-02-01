@@ -61,7 +61,7 @@ static void workspace_aa_draw_transform(GPUTexture *tx, WORKBENCH_PrivateData *w
 	}
 	else {
 		/* Display space result for viewport. */
-		DRW_transform_to_display(tx, wpd->use_color_view_settings);
+		DRW_transform_to_display(tx, wpd->use_color_render_settings, wpd->use_color_render_settings);
 	}
 }
 

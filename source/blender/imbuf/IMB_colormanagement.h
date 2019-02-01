@@ -47,7 +47,7 @@ struct ColorSpace;
 
 void IMB_colormanagement_check_file_config(struct Main *bmain);
 
-void IMB_colormanagement_validate_settings(struct ColorManagedDisplaySettings *display_settings,
+void IMB_colormanagement_validate_settings(const struct ColorManagedDisplaySettings *display_settings,
                                            struct ColorManagedViewSettings *view_settings);
 
 const char *IMB_colormanagement_role_colorspace_name_get(int role);

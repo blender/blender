@@ -1574,23 +1574,28 @@ void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_se
 
 void BKE_color_managed_view_settings_init_render(
         ColorManagedViewSettings *view_settings,
-        const ColorManagedDisplaySettings *display_settings)
+        const ColorManagedDisplaySettings *display_settings,
+        const char *view_transform)
 {
 	struct ColorManagedDisplay *display =
 	        IMB_colormanagement_display_get_named(
 	                display_settings->display_device);
-	BLI_strncpy(
-	        view_settings->view_transform,
-	        IMB_colormanagement_display_get_default_view_transform_name(display),
-	        sizeof(view_settings->view_transform));
+
+	if (!view_transform) {
+		view_transform = IMB_colormanagement_display_get_default_view_transform_name(display);
+	}
+
 	/* TODO(sergey): Find a way to make look query more reliable with non
 	 * default configuration. */
-	BLI_strncpy(view_settings->look, "None", sizeof(view_settings->look));
+	STRNCPY(view_settings->view_transform, view_transform);
+	STRNCPY(view_settings->look, "None");
 
 	view_settings->flag = 0;
 	view_settings->gamma = 1.0f;
 	view_settings->exposure = 0.0f;
 	view_settings->curve_mapping = NULL;
+
+	IMB_colormanagement_validate_settings(display_settings, view_settings);
 }
 
 void BKE_color_managed_view_settings_init_default(

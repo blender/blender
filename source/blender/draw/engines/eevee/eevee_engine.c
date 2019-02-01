@@ -53,7 +53,7 @@ static void eevee_engine_init(void *ved)
 		/* Alloc transient pointers */
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
-	stl->g_data->use_color_view_settings = USE_SCENE_LIGHT(v3d) || !LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d);
+	stl->g_data->use_color_render_settings = USE_SCENE_LIGHT(v3d) || !LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d);
 	stl->g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
 	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
 	stl->g_data->valid_taa_history = (txl->taa_history != NULL);
@@ -308,39 +308,39 @@ static void eevee_draw_background(void *vedata)
 
 
 	/* Tonemapping and transfer result to default framebuffer. */
-	bool use_view_settings = stl->g_data->use_color_view_settings;
+	bool use_render_settings = stl->g_data->use_color_render_settings;
 
 	GPU_framebuffer_bind(dfbl->default_fb);
-	DRW_transform_to_display(stl->effects->final_tx, use_view_settings);
+	DRW_transform_to_display(stl->effects->final_tx, true, use_render_settings);
 
 	/* Debug : Output buffer to view. */
 	switch (G.debug_value) {
 		case 1:
-			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer, use_view_settings);
+			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer, false, false);
 			break;
 		case 2:
-			if (effects->ssr_pdf_output) DRW_transform_to_display(effects->ssr_pdf_output, use_view_settings);
+			if (effects->ssr_pdf_output) DRW_transform_to_display(effects->ssr_pdf_output, false, false);
 			break;
 		case 3:
-			if (effects->ssr_normal_input) DRW_transform_to_display(effects->ssr_normal_input, use_view_settings);
+			if (effects->ssr_normal_input) DRW_transform_to_display(effects->ssr_normal_input, false, false);
 			break;
 		case 4:
-			if (effects->ssr_specrough_input) DRW_transform_to_display(effects->ssr_specrough_input, use_view_settings);
+			if (effects->ssr_specrough_input) DRW_transform_to_display(effects->ssr_specrough_input, false, false);
 			break;
 		case 5:
-			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer, use_view_settings);
+			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer, false, false);
 			break;
 		case 6:
-			if (effects->gtao_horizons_debug) DRW_transform_to_display(effects->gtao_horizons_debug, use_view_settings);
+			if (effects->gtao_horizons_debug) DRW_transform_to_display(effects->gtao_horizons_debug, false, false);
 			break;
 		case 7:
-			if (effects->gtao_horizons) DRW_transform_to_display(effects->gtao_horizons, use_view_settings);
+			if (effects->gtao_horizons) DRW_transform_to_display(effects->gtao_horizons, false, false);
 			break;
 		case 8:
-			if (effects->sss_data) DRW_transform_to_display(effects->sss_data, use_view_settings);
+			if (effects->sss_data) DRW_transform_to_display(effects->sss_data, false, false);
 			break;
 		case 9:
-			if (effects->velocity_tx) DRW_transform_to_display(effects->velocity_tx, use_view_settings);
+			if (effects->velocity_tx) DRW_transform_to_display(effects->velocity_tx, false, false);
 			break;
 		default:
 			break;

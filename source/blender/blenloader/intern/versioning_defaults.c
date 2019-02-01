@@ -301,6 +301,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			if (app_template && STREQ(app_template, "Video_Editing")) {
 				/* Filmic is too slow, use default until it is optimized. */
 				STRNCPY(scene->view_settings.view_transform, "Default");
+				STRNCPY(scene->view_settings.look, "None");
 			}
 			else {
 				/* AV Sync break physics sim caching, disable until that is fixed. */

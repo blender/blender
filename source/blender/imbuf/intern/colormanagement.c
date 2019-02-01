@@ -1168,7 +1168,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 	}
 }
 
-void IMB_colormanagement_validate_settings(ColorManagedDisplaySettings *display_settings,
+void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *display_settings,
                                            ColorManagedViewSettings *view_settings)
 {
 	ColorManagedDisplay *display;

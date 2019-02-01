@@ -773,7 +773,8 @@ void BKE_scene_init(Scene *sce)
 
 	BKE_color_managed_display_settings_init(&sce->display_settings);
 	BKE_color_managed_view_settings_init_render(&sce->view_settings,
-	                                            &sce->display_settings);
+	                                            &sce->display_settings,
+	                                            "Filmic");
 	BLI_strncpy(sce->sequencer_colorspace_settings.name, colorspace_name,
 	            sizeof(sce->sequencer_colorspace_settings.name));
 
