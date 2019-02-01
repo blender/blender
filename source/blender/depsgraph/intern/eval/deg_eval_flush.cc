@@ -233,7 +233,7 @@ void flush_engine_data_update(ID *id)
 	if (draw_data_list == NULL) {
 		return;
 	}
-	LISTBASE_FOREACH(DrawData *, draw_data, draw_data_list) {
+	LISTBASE_FOREACH (DrawData *, draw_data, draw_data_list) {
 		draw_data->recalc |= id->recalc;
 	}
 }

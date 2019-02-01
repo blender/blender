@@ -101,7 +101,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	int base_index = 0;
 	const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ?
 		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
-	LISTBASE_FOREACH(Base *, base, &view_layer->object_bases) {
+	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
 		/* object itself */
 		const bool is_object_visible = (base->flag & base_flag);
 		if (is_object_visible) {

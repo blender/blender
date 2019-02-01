@@ -1203,7 +1203,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 	/* Iterate over all curves and build relations. */
 	PointerRNA id_ptr;
 	RNA_id_pointer_create(id, &id_ptr);
-	LISTBASE_FOREACH(FCurve *, fcu, curves) {
+	LISTBASE_FOREACH (FCurve *, fcu, curves) {
 		PointerRNA ptr;
 		PropertyRNA *prop;
 		int index;
@@ -1254,7 +1254,7 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(
         OperationNode *operation_from,
         ListBase *strips)
 {
-	LISTBASE_FOREACH(NlaStrip *, strip, strips) {
+	LISTBASE_FOREACH (NlaStrip *, strip, strips) {
 		if (strip->act != NULL) {
 			build_action(strip->act);
 
@@ -1986,7 +1986,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		ModifierUpdateDepsgraphContext ctx = {};
 		ctx.scene = scene_;
 		ctx.object = object;
-		LISTBASE_FOREACH(GpencilModifierData *, md, &object->greasepencil_modifiers) {
+		LISTBASE_FOREACH (GpencilModifierData *, md, &object->greasepencil_modifiers) {
 			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo((GpencilModifierType)md->type);
 			if (mti->updateDepsgraph) {
 				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
@@ -2004,7 +2004,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		ModifierUpdateDepsgraphContext ctx = {};
 		ctx.scene = scene_;
 		ctx.object = object;
-		LISTBASE_FOREACH(ShaderFxData *, fx, &object->shader_fx) {
+		LISTBASE_FOREACH (ShaderFxData *, fx, &object->shader_fx) {
 			const ShaderFxTypeInfo *fxi = BKE_shaderfxType_getInfo((ShaderFxType)fx->type);
 			if (fxi->updateDepsgraph) {
 				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);

@@ -200,7 +200,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	GSet *retained_ids = BLI_gset_ptr_new(__func__);
 	DEG::RetainedIdUserData retained_id_data = {query, retained_ids};
 
-	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
+	LISTBASE_FOREACH (DEG_FilterTarget *, target, &query->targets) {
 		/* Target Itself */
 		BLI_gset_add(retained_ids, (void *)target->id);
 

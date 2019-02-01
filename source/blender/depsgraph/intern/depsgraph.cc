@@ -176,7 +176,7 @@ static bool pointer_to_component_node_criteria(
 			return true;
 		}
 		else if (object->pose != NULL) {
-			LISTBASE_FOREACH(bPoseChannel *, pchan, &object->pose->chanbase) {
+			LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
 					*type = NodeType::BONE;
 					*operation_code = OperationCode::BONE_LOCAL;
