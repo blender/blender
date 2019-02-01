@@ -100,6 +100,8 @@ const char *operationCodeAsString(OperationCode opcode)
 			return "PARTICLE_SETTINGS_RESET";
 		/* Point Cache. */
 		case OperationCode::POINT_CACHE_RESET: return "POINT_CACHE_RESET";
+		/* File cache. */
+		case OperationCode::FILE_CACHE_UPDATE: return "FILE_CACHE_UPDATE";
 		/* Batch cache. */
 		case OperationCode::GEOMETRY_SELECT_UPDATE:
 			return "GEOMETRY_SELECT_UPDATE";

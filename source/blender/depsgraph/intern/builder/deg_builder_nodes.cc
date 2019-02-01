@@ -1617,7 +1617,7 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 	build_animdata(cache_file_id);
 	/* Cache evaluation itself. */
 	add_operation_node(cache_file_id, NodeType::CACHE, NULL,
-	                   OperationCode::PLACEHOLDER, "Cache File Update");
+	                   OperationCode::FILE_CACHE_UPDATE);
 }
 
 void DepsgraphNodeBuilder::build_mask(Mask *mask)

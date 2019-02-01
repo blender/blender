@@ -148,6 +148,9 @@ enum class OperationCode {
 	/* Point Cache. --------------------------------------------------------- */
 	POINT_CACHE_RESET,
 
+	/* File cache. ---------------------------------------------------------- */
+	FILE_CACHE_UPDATE,
+
 	/* Collections. --------------------------------------------------------- */
 	VIEW_LAYER_EVAL,
 
