@@ -51,9 +51,6 @@ enum class OperationCode {
 	ID_PROPERTY,
 	PARAMETERS_EVAL,
 
-	// XXX: Placeholder while porting depsgraph code
-	PLACEHOLDER,
-
 	/* Animation, Drivers, etc. --------------------------------------------- */
 	/* NLA + Action */
 	ANIMATION,

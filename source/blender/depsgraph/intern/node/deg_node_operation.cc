@@ -44,7 +44,6 @@ const char *operationCodeAsString(OperationCode opcode)
 		case OperationCode::OPERATION: return "OPERATION";
 		case OperationCode::ID_PROPERTY: return "ID_PROPERTY";
 		case OperationCode::PARAMETERS_EVAL: return "PARAMETERS_EVAL";
-		case OperationCode::PLACEHOLDER: return "PLACEHOLDER";
 		/* Animation, Drivers, etc. */
 		case OperationCode::ANIMATION: return "ANIMATION";
 		case OperationCode::DRIVER: return "DRIVER";
