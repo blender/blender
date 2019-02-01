@@ -2121,10 +2121,8 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 		build_shapekeys(key);
 	}
 	/* Link object data evaluation node to exit operation. */
-	OperationKey obdata_geom_eval_key(obdata,
-		NodeType::GEOMETRY,
-		OperationCode::PLACEHOLDER,
-		"Geometry Eval");
+	OperationKey obdata_geom_eval_key(
+	        obdata, NodeType::GEOMETRY, OperationCode::PLACEHOLDER);
 	OperationKey obdata_geom_done_key(obdata,
 		NodeType::GEOMETRY,
 		OperationCode::PLACEHOLDER,

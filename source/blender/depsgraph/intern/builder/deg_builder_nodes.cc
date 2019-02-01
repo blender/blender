@@ -1314,8 +1314,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 			                             function_bind(BKE_mesh_eval_geometry,
 			                                           _1,
 			                                           (Mesh *)obdata_cow),
-			                             OperationCode::PLACEHOLDER,
-			                             "Geometry Eval");
+			                             OperationCode::GEOMETRY_EVAL);
 			op_node->set_as_entry();
 			break;
 		}
@@ -1324,8 +1323,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 			op_node = add_operation_node(obdata,
 			                             NodeType::GEOMETRY,
 			                             NULL,
-			                             OperationCode::PLACEHOLDER,
-			                             "Geometry Eval");
+			                             OperationCode::GEOMETRY_EVAL);
 			op_node->set_as_entry();
 			break;
 		}
@@ -1336,8 +1334,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 			                             function_bind(BKE_curve_eval_geometry,
 			                                           _1,
 			                                           (Curve *)obdata_cow),
-			                                           OperationCode::PLACEHOLDER,
-			                                           "Geometry Eval");
+			                                           OperationCode::GEOMETRY_EVAL);
 			op_node->set_as_entry();
 			/* Make sure objects used for bevel.taper are in the graph.
 			 * NOTE: This objects might be not linked to the scene. */
@@ -1369,8 +1366,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 			                             function_bind(BKE_lattice_eval_geometry,
 			                                           _1,
 			                                           (Lattice *)obdata_cow),
-			                                           OperationCode::PLACEHOLDER,
-			                                           "Geometry Eval");
+			                                           OperationCode::GEOMETRY_EVAL);
 			op_node->set_as_entry();
 			break;
 		}
@@ -1383,8 +1379,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 			                             function_bind(BKE_gpencil_eval_geometry,
 			                                           _1,
 			                                           (bGPdata *)obdata_cow),
-			                             OperationCode::PLACEHOLDER,
-			                             "Geometry Eval");
+			                             OperationCode::GEOMETRY_EVAL);
 			op_node->set_as_entry();
 			break;
 		}
