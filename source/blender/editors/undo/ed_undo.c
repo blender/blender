@@ -351,11 +351,31 @@ static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ret;
 }
 
+/* Disable in background mode, we could support if it's useful, T60934. */
+
+static bool ed_undo_is_init_poll(bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	if (wm->undo_stack == NULL) {
+		CTX_wm_operator_poll_msg_set(C, "Undo disabled in background mode or at startup");
+		return false;
+	}
+	return true;
+}
+
+static bool ed_undo_is_init_and_screenactive_poll(bContext *C)
+{
+	if (ed_undo_is_init_poll(C) == false) {
+		return false;
+	}
+	return ED_operator_screenactive(C);
+}
+
 static bool ed_undo_redo_poll(bContext *C)
 {
 	wmOperator *last_op = WM_operator_last_redo(C);
-	return last_op && ED_operator_screenactive(C) &&
-		WM_operator_check_ui_enabled(C, last_op->type->name);
+	return (last_op && ed_undo_is_init_and_screenactive_poll(C) &&
+	        WM_operator_check_ui_enabled(C, last_op->type->name));
 }
 
 void ED_OT_undo(wmOperatorType *ot)
@@ -367,7 +387,7 @@ void ED_OT_undo(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = ed_undo_exec;
-	ot->poll = ED_operator_screenactive;
+	ot->poll = ed_undo_is_init_and_screenactive_poll;
 }
 
 void ED_OT_undo_push(wmOperatorType *ot)
@@ -379,6 +399,7 @@ void ED_OT_undo_push(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = ed_undo_push_exec;
+	ot->poll = ed_undo_is_init_poll;
 
 	ot->flag = OPTYPE_INTERNAL;
 
@@ -394,7 +415,7 @@ void ED_OT_redo(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = ed_redo_exec;
-	ot->poll = ED_operator_screenactive;
+	ot->poll = ed_undo_is_init_and_screenactive_poll;
 }
 
 void ED_OT_undo_redo(wmOperatorType *ot)
@@ -605,7 +626,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = undo_history_invoke;
 	ot->exec = undo_history_exec;
-	ot->poll = ED_operator_screenactive;
+	ot->poll = ed_undo_is_init_and_screenactive_poll;
 
 	RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
 
