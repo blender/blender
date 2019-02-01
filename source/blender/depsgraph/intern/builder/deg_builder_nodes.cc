@@ -1387,8 +1387,10 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
 			BLI_assert(!"Should not happen");
 			break;
 	}
-	op_node = add_operation_node(obdata, NodeType::GEOMETRY, NULL,
-	                             OperationCode::PLACEHOLDER, "Eval Done");
+	op_node = add_operation_node(obdata,
+	                             NodeType::GEOMETRY,
+	                             NULL,
+	                             OperationCode::GEOMETRY_EVAL_DONE);
 	op_node->set_as_exit();
 	/* Parameters for driver sources. */
 	add_operation_node(obdata,

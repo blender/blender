@@ -2122,11 +2122,10 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 	}
 	/* Link object data evaluation node to exit operation. */
 	OperationKey obdata_geom_eval_key(
-	        obdata, NodeType::GEOMETRY, OperationCode::PLACEHOLDER);
+	        obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
 	OperationKey obdata_geom_done_key(obdata,
-		NodeType::GEOMETRY,
-		OperationCode::PLACEHOLDER,
-		"Eval Done");
+	                                  NodeType::GEOMETRY,
+	                                  OperationCode::GEOMETRY_EVAL_DONE);
 	add_relation(obdata_geom_eval_key,
 	             obdata_geom_done_key,
 	             "ObData Geom Eval Done");

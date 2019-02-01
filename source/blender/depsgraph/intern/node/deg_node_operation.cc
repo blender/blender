@@ -66,6 +66,7 @@ const char *operationCodeAsString(OperationCode opcode)
 		/* Geometry. */
 		case OperationCode::GEOMETRY_EVAL_INIT: return "GEOMETRY_EVAL_INIT";
 		case OperationCode::GEOMETRY_EVAL: return "GEOMETRY_EVAL";
+		case OperationCode::GEOMETRY_EVAL_DONE: return "GEOMETRY_EVAL_DONE";
 		case OperationCode::GEOMETRY_SHAPEKEY: return "GEOMETRY_SHAPEKEY";
 		/* Object data. */
 		case OperationCode::LIGHT_PROBE_EVAL: return "LIGHT_PROBE_EVAL";

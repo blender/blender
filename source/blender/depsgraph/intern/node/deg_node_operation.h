@@ -89,7 +89,10 @@ enum class OperationCode {
 	GEOMETRY_EVAL_INIT,
 	/* Evaluate the whole geometry, including modifiers. */
 	GEOMETRY_EVAL,
-	/* Evaluation of a shape key. */
+	/* Evaluation of geometry is completely done.. */
+	GEOMETRY_EVAL_DONE,
+	/* Evaluation of a shape key.
+	 * NOTE: Currently only for object data datablocks. */
 	GEOMETRY_SHAPEKEY,
 
 	/* Object data. --------------------------------------------------------- */
