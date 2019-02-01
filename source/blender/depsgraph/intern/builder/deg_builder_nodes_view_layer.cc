@@ -158,16 +158,14 @@ void DepsgraphNodeBuilder::build_view_layer(
 	/* Collections. */
 	add_operation_node(&scene->id,
 	                   NodeType::LAYER_COLLECTIONS,
+	                   OperationCode::VIEW_LAYER_EVAL,
 	                   function_bind(BKE_layer_eval_view_layer_indexed,
 	                                 _1,
 	                                 scene_cow,
-	                                 view_layer_index_),
-	                   OperationCode::VIEW_LAYER_EVAL);
+	                                 view_layer_index_));
 	/* Parameters evaluation for scene relations mainly. */
-	add_operation_node(&scene->id,
-	                   NodeType::PARAMETERS,
-	                   NULL,
-	                   OperationCode::SCENE_EVAL);
+	add_operation_node(
+	        &scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
 		ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
