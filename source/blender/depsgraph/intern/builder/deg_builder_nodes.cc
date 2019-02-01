@@ -1415,8 +1415,7 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
 	add_operation_node(&armature->id,
 	                   NodeType::PARAMETERS,
 	                   NULL,
-	                   OperationCode::PLACEHOLDER,
-	                   "Armature Eval");
+	                   OperationCode::ARMATURE_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_camera(Camera *camera)

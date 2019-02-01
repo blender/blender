@@ -71,6 +71,7 @@ const char *operationCodeAsString(OperationCode opcode)
 		/* Object data. */
 		case OperationCode::LIGHT_PROBE_EVAL: return "LIGHT_PROBE_EVAL";
 		case OperationCode::SPEAKER_EVAL: return "SPEAKER_EVAL";
+		case OperationCode::ARMATURE_EVAL: return "ARMATURE_EVAL";
 		/* Pose. */
 		case OperationCode::POSE_INIT: return "POSE_INIT";
 		case OperationCode::POSE_INIT_IK: return "POSE_INIT_IK";

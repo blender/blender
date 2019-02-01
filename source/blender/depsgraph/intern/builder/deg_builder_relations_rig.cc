@@ -343,8 +343,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	build_armature(armature);
 	OperationKey armature_key(&armature->id,
 	                          NodeType::PARAMETERS,
-	                          OperationCode::PLACEHOLDER,
-	                          "Armature Eval");
+	                          OperationCode::ARMATURE_EVAL);
 	add_relation(armature_key, pose_init_key, "Data dependency");
 	/* IK Solvers.
 	 *
