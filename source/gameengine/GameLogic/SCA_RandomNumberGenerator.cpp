@@ -5,7 +5,6 @@
  * Generate random numbers that can be used by other components. We
  * convert to different types/distributions elsewhere. This just
  * delivers a clean, random bitvector.
- *
  */
 
 /* A C-program for MT19937: Real number version                */

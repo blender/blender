@@ -21,7 +21,6 @@
  * Execute for surface, volume or displacement.
  * Evaluate one or more closures.
  * Release.
- *
  */
 
 #include "kernel/closure/alloc.h"

@@ -356,7 +356,6 @@ ccl_device float fast_atan2f(float y, float x)
 /* Based on:
  *
  *   https://github.com/LiraNuna/glsl-sse2/blob/master/source/vec4.h
- *
  */
 ccl_device float fast_log2f(float x)
 {

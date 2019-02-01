@@ -20,7 +20,6 @@
  *
  * BVH_INSTANCING: object instancing
  * BVH_MOTION: motion blur rendering
- *
  */
 
 #if BVH_FEATURE(BVH_HAIR)

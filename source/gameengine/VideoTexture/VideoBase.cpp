@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -18,10 +16,6 @@
  * Copyright (c) 2007 The Zdeno Ash Miklas
  *
  * This source file is part of VideoTexture library
- *
- * Contributor(s):
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file gameengine/VideoTexture/VideoBase.cpp

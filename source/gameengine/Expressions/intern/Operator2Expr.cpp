@@ -12,7 +12,6 @@
  * in supporting documentation.  Erwin Coumans makes no
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
- *
  */
 // 31 dec 1998 - big update: try to use the cached data for updating, instead of
 // rebuilding completely it from left and right node. Modified flags and bounding boxes

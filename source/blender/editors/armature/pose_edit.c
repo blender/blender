@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,13 +15,6 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- *
- * Contributor(s): Ton Roosendaal, Blender Foundation '05, full recode.
- *                 Joshua Leung
- *                 Reevan McKay (original NaN code)
- *
- * ***** END GPL LICENSE BLOCK *****
- *
  * Pose Mode API's and Operators for Pose Mode armatures
  */
 

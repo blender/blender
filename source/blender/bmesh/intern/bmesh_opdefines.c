@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,10 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor(s): Joseph Eagar, Geoffrey Bantle, Campbell Barton
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/bmesh/intern/bmesh_opdefines.c
@@ -51,7 +45,6 @@
  * (e.g. vertfaces.out), for three-type slots, use geom.  note that you can also
  * use more esoteric names (e.g. geom_skirt.out) so long as the comment next to the
  * slot definition tells you what types of elements are in it.
- *
  */
 
 #include "BLI_utildefines.h"

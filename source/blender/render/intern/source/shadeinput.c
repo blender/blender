@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,10 +15,6 @@
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation
  * All rights reserved.
- *
- * Contributors: Hos, Robert Wenzlaff.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/render/intern/source/shadeinput.c
@@ -79,7 +73,6 @@ extern struct Render R;
  *             - shade_input_set_shade_texco()
  *             - shade_samples_do_shade()
  * - OSA: distribute sample result with filter masking
- *
  */
 
 /* initialize material variables in shadeinput,

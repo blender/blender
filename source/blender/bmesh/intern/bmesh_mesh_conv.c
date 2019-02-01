@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,10 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor(s): Geoffrey Bantle.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/bmesh/intern/bmesh_mesh_conv.c
@@ -35,23 +29,17 @@
  *
  * There are comments in code but this should help explain the general
  * intention as to how this works converting from/to bmesh.
- *
- *
  * \subsection user_pov User Perspective
  *
  * - Editmode operations when a shape key-block is active edits only that key-block.
  * - The first Basis key-block always matches the Mesh verts.
  * - Changing vertex locations of _any_ Basis will apply offsets to those shape keys using this as their Basis.
- *
- *
  * \subsection enter_editmode Entering EditMode - #BM_mesh_bm_from_me
  *
  * - the active key-block is used for BMesh vertex locations on entering edit-mode.
  * So obviously the meshes vertex locations remain unchanged and the shape key its self is not being edited directly.
  * Simply the #BMVert.co is a initialized from active shape key (when its set).
  * - all key-blocks are added as CustomData layers (read code for details).
- *
- *
  * \subsection exit_editmode Exiting EditMode - #BM_mesh_bm_to_me
  *
  * This is where the most confusing code is! Won't attempt to document the details here, for that read the code.
@@ -72,7 +60,6 @@
  * are copied back into the mesh.
  *
  * This has the effect from the users POV of leaving the mesh un-touched, and only editing the active shape key-block.
- *
  */
 
 #include "DNA_mesh_types.h"

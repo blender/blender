@@ -15,7 +15,6 @@
  * in supporting documentation.  Erwin Coumans makes no
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
- *
  */
 #include "EXP_Value.h"
 #include "EXP_BoolValue.h"

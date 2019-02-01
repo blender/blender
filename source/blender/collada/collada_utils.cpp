@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,10 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/collada/collada_utils.cpp
@@ -401,7 +395,6 @@ void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], floa
  *
  * Output:
  * rot     : the calculated result (quaternion)
- *
  */
 void bc_rotate_from_reference_quat(float quat_to[4], float quat_from[4], float mat_to[4][4])
 {

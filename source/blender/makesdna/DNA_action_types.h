@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,12 +15,6 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- *
- * Contributor(s): Original design: Reevan McKay
- * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
- * Contributor(s): Animation recode, Joshua Leung
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file DNA_action_types.h

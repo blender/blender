@@ -9,7 +9,6 @@
  * in supporting documentation.  Erwin Coumans makes no
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
- *
  */
 
 /** \file EXP_Value.h
@@ -185,7 +184,6 @@ public:
  *
  * - Some small editor-specific things added
  * - A helperclass CompressorArchive handles the serialization
- *
  */
 class CValue  : public PyObjectPlus
 

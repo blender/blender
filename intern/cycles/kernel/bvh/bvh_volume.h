@@ -36,7 +36,6 @@
  *
  * BVH_INSTANCING: object instancing
  * BVH_MOTION: motion blur rendering
- *
  */
 
 #ifndef __KERNEL_GPU__

@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -19,11 +17,6 @@
  * Code from gutf8.c Copyright (C) 1999 Tom Tromey
  *                   Copyright (C) 2000 Red Hat, Inc.
  * All rights reserved.
- *
- * Contributor(s): Campbell Barton.
- *
- * ***** END GPL LICENSE BLOCK *****
- *
  */
 
  /** \file blender/blenlib/intern/string_utf8.c

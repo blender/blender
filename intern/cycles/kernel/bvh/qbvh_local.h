@@ -20,7 +20,6 @@
  * other parts of the scene.
  *
  * BVH_MOTION: motion blur rendering
- *
  */
 
 #if BVH_FEATURE(BVH_HAIR)

@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * Copyright 2009-2011 Jörg Hermann Müller
  *
  * This file is part of AudaSpace.
@@ -18,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Audaspace; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file audaspace/FX/AUD_BaseIIRFilterReader.cpp

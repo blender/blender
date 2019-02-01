@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,11 +15,6 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- *
- * Contributors: Hos, RPW
- *               2004-2006 Blender Foundation, full recode
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/render/intern/source/zbuf.c
@@ -1650,8 +1643,6 @@ static void clippyra(float *lambda, float *v1, float *v2, int *b2, int *b3, int 
  * segment from v1 to v2. lambda is the factor by which the vector is
  * cut. ( calculate s + l * ( t - s )). The result is appended to the
  * vertex list of this face.
- *
- *
  * \param v1: start coordinate s
  * \param v2: target coordinate t
  * \param b1:

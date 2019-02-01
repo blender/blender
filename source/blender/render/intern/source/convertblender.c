@@ -1,6 +1,4 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,10 +15,6 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- *
- * Contributors: 2004/2005/2006 Blender Foundation, full recode
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/render/intern/source/convertblender.c
@@ -117,7 +111,6 @@
 
 #define UVTOINDEX(u, v) (startvlak + (u) * sizev + (v))
 /*
- *
  * NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
  *
  * ^   ()----p4----p3----()
