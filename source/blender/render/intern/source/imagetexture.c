@@ -15,7 +15,6 @@
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 /** \file blender/render/intern/source/imagetexture.c

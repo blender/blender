@@ -15,7 +15,6 @@
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 /** \file DNA_color_types.h
