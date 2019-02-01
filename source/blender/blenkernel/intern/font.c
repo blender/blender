@@ -37,6 +37,8 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -62,6 +64,7 @@
 #include "BKE_anim.h"
 #include "BKE_curve.h"
 
+static CLG_LogRef LOG = {"bke.data_transfer"};
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 
 /* The vfont code */
@@ -140,7 +143,7 @@ void BKE_vfont_builtin_register(void *mem, int size)
 static PackedFile *get_builtin_packedfile(void)
 {
 	if (!builtin_font_data) {
-		printf("Internal error, builtin font not loaded\n");
+		CLOG_ERROR(&LOG, "Internal error, builtin font not loaded");
 
 		return NULL;
 	}
@@ -195,7 +198,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 				}
 			}
 			if (!pf) {
-				printf("Font file doesn't exist: %s\n", vfont->name);
+				CLOG_WARN(&LOG, "Font file doesn't exist: %s", vfont->name);
 
 				/* DON'T DO THIS
 				 * missing file shouldn't modify path! - campbell */
@@ -862,7 +865,7 @@ makebreak:
 		    (ct->dobreak == 0) &&
 		    (((xof - tb_scale.x) + twidth) > xof_scale + tb_scale.w))
 		{
-			//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
+			//		CLOG_WARN(&LOG, "linewidth exceeded: %c%c%c...", mem[i], mem[i+1], mem[i+2]);
 			for (j = i; j && (mem[j] != '\n') && (chartransdata[j].dobreak == 0); j--) {
 				bool dobreak = false;
 				if (mem[j] == ' ' || mem[j] == '-') {
@@ -877,7 +880,7 @@ makebreak:
 					dobreak = true;
 				}
 				else if (chartransdata[j].dobreak) {
-					//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
+					//				CLOG_WARN(&LOG, "word too long: %c%c%c...", mem[j], mem[j+1], mem[j+2]);
 					ct->dobreak = 1;
 					custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
 					ct -= 1;
@@ -1368,7 +1371,7 @@ makebreak:
 			}
 
 			if (ob == NULL || info->mat_nr > (ob->totcol)) {
-				/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
+				/* CLOG_ERROR(&LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr); */
 				info->mat_nr = 0;
 			}
 			/* We do not want to see any character for \n or \r */

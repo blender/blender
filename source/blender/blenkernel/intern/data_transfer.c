@@ -29,6 +29,8 @@
  *  \ingroup bke
  */
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
@@ -54,6 +56,7 @@
 
 #include "data_transfer_intern.h"
 
+static CLG_LogRef LOG = {"bke.data_transfer"};
 
 CustomDataMask BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types)
 {
@@ -1117,7 +1120,7 @@ bool BKE_object_data_transfer_ex(
 		me_src = ob_src->runtime.mesh_eval;
 
 		if (me_src == NULL || (me_src_mask & ~ob_src->runtime.last_data_mask) != 0) {
-			printf("Data Transfer: source mesh data is not ready - dependency cycle?\n");
+			CLOG_WARN(&LOG, "Data Transfer: source mesh data is not ready - dependency cycle?");
 			return changed;
 		}
 	}

@@ -40,6 +40,8 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_strict_flags.h"
@@ -51,6 +53,8 @@
  * than #IDProperty.totallen, reallocate anyway.
  */
 #define IDP_ARRAY_REALLOC_LIMIT 200
+
+static CLG_LogRef LOG = {"bke.idprop"};
 
 /*local size table.*/
 static size_t idp_size_table[] = {
@@ -986,7 +990,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 				prop->len = prop->totallen = val->array.len;
 				break;
 			}
-			printf("%s: bad array type.\n", __func__);
+			CLOG_ERROR(&LOG, "bad array type.");
 			return NULL;
 		}
 		case IDP_STRING:

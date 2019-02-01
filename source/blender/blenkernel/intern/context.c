@@ -62,9 +62,13 @@
 
 #include "RNA_access.h"
 
+#include "CLG_log.h"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
+
+static CLG_LogRef LOG = {"bke.context"};
 
 /* struct */
 
@@ -255,10 +259,10 @@ static void *ctx_wm_python_context_get(
 				return result.ptr.data;
 			}
 			else {
-				printf("PyContext '%s' is a '%s', expected a '%s'\n",
-				       member,
-				       RNA_struct_identifier(result.ptr.type),
-				       RNA_struct_identifier(member_type));
+				CLOG_WARN(&LOG, "PyContext '%s' is a '%s', expected a '%s'",
+				          member,
+				          RNA_struct_identifier(result.ptr.type),
+				          RNA_struct_identifier(member_type));
 			}
 		}
 	}
@@ -413,8 +417,8 @@ PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, Stru
 			return ptr;
 		}
 		else {
-			printf("%s: warning, member '%s' is '%s', not '%s'\n",
-			       __func__, member, RNA_struct_identifier(ptr.type), RNA_struct_identifier(type));
+			CLOG_WARN(&LOG, "member '%s' is '%s', not '%s'",
+			          member, RNA_struct_identifier(ptr.type), RNA_struct_identifier(type));
 		}
 	}
 

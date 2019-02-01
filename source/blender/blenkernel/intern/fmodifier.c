@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_anim_types.h"
 
 #include "BLT_translation.h"
@@ -47,6 +49,8 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
+
+static CLG_LogRef LOG = {"bke.fmodifier"};
 
 /* ******************************** F-Modifiers ********************************* */
 
@@ -342,7 +346,7 @@ static void fcm_fn_generator_evaluate(FCurve *UNUSED(fcu), FModifier *fcm, float
 			break;
 		}
 		default:
-			printf("Invalid Function-Generator for F-Modifier - %d\n", data->type);
+			CLOG_ERROR(&LOG, "Invalid Function-Generator for F-Modifier - %d", data->type);
 			break;
 
 	}
@@ -504,7 +508,7 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int array
 	 * - keyframe to be added would replace one of the existing ones on bounds
 	 */
 	if ((arraylen <= 0) || (array == NULL)) {
-		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array\n");
+		CLOG_WARN(&LOG, "encountered invalid array");
 		return 0;
 	}
 	else {
@@ -558,10 +562,10 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int array
 
 	/* print error if loop-limit exceeded */
 	if (loopbreaker == (maxloop - 1)) {
-		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long\n");
+		CLOG_ERROR(&LOG, "binary search was taking too long");
 
 		// include debug info
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
+		CLOG_ERROR(&LOG, "\tround = %d: start = %d, end = %d, arraylen = %d", loopbreaker, start, end, arraylen);
 	}
 
 	/* not found, so return where to place it */
@@ -1035,7 +1039,7 @@ const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
 		return fmodifiersTypeInfo[type];
 	}
 	else {
-		printf("No valid F-Curve Modifier type-info data available. Type = %i\n", type);
+		CLOG_ERROR(&LOG, "No valid F-Curve Modifier type-info data available. Type = %i", type);
 	}
 
 	return NULL;
@@ -1069,7 +1073,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
 	if ((modifiers->first) && (type == FMODIFIER_TYPE_CYCLES)) {
 		/* cycles modifier must be first in stack, so for now, don't add if it can't be */
 		/* TODO: perhaps there is some better way, but for now, */
-		printf("Error: Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack.\n");
+		CLOG_STR_ERROR(&LOG, "Cannot add 'Cycles' modifier to F-Curve, as 'Cycles' modifier can only be first in stack.");
 		return NULL;
 	}
 
@@ -1183,7 +1187,7 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 	}
 	else {
 		/* XXX this case can probably be removed some day, as it shouldn't happen... */
-		printf("remove_fmodifier() - no modifier stack given\n");
+		CLOG_STR_ERROR(&LOG, "no modifier stack given");
 		MEM_freeN(fcm);
 		return false;
 	}
@@ -1498,9 +1502,9 @@ void fcurve_bake_modifiers(FCurve *fcu, int start, int end)
 	ChannelDriver *driver;
 
 	/* sanity checks */
-	/* TODO: make these tests report errors using reports not printf's */
+	/* TODO: make these tests report errors using reports not CLOG's */
 	if (ELEM(NULL, fcu, fcu->modifiers.first)) {
-		printf("Error: No F-Curve with F-Curve Modifiers to Bake\n");
+		CLOG_ERROR(&LOG, "No F-Curve with F-Curve Modifiers to Bake");
 		return;
 	}
 

@@ -37,6 +37,8 @@
 #include <math.h>
 #include <float.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -66,7 +68,7 @@
 #include "RNA_access.h"
 #include "nla_private.h"
 
-
+static CLG_LogRef LOG = {"bke.nla"};
 
 /* *************************************************** */
 /* Data Management */
@@ -1712,7 +1714,7 @@ bool BKE_nla_action_stash(AnimData *adt)
 
 	/* sanity check */
 	if (ELEM(NULL, adt, adt->action)) {
-		printf("%s: Invalid argument - %p %p\n", __func__, adt, adt->action);
+		CLOG_ERROR(&LOG, "Invalid argument - %p %p", adt, adt->action);
 		return false;
 	}
 
@@ -1790,7 +1792,7 @@ void BKE_nla_action_pushdown(AnimData *adt)
 	 */
 	/* TODO: what about modifiers? */
 	if (action_has_motion(adt->action) == 0) {
-		printf("BKE_nla_action_pushdown(): action has no data\n");
+		CLOG_ERROR(&LOG, "action has no data");
 		return;
 	}
 

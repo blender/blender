@@ -77,11 +77,15 @@
 #include "BKE_nla.h"
 #include "BKE_sequencer.h"
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #ifdef WIN32
 #  include "BLI_math_base.h"  /* M_PI */
 #endif
+
+static CLG_LogRef LOG = {"bke.ipo"};
 
 /* *************************************************** */
 /* Old-Data Freeing Tools */
@@ -292,7 +296,7 @@ static const char *pchan_adrcodes_to_paths(int adrcode, int *array_index)
 	}
 
 	/* for debugging only */
-	printf("ERROR: unmatched PoseChannel setting (code %d)\n", adrcode);
+	CLOG_ERROR(&LOG, "unmatched PoseChannel setting (code %d)", adrcode);
 	return NULL;
 }
 
@@ -893,7 +897,7 @@ static char *get_rna_access(ID *id, int blocktype, int adrcode, char actname[], 
 
 		/* TODO... add other blocktypes... */
 		default:
-			printf("IPO2ANIMATO WARNING: No path for blocktype %d, adrcode %d yet\n", blocktype, adrcode);
+			CLOG_WARN(&LOG, "No path for blocktype %d, adrcode %d yet", blocktype, adrcode);
 			break;
 	}
 
@@ -1519,7 +1523,7 @@ static void ipo_to_animdata(Main *bmain, ID *id, Ipo *ipo, char actname[], char 
 	if (ELEM(NULL, id, ipo))
 		return;
 	if (adt == NULL) {
-		printf("ERROR ipo_to_animdata(): adt invalid\n");
+		CLOG_ERROR(&LOG, "adt invalid");
 		return;
 	}
 
@@ -1686,13 +1690,13 @@ void do_versions_ipos_to_animato(Main *bmain)
 	ID *id;
 
 	if (bmain == NULL) {
-		printf("Argh! Main is NULL in do_versions_ipos_to_animato()\n");
+		CLOG_ERROR(&LOG, "Argh! Main is NULL");
 		return;
 	}
 
 	/* only convert if version is right */
 	if (bmain->versionfile >= 250) {
-		printf("WARNING: Animation data too new to convert (Version %d)\n", bmain->versionfile);
+		CLOG_WARN(&LOG, "Animation data too new to convert (Version %d)", bmain->versionfile);
 		return;
 	}
 	else if (G.debug & G_DEBUG)

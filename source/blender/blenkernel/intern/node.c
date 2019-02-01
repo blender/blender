@@ -29,6 +29,8 @@
  *  \ingroup bke
  */
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include <stdlib.h>
@@ -83,6 +85,7 @@ bNodeTreeType NodeTreeTypeUndefined;
 bNodeType NodeTypeUndefined;
 bNodeSocketType NodeSocketTypeUndefined;
 
+static CLG_LogRef LOG = {"bke.node"};
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)
 {
@@ -525,7 +528,7 @@ void nodeModifySocketType(bNodeTree *ntree, bNode *UNUSED(node), bNodeSocket *so
 	const char *idname = nodeStaticSocketType(type, subtype);
 
 	if (!idname) {
-		printf("Error: static node socket type %d undefined\n", type);
+		CLOG_ERROR(&LOG, "static node socket type %d undefined", type);
 		return;
 	}
 
@@ -696,7 +699,7 @@ bNodeSocket *nodeAddStaticSocket(bNodeTree *ntree, bNode *node, int in_out, int 
 	bNodeSocket *sock;
 
 	if (!idname) {
-		printf("Error: static node socket type %d undefined\n", type);
+		CLOG_ERROR(&LOG, "static node socket type %d undefined", type);
 		return NULL;
 	}
 
@@ -712,7 +715,7 @@ bNodeSocket *nodeInsertStaticSocket(bNodeTree *ntree, bNode *node, int in_out, i
 	bNodeSocket *sock;
 
 	if (!idname) {
-		printf("Error: static node socket type %d undefined\n", type);
+		CLOG_ERROR(&LOG, "static node socket type %d undefined", type);
 		return NULL;
 	}
 
@@ -929,7 +932,7 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 		}
 	} NODE_TYPES_END;
 	if (!idname) {
-		printf("Error: static node type %d undefined\n", type);
+		CLOG_ERROR(&LOG, "static node type %d undefined", type);
 		return NULL;
 	}
 	return nodeAddNode(C, ntree, idname);

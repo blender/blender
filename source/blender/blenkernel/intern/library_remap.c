@@ -31,6 +31,8 @@
 #include <stddef.h>
 #include <assert.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
@@ -118,6 +120,8 @@
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
+
+static CLG_LogRef LOG = {"bke.library_remap"};
 
 static BKE_library_free_window_manager_cb free_windowmanager_cb = NULL;
 
@@ -496,9 +500,9 @@ void BKE_libblock_remap_locked(
 	}
 
 	if (old_id->us - skipped_refcounted < 0) {
-		printf("Error in remapping process from '%s' (%p) to '%s' (%p): "
-		       "wrong user count in old ID after process (summing up to %d)\n",
-		       old_id->name, old_id, new_id ? new_id->name : "<NULL>", new_id, old_id->us - skipped_refcounted);
+		CLOG_ERROR(&LOG, "Error in remapping process from '%s' (%p) to '%s' (%p): "
+		           "wrong user count in old ID after process (summing up to %d)",
+		           old_id->name, old_id, new_id ? new_id->name : "<NULL>", new_id, old_id->us - skipped_refcounted);
 		BLI_assert(0);
 	}
 

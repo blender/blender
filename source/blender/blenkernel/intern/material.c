@@ -34,6 +34,8 @@
 #include <math.h>
 #include <stddef.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -78,6 +80,8 @@
 
 /* used in UI and render */
 Material defmaterial;
+
+static CLG_LogRef LOG = {"bke.material"};
 
 /* called on startup, creator.c */
 void init_def_material(void)
@@ -524,7 +528,7 @@ Material **give_current_material_p(Object *ob, short act)
 		return NULL;
 	else if (act <= 0) {
 		if (act < 0) {
-			printf("Negative material index!\n");
+			CLOG_ERROR(&LOG, "Negative material index!");
 		}
 		return NULL;
 	}
@@ -938,7 +942,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 
 	/* this should never happen and used to crash */
 	if (ob->actcol <= 0) {
-		printf("%s: invalid material index %d, report a bug!\n", __func__, ob->actcol);
+		CLOG_ERROR(&LOG, "invalid material index %d, report a bug!", ob->actcol);
 		BLI_assert(0);
 		return false;
 	}

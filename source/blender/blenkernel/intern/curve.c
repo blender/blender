@@ -63,9 +63,13 @@
 
 #include "DEG_depsgraph.h"
 
+#include "CLG_log.h"
+
 /* globals */
 
 /* local */
+static CLG_LogRef LOG = {"bke.curve"};
+
 static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], const float v4[3],
                       short cox, short coy,
                       float *lambda, float *mu, float vec[3]);
@@ -1032,7 +1036,7 @@ static void calcknots(float *knots, const int pnts, const short order, const sho
 				}
 			}
 			else {
-				printf("bez nurb curve order is not 3 or 4, should never happen\n");
+				CLOG_ERROR(&LOG, "bez nurb curve order is not 3 or 4, should never happen");
 			}
 			break;
 		default:

@@ -31,6 +31,8 @@
 
 #include <limits.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -66,6 +68,8 @@
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
 #endif
+
+static CLG_LogRef LOG = {"bke.mesh_evaluate"};
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Normal Calculation
@@ -135,7 +139,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 
 	/* if we are not calculating verts and no verts were passes then we have nothing to do */
 	if ((only_face_normals == true) && (r_polyNors == NULL) && (r_faceNors == NULL)) {
-		printf("%s: called with nothing to do\n", __func__);
+		CLOG_WARN(&LOG, "called with nothing to do");
 		return;
 	}
 
@@ -168,7 +172,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 			}
 			else {
 				/* eek, we're not corresponding to polys */
-				printf("error in %s: tessellation face indices are incorrect.  normals may look bad.\n", __func__);
+				CLOG_ERROR(&LOG, "tessellation face indices are incorrect.  normals may look bad.");
 			}
 		}
 	}

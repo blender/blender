@@ -89,10 +89,14 @@
 
 #include "atomic_ops.h"
 
+#include "CLG_log.h"
+
 /* could enable at some point but for now there are far too many conversions */
 #ifdef __GNUC__
 //#  pragma GCC diagnostic ignored "-Wdouble-promotion"
 #endif
+
+static CLG_LogRef LOG = {"bke.dynamicpaint"};
 
 /* precalculated gaussian factors for 5x super sampling */
 static const float gaussianFactors[5] = {
@@ -240,6 +244,7 @@ static int setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
 	/* Add error to canvas ui info label */
 	BLI_strncpy(canvas->error, string, sizeof(canvas->error));
+	CLOG_STR_ERROR(&LOG, string);
 	return 0;
 }
 
@@ -2810,7 +2815,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 	/*
 	 * Start generating the surface
 	 */
-	printf("DynamicPaint: Preparing UV surface of %ix%i pixels and %i tris.\n", w, h, tottri);
+	CLOG_INFO(&LOG, 1, "Preparing UV surface of %ix%i pixels and %i tris.", w, h, tottri);
 
 	/* Init data struct */
 	if (surface->data)
@@ -4448,7 +4453,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 		particlesAdded++;
 	}
 	if (invalidParticles)
-		printf("Warning: Invalid particle(s) found!\n");
+		CLOG_WARN(&LOG, "Invalid particle(s) found!");
 
 	/* If no suitable particles were found, exit */
 	if (particlesAdded < 1) {

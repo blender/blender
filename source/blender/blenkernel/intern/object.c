@@ -34,6 +34,8 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -138,6 +140,8 @@
 
 #include "CCGSubSurf.h"
 #include "atomic_ops.h"
+
+static CLG_LogRef LOG = {"bke.object"};
 
 /* Vertex parent modifies original BMesh which is not safe for threading.
  * Ideally such a modification should be handled as a separate DAG update
@@ -782,7 +786,7 @@ static const char *get_obdata_defname(int type)
 		case OB_EMPTY: return DATA_("Empty");
 		case OB_GPENCIL: return DATA_("GPencil");
 		default:
-			printf("get_obdata_defname: Internal error, bad type: %d\n", type);
+			CLOG_ERROR(&LOG, "Internal error, bad type: %d", type);
 			return DATA_("Empty");
 	}
 }
@@ -808,7 +812,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
 		case OB_GPENCIL:   return BKE_gpencil_data_addnew(bmain, name);
 		case OB_EMPTY:     return NULL;
 		default:
-			printf("%s: Internal error, bad type: %d\n", __func__, type);
+			CLOG_ERROR(&LOG, "Internal error, bad type: %d", type);
 			return NULL;
 	}
 }
@@ -1563,7 +1567,7 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
 {
 	/* paranoia checks */
 	if (ID_IS_LINKED(ob) || !ID_IS_LINKED(target)) {
-		printf("cannot make proxy\n");
+		CLOG_ERROR(&LOG, "cannot make proxy");
 		return;
 	}
 
@@ -1981,7 +1985,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[4][4])
 	/* Make sure the bone is still valid */
 	pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
 	if (!pchan || !pchan->bone) {
-		printf("Object %s with Bone parent: bone %s doesn't exist\n", ob->id.name + 2, ob->parsubstr);
+		CLOG_ERROR(&LOG, "Object %s with Bone parent: bone %s doesn't exist", ob->id.name + 2, ob->parsubstr);
 		unit_m4(mat);
 		return;
 	}
@@ -2065,9 +2069,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
 			}
 		}
 		else {
-			fprintf(stderr,
-			        "%s: Evaluated mesh is needed to solve parenting, "
-			        "object position can be wrong now\n", __func__);
+			CLOG_ERROR(&LOG, "Evaluated mesh is needed to solve parenting, "
+			           "object position can be wrong now");
 		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {

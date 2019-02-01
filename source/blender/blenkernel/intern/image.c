@@ -40,6 +40,8 @@
 
 #include <time.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_colormanagement.h"
@@ -98,6 +100,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+static CLG_LogRef LOG = {"bke.image"};
 static SpinLock image_spin;
 
 /* prototypes */
@@ -730,7 +733,7 @@ static void image_memorypack_multiview(Image *ima)
 		IMB_saveiff(ibuf, iv->filepath, IB_rect | IB_mem);
 
 		if (ibuf->encodedbuffer == NULL) {
-			printf("memory save for pack error\n");
+			CLOG_STR_ERROR(&LOG, "memory save for pack error");
 			IMB_freeImBuf(ibuf);
 			image_free_packedfiles(ima);
 			return;
@@ -783,7 +786,7 @@ void BKE_image_memorypack(Image *ima)
 
 	IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_mem);
 	if (ibuf->encodedbuffer == NULL) {
-		printf("memory save for pack error\n");
+		CLOG_STR_ERROR(&LOG, "memory save for pack error");
 	}
 	else {
 		ImagePackedFile *imapf;

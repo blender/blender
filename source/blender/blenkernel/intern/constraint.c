@@ -87,6 +87,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "CLG_log.h"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
@@ -100,6 +102,8 @@
 
 /* Constraint Target Macros */
 #define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
+
+static CLG_LogRef LOG = {"bke.constraint"};
 
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will
@@ -4706,7 +4710,7 @@ const bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type)
 		return constraintsTypeInfo[type];
 	}
 	else {
-		printf("No valid constraint type-info data available. Type = %i\n", type);
+		CLOG_WARN(&LOG, "No valid constraint type-info data available. Type = %i", type);
 	}
 
 	return NULL;

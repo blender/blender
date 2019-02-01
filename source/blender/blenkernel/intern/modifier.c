@@ -80,6 +80,9 @@
 
 #include "MOD_modifiertypes.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.modifier"};
 static ModifierTypeInfo *modifier_types[NUM_MODIFIER_TYPES] = {NULL};
 static VirtualModifierData virtualModifierCommonData;
 
@@ -392,6 +395,7 @@ void modifier_setError(ModifierData *md, const char *_format, ...)
 
 	md->error = BLI_strdup(buffer);
 
+	CLOG_STR_ERROR(&LOG, md->error);
 }
 
 /* used for buttons, to find out if the 'draw deformed in editmode' option is

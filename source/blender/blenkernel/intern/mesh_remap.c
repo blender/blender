@@ -26,6 +26,8 @@
 
 #include <limits.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -49,6 +51,7 @@
 
 #include "BLI_strict_flags.h"
 
+static CLG_LogRef LOG = {"bke.mesh"};
 
 /* -------------------------------------------------------------------- */
 /** \name Some generic helpers.
@@ -613,7 +616,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(
 			MEM_freeN(weights);
 		}
 		else {
-			printf("WARNING! Unsupported mesh-to-mesh vertex mapping mode (%d)!\n", mode);
+			CLOG_WARN(&LOG, "Unsupported mesh-to-mesh vertex mapping mode (%d)!", mode);
 			memset(r_map->items, 0, sizeof(*r_map->items) * (size_t)numverts_dst);
 		}
 
@@ -940,7 +943,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(
 			MEM_freeN(weights);
 		}
 		else {
-			printf("WARNING! Unsupported mesh-to-mesh edge mapping mode (%d)!\n", mode);
+			CLOG_WARN(&LOG, "Unsupported mesh-to-mesh edge mapping mode (%d)!", mode);
 			memset(r_map->items, 0, sizeof(*r_map->items) * (size_t)numedges_dst);
 		}
 
@@ -2213,7 +2216,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(
 			BLI_rng_free(rng);
 		}
 		else {
-			printf("WARNING! Unsupported mesh-to-mesh poly mapping mode (%d)!\n", mode);
+			CLOG_WARN(&LOG, "Unsupported mesh-to-mesh poly mapping mode (%d)!", mode);
 			memset(r_map->items, 0, sizeof(*r_map->items) * (size_t)numpolys_dst);
 		}
 

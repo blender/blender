@@ -77,6 +77,8 @@
 #include "DEG_depsgraph_query.h"
 #include "BKE_shrinkwrap.h"
 
+#include "CLG_log.h"
+
 #ifdef WITH_OPENSUBDIV
 #  include "DNA_userdef_types.h"
 #endif
@@ -92,7 +94,7 @@
 #  define ASSERT_IS_VALID_MESH(mesh)
 #endif
 
-
+static CLG_LogRef LOG = {"bke.derivedmesh"};
 static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 
 
@@ -549,9 +551,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool
 				uid = kb->uid;
 			}
 			else {
-				printf("%s: error - could not find active shapekey %d!\n",
-				       __func__, ob->shapenr - 1);
-
+				CLOG_ERROR(&LOG, "could not find active shapekey %d!", ob->shapenr - 1);
 				uid = INT_MAX;
 			}
 		}
@@ -614,7 +614,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool
 	 * which should be fed through the modifier
 	 * stack */
 	if (tmp.totvert != me->totvert && !did_shapekeys && me->key) {
-		printf("%s: YEEK! this should be recoded! Shape key loss!: ID '%s'\n", __func__, tmp.id.name);
+		CLOG_WARN(&LOG, "YEEK! this should be recoded! Shape key loss!: ID '%s'", tmp.id.name);
 		if (tmp.key && !(tmp.id.tag & LIB_TAG_NO_MAIN)) {
 			id_us_min(&tmp.key->id);
 		}
@@ -1107,7 +1107,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 
 			kb->totelem = dm->numVertData;
 			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), "kb->data derivedmesh.c");
-			fprintf(stderr, "%s: lost a shapekey layer: '%s'! (bmesh internal error)\n", __func__, kb->name);
+			CLOG_ERROR(&LOG, "lost a shapekey layer: '%s'! (bmesh internal error)", kb->name);
 		}
 	}
 }
@@ -1123,9 +1123,8 @@ static void add_shapekey_layers(Mesh *me_dst, Mesh *me_src, Object *UNUSED(ob))
 
 	/* ensure we can use mesh vertex count for derived mesh custom data */
 	if (me_src->totvert != me_dst->totvert) {
-		fprintf(stderr,
-		        "%s: vertex size mismatch (mesh/eval) '%s' (%d != %d)\n",
-		        __func__, me_src->id.name + 2, me_src->totvert, me_dst->totvert);
+		CLOG_WARN(&LOG, "vertex size mismatch (mesh/eval) '%s' (%d != %d)",
+		          me_src->id.name + 2, me_src->totvert, me_dst->totvert);
 		return;
 	}
 
@@ -1134,9 +1133,8 @@ static void add_shapekey_layers(Mesh *me_dst, Mesh *me_src, Object *UNUSED(ob))
 		float *array;
 
 		if (me_src->totvert != kb->totelem) {
-			fprintf(stderr,
-			        "%s: vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)\n",
-			        __func__, me_src->id.name + 2, me_src->totvert, kb->name, kb->totelem);
+			CLOG_WARN(&LOG, "vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)",
+			          me_src->id.name + 2, me_src->totvert, kb->name, kb->totelem);
 			array = MEM_calloc_arrayN((size_t)me_src->totvert, sizeof(float[3]), __func__);
 		}
 		else {

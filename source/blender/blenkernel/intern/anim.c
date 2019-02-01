@@ -61,6 +61,10 @@
 
 #include "GPU_batch.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.anim"};
+
 // XXX bad level call...
 extern short compare_ak_cfraPtr(void *node, void *data);
 extern void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys, int saction_flag);
@@ -493,7 +497,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 	}
 
 	/* calculate path over requested range */
-	printf("Calculating MotionPaths between frames %d - %d (%d frames)\n", sfra, efra, efra - sfra + 1);
+	CLOG_INFO(&LOG, 1, "Calculating MotionPaths between frames %d - %d (%d frames)", sfra, efra, efra - sfra + 1);
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		if (current_frame_only) {
 			/* For current frame, only update tagged. */
@@ -704,7 +708,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	if (ob == NULL || ob->type != OB_CURVE) return 0;
 	cu = ob->data;
 	if (ob->runtime.curve_cache == NULL || ob->runtime.curve_cache->path == NULL || ob->runtime.curve_cache->path->data == NULL) {
-		printf("no path!\n");
+		CLOG_WARN(&LOG, "no path!");
 		return 0;
 	}
 	path = ob->runtime.curve_cache->path;

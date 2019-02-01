@@ -39,6 +39,8 @@
 #include <stddef.h>
 #include <assert.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
@@ -140,6 +142,8 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
+static CLG_LogRef LOG = {"bke.library"};
+
 /* GS reads the memory pointed at in a specific ordering.
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
@@ -185,7 +189,7 @@ void id_us_ensure_real(ID *id)
 		id->tag |= LIB_TAG_EXTRAUSER;
 		if (id->us <= limit) {
 			if (id->us < limit || ((id->us == limit) && (id->tag & LIB_TAG_EXTRAUSER_SET))) {
-				printf("ID user count error: %s (from '%s')\n", id->name, id->lib ? id->lib->filepath : "[Main]");
+				CLOG_ERROR(&LOG, "ID user count error: %s (from '%s')", id->name, id->lib ? id->lib->filepath : "[Main]");
 				BLI_assert(0);
 			}
 			id->us = limit + 1;
@@ -241,8 +245,8 @@ void id_us_min(ID *id)
 		const int limit = ID_FAKE_USERS(id);
 
 		if (id->us <= limit) {
-			printf("ID user decrement error: %s (from '%s'): %d <= %d\n",
-			       id->name, id->lib ? id->lib->filepath : "[Main]", id->us, limit);
+			CLOG_ERROR(&LOG, "ID user decrement error: %s (from '%s'): %d <= %d",
+			           id->name, id->lib ? id->lib->filepath : "[Main]", id->us, limit);
 			BLI_assert(0);
 			id->us = limit;
 		}
@@ -1977,8 +1981,8 @@ void BKE_library_make_local(
 
 			/* Proxies only work when the proxified object is linked-in from a library. */
 			if (ob->proxy->id.lib == NULL) {
-				printf("Warning, proxy object %s will loose its link to %s, because the "
-				       "proxified object is local.\n", id->newid->name, ob->proxy->id.name);
+				CLOG_WARN(&LOG, "proxy object %s will loose its link to %s, because the "
+				       "proxified object is local.", id->newid->name, ob->proxy->id.name);
 				continue;
 			}
 
@@ -1988,8 +1992,8 @@ void BKE_library_make_local(
 			 * referred to from a library. Not checking for local use; if new local proxy
 			 * was not used locally would be a nasty bug! */
 			if (is_local || is_lib) {
-				printf("Warning, made-local proxy object %s will loose its link to %s, "
-				       "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).\n",
+				CLOG_WARN(&LOG, "made-local proxy object %s will loose its link to %s, "
+				       "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).",
 				       id->newid->name, ob->proxy->id.name, is_local, is_lib);
 			}
 			else {

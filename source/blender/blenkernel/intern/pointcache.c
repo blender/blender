@@ -34,6 +34,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
@@ -122,6 +124,8 @@
 
 /* could be made into a pointcache option */
 #define DURIAN_POINTCACHE_LIB_OK 1
+
+static CLG_LogRef LOG = {"bke.pointcache"};
 
 static int ptcache_data_size[] = {
 		sizeof(unsigned int), // BPHYS_DATA_INDEX
@@ -1243,7 +1247,7 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 	/* version header */
 	ptcache_file_read(pf, version, 1, sizeof(char) * 4);
 	if (!STREQLEN(version, DPAINT_CACHE_VERSION, 4)) {
-		printf("Dynamic Paint: Invalid cache version: '%c%c%c%c'!\n", UNPACK4(version));
+		CLOG_ERROR(&LOG, "Dynamic Paint: Invalid cache version: '%c%c%c%c'!", UNPACK4(version));
 		return 0;
 	}
 
@@ -2479,7 +2483,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 
 	pf = ptcache_file_open(pid, PTCACHE_FILE_WRITE, pm->frame);
 
-	if (pf==NULL) {
+	if (pf == NULL) {
 		if (G.debug & G_DEBUG)
 			printf("Error opening disk cache file for writing\n");
 		return 0;

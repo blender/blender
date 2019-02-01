@@ -22,6 +22,7 @@
  *  \ingroup bke
  */
 
+#include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -66,6 +67,8 @@
 #else
 #  define ASSERT_IS_VALID_MESH(mesh)
 #endif
+
+static CLG_LogRef LOG = {"bke.mesh_convert"};
 
 void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 {
@@ -1088,9 +1091,8 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
 
 	/* ensure we can use mesh vertex count for derived mesh custom data */
 	if (mesh_src->totvert != mesh_dest->totvert) {
-		fprintf(stderr,
-		        "%s: vertex size mismatch (mesh/dm) '%s' (%d != %d)\n",
-		        __func__, mesh_src->id.name + 2, mesh_src->totvert, mesh_dest->totvert);
+		CLOG_ERROR(&LOG, "vertex size mismatch (mesh/dm) '%s' (%d != %d)",
+		           mesh_src->id.name + 2, mesh_src->totvert, mesh_dest->totvert);
 		return;
 	}
 
@@ -1099,9 +1101,8 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
 		float *array;
 
 		if (mesh_src->totvert != kb->totelem) {
-			fprintf(stderr,
-			        "%s: vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)\n",
-			        __func__, mesh_src->id.name + 2, mesh_src->totvert, kb->name, kb->totelem);
+			CLOG_ERROR(&LOG, "vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)",
+			        mesh_src->id.name + 2, mesh_src->totvert, kb->name, kb->totelem);
 			array = MEM_calloc_arrayN((size_t)mesh_src->totvert, 3 * sizeof(float), __func__);
 		}
 		else {
@@ -1234,7 +1235,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 
 			kb->totelem = mesh_src->totvert;
 			kb->data = MEM_calloc_arrayN(kb->totelem, 3 * sizeof(float), __func__);
-			fprintf(stderr, "%s: lost a shapekey layer: '%s'! (bmesh internal error)\n", __func__, kb->name);
+			CLOG_ERROR(&LOG, "lost a shapekey layer: '%s'! (bmesh internal error)", kb->name);
 		}
 	}
 }
@@ -1292,8 +1293,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, CustomD
 				uid = kb->uid;
 			}
 			else {
-				printf("%s: error - could not find active shapekey %d!\n",
-				       __func__, ob->shapenr - 1);
+				CLOG_ERROR(&LOG, "could not find active shapekey %d!", ob->shapenr - 1);
 
 				uid = INT_MAX;
 			}
@@ -1363,7 +1363,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, CustomD
 	 * which should be fed through the modifier
 	 * stack */
 	if (tmp.totvert != mesh_dst->totvert && !did_shapekeys && mesh_dst->key) {
-		printf("%s: YEEK! this should be recoded! Shape key loss!: ID '%s'\n", __func__, tmp.id.name);
+		CLOG_ERROR(&LOG, "YEEK! this should be recoded! Shape key loss!: ID '%s'", tmp.id.name);
 		if (tmp.key && !(tmp.id.tag & LIB_TAG_NO_MAIN)) {
 			id_us_min(&tmp.key->id);
 		}

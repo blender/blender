@@ -67,6 +67,10 @@
 
 #include "RNA_access.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.action"};
+
 /* *********************** NOTE ON POSE AND ACTION **********************
  *
  * - Pose is the local (object level) component of armature. The current
@@ -1378,15 +1382,14 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
 	bPoseChannel *pchanto, *pchanfrom;
 
 	if (to == NULL || from == NULL) {
-		printf("Pose copy error, pose to:%p from:%p\n", (void *)to, (void *)from); /* debug temp */
+		CLOG_ERROR(&LOG, "Pose copy error, pose to:%p from:%p", (void *)to, (void *)from); /* debug temp */
 		return false;
 	}
 
 	if (to == from) {
-		printf("BKE_pose_copy_result source and target are the same\n");
+		CLOG_ERROR(&LOG, "source and target are the same");
 		return false;
 	}
-
 
 	for (pchanfrom = from->chanbase.first; pchanfrom; pchanfrom = pchanfrom->next) {
 		pchanto = BKE_pose_channel_find_name(to, pchanfrom->name);

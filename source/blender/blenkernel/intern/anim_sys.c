@@ -80,6 +80,10 @@
 
 #include "atomic_ops.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.anim_sys"};
+
 /* ***************************************** */
 /* AnimData API */
 
@@ -363,7 +367,7 @@ void BKE_animdata_merge_copy(
 
 	// TODO: we must unset all "tweakmode" flags
 	if ((src->flag & ADT_NLA_EDIT_ON) || (dst->flag & ADT_NLA_EDIT_ON)) {
-		printf("ERROR: Merging AnimData blocks while editing NLA is dangerous as it may cause data corruption\n");
+		CLOG_ERROR(&LOG, "Merging AnimData blocks while editing NLA is dangerous as it may cause data corruption");
 		return;
 	}
 
@@ -450,8 +454,8 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 	/* sanity checks */
 	if (ELEM(NULL, srcAct, dstAct, basepath)) {
 		if (G.debug & G_DEBUG) {
-			printf("ERROR: action_partition_fcurves_by_basepath(%p, %p, %p) has insufficient info to work with\n",
-			       (void *)srcAct, (void *)dstAct, (void *)basepath);
+			CLOG_ERROR(&LOG, "srcAct: %p, dstAct: %p, basepath: %p has insufficient info to work with",
+					   (void *)srcAct, (void *)dstAct, (void *)basepath);
 		}
 		return;
 	}
@@ -532,7 +536,7 @@ void BKE_animdata_separate_by_basepath(
 	/* sanity checks */
 	if (ELEM(NULL, srcID, dstID)) {
 		if (G.debug & G_DEBUG)
-			printf("ERROR: no source or destination ID to separate AnimData with\n");
+			CLOG_ERROR(&LOG, "no source or destination ID to separate AnimData with");
 		return;
 	}
 
@@ -542,7 +546,7 @@ void BKE_animdata_separate_by_basepath(
 
 	if (ELEM(NULL, srcAdt, dstAdt)) {
 		if (G.debug & G_DEBUG)
-			printf("ERROR: no AnimData for this pair of ID's\n");
+			CLOG_ERROR(&LOG, "no AnimData for this pair of ID's");
 		return;
 	}
 
@@ -553,8 +557,9 @@ void BKE_animdata_separate_by_basepath(
 			dstAdt->action = BKE_action_add(bmain, srcAdt->action->id.name + 2);
 		}
 		else if (dstAdt->action == srcAdt->action) {
-			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
-			       srcID->name, dstID->name, srcAdt->action->id.name);
+			CLOG_WARN(&LOG, "Argh! Source and Destination share animation! "
+				      "('%s' and '%s' both use '%s') Making new empty action",
+			          srcID->name, dstID->name, srcAdt->action->id.name);
 
 			/* TODO: review this... */
 			id_us_min(&dstAdt->action->id);
@@ -820,7 +825,7 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id, char *old_path, const char *
 
 	/* if no action, no need to proceed */
 	if (ELEM(NULL, owner_id, old_path)) {
-		if (G.debug & G_DEBUG) printf("%s: early abort\n", __func__);
+		if (G.debug & G_DEBUG) CLOG_WARN(&LOG, "early abort");
 		return old_path;
 	}
 
@@ -1377,20 +1382,20 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks, ID *id, const char group_name[], 
 
 	/* sanity checks */
 	if (ELEM(NULL, ks, rna_path)) {
-		printf("ERROR: no Keying Set and/or RNA Path to add path with\n");
+		CLOG_ERROR(&LOG, "no Keying Set and/or RNA Path to add path with");
 		return NULL;
 	}
 
 	/* ID is required for all types of KeyingSets */
 	if (id == NULL) {
-		printf("ERROR: No ID provided for Keying Set Path\n");
+		CLOG_ERROR(&LOG, "No ID provided for Keying Set Path");
 		return NULL;
 	}
 
 	/* don't add if there is already a matching KS_Path in the KeyingSet */
 	if (BKE_keyingset_find_path(ks, id, group_name, rna_path, array_index, groupmode)) {
 		if (G.debug & G_DEBUG)
-			printf("ERROR: destination already exists in Keying Set\n");
+			CLOG_ERROR(&LOG, "destination already exists in Keying Set");
 		return NULL;
 	}
 
@@ -1513,9 +1518,9 @@ static bool animsys_store_rna_setting(
 
 				if (array_len && array_index >= array_len) {
 					if (G.debug & G_DEBUG) {
-						printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d\n",
-						       (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
-						       path, array_index, array_len - 1);
+						CLOG_WARN(&LOG, "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
+						          (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
+						          path, array_index, array_len - 1);
 					}
 				}
 				else {
@@ -1529,9 +1534,9 @@ static bool animsys_store_rna_setting(
 			/* XXX don't tag as failed yet though, as there are some legit situations (Action Constraint)
 			 * where some channels will not exist, but shouldn't lock up Action */
 			if (G.debug & G_DEBUG) {
-				printf("Animato: Invalid path. ID = '%s',  '%s[%d]'\n",
-				       (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
-				       path, array_index);
+				CLOG_WARN(&LOG, "Animato: Invalid path. ID = '%s',  '%s[%d]'",
+				          (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
+				          path, array_index);
 			}
 		}
 	}
@@ -2427,8 +2432,8 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
 	if (!RNA_path_resolve_property(ptr, path, &key.ptr, &key.prop)) {
 		/* Report failure to resolve the path. */
 		if (G.debug & G_DEBUG) {
-			printf("Animato: Invalid path. ID = '%s',  '%s'\n",
-			       (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>", path);
+			CLOG_WARN(&LOG, "Animato: Invalid path. ID = '%s',  '%s'",
+			          (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>", path);
 		}
 
 		/* Cache NULL result. */
@@ -2649,8 +2654,8 @@ static bool nlaeval_blend_value(NlaBlendData *blend, NlaEvalChannel *nec, int ar
 	if (index < 0) {
 		if (G.debug & G_DEBUG) {
 			ID *id = nec->key.ptr.id.data;
-			printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d\n",
-			       id ? (id->name + 2) : "<No ID>", nec->rna_path, array_index, nec->base_snapshot.length);
+			CLOG_WARN(&LOG, "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
+    		          id ? (id->name + 2) : "<No ID>", nec->rna_path, array_index, nec->base_snapshot.length);
 		}
 
 		return false;
@@ -2824,7 +2829,7 @@ static void nlastrip_evaluate_actionclip(PointerRNA *ptr, NlaEvalData *channels,
 		return;
 
 	if (strip->act == NULL) {
-		printf("NLA-Strip Eval Error: Strip '%s' has no Action\n", strip->name);
+		CLOG_ERROR(&LOG, "NLA-Strip Eval Error: Strip '%s' has no Action", strip->name);
 		return;
 	}
 
@@ -3283,7 +3288,7 @@ static void animsys_calculate_nla(Depsgraph *depsgraph, PointerRNA *ptr, AnimDat
 	else {
 		/* special case - evaluate as if there isn't any NLA data */
 		/* TODO: this is really just a stop-gap measure... */
-		if (G.debug & G_DEBUG) printf("NLA Eval: Stopgap for active action on NLA Stack - no strips case\n");
+		if (G.debug & G_DEBUG) CLOG_WARN(&LOG, "NLA Eval: Stopgap for active action on NLA Stack - no strips case");
 
 		animsys_evaluate_action(depsgraph, ptr, adt->action, ctime);
 	}
@@ -3786,7 +3791,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 
 			/* set error-flag if evaluation failed */
 			if (ok == 0) {
-				printf("invalid driver - %s[%d]\n", fcu->rna_path, fcu->array_index);
+				CLOG_ERROR(&LOG, "invalid driver - %s[%d]", fcu->rna_path, fcu->array_index);
 				driver_orig->flag |= DRIVER_FLAG_INVALID;
 			}
 		}
