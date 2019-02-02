@@ -324,10 +324,10 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			wmOrtho2(0, sizex, 0, sizey);
 			GPU_matrix_translate_2f(sizex / 2, sizey / 2);
 
-			G.f |= G_RENDER_OGL;
+			G.f |= G_FLAG_RENDER_VIEWPORT;
 			ED_gpencil_draw_ex(
 				view_layer, rv3d, scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
-			G.f &= ~G_RENDER_OGL;
+			G.f &= ~G_FLAG_RENDER_VIEWPORT;
 
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, gp_rect);

@@ -402,9 +402,9 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 		return 0.0f;
 
 #ifndef USE_BYTECODE_WHITELIST
-	if (!(G.f & G_SCRIPT_AUTOEXEC)) {
-		if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
-			G.f |= G_SCRIPT_AUTOEXEC_FAIL;
+	if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
+		if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+			G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
 			BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
 
 			printf("skipping driver '%s', automatic scripts are disabled\n", expr);
@@ -543,7 +543,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 
 #ifdef USE_BYTECODE_WHITELIST
 	if (is_recompile && expr_code) {
-		if (!(G.f & G_SCRIPT_AUTOEXEC)) {
+		if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
 			if (!bpy_driver_secure_bytecode_validate(
 			            expr_code, (PyObject *[]){
 			                bpy_pydriver_Dict,

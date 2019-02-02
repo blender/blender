@@ -269,7 +269,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 			BLI_strncpy(vfont->name, filepath, sizeof(vfont->name));
 
 			/* if autopack is on store the packedfile in de font structure */
-			if (!is_builtin && (G.fileflags & G_AUTOPACK)) {
+			if (!is_builtin && (G.fileflags & G_FILE_AUTOPACK)) {
 				vfont->packedfile = pf;
 			}
 

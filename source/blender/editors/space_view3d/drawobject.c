@@ -64,7 +64,7 @@ static bool check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 	if ((sce->toolsettings->selectmode & SCE_SELECT_FACE) == 0)
 		return false;
 
-	if (G.f & G_BACKBUFSEL)
+	if (G.f & G_FLAG_BACKBUFSEL)
 		return false;
 
 	/* if its drawing textures with zbuf sel, then don't draw dots */

@@ -39,7 +39,7 @@
 
 static bool rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
 {
-	if (G.fileflags & G_AUTOPACK)
+	if (G.fileflags & G_FILE_AUTOPACK)
 		return 1;
 
 	return 0;
@@ -48,9 +48,9 @@ static bool rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
 static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), bool value)
 {
 	if (value)
-		G.fileflags |= G_AUTOPACK;
+		G.fileflags |= G_FILE_AUTOPACK;
 	else
-		G.fileflags &= ~G_AUTOPACK;
+		G.fileflags &= ~G_FILE_AUTOPACK;
 }
 
 static bool rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))

@@ -106,24 +106,14 @@ typedef struct Global {
 
 /** #Global.f */
 enum {
-	G_RENDER_OGL    = (1 <<  0),
-	G_SWAP_EXCHANGE = (1 <<  1),
-/* #define G_RENDER_SHADOW	(1 <<  3) */ /* temp flag, removed */
-	G_BACKBUFSEL    = (1 <<  4),
-	G_PICKSEL       = (1 <<  5),
-
-/* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) */
-
-	G_SCRIPT_AUTOEXEC = (1 << 13),
-	/** When this flag is set ignore the userprefs. */
-	G_SCRIPT_OVERRIDE_PREF = (1 << 14),
-	G_SCRIPT_AUTOEXEC_FAIL = (1 << 15),
-	G_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
-
-/* #define G_NOFROZEN	(1 << 17) also removed */
-/* #define G_GREASEPENCIL   (1 << 17)   also removed */
-
-/* #define G_AUTOMATKEYS	(1 << 30)   also removed */
+	G_FLAG_RENDER_VIEWPORT = (1 << 0),
+	G_FLAG_BACKBUFSEL = (1 << 4),
+	G_FLAG_PICKSEL = (1 << 5),
+	G_FLAG_SCRIPT_AUTOEXEC = (1 << 13),
+	/** When this flag is set ignore the prefs #USER_SCRIPT_AUTOEXEC_DISABLE. */
+	G_FLAG_SCRIPT_OVERRIDE_PREF = (1 << 14),
+	G_FLAG_SCRIPT_AUTOEXEC_FAIL = (1 << 15),
+	G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
 };
 
 /** #Global.debug */
@@ -161,7 +151,7 @@ enum {
 
 /** #Global.fileflags */
 enum {
-	G_AUTOPACK               = (1 << 0),
+	G_FILE_AUTOPACK          = (1 << 0),
 	G_FILE_COMPRESS          = (1 << 1),
 
 	G_FILE_USERPREFS         = (1 << 9),

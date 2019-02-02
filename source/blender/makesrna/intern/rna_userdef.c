@@ -163,8 +163,8 @@ static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
-	if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE) G.f &= ~G_SCRIPT_AUTOEXEC;
-	else G.f |=  G_SCRIPT_AUTOEXEC;
+	if (userdef->flag & USER_SCRIPT_AUTOEXEC_DISABLE) G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
+	else G.f |=  G_FLAG_SCRIPT_AUTOEXEC;
 }
 
 static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

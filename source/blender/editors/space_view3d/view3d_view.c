@@ -1024,7 +1024,7 @@ int view3d_opengl_select(
 	/* All of the queries need to be perform on the drawing context. */
 	DRW_opengl_context_enable();
 
-	G.f |= G_PICKSEL;
+	G.f |= G_FLAG_PICKSEL;
 
 	/* Important we use the 'viewmat' and don't re-calculate since
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
@@ -1082,7 +1082,7 @@ int view3d_opengl_select(
 		hits = drw_select_loop_user_data.hits;
 	}
 
-	G.f &= ~G_PICKSEL;
+	G.f &= ~G_FLAG_PICKSEL;
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 
 	if (v3d->shading.type > OB_WIRE) {

@@ -412,8 +412,8 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"render_preview_size", bpy_app_preview_render_size_get, NULL, (char *)bpy_app_preview_render_size_doc, (void *)ICON_SIZE_PREVIEW},
 
 	/* security */
-	{(char *)"autoexec_fail", bpy_app_global_flag_get, NULL, NULL, (void *)G_SCRIPT_AUTOEXEC_FAIL},
-	{(char *)"autoexec_fail_quiet", bpy_app_global_flag_get, NULL, NULL, (void *)G_SCRIPT_AUTOEXEC_FAIL_QUIET},
+	{(char *)"autoexec_fail", bpy_app_global_flag_get, NULL, NULL, (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL},
+	{(char *)"autoexec_fail_quiet", bpy_app_global_flag_get, NULL, NULL, (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET},
 	{(char *)"autoexec_fail_message", bpy_app_autoexec_fail_message_get, NULL, NULL, NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };

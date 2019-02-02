@@ -123,12 +123,12 @@ static int autopack_toggle_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 
-	if (G.fileflags & G_AUTOPACK) {
-		G.fileflags &= ~G_AUTOPACK;
+	if (G.fileflags & G_FILE_AUTOPACK) {
+		G.fileflags &= ~G_FILE_AUTOPACK;
 	}
 	else {
 		packAll(bmain, op->reports, true);
-		G.fileflags |= G_AUTOPACK;
+		G.fileflags |= G_FILE_AUTOPACK;
 	}
 
 	return OPERATOR_FINISHED;
@@ -219,7 +219,7 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
 	int method = RNA_enum_get(op->ptr, "method");
 
 	if (method != PF_KEEP) unpackAll(bmain, op->reports, method);  /* XXX PF_ASK can't work here */
-	G.fileflags &= ~G_AUTOPACK;
+	G.fileflags &= ~G_FILE_AUTOPACK;
 
 	return OPERATOR_FINISHED;
 }
@@ -236,7 +236,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
 	if (!count) {
 		BKE_report(op->reports, RPT_WARNING, "No packed files to unpack");
-		G.fileflags &= ~G_AUTOPACK;
+		G.fileflags &= ~G_FILE_AUTOPACK;
 		return OPERATOR_CANCELLED;
 	}
 
@@ -304,7 +304,7 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 	if (method != PF_KEEP)
 		BKE_unpack_id(bmain, id, op->reports, method);  /* XXX PF_ASK can't work here */
 
-	G.fileflags &= ~G_AUTOPACK;
+	G.fileflags &= ~G_FILE_AUTOPACK;
 
 	return OPERATOR_FINISHED;
 }

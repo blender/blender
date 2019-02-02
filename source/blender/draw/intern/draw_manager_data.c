@@ -594,7 +594,7 @@ void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, Object *ob, float (*o
 void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], uint attr_len)
 {
 #ifdef USE_GPU_SELECT
-	if (G.f & G_PICKSEL) {
+	if (G.f & G_FLAG_PICKSEL) {
 		if (shgroup->instance_count == shgroup->inst_selectid->vertex_len) {
 			GPU_vertbuf_data_resize(shgroup->inst_selectid, shgroup->instance_count + 32);
 		}
@@ -711,7 +711,7 @@ static void drw_shgroup_instance_init(
 	                              &shgroup->instance_geom, &shgroup->instance_vbo);
 
 #ifdef USE_GPU_SELECT
-	if (G.f & G_PICKSEL) {
+	if (G.f & G_FLAG_PICKSEL) {
 		/* Not actually used for rendering but alloced in one chunk.
 		 * Plus we don't have to care about ownership. */
 		static GPUVertFormat inst_select_format = {0};
@@ -748,7 +748,7 @@ static void drw_shgroup_batching_init(
 	                            &shgroup->batch_geom, &shgroup->batch_vbo);
 
 #ifdef USE_GPU_SELECT
-	if (G.f & G_PICKSEL) {
+	if (G.f & G_FLAG_PICKSEL) {
 		/* Not actually used for rendering but alloced in one chunk. */
 		static GPUVertFormat inst_select_format = {0};
 		if (inst_select_format.attr_len == 0) {
@@ -887,7 +887,7 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
         struct GPUMaterial *material, DRWPass *pass, int tri_count)
 {
 #ifdef USE_GPU_SELECT
-	BLI_assert((G.f & G_PICKSEL) == 0);
+	BLI_assert((G.f & G_FLAG_PICKSEL) == 0);
 #endif
 	GPUPass *gpupass = GPU_material_get_pass(material);
 	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
@@ -960,7 +960,7 @@ DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass
 DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int tri_count)
 {
 #ifdef USE_GPU_SELECT
-	BLI_assert((G.f & G_PICKSEL) == 0);
+	BLI_assert((G.f & G_FLAG_PICKSEL) == 0);
 #endif
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 

@@ -389,7 +389,7 @@ void BPY_python_end(void)
 void BPY_python_reset(bContext *C)
 {
 	/* unrelated security stuff */
-	G.f &= ~(G_SCRIPT_AUTOEXEC_FAIL | G_SCRIPT_AUTOEXEC_FAIL_QUIET);
+	G.f &= ~(G_FLAG_SCRIPT_AUTOEXEC_FAIL | G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET);
 	G.autoexec_fail[0] = '\0';
 
 	BPY_driver_reset();
@@ -764,9 +764,9 @@ void BPY_modules_load_user(bContext *C)
 
 	for (text = bmain->text.first; text; text = text->id.next) {
 		if (text->flags & TXT_ISSCRIPT && BLI_path_extension_check(text->id.name + 2, ".py")) {
-			if (!(G.f & G_SCRIPT_AUTOEXEC)) {
-				if (!(G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
-					G.f |= G_SCRIPT_AUTOEXEC_FAIL;
+			if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
+				if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
+					G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
 					BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Text '%s'", text->id.name + 2);
 
 					printf("scripts disabled for \"%s\", skipping '%s'\n", BKE_main_blendfile_path(bmain), text->id.name + 2);

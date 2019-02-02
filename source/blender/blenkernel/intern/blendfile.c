@@ -291,7 +291,7 @@ static void setup_app_data(
 
 	/* special cases, override loaded flags: */
 	if (G.f != bfd->globalf) {
-		const int flags_keep = (G_SWAP_EXCHANGE | G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+		const int flags_keep = (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF);
 		bfd->globalf = (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
 	}
 

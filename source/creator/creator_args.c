@@ -661,12 +661,12 @@ static const char arg_handle_python_set_doc_disable[] =
 static int arg_handle_python_set(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 	if ((bool)data) {
-		G.f |= G_SCRIPT_AUTOEXEC;
+		G.f |= G_FLAG_SCRIPT_AUTOEXEC;
 	}
 	else {
-		G.f &= ~G_SCRIPT_AUTOEXEC;
+		G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
 	}
-	G.f |= G_SCRIPT_OVERRIDE_PREF;
+	G.f |= G_FLAG_SCRIPT_OVERRIDE_PREF;
 	return 0;
 }
 

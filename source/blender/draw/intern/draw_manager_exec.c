@@ -38,7 +38,7 @@
 #ifdef USE_GPU_SELECT
 void DRW_select_load_id(uint id)
 {
-	BLI_assert(G.f & G_PICKSEL);
+	BLI_assert(G.f & G_FLAG_PICKSEL);
 	DST.select_id = id;
 }
 #endif
@@ -1131,12 +1131,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 #ifdef USE_GPU_SELECT
 #  define GPU_SELECT_LOAD_IF_PICKSEL(_select_id) \
-	if (G.f & G_PICKSEL) { \
+	if (G.f & G_FLAG_PICKSEL) { \
 		GPU_select_load_id(_select_id); \
 	} ((void)0)
 
 #  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(_call) \
-	if ((G.f & G_PICKSEL) && (_call)) { \
+	if ((G.f & G_FLAG_PICKSEL) && (_call)) { \
 		GPU_select_load_id((_call)->select_id); \
 	} ((void)0)
 
@@ -1144,7 +1144,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	_start = 0;                                                      \
 	_count = _shgroup->instance_count;                     \
 	int *select_id = NULL;                                           \
-	if (G.f & G_PICKSEL) {                                           \
+	if (G.f & G_FLAG_PICKSEL) {                                           \
 		if (_shgroup->override_selectid == -1) {                        \
 			/* Hack : get vbo data without actually drawing. */     \
 			GPUVertBufRaw raw;                   \

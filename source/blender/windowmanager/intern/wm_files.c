@@ -354,8 +354,8 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 
 	/* set the python auto-execute setting from user prefs */
 	/* enabled by default, unless explicitly enabled in the command line which overrides */
-	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
-		SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
+	if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {
+		SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
 	}
 
 	/* avoid re-saving for every small change to our prefs, allow overrides */
@@ -429,15 +429,15 @@ static int wm_read_exotic(const char *name)
 
 void WM_file_autoexec_init(const char *filepath)
 {
-	if (G.f & G_SCRIPT_OVERRIDE_PREF) {
+	if (G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) {
 		return;
 	}
 
-	if (G.f & G_SCRIPT_AUTOEXEC) {
+	if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
 		char path[FILE_MAX];
 		BLI_split_dir_part(filepath, path, sizeof(path));
 		if (BKE_autoexec_match(path)) {
-			G.f &= ~G_SCRIPT_AUTOEXEC;
+			G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
 		}
 	}
 }
@@ -615,7 +615,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		/* this flag is initialized by the operator but overwritten on read.
 		 * need to re-enable it here else drivers + registered scripts wont work. */
 		if (G.f != G_f) {
-			const int flags_keep = (G_SCRIPT_AUTOEXEC | G_SCRIPT_OVERRIDE_PREF);
+			const int flags_keep = (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF);
 			G.f = (G.f & ~flags_keep) | (G_f & flags_keep);
 		}
 
@@ -771,8 +771,8 @@ void wm_homefile_read(
 	/* options exclude eachother */
 	BLI_assert((use_factory_settings && filepath_startup_override) == 0);
 
-	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
-		SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
+	if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {
+		SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_FLAG_SCRIPT_AUTOEXEC);
 	}
 
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
@@ -1283,7 +1283,7 @@ static bool wm_file_write(bContext *C, const char *filepath, int fileflags, Repo
 
 	/* operator now handles overwrite checks */
 
-	if (G.fileflags & G_AUTOPACK) {
+	if (G.fileflags & G_FILE_AUTOPACK) {
 		packAll(bmain, reports, false);
 	}
 
@@ -1490,12 +1490,12 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
 {
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
 	if (!RNA_property_is_set(op->ptr, prop)) {
-		/* use G_SCRIPT_AUTOEXEC rather than the userpref because this means if
+		/* use G_FLAG_SCRIPT_AUTOEXEC rather than the userpref because this means if
 		 * the flag has been disabled from the command line, then opening
 		 * from the menu wont enable this setting. */
 		bool value = use_prefs ?
 		             ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) :
-		             ((G.f & G_SCRIPT_AUTOEXEC) != 0);
+		             ((G.f & G_FLAG_SCRIPT_AUTOEXEC) != 0);
 
 		RNA_property_boolean_set(op->ptr, prop, value);
 	}
@@ -1915,11 +1915,11 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 		G.fileflags |= G_FILE_NO_UI;
 
 	if (RNA_boolean_get(op->ptr, "use_scripts"))
-		G.f |= G_SCRIPT_AUTOEXEC;
+		G.f |= G_FLAG_SCRIPT_AUTOEXEC;
 	else
-		G.f &= ~G_SCRIPT_AUTOEXEC;
+		G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
 
-	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
+	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_FLAG_SCRIPT_AUTOEXEC));
 
 	/* for file open also popup for warnings, not only errors */
 	BKE_report_print_level_set(op->reports, RPT_WARNING);
@@ -2018,12 +2018,12 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 	wm_open_init_use_scripts(op, false);
 
 	if (RNA_boolean_get(op->ptr, "use_scripts"))
-		G.f |= G_SCRIPT_AUTOEXEC;
+		G.f |= G_FLAG_SCRIPT_AUTOEXEC;
 	else
-		G.f &= ~G_SCRIPT_AUTOEXEC;
+		G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
 
 	BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
+	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_FLAG_SCRIPT_AUTOEXEC));
 
 	if (success) {
 		return OPERATOR_FINISHED;
@@ -2461,16 +2461,16 @@ static uiBlock *block_create_autorun_warning(struct bContext *C, struct ARegion 
 void wm_test_autorun_warning(bContext *C)
 {
 	/* Test if any auto-execution of scripts failed. */
-	if ((G.f & G_SCRIPT_AUTOEXEC_FAIL) == 0) {
+	if ((G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL) == 0) {
 		return;
 	}
 
 	/* Only show the warning once. */
-	if (G.f & G_SCRIPT_AUTOEXEC_FAIL_QUIET) {
+	if (G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET) {
 		return;
 	}
 
-	G.f |= G_SCRIPT_AUTOEXEC_FAIL_QUIET;
+	G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET;
 
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = (wm->winactive) ? wm->winactive : wm->windows.first;

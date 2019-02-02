@@ -818,7 +818,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_CANCEL);
 		}
 		else if (!BKE_driver_has_simple_expression(driver)) {
-			if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
+			if ((G.f & G_FLAG_SCRIPT_AUTOEXEC) == 0) {
 				/* TODO: Add button to enable? */
 				uiItemL(col, IFACE_("WARNING: Python expressions limited for security"), ICON_ERROR);
 			}

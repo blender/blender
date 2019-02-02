@@ -2810,7 +2810,7 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (G.fileflags & G_AUTOPACK)
+	if (G.fileflags & G_FILE_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 
 	/* XXX unpackImage frees image buffers */
@@ -2838,7 +2838,7 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 		return OPERATOR_CANCELLED;
 	}
 
-	if (G.fileflags & G_AUTOPACK)
+	if (G.fileflags & G_FILE_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 
 	unpack_menu(C, "IMAGE_OT_unpack", ima->id.name + 2, ima->name, "textures", BKE_image_has_packedfile(ima) ? ((ImagePackedFile *)ima->packedfiles.first)->packedfile : NULL);

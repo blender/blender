@@ -127,9 +127,9 @@ void BKE_blender_globals_init(void)
 	BKE_blender_version_string(versionstr, sizeof(versionstr), BLENDER_VERSION, BLENDER_SUBVERSION, true, true);
 
 #ifndef WITH_PYTHON_SECURITY /* default */
-	G.f |= G_SCRIPT_AUTOEXEC;
+	G.f |= G_FLAG_SCRIPT_AUTOEXEC;
 #else
-	G.f &= ~G_SCRIPT_AUTOEXEC;
+	G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
 #endif
 
 	G.log.level = 1;
