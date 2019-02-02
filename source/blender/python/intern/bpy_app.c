@@ -259,6 +259,41 @@ static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *clos
 	return 0;
 }
 
+PyDoc_STRVAR(bpy_app_global_flag_doc,
+"Boolean, for application behavior (started with --enable-* matching this attribute name)"
+);
+static PyObject *bpy_app_global_flag_get(PyObject *UNUSED(self), void *closure)
+{
+	const int flag = POINTER_AS_INT(closure);
+	return PyBool_FromLong(G.f & flag);
+}
+
+static int bpy_app_global_flag_set(PyObject *UNUSED(self), PyObject *value, void *closure)
+{
+	const int flag = POINTER_AS_INT(closure);
+	const int param = PyObject_IsTrue(value);
+
+	if (param == -1) {
+		PyErr_SetString(PyExc_TypeError, "bpy.app.use_* can only be True/False");
+		return -1;
+	}
+
+	if (param)  G.f |=  flag;
+	else        G.f &= ~flag;
+
+	return 0;
+}
+
+static int bpy_app_global_flag_set__only_disable(PyObject *UNUSED(self), PyObject *value, void *closure)
+{
+	const int param = PyObject_IsTrue(value);
+	if (param == 1) {
+		PyErr_SetString(PyExc_ValueError, "This bpy.app.use_* option can only be disabled");
+		return -1;
+	}
+	return bpy_app_global_flag_set(NULL, value, closure);
+}
+
 #define BROKEN_BINARY_PATH_PYTHON_HACK
 
 PyDoc_STRVAR(bpy_app_binary_path_python_doc,
@@ -314,12 +349,6 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 	WM_main_add_notifier(NC_WINDOW, NULL);
 
 	return 0;
-}
-
-static PyObject *bpy_app_global_flag_get(PyObject *UNUSED(self), void *closure)
-{
-	const int flag = POINTER_AS_INT(closure);
-	return PyBool_FromLong(G.f & flag);
 }
 
 PyDoc_STRVAR(bpy_app_tempdir_doc,
@@ -401,6 +430,7 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug_io",        bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_IO},
 
 	{(char *)"use_static_override", bpy_app_use_static_override_get, bpy_app_use_static_override_set, (char *)bpy_app_use_static_override_doc, NULL},
+	{(char *)"use_event_simulate", bpy_app_global_flag_get, bpy_app_global_flag_set__only_disable, (char *)bpy_app_global_flag_doc, (void *)G_FLAG_EVENT_SIMULATE},
 
 	{(char *)"binary_path_python", bpy_app_binary_path_python_get, NULL, (char *)bpy_app_binary_path_python_doc, NULL},
 

@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include "BLI_utildefines.h"
 
@@ -468,6 +469,78 @@ static PointerRNA rna_WindoManager_operator_properties_last(const char *idname)
 	return PointerRNA_NULL;
 }
 
+static wmEvent *rna_Window_event_add_simulate(
+        wmWindow *win, ReportList *reports,
+        int type, int value, const char *unicode,
+        int x, int y,
+        bool shift, bool ctrl, bool alt, bool oskey)
+{
+	if ((G.f & G_FLAG_EVENT_SIMULATE) == 0) {
+		BKE_report(reports, RPT_ERROR, "Not running with '--enable-event-simulate' enabled");
+		return NULL;
+	}
+
+	if (!ELEM(value, KM_PRESS, KM_RELEASE, KM_NOTHING)) {
+		BKE_report(reports, RPT_ERROR, "value: only 'PRESS/RELEASE/NOTHING' are supported");
+		return NULL;
+	}
+	if (ISKEYBOARD(type) || ISMOUSE_BUTTON(type)) {
+		if (!ELEM(value, KM_PRESS, KM_RELEASE)) {
+			BKE_report(reports, RPT_ERROR, "value: must be 'PRESS/RELEASE' for keyboard/buttons");
+			return NULL;
+		}
+	}
+	if (ELEM(type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+		if (value != KM_NOTHING) {
+			BKE_report(reports, RPT_ERROR, "value: must be 'NOTHING' for motion");
+			return NULL;
+		}
+	}
+	if (unicode != NULL) {
+		if (value != KM_PRESS) {
+			BKE_report(reports, RPT_ERROR, "value: must be 'PRESS' when unicode is set");
+			return NULL;
+		}
+	}
+	/* TODO: validate NDOF. */
+
+	char ascii = 0;
+	if (unicode != NULL) {
+		int len = BLI_str_utf8_size(unicode);
+		if (len == -1 || unicode[len] != '\0') {
+			BKE_report(reports, RPT_ERROR, "Only a single character supported");
+			return NULL;
+		}
+		if (len == 1 && isascii(unicode[0])) {
+			ascii = unicode[0];
+		}
+	}
+
+	wmEvent e = {NULL};
+	e.type = type;
+	e.val = value;
+	e.x = x;
+	e.y = y;
+	/* Note: KM_MOD_FIRST, KM_MOD_SECOND aren't used anywhere, set as bools */
+	e.shift = shift;
+	e.ctrl = ctrl;
+	e.alt = alt;
+	e.oskey = oskey;
+
+	const wmEvent *evt = win->eventstate;
+	e.prevx = evt->x;
+	e.prevy = evt->y;
+	e.prevval = evt->val;
+	e.prevtype = evt->type;
+
+	if (unicode != NULL) {
+		e.ascii = ascii;
+		STRNCPY(e.utf8_buf, unicode);
+	}
+
+	return WM_event_add_simulate(win, &e);
+}
+
 #else
 
 #define WM_GEN_INVOKE_EVENT (1 << 0)
@@ -524,6 +597,26 @@ void RNA_api_window(StructRNA *srna)
 
 	RNA_def_function(srna, "cursor_modal_restore", "WM_cursor_modal_restore");
 	RNA_def_function_ui_description(func, "Restore the previous cursor after calling ``cursor_modal_set``");
+
+	/* Arguments match 'rna_KeyMap_item_new'. */
+	func = RNA_def_function(srna, "event_simulate", "rna_Window_event_add_simulate");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string(func, "unicode", NULL, 0, "", "");
+	RNA_def_parameter_clear_flags(parm, PROP_NEVER_NULL, 0);
+
+	RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
+	RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
+
+	RNA_def_boolean(func, "shift", 0, "Shift", "");
+	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
+	RNA_def_boolean(func, "alt", 0, "Alt", "");
+	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+	parm = RNA_def_pointer(func, "event", "Event", "Item", "Added key map item");
+	RNA_def_function_return(func, parm);
 }
 
 void RNA_api_wm(StructRNA *srna)
