@@ -51,8 +51,6 @@ class GHOST_WindowWin32;
 /**
  * WIN32 Implementation of GHOST_System class.
  * \see GHOST_System.
- * \author	Maarten Gribnau
- * \date	May 10, 2001
  */
 class GHOST_SystemWin32 : public GHOST_System {
 public:

@@ -20,9 +20,6 @@
 /** \file blender/freestyle/intern/stroke/StyleModule.h
  *  \ingroup freestyle
  *  \brief Class representing a style module
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <iostream>

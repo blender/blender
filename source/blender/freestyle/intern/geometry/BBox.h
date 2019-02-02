@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/BBox.h
  *  \ingroup freestyle
  *  \brief A class to hold a bounding box
- *  \author Stephane Grabli
- *  \date 22/05/2003
  */
 
 #include <stdlib.h>

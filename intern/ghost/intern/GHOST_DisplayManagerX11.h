@@ -32,8 +32,6 @@ class GHOST_SystemX11;
 
 /**
  * Manages system displays  (X11 implementation).
- * \author	Laurence Bourn
- * \date	October 26, 2001
  */
 class GHOST_DisplayManagerX11 : public GHOST_DisplayManager
 {

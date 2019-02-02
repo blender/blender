@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/Interpreter.h
  *  \ingroup freestyle
  *  \brief Base Class of all script interpreters
- *  \author Emmanuel Turquin
- *  \date 17/04/2003
  */
 
 #include <string>

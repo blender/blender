@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/Interface0D.h
  *  \ingroup freestyle
  *  \brief Interface to 0D elts
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <iostream>

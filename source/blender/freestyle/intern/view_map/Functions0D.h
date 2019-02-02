@@ -20,9 +20,6 @@
 /** \file blender/freestyle/intern/view_map/Functions0D.h
  *  \ingroup freestyle
  *  \brief Functions taking 0D input
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <set>

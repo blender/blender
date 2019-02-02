@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/Bezier.h
  *  \ingroup freestyle
  *  \brief Class to define a Bezier curve of order 4.
- *  \author Stephane Grabli
- *  \date 04/06/2003
  */
 
 #include <vector>

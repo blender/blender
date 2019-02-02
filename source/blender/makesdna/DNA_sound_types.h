@@ -18,8 +18,6 @@
  */
 /** \file DNA_sound_types.h
  *  \ingroup DNA
- *  \since mar-2001
- *  \author nzc
  */
 
 #ifndef __DNA_SOUND_TYPES_H__

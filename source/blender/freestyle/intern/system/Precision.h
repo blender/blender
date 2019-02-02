@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/Precision.h
  *  \ingroup freestyle
  *  \brief Define the float precision used in the program
- *  \author Stephane Grabli
- *  \date 30/07/2002
  */
 
 namespace Freestyle {

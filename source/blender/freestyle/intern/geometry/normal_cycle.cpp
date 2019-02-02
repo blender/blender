@@ -27,7 +27,6 @@
 
 /** \file blender/freestyle/intern/geometry/normal_cycle.cpp
  *  \ingroup freestyle
- *  \author Bruno Levy
  */
 
 #include "matrix_util.h"

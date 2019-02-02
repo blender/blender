@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/StringUtils.h
  *  \ingroup freestyle
  *  \brief String utilities
- *  \author Emmanuel Turquin
- *  \date 20/05/2003
  */
 
 #include <cstring>

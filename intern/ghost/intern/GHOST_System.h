@@ -50,8 +50,6 @@ class GHOST_NDOFManager;
  * GHOST_System is an abstract class because not all methods of GHOST_ISystem
  * are implemented.
  * \see GHOST_ISystem.
- * \author	Maarten Gribnau
- * \date	May 7, 2001
  */
 class GHOST_System : public GHOST_ISystem
 {

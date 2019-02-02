@@ -20,9 +20,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeShader.h
  *  \ingroup freestyle
  *  \brief Class defining StrokeShader
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <iostream>

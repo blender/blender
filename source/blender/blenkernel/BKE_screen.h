@@ -21,8 +21,6 @@
 
 /** \file BKE_screen.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 
 struct ARegion;

@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeIO.cpp
  *  \ingroup freestyle
  *  \brief Functions to manage I/O for the stroke
- *  \author Stephane Grabli
- *  \date 03/02/2004
  */
 
 #include "StrokeAdvancedIterators.h"

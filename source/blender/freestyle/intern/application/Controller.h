@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/application/Controller.h
  *  \ingroup freestyle
  *  \brief The spinal tap of the system.
- *  \author Stephane Grabli
- *  \date 01/07/2002
  */
 
 #include <string>

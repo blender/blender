@@ -19,7 +19,6 @@
 
 /** \file mmap_win.h
  *  \ingroup MEM
- *  \author Andrea Weikert
  */
 
 #ifndef __MMAP_WIN_H__

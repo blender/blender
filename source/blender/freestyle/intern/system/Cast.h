@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/Cast.h
  *  \ingroup freestyle
  *  \brief Cast function
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 namespace Freestyle {

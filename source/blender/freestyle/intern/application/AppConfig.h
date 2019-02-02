@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/application/AppConfig.h
  *  \ingroup freestyle
  *  \brief Configuration file
- *  \author Emmanuel Turquin
- *  \date 26/02/2003
  */
 
 #include <string>

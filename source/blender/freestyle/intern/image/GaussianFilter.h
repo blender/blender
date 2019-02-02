@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/image/GaussianFilter.h
  *  \ingroup freestyle
  *  \brief Class to perform gaussian filtering operations on an image
- *  \author Stephane Grabli
- *  \date 20/05/2003
  */
 
 #include <cstdlib> // for abs

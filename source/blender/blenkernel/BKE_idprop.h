@@ -19,7 +19,6 @@
 
 /** \file BKE_idprop.h
  *  \ingroup bke
- *  \author Joseph Eagar
  */
 
 #include "DNA_ID.h"

@@ -19,8 +19,6 @@
 
 /** \file ghost/intern/GHOST_SystemWin32.cpp
  *  \ingroup GHOST
- *
- * \author	Maarten Gribnau
  */
 
 

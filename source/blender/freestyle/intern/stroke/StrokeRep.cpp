@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeRep.cpp
  *  \ingroup freestyle
  *  \brief Class to define the representation of a stroke (for display purpose)
- *  \author Stephane Grabli
- *  \date 05/03/2003
  */
 
 #include "Stroke.h"

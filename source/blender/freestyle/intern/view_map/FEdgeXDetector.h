@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/FEdgeXDetector.h
  *  \ingroup freestyle
  *  \brief Detects/flags/builds extended features edges on the WXEdge structure
- *  \author Stephane Grabli
- *  \date 26/10/2003
  */
 
 #include <vector>

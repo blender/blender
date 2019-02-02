@@ -22,10 +22,6 @@
 /** \file BKE_action.h
  *  \ingroup bke
  *  \brief Blender kernel action and pose functionality.
- *  \author Reevan McKay
- *  \author Ton Roosendaal (full recode 2005)
- *  \author Joshua Leung (full recode 2009)
- *  \since may 2001
  */
 
 #include "DNA_listBase.h"

@@ -19,7 +19,6 @@
 
 /** \file BLI_edgehash.h
  *  \ingroup bli
- *  \author Daniel Dunbar
  */
 
 #include "BLI_compiler_attrs.h"

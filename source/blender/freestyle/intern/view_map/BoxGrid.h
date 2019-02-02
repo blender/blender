@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/BoxGrid.h
  *  \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
- *  \author Alexander Beels
- *  \date 2011-1-29
  */
 
 #define BOX_GRID_LOGGING 0

@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/Chain.cpp
  *  \ingroup freestyle
  *  \brief Class to define a chain of viewedges.
- *  \author Stephane Grabli
- *  \date 09/01/2003
  */
 
 #include "Chain.h"

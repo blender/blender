@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/ViewMapTesselator.h
  *  \ingroup freestyle
  *  \brief Class to build a Node Tree designed to be displayed from a Silhouette View Map structure.
- *  \author Stephane Grabli
- *  \date 26/03/2002
  */
 
 #include "Silhouette.h"

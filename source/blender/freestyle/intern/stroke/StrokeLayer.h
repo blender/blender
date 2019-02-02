@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeLayer.h
  *  \ingroup freestyle
  *  \brief Class to define a layer of strokes.
- *  \author Stephane Grabli
- *  \date 18/12/2002
  */
 
 #include <deque>

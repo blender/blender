@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/system/PythonInterpreter.cpp
  *  \ingroup freestyle
  *  \brief Python Interpreter
- *  \author Emmanuel Turquin
- *  \date 17/04/2003
  */
 
 #include "PythonInterpreter.h"

@@ -19,8 +19,6 @@
 
 /** \file DNA_mask_types.h
  *  \ingroup DNA
- *  \since march-2012
- *  \author Sergey Sharybin
  *
  * Mask data-blocks are collections of 2D curves to be used
  * for image masking in the compositor and sequencer.

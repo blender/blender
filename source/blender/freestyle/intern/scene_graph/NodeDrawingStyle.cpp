@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/NodeDrawingStyle.cpp
  *  \ingroup freestyle
  *  \brief Class to define a Drawing Style to be applied to the underlying children. Inherits from NodeGroup.
- *  \author Stephane Grabli
- *  \date 06/02/2002
  */
 
 #include "NodeDrawingStyle.h"

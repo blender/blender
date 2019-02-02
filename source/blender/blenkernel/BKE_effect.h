@@ -21,8 +21,6 @@
 
 /** \file BKE_effect.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 
 #include "DNA_modifier_types.h"

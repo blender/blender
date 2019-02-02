@@ -19,8 +19,6 @@
 
 /** \file DNA_tracking_types.h
  *  \ingroup DNA
- *  \since may-2011
- *  \author Sergey Sharybin
  *
  * Structs used for camera tracking and the movie-clip editor.
  */

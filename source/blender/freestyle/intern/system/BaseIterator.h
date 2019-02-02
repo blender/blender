@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/BaseIterator.h
  *  \ingroup freestyle
  *  \brief Classes defining the basic "Iterator" design pattern
- *  \author Stephane Grabli
- *  \date 18/03/2003
  */
 
 #include <iterator>

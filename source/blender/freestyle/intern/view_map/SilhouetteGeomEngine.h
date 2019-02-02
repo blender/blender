@@ -21,8 +21,6 @@
  *  \ingroup freestyle
  *  \brief Class to perform all geometric operations dedicated to silhouette. That, for example, implies that
  *         this geom engine has as member data the viewpoint, transformations, projections...
- *  \author Stephane Grabli
- *  \date 03/09/2002
  */
 
 #include <vector>

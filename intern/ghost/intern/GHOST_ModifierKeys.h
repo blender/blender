@@ -30,8 +30,6 @@
 /**
  * Stores the state of modifier keys.
  * Discriminates between left and right modifier keys.
- * \author	Maarten Gribnau
- * \date	May 17, 2001
  */
 struct GHOST_ModifierKeys {
 	/**

@@ -21,8 +21,6 @@
 
 /** \file BKE_main.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  *  \section aboutmain Main struct
  * Main is the root of the 'database' of a Blender context. All data
  * is stuffed into lists, and all these lists are knotted to here. A

@@ -22,7 +22,6 @@
 
 /** \file BKE_movieclip.h
  *  \ingroup bke
- *  \author Sergey Sharybin
  */
 
 struct Depsgraph;

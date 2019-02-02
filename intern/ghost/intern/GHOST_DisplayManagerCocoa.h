@@ -34,8 +34,6 @@
 /**
  * Manages system displays  (Mac OSX/Cocoa implementation).
  * \see GHOST_DisplayManager
- * \author	Maarten Gribnau
- * \date	September 21, 2001
  */
 class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager
 {

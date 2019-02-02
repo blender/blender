@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/ViewMapIterators.h
  *  \ingroup freestyle
  *  \brief Iterators used to iterate over the various elements of the ViewMap
- *  \author Stephane Grabli
- *  \date 01/07/2003
  */
 
 #include "ViewMap.h"

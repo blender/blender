@@ -24,8 +24,6 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * \author	Maarten Gribnau
- * \date	October 25, 2001
  */
 
 #include "GHOST_Debug.h"

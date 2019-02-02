@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/ViewMap.h
  *  \ingroup freestyle
  *  \brief Classes to define a View Map (ViewVertex, ViewEdge, etc.)
- *  \author Stephane Grabli
- *  \date 03/09/2002
  */
 
 #include <map>

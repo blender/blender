@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/geometry/Noise.cpp
  *  \ingroup freestyle
  *  \brief Class to define Perlin noise
- *  \author Emmanuel Turquin
- *  \date 12/01/2004
  */
 
 #include <math.h>

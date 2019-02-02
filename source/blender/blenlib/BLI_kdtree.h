@@ -20,8 +20,6 @@
 /** \file BLI_kdtree.h
  *  \ingroup bli
  *  \brief A kd-tree for nearest neighbor search.
- *  \author Janne Karhu
- *  \author Brecht van Lommel
  */
 
 #include "BLI_compiler_attrs.h"

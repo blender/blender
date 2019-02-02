@@ -21,8 +21,6 @@
 
 /** \file BKE_packedFile.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 #define RET_OK      0
 #define RET_ERROR   1

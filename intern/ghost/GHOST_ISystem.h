@@ -127,8 +127,6 @@ class GHOST_IEventConsumer;
  *  -# Access to the state of the mouse buttons and the keyboard.
  *  -# Menus for windows with events generated when they are accessed (this is
  *     work in progress).
- * \author  Maarten Gribnau
- * \date    May 30, 2001
  */
 class GHOST_ISystem
 {

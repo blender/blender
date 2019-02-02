@@ -48,9 +48,8 @@
  * \file atomic_ops.h
  * \ingroup Atomic
  *
- * \author Copyright (C) 2016 Blender Foundation, adapted from jemalloc.
- * \brief Provides wrapper around system-specific atomic primitives, and some extensions (faked-atomic operations
- *        over float numbers).
+ * \brief Provides wrapper around system-specific atomic primitives,
+ * and some extensions (faked-atomic operations over float numbers).
  */
 
 #ifndef __ATOMIC_OPS_H__

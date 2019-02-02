@@ -6,7 +6,6 @@
  *      this classes are usefull for automatic differentiation ( <-> symbolic diff , <-> numeric diff)
  *      Defines VectorVel, RotationVel, FrameVel.  Look at Frames.h for details on how to work
  *      with Frame objects.
- *  \author
  *      Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
  *  \version

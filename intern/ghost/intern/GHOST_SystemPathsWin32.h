@@ -40,8 +40,6 @@
 /**
  * WIN32 Implementation of GHOST_SystemPaths class.
  * \see GHOST_SystemPaths.
- * \author	Andrea Weikert
- * \date	August 1, 2010
  */
 class GHOST_SystemPathsWin32 : public GHOST_SystemPaths {
 public:

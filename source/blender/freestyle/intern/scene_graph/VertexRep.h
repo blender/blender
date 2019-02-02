@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/scene_graph/VertexRep.h
  *  \ingroup freestyle
  *  \brief Class to define the representation of a vertex for displaying purpose.
- *  \author Stephane Grabli
- *  \date 03/04/2002
  */
 
 #include "Rep.h"

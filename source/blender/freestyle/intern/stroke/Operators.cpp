@@ -17,9 +17,6 @@
 /** \file blender/freestyle/intern/stroke/Operators.cpp
  *  \ingroup freestyle
  *  \brief Class gathering stroke creation algorithms
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <algorithm>

@@ -19,7 +19,6 @@
 
 /** \file blender/blenlib/intern/BLI_mempool.c
  *  \ingroup bli
- *  \author Geoffrey Bantle
  *
  * Simple, fast memory allocator for allocating many elements of the same size.
  *

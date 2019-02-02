@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/ViewMapBuilder.h
  *  \ingroup freestyle
  *  \brief Class to build silhouette edges from a Winged-Edge structure
- *  \author Stephane Grabli
- *  \date 25/03/2002
  */
 
 #include <vector>

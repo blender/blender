@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/view_map/Pow23GridDensityProvider.cpp
  *  \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
- *  \author Alexander Beels
- *  \date 2011-2-8
  */
 
 #include "Pow23GridDensityProvider.h"

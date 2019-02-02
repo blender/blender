@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/Canvas.cpp
  *  \ingroup freestyle
  *  \brief Class to define a canvas designed to draw style modules
- *  \author Stephane Grabli
- *  \date 20/10/2002
  */
 
 #include <sstream>

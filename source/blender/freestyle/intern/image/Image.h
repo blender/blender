@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/image/Image.h
  *  \ingroup freestyle
  *  \brief Class to encapsulate an array of RGB or Gray level values
- *  \author Stephane Grabli
- *  \date 20/05/2003
  */
 
 #include <string.h> // for memcpy

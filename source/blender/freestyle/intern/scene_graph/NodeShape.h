@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/scene_graph/NodeShape.h
  *  \ingroup freestyle
  *  \brief Class to build a shape node. It contains a Rep, which is the shape geometry
- *  \author Stephane Grabli
- *  \date 25/01/2002
  */
 
 #include <vector>

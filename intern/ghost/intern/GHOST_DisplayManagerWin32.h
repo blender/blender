@@ -34,8 +34,6 @@
 
 /**
  * Manages system displays  (WIN32 implementation).
- * \author	Maarten Gribnau
- * \date	September 21, 2001
  */
 class GHOST_DisplayManagerWin32 : public GHOST_DisplayManager
 {

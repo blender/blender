@@ -19,8 +19,6 @@
 
 /** \file blender/blenlib/intern/expr_pylike_eval.c
  *  \ingroup bli
- *  \author Alexander Gavrilov
- *  \since 2018
  *
  * Simple evaluator for a subset of Python expressions that can be
  * computed using purely double precision floating point values.

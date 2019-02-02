@@ -20,10 +20,6 @@
 /** \file blender/freestyle/intern/geometry/VecMat.h
  *  \ingroup freestyle
  *  \brief Vectors and Matrices definition and manipulation
- *  \author Sylvain Paris
- *  \author Emmanuel Turquin
- *  \author Stephane Grabli
- *  \date 12/06/2003
  */
 
 #include <iostream>

@@ -109,7 +109,6 @@
  *  Sometimes the amount of work is given in the documentation
  *  e.g. 6M+3A means 6 multiplications and 3 additions.
  *
- *  \author
  *      Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
  ****************************************************************************/

@@ -20,10 +20,6 @@
 /** \file blender/freestyle/intern/geometry/Geom.h
  *  \ingroup freestyle
  *  \brief Vectors and Matrices (useful type definitions)
- *  \author Sylvain Paris
- *  \author Emmanuel Turquin
- *  \author Stephane Grabli
- *  \date 20/05/2003
  */
 
 #include "VecMat.h"

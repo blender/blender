@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/RandGen.h
  *  \ingroup freestyle
  *  \brief Pseudo-random number generator
- *  \author Fredo Durand
- *  \date 20/05/2003
  */
 
 // TODO Check whether we could replace this with BLI rand stuff...

@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeIterators.h
  *  \ingroup freestyle
  *  \brief Iterators used to iterate over the elements of the Stroke
- *  \author Stephane Grabli
- *  \date 01/07/2003
  */
 
 #include "Stroke.h"

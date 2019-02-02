@@ -22,8 +22,6 @@
 
 /** \file BKE_library_override.h
  *  \ingroup bke
- *  \since December 2016
- *  \author mont29
  */
 
 struct ID;

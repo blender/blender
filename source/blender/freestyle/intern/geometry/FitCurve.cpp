@@ -18,8 +18,6 @@
  *  \ingroup freestyle
  *  \brief An Algorithm for Automatically Fitting Digitized Curves by Philip J. Schneider,
  *  \brief from "Graphics Gems", Academic Press, 1990
- *  \author Stephane Grabli
- *  \date 06/06/2003
  */
 
 #include <cstdlib> // for malloc and free

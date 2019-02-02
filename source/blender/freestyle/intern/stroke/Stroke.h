@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/Stroke.h
  *  \ingroup freestyle
  *  \brief Classes to define a stroke
- *  \author Stephane Grabli
- *  \date 09/09/2002
  */
 
 #include <map>

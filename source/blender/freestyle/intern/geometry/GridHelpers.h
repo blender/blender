@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/GridHelpers.h
  *  \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
- *  \author Alexander Beels
- *  \date 2010-12-13
  */
 
 #include <vector>

@@ -22,8 +22,6 @@
 
 /** \file BKE_lattice.h
  *  \ingroup bke
- *  \author Ton Roosendaal
- *  \since June 2001
  */
 
 #include "BLI_compiler_attrs.h"

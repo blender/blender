@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/scene_graph/IndexedFaceSet.h
  *  \ingroup freestyle
  *  \brief A Set of indexed faces to represent a surfacic object
- *  \author Stephane Grabli
- *  \date 22/01/2002
  */
 
 #include <memory.h>

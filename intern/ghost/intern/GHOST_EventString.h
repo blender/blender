@@ -30,8 +30,6 @@
 
 /**
  * Generic class for events with string data
- * \author	Damien Plisson
- * \date	Feb 1, 2010
  */
 class GHOST_EventString : public GHOST_Event
 {

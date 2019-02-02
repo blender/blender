@@ -43,9 +43,6 @@
  *   upper left corner of the screen.</li>
  * - The client rectangle coordinate system. The client rectangle of a window
  *   is the area that is drawable by the application (excluding title bars etc.).
- *
- * \author  Maarten Gribnau
- * \date    May 31, 2001
  */
 class GHOST_IWindow
 {

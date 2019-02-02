@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/image/ImagePyramid.cpp
  *  \ingroup freestyle
  *  \brief Class to represent a pyramid of images
- *  \author Stephane Grabli
- *  \date 25/12/2003
  */
 
 #include <iostream>

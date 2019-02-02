@@ -22,9 +22,6 @@
 
 /** \file BLI_scanfill.h
  *  \ingroup bli
- *  \since March 2001
- *  \author nzc
- *  \brief Filling meshes.
  */
 
 struct ScanFillVert;

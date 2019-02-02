@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/winged_edge/WEdge.h
  *  \ingroup freestyle
  *  \brief Classes to define a Winged Edge data structure.
- *  \author Stephane Grabli
- *  \date 18/02/2002
  */
 
 #include <iterator>

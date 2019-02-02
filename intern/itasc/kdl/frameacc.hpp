@@ -12,7 +12,6 @@
  *
  *      It also contains the 2nd derivative <-> RFrames.h
  *
- *  \author
  *      Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
  *  \version

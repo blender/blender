@@ -21,9 +21,6 @@
 
 /** \file BKE_ipo.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
- *  \author Joshua Leung
  */
 
 #ifdef __cplusplus

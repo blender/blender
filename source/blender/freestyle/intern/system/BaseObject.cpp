@@ -18,8 +18,6 @@
  *  \ingroup freestyle
  *  \brief Base Class for most shared objects (Node, Rep). Defines the addRef, release system.
  *  \brief Inspired by COM IUnknown system.
- *  \author Stephane Grabli
- *  \date 06/02/2002
  */
 
 #include "BaseObject.h"

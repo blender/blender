@@ -36,8 +36,6 @@ class GHOST_Context;
  * upper-left corner of the screen.
  * Implements part of the GHOST_IWindow interface and adds some methods to
  * be implemented by childs of this class.
- * \author	Maarten Gribnau
- * \date	May 7, 2001
  */
 class GHOST_Window : public GHOST_IWindow
 {

@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/geometry/GeomCleaner.cpp
  *  \ingroup freestyle
  *  \brief Class to define a cleaner of geometry providing a set of useful tools
- *  \author Stephane Grabli
- *  \date 04/03/2002
  */
 
 #if 0

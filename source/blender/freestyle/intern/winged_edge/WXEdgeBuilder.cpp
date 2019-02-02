@@ -18,8 +18,6 @@
  *  \ingroup freestyle
  *  \brief Class inherited from WingedEdgeBuilder and designed to build a WX (WingedEdge + extended info
  *         (silhouette etc...)) structure from a polygonal model
- *  \author Stephane Grabli
- *  \date 28/05/2003
  */
 
 #include "WXEdge.h"

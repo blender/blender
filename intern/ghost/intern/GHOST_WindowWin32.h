@@ -135,8 +135,6 @@ typedef BOOL (API * GHOST_WIN32_GetPointerPenInfo)(UINT32 pointerId, POINTER_PEN
 
 /**
  * GHOST window on M$ Windows OSs.
- * \author	Maarten Gribnau
- * \date	May 10, 2001
  */
 class GHOST_WindowWin32 : public GHOST_Window {
 public:

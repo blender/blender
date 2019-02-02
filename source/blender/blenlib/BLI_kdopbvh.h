@@ -23,8 +23,6 @@
 
 /** \file BLI_kdopbvh.h
  *  \ingroup bli
- *  \author Daniel Genrich
- *  \author Andre Pinto
  */
 
 #ifdef __cplusplus

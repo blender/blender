@@ -19,8 +19,6 @@
 
 /** \file BKE_subdiv_eval.h
  *  \ingroup bke
- *  \since September 2018
- *  \author Sergey Sharybin
  */
 
 #ifndef __BKE_SUBDIV_EVAL_H__

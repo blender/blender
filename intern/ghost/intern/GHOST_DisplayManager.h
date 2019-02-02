@@ -31,8 +31,6 @@
 
 /**
  * Manages system displays  (platform independent implementation).
- * \author	Maarten Gribnau
- * \date	September 21, 2001
  */
 class GHOST_DisplayManager
 {

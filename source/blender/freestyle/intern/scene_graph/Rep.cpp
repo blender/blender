@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/Rep.cpp
  *  \ingroup freestyle
  *  \brief Base class for all shapes. Inherits from BasicObjects for references counter management (addRef, release).
- *  \author Stephane Grabli
- *  \date 25/01/2002
  */
 
 #include "Rep.h"

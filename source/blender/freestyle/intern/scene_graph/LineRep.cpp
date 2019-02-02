@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/LineRep.cpp
  *  \ingroup freestyle
  *  \brief Class to define the representation of 3D Line.
- *  \author Stephane Grabli
- *  \date 26/03/2002
  */
 
 #include "LineRep.h"

@@ -34,8 +34,6 @@
  * they want to receive events. The system will call the processEvent() method
  * for every installed event consumer to pass events.
  * \see GHOST_ISystem#addEventConsumer
- * \author  Maarten Gribnau
- * \date    May 14, 2001
  */
 class GHOST_IEventConsumer
 {

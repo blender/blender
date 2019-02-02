@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/FastGrid.h
  *  \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the bounding box of the scene
- *  \author Stephane Grabli
- *  \date 30/07/2002
  */
 
 #include "Grid.h"

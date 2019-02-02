@@ -30,7 +30,6 @@
 
 /** \file blender/freestyle/intern/geometry/normal_cycle.h
  *  \ingroup freestyle
- *  \author Bruno Levy
  */
 
 #include "Geom.h"

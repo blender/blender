@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/AutoPtrHelper.h
  *  \ingroup freestyle
  *  \brief Utility header for auto_ptr/unique_ptr selection
- *  \author Sergey Sharybin
- *  \date 2015-02-09
  */
 
 #include <memory>

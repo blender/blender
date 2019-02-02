@@ -20,9 +20,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeAdvancedIterators.h
  *  \ingroup freestyle
  *  \brief Iterators used to iterate over the elements of the Stroke. Can't be used in python
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include "Stroke.h"

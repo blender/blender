@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/QInformationMap.h
  *  \ingroup freestyle
  *  \brief Class defining an information map using a QImage
- *  \author Stephane Grabli
- *  \date 04/01/2003
  */
 
 #include <qimage.h>

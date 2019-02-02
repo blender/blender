@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeLayer.cpp
  *  \ingroup freestyle
  *  \brief Class to define a layer of strokes.
- *  \author Stephane Grabli
- *  \date 18/12/2002
  */
 
 #include "Canvas.h"

@@ -21,8 +21,6 @@
 
 /** \file BKE_anim.h
  *  \ingroup bke
- *  \author nzc
- *  \since March 2001
  */
 struct Depsgraph;
 struct ListBase;

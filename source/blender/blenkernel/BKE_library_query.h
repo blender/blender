@@ -21,8 +21,6 @@
 
 /** \file BKE_library_query.h
  *  \ingroup bke
- *  \since March 2014
- *  \author sergey
  */
 
 struct ID;

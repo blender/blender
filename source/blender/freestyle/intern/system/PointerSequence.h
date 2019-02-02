@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/PointerSequence.h
  *  \ingroup freestyle
  *  \brief Simple RAII wrappers for std:: sequential containers
- *  \author 22/11/2010
- *  \date 18/03/2003
  *
  *  PointerSequence
  *

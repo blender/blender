@@ -17,9 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/ScenePrettyPrinter.cpp
  *  \ingroup freestyle
  *  \brief Class to display textual information about a scene graph.
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 26/04/2003
  */
 
 #include <iomanip>

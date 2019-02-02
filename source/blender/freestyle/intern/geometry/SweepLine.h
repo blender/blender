@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/SweepLine.h
  *  \ingroup freestyle
  *  \brief Class to define a Sweep Line
- *  \author Stephane Grabli
- *  \date 29/08/2002
  */
 
 #include <list>

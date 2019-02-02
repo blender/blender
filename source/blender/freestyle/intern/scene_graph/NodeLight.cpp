@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/NodeLight.cpp
  *  \ingroup freestyle
  *  \brief Class to represent a light node
- *  \author Stephane Grabli
- *  \date 25/01/2002
  */
 
 #include "NodeLight.h"

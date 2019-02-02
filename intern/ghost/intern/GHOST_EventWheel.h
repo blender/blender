@@ -31,8 +31,6 @@
  * Mouse wheel event.
  * The displacement of the mouse wheel is counted in ticks.
  * A positive value means the wheel is turned away from the user.
- * \author	Maarten Gribnau
- * \date	May 11, 2001
  */
 class GHOST_EventWheel : public GHOST_Event
 {

@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeTesselator.cpp
  *  \ingroup freestyle
  *  \brief Class to build a Node Tree designed to be displayed from a set of strokes structure.
- *  \author Stephane Grabli
- *  \date 26/03/2002
  */
 
 #include "StrokeAdvancedIterators.h"

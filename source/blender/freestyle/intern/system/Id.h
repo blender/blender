@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/Id.h
  *  \ingroup freestyle
  *  \brief Identification system
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC

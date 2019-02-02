@@ -24,8 +24,6 @@
  * Simple test file for the GHOST library.
  * The OpenGL gear code is taken from the Qt sample code which,
  * in turn, is probably taken from somewhere as well.
- * \author	Maarten Gribnau
- * \date	May 31, 2001
  */
 
 #include <stdlib.h>

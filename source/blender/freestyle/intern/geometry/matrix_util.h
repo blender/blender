@@ -30,7 +30,6 @@
 
 /** \file blender/freestyle/intern/geometry/matrix_util.h
  *  \ingroup freestyle
- *  \author Bruno Levy
  */
 
 #include "../system/FreestyleConfig.h"

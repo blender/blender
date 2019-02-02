@@ -35,9 +35,6 @@
  * You can create a offscreen context (windowless) with the system's
  * GHOST_ISystem::createOffscreenContext method.
  * \see GHOST_ISystem#createOffscreenContext
- *
- * \author  Clément Foucault
- * \date    Feb 9, 2018
  */
 class GHOST_IContext
 {

@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/winged_edge/Nature.h
  *  \ingroup freestyle
  *  \brief Different natures for both vertices and edges
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 namespace Freestyle {

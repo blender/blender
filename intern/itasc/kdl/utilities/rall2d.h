@@ -4,7 +4,6 @@
  *      class for automatic differentiation on scalar values and 1st 
  *      derivatives and 2nd derivative.
  *       
- *  \author 
  *      Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
  *  \version 

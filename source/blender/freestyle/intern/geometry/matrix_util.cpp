@@ -27,7 +27,6 @@
 
 /** \file blender/freestyle/intern/geometry/matrix_util.cpp
  *  \ingroup freestyle
- *  \author Bruno Levy
  */
 
 #include "matrix_util.h"

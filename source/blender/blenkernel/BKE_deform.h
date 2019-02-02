@@ -22,8 +22,6 @@
 
 /** \file BKE_deform.h
  *  \ingroup bke
- *  \since June 2001
- *  \author Reevan McKay et al
  *  \brief support for deformation groups and hooks.
  */
 

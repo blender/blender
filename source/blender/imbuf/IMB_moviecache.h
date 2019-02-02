@@ -22,7 +22,6 @@
 
 /** \file IMB_moviecache.h
  *  \ingroup imbuf
- *  \author Sergey Sharybin
  */
 
 #include "BLI_utildefines.h"

@@ -27,7 +27,6 @@
 
  * Copyright (C) 2001 NaN Technologies B.V.
  *
- * \author Laurence, Brecht
  * \page IK - Blender inverse kinematics module.
  *
  * \section about About the IK module

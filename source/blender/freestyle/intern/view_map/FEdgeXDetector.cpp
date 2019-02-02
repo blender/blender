@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/view_map/FEdgeXDetector.cpp
  *  \ingroup freestyle
  *  \brief Detects/flags/builds extended features edges on the WXEdge structure
- *  \author Stephane Grabli
- *  \date 26/10/2003
  */
 
 #include <float.h>

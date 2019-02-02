@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/AdvancedStrokeShaders.h
  *  \ingroup freestyle
  *  \brief Fredo's stroke shaders
- *  \author Fredo Durand
- *  \date 17/12/2002
  */
 
 #include "BasicStrokeShaders.h"

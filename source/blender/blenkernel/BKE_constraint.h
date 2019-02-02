@@ -22,7 +22,6 @@
 
 /** \file BKE_constraint.h
  *  \ingroup bke
- *  \author Joshua Leung (major recode 2007)
  */
 
 struct Depsgraph;

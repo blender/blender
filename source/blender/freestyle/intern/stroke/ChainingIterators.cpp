@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/ChainingIterators.cpp
  *  \ingroup freestyle
  *  \brief Chaining iterators
- *  \author Stephane Grabli
- *  \date 01/07/2003
  */
 
 #include "../python/Director.h"

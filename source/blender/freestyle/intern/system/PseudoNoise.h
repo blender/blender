@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/PseudoNoise.h
  *  \ingroup freestyle
  *  \brief Class to define a pseudo Perlin noise
- *  \author Fredo Durand
- *  \date 16/06/2003
  */
 
 #include "Precision.h"

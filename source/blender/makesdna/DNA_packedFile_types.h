@@ -19,8 +19,6 @@
 
 /** \file DNA_packedFile_types.h
  *  \ingroup DNA
- *  \author nzc
- *  \since 12-oct-2000 nzc
  */
 
 #ifndef __DNA_PACKEDFILE_TYPES_H__

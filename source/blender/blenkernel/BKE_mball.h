@@ -21,8 +21,6 @@
 
 /** \file BKE_mball.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 struct BoundBox;
 struct Depsgraph;

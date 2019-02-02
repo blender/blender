@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/BasicStrokeShaders.h
  *  \ingroup freestyle
  *  \brief Class gathering basic stroke shaders
- *  \author Stephane Grabli
- *  \date 17/12/2002
  */
 
 #include <fstream>

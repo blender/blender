@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/StrokeRenderer.h
  *  \ingroup freestyle
  *  \brief Classes to render a stroke with OpenGL
- *  \author Fredo Durand
- *  \date 09/09/2002
  */
 
 #include <map>

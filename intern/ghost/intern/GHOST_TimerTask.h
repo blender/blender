@@ -30,8 +30,6 @@
 
 /**
  * Implementation of a timer task.
- * \author	Maarten Gribnau
- * \date	May 28, 2001
  */
 class GHOST_TimerTask : public GHOST_ITimerTask
 {

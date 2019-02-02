@@ -33,8 +33,6 @@
 
 /**
  * Manages system windows (platform independent implementation).
- * \author	Maarten Gribnau
- * \date	May 11, 2001
  */
 class GHOST_WindowManager
 {

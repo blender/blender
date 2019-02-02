@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/Exception.h
  *  \ingroup freestyle
  *  \brief Singleton to manage exceptions
- *  \author Stephane Grabli
- *  \date 10/01/2003
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC

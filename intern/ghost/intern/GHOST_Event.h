@@ -30,8 +30,6 @@
 
 /**
  * Base class for events received the operating system.
- * \author	Maarten Gribnau
- * \date	May 11, 2001
  */
 class GHOST_Event : public GHOST_IEvent
 {

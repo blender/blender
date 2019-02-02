@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/SceneVisitor.cpp
  *  \ingroup freestyle
  *  \brief Class to visit (without doing anything) a scene graph structure
- *  \author Emmanuel Turquin
- *  \date 26/04/2003
  */
 
 #include "SceneVisitor.h"

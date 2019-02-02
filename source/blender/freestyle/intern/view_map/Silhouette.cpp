@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/view_map/Silhouette.cpp
  *  \ingroup freestyle
  *  \brief Classes to define a silhouette structure
- *  \author Stephane Grabli
- *  \date 25/03/2002
  */
 
 #include "Silhouette.h"

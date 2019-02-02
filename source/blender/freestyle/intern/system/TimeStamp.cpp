@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/system/TimeStamp.cpp
  *  \ingroup freestyle
  *  \brief Class defining a singleton used as timestamp
- *  \author Stephane Grabli
- *  \date 12/12/2002
  */
 
 #include "TimeStamp.h"

@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/system/PseudoNoise.cpp
  *  \ingroup freestyle
  *  \brief Class to define a pseudo Perlin noise
- *  \author Fredo Durand
- *  \date 16/06/2003
  */
 
 #include "BLI_math.h"

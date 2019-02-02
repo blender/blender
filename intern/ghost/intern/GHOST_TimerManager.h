@@ -36,8 +36,6 @@ class GHOST_TimerTask;
  * Manages a list of timer tasks.
  * Timer tasks added are owned by the manager.
  * Don't delete timer task objects.
- * \author	Maarten Gribnau
- * \date	May 31, 2001
  */
 class GHOST_TimerManager
 {

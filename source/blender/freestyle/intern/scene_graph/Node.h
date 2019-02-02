@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/scene_graph/Node.h
  *  \ingroup freestyle
  *  \brief Abstract class for scene graph nodes. Inherits from BaseObject which defines the addRef release mechanism.
- *  \author Stephane Grabli
- *  \date 24/01/2002
  */
 
 #include "SceneVisitor.h"

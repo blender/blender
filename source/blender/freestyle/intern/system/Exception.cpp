@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/system/Exception.cpp
  *  \ingroup freestyle
  *  \brief Singleton to manage exceptions
- *  \author Stephane Grabli
- *  \date 10/01/2003
  */
 
 #include "Exception.h"

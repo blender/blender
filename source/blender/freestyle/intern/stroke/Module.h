@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/Module.h
  *  \ingroup freestyle
  *  \brief Set the type of the module
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include "Canvas.h"

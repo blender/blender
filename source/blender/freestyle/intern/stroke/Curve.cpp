@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/stroke/Curve.cpp
  *  \ingroup freestyle
  *  \brief Class to define a container for curves
- *  \author Stephane Grabli
- *  \date 11/01/2003
  */
 
 #include <stdio.h>  /* printf */

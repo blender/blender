@@ -39,8 +39,6 @@
  * process messages in order for the timer-callbacks to be called.
  * \see GHOST_ISystem#installTimer
  * \see GHOST_TimerProcPtr
- * \author	Maarten Gribnau
- * \date	May 31, 2001
  */
 class GHOST_ITimerTask
 {

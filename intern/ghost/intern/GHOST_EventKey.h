@@ -29,8 +29,6 @@
 
 /**
  * Key event.
- * \author	Maarten Gribnau
- * \date	May 11, 2001
  */
 class GHOST_EventKey : public GHOST_Event
 {

@@ -19,8 +19,6 @@
 
 /** \file DNA_texture_types.h
  *  \ingroup DNA
- *  \since mar-2001
- *  \author nzc
  */
 
 #ifndef __DNA_TEXTURE_TYPES_H__

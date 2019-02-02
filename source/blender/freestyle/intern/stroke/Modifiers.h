@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/Modifiers.h
  *  \ingroup freestyle
  *  \brief modifiers...
- *  \author Stephane Grabli
- *  \date 05/01/2003
  */
 
 #include "TimeStamp.h"

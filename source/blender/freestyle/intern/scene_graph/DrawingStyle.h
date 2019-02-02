@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/scene_graph/DrawingStyle.h
  *  \ingroup freestyle
  *  \brief Class to define the drawing style of a node
- *  \author Stephane Grabli
- *  \date 10/10/2002
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC

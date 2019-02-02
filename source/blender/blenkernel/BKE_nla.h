@@ -22,7 +22,6 @@
 
 /** \file BKE_nla.h
  *  \ingroup bke
- *  \author Joshua Leung (full recode)
  */
 
 struct AnimData;

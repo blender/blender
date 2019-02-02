@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/Polygon.h
  *  \ingroup freestyle
  *  \brief Class to define a polygon
- *  \author Stephane Grabli
- *  \date 30/07/2002
  */
 
 #include <vector>

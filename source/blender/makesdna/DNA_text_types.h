@@ -18,8 +18,6 @@
  */
 /** \file DNA_text_types.h
  *  \ingroup DNA
- *  \since mar-2001
- *  \author nzc
  *
  * Text blocks used for Python-Scripts, OpenShadingLanguage
  * and arbitrary text data to store in blend files.

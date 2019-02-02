@@ -21,8 +21,6 @@
 
 /** \file BKE_key.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 struct Curve;
 struct ID;

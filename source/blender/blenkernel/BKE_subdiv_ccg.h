@@ -19,8 +19,6 @@
 
 /** \file BKE_subdiv_ccg.h
  *  \ingroup bke
- *  \since July 2018
- *  \author Sergey Sharybin
  */
 
 #ifndef __BKE_SUBDIV_CCG_H__

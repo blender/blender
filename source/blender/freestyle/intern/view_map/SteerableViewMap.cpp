@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/view_map/SteerableViewMap.cpp
  *  \ingroup freestyle
  *  \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
- *  \author Stephane Grabli
- *  \date 01/07/2003
  */
 
 #include <sstream>

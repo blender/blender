@@ -2,7 +2,6 @@
  *  \ingroup itasc
  */
 /*****************************************************************************
- *  \author 
  *  	Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
  *  \version 

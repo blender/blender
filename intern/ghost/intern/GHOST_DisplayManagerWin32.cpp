@@ -19,8 +19,6 @@
 
 /** \file ghost/intern/GHOST_DisplayManagerWin32.cpp
  *  \ingroup GHOST
- *  \author	Maarten Gribnau
- *  \date	September 21, 2001
  */
 
 #include "GHOST_DisplayManagerWin32.h"

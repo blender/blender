@@ -71,8 +71,6 @@ class GHOST_WindowX11;
 /**
  * X11 Implementation of GHOST_System class.
  * \see GHOST_System.
- * \author	Laurence Bourn
- * \date	October 26, 2001
  */
 
 class GHOST_SystemX11 : public GHOST_System {

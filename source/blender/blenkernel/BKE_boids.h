@@ -22,8 +22,6 @@
 
 /** \file BKE_boids.h
  *  \ingroup bke
- *  \since 2009
- *  \author Janne Karhu
  */
 
 #include "DNA_boid_types.h"

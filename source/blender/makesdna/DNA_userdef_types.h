@@ -19,8 +19,6 @@
 
 /** \file DNA_userdef_types.h
  *  \ingroup DNA
- *  \since mar-2001
- *  \author nzc
  */
 
 #ifndef __DNA_USERDEF_TYPES_H__

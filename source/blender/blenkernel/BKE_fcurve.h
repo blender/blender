@@ -22,8 +22,6 @@
 
 /** \file BKE_fcurve.h
  *  \ingroup bke
- *  \author Joshua Leung
- *  \since 2009
  */
 
 #ifdef __cplusplus

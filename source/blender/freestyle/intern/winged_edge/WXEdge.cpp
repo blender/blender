@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/winged_edge/WXEdge.cpp
  *  \ingroup freestyle
  *  \brief Classes to define an Extended Winged Edge data structure.
- *  \author Stephane Grabli
- *  \date 26/10/2003
  */
 
 #include "WXEdge.h"

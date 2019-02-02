@@ -17,9 +17,6 @@
 /** \file blender/freestyle/intern/winged_edge/WFillGrid.cpp
  *  \ingroup freestyle
  *  \brief Class to fill in a grid from a SceneGraph (uses only the WingedEdge structures)
- *  \author Emmanuel Turquin
- *  \author Stephane Grabli
- *  \date 03/05/2003
  */
 
 #include "WEdge.h"

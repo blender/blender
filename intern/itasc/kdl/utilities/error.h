@@ -29,7 +29,6 @@
 /*****************************************************************************
  * \file  
  *		 Defines the exception classes that can be thrown
- *  \author 
  *  	Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven
  *
  *  \version 

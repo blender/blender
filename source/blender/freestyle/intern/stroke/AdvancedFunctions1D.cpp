@@ -17,9 +17,6 @@
 /** \file blender/freestyle/intern/stroke/AdvancedFunctions1D.cpp
  *  \ingroup freestyle
  *  \brief Functions taking 1D input
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include "AdvancedFunctions1D.h"

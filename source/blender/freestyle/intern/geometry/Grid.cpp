@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/geometry/Grid.cpp
  *  \ingroup freestyle
  *  \brief Base class to define a cell grid surrounding the bounding box of the scene
- *  \author Stephane Grabli
- *  \date 30/07/2002
  */
 
 #include <stdexcept>

@@ -19,8 +19,6 @@
 
 /** \file ghost/intern/GHOST_System.cpp
  *  \ingroup GHOST
- *  \author	Maarten Gribnau
- *  \date	May 7, 2001
  */
 
 #include "GHOST_System.h"

@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/view_map/ViewMapIO.cpp
  *  \ingroup freestyle
  *  \brief Functions to manage I/O for the view map
- *  \author Emmanuel Turquin
- *  \date 09/01/2003
  */
 
 #include <limits.h>

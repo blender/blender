@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/TimeStamp.h
  *  \ingroup freestyle
  *  \brief Class defining a singleton used as timestamp
- *  \author Stephane Grabli
- *  \date 12/12/2002
  */
 
 #ifdef WITH_CXX_GUARDEDALLOC

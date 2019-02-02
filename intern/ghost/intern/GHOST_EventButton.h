@@ -29,8 +29,6 @@
 
 /**
  * Mouse button event.
- * \author	Maarten Gribnau
- * \date	May 11, 2001
  */
 class GHOST_EventButton : public GHOST_Event
 {

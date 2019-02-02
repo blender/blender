@@ -33,8 +33,6 @@
  * The four extreme coordinates are stored as left, top, right and bottom.
  * To be valid, a rectangle should have a left coordinate smaller than or equal to right.
  * To be valid, a rectangle should have a top coordinate smaller than or equal to bottom.
- * \author  Maarten Gribnau
- * \date    May 10, 2001
  */
 
 class GHOST_Rect {

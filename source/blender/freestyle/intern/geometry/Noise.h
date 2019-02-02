@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/geometry/Noise.h
  *  \ingroup freestyle
  *  \brief Class to define Perlin noise
- *  \author Emmanuel Turquin
- *  \date 12/01/2004
  */
 
 #include "Geom.h"

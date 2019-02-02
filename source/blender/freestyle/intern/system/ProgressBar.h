@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/system/ProgressBar.h
  *  \ingroup freestyle
  *  \brief Class to encapsulate a progress bar
- *  \author Stephane Grabli
- *  \date 27/08/2002
  */
 
 #include <string>

@@ -21,8 +21,6 @@
 
 /** \file BKE_library.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 #ifdef __cplusplus
 extern "C" {

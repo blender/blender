@@ -21,7 +21,6 @@
 
 /** \file BKE_cloth.h
  *  \ingroup bke
- *  \author Daniel Genrich
  */
 
 #include <float.h>

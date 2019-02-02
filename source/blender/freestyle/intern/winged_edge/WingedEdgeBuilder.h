@@ -21,8 +21,6 @@
  *  \ingroup freestyle
  *  \brief Class to render a WingedEdge data structure from a polyhedral data structure organized in nodes
  *         of a scene graph
- *  \author Stephane Grabli
- *  \date 28/05/2003
  */
 
 #include "WEdge.h"

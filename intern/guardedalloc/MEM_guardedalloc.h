@@ -21,7 +21,6 @@
  * \file MEM_guardedalloc.h
  * \ingroup MEM
  *
- * \author Copyright (C) 2001 NaN Technologies B.V.
  * \brief Read \ref MEMPage
  *
  * \page MEMPage Guarded memory(de)allocation

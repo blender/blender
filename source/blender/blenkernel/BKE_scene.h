@@ -21,8 +21,6 @@
 
 /** \file BKE_scene.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 
 #ifdef __cplusplus

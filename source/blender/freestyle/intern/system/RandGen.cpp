@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/system/RandGen.cpp
  *  \ingroup freestyle
  *  \brief Pseudo-random number generator
- *  \author Fredo Durand
- *  \date 20/05/2003
  */
 
 #include "RandGen.h"

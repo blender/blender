@@ -22,7 +22,6 @@
 
 /** \file BLI_dlrbTree.h
  *  \ingroup bli
- *  \author Joshua Leung
  */
 
 /* Double-Linked Red-Black Tree Implementation:

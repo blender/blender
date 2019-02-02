@@ -21,8 +21,6 @@
 
 /** \file BKE_sound.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250

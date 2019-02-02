@@ -31,8 +31,6 @@
 /**
  * Event consumer that will forward events to a call-back routine.
  * Especially useful for the C-API.
- * \author	Maarten Gribnau
- * \date	October 25, 2001
  */
 class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer
 {

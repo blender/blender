@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/SphericalGrid.h
  *  \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
- *  \author Alexander Beels
- *  \date 2010-12-19
  */
 
 #define SPHERICAL_GRID_LOGGING 0

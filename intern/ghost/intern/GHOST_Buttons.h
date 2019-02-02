@@ -31,8 +31,6 @@
 /**
  * This struct stores the state of the mouse buttons.
  * Buttons can be set using button masks.
- * \author	Maarten Gribnau
- * \date	May 15, 2001
  */
 struct GHOST_Buttons {
 	/**

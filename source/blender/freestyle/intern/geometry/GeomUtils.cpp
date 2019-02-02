@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/geometry/GeomUtils.cpp
  *  \ingroup freestyle
  *  \brief Various tools for geometry
- *  \author Stephane Grabli
- *  \date 12/04/2002
  */
 
 #include "GeomUtils.h"

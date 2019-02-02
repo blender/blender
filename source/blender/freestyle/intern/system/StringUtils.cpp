@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/system/StringUtils.cpp
  *  \ingroup freestyle
  *  \brief String utilities
- *  \author Emmanuel Turquin
- *  \date 20/05/2003
  */
 
 //soc #include <qfileinfo.h>

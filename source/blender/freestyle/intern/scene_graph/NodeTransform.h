@@ -21,8 +21,6 @@
  *  \ingroup freestyle
  *  \brief Class to represent a transform node. A Transform node contains one or several children,
  *  \brief all affected by the transformation.
- *  \author Stephane Grabli
- *  \date 06/02/2002
  */
 
 #include "NodeGroup.h"

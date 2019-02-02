@@ -39,8 +39,6 @@ class GHOST_IWindow;
  * event data to the correct event dat structure.
  * \see GHOST_IEventConsumer#processEvent
  * \see GHOST_TEventType
- * \author	Maarten Gribnau
- * \date	May 31, 2001
  */
 class GHOST_IEvent
 {

@@ -22,7 +22,6 @@
 
 /** \file BKE_animsys.h
  *  \ingroup bke
- *  \author Joshua Leung
  */
 
 struct AnimData;

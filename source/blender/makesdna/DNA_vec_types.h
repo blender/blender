@@ -19,8 +19,6 @@
 
 /** \file DNA_vec_types.h
  *  \ingroup DNA
- *  \since dec-2000
- *  \author nzc
  */
 
 #ifndef __DNA_VEC_TYPES_H__

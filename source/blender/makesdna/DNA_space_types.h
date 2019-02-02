@@ -18,8 +18,6 @@
  */
 /** \file DNA_space_types.h
  *  \ingroup DNA
- *  \since mar-2001
- *  \author nzc
  *
  * Structs for each of space type in the user interface.
  */

@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/CurveAdvancedIterators.h
  *  \ingroup freestyle
  *  \brief Iterators used to iterate over the elements of the Curve. Can't be used in python
- *  \author Stephane Grabli
- *  \date 01/08/2003
  */
 
 #include "Stroke.h"

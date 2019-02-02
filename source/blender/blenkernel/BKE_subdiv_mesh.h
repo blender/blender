@@ -19,8 +19,6 @@
 
 /** \file BKE_subdiv_mesh.h
  *  \ingroup bke
- *  \since September 2018
- *  \author Sergey Sharybin
  */
 
 #ifndef __BKE_SUBDIV_MESH_H__

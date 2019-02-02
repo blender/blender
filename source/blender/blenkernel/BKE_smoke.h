@@ -22,7 +22,6 @@
 
 /** \file BKE_smoke.h
  *  \ingroup bke
- *  \author Daniel Genrich
  */
 
 typedef float (*bresenham_callback)(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);

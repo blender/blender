@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/stroke/PSStrokeRenderer.h
  *  \ingroup freestyle
  *  \brief Class to define the Postscript rendering of a stroke
- *  \author Stephane Grabli
- *  \date 10/26/2004
  */
 
 #include <fstream>

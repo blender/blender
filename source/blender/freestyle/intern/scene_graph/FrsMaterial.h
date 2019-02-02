@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/scene_graph/FrsMaterial.h
  *  \ingroup freestyle
  *  \brief Class used to handle materials.
- *  \author Stephane Grabli
- *  \date 10/10/2002
  */
 
 #include "../system/FreestyleConfig.h"

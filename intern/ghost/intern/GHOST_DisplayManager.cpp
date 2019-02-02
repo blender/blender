@@ -24,8 +24,6 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * \author	Maarten Gribnau
- * \date	September 21, 2001
  */
 
 #include "GHOST_DisplayManager.h"

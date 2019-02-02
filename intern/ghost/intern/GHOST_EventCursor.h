@@ -29,8 +29,6 @@
 
 /**
  * Cursor event.
- * \author	Maarten Gribnau
- * \date	May 11, 2001
  */
 class GHOST_EventCursor : public GHOST_Event
 {

@@ -20,8 +20,6 @@
 /** \file blender/freestyle/intern/view_map/Interface1D.h
  *  \ingroup freestyle
  *  \brief Interface 1D and related tools definitions
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <float.h>

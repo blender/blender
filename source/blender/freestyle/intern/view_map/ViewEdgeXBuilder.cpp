@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/view_map/ViewEdgeXBuilder.cpp
  *  \ingroup freestyle
  *  \brief Class to build view edges and the underlying chains of feature edges...
- *  \author Stephane Grabli
- *  \date 27/10/2003
  */
 
 #include <list>

@@ -21,8 +21,6 @@
 
 /** \file BKE_curve.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
  */
 
 struct BezTriple;

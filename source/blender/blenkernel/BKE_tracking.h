@@ -22,7 +22,6 @@
 
 /** \file BKE_tracking.h
  *  \ingroup bke
- *  \author Sergey Sharybin
  */
 
 struct Camera;

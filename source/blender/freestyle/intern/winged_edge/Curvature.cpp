@@ -30,11 +30,7 @@
 /** \file blender/freestyle/intern/winged_edge/Curvature.cpp
  *  \ingroup freestyle
  *  \brief GTS - Library for the manipulation of triangulated surfaces
- *  \author Stephane Popinet
- *  \date 1999
  *  \brief OGF/Graphite: Geometry and Graphics Programming Library + Utilities
- *  \author Bruno Levy
- *  \date 2000-2003
  */
 
 #include <assert.h>

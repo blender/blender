@@ -21,8 +21,6 @@
  *  \ingroup freestyle
  *  \brief Iterators used to iterate over the various elements of the ViewMap.
  *         These iterators can't be exported to python.
- *  \author Stephane Grabli
- *  \date 01/07/2003
  */
 
 #include "ViewMap.h"

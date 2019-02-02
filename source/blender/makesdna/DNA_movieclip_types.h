@@ -19,8 +19,6 @@
 
 /** \file DNA_movieclip_types.h
  *  \ingroup DNA
- *  \since may-2011
- *  \author Sergey Sharybin
  */
 
 #ifndef __DNA_MOVIECLIP_TYPES_H__

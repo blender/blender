@@ -21,8 +21,6 @@
  *  \ingroup freestyle
  *  \brief Functions related to context queries
  *  \brief Interface to access the context related information.
- *  \author Stephane Grabli
- *  \date 20/12/2003
  */
 
 #include "Canvas.h"

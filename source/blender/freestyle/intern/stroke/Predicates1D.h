@@ -20,9 +20,6 @@
 /** \file blender/freestyle/intern/stroke/Predicates1D.h
  *  \ingroup freestyle
  *  \brief Class gathering stroke creation algorithms
- *  \author Stephane Grabli
- *  \author Emmanuel Turquin
- *  \date 01/07/2003
  */
 
 #include <string>

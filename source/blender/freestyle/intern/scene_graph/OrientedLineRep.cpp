@@ -17,8 +17,6 @@
 /** \file blender/freestyle/intern/scene_graph/OrientedLineRep.cpp
  *  \ingroup freestyle
  *  \brief Class to display an oriented line representation.
- *  \author Stephane Grabli
- *  \date 24/10/2002
  */
 
 #include "OrientedLineRep.h"
