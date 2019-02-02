@@ -116,6 +116,10 @@ enum {
 	G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
 };
 
+/** Don't overwrite these flags when reading a file. */
+#define G_FLAG_ALL_RUNTIME \
+	(G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF)
+
 /** #Global.debug */
 enum {
 	G_DEBUG =           (1 << 0),  /* general debug flag, print more info in unexpected cases */
@@ -173,7 +177,9 @@ enum {
 /* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
 };
 
-#define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
+/** Don't overwrite these flags when reading a file. */
+#define G_FILE_FLAG_ALL_RUNTIME \
+	(G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
 
 /** ENDIAN_ORDER: indicates what endianness the platform where the file was written had. */
 #if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)

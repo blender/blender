@@ -586,7 +586,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
-		int G_f = G.f;
+		const int G_f_orig = G.f;
 		ListBase wmbase;
 
 		/* put aside screens to match with persistent windows later */
@@ -614,9 +614,9 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		/* this flag is initialized by the operator but overwritten on read.
 		 * need to re-enable it here else drivers + registered scripts wont work. */
-		if (G.f != G_f) {
-			const int flags_keep = (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF);
-			G.f = (G.f & ~flags_keep) | (G_f & flags_keep);
+		if (G.f != G_f_orig) {
+			const int flags_keep = G_FLAG_ALL_RUNTIME;
+			G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
 		}
 
 		/* match the read WM with current WM */

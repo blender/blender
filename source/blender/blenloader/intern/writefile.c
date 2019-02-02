@@ -3782,7 +3782,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.cur_view_layer = view_layer;
 
 	/* prevent to save this, is not good convention, and feature with concerns... */
-	fg.fileflags = (fileflags & ~G_FILE_FLAGS_RUNTIME);
+	fg.fileflags = (fileflags & ~G_FILE_FLAG_ALL_RUNTIME);
 
 	fg.globalf = G.f;
 	BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));

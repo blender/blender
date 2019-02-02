@@ -270,8 +270,8 @@ static void setup_app_data(
 	}
 
 	/* Keep state from preferences. */
-	const int fileflags_skip = G_FILE_FLAGS_RUNTIME;
-	G.fileflags = (G.fileflags & fileflags_skip) | (bfd->fileflags & ~fileflags_skip);
+	const int fileflags_keep = G_FILE_FLAG_ALL_RUNTIME;
+	G.fileflags = (G.fileflags & fileflags_keep) | (bfd->fileflags & ~fileflags_keep);
 
 	/* this can happen when active scene was lib-linked, and doesn't exist anymore */
 	if (CTX_data_scene(C) == NULL) {
@@ -291,7 +291,7 @@ static void setup_app_data(
 
 	/* special cases, override loaded flags: */
 	if (G.f != bfd->globalf) {
-		const int flags_keep = (G_FLAG_SCRIPT_AUTOEXEC | G_FLAG_SCRIPT_OVERRIDE_PREF);
+		const int flags_keep = G_FLAG_ALL_RUNTIME;
 		bfd->globalf = (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
 	}
 
