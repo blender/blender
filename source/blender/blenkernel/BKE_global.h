@@ -105,23 +105,26 @@ typedef struct Global {
 /* **************** GLOBAL ********************* */
 
 /** #Global.f */
-#define G_RENDER_OGL    (1 <<  0)
-#define G_SWAP_EXCHANGE (1 <<  1)
+enum {
+	G_RENDER_OGL    = (1 <<  0),
+	G_SWAP_EXCHANGE = (1 <<  1),
 /* #define G_RENDER_SHADOW	(1 <<  3) */ /* temp flag, removed */
-#define G_BACKBUFSEL    (1 <<  4)
-#define G_PICKSEL       (1 <<  5)
+	G_BACKBUFSEL    = (1 <<  4),
+	G_PICKSEL       = (1 <<  5),
 
 /* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) */
 
-#define G_SCRIPT_AUTOEXEC (1 << 13)
-#define G_SCRIPT_OVERRIDE_PREF (1 << 14) /* when this flag is set ignore the userprefs */
-#define G_SCRIPT_AUTOEXEC_FAIL (1 << 15)
-#define G_SCRIPT_AUTOEXEC_FAIL_QUIET (1 << 16)
+	G_SCRIPT_AUTOEXEC = (1 << 13),
+	/** When this flag is set ignore the userprefs. */
+	G_SCRIPT_OVERRIDE_PREF = (1 << 14),
+	G_SCRIPT_AUTOEXEC_FAIL = (1 << 15),
+	G_SCRIPT_AUTOEXEC_FAIL_QUIET = (1 << 16),
 
 /* #define G_NOFROZEN	(1 << 17) also removed */
 /* #define G_GREASEPENCIL   (1 << 17)   also removed */
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
+};
 
 /** #Global.debug */
 enum {
@@ -157,27 +160,28 @@ enum {
 
 
 /** #Global.fileflags */
+enum {
+	G_AUTOPACK               = (1 << 0),
+	G_FILE_COMPRESS          = (1 << 1),
 
-#define G_AUTOPACK               (1 << 0)
-#define G_FILE_COMPRESS          (1 << 1)
+	G_FILE_USERPREFS         = (1 << 9),
+	G_FILE_NO_UI             = (1 << 10),
 
-#define G_FILE_USERPREFS         (1 << 9)
-#define G_FILE_NO_UI             (1 << 10)
+	/* Bits 11 to 22 (inclusive) are deprecated & need to be cleared */
 
-/* Bits 11 to 22 (inclusive) are deprecated & need to be cleared */
-
-/** On read, use #FileGlobal.filename instead of the real location on-disk,
- * needed for recovering temp files so relative paths resolve */
-#define G_FILE_RECOVER           (1 << 23)
-/** On write, remap relative file paths to the new file location. */
-#define G_FILE_RELATIVE_REMAP    (1 << 24)
-/** On write, make backup `.blend1`, `.blend2` ... files, when the users preference is enabled */
-#define G_FILE_HISTORY           (1 << 25)
-/** BMesh option to save as older mesh format */
+	/** On read, use #FileGlobal.filename instead of the real location on-disk,
+	 * needed for recovering temp files so relative paths resolve */
+	G_FILE_RECOVER           = (1 << 23),
+	/** On write, remap relative file paths to the new file location. */
+	G_FILE_RELATIVE_REMAP    = (1 << 24),
+	/** On write, make backup `.blend1`, `.blend2` ... files, when the users preference is enabled */
+	G_FILE_HISTORY           = (1 << 25),
+	/** BMesh option to save as older mesh format */
 /* #define G_FILE_MESH_COMPAT       (1 << 26) */
-/** On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
-#define G_FILE_SAVE_COPY         (1 << 27)
+	/** On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
+	G_FILE_SAVE_COPY         = (1 << 27),
 /* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
+};
 
 #define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
 
@@ -196,11 +200,13 @@ enum {
 #endif
 
 /** #Global.moving, signals drawing in (3d) window to denote transform */
-#define G_TRANSFORM_OBJ         1
-#define G_TRANSFORM_EDIT        2
-#define G_TRANSFORM_SEQ         4
-#define G_TRANSFORM_FCURVES     8
-#define G_TRANSFORM_WM          16
+enum {
+	G_TRANSFORM_OBJ         = (1 << 0),
+	G_TRANSFORM_EDIT        = (1 << 1),
+	G_TRANSFORM_SEQ         = (1 << 2),
+	G_TRANSFORM_FCURVES     = (1 << 3),
+	G_TRANSFORM_WM          = (1 << 4),
+};
 
 /** Defined in blender.c */
 extern Global G;
