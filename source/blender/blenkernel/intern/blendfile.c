@@ -292,6 +292,7 @@ static void setup_app_data(
 	/* special cases, override loaded flags: */
 	if (G.f != bfd->globalf) {
 		const int flags_keep = G_FLAG_ALL_RUNTIME;
+		bfd->globalf &= G_FLAG_ALL_READFILE;
 		bfd->globalf = (bfd->globalf & ~flags_keep) | (G.f & flags_keep);
 	}
 

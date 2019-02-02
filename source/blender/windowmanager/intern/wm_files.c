@@ -616,6 +616,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		 * need to re-enable it here else drivers + registered scripts wont work. */
 		if (G.f != G_f_orig) {
 			const int flags_keep = G_FLAG_ALL_RUNTIME;
+			G.f &= G_FLAG_ALL_READFILE;
 			G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
 		}
 
