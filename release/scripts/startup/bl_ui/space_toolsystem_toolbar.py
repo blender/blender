@@ -114,8 +114,8 @@ class _defs_view3d_generic:
                 "\u2022 {} anywhere for new measurement.\n"
                 "\u2022 Drag ruler segment to measure an angle.\n"
                 "\u2022 Drag ruler outside the view to remove.\n"
-                "\u2022 Ctrl to snap.\n"
-                "\u2022 Shift to measure surface thickness"
+                "\u2022 Ctrl while dragging to snap.\n"
+                "\u2022 Shift while dragging to measure surface thickness."
             ).format(
                 kmi_to_string_or_none(kmi)
             )
