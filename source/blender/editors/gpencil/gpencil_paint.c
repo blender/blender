@@ -1766,7 +1766,7 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 }
 
 /* helper to set default eraser and disable others */
-static Brush *gp_set_default_eraser(Main *bmain, Brush *brush_dft)
+static void gp_set_default_eraser(Main *bmain, Brush *brush_dft)
 {
 	if (brush_dft == NULL) {
 		return;
