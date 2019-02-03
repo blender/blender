@@ -1485,10 +1485,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
         if brush is not None:
             gp_settings = brush.gpencil_settings
 
-            # XXX: Items in "sub" currently show up beside the brush selector in a separate column
-            if brush.gpencil_tool == 'ERASE':
-                sub.prop(gp_settings, "use_default_eraser", text="")
-            elif brush.gpencil_tool in {'DRAW', 'FILL'}:
+            if brush.gpencil_tool in {'DRAW', 'FILL'}:
                 layout.row(align=True).template_ID(gp_settings, "material")
 
             if not self.is_popover:

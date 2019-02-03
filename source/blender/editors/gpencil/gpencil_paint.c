@@ -1765,6 +1765,25 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 	}
 }
 
+/* helper to set default eraser and disable others */
+static Brush *gp_set_default_eraser(Main *bmain, Brush *brush_dft)
+{
+	if (brush_dft == NULL) {
+		return;
+	}
+
+	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+		if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
+			if (brush == brush_dft) {
+				brush->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
+			}
+			else if (brush->gpencil_settings->flag & GP_BRUSH_DEFAULT_ERASER) {
+				brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
+			}
+		}
+	}
+}
+
 /* initialize a drawing brush */
 static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 {
@@ -1791,6 +1810,9 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 	else {
 		p->eraser = paint->brush;
 	}
+	/* set new eraser as default */
+	gp_set_default_eraser(p->bmain, p->eraser);
+
 	/* use radius of eraser */
 	p->radius = (short)p->eraser->size;
 
