@@ -580,7 +580,7 @@ void BaseMathObject_dealloc(BaseMathObject *self)
 
 /*----------------------------MODULE INIT-------------------------*/
 static struct PyMethodDef M_Mathutils_methods[] = {
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef M_Mathutils_module_def = {

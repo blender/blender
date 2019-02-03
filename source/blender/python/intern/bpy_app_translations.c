@@ -384,7 +384,7 @@ static PyStructSequence_Desc app_translations_contexts_desc = {
 	(char *)"bpy.app.translations.contexts",     /* name */
 	(char *)"This named tuple contains all pre-defined translation contexts",    /* doc */
 	app_translations_contexts_fields,    /* fields */
-	ARRAY_SIZE(app_translations_contexts_fields) - 1
+	ARRAY_SIZE(app_translations_contexts_fields) - 1,
 };
 
 static PyObject *app_translations_contexts_make(void)
@@ -435,7 +435,7 @@ static PyMemberDef app_translations_members[] = {
 	                     app_translations_contexts_doc},
 	{(char *)"contexts_C_to_py", T_OBJECT_EX, offsetof(BlenderAppTranslations, contexts_C_to_py), READONLY,
 	                             app_translations_contexts_C_to_py_doc},
-	{NULL}
+	{NULL},
 };
 
 PyDoc_STRVAR(app_translations_locale_doc,
@@ -479,7 +479,7 @@ static PyGetSetDef app_translations_getseters[] = {
 	/* {name, getter, setter, doc, userdata} */
 	{(char *)"locale", (getter)app_translations_locale_get, NULL, app_translations_locale_doc, NULL},
 	{(char *)"locales", (getter)app_translations_locales_get, NULL, app_translations_locales_doc, NULL},
-	{NULL}
+	{NULL},
 };
 
 /* pgettext helper. */
@@ -657,7 +657,7 @@ static PyMethodDef app_translations_methods[] = {
 	                   app_translations_pgettext_data_doc},
 	{"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
 	                    app_translations_locale_explode_doc},
-	{NULL}
+	{NULL},
 };
 
 static PyObject *app_translations_new(PyTypeObject *type, PyObject *UNUSED(args), PyObject *UNUSED(kw))

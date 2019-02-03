@@ -123,7 +123,8 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 		{FLY_MODAL_FREELOOK_ENABLE, "FREELOOK_ENABLE", 0, "Rotation", ""},
 		{FLY_MODAL_FREELOOK_DISABLE, "FREELOOK_DISABLE", 0, "Rotation (Off)", ""},
 
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Fly Modal");
 

@@ -123,7 +123,7 @@ enum {
 	DO_BOX_WIPE,
 	DO_CROSS_WIPE,
 	DO_IRIS_WIPE,
-	DO_CLOCK_WIPE
+	DO_CLOCK_WIPE,
 };
 
 struct SeqEffectHandle {
@@ -410,7 +410,7 @@ enum {
 	SEQ_SIDE_NONE = 0,
 	SEQ_SIDE_LEFT,
 	SEQ_SIDE_RIGHT,
-	SEQ_SIDE_BOTH
+	SEQ_SIDE_BOTH,
 };
 int BKE_sequencer_find_next_prev_edit(
         struct Scene *scene, int cfra, const short side,

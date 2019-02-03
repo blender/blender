@@ -265,7 +265,7 @@ static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))
 
 static struct PyMethodDef bpy_bmesh_ops_fakemod_methods[] = {
 	{"__dir__", (PyCFunction)bpy_bmesh_ops_fakemod_dir, METH_NOARGS, NULL},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static PyTypeObject bmesh_ops_fakemod_Type = {

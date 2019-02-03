@@ -66,7 +66,7 @@ public:
 	void setMaxRadius(float maxRadius) { this->m_maxRadius = maxRadius; }
 	void setCameraObject(Object *camera) { this->m_cameraObject = camera; }
 	float determineFocalDistance();
-	void setPostBlur(FastGaussianBlurValueOperation *operation) {this->m_blurPostOperation = operation;}
+	void setPostBlur(FastGaussianBlurValueOperation *operation) { this->m_blurPostOperation = operation; }
 
 };
 #endif

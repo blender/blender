@@ -2186,7 +2186,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static const EnumPropertyItem prop_direction_items[] = {
 	{'h', "HORIZONTAL", 0, "Horizontal", ""},
 	{'v', "VERTICAL", 0, "Vertical", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void SCREEN_OT_area_split(wmOperatorType *ot)
@@ -4771,7 +4771,7 @@ static void SCREEN_OT_space_type_set_or_cycle(wmOperatorType *ot)
 static const EnumPropertyItem space_context_cycle_direction[] = {
 	{SPACE_CONTEXT_CYCLE_PREV, "PREV", 0, "Previous", ""},
 	{SPACE_CONTEXT_CYCLE_NEXT, "NEXT", 0, "Next", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static bool space_context_cycle_poll(bContext *C)
@@ -4987,7 +4987,8 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 		{KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
 		{KM_MODAL_SNAP_ON, "SNAP", 0, "Snap on", ""},
 		{KM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap off", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 	wmKeyMap *keymap;
 
 	/* Standard Modal keymap ------------------------------------------------ */

@@ -1221,7 +1221,7 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 	static const EnumPropertyItem space_items[] = {
 		{PAR_COPY_SPACE_OBJECT, "OBJECT", 0, "Object", "Copy inside each object's local space"},
 		{PAR_COPY_SPACE_WORLD, "WORLD", 0, "World", "Copy in world space"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	ot->name = "Copy Particle Systems";

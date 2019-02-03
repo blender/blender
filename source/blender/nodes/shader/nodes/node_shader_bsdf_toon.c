@@ -26,12 +26,12 @@ static bNodeSocketTemplate sh_node_bsdf_toon_in[] = {
 	{	SOCK_FLOAT,  1, N_("Size"),		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_FLOAT,  1, N_("Smooth"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_bsdf_toon_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_bsdf_toon(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

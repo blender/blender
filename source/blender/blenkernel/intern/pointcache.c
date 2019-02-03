@@ -129,7 +129,7 @@ static int ptcache_data_size[] = {
 		3 * sizeof(float), // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST
 		sizeof(float), // BPHYS_DATA_SIZE
 		3 * sizeof(float), // BPHYS_DATA_TIMES
-		sizeof(BoidData) // case BPHYS_DATA_BOIDS
+		sizeof(BoidData), // case BPHYS_DATA_BOIDS
 };
 
 static int ptcache_extra_datasize[] = {

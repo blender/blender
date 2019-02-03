@@ -744,13 +744,13 @@ static void subdiv_ccg_recalc_inner_face_normals(
 				CCG_grid_elem(key, grid, x, y + 1),
 				CCG_grid_elem(key, grid, x + 1, y + 1),
 				CCG_grid_elem(key, grid, x + 1, y),
-				CCG_grid_elem(key, grid, x, y)
+				CCG_grid_elem(key, grid, x, y),
 			};
 			float *co[4] = {
 			    CCG_elem_co(key, grid_elements[0]),
 			    CCG_elem_co(key, grid_elements[1]),
 			    CCG_elem_co(key, grid_elements[2]),
-			    CCG_elem_co(key, grid_elements[3])
+			    CCG_elem_co(key, grid_elements[3]),
 			};
 			const int face_index = y * grid_size_1 + x;
 			float *face_normal = tls->face_normals[face_index];

@@ -301,7 +301,7 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
 		{ED_GIZMO_BUTTON_SHOW_OUTLINE, "OUTLINE", 0, "Outline", ""},
 		{ED_GIZMO_BUTTON_SHOW_BACKDROP, "BACKDROP", 0, "Backdrop", ""},
 		{ED_GIZMO_BUTTON_SHOW_HELPLINE, "HELPLINE", 0, "Help Line", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	PropertyRNA *prop;
 

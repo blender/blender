@@ -549,7 +549,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 		{SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selection"},
 		{SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select left"},
 		{SEQ_SELECT_LR_RIGHT, "RIGHT", 0, "Right", "Select right"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -959,7 +959,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 	{SEQ_SELECT_GROUP_EFFECT_LINK, "EFFECT_LINK", 0, "Effect/Linked",
 	 "Other strips affected by the active one (sharing some time, and below or effect-assigned)"},
 	{SEQ_SELECT_GROUP_OVERLAP, "OVERLAP", 0, "Overlap", "Overlapping time"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #define SEQ_IS_SOUND(_seq) ((_seq->type & SEQ_TYPE_SOUND_RAM) && !(_seq->type & SEQ_TYPE_EFFECT))

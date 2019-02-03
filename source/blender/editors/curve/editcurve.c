@@ -3751,7 +3751,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 //		{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
 //		{CU_BSPLINE, "B_SPLINE", 0, "B-Spline", ""},
 		{CU_NURBS, "NURBS", 0, "NURBS", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -3809,7 +3809,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 		{5, "ALIGNED", 0, "Aligned", ""},
 		{6, "FREE_ALIGN", 0, "Free", ""},
 		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -5594,7 +5594,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{0, "CYCLIC_U", 0, "Cyclic U", ""},
 		{1, "CYCLIC_V", 0, "Cyclic V", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -6132,7 +6132,7 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 static const EnumPropertyItem curve_delete_type_items[] = {
 	{CURVE_VERTEX, "VERT", 0, "Vertices", ""},
 	{CURVE_SEGMENT, "SEGMENT", 0, "Segments", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem *rna_curve_delete_type_itemf(

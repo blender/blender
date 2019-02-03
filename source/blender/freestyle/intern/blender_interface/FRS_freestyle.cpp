@@ -342,7 +342,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 				{FREESTYLE_FE_MATERIAL_BOUNDARY, 0},
 				{FREESTYLE_FE_CONTOUR, 0},
 				{FREESTYLE_FE_EXTERNAL_CONTOUR, 0},
-				{FREESTYLE_FE_EDGE_MARK, 0}
+				{FREESTYLE_FE_EDGE_MARK, 0},
 			};
 			int num_edge_types = sizeof(conditions) / sizeof(struct edge_type_condition);
 			if (G.debug & G_DEBUG_FREESTYLE) {

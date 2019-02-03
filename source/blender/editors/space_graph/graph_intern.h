@@ -66,7 +66,7 @@ void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 enum eGraphKeys_LeftRightSelect_Mode {
 	GRAPHKEYS_LRSEL_TEST    = 0,
 	GRAPHKEYS_LRSEL_LEFT,
-	GRAPHKEYS_LRSEL_RIGHT
+	GRAPHKEYS_LRSEL_RIGHT,
 };
 
 /* defines for column-select mode */

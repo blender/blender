@@ -31,7 +31,7 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_in[] = {
 };
 static bNodeSocketTemplate cmp_node_doubleedgemask_out[] = {
 	{ SOCK_FLOAT, 0, "Mask"},		// output socket definition
-	{ -1, 0, "" }					// output socket array terminator
+	{ -1, 0, "" },					// output socket array terminator
 };
 
 void register_node_type_cmp_doubleedgemask(void)

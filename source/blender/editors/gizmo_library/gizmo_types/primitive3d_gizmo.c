@@ -173,7 +173,7 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
 
 	static EnumPropertyItem rna_enum_draw_style[] = {
 		{ED_GIZMO_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	RNA_def_enum(gzt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_PRIMITIVE_STYLE_PLANE, "Draw Style", "");
 }

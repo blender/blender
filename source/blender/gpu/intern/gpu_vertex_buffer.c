@@ -42,7 +42,7 @@ static GLenum convert_usage_type_to_gl(GPUUsageType type)
 	static const GLenum table[] = {
 		[GPU_USAGE_STREAM] = GL_STREAM_DRAW,
 		[GPU_USAGE_STATIC] = GL_STATIC_DRAW,
-		[GPU_USAGE_DYNAMIC] = GL_DYNAMIC_DRAW
+		[GPU_USAGE_DYNAMIC] = GL_DYNAMIC_DRAW,
 	};
 	return table[type];
 }

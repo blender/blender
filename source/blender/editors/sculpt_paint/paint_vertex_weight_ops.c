@@ -140,7 +140,8 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 	static const EnumPropertyItem type_items[] = {
 		{ARM_GROUPS_AUTO, "AUTOMATIC", 0, "Automatic", "Automatic weights from bones"},
 		{ARM_GROUPS_ENVELOPE, "ENVELOPES", 0, "From Envelopes", "Weights from envelopes with user defined radius"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Weight from Bones";
@@ -838,7 +839,7 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot)
 	static const EnumPropertyItem gradient_types[] = {
 		{WPAINT_GRADIENT_TYPE_LINEAR, "LINEAR", 0, "Linear", ""},
 		{WPAINT_GRADIENT_TYPE_RADIAL, "RADIAL", 0, "Radial", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;

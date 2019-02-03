@@ -28,12 +28,12 @@ static bNodeSocketTemplate sh_node_subsurface_scattering_in[] = {
 	{	SOCK_FLOAT, 1, N_("Sharpness"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, N_("Texture Blur"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_VECTOR, 1, N_("Normal"),		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_subsurface_scattering_out[] = {
 	{	SOCK_SHADER, 0, N_("BSSRDF")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)

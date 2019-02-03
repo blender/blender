@@ -75,13 +75,13 @@ static PyStructSequence_Desc bpyunits_systems_desc = {
 	(char *)"bpy.utils.units.systems",     /* name */
 	(char *)"This named tuple contains all pre-defined unit systems",    /* doc */
 	bpyunits_systems_fields,    /* fields */
-	ARRAY_SIZE(bpyunits_systems_fields) - 1
+	ARRAY_SIZE(bpyunits_systems_fields) - 1,
 };
 static PyStructSequence_Desc bpyunits_categories_desc = {
 	(char *)"bpy.utils.units.categories",     /* name */
 	(char *)"This named tuple contains all pre-defined unit names",    /* doc */
 	bpyunits_categories_fields,    /* fields */
-	ARRAY_SIZE(bpyunits_categories_fields) - 1
+	ARRAY_SIZE(bpyunits_categories_fields) - 1,
 };
 
 /**

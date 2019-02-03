@@ -194,7 +194,7 @@ void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
 /* data type, needed so we can tell between a NULL pointer and an empty list */
 enum {
 	CTX_DATA_TYPE_POINTER = 0,
-	CTX_DATA_TYPE_COLLECTION
+	CTX_DATA_TYPE_COLLECTION,
 };
 
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);

@@ -56,7 +56,7 @@ const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", "Make hairs stand up"},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs"},
 	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[] = {
@@ -74,7 +74,7 @@ const EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[] = {
 
 const EnumPropertyItem rna_enum_gpencil_weight_brush_items[] = {
 	{GP_SCULPT_TYPE_WEIGHT, "WEIGHT", ICON_GPBRUSH_WEIGHT, "Weight", "Weight Paint for Vertex Groups"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifndef RNA_RUNTIME
@@ -83,7 +83,7 @@ static const EnumPropertyItem rna_enum_gpencil_lock_axis_items[] = {
 	{GP_LOCKAXIS_Y, "AXIS_Y", ICON_AXIS_FRONT, "Front (X-Z)", "Project strokes to plane locked to Y"},
 	{GP_LOCKAXIS_X, "AXIS_X", ICON_AXIS_SIDE, "Side (Y-Z)", "Project strokes to plane locked to X"},
 	{GP_LOCKAXIS_Z, "AXIS_Z", ICON_AXIS_TOP, "Top (X-Y)", "Project strokes to plane locked to Z"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -142,7 +142,7 @@ const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[] = 
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter"},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs"},
 	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem particle_edit_cache_brush_items[] = {
@@ -150,7 +150,7 @@ static const EnumPropertyItem particle_edit_cache_brush_items[] = {
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb paths"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth paths"},
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make paths longer or shorter"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
@@ -681,7 +681,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 		 "Collapse Edges", "Collapse short edges to remove mesh detail where possible"},
 		{SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE, "SUBDIVIDE_COLLAPSE", 0,
 		 "Subdivide Collapse", "Both subdivide long edges and collapse short edges to refine mesh detail"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem detail_type_items[] = {
@@ -693,7 +693,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 		 "Brush Detail", "Mesh detail is relative to brush radius"},
 		{SCULPT_DYNTOPO_DETAIL_MANUAL, "MANUAL", 0,
 		 "Manual Detail", "Mesh detail does not change on each stroke, only when using Flood Fill"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -867,7 +867,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 		 "Material", "Detect image slots from the material"},
 		{IMAGEPAINT_MODE_IMAGE, "IMAGE", 0,
 		 "Single Image", "Set image for texture painting directly"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem paint_interp_items[] = {
@@ -875,7 +875,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 		 "Linear", "Linear interpolation"},
 		{IMAGEPAINT_INTERP_CLOSEST, "CLOSEST", 0,
 		 "Closest", "No interpolation (sample closest texel)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ImagePaint", "Paint");
@@ -1012,26 +1012,26 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 		{SCE_SELECT_PATH, "PATH", ICON_PARTICLE_PATH, "Path", "Path edit mode"},
 		{SCE_SELECT_POINT, "POINT", ICON_PARTICLE_POINT, "Point", "Point select mode"},
 		{SCE_SELECT_END, "TIP", ICON_PARTICLE_TIP, "Tip", "Tip select mode"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem puff_mode[] = {
 		{0, "ADD", 0, "Add", "Make hairs more puffy"},
 		{1, "SUB", 0, "Sub", "Make hairs less puffy"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem length_mode[] = {
 		{0, "GROW", 0, "Grow", "Make hairs longer"},
 		{1, "SHRINK", 0, "Shrink", "Make hairs shorter"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem edit_type_items[] = {
 		{PE_TYPE_PARTICLES, "PARTICLES", 0, "Particles", ""},
 		{PE_TYPE_SOFTBODY, "SOFT_BODY", 0, "Soft body", ""},
 		{PE_TYPE_CLOTH, "CLOTH", 0, "Cloth", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 
@@ -1208,14 +1208,14 @@ static void rna_def_gpencil_guides(BlenderRNA *brna)
 		{GP_GUIDE_RADIAL, "RADIAL", 0, "Radial", "Use single point as direction"},
 		{GP_GUIDE_PARALLEL, "PARALLEL", 0, "Parallel", "Parallel lines"},
 		{GP_GUIDE_GRID, "GRID", 0, "Grid", "Grid allows horizontal and vertical lines"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_gpencil_guide_references[] = {
 		{GP_GUIDE_REF_CURSOR, "CURSOR", 0, "Cursor", "Use cursor as reference point"},
 		{GP_GUIDE_REF_CUSTOM, "CUSTOM", 0, "Custom", "Use custom reference point"},
 		{GP_GUIDE_REF_OBJECT, "OBJECT", 0, "Object", "Use object as reference point"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "use_guide", PROP_BOOLEAN, PROP_NONE);
@@ -1290,7 +1290,8 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	static const EnumPropertyItem prop_direction_items[] = {
 		{0, "ADD", ICON_ADD, "Add", "Add effect of brush"},
 		{GP_SCULPT_FLAG_INVERT, "SUBTRACT", ICON_REMOVE, "Subtract", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	StructRNA *srna;
 	PropertyRNA *prop;

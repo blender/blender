@@ -122,7 +122,7 @@ const EnumPropertyItem rna_enum_light_type_items[] = {
 	{LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
 	{LA_SPOT, "SPOT", ICON_LIGHT_SPOT, "Spot", "Directional cone light source"},
 	{LA_AREA, "AREA", ICON_LIGHT_AREA, "Area", "Directional area light source"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* copy from rna_object_force.c */
@@ -140,7 +140,7 @@ static const EnumPropertyItem field_type_items[] = {
 	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
 	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{PFIELD_SMOKEFLOW, "SMOKE", ICON_FORCE_SMOKEFLOW, "Smoke Flow", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
@@ -150,7 +150,7 @@ static EnumPropertyItem lightprobe_type_items[] = {
      "Planar reflection probe"},
 	{LIGHTPROBE_TYPE_GRID, "GRID", ICON_LIGHTPROBE_GRID, "Irradiance Volume",
      "Irradiance probe to capture diffuse indirect lighting"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /************************** Exported *****************************/
@@ -1758,7 +1758,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 static const EnumPropertyItem convert_target_items[] = {
 	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
 	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)

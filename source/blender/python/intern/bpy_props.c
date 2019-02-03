@@ -61,7 +61,8 @@ static const EnumPropertyItem property_flag_items[] = {
 	{PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
 	{PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to eachother", ""},
 	{PROP_TEXTEDIT_UPDATE, "TEXTEDIT_UPDATE", 0, "Update on every keystroke in textedit 'mode'", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 #define BPY_PROPDEF_OPTIONS_DOC \
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE', 'PROPORTIONAL'," \
@@ -74,7 +75,8 @@ static const EnumPropertyItem property_flag_enum_items[] = {
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
 	{PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
 	{PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 #define BPY_PROPDEF_OPTIONS_ENUM_DOC \
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'ENUM_FLAG', 'LIBRARY_EDITABLE'].\n" \
@@ -92,7 +94,8 @@ static const EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 #define BPY_PROPDEF_SUBTYPE_STRING_DOC \
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILE_NAME', 'BYTE_STRING', 'PASSWORD', 'NONE'].\n" \
@@ -108,7 +111,8 @@ static const EnumPropertyItem property_subtype_number_items[] = {
 	{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_DOC \
 "   :arg subtype: Enumerator in ['PIXEL', 'UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n" \
@@ -130,7 +134,8 @@ static const EnumPropertyItem property_subtype_array_items[] = {
 	{PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 #define BPY_PROPDEF_SUBTYPE_ARRAY_DOC \
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', " \
@@ -3175,7 +3180,7 @@ static struct PyMethodDef props_methods[] = {
 	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS | METH_KEYWORDS, BPy_CollectionProperty_doc},
 
 	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS | METH_KEYWORDS, BPy_RemoveProperty_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef props_module = {

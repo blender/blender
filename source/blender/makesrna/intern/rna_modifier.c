@@ -115,7 +115,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MODIFIER, "Surface", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[] = {
@@ -125,13 +125,13 @@ const EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[] = {
 		                             "Split the quads on the 2nd and 4th vertices"},
 	{MOD_TRIANGULATE_QUAD_SHORTEDGE, "SHORTEST_DIAGONAL", 0, "Shortest Diagonal",
 		                             "Split the quads based on the distance between the vertices"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_modifier_triangulate_ngon_method_items[] = {
 	{MOD_TRIANGULATE_NGON_BEAUTY, "BEAUTY", 0, "Beauty", "Arrange the new triangles evenly (slow)"},
 	{MOD_TRIANGULATE_NGON_EARCLIP, "CLIP", 0, "Clip", "Split the polygons with an ear clipping algorithm"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_modifier_shrinkwrap_mode_items[] = {
@@ -148,7 +148,7 @@ const EnumPropertyItem rna_enum_modifier_shrinkwrap_mode_items[] = {
 	{MOD_SHRINKWRAP_ABOVE_SURFACE, "ABOVE_SURFACE", 0, "Above Surface",
 	                               "The point is constrained to the surface of the target object, "
 	                               "with distance offset applied exactly along the target normal"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -164,7 +164,7 @@ static const EnumPropertyItem modifier_warp_falloff_items[] = {
 	{eWarp_Falloff_Sharp,   "SHARP", ICON_SHARPCURVE, "Sharp", ""},
 	{eWarp_Falloff_Linear,  "LINEAR", ICON_LINCURVE, "Linear", ""},
 	{eWarp_Falloff_Const,   "CONSTANT", ICON_NOCURVE, "Constant", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -185,7 +185,7 @@ const EnumPropertyItem rna_enum_dt_method_vertex_items[] = {
 	 "Copy from interpolated values of vertices from closest point on closest face"},
 	{MREMAP_MODE_VERT_POLYINTERP_VNORPROJ, "POLYINTERP_VNORPROJ", 0, "Projected Face Interpolated",
 	 "Copy from interpolated values of vertices from point on closest face hit by normal-projection"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_dt_method_edge_items[] = {
@@ -199,7 +199,7 @@ const EnumPropertyItem rna_enum_dt_method_edge_items[] = {
 	 "Copy from closest edge of closest face (using midpoints)"},
 	{MREMAP_MODE_EDGE_EDGEINTERP_VNORPROJ, "EDGEINTERP_VNORPROJ", 0, "Projected Edge Interpolated",
 	 "Interpolate all source edges hit by the projection of destination one along its own normal (from vertices)"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_dt_method_loop_items[] = {
@@ -215,7 +215,7 @@ const EnumPropertyItem rna_enum_dt_method_loop_items[] = {
 	 "Copy from interpolated corners of the nearest source polygon"},
 	{MREMAP_MODE_LOOP_POLYINTERP_LNORPROJ, "POLYINTERP_LNORPROJ", 0, "Projected Face Interpolated",
 	 "Copy from interpolated corners of the source polygon hit by corner normal projection"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_dt_method_poly_items[] = {
@@ -227,7 +227,7 @@ const EnumPropertyItem rna_enum_dt_method_poly_items[] = {
 	 "Copy from source polygon which normal is the closest to destination one"},
 	{MREMAP_MODE_POLY_POLYINTERP_PNORPROJ, "POLYINTERP_PNORPROJ", 0, "Projected Face Interpolated",
 	 "Interpolate all source polygons intersected by the projection of destination one along its own normal"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_dt_mix_mode_items[] = {
@@ -246,7 +246,7 @@ const EnumPropertyItem rna_enum_dt_mix_mode_items[] = {
 	{CDT_MIX_MUL, "MUL", 0, "Multiply",
 	 "Multiply source value to destination one, using given threshold as factor"},
 	/* etc. etc. */
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_dt_layers_select_src_items[] = {
@@ -258,7 +258,7 @@ const EnumPropertyItem rna_enum_dt_layers_select_src_items[] = {
 	 "Transfer all vertex groups used by selected pose bones"},
 	{DT_LAYERS_VGROUP_SRC_BONE_DEFORM, "BONE_DEFORM", 0, "Deform Pose Bones",
 	 "Transfer all vertex groups used by deform bones"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_dt_layers_select_dst_items[] = {
@@ -268,27 +268,27 @@ const EnumPropertyItem rna_enum_dt_layers_select_dst_items[] = {
 	 "Match target data layers to affect by name"},
 	{DT_LAYERS_INDEX_DST, "INDEX", 0, "By Order",
 	 "Match target data layers to affect by order (indices)"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_axis_xy_items[] = {
 	{0, "X", 0, "X", ""},
 	{1, "Y", 0, "Y", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_axis_xyz_items[] = {
 	{0, "X", 0, "X", ""},
 	{1, "Y", 0, "Y", ""},
 	{2, "Z", 0, "Z", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
 	{(1 << 0), "X", 0, "X", ""},
 	{(1 << 1), "Y", 0, "Y", ""},
 	{(1 << 2), "Z", 0, "Z", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -1197,7 +1197,7 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
 	static const EnumPropertyItem prop_subdivision_type_items[] = {
 		{SUBSURF_TYPE_CATMULL_CLARK, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
 		{SUBSURF_TYPE_SIMPLE, "SIMPLE", 0, "Simple", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_uv_smooth_items[] = {
@@ -1217,7 +1217,7 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
 		{SUBSURF_UV_SMOOTH_ALL, "PRESERVE_BOUNDARIES", 0,
 		 "Smooth all", "UVs and boundaries are smoothed"},
 #endif
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -1284,7 +1284,7 @@ static void rna_def_modifier_generic_map_info(StructRNA *srna)
 		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object",
 		 "Use the linked object's local coordinate system for the texture coordinates"},
 		{MOD_DISP_MAP_UV, "UV", 0, "UV", "Use UV coordinates for the texture coordinates"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -1463,7 +1463,7 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 		{MOD_CURVE_NEGX, "NEG_X", 0, "-X", ""},
 		{MOD_CURVE_NEGY, "NEG_Y", 0, "-Y", ""},
 		{MOD_CURVE_NEGZ, "NEG_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "CurveModifier", "Modifier");
@@ -1630,7 +1630,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 		{MOD_DECIM_MODE_COLLAPSE, "COLLAPSE", 0, "Collapse", "Use edge collapsing"},
 		{MOD_DECIM_MODE_UNSUBDIV, "UNSUBDIV", 0, "Un-Subdivide", "Use un-subdivide face reduction"},
 		{MOD_DECIM_MODE_DISSOLVE, "DISSOLVE", 0, "Planar", "Dissolve geometry to form planar polygons"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* Note, keep in sync with operator 'MESH_OT_decimate' */
@@ -2012,7 +2012,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 		                               "Keep the part of the mesh that intersects with the other selected object"},
 		{eBooleanModifierOp_Union, "UNION", 0, "Union", "Combine two meshes in an additive way"},
 		{eBooleanModifierOp_Difference, "DIFFERENCE", 0, "Difference", "Combine two meshes in a subtractive way"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "BooleanModifier", "Modifier");
@@ -2045,7 +2045,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 		{eBooleanModifierBMeshFlag_BMesh_Separate, "SEPARATE", 0, "Separate", ""},
 		{eBooleanModifierBMeshFlag_BMesh_NoDissolve, "NO_DISSOLVE", 0, "No Dissolve", ""},
 		{eBooleanModifierBMeshFlag_BMesh_NoConnectRegions, "NO_CONNECT_REGIONS", 0, "No Connect Regions", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "debug_options", PROP_ENUM, PROP_NONE);
@@ -2066,7 +2066,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 		{MOD_ARR_FITLENGTH, "FIT_LENGTH", 0, "Fit Length",
 		                    "Duplicate the object as many times as fits in a certain length"},
 		{MOD_ARR_FITCURVE, "FIT_CURVE", 0, "Fit Curve", "Fit the duplicated objects to a curve"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ArrayModifier", "Modifier");
@@ -2226,13 +2226,13 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 		 "Use the texture's intensity value to displace along the (averaged) custom normal (falls back to vertex)"},
 		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", 0, "RGB to XYZ",
 		 "Use the texture's RGB values to displace the mesh in the XYZ direction"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_space_items[] = {
 		{MOD_DISP_SPACE_LOCAL, "LOCAL", 0, "Local", "Direction is defined in local coordinates"},
 		{MOD_DISP_SPACE_GLOBAL, "GLOBAL", 0, "Global", "Direction is defined in global coordinates"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "DisplaceModifier", "Modifier");
@@ -2402,7 +2402,7 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
 		 "Use the average of adjacent edge-vertices"},
 		{MOD_CORRECTIVESMOOTH_SMOOTH_LENGTH_WEIGHT, "LENGTH_WEIGHTED", 0, "Length Weight",
 		 "Use the average of adjacent edge-vertices weighted by their length"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem modifier_rest_source_items[] = {
@@ -2410,7 +2410,7 @@ static void rna_def_modifier_correctivesmooth(BlenderRNA *brna)
 		 "Use base mesh vert coords as the rest position"},
 		{MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND, "BIND", 0, "Bind Coords",
 		 "Use bind vert coords for rest position"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "CorrectiveSmoothModifier", "Modifier");
@@ -2547,7 +2547,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 		{MOD_CAST_TYPE_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{MOD_CAST_TYPE_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 		{MOD_CAST_TYPE_CUBOID, "CUBOID", 0, "Cuboid", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "CastModifier", "Modifier");
@@ -2629,7 +2629,7 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	static const EnumPropertyItem prop_mode_items[] = {
 		{0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh"},
 		{1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 #endif
 
@@ -2705,7 +2705,7 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	static EnumPropertyItem particleinstance_space[] = {
 		{eParticleInstanceSpace_Local, "LOCAL", 0, "Local", "Use offset from the particle object in the instance object"},
 		{eParticleInstanceSpace_World, "WORLD", 0, "World", "Use world space offset in the instance object"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ParticleInstanceModifier", "Modifier");
@@ -2940,7 +2940,7 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 		{MOD_SMOKE_TYPE_DOMAIN, "DOMAIN", 0, "Domain", ""},
 		{MOD_SMOKE_TYPE_FLOW, "FLOW", 0, "Flow", "Inflow/Outflow"},
 		{MOD_SMOKE_TYPE_COLL, "COLLISION", 0, "Collision", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SmokeModifier", "Modifier");
@@ -3023,7 +3023,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		                   "Use bevel weights to determine how much bevel is applied in edge mode"},
 		{MOD_BEVEL_VGROUP, "VGROUP", 0, "Vertex Group",
 		                   "Use vertex group weights to select whether vertex or edge is beveled"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_val_type_items[] = {
@@ -3031,7 +3031,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{MOD_BEVEL_AMT_WIDTH, "WIDTH", 0, "Width", "Amount is width of new face"},
 		{MOD_BEVEL_AMT_DEPTH, "DEPTH", 0, "Depth", "Amount is perpendicular distance from original edge to bevel face"},
 		{MOD_BEVEL_AMT_PERCENT, "PERCENT", 0, "Percent", "Amount is percent of adjacent edge length"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* TO BE DEPRECATED */
@@ -3039,7 +3039,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{0, "AVERAGE", 0, "Average", ""},
 		{MOD_BEVEL_EMIN, "SHARPEST", 0, "Sharpest", ""},
 		{MOD_BEVEL_EMAX, "LARGEST", 0, "Largest", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static EnumPropertyItem prop_harden_normals_items[] = {
@@ -3199,14 +3199,14 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 		{MOD_SHRINKWRAP_TARGET_PROJECT, "TARGET_PROJECT", 0, "Target Normal Project",
 		                                "Shrink the mesh to the nearest target surface "
 		                                "along the interpolated vertex normals of the target"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem shrink_face_cull_items[] = {
 		{0, "OFF", 0, "Off", "No culling"},
 		{MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, "FRONT", 0, "Front", "No projection when in front of the face"},
 		{MOD_SHRINKWRAP_CULL_TARGET_BACKFACE, "BACK", 0, "Back", "No projection when behind the face"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ShrinkwrapModifier", "Modifier");
@@ -3338,7 +3338,7 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	static const EnumPropertyItem modifier_mask_mode_items[] = {
 		{MOD_MASK_MODE_VGROUP, "VERTEX_GROUP", 0, "Vertex Group", ""},
 		{MOD_MASK_MODE_ARM, "ARMATURE", 0, "Armature", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MaskModifier", "Modifier");
@@ -3388,7 +3388,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 		{MOD_SIMPLEDEFORM_MODE_TAPER, "TAPER", 0, "Taper", "Linearly scale along Z axis of the modifier space"},
 		{MOD_SIMPLEDEFORM_MODE_STRETCH, "STRETCH", 0, "Stretch",
 		                                "Stretch the object along the Z axis of the modifier space"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SimpleDeformModifier", "Modifier");
@@ -3759,7 +3759,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna), StructRNA *
 		{MOD_DISP_MAP_GLOBAL, "GLOBAL", 0, "Global", "Use global coordinates"},
 		{MOD_DISP_MAP_OBJECT, "OBJECT", 0, "Object", "Use local generated coordinates of another object"},
 		{MOD_DISP_MAP_UV, "UV", 0, "UV", "Use coordinates from an UV layer"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem weightvg_mask_tex_used_items[] = {
@@ -3771,7 +3771,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna), StructRNA *
 		{MOD_WVG_MASK_TEX_USE_SAT, "SAT", 0, "Saturation", ""},
 		{MOD_WVG_MASK_TEX_USE_VAL, "VAL", 0, "Value", ""},
 		{MOD_WVG_MASK_TEX_USE_ALPHA, "ALPHA", 0, "Alpha", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -3830,7 +3830,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 		{MOD_WVG_MAPPING_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
 		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE /* Would need a better icon... */, "Median Step",
 		                       "Map all values below 0.5 to 0.0, and all others to 1.0"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -3909,7 +3909,7 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 		{MOD_WVG_MIX_DIV, "DIV", 0, "Divide", "Divide VGroup A's weights by VGroup B's ones"},
 		{MOD_WVG_MIX_DIF, "DIF", 0, "Difference", "Difference between VGroup A's and VGroup B's weights"},
 		{MOD_WVG_MIX_AVG, "AVG", 0, "Average", "Average value of VGroup A's and VGroup B's weights"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem weightvg_mix_set_items[] = {
@@ -3919,7 +3919,7 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 		{MOD_WVG_SET_OR,  "OR",  0, "VGroup A or B",
 		                  "Affect vertices in at least one of both VGroups (might add some to VGroup A)"},
 		{MOD_WVG_SET_AND, "AND", 0, "VGroup A and B", "Affect vertices in both groups"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -3981,14 +3981,14 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{MOD_WVG_PROXIMITY_GEOMETRY, "GEOMETRY", 0, "Geometry",
 		                             "Use distance between affected object's vertices and target "
 		                             "object, or target object's geometry"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem proximity_geometry_items[] = {
 		{MOD_WVG_PROXIMITY_GEOM_VERTS, "VERTEX", 0, "Vertex", "Compute distance to nearest vertex"},
 		{MOD_WVG_PROXIMITY_GEOM_EDGES, "EDGE", 0, "Edge", "Compute distance to nearest edge"},
 		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", 0, "Face", "Compute distance to nearest face"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem weightvg_proximity_falloff_type_items[] = {
@@ -4001,7 +4001,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{MOD_WVG_MAPPING_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
 		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE /* Would need a better icon... */, "Median Step",
 		                       "Map all values below 0.5 to 0.0, and all others to 1.0"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -4072,7 +4072,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
 		{MOD_REMESH_MASS_POINT, "SMOOTH", 0, "Smooth", "Output a smooth surface with no sharp-features detection"},
 		{MOD_REMESH_SHARP_FEATURES, "SHARP", 0, "Sharp",
 		                            "Output a surface that reproduces sharp edges and corners from the input mesh"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -4142,7 +4142,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 		{MOD_OCEAN_GEOM_SIM_ONLY, "SIM_ONLY", 0, "Sim Only",
 		                          "Leaves geometry unchanged, but still runs simulation (to be used from texture)"},
 #endif
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "OceanModifier", "Modifier");
@@ -4374,7 +4374,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 	static const EnumPropertyItem prop_format_type_items[] = {
 		{MOD_MESHCACHE_TYPE_MDD, "MDD", 0, "MDD ", ""},
 		{MOD_MESHCACHE_TYPE_PC2, "PC2", 0, "PC2", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_deform_mode_items[] = {
@@ -4382,7 +4382,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 		 "Replace vertex coords with cached values"},
 		{MOD_MESHCACHE_DEFORM_INTEGRATE, "INTEGRATE", 0, "Integrate",
 		 "Integrate deformation from this modifiers input with the mesh-cache coords (useful for shape keys)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_interpolation_type_items[] = {
@@ -4390,7 +4390,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 		{MOD_MESHCACHE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
 		/* for cardinal we'd need to read 4x cache's */
 		// {MOD_MESHCACHE_INTERP_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_time_type_items[] = {
@@ -4401,13 +4401,13 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 		{MOD_MESHCACHE_TIME_SECONDS, "TIME",    0, "Time",   "Control playback using time in seconds"},
 		/* use 'eval_factor' */
 		{MOD_MESHCACHE_TIME_FACTOR,  "FACTOR",  0, "Factor", "Control playback using a value between [0, 1]"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_time_play_items[] = {
 		{MOD_MESHCACHE_PLAY_CFEA, "SCENE", 0, "Scene", "Use the time from the scene"},
 		{MOD_MESHCACHE_PLAY_EVAL, "CUSTOM", 0, "Custom", "Use the modifier's own time evaluation"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -4540,7 +4540,7 @@ static void rna_def_modifier_meshseqcache(BlenderRNA *brna)
 		{MOD_MESHSEQ_READ_POLY,  "POLY", 0, "Faces", ""},
 		{MOD_MESHSEQ_READ_UV,    "UV", 0, "UV", ""},
 		{MOD_MESHSEQ_READ_COLOR, "COLOR", 0, "Color", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "read_data", PROP_ENUM, PROP_NONE);
@@ -4678,7 +4678,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 		{DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #endif
 		{DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem DT_layer_edge_items[] = {
@@ -4687,20 +4687,20 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 		{DT_TYPE_CREASE, "CREASE", 0, "Subsurf Crease", "Transfer crease values"},
 		{DT_TYPE_BWEIGHT_EDGE, "BEVEL_WEIGHT_EDGE", 0, "Bevel Weight", "Transfer bevel weights"},
 		{DT_TYPE_FREESTYLE_EDGE, "FREESTYLE_EDGE", 0, "Freestyle Mark", "Transfer Freestyle edge mark"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem DT_layer_loop_items[] = {
 		{DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
 		{DT_TYPE_VCOL, "VCOL", 0, "VCol", "Vertex (face corners) colors"},
 		{DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem DT_layer_poly_items[] = {
 		{DT_TYPE_SHARP_FACE, "SMOOTH", 0, "Smooth", "Transfer flat/smooth mark"},
 		{DT_TYPE_FREESTYLE_FACE, "FREESTYLE_FACE", 0, "Freestyle Mark", "Transfer Freestyle face mark"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "DataTransferModifier", "Modifier");
@@ -4897,7 +4897,7 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
 		        "From an ellipsoid (shape defined by the boundbox's dimensions, target is optional)"},
 		{MOD_NORMALEDIT_MODE_DIRECTIONAL, "DIRECTIONAL", 0, "Directional",
 		        "Normals 'track' (point to) the target object"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_mix_mode_items[] = {
@@ -4905,7 +4905,7 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
 		{MOD_NORMALEDIT_MIX_ADD, "ADD", 0, "Add", "Copy sum of new and old normals"},
 		{MOD_NORMALEDIT_MIX_SUB, "SUB", 0, "Subtract", "Copy new normals minus old normals"},
 		{MOD_NORMALEDIT_MIX_MUL, "MUL", 0, "Multiply", "Copy product of old and new normals (*not* cross product)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "NormalEditModifier", "Modifier");
@@ -5008,7 +5008,7 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
 		{MOD_WEIGHTEDNORMAL_MODE_ANGLE, "CORNER_ANGLE", 0, "Corner Angle", "Generate corner angle weighted normals"},
 		{MOD_WEIGHTEDNORMAL_MODE_FACE_ANGLE, "FACE_AREA_WITH_ANGLE", 0, "Face Area And Angle",
 		                                     "Generated normals weighted by both face area and angle"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "WeightedNormalModifier", "Modifier");

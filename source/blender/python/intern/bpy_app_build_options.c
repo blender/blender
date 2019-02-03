@@ -59,7 +59,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
 	{(char *)"openmp", NULL},
 	{(char *)"openvdb", NULL},
 	{(char *)"alembic", NULL},
-	{NULL}
+	{NULL},
 };
 
 
@@ -67,7 +67,7 @@ static PyStructSequence_Desc app_builtopts_info_desc = {
 	(char *)"bpy.app.build_options",     /* name */
 	(char *)"This module contains information about options blender is built with",    /* doc */
 	app_builtopts_info_fields,    /* fields */
-	ARRAY_SIZE(app_builtopts_info_fields) - 1
+	ARRAY_SIZE(app_builtopts_info_fields) - 1,
 };
 
 static PyObject *make_builtopts_info(void)

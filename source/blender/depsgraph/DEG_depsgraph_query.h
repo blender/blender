@@ -146,7 +146,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 	{                                                                             \
 		DEGObjectIterData data_ = {                                               \
 			graph_,                                                               \
-			flag_                                                                 \
+			flag_,                                                                \
 		};                                                                        \
                                                                                   \
 		ITER_BEGIN(DEG_iterator_objects_begin,                                    \

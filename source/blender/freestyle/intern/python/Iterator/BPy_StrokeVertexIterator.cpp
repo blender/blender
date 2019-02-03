@@ -193,7 +193,7 @@ static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
 	{"incremented", (PyCFunction)StrokeVertexIterator_incremented, METH_NOARGS, StrokeVertexIterator_incremented_doc},
 	{"decremented", (PyCFunction)StrokeVertexIterator_decremented, METH_NOARGS, StrokeVertexIterator_decremented_doc},
 	{"reversed", (PyCFunction)StrokeVertexIterator_reversed, METH_NOARGS, StrokeVertexIterator_reversed_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------StrokeVertexIterator get/setters ----------------------------*/

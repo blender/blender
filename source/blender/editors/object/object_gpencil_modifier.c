@@ -574,7 +574,7 @@ static int gpencil_modifier_apply_invoke(bContext *C, wmOperator *op, const wmEv
 static const EnumPropertyItem gpencil_modifier_apply_as_items[] = {
 	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
 	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 void OBJECT_OT_gpencil_modifier_apply(wmOperatorType *ot)

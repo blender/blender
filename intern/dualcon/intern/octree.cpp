@@ -366,7 +366,7 @@ InternalNode *Octree::addTriangle(InternalNode *node, CubeTriangleIsect *p, int 
 		{0,  0,  1}};
 	unsigned char boxmask = p->getBoxMask();
 	CubeTriangleIsect *subp = new CubeTriangleIsect(p);
-	
+
 	int count = 0;
 	int tempdiff[3] = {0, 0, 0};
 
@@ -2224,7 +2224,7 @@ void Octree::computeMinimizer(const LeafNode *leaf, int st[3], int len,
 
 		default: {
 			// Sharp features */
-			
+
 			// construct QEF and minimizer
 			float mp[3] = {0, 0, 0};
 			minimize(rvalue, mp, pts, norms, parity);
@@ -2753,7 +2753,7 @@ const int faceMap[6][4] = {
 	{0, 8, 1, 10},
 	{2, 9, 3, 11},
 	{0, 4, 2, 6},
-	{1, 5, 3, 7}
+	{1, 5, 3, 7},
 };
 
 const int cellProcFaceMask[12][3] = {
@@ -2768,7 +2768,7 @@ const int cellProcFaceMask[12][3] = {
 	{0, 1, 2},
 	{2, 3, 2},
 	{4, 5, 2},
-	{6, 7, 2}
+	{6, 7, 2},
 };
 
 const int cellProcEdgeMask[6][5] = {
@@ -2777,7 +2777,7 @@ const int cellProcEdgeMask[6][5] = {
 	{0, 4, 1, 5, 1},
 	{2, 6, 3, 7, 1},
 	{0, 2, 4, 6, 2},
-	{1, 3, 5, 7, 2}
+	{1, 3, 5, 7, 2},
 };
 
 const int faceProcFaceMask[3][4][3] = {
@@ -2822,7 +2822,7 @@ const int edgeProcEdgeMask[3][2][5] = {
 const int processEdgeMask[3][4] = {
 	{3, 2, 1, 0},
 	{7, 5, 6, 4},
-	{11, 10, 9, 8}
+	{11, 10, 9, 8},
 };
 
 const int dirCell[3][4][3] = {
@@ -2843,7 +2843,7 @@ const int dirCell[3][4][3] = {
 const int dirEdge[3][4] = {
 	{3, 2, 1, 0},
 	{7, 6, 5, 4},
-	{11, 10, 9, 8}
+	{11, 10, 9, 8},
 };
 
 int InternalNode::numChildrenTable[256];

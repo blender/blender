@@ -1064,18 +1064,18 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
 	static EnumPropertyItem rna_enum_draw_style[] = {
 		{ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
 		{ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static EnumPropertyItem rna_enum_transform[] = {
 		{ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Move", ""},
 		{ED_GIZMO_CAGE2D_XFORM_FLAG_ROTATE, "ROTATE", 0, "Rotate", ""},
 		{ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
 		{ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
 		{ED_GIZMO_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static float unit_v2[2] = {1.0f, 1.0f};
 	RNA_def_float_vector(gzt->srna, "dimensions", 2, unit_v2, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);

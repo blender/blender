@@ -559,7 +559,7 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 
 static struct PyMethodDef bpy_bmlayeritem_methods[] = {
 	{"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from,    METH_O,       bpy_bmlayeritem_copy_from_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyMethodDef bpy_bmelemseq_methods[] = {
@@ -571,7 +571,7 @@ static struct PyMethodDef bpy_bmelemseq_methods[] = {
 	{"values",  (PyCFunction)bpy_bmlayercollection_values,   METH_NOARGS,  bpy_bmlayercollection_values_doc},
 	{"items",   (PyCFunction)bpy_bmlayercollection_items,    METH_NOARGS,  bpy_bmlayercollection_items_doc},
 	{"get",     (PyCFunction)bpy_bmlayercollection_get,      METH_VARARGS, bpy_bmlayercollection_get_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /* Sequences

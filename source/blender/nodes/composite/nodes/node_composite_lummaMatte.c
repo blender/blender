@@ -28,13 +28,13 @@
 /* ******************* Luma Matte Node ********************************* */
 static bNodeSocketTemplate cmp_node_luma_matte_in[] = {
 	{SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1, 0, ""}
+	{-1, 0, ""},
 };
 
 static bNodeSocketTemplate cmp_node_luma_matte_out[] = {
 	{SOCK_RGBA, 0, N_("Image")},
 	{SOCK_FLOAT, 0, N_("Matte")},
-	{-1, 0, ""}
+	{-1, 0, ""},
 };
 
 static void node_composit_init_luma_matte(bNodeTree *UNUSED(ntree), bNode *node)

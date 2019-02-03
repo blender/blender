@@ -146,7 +146,7 @@ static struct PyMethodDef Py_ImBuf_methods[] = {
 	{"copy", (PyCFunction)py_imbuf_copy, METH_NOARGS, (char *)py_imbuf_copy_doc},
 	{"__copy__", (PyCFunction)py_imbuf_copy, METH_NOARGS, (char *)py_imbuf_copy_doc},
 	{"__deepcopy__", (PyCFunction)py_imbuf_deepcopy, METH_VARARGS, (char *)py_imbuf_copy_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /** \} */
@@ -435,7 +435,7 @@ static PyMethodDef IMB_methods[] = {
 	{"new", (PyCFunction) M_imbuf_new, METH_VARARGS | METH_KEYWORDS, M_imbuf_new_doc},
 	{"load", (PyCFunction) M_imbuf_load, METH_VARARGS | METH_KEYWORDS, M_imbuf_load_doc},
 	{"write", (PyCFunction) M_imbuf_write, METH_VARARGS | METH_KEYWORDS, M_imbuf_write_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(IMB_doc,

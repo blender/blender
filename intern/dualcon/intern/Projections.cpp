@@ -29,7 +29,7 @@ const int vertmap[8][3] = {
 	{1, 0, 0},
 	{1, 0, 1},
 	{1, 1, 0},
-	{1, 1, 1}
+	{1, 1, 1},
 };
 
 const int centmap[3][3][3][2] = {
@@ -58,7 +58,7 @@ const int edgemap[12][2] = {
 	{0, 1},
 	{2, 3},
 	{4, 5},
-	{6, 7}
+	{6, 7},
 };
 
 const int facemap[6][4] = {
@@ -67,7 +67,7 @@ const int facemap[6][4] = {
 	{0, 1, 4, 5},
 	{2, 3, 6, 7},
 	{0, 2, 4, 6},
-	{1, 3, 5, 7}
+	{1, 3, 5, 7},
 };
 
 /**
@@ -108,9 +108,9 @@ static void normalize(double a[3])
 
 /* Create projection axes for cube+triangle intersection testing.
  *    0, 1, 2: cube face normals
- *    
+ *
  *          3: triangle normal
- *          
+ *
  *    4, 5, 6,
  *    7, 8, 9,
  * 10, 11, 12: cross of each triangle edge vector with each cube
@@ -221,7 +221,7 @@ CubeTriangleIsect::CubeTriangleIsect(int64_t cube[2][3], int64_t tri[3][3], int6
 		for (i = 1; i < 3; i++) {
 			if (vts[i] < inherit->tri_proj[axis][0])
 				inherit->tri_proj[axis][0] = vts[i];
-			
+
 			if (vts[i] > inherit->tri_proj[axis][1])
 				inherit->tri_proj[axis][1] = vts[i];
 		}
@@ -243,7 +243,7 @@ CubeTriangleIsect::CubeTriangleIsect(CubeTriangleIsect *parent)
 
 		for (int j = 0; j < 3; j++)
 			cubeProj[i].edges[j] = parent->cubeProj[i].edges[j] >> 1;
-		
+
 		cubeProj[i].min = parent->cubeProj[i].min >> 1;
 		cubeProj[i].max = parent->cubeProj[i].max >> 1;
 	}

@@ -755,7 +755,7 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 	{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
 	{KEY_CATMULL_ROM, "KEY_CATMULL_ROM", 0, "Catmull-Rom", ""},
 	{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const float tilt_limit = DEG2RADF(21600.0f);

@@ -146,7 +146,7 @@ typedef struct GPUFunction {
 /* Indices match the eGPUType enum */
 static const char *GPU_DATATYPE_STR[17] = {
 	"", "float", "vec2", "vec3", "vec4",
-	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"
+	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4",
 };
 
 /* GLSL code parsing for finding function definitions.

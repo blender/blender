@@ -578,12 +578,12 @@ static PyObject *Buffer_dimensions(Buffer *self, void *UNUSED(arg))
 static PyMethodDef Buffer_methods[] = {
 	{"to_list", (PyCFunction)Buffer_to_list_recursive, METH_NOARGS,
 	 "return the buffer as a list"},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static PyGetSetDef Buffer_getseters[] = {
 	{(char *)"dimensions", (getter)Buffer_dimensions, NULL, NULL, NULL},
-	{NULL, NULL, NULL, NULL, NULL}
+	{NULL, NULL, NULL, NULL, NULL},
 };
 
 

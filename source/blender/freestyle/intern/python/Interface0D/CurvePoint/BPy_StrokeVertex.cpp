@@ -207,7 +207,7 @@ static Mathutils_Callback StrokeVertex_mathutils_cb = {
 	StrokeVertex_mathutils_get,
 	StrokeVertex_mathutils_set,
 	StrokeVertex_mathutils_get_index,
-	StrokeVertex_mathutils_set_index
+	StrokeVertex_mathutils_set_index,
 };
 
 static unsigned char StrokeVertex_mathutils_cb_index = -1;

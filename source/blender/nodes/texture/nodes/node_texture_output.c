@@ -29,7 +29,7 @@
 static bNodeSocketTemplate inputs[] = {
 	{ SOCK_RGBA,   1, N_("Color"),  0.0f, 0.0f, 0.0f, 1.0f},
 	{ SOCK_VECTOR, 1, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_DIRECTION},
-	{ -1, 0, ""}
+	{ -1, 0, ""},
 };
 
 /* applies to render pipeline */

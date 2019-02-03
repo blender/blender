@@ -206,7 +206,7 @@ static PyObject *bpygpu_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *ar
 static struct PyMethodDef bpygpu_VertFormat_methods[] = {
 	{"attr_add", (PyCFunction)bpygpu_VertFormat_attr_add,
 	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertFormat_attr_add_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 

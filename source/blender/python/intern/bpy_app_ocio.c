@@ -42,7 +42,7 @@ static PyStructSequence_Desc app_ocio_info_desc = {
 	(char *)"bpy.app.ocio",     /* name */
 	(char *)"This module contains information about OpenColorIO blender is linked against",    /* doc */
 	app_ocio_info_fields,    /* fields */
-	ARRAY_SIZE(app_ocio_info_fields) - 1
+	ARRAY_SIZE(app_ocio_info_fields) - 1,
 };
 
 static PyObject *make_ocio_info(void)

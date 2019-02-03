@@ -637,7 +637,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
 		{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -982,7 +982,7 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
 		{POSE_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
 		{POSE_SEL_SAME_GROUP, "GROUP", 0, "Group", "Shared group"},
 		{POSE_SEL_SAME_KEYINGSET, "KEYINGSET", 0, "Keying Set", "All bones affected by active Keying Set"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

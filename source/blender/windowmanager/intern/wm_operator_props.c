@@ -61,7 +61,7 @@ void WM_operator_properties_filesel(
 		{FILE_SHORTDISPLAY, "LIST_SHORT", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
 		{FILE_LONGDISPLAY, "LIST_LONG", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
 		{FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	if (flag & WM_FILESEL_FILEPATH)
@@ -149,7 +149,7 @@ void WM_operator_properties_select_action(wmOperatorType *ot, int default_action
 		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
 		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
 		{SEL_INVERT, "INVERT", 0, "Invert", "Invert selection of all elements"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wm_operator_properties_select_action_ex(ot, default_action, select_actions);
@@ -163,7 +163,7 @@ void WM_operator_properties_select_action_simple(wmOperatorType *ot, int default
 	static const EnumPropertyItem select_actions[] = {
 		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
 		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wm_operator_properties_select_action_ex(ot, default_action, select_actions);
@@ -272,7 +272,7 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
 		{SEL_OP_SUB, "SUB", 0, "Subtract", ""},
 		{SEL_OP_XOR, "XOR", 0, "Difference", ""},
 		{SEL_OP_AND, "AND", 0, "Intersect", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_SET, "Mode", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -285,7 +285,7 @@ void WM_operator_properties_select_operation_simple(wmOperatorType *ot)
 		{SEL_OP_SET, "SET", 0, "New", ""},
 		{SEL_OP_ADD, "ADD", 0, "Add", ""},
 		{SEL_OP_SUB, "SUB", 0, "Subtract", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_SET, "Mode", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);

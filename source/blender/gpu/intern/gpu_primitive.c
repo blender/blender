@@ -41,7 +41,7 @@ GPUPrimClass GPU_primtype_class(GPUPrimType prim_type)
 		[GPU_PRIM_LINE_STRIP_ADJ] = GPU_PRIM_CLASS_LINE,
 		[GPU_PRIM_TRIS_ADJ] = GPU_PRIM_CLASS_SURFACE,
 
-		[GPU_PRIM_NONE] = GPU_PRIM_CLASS_NONE
+		[GPU_PRIM_NONE] = GPU_PRIM_CLASS_NONE,
 	};
 
 	return classes[prim_type];

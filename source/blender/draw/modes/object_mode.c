@@ -519,7 +519,7 @@ static void OBJECT_engine_init(void *vedata)
 			float fov;
 			float viewvecs[2][4] = {
 			    {1.0f, -1.0f, -1.0f, 1.0f},
-			    {-1.0f, 1.0f, -1.0f, 1.0f}
+			    {-1.0f, 1.0f, -1.0f, 1.0f},
 			};
 
 			/* convert the view vectors to view space */

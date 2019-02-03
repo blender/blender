@@ -45,7 +45,7 @@ const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
 	{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
 	{KSP_GROUP_NONE, "NONE", 0, "None", ""},
 	{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* It would be cool to get rid of this 'INSERTKEY_' prefix in 'py strings' values, but it would break existing
@@ -59,7 +59,7 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
 	{INSERTKEY_XYZ2RGB, "INSERTKEY_XYZ_TO_RGB", 0, "XYZ=RGB Colors",
 	                    "Color for newly added transformation F-Curves (Location, Rotation, Scale) "
 	                    "and also Color is based on the transform axis"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME

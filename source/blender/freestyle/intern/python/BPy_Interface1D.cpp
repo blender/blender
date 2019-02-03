@@ -210,7 +210,7 @@ static PyMethodDef BPy_Interface1D_methods[] = {
 	{"vertices_end", (PyCFunction)Interface1D_vertices_end, METH_NOARGS, Interface1D_vertices_end_doc},
 	{"points_begin", (PyCFunction)Interface1D_points_begin, METH_VARARGS | METH_KEYWORDS, Interface1D_points_begin_doc},
 	{"points_end", (PyCFunction)Interface1D_points_end, METH_VARARGS | METH_KEYWORDS, Interface1D_points_end_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------Interface1D get/setters ----------------------------*/

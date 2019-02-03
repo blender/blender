@@ -161,7 +161,7 @@ static PyObject *ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObj
 static PyMethodDef BPy_ViewShape_methods[] = {
 	{"add_edge", (PyCFunction)ViewShape_add_edge, METH_VARARGS | METH_KEYWORDS, ViewShape_add_edge_doc},
 	{"add_vertex", (PyCFunction)ViewShape_add_vertex, METH_VARARGS | METH_KEYWORDS, ViewShape_add_vertex_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------ViewShape get/setters ----------------------------*/

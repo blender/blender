@@ -1783,7 +1783,8 @@ static void UV_OT_align(wmOperatorType *ot)
 		 "Automatically choose the axis on which there is most alignment already"},
 		{UV_ALIGN_X, "ALIGN_X", 0, "Align X", "Align UVs on X axis"},
 		{UV_ALIGN_Y, "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Align";
@@ -3660,7 +3661,8 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 	static const EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
 		{1, "SELECTED", 0, "Selected", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Snap Cursor";
@@ -3893,7 +3895,8 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 		{1, "CURSOR", 0, "Cursor", ""},
 		{2, "CURSOR_OFFSET", 0, "Cursor (Offset)", ""},
 		{3, "ADJACENT_UNSELECTED", 0, "Adjacent Unselected", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Snap Selection";

@@ -356,7 +356,7 @@ void NODE_OT_select_grouped(wmOperatorType *ot)
 		{NODE_SELECT_GROUPED_COLOR, "COLOR", 0, "Color", ""},
 		{NODE_SELECT_GROUPED_PREFIX, "PREFIX", 0, "Prefix", ""},
 		{NODE_SELECT_GROUPED_SUFIX, "SUFFIX", 0, "Suffix", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

@@ -1127,7 +1127,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 		{TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
 		{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remaining frames (after current)"},
 		{TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1202,7 +1202,7 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
 		 "Enable selected markers"},
 		{MARKER_OP_TOGGLE,  "TOGGLE", 0, "Toggle",
 		 "Toggle disabled flag for selected markers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1467,7 +1467,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 		{1, "PATHEND",    0, "Path End",        "Jump to end of current path"},
 		{2, "FAILEDPREV", 0, "Previous Failed", "Jump to previous failed frame"},
 		{2, "FAILNEXT",   0, "Next Failed",     "Jump to next failed frame"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1635,7 +1635,7 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 		{TRACK_ACTION_UNLOCK, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
 		{TRACK_ACTION_TOGGLE, "TOGGLE", 0, "Toggle",
 		 "Toggle locked flag for selected tracks"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1689,7 +1689,7 @@ void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
 	static const EnumPropertyItem keyframe_items[] = {
 		{SOLVER_KEYFRAME_A, "KEYFRAME_A", 0, "Keyframe A", ""},
 		{SOLVER_KEYFRAME_B, "KEYFRAME_B", 0, "Keyframe B", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1968,7 +1968,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 		 "Delete unclean tracks"},
 		{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments",
 		 "Delete unclean segments of tracks"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

@@ -375,7 +375,7 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
 	    {BPH_SOLVER_NUMERICAL_ISSUE, "NUMERICAL_ISSUE", 0, "Numerical Issue", "The provided data did not satisfy the prerequisites"},
 	    {BPH_SOLVER_NO_CONVERGENCE, "NO_CONVERGENCE", 0, "No Convergence", "Iterative procedure did not converge"},
 	    {BPH_SOLVER_INVALID_INPUT, "INVALID_INPUT", 0, "Invalid Input", "The inputs are invalid, or the algorithm has been improperly called"},
-	    {0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ClothSolverResult", NULL);
@@ -431,7 +431,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	static const EnumPropertyItem prop_bending_model_items[] = {
 		{CLOTH_BENDING_ANGULAR, "ANGULAR", 0, "Angular", "Cloth model with angular bending springs"},
 		{CLOTH_BENDING_LINEAR, "LINEAR", 0, "Linear", "Cloth model with linear bending springs (legacy)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ClothSettings", NULL);

@@ -32,7 +32,7 @@ static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	SOCK_FLOAT,		1,	N_("Offset Y")},
 	{	SOCK_FLOAT,		1,	N_("Scale")},
 	{	SOCK_FLOAT,		1,	N_("Angle")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void init(const bContext *C, PointerRNA *ptr)

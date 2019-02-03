@@ -85,12 +85,12 @@ namespace Freestyle {
 static unsigned x[3] = {
 	X0,
 	X1,
-	X2
+	X2,
 };
 static unsigned a[3] = {
 	A0,
 	A1,
-	A2
+	A2,
 };
 static unsigned c = C;
 

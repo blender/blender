@@ -676,7 +676,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		{1, 1},
 		{0, 1},
 		{-1, 1},
-		{-1, 0}
+		{-1, 0},
 	};
 
 	tgpf->stack = BLI_stack_new(sizeof(int[2]), __func__);

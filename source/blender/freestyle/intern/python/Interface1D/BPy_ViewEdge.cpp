@@ -83,7 +83,7 @@ static PyObject *ViewEdge_update_fedges(BPy_ViewEdge *self)
 
 static PyMethodDef BPy_ViewEdge_methods[] = {
 	{"update_fedges", (PyCFunction)ViewEdge_update_fedges, METH_NOARGS, ViewEdge_update_fedges_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------ViewEdge get/setters ----------------------------*/

@@ -26,7 +26,7 @@ static bNodeSocketTemplate sh_node_object_info_out[] = {
 	{	SOCK_FLOAT,  0, N_("Object Index"),   0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT,  0, N_("Material Index"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT,  0, N_("Random"),         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_object_info(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

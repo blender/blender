@@ -35,14 +35,14 @@ static PyStructSequence_Field app_opensubdiv_info_fields[] = {
 	{(char *)"supported", (char *)("Boolean, True when Blender is built with OpenSubdiv support")},
 	{(char *)("version"), (char *)("The OpenSubdiv version as a tuple of 3 numbers")},
 	{(char *)("version_string"), (char *)("The OpenSubdiv version formatted as a string")},
-	{NULL}
+	{NULL},
 };
 
 static PyStructSequence_Desc app_opensubdiv_info_desc = {
 	(char *)"bpy.app.opensubdiv",     /* name */
 	(char *)"This module contains information about OpenSubdiv blender is linked against",    /* doc */
 	app_opensubdiv_info_fields,    /* fields */
-	ARRAY_SIZE(app_opensubdiv_info_fields) - 1
+	ARRAY_SIZE(app_opensubdiv_info_fields) - 1,
 };
 
 static PyObject *make_opensubdiv_info(void)

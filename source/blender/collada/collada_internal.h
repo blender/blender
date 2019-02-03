@@ -51,7 +51,7 @@ public:
 	enum UnitSystem {
 		None,
 		Metric,
-		Imperial
+		Imperial,
 	};
 
 	// Initialize with Z_UP, since Blender uses right-handed, z-up

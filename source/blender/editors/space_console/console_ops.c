@@ -300,7 +300,7 @@ static const EnumPropertyItem console_move_type_items[] = {
 	{NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
 	{PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
 	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int console_move_exec(bContext *C, wmOperator *op)
@@ -569,7 +569,7 @@ static const EnumPropertyItem console_delete_type_items[] = {
 	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
 	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
 	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int console_delete_exec(bContext *C, wmOperator *op)
@@ -897,7 +897,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 		{CONSOLE_LINE_INPUT,    "INPUT", 0, "Input", ""},
 		{CONSOLE_LINE_INFO,     "INFO", 0, "Information", ""},
 		{CONSOLE_LINE_ERROR,    "ERROR", 0, "Error", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

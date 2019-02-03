@@ -392,7 +392,7 @@ GPUBatch *DRW_cache_cube_get(void)
 			{ 1.0f, -1.0f, -1.0f},
 			{ 1.0f, -1.0f,  1.0f},
 			{ 1.0f,  1.0f, -1.0f},
-			{ 1.0f,  1.0f,  1.0f}
+			{ 1.0f,  1.0f,  1.0f},
 		};
 
 		const uint indices[36] = {
@@ -440,7 +440,7 @@ GPUBatch *DRW_cache_empty_cube_get(void)
 			{ 1.0f, -1.0f, -1.0f},
 			{ 1.0f, -1.0f,  1.0f},
 			{ 1.0f,  1.0f, -1.0f},
-			{ 1.0f,  1.0f,  1.0f}
+			{ 1.0f,  1.0f,  1.0f},
 		};
 
 		const GLubyte indices[24] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6};
@@ -969,7 +969,7 @@ GPUBatch *DRW_cache_empty_capsule_body_get(void)
 			{-1.0f,  0.0f, 1.0f},
 			{-1.0f,  0.0f, 0.0f},
 			{ 0.0f, -1.0f, 1.0f},
-			{ 0.0f, -1.0f, 0.0f}
+			{ 0.0f, -1.0f, 0.0f},
 		};
 
 		/* Position Only 3D format */
@@ -1924,7 +1924,7 @@ static const float bone_octahedral_verts[6][3] = {
 	{ 0.1f, 0.1f, -0.1f},
 	{-0.1f, 0.1f, -0.1f},
 	{-0.1f, 0.1f,  0.1f},
-	{ 0.0f, 1.0f,  0.0f}
+	{ 0.0f, 1.0f,  0.0f},
 };
 
 static const float bone_octahedral_smooth_normals[6][3] = {
@@ -1940,7 +1940,7 @@ static const float bone_octahedral_smooth_normals[6][3] = {
 	{-M_SQRT1_2, 0.0f, -M_SQRT1_2},
 	{-M_SQRT1_2, 0.0f,  M_SQRT1_2},
 #endif
-	{ 0.0f,  1.0f,  0.0f}
+	{ 0.0f,  1.0f,  0.0f},
 };
 
 #if 0  /* UNUSED */
@@ -1969,7 +1969,7 @@ static const uint bone_octahedral_solid_tris[8][3] = {
 	{5, 1, 2}, /* top */
 	{5, 2, 3},
 	{5, 3, 4},
-	{5, 4, 1}
+	{5, 4, 1},
 };
 
 /**
@@ -2012,7 +2012,7 @@ static const float bone_octahedral_solid_normals[8][3] = {
 	{ 0.99388373f,  0.11043154f, -0.00000000f},
 	{ 0.00000000f,  0.11043154f, -0.99388373f},
 	{-0.99388373f,  0.11043154f,  0.00000000f},
-	{ 0.00000000f,  0.11043154f,  0.99388373f}
+	{ 0.00000000f,  0.11043154f,  0.99388373f},
 };
 
 GPUBatch *DRW_cache_bone_octahedral_get(void)
@@ -2081,7 +2081,7 @@ static const float bone_box_verts[8][3] = {
 	{ 1.0f, 1.0f,  1.0f},
 	{ 1.0f, 1.0f, -1.0f},
 	{-1.0f, 1.0f, -1.0f},
-	{-1.0f, 1.0f,  1.0f}
+	{-1.0f, 1.0f,  1.0f},
 };
 
 static const float bone_box_smooth_normals[8][3] = {
@@ -2561,7 +2561,7 @@ static void set_bone_axis_vert(
 #define S_Y 0.025f
 static float x_axis_name[4][2] = {
 	{ 0.9f * S_X,  1.0f * S_Y}, {-1.0f * S_X, -1.0f * S_Y},
-	{-0.9f * S_X,  1.0f * S_Y}, { 1.0f * S_X, -1.0f * S_Y}
+	{-0.9f * S_X,  1.0f * S_Y}, { 1.0f * S_X, -1.0f * S_Y},
 };
 #define X_LEN (sizeof(x_axis_name) / (sizeof(float) * 2))
 #undef S_X
@@ -2572,7 +2572,7 @@ static float x_axis_name[4][2] = {
 static float y_axis_name[6][2] = {
 	{-1.0f * S_X,  1.0f * S_Y}, { 0.0f * S_X, -0.1f * S_Y},
 	{ 1.0f * S_X,  1.0f * S_Y}, { 0.0f * S_X, -0.1f * S_Y},
-	{ 0.0f * S_X, -0.1f * S_Y}, { 0.0f * S_X, -1.0f * S_Y}
+	{ 0.0f * S_X, -0.1f * S_Y}, { 0.0f * S_X, -1.0f * S_Y},
 };
 #define Y_LEN (sizeof(y_axis_name) / (sizeof(float) * 2))
 #undef S_X
@@ -2585,7 +2585,7 @@ static float z_axis_name[10][2] = {
 	{ 0.95f * S_X,  1.00f * S_Y}, { 0.95f * S_X,  0.90f * S_Y},
 	{ 0.95f * S_X,  0.90f * S_Y}, {-1.00f * S_X, -0.90f * S_Y},
 	{-1.00f * S_X, -0.90f * S_Y}, {-1.00f * S_X, -1.00f * S_Y},
-	{-1.00f * S_X, -1.00f * S_Y}, { 1.00f * S_X, -1.00f * S_Y}
+	{-1.00f * S_X, -1.00f * S_Y}, { 1.00f * S_X, -1.00f * S_Y},
 };
 #define Z_LEN (sizeof(z_axis_name) / (sizeof(float) * 2))
 #undef S_X
@@ -2619,7 +2619,7 @@ static float axis_name_shadow[8][2] = {
 	{-S_X + O_X,  S_Y + O_Y}, { S_X + O_X,  S_Y + O_Y},
 	{ S_X + O_X,  S_Y + O_Y}, { S_X + O_X, -S_Y + O_Y},
 	{ S_X + O_X, -S_Y + O_Y}, {-S_X + O_X, -S_Y + O_Y},
-	{-S_X + O_X, -S_Y + O_Y}, {-S_X + O_X,  S_Y + O_Y}
+	{-S_X + O_X, -S_Y + O_Y}, {-S_X + O_X,  S_Y + O_Y},
 };
 // #define SHADOW_RES (sizeof(axis_name_shadow) / (sizeof(float) * 2))
 #define SHADOW_RES 0
@@ -2715,7 +2715,7 @@ static const float staticSine[16] = {
 	0.406736643076f, 0.5f, 0.587785252292f, 0.669130606359f,
 	0.743144825477f, 0.809016994375f, 0.866025403784f,
 	0.913545457643f, 0.951056516295f, 0.978147600734f,
-	0.994521895368f, 1.0f
+	0.994521895368f, 1.0f,
 };
 
 #define set_vert(a, b, quarter) \

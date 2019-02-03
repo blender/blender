@@ -465,7 +465,7 @@ static PyMethodDef module_functions[] = {
 	{"evaluateColorRamp", (PyCFunction) Freestyle_evaluateColorRamp, METH_VARARGS, Freestyle_evaluateColorRamp___doc__},
 	{"evaluateCurveMappingF", (PyCFunction) Freestyle_evaluateCurveMappingF, METH_VARARGS,
 	                          Freestyle_evaluateCurveMappingF___doc__},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*-----------------------Freestyle module definition---------------------------*/
@@ -475,7 +475,7 @@ static PyModuleDef module_definition = {
     "_freestyle",
     module_docstring,
     -1,
-    module_functions
+    module_functions,
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------

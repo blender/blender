@@ -138,7 +138,7 @@ static AdrBit2Path ob_layer_bits[] = {
 	{(1 << 16), "layers", 16},
 	{(1 << 17), "layers", 17},
 	{(1 << 18), "layers", 18},
-	{(1 << 19), "layers", 19}
+	{(1 << 19), "layers", 19},
 };
 
 /* ----------------- */

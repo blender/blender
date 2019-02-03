@@ -503,7 +503,7 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 	static const EnumPropertyItem prop_select_grouped_types[] = {
 		{GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
 		{GP_SEL_SAME_MATERIAL, "MATERIAL", 0, "Material", "Shared materials"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

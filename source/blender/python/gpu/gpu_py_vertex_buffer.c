@@ -295,7 +295,7 @@ static PyObject *bpygpu_VertBuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, P
 static struct PyMethodDef bpygpu_VertBuf_methods[] = {
 	{"attr_fill", (PyCFunction) bpygpu_VertBuf_attr_fill,
 	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBuf_attr_fill_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static void bpygpu_VertBuf_dealloc(BPyGPUVertBuf *self)

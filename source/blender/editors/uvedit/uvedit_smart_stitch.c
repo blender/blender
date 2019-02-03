@@ -224,7 +224,7 @@ typedef struct PreviewPosition {
 
 enum StitchModes {
 	STITCH_VERT,
-	STITCH_EDGE
+	STITCH_EDGE,
 };
 
 /* UvElement identification. */
@@ -2703,7 +2703,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 	static const EnumPropertyItem stitch_modes[] = {
 	    {STITCH_VERT, "VERTEX", 0, "Vertex", ""},
 	    {STITCH_EDGE, "EDGE", 0, "Edge", ""},
-	    {0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

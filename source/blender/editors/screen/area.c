@@ -2671,7 +2671,7 @@ static const char *meta_data_list[] =
 	"Time",
 	"Frame",
 	"Camera",
-	"Scene"
+	"Scene",
 };
 
 BLI_INLINE bool metadata_is_valid(ImBuf *ibuf, char *r_str, short index, int offset)

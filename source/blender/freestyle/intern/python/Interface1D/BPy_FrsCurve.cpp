@@ -147,7 +147,7 @@ static PyMethodDef BPy_FrsCurve_methods[] = {
 	                     FrsCurve_push_vertex_back_doc},
 	{"push_vertex_front", (PyCFunction)FrsCurve_push_vertex_front, METH_VARARGS | METH_KEYWORDS,
 	                      FrsCurve_push_vertex_front_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------CurvePoint get/setters ----------------------------*/

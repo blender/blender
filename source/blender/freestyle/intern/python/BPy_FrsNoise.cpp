@@ -285,7 +285,7 @@ static PyMethodDef BPy_FrsNoise_methods[] = {
 	{"smoothNoise3", (PyCFunction)FrsNoise_smoothNoise3, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise3_doc},
 	{"rand", (PyCFunction)FrsNoise_drand, METH_VARARGS | METH_KEYWORDS, NULL},
 	{"turbulence_smooth", (PyCFunction)FrsNoise_turbulence_smooth, METH_VARARGS | METH_KEYWORDS, NULL},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*-----------------------BPy_FrsNoise type definition ------------------------------*/

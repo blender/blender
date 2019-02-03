@@ -29,13 +29,13 @@ static bNodeSocketTemplate sh_node_tex_musgrave_in[] = {
 	{	SOCK_FLOAT, 1, N_("Lacunarity"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	SOCK_FLOAT, 1, N_("Offset"),		0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
 	{	SOCK_FLOAT, 1, N_("Gain"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_tex_musgrave_out[] = {
 	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
 	{	SOCK_FLOAT, 0, N_("Fac"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR, SOCK_NO_INTERNAL_LINK},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)

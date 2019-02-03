@@ -367,7 +367,7 @@ static PyMethodDef BPy_StrokeAttribute_methods[] = {
 	                       StrokeAttribute_set_attribute_vec2_doc},
 	{"set_attribute_vec3", (PyCFunction) StrokeAttribute_set_attribute_vec3, METH_VARARGS | METH_KEYWORDS,
 	                       StrokeAttribute_set_attribute_vec3_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------mathutils callbacks ----------------------------*/
@@ -475,7 +475,7 @@ static Mathutils_Callback StrokeAttribute_mathutils_cb = {
 	StrokeAttribute_mathutils_get,
 	StrokeAttribute_mathutils_set,
 	StrokeAttribute_mathutils_get_index,
-	StrokeAttribute_mathutils_set_index
+	StrokeAttribute_mathutils_set_index,
 };
 
 static unsigned char StrokeAttribute_mathutils_cb_index = -1;

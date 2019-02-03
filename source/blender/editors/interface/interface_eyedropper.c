@@ -52,7 +52,7 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
 		{EYE_MODAL_SAMPLE_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
 		{EYE_MODAL_SAMPLE_BEGIN, "SAMPLE_BEGIN", 0, "Start Sampling", ""},
 		{EYE_MODAL_SAMPLE_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Eyedropper Modal Map");
@@ -80,7 +80,7 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 		{EYE_MODAL_POINT_SAMPLE, "SAMPLE_SAMPLE", 0, "Sample a point", ""},
 		{EYE_MODAL_POINT_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
 		{EYE_MODAL_POINT_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Eyedropper ColorBand PointSampling Map");

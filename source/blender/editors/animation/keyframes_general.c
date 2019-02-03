@@ -897,14 +897,16 @@ const EnumPropertyItem rna_enum_keyframe_paste_offset_items[] = {
 	{KEYFRAME_PASTE_OFFSET_CFRA_END, "END", 0, "Frame End", "Paste keys ending at current frame"},
 	{KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE, "RELATIVE", 0, "Frame Relative", "Paste keys relative to the current frame when copying"},
 	{KEYFRAME_PASTE_OFFSET_NONE, "NONE", 0, "No Offset", "Paste keys from original time"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 const EnumPropertyItem rna_enum_keyframe_paste_merge_items[] = {
 	{KEYFRAME_PASTE_MERGE_MIX, "MIX", 0, "Mix", "Overlay existing with new keys"},
 	{KEYFRAME_PASTE_MERGE_OVER, "OVER_ALL", 0, "Overwrite All", "Replace all keys"},
 	{KEYFRAME_PASTE_MERGE_OVER_RANGE, "OVER_RANGE", 0, "Overwrite Range", "Overwrite keys in pasted range"},
 	{KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL, "OVER_RANGE_ALL", 0, "Overwrite Entire Range", "Overwrite keys in pasted range, using the range of all copied keys"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 
 /**

@@ -35,14 +35,14 @@ static PyStructSequence_Field app_oiio_info_fields[] = {
 	{(char *)"supported", (char *)("Boolean, True when Blender is built with OpenImageIO support")},
 	{(char *)("version"), (char *)("The OpenImageIO version as a tuple of 3 numbers")},
 	{(char *)("version_string"), (char *)("The OpenImageIO version formatted as a string")},
-	{NULL}
+	{NULL},
 };
 
 static PyStructSequence_Desc app_oiio_info_desc = {
 	(char *)"bpy.app.oiio",     /* name */
 	(char *)"This module contains information about OpeImageIO blender is linked against",    /* doc */
 	app_oiio_info_fields,    /* fields */
-	ARRAY_SIZE(app_oiio_info_fields) - 1
+	ARRAY_SIZE(app_oiio_info_fields) - 1,
 };
 
 static PyObject *make_oiio_info(void)

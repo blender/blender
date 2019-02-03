@@ -139,7 +139,7 @@ void SEQUENCER_OT_strip_modifier_remove(wmOperatorType *ot)
 
 enum {
 	SEQ_MODIFIER_MOVE_UP = 0,
-	SEQ_MODIFIER_MOVE_DOWN
+	SEQ_MODIFIER_MOVE_DOWN,
 };
 
 static int strip_modifier_move_exec(bContext *C, wmOperator *op)
@@ -181,7 +181,7 @@ void SEQUENCER_OT_strip_modifier_move(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{SEQ_MODIFIER_MOVE_UP, "UP", 0, "Up", "Move modifier up in the stack"},
 		{SEQ_MODIFIER_MOVE_DOWN, "DOWN", 0, "Down", "Move modifier down in the stack"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -255,7 +255,8 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 		 "Replace modifiers in destination"},
 		{SEQ_MODIFIER_COPY_APPEND,  "APPEND",  0, "Append",
 		 "Append active modifiers to selected strips"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Copy to Selected Strips";

@@ -412,7 +412,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	static const EnumPropertyItem prop_bc_export_mesh_type[] = {
 		{BC_MESH_TYPE_VIEW, "view", 0, "View", "Apply modifier's view settings"},
 		{BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_bc_export_transformation_type[] = {

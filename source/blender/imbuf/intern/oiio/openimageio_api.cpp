@@ -171,7 +171,7 @@ int imb_is_a_photoshop(const char *filename)
 		".psd",
 		".pdd",
 		".psb",
-		NULL
+		NULL,
 	};
 
 	return BLI_path_extension_check_array(filename, photoshop_extension);

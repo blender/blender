@@ -201,7 +201,7 @@ static Mathutils_Callback FEdgeSharp_mathutils_cb = {
 	FEdgeSharp_mathutils_get,
 	FEdgeSharp_mathutils_set,
 	FEdgeSharp_mathutils_get_index,
-	FEdgeSharp_mathutils_set_index
+	FEdgeSharp_mathutils_set_index,
 };
 
 static unsigned char FEdgeSharp_mathutils_cb_index = -1;

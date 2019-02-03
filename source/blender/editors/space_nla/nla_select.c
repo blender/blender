@@ -363,7 +363,7 @@ static const EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
 	{NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
 	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
 	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* ------------------- */

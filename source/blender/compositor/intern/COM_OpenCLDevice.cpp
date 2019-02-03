@@ -22,15 +22,15 @@
 typedef enum COM_VendorID  {NVIDIA = 0x10DE, AMD = 0x1002} COM_VendorID;
 const cl_image_format IMAGE_FORMAT_COLOR = {
 	CL_RGBA,
-	CL_FLOAT
+	CL_FLOAT,
 };
 const cl_image_format IMAGE_FORMAT_VECTOR = {
 	CL_RGB,
-	CL_FLOAT
+	CL_FLOAT,
 };
 const cl_image_format IMAGE_FORMAT_VALUE = {
 	CL_R,
-	CL_FLOAT
+	CL_FLOAT,
 };
 
 OpenCLDevice::OpenCLDevice(cl_context context, cl_device_id device, cl_program program, cl_int vendorId)

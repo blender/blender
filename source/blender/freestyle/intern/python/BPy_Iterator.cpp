@@ -166,7 +166,7 @@ static PyObject *Iterator_decrement(BPy_Iterator *self)
 static PyMethodDef BPy_Iterator_methods[] = {
 	{"increment", (PyCFunction) Iterator_increment, METH_NOARGS, Iterator_increment_doc},
 	{"decrement", (PyCFunction) Iterator_decrement, METH_NOARGS, Iterator_decrement_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------Iterator get/setters ----------------------------*/

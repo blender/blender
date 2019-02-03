@@ -469,7 +469,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 		{SEQ_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
 		{SEQ_TYPE_TEXT, "TEXT", 0, "Text", ""},
 		{SEQ_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	RNA_def_property_srna(cprop, "Sequences");

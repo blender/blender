@@ -330,7 +330,7 @@ void POSE_OT_group_move(wmOperatorType *ot)
 	static const EnumPropertyItem group_slot_move[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

@@ -230,7 +230,7 @@ bool ED_object_mode_generic_has_data(
 /* object_modifier.c */
 enum {
 	MODIFIER_APPLY_DATA = 1,
-	MODIFIER_APPLY_SHAPE
+	MODIFIER_APPLY_SHAPE,
 };
 
 struct ModifierData *ED_object_modifier_add(

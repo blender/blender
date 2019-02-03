@@ -49,7 +49,7 @@ static const EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_CLICK, "CLICK", 0, "Click", ""},
 	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
 	{KM_CLICK_DRAG, "CLICK_DRAG", 0, "Click Drag", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem event_tweak_value_items[] = {
@@ -62,14 +62,14 @@ static const EnumPropertyItem event_tweak_value_items[] = {
 	{EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
 	{EVT_GESTURE_W, "WEST", 0, "West", ""},
 	{EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem event_tweak_type_items[] = {
 	{EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Left", ""},
 	{EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Middle", ""},
 	{EVT_TWEAK_R, "EVT_TWEAK_R", 0, "Right", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem event_mouse_type_items[] = {
@@ -93,7 +93,7 @@ static const EnumPropertyItem event_mouse_type_items[] = {
 	{WHEELDOWNMOUSE, "WHEELDOWNMOUSE", 0, "Wheel Down", ""},
 	{WHEELINMOUSE, "WHEELINMOUSE", 0, "Wheel In", ""},
 	{WHEELOUTMOUSE, "WHEELOUTMOUSE", 0, "Wheel Out", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem event_timer_type_items[] = {
@@ -105,12 +105,12 @@ static const EnumPropertyItem event_timer_type_items[] = {
 	{TIMERAUTOSAVE, "TIMER_AUTOSAVE", 0, "Timer Autosave", ""},
 	{TIMERREPORT, "TIMER_REPORT", 0, "Timer Report", ""},
 	{TIMERREGION, "TIMERREGION", 0, "Timer Region", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem event_textinput_type_items[] = {
 	{KM_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem event_ndof_type_items[] = {
@@ -160,7 +160,7 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 	{NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, "Button A", ""},
 	{NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "Button B", ""},
 	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "Button C", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif /* RNA_RUNTIME */
 
@@ -373,7 +373,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
 	{EVT_ACTIONZONE_AREA, "ACTIONZONE_AREA", 0, "ActionZone Area", "AZone Area"},
 	{EVT_ACTIONZONE_REGION, "ACTIONZONE_REGION", 0, "ActionZone Region", "AZone Region"},
 	{EVT_ACTIONZONE_FULLSCREEN, "ACTIONZONE_FULLSCREEN", 0, "ActionZone Fullscreen", "AZone FullScr"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_event_value_items[] = {
@@ -392,12 +392,12 @@ const EnumPropertyItem rna_enum_event_value_items[] = {
 	{EVT_GESTURE_SW, "SOUTH_WEST", 0, "South-West", ""},
 	{EVT_GESTURE_W, "WEST", 0, "West", ""},
 	{EVT_GESTURE_NW, "NORTH_WEST", 0, "North-West", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_keymap_propvalue_items[] = {
 	{0, "NONE", 0, "", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -412,7 +412,7 @@ const EnumPropertyItem rna_enum_event_type_mask_items[] = {
 	{EVT_TYPE_MASK_NDOF, "NDOF", 0, "NDOF", ""},
 	{EVT_TYPE_MASK_TWEAK, "TWEAK", 0, "Tweak", ""},
 	{EVT_TYPE_MASK_ACTIONZONE, "ACTIONZONE", 0, "Action Zone", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #if 0
@@ -421,7 +421,7 @@ static const EnumPropertyItem keymap_modifiers_items[] = {
 	{0, "NONE", 0, "None", ""},
 	{1, "FIRST", 0, "First", ""},
 	{2, "SECOND", 0, "Second", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -440,7 +440,7 @@ static const EnumPropertyItem operator_flag_items[] = {
 	{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
 	{OPTYPE_USE_EVAL_DATA, "USE_EVAL_DATA", 0, "Use Evaluated Data",
 	                       "Uses evaluated data (i.e. needs a valid depsgraph for current context)"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -451,12 +451,12 @@ const EnumPropertyItem rna_enum_operator_return_items[] = {
 	/* used as a flag */
 	{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", "Do nothing and pass the event on"},
 	{OPERATOR_INTERFACE, "INTERFACE", 0, "Interface", "Handled but not executed (popup menus)"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_operator_property_tags[] = {
 	{OP_PROP_TAG_ADVANCED, "ADVANCED", 0, "Advanced", "The property is advanced so UI is suggested to hide it"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* flag/enum */
@@ -470,7 +470,7 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 	{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},
 	{RPT_ERROR_INVALID_CONTEXT, "ERROR_INVALID_CONTEXT", 0, "Invalid Context", ""},
 	{RPT_ERROR_OUT_OF_MEMORY, "ERROR_OUT_OF_MEMORY", 0, "Out of Memory", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -2348,7 +2348,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 		{KMI_TYPE_NDOF, "NDOF", 0, "NDOF", ""},
 		{KMI_TYPE_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
 		{KMI_TYPE_TIMER, "TIMER", 0, "Timer", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* KeyConfig */

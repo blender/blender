@@ -298,7 +298,7 @@ enum eIconSizes {
 	ICON_SIZE_ICON = 0,
 	ICON_SIZE_PREVIEW = 1,
 
-	NUM_ICON_SIZES
+	NUM_ICON_SIZES,
 };
 
 /* for PreviewImage->flag */

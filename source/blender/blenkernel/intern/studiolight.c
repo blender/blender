@@ -322,7 +322,7 @@ static void cube_face_uv_to_direction(float r_dir[3], float x, float y, int face
 		{{ 1.0f, 0.0f,  0.0f}, {0.0f,  0.0f, -1.0f}, { 0.0f,  1.0f,  0.0f}},
 		{{ 1.0f, 0.0f,  0.0f}, {0.0f,  0.0f,  1.0f}, { 0.0f, -1.0f,  0.0f}},
 		{{ 1.0f, 0.0f,  0.0f}, {0.0f, -1.0f,  0.0f}, { 0.0f,  0.0f, -1.0f}},
-		{{-1.0f, 0.0f,  0.0f}, {0.0f, -1.0f,  0.0f}, { 0.0f,  0.0f,  1.0f}}
+		{{-1.0f, 0.0f,  0.0f}, {0.0f, -1.0f,  0.0f}, { 0.0f,  0.0f,  1.0f}},
 	};
 
 	copy_v3_fl3(r_dir, x * 2.0f - 1.0f, y * 2.0f - 1.0f, 1.0f);
@@ -722,7 +722,7 @@ static void studiolight_spherical_harmonics_apply_band_factors(StudioLight *sl, 
 		2.0f / 3.0f,
 		1.0f / 4.0f,
 		0.0f,
-		-1.0f / 24.0f
+		-1.0f / 24.0f,
 	};
 
 	int index = 0, dst_idx = 0;

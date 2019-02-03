@@ -144,7 +144,7 @@ inline bool insideProscenium (const real proscenium[4], const Polygon3r& polygon
 	Vec3r triverts[3] = {
 		Vec3r(polygon.getVertices()[0][0], polygon.getVertices()[0][1], 0.0),
 		Vec3r(polygon.getVertices()[1][0], polygon.getVertices()[1][1], 0.0),
-		Vec3r(polygon.getVertices()[2][0], polygon.getVertices()[2][1], 0.0)
+		Vec3r(polygon.getVertices()[2][0], polygon.getVertices()[2][1], 0.0),
 	};
 	return GeomUtils::overlapTriangleBox(boxCenter, boxHalfSize, triverts);
 }

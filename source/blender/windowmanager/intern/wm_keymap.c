@@ -1585,7 +1585,8 @@ void WM_keyconfig_update(wmWindowManager *wm)
 		    &wm->userconf->keymaps,
 		    &wm->defaultconf->keymaps,
 		    &wm->addonconf->keymaps,
-		    NULL};
+		    NULL,
+		};
 
 		int i;
 

@@ -43,7 +43,7 @@ typedef enum {
 enum {
 	SIM_CMP_EQ = 0,
 	SIM_CMP_GT,
-	SIM_CMP_LT
+	SIM_CMP_LT,
 };
 
 #define SEL_OP_USE_OUTSIDE(sel_op) (ELEM(sel_op, SEL_OP_AND))

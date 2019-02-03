@@ -44,7 +44,7 @@ const EnumPropertyItem rna_enum_linestyle_color_modifier_type_items[] = {
 	{LS_MODIFIER_MATERIAL, "MATERIAL", ICON_MODIFIER, "Material", ""},
 	{LS_MODIFIER_NOISE, "NOISE", ICON_MODIFIER, "Noise", ""},
 	{LS_MODIFIER_TANGENT, "TANGENT", ICON_MODIFIER, "Tangent", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_linestyle_alpha_modifier_type_items[] = {
@@ -56,7 +56,7 @@ const EnumPropertyItem rna_enum_linestyle_alpha_modifier_type_items[] = {
 	{LS_MODIFIER_MATERIAL, "MATERIAL", ICON_MODIFIER, "Material", ""},
 	{LS_MODIFIER_NOISE, "NOISE", ICON_MODIFIER, "Noise", ""},
 	{LS_MODIFIER_TANGENT, "TANGENT", ICON_MODIFIER, "Tangent", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_linestyle_thickness_modifier_type_items[] = {
@@ -69,7 +69,7 @@ const EnumPropertyItem rna_enum_linestyle_thickness_modifier_type_items[] = {
 	{LS_MODIFIER_MATERIAL, "MATERIAL", ICON_MODIFIER, "Material", ""},
 	{LS_MODIFIER_NOISE, "NOISE", ICON_MODIFIER, "Noise", ""},
 	{LS_MODIFIER_TANGENT, "TANGENT", ICON_MODIFIER, "Tangent", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
@@ -87,7 +87,7 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
 	{LS_MODIFIER_SINUS_DISPLACEMENT, "SINUS_DISPLACEMENT", ICON_MODIFIER, "Sinus Displacement", ""},
 	{LS_MODIFIER_SPATIAL_NOISE, "SPATIAL_NOISE", ICON_MODIFIER, "Spatial Noise", ""},
 	{LS_MODIFIER_TIP_REMOVER, "TIP_REMOVER", ICON_MODIFIER, "Tip Remover", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -475,7 +475,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
 		{TEXCO_STROKE, "ALONG_STROKE", 0, "Along stroke", "Use stroke length for texture coordinates"},
 		{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_mapping_items[] = {
@@ -483,7 +483,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 		{MTEX_CUBE, "CUBE", 0, "Cube", "Map using the normal vector"},
 		{MTEX_TUBE, "TUBE", 0, "Tube", "Map with Z as central axis"},
 		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Map with Z as central axis"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_x_mapping_items[] = {
@@ -491,7 +491,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_y_mapping_items[] = {
@@ -499,7 +499,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_z_mapping_items[] = {
@@ -507,7 +507,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "LineStyleTextureSlot", "TextureSlot");
@@ -584,7 +584,7 @@ static void rna_def_modifier_type_common(
 		{LS_VALUE_DIFF, "DIFFERENCE", 0, "Difference", ""},
 		{LS_VALUE_MIN, "MINIMUM", 0, "Minimum", ""},
 		{LS_VALUE_MAX, "MAXIMUM", 0, "Maximum", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -678,7 +678,7 @@ static void rna_def_modifier_curve_common(StructRNA *srna, bool range, bool valu
 	static const EnumPropertyItem mapping_items[] = {
 		{0, "LINEAR", 0, "Linear", "Use linear mapping"},
 		{LS_MODIFIER_USE_CURVE, "CURVE", 0, "Curve", "Use curve mapping"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
@@ -743,7 +743,7 @@ static void rna_def_modifier_material_common(StructRNA *srna)
 		{LS_MODIFIER_MATERIAL_SPEC_B, "SPEC_B", 0, "Specular Color Blue", ""},
 		{LS_MODIFIER_MATERIAL_SPEC_HARD, "SPEC_HARD", 0, "Specular Hardness", ""},
 		{LS_MODIFIER_MATERIAL_ALPHA, "ALPHA", 0, "Alpha Transparency", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "material_attribute", PROP_ENUM, PROP_NONE);
@@ -763,7 +763,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 		{LS_MODIFIER_BLUEPRINT_CIRCLES, "CIRCLES", 0, "Circles", "Draw a blueprint using circular contour strokes"},
 		{LS_MODIFIER_BLUEPRINT_ELLIPSES, "ELLIPSES", 0, "Ellipses", "Draw a blueprint using elliptic contour strokes"},
 		{LS_MODIFIER_BLUEPRINT_SQUARES, "SQUARES", 0, "Squares", "Draw a blueprint using square contour strokes"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem transform_pivot_items[] = {
@@ -772,7 +772,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 		{LS_MODIFIER_2D_TRANSFORM_PIVOT_END, "END", 0, "Stroke End", ""},
 		{LS_MODIFIER_2D_TRANSFORM_PIVOT_PARAM, "PARAM", 0, "Stroke Point Parameter", ""},
 		{LS_MODIFIER_2D_TRANSFORM_PIVOT_ABSOLUTE, "ABSOLUTE", 0, "Absolute 2D Point", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "LineStyleModifier", NULL);
@@ -1559,37 +1559,37 @@ static void rna_def_linestyle(BlenderRNA *brna)
 #if 0 /* hidden for now */
 		{LS_PANEL_MISC, "MISC", 0, "Misc", "Show the panel for miscellaneous options"},
 #endif
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem chaining_items[] = {
 		{LS_CHAINING_PLAIN, "PLAIN", 0, "Plain", "Plain chaining"},
 		{LS_CHAINING_SKETCHY, "SKETCHY", 0, "Sketchy", "Sketchy chaining with a multiple touch"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem cap_items[] = {
 		{LS_CAPS_BUTT, "BUTT", 0, "Butt", "Butt cap (flat)"},
 		{LS_CAPS_ROUND, "ROUND", 0, "Round", "Round cap (half-circle)"},
 		{LS_CAPS_SQUARE, "SQUARE", 0, "Square", "Square cap (flat and extended)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem thickness_position_items[] = {
 		{LS_THICKNESS_CENTER, "CENTER", 0, "Center", "Silhouettes and border edges are centered along stroke geometry"},
 		{LS_THICKNESS_INSIDE, "INSIDE", 0, "Inside", "Silhouettes and border edges are drawn inside of stroke geometry"},
 		{LS_THICKNESS_OUTSIDE, "OUTSIDE", 0, "Outside", "Silhouettes and border edges are drawn outside of stroke geometry"},
 		{LS_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative", "Silhouettes and border edges are shifted by a user-defined ratio"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem sort_key_items[] = {
 		{LS_SORT_KEY_DISTANCE_FROM_CAMERA, "DISTANCE_FROM_CAMERA", 0, "Distance from Camera", "Sort by distance from camera (closer lines lie on top of further lines)"},
 		{LS_SORT_KEY_2D_LENGTH, "2D_LENGTH", 0, "2D Length", "Sort by curvilinear 2D length (longer lines lie on top of shorter lines)"},
 		{LS_SORT_KEY_PROJECTED_X, "PROJECTED_X", 0, "Projected X", "Sort by the projected X value in the image coordinate system"},
 		{LS_SORT_KEY_PROJECTED_Y, "PROJECTED_Y", 0, "Projected Y", "Sort by the projected Y value in the image coordinate system"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem sort_order_items[] = {
 		{0, "DEFAULT", 0, "Default", "Default order of the sort key"},
 		{LS_REVERSE_ORDER, "REVERSE", 0, "Reverse", "Reverse order"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem integration_type_items[] = {
 		{LS_INTEGRATION_MEAN, "MEAN", 0, "Mean", "The value computed for the chain is the mean of the values obtained for chain vertices"},
@@ -1597,7 +1597,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_INTEGRATION_MAX, "MAX", 0, "Max", "The value computed for the chain is the maximum of the values obtained for chain vertices"},
 		{LS_INTEGRATION_FIRST, "FIRST", 0, "First", "The value computed for the chain is the value obtained for the first chain vertex"},
 		{LS_INTEGRATION_LAST, "LAST", 0, "Last", "The value computed for the chain is the value obtained for the last chain vertex"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "FreestyleLineStyle", "ID");

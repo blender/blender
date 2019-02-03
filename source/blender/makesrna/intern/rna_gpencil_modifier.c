@@ -75,7 +75,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 	{eGpencilModifierType_Color, "GP_COLOR", ICON_MOD_HUE_SATURATION, "Hue/Saturation", "Apply changes to stroke colors"},
 	{eGpencilModifierType_Opacity, "GP_OPACITY", ICON_MOD_OPACITY, "Opacity", "Opacity of the strokes"},
 	{eGpencilModifierType_Tint, "GP_TINT", ICON_MOD_TINT, "Tint", "Tint strokes with new color"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifndef RNA_RUNTIME
@@ -83,7 +83,7 @@ static const EnumPropertyItem modifier_modify_color_items[] = {
 	{GP_MODIFY_COLOR_BOTH, "BOTH", 0, "Both", "Modify fill and stroke colors"},
 	{GP_MODIFY_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
 	{GP_MODIFY_COLOR_FILL, "FILL", 0, "Fill", "Modify fill color only"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem modifier_gphook_falloff_items[] = {
@@ -96,14 +96,14 @@ static const EnumPropertyItem modifier_gphook_falloff_items[] = {
 	{eGPHook_Falloff_Sharp,   "SHARP", ICON_SHARPCURVE, "Sharp", ""},
 	{eGPHook_Falloff_Linear,  "LINEAR", ICON_LINCURVE, "Linear", ""},
 	{eGPHook_Falloff_Const,   "CONSTANT", ICON_NOCURVE, "Constant", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_time_mode_items[] = {
 	{GP_TIME_MODE_NORMAL, "NORMAL", 0, "Normal", "Apply offset in normal animation direction"},
 	{GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction"},
 	{GP_TIME_MODE_FIX, "FIX", 0, "Fixed Frame", "Keep frame and do not change with time"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #endif
@@ -543,7 +543,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
 		 "Delete alternative vertices in the stroke, except extremes"},
 		{GP_SIMPLIFY_ADAPTIVE, "ADAPTIVE", ICON_IPO_EASE_IN_OUT, "Adaptive",
 		 "Use a RDP algorithm to simplify" },
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SimplifyGpencilModifier", "GpencilModifier");
@@ -1164,7 +1164,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
 		 "Strokes appear/disappear one after the other, but only a single one changes at a time"},
 		{GP_BUILD_MODE_CONCURRENT, "CONCURRENT", ICON_PARTICLE_TIP, "Concurrent",
 		 "Multiple strokes appear/disappear at once"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static EnumPropertyItem prop_gpencil_build_transition_items[] = {
@@ -1177,7 +1177,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
 		{GP_BUILD_TRANSITION_FADE, "FADE", 0, "Fade",
 		 "Hide points in the order they occur in each stroke "
 		 "(e.g. for animating ink fading or vanishing after getting drawn)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static EnumPropertyItem prop_gpencil_build_time_align_items[] = {
@@ -1185,7 +1185,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
 		 "All strokes start at same time (i.e. short strokes finish earlier)"},
 		{GP_BUILD_TIMEALIGN_END, "END", 0, "Align End",
 		 "All strokes end at same time (i.e. short strokes start later)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;

@@ -1459,7 +1459,7 @@ void MESH_OT_select_mode(wmOperatorType *ot)
 		{0, "DISABLE", 0, "Disable", "Disable selected markers"},
 		{1, "ENABLE", 0, "Enable", "Enable selected markers"},
 		{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -3323,7 +3323,7 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 		{1, "EQUAL", 0, "Equal To", ""},
 		{2, "GREATER", 0, "Greater Than", ""},
 		{3, "NOTEQUAL", 0, "Not Equal To", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -4441,7 +4441,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 		{SELECT_AXIS_POS, "POS", 0, "Positive Axis", ""},
 		{SELECT_AXIS_NEG, "NEG", 0, "Negative Axis", ""},
 		{SELECT_AXIS_ALIGN, "ALIGN",  0, "Aligned Axis", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

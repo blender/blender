@@ -32,11 +32,11 @@ static bNodeSocketTemplate cmp_node_hue_sat_in[] = {
 	{	SOCK_FLOAT, 1, N_("Saturation"),		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, N_("Value"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, N_("Fac"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate cmp_node_hue_sat_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 void register_node_type_cmp_hue_sat(void)

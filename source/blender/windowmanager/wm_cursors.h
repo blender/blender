@@ -39,7 +39,7 @@ enum {
 	CURSOR_STD,
 	CURSOR_NONE,
 	CURSOR_PENCIL,
-	CURSOR_COPY
+	CURSOR_COPY,
 };
 
 
@@ -97,7 +97,7 @@ enum {
 	BC_RED,
 	BC_BLUE,
 	BC_GREEN,
-	BC_YELLOW
+	BC_YELLOW,
 };
 
 struct wmEvent;

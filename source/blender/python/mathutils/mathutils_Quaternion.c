@@ -1331,7 +1331,7 @@ static struct PyMethodDef Quaternion_methods[] = {
 	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{"__deepcopy__", (PyCFunction) Quaternion_deepcopy, METH_VARARGS, Quaternion_copy_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*****************************************************************************/

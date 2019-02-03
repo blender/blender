@@ -38,14 +38,14 @@ static PyStructSequence_Field app_alembic_info_fields[] = {
 	{(char *)"supported", (char *)"Boolean, True when Blender is built with Alembic support"},
 	{(char *)"version", (char *)"The Alembic version as a tuple of 3 numbers"},
 	{(char *)"version_string", (char *)"The Alembic version formatted as a string"},
-	{NULL}
+	{NULL},
 };
 
 static PyStructSequence_Desc app_alembic_info_desc = {
 	(char *)"bpy.app.alembic",     /* name */
 	(char *)"This module contains information about Alembic blender is linked against",  /* doc */
 	app_alembic_info_fields,    /* fields */
-	ARRAY_SIZE(app_alembic_info_fields) - 1
+	ARRAY_SIZE(app_alembic_info_fields) - 1,
 };
 
 static PyObject *make_alembic_info(void)

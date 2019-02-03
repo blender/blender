@@ -71,7 +71,7 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
 	{OB_MODE_SCULPT_GPENCIL, "SCULPT_GPENCIL", ICON_SCULPTMODE_HLT, "Sculpt Mode", "Sculpt Grease Pencil Strokes"},
 	{OB_MODE_PAINT_GPENCIL, "PAINT_GPENCIL", ICON_GREASEPENCIL, "Draw", "Paint Grease Pencil Strokes"},
 	{OB_MODE_WEIGHT_GPENCIL, "WEIGHT_GPENCIL", ICON_WPAINT_HLT, "Weight Paint", "Grease Pencil Weight Paint Strokes" },
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* Same as above, but with names that distinguish grease pencil. */
@@ -88,7 +88,7 @@ const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
 	{OB_MODE_SCULPT_GPENCIL, "SCULPT_GPENCIL", ICON_SCULPTMODE_HLT, "Grease Pencil Sculpt Mode", "Sculpt Grease Pencil Strokes"},
 	{OB_MODE_PAINT_GPENCIL, "PAINT_GPENCIL", ICON_GREASEPENCIL, "Grease Pencil Draw", "Paint Grease Pencil Strokes"},
 	{OB_MODE_WEIGHT_GPENCIL, "WEIGHT_GPENCIL", ICON_WPAINT_HLT, "Grease Pencil Weight Paint", "Grease Pencil Weight Paint Strokes" },
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_object_empty_drawtype_items[] = {
@@ -100,14 +100,14 @@ const EnumPropertyItem rna_enum_object_empty_drawtype_items[] = {
 	{OB_EMPTY_SPHERE, "SPHERE", ICON_SPHERE, "Sphere", ""},
 	{OB_EMPTY_CONE, "CONE", ICON_CONE, "Cone", ""},
 	{OB_EMPTY_IMAGE, "IMAGE", ICON_FILE_IMAGE, "Image", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_object_empty_image_depth_items[] = {
 	{OB_EMPTY_IMAGE_DEPTH_DEFAULT, "DEFAULT", 0, "Default", ""},
 	{OB_EMPTY_IMAGE_DEPTH_FRONT, "FRONT", 0, "Front", ""},
 	{OB_EMPTY_IMAGE_DEPTH_BACK, "BACK", 0, "Back", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
@@ -124,7 +124,7 @@ static const EnumPropertyItem parent_type_items[] = {
 	{PARVERT1, "VERTEX", 0, "Vertex", "The object is parented to a vertex"},
 	{PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
 	{PARBONE, "BONE", 0, "Bone", "The object is parented to a bone"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #define INSTANCE_ITEMS_SHARED \
@@ -137,12 +137,12 @@ static const EnumPropertyItem parent_type_items[] = {
 static const EnumPropertyItem instance_items[] = {
 	INSTANCE_ITEMS_SHARED,
 	INSTANCE_ITEM_COLLECTION,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #ifdef RNA_RUNTIME
 static EnumPropertyItem instance_items_nogroup[] = {
 	INSTANCE_ITEMS_SHARED,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 #undef INSTANCE_ITEMS_SHARED
@@ -154,7 +154,7 @@ const EnumPropertyItem rna_enum_metaelem_type_items[] = {
 	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
 	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, /* NOTE: typo at original definition! */
 	{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* used for 2 enums */
@@ -178,14 +178,14 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
 	{OB_LAMP, "LIGHT", 0, "Light", ""},
 	{OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
 	{OB_LIGHTPROBE, "LIGHT_PROBE", 0, "Probe", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_object_type_curve_items[] = {
 	OBTYPE_CU_CURVE,
 	OBTYPE_CU_SURF,
 	OBTYPE_CU_FONT,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_object_rotation_mode_items[] = {
@@ -198,7 +198,7 @@ const EnumPropertyItem rna_enum_object_rotation_mode_items[] = {
 	{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order - prone to Gimbal Lock"},
 	{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle",
 	                     "Axis Angle (W+XYZ), defines a rotation around some axis defined by 3D-Vector"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_object_axis_items[] = {
@@ -208,7 +208,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 	{OB_NEGX, "NEG_X", 0, "-X", ""},
 	{OB_NEGY, "NEG_Y", 0, "-Y", ""},
 	{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -1619,7 +1619,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 		{WEIGHT_REPLACE,  "REPLACE",  0, "Replace",  "Replace"},
 		{WEIGHT_ADD,      "ADD",      0, "Add",      "Add"},
 		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "VertexGroup", NULL);
@@ -1723,7 +1723,7 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	static const EnumPropertyItem link_items[] = {
 		{1, "OBJECT", 0, "Object", ""},
 		{0, "DATA", 0, "Data", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* NOTE: there is no MaterialSlot equivalent in DNA, so the internal
@@ -2099,7 +2099,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_POSX, "X", 0, "X", ""},
 		{OB_POSY, "Y", 0, "Y", ""},
 		{OB_POSZ, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem drawtype_items[] = {
@@ -2108,7 +2108,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_SOLID, "SOLID", 0, "Solid", "Display the object as a solid (if solid drawing is enabled in the viewport)"},
 		{OB_TEXTURE, "TEXTURED", 0, "Textured",
 		             "Display the object with textures (if textures are enabled in the viewport)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem boundtype_items[] = {
@@ -2117,7 +2117,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", "Display bounds as cylinder"},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", "Display bounds as cone"},
 		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", "Display bounds as capsule"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static float default_quat[4] = {1, 0, 0, 0};    /* default quaternion values */
@@ -2508,7 +2508,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, "DOUBLE_SIDED", 0, "Both", ""},
 		{OB_EMPTY_IMAGE_HIDE_BACK, "FRONT", 0, "Front", ""},
 		{OB_EMPTY_IMAGE_HIDE_FRONT, "BACK", 0, "Back", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	prop = RNA_def_property(srna, "empty_image_side", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "empty_image_visibility_flag");

@@ -56,7 +56,7 @@ static const EnumPropertyItem prop_similar_compare_types[] = {
 	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
 	{SIM_CMP_LT, "LESS", 0, "Less", ""},
 
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem prop_similar_types[] = {
@@ -89,7 +89,7 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{SIMFACE_FREESTYLE, "FREESTYLE_FACE", 0, "Freestyle Face Marks", ""},
 #endif
 
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int mesh_select_similar_compare_int(const int delta, const int compare)

@@ -38,7 +38,7 @@ static GLenum convert_index_type_to_gl(GPUIndexBufType type)
 	static const GLenum table[] = {
 		[GPU_INDEX_U8] = GL_UNSIGNED_BYTE, /* GL has this, Vulkan does not */
 		[GPU_INDEX_U16] = GL_UNSIGNED_SHORT,
-		[GPU_INDEX_U32] = GL_UNSIGNED_INT
+		[GPU_INDEX_U32] = GL_UNSIGNED_INT,
 	};
 	return table[type];
 }
@@ -49,7 +49,7 @@ uint GPU_indexbuf_size_get(const GPUIndexBuf *elem)
 	static const uint table[] = {
 		[GPU_INDEX_U8] = sizeof(GLubyte), /* GL has this, Vulkan does not */
 		[GPU_INDEX_U16] = sizeof(GLushort),
-		[GPU_INDEX_U32] = sizeof(GLuint)
+		[GPU_INDEX_U32] = sizeof(GLuint),
 	};
 	return elem->index_len * table[elem->index_type];
 #else

@@ -2595,7 +2595,7 @@ static void project_paint_face_init(
 		ps->do_masking,
 		IMAPAINT_TILE_NUMBER(ibuf->x),
 		tmpibuf,
-		ps->projImages + image_index
+		ps->projImages + image_index,
 	};
 
 	const MLoopTri *lt = &ps->mlooptri_eval[tri_index];
@@ -5824,7 +5824,7 @@ enum {
 	LAYER_METALLIC,
 	LAYER_NORMAL,
 	LAYER_BUMP,
-	LAYER_DISPLACEMENT
+	LAYER_DISPLACEMENT,
 };
 
 static const EnumPropertyItem layer_type_items[] = {
@@ -5835,7 +5835,7 @@ static const EnumPropertyItem layer_type_items[] = {
 	{LAYER_NORMAL, "NORMAL", 0, "Normal", ""},
 	{LAYER_BUMP, "BUMP", 0, "Bump", ""},
 	{LAYER_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static Image *proj_paint_image_create(wmOperator *op, Main *bmain)

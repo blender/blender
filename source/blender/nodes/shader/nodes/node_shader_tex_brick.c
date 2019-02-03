@@ -32,13 +32,13 @@ static bNodeSocketTemplate sh_node_tex_brick_in[] = {
 	{	SOCK_FLOAT, 1,  N_("Bias"),		    0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
 	{	SOCK_FLOAT, 1,  N_("Brick Width"),	0.5f, 0.0f, 0.0f, 0.0f, 0.01f, 100.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
 	{	SOCK_FLOAT, 1,  N_("Row Height"),   0.25f, 0.0f, 0.0f, 0.0f, 0.01f, 100.0f, PROP_NONE, SOCK_NO_INTERNAL_LINK},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_tex_brick_out[] = {
 	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Fac"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR, SOCK_NO_INTERNAL_LINK},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_init_tex_brick(bNodeTree *UNUSED(ntree), bNode *node)

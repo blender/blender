@@ -143,7 +143,7 @@ static PyMethodDef BPy_Chain_methods[] = {
 	                       Chain_push_viewedge_back_doc},
 	{"push_viewedge_front", (PyCFunction)Chain_push_viewedge_front, METH_VARARGS | METH_KEYWORDS,
 	                        Chain_push_viewedge_front_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*-----------------------BPy_Chain type definition ------------------------------*/

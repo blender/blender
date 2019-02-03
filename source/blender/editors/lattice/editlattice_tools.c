@@ -346,7 +346,8 @@ void LATTICE_OT_flip(wmOperatorType *ot)
 		{LATTICE_FLIP_U, "U", 0, "U (X) Axis", ""},
 		{LATTICE_FLIP_V, "V", 0, "V (Y) Axis", ""},
 		{LATTICE_FLIP_W, "W", 0, "W (Z) Axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Flip (Distortion Free)";

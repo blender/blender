@@ -173,7 +173,7 @@ static PyObject *bpygpu_matrix_stack_context_exit(BPyGPU_MatrixStackContext *sel
 static PyMethodDef bpygpu_matrix_stack_context_methods[] = {
 	{"__enter__", (PyCFunction)bpygpu_matrix_stack_context_enter, METH_NOARGS},
 	{"__exit__",  (PyCFunction)bpygpu_matrix_stack_context_exit,  METH_VARARGS},
-	{NULL}
+	{NULL},
 };
 
 static PyTypeObject BPyGPU_matrix_stack_context_Type = {
@@ -542,7 +542,7 @@ static struct PyMethodDef bpygpu_matrix_methods[] = {
 	{"get_normal_matrix", (PyCFunction)bpygpu_matrix_get_normal_matrix,
 	 METH_NOARGS, bpygpu_matrix_get_normal_matrix_doc},
 
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpygpu_matrix_doc,

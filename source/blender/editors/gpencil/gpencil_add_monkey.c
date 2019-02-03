@@ -1393,31 +1393,31 @@ static const ColorTemplate gp_monkey_pct_black = {
 static const ColorTemplate gp_monkey_pct_skin = {
 	"Skin",
 	{0.733f, 0.569f, 0.361f, 1.0f},
-	{0.745f, 0.502f, 0.278f, 1.0f}
+	{0.745f, 0.502f, 0.278f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_skin_light = {
 	"Skin_Light",
 	{0.914f, 0.827f, 0.635f, 1.0f},
-	{0.913f, 0.828f, 0.637f, 0.0f}
+	{0.913f, 0.828f, 0.637f, 0.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_skin_shadow = {
 	"Skin_Shadow",
 	{0.322f, 0.29f, 0.224f, 0.5f},
-	{0.32f, 0.29f, 0.223f, 0.3f}
+	{0.32f, 0.29f, 0.223f, 0.3f},
 };
 
 static const ColorTemplate gp_monkey_pct_eyes = {
 	"Eyes",
 	{0.553f, 0.39f, 0.266f, 0.0f},
-	{0.847f, 0.723f, 0.599f, 1.0f}
+	{0.847f, 0.723f, 0.599f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_pupils = {
 	"Pupils",
 	{0.0f, 0.0f, 0.0f, 0.0f},
-	{0.0f, 0.0f, 0.0f, 1.0f}
+	{0.0f, 0.0f, 0.0f, 1.0f},
 };
 
 /* ***************************************************************** */

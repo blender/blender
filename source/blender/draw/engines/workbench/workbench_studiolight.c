@@ -268,7 +268,7 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 	        {oed->shadow_min[0], oed->shadow_min[1]},
 	        {oed->shadow_min[0], oed->shadow_max[1]},
 	        {oed->shadow_max[0], oed->shadow_min[1]},
-	        {oed->shadow_max[0], oed->shadow_max[1]}
+	        {oed->shadow_max[0], oed->shadow_max[1]},
 	};
 
 	for (int i = 0; i < 2; ++i) {

@@ -402,7 +402,7 @@ static EnumPropertyItem override_type_items[] = {
 	{UIOverride_Type_Replace, "REPLACE", 0, "Replace", "Completely replace value from linked data by local one"},
 	{UIOverride_Type_Difference, "DIFFERENCE", 0, "Difference", "Store difference to linked data value"},
 	{UIOverride_Type_Factor, "FACTOR", 0, "Factor", "Store factor to linked data value (useful e.g. for scale)"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 

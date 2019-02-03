@@ -5259,7 +5259,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"callback_add", (PyCFunction)pyrna_callback_classmethod_add, METH_VARARGS | METH_CLASS, NULL},
 	{"callback_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_CLASS, NULL},
 #endif
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyMethodDef pyrna_prop_methods[] = {
@@ -5267,7 +5267,7 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	{"as_bytes", (PyCFunction)pyrna_prop_as_bytes, METH_NOARGS, pyrna_prop_as_bytes_doc},
 	{"update", (PyCFunction)pyrna_prop_update, METH_NOARGS, pyrna_prop_update_doc},
 	{"__dir__", (PyCFunction)pyrna_prop_dir, METH_NOARGS, NULL},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyMethodDef pyrna_prop_array_methods[] = {
@@ -5284,7 +5284,7 @@ static struct PyMethodDef pyrna_prop_collection_methods[] = {
 
 	{"get", (PyCFunction)pyrna_prop_collection_get, METH_VARARGS, pyrna_prop_collection_get_doc},
 	{"find", (PyCFunction)pyrna_prop_collection_find, METH_O, pyrna_prop_collection_find_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyMethodDef pyrna_prop_collection_idprop_methods[] = {
@@ -5292,7 +5292,7 @@ static struct PyMethodDef pyrna_prop_collection_idprop_methods[] = {
 	{"remove", (PyCFunction)pyrna_prop_collection_idprop_remove, METH_O, NULL},
 	{"clear", (PyCFunction)pyrna_prop_collection_idprop_clear, METH_NOARGS, NULL},
 	{"move", (PyCFunction)pyrna_prop_collection_idprop_move, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /* only needed for subtyping, so a new class gets a valid BPy_StructRNA
@@ -7181,7 +7181,7 @@ static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
 
 static struct PyMethodDef pyrna_basetype_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /* used to call ..._keys() direct, but we need to filter out operator subclasses */
@@ -8494,7 +8494,7 @@ static struct BPyRNA_CallBack pyrna_cb_methods[] = {
 
 	{{"draw_cursor_add",    (PyCFunction)pyrna_callback_classmethod_add,    METH_VARARGS | METH_STATIC, ""}, &RNA_WindowManager},
 	{{"draw_cursor_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_STATIC, ""}, &RNA_WindowManager},
-	{{NULL, NULL, 0, NULL}, NULL}
+	{{NULL, NULL, 0, NULL}, NULL},
 };
 
 void BPY_rna_register_cb(void)

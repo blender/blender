@@ -27,13 +27,13 @@
 /* **************** SEPARATE HSV ******************** */
 static bNodeSocketTemplate sh_node_sephsv_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),			0.8f, 0.8f, 0.8f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate sh_node_sephsv_out[] = {
 	{	SOCK_FLOAT, 0, N_("H")},
 	{	SOCK_FLOAT, 0, N_("S")},
 	{	SOCK_FLOAT, 0, N_("V")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_exec_sephsv(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
@@ -68,11 +68,11 @@ static bNodeSocketTemplate sh_node_combhsv_in[] = {
 	{	SOCK_FLOAT, 1, N_("H"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
 	{	SOCK_FLOAT, 1, N_("S"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
 	{	SOCK_FLOAT, 1, N_("V"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate sh_node_combhsv_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_exec_combhsv(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)

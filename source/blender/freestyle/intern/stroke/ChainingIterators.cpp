@@ -155,7 +155,7 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 			Nature::EDGE_MARK,
 			Nature::SUGGESTIVE_CONTOUR,
 			Nature::VALLEY,
-			Nature::RIDGE
+			Nature::RIDGE,
 		};
 		int numNatures = sizeof(natures) / sizeof(Nature::EdgeNature);
 		for (int i = 0; i < numNatures; ++i) {

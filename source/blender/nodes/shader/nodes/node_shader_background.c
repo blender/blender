@@ -24,12 +24,12 @@
 static bNodeSocketTemplate sh_node_background_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Strength"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_background_out[] = {
 	{	SOCK_SHADER, 0, N_("Background")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_background(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

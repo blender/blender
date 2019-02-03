@@ -460,17 +460,17 @@ static char faces[256];
 
 /* edge: LB, LT, LN, LF, RB, RT, RN, RF, BN, BF, TN, TF */
 static int corner1[12] = {
-	LBN, LTN, LBN, LBF, RBN, RTN, RBN, RBF, LBN, LBF, LTN, LTF
+	LBN, LTN, LBN, LBF, RBN, RTN, RBN, RBF, LBN, LBF, LTN, LTF,
 };
 static int corner2[12] = {
-	LBF, LTF, LTN, LTF, RBF, RTF, RTN, RTF, RBN, RBF, RTN, RTF
+	LBF, LTF, LTN, LTF, RBF, RTF, RTN, RTF, RBN, RBF, RTN, RTF,
 };
 static int leftface[12] = {
-	B, L, L, F, R, T, N, R, N, B, T, F
+	B, L, L, F, R, T, N, R, N, B, T, F,
 };
 /* face on left when going corner1 to corner2 */
 static int rightface[12] = {
-	L, T, N, L, B, R, R, F, B, F, N, T
+	L, T, N, L, B, R, R, F, B, F, N, T,
 };
 /* face on right when going corner1 to corner2 */
 

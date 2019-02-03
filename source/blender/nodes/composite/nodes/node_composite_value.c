@@ -27,7 +27,7 @@
 /* **************** VALUE ******************** */
 static bNodeSocketTemplate cmp_node_value_out[] = {
 	{	SOCK_FLOAT, 0, N_("Value"), 0.5f, 0, 0, 0, -FLT_MAX, FLT_MAX, PROP_NONE},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 void register_node_type_cmp_value(void)

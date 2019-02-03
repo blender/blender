@@ -31,7 +31,7 @@ static bNodeSocketTemplate sh_node_tex_coord_out[] = {
 	{	SOCK_VECTOR, 0, N_("Camera"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Window"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Reflection"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

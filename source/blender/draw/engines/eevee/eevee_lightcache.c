@@ -686,7 +686,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 	txl->color = lbake->rt_color;
 	int viewport_size[2] = {
 		GPU_texture_width(txl->color),
-		GPU_texture_height(txl->color)
+		GPU_texture_height(txl->color),
 	};
 	DRW_render_viewport_size_set(viewport_size);
 

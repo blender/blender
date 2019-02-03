@@ -1912,7 +1912,7 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 		{HD_ALIGN, "ALIGNED", 0, "Aligned Single", ""},
 		{HD_ALIGN_DOUBLESIDE, "ALIGNED_DOUBLESIDE", 0, "Aligned", ""},
 		{HD_FREE, "FREE", 0, "Free", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2154,7 +2154,7 @@ void MASK_OT_layer_move(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

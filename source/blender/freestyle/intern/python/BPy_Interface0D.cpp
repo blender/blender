@@ -143,7 +143,7 @@ static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args, Py
 
 static PyMethodDef BPy_Interface0D_methods[] = {
 	{"get_fedge", (PyCFunction)Interface0D_get_fedge, METH_VARARGS | METH_KEYWORDS, Interface0D_get_fedge_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------Interface1D get/setters ----------------------------*/

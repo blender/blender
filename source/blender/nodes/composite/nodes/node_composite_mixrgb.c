@@ -28,11 +28,11 @@ static bNodeSocketTemplate cmp_node_mix_rgb_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate cmp_node_mix_rgb_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 /* custom1 = mix type */

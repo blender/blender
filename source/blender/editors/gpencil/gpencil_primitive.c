@@ -1785,7 +1785,7 @@ void GPENCIL_OT_primitive(wmOperatorType *ot)
 		{GP_STROKE_CIRCLE, "CIRCLE", 0, "Circle", ""},
 		{GP_STROKE_ARC, "ARC", 0, "Arc", ""},
 		{GP_STROKE_CURVE, "CURVE", 0, "Curve", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

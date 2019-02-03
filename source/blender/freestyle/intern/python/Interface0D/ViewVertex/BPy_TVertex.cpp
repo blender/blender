@@ -113,7 +113,7 @@ static PyObject *TVertex_get_mate( BPy_TVertex *self, PyObject *args, PyObject *
 static PyMethodDef BPy_TVertex_methods[] = {
 	{"get_svertex", (PyCFunction)TVertex_get_svertex, METH_VARARGS | METH_KEYWORDS, TVertex_get_svertex_doc},
 	{"get_mate", (PyCFunction)TVertex_get_mate, METH_VARARGS | METH_KEYWORDS, TVertex_get_mate_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------TVertex get/setters ----------------------------*/

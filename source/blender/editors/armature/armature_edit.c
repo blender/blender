@@ -282,7 +282,7 @@ static const EnumPropertyItem prop_calc_roll_types[] = {
 	{CALC_ROLL_ACTIVE, "ACTIVE", 0, "Active Bone", ""},
 	{CALC_ROLL_VIEW, "VIEW", 0, "View Axis", ""},
 	{CALC_ROLL_CURSOR, "CURSOR", 0, "Cursor", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -1022,7 +1022,7 @@ void ARMATURE_OT_merge(wmOperatorType *ot)
 {
 	static const EnumPropertyItem merge_types[] = {
 		{1, "WITHIN_CHAIN", 0, "Within Chains", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

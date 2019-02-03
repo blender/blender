@@ -156,18 +156,18 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
 enum {
 	SEQ_CUT_SOFT,
-	SEQ_CUT_HARD
+	SEQ_CUT_HARD,
 };
 enum {
 	SEQ_SELECTED,
-	SEQ_UNSELECTED
+	SEQ_UNSELECTED,
 };
 
 enum {
 	SEQ_SELECT_LR_NONE = 0,
 	SEQ_SELECT_LR_MOUSE,
 	SEQ_SELECT_LR_LEFT,
-	SEQ_SELECT_LR_RIGHT
+	SEQ_SELECT_LR_RIGHT,
 };
 
 /* defines used internally */

@@ -39,7 +39,7 @@ static bNodeSocketTemplate inputs[] = {
 };
 static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Color")},
-	{ -1, 0, ""}
+	{ -1, 0, ""},
 };
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)

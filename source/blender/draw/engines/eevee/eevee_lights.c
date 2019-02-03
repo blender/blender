@@ -1052,7 +1052,7 @@ static void eevee_shadow_cascade_setup(
 			{ 1.0f, -1.0f, splits_end_ndc[c]},
 			{-1.0f, -1.0f, splits_end_ndc[c]},
 			{-1.0f,  1.0f, splits_end_ndc[c]},
-			{ 1.0f,  1.0f, splits_end_ndc[c]}
+			{ 1.0f,  1.0f, splits_end_ndc[c]},
 		};
 
 		/* Transform them into world space */

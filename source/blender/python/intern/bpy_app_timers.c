@@ -171,7 +171,7 @@ static struct PyMethodDef M_AppTimers_methods[] = {
 	 METH_O, bpy_app_timers_unregister_doc},
 	{"is_registered", (PyCFunction)bpy_app_timers_is_registered,
 	 METH_O, bpy_app_timers_is_registered_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef M_AppTimers_module_def = {

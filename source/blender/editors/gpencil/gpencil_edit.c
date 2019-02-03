@@ -1144,7 +1144,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 	static const EnumPropertyItem copy_type[] = {
 		{GP_COPY_ONLY, "COPY", 0, "Copy", ""},
 		{GP_COPY_MERGE, "MERGE", 0, "Merge", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2142,7 +2142,7 @@ void GPENCIL_OT_delete(wmOperatorType *ot)
 		{GP_DELETEOP_POINTS, "POINTS", 0, "Points", "Delete selected points and split strokes into segments"},
 		{GP_DELETEOP_STROKES, "STROKES", 0, "Strokes", "Delete selected strokes"},
 		{GP_DELETEOP_FRAME, "FRAME", 0, "Frame", "Delete active frame"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2175,7 +2175,7 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
 		{GP_DISSOLVE_POINTS, "POINTS", 0, "Dissolve", "Dissolve selected points"},
 		{GP_DISSOLVE_BETWEEN, "BETWEEN", 0, "Dissolve Between", "Dissolve points between selected points"},
 		{GP_DISSOLVE_UNSELECT, "UNSELECT", 0, "Dissolve Unselect", "Dissolve all unselected points"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2579,7 +2579,7 @@ void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
 		{GP_STROKE_CYCLIC_CLOSE, "CLOSE", 0, "Close all", ""},
 		{GP_STROKE_CYCLIC_OPEN, "OPEN", 0, "Open all", ""},
 		{GP_STROKE_CYCLIC_TOGGLE, "TOGGLE", 0, "Toggle", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2682,7 +2682,7 @@ void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot)
 		{GP_STROKE_CAPS_TOGGLE_START, "START", 0, "Start", ""},
 		{GP_STROKE_CAPS_TOGGLE_END, "END", 0, "End", ""},
 		{GP_STROKE_CAPS_TOGGLE_DEFAULT, "TOGGLE", 0, "Default", "Set as default rounded"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2956,7 +2956,7 @@ void GPENCIL_OT_stroke_join(wmOperatorType *ot)
 	static const EnumPropertyItem join_type[] = {
 		{GP_STROKE_JOIN, "JOIN", 0, "Join", ""},
 		{GP_STROKE_JOINCOPY, "JOINCOPY", 0, "Join and Copy", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -3190,7 +3190,7 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 		 "using 'Cursor' Stroke Placement"},
 		{GP_REPROJECT_SURFACE, "SURFACE", 0, "Surface",
 		 "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -3762,7 +3762,7 @@ void GPENCIL_OT_stroke_separate(wmOperatorType *ot)
 		{GP_SEPARATE_POINT, "POINT", 0, "Selected Points", "Separate the selected points"},
 		{GP_SEPARATE_STROKE, "STROKE", 0, "Selected Strokes", "Separate the selected strokes"},
 		{GP_SEPARATE_LAYER, "LAYER", 0, "Active Layer", "Separate the strokes of the current layer"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

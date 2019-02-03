@@ -101,7 +101,7 @@ enum {
 	GlowR = 0,
 	GlowG = 1,
 	GlowB = 2,
-	GlowA = 3
+	GlowA = 3,
 };
 
 static ImBuf *prepare_effect_imbufs(const SeqRenderData *context, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)

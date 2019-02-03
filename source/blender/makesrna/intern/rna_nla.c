@@ -492,7 +492,7 @@ const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
 	                         "Weighted result of strip is removed from the accumulated results"},
 	{NLASTRIP_MODE_MULTIPLY, "MULTIPLY", 0, "Multiply",
 	                         "Weighted result of strip is multiplied with the accumulated results"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
@@ -500,7 +500,7 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_HOLD, "HOLD", 0, "Hold",
 	                       "Hold the first frame if no previous strips in track, and always hold last frame"},
 	{NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void rna_def_strip_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
@@ -539,7 +539,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 		{NLASTRIP_TYPE_TRANSITION, "TRANSITION", 0, "Transition", "NLA Strip 'transitions' between adjacent strips"},
 		{NLASTRIP_TYPE_META, "META", 0, "Meta", "NLA Strip acts as a container for adjacent strips"},
 		{NLASTRIP_TYPE_SOUND, "SOUND", 0, "Sound Clip", "NLA Strip representing a sound event for speakers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* struct definition */

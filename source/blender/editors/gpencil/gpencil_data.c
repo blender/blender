@@ -354,7 +354,7 @@ void GPENCIL_OT_layer_move(wmOperatorType *ot)
 	static const EnumPropertyItem slot_move[] = {
 		{GP_LAYER_MOVE_UP, "UP", 0, "Up", ""},
 		{GP_LAYER_MOVE_DOWN, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -530,7 +530,7 @@ void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
 	static const EnumPropertyItem copy_mode[] = {
 		{GP_LAYER_COPY_OBJECT_ALL_FRAME, "ALL", 0, "All Frames", ""},
 		{GP_LAYER_COPY_OBJECT_ACT_FRAME, "ACTIVE", 0, "Active Frame", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -593,7 +593,7 @@ void GPENCIL_OT_frame_duplicate(wmOperatorType *ot)
 	static const EnumPropertyItem duplicate_mode[] = {
 		{GP_FRAME_DUP_ACTIVE, "ACTIVE", 0, "Active", "Duplicate frame in active layer only"},
 		{GP_FRAME_DUP_ALL, "ALL", 0, "All", "Duplicate active frames in all layers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -680,7 +680,7 @@ void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot)
 	static const EnumPropertyItem duplicate_mode[] = {
 		{GP_FRAME_CLEAN_FILL_ACTIVE, "ACTIVE", 0, "Active Frame Only", "Clean active frame only"},
 		{GP_FRAME_CLEAN_FILL_ALL, "ALL", 0, "All Frames", "Clean all frames in all layers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

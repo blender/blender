@@ -106,7 +106,7 @@ static PyObject *ViewEdgeIterator_change_orientation(BPy_ViewEdgeIterator *self)
 static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
 	{"change_orientation", (PyCFunction) ViewEdgeIterator_change_orientation, METH_NOARGS,
 	                       ViewEdgeIterator_change_orientation_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------ViewEdgeIterator get/setters ----------------------------*/

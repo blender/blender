@@ -64,7 +64,7 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 	{seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
 	{seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
 	{seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -1228,7 +1228,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 		{SEQ_PROXY_TC_RECORD_RUN_NO_GAPS, "RECORD_RUN_NO_GAPS", 0, "Record Run No Gaps",
 		                                        "Like record run, but ignore timecode, "
 		                                        "changes in framerate or dropouts"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
@@ -1402,7 +1402,7 @@ static const EnumPropertyItem blend_mode_items[] = {
 	{SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
 	{SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
 	{SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void rna_def_sequence_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1476,7 +1476,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
 		{SEQ_TYPE_TEXT, "TEXT", 0, "Text", ""},
 		{SEQ_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Sequence", NULL);
@@ -1669,7 +1669,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	static const EnumPropertyItem editing_storage_items[] = {
 		{0, "PER_STRIP", 0, "Per Strip", "Store proxies using per strip settings"},
 		{SEQ_EDIT_PROXY_DIR_STORAGE, "PROJECT", 0, "Project", "Store proxies using project directory"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	srna = RNA_def_struct(brna, "SequenceEditor", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene data-block");
@@ -1737,7 +1737,7 @@ static void rna_def_filter_video(StructRNA *srna)
 	static const EnumPropertyItem alpha_mode_items[] = {
 		{SEQ_ALPHA_STRAIGHT, "STRAIGHT", 0, "Straight", "RGB channels in transparent pixels are unaffected by the alpha channel"},
 		{SEQ_ALPHA_PREMUL, "PREMUL", 0, "Premultiplied", "RGB channels in transparent pixels are multiplied by the alpha channel"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
@@ -2197,13 +2197,13 @@ static void rna_def_wipe(StructRNA *srna)
 		/* not used yet {3, "CROSS", 0, "Cross", ""}, */
 		{4, "IRIS", 0, "Iris", ""},
 		{5, "CLOCK", 0, "Clock", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem wipe_direction_items[] = {
 		{0, "OUT", 0, "Out", ""},
 		{1, "IN", 0, "In", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	RNA_def_struct_sdna_from(srna, "WipeVars", "effectdata");
@@ -2284,13 +2284,13 @@ static void rna_def_transform(StructRNA *srna)
 		{0, "NONE", 0, "None", "No interpolation"},
 		{1, "BILINEAR", 0, "Bilinear", "Bilinear interpolation"},
 		{2, "BICUBIC", 0, "Bicubic", "Bicubic interpolation"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem translation_unit_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
 		{1, "PERCENT", 0, "Percent", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	RNA_def_struct_sdna_from(srna, "TransformVars", "effectdata");
@@ -2402,13 +2402,13 @@ static void rna_def_text(StructRNA *srna)
 		{SEQ_TEXT_ALIGN_X_LEFT, "LEFT", 0, "Left", ""},
 		{SEQ_TEXT_ALIGN_X_CENTER, "CENTER", 0, "Center", ""},
 		{SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", 0, "Right", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem text_align_y_items[] = {
 		{SEQ_TEXT_ALIGN_Y_TOP, "TOP", 0, "Top", ""},
 		{SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", 0, "Center", ""},
 		{SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -2500,7 +2500,7 @@ static void rna_def_color_mix(StructRNA *srna)
 		{SEQ_TYPE_VALUE, "VALUE", 0, "Value", ""},
 		{SEQ_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
 		{SEQ_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -2546,7 +2546,7 @@ static EffectInfo def_effects[] = {
 	{"TextSequence", "Text Sequence", "Sequence strip creating text",
 	 rna_def_text, 0},
 	{"ColorMixSequence", "Color Mix Sequence", "Color Mix Sequence", rna_def_color_mix, 2},
-	{"", "", "", NULL, 0}
+	{"", "", "", NULL, 0},
 };
 
 static void rna_def_effects(BlenderRNA *brna)
@@ -2574,13 +2574,13 @@ static void rna_def_modifier(BlenderRNA *brna)
 	static const EnumPropertyItem mask_input_type_items[] = {
 		{SEQUENCE_MASK_INPUT_STRIP, "STRIP", 0, "Strip", "Use sequencer strip as mask input"},
 		{SEQUENCE_MASK_INPUT_ID, "ID", 0, "Mask", "Use mask ID as mask input"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem mask_time_items[] = {
 		{SEQUENCE_MASK_TIME_RELATIVE, "RELATIVE", 0, "Relative", "Mask animation is offset to start of strip"},
 		{SEQUENCE_MASK_TIME_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Mask animation is in sync with scene frame"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SequenceModifier", NULL);
@@ -2737,7 +2737,7 @@ static void rna_def_tonemap_modifier(BlenderRNA *brna)
 	static const EnumPropertyItem type_items[] = {
 		{SEQ_TONEMAP_RD_PHOTORECEPTOR, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
 		{SEQ_TONEMAP_RH_SIMPLE,        "RH_SIMPLE",        0, "Rh Simple",         ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SequencerTonemapModifierData", "SequenceModifier");

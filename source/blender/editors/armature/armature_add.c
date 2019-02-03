@@ -841,7 +841,7 @@ void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 	static const EnumPropertyItem arm_symmetrize_direction_items[] = {
 		{-1, "NEGATIVE_X", 0, "-X to +X", ""},
 		{+1, "POSITIVE_X", 0, "+X to -X", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

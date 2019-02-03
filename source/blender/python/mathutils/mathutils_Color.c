@@ -824,7 +824,7 @@ static struct PyMethodDef Color_methods[] = {
 
 	/* base-math methods */
 	{"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /* ------------------PY_OBECT DEFINITION-------------------------- */

@@ -78,7 +78,7 @@ static GLenum convert_comp_type_to_gl(GPUVertCompType type)
 
 		[GPU_COMP_F32] = GL_FLOAT,
 
-		[GPU_COMP_I10] = GL_INT_2_10_10_10_REV
+		[GPU_COMP_I10] = GL_INT_2_10_10_10_REV,
 	};
 	return table[type];
 }

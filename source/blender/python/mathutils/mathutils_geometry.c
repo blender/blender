@@ -1510,7 +1510,7 @@ static PyMethodDef M_Geometry_methods[] = {
 	{"box_fit_2d", (PyCFunction) M_Geometry_box_fit_2d, METH_O, M_Geometry_box_fit_2d_doc},
 	{"box_pack_2d", (PyCFunction) M_Geometry_box_pack_2d, METH_O, M_Geometry_box_pack_2d_doc},
 #endif
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef M_Geometry_module_def = {

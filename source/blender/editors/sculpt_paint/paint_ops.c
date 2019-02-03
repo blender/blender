@@ -793,13 +793,13 @@ static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 		{STENCIL_TRANSLATE, "TRANSLATION", 0, "Translation", ""},
 		{STENCIL_SCALE, "SCALE", 0, "Scale", ""},
 		{STENCIL_ROTATE, "ROTATION", 0, "Rotation", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem stencil_texture_items[] = {
 		{STENCIL_PRIMARY, "PRIMARY", 0, "Primary", ""},
 		{STENCIL_SECONDARY, "SECONDARY", 0, "Secondary", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	/* identifiers */
 	ot->name = "Stencil Brush Control";

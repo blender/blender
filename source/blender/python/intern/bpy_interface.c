@@ -230,7 +230,7 @@ static struct _inittab bpy_internal_modules[] = {
 #endif
 	{"gpu", BPyInit_gpu},
 	{"idprop", BPyInit_idprop},
-	{NULL, NULL}
+	{NULL, NULL},
 };
 
 /* call BPY_context_set first */

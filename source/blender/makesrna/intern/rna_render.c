@@ -71,7 +71,7 @@ const EnumPropertyItem rna_enum_render_pass_type_items[] = {
 #ifdef WITH_CYCLES_DEBUG
 	{SCE_PASS_DEBUG, "DEBUG", 0, "Pass used for render engine debugging", ""},
 #endif
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
@@ -87,7 +87,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 	{SCE_PASS_GLOSSY_COLOR, "GLOSSY", 0, "Glossy", ""},
 	{SCE_PASS_TRANSM_COLOR, "TRANSMISSION", 0, "Transmission", ""},
 	{SCE_PASS_SUBSURFACE_COLOR, "SUBSURFACE", 0, "Subsurface", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -461,7 +461,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	        {SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
 	        {SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
 	        {SOCK_RGBA,    "COLOR",     0,    "Color",     ""},
-	        {0, NULL, 0, NULL, NULL}
+	        {0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "RenderEngine", NULL);

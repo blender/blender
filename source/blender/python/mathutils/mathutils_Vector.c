@@ -2955,7 +2955,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, NULL},
 	{"__deepcopy__", (PyCFunction) Vector_deepcopy, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 

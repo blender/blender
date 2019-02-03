@@ -23,12 +23,12 @@
 
 static bNodeSocketTemplate sh_node_bsdf_transparent_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_bsdf_transparent_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_bsdf_transparent(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

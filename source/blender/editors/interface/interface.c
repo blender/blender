@@ -431,7 +431,7 @@ static void ui_block_bounds_calc_centered_pie(uiBlock *block)
 {
 	const int xy[2] = {
 	    block->pie_data.pie_center_spawned[0],
-	    block->pie_data.pie_center_spawned[1]
+	    block->pie_data.pie_center_spawned[1],
 	};
 
 	UI_block_translate(block, xy[0], xy[1]);
@@ -1067,17 +1067,17 @@ static bool ui_but_event_property_operator_string(
 		"WM_OT_context_cycle_enum",
 		"WM_OT_context_cycle_array",
 		"WM_OT_context_menu_enum",
-		NULL
+		NULL,
 	};
 
 	const char *ctx_enum_opnames[] = {
 		"WM_OT_context_set_enum",
-		NULL
+		NULL,
 	};
 
 	const char *ctx_enum_opnames_for_Area_ui_type[] = {
 		"SCREEN_OT_space_type_set_or_cycle",
-		NULL
+		NULL,
 	};
 
 	const char **opnames = ctx_toggle_opnames;

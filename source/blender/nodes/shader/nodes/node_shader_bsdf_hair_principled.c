@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_bsdf_hair_principled_in[] = {
 
 static bNodeSocketTemplate sh_node_bsdf_hair_principled_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 /* Initialize the custom Parametrization property to Color. */

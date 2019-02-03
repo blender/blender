@@ -134,7 +134,7 @@ static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *
 static PyMethodDef BPy_SVertex_methods[] = {
 	{"add_normal", (PyCFunction)SVertex_add_normal, METH_VARARGS | METH_KEYWORDS, SVertex_add_normal_doc},
 	{"add_fedge", (PyCFunction)SVertex_add_fedge, METH_VARARGS | METH_KEYWORDS, SVertex_add_fedge_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------mathutils callbacks ----------------------------*/
@@ -249,7 +249,7 @@ static Mathutils_Callback SVertex_mathutils_cb = {
 	SVertex_mathutils_get,
 	SVertex_mathutils_set,
 	SVertex_mathutils_get_index,
-	SVertex_mathutils_set_index
+	SVertex_mathutils_set_index,
 };
 
 static unsigned char SVertex_mathutils_cb_index = -1;

@@ -159,7 +159,7 @@ static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self, PyObject 
 static PyMethodDef BPy_ChainingIterator_methods[] = {
 	{"init", (PyCFunction) ChainingIterator_init, METH_NOARGS, ChainingIterator_init_doc},
 	{"traverse", (PyCFunction) ChainingIterator_traverse, METH_VARARGS | METH_KEYWORDS, ChainingIterator_traverse_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------ChainingIterator get/setters ----------------------------*/

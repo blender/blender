@@ -422,7 +422,7 @@ static struct PyMethodDef bpy_ops_methods[] = {
 	{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL},
 	{"get_rna_type", (PyCFunction) pyop_getrna_type, METH_O, NULL},
 	{"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static struct PyModuleDef bpy_ops_module = {

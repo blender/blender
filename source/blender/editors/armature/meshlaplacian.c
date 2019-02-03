@@ -800,7 +800,7 @@ void heat_bone_weighting(
 #define MESHDEFORM_MIN_INFLUENCE 0.0005f
 
 static const int MESHDEFORM_OFFSET[7][3] = {
-	{0, 0, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}
+	{0, 0, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1},
 };
 
 typedef struct MDefBoundIsect {

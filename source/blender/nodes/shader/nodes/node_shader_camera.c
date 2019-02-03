@@ -29,7 +29,7 @@ static bNodeSocketTemplate sh_node_camera_out[] = {
 	{	SOCK_VECTOR, 0, N_("View Vector")},
 	{	SOCK_FLOAT, 0, N_("View Z Depth")},
 	{	SOCK_FLOAT, 0, N_("View Distance")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int gpu_shader_camera(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

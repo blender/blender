@@ -402,7 +402,7 @@ static const EnumPropertyItem container_items[] = {
 #endif
 	{AUD_CONTAINER_OGG, "OGG", 0, "ogg", "Xiph.Org Ogg Container"},
 	{AUD_CONTAINER_WAV, "WAV", 0, "wav", "Waveform Audio File Format"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const char *snd_ext_sound[] = {
@@ -493,20 +493,20 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 		{AUD_FORMAT_S32, "S32", 0, "S32", "32 bit signed"},
 		{AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32 bit floating point"},
 		{AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64 bit floating point"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem mp3_format_items[] = {
 		{AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
 		{AUD_FORMAT_S32, "S32", 0, "S32", "32 bit signed"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 #ifdef WITH_SNDFILE
 	static const EnumPropertyItem flac_format_items[] = {
 		{AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
 		{AUD_FORMAT_S24, "S24", 0, "S24", "24 bit signed"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 #endif
 
@@ -518,13 +518,13 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 		{AUD_CODEC_MP3, "MP3", 0, "MP3", "MPEG-2 Audio Layer III"},
 		{AUD_CODEC_PCM, "PCM", 0, "PCM", "Pulse Code Modulation (RAW)"},
 		{AUD_CODEC_VORBIS, "VORBIS", 0, "Vorbis", "Xiph.Org Vorbis Codec"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem ogg_codec_items[] = {
 		{AUD_CODEC_FLAC, "FLAC", 0, "FLAC", "Free Lossless Audio Codec"},
 		{AUD_CODEC_VORBIS, "VORBIS", 0, "Vorbis", "Xiph.Org Vorbis Codec"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	uiLayout *layout = op->layout;
@@ -641,7 +641,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 		{AUD_FORMAT_S32, "S32", 0, "S32", "32 bit signed"},
 		{AUD_FORMAT_FLOAT32, "F32", 0, "F32", "32 bit floating point"},
 		{AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64 bit floating point"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem codec_items[] = {
@@ -656,7 +656,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 #endif
 		{AUD_CODEC_PCM, "PCM", 0, "PCM", "Pulse Code Modulation (RAW)"},
 		{AUD_CODEC_VORBIS, "VORBIS", 0, "Vorbis", "Xiph.Org Vorbis Codec"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 #endif // WITH_AUDASPACE

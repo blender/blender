@@ -318,7 +318,7 @@ static struct PyMethodDef bpygpu_offscreen_methods[] = {
 	{"free", (PyCFunction)bpygpu_offscreen_free, METH_NOARGS, bpygpu_offscreen_free_doc},
 	{"__enter__", (PyCFunction)bpygpu_offscreen_bind_context_enter, METH_NOARGS},
 	{"__exit__",  (PyCFunction)bpygpu_offscreen_bind_context_exit,  METH_VARARGS},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpygpu_offscreen_doc,

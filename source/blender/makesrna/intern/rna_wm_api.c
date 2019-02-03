@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 	{BC_NS_SCROLLCURSOR, "SCROLL_Y", 0, "Scroll-Y", ""},
 	{BC_NSEW_SCROLLCURSOR, "SCROLL_XY", 0, "Scroll-XY", ""},
 	{BC_EYEDROPPER_CURSOR, "EYEDROPPER", 0, "Eyedropper", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME

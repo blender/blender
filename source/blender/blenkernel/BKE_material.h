@@ -68,7 +68,7 @@ enum {
 	BKE_MAT_ASSIGN_EXISTING,
 	BKE_MAT_ASSIGN_USERPREF,
 	BKE_MAT_ASSIGN_OBDATA,
-	BKE_MAT_ASSIGN_OBJECT
+	BKE_MAT_ASSIGN_OBJECT,
 };
 
 struct Material **give_current_material_p(struct Object *ob, short act);

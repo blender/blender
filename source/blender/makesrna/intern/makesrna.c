@@ -3444,7 +3444,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_movieclip.c", NULL, RNA_def_movieclip},
 	{"rna_tracking.c", NULL, RNA_def_tracking},
 	{"rna_mask.c", NULL, RNA_def_mask},
-	{NULL, NULL}
+	{NULL, NULL},
 };
 
 static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const char *api_filename)

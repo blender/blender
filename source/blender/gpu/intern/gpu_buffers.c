@@ -456,13 +456,13 @@ void GPU_pbvh_grid_buffers_update(
 							CCG_grid_elem(key, grid, k, j + 1),
 							CCG_grid_elem(key, grid, k + 1, j + 1),
 							CCG_grid_elem(key, grid, k + 1, j),
-							CCG_grid_elem(key, grid, k, j)
+							CCG_grid_elem(key, grid, k, j),
 						};
 						float *co[4] = {
 						    CCG_elem_co(key, elems[0]),
 						    CCG_elem_co(key, elems[1]),
 						    CCG_elem_co(key, elems[2]),
-						    CCG_elem_co(key, elems[3])
+						    CCG_elem_co(key, elems[3]),
 						};
 
 						float fno[3];

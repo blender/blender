@@ -98,14 +98,14 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 	{SPACE_FILE, "FILE_BROWSER", ICON_FILEBROWSER, "File Browser", "Browse for files and assets"},
 	{SPACE_USERPREF, "PREFERENCES", ICON_PREFERENCES, "Preferences",
 	                 "Edit persistent configuration settings"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_space_graph_mode_items[] = {
 	{SIPO_MODE_ANIMATION, "FCURVES", ICON_GRAPH, "Graph Editor",
 	 "Edit animation/keyframes displayed as 2D curves"},
 	{SIPO_MODE_DRIVERS, "DRIVERS", ICON_DRIVER, "Drivers", "Edit drivers"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #define SACT_ITEM_DOPESHEET \
@@ -133,7 +133,7 @@ static EnumPropertyItem rna_enum_space_action_mode_all_items[] = {
 	SACT_ITEM_GPENCIL,
 	SACT_ITEM_MASK,
 	SACT_ITEM_CACHEFILE,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 static EnumPropertyItem rna_enum_space_action_ui_mode_items[] = {
 	SACT_ITEM_DOPESHEET,
@@ -143,14 +143,14 @@ static EnumPropertyItem rna_enum_space_action_ui_mode_items[] = {
 	SACT_ITEM_GPENCIL,
 	SACT_ITEM_MASK,
 	SACT_ITEM_CACHEFILE,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 /* expose as ui_mode */
 const EnumPropertyItem rna_enum_space_action_mode_items[] = {
 	SACT_ITEM_DOPESHEET,
 	SACT_ITEM_TIMELINE,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #undef SACT_ITEM_DOPESHEET
@@ -176,20 +176,20 @@ const EnumPropertyItem rna_enum_space_image_mode_all_items[] = {
 	SI_ITEM_UV,
 	SI_ITEM_PAINT,
 	SI_ITEM_MASK,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_space_image_mode_ui_items[] = {
 	SI_ITEM_VIEW("View", ICON_FILE_IMAGE),
 	SI_ITEM_PAINT,
 	SI_ITEM_MASK,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_space_image_mode_items[] = {
 	SI_ITEM_VIEW("Image Editor", ICON_IMAGE),
 	SI_ITEM_UV,
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #undef SI_ITEM_VIEW
@@ -208,14 +208,14 @@ static const EnumPropertyItem stereo3d_camera_items[] = {
 	V3D_S3D_CAMERA_LEFT
 	V3D_S3D_CAMERA_RIGHT
 	V3D_S3D_CAMERA_S3D
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem multiview_camera_items[] = {
 	V3D_S3D_CAMERA_VIEWS
 	V3D_S3D_CAMERA_S3D
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -228,7 +228,7 @@ static const EnumPropertyItem multiview_camera_items[] = {
 static const EnumPropertyItem stereo3d_eye_items[] = {
     {STEREO_LEFT_ID, "LEFT_EYE", ICON_NONE, "Left Eye"},
     {STEREO_RIGHT_ID, "RIGHT_EYE", ICON_NONE, "Right Eye"},
-    {0, NULL, 0, NULL, NULL}
+    {0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -242,7 +242,7 @@ static const EnumPropertyItem display_channels_items[] = {
 	{SI_SHOW_R, "RED",   ICON_COLOR_RED, "Red", ""},
 	{SI_SHOW_G, "GREEN", ICON_COLOR_GREEN, "Green", ""},
 	{SI_SHOW_B, "BLUE",  ICON_COLOR_BLUE, "Blue", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifndef RNA_RUNTIME
@@ -256,7 +256,7 @@ static const EnumPropertyItem autosnap_items[] = {
 	{SACTSNAP_SECOND, "SECOND", 0, "Nearest Second", "Snap to actual seconds (nla-action time)"},
 	/* {-1, "", 0, "", ""}, */
 	{SACTSNAP_MARKER, "MARKER", 0, "Nearest Marker", "Snap to nearest marker"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -265,14 +265,14 @@ const EnumPropertyItem rna_enum_shading_type_items[] = {
 	{OB_SOLID,    "SOLID",     ICON_SHADING_SOLID,    "Solid",     "Display in solid mode"},
 	{OB_MATERIAL, "MATERIAL",  ICON_SHADING_TEXTURE,  "LookDev",   "Display in LookDev mode"},
 	{OB_RENDER,   "RENDERED",  ICON_SHADING_RENDERED, "Rendered",  "Display render preview"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 	{V3D_LIGHTING_FLAT,   "FLAT",   0, "Flat",   "Display using flat lighting"},
 	{V3D_LIGHTING_STUDIO, "STUDIO", 0, "Studio", "Display using studio lighting"},
 	{V3D_LIGHTING_MATCAP, "MATCAP", 0, "MatCap", "Display using matcap material and lighting"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
@@ -281,19 +281,19 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
 	{V3D_SHADING_OBJECT_COLOR,   "OBJECT", 0, "Object",     "Show object color"},
 	{V3D_SHADING_RANDOM_COLOR,   "RANDOM",   0, "Random",   "Show random object color"},
 	{V3D_SHADING_TEXTURE_COLOR,  "TEXTURE",  0, "Texture",  "Show texture"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
 static const EnumPropertyItem rna_enum_studio_light_items[] = {
 	{0, "DEFAULT", 0, "Default", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
 	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* Actually populated dynamically trough a function, but helps for context-less access (e.g. doc, i18n...). */
@@ -315,7 +315,7 @@ static const EnumPropertyItem buttons_context_items[] = {
 	{BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particles"},
 	{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
 	{BCONTEXT_SHADERFX, "SHADERFX", ICON_SHADERFX, "Effects", "Object visual effects" },
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem fileselectparams_recursion_level_items[] = {
@@ -324,7 +324,7 @@ static const EnumPropertyItem fileselectparams_recursion_level_items[] = {
 	{2, "ALL_1", 0, "One Level", "List all sub-directories' content, one level of recursion"},
 	{3, "ALL_2", 0, "Two Levels", "List all sub-directories' content, two levels of recursion"},
 	{4, "ALL_3", 0, "Three Levels", "List all sub-directories' content, three levels of recursion"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_file_sort_items[] = {
@@ -332,7 +332,7 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 	{FILE_SORT_EXTENSION, "FILE_SORT_EXTENSION", ICON_SORTBYEXT, "Sort by extension", "Sort the file list by extension/type"},
 	{FILE_SORT_TIME, "FILE_SORT_TIME", ICON_SORTTIME, "Sort by time", "Sort files by modification time"},
 	{FILE_SORT_SIZE, "FILE_SORT_SIZE", ICON_SORTSIZE, "Sort by size", "Sort files by size"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -1175,7 +1175,7 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(
 		{V3D_AROUND_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "2D Cursor", ""},
 		{V3D_AROUND_LOCAL_ORIGINS, "INDIVIDUAL_ORIGINS", ICON_PIVOT_INDIVIDUAL,
 		            "Individual Origins", "Pivot around each selected island's own median point"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	SpaceImage *sima = (SpaceImage *)ptr->data;
@@ -2083,7 +2083,7 @@ static const EnumPropertyItem dt_uv_items[] = {
 	{SI_UVDT_DASH, "DASH", 0, "Dash", "Display dashed black-white edges"},
 	{SI_UVDT_BLACK, "BLACK", 0, "Black", "Display black edges"},
 	{SI_UVDT_WHITE, "WHITE", 0, "White", "Display white edges"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void rna_def_space(BlenderRNA *brna)
@@ -2118,7 +2118,7 @@ static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *m
 	static const EnumPropertyItem overlay_mode_items[] = {
 		{MASK_OVERLAY_ALPHACHANNEL, "ALPHACHANNEL", ICON_NONE, "Alpha Channel", "Show alpha channel of the mask"},
 		{MASK_OVERLAY_COMBINED,     "COMBINED",     ICON_NONE, "Combined",      "Combine space background image with the mask"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
@@ -2163,20 +2163,20 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 		                "Select UVs that are at the same location and share a mesh vertex"},
 		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex",
 		                   "Select UVs that share mesh vertex, irrespective if they are in the same location"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem dt_uvstretch_items[] = {
 		{SI_UVDT_STRETCH_ANGLE, "ANGLE", 0, "Angle", "Angular distortion between UV and 3D angles"},
 		{SI_UVDT_STRETCH_AREA, "AREA", 0, "Area", "Area distortion between UV and 3D faces"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem pixel_snap_mode_items[] = {
 		{SI_PIXEL_SNAP_DISABLED, "DISABLED", 0, "Disabled", "Don't snap to pixels"},
 		{SI_PIXEL_SNAP_CORNER, "CORNER", 0, "Corner", "Snap to pixel corners"},
 		{SI_PIXEL_SNAP_CENTER, "CENTER", 0, "Center", "Snap to pixel centers"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SpaceUVEditor", NULL);
@@ -2281,7 +2281,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_DATA_API, "DATA_API", ICON_RNA, "Data API", "Display low level Blender data and its properties"},
 		{SO_ID_ORPHANS, "ORPHAN_DATA", ICON_ORPHAN_DATA, "Orphan Data",
 		                "Display data-blocks which are unused and/or will be lost when the file is reloaded"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem filter_state_items[] = {
@@ -2289,7 +2289,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_FILTER_OB_VISIBLE, "VISIBLE", 0, "Visible", "Show visible objects"},
 		{SO_FILTER_OB_SELECTED, "SELECTED", 0, "Selected", "Show selected objects"},
 		{SO_FILTER_OB_ACTIVE, "ACTIVE", 0, "Active", "Show only the active object"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SpaceOutliner", "Space");
@@ -2411,7 +2411,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 		{V3D_SHADING_BACKGROUND_THEME,    "THEME",    0, "Theme",    "Use the theme for background color"},
 		{V3D_SHADING_BACKGROUND_WORLD,    "WORLD",    0, "World",    "Use the world for background color"},
 		{V3D_SHADING_BACKGROUND_VIEWPORT, "VIEWPORT", 0, "Viewport", "Use a custom color limited to this viewport only"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const float default_background_color[] = {0.05f, 0.05f, 0.05f};
 
@@ -2419,7 +2419,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 		{V3D_SHADING_CAVITY_SSAO,      "WORLD",  0, "World",  "Cavity shading computed in world space, useful for larger-scale occlusion"},
 		{V3D_SHADING_CAVITY_CURVATURE, "SCREEN", 0, "Screen", "Curvature-based shading, useful for making fine details more visible"},
 		{V3D_SHADING_CAVITY_BOTH,      "BOTH",   0, "Both",   "Use both effects simultaneously"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 
@@ -3048,7 +3048,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{RV3D_PERSP, "PERSP", 0, "Perspective", ""},
 		{RV3D_ORTHO, "ORTHO", 0, "Orthographic", ""},
 		{RV3D_CAMOB, "CAMERA", 0, "Camera", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem bundle_drawtype_items[] = {
@@ -3059,7 +3059,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{OB_CUBE, "CUBE", 0, "Cube", ""},
 		{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SpaceView3D", "Space");
@@ -3634,7 +3634,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
 		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Preview", ""},
 		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SPLITVIEW, "Sequencer/Preview", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem display_mode_items[] = {
@@ -3642,7 +3642,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", ICON_SEQ_LUMA_WAVEFORM, "Luma Waveform", ""},
 		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", ICON_SEQ_CHROMA_SCOPE, "Chroma Vectorscope", ""},
 		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", ICON_SEQ_HISTOGRAM, "Histogram", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem proxy_render_size_items[] = {
@@ -3653,21 +3653,21 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "Proxy size 75%", ""},
 		{SEQ_PROXY_RENDER_SIZE_100, "PROXY_100", 0, "Proxy size 100%", ""},
 		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem overlay_type_items[] = {
 		{SEQ_DRAW_OVERLAY_RECT, "RECTANGLE", 0, "Rectangle", "Show rectangle area overlay"},
 		{SEQ_DRAW_OVERLAY_REFERENCE, "REFERENCE", 0, "Reference", "Show reference frame only"},
 		{SEQ_DRAW_OVERLAY_CURRENT, "CURRENT", 0, "Current", "Show current frame only"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem preview_channels_items[] = {
 		{SEQ_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
 		                "Display image with RGB colors and alpha transparency"},
 		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Display image with RGB colors"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem waveform_type_display_items[] = {
@@ -3677,7 +3677,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		 "Waveforms drawn for all sound strips"},
 		{0, "DEFAULT_WAVEFORMS", 0, "Use Strip Option",
 		 "Waveforms drawn according to strip setting"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
@@ -4073,7 +4073,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		{V3D_AROUND_LOCAL_ORIGINS, "INDIVIDUAL_ORIGINS", ICON_PIVOT_INDIVIDUAL, "Individual Centers", ""},
 		/*{V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", 0, "Median Point", ""}, */
 		/*{V3D_AROUND_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""}, */
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 
@@ -4264,7 +4264,7 @@ static void rna_def_console_line(BlenderRNA *brna)
 		{CONSOLE_LINE_INPUT, "INPUT", 0, "Input", ""},
 		{CONSOLE_LINE_INFO, "INFO", 0, "Info", ""},
 		{CONSOLE_LINE_ERROR, "ERROR", 0, "Error", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -4342,7 +4342,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 		{FILE_SHORTDISPLAY, "LIST_SHORT", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
 		{FILE_LONGDISPLAY,  "LIST_LONG", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
 		{FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem display_size_items[] = {
@@ -4350,7 +4350,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	    {64,    "SMALL",    0,      "Small", ""},
 	    {128,   "NORMAL",   0,      "Normal", ""},
 	    {256,   "LARGE",    0,      "Large", ""},
-	    {0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem file_filter_idtypes_items[] = {
@@ -4387,7 +4387,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 		{FILTER_ID_VF, "FONT", ICON_FONT_DATA, "Fonts", "Show/hide Font data-blocks"},
 		{FILTER_ID_WO, "WORLD", ICON_WORLD_DATA, "Worlds", "Show/hide World data-blocks"},
 		{FILTER_ID_WS, "WORK_SPACE", ICON_NONE, "Workspaces", "Show/hide workspace data-blocks"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem file_filter_idcategories_items[] = {
@@ -4408,7 +4408,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	     "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lights, cameras and speakers"},
 		{FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_CF,
 	     "MISC", ICON_GREASEPENCIL, "Miscellaneous", "Show/hide other data types"},
-	    {0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "FileSelectParams", NULL);
@@ -4718,7 +4718,8 @@ static void rna_def_space_userpref(BlenderRNA *brna)
 	static const EnumPropertyItem filter_type_items[] = {
 	    {0,     "NAME",     0,      "Name",        "Filter based on the operator name"},
 	    {1,     "KEY",      0,      "Key-Binding", "Filter based on key bindings"},
-	    {0, NULL, 0, NULL, NULL}};
+	    {0, NULL, 0, NULL, NULL},
+	};
 
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -4805,7 +4806,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 #ifdef WITH_FREESTYLE
 		{SNODE_TEX_LINESTYLE, "LINESTYLE", ICON_LINE_DATA, "Line Style", "Edit texture nodes from Line Style"},
 #endif
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem shader_type_items[] = {
@@ -4814,7 +4815,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 #ifdef WITH_FREESTYLE
 		{SNODE_SHADER_LINESTYLE, "LINESTYLE", ICON_LINE_DATA, "Line Style", "Edit shader nodes from Line Style"},
 #endif
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem backdrop_channels_items[] = {
@@ -4825,18 +4826,19 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_SHOW_R, "RED",   ICON_COLOR_RED, "Red", ""},
 		{SNODE_SHOW_G, "GREEN", ICON_COLOR_GREEN, "Green", ""},
 		{SNODE_SHOW_B, "BLUE",  ICON_COLOR_BLUE, "Blue", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem insert_ofs_dir_items[] = {
 	    {SNODE_INSERTOFS_DIR_RIGHT, "RIGHT", 0, "Right"},
 	    {SNODE_INSERTOFS_DIR_LEFT, "LEFT", 0, "Left"},
-	    {0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem dummy_items[] = {
 		{0, "DUMMY", 0, "", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	srna = RNA_def_struct(brna, "SpaceNodeEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceNode");
@@ -4964,13 +4966,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
 		{SC_VIEW_GRAPH, "GRAPH", ICON_GRAPH, "Graph", "Show graph view for active element"},
 		{SC_VIEW_DOPESHEET, "DOPESHEET", ICON_ACTION, "Dopesheet", "Dopesheet view for tracking data"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem gpencil_source_items[] = {
 		{SC_GPENCIL_SRC_CLIP, "CLIP", 0, "Clip", "Show annotation data-block which belongs to movie clip"},
 		{SC_GPENCIL_SRC_TRACK, "TRACK", 0, "Track", "Show annotation data-block which belongs to active track"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem pivot_items[] = {
@@ -4981,7 +4983,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		            "Individual Origins", "Pivot around each object's own origin"},
 		{V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", ICON_PIVOT_MEDIAN, "Median Point",
 		               "Pivot around the median point of selected objects"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SpaceClipEditor", "Space");

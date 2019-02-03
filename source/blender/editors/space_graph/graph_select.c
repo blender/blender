@@ -583,7 +583,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
 	{GRAPHKEYS_COLUMNSEL_CFRA, "CFRA", 0, "On Current Frame", ""},
 	{GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, "On Selected Markers", ""},
 	{GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", 0, "Between Min/Max Selected Markers", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* ------------------- */
@@ -927,7 +927,7 @@ static const EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
 	{GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
 	{GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
 	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* --------------------------------- */

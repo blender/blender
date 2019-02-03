@@ -646,7 +646,7 @@ void GPENCIL_OT_generate_weights(wmOperatorType *ot)
 	static const EnumPropertyItem mode_type[] = {
 		{GP_ARMATURE_NAME, "NAME", 0, "Empty Groups", ""},
 		{GP_ARMATURE_AUTO, "AUTO", 0, "Automatic Weights", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;

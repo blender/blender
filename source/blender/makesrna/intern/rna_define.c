@@ -423,7 +423,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 		"class", "continue", "def", "del", "elif", "else", "except",
 		"finally", "for", "from", "global", "if", "import", "in",
 		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
-		"return", "try", "while", "with", "yield", NULL
+		"return", "try", "while", "with", "yield", NULL,
 	};
 
 
@@ -466,7 +466,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 		static const char *kwlist_prop[] = {
 			/* not keywords but reserved all the same because py uses */
 			"keys", "values", "items", "get",
-			NULL
+			NULL,
 		};
 
 		for (a = 0; kwlist_prop[a]; a++) {
@@ -491,7 +491,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 		"class", "continue", "def", "del", "elif", "else", "except",
 		"finally", "for", "from", "global", "if", "import", "in",
 		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
-		"return", "try", "while", "with", "yield", NULL
+		"return", "try", "while", "with", "yield", NULL,
 	};
 
 
@@ -537,7 +537,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 		static const char *kwlist_prop[] = {
 			/* not keywords but reserved all the same because py uses */
 			"keys", "values", "items", "get",
-			NULL
+			NULL,
 		};
 
 		for (a = 0; kwlist_prop[a]; a++) {

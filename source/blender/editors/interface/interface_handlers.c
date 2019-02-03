@@ -2917,7 +2917,7 @@ static int ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData 
 enum {
 	UI_TEXTEDIT_PASTE = 1,
 	UI_TEXTEDIT_COPY,
-	UI_TEXTEDIT_CUT
+	UI_TEXTEDIT_CUT,
 };
 
 static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const int mode)

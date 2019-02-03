@@ -747,7 +747,7 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 static const EnumPropertyItem prop_editarm_make_parent_types[] = {
 	{ARM_PAR_CONNECT, "CONNECTED", 0, "Connected", ""},
 	{ARM_PAR_OFFSET, "OFFSET", 0, "Keep Offset", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int armature_parent_set_exec(bContext *C, wmOperator *op)
@@ -868,7 +868,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 static const EnumPropertyItem prop_editarm_clear_parent_types[] = {
 	{1, "CLEAR", 0, "Clear Parent", ""},
 	{2, "DISCONNECT", 0, "Disconnect Bone", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void editbone_clear_parent(EditBone *ebone, int mode)

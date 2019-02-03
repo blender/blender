@@ -733,7 +733,7 @@ enum {
 	BUT_GET_RNA_TIP,
 	BUT_GET_RNAENUM_TIP,
 	BUT_GET_OP_KEYMAP,
-	BUT_GET_PROP_KEYMAP
+	BUT_GET_PROP_KEYMAP,
 };
 
 typedef struct uiStringInfo {

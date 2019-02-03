@@ -715,7 +715,7 @@ static PyMethodDef BPy_Operators_methods[] = {
 	                    Operators_get_chains_size_doc},
 	{"get_strokes_size", (PyCFunction) Operators_get_strokes_size, METH_NOARGS | METH_STATIC,
 	                     Operators_get_strokes_size_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*-----------------------BPy_Operators type definition ------------------------------*/

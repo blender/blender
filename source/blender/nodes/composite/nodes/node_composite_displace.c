@@ -32,11 +32,11 @@ static bNodeSocketTemplate cmp_node_displace_in[] = {
 	{	SOCK_VECTOR, 1, N_("Vector"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_TRANSLATION},
 	{	SOCK_FLOAT, 1, N_("X Scale"),				0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("Y Scale"),				0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f, PROP_NONE},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate cmp_node_displace_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 void register_node_type_cmp_displace(void)

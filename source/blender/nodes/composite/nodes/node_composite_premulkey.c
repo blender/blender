@@ -28,11 +28,11 @@
 
 static bNodeSocketTemplate cmp_node_premulkey_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate cmp_node_premulkey_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 void register_node_type_cmp_premulkey(void)

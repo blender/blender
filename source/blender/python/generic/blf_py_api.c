@@ -465,7 +465,7 @@ static PyMethodDef BLF_methods[] = {
 	{"color", (PyCFunction) py_blf_color, METH_VARARGS, py_blf_color_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
 	{"unload", (PyCFunction) py_blf_unload, METH_VARARGS, py_blf_unload_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(BLF_doc,

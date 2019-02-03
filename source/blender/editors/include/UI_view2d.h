@@ -53,7 +53,7 @@ enum eView2D_CommonViewTypes {
 	/* headers (this is basically the same as listview, but no y-panning) */
 	V2D_COMMONVIEW_HEADER,
 	/* ui region containing panels */
-	V2D_COMMONVIEW_PANELS_UI
+	V2D_COMMONVIEW_PANELS_UI,
 };
 
 /* ---- Defines for Scroller/Grid Arguments ----- */
@@ -77,7 +77,7 @@ enum eView2D_Units {
 /* clamping of grid values to whole numbers */
 enum eView2D_Clamp {
 	V2D_GRID_NOCLAMP = 0,
-	V2D_GRID_CLAMP
+	V2D_GRID_CLAMP,
 };
 
 /* flags for grid-lines to draw */

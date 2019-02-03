@@ -135,7 +135,7 @@ static Mathutils_Callback FEdgeSmooth_mathutils_cb = {
 	FEdgeSmooth_mathutils_get,
 	FEdgeSmooth_mathutils_set,
 	FEdgeSmooth_mathutils_get_index,
-	FEdgeSmooth_mathutils_set_index
+	FEdgeSmooth_mathutils_set_index,
 };
 
 static unsigned char FEdgeSmooth_mathutils_cb_index = -1;

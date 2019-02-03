@@ -23,7 +23,7 @@
 
 static bNodeSocketTemplate sh_node_output_lamp_in[] = {
 	{	SOCK_SHADER, 1, N_("Surface"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 /* node type definition */

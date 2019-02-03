@@ -136,7 +136,7 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
 		                                        "written by recording device"},
 		{IMB_TC_RECORD_RUN_NO_GAPS, "FREE_RUN_NO_GAPS", 0, "Free Run No Gaps",
 		                            "Record run, but ignore timecode, changes in framerate or dropouts"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieClipProxy", NULL);
@@ -234,7 +234,7 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 		{MCLIP_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "75%", ""},
 		{MCLIP_PROXY_RENDER_SIZE_100, "PROXY_100", 0, "100%", ""},
 		{MCLIP_PROXY_RENDER_SIZE_FULL, "FULL", 0, "None, full render", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieClipUser", NULL);
@@ -280,7 +280,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	static const EnumPropertyItem clip_source_items[] = {
 		{MCLIP_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
 		{MCLIP_SRC_MOVIE, "MOVIE", 0, "Movie File", "Movie file"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieClip", "ID");

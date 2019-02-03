@@ -519,7 +519,7 @@ static int image_view_zoom_exec(bContext *C, wmOperator *op)
 enum {
 	VIEW_PASS = 0,
 	VIEW_APPLY,
-	VIEW_CONFIRM
+	VIEW_CONFIRM,
 };
 
 static int image_view_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -3251,7 +3251,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	static const EnumPropertyItem point_items[] = {
 		{0, "BLACK_POINT", 0, "Black Point", ""},
 		{1, "WHITE_POINT", 0, "White Point", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

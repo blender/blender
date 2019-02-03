@@ -1832,7 +1832,7 @@ enum { RAN_HAIR, RAN_POINTS };
 static const EnumPropertyItem select_random_type_items[] = {
 	{RAN_HAIR, "HAIR", 0, "Hair", ""},
 	{RAN_POINTS, "POINTS", 0, "Points", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int select_random_exec(bContext *C, wmOperator *op)
@@ -2950,7 +2950,7 @@ enum { DEL_PARTICLE, DEL_KEY };
 static const EnumPropertyItem delete_type_items[] = {
 	{DEL_PARTICLE, "PARTICLE", 0, "Particle", ""},
 	{DEL_KEY, "KEY", 0, "Key", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void set_delete_particle(PEData *data, int pa_index)

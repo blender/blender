@@ -158,7 +158,7 @@ enum {
 	WM_OP_EXEC_REGION_CHANNELS,
 	WM_OP_EXEC_REGION_PREVIEW,
 	WM_OP_EXEC_AREA,
-	WM_OP_EXEC_SCREEN
+	WM_OP_EXEC_SCREEN,
 };
 
 /* property tags for RNA_OperatorProperties */

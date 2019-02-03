@@ -155,7 +155,7 @@ static struct PyMethodDef bpy_utils_previews_methods[] = {
 	{"new", (PyCFunction)bpy_utils_previews_new, METH_VARARGS, bpy_utils_previews_new_doc},
 	{"load", (PyCFunction)bpy_utils_previews_load, METH_VARARGS, bpy_utils_previews_load_doc},
 	{"release", (PyCFunction)bpy_utils_previews_release, METH_VARARGS, bpy_utils_previews_release_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpy_utils_previews_doc,

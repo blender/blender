@@ -123,7 +123,7 @@ GPUBatch *DRW_draw_background_clipping_batch_from_rv3d(const RegionView3D *rv3d)
 		{4, 7, 6, 5},
 		{7, 3, 2, 6},
 		{1, 5, 6, 2},
-		{7, 4, 0, 3}
+		{7, 4, 0, 3},
 	};
 	GPUVertBuf *vbo;
 	GPUIndexBuf *el;

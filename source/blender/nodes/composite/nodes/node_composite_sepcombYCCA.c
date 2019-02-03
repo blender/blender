@@ -62,11 +62,11 @@ static bNodeSocketTemplate cmp_node_combycca_in[] = {
 	{	SOCK_FLOAT, 1, N_("Cb"),			0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("Cr"),			0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("A"),			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate cmp_node_combycca_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_composit_init_mode_combycca(bNodeTree *UNUSED(ntree), bNode *node)

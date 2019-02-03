@@ -1903,7 +1903,7 @@ void TRANSFORM_GGT_gizmo(wmGizmoGroupType *gzgt)
 		{SCE_GIZMO_SHOW_ROTATE, "ROTATE", 0, "Rotate", ""},
 		{SCE_GIZMO_SHOW_SCALE, "SCALE", 0, "Scale", ""},
 		{0, "NONE", 0, "None", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	RNA_def_enum(gzgt->srna, "drag_action", rna_enum_gizmo_items, SCE_GIZMO_SHOW_TRANSLATE, "Drag Action", "");
 }

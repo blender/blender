@@ -36,7 +36,7 @@ static bNodeSocketTemplate inputs[] = {
 static bNodeSocketTemplate outputs[] = {
 	{	SOCK_RGBA,   0,  N_("Image")},
 	{	SOCK_FLOAT,  0,  N_("Plane")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 void register_node_type_cmp_cornerpin(void)

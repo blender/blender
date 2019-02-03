@@ -105,7 +105,7 @@ PyDoc_STRVAR(module_docstring, "The Blender Freestyle.Integrator submodule\n\n")
 
 static PyMethodDef module_functions[] = {
 	{"integrate", (PyCFunction) Integrator_integrate, METH_VARARGS | METH_KEYWORDS, Integrator_integrate_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*-----------------------Integrator module definition--------------------------------------*/
@@ -115,7 +115,7 @@ static PyModuleDef module_definition = {
     "Freestyle.Integrator",
     module_docstring,
     -1,
-    module_functions
+    module_functions,
 };
 
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/

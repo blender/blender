@@ -323,7 +323,7 @@ static PyMethodDef BPy_Stroke_methods[] = {
 	{"stroke_vertices_end", (PyCFunction)Stroke_stroke_vertices_end, METH_NOARGS, Stroke_stroke_vertices_end_doc},
 	{"__reversed__", (PyCFunction)Stroke_reversed, METH_NOARGS, Stroke_reversed_doc},
 	{"stroke_vertices_size", (PyCFunction)Stroke_stroke_vertices_size, METH_NOARGS, Stroke_stroke_vertices_size_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------Stroke get/setters ----------------------------*/

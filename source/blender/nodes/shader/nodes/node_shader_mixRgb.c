@@ -29,11 +29,11 @@ static bNodeSocketTemplate sh_node_mix_rgb_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Color1"),			0.5f, 0.5f, 0.5f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Color2"),			0.5f, 0.5f, 0.5f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate sh_node_mix_rgb_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_exec_mix_rgb(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)

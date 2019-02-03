@@ -41,7 +41,8 @@
 const EnumPropertyItem rna_enum_rigidbody_object_type_items[] = {
 	{RBO_TYPE_ACTIVE, "ACTIVE", 0, "Active", "Object is directly controlled by simulation results"},
 	{RBO_TYPE_PASSIVE, "PASSIVE", 0, "Passive", "Object is directly controlled by animation system"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 /* collision shapes of objects in rigid body sim */
 const EnumPropertyItem rna_enum_rigidbody_object_shape_items[] = {
@@ -55,7 +56,8 @@ const EnumPropertyItem rna_enum_rigidbody_object_shape_items[] = {
 	                   "fewer vertices)"},
 	{RB_SHAPE_TRIMESH, "MESH", ICON_MESH_MONKEY, "Mesh",
 	                   "Mesh consisting of triangles only, allowing for more detailed interactions than convex hulls"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 /* collision shapes of constraints in rigid body sim */
 const EnumPropertyItem rna_enum_rigidbody_constraint_type_items[] = {
@@ -68,13 +70,15 @@ const EnumPropertyItem rna_enum_rigidbody_constraint_type_items[] = {
 	{RBC_TYPE_6DOF_SPRING, "GENERIC_SPRING", ICON_NONE, "Generic Spring",
 	                       "Restrict translation and rotation to specified axes with springs"},
 	{RBC_TYPE_MOTOR, "MOTOR", ICON_NONE, "Motor", "Drive rigid body around or along an axis"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 /* bullet spring type */
 static const EnumPropertyItem rna_enum_rigidbody_constraint_spring_type_items[] = {
 	{RBC_SPRING_TYPE1, "SPRING1", ICON_NONE, "Blender 2.7", "Spring implementation used in blender 2.7. Damping is capped at 1.0"},
 	{RBC_SPRING_TYPE2, "SPRING2", ICON_NONE, "Blender 2.8", "New implementation available since 2.8"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 #ifndef RNA_RUNTIME
 /* mesh source for collision shape creation */
@@ -82,7 +86,8 @@ static const EnumPropertyItem rigidbody_mesh_source_items[] = {
 	{RBO_MESH_BASE, "BASE", 0, "Base", "Base mesh"},
 	{RBO_MESH_DEFORM, "DEFORM", 0, "Deform", "Deformations (shape keys, deform modifiers)"},
 	{RBO_MESH_FINAL, "FINAL", 0, "Final", "All modifiers"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 #endif
 
 #ifdef RNA_RUNTIME

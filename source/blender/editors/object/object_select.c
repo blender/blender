@@ -439,7 +439,7 @@ enum {
 	OBJECT_SELECT_LINKED_DUPGROUP,
 	OBJECT_SELECT_LINKED_PARTICLE,
 	OBJECT_SELECT_LINKED_LIBRARY,
-	OBJECT_SELECT_LINKED_LIBRARY_OBDATA
+	OBJECT_SELECT_LINKED_LIBRARY_OBDATA,
 };
 
 static const EnumPropertyItem prop_select_linked_types[] = {
@@ -450,7 +450,7 @@ static const EnumPropertyItem prop_select_linked_types[] = {
 	{OBJECT_SELECT_LINKED_PARTICLE, "PARTICLE", 0, "Particle System", ""},
 	{OBJECT_SELECT_LINKED_LIBRARY, "LIBRARY", 0, "Library", ""},
 	{OBJECT_SELECT_LINKED_LIBRARY_OBDATA, "LIBRARY_OBDATA", 0, "Library (Object Data)", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static bool object_select_all_by_obdata(bContext *C, void *obdata)
@@ -727,7 +727,7 @@ static const EnumPropertyItem prop_select_grouped_types[] = {
 	{OBJECT_GRPSEL_COLOR, "COLOR", 0, "Color", "Object Color"},
 	{OBJECT_GRPSEL_KEYINGSET, "KEYINGSET", 0, "Keying Set", "Objects included in active Keying Set"},
 	{OBJECT_GRPSEL_LIGHT_TYPE, "LIGHT_TYPE", 0, "Light Type", "Matching light types"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static bool select_grouped_children(bContext *C, Object *ob, const bool recursive)

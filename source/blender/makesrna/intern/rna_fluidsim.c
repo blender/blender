@@ -217,7 +217,7 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 		                    "Mix between no-slip and free-slip (non moving objects only!)"},
 		{OB_FSBND_FREESLIP, "FREESLIP", 0, "Free Slip",
 		                    "Obstacle only causes zero normal velocity (=not sticky, non moving objects only!)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "slip_type", PROP_ENUM, PROP_NONE);
@@ -259,7 +259,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 		{OB_FSDOM_GEOM, "GEOMETRY", 0, "Geometry", "Display geometry"},
 		{OB_FSDOM_PREVIEW, "PREVIEW", 0, "Preview", "Display preview quality results"},
 		{OB_FSDOM_FINAL, "FINAL", 0, "Final", "Display final quality results"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "DomainFluidSettings", "FluidSettings");
@@ -443,7 +443,7 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 		{1, "VOLUME", 0, "Volume", "Use only the inner volume of the mesh"},
 		{2, "SHELL", 0, "Shell", "Use only the outer shell of the mesh"},
 		{3, "BOTH", 0, "Both", "Use both the inner volume and the outer shell of the mesh"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "volume_initialization", PROP_ENUM, PROP_NONE);
@@ -676,7 +676,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 		                       "fluidsim domain object"},
 		{OB_FLUIDSIM_CONTROL, "CONTROL", 0, "Control",
 		 "Object is made a fluid control mesh, which influences the fluid"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 

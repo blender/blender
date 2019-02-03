@@ -78,7 +78,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_WM, "WINDOWMANAGER", ICON_WINDOW, "Window Manager", ""},
 	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
 	{ID_WS, "WORKSPACE", ICON_WORKSPACE, "Workspace", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -1062,7 +1062,7 @@ static void rna_def_ID_override_static_property_operation(BlenderRNA *brna)
 		 "Insert a new item into collection after the one referenced in subitem_reference_name or _index"},
 		{IDOVERRIDESTATIC_OP_INSERT_BEFORE, "INSERT_BEFORE", 0, "Insert Before",
 		 "Insert a new item into collection after the one referenced in subitem_reference_name or _index (NOT USED)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem static_override_property_flag_items[] = {
@@ -1070,7 +1070,7 @@ static void rna_def_ID_override_static_property_operation(BlenderRNA *brna)
 		 "For templates, prevents the user from removing pre-defined operation (NOT USED)"},
 		{IDOVERRIDESTATIC_FLAG_LOCKED, "LOCKED", 0, "Locked",
 		 "Prevents the user from modifying that override operation (NOT USED)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "IDOverrideStaticPropertyOperation", NULL);
@@ -1155,7 +1155,7 @@ static void rna_def_ID(BlenderRNA *brna)
 		{ID_RECALC_TRANSFORM, "OBJECT", 0, "Object", ""},
 		{ID_RECALC_GEOMETRY, "DATA", 0, "Data", ""},
 		{ID_RECALC_ANIMATION, "TIME", 0, "Time", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ID", NULL);

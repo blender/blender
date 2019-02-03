@@ -1243,7 +1243,7 @@ static PyMethodDef py_bvhtree_methods[] = {
 	{"FromBMesh", (PyCFunction) C_BVHTree_FromBMesh, METH_VARARGS | METH_KEYWORDS | METH_CLASS, C_BVHTree_FromBMesh_doc},
 	{"FromObject", (PyCFunction) C_BVHTree_FromObject, METH_VARARGS | METH_KEYWORDS | METH_CLASS, C_BVHTree_FromObject_doc},
 #endif
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyTypeObject PyBVHTree_Type = {

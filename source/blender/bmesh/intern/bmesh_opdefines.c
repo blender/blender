@@ -1134,7 +1134,7 @@ static BMO_FlagSet bmo_enum_dissolve_limit_flags[] = {
 	{BMO_DELIM_SEAM, "SEAM"},
 	{BMO_DELIM_SHARP, "SHARP"},
 	{BMO_DELIM_UV, "UV"},
-	{0, NULL}
+	{0, NULL},
 };
 
 /*

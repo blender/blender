@@ -31,11 +31,11 @@ static bNodeSocketTemplate cmp_node_map_range_in[] = {
 	{	SOCK_FLOAT, 1, N_("From Max"),	1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("To Min"),	0.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("To Max"),	1.0f, 1.0f, 1.0f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate cmp_node_map_range_out[] = {
 	{	SOCK_FLOAT, 0, N_("Value")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 void register_node_type_cmp_map_range(void)

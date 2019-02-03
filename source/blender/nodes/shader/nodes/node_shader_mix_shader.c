@@ -25,12 +25,12 @@ static bNodeSocketTemplate sh_node_mix_shader_in[] = {
 	{	SOCK_FLOAT,  1, N_("Fac"),		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_SHADER, 1, N_("Shader")},
 	{	SOCK_SHADER, 1, N_("Shader")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_mix_shader_out[] = {
 	{	SOCK_SHADER, 0, N_("Shader")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_mix_shader(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

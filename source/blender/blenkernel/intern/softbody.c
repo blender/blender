@@ -1974,7 +1974,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 						bs = sb->bspring + obp->springs[b-1];
 						if (( ilast-bb == bs->v2) || ( ilast-bb == bs->v1)) {
 							attached=1;
-							continue;}
+							continue;
+						}
 					}
 					if (!attached) {
 						float f = bstune / (distance) + bstune / (compare * compare) * distance - 2.0f * bstune / compare;
@@ -2320,7 +2321,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				}
 
 			}
-			else { add_v3_v3(bp->pos, dx);}
+			else {
+				add_v3_v3(bp->pos, dx);
+			}
 		}/*snap*/
 		/* so while we are looping BPs anyway do statistics on the fly */
 		minmax_v3v3_v3(aabbmin, aabbmax, bp->pos);
@@ -2621,7 +2624,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
 			springs_from_mesh(ob); /* write the 'rest'-length of the springs */
-			if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
+			if (ob->softflag & OB_SB_SELF) { calculate_collision_balls(ob); }
 
 		}
 
@@ -2930,7 +2933,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 
 	if (totspring) {
 		build_bps_springlist(ob); /* link bps to springs */
-		if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
+		if (ob->softflag & OB_SB_SELF) { calculate_collision_balls(ob); }
 	}
 }
 

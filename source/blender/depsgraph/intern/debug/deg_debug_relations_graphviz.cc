@@ -93,7 +93,7 @@ static const int deg_debug_node_type_color_map[][2] = {
     {NodeType::POINT_CACHE,        11},
     {NodeType::LAYER_COLLECTIONS,  12},
     {NodeType::COPY_ON_WRITE,      13},
-    {-1,                               0}
+    {-1,                            0},
 };
 #endif
 

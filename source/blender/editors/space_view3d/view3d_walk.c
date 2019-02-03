@@ -160,7 +160,8 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 
 		{WALK_MODAL_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
 
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Walk Modal");
 

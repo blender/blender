@@ -47,7 +47,7 @@ static PyStructSequence_Field app_ffmpeg_info_fields[] = {
 	DEF_FFMPEG_LIB_VERSION(avformat),
 	DEF_FFMPEG_LIB_VERSION(avutil),
 	DEF_FFMPEG_LIB_VERSION(swscale),
-	{NULL}
+	{NULL},
 };
 
 #undef DEF_FFMPEG_LIB_VERSION
@@ -56,7 +56,7 @@ static PyStructSequence_Desc app_ffmpeg_info_desc = {
 	(char *)"bpy.app.ffmpeg",     /* name */
 	(char *)"This module contains information about FFmpeg blender is linked against",    /* doc */
 	app_ffmpeg_info_fields,    /* fields */
-	ARRAY_SIZE(app_ffmpeg_info_fields) - 1
+	ARRAY_SIZE(app_ffmpeg_info_fields) - 1,
 };
 
 static PyObject *make_ffmpeg_info(void)

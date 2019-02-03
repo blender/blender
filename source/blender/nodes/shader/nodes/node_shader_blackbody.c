@@ -22,12 +22,12 @@
 /* **************** Blackbody ******************** */
 static bNodeSocketTemplate sh_node_blackbody_in[] = {
 	{	SOCK_FLOAT, 1, N_("Temperature"),	1500.0f, 0.0f, 0.0f, 0.0f, 800.0f, 12000.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_blackbody_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_blackbody(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

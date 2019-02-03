@@ -24,12 +24,12 @@
 static bNodeSocketTemplate sh_node_gamma_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Gamma"),			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f, PROP_UNSIGNED},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_gamma_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_shader_exec_gamma(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)

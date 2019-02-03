@@ -439,7 +439,7 @@ static rbMaterialDensityItem RB_MATERIAL_DENSITY_TABLE[] = {
 	{N_("Steel"), 7860.0f},
 	{N_("Stone"), 2515.0f},
 	{N_("Stone (Crushed)"), 1602.0f},
-	{N_("Timber"), 610.0f}
+	{N_("Timber"), 610.0f},
 };
 static const int NUM_RB_MATERIAL_PRESETS = sizeof(RB_MATERIAL_DENSITY_TABLE) / sizeof(rbMaterialDensityItem);
 

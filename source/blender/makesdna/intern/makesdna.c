@@ -127,7 +127,7 @@ static const char *includefiles[] = {
 	/* see comment above before editing! */
 
 	/* empty string to indicate end of includefiles */
-	""
+	"",
 };
 
 static int maxdata = 500000, maxnr = 50000;

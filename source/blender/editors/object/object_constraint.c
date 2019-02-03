@@ -584,7 +584,8 @@ static void object_test_constraint(Main *bmain, Object *owner, bConstraint *con)
 static const EnumPropertyItem constraint_owner_items[] = {
 	{EDIT_CONSTRAINT_OWNER_OBJECT, "OBJECT", 0, "Object", "Edit a constraint on the active object"},
 	{EDIT_CONSTRAINT_OWNER_BONE, "BONE", 0, "Bone", "Edit a constraint on the active bone"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 
 static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)

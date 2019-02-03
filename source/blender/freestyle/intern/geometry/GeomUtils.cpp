@@ -664,7 +664,7 @@ void fromCameraToWorld(const Vec3r& p, Vec3r& q, const real model_view_matrix[4]
 	real translation[3] = {
 		model_view_matrix[0][3],
 		model_view_matrix[1][3],
-		model_view_matrix[2][3]
+		model_view_matrix[2][3],
 	};
 	for (unsigned short i = 0; i < 3; i++) {
 		q[i] = 0.0;

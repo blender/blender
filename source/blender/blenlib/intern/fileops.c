@@ -507,7 +507,7 @@ enum {
 	RecursiveOp_Callback_StopRecurs = 1,
 
 	/* error occured in callback and recursive walking should stop immediately */
-	RecursiveOp_Callback_Error = 2
+	RecursiveOp_Callback_Error = 2,
 };
 
 typedef int (*RecursiveOp_Callback)(const char *from, const char *to);

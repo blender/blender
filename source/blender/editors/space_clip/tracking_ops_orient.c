@@ -501,7 +501,7 @@ void CLIP_OT_set_plane(wmOperatorType *ot)
 	static const EnumPropertyItem plane_items[] = {
 		{0, "FLOOR", 0, "Floor", "Set floor plane"},
 		{1, "WALL", 0, "Wall", "Set wall plane"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -575,7 +575,7 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
 	static const EnumPropertyItem axis_actions[] = {
 		{0, "X", 0, "X", "Align bundle align X axis"},
 		{1, "Y", 0, "Y", "Align bundle align Y axis"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

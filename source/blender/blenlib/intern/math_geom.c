@@ -1354,7 +1354,7 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 	const float ldir[3] = {
 		l2[0] - l1[0],
 		l2[1] - l1[1],
-		l2[2] - l1[2]
+		l2[2] - l1[2],
 	};
 
 	const float a = len_squared_v3(ldir);

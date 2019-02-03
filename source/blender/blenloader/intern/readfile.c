@@ -4172,7 +4172,7 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
 	"", // BPHYS_DATA_TIMES:
-	"BoidData" // case BPHYS_DATA_BOIDS:
+	"BoidData", // case BPHYS_DATA_BOIDS:
 };
 
 static void direct_link_pointcache_cb(FileData *fd, void *data)

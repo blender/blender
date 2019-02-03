@@ -742,7 +742,7 @@ void FILE_OT_select_walk(wmOperatorType *ot)
 		{FILE_SELECT_WALK_DOWN,  "DOWN",  0, "Next",  ""},
 		{FILE_SELECT_WALK_LEFT,  "LEFT",  0, "Left",  ""},
 		{FILE_SELECT_WALK_RIGHT, "RIGHT", 0, "Right", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	PropertyRNA *prop;
 

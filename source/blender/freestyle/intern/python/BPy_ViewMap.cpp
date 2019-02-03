@@ -133,7 +133,7 @@ static PyMethodDef BPy_ViewMap_methods[] = {
 	                         ViewMap_get_closest_viewedge_doc},
 	{"get_closest_fedge", (PyCFunction)ViewMap_get_closest_fedge, METH_VARARGS | METH_KEYWORDS,
 	                      ViewMap_get_closest_fedge_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------ViewMap get/setters ----------------------------*/

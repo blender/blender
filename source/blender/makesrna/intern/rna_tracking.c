@@ -794,13 +794,13 @@ static const EnumPropertyItem tracker_motion_model[] = {
 	              "Search for markers that are translated and rotated between frames"},
 	{TRACK_MOTION_MODEL_TRANSLATION, "Loc", 0, "Loc",
 	              "Search for markers that are translated between frames"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem pattern_match_items[] = {
 	{TRACK_MATCH_KEYFRAME, "KEYFRAME", 0, "Keyframe", "Track pattern from keyframe to next frame"},
 	{TRACK_MATCH_PREVFRAME, "PREV_FRAME", 0, "Previous frame", "Track pattern from current frame to next frame"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void rna_def_trackingSettings(BlenderRNA *brna)
@@ -814,14 +814,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
 		{TRACKING_SPEED_HALF, "HALF", 0, "Half", "Track with half of realtime speed"},
 		{TRACKING_SPEED_QUARTER, "QUARTER", 0, "Quarter", "Track with quarter of realtime speed"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem cleanup_items[] = {
 		{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
 		{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
 		{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete unclean segments of tracks"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem refine_items[] = {
@@ -845,7 +845,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{REFINE_RADIAL_DISTORTION_K1 |
 		 REFINE_RADIAL_DISTORTION_K2, "RADIAL_K1_K2", 0, "K1, K2",
 		 "Refine radial distortion K1 and K2"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieTrackingSettings", NULL);
@@ -1044,13 +1044,13 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 		{TRACKING_DISTORTION_MODEL_POLYNOMIAL, "POLYNOMIAL", 0, "Polynomial", "Radial distortion model which fits common cameras"},
 		{TRACKING_DISTORTION_MODEL_DIVISION, "DIVISION", 0, "Divisions", "Division distortion model which "
 		                                                                 "better represents wide-angle cameras"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem camera_units_items[] = {
 		{CAMERA_UNITS_PX, "PIXELS", 0, "px", "Use pixels for units of focal length"},
 		{CAMERA_UNITS_MM, "MILLIMETERS", 0, "mm", "Use millimeters for units of focal length"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieTrackingCamera", NULL);
@@ -1634,7 +1634,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 		{TRACKING_FILTER_NEAREST,  "NEAREST",  0, "Nearest",  "No interpolation, use nearest neighbor pixel"},
 		{TRACKING_FILTER_BILINEAR, "BILINEAR", 0, "Bilinear", "Simple interpolation between adjacent pixels"},
 		{TRACKING_FILTER_BICUBIC,  "BICUBIC",  0, "Bicubic",  "High quality pixel interpolation"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieTrackingStabilization", NULL);
@@ -2087,7 +2087,7 @@ static void rna_def_trackingDopesheet(BlenderRNA *brna)
 		{TRACKING_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
 		{TRACKING_DOPE_SORT_AVERAGE_ERROR, "AVERAGE_ERROR", 0, "Average Error",
 		                                   "Sort channels by average reprojection error of tracks after solve"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "MovieTrackingDopesheet", NULL);

@@ -81,7 +81,7 @@ static const EnumPropertyItem DT_layer_items[] = {
 	{0, "", 0, "Face Data", ""},
 	{DT_TYPE_SHARP_FACE, "SMOOTH", 0, "Smooth", "Transfer flat/smooth mark"},
 	{DT_TYPE_FREESTYLE_FACE, "FREESTYLE_FACE", 0, "Freestyle Mark", "Transfer Freestyle face mark"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* Note: rna_enum_dt_layers_select_src_items enum is from rna_modifier.c */

@@ -693,7 +693,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 		{BBONE_HANDLE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Use the position of the specified bone to compute the handle"},
 		{BBONE_HANDLE_RELATIVE, "RELATIVE", 0, "Relative", "Use the offset of the specified bone from rest pose to compute the handle"},
 		{BBONE_HANDLE_TANGENT, "TANGENT", 0, "Tangent", "Use the orientation of the specified bone to compute the handle, ignoring the location"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -1148,19 +1148,19 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope",
 		               "Display bones as extruded spheres, showing deformation influence volume"},
 		{ARM_WIRE, "WIRE", 0, "Wire", "Display bones as thin wires, showing subdivision and B-Splines"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem prop_ghost_type_items[] = {
 		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame",
 		                "Display Ghosts of poses within a fixed number of frames around the current frame"},
 		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Display Ghosts of poses within specified range"},
 		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Display Ghosts of poses on Keyframes"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem prop_pose_position_items[] = {
 		{0, "POSE", 0, "Pose Position", "Show armature in posed state"},
 		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state (no posing possible)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Armature", "ID");

@@ -446,7 +446,7 @@ EnumPropertyItem prop_clear_parent_types[] = {
 	 "As 'Clear Parent', but keep the current visual transformations of the object"},
 	{CLEAR_PARENT_INVERSE, "CLEAR_INVERSE", 0, "Clear Parent Inverse",
 	 "Reset the transform corrections applied to the parenting relationship, does not remove parenting itself"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* Helper for ED_object_parent_clear() - Remove deform-modifiers associated with parent */
@@ -606,7 +606,7 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
 	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
 	{PAR_VERTEX_TRI, "VERTEX_TRI", 0, "Vertex (Triangle)", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, Object *ob, Object *par,
@@ -1085,7 +1085,7 @@ enum {
 static const EnumPropertyItem prop_clear_track_types[] = {
 	{CLEAR_TRACK, "CLEAR", 0, "Clear Track", ""},
 	{CLEAR_TRACK_KEEP_TRANSFORM, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* note, poll should check for editable scene */
@@ -1155,7 +1155,7 @@ static const EnumPropertyItem prop_make_track_types[] = {
 	{CREATE_TRACK_DAMPTRACK, "DAMPTRACK", 0, "Damped Track Constraint", ""},
 	{CREATE_TRACK_TRACKTO, "TRACKTO", 0, "Track To Constraint", ""},
 	{CREATE_TRACK_LOCKTRACK, "LOCKTRACK", 0, "Lock Track Constraint", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int track_set_exec(bContext *C, wmOperator *op)
@@ -1547,7 +1547,8 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_DUPLICOLLECTION, "DUPLICOLLECTION", 0, "Instance Collection", ""},
 		{MAKE_LINKS_MODIFIERS,  "MODIFIERS", 0, "Modifiers", ""},
 		{MAKE_LINKS_FONTS,      "FONTS", 0, "Fonts", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Link Data";
@@ -2125,7 +2126,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 		{MAKE_LOCAL_SELECT_OBDATA, "SELECT_OBDATA", 0, "Selected Objects and Data", ""},
 		{MAKE_LOCAL_SELECT_OBDATA_MATERIAL, "SELECT_OBDATA_MATERIAL", 0, "Selected Objects, Data and Materials", ""},
 		{MAKE_LOCAL_ALL, "ALL", 0, "All", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -2433,7 +2434,8 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	static const EnumPropertyItem type_items[] = {
 		{MAKE_SINGLE_USER_SELECTED, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
 		{MAKE_SINGLE_USER_ALL, "ALL", 0, "All", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
 	ot->name = "Make Single User";

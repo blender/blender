@@ -541,7 +541,7 @@ void GPENCIL_OT_stroke_merge(wmOperatorType *ot)
 	static const EnumPropertyItem mode_type[] = {
 		{GP_MERGE_STROKE, "STROKE", 0, "Stroke", ""},
 		{GP_MERGE_POINT, "POINT", 0, "Point", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

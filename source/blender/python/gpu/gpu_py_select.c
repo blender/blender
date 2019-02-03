@@ -66,7 +66,7 @@ static PyObject *bpygpu_select_load_id(PyObject *UNUSED(self), PyObject *value)
 static struct PyMethodDef bpygpu_select_methods[] = {
 	/* Manage Stack */
 	{"load_id", (PyCFunction)bpygpu_select_load_id, METH_O, bpygpu_select_load_id_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpygpu_select_doc,

@@ -295,7 +295,7 @@ static Mathutils_Callback FrsMaterial_mathutils_cb = {
 	FrsMaterial_mathutils_get,
 	FrsMaterial_mathutils_set,
 	FrsMaterial_mathutils_get_index,
-	FrsMaterial_mathutils_set_index
+	FrsMaterial_mathutils_set_index,
 };
 
 static unsigned char FrsMaterial_mathutils_cb_index = -1;

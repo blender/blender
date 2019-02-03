@@ -36,13 +36,13 @@
 
 /* Reuse for dynamic types  */
 const EnumPropertyItem DummyRNA_NULL_items[] = {
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* Reuse for dynamic types with default value */
 const EnumPropertyItem DummyRNA_DEFAULT_items[] = {
 	{0, "DEFAULT", 0, "Default", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /** \} */
@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_property_type_items[] = {
 	{PROP_ENUM, "ENUM", 0, "Enumeration", ""},
 	{PROP_POINTER, "POINTER", 0, "Pointer", ""},
 	{PROP_COLLECTION, "COLLECTION", 0, "Collection", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /* XXX Keep in sync with bpy_props.c's property_subtype_xxx_items ???
@@ -103,7 +103,7 @@ const EnumPropertyItem rna_enum_property_subtype_items[] = {
 	/* booleans */
 	{PROP_LAYER, "LAYER", 0, "Layer", ""},
 	{PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_property_unit_items[] = {
@@ -117,7 +117,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 	{PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
 	{PROP_UNIT_MASS, "MASS", 0, "Mass", ""},
 	{PROP_UNIT_CAMERA, "CAMERA", 0, "Camera", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /** \} */
@@ -2322,10 +2322,10 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
 		{PROP_LAYER, "LAYER", 0, "Layer", ""},
 		{PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	EnumPropertyItem dummy_prop_tags[] = {
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Property", NULL);
@@ -2641,7 +2641,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	/* the itemf func is used instead, keep blender happy */
 	static const EnumPropertyItem default_dummy_items[] = {
 		{PROP_NONE, "DUMMY", 0, "Dummy", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "default", PROP_ENUM, PROP_NONE);

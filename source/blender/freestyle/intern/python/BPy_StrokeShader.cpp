@@ -229,7 +229,7 @@ static PyObject *StrokeShader_shade(BPy_StrokeShader *self, PyObject *args, PyOb
 
 static PyMethodDef BPy_StrokeShader_methods[] = {
 	{"shade", (PyCFunction)StrokeShader_shade, METH_VARARGS | METH_KEYWORDS, StrokeShader_shade___doc__},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------StrokeShader get/setters ----------------------------*/

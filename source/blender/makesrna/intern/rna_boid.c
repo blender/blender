@@ -59,7 +59,7 @@ const EnumPropertyItem rna_enum_boidrule_type_items[] = {
 	{eBoidRuleType_FollowWall, "FOLLOW_WALL", 0, "Follow Wall",
 	                           "Move next to a deflector object's in direction of it's tangent"},
 #endif
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifndef RNA_RUNTIME
@@ -69,7 +69,7 @@ static const EnumPropertyItem boidruleset_type_items[] = {
 	                         "fuzziness threshold is evaluated)"},
 	{eBoidRulesetType_Random, "RANDOM", 0, "Random", "A random rule is selected for each boid"},
 	{eBoidRulesetType_Average, "AVERAGE", 0, "Average", "All rules are averaged"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 

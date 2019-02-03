@@ -117,7 +117,7 @@ static PyMethodDef BPy_ViewVertex_methods[] = {
 	{"edges_end", (PyCFunction)ViewVertex_edges_end, METH_NOARGS, ViewVertex_edges_end_doc},
 	{"edges_iterator", (PyCFunction)ViewVertex_edges_iterator, METH_VARARGS | METH_KEYWORDS,
 	                   ViewVertex_edges_iterator_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------ViewVertex get/setters ----------------------------*/

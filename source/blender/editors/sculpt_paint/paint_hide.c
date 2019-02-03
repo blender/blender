@@ -443,7 +443,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	static const EnumPropertyItem action_items[] = {
 		{PARTIALVIS_HIDE, "HIDE", 0, "Hide", "Hide vertices"},
 		{PARTIALVIS_SHOW, "SHOW", 0, "Show", "Show vertices"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem area_items[] = {
@@ -451,7 +451,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 		{PARTIALVIS_INSIDE, "INSIDE", 0, "Inside", "Hide or show vertices inside the selection"},
 		{PARTIALVIS_ALL, "ALL", 0, "All", "Hide or show all vertices"},
 		{PARTIALVIS_MASKED, "MASKED", 0, "Masked", "Hide or show vertices that are masked (minimum mask value of 0.5)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

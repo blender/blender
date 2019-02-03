@@ -51,14 +51,14 @@ static void rna_LightProbe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 static EnumPropertyItem parallax_type_items[] = {
 	{LIGHTPROBE_SHAPE_ELIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
 	{LIGHTPROBE_SHAPE_BOX, "BOX", ICON_NONE, "Box", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
 	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_LIGHTPROBE_CUBEMAP, "Reflection Cubemap", "Capture reflections"},
 	{LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_LIGHTPROBE_PLANAR, "Reflection Plane", ""},
 	{LIGHTPROBE_TYPE_GRID, "GRID", ICON_LIGHTPROBE_GRID, "Irradiance Volume", "Volume used for precomputing indirect lighting"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static void rna_def_lightprobe(BlenderRNA *brna)

@@ -611,7 +611,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"paint_curves", "PaintCurve", "rna_Main_paintcurves_begin", "Paint Curves", "Paint Curves data-blocks", RNA_def_main_paintcurves, "rna_Main_paintcurve_lookup_string"},
 		{"workspaces", "WorkSpace", "rna_Main_workspaces_begin", "Workspaces", "Workspace data-blocks", RNA_def_main_workspaces, "rna_Main_workspace_lookup_string"},
 		{"lightprobes", "LightProbe", "rna_Main_lightprobes_begin", "LightProbes", "LightProbe data-blocks", RNA_def_main_lightprobes, "rna_Main_lightprobe_lookup_string"},
-		{NULL, NULL, NULL, NULL, NULL, NULL}
+		{NULL, NULL, NULL, NULL, NULL, NULL},
 	};
 
 	int i;

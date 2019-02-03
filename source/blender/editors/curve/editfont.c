@@ -562,7 +562,7 @@ static const EnumPropertyItem style_items[] = {
 	{CU_CHINFO_ITALIC, "ITALIC", 0, "Italic", ""},
 	{CU_CHINFO_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
 	{CU_CHINFO_SMALLCAPS, "SMALL_CAPS", 0, "Small Caps", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int set_style(bContext *C, const int style, const bool clear)
@@ -888,7 +888,8 @@ static const EnumPropertyItem move_type_items[] = {
 	{NEXT_LINE, "NEXT_LINE", 0, "Next Line", ""},
 	{PREV_PAGE, "PREVIOUS_PAGE", 0, "Previous Page", ""},
 	{NEXT_PAGE, "NEXT_PAGE", 0, "Next Page", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 static int move_cursor(bContext *C, int type, const bool select)
 {
@@ -1176,7 +1177,8 @@ static const EnumPropertyItem delete_type_items[] = {
 	{DEL_SELECTION, "SELECTION", 0, "Selection", ""},
 	{DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, "Next or Selection", ""},
 	{DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, "Previous or Selection", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 static int delete_exec(bContext *C, wmOperator *op)
 {
@@ -1594,7 +1596,8 @@ void ED_curve_editfont_free(Object *obedit)
 static const EnumPropertyItem case_items[] = {
 	{CASE_LOWER, "LOWER", 0, "Lower", ""},
 	{CASE_UPPER, "UPPER", 0, "Upper", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 static int set_case(bContext *C, int ccase)
 {

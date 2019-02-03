@@ -208,7 +208,8 @@ static const EnumPropertyItem fill_type_items[] = {
 	{0, "NOTHING", 0, "Nothing", "Don't fill at all"},
 	{1, "NGON", 0, "Ngon", "Use ngons"},
 	{2, "TRIFAN", 0, "Triangle Fan", "Use triangle fans"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL},
+};
 
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 {

@@ -4566,7 +4566,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 	StrokeCache *cache = ss->cache;
 	const float mouse[2] = {
 		cache->mouse[0],
-		cache->mouse[1]
+		cache->mouse[1],
 	};
 	int tool = brush->sculpt_tool;
 

@@ -905,7 +905,7 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
 		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
 		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
 		{BRUSH_STROKE_SMOOTH, "RELAX", 0, "Relax", "Switch brush to relax mode for duration of stroke"},
-		{0}
+		{0},
 	};
 
 	/* identifiers */

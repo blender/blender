@@ -125,7 +125,7 @@ enum {
 
 	/* do not intitialze function pointers and struct size in BMW_init */
 	BMW_CUSTOM,
-	BMW_MAXWALKERS
+	BMW_MAXWALKERS,
 };
 
 /* use with BMW_init, so as not to confuse with restrict flags */

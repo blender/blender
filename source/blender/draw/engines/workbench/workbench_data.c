@@ -142,7 +142,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		float viewvecs[3][4] = {
 		    {-1.0f, -1.0f, -1.0f, 1.0f},
 		    {1.0f, -1.0f, -1.0f, 1.0f},
-		    {-1.0f, 1.0f, -1.0f, 1.0f}
+		    {-1.0f, 1.0f, -1.0f, 1.0f},
 		};
 		int i;
 		const float *size = DRW_viewport_size_get();

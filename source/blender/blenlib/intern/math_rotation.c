@@ -2017,7 +2017,7 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 		/* Quaternion((1,0,0), radians(-90)) * Quaternion((0,1,0), radians(-90)) */
 		{0.5, -0.5, -0.5, 0.5},
 		/* no rotation */
-		{0.0, sqrt_1_2, sqrt_1_2, 0.0}
+		{0.0, sqrt_1_2, sqrt_1_2, 0.0},
 	};
 
 	assert(axis >= 0 && axis <= 5);

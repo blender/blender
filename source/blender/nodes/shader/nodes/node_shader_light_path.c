@@ -35,7 +35,7 @@ static bNodeSocketTemplate sh_node_light_path_out[] = {
 	{	SOCK_FLOAT, 0, N_("Glossy Depth"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Transparent Depth"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Transmission Depth"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_light_path(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

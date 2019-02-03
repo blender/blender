@@ -933,7 +933,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 		{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Move", ""},
 		{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
 		{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Transform Modal Map");

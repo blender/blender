@@ -407,7 +407,7 @@ static void get_tc_filename(struct anim *anim, IMB_Timecode_Type tc,
 		"record_run%s%s.blen_tc",
 		"free_run%s%s.blen_tc",
 		"interp_free_run%s%s.blen_tc",
-		"record_run_no_gaps%s%s.blen_tc"
+		"record_run_no_gaps%s%s.blen_tc",
 	};
 
 	char stream_suffix[20];

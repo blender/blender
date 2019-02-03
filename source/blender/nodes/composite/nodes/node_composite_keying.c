@@ -36,14 +36,14 @@ static bNodeSocketTemplate cmp_node_keying_in[] = {
 	{	SOCK_RGBA,  1, "Key Color",     1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Garbage Matte", 0.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Core Matte",    0.0f, 1.0f, 1.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate cmp_node_keying_out[] = {
 	{	SOCK_RGBA,  0, "Image"},
 	{	SOCK_FLOAT, 0, "Matte"},
 	{	SOCK_FLOAT, 0, "Edges"},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode *node)

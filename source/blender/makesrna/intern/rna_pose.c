@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 	{19, "THEME19", ICON_COLORSET_19_VEC, "19 - Theme Color Set", ""},
 	{20, "THEME20", ICON_COLORSET_20_VEC, "20 - Theme Color Set", ""},
 	{-1, "CUSTOM", 0, "Custom Color Set", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -795,13 +795,13 @@ static void rna_def_bone_group(BlenderRNA *brna)
 static const EnumPropertyItem prop_iksolver_items[] = {
 	{IKSOLVER_STANDARD, "LEGACY", 0, "Standard", "Original IK solver"},
 	{IKSOLVER_ITASC, "ITASC", 0, "iTaSC", "Multi constraint, stateful IK solver"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem prop_solver_items[] = {
 	{ITASC_SOLVER_SDLS, "SDLS", 0, "SDLS", "Selective Damped Least Square"},
 	{ITASC_SOLVER_DLS, "DLS", 0, "DLS", "Damped Least Square with Numerical Filtering"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -1265,7 +1265,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 		{ITASC_SIMULATION, "SIMULATION", 0, "Simulation",
 		                   "State-full solver running in real-time context and ignoring actions "
 		                   "and non-IK constraints"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static const EnumPropertyItem prop_itasc_reiteration_items[] = {
 		{0, "NEVER", 0, "Never", "The solver does not reiterate, not even on first frame (starts from rest pose)"},
@@ -1274,7 +1274,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 		                            "subsequent frame"},
 		{ITASC_INITIAL_REITERATION | ITASC_REITERATION, "ALWAYS", 0, "Always",
 		                                                "The solver reiterates (converges) on all frames"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;

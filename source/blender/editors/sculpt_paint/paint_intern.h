@@ -106,7 +106,7 @@ void PAINT_OT_weight_set(struct wmOperatorType *ot);
 
 enum {
 	WPAINT_GRADIENT_TYPE_LINEAR,
-	WPAINT_GRADIENT_TYPE_RADIAL
+	WPAINT_GRADIENT_TYPE_RADIAL,
 };
 void PAINT_OT_weight_gradient(struct wmOperatorType *ot);
 

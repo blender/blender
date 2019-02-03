@@ -32,7 +32,7 @@ static bNodeSocketTemplate sh_node_bsdf_hair_in[] = {
 
 static bNodeSocketTemplate sh_node_bsdf_hair_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int node_shader_gpu_bsdf_hair(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

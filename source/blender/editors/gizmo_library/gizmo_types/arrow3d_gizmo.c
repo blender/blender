@@ -450,16 +450,16 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
 		{ED_GIZMO_ARROW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
 		{ED_GIZMO_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
 		{ED_GIZMO_ARROW_STYLE_CONE, "CONE", 0, "Cone", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static EnumPropertyItem rna_enum_draw_options_items[] = {
 		{ED_GIZMO_ARROW_DRAW_FLAG_STEM, "STEM", 0, "Stem", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	static EnumPropertyItem rna_enum_transform_items[] = {
 		{ED_GIZMO_ARROW_XFORM_FLAG_INVERTED, "INVERT", 0, "Inverted", ""},
 		{ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	RNA_def_enum(

@@ -280,7 +280,7 @@ static struct PyMethodDef bpygpu_Batch_methods[] = {
 	 METH_NOARGS, ""},
 	{"_program_use_end", (PyCFunction)bpygpu_Batch_program_use_end,
 	 METH_NOARGS, ""},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 #ifdef USE_GPU_PY_REFERENCES

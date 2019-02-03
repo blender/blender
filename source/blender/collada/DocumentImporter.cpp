@@ -291,7 +291,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 		COLLADAFW::Transformation::ROTATE,
 		COLLADAFW::Transformation::SCALE,
 		COLLADAFW::Transformation::TRANSLATE,
-		COLLADAFW::Transformation::MATRIX
+		COLLADAFW::Transformation::MATRIX,
 	};
 
 	Object *ob;

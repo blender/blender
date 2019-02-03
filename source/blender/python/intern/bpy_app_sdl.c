@@ -52,14 +52,14 @@ static PyStructSequence_Field app_sdl_info_fields[] = {
 	{(char *)"available", (char *)("Boolean, True when SDL is available. This is False when "
 	                               "either *supported* is False, or *dynload* is True and "
 	                               "Blender cannot find the correct library.")},
-	{NULL}
+	{NULL},
 };
 
 static PyStructSequence_Desc app_sdl_info_desc = {
 	(char *)"bpy.app.sdl",     /* name */
 	(char *)"This module contains information about SDL blender is linked against",    /* doc */
 	app_sdl_info_fields,    /* fields */
-	ARRAY_SIZE(app_sdl_info_fields) - 1
+	ARRAY_SIZE(app_sdl_info_fields) - 1,
 };
 
 static PyObject *make_sdl_info(void)

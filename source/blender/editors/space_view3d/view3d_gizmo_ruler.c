@@ -80,7 +80,7 @@ enum {
 
 enum {
 	RULERITEM_DIRECTION_IN = 0,
-	RULERITEM_DIRECTION_OUT
+	RULERITEM_DIRECTION_OUT,
 };
 
 /* keep smaller then selection, since we may want click elsewhere without selecting a ruler */
@@ -95,7 +95,7 @@ enum {
 
 enum {
 	RULER_STATE_NORMAL = 0,
-	RULER_STATE_DRAG
+	RULER_STATE_DRAG,
 };
 
 enum {

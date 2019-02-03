@@ -46,7 +46,7 @@ static const EnumPropertyItem beztriple_handle_type_items[] = {
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
 	{HD_AUTO, "AUTO", 0, "Auto", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -56,7 +56,7 @@ const EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
 	{HD_VECT, "VECTOR", ICON_HANDLETYPE_VECTOR_VEC, "Vector", "Automatic handles that create straight lines"},
 	{HD_AUTO, "AUTO", ICON_HANDLETYPE_AUTO_VEC, "Automatic", "Automatic handles that create smooth curves"},
 	{HD_AUTO_ANIM, "AUTO_CLAMPED", ICON_HANDLETYPE_AUTO_CLAMP_VEC, "Auto Clamped", "Automatic handles that create smooth curves which only change direction at keyframes"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
@@ -81,7 +81,7 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
 	{BEZT_IPO_BOUNCE, "BOUNCE", ICON_IPO_BOUNCE, "Bounce", "Exponentially decaying parabolic bounce, like when objects collide"},
 	{BEZT_IPO_ELASTIC, "ELASTIC", ICON_IPO_ELASTIC, "Elastic", "Exponentially decaying sine wave, like an elastic band"},
 
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifndef RNA_RUNTIME
@@ -91,7 +91,7 @@ static const EnumPropertyItem curve_type_items[] = {
 	{CU_BSPLINE, "BSPLINE", 0, "BSpline", ""},
 	{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
 	{CU_NURBS, "NURBS", 0, "Ease", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -100,7 +100,7 @@ static const EnumPropertyItem curve3d_fill_mode_items[] = {
 	{CU_BACK, "BACK", 0, "Back", ""},
 	{CU_FRONT, "FRONT", 0, "Front", ""},
 	{CU_FRONT | CU_BACK, "HALF", 0, "Half", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -109,7 +109,7 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 	{CU_BACK, "BACK", 0, "Back", ""},
 	{CU_FRONT, "FRONT", 0, "Front", ""},
 	{CU_FRONT | CU_BACK, "BOTH", 0, "Both", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -956,7 +956,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 		{CU_ALIGN_X_RIGHT, "RIGHT", ICON_ALIGN_RIGHT, "Right", "Align text to the right"},
 		{CU_ALIGN_X_JUSTIFY, "JUSTIFY", ICON_ALIGN_JUSTIFY, "Justify", "Align to the left and the right"},
 		{CU_ALIGN_X_FLUSH, "FLUSH", ICON_ALIGN_FLUSH, "Flush", "Align to the left and the right, with equal character spacing"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_align_y_items[] = {
@@ -966,14 +966,14 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 		{CU_ALIGN_Y_BOTTOM, "BOTTOM", ICON_ALIGN_BOTTOM, "Bottom", "Align text to the bottom"},
 		{CU_ALIGN_Y_BOTTOM_BASELINE, "BOTTOM_BASELINE", ICON_ALIGN_BOTTOM, "Bottom Base-Line",
 		"Align text to the bottom but use the base-line of the text"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_overflow_items[] = {
 		{CU_OVERFLOW_NONE, "NONE", 0, "Overflow", "Let the text overflow outside the text boxes"},
 		{CU_OVERFLOW_SCALE, "SCALE", 0, "Scale to Fit", "Scale down the text to fit inside the text boxes"},
 		{CU_OVERFLOW_TRUNCATE, "TRUNCATE", 0, "Truncate", "Truncate the text that would go outside the text boxes"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* Enums */
@@ -1358,21 +1358,21 @@ static void rna_def_curve(BlenderRNA *brna)
 		{CU_TWIST_Z_UP, "Z_UP", 0, "Z-Up", "Use Z-Up axis to calculate the curve twist at each point"},
 		{CU_TWIST_MINIMUM, "MINIMUM", 0, "Minimum", "Use the least twist over the entire curve"},
 		{CU_TWIST_TANGENT, "TANGENT", 0, "Tangent", "Use the tangent to calculate twist"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem curve_axis_items[] = {
 		{0, "2D", 0, "2D", "Clamp the Z axis of the curve"},
 		{CU_3D, "3D", 0, "3D",
 		 "Allow editing on the Z axis of this curve, also allows tilt and curve radius to be used"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem bevfac_mapping_items[] = {
 		{CU_BEVFAC_MAP_RESOLU, "RESOLUTION", 0, "Resolution", "Map the bevel factor to the number of subdivisions of a spline (U resolution)"},
 		{CU_BEVFAC_MAP_SEGMENT, "SEGMENTS", 0, "Segments", "Map the bevel factor to the length of a segment and to the number of subdivisions of a segment"},
 		{CU_BEVFAC_MAP_SPLINE, "SPLINE", 0, "Spline", "Map the bevel factor to the length of a spline"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Curve", "ID");
@@ -1615,7 +1615,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 		{KEY_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
 		{KEY_BSPLINE, "BSPLINE", 0, "BSpline", ""},
 		{KEY_CU_EASE, "EASE", 0, "Ease", ""}, /* todo, define somewhere, not one of BEZT_IPO_* */
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;

@@ -55,7 +55,7 @@ const EnumPropertyItem rna_enum_object_shaderfx_type_items[] = {
 	{eShaderFxType_Shadow, "FX_SHADOW", ICON_SHADERFX, "Shadow", "Create a shadow effect"},
 	{eShaderFxType_Swirl, "FX_SWIRL", ICON_SHADERFX, "Swirl", "Create a rotation distortion"},
 	{eShaderFxType_Wave, "FX_WAVE", ICON_SHADERFX, "Wave Distortion", "Apply sinusoidal deformation"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_shaderfx_rim_modes_items[] = {

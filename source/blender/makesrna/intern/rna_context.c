@@ -51,7 +51,7 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 	{CTX_MODE_EDIT_GPENCIL, "EDIT_GPENCIL", 0, "Grease Pencil Edit", "" },
 	{CTX_MODE_SCULPT_GPENCIL, "SCULPT_GPENCIL", 0, "Grease Pencil Sculpt", "" },
 	{CTX_MODE_WEIGHT_GPENCIL, "WEIGHT_GPENCIL", 0, "Grease Pencil Weight Paint", "" },
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME

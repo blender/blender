@@ -460,7 +460,7 @@ void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt)
 	static const EnumPropertyItem axis_type_items[] = {
 		{EXTRUDE_AXIS_NORMAL, "NORMAL", 0, "Normal", "Only show normal axis"},
 		{EXTRUDE_AXIS_XYZ, "XYZ", 0, "XYZ", "Follow scene orientation"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	RNA_def_enum(gzgt->srna, "axis_type", axis_type_items, 0, "Axis Type", "");
 }

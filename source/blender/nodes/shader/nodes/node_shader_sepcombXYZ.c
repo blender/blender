@@ -27,13 +27,13 @@
 /* **************** SEPARATE XYZ ******************** */
 static bNodeSocketTemplate sh_node_sepxyz_in[] = {
 	{	SOCK_VECTOR, 1, N_("Vector"),			0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate sh_node_sepxyz_out[] = {
 	{	SOCK_FLOAT, 0, N_("X")},
 	{	SOCK_FLOAT, 0, N_("Y")},
 	{	SOCK_FLOAT, 0, N_("Z")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int gpu_shader_sepxyz(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
@@ -59,11 +59,11 @@ static bNodeSocketTemplate sh_node_combxyz_in[] = {
 	{	SOCK_FLOAT, 1, N_("X"),			0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f},
 	{	SOCK_FLOAT, 1, N_("Y"),			0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f},
 	{	SOCK_FLOAT, 1, N_("Z"),			0.0f, 0.0f, 0.0f, 1.0f, -10000.0f, 10000.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 static bNodeSocketTemplate sh_node_combxyz_out[] = {
 	{	SOCK_VECTOR, 0, N_("Vector")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static int gpu_shader_combxyz(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

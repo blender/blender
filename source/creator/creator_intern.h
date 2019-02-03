@@ -52,7 +52,6 @@ struct ApplicationState {
 	struct {
 		unsigned char python;
 	} exit_code_on_error;
-
 };
 extern struct ApplicationState app_state;  /* creator.c */
 

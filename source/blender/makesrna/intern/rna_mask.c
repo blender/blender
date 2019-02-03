@@ -589,12 +589,14 @@ static void rna_def_maskParent(BlenderRNA *brna)
 
 	static const EnumPropertyItem mask_id_type_items[] = {
 		{ID_MC, "MOVIECLIP", ICON_SEQUENCE, "Movie Clip", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	static const EnumPropertyItem parent_type_items[] = {
 		{MASK_PARENT_POINT_TRACK, "POINT_TRACK", 0, "Point Track", ""},
 		{MASK_PARENT_PLANE_TRACK, "PLANE_TRACK", 0, "Plane Track", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	srna = RNA_def_struct(brna, "MaskParent", NULL);
 	RNA_def_struct_ui_text(srna, "Mask Parent", "Parenting settings for masking element");
@@ -677,7 +679,8 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
 		{HD_ALIGN, "ALIGNED", 0, "Aligned Single", ""},
 		{HD_ALIGN_DOUBLESIDE, "ALIGNED_DOUBLESIDE", 0, "Aligned", ""},
 		{HD_FREE, "FREE", 0, "Free", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	rna_def_maskSplinePointUW(brna);
 
@@ -822,13 +825,13 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	static const EnumPropertyItem spline_interpolation_items[] = {
 		{MASK_SPLINE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
 		{MASK_SPLINE_INTERP_EASE, "EASE", 0, "Ease", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem spline_offset_mode_items[] = {
 		{MASK_SPLINE_OFFSET_EVEN, "EVEN", 0, "Even", "Calculate even feather offset"},
 		{MASK_SPLINE_OFFSET_SMOOTH, "SMOOTH", 0, "Smooth", "Calculate feather offset as a second curve"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;
@@ -893,7 +896,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 		{MASK_BLEND_MUL, "MUL", 0, "Multiply", ""},
 		{MASK_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
 		{MASK_BLEND_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	StructRNA *srna;

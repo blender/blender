@@ -56,19 +56,19 @@ static const EnumPropertyItem opensubdiv_compute_type_items[] = {
 	{USER_OPENSUBDIV_COMPUTE_CUDA, "CUDA", 0, "CUDA", ""},
 	{USER_OPENSUBDIV_COMPUTE_GLSL_TRANSFORM_FEEDBACK, "GLSL_TRANSFORM_FEEDBACK", 0, "GLSL Transform Feedback", ""},
 	{USER_OPENSUBDIV_COMPUTE_GLSL_COMPUTE, "GLSL_COMPUTE", 0, "GLSL Compute", ""},
-	{ 0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
 static const EnumPropertyItem audio_device_items[] = {
 	{0, "Null", 0, "None", "Null device - there will be no audio output"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 const EnumPropertyItem rna_enum_navigation_mode_items[] = {
 	{VIEW_NAVIGATION_WALK, "WALK", 0, "Walk", "Interactively walk or free navigate around the scene"},
 	{VIEW_NAVIGATION_FLY, "FLY", 0, "Fly", "Use fly dynamics to navigate the scene"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -76,7 +76,7 @@ const EnumPropertyItem rna_enum_navigation_mode_items[] = {
 static const EnumPropertyItem rna_enum_language_default_items[] = {
 	{0, "DEFAULT", 0, "Automatic (Automatic)",
 	 "Automatically choose system's defined language if available, or fall-back to English"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -84,7 +84,7 @@ static const EnumPropertyItem rna_enum_studio_light_type_items[] = {
 	{STUDIOLIGHT_TYPE_STUDIO,     "STUDIO", 0, "Studio", ""},
 	{STUDIOLIGHT_TYPE_WORLD,      "WORLD",  0, "World",  ""},
 	{STUDIOLIGHT_TYPE_MATCAP,     "MATCAP", 0, "MatCap", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -802,7 +802,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	static const EnumPropertyItem font_kerning_style[] = {
 		{0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances"},
 		{1, "FITTED", 0, "Fitted", "Use scaled and grid-fitted kerning distances"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ThemeFontStyle", NULL);
@@ -3221,7 +3221,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{20, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", ""},
 		{21, "TOPBAR", ICON_NONE, "Top Bar", ""},
 		{22, "STATUSBAR", ICON_NONE, "Status Bar", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Theme", NULL);
@@ -3662,7 +3662,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 		                             "milliseconds are shown instead"},
 		{USER_TIMECODE_SECONDS_ONLY, "SECONDS_ONLY", 0, "Only Seconds",
 		                             "Direct conversion of frame numbers to seconds"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem color_picker_types[] = {
@@ -3673,21 +3673,21 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 		{USER_CP_SQUARE_SV, "SQUARE_SV", 0, "Square (SV + H)", "A square showing Saturation/Value, with Hue slider"},
 		{USER_CP_SQUARE_HS, "SQUARE_HS", 0, "Square (HS + V)", "A square showing Hue/Saturation, with Value slider"},
 		{USER_CP_SQUARE_HV, "SQUARE_HV", 0, "Square (HV + S)", "A square showing Hue/Value, with Saturation slider"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem zoom_frame_modes[] = {
 		{ZOOM_FRAME_MODE_KEEP_RANGE, "KEEP_RANGE", 0, "Keep Range", ""},
 		{ZOOM_FRAME_MODE_SECONDS, "SECONDS", 0, "Seconds", ""},
 		{ZOOM_FRAME_MODE_KEYFRAMES, "KEYFRAMES", 0, "Keyframes", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem line_width[] = {
 		{-1, "THIN", 0, "Thin", "Thinner lines than the default"},
 		{ 0, "AUTO", 0, "Auto", "Automatic line width based on UI scale"},
 		{ 1, "THICK", 0, "Thick", "Thicker lines than the default"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	PropertyRNA *prop;
@@ -3861,7 +3861,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	static const EnumPropertyItem header_align_default_items[] = {
 		{0, "TOP", 0, "Top", ""},
 		{USER_HEADER_BOTTOM, "BOTTOM", 0, "Bottom", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	prop = RNA_def_property(srna, "header_align_default", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, header_align_default_items);
@@ -3874,14 +3874,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 		{USER_TEXT_HINTING_NONE, "NONE", 0, "None", ""},
 		{USER_TEXT_HINTING_SLIGHT, "SLIGHT", 0, "Slight", ""},
 		{USER_TEXT_HINTING_FULL, "FULL", 0, "Full", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* mini axis */
 	static const EnumPropertyItem mini_axis_type_items[] = {
 		{0, "MINIMAL", 0, "Simple Axis", ""},
 		{USER_SHOW_GIZMO_AXIS, "GIZMO", 0, "Interactive Navigation", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "mini_axis_type", PROP_ENUM, PROP_NONE);
@@ -4032,20 +4032,20 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	static const EnumPropertyItem auto_key_modes[] = {
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem material_link_items[] = {
 		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block"},
 		{USER_MAT_ON_OB, "OBJECT", 0, "Object",
 		                 "Toggle whether the material is linked to object data or the object block"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem object_align_items[] = {
 		{0, "WORLD", 0, "World", "Align newly added objects to the world coordinate system"},
 		{USER_ADD_VIEWALIGNED, "VIEW", 0, "View", "Align newly added objects facing the active 3D View direction"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "PreferencesEdit", NULL);
@@ -4274,7 +4274,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{512, "CLAMP_512", 0, "512", ""},
 		{256, "CLAMP_256", 0, "256", ""},
 		{128, "CLAMP_128", 0, "128", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem anisotropic_items[] = {
@@ -4283,7 +4283,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{4, "FILTER_4", 0, "4x", ""},
 		{8, "FILTER_8", 0, "8x", ""},
 		{16, "FILTER_16", 0, "16x", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem audio_mixing_samples_items[] = {
@@ -4295,7 +4295,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{8192, "SAMPLES_8192", 0, "8192", "Set audio mixing buffer size to 8192 samples"},
 		{16384, "SAMPLES_16384", 0, "16384", "Set audio mixing buffer size to 16384 samples"},
 		{32768, "SAMPLES_32768", 0, "32768", "Set audio mixing buffer size to 32768 samples"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem audio_rate_items[] = {
@@ -4309,7 +4309,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 /*		{88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second"}, */
 		{96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second"},
 		{192000, "RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem audio_format_items[] = {
@@ -4319,7 +4319,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0x14, "S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer"},
 		{0x24, "FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float"},
 		{0x28, "DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem audio_channel_items[] = {
@@ -4328,7 +4328,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
 		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
 		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem multi_sample_levels[] = {
@@ -4337,14 +4337,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{USER_MULTISAMPLE_4, "4", 0, "MultiSample: 4", "Use 4x OpenGL MultiSample (requires restart)"},
 		{USER_MULTISAMPLE_8, "8", 0, "MultiSample: 8", "Use 8x OpenGL MultiSample (requires restart)"},
 		{USER_MULTISAMPLE_16, "16", 0, "MultiSample: 16", "Use 16x OpenGL MultiSample (requires restart)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem image_draw_methods[] = {
 		{IMAGE_DRAW_METHOD_2DTEXTURE, "2DTEXTURE", 0, "2D Texture", "Use CPU for display transform and draw image with 2D texture"},
 		{IMAGE_DRAW_METHOD_GLSL, "GLSL", 0, "GLSL", "Use GLSL shaders for display transform and draw image with 2D texture"},
 		{IMAGE_DRAW_METHOD_DRAWPIXELS, "DRAWPIXELS", 0, "DrawPixels", "Use CPU for display transform and draw image using DrawPixels"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "PreferencesSystem", NULL);
@@ -4554,20 +4554,20 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	static const EnumPropertyItem view_rotation_items[] = {
 		{0, "TURNTABLE", 0, "Turntable", "Turntable keeps the Z-axis upright while orbiting"},
 		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Trackball allows you to tumble your view at any angle"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 #ifdef WITH_INPUT_NDOF
 	static const EnumPropertyItem ndof_view_navigation_items[] = {
 		{0, "FREE", 0, "Free", "Use full 6 degrees of freedom by default"},
 		{NDOF_MODE_ORBIT, "ORBIT", 0, "Orbit", "Orbit about the view center by default"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem ndof_view_rotation_items[] = {
 		{NDOF_TURNTABLE, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport"},
 		{0, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 #endif /* WITH_INPUT_NDOF */
 
@@ -4575,7 +4575,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{USER_TABLET_AUTOMATIC, "AUTOMATIC", 0, "Automatic", "Automatically choose Wintab or Windows Ink depending on the device"},
 		{USER_TABLET_NATIVE, "WINDOWS_INK", 0, "Windows Ink", "Use native Windows Ink API, for modern tablet and pen devices. Requires Windows 8 or newer"},
 		{USER_TABLET_WINTAB, "WINTAB", 0, "Wintab", "Use Wintab driver for older tablets and Windows versions"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem view_zoom_styles[] = {
@@ -4583,13 +4583,13 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zoom in and out based on vertical mouse movement"},
 		{USER_ZOOM_SCALE, "SCALE", 0, "Scale",
 		                  "Zoom in and out like scaling the view, mouse movements relative to center"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem view_zoom_axes[] = {
 		{0, "VERTICAL", 0, "Vertical", "Zoom in and out based on vertical mouse movement"},
 		{USER_ZOOM_HORIZ, "HORIZONTAL", 0, "Horizontal", "Zoom in and out based on horizontal mouse movement"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "PreferencesInput", NULL);
@@ -4859,7 +4859,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 		{4, "RV", 0, "rv", "Frame player from Tweak Software"},
 		{5, "MPLAYER", 0, "MPlayer", "Media player for video & png/jpeg/sgi image sequences"},
 		{50, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "PreferencesFilePaths", NULL);
@@ -5085,7 +5085,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},
 		{USER_SECTION_SAVE_LOAD, "SAVE_LOAD",   0, "Save & Load",   ""},
 		{USER_SECTION_FILE_PATHS, "FILE_PATHS",   0, "File Paths",   ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	rna_def_userdef_dothemes(brna);

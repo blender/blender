@@ -543,7 +543,7 @@ static void viewops_data_free(bContext *C, wmOperator *op)
 enum {
 	VIEW_PASS = 0,
 	VIEW_APPLY,
-	VIEW_CONFIRM
+	VIEW_CONFIRM,
 };
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
@@ -568,7 +568,7 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 		{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
 		{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Rotate Modal");
@@ -1574,7 +1574,7 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 		{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
 		{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Move Modal");
@@ -1766,7 +1766,7 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 		{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 		{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
@@ -2297,7 +2297,7 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 		{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 		{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Dolly Modal");
@@ -3593,7 +3593,7 @@ static const EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_TOP, "TOP", ICON_TRIA_UP, "Top", "View From the Top"},
 	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
 	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -3912,7 +3912,7 @@ static const EnumPropertyItem prop_view_orbit_items[] = {
 	{V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, "Orbit Right", "Orbit the view around to the Right"},
 	{V3D_VIEW_STEPUP, "ORBITUP", 0, "Orbit Up", "Orbit the view Up"},
 	{V3D_VIEW_STEPDOWN, "ORBITDOWN", 0, "Orbit Down", "Orbit the view Down"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
@@ -4138,7 +4138,7 @@ static const EnumPropertyItem prop_view_roll_items[] = {
 	{0, "ANGLE", 0, "Roll Angle", "Roll the view using an angle value"},
 	{V3D_VIEW_STEPLEFT, "LEFT", 0, "Roll Left", "Roll the view around to the Left"},
 	{V3D_VIEW_STEPRIGHT, "RIGHT", 0, "Roll Right", "Roll the view around to the Right"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 
@@ -4274,7 +4274,7 @@ static const EnumPropertyItem prop_view_pan_items[] = {
 	{V3D_VIEW_PANRIGHT, "PANRIGHT", 0, "Pan Right", "Pan the view to the Right"},
 	{V3D_VIEW_PANUP, "PANUP", 0, "Pan Up", "Pan the view Up"},
 	{V3D_VIEW_PANDOWN, "PANDOWN", 0, "Pan Down", "Pan the view Down"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 /** \} */
@@ -4843,7 +4843,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 		{V3D_CURSOR_ORIENT_VIEW,    "VIEW",  0, "View", "Orient to the viewport"},
 		{V3D_CURSOR_ORIENT_XFORM,   "XFORM", 0, "Transform", "Orient to the current transform setting"},
 		{V3D_CURSOR_ORIENT_GEOM,    "GEOM",  0, "Geometry", "Match the surface normal"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_boolean(
@@ -4868,7 +4868,7 @@ static const EnumPropertyItem prop_shading_type_items[] = {
 	{OB_SOLID, "SOLID", 0, "Solid", "Toggle solid shading"},
 	{OB_MATERIAL, "MATERIAL", 0, "LookDev", "Toggle lookdev shading"},
 	{OB_RENDER, "RENDERED", 0, "Rendered", "Toggle rendered shading"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static int toggle_shading_exec(bContext *C, wmOperator *op)

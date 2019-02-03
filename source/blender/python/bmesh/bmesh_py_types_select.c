@@ -173,7 +173,7 @@ static struct PyMethodDef bpy_bmeditselseq_methods[] = {
 	{"add",      (PyCFunction)bpy_bmeditselseq_add,      METH_O,      bpy_bmeditselseq_add_doc},
 	{"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
 	{"discard",  (PyCFunction)bpy_bmeditselseq_discard,  METH_O,      bpy_bmeditselseq_discard_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 

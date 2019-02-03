@@ -77,7 +77,7 @@ typedef struct wmEventHandler {
 /* custom types for handlers, for signaling, freeing */
 enum {
 	WM_HANDLER_DEFAULT,
-	WM_HANDLER_FILESELECT
+	WM_HANDLER_FILESELECT,
 };
 
 /* wm_event_system.c */

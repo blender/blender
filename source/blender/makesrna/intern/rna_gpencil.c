@@ -47,7 +47,7 @@ static const EnumPropertyItem parent_type_items[] = {
 	{PAROBJECT, "OBJECT", 0, "Object", "The layer is parented to an object"},
 	{PARSKEL, "ARMATURE", 0, "Armature", ""},
 	{PARBONE, "BONE", 0, "Bone", "The layer is parented to a bone"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifndef RNA_RUNTIME
@@ -55,20 +55,20 @@ static EnumPropertyItem rna_enum_gpencil_xraymodes_items[] = {
 	{GP_XRAY_FRONT, "FRONT", 0, "Front", "Draw all strokes in front"},
 	{GP_XRAY_3DSPACE, "3DSPACE", 0, "3D Space", "Draw strokes relative to other objects in 3D space"},
 	{GP_XRAY_BACK, "BACK", 0, "Back", "Draw all strokes last"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 	{GP_ONION_MODE_ABSOLUTE, "ABSOLUTE", 0, "Frames", "Frames in absolute range of the scene frame"},
 	{GP_ONION_MODE_RELATIVE, "RELATIVE", 0, "Keyframes", "Frames in relative range of the Grease Pencil keyframes"},
 	{GP_ONION_MODE_SELECTED, "SELECTED", 0, "Selected", "Only selected keyframes"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_gplayer_move_type_items[] = {
    {-1, "UP", 0, "Up", ""},
    {1, "DOWN", 0, "Down", ""},
-   {0, NULL, 0, NULL, NULL}
+   {0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem rna_enum_layer_blend_modes_items[] = {
@@ -84,7 +84,7 @@ static const EnumPropertyItem rna_enum_layer_blend_modes_items[] = {
 static EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 	{GP_STROKE_CAP_ROUND, "ROUND", 0, "Rounded", ""},
 	{GP_STROKE_CAP_FLAT, "FLAT", 0, "Flat", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 #endif
 
@@ -916,7 +916,7 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
 		{GP_STROKE_3DSPACE, "3DSPACE", 0, "3D Space", "Stroke is in 3D-space"},
 		{GP_STROKE_2DSPACE, "2DSPACE", 0, "2D Space", "Stroke is in 2D-space"},
 		{GP_STROKE_2DIMAGE, "2DIMAGE", 0, "2D Image", "Stroke is in 2D-space (but with special 'image' scaling)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "GPencilStroke", NULL);

@@ -1257,13 +1257,13 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 		 "Calculate the center of mass from the surface area"},
 		{ORIGIN_TO_CENTER_OF_MASS_VOLUME, "ORIGIN_CENTER_OF_VOLUME", 0, "Origin to Center of Mass (Volume)",
 		 "Calculate the center of mass from the volume (must be manifold geometry with consistent normals)"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_set_bounds_types[] = {
 		{V3D_AROUND_CENTER_MEDIAN, "MEDIAN", 0, "Median Center", ""},
 		{V3D_AROUND_CENTER_BOUNDS, "BOUNDS", 0, "Bounds Center", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

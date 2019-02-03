@@ -70,7 +70,7 @@ void ACTION_OT_clickselect(struct wmOperatorType *ot);
 enum eActKeys_LeftRightSelect_Mode {
 	ACTKEYS_LRSEL_TEST = 0,
 	ACTKEYS_LRSEL_LEFT,
-	ACTKEYS_LRSEL_RIGHT
+	ACTKEYS_LRSEL_RIGHT,
 };
 
 /* defines for column-select mode */

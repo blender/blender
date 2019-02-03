@@ -35,7 +35,7 @@
 
 enum {
 	voronoiEventType_Site = 0,
-	voronoiEventType_Circle = 1
+	voronoiEventType_Circle = 1,
 };
 
 typedef struct VoronoiEvent {

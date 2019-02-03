@@ -28,7 +28,7 @@
 /* **************** SWITCH VIEW ******************** */
 static bNodeSocketTemplate cmp_node_switch_view_out[] = {
 	{	SOCK_RGBA, 0, N_("Image"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocket *ntreeCompositSwitchViewAddSocket(bNodeTree *ntree, bNode *node, const char *name)

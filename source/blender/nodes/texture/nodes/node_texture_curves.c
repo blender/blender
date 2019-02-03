@@ -76,12 +76,12 @@ void register_node_type_tex_curve_time(void)
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketTemplate rgb_inputs[] = {
 	{	SOCK_RGBA, 1, N_("Color"),	0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate rgb_outputs[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
-	{	-1, 0, ""}
+	{	-1, 0, ""},
 };
 
 static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)

@@ -826,7 +826,7 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
 	static const EnumPropertyItem dummy_items[] = {
 		{0, "DUMMY", 0, "", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	RNA_def_property_srna(cprop, "BlendDataNodeTrees");

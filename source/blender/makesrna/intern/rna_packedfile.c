@@ -34,7 +34,7 @@ const EnumPropertyItem rna_enum_unpack_method_items[] = {
 	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write Local File (overwrite existing)", ""},
 	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use Original File", ""},
 	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write Original File (overwrite existing)", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME

@@ -507,7 +507,7 @@ static void EEVEE_update_viewvecs(float invproj[4][4], float winmat[4][4], float
 	    {-1.0f, -1.0f, -1.0f, 1.0f},
 	    { 1.0f, -1.0f, -1.0f, 1.0f},
 	    {-1.0f,  1.0f, -1.0f, 1.0f},
-	    {-1.0f, -1.0f,  1.0f, 1.0f}
+	    {-1.0f, -1.0f,  1.0f, 1.0f},
 	};
 
 	/* convert the view vectors to view space */

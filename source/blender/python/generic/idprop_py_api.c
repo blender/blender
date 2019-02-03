@@ -261,7 +261,7 @@ static PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 
 static PyGetSetDef BPy_IDGroup_getseters[] = {
 	{(char *)"name", (getter)BPy_IDGroup_GetName, (setter)BPy_IDGroup_SetName, (char *)"The name of this Group.", NULL},
-	{NULL, NULL, NULL, NULL, NULL}
+	{NULL, NULL, NULL, NULL, NULL},
 };
 
 static Py_ssize_t BPy_IDGroup_Map_Len(BPy_IDProperty *self)
@@ -1137,7 +1137,7 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 	{"get", (PyCFunction)BPy_IDGroup_get, METH_VARARGS, BPy_IDGroup_get_doc},
 	{"to_dict", (PyCFunction)BPy_IDGroup_to_dict, METH_NOARGS, BPy_IDGroup_to_dict_doc},
 	{"clear", (PyCFunction)BPy_IDGroup_clear, METH_NOARGS, BPy_IDGroup_clear_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static PySequenceMethods BPy_IDGroup_Seq = {
@@ -1281,7 +1281,7 @@ static PyObject *BPy_IDArray_to_list(BPy_IDArray *self)
 
 static PyMethodDef BPy_IDArray_methods[] = {
 	{"to_list", (PyCFunction)BPy_IDArray_to_list, METH_NOARGS, BPy_IDArray_to_list_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 static int BPy_IDArray_Len(BPy_IDArray *self)
@@ -1772,7 +1772,7 @@ static PyObject *BPyInit_idprop_types(void)
 /* --- */
 
 static PyMethodDef IDProp_methods[] = {
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 

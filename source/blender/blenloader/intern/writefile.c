@@ -1332,11 +1332,11 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
 	"", // BPHYS_DATA_TIMES:
-	"BoidData" // case BPHYS_DATA_BOIDS:
+	"BoidData", // case BPHYS_DATA_BOIDS:
 };
 static const char *ptcache_extra_struct[] = {
 	"",
-	"ParticleSpring"
+	"ParticleSpring",
 };
 static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 {

@@ -251,7 +251,7 @@ static void round_box_shade_col(uint attr, const float col1[3], float const col2
 		fac * col1[0] + (1.0f - fac) * col2[0],
 		fac * col1[1] + (1.0f - fac) * col2[1],
 		fac * col1[2] + (1.0f - fac) * col2[2],
-		1.0f
+		1.0f,
 	};
 	immAttr4fv(attr, col);
 }
@@ -2005,7 +2005,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, const uiWidgetColors *UNUSE
 	    0.00000000f, 0.39435585f, 0.72479278f, 0.93775213f,
 	    0.99871650f, 0.89780453f, 0.65137248f, 0.29936312f,
 	    -0.10116832f, -0.48530196f, -0.79077573f, -0.96807711f,
-	    -0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f
+	    -0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f,
 	};
 	/* 16 values of cos function */
 	const float co[16] = {

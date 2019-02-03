@@ -41,7 +41,7 @@ static const EnumPropertyItem effector_shape_items[] = {
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", "Field originates from the local XY plane of the object"},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", "Field originates from the surface of the object"},
 	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point", "Field originates from all of the vertices of the object"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -55,14 +55,14 @@ static const EnumPropertyItem curve_shape_items[] = {
 	{PFIELD_SHAPE_LINE, "LINE", 0, "Line", "Field originates from the local Z axis of the object"},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", "Field originates from the local XY plane of the object"},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", "Field originates from the curve itself"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem empty_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},
 	{PFIELD_SHAPE_LINE, "LINE", 0, "Line", "Field originates from the local Z axis of the object"},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", "Field originates from the local XY plane of the object"},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem vortex_shape_items[] = {
@@ -70,20 +70,20 @@ static const EnumPropertyItem vortex_shape_items[] = {
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
 	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point (New)", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem curve_vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve (New)", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 static const EnumPropertyItem empty_vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #include "MEM_guardedalloc.h"
@@ -724,7 +724,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
 		{PTCACHE_COMPRESS_NO, "NO", 0, "No", "No compression"},
 		{PTCACHE_COMPRESS_LZO, "LIGHT", 0, "Light", "Fast but not so effective compression"},
 		{PTCACHE_COMPRESS_LZMA, "HEAVY", 0, "Heavy", "Effective but slow compression"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
@@ -1128,28 +1128,28 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", "Create turbulence with a noise field"},
 		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Create a force that dampens motion"},
 		{PFIELD_SMOKEFLOW, "SMOKE_FLOW", ICON_FORCE_SMOKEFLOW, "Smoke Flow", "Create a force based on smoke simulation air flow"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem falloff_items[] = {
 		{PFIELD_FALL_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{PFIELD_FALL_TUBE, "TUBE", 0, "Tube", ""},
 		{PFIELD_FALL_CONE, "CONE", 0, "Cone", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem texture_items[] = {
 		{PFIELD_TEX_RGB, "RGB", 0, "RGB", ""},
 		{PFIELD_TEX_GRAD, "GRADIENT", 0, "Gradient", ""},
 		{PFIELD_TEX_CURL, "CURL", 0, "Curl", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem zdirection_items[] = {
 		{PFIELD_Z_BOTH, "BOTH", 0, "Both Z", ""},
 		{PFIELD_Z_POS, "POSITIVE", 0, "+Z", ""},
 		{PFIELD_Z_NEG, "NEGATIVE", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem guide_kink_items[] = {
@@ -1160,7 +1160,7 @@ static void rna_def_field(BlenderRNA *brna)
 		{4, "BRAID", 0, "Braid", ""},
 		{5, "ROTATION", 0, "Rotation", ""},
 		{6, "ROLL", 0, "Roll", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "FieldSettings", NULL);
@@ -1486,13 +1486,13 @@ static void rna_def_softbody(BlenderRNA *brna)
 		{SBC_MODE_MIN, "MINIMAL", 0, "Minimal", "Minimal Spring length * Ball Size"},
 		{SBC_MODE_MAX, "MAXIMAL", 0, "Maximal", "Maximal Spring length * Ball Size"},
 		{SBC_MODE_AVGMINMAX, "MINMAX", 0, "AvMinMax", "(Min+Max)/2 * Ball Size"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem aerodynamics_type[] = {
 		{0, "SIMPLE", 0, "Simple", "Edges receive a drag force from surrounding media"},
 		{1, "LIFT_FORCE", 0, "Lift Force", "Edges receive a lift force when passing through surrounding media"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "SoftBodySettings", NULL);

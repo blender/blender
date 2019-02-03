@@ -281,7 +281,7 @@ const char *utf8_invalid_tests[][3] = {
     /* Fo now, we ignore those, they do not seem to be crucial anyway... */
 //    5.3.3  U+FDD0 .. U+FDEF
 //    5.3.4  U+nFFFE U+nFFFF (for n = 1..10)
-    {NULL, NULL, NULL}
+    {NULL, NULL, NULL},
 };
 
 /* BLI_utf8_invalid_strip (and indirectly, BLI_utf8_invalid_byte). */

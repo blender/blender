@@ -31,7 +31,7 @@
 static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node)

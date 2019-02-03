@@ -667,7 +667,7 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 		{0, "AUTO", 0, "Auto Handle", ""},
 		{CUMA_HANDLE_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped Handle", ""},
 		{CUMA_HANDLE_VECTOR, "VECTOR", 0, "Vector Handle", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "CurveMapPoint", NULL);
@@ -725,7 +725,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	static const EnumPropertyItem prop_extend_items[] = {
 		{0, "HORIZONTAL", 0, "Horizontal", ""},
 		{CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "CurveMap", NULL);
@@ -760,7 +760,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	static const EnumPropertyItem tone_items[] = {
 		{CURVE_TONE_STANDARD, "STANDARD", 0, "Standard",  ""},
 		{CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Film like", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "CurveMapping", NULL);
@@ -904,14 +904,14 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 		{COLBAND_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
 		{COLBAND_INTERP_B_SPLINE, "B_SPLINE", 0, "B-Spline", ""},
 		{COLBAND_INTERP_CONSTANT, "CONSTANT", 0, "Constant", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_mode_items[] = {
 		{COLBAND_BLEND_RGB, "RGB", 0, "RGB", ""},
 		{COLBAND_BLEND_HSV, "HSV", 0, "HSV", ""},
 		{COLBAND_BLEND_HSL, "HSL", 0, "HSL", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem prop_hsv_items[] = {
@@ -919,7 +919,7 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 		{COLBAND_HUE_FAR, "FAR", 0, "Far", ""},
 		{COLBAND_HUE_CW, "CW", 0, "Clockwise", ""},
 		{COLBAND_HUE_CCW, "CCW", 0, "Counter-Clockwise", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "ColorRamp", NULL);
@@ -985,7 +985,7 @@ static void rna_def_histogram(BlenderRNA *brna)
 		{HISTO_MODE_G, "G", 0, "G", "Green"},
 		{HISTO_MODE_B, "B", 0, "B", "Blue"},
 		{HISTO_MODE_ALPHA, "A", 0, "A", "Alpha"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Histogram", NULL);
@@ -1014,7 +1014,7 @@ static void rna_def_scopes(BlenderRNA *brna)
 		{SCOPES_WAVEFRM_YCC_709, "YCBCR709", ICON_COLOR, "YCbCr (ITU 709)", ""},
 		{SCOPES_WAVEFRM_YCC_JPEG, "YCBCRJPG", ICON_COLOR, "YCbCr (Jpeg)", ""},
 		{SCOPES_WAVEFRM_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Scopes", NULL);
@@ -1061,22 +1061,22 @@ static void rna_def_colormanage(BlenderRNA *brna)
 
 	static const EnumPropertyItem display_device_items[] = {
 		{0, "DEFAULT", 0, "Default", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem look_items[] = {
 		{0, "NONE", 0, "None", "Do not modify image in an artistic manner"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem view_transform_items[] = {
 		{0, "NONE", 0, "None", "Do not perform any color transform on display, use old non-color managed technique for display"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	static const EnumPropertyItem color_space_items[] = {
 		{0, "NONE", 0, "None", "Do not perform any color transform on load, treat colors as in scene linear space already"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* ** Display Settings  **  */

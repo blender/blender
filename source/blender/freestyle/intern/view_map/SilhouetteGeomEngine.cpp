@@ -40,19 +40,19 @@ real SilhouetteGeomEngine::_modelViewMatrix[4][4] = {
 	{1, 0, 0, 0},
 	{0, 1, 0, 0},
 	{0, 0, 1, 0},
-	{0, 0, 0, 1}
+	{0, 0, 0, 1},
 };
 real SilhouetteGeomEngine::_projectionMatrix[4][4] = {
 	{1, 0, 0, 0},
 	{0, 1, 0, 0},
 	{0, 0, 1, 0},
-	{0, 0, 0, 1}
+	{0, 0, 0, 1},
 };
 real SilhouetteGeomEngine::_transform[4][4] = {
 	{1, 0, 0, 0},
 	{0, 1, 0, 0},
 	{0, 0, 1, 0},
-	{0, 0, 0, 1}
+	{0, 0, 0, 1},
 };
 int SilhouetteGeomEngine::_viewport[4] = {1, 1, 1, 1};
 real SilhouetteGeomEngine::_Focal = 0.0;
@@ -61,13 +61,13 @@ real SilhouetteGeomEngine::_glProjectionMatrix[4][4] = {
 	{1, 0, 0, 0},
 	{0, 1, 0, 0},
 	{0, 0, 1, 0},
-	{0, 0, 0, 1}
+	{0, 0, 0, 1},
 };
 real SilhouetteGeomEngine::_glModelViewMatrix[4][4] = {
 	{1, 0, 0, 0},
 	{0, 1, 0, 0},
 	{0, 0, 1, 0},
-	{0, 0, 0, 1}
+	{0, 0, 0, 1},
 };
 real SilhouetteGeomEngine::_znear = 0.0;
 real SilhouetteGeomEngine::_zfar = 100.0;

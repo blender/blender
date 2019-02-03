@@ -493,7 +493,7 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
 	static const EnumPropertyItem material_slot_move[] = {
 		{1, "UP", 0, "Up", ""},
 		{-1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -866,7 +866,7 @@ void SCENE_OT_light_cache_bake(wmOperatorType *ot)
 		{LIGHTCACHE_SUBSET_DIRTY, "DIRTY", 0, "Dirty Only", "Only bake lightprobes that are marked as dirty"},
 		{LIGHTCACHE_SUBSET_CUBE, "CUBEMAPS", 0, "Cubemaps Only", "Try to only bake reflection cubemaps if irradiance "
 	                                                             "grids are up to date"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1095,7 +1095,7 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1253,7 +1253,7 @@ void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1622,7 +1622,7 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 	static const EnumPropertyItem direction_items[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */
@@ -1725,7 +1725,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	static const EnumPropertyItem slot_move[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

@@ -203,7 +203,7 @@ static const short add_faces[24] = {
 	0,
 	0, 0, 2, 0, 1, 2, 2, 0, 2, 1,
 	2, 2, 2, 2, 3, 0, 0, 0, 1, 0,
-	1, 1, 2
+	1, 1, 2,
 };
 
 static MFace *get_dface(Mesh *mesh, Mesh *split, int cur, int i, MFace *mf)

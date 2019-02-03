@@ -606,7 +606,7 @@ static struct PyMethodDef bpygpu_shader_methods[] = {
 	{"format_calc",
 	 (PyCFunction)bpygpu_shader_calc_format,
 	 METH_NOARGS, bpygpu_shader_calc_format_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpygpu_shader_program_doc,
@@ -789,7 +789,7 @@ static struct PyMethodDef bpygpu_shader_module_methods[] = {
 	{"code_from_builtin",
 	 (PyCFunction)bpygpu_shader_code_from_builtin,
 	 METH_O, bpygpu_shader_code_from_builtin_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 PyDoc_STRVAR(bpygpu_shader_module_doc,

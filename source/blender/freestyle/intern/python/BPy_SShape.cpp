@@ -148,7 +148,7 @@ static PyMethodDef BPy_SShape_methods[] = {
 	{"add_edge", (PyCFunction)SShape_add_edge, METH_VARARGS | METH_KEYWORDS, SShape_add_edge_doc},
 	{"add_vertex", (PyCFunction)SShape_add_vertex, METH_VARARGS | METH_KEYWORDS, SShape_add_vertex_doc},
 	{"compute_bbox", (PyCFunction)SShape_compute_bbox, METH_NOARGS, SShape_compute_bbox_doc},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*----------------------SShape get/setters ----------------------------*/

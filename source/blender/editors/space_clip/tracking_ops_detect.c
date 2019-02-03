@@ -127,7 +127,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 		 "Place markers only inside areas outlined with Grease Pencil"},
 		{2, "OUTSIDE_GPENCIL",  0, "Outside Grease Pencil",
 		 "Place markers only outside areas outlined with Grease Pencil"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	/* identifiers */

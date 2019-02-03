@@ -1091,7 +1091,8 @@ void RENDER_OT_shutter_curve_preset(wmOperatorType *ot)
 		{CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
 		{CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
 		{CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	ot->name = "Shutter Curve Preset";
 	ot->description = "Set shutter curve";

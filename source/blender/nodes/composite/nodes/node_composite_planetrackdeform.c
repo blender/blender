@@ -32,7 +32,7 @@ static bNodeSocketTemplate cmp_node_planetrackdeform_in[] = {
 static bNodeSocketTemplate cmp_node_planetrackdeform_out[] = {
 	{	SOCK_RGBA,   0,  N_("Image")},
 	{	SOCK_FLOAT,  0,  N_("Plane")},
-	{	-1, 0, ""	}
+	{	-1, 0, ""	},
 };
 
 static void init(bNodeTree *UNUSED(ntree), bNode *node)

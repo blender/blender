@@ -142,7 +142,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 		{WO_MIST_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Use quadratic progression"},
 		{WO_MIST_LINEAR, "LINEAR", 0, "Linear", "Use linear progression"},
 		{WO_MIST_INVERSE_QUADRATIC, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Use inverse quadratic progression"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "WorldMistSettings", NULL);

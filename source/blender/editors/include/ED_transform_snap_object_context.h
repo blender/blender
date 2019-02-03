@@ -70,7 +70,6 @@ struct SnapObjectParams {
 	unsigned int use_object_edit_cage : 1;
 	/* snap to the closest element, use when using more than one snap type */
 	unsigned int use_occlusion_test   : 1;
-
 };
 
 typedef struct SnapObjectContext SnapObjectContext;

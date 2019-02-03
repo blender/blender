@@ -263,7 +263,7 @@ static PyMethodDef module_functions[] = {
 	                                    ContextFunctions_read_directional_view_map_pixel___doc__},
 	{"get_selected_fedge", (PyCFunction)ContextFunctions_get_selected_fedge, METH_NOARGS,
 	                       ContextFunctions_get_selected_fedge___doc__},
-	{NULL, NULL, 0, NULL}
+	{NULL, NULL, 0, NULL},
 };
 
 /*-----------------------ContextFunctions module definition--------------------------------*/
@@ -273,7 +273,7 @@ static PyModuleDef module_definition = {
     "Freestyle.ContextFunctions",
     module_docstring,
     -1,
-    module_functions
+    module_functions,
 };
 
 //------------------- MODULE INITIALIZATION --------------------------------

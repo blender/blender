@@ -42,7 +42,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 	{RGN_TYPE_PREVIEW, "PREVIEW", 0, "Preview", ""},
 	{RGN_TYPE_NAV_BAR, "NAVIGATION_BAR", 0, "Navigation Bar", ""},
 	{RGN_TYPE_EXECUTE, "EXECUTE", 0, "Execute Buttons", ""},
-	{0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL},
 };
 
 #include "ED_screen.h"
@@ -461,7 +461,7 @@ static void rna_def_region(BlenderRNA *brna)
 		{RGN_ALIGN_VSPLIT, "VERTICAL_SPLIT", 0, "Vertical Split", ""},
 		{RGN_ALIGN_FLOAT, "FLOAT", 0, "Float", "Region floats on screen, doesn't use any fixed alignment"},
 		{RGN_ALIGN_QSPLIT, "QUAD_SPLIT", 0, "Quad Split", "Region is split horizontally and vertically"},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 
 	srna = RNA_def_struct(brna, "Region", NULL);

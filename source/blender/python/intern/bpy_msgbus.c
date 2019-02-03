@@ -237,7 +237,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
 	PyObject *py_options = NULL;
 	EnumPropertyItem py_options_enum[] = {
 		{IS_PERSISTENT, "PERSISTENT", 0, ""},
-		{0, NULL, 0, NULL, NULL}
+		{0, NULL, 0, NULL, NULL},
 	};
 	int options = 0;
 
