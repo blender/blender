@@ -200,4 +200,6 @@ void BKE_undosys_ID_map_foreach_ID_ref(
         struct UndoIDPtrMap *map,
         UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data);
 
+void BKE_undosys_print(UndoStack *ustack);
+
 #endif  /* __BKE_UNDO_SYSTEM_H__ */

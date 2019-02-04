@@ -1002,3 +1002,27 @@ ID *BKE_undosys_ID_map_lookup_with_prev(const UndoIDPtrMap *map, ID *id_src, ID 
 }
 
 /** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Debug Helpers
+ * \{ */
+
+void BKE_undosys_print(UndoStack *ustack)
+{
+	printf("Undo %d Steps (A: active, M=memfile-active, S=skip)\n",
+	       BLI_listbase_count(&ustack->steps));
+	int index = 0;
+	for (UndoStep *us = ustack->steps.first; us; us = us->next) {
+		printf("[%c%c%c] %3d type='%s', name='%s'\n",
+		       (us == ustack->step_active) ? 'A' : '_',
+		       (us == ustack->step_active_memfile) ? 'M' : '_',
+		       us->skip ? 'S' : '_',
+		       index,
+		       us->type->name,
+		       us->name);
+		index++;
+	}
+}
+
+/** \} */
