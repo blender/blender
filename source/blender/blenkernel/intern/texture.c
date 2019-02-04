@@ -411,7 +411,7 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 /**
  * Only copy internal data of Texture ID from source to already allocated/initialized destination.
- * You probably nerver want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *

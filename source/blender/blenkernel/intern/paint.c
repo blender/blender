@@ -429,7 +429,7 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
 
 /**
  * Only copy internal data of PaintCurve ID from source to already allocated/initialized destination.
- * You probably nerver want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
@@ -512,7 +512,7 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
 
 /**
  * Only copy internal data of Palette ID from source to already allocated/initialized destination.
- * You probably nerver want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
+ * You probably never want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *
