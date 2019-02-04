@@ -163,7 +163,7 @@ void BKE_id_make_local_generic(struct Main *bmain, struct ID *id, const bool id_
 bool id_make_local(struct Main *bmain, struct ID *id, const bool test, const bool force_local);
 bool id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
 bool BKE_id_copy_is_allowed(const struct ID *id);
-bool id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
+bool BKE_id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
 bool BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
 void BKE_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void id_sort_by_name(struct ListBase *lb, struct ID *id);

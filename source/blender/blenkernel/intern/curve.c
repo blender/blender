@@ -186,7 +186,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 
 /**
  * Only copy internal data of Curve ID from source to already allocated/initialized destination.
- * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ * You probably nerver want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *

@@ -459,7 +459,7 @@ Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
 
 /**
  * Only copy internal data of Text ID from source to already allocated/initialized destination.
- * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ * You probably nerver want to use that directly, use BKE_id_copy or BKE_id_copy_ex for typical needs.
  *
  * WARNING! This function will not handle ID user count!
  *

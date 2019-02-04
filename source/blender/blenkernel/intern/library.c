@@ -340,8 +340,8 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
 		else {
 			ID *id_new;
 
-			/* Should not fail in expected usecases, but id_copy does not copy Scene e.g. */
-			if (id_copy(bmain, id, &id_new)) {
+			/* Should not fail in expected usecases, but a few ID types cannot be copied (LIB, WM, SCR...). */
+			if (BKE_id_copy(bmain, id, &id_new)) {
 				id_new->us = 0;
 
 				/* setting newid is mandatory for complex make_lib_local logic... */
@@ -713,7 +713,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
-bool id_copy(Main *bmain, const ID *id, ID **newid)
+bool BKE_id_copy(Main *bmain, const ID *id, ID **newid)
 {
 	return BKE_id_copy_ex(bmain, id, newid, LIB_ID_COPY_SHAPEKEY);
 }
@@ -797,7 +797,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 		/* if property isn't editable, we're going to have an extra block hanging around until we save */
 		if (RNA_property_editable(ptr, prop)) {
 			Main *bmain = CTX_data_main(C);
-			if (id_copy(bmain, id, &newid) && newid) {
+			if (BKE_id_copy(bmain, id, &newid) && newid) {
 				/* copy animation actions too */
 				BKE_animdata_copy_id_action(bmain, id, false);
 				/* us is 1 by convention with new IDs, but RNA_property_pointer_set

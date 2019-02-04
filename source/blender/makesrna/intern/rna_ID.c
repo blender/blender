@@ -363,7 +363,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 {
 	ID *newid;
 
-	if (id_copy(bmain, id, &newid)) {
+	if (BKE_id_copy(bmain, id, &newid)) {
 		if (newid != NULL) {
 			id_us_min(newid);
 		}
