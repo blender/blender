@@ -94,7 +94,7 @@ enum {
 	LIB_ID_COPY_CACHES             = 1 << 18,
 	/* Don't copy id->adt, used by ID datablock localization routines. */
 	LIB_ID_COPY_NO_ANIMDATA        = 1 << 19,
-	/* Mesh: Reference CD data layers instead of doing real copy. */
+	/* Mesh: Reference CD data layers instead of doing real copy - USE WITH CAUTION! */
 	LIB_ID_COPY_CD_REFERENCE       = 1 << 20,
 
 	/* *** XXX Hackish/not-so-nice specific behaviors needed for some corner cases. *** */
@@ -113,6 +113,7 @@ enum {
 	LIB_ID_COPY_LOCALIZE           = LIB_ID_CREATE_NO_MAIN |
 	                                 LIB_ID_CREATE_NO_USER_REFCOUNT |
 	                                 LIB_ID_CREATE_NO_DEG_TAG |
+	                                 LIB_ID_COPY_NO_PREVIEW |
 	                                 LIB_ID_COPY_CACHES,
 };
 
