@@ -114,12 +114,9 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_weights(struct Mesh *me);
 /* edit-mesh drawing */
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles_nor(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles_lnor(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_edges(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_edges_nor(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_edit_loose_verts(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_edges(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_edit_lnors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_facedots(struct Mesh *me);
 /* edit-mesh selection */
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me);
@@ -142,25 +139,27 @@ struct GPUBatch *DRW_mesh_batch_cache_get_uv_edges(struct Mesh *me);
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 
 /* Edit mesh bitflags (is this the right place?) */
-
 enum {
-	VFLAG_VERTEX_ACTIVE   = 1 << 0,
-	VFLAG_VERTEX_SELECTED = 1 << 1,
-	VFLAG_VERTEX_EXISTS   = 1 << 2,
-	VFLAG_FACE_ACTIVE     = 1 << 3,
-	VFLAG_FACE_SELECTED   = 1 << 4,
-	VFLAG_FACE_FREESTYLE  = 1 << 5,
+	VFLAG_VERT_ACTIVE    = 1 << 0,
+	VFLAG_VERT_SELECTED  = 1 << 1,
+	VFLAG_EDGE_ACTIVE    = 1 << 2,
+	VFLAG_EDGE_SELECTED  = 1 << 3,
+	VFLAG_EDGE_SEAM      = 1 << 4,
+	VFLAG_EDGE_SHARP     = 1 << 5,
+	VFLAG_EDGE_FREESTYLE = 1 << 6,
 	/* Beware to not go over 1 << 7 (it's a byte flag)
 	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };
 
 enum {
-	VFLAG_EDGE_EXISTS   = 1 << 0,
-	VFLAG_EDGE_ACTIVE   = 1 << 1,
-	VFLAG_EDGE_SELECTED = 1 << 2,
-	VFLAG_EDGE_SEAM     = 1 << 3,
-	VFLAG_EDGE_SHARP    = 1 << 4,
-	VFLAG_EDGE_FREESTYLE = 1 << 5,
+	VFLAG_FACE_ACTIVE     = 1 << 0,
+	VFLAG_FACE_SELECTED   = 1 << 1,
+	VFLAG_FACE_FREESTYLE  = 1 << 2,
+	VFLAG_VERT_UV_SELECT  = 1 << 3,
+	VFLAG_VERT_UV_PINNED  = 1 << 4,
+	VFLAG_EDGE_UV_SELECT  = 1 << 5,
+	VFLAG_FACE_UV_ACTIVE  = 1 << 6,
+	VFLAG_FACE_UV_SELECT  = 1 << 7,
 	/* Beware to not go over 1 << 7 (it's a byte flag)
 	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };

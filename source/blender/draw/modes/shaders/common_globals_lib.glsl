@@ -81,3 +81,21 @@ layout(std140) uniform globalsBlock {
 
 	float pad_globalsBlock;
 };
+
+/* data[0] (1nd byte flags) */
+#define FACE_ACTIVE     (1 << 0)
+#define FACE_SELECTED   (1 << 1)
+#define FACE_FREESTYLE  (1 << 2)
+#define VERT_UV_SELECT  (1 << 3)
+#define VERT_UV_PINNED  (1 << 4)
+#define EDGE_UV_SELECT  (1 << 5)
+#define FACE_UV_ACTIVE  (1 << 6)
+#define FACE_UV_SELECT  (1 << 7)
+/* data[1] (2st byte flags) */
+#define VERT_ACTIVE     (1 << 0)
+#define VERT_SELECTED   (1 << 1)
+#define EDGE_ACTIVE     (1 << 2)
+#define EDGE_SELECTED   (1 << 3)
+#define EDGE_SEAM       (1 << 4)
+#define EDGE_SHARP      (1 << 5)
+#define EDGE_FREESTYLE  (1 << 6)

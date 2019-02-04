@@ -1,6 +1,4 @@
 
-#define VERTEX_ACTIVE   1 << 0
-#define VERTEX_SELECTED 1 << 1
 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
 #define ACTIVE_NURB     1 << 2
 #define EVEN_U_BIT      1 << 3
@@ -41,7 +39,7 @@ void main()
 		return;
 	}
 
-	bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERTEX_SELECTED) != 0);
+	bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERT_SELECTED) != 0);
 
 	vec4 inner_color;
 	if      (color_id == 0) inner_color = (edge_selected) ? colorHandleSelFree : colorHandleFree;
@@ -50,7 +48,7 @@ void main()
 	else if (color_id == 3) inner_color = (edge_selected) ? colorHandleSelAlign : colorHandleAlign;
 	else if (color_id == 4) inner_color = (edge_selected) ? colorHandleSelAutoclamp : colorHandleAutoclamp;
 	else {
-		bool is_selected = (((vertFlag[1] & vertFlag[0]) & VERTEX_SELECTED) != 0);
+		bool is_selected = (((vertFlag[1] & vertFlag[0]) & VERT_SELECTED) != 0);
 		bool is_u_segment = (((vertFlag[1] ^ vertFlag[0]) & EVEN_U_BIT) != 0);
 		if (is_u_segment) {
 			inner_color = (is_selected) ? colorNurbSelUline : colorNurbUline;

@@ -9,13 +9,10 @@ in int data;
 
 out vec4 finalColor;
 
-#define VERTEX_ACTIVE   (1 << 0)
-#define VERTEX_SELECTED (1 << 1)
-
 void main()
 {
-	if ((data & VERTEX_SELECTED) != 0) {
-		if ((data & VERTEX_ACTIVE) != 0) {
+	if ((data & VERT_SELECTED) != 0) {
+		if ((data & VERT_ACTIVE) != 0) {
 			finalColor = colorEditMeshActive;
 		}
 		else {

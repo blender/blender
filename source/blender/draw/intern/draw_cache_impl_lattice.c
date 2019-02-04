@@ -513,10 +513,10 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 			char vflag = 0;
 			if (bp->f1 & SELECT) {
 				if (i == rdata->actbp) {
-					vflag |= VFLAG_VERTEX_ACTIVE;
+					vflag |= VFLAG_VERT_ACTIVE;
 				}
 				else {
-					vflag |= VFLAG_VERTEX_SELECTED;
+					vflag |= VFLAG_VERT_SELECTED;
 				}
 			}
 

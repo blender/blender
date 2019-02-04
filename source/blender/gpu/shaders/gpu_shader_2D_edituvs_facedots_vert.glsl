@@ -8,10 +8,12 @@ in int flag;
 
 out vec4 finalColor;
 
-#define FACE_SELECT (1 << 2)
+/* TODO: Port drawing to draw manager and
+ * remove constants duplications. */
+#define FACE_UV_SELECT  (1 << 7)
 
 void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
-	finalColor = ((flag & FACE_SELECT) != 0) ? selectColor : vertColor;
+	finalColor = ((flag & FACE_UV_SELECT) != 0) ? selectColor : vertColor;
 }
