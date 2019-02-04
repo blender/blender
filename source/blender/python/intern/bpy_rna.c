@@ -8253,16 +8253,20 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 		return NULL;
 
 	/* call classed register method () */
-	py_cls_meth = PyObject_GetAttr(py_class, bpy_intern_str_register);
-	if (py_cls_meth == NULL) {
-		PyErr_Clear();
-	}
-	else {
-		PyObject *ret = PyObject_CallObject(py_cls_meth, NULL);
-		if (ret) {
-			Py_DECREF(ret);
+	switch (_PyObject_LookupAttr(py_class, bpy_intern_str_register, &py_cls_meth)) {
+		case 1:
+		{
+			PyObject *ret = PyObject_CallObject(py_cls_meth, NULL);
+			if (ret) {
+				Py_DECREF(ret);
+			}
+			else {
+				return NULL;
+			}
+			break;
 		}
-		else {
+		case -1:
+		{
 			return NULL;
 		}
 	}
@@ -8353,16 +8357,20 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	}
 
 	/* call classed unregister method */
-	py_cls_meth = PyObject_GetAttr(py_class, bpy_intern_str_unregister);
-	if (py_cls_meth == NULL) {
-		PyErr_Clear();
-	}
-	else {
-		PyObject *ret = PyObject_CallObject(py_cls_meth, NULL);
-		if (ret) {
-			Py_DECREF(ret);
+	switch (_PyObject_LookupAttr(py_class, bpy_intern_str_unregister, &py_cls_meth)) {
+		case 1:
+		{
+			PyObject *ret = PyObject_CallObject(py_cls_meth, NULL);
+			if (ret) {
+				Py_DECREF(ret);
+			}
+			else {
+				return NULL;
+			}
+			break;
 		}
-		else {
+		case -1:
+		{
 			return NULL;
 		}
 	}
