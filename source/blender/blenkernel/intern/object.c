@@ -2608,15 +2608,16 @@ bool BKE_object_empty_image_is_visible_in_view3d(const Object *ob, const RegionV
 	char visibility_flag = ob->empty_image_visibility_flag;
 
 	if ((visibility_flag & (OB_EMPTY_IMAGE_HIDE_BACK | OB_EMPTY_IMAGE_HIDE_FRONT)) != 0) {
+		const float eps = 1e-5f;
 		/* TODO: this isn't correct with perspective projection. */
 		const float dot = dot_v3v3((float *)&ob->obmat[2], (float *)&rv3d->viewinv[2]);
 		if (visibility_flag & OB_EMPTY_IMAGE_HIDE_BACK) {
-			if (dot < 0.0f) {
+			if (dot < eps) {
 				return false;
 			}
 		}
 		if (visibility_flag & OB_EMPTY_IMAGE_HIDE_FRONT) {
-			if (dot > 0.0f) {
+			if (dot > -eps) {
 				return false;
 			}
 		}
