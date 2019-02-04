@@ -6,6 +6,7 @@ uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 uniform float faceAlphaMod;
 uniform ivec4 dataMask = ivec4(0xFF);
+uniform float ofs;
 
 in ivec4 data;
 in vec3 pos;
@@ -14,12 +15,6 @@ in vec3 vnor;
 #else
 in vec4 norAndFlag;
 #  define vnor norAndFlag.xyz
-#endif
-
-#ifdef EDGE
-flat out vec4 finalColorStipple;
-flat out float base_dist;
-out float dist;
 #endif
 
 #ifdef FLAT
@@ -33,7 +28,15 @@ flat out int selectOveride;
 
 void main()
 {
+#if !defined(FACE)
+	mat4 projmat = ProjectionMatrix;
+	projmat[3][2] -= ofs;
+
+	gl_Position = projmat * (ModelViewMatrix * vec4(pos, 1.0));
+#else
+
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+#endif
 
 	ivec4 m_data = data & dataMask;
 
@@ -57,10 +60,10 @@ void main()
 	selectOveride = (m_data.y & EDGE_SELECTED);
 #  endif
 
+#elif defined(EDGE_DECORATION)
 	float crease = float(m_data.z) / 255.0;
 	float bweight = float(m_data.w) / 255.0;
-	finalColorStipple = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, crease, bweight);
-	base_dist = dist = float(gl_VertexID % 128);
+	finalColor = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, crease, bweight);
 
 #elif defined(FACE)
 	finalColor = EDIT_MESH_face_color(m_data.x);
@@ -74,7 +77,8 @@ void main()
 
 #endif
 
-#ifndef FACE
+#if !defined(FACE) && !defined(EDGE_DECORATION)
+	/* Facing based color blend */
 	vec4 vpos = ModelViewMatrix * vec4(pos, 1.0);
 	vec3 view_normal = normalize(NormalMatrix * vnor);
 	vec3 view_vec = (ProjectionMatrix[3][3] == 0.0)

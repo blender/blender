@@ -19,12 +19,8 @@ vec4 EDIT_MESH_edge_color_outer(int edge_flag, int face_flag, float crease, floa
 vec4 EDIT_MESH_edge_color_inner(int edge_flag)
 {
 	vec4 color = colorWireEdit;
-#ifdef EDGE_SELECTION
 	color = ((edge_flag & EDGE_SELECTED) != 0) ? colorEdgeSelect : color;
 	color = ((edge_flag & EDGE_ACTIVE) != 0) ? colorEditMeshActive : color;
-#else
-	color = (doEdges && (edge_flag & EDGE_SELECTED) != 0) ? colorEdgeSelect : color;
-#endif
 	return color;
 }
 

@@ -106,6 +106,7 @@ void set_inverted_drawing(int enable);
 void setlinestyle(int nr);
 
 /* own working polygon offset */
+float bglPolygonOffsetCalc(const float winmat[16], float viewdist, float dist);
 void bglPolygonOffset(float viewdist, float dist);
 
 /* **** Color management helper functions for GLSL display/transform ***** */
