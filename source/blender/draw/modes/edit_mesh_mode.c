@@ -23,7 +23,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "GPU_shader.h"
+#include "GPU_extensions.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
@@ -51,6 +51,7 @@ extern char datatoc_paint_weight_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_common_lib_glsl[];
 extern char datatoc_edit_mesh_overlay_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_vert_glsl[];
+extern char datatoc_edit_mesh_overlay_geom_glsl[];
 extern char datatoc_edit_mesh_overlay_mix_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_frag_glsl[];
@@ -192,6 +193,12 @@ static void EDIT_MESH_engine_init(void *vedata)
 		});
 
 		char *lib = BLI_string_joinN(world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_edit_mesh_overlay_common_lib_glsl);
+		const bool use_geom_shader = GPU_max_line_width() <= 2.0f;
+		const char *geom_sh_code[] = {lib, datatoc_edit_mesh_overlay_geom_glsl, NULL};
+		if (!use_geom_shader) {
+			geom_sh_code[0] = NULL;
+		}
+		const char *use_geom_def = use_geom_shader ? "#define USE_GEOM_SHADER\n" : "";
 		sh_data->overlay_face = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
@@ -200,17 +207,20 @@ static void EDIT_MESH_engine_init(void *vedata)
 		sh_data->overlay_edge = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define EDGE\n", NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, use_geom_def, "#define EDGE\n", NULL},
+		        .geom = (use_geom_shader) ? geom_sh_code : NULL,
 		});
 		sh_data->overlay_edge_flat = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define EDGE\n", "#define FLAT\n", NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, use_geom_def, "#define EDGE\n", "#define FLAT\n", NULL},
+		        .geom = (use_geom_shader) ? geom_sh_code : NULL,
 		});
 		sh_data->overlay_edge_deco = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define EDGE_DECORATION\n", "#define FLAT\n", NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, use_geom_def, "#define EDGE_DECORATION\n", "#define FLAT\n", NULL},
+		        .geom = (use_geom_shader) ? geom_sh_code : NULL,
 		});
 		sh_data->overlay_vert = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
@@ -305,7 +315,6 @@ static DRWPass *edit_mesh_create_overlay_pass(
 
 	grp = *r_face_shgrp = DRW_shgroup_create(face_sh, pass);
 	DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(grp, "faceAlphaMod", face_alpha, 1);
 	DRW_shgroup_uniform_float(grp, "edgeScale", edge_width_scale, 1);
 	DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
@@ -322,6 +331,8 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	/* Edges */
 	grp = *r_edge_deco_shgrp = DRW_shgroup_create(edge_deco_sh, pass);
 	DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_vec2(grp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
 	DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
 	DRW_shgroup_uniform_bool_copy(grp, "doEdges", do_edges);
 	DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs);
@@ -336,6 +347,8 @@ static DRWPass *edit_mesh_create_overlay_pass(
 
 	grp = *r_edge_shgrp = DRW_shgroup_create(edge_sh, pass);
 	DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_vec2(grp, "viewportSizeInv", DRW_viewport_invert_size_get(), 1);
 	DRW_shgroup_uniform_float(grp, "edgeScale", edge_width_scale, 1);
 	DRW_shgroup_uniform_ivec4(grp, "dataMask", data_mask, 1);
 	DRW_shgroup_uniform_bool_copy(grp, "doEdges", do_edges);
