@@ -1141,12 +1141,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
 		mti->deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
-		BKE_id_copy_ex(
-		        NULL, &me->id, (ID **)&result,
-		        LIB_ID_CREATE_NO_MAIN |
-		        LIB_ID_CREATE_NO_USER_REFCOUNT |
-		        LIB_ID_CREATE_NO_DEG_TAG |
-		        LIB_ID_COPY_NO_PREVIEW);
+		BKE_id_copy_ex(NULL, &me->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
 		BKE_mesh_apply_vert_coords(result, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -1156,12 +1151,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 	}
 	else {
 		Mesh *mesh_temp;
-		BKE_id_copy_ex(
-		        NULL, &me->id, (ID **)&mesh_temp,
-		        LIB_ID_CREATE_NO_MAIN |
-		        LIB_ID_CREATE_NO_USER_REFCOUNT |
-		        LIB_ID_CREATE_NO_DEG_TAG |
-		        LIB_ID_COPY_NO_PREVIEW);
+		BKE_id_copy_ex(NULL, &me->id, (ID **)&mesh_temp, LIB_ID_COPY_LOCALIZE);
 
 		if (build_shapekey_layers)
 			add_shapekey_layers(mesh_temp, me);

@@ -283,11 +283,7 @@ Mesh *bc_get_mesh_copy(
 		tmpmesh = (Mesh *)ob->data;
 	}
 
-	BKE_id_copy_ex(NULL, &tmpmesh->id, (ID **)&tmpmesh,
-	               LIB_ID_CREATE_NO_MAIN |
-	               LIB_ID_CREATE_NO_USER_REFCOUNT |
-	               LIB_ID_CREATE_NO_DEG_TAG |
-	               LIB_ID_COPY_NO_PREVIEW);
+	BKE_id_copy_ex(NULL, &tmpmesh->id, (ID **)&tmpmesh, LIB_ID_COPY_LOCALIZE);
 
 	if (triangulate) {
 		bc_triangulate_mesh(tmpmesh);

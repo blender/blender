@@ -177,12 +177,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	{
 		/* We need to duplicate data here, otherwise setting custom normals, edges' shaprness, etc., could
 		 * modify org mesh, see T43671. */
-		BKE_id_copy_ex(
-		        NULL, &me_mod->id, (ID **)&result,
-		        LIB_ID_CREATE_NO_MAIN |
-		        LIB_ID_CREATE_NO_USER_REFCOUNT |
-		        LIB_ID_CREATE_NO_DEG_TAG |
-		        LIB_ID_COPY_NO_PREVIEW);
+		BKE_id_copy_ex(NULL, &me_mod->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
 	}
 
 	BKE_reports_init(&reports, RPT_STORE);

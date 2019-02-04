@@ -114,12 +114,7 @@ static void deformVerts(
 	if (mesh) {
 		/* Not possible to use get_mesh() in this case as we'll modify its vertices
 		 * and get_mesh() would return 'mesh' directly. */
-		BKE_id_copy_ex(
-		        NULL, (ID *)mesh, (ID **)&surmd->mesh,
-		        LIB_ID_CREATE_NO_MAIN |
-		        LIB_ID_CREATE_NO_USER_REFCOUNT |
-		        LIB_ID_CREATE_NO_DEG_TAG |
-		        LIB_ID_COPY_NO_PREVIEW);
+		BKE_id_copy_ex(NULL, (ID *)mesh, (ID **)&surmd->mesh, LIB_ID_COPY_LOCALIZE);
 	}
 	else {
 		surmd->mesh = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, numVerts, false, false);

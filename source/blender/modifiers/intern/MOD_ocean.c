@@ -384,11 +384,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 		BKE_mesh_ensure_normals(result);
 	}
 	else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
-		BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result,
-		               LIB_ID_CREATE_NO_MAIN |
-		               LIB_ID_CREATE_NO_USER_REFCOUNT |
-		               LIB_ID_CREATE_NO_DEG_TAG |
-		               LIB_ID_COPY_NO_PREVIEW);
+		BKE_id_copy_ex(NULL, &mesh->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
 	}
 
 	cfra_for_cache = cfra_scene;

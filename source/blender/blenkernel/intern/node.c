@@ -2035,9 +2035,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		 */
 		BKE_id_copy_ex(
 		        NULL, &ntree->id, (ID **)&ltree,
-		        (LIB_ID_CREATE_NO_MAIN |
-		         LIB_ID_CREATE_NO_USER_REFCOUNT |
-		         LIB_ID_COPY_NO_PREVIEW |
+		        (LIB_ID_COPY_LOCALIZE |
 		         LIB_ID_COPY_NO_ANIMDATA));
 
 		for (node = ltree->nodes.first; node; node = node->next) {

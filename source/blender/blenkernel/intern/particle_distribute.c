@@ -858,12 +858,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 				mesh = final_mesh;
 			}
 			else {
-				BKE_id_copy_ex(
-				        NULL, ob->data, (ID **)&mesh,
-				        LIB_ID_CREATE_NO_MAIN |
-				        LIB_ID_CREATE_NO_USER_REFCOUNT |
-				        LIB_ID_CREATE_NO_DEG_TAG |
-				        LIB_ID_COPY_NO_PREVIEW);
+				BKE_id_copy_ex(NULL, ob->data, (ID **)&mesh, LIB_ID_COPY_LOCALIZE);
 			}
 			BKE_mesh_tessface_ensure(mesh);
 
@@ -909,12 +904,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		if (psys->part->use_modifier_stack)
 			mesh = final_mesh;
 		else
-			BKE_id_copy_ex(
-			            NULL, ob->data, (ID **)&mesh,
-			            LIB_ID_CREATE_NO_MAIN |
-			            LIB_ID_CREATE_NO_USER_REFCOUNT |
-			            LIB_ID_CREATE_NO_DEG_TAG |
-			            LIB_ID_COPY_NO_PREVIEW);
+			BKE_id_copy_ex(NULL, ob->data, (ID **)&mesh, LIB_ID_COPY_LOCALIZE);
 
 		BKE_mesh_tessface_ensure(mesh);
 

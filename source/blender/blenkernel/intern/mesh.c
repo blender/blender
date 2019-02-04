@@ -609,9 +609,7 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int lo
 	Mesh *mesh = BKE_libblock_alloc(
 	        NULL, ID_ME,
 	        BKE_idcode_to_name(ID_ME),
-	        LIB_ID_CREATE_NO_MAIN |
-	        LIB_ID_CREATE_NO_USER_REFCOUNT |
-	        LIB_ID_CREATE_NO_DEG_TAG);
+	        LIB_ID_COPY_LOCALIZE);
 	BKE_libblock_init_empty(&mesh->id);
 
 	/* don't use CustomData_reset(...); because we dont want to touch customdata */
@@ -691,10 +689,7 @@ Mesh *BKE_mesh_new_nomain_from_template(
 
 Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 {
-	int flags = (LIB_ID_CREATE_NO_MAIN |
-	             LIB_ID_CREATE_NO_USER_REFCOUNT |
-	             LIB_ID_CREATE_NO_DEG_TAG |
-	             LIB_ID_COPY_NO_PREVIEW);
+	int flags = LIB_ID_COPY_LOCALIZE;
 
 	if (reference) {
 		flags |= LIB_ID_COPY_CD_REFERENCE;

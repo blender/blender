@@ -186,10 +186,7 @@ Mesh *MOD_deform_mesh_eval_get(
 			Mesh *mesh_prior_modifiers = BKE_object_get_pre_modified_mesh(ob);
 			BKE_id_copy_ex(
 			        NULL, &mesh_prior_modifiers->id, (ID **)&mesh,
-			        (LIB_ID_CREATE_NO_MAIN |
-			         LIB_ID_CREATE_NO_USER_REFCOUNT |
-			         LIB_ID_CREATE_NO_DEG_TAG |
-			         LIB_ID_COPY_NO_PREVIEW |
+			        (LIB_ID_COPY_LOCALIZE |
 			         LIB_ID_COPY_CD_REFERENCE));
 			mesh->runtime.deformed_only = 1;
 		}

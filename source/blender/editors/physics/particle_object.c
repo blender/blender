@@ -717,12 +717,7 @@ static bool remap_hair_emitter(
 		return false;
 	}
 	/* don't modify the original vertices */
-	BKE_id_copy_ex(
-	            NULL, &mesh->id, (ID **)&mesh,
-	            LIB_ID_CREATE_NO_MAIN |
-	            LIB_ID_CREATE_NO_USER_REFCOUNT |
-	            LIB_ID_CREATE_NO_DEG_TAG |
-	            LIB_ID_COPY_NO_PREVIEW);
+	BKE_id_copy_ex(NULL, &mesh->id, (ID **)&mesh, LIB_ID_COPY_LOCALIZE);
 
 	/* BMESH_ONLY, deform dm may not have tessface */
 	BKE_mesh_tessface_ensure(mesh);
@@ -1098,12 +1093,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 
 		psmd->psys = psys;
-		BKE_id_copy_ex(
-		            NULL, &final_mesh->id, (ID **)&psmd->mesh_final,
-		            LIB_ID_CREATE_NO_MAIN |
-		            LIB_ID_CREATE_NO_USER_REFCOUNT |
-		            LIB_ID_CREATE_NO_DEG_TAG |
-		            LIB_ID_COPY_NO_PREVIEW);
+		BKE_id_copy_ex(NULL, &final_mesh->id, (ID **)&psmd->mesh_final, LIB_ID_COPY_LOCALIZE);
 
 		BKE_mesh_calc_normals(psmd->mesh_final);
 		BKE_mesh_tessface_ensure(psmd->mesh_final);
