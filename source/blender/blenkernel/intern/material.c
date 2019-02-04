@@ -1089,7 +1089,8 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 	if (!ma)
 		return;
 
-	DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
+	/* COW needed when adding texture slot on an object with no materials. */
+	DEG_id_tag_update(&ma->id, ID_RECALC_SHADING | ID_RECALC_COPY_ON_WRITE);
 
 	if (ma->texpaintslot) {
 		MEM_freeN(ma->texpaintslot);
