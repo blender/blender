@@ -21,8 +21,8 @@
 #ifndef __BPY_CAPI_UTILS_H__
 #define __BPY_CAPI_UTILS_H__
 
-#if PY_VERSION_HEX <  0x03060000
-#  error "Python 3.6 or greater is required, you'll need to update your python."
+#if PY_VERSION_HEX < 0x03070000
+#  error "Python 3.7 or greater is required, you'll need to update your Python."
 #endif
 
 struct EnumPropertyItem;
