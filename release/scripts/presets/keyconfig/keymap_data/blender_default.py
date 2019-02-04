@@ -62,9 +62,8 @@ class Params:
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
     ):
-        import platform
-
-        self.apple = platform.system() == 'Darwin'
+        from sys import platform
+        self.apple = (platform == 'darwin')
         self.legacy = legacy
 
         if select_mouse == 'RIGHT':
