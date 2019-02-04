@@ -4189,6 +4189,28 @@ static int hair_needs_recalc(ParticleSystem *psys)
 	return 0;
 }
 
+static ParticleSettings *particle_settings_localize(ParticleSettings *particle_settings)
+{
+	ParticleSettings *particle_settings_local;
+	/* TODO(sergey): Consider making this a  */
+	BKE_id_copy_ex(NULL,
+	               (ID *)&particle_settings->id,
+	               (ID **)&particle_settings_local,
+	               (LIB_ID_CREATE_NO_MAIN |
+	                LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                LIB_ID_CREATE_NO_DEG_TAG |
+	                LIB_ID_COPY_CACHES),
+	               false);
+	return particle_settings_local;
+}
+
+static void particle_settings_free_local(ParticleSettings *particle_settings)
+{
+	BKE_libblock_free_datablock(&particle_settings->id, 0);
+	BKE_libblock_free_data(&particle_settings->id, false);
+	MEM_freeN(particle_settings);
+}
+
 /* main particle update call, checks that things are ok on the large scale and
  * then advances in to actual particle calculations depending on particle type */
 void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys, const bool use_render_params)
@@ -4262,14 +4284,25 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 				/* first step is negative so particles get killed and reset */
 				psys->cfra= 1.0f;
 
+				ParticleSettings *part_local = part;
+				if ((part->flag & PART_HAIR_REGROW) == 0) {
+					part_local = particle_settings_localize(part);
+					psys->part = part_local;
+				}
+
 				for (i=0; i<=part->hair_step; i++) {
 					hcfra=100.0f*(float)i/(float)psys->part->hair_step;
 					if ((part->flag & PART_HAIR_REGROW)==0)
-						BKE_animsys_evaluate_animdata(depsgraph, scene, &part->id, part->adt, hcfra, ADT_RECALC_ANIM);
+						BKE_animsys_evaluate_animdata(depsgraph, scene, &part_local->id, part_local->adt, hcfra, ADT_RECALC_ANIM);
 					system_step(&sim, hcfra, use_render_params);
 					psys->cfra = hcfra;
 					psys->recalc = 0;
 					save_hair(&sim, hcfra);
+				}
+
+				if (part_local != part) {
+					particle_settings_free_local(part_local);
+					psys->part = part;
 				}
 
 				psys->flag |= PSYS_HAIR_DONE;
