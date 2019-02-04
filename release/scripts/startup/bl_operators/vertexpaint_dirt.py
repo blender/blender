@@ -21,8 +21,6 @@
 
 # <pep8 compliant>
 
-# Contributor(s): Keith "Wahooney" Boshoff, Campbell Barton, Sybren A. Stüvel
-
 
 def get_vcolor_layer_data(me):
     for lay in me.vertex_colors:

@@ -20,8 +20,6 @@
 # The Original Code is Copyright (C) 2009 Blender Foundation.
 # All rights reserved.
 #
-# Contributor(s): Campbell Barton
-#
 # ***** END GPL LICENCE BLOCK *****
 
 
