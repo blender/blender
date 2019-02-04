@@ -596,7 +596,7 @@ static void evaluate_vertex_and_apply_displacement_copy(
 	const float inv_num_accumulated =
 	        1.0f / ctx->accumulated_counters[subdiv_vertex_index];
 	/* Displacement is accumulated in subdiv vertex position.
-	 * Needs to to be backed up before copying data from original vertex. */
+	 * Needs to be backed up before copying data from original vertex. */
 	float D[3] = {0.0f, 0.0f, 0.0f};
 	if (ctx->have_displacement) {
 		copy_v3_v3(D, subdiv_vert->co);
@@ -628,7 +628,7 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
 	const float inv_num_accumulated =
 	        1.0f / ctx->accumulated_counters[subdiv_vertex_index];
 	/* Displacement is accumulated in subdiv vertex position.
-	 * Needs to to be backed up before copying data from original vertex. */
+	 * Needs to be backed up before copying data from original vertex. */
 	float D[3] = {0.0f, 0.0f, 0.0f};
 	if (ctx->have_displacement) {
 		copy_v3_v3(D, subdiv_vert->co);

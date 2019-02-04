@@ -354,7 +354,7 @@ static bool cast_ray_highpoly(
 		mul_v3_v3fl(dyco, duco_low, pixel_low->du_dy);
 		madd_v3_v3fl(dyco, dvco_low, pixel_low->dv_dy);
 
-		/* transform from low poly to to high poly object space */
+		/* transform from low poly to high poly object space */
 		mul_mat3_m4_v3(mat_low, dxco);
 		mul_mat3_m4_v3(mat_low, dyco);
 		mul_mat3_m4_v3(highpoly[hit_mesh].imat, dxco);

@@ -235,7 +235,7 @@ namespace MatrixUtil {
 
 		// Step 7: save the eigen vectors
 
-		// back from Fortran to to C++
+		// back from Fortran to C++
 		v++;
 
 		ij = 0;

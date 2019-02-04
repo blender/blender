@@ -273,7 +273,7 @@ protected:
 				++_tvertex_iter;
 #if 0
 			// Hack to deal with cusp. the result of a cusp is a TVertex having two identical viewedges.
-			// In order to iterate properly, we chose to to skip these last ones.
+			// In order to iterate properly, we chose to skip these last ones.
 			if (_feB.first == _beA.first) {
 				if (_feA.first == _beB.first) {
 					_tvertex_iter.first = 0;
