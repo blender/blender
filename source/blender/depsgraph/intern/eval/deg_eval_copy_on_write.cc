@@ -290,11 +290,8 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 	bool result = BKE_id_copy_ex(NULL,
 	                             (ID *)id_for_copy,
 	                             &newid,
-	                             (LIB_ID_CREATE_NO_MAIN |
-	                              LIB_ID_CREATE_NO_USER_REFCOUNT |
-	                              LIB_ID_CREATE_NO_ALLOCATE |
-	                              LIB_ID_CREATE_NO_DEG_TAG |
-	                              LIB_ID_COPY_CACHES));
+	                             (LIB_ID_COPY_LOCALIZE |
+	                              LIB_ID_CREATE_NO_ALLOCATE));
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	if (result) {

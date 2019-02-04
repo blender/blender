@@ -4195,10 +4195,7 @@ static ParticleSettings *particle_settings_localize(ParticleSettings *particle_s
 	BKE_id_copy_ex(NULL,
 	               (ID *)&particle_settings->id,
 	               (ID **)&particle_settings_local,
-	               (LIB_ID_CREATE_NO_MAIN |
-	                LIB_ID_CREATE_NO_USER_REFCOUNT |
-	                LIB_ID_CREATE_NO_DEG_TAG |
-	                LIB_ID_COPY_CACHES));
+	               LIB_ID_COPY_LOCALIZE);
 	return particle_settings_local;
 }
 

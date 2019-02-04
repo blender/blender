@@ -715,7 +715,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
  */
 bool BKE_id_copy(Main *bmain, const ID *id, ID **newid)
 {
-	return BKE_id_copy_ex(bmain, id, newid, LIB_ID_COPY_SHAPEKEY);
+	return BKE_id_copy_ex(bmain, id, newid, LIB_ID_COPY_DEFAULT);
 }
 
 /** Does a mere memory swap over the whole IDs data (including type-specific memory).

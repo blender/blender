@@ -105,6 +105,15 @@ enum {
 	LIB_ID_COPY_KEEP_LIB           = 1 << 25,
 	/* EXCEPTION! Deep-copy shapekeys used by copied obdata ID. */
 	LIB_ID_COPY_SHAPEKEY           = 1 << 26,
+
+	/* *** Helper 'defines' gathering most common flag sets. *** */
+	/* Shapekeys are not real ID's, more like local data to geometry IDs... */
+	LIB_ID_COPY_DEFAULT            = LIB_ID_COPY_SHAPEKEY,
+	/* Generate a local copy, outside of bmain, to work on (used by COW e.g.). */
+	LIB_ID_COPY_LOCALIZE           = LIB_ID_CREATE_NO_MAIN |
+	                                 LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                                 LIB_ID_CREATE_NO_DEG_TAG |
+	                                 LIB_ID_COPY_CACHES,
 };
 
 void BKE_libblock_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
