@@ -170,7 +170,7 @@ void BKE_linestyle_copy_data(
 	if (linestyle_src->nodetree) {
 		/* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
 		 *       (see BKE_libblock_copy_ex()). */
-		BKE_id_copy_ex(bmain, (ID *)linestyle_src->nodetree, (ID **)&linestyle_dst->nodetree, flag, false);
+		BKE_id_copy_ex(bmain, (ID *)linestyle_src->nodetree, (ID **)&linestyle_dst->nodetree, flag);
 	}
 
 	LineStyleModifier *m;
@@ -195,7 +195,7 @@ void BKE_linestyle_copy_data(
 FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineStyle *linestyle)
 {
 	FreestyleLineStyle *linestyle_copy;
-	BKE_id_copy_ex(bmain, &linestyle->id, (ID **)&linestyle_copy, 0, false);
+	BKE_id_copy_ex(bmain, &linestyle->id, (ID **)&linestyle_copy, 0);
 	return linestyle_copy;
 }
 

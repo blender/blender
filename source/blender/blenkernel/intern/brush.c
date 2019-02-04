@@ -590,7 +590,7 @@ void BKE_brush_copy_data(Main *UNUSED(bmain), Brush *brush_dst, const Brush *bru
 Brush *BKE_brush_copy(Main *bmain, const Brush *brush)
 {
 	Brush *brush_copy;
-	BKE_id_copy_ex(bmain, &brush->id, (ID **)&brush_copy, 0, false);
+	BKE_id_copy_ex(bmain, &brush->id, (ID **)&brush_copy, 0);
 	return brush_copy;
 }
 

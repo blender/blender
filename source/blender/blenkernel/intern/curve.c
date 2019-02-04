@@ -206,7 +206,7 @@ void BKE_curve_copy_data(Main *bmain, Curve *cu_dst, const Curve *cu_src, const 
 	cu_dst->batch_cache = NULL;
 
 	if (cu_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-		BKE_id_copy_ex(bmain, &cu_src->key->id, (ID **)&cu_dst->key, flag, false);
+		BKE_id_copy_ex(bmain, &cu_src->key->id, (ID **)&cu_dst->key, flag);
 	}
 
 	cu_dst->editnurb = NULL;
@@ -216,7 +216,7 @@ void BKE_curve_copy_data(Main *bmain, Curve *cu_dst, const Curve *cu_src, const 
 Curve *BKE_curve_copy(Main *bmain, const Curve *cu)
 {
 	Curve *cu_copy;
-	BKE_id_copy_ex(bmain, &cu->id, (ID **)&cu_copy, LIB_ID_COPY_SHAPEKEY, false);
+	BKE_id_copy_ex(bmain, &cu->id, (ID **)&cu_copy, LIB_ID_COPY_SHAPEKEY);
 	return cu_copy;
 }
 

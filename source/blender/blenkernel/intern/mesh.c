@@ -572,7 +572,7 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 
 	/* TODO Do we want to add flag to prevent this? */
 	if (me_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-		BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag, false);
+		BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag);
 	}
 }
 
@@ -701,14 +701,14 @@ Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 	}
 
 	Mesh *result;
-	BKE_id_copy_ex(NULL, &source->id, (ID **)&result, flags, false);
+	BKE_id_copy_ex(NULL, &source->id, (ID **)&result, flags);
 	return result;
 }
 
 Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 {
 	Mesh *me_copy;
-	BKE_id_copy_ex(bmain, &me->id, (ID **)&me_copy, LIB_ID_COPY_SHAPEKEY, false);
+	BKE_id_copy_ex(bmain, &me->id, (ID **)&me_copy, LIB_ID_COPY_SHAPEKEY);
 	return me_copy;
 }
 

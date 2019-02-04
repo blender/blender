@@ -733,8 +733,7 @@ static void template_ID(
 			but->flag |= UI_BUT_UNDO;
 
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ALONE));
-			if (/* test only */
-			    (id_copy(CTX_data_main(C), id, NULL, true) == false) ||
+			if ((!BKE_id_copy_is_allowed(id)) ||
 			    (idfrom && idfrom->lib) ||
 			    (!editable) ||
 			    /* object in editmode - don't change data */

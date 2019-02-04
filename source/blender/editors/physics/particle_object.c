@@ -722,8 +722,7 @@ static bool remap_hair_emitter(
 	            LIB_ID_CREATE_NO_MAIN |
 	            LIB_ID_CREATE_NO_USER_REFCOUNT |
 	            LIB_ID_CREATE_NO_DEG_TAG |
-	            LIB_ID_COPY_NO_PREVIEW,
-	            false);
+	            LIB_ID_COPY_NO_PREVIEW);
 
 	/* BMESH_ONLY, deform dm may not have tessface */
 	BKE_mesh_tessface_ensure(mesh);
@@ -1104,8 +1103,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		            LIB_ID_CREATE_NO_MAIN |
 		            LIB_ID_CREATE_NO_USER_REFCOUNT |
 		            LIB_ID_CREATE_NO_DEG_TAG |
-		            LIB_ID_COPY_NO_PREVIEW,
-		            false);
+		            LIB_ID_COPY_NO_PREVIEW);
 
 		BKE_mesh_calc_normals(psmd->mesh_final);
 		BKE_mesh_tessface_ensure(psmd->mesh_final);

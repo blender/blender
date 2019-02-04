@@ -76,7 +76,7 @@ void BKE_lightprobe_copy_data(
 LightProbe *BKE_lightprobe_copy(Main *bmain, const LightProbe *probe)
 {
 	LightProbe *probe_copy;
-	BKE_id_copy_ex(bmain, &probe->id, (ID **)&probe_copy, 0, false);
+	BKE_id_copy_ex(bmain, &probe->id, (ID **)&probe_copy, 0);
 	return probe_copy;
 }
 

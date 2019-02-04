@@ -1525,7 +1525,7 @@ void BKE_movieclip_copy_data(Main *UNUSED(bmain), MovieClip *clip_dst, const Mov
 MovieClip *BKE_movieclip_copy(Main *bmain, const MovieClip *clip)
 {
 	MovieClip *clip_copy;
-	BKE_id_copy_ex(bmain, &clip->id, (ID **)&clip_copy, 0, false);
+	BKE_id_copy_ex(bmain, &clip->id, (ID **)&clip_copy, 0);
 	return clip_copy;
 }
 

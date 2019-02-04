@@ -637,7 +637,7 @@ void BKE_gpencil_copy_data(bGPdata *gpd_dst, const bGPdata *gpd_src, const int U
 bGPdata *BKE_gpencil_copy(Main *bmain, const bGPdata *gpd)
 {
 	bGPdata *gpd_copy;
-	BKE_id_copy_ex(bmain, &gpd->id, (ID **)&gpd_copy, 0, false);
+	BKE_id_copy_ex(bmain, &gpd->id, (ID **)&gpd_copy, 0);
 	return gpd_copy;
 }
 
@@ -662,7 +662,7 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
 	}
 	else {
 		BLI_assert(bmain != NULL);
-		BKE_id_copy_ex(bmain, &gpd_src->id, (ID **)&gpd_dst, 0, false);
+		BKE_id_copy_ex(bmain, &gpd_src->id, (ID **)&gpd_dst, 0);
 	}
 
 	/* Copy internal data (layers, etc.) */

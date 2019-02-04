@@ -1425,7 +1425,7 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 Object *BKE_object_copy(Main *bmain, const Object *ob)
 {
 	Object *ob_copy;
-	BKE_id_copy_ex(bmain, &ob->id, (ID **)&ob_copy, 0, false);
+	BKE_id_copy_ex(bmain, &ob->id, (ID **)&ob_copy, 0);
 
 	/* We increase object user count when linking to Collections. */
 	id_us_min(&ob_copy->id);

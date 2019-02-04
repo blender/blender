@@ -863,7 +863,7 @@ void BKE_mask_copy_data(Main *UNUSED(bmain), Mask *mask_dst, const Mask *mask_sr
 Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
 {
 	Mask *mask_copy;
-	BKE_id_copy_ex(bmain, &mask->id, (ID **)&mask_copy, 0, false);
+	BKE_id_copy_ex(bmain, &mask->id, (ID **)&mask_copy, 0);
 	return mask_copy;
 }
 

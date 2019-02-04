@@ -184,7 +184,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, const bool use_same_ac
 		}
 		else {
 			/* use a copy of the action instead (user count shouldn't have changed yet) */
-			BKE_id_copy_ex(bmain, &strip_d->act->id, (ID **)&strip_d->act, flag, false);
+			BKE_id_copy_ex(bmain, &strip_d->act->id, (ID **)&strip_d->act, flag);
 		}
 	}
 

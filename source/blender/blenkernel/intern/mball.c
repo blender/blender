@@ -116,7 +116,7 @@ void BKE_mball_copy_data(Main *UNUSED(bmain), MetaBall *mb_dst, const MetaBall *
 MetaBall *BKE_mball_copy(Main *bmain, const MetaBall *mb)
 {
 	MetaBall *mb_copy;
-	BKE_id_copy_ex(bmain, &mb->id, (ID **)&mb_copy, 0, false);
+	BKE_id_copy_ex(bmain, &mb->id, (ID **)&mb_copy, 0);
 	return mb_copy;
 }
 

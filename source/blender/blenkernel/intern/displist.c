@@ -1001,8 +1001,7 @@ static void curve_calc_modifiers_post(
 					Mesh *temp_mesh;
 					BKE_id_copy_ex(NULL, &modified->id, (ID **)&temp_mesh,
 					               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
-					               LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW,
-					               false);
+					               LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW);
 					BKE_id_free(NULL, modified);
 					modified = temp_mesh;
 
@@ -1047,8 +1046,7 @@ static void curve_calc_modifiers_post(
 			Mesh *temp_mesh;
 			BKE_id_copy_ex(NULL, &modified->id, (ID **)&temp_mesh,
 			               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
-			               LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW,
-			               false);
+			               LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW);
 			BKE_id_free(NULL, modified);
 			modified = temp_mesh;
 

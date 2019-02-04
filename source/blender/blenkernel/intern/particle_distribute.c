@@ -863,8 +863,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 				        LIB_ID_CREATE_NO_MAIN |
 				        LIB_ID_CREATE_NO_USER_REFCOUNT |
 				        LIB_ID_CREATE_NO_DEG_TAG |
-				        LIB_ID_COPY_NO_PREVIEW,
-				        false);
+				        LIB_ID_COPY_NO_PREVIEW);
 			}
 			BKE_mesh_tessface_ensure(mesh);
 
@@ -915,8 +914,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 			            LIB_ID_CREATE_NO_MAIN |
 			            LIB_ID_CREATE_NO_USER_REFCOUNT |
 			            LIB_ID_CREATE_NO_DEG_TAG |
-			            LIB_ID_COPY_NO_PREVIEW,
-			            false);
+			            LIB_ID_COPY_NO_PREVIEW);
 
 		BKE_mesh_tessface_ensure(mesh);
 

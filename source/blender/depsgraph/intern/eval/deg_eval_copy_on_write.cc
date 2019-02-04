@@ -294,8 +294,7 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 	                              LIB_ID_CREATE_NO_USER_REFCOUNT |
 	                              LIB_ID_CREATE_NO_ALLOCATE |
 	                              LIB_ID_CREATE_NO_DEG_TAG |
-	                              LIB_ID_COPY_CACHES),
-	                             false);
+	                              LIB_ID_COPY_CACHES));
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	if (result) {
@@ -325,8 +324,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 	                             LIB_ID_CREATE_NO_MAIN |
 	                             LIB_ID_CREATE_NO_USER_REFCOUNT |
 	                             LIB_ID_CREATE_NO_ALLOCATE |
-	                             LIB_ID_CREATE_NO_DEG_TAG,
-	                             false);
+	                             LIB_ID_CREATE_NO_DEG_TAG);
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	if (result) {

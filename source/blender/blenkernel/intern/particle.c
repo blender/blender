@@ -3326,7 +3326,7 @@ void BKE_particlesettings_copy_data(
 ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings *part)
 {
 	ParticleSettings *part_copy;
-	BKE_id_copy_ex(bmain, &part->id, (ID **)&part_copy, 0, false);
+	BKE_id_copy_ex(bmain, &part->id, (ID **)&part_copy, 0);
 	return part_copy;
 }
 

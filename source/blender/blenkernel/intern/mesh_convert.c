@@ -863,7 +863,7 @@ Mesh *BKE_mesh_new_from_object(
 			/* copies object and modifiers (but not the data) */
 			Object *tmpobj;
 			/* TODO: make it temp copy outside bmain! */
-			BKE_id_copy_ex(bmain, &ob->id, (ID **)&tmpobj, LIB_ID_COPY_CACHES | LIB_ID_CREATE_NO_DEG_TAG, false);
+			BKE_id_copy_ex(bmain, &ob->id, (ID **)&tmpobj, LIB_ID_COPY_CACHES | LIB_ID_CREATE_NO_DEG_TAG);
 			tmpcu = (Curve *)tmpobj->data;
 
 			/* Copy cached display list, it might be needed by the stack evaluation.
@@ -884,7 +884,7 @@ Mesh *BKE_mesh_new_from_object(
 				BKE_object_free_modifiers(tmpobj, 0);
 
 			/* copies the data */
-			BKE_id_copy_ex(bmain, ob->data, (ID **)&copycu, LIB_ID_CREATE_NO_DEG_TAG, false);
+			BKE_id_copy_ex(bmain, ob->data, (ID **)&copycu, LIB_ID_CREATE_NO_DEG_TAG);
 			id_us_min(tmpobj->data);
 			tmpobj->data = copycu;
 
@@ -971,7 +971,7 @@ Mesh *BKE_mesh_new_from_object(
 			if (cage) {
 				/* copies the data */
 				Mesh *mesh = ob->data;
-				BKE_id_copy_ex(bmain, &mesh->id, (ID **)&tmpmesh, 0, false);
+				BKE_id_copy_ex(bmain, &mesh->id, (ID **)&tmpmesh, 0);
 				/* XXX BKE_mesh_copy() already handles materials usercount. */
 				do_mat_id_data_us = false;
 			}
@@ -1146,8 +1146,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 		        LIB_ID_CREATE_NO_MAIN |
 		        LIB_ID_CREATE_NO_USER_REFCOUNT |
 		        LIB_ID_CREATE_NO_DEG_TAG |
-		        LIB_ID_COPY_NO_PREVIEW,
-		        false);
+		        LIB_ID_COPY_NO_PREVIEW);
 		BKE_mesh_apply_vert_coords(result, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -1162,8 +1161,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 		        LIB_ID_CREATE_NO_MAIN |
 		        LIB_ID_CREATE_NO_USER_REFCOUNT |
 		        LIB_ID_CREATE_NO_DEG_TAG |
-		        LIB_ID_COPY_NO_PREVIEW,
-		        false);
+		        LIB_ID_COPY_NO_PREVIEW);
 
 		if (build_shapekey_layers)
 			add_shapekey_layers(mesh_temp, me);

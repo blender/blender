@@ -75,7 +75,7 @@ void BKE_speaker_copy_data(Main *UNUSED(bmain), Speaker *UNUSED(spk_dst), const 
 Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
 {
 	Speaker *spk_copy;
-	BKE_id_copy_ex(bmain, &spk->id, (ID **)&spk_copy, 0, false);
+	BKE_id_copy_ex(bmain, &spk->id, (ID **)&spk_copy, 0);
 	return spk_copy;
 }
 
