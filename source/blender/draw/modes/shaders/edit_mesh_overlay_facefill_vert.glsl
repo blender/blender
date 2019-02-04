@@ -14,18 +14,7 @@ void main()
 
 	ivec4 data_m = data & dataMask;
 
-	if ((data_m.x & FACE_ACTIVE) != 0) {
-		faceColor = colorFaceSelect;
-	}
-	else if ((data_m.x & FACE_SELECTED) != 0) {
-		faceColor = colorFaceSelect;
-	}
-	else if ((data_m.x & FACE_FREESTYLE) != 0) {
-		faceColor = colorFaceFreestyle;
-	}
-	else {
-		faceColor = colorFace;
-	}
+	faceColor = EDIT_MESH_face_color(data_m.x);
 
 #ifdef USE_WORLD_CLIP_PLANES
 	world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);

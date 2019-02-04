@@ -49,11 +49,6 @@ extern char datatoc_paint_weight_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_common_lib_glsl[];
 extern char datatoc_edit_mesh_overlay_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_vert_glsl[];
-extern char datatoc_edit_mesh_overlay_geom_tri_glsl[];
-extern char datatoc_edit_mesh_overlay_geom_edge_glsl[];
-extern char datatoc_edit_mesh_overlay_points_vert_glsl[];
-extern char datatoc_edit_mesh_overlay_facedot_frag_glsl[];
-extern char datatoc_edit_mesh_overlay_facedot_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_mix_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_vert_glsl[];
 extern char datatoc_edit_mesh_overlay_facefill_frag_glsl[];
@@ -218,15 +213,14 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, "#define FACEDOT\n", NULL},
 		});
+		sh_data->overlay_facefill = DRW_shader_create_from_arrays({
+		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_facefill_vert_glsl, NULL},
+		        .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_facefill_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 		MEM_freeN(lib);
 
 		sh_data->overlay_mix = DRW_shader_create_fullscreen(datatoc_edit_mesh_overlay_mix_frag_glsl, NULL);
-
-		sh_data->overlay_facefill = DRW_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_edit_mesh_overlay_facefill_vert_glsl, NULL},
-		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_edit_mesh_overlay_facefill_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
-		});
 
 		sh_data->normals_face = DRW_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_vert_glsl, NULL},
