@@ -119,8 +119,6 @@ enum {
 
 void BKE_libblock_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
 void *BKE_libblock_copy(struct Main *bmain, const struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-/* "Deprecated" old API. */
-void *BKE_libblock_copy_nolib(const struct ID *id, const bool do_action) ATTR_NONNULL();
 /* Special version. sued by datablock localization. */
 void *BKE_libblock_copy_for_localize(const struct ID *id);
 

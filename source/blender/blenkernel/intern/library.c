@@ -1408,15 +1408,6 @@ void *BKE_libblock_copy(Main *bmain, const ID *id)
 	return idn;
 }
 
-void *BKE_libblock_copy_nolib(const ID *id, const bool do_action)
-{
-	ID *idn;
-
-	BKE_libblock_copy_ex(NULL, id, &idn, LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | (do_action ? LIB_ID_COPY_ACTIONS : 0));
-
-	return idn;
-}
-
 void *BKE_libblock_copy_for_localize(const ID *id)
 {
 	ID *idn;
