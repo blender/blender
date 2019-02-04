@@ -1408,12 +1408,11 @@ void *BKE_libblock_copy(Main *bmain, const ID *id)
 	return idn;
 }
 
+/* XXX TODO: get rid of this useless wrapper at some point... */
 void *BKE_libblock_copy_for_localize(const ID *id)
 {
 	ID *idn;
-	BKE_libblock_copy_ex(NULL, id, &idn, (LIB_ID_CREATE_NO_MAIN |
-	                                      LIB_ID_CREATE_NO_USER_REFCOUNT |
-	                                      LIB_ID_COPY_NO_ANIMDATA));
+	BKE_libblock_copy_ex(NULL, id, &idn, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
 	return idn;
 }
 
