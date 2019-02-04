@@ -446,7 +446,7 @@ void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const 
 Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
 {
 	Tex *tex_copy;
-	BKE_id_copy_ex(bmain, &tex->id, (ID **)&tex_copy, 0);
+	BKE_id_copy(bmain, &tex->id, (ID **)&tex_copy);
 	return tex_copy;
 }
 

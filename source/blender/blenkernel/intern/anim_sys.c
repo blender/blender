@@ -284,8 +284,8 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 	/* make a copy of action - at worst, user has to delete copies... */
 	if (do_action) {
 		BLI_assert(bmain != NULL);
-		BKE_id_copy_ex(bmain, (ID *)dadt->action, (ID **)&dadt->action, 0);
-		BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, (ID **)&dadt->tmpact, 0);
+		BKE_id_copy(bmain, (ID *)dadt->action, (ID **)&dadt->action);
+		BKE_id_copy(bmain, (ID *)dadt->tmpact, (ID **)&dadt->tmpact);
 	}
 	else if (do_id_user) {
 		id_us_plus((ID *)dadt->action);

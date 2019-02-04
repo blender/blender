@@ -420,7 +420,7 @@ void BKE_image_copy_data(Main *UNUSED(bmain), Image *ima_dst, const Image *ima_s
 Image *BKE_image_copy(Main *bmain, const Image *ima)
 {
 	Image *ima_copy;
-	BKE_id_copy_ex(bmain, &ima->id, (ID **)&ima_copy, 0);
+	BKE_id_copy(bmain, &ima->id, (ID **)&ima_copy);
 	return ima_copy;
 }
 

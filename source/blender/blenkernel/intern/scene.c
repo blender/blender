@@ -399,8 +399,8 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 				for (FreestyleLineSet *lineset = view_layer_dst->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 					if (lineset->linestyle) {
 						id_us_min(&lineset->linestyle->id);
-						/* XXX Not copying anim/actions here? */
-						BKE_id_copy_ex(bmain, (ID *)lineset->linestyle, (ID **)&lineset->linestyle, 0);
+						/* XXX Not copying actions here? */
+						BKE_id_copy(bmain, (ID *)lineset->linestyle, (ID **)&lineset->linestyle);
 					}
 				}
 			}
@@ -415,10 +415,10 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			BKE_collection_copy_full(bmain, sce_copy->master_collection);
 
 			/* Full copy of GreasePencil. */
-			/* XXX Not copying anim/actions here? */
+			/* XXX Not copying actions here? */
 			if (sce_copy->gpd) {
 				id_us_min(&sce_copy->gpd->id);
-				BKE_id_copy_ex(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd, 0);
+				BKE_id_copy(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd);
 			}
 		}
 		else {

@@ -125,7 +125,7 @@ void BKE_world_copy_data(Main *bmain, World *wrld_dst, const World *wrld_src, co
 World *BKE_world_copy(Main *bmain, const World *wrld)
 {
 	World *wrld_copy;
-	BKE_id_copy_ex(bmain, &wrld->id, (ID **)&wrld_copy, 0);
+	BKE_id_copy(bmain, &wrld->id, (ID **)&wrld_copy);
 	return wrld_copy;
 }
 

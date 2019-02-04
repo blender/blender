@@ -103,7 +103,7 @@ void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *cam_dst, const Camera *ca
 Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
 {
 	Camera *cam_copy;
-	BKE_id_copy_ex(bmain, &cam->id, (ID **)&cam_copy, 0);
+	BKE_id_copy(bmain, &cam->id, (ID **)&cam_copy);
 	return cam_copy;
 }
 

@@ -201,7 +201,7 @@ void BKE_armature_copy_data(Main *UNUSED(bmain), bArmature *arm_dst, const bArma
 bArmature *BKE_armature_copy(Main *bmain, const bArmature *arm)
 {
 	bArmature *arm_copy;
-	BKE_id_copy_ex(bmain, &arm->id, (ID **)&arm_copy, 0);
+	BKE_id_copy(bmain, &arm->id, (ID **)&arm_copy);
 	return arm_copy;
 }
 

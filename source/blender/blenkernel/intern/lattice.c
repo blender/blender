@@ -292,7 +292,7 @@ void BKE_lattice_copy_data(Main *bmain, Lattice *lt_dst, const Lattice *lt_src, 
 Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
 {
 	Lattice *lt_copy;
-	BKE_id_copy_ex(bmain, &lt->id, (ID **)&lt_copy, LIB_ID_COPY_SHAPEKEY);
+	BKE_id_copy(bmain, &lt->id, (ID **)&lt_copy);
 	return lt_copy;
 }
 

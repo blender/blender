@@ -126,7 +126,7 @@ void BKE_cachefile_copy_data(
 CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
 {
 	CacheFile *cache_file_copy;
-	BKE_id_copy_ex(bmain, &cache_file->id, (ID **)&cache_file_copy, 0);
+	BKE_id_copy(bmain, &cache_file->id, (ID **)&cache_file_copy);
 	return cache_file_copy;
 }
 

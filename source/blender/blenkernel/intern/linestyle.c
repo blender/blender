@@ -195,7 +195,7 @@ void BKE_linestyle_copy_data(
 FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineStyle *linestyle)
 {
 	FreestyleLineStyle *linestyle_copy;
-	BKE_id_copy_ex(bmain, &linestyle->id, (ID **)&linestyle_copy, 0);
+	BKE_id_copy(bmain, &linestyle->id, (ID **)&linestyle_copy);
 	return linestyle_copy;
 }
 

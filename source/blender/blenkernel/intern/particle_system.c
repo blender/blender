@@ -4186,7 +4186,6 @@ static int hair_needs_recalc(ParticleSystem *psys)
 static ParticleSettings *particle_settings_localize(ParticleSettings *particle_settings)
 {
 	ParticleSettings *particle_settings_local;
-	/* TODO(sergey): Consider making this a  */
 	BKE_id_copy_ex(NULL,
 	               (ID *)&particle_settings->id,
 	               (ID **)&particle_settings_local,

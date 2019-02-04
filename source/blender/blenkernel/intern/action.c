@@ -163,7 +163,7 @@ void BKE_action_copy_data(Main *UNUSED(bmain), bAction *act_dst, const bAction *
 bAction *BKE_action_copy(Main *bmain, const bAction *act_src)
 {
 	bAction *act_copy;
-	BKE_id_copy_ex(bmain, &act_src->id, (ID **)&act_copy, 0);
+	BKE_id_copy(bmain, &act_src->id, (ID **)&act_copy);
 	return act_copy;
 }
 

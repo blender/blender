@@ -124,7 +124,7 @@ void BKE_lamp_copy_data(Main *bmain, Lamp *la_dst, const Lamp *la_src, const int
 Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
 {
 	Lamp *la_copy;
-	BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy, 0);
+	BKE_id_copy(bmain, &la->id, (ID **)&la_copy);
 	return la_copy;
 }
 

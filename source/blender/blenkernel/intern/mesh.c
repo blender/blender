@@ -703,7 +703,7 @@ Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 {
 	Mesh *me_copy;
-	BKE_id_copy_ex(bmain, &me->id, (ID **)&me_copy, LIB_ID_COPY_SHAPEKEY);
+	BKE_id_copy(bmain, &me->id, (ID **)&me_copy);
 	return me_copy;
 }
 
