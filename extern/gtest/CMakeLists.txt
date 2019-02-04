@@ -16,9 +16,6 @@
 #
 # The Original Code is Copyright (C) 2014, Blender Foundation
 # All rights reserved.
-#
-# Contributor(s): Sergey Sharybin
-#
 # ***** END GPL LICENSE BLOCK *****
 
 # avoid noisy warnings

@@ -16,11 +16,6 @@
 #
 # The Original Code is Copyright (C) 2015, Blender Foundation
 # All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): Bastien Montagne.
-#
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC

@@ -16,11 +16,6 @@
 #
 # The Original Code is Copyright (C) 2011, Blender Foundation
 # All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): Jeroen Bakker, Monique Dewanchand, Blender Developers Fund.
-#
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC

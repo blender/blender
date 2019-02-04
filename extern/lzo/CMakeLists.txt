@@ -16,11 +16,6 @@
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): Daniel Genrich
-#
 # ***** END GPL LICENSE BLOCK *****
 
 remove_strict_flags()

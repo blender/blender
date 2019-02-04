@@ -16,9 +16,6 @@
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
-#
-# The Original Code is: all of this file.
-#
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
