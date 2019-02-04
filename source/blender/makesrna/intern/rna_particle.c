@@ -1995,7 +1995,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem phys_type_items[] = {
-		{PART_PHYS_NO, "NO", 0, "No", ""},
+		{PART_PHYS_NO, "NO", 0, "None", ""},
 		{PART_PHYS_NEWTON, "NEWTON", 0, "Newtonian", ""},
 		{PART_PHYS_KEYED, "KEYED", 0, "Keyed", ""},
 		{PART_PHYS_BOIDS, "BOIDS", 0, "Boids", ""},
