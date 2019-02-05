@@ -337,7 +337,7 @@ void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
 void BKE_undosys_stack_init_from_context(UndoStack *ustack, bContext *C)
 {
 	const UndoType *ut = BKE_undosys_type_from_context(C);
-	if ((ut != NULL) && (ut != BKE_UNDOSYS_TYPE_MEMFILE) && (ut->mode == BKE_UNDOTYPE_MODE_STORE)) {
+	if ((ut != NULL) && (ut != BKE_UNDOSYS_TYPE_MEMFILE)) {
 		BKE_undosys_step_push_with_type(ustack, C, "original mode", ut);
 	}
 }
@@ -657,16 +657,17 @@ bool BKE_undosys_step_undo_with_data_ex(
 		if (ustack->step_active) {
 			UndoStep *us_iter = ustack->step_active;
 			while (us_iter != us) {
-				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
-					undosys_step_decode(C, G_MAIN, ustack, us_iter, -1);
-				}
+				/* TODO:
+				 * - skip successive steps that store the same data, eg: memfile steps.
+				 * - or steps that include another steps data, eg: a memfile step includes text undo data.
+				 */
+				undosys_step_decode(C, G_MAIN, ustack, us_iter, -1);
 				us_iter = us_iter->prev;
 			}
 		}
 
-		if (us->type->mode != BKE_UNDOTYPE_MODE_ACCUMULATE) {
-			undosys_step_decode(C, G_MAIN, ustack, us, -1);
-		}
+		undosys_step_decode(C, G_MAIN, ustack, us, -1);
+
 		ustack->step_active = us_prev;
 		undosys_stack_validate(ustack, true);
 		if (use_skip) {
@@ -712,14 +713,11 @@ bool BKE_undosys_step_redo_with_data_ex(
 		if (ustack->step_active && ustack->step_active->next) {
 			UndoStep *us_iter = ustack->step_active->next;
 			while (us_iter != us) {
-				if (us_iter->type->mode == BKE_UNDOTYPE_MODE_ACCUMULATE) {
-					undosys_step_decode(C, G_MAIN, ustack, us_iter, 1);
-				}
+				undosys_step_decode(C, G_MAIN, ustack, us_iter, 1);
 				us_iter = us_iter->next;
 			}
 		}
 
-		/* Unlike undo, always redo accumulation state. */
 		undosys_step_decode(C, G_MAIN, ustack, us, 1);
 		ustack->step_active = us_next;
 		if (use_skip) {
@@ -792,8 +790,6 @@ UndoType *BKE_undosys_type_append(void (*undosys_fn)(UndoType *))
 	ut = MEM_callocN(sizeof(UndoType), __func__);
 
 	undosys_fn(ut);
-
-	BLI_assert(ut->mode != 0);
 
 	BLI_addtail(&g_undo_types, ut);
 
@@ -1010,14 +1006,15 @@ ID *BKE_undosys_ID_map_lookup_with_prev(const UndoIDPtrMap *map, ID *id_src, ID 
 
 void BKE_undosys_print(UndoStack *ustack)
 {
-	printf("Undo %d Steps (A: active, M=memfile-active, S=skip)\n",
+	printf("Undo %d Steps (*: active, #=applied, M=memfile-active, S=skip)\n",
 	       BLI_listbase_count(&ustack->steps));
 	int index = 0;
 	for (UndoStep *us = ustack->steps.first; us; us = us->next) {
-		printf("[%c%c%c] %3d type='%s', name='%s'\n",
-		       (us == ustack->step_active) ? 'A' : '_',
-		       (us == ustack->step_active_memfile) ? 'M' : '_',
-		       us->skip ? 'S' : '_',
+		printf("[%c%c%c%c] %3d type='%s', name='%s'\n",
+		       (us == ustack->step_active) ? '*' : ' ',
+		       us->is_applied ? '#' : ' ',
+		       (us == ustack->step_active_memfile) ? 'M' : ' ',
+		       us->skip ? 'S' : ' ',
 		       index,
 		       us->type->name,
 		       us->name);

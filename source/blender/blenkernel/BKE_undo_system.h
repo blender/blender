@@ -72,23 +72,10 @@ typedef struct UndoStep {
 	bool skip;
 	/** Some situations require the global state to be stored, edge cases when exiting modes. */
 	bool use_memfile_step;
+	/** For use by undo systems that accumulate changes (text editor, painting). */
+	bool is_applied;
 	/* Over alloc 'type->struct_size'. */
 } UndoStep;
-
-typedef enum eUndoTypeMode {
-	/**
-	 * Each undo step stores a version of the state.
-	 * This means we can simply load in a previous state at any time.
-	 */
-	BKE_UNDOTYPE_MODE_STORE = 1,
-	/**
-	 * Each undo step is a series of edits.
-	 * This means to change states we need to apply each edit.
-	 * It also means the 'step_decode' callback needs to detect the difference between undo and redo.
-	 * (Currently used for text edit and image & sculpt painting).
-	 */
-	BKE_UNDOTYPE_MODE_ACCUMULATE = 2,
-} eUndoTypeMode;
 
 typedef void (*UndoTypeForEachIDRefFn)(void *user_data, struct UndoRefID *id_ref);
 
@@ -122,7 +109,6 @@ typedef struct UndoType {
 
 	void (*step_foreach_ID_ref)(UndoStep *us, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data);
 
-	eUndoTypeMode mode;
 	bool use_context;
 
 	int step_size;
@@ -135,6 +121,9 @@ extern const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE;
 extern const UndoType *BKE_UNDOSYS_TYPE_PARTICLE;
 extern const UndoType *BKE_UNDOSYS_TYPE_SCULPT;
 extern const UndoType *BKE_UNDOSYS_TYPE_TEXT;
+
+#define BKE_UNDOSYS_TYPE_IS_MEMFILE_SKIP(ty) \
+	ELEM(ty, BKE_UNDOSYS_TYPE_IMAGE)
 
 UndoStack      *BKE_undosys_stack_create(void);
 void            BKE_undosys_stack_destroy(UndoStack *ustack);

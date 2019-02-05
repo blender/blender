@@ -89,6 +89,19 @@ static void memfile_undosys_step_decode(struct bContext *C, struct Main *bmain, 
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 	BKE_memfile_undo_decode(us->data, C);
 
+	for (UndoStep *us_iter = us_p->next; us_iter; us_iter = us_iter->next) {
+		if (BKE_UNDOSYS_TYPE_IS_MEMFILE_SKIP(us_iter->type)) {
+			continue;
+		}
+		us_iter->is_applied = false;
+	}
+	for (UndoStep *us_iter = us_p; us_iter; us_iter = us_iter->prev) {
+		if (BKE_UNDOSYS_TYPE_IS_MEMFILE_SKIP(us_iter->type)) {
+			continue;
+		}
+		us_iter->is_applied = true;
+	}
+
 	/* bmain has been freed. */
 	bmain = CTX_data_main(C);
 	ED_editors_init_for_undo(bmain);
@@ -120,7 +133,6 @@ void ED_memfile_undosys_type(UndoType *ut)
 	ut->step_decode = memfile_undosys_step_decode;
 	ut->step_free = memfile_undosys_step_free;
 
-	ut->mode = BKE_UNDOTYPE_MODE_STORE;
 	ut->use_context = true;
 
 	ut->step_size = sizeof(MemFileUndoStep);

@@ -40,7 +40,7 @@ void ED_imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int 
 void ED_imapaint_bucket_fill(struct bContext *C, float color[3], struct wmOperator *op);
 
 /* paint_image_undo.c */
-void ED_image_undo_push_begin(const char *name);
+void ED_image_undo_push_begin(const char *name, int paint_mode);
 void ED_image_undo_push_end(void);
 void ED_image_undo_restore(struct UndoStep *us);
 

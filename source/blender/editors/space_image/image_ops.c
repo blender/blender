@@ -2609,7 +2609,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	}
 
 	if (support_undo) {
-		ED_image_undo_push_begin(op->type->name);
+		ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
 		/* not strictly needed, because we only imapaint_dirty_region to invalidate all tiles
 		 * but better do this right in case someone copies this for a tool that uses partial
 		 * redraw better */

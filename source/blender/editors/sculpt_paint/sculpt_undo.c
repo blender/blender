@@ -1048,17 +1048,70 @@ static bool sculpt_undosys_step_encode(struct bContext *UNUSED(C), struct Main *
 	if (unode && unode->type == SCULPT_UNDO_DYNTOPO_END) {
 		us->step.use_memfile_step = true;
 	}
+	us->step.is_applied = true;
 	return true;
 }
 
-static void sculpt_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
+static void sculpt_undosys_step_decode_undo_impl(struct bContext *C, SculptUndoStep *us)
+{
+	BLI_assert(us->step.is_applied == true);
+	sculpt_undo_restore_list(C, &us->data.nodes);
+	us->step.is_applied = false;
+}
+
+static void sculpt_undosys_step_decode_redo_impl(struct bContext *C, SculptUndoStep *us)
+{
+	BLI_assert(us->step.is_applied == false);
+	sculpt_undo_restore_list(C, &us->data.nodes);
+	us->step.is_applied = true;
+}
+
+static void sculpt_undosys_step_decode_undo(struct bContext *C, SculptUndoStep *us)
+{
+	SculptUndoStep *us_iter = us;
+	while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
+		if (us_iter->step.next->is_applied == false) {
+			break;
+		}
+		us_iter = (SculptUndoStep *)us_iter->step.next;
+	}
+	while (us_iter != us) {
+		sculpt_undosys_step_decode_undo_impl(C, us_iter);
+		us_iter = (SculptUndoStep *)us_iter->step.prev;
+	}
+}
+
+static void sculpt_undosys_step_decode_redo(struct bContext *C, SculptUndoStep *us)
+{
+	SculptUndoStep *us_iter = us;
+	while (us_iter->step.prev && (us_iter->step.prev->type == us_iter->step.type)) {
+		if (us_iter->step.prev->is_applied == true) {
+			break;
+		}
+		us_iter = (SculptUndoStep *)us_iter->step.prev;
+	}
+	while (us_iter && (us_iter->step.is_applied == false)) {
+		sculpt_undosys_step_decode_redo_impl(C, us_iter);
+		if (us_iter == us) {
+			break;
+		}
+		us_iter = (SculptUndoStep *)us_iter->step.next;
+	}
+}
+
+static void sculpt_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int dir)
 {
 	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_SCULPT);
 	BLI_assert(sculpt_undosys_poll(C));
 
 	SculptUndoStep *us = (SculptUndoStep *)us_p;
-	sculpt_undo_restore_list(C, &us->data.nodes);
+	if (dir < 0) {
+		sculpt_undosys_step_decode_undo(C, us);
+	}
+	else {
+		sculpt_undosys_step_decode_redo(C, us);
+	}
 }
 
 static void sculpt_undosys_step_free(UndoStep *us_p)
@@ -1077,7 +1130,6 @@ void ED_sculpt_undosys_type(UndoType *ut)
 	ut->step_decode = sculpt_undosys_step_decode;
 	ut->step_free = sculpt_undosys_step_free;
 
-	ut->mode = BKE_UNDOTYPE_MODE_ACCUMULATE;
 	ut->use_context = true;
 
 	ut->step_size = sizeof(SculptUndoStep);

@@ -283,7 +283,6 @@ void ED_particle_undosys_type(UndoType *ut)
 
 	ut->step_foreach_ID_ref = particle_undosys_foreach_ID_ref;
 
-	ut->mode = BKE_UNDOTYPE_MODE_STORE;
 	ut->use_context = true;
 
 	ut->step_size = sizeof(ParticleUndoStep);

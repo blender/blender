@@ -134,7 +134,6 @@ void ED_paintcurve_undosys_type(UndoType *ut)
 	ut->step_decode = paintcurve_undosys_step_decode;
 	ut->step_free = paintcurve_undosys_step_free;
 
-	ut->mode = BKE_UNDOTYPE_MODE_STORE;
 	ut->use_context = false;
 
 	ut->step_size = sizeof(PaintCurveUndoStep);

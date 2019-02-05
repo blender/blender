@@ -489,7 +489,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 	}
 
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	ED_image_undo_push_begin(op->type->name);
+	ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
 
 	return pop;
 }
@@ -1234,7 +1234,7 @@ void ED_imapaint_bucket_fill(struct bContext *C, float color[3], wmOperator *op)
 
 	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, op->type->name, BKE_UNDOSYS_TYPE_IMAGE);
 
-	ED_image_undo_push_begin(op->type->name);
+	ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
 
 	paint_2d_bucket_fill(C, color, NULL, NULL, NULL);
 
