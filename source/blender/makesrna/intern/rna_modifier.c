@@ -3790,7 +3790,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna), StructRNA *
 	prop = RNA_def_property(srna, "mask_texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Masking Tex", "Masking texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop = RNA_def_property(srna, "mask_tex_use_channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, weightvg_mask_tex_used_items);
