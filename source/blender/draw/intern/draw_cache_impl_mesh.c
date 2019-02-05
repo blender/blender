@@ -2475,6 +2475,9 @@ static void mesh_create_edit_vertex_loops(
 					mesh_render_data_vert_flag(rdata, eve, &eattr);
 					memcpy(GPU_vertbuf_raw_step(&raw_data), &eattr, sizeof(EdgeDrawAttr));
 				}
+				if (vbo_lnor) {
+					memset(GPU_vertbuf_raw_step(&raw_lnor), 0, sizeof(GPUPackedNormal));
+				}
 				/* Select Idx */
 				if (vbo_verts) {
 					int vidx = BM_elem_index_get(eve);
@@ -2493,6 +2496,9 @@ static void mesh_create_edit_vertex_loops(
 				GPUPackedNormal *vnor = (GPUPackedNormal *)GPU_vertbuf_raw_step(&raw_nor);
 				*vnor = GPU_normal_convert_i10_v3(eve->no);
 				copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), eve->co);
+			}
+			if (vbo_lnor) {
+				memset(GPU_vertbuf_raw_step(&raw_lnor), 0, sizeof(GPUPackedNormal));
 			}
 			if (vbo_data) {
 				EdgeDrawAttr eattr = { 0 };
@@ -2596,6 +2602,9 @@ static void mesh_create_edit_vertex_loops(
 					*(GPUPackedNormal *)GPU_vertbuf_raw_step(&raw_nor) = vnor;
 					copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert[v].co);
 				}
+				if (vbo_lnor) {
+					memset(GPU_vertbuf_raw_step(&raw_lnor), 0, sizeof(GPUPackedNormal));
+				}
 				if (vbo_data) {
 					EdgeDrawAttr eattr = { 0 };
 					int vidx = v_origindex[v];
@@ -2628,6 +2637,9 @@ static void mesh_create_edit_vertex_loops(
 				GPUPackedNormal vnor = GPU_normal_convert_i10_s3(mvert[v].no);
 				*(GPUPackedNormal *)GPU_vertbuf_raw_step(&raw_nor) = vnor;
 				copy_v3_v3(GPU_vertbuf_raw_step(&raw_pos), mvert[v].co);
+			}
+			if (vbo_lnor) {
+				memset(GPU_vertbuf_raw_step(&raw_lnor), 0, sizeof(GPUPackedNormal));
 			}
 			if (vbo_data) {
 				EdgeDrawAttr eattr = { 0 };
@@ -4769,7 +4781,6 @@ void DRW_mesh_batch_cache_create_requested(
 		DRW_vbo_request(cache->batch.edit_edges, &cache->edit.loop_data);
 	}
 	if (DRW_batch_requested(cache->batch.edit_lnor, GPU_PRIM_POINTS)) {
-		/* TODO use a range of loops line, before drawing the loose edges. */
 		DRW_ibo_request(cache->batch.edit_lnor, &cache->ibo.edit_loops_lines);
 		DRW_vbo_request(cache->batch.edit_lnor, &cache->edit.loop_pos_nor);
 		DRW_vbo_request(cache->batch.edit_lnor, &cache->edit.loop_lnor);
