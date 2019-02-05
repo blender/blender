@@ -184,50 +184,77 @@ bool view3d_camera_border_hack_test = false;
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static void bbs_mesh_verts(GPUBatch *batch, int offset)
+/** See #DRW_shgroup_world_clip_planes_from_rv3d, same function for draw manager. */
+static void bbs_world_clip_planes_from_rv3d(GPUBatch *batch, const float world_clip_planes[6][4])
+{
+	GPU_batch_uniform_4fv_array(batch, "WorldClipPlanes", 6, world_clip_planes[0]);
+}
+
+static void bbs_mesh_verts(GPUBatch *batch, int offset, const float world_clip_planes[6][4])
 {
 	GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+	const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
 	GPU_batch_uniform_1ui(batch, "offset", offset);
+	if (world_clip_planes != NULL) {
+		bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
+	}
 	GPU_batch_draw(batch);
 }
 
-static void bbs_mesh_wire(GPUBatch *batch, int offset)
+static void bbs_mesh_wire(GPUBatch *batch, int offset, const float world_clip_planes[6][4])
 {
 	GPU_line_width(1.0f);
 	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+	const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
 	GPU_batch_uniform_1ui(batch, "offset", offset);
+	if (world_clip_planes != NULL) {
+		bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
+	}
 	GPU_batch_draw(batch);
 
 	glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
 }
 
 /* two options, facecolors or black */
-static void bbs_mesh_face(GPUBatch *batch, const bool use_select)
+static void bbs_mesh_face(GPUBatch *batch, const bool use_select, const float world_clip_planes[6][4])
 {
 	if (use_select) {
-		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+		const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+		GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
 		GPU_batch_uniform_1ui(batch, "offset", 1);
+		if (world_clip_planes != NULL) {
+			bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
+		}
 		GPU_batch_draw(batch);
 	}
 	else {
-		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_SELECT_ID);
+		const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+		GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_UNIFORM_SELECT_ID, shader_cfg);
 		GPU_batch_uniform_1ui(batch, "id", 0);
+		if (world_clip_planes != NULL) {
+			bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
+		}
 		GPU_batch_draw(batch);
 	}
 }
 
-static void bbs_mesh_face_dot(GPUBatch *batch)
+static void bbs_mesh_face_dot(GPUBatch *batch, const float world_clip_planes[6][4])
 {
-	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_SELECT_ID);
+	const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
 	GPU_batch_uniform_1ui(batch, "offset", 1);
+	if (world_clip_planes != NULL) {
+		bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
+	}
 	GPU_batch_draw(batch);
 }
 
-static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *ob)
+static void bbs_mesh_solid_verts(
+        Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *ob, const float world_clip_planes[6][4])
 {
 	Mesh *me = ob->data;
 
@@ -236,13 +263,13 @@ static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(sce
 	DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
 
 	/* Only draw faces to mask out verts, we don't want their selection ID's. */
-	bbs_mesh_face(geom_faces, false);
-	bbs_mesh_verts(geom_verts, 1);
+	bbs_mesh_face(geom_faces, false, world_clip_planes);
+	bbs_mesh_verts(geom_verts, 1, world_clip_planes);
 
 	bm_vertoffs = me->totvert + 1;
 }
 
-static void bbs_mesh_solid_faces(Scene *UNUSED(scene), Object *ob)
+static void bbs_mesh_solid_faces(Scene *UNUSED(scene), Object *ob, const float world_clip_planes[6][4])
 {
 	Mesh *me = ob->data;
 	Mesh *me_orig = DEG_get_original_object(ob)->data;
@@ -251,7 +278,7 @@ static void bbs_mesh_solid_faces(Scene *UNUSED(scene), Object *ob)
 	GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
 	DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, use_hide);
 
-	bbs_mesh_face(geom_faces, true);
+	bbs_mesh_face(geom_faces, true, world_clip_planes);
 }
 
 void draw_object_backbufsel(
@@ -265,6 +292,11 @@ void draw_object_backbufsel(
 
 	GPU_matrix_mul(ob->obmat);
 	GPU_depth_test(true);
+
+	const float (*world_clip_planes)[4] = NULL;
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		world_clip_planes = rv3d->clip;
+	}
 
 	switch (ob->type) {
 		case OB_MESH:
@@ -289,10 +321,10 @@ void draw_object_backbufsel(
 				}
 				DRW_mesh_batch_cache_create_requested(ob, me, NULL, false, true);
 
-				bbs_mesh_face(geom_faces, use_faceselect);
+				bbs_mesh_face(geom_faces, use_faceselect, world_clip_planes);
 
 				if (use_faceselect && draw_facedot) {
-					bbs_mesh_face_dot(geom_facedots);
+					bbs_mesh_face_dot(geom_facedots, world_clip_planes);
 				}
 
 				if (select_mode & SCE_SELECT_FACE)
@@ -305,7 +337,7 @@ void draw_object_backbufsel(
 
 				/* we draw edges if edge select mode */
 				if (select_mode & SCE_SELECT_EDGE) {
-					bbs_mesh_wire(geom_edges, bm_solidoffs);
+					bbs_mesh_wire(geom_edges, bm_solidoffs, world_clip_planes);
 					bm_wireoffs = bm_solidoffs + em->bm->totedge;
 				}
 				else {
@@ -317,7 +349,7 @@ void draw_object_backbufsel(
 
 				/* we draw verts if vert select mode. */
 				if (select_mode & SCE_SELECT_VERTEX) {
-					bbs_mesh_verts(geom_verts, bm_wireoffs);
+					bbs_mesh_verts(geom_verts, bm_wireoffs, world_clip_planes);
 					bm_vertoffs = bm_wireoffs + em->bm->totvert;
 				}
 				else {
@@ -332,10 +364,10 @@ void draw_object_backbufsel(
 				    /* currently vertex select supports weight paint and vertex paint*/
 				    ((ob->mode & OB_MODE_WEIGHT_PAINT) || (ob->mode & OB_MODE_VERTEX_PAINT)))
 				{
-					bbs_mesh_solid_verts(depsgraph, scene, ob);
+					bbs_mesh_solid_verts(depsgraph, scene, ob, world_clip_planes);
 				}
 				else {
-					bbs_mesh_solid_faces(scene, ob);
+					bbs_mesh_solid_faces(scene, ob, world_clip_planes);
 				}
 			}
 			break;

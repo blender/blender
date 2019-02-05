@@ -20,5 +20,11 @@ void main()
 		(((color + offset) >> 24)             ) * (1.0f / 255.0f));
 #endif
 
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	vec4 pos_4d = vec4(pos, 1.0);
+	gl_Position = ModelViewProjectionMatrix * pos_4d;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	/* Warning: ModelMatrix is typically used but select drawing is different. */
+	world_clip_planes_calc_clip_distance(pos);
+#endif
 }

@@ -664,10 +664,21 @@ void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
 /** \name Utilities
  * \{ */
 
+void GPU_batch_program_set_shader(GPUBatch *batch, GPUShader *shader)
+{
+	GPU_batch_program_set(batch, shader->program, shader->interface);
+}
+
+void GPU_batch_program_set_builtin_with_config(
+        GPUBatch *batch, eGPUBuiltinShader shader_id, eGPUShaderConfig shader_cfg)
+{
+	GPUShader *shader = GPU_shader_get_builtin_shader_with_config(shader_id, shader_cfg);
+	GPU_batch_program_set(batch, shader->program, shader->interface);
+}
+
 void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id)
 {
-	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-	GPU_batch_program_set(batch, shader->program, shader->interface);
+	GPU_batch_program_set_builtin_with_config(batch, shader_id, GPU_SHADER_CFG_DEFAULT);
 }
 
 /** \} */

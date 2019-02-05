@@ -104,8 +104,13 @@
 
 /* ********* custom clipping *********** */
 
+/* Legacy 2.7x, now use shaders that use clip distance instead.
+ * Remove once clipping is working properly. */
+#define USE_CLIP_PLANES
+
 void ED_view3d_clipping_set(RegionView3D *rv3d)
 {
+#ifdef USE_CLIP_PLANES
 	double plane[4];
 	const unsigned int tot = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
 
@@ -113,20 +118,32 @@ void ED_view3d_clipping_set(RegionView3D *rv3d)
 		copy_v4db_v4fl(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0 + a, plane);
 		glEnable(GL_CLIP_PLANE0 + a);
+		glEnable(GL_CLIP_DISTANCE0 + a);
 	}
+#else
+	for (unsigned a = 0; a < 6; a++) {
+		glEnable(GL_CLIP_DISTANCE0 + a);
+	}
+#endif
 }
 
 /* use these to temp disable/enable clipping when 'rv3d->rflag & RV3D_CLIPPING' is set */
 void ED_view3d_clipping_disable(void)
 {
 	for (unsigned a = 0; a < 6; a++) {
+#ifdef USE_CLIP_PLANES
 		glDisable(GL_CLIP_PLANE0 + a);
+#endif
+		glDisable(GL_CLIP_DISTANCE0 + a);
 	}
 }
 void ED_view3d_clipping_enable(void)
 {
 	for (unsigned a = 0; a < 6; a++) {
+#ifdef USE_CLIP_PLANES
 		glEnable(GL_CLIP_PLANE0 + a);
+#endif
+		glEnable(GL_CLIP_DISTANCE0 + a);
 	}
 }
 
