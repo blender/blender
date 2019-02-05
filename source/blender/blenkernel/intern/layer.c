@@ -711,7 +711,7 @@ static short layer_collection_sync(
 					base->flag |= BASE_VISIBLE;
 
 					if (((child_restrict & COLLECTION_RESTRICT_SELECT) == 0) &&
-						((object_restrict & OB_RESTRICT_SELECT) == 0))
+					    ((object_restrict & OB_RESTRICT_SELECT) == 0))
 					{
 						base->flag |= BASE_SELECTABLE;
 					}

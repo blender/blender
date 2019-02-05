@@ -822,7 +822,8 @@ void OUTLINER_OT_collection_indirect_only_clear(wmOperatorType *ot)
 
 /************************** Visibility Operators ******************************/
 
-static int collection_isolate_exec(bContext *C, wmOperator *op) {
+static int collection_isolate_exec(bContext *C, wmOperator *op)
+{
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -906,7 +907,8 @@ static bool collection_inside_poll(bContext *C)
 	return outliner_active_layer_collection(C) != NULL;
 }
 
-static int collection_visibility_exec(bContext *C, wmOperator *op) {
+static int collection_visibility_exec(bContext *C, wmOperator *op)
+{
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
