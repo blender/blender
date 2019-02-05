@@ -334,7 +334,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_float(grp, "edgeScale", edge_width_scale, 1);
-		DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs);
+		DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs * 1.5f);
 		DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE | DRW_STATE_WRITE_DEPTH);
 		DRW_shgroup_state_disable(grp, DRW_STATE_BLEND);
 		if (rv3d->rflag & RV3D_CLIPPING) {
