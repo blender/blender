@@ -79,7 +79,7 @@ class ANIM_OT_keying_set_export(Operator):
         f.write("# Keying Set Level declarations\n")
         f.write("ks = scene.keying_sets.new(idname=\"%s\", name=\"%s\")\n"
                 "" % (ks.bl_idname, ks.bl_label))
-        f.write("ks.bl_description = \"%s\"\n" % ks.bl_description)
+        f.write("ks.bl_description = \"\"\"%s\"\"\"\n" % ks.bl_description)
 
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")
