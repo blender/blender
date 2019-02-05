@@ -883,7 +883,7 @@ Mesh *BKE_mesh_new_from_object(
 			if (cage)
 				BKE_object_free_modifiers(tmpobj, 0);
 
-			/* copies the data */
+			/* copies the data, but *not* the shapekeys. */
 			BKE_id_copy_ex(bmain, ob->data, (ID **)&copycu, LIB_ID_CREATE_NO_DEG_TAG);
 			id_us_min(tmpobj->data);
 			tmpobj->data = copycu;
