@@ -2180,6 +2180,9 @@ void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
 
 void BKE_stamp_info_from_imbuf(RenderResult *rr, struct ImBuf *ibuf)
 {
+	if (rr->stamp_data == NULL) {
+		rr->stamp_data = MEM_callocN(sizeof(StampData), "RenderResult.stamp_data");
+	}
 	struct StampData *stamp_data = rr->stamp_data;
 	IMB_metadata_ensure(&ibuf->metadata);
 	BKE_stamp_info_callback(ibuf, stamp_data, metadata_get_field, true);
@@ -3073,8 +3076,10 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 	IMB_exr_close(ibuf->userdata);
 
 	ibuf->userdata = NULL;
-	if (ima->rr)
+	if (ima->rr != NULL) {
 		ima->rr->framenr = framenr;
+		BKE_stamp_info_from_imbuf(ima->rr, ibuf);
+	}
 
 	/* set proper views */
 	image_init_multilayer_multiview(ima, ima->rr);
@@ -3274,6 +3279,8 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			ibuf->flags |= IB_rectfloat;
 			ibuf->mall = IB_rectfloat;
 			ibuf->channels = rpass->channels;
+
+			BKE_imbuf_stamp_info(ima->rr, ibuf);
 
 			image_initialize_after_load(ima, ibuf);
 			image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : 0, frame);
@@ -3585,6 +3592,8 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 			ibuf->rect_float = rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels = rpass->channels;
+
+			BKE_imbuf_stamp_info(ima->rr, ibuf);
 
 			image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
 		}
