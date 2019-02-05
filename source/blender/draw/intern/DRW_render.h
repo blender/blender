@@ -240,11 +240,6 @@ void DRW_multisamples_resolve(
 /* Shaders */
 struct GPUShader *DRW_shader_create(
         const char *vert, const char *geom, const char *frag, const char *defines);
-struct DRW_ShaderCreateFromArray_Params { const char **vert, **geom, **frag, **defs; };
-struct GPUShader *DRW_shader_create_from_arrays_impl(
-        const struct DRW_ShaderCreateFromArray_Params *params);
-#define DRW_shader_create_from_arrays(...) \
-	DRW_shader_create_from_arrays_impl(&(const struct DRW_ShaderCreateFromArray_Params)__VA_ARGS__)
 struct GPUShader *DRW_shader_create_with_lib(
         const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);
 struct GPUShader *DRW_shader_create_with_transform_feedback(
@@ -253,7 +248,7 @@ struct GPUShader *DRW_shader_create_with_transform_feedback(
 struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
-struct GPUShader *DRW_shader_create_3D_depth_only(eDRW_ShaderSlot slot);
+struct GPUShader *DRW_shader_create_3D_depth_only(eGPUShaderConfig slot);
 struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_create_from_world(
@@ -584,7 +579,7 @@ typedef struct DRWContextState {
 
 	eObjectMode object_mode;
 
-	eDRW_ShaderSlot shader_slot;
+	eGPUShaderConfig shader_cfg;
 
 	/** Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */

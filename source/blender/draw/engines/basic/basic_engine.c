@@ -65,7 +65,7 @@ typedef struct BASIC_Shaders {
 /* *********** STATIC *********** */
 
 static struct {
-	BASIC_Shaders sh_data[DRW_SHADER_SLOT_LEN];
+	BASIC_Shaders sh_data[GPU_SHADER_CFG_LEN];
 } e_data = {NULL}; /* Engine data */
 
 typedef struct BASIC_PrivateData {
@@ -79,11 +79,11 @@ typedef struct BASIC_PrivateData {
 static void basic_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	BASIC_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
+	BASIC_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
 
 	/* Depth prepass */
 	if (!sh_data->depth) {
-		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->shader_slot);
+		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->shader_cfg);
 	}
 }
 
@@ -93,7 +93,7 @@ static void basic_cache_init(void *vedata)
 	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	BASIC_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
+	BASIC_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
 	const RegionView3D *rv3d = draw_ctx->rv3d;
 	const bool is_clip = (rv3d->rflag & RV3D_CLIPPING) != 0;
 

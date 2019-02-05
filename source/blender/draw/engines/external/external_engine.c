@@ -91,7 +91,7 @@ static void external_engine_init(void *UNUSED(vedata))
 {
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
-		e_data.depth_sh = DRW_shader_create_3D_depth_only(DRW_SHADER_SLOT_DEFAULT);
+		e_data.depth_sh = DRW_shader_create_3D_depth_only(GPU_SHADER_CFG_DEFAULT);
 	}
 }
 

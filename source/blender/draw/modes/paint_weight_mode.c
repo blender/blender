@@ -32,7 +32,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-extern char datatoc_common_world_clip_lib_glsl[];
+extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
 extern char datatoc_paint_face_vert_glsl[];
 extern char datatoc_paint_weight_vert_glsl[];
@@ -75,7 +75,7 @@ typedef struct PAINT_WEIGHT_Shaders {
 /* *********** STATIC *********** */
 
 static struct {
-	PAINT_WEIGHT_Shaders sh_data[DRW_SHADER_SLOT_LEN];
+	PAINT_WEIGHT_Shaders sh_data[GPU_SHADER_CFG_LEN];
 
 	int actdef;
 } e_data = {NULL}; /* Engine data */
@@ -92,7 +92,7 @@ typedef struct PAINT_WEIGHT_PrivateData {
 static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	PAINT_WEIGHT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
+	PAINT_WEIGHT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
@@ -100,28 +100,28 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 	}
 
 	if (!sh_data->weight_face) {
-		const char *world_clip_lib_or_empty = is_clip ? datatoc_common_world_clip_lib_glsl : "";
+		const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
 		const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
 
-		sh_data->weight_face = DRW_shader_create_from_arrays({
+		sh_data->weight_face = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_weight_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_paint_weight_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
 		});
 
-		sh_data->wire_overlay = DRW_shader_create_from_arrays({
+		sh_data->wire_overlay = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_paint_wire_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, "#define WEIGHT_MODE\n", NULL},
 		});
 
-		sh_data->face_overlay = DRW_shader_create_from_arrays({
+		sh_data->face_overlay = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_paint_face_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
 		});
 
-		sh_data->vert_overlay = DRW_shader_create_from_arrays({
+		sh_data->vert_overlay = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_paint_vert_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
@@ -136,7 +136,7 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	PAINT_WEIGHT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
+	PAINT_WEIGHT_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */

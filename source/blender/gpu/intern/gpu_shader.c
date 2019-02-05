@@ -28,6 +28,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_appdir.h"
 #include "BKE_global.h"
@@ -169,9 +170,10 @@ extern char datatoc_gpu_shader_gpencil_stroke_geom_glsl[];
 
 extern char datatoc_gpu_shader_gpencil_fill_vert_glsl[];
 extern char datatoc_gpu_shader_gpencil_fill_frag_glsl[];
+extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
 /* cache of built-in shaders (each is created on first use) */
-static GPUShader *builtin_shaders[GPU_NUM_BUILTIN_SHADERS] = { NULL };
+static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {NULL};
 
 #ifndef NDEBUG
 static uint g_shaderid = 0;
@@ -500,6 +502,73 @@ GPUShader *GPU_shader_create_ex(
 #undef DEBUG_SHADER_VERTEX
 #undef DEBUG_SHADER_NONE
 
+static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_is_alloc)
+{
+	bool is_alloc = false;
+	if (str_arr == NULL) {
+		*r_is_alloc = false;
+		return NULL;
+	}
+	/* Skip empty strings (avoid alloc if we can). */
+	while (str_arr[0] && str_arr[0][0] == '\0') {
+		str_arr++;
+	}
+	int i;
+	for (i = 0; str_arr[i]; i++) {
+		if (i != 0 && str_arr[i][0] != '\0') {
+			is_alloc = true;
+		}
+	}
+	*r_is_alloc = is_alloc;
+	if (is_alloc) {
+		return BLI_string_join_arrayN(str_arr, i);
+	}
+	else {
+		return str_arr[0];
+	}
+}
+
+/**
+ * Use via #GPU_shader_create_from_arrays macro (avoids passing in param).
+ *
+ * Similar to #DRW_shader_create_with_lib with the ability to include libs for each type of shader.
+ *
+ * It has the advantage that each item can be conditionally included
+ * without having to build the string inline, then free it.
+ *
+ * \param params: NULL terminated arrays of strings.
+ *
+ * Example:
+ * \code{.c}
+ * sh = GPU_shader_create_from_arrays({
+ *         .vert = (const char *[]){shader_lib_glsl, shader_vert_glsl, NULL},
+ *         .geom = (const char *[]){shader_geom_glsl, NULL},
+ *         .frag = (const char *[]){shader_frag_glsl, NULL},
+ *         .defs = (const char *[]){"#define DEFINE\n", test ? "#define OTHER_DEFINE\n" : "", NULL},
+ * });
+ * \endcode
+ */
+struct GPUShader *GPU_shader_create_from_arrays_impl(
+        const struct GPU_ShaderCreateFromArray_Params *params)
+{
+	struct { const char *str; bool is_alloc;} str_dst[4] = {0};
+	const char **str_src[4] = {params->vert, params->frag, params->geom, params->defs};
+
+	for (int i = 0; i < ARRAY_SIZE(str_src); i++) {
+		str_dst[i].str = string_join_array_maybe_alloc(str_src[i], &str_dst[i].is_alloc);
+	}
+
+	GPUShader *sh = GPU_shader_create(
+	        str_dst[0].str, str_dst[1].str, str_dst[2].str, NULL, str_dst[3].str, __func__);
+
+	for (int i = 0; i < ARRAY_SIZE(str_dst); i++) {
+		if (str_dst[i].is_alloc) {
+			MEM_freeN((void *)str_dst[i].str);
+		}
+	}
+	return sh;
+}
+
 void GPU_shader_bind(GPUShader *shader)
 {
 	BLI_assert(shader && shader->program);
@@ -670,7 +739,7 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 	return attr ? attr->location : -1;
 }
 
-static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
+static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
 	[GPU_SHADER_TEXT] = {
 		.vert = datatoc_gpu_shader_text_vert_glsl,
 		.geom = datatoc_gpu_shader_text_geom_glsl,
@@ -1101,11 +1170,14 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 	},
 };
 
-GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
+GPUShader *GPU_shader_get_builtin_shader_with_config(
+        eGPUBuiltinShader shader, eGPUShaderConfig shader_cfg)
 {
-	BLI_assert(shader < GPU_NUM_BUILTIN_SHADERS);
+	BLI_assert(shader < GPU_SHADER_BUILTIN_LEN);
+	BLI_assert(shader_cfg < GPU_SHADER_CFG_LEN);
+	GPUShader **sh_p = &builtin_shaders[shader_cfg][shader];
 
-	if (builtin_shaders[shader] == NULL) {
+	if (*sh_p == NULL) {
 		GPUShaderStages stages_legacy = {NULL};
 		const GPUShaderStages *stages = &builtin_shader_stages[shader];
 
@@ -1128,11 +1200,46 @@ GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
 		}
 
 		/* common case */
-		builtin_shaders[shader] = GPU_shader_create(
-		        stages->vert, stages->frag, stages->geom, NULL, stages->defs, __func__);
+		if (shader_cfg == GPU_SHADER_CFG_DEFAULT) {
+			*sh_p = GPU_shader_create(stages->vert, stages->frag, stages->geom, NULL, stages->defs, __func__);
+		}
+		else if (shader_cfg == GPU_SHADER_CFG_CLIPPED) {
+			/* Remove eventually, for now ensure support for each shader has been added. */
+			BLI_assert(ELEM(shader,
+			                GPU_SHADER_3D_UNIFORM_COLOR,
+			                GPU_SHADER_3D_SMOOTH_COLOR,
+			                GPU_SHADER_3D_DEPTH_ONLY,
+			                GPU_SHADER_CAMERA,
+			                GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE,
+			                GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE,
+			                GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA,
+			                GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
+			                GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR,
+			                GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED,
+			                GPU_SHADER_3D_GROUNDLINE,
+			                GPU_SHADER_3D_GROUNDPOINT,
+			                GPU_SHADER_DISTANCE_LINES,
+			                GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR));
+			const char *world_clip_lib = datatoc_gpu_shader_cfg_world_clip_lib_glsl;
+			const char *world_clip_def = "#define USE_WORLD_CLIP_PLANES\n";
+			/* In rare cases geometry shaders calculate clipping themselves. */
+			*sh_p = GPU_shader_create_from_arrays({
+			        .vert = (const char *[]){world_clip_lib, stages->vert, NULL},
+			        .geom = (const char *[]){stages->geom ? world_clip_lib : NULL, stages->geom, NULL},
+			        .frag = (const char *[]){stages->frag, NULL},
+			        .defs = (const char *[]){world_clip_def, stages->defs, NULL},
+			});
+		}
+		else {
+			BLI_assert(0);
+		}
 	}
 
-	return builtin_shaders[shader];
+	return *sh_p;
+}
+GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
+{
+	return GPU_shader_get_builtin_shader_with_config(shader, GPU_SHADER_CFG_DEFAULT);
 }
 
 void GPU_shader_get_builtin_shader_code(
@@ -1149,10 +1256,12 @@ void GPU_shader_get_builtin_shader_code(
 
 void GPU_shader_free_builtin_shaders(void)
 {
-	for (int i = 0; i < GPU_NUM_BUILTIN_SHADERS; ++i) {
-		if (builtin_shaders[i]) {
-			GPU_shader_free(builtin_shaders[i]);
-			builtin_shaders[i] = NULL;
+	for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {
+		for (int j = 0; j < GPU_SHADER_BUILTIN_LEN; j++) {
+			if (builtin_shaders[i][j]) {
+				GPU_shader_free(builtin_shaders[i][j]);
+				builtin_shaders[i][j] = NULL;
+			}
 		}
 	}
 }

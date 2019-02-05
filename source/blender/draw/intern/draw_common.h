@@ -33,16 +33,6 @@ struct PTCacheEdit;
 struct ParticleSystem;
 struct ViewLayer;
 
-/**
- * Support selecting shaders with different options compiled in.
- * Needed for clipping support because it means using a separate set of shaders.
- */
-typedef enum eDRW_ShaderSlot {
-	DRW_SHADER_SLOT_DEFAULT = 0,
-	DRW_SHADER_SLOT_CLIPPED = 1,
-} eDRW_ShaderSlot;
-#define DRW_SHADER_SLOT_LEN 2
-
 #define UBO_FIRST_COLOR colorWire
 #define UBO_LAST_COLOR colorGridAxisZ
 
@@ -136,21 +126,21 @@ void DRW_shgroup_world_clip_planes_from_rv3d(struct DRWShadingGroup *shgrp, cons
 
 struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass, const float color[4]);
-struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, const float color[4], const float *size, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass, const float color[4], eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_groundpoints_uniform_color(struct DRWPass *pass, const float color[4], eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_instance_screenspace(struct DRWPass *pass, struct GPUBatch *geom, const float *size, eDRW_ShaderSlot shader_slot);
+struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, const float color[4], const float *size, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass, const float color[4], eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_groundpoints_uniform_color(struct DRWPass *pass, const float color[4], eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_instance_screenspace(struct DRWPass *pass, struct GPUBatch *geom, const float *size, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_instance_solid(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_wire(struct DRWPass *pass, struct GPUBatch *geom);
-struct DRWShadingGroup *shgroup_instance_screen_aligned(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_instance_empty_axes(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_instance_alpha(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
+struct DRWShadingGroup *shgroup_instance_screen_aligned(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_instance_empty_axes(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_instance_alpha(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct GPUBatch *geom, int *baseid);
-struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
-struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct GPUBatch *geom, eDRW_ShaderSlot shader_slot);
+struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
+struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_axes(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_distance(struct DRWPass *pass);

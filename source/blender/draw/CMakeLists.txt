@@ -50,7 +50,6 @@ set(INC_SYS
 set(SRC
 	intern/draw_anim_viz.c
 	intern/draw_armature.c
-	intern/draw_builtin_shader.c
 	intern/draw_cache.c
 	intern/draw_cache_impl_curve.c
 	intern/draw_cache_impl_displist.c
@@ -130,7 +129,6 @@ set(SRC
 
 	DRW_engine.h
 	intern/DRW_render.h
-	intern/draw_builtin_shader.h
 	intern/draw_cache.h
 	intern/draw_cache_impl.h
 	intern/draw_common.h
@@ -248,7 +246,6 @@ data_to_c_simple(modes/shaders/common_hair_refine_vert.glsl SRC)
 data_to_c_simple(modes/shaders/common_view_lib.glsl SRC)
 data_to_c_simple(modes/shaders/common_fxaa_lib.glsl SRC)
 data_to_c_simple(modes/shaders/common_fullscreen_vert.glsl SRC)
-data_to_c_simple(modes/shaders/common_world_clip_lib.glsl SRC)
 data_to_c_simple(modes/shaders/animviz_mpath_lines_vert.glsl SRC)
 data_to_c_simple(modes/shaders/animviz_mpath_lines_geom.glsl SRC)
 data_to_c_simple(modes/shaders/animviz_mpath_points_vert.glsl SRC)

@@ -71,10 +71,10 @@ typedef struct OVERLAY_Shaders {
 
 /* *********** STATIC *********** */
 static struct {
-	OVERLAY_Shaders sh_data[DRW_SHADER_SLOT_LEN];
+	OVERLAY_Shaders sh_data[GPU_SHADER_CFG_LEN];
 } e_data = {NULL};
 
-extern char datatoc_common_world_clip_lib_glsl[];
+extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
 /* Shaders */
 extern char datatoc_overlay_face_orientation_frag_glsl[];
@@ -92,7 +92,7 @@ static void overlay_engine_init(void *vedata)
 	OVERLAY_StorageList *stl = data->stl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
+	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
@@ -105,12 +105,12 @@ static void overlay_engine_init(void *vedata)
 	}
 	stl->g_data->ghost_stencil_test = false;
 
-	const char *world_clip_lib_or_empty = is_clip ? datatoc_common_world_clip_lib_glsl : "";
+	const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
 	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
 
 	if (!sh_data->face_orientation) {
 		/* Face orientation */
-		sh_data->face_orientation = DRW_shader_create_from_arrays({
+		sh_data->face_orientation = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_orientation_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_overlay_face_orientation_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
@@ -118,18 +118,18 @@ static void overlay_engine_init(void *vedata)
 	}
 
 	if (!sh_data->face_wireframe) {
-		sh_data->select_wireframe = DRW_shader_create_from_arrays({
+		sh_data->select_wireframe = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_vert_glsl, NULL},
 		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, "#define SELECT_EDGES\n", NULL},
 		});
-		sh_data->face_wireframe = DRW_shader_create_from_arrays({
+		sh_data->face_wireframe = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
 		});
-		sh_data->face_wireframe_sculpt = DRW_shader_create_from_arrays({
+		sh_data->face_wireframe_sculpt = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_vert_glsl, NULL},
 		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_overlay_face_wireframe_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_overlay_face_wireframe_frag_glsl, NULL},
@@ -147,7 +147,7 @@ static void overlay_cache_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_slot];
+	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
 
 	const DRWContextState *DCS = DRW_context_state_get();
 

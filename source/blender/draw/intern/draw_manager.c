@@ -72,7 +72,6 @@
 #include "draw_cache_impl.h"
 
 #include "draw_mode_engines.h"
-#include "draw_builtin_shader.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
 #include "engines/workbench/workbench_engine.h"
@@ -538,9 +537,9 @@ static void drw_context_state_init(void)
 		DST.draw_ctx.object_pose = NULL;
 	}
 
-	DST.draw_ctx.shader_slot = DRW_SHADER_SLOT_DEFAULT;
+	DST.draw_ctx.shader_cfg = GPU_SHADER_CFG_DEFAULT;
 	if (DST.draw_ctx.rv3d && DST.draw_ctx.rv3d->rflag & RV3D_CLIPPING) {
-		DST.draw_ctx.shader_slot = DRW_SHADER_SLOT_CLIPPED;
+		DST.draw_ctx.shader_cfg = GPU_SHADER_CFG_CLIPPED;
 	}
 }
 
@@ -2602,7 +2601,6 @@ void DRW_engines_free(void)
 	DRW_shape_cache_free();
 	DRW_stats_free();
 	DRW_globals_free();
-	DRW_shader_free_builtin_shaders();
 
 	DrawEngineType *next;
 	for (DrawEngineType *type = DRW_engines.first; type; type = next) {
