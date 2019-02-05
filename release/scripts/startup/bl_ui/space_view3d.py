@@ -2037,6 +2037,11 @@ class VIEW3D_MT_object_collection(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("object.move_to_collection")
+        layout.operator("object.link_to_collection")
+
+        layout.separator()
+
         layout.operator("collection.create")
         # layout.operator_menu_enum("collection.objects_remove", "collection")  # BUGGY
         layout.operator("collection.objects_remove")
