@@ -2527,7 +2527,6 @@ void BKE_object_where_is_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
  */
 void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob, Object *workob)
 {
-	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	BKE_object_workob_clear(workob);
 
 	unit_m4(workob->obmat);
@@ -2537,17 +2536,17 @@ void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *o
 	/* Since this is used while calculating parenting, at this moment ob_eval->parent is still NULL. */
 	workob->parent = DEG_get_evaluated_object(depsgraph, ob->parent);
 
-	workob->trackflag = ob_eval->trackflag;
-	workob->upflag = ob_eval->upflag;
+	workob->trackflag = ob->trackflag;
+	workob->upflag = ob->upflag;
 
-	workob->partype = ob_eval->partype;
-	workob->par1 = ob_eval->par1;
-	workob->par2 = ob_eval->par2;
-	workob->par3 = ob_eval->par3;
+	workob->partype = ob->partype;
+	workob->par1 = ob->par1;
+	workob->par2 = ob->par2;
+	workob->par3 = ob->par3;
 
-	workob->constraints = ob_eval->constraints;
+	workob->constraints = ob->constraints;
 
-	BLI_strncpy(workob->parsubstr, ob_eval->parsubstr, sizeof(workob->parsubstr));
+	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 
 	BKE_object_where_is_calc(depsgraph, scene, workob);
 }

@@ -89,6 +89,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -615,9 +616,11 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	bPoseChannel *pchan = NULL;
+	bPoseChannel *pchan_eval = NULL;
 	const bool pararm = ELEM(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
+	Object *parent_eval = DEG_get_evaluated_object(depsgraph, par);
 
-	DEG_id_tag_update(&par->id, ID_RECALC_TRANSFORM);
+	DEG_id_tag_update(&par->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
 	/* preconditions */
 	if (partype == PAR_FOLLOW || partype == PAR_PATH_CONST) {
@@ -653,6 +656,7 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 	}
 	else if (ELEM(partype, PAR_BONE, PAR_BONE_RELATIVE)) {
 		pchan = BKE_pose_channel_active(par);
+		pchan_eval = BKE_pose_channel_active(parent_eval);
 
 		if (pchan == NULL) {
 			BKE_report(reports, RPT_ERROR, "No active bone");
@@ -680,6 +684,7 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 				ob->parent = par;
 				/* Always clear parentinv matrix for sake of consistency, see T41950. */
 				unit_m4(ob->parentinv);
+				DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 			}
 
 			/* handle types */
@@ -740,13 +745,17 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 			}
 			else if (partype == PAR_BONE) {
 				ob->partype = PARBONE;  /* note, dna define, not operator property */
-				if (pchan->bone)
+				if (pchan->bone) {
 					pchan->bone->flag &= ~BONE_RELATIVE_PARENTING;
+					pchan_eval->bone->flag &= ~BONE_RELATIVE_PARENTING;
+				}
 			}
 			else if (partype == PAR_BONE_RELATIVE) {
 				ob->partype = PARBONE;  /* note, dna define, not operator property */
-				if (pchan->bone)
+				if (pchan->bone) {
 					pchan->bone->flag |= BONE_RELATIVE_PARENTING;
+					pchan_eval->bone->flag |= BONE_RELATIVE_PARENTING;
+				}
 			}
 			else if (partype == PAR_VERTEX) {
 				ob->partype = PARVERT1;
