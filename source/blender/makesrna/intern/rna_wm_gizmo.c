@@ -1015,7 +1015,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_int_array(func, "location", 2, NULL, INT_MIN, INT_MAX, "Location", "Region coordinates", INT_MIN, INT_MAX);
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_int(func, "intersect_id", 0, 0, INT_MAX, "", "", 0, INT_MAX);
+	parm = RNA_def_int(func, "intersect_id", -1, -1, INT_MAX, "", "Use -1 to skip this gizmo", -1, INT_MAX);
 	RNA_def_function_return(func, parm);
 
 	/* wmGizmo.handler */
