@@ -1868,22 +1868,23 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	if (look_through && !is_stereo3d_cameras) {
 		/* Only draw the frame. */
 		float mat[4][4];
-		if (is_selection_camera_stereo) {
-			/* Make sure selection uses the same matrix for camera as the one used while viewing. */
+		if (is_stereo3d) {
 			const bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
-			BKE_camera_multiview_model_matrix(&scene->r, ob, is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME, mat);
+			const char *view_name = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
+			BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat);
+			const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, view_name);
+			cam->drwcorners[0][0][0] += shiftx;
+			cam->drwcorners[0][1][0] += shiftx;
+			cam->drwcorners[0][2][0] += shiftx;
+			cam->drwcorners[0][3][0] += shiftx;
 		}
 		else {
 			copy_m4_m4(mat, ob->obmat);
 		}
 
-		/* TODO (dfelinto): Disabling this for now since it is extremely wrong.
-		 * Besides selection and multiview still works bad even on its finest day. */
-		if (!is_multiview) {
-			DRW_shgroup_call_dynamic_add(
-			        sgl->camera_frame, color, cam->drwcorners[0],
-			        &cam->drwdepth[0], cam->drwtria, mat);
-		}
+		DRW_shgroup_call_dynamic_add(
+		        sgl->camera_frame, color, cam->drwcorners[0],
+		        &cam->drwdepth[0], cam->drwtria, mat);
 	}
 	else if (!look_through) {
 		if (!is_stereo3d_cameras) {
