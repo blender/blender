@@ -911,7 +911,7 @@ Mesh *BKE_mesh_new_from_object(
 			copycu = NULL;
 
 			tmpmesh = tmpobj->data;
-			id_us_min(tmpmesh);  /* Gets one user from its creation in BKE_mesh_from_nurbs_displist(). */
+			id_us_min(&tmpmesh->id);  /* Gets one user from its creation in BKE_mesh_from_nurbs_displist(). */
 
 			BKE_displist_free(&dispbase);
 
