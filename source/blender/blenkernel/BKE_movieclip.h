@@ -45,6 +45,8 @@ void BKE_movieclip_reload(struct Main *bmain, struct MovieClip *clip);
 void BKE_movieclip_clear_cache(struct MovieClip *clip);
 void BKE_movieclip_clear_proxy_cache(struct MovieClip *clip);
 
+void BKE_movieclip_convert_multilayer_ibuf(struct ImBuf *ibuf);
+
 struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
 struct ImBuf *BKE_movieclip_get_postprocessed_ibuf(struct MovieClip *clip, struct MovieClipUser *user, int postprocess_flag);
 struct ImBuf *BKE_movieclip_get_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale, float *angle, int postprocess_flag);

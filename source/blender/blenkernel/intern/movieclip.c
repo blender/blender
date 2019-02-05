@@ -197,6 +197,8 @@ static void get_proxy_fname(const MovieClip *clip,
 	strcat(name, ".jpg");
 }
 
+#ifdef WITH_OPENEXR
+
 typedef struct MultilayerConvertContext {
 	float *combined_pass;
 	int num_combined_channels;
@@ -247,12 +249,21 @@ static void movieclip_convert_multilayer_add_pass(
 	}
 }
 
+#endif  /* WITH_OPENEXR */
+
 /* Will try to make image buffer usable when originating from the multi-layer
  * source.
  * Internally finds a first combined pass and uses that as a buffer. Not ideal,
  * but is better than a complete empty buffer. */
-static void movieclip_convert_multilayer(ImBuf *ibuf)
+void BKE_movieclip_convert_multilayer_ibuf(struct ImBuf *ibuf)
 {
+	if (ibuf == NULL) {
+		return;
+	}
+#ifdef WITH_OPENEXR
+	if (ibuf->ftype != IMB_FTYPE_OPENEXR || ibuf->userdata == NULL) {
+		return;
+	}
 	MultilayerConvertContext ctx;
 	ctx.combined_pass = NULL;
 	ctx.num_combined_channels = 0;
@@ -271,6 +282,7 @@ static void movieclip_convert_multilayer(ImBuf *ibuf)
 	}
 	IMB_exr_close(ibuf->userdata);
 	ibuf->userdata = NULL;
+#endif
 }
 
 static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
@@ -310,14 +322,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
 
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, loadflag, colorspace);
-
-#ifdef WITH_OPENEXR
-	if (ibuf) {
-		if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
-			movieclip_convert_multilayer(ibuf);
-		}
-	}
-#endif
+	BKE_movieclip_convert_multilayer_ibuf(ibuf);
 
 	return ibuf;
 }
