@@ -1238,22 +1238,26 @@ static bool ui_drag_toggle_but_is_supported(const uiBut *but)
 	}
 }
 
-static bool ui_drag_toggle_but_is_pushed(uiBut *but)
+/* Button pushed state to compare if other buttons match. Can be more
+ * then just true or false for toggle buttons with more than 2 states. */
+static int ui_drag_toggle_but_pushed_state(uiBut *but)
 {
-	if (ui_but_is_bool(but)) {
+	if (but->icon) {
+		/* Assume icon identifies a unique state, for buttons that
+		 * work though functions callbacks. */
+		return but->icon + but->iconadd;
+	}
+	else if (ui_but_is_bool(but)) {
 		return ui_but_is_pushed(but);
 	}
-	else if (UI_but_is_decorator(but)) {
-		return (but->icon == ICON_DECORATE_KEYFRAME);
-	}
 	else {
-		return false;
+		return 0;
 	}
 }
 
 typedef struct uiDragToggleHandle {
 	/* init */
-	bool is_set;
+	int pushed_state;
 	float but_cent_start[2];
 
 	bool is_xy_lock_init;
@@ -1264,7 +1268,7 @@ typedef struct uiDragToggleHandle {
 } uiDragToggleHandle;
 
 static bool ui_drag_toggle_set_xy_xy(
-        bContext *C, ARegion *ar, const bool is_set,
+        bContext *C, ARegion *ar, const int pushed_state,
         const int xy_src[2], const int xy_dst[2])
 {
 	/* popups such as layers won't re-evaluate on redraw */
@@ -1290,8 +1294,8 @@ static bool ui_drag_toggle_set_xy_xy(
 					/* execute the button */
 					if (ui_drag_toggle_but_is_supported(but)) {
 						/* is it pressed? */
-						bool is_set_but = ui_drag_toggle_but_is_pushed(but);
-						if (is_set_but != is_set) {
+						int pushed_state_but = ui_drag_toggle_but_pushed_state(but);
+						if (pushed_state_but != pushed_state) {
 							UI_but_execute(C, but);
 							if (do_check) {
 								ui_but_update_edited(but);
@@ -1363,7 +1367,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
 
 
 	/* touch all buttons between last mouse coord and this one */
-	do_draw = ui_drag_toggle_set_xy_xy(C, ar, drag_info->is_set, drag_info->xy_last, xy);
+	do_draw = ui_drag_toggle_set_xy_xy(C, ar, drag_info->pushed_state, drag_info->xy_last, xy);
 
 	if (do_draw) {
 		ED_region_tag_redraw(ar);
@@ -1744,7 +1748,7 @@ static bool ui_but_drag_init(
 			 * typically 'button_activate_exit()' handles this */
 			ui_apply_but_autokey(C, but);
 
-			drag_info->is_set = ui_drag_toggle_but_is_pushed(but);
+			drag_info->pushed_state = ui_drag_toggle_but_pushed_state(but);
 			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
 			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
 			copy_v2_v2_int(drag_info->xy_init, &event->x);
