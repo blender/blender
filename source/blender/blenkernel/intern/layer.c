@@ -991,20 +991,6 @@ static void layer_collection_flag_unset_recursive(LayerCollection *lc, const int
 }
 
 /**
- * Return true if something changed. */
-static bool layer_collection_collection_flag_unset_recursive(LayerCollection *lc, const int flag)
-{
-	bool changed = (lc->collection->flag & flag) != 0;
-
-	lc->collection->flag &= ~flag;
-	for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
-		changed |= layer_collection_collection_flag_unset_recursive(lc_iter, flag);
-	}
-
-	return changed;
-}
-
-/**
  * Isolate the collection - hide all other collections but this one.
  * Make sure to show all the direct parents and all children of the layer collection as well.
  * When extending we simply show the collections and its direct family.
