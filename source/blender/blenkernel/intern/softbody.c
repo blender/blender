@@ -26,7 +26,7 @@
  * <pre>
  * float mediafrict;  friction to env
  * float nodemass;	  softbody mass of *vertex*
- * float grav;        softbody amount of gravitaion to apply
+ * float grav;        softbody amount of gravitation to apply
  *
  * float goalspring;  softbody goal springs
  * float goalfrict;   softbody goal springs friction
