@@ -301,6 +301,7 @@ typedef struct RNA_Depsgraph_Instances_Iterator
 {
 	BLI_Iterator iterators[2];
 	DEGObjectIterData deg_data[2];
+	DupliObject dupli_object_current[2];
 	int counter;
 } RNA_Depsgraph_Instances_Iterator;
 
@@ -331,6 +332,13 @@ static void rna_Depsgraph_object_instances_next(CollectionPropertyIterator *iter
 
 	di_it->iterators[di_it->counter % 2].data = &di_it->deg_data[di_it->counter % 2];
 	DEG_iterator_objects_next(&di_it->iterators[di_it->counter % 2]);
+	/* Dupli_object_current is also temp memory generated during the iterations,
+	 * it may be freed when last item has been iterated, so we have same issue as with the iterator itself:
+	 * we need to keep a local copy, which memory remains valid a bit longer, for python accesses to work. */
+	if (di_it->deg_data[di_it->counter % 2].dupli_object_current != NULL) {
+		di_it->dupli_object_current[di_it->counter % 2] = *di_it->deg_data[di_it->counter % 2].dupli_object_current;
+		di_it->deg_data[di_it->counter % 2].dupli_object_current = &di_it->dupli_object_current[di_it->counter % 2];
+	}
 	iter->valid = di_it->iterators[di_it->counter % 2].valid;
 }
 
