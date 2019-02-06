@@ -63,10 +63,7 @@ public:
 	bool run_denoising;
 	bool write_denoising_passes;
 	bool full_denoising;
-	int denoising_radius;
-	float denoising_strength;
-	float denoising_feature_strength;
-	bool denoising_relative_pca;
+	DenoiseParams denoising;
 
 	double cancel_timeout;
 	double reset_timeout;
@@ -98,10 +95,6 @@ public:
 		run_denoising = false;
 		write_denoising_passes = false;
 		full_denoising = false;
-		denoising_radius = 8;
-		denoising_strength = 0.0f;
-		denoising_feature_strength = 0.0f;
-		denoising_relative_pca = false;
 
 		display_buffer_linear = false;
 
