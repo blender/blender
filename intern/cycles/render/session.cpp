@@ -689,7 +689,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	BakeManager *bake_manager = scene->bake_manager;
 	requested_features.use_baking = bake_manager->get_baking();
 	requested_features.use_integrator_branched = (scene->integrator->method == Integrator::BRANCHED_PATH);
-	if(params.denoising_passes) {
+	if(params.run_denoising) {
 		requested_features.use_denoising = true;
 		requested_features.use_shadow_tricks = true;
 	}
@@ -927,7 +927,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			 */
 			substatus += string_printf(", Sample %d/%d", progress.get_current_sample(), num_samples);
 		}
-		if(params.use_denoising) {
+		if(params.run_denoising) {
 			substatus += string_printf(", Denoised %d tiles", progress.get_denoised_tiles());
 		}
 	}
@@ -975,7 +975,7 @@ void Session::render()
 	task.requested_tile_size = params.tile_size;
 	task.passes_size = tile_manager.params.get_passes_size();
 
-	if(params.use_denoising) {
+	if(params.run_denoising) {
 		task.denoising_radius = params.denoising_radius;
 		task.denoising_strength = params.denoising_strength;
 		task.denoising_feature_strength = params.denoising_feature_strength;
@@ -983,8 +983,13 @@ void Session::render()
 
 		assert(!scene->film->need_update);
 		task.pass_stride = scene->film->pass_stride;
+		task.target_pass_stride = task.pass_stride;
 		task.pass_denoising_data = scene->film->denoising_data_offset;
 		task.pass_denoising_clean = scene->film->denoising_clean_offset;
+
+		task.denoising_from_render = true;
+		task.denoising_do_filter = params.full_denoising;
+		task.denoising_write_passes = params.write_denoising_passes;
 	}
 
 	device->task_add(task);

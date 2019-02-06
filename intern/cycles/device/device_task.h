@@ -72,7 +72,15 @@ public:
 	float denoising_strength;
 	float denoising_feature_strength;
 	bool denoising_relative_pca;
+	bool denoising_from_render;
+	vector<int> denoising_frames;
+
+	bool denoising_do_filter;
+	bool denoising_write_passes;
+
 	int pass_stride;
+	int frame_stride;
+	int target_pass_stride;
 	int pass_denoising_data;
 	int pass_denoising_clean;
 

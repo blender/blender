@@ -60,8 +60,9 @@ public:
 
 	bool display_buffer_linear;
 
-	bool use_denoising;
-	bool denoising_passes;
+	bool run_denoising;
+	bool write_denoising_passes;
+	bool full_denoising;
 	int denoising_radius;
 	float denoising_strength;
 	float denoising_feature_strength;
@@ -94,8 +95,9 @@ public:
 
 		use_profiling = false;
 
-		use_denoising = false;
-		denoising_passes = false;
+		run_denoising = false;
+		write_denoising_passes = false;
+		full_denoising = false;
 		denoising_radius = 8;
 		denoising_strength = 0.0f;
 		denoising_feature_strength = 0.0f;

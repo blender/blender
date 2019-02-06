@@ -78,17 +78,26 @@ ccl_device_inline void kernel_filter_nlm_calc_difference(int x, int y,
                                                          int dx, int dy,
                                                          const ccl_global float *ccl_restrict weight_image,
                                                          const ccl_global float *ccl_restrict variance_image,
+                                                         const ccl_global float *ccl_restrict scale_image,
                                                          ccl_global float *difference_image,
                                                          int4 rect, int stride,
                                                          int channel_offset,
+                                                         int frame_offset,
                                                          float a, float k_2)
 {
-	float diff = 0.0f;
+	int idx_p = y*stride + x, idx_q = (y+dy)*stride + (x+dx) + frame_offset;
 	int numChannels = channel_offset? 3 : 1;
-	for(int c = 0; c < numChannels; c++) {
-		float cdiff = weight_image[c*channel_offset + y*stride + x] - weight_image[c*channel_offset + (y+dy)*stride + (x+dx)];
-		float pvar = variance_image[c*channel_offset + y*stride + x];
-		float qvar = variance_image[c*channel_offset + (y+dy)*stride + (x+dx)];
+
+	float diff = 0.0f;
+	float scale_fac = 1.0f;
+	if(scale_image) {
+		scale_fac = clamp(scale_image[idx_p] / scale_image[idx_q], 0.25f, 4.0f);
+	}
+
+	for(int c = 0; c < numChannels; c++, idx_p += channel_offset, idx_q += channel_offset) {
+		float cdiff = weight_image[idx_p] - scale_fac*weight_image[idx_q];
+		float pvar = variance_image[idx_p];
+		float qvar = sqr(scale_fac)*variance_image[idx_q];
 		diff += (cdiff*cdiff - a*(pvar + min(pvar, qvar))) / (1e-8f + k_2*(pvar+qvar));
 	}
 	if(numChannels > 1) {
@@ -133,7 +142,8 @@ ccl_device_inline void kernel_filter_nlm_update_output(int x, int y,
                                                        const ccl_global float *ccl_restrict image,
                                                        ccl_global float *out_image,
                                                        ccl_global float *accum_image,
-                                                       int4 rect, int stride, int f)
+                                                       int4 rect, int channel_offset,
+                                                       int stride, int f)
 {
 	float sum = 0.0f;
 	const int low = max(rect.x, x-f);
@@ -142,17 +152,26 @@ ccl_device_inline void kernel_filter_nlm_update_output(int x, int y,
 		sum += difference_image[y*stride + x1];
 	}
 	sum *= 1.0f/(high-low);
+
+	int idx_p = y*stride + x, idx_q = (y+dy)*stride + (x+dx);
 	if(out_image) {
-		atomic_add_and_fetch_float(accum_image + y*stride + x, sum);
-		atomic_add_and_fetch_float(out_image + y*stride + x, sum*image[(y+dy)*stride + (x+dx)]);
+		atomic_add_and_fetch_float(accum_image + idx_p, sum);
+
+		float val = image[idx_q];
+		if(channel_offset) {
+			val += image[idx_q + channel_offset];
+			val += image[idx_q + 2*channel_offset];
+			val *= 1.0f/3.0f;
+		}
+		atomic_add_and_fetch_float(out_image + idx_p, sum*val);
 	}
 	else {
-		accum_image[y*stride + x] = sum;
+		accum_image[idx_p] = sum;
 	}
 }
 
 ccl_device_inline void kernel_filter_nlm_construct_gramian(int x, int y,
-                                                           int dx, int dy,
+                                                           int dx, int dy, int t,
                                                            const ccl_global float *ccl_restrict difference_image,
                                                            const ccl_global float *ccl_restrict buffer,
                                                            const ccl_global float *ccl_restrict transform,
@@ -163,6 +182,8 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int x, int y,
                                                            int4 filter_window,
                                                            int stride, int f,
                                                            int pass_stride,
+                                                           int frame_offset,
+                                                           bool use_time,
                                                            int localIdx)
 {
 	const int low = max(rect.x, x-f);
@@ -183,9 +204,11 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int x, int y,
 
 	kernel_filter_construct_gramian(x, y,
 	                                rect_size(filter_window),
-	                                dx, dy,
+	                                dx, dy, t,
 	                                stride,
 	                                pass_stride,
+	                                frame_offset,
+	                                use_time,
 	                                buffer,
 	                                transform, rank,
 	                                weight, XtWX, XtWY,

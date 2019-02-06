@@ -270,14 +270,11 @@ def register_passes(engine, scene, srl):
         engine.register_pass(scene, srl, "Noisy Image", 4, "RGBA", 'COLOR')
         if crl.denoising_store_passes:
             engine.register_pass(scene, srl, "Denoising Normal",          3, "XYZ", 'VECTOR')
-            engine.register_pass(scene, srl, "Denoising Normal Variance", 3, "XYZ", 'VECTOR')
             engine.register_pass(scene, srl, "Denoising Albedo",          3, "RGB", 'COLOR')
-            engine.register_pass(scene, srl, "Denoising Albedo Variance", 3, "RGB", 'COLOR')
             engine.register_pass(scene, srl, "Denoising Depth",           1, "Z",   'VALUE')
-            engine.register_pass(scene, srl, "Denoising Depth Variance",  1, "Z",   'VALUE')
-            engine.register_pass(scene, srl, "Denoising Shadow A",        3, "XYV", 'VECTOR')
-            engine.register_pass(scene, srl, "Denoising Shadow B",        3, "XYV", 'VECTOR')
-            engine.register_pass(scene, srl, "Denoising Image Variance",  3, "RGB", 'COLOR')
+            engine.register_pass(scene, srl, "Denoising Shadowing",       1, "X",   'VALUE')
+            engine.register_pass(scene, srl, "Denoising Variance",        3, "RGB", 'COLOR')
+            engine.register_pass(scene, srl, "Denoising Intensity",       1, "X",   'VALUE')
             clean_options = ("denoising_diffuse_direct", "denoising_diffuse_indirect",
                              "denoising_glossy_direct", "denoising_glossy_indirect",
                              "denoising_transmission_direct", "denoising_transmission_indirect",

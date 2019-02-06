@@ -423,15 +423,19 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 	buffer_params.passes = passes;
 
 	PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
-	bool use_denoising = get_boolean(crl, "use_denoising");
-	bool denoising_passes = use_denoising || get_boolean(crl, "denoising_store_passes");
+	bool full_denoising = get_boolean(crl, "use_denoising");
+	bool write_denoising_passes = get_boolean(crl, "denoising_store_passes");
 
-	session->tile_manager.schedule_denoising = use_denoising;
-	buffer_params.denoising_data_pass = denoising_passes;
+	bool run_denoising = full_denoising || write_denoising_passes;
+
+	session->tile_manager.schedule_denoising = run_denoising;
+	buffer_params.denoising_data_pass = run_denoising;
 	buffer_params.denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
+	buffer_params.denoising_prefiltered_pass = write_denoising_passes;
 
-	session->params.use_denoising = use_denoising;
-	session->params.denoising_passes = denoising_passes;
+	session->params.run_denoising = run_denoising;
+	session->params.full_denoising = full_denoising;
+	session->params.write_denoising_passes = write_denoising_passes;
 	session->params.denoising_radius = get_int(crl, "denoising_radius");
 	session->params.denoising_strength = get_float(crl, "denoising_strength");
 	session->params.denoising_feature_strength = get_float(crl, "denoising_feature_strength");
@@ -439,6 +443,7 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 
 	scene->film->denoising_data_pass = buffer_params.denoising_data_pass;
 	scene->film->denoising_clean_pass = buffer_params.denoising_clean_pass;
+	scene->film->denoising_prefiltered_pass = buffer_params.denoising_prefiltered_pass;
 	session->params.denoising_radius = get_int(crl, "denoising_radius");
 	session->params.denoising_strength = get_float(crl, "denoising_strength");
 	session->params.denoising_feature_strength = get_float(crl, "denoising_feature_strength");
