@@ -320,14 +320,15 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 
 	glaDrawImBuf_glsl_ctx(C, ibuf, x, y, filter, zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 
+	if (ibuf->planes == 32) {
+		GPU_blend(false);
+	}
+
 	if (sc->flag & SC_SHOW_METADATA) {
 		rctf frame;
 		BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
 		ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx * width / ibuf->x, zoomy * height / ibuf->y);
 	}
-
-	if (ibuf->planes == 32)
-		GPU_blend(false);
 }
 
 static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int height, float zoomx, float zoomy)
