@@ -31,7 +31,8 @@ void main()
 	 * doing it per instance on CPU and sending it on via instance attribute. */
 	mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
 
-	vec4 viewpos = ViewMatrix * (InstanceModelMatrix * vec4(pos, 1.0));
+	vec4 worldPosition = InstanceModelMatrix * vec4(pos, 1.0);
+	vec4 viewpos = ViewMatrix * worldPosition;
 
 	vPos = viewpos.xyz;
 	pPos = ProjectionMatrix * viewpos;
@@ -44,4 +45,8 @@ void main()
 	ssPos = proj(pPos);
 
 	vColSize = outlineColorSize;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance(worldPosition.xyz);
+#endif
 }

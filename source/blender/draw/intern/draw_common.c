@@ -728,15 +728,19 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, eGPUShaderConfig 
 }
 
 /* Only works with batches with adjacency infos. */
-DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_instance_bone_shape_outline(
+        DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig shader_cfg)
 {
-	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
+	COMMON_Shaders *sh_data = &g_shaders[shader_cfg];
 	if (sh_data->shape_outline == NULL) {
-		sh_data->shape_outline = DRW_shader_create(
-		        datatoc_armature_shape_outline_vert_glsl,
-		        datatoc_armature_shape_outline_geom_glsl,
-		        datatoc_gpu_shader_flat_color_frag_glsl,
-		        NULL);
+		const char *world_clip_lib_or_empty = (shader_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
+		const char *world_clip_def_or_empty = (shader_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		sh_data->shape_outline = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_armature_shape_outline_vert_glsl, NULL},
+		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_armature_shape_outline_geom_glsl, NULL},
+		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_outline, {
@@ -748,17 +752,24 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct GPUBa
 	        sh_data->shape_outline,
 	        pass, geom, g_formats.instance_bone_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
-
+	if (shader_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatch *geom, bool transp)
+DRWShadingGroup *shgroup_instance_bone_shape_solid(
+        DRWPass *pass, struct GPUBatch *geom, bool transp, eGPUShaderConfig shader_cfg)
 {
-	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
+	COMMON_Shaders *sh_data = &g_shaders[shader_cfg];
 	if (sh_data->shape_solid == NULL) {
-		sh_data->shape_solid = DRW_shader_create(
-		        datatoc_armature_shape_solid_vert_glsl, NULL,
-		        datatoc_armature_shape_solid_frag_glsl, NULL);
+		const char *world_clip_lib_or_empty = (shader_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
+		const char *world_clip_def_or_empty = (shader_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		sh_data->shape_solid = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_armature_shape_solid_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_armature_shape_solid_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone, {
@@ -771,7 +782,9 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatc
 	        sh_data->shape_solid,
 	        pass, geom, g_formats.instance_bone);
 	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.6f : 1.0f);
-
+	if (shader_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

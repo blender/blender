@@ -32,5 +32,11 @@ void main()
 	finalColor.rgb = mix(stateColor, boneColor, fac);
 	finalColor.a = 1.0;
 
-	gl_Position = ViewProjectionMatrix * (InstanceModelMatrix * vec4(pos, 1.0));
+
+	vec4 worldPosition = InstanceModelMatrix * vec4(pos, 1.0);
+	gl_Position = ViewProjectionMatrix * worldPosition;
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance(worldPosition.xyz);
+#endif
 }
