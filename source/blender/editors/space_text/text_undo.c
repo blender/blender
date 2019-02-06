@@ -65,16 +65,11 @@ typedef struct TextUndoStep {
 	TextUndoBuf data;
 } TextUndoStep;
 
-static bool text_undosys_poll(bContext *C)
+static bool text_undosys_poll(bContext *UNUSED(C))
 {
-	Text *text = CTX_data_edit_text(C);
-	if (text == NULL) {
-		return false;
-	}
-	if (ID_IS_LINKED(text)) {
-		return false;
-	}
-	return true;
+	/* Only use when operators initialized. */
+	UndoStack *ustack = ED_undo_stack_get();
+	return (ustack->step_init && (ustack->step_init->type == BKE_UNDOSYS_TYPE_TEXT));
 }
 
 static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
