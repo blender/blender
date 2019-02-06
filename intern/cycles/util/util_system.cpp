@@ -32,6 +32,7 @@
 #  include <sys/types.h>
 #else
 #  include <unistd.h>
+#  include <sys/ioctl.h>
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -111,6 +112,25 @@ bool system_cpu_run_thread_on_node(int node)
 		return true;
 	}
 	return numaAPI_RunThreadOnNode(node);
+}
+
+int system_console_width()
+{
+	int columns = 0;
+
+#ifdef _WIN32
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	if(GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+		columns = csbi.dwSize.X;
+	}
+#else
+	struct winsize w;
+	if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+		columns = w.ws_col;
+	}
+#endif
+
+	return (columns > 0) ? columns : 80;
 }
 
 int system_cpu_num_active_group_processors()

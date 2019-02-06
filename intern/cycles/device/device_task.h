@@ -32,6 +32,32 @@ class RenderBuffers;
 class RenderTile;
 class Tile;
 
+class DenoiseParams {
+public:
+	/* Pixel radius for neighbouring pixels to take into account. */
+	int radius;
+	/* Controls neighbor pixel weighting for the denoising filter. */
+	float strength;
+	/* Preserve more or less detail based on feature passes. */
+	float feature_strength;
+	/* When removing pixels that don't carry information, use a relative threshold instead of an absolute one. */
+	bool relative_pca;
+	/* How many frames before and after the current center frame are included. */
+	int neighbor_frames;
+	/* Clamp the input to the range of +-1e8. Should be enough for any legitimate data. */
+	bool clamp_input;
+
+	DenoiseParams()
+	{
+		radius = 8;
+		strength = 0.5f;
+		feature_strength = 0.5f;
+		relative_pca = false;
+		neighbor_frames = 2;
+		clamp_input = true;
+	}
+};
+
 class DeviceTask : public Task {
 public:
 	typedef enum { RENDER, FILM_CONVERT, SHADER } Type;
@@ -68,10 +94,7 @@ public:
 	function<void(RenderTile*, Device*)> map_neighbor_tiles;
 	function<void(RenderTile*, Device*)> unmap_neighbor_tiles;
 
-	int denoising_radius;
-	float denoising_strength;
-	float denoising_feature_strength;
-	bool denoising_relative_pca;
+	DenoiseParams denoising;
 	bool denoising_from_render;
 	vector<int> denoising_frames;
 

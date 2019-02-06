@@ -27,13 +27,13 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
   buffer(device),
   device(device)
 {
-	radius = task.denoising_radius;
-	nlm_k_2 = powf(2.0f, lerp(-5.0f, 3.0f, task.denoising_strength));
-	if(task.denoising_relative_pca) {
-		pca_threshold = -powf(10.0f, lerp(-8.0f, 0.0f, task.denoising_feature_strength));
+	radius = task.denoising.radius;
+	nlm_k_2 = powf(2.0f, lerp(-5.0f, 3.0f, task.denoising.strength));
+	if(task.denoising.relative_pca) {
+		pca_threshold = -powf(10.0f, lerp(-8.0f, 0.0f, task.denoising.feature_strength));
 	}
 	else {
-		pca_threshold = powf(10.0f, lerp(-5.0f, 3.0f, task.denoising_feature_strength));
+		pca_threshold = powf(10.0f, lerp(-5.0f, 3.0f, task.denoising.feature_strength));
 	}
 
 	render_buffer.frame_stride = task.frame_stride;

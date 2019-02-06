@@ -431,10 +431,10 @@ void BlenderSession::render()
 		session->params.run_denoising = run_denoising;
 		session->params.full_denoising = full_denoising;
 		session->params.write_denoising_passes = write_denoising_passes;
-		session->params.denoising_radius = get_int(crl, "denoising_radius");
-		session->params.denoising_strength = get_float(crl, "denoising_strength");
-		session->params.denoising_feature_strength = get_float(crl, "denoising_feature_strength");
-		session->params.denoising_relative_pca = get_boolean(crl, "denoising_relative_pca");
+		session->params.denoising.radius = get_int(crl, "denoising_radius");
+		session->params.denoising.strength = get_float(crl, "denoising_strength");
+		session->params.denoising.feature_strength = get_float(crl, "denoising_feature_strength");
+		session->params.denoising.relative_pca = get_boolean(crl, "denoising_relative_pca");
 
 		scene->film->denoising_data_pass = buffer_params.denoising_data_pass;
 		scene->film->denoising_clean_pass = buffer_params.denoising_clean_pass;
