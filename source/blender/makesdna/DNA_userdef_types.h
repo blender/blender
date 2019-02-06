@@ -164,9 +164,6 @@ typedef struct ThemeUI {
 
 	uiWidgetStateColors wcol_state;
 
-	/** Deprecated, but we keep it for do_versions (2.66.1). */
-	uiPanelColors panel;
-
 	char widget_emboss[4];
 
 	/* fac: 0 - 1 for blend factor, width in pixels */
@@ -176,7 +173,6 @@ typedef struct ThemeUI {
 	char editor_outline[4];
 	short pad[1];
 
-	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
 	float icon_saturation;
 	char _pad[4];
@@ -1003,7 +999,7 @@ typedef enum eText_Draw_Options {
 /** Grease Pencil Settings.
  * #UserDef.gp_settings */
 typedef enum eGP_UserdefSettings {
-	GP_PAINT_DOSMOOTH		    = (1 << 0),
+	// GP_PAINT_DOSMOOTH		    = (1 << 0),  /* UNUSED */
 	GP_PAINT_DOSIMPLIFY		    = (1 << 1),
 } eGP_UserdefSettings;
 
@@ -1046,16 +1042,6 @@ typedef enum eTimecodeStyles {
 	/* milliseconds for sub-frames , SubRip format- HH:MM:SS,sss */
 	USER_TIMECODE_SUBRIP        = 100,
 } eTimecodeStyles;
-
-/* theme drawtypes */
-/* XXX: These are probably only for the old UI engine? */
-typedef enum eTheme_DrawTypes {
-	TH_MINIMAL  	= 0,
-	TH_ROUNDSHADED	= 1,
-	TH_ROUNDED  	= 2,
-	TH_OLDSKOOL 	= 3,
-	TH_SHADED   	= 4,
-} eTheme_DrawTypes;
 
 /** #UserDef.ndof_flag (3D mouse options) */
 typedef enum eNdof_Flag {

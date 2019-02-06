@@ -1196,11 +1196,6 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 24.0f);
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "icon_file", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_sdna(prop, NULL, "iconfile");
-	RNA_def_property_ui_text(prop, "Icon File", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	prop = RNA_def_property(srna, "icon_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Icon Alpha", "Transparency of icons in the interface, to reduce contrast");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
