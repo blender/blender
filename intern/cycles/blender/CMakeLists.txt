@@ -17,6 +17,7 @@ set(INC_SYS
 
 set(SRC
 	blender_camera.cpp
+	blender_device.cpp
 	blender_mesh.cpp
 	blender_object.cpp
 	blender_object_cull.cpp
