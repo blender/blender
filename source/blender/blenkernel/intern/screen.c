@@ -861,4 +861,5 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
 			}
 		}
 	}
+	screen->do_refresh = true;
 }
