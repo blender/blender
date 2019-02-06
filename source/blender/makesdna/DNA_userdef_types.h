@@ -639,7 +639,7 @@ typedef struct UserDef {
 	short gp_manhattendist, gp_euclideandist, gp_eraser;
 	/** #eGP_UserdefSettings. */
 	short gp_settings;
-	short tb_leftmouse, tb_rightmouse;
+	char _pad13[4];
 	struct SolidLight light_param[4];
 	float light_ambient[3];
 	char _pad3[4];

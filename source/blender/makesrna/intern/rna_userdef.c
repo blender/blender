@@ -3829,19 +3829,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Prompt Quit",
 	                         "Ask for confirmation when quitting with unsaved changes");
 
-	/* Toolbox click-hold delay */
-	prop = RNA_def_property(srna, "open_left_mouse_delay", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "tb_leftmouse");
-	RNA_def_property_range(prop, 1, 40);
-	RNA_def_property_ui_text(prop, "Hold LMB Open Toolbox Delay",
-	                         "Time in 1/10 seconds to hold the Left Mouse Button before opening the toolbox");
-
-	prop = RNA_def_property(srna, "open_right_mouse_delay", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "tb_rightmouse");
-	RNA_def_property_range(prop, 1, 40);
-	RNA_def_property_ui_text(prop, "Hold RMB Open Toolbox Delay",
-	                         "Time in 1/10 seconds to hold the Right Mouse Button before opening the toolbox");
-
 	prop = RNA_def_property(srna, "show_column_layout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_PLAINMENUS);
 	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox");

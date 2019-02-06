@@ -149,10 +149,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		userdef->menuthreshold1 = 5;
 		userdef->menuthreshold2 = 2;
 	}
-	if (userdef->tb_leftmouse == 0) {
-		userdef->tb_leftmouse = 5;
-		userdef->tb_rightmouse = 5;
-	}
 	if (userdef->mixbufsize == 0) userdef->mixbufsize = 2048;
 	if (userdef->autokey_mode == 0) {
 		/* 'add/replace' but not on */
