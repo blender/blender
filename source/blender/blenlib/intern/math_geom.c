@@ -1813,7 +1813,7 @@ bool isect_ray_tri_watertight_v3(
 
 	/* Calculate determinant. */
 	det = u + v + w;
-	if (UNLIKELY(det == 0.0f)) {
+	if (UNLIKELY(det == 0.0f || !isfinite(det))) {
 		return false;
 	}
 	else {
