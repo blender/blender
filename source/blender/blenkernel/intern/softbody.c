@@ -3344,6 +3344,16 @@ static void softbody_step(struct Depsgraph *depsgraph, Scene *scene, Object *ob,
 	}
 }
 
+static void sbStoreLastFrame(struct Depsgraph *depsgraph, Object *object, float framenr)
+{
+	if (!DEG_is_active(depsgraph)) {
+		return;
+	}
+	Object *object_orig = DEG_get_original_object(object);
+	object->soft->last_frame = framenr;
+	object_orig->soft->last_frame = framenr;
+}
+
 /* simulates one step. framenr is in frames */
 void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 {
@@ -3415,7 +3425,7 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 
-		sb->last_frame = framenr;
+		sbStoreLastFrame(depsgraph, ob, framenr);
 
 		return;
 	}
@@ -3436,7 +3446,7 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 		if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED && can_write_cache)
 			BKE_ptcache_write(&pid, framenr);
 
-		sb->last_frame = framenr;
+		sbStoreLastFrame(depsgraph, ob, framenr);
 
 		return;
 	}
@@ -3471,5 +3481,5 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 	BKE_ptcache_validate(cache, framenr);
 	BKE_ptcache_write(&pid, framenr);
 
-	sb->last_frame = framenr;
+	sbStoreLastFrame(depsgraph, ob, framenr);
 }
