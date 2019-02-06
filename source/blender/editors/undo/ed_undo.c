@@ -101,9 +101,13 @@ void ED_undo_push(bContext *C, const char *str)
 	WM_file_tag_modified();
 }
 
-/* note: also check undo_history_exec() in bottom if you change notifiers */
+/**
+ * \note Also check #undo_history_exec in bottom if you change notifiers.
+ */
 static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList *reports)
 {
+	/* Mutually exclusives, ensure correct input. */
+	BLI_assert((undoname && !step) || (!undoname && step));
 	CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
@@ -164,7 +168,12 @@ static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList 
 			BKE_undosys_step_undo_with_data(wm->undo_stack, C, step_data_from_name);
 		}
 		else {
-			BKE_undosys_step_undo_compat_only(wm->undo_stack, C, step);
+			if (step == 1) {
+				BKE_undosys_step_undo(wm->undo_stack, C);
+			}
+			else {
+				BKE_undosys_step_redo(wm->undo_stack, C);
+			}
 		}
 
 		/* Set special modes for grease pencil */

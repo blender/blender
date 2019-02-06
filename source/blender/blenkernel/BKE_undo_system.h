@@ -156,7 +156,6 @@ bool BKE_undosys_step_redo(UndoStack *ustack, struct bContext *C);
 
 bool BKE_undosys_step_load_data(UndoStack *ustack, struct bContext *C, UndoStep *us);
 
-bool BKE_undosys_step_undo_compat_only(UndoStack *ustack, struct bContext *C, int step);
 void BKE_undosys_step_undo_from_index(UndoStack *ustack, struct bContext *C, int index);
 UndoStep *BKE_undosys_step_same_type_next(UndoStep *us);
 UndoStep *BKE_undosys_step_same_type_prev(UndoStep *us);

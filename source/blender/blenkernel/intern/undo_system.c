@@ -767,18 +767,6 @@ bool BKE_undosys_step_load_data(UndoStack *ustack, bContext *C, UndoStep *us)
 	return ok;
 }
 
-bool BKE_undosys_step_undo_compat_only(UndoStack *ustack, bContext *C, int step)
-{
-	if (step == 0) {
-		return BKE_undosys_step_undo_with_data(ustack, C, ustack->step_active);
-	}
-	else if (step == 1) {
-		return BKE_undosys_step_undo(ustack, C);
-	}
-	else {
-		return BKE_undosys_step_redo(ustack, C);
-	}
-}
 /**
  * Similar to #WM_operatortype_append
  */
