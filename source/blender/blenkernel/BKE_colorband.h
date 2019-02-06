@@ -19,7 +19,8 @@
 #ifndef __BKE_COLORBAND_H__
 #define __BKE_COLORBAND_H__
 
-/** \file */
+/** \file \ingroup bke
+ */
 
 #ifdef __cplusplus
 extern "C" {
