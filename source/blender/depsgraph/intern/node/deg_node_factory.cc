@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file *
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #include "intern/node/deg_node_factory.h"

@@ -17,9 +17,8 @@
  * This is a new part of Blender
  */
 
- /** \file
-  *  \ingroup edgpencil
-  */
+/** \file \ingroup edgpencil
+ */
 
 #include <stdio.h>
 

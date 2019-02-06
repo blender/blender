@@ -17,9 +17,8 @@
  * All rights reserved.
  */
 
-/**
+/** \file \ingroup DNA
  *  \page makesdna makesdna
- *  \ingroup DNA
  *
  * \section aboutdna About the DNA module
  *

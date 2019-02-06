@@ -17,9 +17,9 @@
  * All rights reserved.
  */
 
-/**  \file
- *   \brief Struct muncher for making SDNA.
- *   \ingroup DNA
+/** \file \ingroup DNA
+ *
+ * \brief Struct muncher for making SDNA.
  *
  * \section aboutmakesdnac About makesdna tool
  * Originally by Ton, some mods by Frank, and some cleaning and
