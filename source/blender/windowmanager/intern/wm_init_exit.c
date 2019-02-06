@@ -263,8 +263,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 		WM_init_opengl(G_MAIN);
 
 		UI_init();
-		BKE_studiolight_init();
 	}
+
+	BKE_studiolight_init();
 
 	ED_spacemacros_init();
 
