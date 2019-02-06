@@ -1071,7 +1071,6 @@ static void layer_collection_bases_show_recursive(ViewLayer *view_layer, LayerCo
 	for (CollectionObject *cob = lc->collection->gobject.first; cob; cob = cob->next) {
 		Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 		base->flag &= ~BASE_HIDDEN;
-		base->object->restrictflag &= ~OB_RESTRICT_VIEW;
 	}
 	for (LayerCollection *lc_iter = lc->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
 		layer_collection_bases_show_recursive(view_layer, lc_iter);
