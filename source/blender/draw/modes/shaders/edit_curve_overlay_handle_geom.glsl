@@ -19,10 +19,16 @@ void output_line(vec2 offset, vec4 color)
 
 	gl_Position = gl_in[0].gl_Position;
 	gl_Position.xy += offset * gl_in[0].gl_Position.w;
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[0].gl_ClipDistance);
+#endif
 	EmitVertex();
 
 	gl_Position = gl_in[1].gl_Position;
 	gl_Position.xy += offset * gl_in[1].gl_Position.w;
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[1].gl_ClipDistance);
+#endif
 	EmitVertex();
 }
 

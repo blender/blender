@@ -1,7 +1,6 @@
-
 /* Draw Curve Vertices */
-
 uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 uniform vec2 viewportSize;
 
 in vec3 pos;
@@ -23,6 +22,10 @@ void main()
 		finalColor = colorVertex;
 	}
 
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	vec4 pos_4d = vec4(pos, 1.0);
+	gl_Position = ModelViewProjectionMatrix * pos_4d;
 	gl_PointSize = sizeVertex * 2.0;
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance((ModelMatrix * pos_4d).xyz);
+#endif
 }
