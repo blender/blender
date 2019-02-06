@@ -43,8 +43,8 @@ struct ColorBand;
 #define GPU_VIEWPORT_QUALITY_TAA16 0.6f
 #define GPU_VIEWPORT_QUALITY_TAA32 0.8f
 
-/* default offered by Blender.
- * uiFont.uifont_id */
+/** default offered by Blender.
+ * #uiFont.uifont_id */
 typedef enum eUIFont_ID {
 	UIFONT_DEFAULT	= 0,
 /*	UIFONT_BITMAP	= 1 */ /* UNUSED */
@@ -418,7 +418,7 @@ typedef struct ThemeWireColor {
 	short 	pad;
 } ThemeWireColor;
 
-/* ThemeWireColor.flag */
+/** #ThemeWireColor.flag */
 typedef enum eWireColor_Flags {
 	TH_WIRECOLOR_CONSTCOLS	= (1 << 0),
 	TH_WIRECOLOR_TEXTCOLS	= (1 << 1),
@@ -642,8 +642,6 @@ typedef struct UserDef {
 	/** #eGP_UserdefSettings. */
 	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
-	/* Was using non-aligned struct! */
-	/* struct SolidLight light[3] DNA_DEPRECATED; */
 	struct SolidLight light_param[4];
 	float light_ambient[3], pad7;
 	short gizmo_flag, gizmo_size;
@@ -775,7 +773,7 @@ extern UserDef U;
 /* Toggles for unfinished 2.8 UserPref design. */
 //#define WITH_USERDEF_WORKSPACES
 
-/* UserDef.userpref (UI active_section) */
+/** #UserDef.userpref (UI active_section) */
 typedef enum eUserPref_Section {
 	USER_SECTION_INTERFACE         = 0,
 	USER_SECTION_EDITING           = 1,
@@ -803,7 +801,7 @@ typedef enum eUserPref_SectionFlag {
 	USER_SECTION_INPUT_HIDE_UI_KEYCONFIG        = (1 << 0),
 } eUserPref_SectionFlag;
 
-/* UserDef.flag */
+/** #UserDef.flag */
 typedef enum eUserPref_Flag {
 	USER_AUTOSAVE			= (1 << 0),
 	USER_FLAG_NUMINPUT_ADVANCED = (1 << 1),
@@ -834,37 +832,37 @@ typedef enum eUserPref_Flag {
 	USER_TOOLTIPS_PYTHON    = (1 << 26),
 } eUserPref_Flag;
 
-/* bPathCompare.flag */
+/** #bPathCompare.flag */
 typedef enum ePathCompare_Flag {
 	USER_PATHCMP_GLOB		= (1 << 0),
 } ePathCompare_Flag;
 
-/* helper macro for checking frame clamping */
+/* Helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra)  {                                        \
 	if ((U.flag & USER_NONEGFRAMES) && (cfra < 0))                            \
 		cfra = 0;                                                             \
 	} (void)0
 
-/* UserDef.viewzoom */
+/** #UserDef.viewzoom */
 typedef enum eViewZoom_Style {
 	USER_ZOOM_CONT			= 0,
 	USER_ZOOM_SCALE			= 1,
 	USER_ZOOM_DOLLY			= 2,
 } eViewZoom_Style;
 
-/* UserDef.navigation_mode */
+/** #UserDef.navigation_mode */
 typedef enum eViewNavigation_Method {
 	VIEW_NAVIGATION_WALK = 0,
 	VIEW_NAVIGATION_FLY  = 1,
 } eViewNavigation_Method;
 
-/* UserDef.flag */
+/** #UserDef.flag */
 typedef enum eWalkNavigation_Flag {
 	USER_WALK_GRAVITY			= (1 << 0),
 	USER_WALK_MOUSE_REVERSE		= (1 << 1),
 } eWalkNavigation_Flag;
 
-/* UserDef.uiflag */
+/** #UserDef.uiflag */
 typedef enum eUserpref_UI_Flag {
 	/* flags 0 and 1 were old flags (for autokeying) that aren't used anymore */
 	USER_WHEELZOOMDIR           = (1 << 2),
@@ -899,27 +897,27 @@ typedef enum eUserpref_UI_Flag {
 	USER_HIDE_SYSTEM_BOOKMARKS  = (1u << 31),
 } eUserpref_UI_Flag;
 
-/* UserDef.uiflag2 */
+/** #UserDef.uiflag2 */
 typedef enum eUserpref_UI_Flag2 {
 	USER_KEEP_SESSION			= (1 << 0),
 	USER_REGION_OVERLAP			= (1 << 1),
 	USER_TRACKPAD_NATURAL		= (1 << 2),
 } eUserpref_UI_Flag2;
 
-/* UserDef.tablet_api */
+/** #UserDef.tablet_api */
 typedef enum eUserpref_TableAPI {
 	USER_TABLET_AUTOMATIC = 0,
 	USER_TABLET_NATIVE = 1,
 	USER_TABLET_WINTAB = 2,
 } eUserpref_TabletAPI;
 
-/* UserDef.app_flag */
+/** #UserDef.app_flag */
 typedef enum eUserpref_APP_Flag {
 	USER_APP_LOCK_UI_LAYOUT = (1 << 0),
 } eUserpref_APP_Flag;
 
-/* Auto-Keying mode.
- * UserDef.autokey_mode */
+/** Auto-Keying mode.
+ * #UserDef.autokey_mode */
 typedef enum eAutokey_Mode {
 	/* AUTOKEY_ON is a bitflag */
 	AUTOKEY_ON             = 1,
@@ -930,17 +928,17 @@ typedef enum eAutokey_Mode {
 	AUTOKEY_MODE_EDITKEYS  = 5,
 } eAutokey_Mode;
 
-/* Zoom to frame mode.
- * UserDef.view_frame_type */
+/** Zoom to frame mode.
+ * #UserDef.view_frame_type */
 typedef enum eZoomFrame_Mode {
 	ZOOM_FRAME_MODE_KEEP_RANGE = 0,
 	ZOOM_FRAME_MODE_SECONDS = 1,
 	ZOOM_FRAME_MODE_KEYFRAMES = 2,
 } eZoomFrame_Mode;
 
-/* Auto-Keying flag
- * U.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days)
- * note: AUTOKEY_FLAG_* is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL)
+/** Auto-Keying flag
+ * #UserDef.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days)
+ * \note #eAutokey_Flag is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL).
  */
 typedef enum eAutokey_Flag {
 	AUTOKEY_FLAG_INSERTAVAIL	= (1 << 0),
@@ -955,7 +953,7 @@ typedef enum eAutokey_Flag {
 	ANIMRECORD_FLAG_WITHNLA		= (1 << 10),
 } eAutokey_Flag;
 
-/* UserDef.transopts */
+/** #UserDef.transopts */
 typedef enum eUserpref_Translation_Flags {
 	USER_TR_TOOLTIPS		= (1 << 0),
 	USER_TR_IFACE			= (1 << 1),
@@ -968,7 +966,7 @@ typedef enum eUserpref_Translation_Flags {
 	USER_TR_NEWDATANAME		= (1 << 8),
 } eUserpref_Translation_Flags;
 
-/* UserDef.dupflag */
+/** #UserDef.dupflag */
 typedef enum eDupli_ID_Flags {
 	USER_DUP_MESH			= (1 << 0),
 	USER_DUP_CURVE			= (1 << 1),
@@ -984,15 +982,16 @@ typedef enum eDupli_ID_Flags {
 	USER_DUP_PSYS			= (1 << 11),
 } eDupli_ID_Flags;
 
-/* max anti alias draw method UserDef.gpu_viewport_antialias */
+/** Max anti alias draw method
+ * #UserDef.gpu_viewport_antialias */
 typedef enum eOpenGL_AntiAliasMethod {
 	USER_AA_NONE  = 0,
 	USER_AA_FXAA  = 1,
 	USER_AA_TAA8  = 2,
 } eOpenGL_AntiAliasMethod;
 
-/* text draw options
- * UserDef.text_render */
+/** Text draw options
+ * #UserDef.text_render */
 typedef enum eText_Draw_Options {
 	USER_TEXT_DISABLE_AA	  = (1 << 0),
 
@@ -1001,10 +1000,8 @@ typedef enum eText_Draw_Options {
 	USER_TEXT_HINTING_FULL    = (1 << 3),
 } eText_Draw_Options;
 
-/* tw_flag (transform widget) */
-
-/* Grease Pencil Settings.
- * UserDef.gp_settings */
+/** Grease Pencil Settings.
+ * #UserDef.gp_settings */
 typedef enum eGP_UserdefSettings {
 	GP_PAINT_DOSMOOTH		    = (1 << 0),
 	GP_PAINT_DOSIMPLIFY		    = (1 << 1),
@@ -1014,8 +1011,8 @@ enum {
 	USER_GIZMO_DRAW            = (1 << 0),
 };
 
-/* Color Picker Types.
- * UserDef.color_picker_type */
+/** Color Picker Types.
+ * #UserDef.color_picker_type */
 typedef enum eColorPicker_Types {
 	USER_CP_CIRCLE_HSV	= 0,
 	USER_CP_SQUARE_SV	= 1,
@@ -1024,8 +1021,8 @@ typedef enum eColorPicker_Types {
 	USER_CP_CIRCLE_HSL	= 4,
 } eColorPicker_Types;
 
-/* timecode display styles
- * UserDef.timecode_style */
+/** Timecode display styles
+ * #UserDef.timecode_style */
 typedef enum eTimecodeStyles {
 	/* as little info as is necessary to show relevant info
 	 * with '+' to denote the frames
@@ -1060,7 +1057,7 @@ typedef enum eTheme_DrawTypes {
 	TH_SHADED   	= 4,
 } eTheme_DrawTypes;
 
-/* UserDef.ndof_flag (3D mouse options) */
+/** #UserDef.ndof_flag (3D mouse options) */
 typedef enum eNdof_Flag {
 	NDOF_SHOW_GUIDE     = (1 << 0),
 	NDOF_FLY_HELICOPTER = (1 << 1),
@@ -1093,7 +1090,7 @@ typedef enum eNdof_Flag {
 
 #define NDOF_PIXELS_PER_SECOND 600.0f
 
-/* UserDef.ogl_multisamples and gpencil_multisamples */
+/** UserDef.ogl_multisamples and gpencil_multisamples */
 typedef enum eMultiSample_Type {
 	USER_MULTISAMPLE_NONE	= 0,
 	USER_MULTISAMPLE_2	= 2,
@@ -1102,7 +1099,7 @@ typedef enum eMultiSample_Type {
 	USER_MULTISAMPLE_16	= 16,
 } eMultiSample_Type;
 
-/* UserDef.image_draw_method */
+/** #UserDef.image_draw_method */
 typedef enum eImageDrawMethod {
 	/* IMAGE_DRAW_METHOD_AUTO = 0, */ /* Currently unused */
 	IMAGE_DRAW_METHOD_GLSL = 1,
@@ -1110,7 +1107,7 @@ typedef enum eImageDrawMethod {
 	IMAGE_DRAW_METHOD_DRAWPIXELS = 3,
 } eImageDrawMethod;
 
-/* UserDef.virtual_pixel */
+/** #UserDef.virtual_pixel */
 typedef enum eUserpref_VirtualPixel {
 	VIRTUAL_PIXEL_NATIVE = 0,
 	VIRTUAL_PIXEL_DOUBLE = 1,
