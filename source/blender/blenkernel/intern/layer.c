@@ -1009,12 +1009,20 @@ static bool layer_collection_collection_flag_unset_recursive(LayerCollection *lc
  * Make sure to show all the direct parents and all children of the layer collection as well.
  * When extending we simply show the collections and its direct family.
  *
+ * If the collection or any of its parents is disabled, make it enabled.
+ * Don't change the children disable state though.
+ *
  * Return whether depsgraph needs update.
  */
 bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerCollection *lc, bool extend)
 {
 	bool depsgraph_need_update = false;
 	LayerCollection *lc_master = view_layer->layer_collections.first;
+
+	if (lc->collection->flag & COLLECTION_RESTRICT_VIEW) {
+		lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+		depsgraph_need_update = true;
+	}
 
 	if (!extend) {
 		/* Hide all collections . */
@@ -1033,8 +1041,11 @@ bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerColl
 	}
 
 	while (lc_parent != lc) {
-		depsgraph_need_update |= (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEW) != 0;
-		lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+		if (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEW) {
+			lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+			depsgraph_need_update = true;
+		}
+
 		lc_parent->flag &= ~LAYER_COLLECTION_RESTRICT_VIEW;
 
 		for (LayerCollection *lc_iter = lc_parent->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
@@ -1045,9 +1056,8 @@ bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerColl
 		}
 	}
 
-	/* Make all the children visible. */
+	/* Make all the children visible, but respect their disable state. */
 	layer_collection_flag_unset_recursive(lc, LAYER_COLLECTION_RESTRICT_VIEW);
-	depsgraph_need_update |= layer_collection_collection_flag_unset_recursive(lc, COLLECTION_RESTRICT_VIEW);
 
 	BKE_layer_collection_activate(view_layer, lc);
 
@@ -1081,16 +1091,21 @@ static void layer_collection_bases_hide_recursive(ViewLayer *view_layer, LayerCo
 
 /**
  * Hide/show all the elements of a collection.
- * Enable a disable collection if needs be.
+ * Don't change the collection children enable/disable state, but it may change it for the collection itself.
  *
  * Return true if depsgraph needs update.
  */
 bool BKE_layer_collection_set_visible(ViewLayer *view_layer, LayerCollection *lc, const bool visible, const bool hierarchy)
 {
 	bool depsgraph_changed = false;
+
+	if (visible && ((lc->collection->flag & COLLECTION_RESTRICT_VIEW) != 0)) {
+		lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
+		depsgraph_changed = true;
+	}
+
 	if (hierarchy) {
 		if (visible) {
-			depsgraph_changed |= layer_collection_collection_flag_unset_recursive(lc, COLLECTION_RESTRICT_VIEW);
 			layer_collection_flag_unset_recursive(lc, LAYER_COLLECTION_RESTRICT_VIEW);
 			layer_collection_bases_show_recursive(view_layer, lc);
 		}
@@ -1101,9 +1116,7 @@ bool BKE_layer_collection_set_visible(ViewLayer *view_layer, LayerCollection *lc
 	}
 	else {
 		if (visible) {
-			depsgraph_changed |= (lc->collection->flag & COLLECTION_RESTRICT_VIEW) != 0;
 			lc->flag &= ~LAYER_COLLECTION_RESTRICT_VIEW;
-			lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
 		}
 		else {
 			lc->flag |= LAYER_COLLECTION_RESTRICT_VIEW;
