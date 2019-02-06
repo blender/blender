@@ -1014,16 +1014,17 @@ static bool layer_collection_collection_flag_unset_recursive(LayerCollection *lc
 bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerCollection *lc, bool extend)
 {
 	bool depsgraph_need_update = false;
+	LayerCollection *lc_master = view_layer->layer_collections.first;
+
 	if (!extend) {
 		/* Hide all collections . */
-		for (LayerCollection *lc_iter = view_layer->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+		for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
 			layer_collection_flag_set_recursive(lc_iter, LAYER_COLLECTION_RESTRICT_VIEW);
 		}
 	}
 
 	/* Make all the direct parents visible. */
 	LayerCollection *lc_parent = lc;
-	LayerCollection *lc_master = view_layer->layer_collections.first;
 	for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
 		if (BKE_layer_collection_has_layer_collection(lc_iter, lc)) {
 			lc_parent = lc_iter;

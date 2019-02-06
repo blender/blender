@@ -241,7 +241,7 @@ static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *c
 		return TRAVERSE_SKIP_CHILDS;
 	}
 
-	if (collection == BKE_collection_master(data->scene)) {
+	if (collection->flag & COLLECTION_IS_MASTER) {
 		/* skip - showing warning/error message might be misleading
 		 * when deleting multiple collections, so just do nothing */
 	}
@@ -707,16 +707,14 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 	GSET_ITER(collections_to_edit_iter, data.collections_to_edit) {
 		LayerCollection *lc = BLI_gsetIterator_getKey(&collections_to_edit_iter);
 
-		if (!(lc->collection->flag & COLLECTION_IS_MASTER)) {
-			if (clear) {
-				lc->flag &= ~flag;
-			}
-			else {
-				lc->flag |= flag;
-			}
-
-			layer_collection_flag_recursive_set(lc, flag);
+		if (clear) {
+			lc->flag &= ~flag;
 		}
+		else {
+			lc->flag |= flag;
+		}
+
+		layer_collection_flag_recursive_set(lc, flag);
 	}
 
 	BLI_gset_free(data.collections_to_edit, NULL);
@@ -831,9 +829,10 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
 	struct CollectionEditData data = {.scene = scene, .soops = soops,};
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
-	/* Hide all collections before the isolate function - needed in order to support. */
+	/* Hide all collections before the isolate function - needed in order to support multiple selected collections. */
 	if (!extend) {
-		for (LayerCollection *lc_iter = view_layer->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+		LayerCollection *lc_master = view_layer->layer_collections.first;
+		for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
 			lc_iter->flag |= LAYER_COLLECTION_RESTRICT_VIEW;
 			layer_collection_flag_recursive_set(lc_iter, LAYER_COLLECTION_RESTRICT_VIEW);
 		}
