@@ -27,6 +27,7 @@ ccl_device_inline void kernel_filter_nlm_calc_difference(int dx, int dy,
                                                          int4 rect,
                                                          int stride,
                                                          int channel_offset,
+                                                         int frame_offset,
                                                          float a,
                                                          float k_2)
 {
@@ -39,7 +40,7 @@ ccl_device_inline void kernel_filter_nlm_calc_difference(int dx, int dy,
 
 	for(int y = rect.y; y < rect.w; y++) {
 		int idx_p = y*stride + aligned_lowx;
-		int idx_q = (y+dy)*stride + aligned_lowx + dx;
+		int idx_q = (y+dy)*stride + aligned_lowx + dx + frame_offset;
 		for(int x = aligned_lowx; x < rect.z; x += 4, idx_p += 4, idx_q += 4) {
 			float4 diff = make_float4(0.0f);
 			float4 scale_fac;
@@ -181,7 +182,7 @@ ccl_device_inline void kernel_filter_nlm_update_output(int dx, int dy,
 	}
 }
 
-ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy,
+ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy, int t,
                                                            const float *ccl_restrict difference_image,
                                                            const float *ccl_restrict buffer,
                                                            float *transform,
@@ -191,7 +192,9 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy,
                                                            int4 rect,
                                                            int4 filter_window,
                                                            int stride, int f,
-                                                           int pass_stride)
+                                                           int pass_stride,
+                                                           int frame_offset,
+                                                           bool use_time)
 {
 	int4 clip_area = rect_clip(rect, filter_window);
 	/* fy and fy are in filter-window-relative coordinates, while x and y are in feature-window-relative coordinates. */
@@ -212,9 +215,11 @@ ccl_device_inline void kernel_filter_nlm_construct_gramian(int dx, int dy,
 			int    *l_rank = rank + storage_ofs;
 
 			kernel_filter_construct_gramian(x, y, 1,
-			                                dx, dy,
+			                                dx, dy, t,
 			                                stride,
 			                                pass_stride,
+			                                frame_offset,
+			                                use_time,
 			                                buffer,
 			                                l_transform, l_rank,
 			                                weight, l_XtWX, l_XtWY, 0);

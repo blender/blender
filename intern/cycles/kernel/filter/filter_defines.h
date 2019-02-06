@@ -17,10 +17,12 @@
 #ifndef __FILTER_DEFINES_H__
 #define __FILTER_DEFINES_H__
 
-#define DENOISE_FEATURES 10
+#define DENOISE_FEATURES 11
 #define TRANSFORM_SIZE (DENOISE_FEATURES*DENOISE_FEATURES)
 #define XTWX_SIZE      (((DENOISE_FEATURES+1)*(DENOISE_FEATURES+2))/2)
 #define XTWY_SIZE      (DENOISE_FEATURES+1)
+
+#define DENOISE_MAX_FRAMES 16
 
 typedef struct TileInfo {
 	int offsets[9];
@@ -28,6 +30,8 @@ typedef struct TileInfo {
 	int x[4];
 	int y[4];
 	int from_render;
+	int frames[DENOISE_MAX_FRAMES];
+	int num_frames;
 	/* TODO(lukas): CUDA doesn't have uint64_t... */
 #ifdef __KERNEL_OPENCL__
 	ccl_global float *buffers[9];

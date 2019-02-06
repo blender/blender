@@ -1301,6 +1301,7 @@ public:
 		int pass_stride = task->buffer.pass_stride;
 		int num_shifts = (2*r+1)*(2*r+1);
 		int channel_offset = task->nlm_state.is_color? task->buffer.pass_stride : 0;
+		int frame_offset = 0;
 
 		if(have_error())
 			return false;
@@ -1327,7 +1328,7 @@ public:
 
 			CUDA_GET_BLOCKSIZE_1D(cuNLMCalcDifference, w*h, num_shifts);
 
-			void *calc_difference_args[] = {&guide_ptr, &variance_ptr, &scale_ptr, &difference, &w, &h, &stride, &pass_stride, &r, &channel_offset, &a, &k_2};
+			void *calc_difference_args[] = {&guide_ptr, &variance_ptr, &scale_ptr, &difference, &w, &h, &stride, &pass_stride, &r, &channel_offset, &frame_offset, &a, &k_2};
 			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &pass_stride, &r, &f};
 			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &pass_stride, &r, &f};
 			void *update_output_args[]   = {&blurDifference, &image_ptr, &out_ptr, &weightAccum, &w, &h, &stride, &pass_stride, &channel_offset, &r, &f};
@@ -1367,13 +1368,16 @@ public:
 		                   task->storage.h);
 
 		void *args[] = {&task->buffer.mem.device_pointer,
+		                &task->tile_info_mem.device_pointer,
 		                &task->storage.transform.device_pointer,
 		                &task->storage.rank.device_pointer,
 		                &task->filter_area,
 		                &task->rect,
 		                &task->radius,
 		                &task->pca_threshold,
-		                &task->buffer.pass_stride};
+		                &task->buffer.pass_stride,
+		                &task->buffer.frame_stride,
+		                &task->buffer.use_time};
 		CUDA_LAUNCH_KERNEL(cuFilterConstructTransform, args);
 		cuda_assert(cuCtxSynchronize());
 
@@ -1383,6 +1387,7 @@ public:
 	bool denoising_accumulate(device_ptr color_ptr,
 	                          device_ptr color_variance_ptr,
 	                          device_ptr scale_ptr,
+	                          int frame,
 	                          DenoisingTask *task)
 	{
 		if(have_error())
@@ -1398,6 +1403,8 @@ public:
 		int w = task->reconstruction_state.source_w;
 		int h = task->reconstruction_state.source_h;
 		int stride = task->buffer.stride;
+		int frame_offset = frame * task->buffer.frame_stride;
+		int t = task->tile_info->frames[frame];
 
 		int pass_stride = task->buffer.pass_stride;
 		int num_shifts = (2*r+1)*(2*r+1);
@@ -1430,10 +1437,12 @@ public:
 		                                &w, &h,
 		                                &stride, &pass_stride,
 		                                &r, &pass_stride,
+		                                &frame_offset,
 		                                &a, &k_2};
 		void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &pass_stride, &r, &f};
 		void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &pass_stride, &r, &f};
-		void *construct_gramian_args[] = {&blurDifference,
+		void *construct_gramian_args[] = {&t,
+		                                  &blurDifference,
 		                                  &task->buffer.mem.device_pointer,
 		                                  &task->storage.transform.device_pointer,
 		                                  &task->storage.rank.device_pointer,
@@ -1442,7 +1451,9 @@ public:
 		                                  &task->reconstruction_state.filter_window,
 		                                  &w, &h, &stride,
 		                                  &pass_stride, &r,
-		                                  &f};
+		                                  &f,
+		                                  &frame_offset,
+		                                  &task->buffer.use_time};
 
 		CUDA_LAUNCH_KERNEL_1D(cuNLMCalcDifference, calc_difference_args);
 		CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
@@ -1635,7 +1646,7 @@ public:
 	void denoise(RenderTile &rtile, DenoisingTask& denoising)
 	{
 		denoising.functions.construct_transform = function_bind(&CUDADevice::denoising_construct_transform, this, &denoising);
-		denoising.functions.accumulate = function_bind(&CUDADevice::denoising_accumulate, this, _1, _2, _3, &denoising);
+		denoising.functions.accumulate = function_bind(&CUDADevice::denoising_accumulate, this, _1, _2, _3, _4, &denoising);
 		denoising.functions.solve = function_bind(&CUDADevice::denoising_solve, this, _1, &denoising);
 		denoising.functions.divide_shadow = function_bind(&CUDADevice::denoising_divide_shadow, this, _1, _2, _3, _4, _5, &denoising);
 		denoising.functions.non_local_means = function_bind(&CUDADevice::denoising_non_local_means, this, _1, _2, _3, _4, &denoising);

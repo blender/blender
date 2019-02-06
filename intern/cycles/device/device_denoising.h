@@ -38,6 +38,7 @@ public:
 	struct RenderBuffers {
 		int offset;
 		int pass_stride;
+		int frame_stride;
 		int samples;
 	} render_buffer;
 
@@ -70,7 +71,8 @@ public:
 		              )> non_local_means;
 		function<bool(device_ptr color_ptr,
 		              device_ptr color_variance_ptr,
-		              device_ptr scale_ptr
+		              device_ptr scale_ptr,
+		              int frame
 		              )> accumulate;
 		function<bool(device_ptr output_ptr)> solve;
 		function<bool()> construct_transform;
@@ -156,8 +158,10 @@ public:
 		int stride;
 		int h;
 		int width;
+		int frame_stride;
 		device_only_memory<float> mem;
 		device_only_memory<float> temporary_mem;
+		bool use_time;
 		bool use_intensity;
 
 		bool gpu_temporary_mem;
@@ -179,6 +183,7 @@ protected:
 	void construct_transform();
 	void reconstruct();
 
+	void load_buffer();
 	void write_buffer();
 };
 

@@ -36,6 +36,7 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
 		pca_threshold = powf(10.0f, lerp(-5.0f, 3.0f, task.denoising_feature_strength));
 	}
 
+	render_buffer.frame_stride = task.frame_stride;
 	render_buffer.pass_stride = task.pass_stride;
 	render_buffer.offset = task.pass_denoising_data;
 
@@ -48,6 +49,12 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
 
 	tile_info = (TileInfo*) tile_info_mem.alloc(sizeof(TileInfo)/sizeof(int));
 	tile_info->from_render = task.denoising_from_render? 1 : 0;
+
+	tile_info->frames[0] = 0;
+	tile_info->num_frames = min(task.denoising_frames.size() + 1, DENOISE_MAX_FRAMES);
+	for(int i = 1; i < tile_info->num_frames; i++) {
+		tile_info->frames[i] = task.denoising_frames[i-1];
+	}
 
 	write_passes = task.denoising_write_passes;
 	do_filter = task.denoising_do_filter;
@@ -101,16 +108,18 @@ void DenoisingTask::setup_denoising_buffer()
 	rect = rect_expand(rect, radius);
 	rect = rect_clip(rect, make_int4(tile_info->x[0], tile_info->y[0], tile_info->x[3], tile_info->y[3]));
 
-	buffer.use_intensity = write_passes;
+	buffer.use_intensity = write_passes || (tile_info->num_frames > 1);
 	buffer.passes = buffer.use_intensity? 15 : 14;
 	buffer.width = rect.z - rect.x;
 	buffer.stride = align_up(buffer.width, 4);
 	buffer.h = rect.w - rect.y;
 	int alignment_floats = divide_up(device->mem_sub_ptr_alignment(), sizeof(float));
 	buffer.pass_stride = align_up(buffer.stride * buffer.h, alignment_floats);
+	buffer.frame_stride = buffer.pass_stride * buffer.passes;
 	/* Pad the total size by four floats since the SIMD kernels might go a bit over the end. */
-	int mem_size = align_up(buffer.pass_stride * buffer.passes + 4, alignment_floats);
+	int mem_size = align_up(tile_info->num_frames * buffer.frame_stride + 4, alignment_floats);
 	buffer.mem.alloc_to_device(mem_size, false);
+	buffer.use_time = (tile_info->num_frames > 1);
 
 	/* CPUs process shifts sequentially while GPUs process them in parallel. */
 	int num_layers;
@@ -216,6 +225,25 @@ void DenoisingTask::prefilter_color()
 	}
 }
 
+void DenoisingTask::load_buffer()
+{
+	device_ptr null_ptr = (device_ptr) 0;
+
+	int original_offset = render_buffer.offset;
+
+	int num_passes = buffer.use_intensity? 15 : 14;
+	for(int i = 0; i < tile_info->num_frames; i++) {
+		for(int pass = 0; pass < num_passes; pass++) {
+			device_sub_ptr to_pass(buffer.mem, i*buffer.frame_stride + pass*buffer.pass_stride, buffer.pass_stride);
+			bool is_variance = (pass >= 11) && (pass <= 13);
+			functions.get_feature(pass, -1, *to_pass, null_ptr, is_variance? (1.0f / render_buffer.samples) : 1.0f);
+		}
+		render_buffer.offset += render_buffer.frame_stride;
+	}
+
+	render_buffer.offset = original_offset;
+}
+
 void DenoisingTask::write_buffer()
 {
 	reconstruction_state.buffer_params = make_int4(target_buffer.offset,
@@ -259,11 +287,17 @@ void DenoisingTask::reconstruct()
 
 	device_sub_ptr color_ptr    (buffer.mem,  8*buffer.pass_stride, 3*buffer.pass_stride);
 	device_sub_ptr color_var_ptr(buffer.mem, 11*buffer.pass_stride, 3*buffer.pass_stride);
+	for(int f = 0; f < tile_info->num_frames; f++) {
+		device_ptr scale_ptr = 0;
+		device_sub_ptr *scale_sub_ptr = NULL;
+		if(tile_info->frames[f] != 0 && (tile_info->num_frames > 1)) {
+			scale_sub_ptr = new device_sub_ptr(buffer.mem, 14*buffer.pass_stride, buffer.pass_stride);
+			scale_ptr = **scale_sub_ptr;
+		}
 
-	device_ptr scale_ptr = 0;
-	device_sub_ptr *scale_sub_ptr = NULL;
-	functions.accumulate(*color_ptr, *color_var_ptr, scale_ptr);
-	delete scale_sub_ptr;
+		functions.accumulate(*color_ptr, *color_var_ptr, scale_ptr, f);
+		delete scale_sub_ptr;
+	}
 	functions.solve(target_buffer.ptr);
 }
 
@@ -276,9 +310,14 @@ void DenoisingTask::run_denoising(RenderTile *tile)
 
 	setup_denoising_buffer();
 
-	prefilter_shadowing();
-	prefilter_features();
-	prefilter_color();
+	if(tile_info->from_render) {
+		prefilter_shadowing();
+		prefilter_features();
+		prefilter_color();
+	}
+	else {
+		load_buffer();
+	}
 
 	if(do_filter) {
 		construct_transform();

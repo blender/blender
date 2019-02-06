@@ -135,6 +135,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_combine_halves)(int x, int y,
 }
 
 void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float* buffer,
+                                                           TileInfo *tile_info,
                                                            int x,
                                                            int y,
                                                            int storage_ofs,
@@ -142,6 +143,8 @@ void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float* buffer,
                                                            int *rank,
                                                            int* prefilter_rect,
                                                            int pass_stride,
+                                                           int frame_stride,
+                                                           bool use_time,
                                                            int radius,
                                                            float pca_threshold)
 {
@@ -151,9 +154,12 @@ void KERNEL_FUNCTION_FULL_NAME(filter_construct_transform)(float* buffer,
 	rank += storage_ofs;
 	transform += storage_ofs*TRANSFORM_SIZE;
 	kernel_filter_construct_transform(buffer,
+	                                  tile_info,
 	                                  x, y,
 	                                  load_int4(prefilter_rect),
 	                                  pass_stride,
+	                                  frame_stride,
+	                                  use_time,
 	                                  transform,
 	                                  rank,
 	                                  radius,
@@ -170,6 +176,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_difference)(int dx,
                                                            int *rect,
                                                            int stride,
                                                            int channel_offset,
+                                                           int frame_offset,
                                                            float a,
                                                            float k_2)
 {
@@ -184,6 +191,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_calc_difference)(int dx,
 	                                  load_int4(rect),
 	                                  stride,
 	                                  channel_offset,
+	                                  frame_offset,
 	                                  a, k_2);
 #endif
 }
@@ -243,6 +251,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_update_output)(int dx,
 
 void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
                                                              int dy,
+                                                             int t,
                                                              float *difference_image,
                                                              float *buffer,
                                                              float *transform,
@@ -253,12 +262,14 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
                                                              int *filter_window,
                                                              int stride,
                                                              int f,
-                                                             int pass_stride)
+                                                             int pass_stride,
+                                                             int frame_offset,
+                                                             bool use_time)
 {
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_nlm_construct_gramian);
 #else
-	kernel_filter_nlm_construct_gramian(dx, dy,
+	kernel_filter_nlm_construct_gramian(dx, dy, t,
 	                                    difference_image,
 	                                    buffer,
 	                                    transform, rank,
@@ -266,7 +277,9 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_construct_gramian)(int dx,
 	                                    load_int4(rect),
 	                                    load_int4(filter_window),
 	                                    stride, f,
-	                                    pass_stride);
+	                                    pass_stride,
+	                                    frame_offset,
+	                                    use_time);
 #endif
 }
 

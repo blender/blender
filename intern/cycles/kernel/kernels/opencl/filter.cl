@@ -127,11 +127,14 @@ __kernel void kernel_ocl_filter_combine_halves(ccl_global float *mean,
 }
 
 __kernel void kernel_ocl_filter_construct_transform(const ccl_global float *ccl_restrict buffer,
+                                                    CCL_FILTER_TILE_INFO,
                                                     ccl_global float *transform,
                                                     ccl_global int *rank,
                                                     int4 filter_area,
                                                     int4 rect,
                                                     int pass_stride,
+                                                    int frame_stride,
+                                                    char use_time,
                                                     int radius,
                                                     float pca_threshold)
 {
@@ -141,8 +144,11 @@ __kernel void kernel_ocl_filter_construct_transform(const ccl_global float *ccl_
 		ccl_global int *l_rank = rank + y*filter_area.z + x;
 		ccl_global float *l_transform = transform + y*filter_area.z + x;
 		kernel_filter_construct_transform(buffer,
+		                                  CCL_FILTER_TILE_INFO_ARG,
 		                                  x + filter_area.x, y + filter_area.y,
-		                                  rect, pass_stride,
+		                                  rect,
+		                                  pass_stride, frame_stride,
+		                                  use_time,
 		                                  l_transform, l_rank,
 		                                  radius, pca_threshold,
 		                                  filter_area.z*filter_area.w,
@@ -160,6 +166,7 @@ __kernel void kernel_ocl_filter_nlm_calc_difference(const ccl_global float *ccl_
                                                     int pass_stride,
                                                     int r,
                                                     int channel_offset,
+                                                    int frame_offset,
                                                     float a,
                                                     float k_2)
 {
@@ -173,6 +180,7 @@ __kernel void kernel_ocl_filter_nlm_calc_difference(const ccl_global float *ccl_
 		                                  difference_image + ofs,
 		                                  rect, stride,
 		                                  channel_offset,
+		                                  frame_offset,
 		                                  a, k_2);
 	}
 }
@@ -254,7 +262,8 @@ __kernel void kernel_ocl_filter_nlm_normalize(ccl_global float *out_image,
 	}
 }
 
-__kernel void kernel_ocl_filter_nlm_construct_gramian(const ccl_global float *ccl_restrict difference_image,
+__kernel void kernel_ocl_filter_nlm_construct_gramian(int t,
+                                                      const ccl_global float *ccl_restrict difference_image,
                                                       const ccl_global float *ccl_restrict buffer,
                                                       const ccl_global float *ccl_restrict transform,
                                                       ccl_global int *rank,
@@ -266,13 +275,16 @@ __kernel void kernel_ocl_filter_nlm_construct_gramian(const ccl_global float *cc
                                                       int stride,
                                                       int pass_stride,
                                                       int r,
-                                                      int f)
+                                                      int f,
+                                                      int frame_offset,
+                                                      char use_time)
 {
 	int4 co, rect;
 	int ofs;
 	if(get_nlm_coords_window(w, h, r, pass_stride, &rect, &co, &ofs, filter_window)) {
 		kernel_filter_nlm_construct_gramian(co.x, co.y,
 		                                    co.z, co.w,
+		                                    t,
 		                                    difference_image + ofs,
 		                                    buffer,
 		                                    transform, rank,
@@ -280,6 +292,8 @@ __kernel void kernel_ocl_filter_nlm_construct_gramian(const ccl_global float *cc
 		                                    rect, filter_window,
 		                                    stride, f,
 		                                    pass_stride,
+		                                    frame_offset,
+		                                    use_time,
 		                                    get_local_id(1)*get_local_size(0) + get_local_id(0));
 	}
 }
