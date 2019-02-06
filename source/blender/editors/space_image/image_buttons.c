@@ -1269,9 +1269,35 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
 
 #undef MAX_IMAGE_INFO_LEN
 
-void image_buttons_register(ARegionType *UNUSED(art))
+static bool metadata_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
 {
+	SpaceImage *space_image = CTX_wm_space_image(C);
+	return space_image != NULL && space_image->image != NULL;
+}
 
+static void metadata_panel_context_draw(const bContext *C, Panel *panel)
+{
+	void *lock;
+	SpaceImage *space_image = CTX_wm_space_image(C);
+	Image *image = space_image->image;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(image, &space_image->iuser, &lock);
+	if (ibuf != NULL) {
+		ED_region_image_metadata_panel_draw(ibuf, panel->layout);
+	}
+	BKE_image_release_ibuf(image, ibuf, lock);
+}
+
+void image_buttons_register(ARegionType *art)
+{
+	PanelType *pt;
+
+	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel metadata");
+	strcpy(pt->idname, "IMAGE_PT_metadata");
+	strcpy(pt->label, N_("Metadata"));
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->poll = metadata_panel_context_poll;
+	pt->draw = metadata_panel_context_draw;
+	BLI_addtail(&art->paneltypes, pt);
 }
 
 static int image_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))

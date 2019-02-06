@@ -29,8 +29,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -43,7 +44,9 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_clip.h"
 #include "ED_gpencil.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -60,9 +63,38 @@
 
 /* Panels */
 
-void ED_clip_buttons_register(ARegionType *UNUSED(art))
+static bool metadata_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
 {
+	return ED_space_clip_poll((bContext *)C);
+}
 
+static void metadata_panel_context_draw(const bContext *C, Panel *panel)
+{
+	SpaceClip *space_clip = CTX_wm_space_clip(C);
+	/* NOTE: This might not be exactly the same image buffer as shown in the
+	 * clip editor itself, since that might be coming from proxy, or being
+	 * postprocessed (stabilized or undistored).
+	 * Ideally we need to query metadata from an original image or movie without
+	 * reading actual pixels to speed up the process. */
+	ImBuf *ibuf = ED_space_clip_get_buffer(space_clip);
+	if (ibuf != NULL) {
+		ED_region_image_metadata_panel_draw(ibuf, panel->layout);
+		IMB_freeImBuf(ibuf);
+	}
+}
+
+void ED_clip_buttons_register(ARegionType *art)
+{
+	PanelType *pt;
+
+	pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel metadata");
+	strcpy(pt->idname, "CLIP_PT_metadata");
+	strcpy(pt->label, N_("Metadata"));
+	strcpy(pt->category, "Footage");
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->poll = metadata_panel_context_poll;
+	pt->draw = metadata_panel_context_draw;
+	BLI_addtail(&art->paneltypes, pt);
 }
 
 /********************* MovieClip Template ************************/

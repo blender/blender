@@ -2094,6 +2094,24 @@ struct StampData *BKE_stamp_info_from_scene_static(Scene *scene)
 	return stamp_data;
 }
 
+static const char *stamp_metadata_fields[] = {
+	"File",
+	"Note",
+	"Date",
+	"Marker",
+	"Time",
+	"Frame",
+	"FrameRange",
+	"Camera",
+	"Lens",
+	"Scene",
+	"Strip",
+	"RenderTime",
+	"Memory",
+	"Hostname",
+	NULL
+};
+
 void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip)
 {
 	if ((callback == NULL) || (stamp_data == NULL)) {
@@ -2105,6 +2123,8 @@ void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCall
 		callback(data, value_str, stamp_data->member, sizeof(stamp_data->member)); \
 	} ((void)0)
 
+	/* TODO(sergey): Use stamp_metadata_fields somehow, or make it more generic
+	 * meta information to avoid duplication. */
 	CALL(file, "File");
 	CALL(note, "Note");
 	CALL(date, "Date");
@@ -2177,6 +2197,30 @@ void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
 	BKE_stamp_info_callback(ibuf, stamp_data, metadata_set_field, false);
 }
 
+BLI_INLINE bool metadata_is_copyable(const char *field_name)
+{
+	int i = 0;
+	while (stamp_metadata_fields[i] != NULL) {
+		if (STREQ(field_name, stamp_metadata_fields[i])) {
+			return false;
+		}
+		i++;
+	}
+	return true;
+}
+
+static void metadata_copy_custom_fields(
+        const char *field,
+        const char *value,
+        void *rr_v)
+{
+	if (!metadata_is_copyable(field)) {
+		return;
+	}
+	RenderResult *rr = (RenderResult *)rr_v;
+	BKE_render_result_stamp_data(rr, field, value);
+}
+
 void BKE_stamp_info_from_imbuf(RenderResult *rr, struct ImBuf *ibuf)
 {
 	if (rr->stamp_data == NULL) {
@@ -2185,6 +2229,8 @@ void BKE_stamp_info_from_imbuf(RenderResult *rr, struct ImBuf *ibuf)
 	struct StampData *stamp_data = rr->stamp_data;
 	IMB_metadata_ensure(&ibuf->metadata);
 	BKE_stamp_info_callback(ibuf, stamp_data, metadata_get_field, true);
+	/* Copy render engine specific settings. */
+	IMB_metadata_foreach(ibuf, metadata_copy_custom_fields, rr);
 }
 
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)

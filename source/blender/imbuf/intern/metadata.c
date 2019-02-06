@@ -102,3 +102,10 @@ void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const 
 
 	IDP_AssignString(prop, value, METADATA_MAX_VALUE_LENGTH);
 }
+
+void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata)
+{
+	for (IDProperty *prop = ibuf->metadata->data.group.first; prop != NULL; prop = prop->next) {
+		callback(prop->name, IDP_String(prop), userdata);
+	}
+}
