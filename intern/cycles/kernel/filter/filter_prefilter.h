@@ -84,6 +84,7 @@ ccl_device void kernel_filter_get_feature(int sample,
                                           int x, int y,
                                           ccl_global float *mean,
                                           ccl_global float *variance,
+                                          float scale,
                                           int4 rect, int buffer_pass_stride,
                                           int buffer_denoising_offset)
 {
@@ -95,16 +96,36 @@ ccl_device void kernel_filter_get_feature(int sample,
 	int buffer_w = align_up(rect.z - rect.x, 4);
 	int idx = (y-rect.y)*buffer_w + (x - rect.x);
 
-	mean[idx] = center_buffer[m_offset] / sample;
-	if(sample > 1) {
-		/* Approximate variance as E[x^2] - 1/N * (E[x])^2, since online variance
-		 * update does not work efficiently with atomics in the kernel. */
-		variance[idx] = max(0.0f, (center_buffer[v_offset] - mean[idx]*mean[idx]*sample) / (sample * (sample-1)));
+	float val = scale * center_buffer[m_offset];
+	mean[idx] = val;
+
+	if(v_offset >= 0) {
+		if(sample > 1) {
+			/* Approximate variance as E[x^2] - 1/N * (E[x])^2, since online variance
+			 * update does not work efficiently with atomics in the kernel. */
+			variance[idx] = max(0.0f, (center_buffer[v_offset] - val*val*sample) / (sample * (sample-1)));
+		}
+		else {
+			/* Can't compute variance with single sample, just set it very high. */
+			variance[idx] = 1e10f;
+		}
 	}
-	else {
-		/* Can't compute variance with single sample, just set it very high. */
-		variance[idx] = 1e10f;
-	}
+}
+
+ccl_device void kernel_filter_write_feature(int sample,
+                                            int x, int y,
+                                            int4 buffer_params,
+                                            ccl_global float *from,
+                                            ccl_global float *buffer,
+                                            int out_offset,
+                                            int4 rect)
+{
+	ccl_global float *combined_buffer = buffer + (y*buffer_params.y + x + buffer_params.x)*buffer_params.z;
+
+	int buffer_w = align_up(rect.z - rect.x, 4);
+	int idx = (y-rect.y)*buffer_w + (x - rect.x);
+
+	combined_buffer[out_offset] = from[idx];
 }
 
 ccl_device void kernel_filter_detect_outliers(int x, int y,

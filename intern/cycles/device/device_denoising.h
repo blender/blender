@@ -47,6 +47,7 @@ public:
 		int stride;
 		int pass_stride;
 		int denoising_clean_offset;
+		int denoising_output_offset;
 		device_ptr ptr;
 	} target_buffer;
 
@@ -58,6 +59,9 @@ public:
 	int4 rect;
 	int4 filter_area;
 
+	bool write_passes;
+	bool do_filter;
+
 	struct DeviceFunctions {
 		function<bool(device_ptr image_ptr,    /* Contains the values that are smoothed. */
 		              device_ptr guide_ptr,    /* Contains the values that are used to calculate weights. */
@@ -66,8 +70,9 @@ public:
 		              )> non_local_means;
 		function<bool(device_ptr color_ptr,
 		              device_ptr color_variance_ptr,
-		              device_ptr output_ptr
-		              )> reconstruct;
+		              device_ptr scale_ptr
+		              )> accumulate;
+		function<bool(device_ptr output_ptr)> solve;
 		function<bool()> construct_transform;
 
 		function<bool(device_ptr a_ptr,
@@ -86,13 +91,18 @@ public:
 		function<bool(int mean_offset,
 		              int variance_offset,
 		              device_ptr mean_ptr,
-		              device_ptr variance_ptr
+		              device_ptr variance_ptr,
+		              float scale
 		              )> get_feature;
 		function<bool(device_ptr image_ptr,
 		              device_ptr variance_ptr,
 		              device_ptr depth_ptr,
 		              device_ptr output_ptr
 		              )> detect_outliers;
+		function<bool(int out_offset,
+		              device_ptr frop_ptr,
+		              device_ptr buffer_ptr
+		              )> write_feature;
 		function<void(RenderTile *rtiles)> map_neighbor_tiles;
 		function<void(RenderTile *rtiles)> unmap_neighbor_tiles;
 	} functions;
@@ -114,8 +124,9 @@ public:
 		int f;      /* Patch size of the filter. */
 		float a;    /* Variance compensation factor in the MSE estimation. */
 		float k_2;  /* Squared value of the k parameter of the filter. */
+		bool is_color;
 
-		void set_parameters(int r_, int f_, float a_, float k_2_) { r = r_; f = f_; a = a_, k_2 = k_2_; }
+		void set_parameters(int r_, int f_, float a_, float k_2_, bool is_color_) { r = r_; f = f_; a = a_, k_2 = k_2_; is_color = is_color_; }
 	} nlm_state;
 
 	struct Storage {
@@ -147,6 +158,7 @@ public:
 		int width;
 		device_only_memory<float> mem;
 		device_only_memory<float> temporary_mem;
+		bool use_intensity;
 
 		bool gpu_temporary_mem;
 
@@ -166,6 +178,8 @@ protected:
 	void prefilter_color();
 	void construct_transform();
 	void reconstruct();
+
+	void write_buffer();
 };
 
 CCL_NAMESPACE_END

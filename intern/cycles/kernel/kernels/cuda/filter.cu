@@ -64,6 +64,7 @@ kernel_cuda_filter_get_feature(int sample,
                                int v_offset,
                                float *mean,
                                float *variance,
+                               float scale,
                                int4 prefilter_rect,
                                int buffer_pass_stride,
                                int buffer_denoising_offset)
@@ -76,9 +77,34 @@ kernel_cuda_filter_get_feature(int sample,
 		                          m_offset, v_offset,
 		                          x, y,
 		                          mean, variance,
+		                          scale,
 		                          prefilter_rect,
 		                          buffer_pass_stride,
 		                          buffer_denoising_offset);
+	}
+}
+
+extern "C" __global__ void
+CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
+kernel_cuda_filter_write_feature(int sample,
+                                 int4 buffer_params,
+                                 int4 filter_area,
+                                 float *from,
+                                 float *buffer,
+                                 int out_offset,
+                                 int4 prefilter_rect)
+{
+	int x = blockDim.x*blockIdx.x + threadIdx.x;
+	int y = blockDim.y*blockIdx.y + threadIdx.y;
+	if(x < filter_area.z && y < filter_area.w) {
+	        kernel_filter_write_feature(sample,
+	                                    x + filter_area.x,
+	                                    y + filter_area.y,
+	                                    buffer_params,
+	                                    from,
+	                                    buffer,
+	                                    out_offset,
+	                                    prefilter_rect);
 	}
 }
 
@@ -136,6 +162,7 @@ extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
 kernel_cuda_filter_nlm_calc_difference(const float *ccl_restrict weight_image,
                                        const float *ccl_restrict variance_image,
+                                       const float *ccl_restrict scale_image,
                                        float *difference_image,
                                        int w,
                                        int h,
@@ -152,9 +179,11 @@ kernel_cuda_filter_nlm_calc_difference(const float *ccl_restrict weight_image,
 		kernel_filter_nlm_calc_difference(co.x, co.y, co.z, co.w,
 		                                  weight_image,
 		                                  variance_image,
+		                                  scale_image,
 		                                  difference_image + ofs,
 		                                  rect, stride,
-		                                  channel_offset, a, k_2);
+		                                  channel_offset,
+		                                  a, k_2);
 	}
 }
 
@@ -210,6 +239,7 @@ kernel_cuda_filter_nlm_update_output(const float *ccl_restrict difference_image,
                                      int h,
                                      int stride,
                                      int pass_stride,
+                                     int channel_offset,
                                      int r,
                                      int f)
 {
@@ -221,7 +251,9 @@ kernel_cuda_filter_nlm_update_output(const float *ccl_restrict difference_image,
 		                                image,
 		                                out_image,
 		                                accum_image,
-		                                rect, stride, f);
+		                                rect,
+		                                channel_offset,
+		                                stride, f);
 	}
 }
 

@@ -54,6 +54,10 @@ public:
 	bool denoising_data_pass;
 	/* If only some light path types should be denoised, an additional pass is needed. */
 	bool denoising_clean_pass;
+	/* When we're prefiltering the passes during rendering, we need to keep both the
+	 * original and the prefiltered data around because neighboring tiles might still
+	 * need the original data. */
+	bool denoising_prefiltered_pass;
 
 	/* functions */
 	BufferParams();
@@ -63,6 +67,7 @@ public:
 	void add_pass(PassType type);
 	int get_passes_size();
 	int get_denoising_offset();
+	int get_denoising_prefiltered_offset();
 };
 
 /* Render Buffers */

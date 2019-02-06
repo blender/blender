@@ -60,6 +60,7 @@ public:
 	vector<Pass> passes;
 	bool denoising_data_pass;
 	bool denoising_clean_pass;
+	bool denoising_prefiltered_pass;
 	int denoising_flags;
 	float pass_alpha_threshold;
 

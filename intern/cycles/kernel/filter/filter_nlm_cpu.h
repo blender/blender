@@ -22,6 +22,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void kernel_filter_nlm_calc_difference(int dx, int dy,
                                                          const float *ccl_restrict weight_image,
                                                          const float *ccl_restrict variance_image,
+                                                         const float *ccl_restrict scale_image,
                                                          float *difference_image,
                                                          int4 rect,
                                                          int stride,
@@ -41,13 +42,21 @@ ccl_device_inline void kernel_filter_nlm_calc_difference(int dx, int dy,
 		int idx_q = (y+dy)*stride + aligned_lowx + dx;
 		for(int x = aligned_lowx; x < rect.z; x += 4, idx_p += 4, idx_q += 4) {
 			float4 diff = make_float4(0.0f);
+			float4 scale_fac;
+			if(scale_image) {
+				scale_fac = clamp(load4_a(scale_image, idx_p) / load4_u(scale_image, idx_q),
+				                  make_float4(0.25f), make_float4(4.0f));
+			}
+			else {
+				scale_fac = make_float4(1.0f);
+			}
 			for(int c = 0, chan_ofs = 0; c < numChannels; c++, chan_ofs += channel_offset) {
 				/* idx_p is guaranteed to be aligned, but idx_q isn't. */
 				float4 color_p = load4_a(weight_image, idx_p + chan_ofs);
-				float4 color_q = load4_u(weight_image, idx_q + chan_ofs);
+				float4 color_q = scale_fac*load4_u(weight_image, idx_q + chan_ofs);
 				float4 cdiff = color_p - color_q;
 				float4 var_p = load4_a(variance_image, idx_p + chan_ofs);
-				float4 var_q = load4_u(variance_image, idx_q + chan_ofs);
+				float4 var_q = sqr(scale_fac)*load4_u(variance_image, idx_q + chan_ofs);
 				diff += (cdiff*cdiff - a*(var_p + min(var_p, var_q))) / (make_float4(1e-8f) + k_2*(var_p+var_q));
 			}
 			load4_a(difference_image, idx_p) = diff*channel_fac;
@@ -143,6 +152,7 @@ ccl_device_inline void kernel_filter_nlm_update_output(int dx, int dy,
                                                        float *out_image,
                                                        float *accum_image,
                                                        int4 rect,
+                                                       int channel_offset,
                                                        int stride,
                                                        int f)
 {
@@ -160,6 +170,11 @@ ccl_device_inline void kernel_filter_nlm_update_output(int dx, int dy,
 			load4_a(accum_image, idx_p) += mask(active, weight);
 
 			float4 val = load4_u(image, idx_q);
+			if(channel_offset) {
+				val += load4_u(image, idx_q + channel_offset);
+				val += load4_u(image, idx_q + 2*channel_offset);
+				val *= 1.0f/3.0f;
+			}
 
 			load4_a(out_image, idx_p) += mask(active, weight*val);
 		}

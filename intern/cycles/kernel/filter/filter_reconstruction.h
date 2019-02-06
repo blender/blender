@@ -108,11 +108,13 @@ ccl_device_inline void kernel_filter_finalize(int x, int y,
 	final_color = max(final_color, make_float3(0.0f, 0.0f, 0.0f));
 
 	ccl_global float *combined_buffer = buffer + (y*buffer_params.y + x + buffer_params.x)*buffer_params.z;
-	final_color *= sample;
-	if(buffer_params.w) {
-		final_color.x += combined_buffer[buffer_params.w+0];
-		final_color.y += combined_buffer[buffer_params.w+1];
-		final_color.z += combined_buffer[buffer_params.w+2];
+	if(buffer_params.w >= 0) {
+		final_color *= sample;
+		if(buffer_params.w > 0) {
+			final_color.x += combined_buffer[buffer_params.w+0];
+			final_color.y += combined_buffer[buffer_params.w+1];
+			final_color.z += combined_buffer[buffer_params.w+2];
+		}
 	}
 	combined_buffer[0] = final_color.x;
 	combined_buffer[1] = final_color.y;

@@ -39,11 +39,18 @@ DenoisingTask::DenoisingTask(Device *device, const DeviceTask &task)
 	render_buffer.pass_stride = task.pass_stride;
 	render_buffer.offset = task.pass_denoising_data;
 
-	target_buffer.pass_stride = task.pass_stride;
+	target_buffer.pass_stride = task.target_pass_stride;
 	target_buffer.denoising_clean_offset = task.pass_denoising_clean;
+	target_buffer.offset = 0;
 
 	functions.map_neighbor_tiles = function_bind(task.map_neighbor_tiles, _1, device);
 	functions.unmap_neighbor_tiles = function_bind(task.unmap_neighbor_tiles, _1, device);
+
+	tile_info = (TileInfo*) tile_info_mem.alloc(sizeof(TileInfo)/sizeof(int));
+	tile_info->from_render = task.denoising_from_render? 1 : 0;
+
+	write_passes = task.denoising_write_passes;
+	do_filter = task.denoising_do_filter;
 }
 
 DenoisingTask::~DenoisingTask()
@@ -59,8 +66,6 @@ DenoisingTask::~DenoisingTask()
 
 void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 {
-	tile_info = (TileInfo*) tile_info_mem.alloc(sizeof(TileInfo)/sizeof(int));
-
 	for(int i = 0; i < 9; i++) {
 		tile_info->offsets[i] = rtiles[i].offset;
 		tile_info->strides[i] = rtiles[i].stride;
@@ -79,6 +84,13 @@ void DenoisingTask::set_render_buffer(RenderTile *rtiles)
 	target_buffer.stride = rtiles[9].stride;
 	target_buffer.ptr    = rtiles[9].buffer;
 
+	if(write_passes && rtiles[9].buffers) {
+		target_buffer.denoising_output_offset = rtiles[9].buffers->params.get_denoising_prefiltered_offset();
+	}
+	else {
+		target_buffer.denoising_output_offset = 0;
+	}
+
 	tile_info_mem.copy_to_device();
 }
 
@@ -89,7 +101,8 @@ void DenoisingTask::setup_denoising_buffer()
 	rect = rect_expand(rect, radius);
 	rect = rect_clip(rect, make_int4(tile_info->x[0], tile_info->y[0], tile_info->x[3], tile_info->y[3]));
 
-	buffer.passes = 14;
+	buffer.use_intensity = write_passes;
+	buffer.passes = buffer.use_intensity? 15 : 14;
 	buffer.width = rect.z - rect.x;
 	buffer.stride = align_up(buffer.width, 4);
 	buffer.h = rect.w - rect.y;
@@ -129,14 +142,14 @@ void DenoisingTask::prefilter_shadowing()
 	functions.divide_shadow(*unfiltered_a, *unfiltered_b, *sample_var, *sample_var_var, *buffer_var);
 
 	/* Smooth the (generally pretty noisy) buffer variance using the spatial information from the sample variance. */
-	nlm_state.set_parameters(6, 3, 4.0f, 1.0f);
+	nlm_state.set_parameters(6, 3, 4.0f, 1.0f, false);
 	functions.non_local_means(*buffer_var, *sample_var, *sample_var_var, *filtered_var);
 
 	/* Reuse memory, the previous data isn't needed anymore. */
 	device_ptr filtered_a = *buffer_var,
 	           filtered_b = *sample_var;
 	/* Use the smoothed variance to filter the two shadow half images using each other for weight calculation. */
-	nlm_state.set_parameters(5, 3, 1.0f, 0.25f);
+	nlm_state.set_parameters(5, 3, 1.0f, 0.25f, false);
 	functions.non_local_means(*unfiltered_a, *unfiltered_b, *filtered_var, filtered_a);
 	functions.non_local_means(*unfiltered_b, *unfiltered_a, *filtered_var, filtered_b);
 
@@ -147,7 +160,7 @@ void DenoisingTask::prefilter_shadowing()
 	device_ptr final_a = *unfiltered_a,
 	           final_b = *unfiltered_b;
 	/* Use the residual variance for a second filter pass. */
-	nlm_state.set_parameters(4, 2, 1.0f, 0.5f);
+	nlm_state.set_parameters(4, 2, 1.0f, 0.5f, false);
 	functions.non_local_means(filtered_a, filtered_b, residual_var, final_a);
 	functions.non_local_means(filtered_b, filtered_a, residual_var, final_b);
 
@@ -167,9 +180,9 @@ void DenoisingTask::prefilter_features()
 	for(int pass = 0; pass < 7; pass++) {
 		device_sub_ptr feature_pass(buffer.mem, pass_to[pass]*buffer.pass_stride, buffer.pass_stride);
 		/* Get the unfiltered pass and its variance from the RenderBuffers. */
-		functions.get_feature(mean_from[pass], variance_from[pass], *unfiltered, *variance);
+		functions.get_feature(mean_from[pass], variance_from[pass], *unfiltered, *variance, 1.0f / render_buffer.samples);
 		/* Smooth the pass and store the result in the denoising buffers. */
-		nlm_state.set_parameters(2, 2, 1.0f, 0.25f);
+		nlm_state.set_parameters(2, 2, 1.0f, 0.25f, false);
 		functions.non_local_means(*unfiltered, *unfiltered, *variance, *feature_pass);
 	}
 }
@@ -188,13 +201,33 @@ void DenoisingTask::prefilter_color()
 	for(int pass = 0; pass < num_color_passes; pass++) {
 		device_sub_ptr color_pass(temporary_color, pass*buffer.pass_stride, buffer.pass_stride);
 		device_sub_ptr color_var_pass(buffer.mem, variance_to[pass]*buffer.pass_stride, buffer.pass_stride);
-		functions.get_feature(mean_from[pass], variance_from[pass], *color_pass, *color_var_pass);
+		functions.get_feature(mean_from[pass], variance_from[pass], *color_pass, *color_var_pass, 1.0f / render_buffer.samples);
 	}
 
 	device_sub_ptr depth_pass    (buffer.mem,                                 0,   buffer.pass_stride);
 	device_sub_ptr color_var_pass(buffer.mem, variance_to[0]*buffer.pass_stride, 3*buffer.pass_stride);
 	device_sub_ptr output_pass   (buffer.mem,     mean_to[0]*buffer.pass_stride, 3*buffer.pass_stride);
 	functions.detect_outliers(temporary_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
+
+	if(buffer.use_intensity) {
+		device_sub_ptr intensity_pass(buffer.mem, 14*buffer.pass_stride, buffer.pass_stride);
+		nlm_state.set_parameters(radius, 4, 2.0f, nlm_k_2*4.0f, true);
+		functions.non_local_means(*output_pass, *output_pass, *color_var_pass, *intensity_pass);
+	}
+}
+
+void DenoisingTask::write_buffer()
+{
+	reconstruction_state.buffer_params = make_int4(target_buffer.offset,
+	                                               target_buffer.stride,
+	                                               target_buffer.pass_stride,
+	                                               target_buffer.denoising_clean_offset);
+	int num_passes = buffer.use_intensity? 15 : 14;
+	for(int pass = 0; pass < num_passes; pass++) {
+		device_sub_ptr from_pass(buffer.mem, pass*buffer.pass_stride, buffer.pass_stride);
+		int out_offset = pass + target_buffer.denoising_output_offset;
+		functions.write_feature(out_offset, *from_pass, target_buffer.ptr);
+	}
 }
 
 void DenoisingTask::construct_transform()
@@ -212,6 +245,8 @@ void DenoisingTask::reconstruct()
 {
 	storage.XtWX.alloc_to_device(storage.w*storage.h*XTWX_SIZE, false);
 	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE, false);
+	storage.XtWX.zero_to_device();
+	storage.XtWY.zero_to_device();
 
 	reconstruction_state.filter_window = rect_from_shape(filter_area.x-rect.x, filter_area.y-rect.y, storage.w, storage.h);
 	int tile_coordinate_offset = filter_area.y*target_buffer.stride + filter_area.x;
@@ -224,7 +259,12 @@ void DenoisingTask::reconstruct()
 
 	device_sub_ptr color_ptr    (buffer.mem,  8*buffer.pass_stride, 3*buffer.pass_stride);
 	device_sub_ptr color_var_ptr(buffer.mem, 11*buffer.pass_stride, 3*buffer.pass_stride);
-	functions.reconstruct(*color_ptr, *color_var_ptr, target_buffer.ptr);
+
+	device_ptr scale_ptr = 0;
+	device_sub_ptr *scale_sub_ptr = NULL;
+	functions.accumulate(*color_ptr, *color_var_ptr, scale_ptr);
+	delete scale_sub_ptr;
+	functions.solve(target_buffer.ptr);
 }
 
 void DenoisingTask::run_denoising(RenderTile *tile)
@@ -240,8 +280,14 @@ void DenoisingTask::run_denoising(RenderTile *tile)
 	prefilter_features();
 	prefilter_color();
 
-	construct_transform();
-	reconstruct();
+	if(do_filter) {
+		construct_transform();
+		reconstruct();
+	}
+
+	if(write_passes) {
+		write_buffer();
+	}
 
 	functions.unmap_neighbor_tiles(rtiles);
 }

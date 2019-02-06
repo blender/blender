@@ -27,6 +27,7 @@ typedef struct TileInfo {
 	int strides[9];
 	int x[4];
 	int y[4];
+	int from_render;
 	/* TODO(lukas): CUDA doesn't have uint64_t... */
 #ifdef __KERNEL_OPENCL__
 	ccl_global float *buffers[9];
