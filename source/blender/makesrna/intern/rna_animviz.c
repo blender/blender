@@ -45,30 +45,9 @@ const EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
 
 #ifdef RNA_RUNTIME
 
-static PointerRNA rna_AnimViz_onion_skinning_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_AnimVizOnionSkinning, ptr->data);
-}
-
 static PointerRNA rna_AnimViz_motion_paths_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_AnimVizMotionPaths, ptr->data);
-}
-
-static void rna_AnimViz_ghost_start_frame_set(PointerRNA *ptr, int value)
-{
-	bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
-
-	data->ghost_sf = value;
-	CLAMP(data->ghost_ef, data->ghost_sf, MAXFRAME / 2);
-}
-
-static void rna_AnimViz_ghost_end_frame_set(PointerRNA *ptr, int value)
-{
-	bAnimVizSettings *data = (bAnimVizSettings *)ptr->data;
-
-	data->ghost_ef = value;
-	CLAMP(data->ghost_sf, 1, data->ghost_ef);
 }
 
 static void rna_AnimViz_path_start_frame_set(PointerRNA *ptr, int value)
@@ -187,81 +166,6 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
 }
 
 /* --- */
-
-static void rna_def_animviz_ghosts(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static const EnumPropertyItem prop_type_items[] = {
-		{GHOST_TYPE_NONE, "NONE", 0, "No Ghosts", "Do not show any ghosts"},
-		{GHOST_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Current Frame", "Show ghosts from around the current frame"},
-		{GHOST_TYPE_RANGE, "RANGE", 0, "In Range", "Show ghosts for the specified frame range"},
-		{GHOST_TYPE_KEYS, "KEYS", 0, "On Keyframes", "Show ghosts on keyframes"},
-		{0, NULL, 0, NULL, NULL},
-	};
-
-
-	srna = RNA_def_struct(brna, "AnimVizOnionSkinning", NULL);
-	RNA_def_struct_sdna(srna, "bAnimVizSettings");
-	RNA_def_struct_nested(brna, srna, "AnimViz");
-	RNA_def_struct_ui_text(srna, "Onion Skinning Settings", "Onion Skinning settings for animation visualization");
-
-	/* Enums */
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ghost_type");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Type", "Method used for determining what ghosts get drawn");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-
-	/* Settings */
-	prop = RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ghost_flag", GHOST_FLAG_ONLYSEL);
-	RNA_def_property_ui_text(prop, "On Selected Bones Only",
-	                         "For Pose-Mode drawing, only draw ghosts for selected bones");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-
-	prop = RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ghost_step");
-	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_text(prop, "Frame Step",
-	                         "Number of frames between ghosts shown (not for 'On Keyframes' Onion-skinning method)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-
-	/* Playback Ranges */
-	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "ghost_sf");
-	RNA_def_property_int_funcs(prop, NULL, "rna_AnimViz_ghost_start_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "Start Frame",
-	                         "Starting frame of range of Ghosts to display "
-	                         "(not for 'Around Current Frame' Onion-skinning method)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-
-	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "ghost_ef");
-	RNA_def_property_int_funcs(prop, NULL, "rna_AnimViz_ghost_end_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "End Frame",
-	                         "End frame of range of Ghosts to display "
-	                         "(not for 'Around Current Frame' Onion-skinning method)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-
-	/* Around Current Ranges */
-	prop = RNA_def_property(srna, "frame_before", PROP_INT, PROP_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "ghost_bc");
-	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "Before Current",
-	                         "Number of frames to show before the current frame "
-	                         "(only for 'Around Current Frame' Onion-skinning method)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-
-	prop = RNA_def_property(srna, "frame_after", PROP_INT, PROP_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "ghost_ac");
-	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "After Current",
-	                         "Number of frames to show after the current frame "
-	                         "(only for 'Around Current Frame' Onion-skinning method)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
-}
 
 static void rna_def_animviz_paths(BlenderRNA *brna)
 {
@@ -387,13 +291,6 @@ static void rna_def_animviz(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bAnimVizSettings");
 	RNA_def_struct_ui_text(srna, "Animation Visualization", "Settings for the visualization of motion");
 
-	/* onion-skinning settings (nested struct) */
-	prop = RNA_def_property(srna, "onion_skin_frames", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "AnimVizOnionSkinning");
-	RNA_def_property_pointer_funcs(prop, "rna_AnimViz_onion_skinning_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Onion Skinning", "Onion Skinning (ghosting) settings for visualization");
-
 	/* motion path settings (nested struct) */
 	prop = RNA_def_property(srna, "motion_path", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -407,7 +304,6 @@ static void rna_def_animviz(BlenderRNA *brna)
 void RNA_def_animviz(BlenderRNA *brna)
 {
 	rna_def_animviz(brna);
-	rna_def_animviz_ghosts(brna);
 	rna_def_animviz_paths(brna);
 
 	rna_def_animviz_motion_path(brna);

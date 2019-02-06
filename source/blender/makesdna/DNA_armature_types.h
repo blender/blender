@@ -129,19 +129,6 @@ typedef struct bArmature {
 	unsigned int layer_used;
 	/** For buttons to work, both variables in this order together. */
 	unsigned int layer, layer_protected;
-
-// XXX deprecated... old animation system (armature only viz) ---
-	/** Number of frames to ghosts to show, and step between them . */
-	short       ghostep, ghostsize;
-	/** Ghost drawing options and number of frames between points of path. */
-	short       ghosttype, pathsize;
-	/** Start and end frames of ghost-drawing range. */
-	int         ghostsf, ghostef;
-	/** Start and end frames of path-calculation range for all bones. */
-	int         pathsf, pathef;
-	/** Number of frames before/after current frame of path-calculation for all bones . */
-	int         pathbc, pathac;
-// XXX end of deprecated code ----------------------------------
 } bArmature;
 
 /* armature->flag */
@@ -207,14 +194,6 @@ typedef enum eArmature_PathFlag {
 	ARM_PATH_KFNOS		= (1<<4),
 } eArmature_PathFlag;
 #endif
-
-/* armature->ghosttype */
-// XXX deprecated... old animation system (armature only viz)
-typedef enum eArmature_GhostType {
-	ARM_GHOST_CUR = 0,
-	ARM_GHOST_RANGE = 1,
-	ARM_GHOST_KEYS = 2,
-} eArmature_GhostType;
 
 /* bone->flag */
 typedef enum eBone_Flag {

@@ -210,33 +210,6 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
                 col.operator("poselib.pose_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
 
-# TODO: this panel will soon be deprecated too
-class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
-    bl_label = "Ghost"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        arm = context.armature
-
-        layout.row().prop(arm, "ghost_type", expand=True)
-
-        layout.use_property_split = True
-
-        col = layout.column(align=True)
-
-        if arm.ghost_type == 'RANGE':
-            col.prop(arm, "ghost_frame_start", text="Frame Start")
-            col.prop(arm, "ghost_frame_end", text="End")
-            col.prop(arm, "ghost_size", text="Step")
-        elif arm.ghost_type == 'CURRENT_FRAME':
-            col.prop(arm, "ghost_step", text="Frame Range")
-            col.prop(arm, "ghost_size", text="Step")
-
-        col.prop(arm, "show_only_ghost_selected", text="Display Selected Only")
-
-
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
     bl_label = "Inverse Kinematics"
     bl_options = {'DEFAULT_CLOSED'}
@@ -291,7 +264,6 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
 from .properties_animviz import (
     MotionPathButtonsPanel,
     MotionPathButtonsPanel_display,
-    OnionSkinButtonsPanel,
 )
 
 
@@ -340,21 +312,6 @@ class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
         self.draw_settings(context, avs, mpath, bones=True)
 
 
-class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from panel when ready
-    #bl_label = "Bones Onion Skinning"
-    bl_context = "data"
-
-    @classmethod
-    def poll(cls, context):
-        # XXX: include pose-mode check?
-        return context.object and context.armature
-
-    def draw(self, context):
-        ob = context.object
-
-        self.draw_settings(context, ob.pose.animation_visualization, bones=True)
-
-
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
     _context_path = "object.data"
@@ -370,7 +327,6 @@ classes = (
     DATA_PT_pose_library,
     DATA_PT_motion_paths,
     DATA_PT_motion_paths_display,
-    DATA_PT_ghost,
     DATA_PT_iksolver_itasc,
     DATA_PT_custom_props_arm,
 )

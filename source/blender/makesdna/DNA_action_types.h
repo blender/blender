@@ -105,20 +105,6 @@ typedef enum eMotionPath_Flag {
 
 /* Animation Visualization Settings (avs) */
 typedef struct bAnimVizSettings {
-	/* Onion-Skinning Settings ----------------- */
-	/** Start and end frames of ghost-drawing range (only used for GHOST_TYPE_RANGE). */
-	int ghost_sf, ghost_ef;
-	/** Number of frames befo.re/after current frame to show */
-	int ghost_bc, ghost_ac;
-
-	/** #eOnionSkin_Types. */
-	short ghost_type;
-	/** Number of frames between each ghost shown (not for GHOST_TYPE_KEYS). */
-	short ghost_step;
-
-	/** #eOnionSkin_Flag. */
-	short ghost_flag;
-
 	/* General Settings ------------------------ */
 	/** #eAnimViz_RecalcFlags. */
 	short recalc;
@@ -133,6 +119,7 @@ typedef struct bAnimVizSettings {
 	short path_viewflag;
 	/** #eMotionPaths_BakeFlag. */
 	short path_bakeflag;
+	char pad[6];
 
 	/** Start and end frames of path-calculation range. */
 	int path_sf, path_ef;
@@ -146,26 +133,6 @@ typedef enum eAnimViz_RecalcFlags {
 	/* motionpaths need recalculating */
 	ANIMVIZ_RECALC_PATHS    = (1 << 0),
 } eAnimViz_RecalcFlags;
-
-
-/* bAnimVizSettings->ghost_type */
-typedef enum eOnionSkin_Types {
-	/* no ghosts at all */
-	GHOST_TYPE_NONE = 0,
-	/* around current frame */
-	GHOST_TYPE_ACFRA = 1,
-	/* show ghosts within the specified frame range */
-	GHOST_TYPE_RANGE = 2,
-	/* show ghosts on keyframes within the specified range only */
-	GHOST_TYPE_KEYS = 3,
-} eOnionSkin_Types;
-
-/* bAnimVizSettings->ghost_flag */
-typedef enum eOnionSkin_Flag {
-	/* only show selected bones in ghosts */
-	GHOST_FLAG_ONLYSEL  = (1 << 0),
-} eOnionSkin_Flag;
-
 
 /* bAnimVizSettings->path_type */
 typedef enum eMotionPaths_Types {

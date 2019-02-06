@@ -120,38 +120,6 @@ class MotionPathButtonsPanel_display:
             sub.prop(mpath, "color", text="")
 
 
-# FIXME: this panel still needs to be ported so that it will work correctly with animviz
-class OnionSkinButtonsPanel:
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_label = "Onion Skinning"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        arm = context.armature
-
-        layout.row().prop(arm, "ghost_type", expand=True)
-
-        split = layout.split()
-
-        col = split.column()
-
-        sub = col.column(align=True)
-        if arm.ghost_type == 'RANGE':
-            sub.prop(arm, "ghost_frame_start", text="Start")
-            sub.prop(arm, "ghost_frame_end", text="End")
-            sub.prop(arm, "ghost_size", text="Step")
-        elif arm.ghost_type == 'CURRENT_FRAME':
-            sub.prop(arm, "ghost_step", text="Range")
-            sub.prop(arm, "ghost_size", text="Step")
-
-        col = split.column()
-        col.label(text="Display:")
-        col.prop(arm, "show_only_ghost_selected", text="Selected Only")
-
-
 classes = (
 )
 

@@ -1228,41 +1228,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 				if (arm) { /* XXX - why does this fail in some cases? */
 					bAnimVizSettings *avs = &ob->pose->avs;
 
-					/* ghosting settings ---------------- */
-					/* ranges */
-					avs->ghost_bc = avs->ghost_ac = arm->ghostep;
-
-					avs->ghost_sf = arm->ghostsf;
-					avs->ghost_ef = arm->ghostef;
-					if ((avs->ghost_sf == avs->ghost_ef) && (avs->ghost_sf == 0)) {
-						avs->ghost_sf = 1;
-						avs->ghost_ef = 100;
-					}
-
-					/* type */
-					if (arm->ghostep == 0)
-						avs->ghost_type = GHOST_TYPE_NONE;
-					else
-						avs->ghost_type = arm->ghosttype + 1;
-
-					/* stepsize */
-					avs->ghost_step = arm->ghostsize;
-					if (avs->ghost_step == 0)
-						avs->ghost_step = 1;
-
 					/* path settings --------------------- */
 					/* ranges */
-					avs->path_bc = arm->pathbc;
-					avs->path_ac = arm->pathac;
-					if ((avs->path_bc == avs->path_ac) && (avs->path_bc == 0))
-						avs->path_bc = avs->path_ac = 10;
+					avs->path_bc = 10;
+					avs->path_ac = 10;
 
-					avs->path_sf = arm->pathsf;
-					avs->path_ef = arm->pathef;
-					if ((avs->path_sf == avs->path_ef) && (avs->path_sf == 0)) {
-						avs->path_sf = 1;
-						avs->path_ef = 250;
-					}
+					avs->path_sf = 1;
+					avs->path_ef = 250;
 
 					/* flags */
 					if (arm->pathflag & ARM_PATH_FNUMS)
@@ -1281,9 +1253,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 						avs->path_type = MOTIONPATH_TYPE_ACFRA;
 
 					/* stepsize */
-					avs->path_step = arm->pathsize;
-					if (avs->path_step == 0)
-						avs->path_step = 1;
+					avs->path_step = 1;
 				}
 				else
 					animviz_settings_init(&ob->pose->avs);

@@ -311,7 +311,6 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 from .properties_animviz import (
     MotionPathButtonsPanel,
     MotionPathButtonsPanel_display,
-    OnionSkinButtonsPanel,
 )
 
 
@@ -352,20 +351,6 @@ class OBJECT_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
         mpath = ob.motion_path
 
         self.draw_settings(context, avs, mpath)
-
-
-class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from panel when ready
-    #bl_label = "Object Onion Skinning"
-    bl_context = "object"
-
-    @classmethod
-    def poll(cls, context):
-        return (context.object)
-
-    def draw(self, context):
-        ob = context.object
-
-        self.draw_settings(context, ob.animation_visualization)
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):

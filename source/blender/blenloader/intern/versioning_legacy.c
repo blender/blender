@@ -1511,8 +1511,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
 		/* updating stepsize for ghost drawing */
 		for (arm = bmain->armature.first; arm; arm = arm->id.next) {
-			if (arm->ghostsize == 0)
-				arm->ghostsize = 1;
 			bone_version_239(&arm->bonebase);
 			if (arm->layer == 0)
 				arm->layer = 1;
