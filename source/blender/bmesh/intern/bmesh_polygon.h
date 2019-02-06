@@ -17,8 +17,7 @@
 #ifndef __BMESH_POLYGON_H__
 #define __BMESH_POLYGON_H__
 
-/** \file blender/bmesh/intern/bmesh_polygon.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 struct Heap;

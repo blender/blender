@@ -17,8 +17,7 @@
 #ifndef __BMESH_MESH_H__
 #define __BMESH_MESH_H__
 
-/** \file blender/bmesh/intern/bmesh_mesh.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 struct BMAllocTemplate;

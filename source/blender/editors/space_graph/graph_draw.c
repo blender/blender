@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation
  */
 
-/** \file blender/editors/space_graph/graph_draw.c
- *  \ingroup spgraph
+/** \file \ingroup spgraph
  */
 
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_node.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_NODE_H__

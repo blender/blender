@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file gpu_uniformbuffer.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #include <string.h>

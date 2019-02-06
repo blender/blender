@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/scene_graph/NodeTransform.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to represent a transform node. A Transform node contains one or several children,
  *  \brief all affected by the transformation.
  */

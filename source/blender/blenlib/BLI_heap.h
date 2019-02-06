@@ -17,8 +17,7 @@
 #ifndef __BLI_HEAP_H__
 #define __BLI_HEAP_H__
 
-/** \file BLI_heap.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief A min-heap / priority queue ADT
  */
 

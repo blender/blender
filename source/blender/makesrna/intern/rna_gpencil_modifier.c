@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/makesrna/intern/rna_gpencil_modifier.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 

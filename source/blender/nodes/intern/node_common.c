@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/intern/node_common.c
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 #include <string.h>

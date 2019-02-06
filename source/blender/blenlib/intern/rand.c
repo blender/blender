@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/rand.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 

@@ -20,8 +20,7 @@
  * OpenMP hints by Christian Schnellhammer
  */
 
-/** \file blender/blenkernel/intern/ocean.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <math.h>

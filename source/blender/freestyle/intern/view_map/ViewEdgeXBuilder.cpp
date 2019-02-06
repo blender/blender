@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/view_map/ViewEdgeXBuilder.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build view edges and the underlying chains of feature edges...
  */
 

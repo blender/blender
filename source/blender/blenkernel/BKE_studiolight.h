@@ -20,8 +20,7 @@
 #ifndef __BKE_STUDIOLIGHT_H__
 #define __BKE_STUDIOLIGHT_H__
 
-/** \file BKE_studiolight.h
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Studio lighting for the 3dview
  */

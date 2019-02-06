@@ -18,8 +18,7 @@
  * Operators for interpolating new Grease Pencil frames from existing strokes
  */
 
-/** \file blender/editors/gpencil/gpencil_interpolate.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

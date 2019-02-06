@@ -18,8 +18,7 @@
  * allocimbuf.c
  */
 
-/** \file blender/imbuf/intern/divers.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include "BLI_math.h"

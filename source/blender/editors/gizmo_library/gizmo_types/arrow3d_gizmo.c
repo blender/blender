@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file arrow3d_gizmo.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  *
  * \name Arrow Gizmo
  *

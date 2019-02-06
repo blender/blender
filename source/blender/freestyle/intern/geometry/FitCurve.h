@@ -17,8 +17,7 @@
 #ifndef __FITCURVE_H__
 #define __FITCURVE_H__
 
-/** \file blender/freestyle/intern/geometry/FitCurve.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief An Algorithm for Automatically Fitting Digitized Curves by Philip J. Schneider,
  *  \brief from "Graphics Gems", Academic Press, 1990
  */

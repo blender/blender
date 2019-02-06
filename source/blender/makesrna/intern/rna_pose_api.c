@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/makesrna/intern/rna_pose_api.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 

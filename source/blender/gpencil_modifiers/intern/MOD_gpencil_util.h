@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpencil_modifiers/intern/MOD_gpencil_util.h
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/CCGSubSurf_intern.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __CCGSUBSURF_INTERN_H__

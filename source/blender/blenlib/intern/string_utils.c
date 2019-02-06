@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/string_utils.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <ctype.h>

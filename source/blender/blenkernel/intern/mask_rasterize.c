@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/mask_rasterize.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * This module exposes a rasterizer that works as a black box - implementation details are confined to this file,
  *

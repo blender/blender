@@ -20,8 +20,7 @@
 #ifndef __BLI_LASSO_2D_H__
 #define __BLI_LASSO_2D_H__
 
-/** \file BLI_lasso_2d.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 struct rcti;

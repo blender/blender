@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_manager_shader.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "DNA_object_types.h"

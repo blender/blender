@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file locale/boost_locale_wrapper.h
- *  \ingroup locale
+/** \file \ingroup locale
  *  A thin C wrapper around boost::locale...
  */
 

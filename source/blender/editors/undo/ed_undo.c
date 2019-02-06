@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/undo/ed_undo.c
- *  \ingroup edundo
+/** \file \ingroup edundo
  */
 
 #include <string.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/noise.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <math.h>

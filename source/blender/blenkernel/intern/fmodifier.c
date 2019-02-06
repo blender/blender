@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/fmodifier.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <math.h>

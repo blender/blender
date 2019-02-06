@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/node/deg_node_time.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #include "intern/node/deg_node_time.h"

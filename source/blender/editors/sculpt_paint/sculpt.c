@@ -18,8 +18,7 @@
  * Implements the Sculpt Mode tools
  */
 
-/** \file blender/editors/sculpt_paint/sculpt.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 

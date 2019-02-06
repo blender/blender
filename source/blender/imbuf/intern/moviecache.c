@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/moviecache.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #undef DEBUG_MESSAGES

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/lightprobe.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "DNA_object_types.h"

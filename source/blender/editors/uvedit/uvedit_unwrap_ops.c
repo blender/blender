@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/uvedit/uvedit_unwrap_ops.c
- *  \ingroup eduv
+/** \file \ingroup eduv
  */
 
 

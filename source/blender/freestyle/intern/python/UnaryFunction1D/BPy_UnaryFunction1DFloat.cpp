@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file source/blender/freestyle/intern/python/UnaryFunction1D/BPy_UnaryFunction1DFloat.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "BPy_UnaryFunction1DFloat.h"

@@ -17,8 +17,7 @@
 #ifndef __BLI_BITMAP_DRAW_2D_H__
 #define __BLI_BITMAP_DRAW_2D_H__
 
-/** \file BLI_bitmap_draw_2d.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 void BLI_bitmap_draw_2d_line_v2v2i(

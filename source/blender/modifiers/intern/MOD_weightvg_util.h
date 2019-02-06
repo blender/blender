@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_weightvg_util.h
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #ifndef __MOD_WEIGHTVG_UTIL_H__

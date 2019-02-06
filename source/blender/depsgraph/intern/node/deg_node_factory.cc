@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/node/deg_node_factory.cc
- *
+/** \file *
  *  \ingroup depsgraph
  */
 

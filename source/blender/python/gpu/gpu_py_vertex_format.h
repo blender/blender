@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/gpu/gpu_py_vertex_format.h
- *  \ingroup bpygpu
+/** \file \ingroup bpygpu
  */
 
 #ifndef __GPU_PY_VERTEX_FORMAT_H__

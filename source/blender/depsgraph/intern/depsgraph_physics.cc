@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/depsgraph_physics.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Physics utilities for effectors and collision.
  */

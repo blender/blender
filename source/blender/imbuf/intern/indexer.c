@@ -16,8 +16,7 @@
  * Peter Schlaile <peter [at] schlaile [dot] de> 2011
  */
 
-/** \file blender/imbuf/intern/indexer.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include <stdlib.h>

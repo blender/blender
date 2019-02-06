@@ -18,8 +18,7 @@
  */
 
 
-/** \file blender/editors/space_sequencer/sequencer_view.c
- *  \ingroup spseq
+/** \file \ingroup spseq
  */
 
 #include "MEM_guardedalloc.h"

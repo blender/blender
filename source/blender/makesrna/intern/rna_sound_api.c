@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/makesrna/intern/rna_sound_api.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include "DNA_packedFile_types.h"

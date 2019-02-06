@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file UI_interface.h
- *  \ingroup editorui
+/** \file \ingroup editorui
  */
 
 #ifndef __UI_INTERFACE_H__

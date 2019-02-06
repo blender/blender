@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/bmesh/bmesh_py_types_meshdata.c
- *  \ingroup pybmesh
+/** \file \ingroup pybmesh
  *
  * This file defines customdata types which can't be accessed as primitive
  * python types such as MDeformVert, MLoopUV, MTexPoly

@@ -17,8 +17,7 @@
 #ifndef __BMESH_INTERSECT_H__
 #define __BMESH_INTERSECT_H__
 
-/** \file blender/bmesh/tools/bmesh_intersect.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 bool BM_mesh_intersect(

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file guardedalloc/intern/mallocn.c
- *  \ingroup MEM
+/** \file \ingroup MEM
  *
  * Guarded memory allocation, and boundary-write detection.
  */

@@ -17,8 +17,7 @@
 #ifndef __MATHUTILS_QUATERNION_H__
 #define __MATHUTILS_QUATERNION_H__
 
-/** \file blender/python/mathutils/mathutils_Quaternion.h
- *  \ingroup pymathutils
+/** \file \ingroup pymathutils
  */
 
 extern PyTypeObject quaternion_Type;

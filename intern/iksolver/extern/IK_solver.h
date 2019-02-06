@@ -18,8 +18,7 @@
  * Original author: Laurence
  */
 
-/** \file iksolver/extern/IK_solver.h
- *  \ingroup iksolver
+/** \file \ingroup iksolver
  */
 
 

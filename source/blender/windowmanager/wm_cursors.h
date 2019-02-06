@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/wm_cursors.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #ifndef __WM_CURSORS_H__

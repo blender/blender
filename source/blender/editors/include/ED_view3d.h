@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_view3d.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_VIEW3D_H__

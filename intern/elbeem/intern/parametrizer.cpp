@@ -1,5 +1,4 @@
-/** \file elbeem/intern/parametrizer.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

@@ -17,8 +17,7 @@
 #ifndef __GAUSSIANFILTER_H__
 #define __GAUSSIANFILTER_H__
 
-/** \file blender/freestyle/intern/image/GaussianFilter.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to perform gaussian filtering operations on an image
  */
 

@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_cache_impl.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_CACHE_IMPL_H__

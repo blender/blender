@@ -18,8 +18,7 @@
  * Operators and API's for renaming bones both in and out of Edit Mode
  */
 
-/** \file blender/editors/armature/armature_naming.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include <string.h>

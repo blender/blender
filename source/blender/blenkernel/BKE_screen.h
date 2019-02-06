@@ -19,8 +19,7 @@
 #ifndef __BKE_SCREEN_H__
 #define __BKE_SCREEN_H__
 
-/** \file BKE_screen.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct ARegion;

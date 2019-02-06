@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_VIEW_EDGE_X_BUILDER_H__
 #define __FREESTYLE_VIEW_EDGE_X_BUILDER_H__
 
-/** \file blender/freestyle/intern/view_map/ViewEdgeXBuilder.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build view edges and the underlying chains of feature edges...
  */
 

@@ -22,8 +22,7 @@
 #  error "this file isnt to be directly included"
 #endif
 
-/** \file blender/blenlib/BLI_endian_switch_inline.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 /* note: using a temp char to switch endian is a lot slower,

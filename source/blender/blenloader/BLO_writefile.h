@@ -20,8 +20,7 @@
 #ifndef __BLO_WRITEFILE_H__
 #define __BLO_WRITEFILE_H__
 
-/** \file BLO_writefile.h
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  *  \brief external writefile function prototypes.
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/makesrna/intern/rna_cachefile.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include "DNA_cachefile_types.h"

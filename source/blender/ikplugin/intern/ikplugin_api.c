@@ -18,8 +18,7 @@
  * Original author: Benoit Bolsee
  */
 
-/** \file blender/ikplugin/intern/ikplugin_api.c
- *  \ingroup ikplugin
+/** \file \ingroup ikplugin
  */
 
 #include "BIK_api.h"

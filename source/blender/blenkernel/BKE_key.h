@@ -19,8 +19,7 @@
 #ifndef __BKE_KEY_H__
 #define __BKE_KEY_H__
 
-/** \file BKE_key.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 struct Curve;
 struct ID;

@@ -19,8 +19,7 @@
  * Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
  */
 
-/** \file ghost/intern/GHOST_SystemX11.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #include <X11/Xatom.h>

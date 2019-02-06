@@ -19,8 +19,7 @@
 #ifndef __BKE_FONT_H__
 #define __BKE_FONT_H__
 
-/** \file BKE_font.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

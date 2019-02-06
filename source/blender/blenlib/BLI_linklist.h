@@ -20,8 +20,7 @@
 #ifndef __BLI_LINKLIST_H__
 #define __BLI_LINKLIST_H__
 
-/** \file BLI_linklist.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_compiler_attrs.h"

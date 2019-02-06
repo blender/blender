@@ -16,8 +16,7 @@
 #ifndef __BKE_APPDIR_H__
 #define __BKE_APPDIR_H__
 
-/** \file BKE_appdir.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 struct ListBase;
 

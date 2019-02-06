@@ -18,8 +18,7 @@
  * Juho Vepsäläinen
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_common.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 #include "DNA_node_types.h"

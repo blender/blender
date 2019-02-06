@@ -20,8 +20,7 @@
 #ifndef __BLI_COMPILER_ATTRS_H__
 #define __BLI_COMPILER_ATTRS_H__
 
-/** \file BLI_compiler_attrs.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 /* hint to make sure function result is actually used */

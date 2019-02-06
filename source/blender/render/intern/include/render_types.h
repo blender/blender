@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/include/render_types.h
- *  \ingroup render
+/** \file \ingroup render
  */
 
 

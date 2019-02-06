@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/interface/interface_icons_event.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * A special set of icons to represent input devices,
  * this is a mix of text (via fonts) and a handful of custom glyphs for special keys.

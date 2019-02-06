@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/curve/editcurve_select.c
- *  \ingroup edcurve
+/** \file \ingroup edcurve
  */
 
 #include "DNA_object_types.h"

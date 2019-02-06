@@ -17,8 +17,7 @@
 #ifndef __BLI_HASH_MM2A_H__
 #define __BLI_HASH_MM2A_H__
 
-/** \file BLI_hash_mm2a.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_sys_types.h"

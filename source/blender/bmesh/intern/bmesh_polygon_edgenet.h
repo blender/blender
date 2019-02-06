@@ -17,8 +17,7 @@
 #ifndef __BMESH_POLYGON_EDGENET_H__
 #define __BMESH_POLYGON_EDGENET_H__
 
-/** \file blender/bmesh/intern/bmesh_polygon_edgenet.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 bool BM_face_split_edgenet(

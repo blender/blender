@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file source/blender/freestyle/intern/python/UnaryFunction0D/UnaryFunction0D_float/BPy_GetParameterF0D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #ifndef __FREESTYLE_PYTHON_GETPARAMETERF0D_H__

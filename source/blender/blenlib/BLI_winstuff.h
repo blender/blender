@@ -20,8 +20,7 @@
 #ifndef __BLI_WINSTUFF_H__
 #define __BLI_WINSTUFF_H__
 
-/** \file BLI_winstuff.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Compatibility-like things for windows.
  */
 

@@ -20,8 +20,7 @@
 #ifndef __BKE_FCURVE_H__
 #define __BKE_FCURVE_H__
 
-/** \file BKE_fcurve.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

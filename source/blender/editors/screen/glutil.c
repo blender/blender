@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/screen/glutil.c
- *  \ingroup edscr
+/** \file \ingroup edscr
  */
 
 

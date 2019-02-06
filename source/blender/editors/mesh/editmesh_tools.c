@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/editmesh_tools.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  */
 
 #include <stddef.h>

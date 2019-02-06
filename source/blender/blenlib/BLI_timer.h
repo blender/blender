@@ -22,8 +22,7 @@
 
 #include "BLI_sys_types.h"
 
-/** \file BLI_timer.h
- *  \ingroup BLI
+/** \file \ingroup BLI
  */
 
 /* ret < 0: the timer will be removed.

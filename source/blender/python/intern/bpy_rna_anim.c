@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna_anim.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file defines the animation related methods used in bpy_rna.c
  */

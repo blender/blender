@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_mball.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_MBALL_H__

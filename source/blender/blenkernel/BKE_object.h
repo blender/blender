@@ -17,8 +17,7 @@
 #ifndef __BKE_OBJECT_H__
 #define __BKE_OBJECT_H__
 
-/** \file BKE_object.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief General operations, lookup, etc. for blender objects.
  */
 #ifdef __cplusplus

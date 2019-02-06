@@ -20,8 +20,7 @@
 #ifndef __BLI_GHASH_H__
 #define __BLI_GHASH_H__
 
-/** \file BLI_ghash.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * GHash is a hash-map implementation (unordered key, value pairs).
  *

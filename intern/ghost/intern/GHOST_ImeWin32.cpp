@@ -20,8 +20,7 @@
  */
 
 
-/** \file ghost/intern/GHOST_ImeWin32.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #ifdef WITH_INPUT_IME

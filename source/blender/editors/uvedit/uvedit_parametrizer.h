@@ -17,8 +17,7 @@
 #ifndef __UVEDIT_PARAMETRIZER_H__
 #define __UVEDIT_PARAMETRIZER_H__
 
-/** \file blender/editors/uvedit/uvedit_parametrizer.h
- *  \ingroup eduv
+/** \file \ingroup eduv
  */
 
 #ifdef __cplusplus

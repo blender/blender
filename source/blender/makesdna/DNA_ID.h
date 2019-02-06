@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_ID.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *  \brief ID and Library types, which are fundamental for sdna.
  */
 

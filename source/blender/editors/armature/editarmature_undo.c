@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/armature/editarmature_undo.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

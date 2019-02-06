@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/depsgraph_type.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Defines and code for core node types.
  */

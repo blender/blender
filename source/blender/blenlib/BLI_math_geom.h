@@ -23,8 +23,7 @@
 #ifndef __BLI_MATH_GEOM_H__
 #define __BLI_MATH_GEOM_H__
 
-/** \file BLI_math_geom.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

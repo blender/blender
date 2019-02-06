@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_mask.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_MASK_H__

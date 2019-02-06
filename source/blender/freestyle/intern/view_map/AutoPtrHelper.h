@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_AUTOPTR_HELPER_H__
 #define __FREESTYLE_AUTOPTR_HELPER_H__
 
-/** \file blender/freestyle/intern/view_map/AutoPtrHelper.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Utility header for auto_ptr/unique_ptr selection
  */
 

@@ -23,8 +23,7 @@
 #ifndef __BLI_MATH_BASE_H__
 #define __BLI_MATH_BASE_H__
 
-/** \file BLI_math_base.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef _MSC_VER

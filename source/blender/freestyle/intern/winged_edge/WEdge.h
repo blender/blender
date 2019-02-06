@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_W_EDGE_H__
 #define __FREESTYLE_W_EDGE_H__
 
-/** \file blender/freestyle/intern/winged_edge/WEdge.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Classes to define a Winged Edge data structure.
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/animation/anim_draw.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 #include "BLI_sys_types.h"

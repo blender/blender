@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/node_toolbar.c
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 #include "BLI_utildefines.h"

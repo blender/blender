@@ -18,8 +18,7 @@
  * Original author: Benoit Bolsee
  */
 
-/** \file blender/ikplugin/intern/iksolver_plugin.h
- *  \ingroup ikplugin
+/** \file \ingroup ikplugin
  */
 
 

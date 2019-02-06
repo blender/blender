@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenloader/intern/versioning_legacy.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 

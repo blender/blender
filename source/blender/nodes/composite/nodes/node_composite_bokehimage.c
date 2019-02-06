@@ -18,8 +18,7 @@
 
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_bokehimage.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 

@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/gpencil_modifiers/intern/MOD_gpencil_util.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

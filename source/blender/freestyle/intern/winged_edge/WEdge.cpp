@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/winged_edge/WEdge.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Classes to define a Winged Edge data structure.
  */
 

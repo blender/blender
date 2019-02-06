@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_VIEW_MAP_H__
 #define __FREESTYLE_VIEW_MAP_H__
 
-/** \file blender/freestyle/intern/view_map/ViewMap.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Classes to define a View Map (ViewVertex, ViewEdge, etc.)
  */
 

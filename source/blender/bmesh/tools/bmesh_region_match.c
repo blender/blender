@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/tools/bmesh_region_match.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Given a contiguous region of faces,
  * find multiple matching regions (based on topology) and return them.

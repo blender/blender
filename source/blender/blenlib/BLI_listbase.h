@@ -20,8 +20,7 @@
 #ifndef __BLI_LISTBASE_H__
 #define __BLI_LISTBASE_H__
 
-/** \file BLI_listbase.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_compiler_attrs.h"

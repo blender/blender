@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file source/blender/gpu/GPU_glew.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_GLEW_H__

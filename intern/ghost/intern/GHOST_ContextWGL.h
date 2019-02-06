@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_ContextWGL.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #ifndef __GHOST_CONTEXTWGL_H__

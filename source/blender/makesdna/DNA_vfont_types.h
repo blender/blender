@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_vfont_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Vector Fonts used for text in the 3D view-port
  * (unrelated to text used to render the GUI).

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file memutil/intern/MEM_CacheLimiterC-Api.cpp
- *  \ingroup memutil
+/** \file \ingroup memutil
  */
 
 #include <cstddef>

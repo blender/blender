@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/intern/stubs.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 #include "BLI_utildefines.h"

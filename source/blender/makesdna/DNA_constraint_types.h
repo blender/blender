@@ -18,8 +18,7 @@
  * Constraint DNA data
  */
 
-/** \file DNA_constraint_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_CONSTRAINT_TYPES_H__

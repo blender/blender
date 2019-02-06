@@ -17,8 +17,7 @@
 #ifndef __RNA_DEFINE_H__
 #define __RNA_DEFINE_H__
 
-/** \file RNA_define.h
- *  \ingroup RNA
+/** \file \ingroup RNA
  *
  * Functions used during preprocess and runtime, for defining the RNA.
  */

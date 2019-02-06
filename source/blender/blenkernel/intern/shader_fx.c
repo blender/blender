@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/blenkernel/intern/shader_fx.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

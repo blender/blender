@@ -18,8 +18,7 @@
  * Dalai Felinto
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_switchview.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 #include "BKE_context.h"

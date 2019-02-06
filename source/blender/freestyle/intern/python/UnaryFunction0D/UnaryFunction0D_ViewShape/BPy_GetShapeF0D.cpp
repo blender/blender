@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file source/blender/freestyle/intern/python/UnaryFunction0D/UnaryFunction0D_ViewShape/BPy_GetShapeF0D.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "BPy_GetShapeF0D.h"

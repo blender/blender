@@ -17,8 +17,7 @@
 #ifndef __BLI_ENDIAN_SWITCH_H__
 #define __BLI_ENDIAN_SWITCH_H__
 
-/** \file BLI_endian_switch.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_compiler_attrs.h"

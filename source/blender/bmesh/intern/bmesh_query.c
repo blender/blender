@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/intern/bmesh_query.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * This file contains functions for answering common
  * Topological and geometric queries about a mesh, such

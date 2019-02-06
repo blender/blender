@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_data.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * All specific data handler for Objects, Lights, ViewLayers, ...
  */

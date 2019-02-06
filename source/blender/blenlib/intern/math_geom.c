@@ -20,8 +20,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/math_geom.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "MEM_guardedalloc.h"

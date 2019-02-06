@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_draw.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  */
 
 

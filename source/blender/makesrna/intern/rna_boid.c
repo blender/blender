@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/makesrna/intern/rna_boid.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include <float.h>

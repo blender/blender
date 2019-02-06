@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_select.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_SELECT_H__

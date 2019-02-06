@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file ED_transform_snap_object_context.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/stroke/AdvancedFunctions1D.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Functions taking 1D input
  */
 

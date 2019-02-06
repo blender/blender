@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_STROKE_LAYER_H__
 #define __FREESTYLE_STROKE_LAYER_H__
 
-/** \file blender/freestyle/intern/stroke/StrokeLayer.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a layer of strokes.
  */
 

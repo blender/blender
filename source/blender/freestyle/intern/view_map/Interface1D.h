@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_INTERFACE_1D_H__
 #define __FREESTYLE_INTERFACE_1D_H__
 
-/** \file blender/freestyle/intern/view_map/Interface1D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Interface 1D and related tools definitions
  */
 

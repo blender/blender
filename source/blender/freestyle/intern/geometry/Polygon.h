@@ -17,8 +17,7 @@
 #ifndef __POLYGON_H__
 #define __POLYGON_H__
 
-/** \file blender/freestyle/intern/geometry/Polygon.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a polygon
  */
 

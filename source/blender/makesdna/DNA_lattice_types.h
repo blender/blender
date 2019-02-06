@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_lattice_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_LATTICE_TYPES_H__

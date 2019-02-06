@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_meshdata_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_MESHDATA_TYPES_H__

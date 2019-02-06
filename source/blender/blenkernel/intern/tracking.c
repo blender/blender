@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/tracking.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stddef.h>

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_app_translations.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file defines a singleton py object accessed via 'bpy.app.translations',
  * which exposes various data and functions useful in i18n work.

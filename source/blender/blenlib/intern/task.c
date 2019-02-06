@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/task.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * A generic task system which can be used for any task based subsystem.
  */

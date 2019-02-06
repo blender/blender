@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/undo/undo_system_types.c
- *  \ingroup edundo
+/** \file \ingroup edundo
  */
 
 #include <string.h>

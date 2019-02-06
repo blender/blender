@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_action/action_draw.c
- *  \ingroup spaction
+/** \file \ingroup spaction
  */
 
 

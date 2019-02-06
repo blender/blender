@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/array_utils.c
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Generic array manipulation API.
  *
  * \warning Some array operations here are inherently inefficient,

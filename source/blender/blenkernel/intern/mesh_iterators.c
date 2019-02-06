@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/mesh_iterators.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Functions for iterating mesh features.
  */

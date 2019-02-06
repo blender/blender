@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file guardedalloc/intern/mallocn.c
- *  \ingroup MEM
+/** \file \ingroup MEM
  *
  * Memory allocation which keeps track on allocated memory counters
  */

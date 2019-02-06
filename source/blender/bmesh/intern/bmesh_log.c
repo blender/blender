@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/intern/bmesh_log.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * The BMLog is an interface for storing undo/redo steps as a BMesh is
  * modified. It only stores changes to the BMesh, not full copies.

@@ -17,8 +17,7 @@
 #ifndef __BLI_ALLOCA_H__
 #define __BLI_ALLOCA_H__
 
-/** \file BLI_alloca.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Defines alloca and utility macro BLI_array_alloca
  */

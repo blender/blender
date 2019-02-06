@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file cage2d_gizmo.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  *
  * \name Cage Gizmo
  *

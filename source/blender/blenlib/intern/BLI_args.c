@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/BLI_args.c
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief A general argument parsing module
  */
 

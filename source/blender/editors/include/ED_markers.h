@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_markers.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_MARKERS_H__

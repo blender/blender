@@ -18,8 +18,7 @@
  * Original author: Benoit Bolsee
  */
 
-/** \file blender/ikplugin/intern/itasc_plugin.cpp
- *  \ingroup ikplugin
+/** \file \ingroup ikplugin
  */
 
 #include <stdlib.h>

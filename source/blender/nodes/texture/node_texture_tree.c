@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/texture/node_texture_tree.c
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/tools/bmesh_bevel.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Main functions for beveling a BMesh (used by the tool and modifier)
  */

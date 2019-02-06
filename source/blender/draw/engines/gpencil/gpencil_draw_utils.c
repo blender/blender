@@ -16,8 +16,7 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file blender/draw/engines/gpencil/gpencil_draw_utils.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "BLI_polyfill_2d.h"

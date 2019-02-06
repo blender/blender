@@ -20,8 +20,7 @@
 #ifndef __IMPLICIT_H__
 #define __IMPLICIT_H__
 
-/** \file implicit.h
- *  \ingroup bph
+/** \file \ingroup bph
  */
 
 #include "stdio.h"

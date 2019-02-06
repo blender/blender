@@ -1,5 +1,4 @@
-/** \file elbeem/intern/solver_control.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

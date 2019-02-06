@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/texture/nodes/node_texture_bricks.c
- *  \ingroup texnodes
+/** \file \ingroup texnodes
  */
 
 

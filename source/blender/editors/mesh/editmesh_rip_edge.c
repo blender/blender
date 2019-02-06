@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/mesh/editmesh_rip_edge.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  *
  * based on mouse cursor position, split of vertices along the closest edge.
  */

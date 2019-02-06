@@ -20,8 +20,7 @@
 #ifndef __BLI_MATH_SOLVERS_H__
 #define __BLI_MATH_SOLVERS_H__
 
-/** \file BLI_math_solvers.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

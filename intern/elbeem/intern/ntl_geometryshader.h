@@ -1,5 +1,4 @@
-/** \file elbeem/intern/ntl_geometryshader.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

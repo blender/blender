@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_clip/tracking_ops_track.c
- *  \ingroup spclip
+/** \file \ingroup spclip
  */
 
 #include "MEM_guardedalloc.h"

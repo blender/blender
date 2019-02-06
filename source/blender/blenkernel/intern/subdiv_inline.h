@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/subdiv_inline.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __SUBDIV_INLINE_H__

@@ -23,8 +23,7 @@
 #ifndef __BLI_MATH_COLOR_BLEND_H__
 #define __BLI_MATH_COLOR_BLEND_H__
 
-/** \file BLI_math_color_blend.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

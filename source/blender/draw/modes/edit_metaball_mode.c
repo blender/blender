@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/modes/edit_metaball_mode.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "DRW_render.h"

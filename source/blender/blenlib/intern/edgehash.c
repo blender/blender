@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/edgehash.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * An (edge -> pointer) hash table.
  * Using unordered int-pairs as keys.

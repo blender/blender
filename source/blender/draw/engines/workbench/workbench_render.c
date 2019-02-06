@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file workbench_render.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Render functions for final render output.
  */

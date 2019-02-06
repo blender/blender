@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/blender_interface/BlenderFileLoader.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "BlenderFileLoader.h"

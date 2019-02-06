@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file smoke/intern/smoke_API.cpp
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 
 #include "FLUID_3D.h"

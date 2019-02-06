@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/editors/armature/pose_lib.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include <string.h>

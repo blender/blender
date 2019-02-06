@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file rb_bullet_api.cpp
- *  \ingroup RigidBody
+/** \file \ingroup RigidBody
  *  \brief Rigid Body API implementation for Bullet
  */
 

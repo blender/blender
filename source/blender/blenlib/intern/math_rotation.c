@@ -20,8 +20,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/math_rotation.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <assert.h>

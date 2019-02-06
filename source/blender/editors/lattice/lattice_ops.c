@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/lattice/lattice_ops.c
- *  \ingroup edlattice
+/** \file \ingroup edlattice
  */
 
 #include "DNA_scene_types.h"

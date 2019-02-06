@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_genfile.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *  \brief blenloader genfile private function prototypes
  */
 

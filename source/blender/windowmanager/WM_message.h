@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/windowmanager/WM_message.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #ifndef __WM_MESSAGE_H__

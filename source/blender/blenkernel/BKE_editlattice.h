@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file BKE_editlattice.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __BKE_EDITLATTICE_H__

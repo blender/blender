@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_mask.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 #include "DNA_mask_types.h"

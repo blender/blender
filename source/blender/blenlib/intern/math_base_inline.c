@@ -20,8 +20,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/math_base_inline.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifndef __MATH_BASE_INLINE_C__

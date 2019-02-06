@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/autoexec.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Currently just checks if a blend file can be trusted to autoexec,
  * may add signing here later.

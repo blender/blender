@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/library.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Contains management of ID's and libraries
  * allocate and free of all library data

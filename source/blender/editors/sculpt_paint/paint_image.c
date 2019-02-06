@@ -18,8 +18,7 @@
  * The Original Code is: some of this file.
  */
 
-/** \file blender/editors/sculpt_paint/paint_image.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  *  \brief Functions to paint images in 2D and 3D.
  */
 

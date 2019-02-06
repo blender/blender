@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_files_link.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Functions for dealing with append/link operators and helpers.
  */

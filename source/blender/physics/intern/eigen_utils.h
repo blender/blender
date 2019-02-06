@@ -20,8 +20,7 @@
 #ifndef __EIGEN_UTILS_H__
 #define __EIGEN_UTILS_H__
 
-/** \file blender/physics/intern/eigen_utils.h
- *  \ingroup bph
+/** \file \ingroup bph
  */
 
 #if defined(__GNUC__) && !defined(__clang__)

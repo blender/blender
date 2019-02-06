@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_ADVANCED_PREDICATES_1D_H__
 #define __FREESTYLE_ADVANCED_PREDICATES_1D_H__
 
-/** \file blender/freestyle/intern/stroke/AdvancedPredicates1D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class gathering stroke creation algorithms
  */
 

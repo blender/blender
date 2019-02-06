@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Internal functions for managing UI registrable types (operator, UI and menu types)
  *

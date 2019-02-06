@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_laplaciansmooth.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

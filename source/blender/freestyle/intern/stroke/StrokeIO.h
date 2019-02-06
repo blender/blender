@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_STROKE_IO_H__
 #define __FREESTYLE_STROKE_IO_H__
 
-/** \file blender/freestyle/intern/stroke/StrokeIO.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Functions to manage I/O for the stroke
  */
 

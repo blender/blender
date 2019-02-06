@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_unsubdivide.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Pattern based geometry reduction which has the result similar to undoing
  * a subdivide operation.

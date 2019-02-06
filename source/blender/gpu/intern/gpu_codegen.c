@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_codegen.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Convert material node-trees to GLSL.
  */

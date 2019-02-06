@@ -20,8 +20,7 @@
 #ifndef __BKE_ICONS_H__
 #define __BKE_ICONS_H__
 
-/** \file BKE_icons.h
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Resizable Icons for Blender
  */

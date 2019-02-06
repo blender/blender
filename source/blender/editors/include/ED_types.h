@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_types.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_TYPES_H__

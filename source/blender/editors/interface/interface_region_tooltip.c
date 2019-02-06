@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_region_tooltip.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * ToolTip Region and Construction
  */

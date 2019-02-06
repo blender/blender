@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_engine.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __EEVEE_ENGINE_H__

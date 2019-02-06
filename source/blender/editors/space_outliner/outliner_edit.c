@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_outliner/outliner_edit.c
- *  \ingroup spoutliner
+/** \file \ingroup spoutliner
  */
 
 #include <string.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/listbase.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Manipulations on double-linked list (#ListBase structs).
  *

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/sculpt_paint/paint_vertex_proj.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  *
  * Utility functions for getting vertex locations while painting
  * (since they may be instanced multiple times in an evaluated mesh)

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_app.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file defines a 'PyStructSequence' accessed via 'bpy.app', mostly
  * exposing static applications variables such as version and buildinfo

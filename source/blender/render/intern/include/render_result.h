@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/include/render_result.h
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #ifndef __RENDER_RESULT_H__

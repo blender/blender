@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/mathutils/mathutils_bvhtree.c
- *  \ingroup mathutils
+/** \file \ingroup mathutils
  *
  * This file defines the 'mathutils.bvhtree' module, a general purpose module to access
  * blenders bvhtree for mesh surface nearest-element search and ray casting.

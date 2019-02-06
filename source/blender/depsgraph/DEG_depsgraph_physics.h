@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/DEG_depsgraph_physics.h
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Physics utilities for effectors and collision.
  */

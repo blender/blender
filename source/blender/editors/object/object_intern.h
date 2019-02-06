@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/object/object_intern.h
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 #ifndef __OBJECT_INTERN_H__

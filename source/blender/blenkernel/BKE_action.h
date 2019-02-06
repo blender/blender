@@ -19,8 +19,7 @@
 
 #ifndef __BKE_ACTION_H__
 #define __BKE_ACTION_H__
-/** \file BKE_action.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief Blender kernel action and pose functionality.
  */
 

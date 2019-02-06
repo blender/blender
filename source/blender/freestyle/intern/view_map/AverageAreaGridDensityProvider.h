@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__
 #define __FREESTYLE_AVERAGE_AREA_GRID_DENSITY_PROVIDER_H__
 
-/** \file blender/freestyle/intern/view_map/AverageAreaGridDensityProvider.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
  */
 

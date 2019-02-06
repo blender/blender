@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file NOD_shader.h
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 #ifndef __NOD_SHADER_H__

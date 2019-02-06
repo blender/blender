@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/GPU_immediate.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * GPU immediate mode work-alike
  */

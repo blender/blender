@@ -30,8 +30,7 @@
 #ifndef __FREESTYLE_CURVATURE_H__
 #define __FREESTYLE_CURVATURE_H__
 
-/** \file blender/freestyle/intern/winged_edge/Curvature.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief GTS - Library for the manipulation of triangulated surfaces
  *  \brief OGF/Graphite: Geometry and Graphics Programming Library + Utilities
  */

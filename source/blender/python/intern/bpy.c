@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file defines the '_bpy' module which is used by python's 'bpy' package
  * to access C defined builtin functions.

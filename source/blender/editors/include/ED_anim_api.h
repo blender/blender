@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_anim_api.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_ANIM_API_H__

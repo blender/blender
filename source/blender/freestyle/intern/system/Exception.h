@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_EXCEPTION_H__
 #define __FREESTYLE_EXCEPTION_H__
 
-/** \file blender/freestyle/intern/system/Exception.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Singleton to manage exceptions
  */
 

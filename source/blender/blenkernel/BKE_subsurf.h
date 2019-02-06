@@ -19,8 +19,7 @@
 #ifndef __BKE_SUBSURF_H__
 #define __BKE_SUBSURF_H__
 
-/** \file BKE_subsurf.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 /* struct DerivedMesh is used directly */

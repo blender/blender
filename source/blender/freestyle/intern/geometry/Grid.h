@@ -17,8 +17,7 @@
 #ifndef __GRID_H__
 #define __GRID_H__
 
-/** \file blender/freestyle/intern/geometry/Grid.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Base class to define a cell grid surrounding the bounding box of the scene
  */
 

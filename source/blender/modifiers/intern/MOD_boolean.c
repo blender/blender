@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_boolean.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 // #ifdef DEBUG_TIME

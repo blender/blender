@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_STROKE_ITERATORS_H__
 #define __FREESTYLE_STROKE_ITERATORS_H__
 
-/** \file blender/freestyle/intern/stroke/StrokeIterators.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Iterators used to iterate over the elements of the Stroke
  */
 

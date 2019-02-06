@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file DRW_render.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 /* This is the Render Functions used by Realtime engines to draw with OpenGL */

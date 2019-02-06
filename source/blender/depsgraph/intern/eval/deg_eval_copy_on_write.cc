@@ -18,8 +18,7 @@
  */
 
 
-/** \file blender/depsgraph/intern/eval/deg_eval_copy_on_write.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 /* Enable special; trickery to treat nested owned IDs (such as nodetree of

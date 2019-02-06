@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/debug/deg_debug.h
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #pragma once

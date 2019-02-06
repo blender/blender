@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_region_hud.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Floating Persistent Region
  */

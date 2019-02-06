@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/physics/particle_edit_utildefines.h
- *  \ingroup edphys
+/** \file \ingroup edphys
  */
 
 #ifndef __PARTICLE_EDIT_UTILDEFNIES_H__

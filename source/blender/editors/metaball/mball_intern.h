@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/metaball/mball_intern.h
- *  \ingroup edmeta
+/** \file \ingroup edmeta
  */
 
 

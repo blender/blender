@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/avi/intern/avi_rgb32.c
- *  \ingroup avi
+/** \file \ingroup avi
  *
  * This is external code. Converts between rgb32 and avi.
  */

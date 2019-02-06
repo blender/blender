@@ -1,5 +1,4 @@
-/** \file smoke/intern/tnt/tnt_stopwatch.h
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 /*
 *

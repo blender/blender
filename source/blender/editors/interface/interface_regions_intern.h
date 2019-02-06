@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/interface/interface_regions_intern.h
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Share between interface_region_*.c files.
  */

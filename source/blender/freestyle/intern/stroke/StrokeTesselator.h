@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_STROKE_TESSELATOR_H__
 #define __FREESTYLE_STROKE_TESSELATOR_H__
 
-/** \file blender/freestyle/intern/stroke/StrokeTesselator.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build a Node Tree designed to be displayed from a set of strokes structure.
  */
 

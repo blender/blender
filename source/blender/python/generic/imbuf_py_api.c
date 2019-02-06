@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/generic/imbuf_py_api.c
- *  \ingroup pygen
+/** \file \ingroup pygen
  *
  * This file defines the 'imbuf' image manipulation module.
  */

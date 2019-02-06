@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/meshtools.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  *
  * meshtools.c: no editmode (violated already :), mirror & join),
  * tools operating on meshes

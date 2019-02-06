@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/sculpt_paint/paint_image_2d.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 //#include <math.h>
 #include <string.h>

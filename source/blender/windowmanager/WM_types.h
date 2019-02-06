@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/WM_types.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #ifndef __WM_TYPES_H__

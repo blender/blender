@@ -1,5 +1,4 @@
-/** \file elbeem/intern/solver_util.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

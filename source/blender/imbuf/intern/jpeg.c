@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/jpeg.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 

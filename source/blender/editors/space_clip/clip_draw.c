@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_clip/clip_draw.c
- *  \ingroup spclip
+/** \file \ingroup spclip
  */
 
 #include "DNA_gpencil_types.h"

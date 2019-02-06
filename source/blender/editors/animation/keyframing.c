@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/animation/keyframing.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 

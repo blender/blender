@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/physics/physics_intern.h
- *  \ingroup edphys
+/** \file \ingroup edphys
  */
 
 

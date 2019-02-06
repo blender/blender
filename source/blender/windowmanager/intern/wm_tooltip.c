@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/windowmanager/intern/wm_tooltip.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Manages a per-window tool-tip.
  */

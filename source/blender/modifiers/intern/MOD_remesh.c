@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2011 by Nicholas Bishop.
  */
 
-/** \file blender/modifiers/intern/MOD_remesh.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #include "MEM_guardedalloc.h"

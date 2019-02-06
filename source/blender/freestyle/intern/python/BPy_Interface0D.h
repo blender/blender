@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file source/blender/freestyle/intern/python/BPy_Interface0D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #ifndef __FREESTYLE_PYTHON_INTERFACE0D_H__

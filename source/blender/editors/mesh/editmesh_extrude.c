@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/editmesh_extrude.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  */
 
 #include "DNA_modifier_types.h"

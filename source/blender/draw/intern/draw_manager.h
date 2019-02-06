@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_manager.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 /* Private functions / structs of the draw manager */

@@ -25,8 +25,7 @@
  *      FRANCE
  */
 
-/** \file blender/freestyle/intern/geometry/matrix_util.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "matrix_util.h"

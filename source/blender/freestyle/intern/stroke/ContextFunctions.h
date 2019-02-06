@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CONTEXT_FUNCTIONS_H__
 #define __FREESTYLE_CONTEXT_FUNCTIONS_H__
 
-/** \file blender/freestyle/intern/stroke/ContextFunctions.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Functions related to context queries
  *  \brief Interface to access the context related information.
  */

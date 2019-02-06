@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/avi/intern/avi_mjpeg.h
- *  \ingroup avi
+/** \file \ingroup avi
  */
 
 #ifndef __AVI_MJPEG_H__

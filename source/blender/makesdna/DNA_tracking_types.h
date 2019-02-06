@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_tracking_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Structs used for camera tracking and the movie-clip editor.
  */

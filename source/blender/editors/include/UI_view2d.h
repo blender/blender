@@ -19,8 +19,7 @@
  * panning, zooming, scrolling, ..
  */
 
-/** \file UI_view2d.h
- *  \ingroup editorui
+/** \file \ingroup editorui
  */
 
 #ifndef __UI_VIEW2D_H__

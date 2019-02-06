@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/png.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  *
  * \todo Save floats as 16 bits per channel, currently readonly.
  */

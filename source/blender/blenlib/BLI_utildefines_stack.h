@@ -17,8 +17,7 @@
 #ifndef __BLI_UTILDEFINES_STACK_H__
 #define __BLI_UTILDEFINES_STACK_H__
 
-/** \file BLI_utildefines_stack.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Macro's for a simple array based stack
  * \note Caller handles alloc & free.

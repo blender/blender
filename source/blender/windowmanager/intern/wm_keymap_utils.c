@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/windowmanager/intern/wm_keymap_utils.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Utilities to help define keymaps.
  */

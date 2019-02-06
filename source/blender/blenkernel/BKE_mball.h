@@ -19,8 +19,7 @@
 #ifndef __BKE_MBALL_H__
 #define __BKE_MBALL_H__
 
-/** \file BKE_mball.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 struct BoundBox;
 struct Depsgraph;

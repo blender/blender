@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/sort_utils.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Utility functions for sorting common types.
  */

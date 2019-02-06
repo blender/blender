@@ -18,8 +18,7 @@
  * Operators and API's for creating bones
  */
 
-/** \file blender/editors/armature/armature_add.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "DNA_armature_types.h"

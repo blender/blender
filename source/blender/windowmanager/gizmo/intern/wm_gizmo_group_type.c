@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/windowmanager/gizmo/intern/wm_gizmo_group_type.c
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #include "BLI_utildefines.h"

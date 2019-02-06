@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/eval/deg_eval_copy_on_write.h
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #pragma once

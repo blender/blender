@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/modes/pose_mode.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 #include "BKE_modifier.h"
 

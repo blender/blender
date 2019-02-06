@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_uvedit.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_UVEDIT_H__

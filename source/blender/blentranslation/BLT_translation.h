@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blentranslation/BLT_translation.h
- *  \ingroup blt
+/** \file \ingroup blt
  */
 
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file BKE_subdiv_mesh.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __BKE_SUBDIV_MESH_H__

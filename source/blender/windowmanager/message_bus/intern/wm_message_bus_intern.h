@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/windowmanager/message_bus/intern/wm_message_bus_intern.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #ifndef __WM_MESSAGE_BUS_INTERN_H__

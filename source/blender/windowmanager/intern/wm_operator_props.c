@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_operator_props.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Generic re-usable property definitions and accessors for operators to share.
  * (`WM_operator_properties_*` functions).

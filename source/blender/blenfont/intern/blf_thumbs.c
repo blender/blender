@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenfont/intern/blf_thumbs.c
- *  \ingroup blf
+/** \file \ingroup blf
  *
  * Utility function to generate font preview images.
  *

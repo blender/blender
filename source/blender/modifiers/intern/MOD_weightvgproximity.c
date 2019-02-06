@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_weightvgproximity.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #include "BLI_utildefines.h"

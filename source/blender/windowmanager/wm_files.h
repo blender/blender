@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/wm_files.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #ifndef __WM_FILES_H__

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/screen.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef WIN32

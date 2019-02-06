@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_eyedropper.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  */
 
 #include "DNA_space_types.h"

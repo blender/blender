@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/intern/bpy_app_alembic.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 #ifndef __BPY_APP_ALEMBIC_H__

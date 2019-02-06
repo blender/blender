@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/object_dupli.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <limits.h>

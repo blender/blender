@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/depsgraph_update.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #include "intern/depsgraph_update.h"

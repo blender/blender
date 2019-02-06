@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_curve.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_CURVE_H__

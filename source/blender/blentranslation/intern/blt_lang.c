@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blentranslation/intern/blt_lang.c
- *  \ingroup blt
+/** \file \ingroup blt
  *
  * Main internationalization functions to set the locale and query available languages.
  */

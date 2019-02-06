@@ -17,8 +17,7 @@
 #ifndef __BLI_ARRAY_UTILS_H__
 #define __BLI_ARRAY_UTILS_H__
 
-/** \file BLI_array_utils.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Generic array manipulation API.
  */
 

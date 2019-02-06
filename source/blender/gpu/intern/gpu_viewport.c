@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_viewport.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * System that manages viewport drawing.
  */

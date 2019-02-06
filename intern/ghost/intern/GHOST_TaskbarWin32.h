@@ -1,5 +1,4 @@
-/** \file ghost/intern/GHOST_TaskbarWin32.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 #ifndef __GHOST_TASKBARWIN32_H__
 #define __GHOST_TASKBARWIN32_H__

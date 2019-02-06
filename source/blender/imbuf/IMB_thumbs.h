@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/IMB_thumbs.h
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 

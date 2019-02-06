@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/view2d_ops.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  */
 
 

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file BLI_callbacks.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifndef __BLI_CALLBACKS_H__

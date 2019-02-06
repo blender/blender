@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file RE_multires_bake.h
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #ifndef __RE_MULTIRES_BAKE_H__

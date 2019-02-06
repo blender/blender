@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_correctivesmooth.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  *
  * Method of smoothing deformation, also known as 'delta-mush'.
  */

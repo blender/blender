@@ -20,8 +20,7 @@
 #ifndef __SUBDIV_CONVERTER_H__
 #define __SUBDIV_CONVERTER_H__
 
-/** \file blender/blenkernel/intern/subdiv_converter.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BKE_subdiv.h"

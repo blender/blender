@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/GPU_primitive.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * GPU geometric primitives
  */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_script/script_intern.h
- *  \ingroup spscript
+/** \file \ingroup spscript
  */
 
 #ifndef __SCRIPT_INTERN_H__

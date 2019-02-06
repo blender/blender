@@ -1,5 +1,4 @@
-/** \file elbeem/intern/utilities.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

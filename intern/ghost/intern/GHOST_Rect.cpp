@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_Rect.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 

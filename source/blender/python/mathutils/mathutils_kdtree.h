@@ -15,8 +15,7 @@
  */
 
 
-/** \file blender/python/mathutils/mathutils_kdtree.h
- *  \ingroup mathutils
+/** \file \ingroup mathutils
  */
 
 #ifndef __MATHUTILS_KDTREE_H__

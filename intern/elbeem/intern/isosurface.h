@@ -1,5 +1,4 @@
-/** \file elbeem/intern/isosurface.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

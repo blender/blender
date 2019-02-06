@@ -17,8 +17,7 @@
 #ifndef __BLENDER_FILE_LOADER_H__
 #define __BLENDER_FILE_LOADER_H__
 
-/** \file blender/freestyle/intern/blender_interface/BlenderFileLoader.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include <string.h>

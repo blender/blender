@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/bmesh/bmesh_py_ops_call.c
- *  \ingroup pybmesh
+/** \file \ingroup pybmesh
  *
  * This file provides __call__ aka BPy_BMO_call for
  * the bmesh operator and has been given its own file

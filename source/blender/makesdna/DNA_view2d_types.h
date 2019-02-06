@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_view2d_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_VIEW2D_TYPES_H__

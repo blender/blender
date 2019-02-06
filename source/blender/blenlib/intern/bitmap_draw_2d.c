@@ -20,8 +20,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/bitmap_draw_2d.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Utility functions for primitive drawing operations.
  */

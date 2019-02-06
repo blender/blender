@@ -1,5 +1,4 @@
-/** \file elbeem/intern/solver_relax.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

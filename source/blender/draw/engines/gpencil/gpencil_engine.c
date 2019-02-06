@@ -16,8 +16,7 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file blender/draw/engines/gpencil/gpencil_engine.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 #include "DRW_engine.h"
 #include "DRW_render.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/debug/deg_debug_relations_graphviz.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Implementation of tools for debugging the depsgraph
  */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/source/multires_bake.c
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #include <string.h>

@@ -19,7 +19,7 @@
  * All rights reserved.
  */
 
- /** \file blender/blenlib/intern/string_utf8.c
+ /** \file
   *  \ingroup bli
   */
 

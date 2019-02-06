@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/shrinkwrap.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <string.h>

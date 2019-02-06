@@ -18,8 +18,7 @@
  * return info about ID types
  */
 
-/** \file blender/blenkernel/intern/idcode.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdlib.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_region_popup.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * PopUp Region (Generic)
  */

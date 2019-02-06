@@ -16,8 +16,7 @@
 #ifndef __BKE_LIBRARY_REMAP_H__
 #define __BKE_LIBRARY_REMAP_H__
 
-/** \file BKE_library_remap.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 #ifdef __cplusplus
 extern "C" {

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_text/text_format.h
- *  \ingroup sptext
+/** \file \ingroup sptext
  */
 
 #ifndef __TEXT_FORMAT_H__

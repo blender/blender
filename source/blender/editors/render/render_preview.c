@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/render/render_preview.c
- *  \ingroup edrend
+/** \file \ingroup edrend
  */
 
 

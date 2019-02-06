@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/transform/transform.h
- *  \ingroup edtransform
+/** \file \ingroup edtransform
  */
 
 

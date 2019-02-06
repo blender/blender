@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_cloth_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_CLOTH_TYPES_H__

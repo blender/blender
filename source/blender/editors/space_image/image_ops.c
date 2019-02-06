@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_image/image_ops.c
- *  \ingroup spimage
+/** \file \ingroup spimage
  */
 
 

@@ -20,8 +20,7 @@
 #ifndef __BLI_TIMECODE_H__
 #define __BLI_TIMECODE_H__
 
-/** \file BLI_timecode.h
- *  \ingroup BLI
+/** \file \ingroup BLI
  */
 
 #include "BLI_compiler_attrs.h"

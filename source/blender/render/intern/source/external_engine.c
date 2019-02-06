@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/source/external_engine.c
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #include <stddef.h>

@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/editors/space_action/action_data.c
- *  \ingroup spaction
+/** \file \ingroup spaction
  */
 
 

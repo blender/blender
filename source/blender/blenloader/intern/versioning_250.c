@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenloader/intern/versioning_250.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 #ifndef WIN32

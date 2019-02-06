@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_RAND_GEN_H__
 #define __FREESTYLE_RAND_GEN_H__
 
-/** \file blender/freestyle/intern/system/RandGen.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Pseudo-random number generator
  */
 

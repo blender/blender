@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/undo/memfile_undo.c
- *  \ingroup edundo
+/** \file \ingroup edundo
  *
  * Wrapper between 'ED_undo.h' and 'BKE_undo_system.h' API's.
  */

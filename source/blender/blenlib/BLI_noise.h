@@ -20,8 +20,7 @@
 #ifndef __BLI_NOISE_H__
 #define __BLI_NOISE_H__
 
-/** \file BLI_noise.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

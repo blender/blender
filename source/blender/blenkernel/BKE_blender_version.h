@@ -16,8 +16,7 @@
 #ifndef __BKE_BLENDER_VERSION_H__
 #define __BKE_BLENDER_VERSION_H__
 
-/** \file BKE_blender_version.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 /* these lines are grep'd, watch out for our not-so-awesome regex

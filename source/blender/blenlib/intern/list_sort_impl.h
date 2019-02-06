@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/list_sort_impl.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Common implementation of linked-list a non-recursive mergesort.
  *

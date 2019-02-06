@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file mmap_win.h
- *  \ingroup MEM
+/** \file \ingroup MEM
  */
 
 #ifndef __MMAP_WIN_H__

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/colormanagement.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include "IMB_colormanagement.h"

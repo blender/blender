@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/studiolight.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BKE_studiolight.h"

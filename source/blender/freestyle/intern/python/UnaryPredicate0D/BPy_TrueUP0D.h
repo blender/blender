@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file source/blender/freestyle/intern/python/UnaryPredicate0D/BPy_TrueUP0D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #ifndef __FREESTYLE_PYTHON_TRUEUP0D_H__

@@ -20,8 +20,7 @@
 #ifndef __BMESH_MESH_VALIDATE_H__
 #define __BMESH_MESH_VALIDATE_H__
 
-/** \file blender/bmesh/intern/bmesh_mesh_validate.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 bool BM_mesh_validate(BMesh *bm);

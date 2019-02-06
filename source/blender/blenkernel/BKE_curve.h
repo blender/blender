@@ -19,8 +19,7 @@
 #ifndef __BKE_CURVE_H__
 #define __BKE_CURVE_H__
 
-/** \file BKE_curve.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct BezTriple;

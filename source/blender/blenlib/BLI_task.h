@@ -22,8 +22,7 @@
 struct Link;
 struct ListBase;
 
-/** \file BLI_task.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

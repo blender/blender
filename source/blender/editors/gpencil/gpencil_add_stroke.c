@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/editors/gpencil/gpencil_add_stroke.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 #include "BLI_math.h"

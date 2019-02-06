@@ -20,8 +20,7 @@
  * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
  */
 
-/** \file blender/blenkernel/intern/sequencer.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stddef.h>

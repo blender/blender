@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/composite/node_composite_tree.c
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 

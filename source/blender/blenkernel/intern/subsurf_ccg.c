@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/subsurf_ccg.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L

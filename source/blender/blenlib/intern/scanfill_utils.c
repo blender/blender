@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/scanfill_utils.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdio.h>

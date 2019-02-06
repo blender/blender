@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/bmesh/bmesh_py_types.c
- *  \ingroup pybmesh
+/** \file \ingroup pybmesh
  */
 
 #include "BLI_math.h"

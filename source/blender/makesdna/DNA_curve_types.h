@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_curve_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_CURVE_TYPES_H__

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/iris.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 

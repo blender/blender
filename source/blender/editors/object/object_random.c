@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/object/object_random.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 #include "MEM_guardedalloc.h"

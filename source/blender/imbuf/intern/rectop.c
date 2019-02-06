@@ -18,8 +18,7 @@
  * allocimbuf.c
  */
 
-/** \file blender/imbuf/intern/rectop.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include <stdlib.h>

@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/editors/gpencil/gpencil_ops.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

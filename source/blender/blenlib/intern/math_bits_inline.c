@@ -15,8 +15,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/math_bits_inline.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifndef __MATH_BITS_INLINE_C__

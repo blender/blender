@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_eyedropper_colorband.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Eyedropper (Color Band).
  *

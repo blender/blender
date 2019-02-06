@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/shader/node_shader_util.h
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 

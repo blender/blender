@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file BKE_crazyspace.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __BKE_CRAZYSPACE_H__

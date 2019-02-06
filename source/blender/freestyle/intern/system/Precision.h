@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_PRECISION_H__
 #define __FREESTYLE_PRECISION_H__
 
-/** \file blender/freestyle/intern/system/Precision.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Define the float precision used in the program
  */
 

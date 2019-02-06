@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file BKE_editmesh_bvh.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __BKE_EDITMESH_BVH_H__

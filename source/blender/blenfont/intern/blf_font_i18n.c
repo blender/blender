@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenfont/intern/blf_font_i18n.c
- *  \ingroup blf
+/** \file \ingroup blf
  *
  * API for accessing font files.
  */

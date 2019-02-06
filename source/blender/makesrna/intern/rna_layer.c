@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/makesrna/intern/rna_layer.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include "DNA_scene_types.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_select_private.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Selection implementations.
  */

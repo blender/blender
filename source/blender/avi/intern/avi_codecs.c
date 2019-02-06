@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/avi/intern/avi_codecs.c
- *  \ingroup avi
+/** \file \ingroup avi
  *
  * This is external code. Identify and convert different avi-files.
  */

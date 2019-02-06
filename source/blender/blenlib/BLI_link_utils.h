@@ -17,8 +17,7 @@
 #ifndef __BLI_LINK_UTILS_H__
 #define __BLI_LINK_UTILS_H__
 
-/** \file BLI_link_utils.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Single link-list utility macros. (header only api).
  *
  * Use this api when the structure defines its own ``next`` pointer

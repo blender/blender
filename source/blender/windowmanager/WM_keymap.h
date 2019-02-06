@@ -20,8 +20,7 @@
 #ifndef __WM_KEYMAP_H__
 #define __WM_KEYMAP_H__
 
-/** \file blender/windowmanager/WM_keymap.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 /* dna-savable wmStructs here */

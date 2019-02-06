@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_nla/nla_ops.c
- *  \ingroup spnla
+/** \file \ingroup spnla
  */
 
 #include <string.h>

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/object/object_utils.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 #include <stdlib.h>

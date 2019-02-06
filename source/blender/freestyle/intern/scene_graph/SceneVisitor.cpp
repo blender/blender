@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/scene_graph/SceneVisitor.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to visit (without doing anything) a scene graph structure
  */
 

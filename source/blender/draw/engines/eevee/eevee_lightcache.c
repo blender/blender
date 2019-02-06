@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_lightcache.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Eevee's indirect lighting cache.
  */

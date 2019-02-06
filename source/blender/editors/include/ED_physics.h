@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_physics.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_PHYSICS_H__

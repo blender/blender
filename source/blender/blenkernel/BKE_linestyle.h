@@ -20,8 +20,7 @@
 #ifndef __BKE_LINESTYLE_H__
 #define __BKE_LINESTYLE_H__
 
-/** \file BKE_linestyle.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief Blender kernel freestyle line style functionality.
  */
 

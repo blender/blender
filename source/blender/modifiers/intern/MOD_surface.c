@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_surface.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

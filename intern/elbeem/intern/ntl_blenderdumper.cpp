@@ -1,5 +1,4 @@
-/** \file elbeem/intern/ntl_blenderdumper.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

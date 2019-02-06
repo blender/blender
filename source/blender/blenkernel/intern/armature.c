@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/armature.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <ctype.h>

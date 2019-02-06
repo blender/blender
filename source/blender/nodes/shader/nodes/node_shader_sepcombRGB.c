@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/shader/nodes/node_shader_sepcombRGB.c
- *  \ingroup shdnodes
+/** \file \ingroup shdnodes
  */
 
 

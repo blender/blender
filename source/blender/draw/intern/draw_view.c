@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_view.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * Contains dynamic drawing using immediate mode
  */

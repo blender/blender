@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_manager_text.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "MEM_guardedalloc.h"

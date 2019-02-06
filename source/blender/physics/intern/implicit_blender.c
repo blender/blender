@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/physics/intern/implicit_blender.c
- *  \ingroup bph
+/** \file \ingroup bph
  */
 
 #include "implicit.h"

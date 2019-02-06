@@ -18,8 +18,7 @@
  * Dynamically sized string ADT
  */
 
-/** \file blender/blenlib/intern/BLI_dynstr.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdlib.h>  /* malloc */

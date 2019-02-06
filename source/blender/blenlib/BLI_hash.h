@@ -17,8 +17,7 @@
 #ifndef __BLI_HASH_H__
 #define __BLI_HASH_H__
 
-/** \file BLI_hash.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

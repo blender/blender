@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/space_view3d/view3d_walk.c
- *  \ingroup spview3d
+/** \file \ingroup spview3d
  */
 
 /* defines VIEW3D_OT_navigate - walk modal operator */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file glew-mx.h
- *  \ingroup glew-mx
+/** \file \ingroup glew-mx
  *
  * Support for GLEW Multiple rendering conteXts (MX)
  * Maintained as a Blender Library.

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/avi/intern/avi_rgb.h
- *  \ingroup avi
+/** \file \ingroup avi
  */
 
 #ifndef __AVI_RGB_H__

@@ -20,8 +20,7 @@
 #ifndef __BLI_BOXPACK_2D_H__
 #define __BLI_BOXPACK_2D_H__
 
-/** \file BLI_boxpack_2d.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 /* Box Packer */

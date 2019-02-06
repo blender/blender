@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/physics/particle_edit_undo.c
- *  \ingroup edphys
+/** \file \ingroup edphys
  */
 
 #include <stdlib.h>

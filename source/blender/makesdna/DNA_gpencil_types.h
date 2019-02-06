@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file DNA_gpencil_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_GPENCIL_TYPES_H__

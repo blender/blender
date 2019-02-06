@@ -17,8 +17,7 @@
 #ifndef __FASTGRID_H__
 #define __FASTGRID_H__
 
-/** \file blender/freestyle/intern/geometry/FastGrid.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the bounding box of the scene
  */
 

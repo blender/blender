@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_outliner/outliner_draw.c
- *  \ingroup spoutliner
+/** \file \ingroup spoutliner
  */
 
 #include "DNA_anim_types.h"

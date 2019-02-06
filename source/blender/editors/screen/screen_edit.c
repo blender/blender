@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/screen/screen_edit.c
- *  \ingroup edscr
+/** \file \ingroup edscr
  */
 
 

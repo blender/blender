@@ -19,8 +19,7 @@
 #ifndef __BKE_EFFECT_H__
 #define __BKE_EFFECT_H__
 
-/** \file BKE_effect.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "DNA_modifier_types.h"

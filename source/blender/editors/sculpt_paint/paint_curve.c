@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/sculpt_paint/paint_curve.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 #include <string.h>

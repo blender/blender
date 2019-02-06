@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file ED_gizmo_library.h
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * \name Generic Gizmos.
  *

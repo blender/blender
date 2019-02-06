@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/shader/nodes/node_shader_script.c
- *  \ingroup shdnodes
+/** \file \ingroup shdnodes
  */
 
 #include "node_shader_util.h"

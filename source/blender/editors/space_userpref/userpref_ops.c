@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_userpref/userpref_ops.c
- *  \ingroup spuserpref
+/** \file \ingroup spuserpref
  */
 
 

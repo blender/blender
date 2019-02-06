@@ -17,8 +17,7 @@
 #ifndef __BLENDERSTYLEMODULE_H__
 #define __BLENDERSTYLEMODULE_H__
 
-/** \file blender/freestyle/intern/blender_interface/BlenderStyleModule.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "../stroke/StyleModule.h"

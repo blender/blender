@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2009/2018 by the Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_anim_viz.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 

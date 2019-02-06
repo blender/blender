@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_VIEW_MAP_ADVANCED_ITERATORS_H__
 #define __FREESTYLE_VIEW_MAP_ADVANCED_ITERATORS_H__
 
-/** \file blender/freestyle/intern/view_map/ViewMapAdvancedIterators.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Iterators used to iterate over the various elements of the ViewMap.
  *         These iterators can't be exported to python.
  */

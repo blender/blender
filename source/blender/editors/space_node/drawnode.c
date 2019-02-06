@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/drawnode.c
- *  \ingroup spnode
+/** \file \ingroup spnode
  *  \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
  */
 

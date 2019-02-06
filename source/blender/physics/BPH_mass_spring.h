@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/physics/BPH_mass_spring.h
- *  \ingroup bph
+/** \file \ingroup bph
  */
 
 #ifndef __BPH_MASS_SPRING_H__

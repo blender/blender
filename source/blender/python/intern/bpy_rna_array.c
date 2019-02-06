@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna_array.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file deals with array access for 'BPy_PropertyArrayRNA' from bpy_rna.c
  */

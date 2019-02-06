@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file string/intern/STR_String.cpp
- *  \ingroup string
+/** \file \ingroup string
  *
  * Copyright (C) 2001 NaN Technologies B.V.
  * This file was formerly known as: GEN_StdString.cpp.

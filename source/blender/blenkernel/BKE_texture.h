@@ -19,8 +19,7 @@
 #ifndef __BKE_TEXTURE_H__
 #define __BKE_TEXTURE_H__
 
-/** \file BKE_texture.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

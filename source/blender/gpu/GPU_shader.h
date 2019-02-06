@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_shader.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_SHADER_H__

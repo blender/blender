@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/bmesh/intern/bmesh_construct.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * BM construction functions.
  */

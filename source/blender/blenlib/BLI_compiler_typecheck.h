@@ -17,8 +17,7 @@
 #ifndef __BLI_COMPILER_TYPECHECK_H__
 #define __BLI_COMPILER_TYPECHECK_H__
 
-/** \file BLI_compiler_typecheck.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Type checking macros (often used to ensure valid use of macro args).
  * These depend on compiler extensions and c11 in some cases.

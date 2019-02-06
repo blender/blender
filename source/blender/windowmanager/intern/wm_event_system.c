@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_event_system.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Handle events and notifiers from GHOST input (mouse, keyboard, tablet, ndof).
  *

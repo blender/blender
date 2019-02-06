@@ -17,8 +17,7 @@
 #ifndef __BLF_PY_API_H__
 #define __BLF_PY_API_H__
 
-/** \file blender/python/generic/blf_py_api.h
- *  \ingroup pygen
+/** \file \ingroup pygen
  */
 
 PyObject *BPyInit_blf(void);

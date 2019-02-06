@@ -20,8 +20,7 @@
 #ifndef __BKE_POINTCACHE_H__
 #define __BKE_POINTCACHE_H__
 
-/** \file BKE_pointcache.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "DNA_ID.h"

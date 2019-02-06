@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file string/STR_String.h
- *  \ingroup string
+/** \file \ingroup string
  */
 
 

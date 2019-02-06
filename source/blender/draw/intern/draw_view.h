@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_view.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_VIEW_H__

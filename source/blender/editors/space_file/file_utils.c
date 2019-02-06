@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/space_file/file_utils.c
- *  \ingroup spfile
+/** \file \ingroup spfile
  */
 
 #include "BLI_rect.h"

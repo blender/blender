@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_beautify.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Beautify the mesh by rotating edges between triangles
  * to more attractive positions until no more rotations can be made.

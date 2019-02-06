@@ -20,8 +20,7 @@
 #ifndef __BKE_SEQUENCER_H__
 #define __BKE_SEQUENCER_H__
 
-/** \file BKE_sequencer.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct Depsgraph;

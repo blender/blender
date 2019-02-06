@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/view_map/SphericalGrid.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
  */
 

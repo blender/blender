@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/GHOST_IEvent.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_IEvent interface class.
  */
 

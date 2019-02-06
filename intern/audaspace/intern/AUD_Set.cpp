@@ -18,8 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file audaspace/intern/AUD_Set.cpp
- *  \ingroup audaspaceintern
+/** \file \ingroup audaspaceintern
  */
 
 #include <set>

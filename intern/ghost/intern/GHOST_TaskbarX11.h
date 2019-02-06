@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file ghost/intern/GHOST_TaskbarX11.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 #ifndef __GHOST_TASKBARX11_H__
 #define __GHOST_TASKBARX11_H__

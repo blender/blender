@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_capi_utils.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file contains Blender/Python utility functions to help implementing API's.
  * This is not related to a particular module.

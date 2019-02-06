@@ -16,8 +16,7 @@
  * Copyright 2018, Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_debug.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * \brief Simple API to draw debug shapes in the viewport.
  */

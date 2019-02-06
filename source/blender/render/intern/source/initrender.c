@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/source/initrender.c
- *  \ingroup render
+/** \file \ingroup render
  */
 
 /* Global includes */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/bmesh/bmesh_py_utils.h
- *  \ingroup pybmesh
+/** \file \ingroup pybmesh
  */
 
 #ifndef __BMESH_PY_UTILS_H__

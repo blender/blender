@@ -18,8 +18,7 @@
  * DNA handling
  */
 
-/** \file blender/makesdna/intern/dna_genfile.c
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Lowest-level functions for decoding the parts of a saved .blend
  * file, including interpretation of its SDNA block and conversion of

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file BPY_extern_clog.h
- *  \ingroup python
+/** \file \ingroup python
  *
  * Logging defines.
  */

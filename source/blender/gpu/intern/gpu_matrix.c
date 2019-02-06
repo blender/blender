@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file source/blender/gpu/intern/gpu_matrix.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #include "GPU_shader_interface.h"

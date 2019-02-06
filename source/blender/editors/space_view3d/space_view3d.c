@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_view3d/space_view3d.c
- *  \ingroup spview3d
+/** \file \ingroup spview3d
  */
 
 

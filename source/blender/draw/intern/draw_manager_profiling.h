@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_manager_profiling.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_MANAGER_PROFILING_H__

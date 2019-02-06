@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_element.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * GPU element list (AKA index buffer)
  */

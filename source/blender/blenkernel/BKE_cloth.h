@@ -19,8 +19,7 @@
 #ifndef __BKE_CLOTH_H__
 #define __BKE_CLOTH_H__
 
-/** \file BKE_cloth.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <float.h>

@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/modes/edit_mesh_mode_text.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "BLI_math.h"

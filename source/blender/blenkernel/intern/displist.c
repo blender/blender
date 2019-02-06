@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/displist.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

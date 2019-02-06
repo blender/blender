@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_PYTHON_INTERPRETER_H__
 #define __FREESTYLE_PYTHON_INTERPRETER_H__
 
-/** \file blender/freestyle/intern/system/PythonInterpreter.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Python Interpreter
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/lattice/lattice_intern.h
- *  \ingroup edlattice
+/** \file \ingroup edlattice
  */
 
 

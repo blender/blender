@@ -18,8 +18,7 @@
  * All rights reserved.
  */
 
-/** \file iksolver/intern/IK_QJacobian.h
- *  \ingroup iksolver
+/** \file \ingroup iksolver
  */
 
 #pragma once

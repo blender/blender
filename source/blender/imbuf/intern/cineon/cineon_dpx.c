@@ -20,8 +20,7 @@
  * I hearby donate this code and all rights to the Blender Foundation.
  */
 
-/** \file blender/imbuf/intern/cineon/cineon_dpx.c
- *  \ingroup imbcineon
+/** \file \ingroup imbcineon
  */
 
 

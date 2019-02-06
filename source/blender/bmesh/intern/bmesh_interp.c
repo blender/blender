@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/bmesh/intern/bmesh_interp.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Functions for interpolating data across the surface of a mesh.
  */

@@ -1,5 +1,4 @@
-/** \file smoke/intern/tnt/tnt_fortran_array3d_utils.h
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 /*
 *

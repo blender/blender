@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CURVE_H__
 #define __FREESTYLE_CURVE_H__
 
-/** \file blender/freestyle/intern/stroke/Curve.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a container for curves
  */
 

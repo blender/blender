@@ -18,8 +18,7 @@
  * Implementation of Bone Groups operators and editing API's
  */
 
-/** \file blender/editors/armature/pose_group.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include <string.h>

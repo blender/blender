@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/object_update.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "DNA_anim_types.h"

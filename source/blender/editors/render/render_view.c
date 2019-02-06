@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/render/render_view.c
- *  \ingroup edrend
+/** \file \ingroup edrend
  */
 
 #include <string.h>

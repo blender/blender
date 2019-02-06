@@ -16,8 +16,7 @@
  * Chris Keith, Chris Want, Ken Hughes, Campbell Barton
  */
 
-/** \file blender/python/intern/bpy_interface.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file deals with embedding the python interpreter within blender,
  * starting and stopping python and exposing blender/python modules so they can

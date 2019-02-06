@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_build.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #include "MEM_guardedalloc.h"

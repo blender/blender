@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_material.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Manages materials, lights and textures.
  */

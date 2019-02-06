@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_EventPrinter.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_EventPrinter class.
  */
 

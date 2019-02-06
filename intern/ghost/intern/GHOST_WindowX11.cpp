@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_WindowX11.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 /* For standard X11 cursors */

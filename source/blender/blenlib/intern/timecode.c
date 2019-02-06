@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/timecode.c
- *  \ingroup blendlib
+/** \file \ingroup blendlib
  *
  * Time-Code string formatting
  */

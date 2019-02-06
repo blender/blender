@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_BOX_GRID_H__
 #define __FREESTYLE_BOX_GRID_H__
 
-/** \file blender/freestyle/intern/view_map/BoxGrid.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
  */
 

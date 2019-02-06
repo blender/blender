@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder_map.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #include "intern/builder/deg_builder_map.h"

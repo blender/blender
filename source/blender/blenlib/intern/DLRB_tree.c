@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/DLRB_tree.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 

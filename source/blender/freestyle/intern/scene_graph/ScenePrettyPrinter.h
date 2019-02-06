@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_SCENE_PRETTY_PRINTER_H__
 #define __FREESTYLE_SCENE_PRETTY_PRINTER_H__
 
-/** \file blender/freestyle/intern/scene_graph/ScenePrettyPrinter.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to display textual information about a scene graph.
  */
 

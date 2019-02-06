@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_graph/space_graph.c
- *  \ingroup spgraph
+/** \file \ingroup spgraph
  */
 
 

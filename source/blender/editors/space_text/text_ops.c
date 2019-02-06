@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_text/text_ops.c
- *  \ingroup sptext
+/** \file \ingroup sptext
  */
 
 

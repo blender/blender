@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mask/mask_intern.h
- *  \ingroup spclip
+/** \file \ingroup spclip
  */
 
 #ifndef __MASK_INTERN_H__

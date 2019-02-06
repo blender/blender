@@ -17,9 +17,7 @@
  * All rights reserved.
  */
 
-/**
- * \file MEM_guardedalloc.h
- * \ingroup MEM
+/** \file \ingroup MEM
  *
  * \brief Read \ref MEMPage
  *

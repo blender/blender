@@ -1,5 +1,4 @@
-/** \file elbeem/intern/loop_tools.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 
 // advance pointer in main loop

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file depsgraph/intern/node/deg_node.h
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  */
 
 #pragma once

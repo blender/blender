@@ -17,8 +17,7 @@
 #ifndef __BLI_POLYFILL_2D_H__
 #define __BLI_POLYFILL_2D_H__
 
-/** \file BLI_polyfill_2d.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 struct MemArena;

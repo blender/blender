@@ -27,8 +27,7 @@
  *         FRANCE
  */
 
-/** \file blender/freestyle/intern/winged_edge/Curvature.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief GTS - Library for the manipulation of triangulated surfaces
  *  \brief OGF/Graphite: Geometry and Graphics Programming Library + Utilities
  */

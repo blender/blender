@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file source/blender/freestyle/intern/python/StrokeShader/BPy_IncreasingColorShader.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #ifndef __FREESTYLE_PYTHON_INCREASINGCOLORSHADER_H__

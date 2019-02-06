@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_volumes.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Volumetric effects rendering using frostbite approach.
  */

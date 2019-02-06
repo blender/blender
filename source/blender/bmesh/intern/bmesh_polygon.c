@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/intern/bmesh_polygon.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * This file contains code for dealing
  * with polygons (normal/area calculation,

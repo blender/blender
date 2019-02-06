@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file draw/engines/gpencil/gpencil_draw_cache_impl.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "BLI_polyfill_2d.h"

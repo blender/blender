@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file transparent_mode.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Simple engine for drawing color and/or depth.
  * When we only need simple studio shaders.

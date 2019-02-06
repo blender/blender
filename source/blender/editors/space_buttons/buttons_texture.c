@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_buttons/buttons_texture.c
- *  \ingroup spbuttons
+/** \file \ingroup spbuttons
  */
 
 

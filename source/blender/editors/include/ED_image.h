@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_image.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_IMAGE_H__

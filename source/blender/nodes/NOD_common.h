@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file NOD_common.h
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 #ifndef __NOD_COMMON_H__

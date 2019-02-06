@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_cache_impl_particles.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * \brief Particle API for render engines
  */

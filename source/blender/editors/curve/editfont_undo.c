@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/curve/editfont_undo.c
- *  \ingroup edcurve
+/** \file \ingroup edcurve
  */
 
 #include <stdlib.h>

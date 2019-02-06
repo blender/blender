@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_fileglobal_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_FILEGLOBAL_TYPES_H__

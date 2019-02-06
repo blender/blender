@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_draw.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_DRAW_H__

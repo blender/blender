@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_HEURISTIC_GRID_DENSITY_PROVIDER_FACTORY_H__
 #define __FREESTYLE_HEURISTIC_GRID_DENSITY_PROVIDER_FACTORY_H__
 
-/** \file blender/freestyle/intern/view_map/HeuristicGridDensityProviderFactory.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the projected image of a scene
  */
 

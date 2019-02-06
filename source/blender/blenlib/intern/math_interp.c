@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/math_interp.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <math.h>

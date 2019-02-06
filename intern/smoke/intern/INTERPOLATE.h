@@ -1,5 +1,4 @@
-/** \file smoke/intern/INTERPOLATE.h
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.

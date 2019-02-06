@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_OPERATORS_H__
 #define __FREESTYLE_OPERATORS_H__
 
-/** \file blender/freestyle/intern/stroke/Operators.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class gathering stroke creation algorithms
  */
 

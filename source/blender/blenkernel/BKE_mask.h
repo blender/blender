@@ -20,8 +20,7 @@
 #ifndef __BKE_MASK_H__
 #define __BKE_MASK_H__
 
-/** \file BKE_mask.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct Depsgraph;

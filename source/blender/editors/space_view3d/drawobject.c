@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_view3d/drawobject.c
- *  \ingroup spview3d
+/** \file \ingroup spview3d
  */
 
 #include "DNA_mesh_types.h"

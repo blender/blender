@@ -17,8 +17,7 @@
 #ifndef __BMESH_TOOLS_H__
 #define __BMESH_TOOLS_H__
 
-/** \file blender/bmesh/bmesh_tools.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Utility functions that operate directly on the BMesh,
  * These can be used by both Modifiers and BMesh-Operators.

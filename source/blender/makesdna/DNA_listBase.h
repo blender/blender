@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_listBase.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *  \brief These structs are the foundation for all linked lists in the
  *         library system.
  *

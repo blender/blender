@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenfont/intern/blf_dir.c
- *  \ingroup blf
+/** \file \ingroup blf
  *
  * Manage search paths for font files.
  */

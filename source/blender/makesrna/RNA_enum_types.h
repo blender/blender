@@ -17,8 +17,7 @@
 #ifndef __RNA_ENUM_TYPES_H__
 #define __RNA_ENUM_TYPES_H__
 
-/** \file RNA_enum_types.h
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include "RNA_types.h"

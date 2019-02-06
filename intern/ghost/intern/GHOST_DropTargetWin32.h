@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_DropTargetWin32.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #ifndef __GHOST_DROPTARGETWIN32_H__

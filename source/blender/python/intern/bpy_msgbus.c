@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_msgbus.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  * This file defines '_bpy_msgbus' module, exposed as 'bpy.msgbus'.
  */
 

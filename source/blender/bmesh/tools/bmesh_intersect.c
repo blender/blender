@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/tools/bmesh_intersect.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Cut meshes along intersections.
  *

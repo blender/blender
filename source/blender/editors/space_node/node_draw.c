@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/node_draw.c
- *  \ingroup spnode
+/** \file \ingroup spnode
  *  \brief higher level node drawing for the node editor.
  */
 

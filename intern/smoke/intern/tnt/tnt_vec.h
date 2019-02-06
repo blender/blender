@@ -1,5 +1,4 @@
-/** \file smoke/intern/tnt/tnt_vec.h
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 /*
 *

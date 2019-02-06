@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/gizmo/WM_gizmo_api.h
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * \name Gizmo API
  * \brief API for external use of wmGizmo types.

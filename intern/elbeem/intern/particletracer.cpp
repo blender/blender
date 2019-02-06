@@ -1,5 +1,4 @@
-/** \file elbeem/intern/particletracer.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

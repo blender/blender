@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_text/text_header.c
- *  \ingroup sptext
+/** \file \ingroup sptext
  */
 
 #include "DNA_windowmanager_types.h"

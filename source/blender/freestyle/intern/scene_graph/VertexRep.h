@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_VERTEX_REP_H__
 #define __FREESTYLE_VERTEX_REP_H__
 
-/** \file blender/freestyle/intern/scene_graph/VertexRep.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define the representation of a vertex for displaying purpose.
  */
 

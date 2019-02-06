@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/node_select.c
- *  \ingroup spnode
+/** \file \ingroup spnode
  */
 
 #include <stdlib.h>

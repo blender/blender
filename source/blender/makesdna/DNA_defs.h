@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file DNA_defs.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Group generic defines for all DNA headers may use in this file.
  */

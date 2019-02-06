@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file ghost/intern/GHOST_SystemSDL.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_SystemSDL class.
  */
 

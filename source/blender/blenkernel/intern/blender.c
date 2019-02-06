@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/blender.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Application level startup/shutdown functionality.
  */

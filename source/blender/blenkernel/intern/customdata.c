@@ -20,8 +20,7 @@
  * BKE_customdata.h contains the function prototypes for this file.
  */
 
-/** \file blender/blenkernel/intern/customdata.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "MEM_guardedalloc.h"

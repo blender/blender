@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_SILHOUETTE_H__
 #define __FREESTYLE_SILHOUETTE_H__
 
-/** \file blender/freestyle/intern/view_map/Silhouette.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Classes to define a silhouette structure
  */
 

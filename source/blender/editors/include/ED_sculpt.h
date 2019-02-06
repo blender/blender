@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_sculpt.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_SCULPT_H__

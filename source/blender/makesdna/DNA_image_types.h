@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_image_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_IMAGE_TYPES_H__

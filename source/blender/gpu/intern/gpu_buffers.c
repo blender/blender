@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_buffers.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Mesh drawing using OpenGL VBO (Vertex Buffer Objects)
  */

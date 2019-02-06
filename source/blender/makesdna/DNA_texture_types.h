@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_texture_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_TEXTURE_TYPES_H__

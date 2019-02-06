@@ -17,8 +17,7 @@
 #ifndef __BMESH_EDGENET_H__
 #define __BMESH_EDGENET_H__
 
-/** \file blender/bmesh/tools/bmesh_edgenet.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 void BM_mesh_edgenet(

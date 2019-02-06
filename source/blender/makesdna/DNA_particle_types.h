@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_particle_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_PARTICLE_TYPES_H__

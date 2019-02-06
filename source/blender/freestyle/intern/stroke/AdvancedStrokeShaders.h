@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
 #define __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
 
-/** \file blender/freestyle/intern/stroke/AdvancedStrokeShaders.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Fredo's stroke shaders
  */
 

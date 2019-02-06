@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file creator/buildinfo.c
- *  \ingroup creator
+/** \file \ingroup creator
  */
 
 

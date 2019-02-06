@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_MODULE_H__
 #define __FREESTYLE_MODULE_H__
 
-/** \file blender/freestyle/intern/stroke/Module.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Set the type of the module
  */
 

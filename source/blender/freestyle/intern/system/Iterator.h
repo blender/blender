@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_ITERATOR_H__
 #define __FREESTYLE_ITERATOR_H__
 
-/** \file blender/freestyle/intern/system/Iterator.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include <iostream>

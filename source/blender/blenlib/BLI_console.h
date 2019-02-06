@@ -24,8 +24,7 @@
 extern "C" {
 #endif
 
-/** \file BLI_console.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Set of utility functions and constants to work with consoles.
  */
 

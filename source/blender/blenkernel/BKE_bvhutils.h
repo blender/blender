@@ -19,8 +19,7 @@
 #ifndef __BKE_BVHUTILS_H__
 #define __BKE_BVHUTILS_H__
 
-/** \file BKE_bvhutils.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BLI_bitmap.h"

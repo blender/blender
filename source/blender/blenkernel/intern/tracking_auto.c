@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/tracking_auto.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdlib.h>

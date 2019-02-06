@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/geometry/FitCurve.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief An Algorithm for Automatically Fitting Digitized Curves by Philip J. Schneider,
  *  \brief from "Graphics Gems", Academic Press, 1990
  */

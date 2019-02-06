@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_TRIANGLE_REP_H__
 #define __FREESTYLE_TRIANGLE_REP_H__
 
-/** \file blender/freestyle/intern/scene_graph/TriangleRep.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define the represenation of a triangle
  */
 

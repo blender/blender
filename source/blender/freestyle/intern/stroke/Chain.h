@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CHAIN_H__
 #define __FREESTYLE_CHAIN_H__
 
-/** \file blender/freestyle/intern/stroke/Chain.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a chain of viewedges.
  */
 

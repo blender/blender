@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file arrow2d_gizmo.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  *
  * \name 2D Arrow Gizmo
  *

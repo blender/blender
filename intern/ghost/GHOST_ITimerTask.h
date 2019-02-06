@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/GHOST_ITimerTask.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_ITimerTask interface class.
  */
 

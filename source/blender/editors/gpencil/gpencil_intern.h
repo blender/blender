@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/gpencil/gpencil_intern.h
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 #ifndef __GPENCIL_INTERN_H__

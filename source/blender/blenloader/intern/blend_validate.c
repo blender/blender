@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenloader/intern/blend_validate.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  *
  * Utils to check/validate a Main is in sane state, only checks relations between datablocks and libraries for now.
  *

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/stroke/StrokeTesselator.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build a Node Tree designed to be displayed from a set of strokes structure.
  */
 

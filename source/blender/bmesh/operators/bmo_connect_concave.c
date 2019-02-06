@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_connect_concave.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Connect vertices so all resulting faces are convex.
  *

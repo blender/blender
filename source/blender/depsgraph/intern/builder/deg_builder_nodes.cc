@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder_nodes.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Methods for constructing depsgraph's nodes
  */

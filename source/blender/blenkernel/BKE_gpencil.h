@@ -20,7 +20,7 @@
 #ifndef __BKE_GPENCIL_H__
 #define __BKE_GPENCIL_H__
 
- /** \file BKE_gpencil.h
+ /** \file
   *  \ingroup bke
   */
 

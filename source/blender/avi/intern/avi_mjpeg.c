@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/avi/intern/avi_mjpeg.c
- *  \ingroup avi
+/** \file \ingroup avi
  *
  * This is external code. Converts between avi and mpeg/jpeg.
  */

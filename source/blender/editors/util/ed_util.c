@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/util/ed_util.c
- *  \ingroup edutil
+/** \file \ingroup edutil
  */
 
 #include <stdlib.h>

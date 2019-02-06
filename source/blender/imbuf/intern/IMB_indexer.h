@@ -18,8 +18,7 @@
 #ifndef __IMB_INDEXER_H__
 #define __IMB_INDEXER_H__
 
-/** \file IMB_indexer.h
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #ifdef WIN32

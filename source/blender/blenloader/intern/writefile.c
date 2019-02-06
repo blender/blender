@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenloader/intern/writefile.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 

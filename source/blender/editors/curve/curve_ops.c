@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/curve/curve_ops.c
- *  \ingroup edcurve
+/** \file \ingroup edcurve
  */
 
 

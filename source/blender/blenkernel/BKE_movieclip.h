@@ -20,8 +20,7 @@
 #ifndef __BKE_MOVIECLIP_H__
 #define __BKE_MOVIECLIP_H__
 
-/** \file BKE_movieclip.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct Depsgraph;

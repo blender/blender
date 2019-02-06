@@ -1,5 +1,4 @@
-/** \file elbeem/intern/mvmcoords.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

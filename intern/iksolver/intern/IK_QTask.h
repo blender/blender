@@ -18,8 +18,7 @@
  * Original author: Laurence
  */
 
-/** \file iksolver/intern/IK_QTask.h
- *  \ingroup iksolver
+/** \file \ingroup iksolver
  */
 
 #pragma once

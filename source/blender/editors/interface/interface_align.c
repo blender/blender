@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_align.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  */
 
 #include "DNA_screen_types.h"

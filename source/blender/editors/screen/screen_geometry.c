@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/screen/screen_geometry.c
- *  \ingroup edscr
+/** \file \ingroup edscr
  *  \brief Functions for screen vertices and edges
  *
  * Screen geometry refers to the vertices (ScrVert) and edges (ScrEdge) through

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/rct.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * A minimalist lib for functions doing stuff with rectangle structs.
  */

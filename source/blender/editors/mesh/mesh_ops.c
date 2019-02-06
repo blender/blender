@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/mesh_ops.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  */
 
 #include "DNA_scene_types.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_select.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Interface for accessing gpu-related methods for selection. The semantics are
  * similar to glRenderMode(GL_SELECT) from older OpenGL versions.

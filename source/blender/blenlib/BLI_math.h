@@ -23,8 +23,7 @@
 #ifndef __BLI_MATH_H__
 #define __BLI_MATH_H__
 
-/** \file BLI_math.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * \section mathabbrev Abbreviations
  *

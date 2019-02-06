@@ -20,8 +20,7 @@
 #ifndef __BMESH_PRIVATE_H__
 #define __BMESH_PRIVATE_H__
 
-/** \file blender/bmesh/intern/bmesh_private.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Private function prototypes for bmesh public API.
  * This file is a grab-bag of functions from various

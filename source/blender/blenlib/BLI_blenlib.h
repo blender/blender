@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file BLI_blenlib.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * \section aboutbli Blender LIbrary external interface
  *

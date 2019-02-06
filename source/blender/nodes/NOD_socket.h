@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file NOD_socket.h
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 

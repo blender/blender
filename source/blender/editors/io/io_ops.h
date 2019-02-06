@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/io/io_ops.h
- *  \ingroup editor/io
+/** \file \ingroup editor/io
  */
 
 #ifndef __IO_OPS_H__

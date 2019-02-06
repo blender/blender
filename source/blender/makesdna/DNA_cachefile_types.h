@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_cachefile_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_CACHEFILE_TYPES_H__

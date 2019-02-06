@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/sculpt_paint/paint_stroke.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 

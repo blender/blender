@@ -18,8 +18,7 @@
  * rotate.c
  */
 
-/** \file blender/imbuf/intern/rotate.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include "BLI_utildefines.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_mask_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Mask data-blocks are collections of 2D curves to be used
  * for image masking in the compositor and sequencer.

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/physics/particle_object.c
- *  \ingroup edphys
+/** \file \ingroup edphys
  */
 
 

@@ -17,8 +17,7 @@
  * This is a new part of Blender (with some old code)
  */
 
-/** \file blender/editors/animation/anim_intern.h
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/armature/armature_utils.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "DNA_armature_types.h"

@@ -18,8 +18,7 @@
  * Juho Vepsäläinen
  */
 
-/** \file blender/nodes/shader/nodes/node_shader_common.c
- *  \ingroup shdnodes
+/** \file \ingroup shdnodes
  */
 
 

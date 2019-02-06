@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file view3d_gizmo_preselect_type.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * \name Preselection Gizmo
  *

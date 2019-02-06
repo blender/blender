@@ -17,8 +17,7 @@
 #ifndef __BMESH_SEPARATE_H__
 #define __BMESH_SEPARATE_H__
 
-/** \file blender/bmesh/tools/bmesh_separate.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 void BM_mesh_separate_faces(

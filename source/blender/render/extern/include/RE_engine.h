@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file RE_engine.h
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #ifndef __RE_ENGINE_H__

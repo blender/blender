@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_datafiles.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_DATAFILES_H__

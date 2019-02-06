@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/gizmo/intern/wm_gizmo_group.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * \name Gizmo-Group
  *

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/metaball/mball_ops.c
- *  \ingroup edmeta
+/** \file \ingroup edmeta
  */
 
 #include "DNA_scene_types.h"

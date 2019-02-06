@@ -17,8 +17,7 @@
 #ifndef __MATHUTILS_INTERPOLATE_H__
 #define __MATHUTILS_INTERPOLATE_H__
 
-/** \file blender/python/mathutils/mathutils_interpolate.h
- *  \ingroup pymathutils
+/** \file \ingroup pymathutils
  */
 
 PyMODINIT_FUNC PyInit_mathutils_interpolate(void);

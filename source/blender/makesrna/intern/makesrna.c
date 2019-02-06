@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/makesrna/intern/makesrna.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include <float.h>

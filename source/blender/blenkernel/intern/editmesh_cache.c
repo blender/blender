@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/editmesh_cache.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Manage edit mesh cache: #EditMeshData
  */

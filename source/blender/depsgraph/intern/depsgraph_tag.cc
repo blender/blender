@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/depsgraph_tag.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Core routines for how the Depsgraph works.
  */

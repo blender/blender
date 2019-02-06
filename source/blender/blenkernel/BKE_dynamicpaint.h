@@ -17,8 +17,7 @@
 #ifndef __BKE_DYNAMICPAINT_H__
 #define __BKE_DYNAMICPAINT_H__
 
-/** \file BKE_dynamicpaint.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct Depsgraph;

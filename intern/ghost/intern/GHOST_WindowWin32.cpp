@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_WindowWin32.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #define _USE_MATH_DEFINES

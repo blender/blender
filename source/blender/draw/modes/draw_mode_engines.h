@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/modes/draw_mode_engines.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_MODE_ENGINES_H__

@@ -17,8 +17,7 @@
 #ifndef __BMESH_DELETE_H__
 #define __BMESH_DELETE_H__
 
-/** \file blender/bmesh/intern/bmesh_delete.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype);

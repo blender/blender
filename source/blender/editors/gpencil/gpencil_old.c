@@ -18,8 +18,7 @@
  * Use deprecated data to convert old 2.7x files
  */
 
-/** \file blender/editors/gpencil/gpencil_old.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
  /* allow to use deprecated functionality */

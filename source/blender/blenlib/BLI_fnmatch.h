@@ -20,8 +20,7 @@
 #ifndef __BLI_FNMATCH_H__
 #define __BLI_FNMATCH_H__
 
-/** \file BLI_fnmatch.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef  __cplusplus

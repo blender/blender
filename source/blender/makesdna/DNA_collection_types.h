@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_collection_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * \brief Object groups, one object can be in many groups at once.
  */

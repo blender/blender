@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file BIF_glutil.h
- *  \ingroup editorui
+/** \file \ingroup editorui
  */
 
 #ifndef __BIF_GLUTIL_H__

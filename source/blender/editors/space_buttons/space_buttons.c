@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_buttons/space_buttons.c
- *  \ingroup spbuttons
+/** \file \ingroup spbuttons
  */
 
 #include <string.h>

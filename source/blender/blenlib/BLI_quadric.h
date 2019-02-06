@@ -20,8 +20,7 @@
 #ifndef __BLI_QUADRIC_H__
 #define __BLI_QUADRIC_H__
 
-/** \file BLI_quadric.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 typedef struct Quadric {

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_cache_impl_metaball.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * \brief MetaBall API for render engines
  */

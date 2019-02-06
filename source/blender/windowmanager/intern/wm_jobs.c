@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_jobs.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Threaded job manager (high level job access).
  */

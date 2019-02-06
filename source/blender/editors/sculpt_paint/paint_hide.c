@@ -18,8 +18,7 @@
  * Implements the PBVH node hiding operator
  */
 
-/** \file blender/editors/sculpt_paint/paint_hide.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 #include "MEM_guardedalloc.h"

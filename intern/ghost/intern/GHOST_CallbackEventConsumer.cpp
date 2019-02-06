@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_CallbackEventConsumer.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 

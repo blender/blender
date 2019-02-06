@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/sculpt_paint/paint_vertex.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  *
  * Used for vertex color & weight paint and mode switching.
  *

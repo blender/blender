@@ -19,8 +19,7 @@
 #ifndef __BKE_IMAGE_H__
 #define __BKE_IMAGE_H__
 
-/** \file BKE_image.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

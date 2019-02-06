@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_effect_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_EFFECT_TYPES_H__

@@ -16,8 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file workbench_effect_dof.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  */
 
 #include "workbench_private.h"

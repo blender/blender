@@ -17,12 +17,8 @@
  * All rights reserved.
  */
 
-/** \file memutil/MEM_RefCountedC-Api.h
- *  \ingroup memutil
- */
-
-/**
- * @file	MEM_RefCountedC-Api.h
+/** \file \ingroup memutil
+ *
  * Interface for C access to functionality relating to shared objects in the foundation library.
  */
 

@@ -16,8 +16,7 @@
 #ifndef __BKE_MBALL_TESSELLATE_H__
 #define __BKE_MBALL_TESSELLATE_H__
 
-/** \file BKE_mball_tessellate.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 struct Depsgraph;
 struct Main;

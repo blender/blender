@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_temporal_sampling.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Temporal super sampling technique
  */

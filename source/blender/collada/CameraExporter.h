@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file CameraExporter.h
- *  \ingroup collada
+/** \file \ingroup collada
  */
 
 #ifndef __CAMERAEXPORTER_H__

@@ -20,8 +20,7 @@
 #ifndef __BKE_SMOKE_H__
 #define __BKE_SMOKE_H__
 
-/** \file BKE_smoke.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 typedef float (*bresenham_callback)(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);

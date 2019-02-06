@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_ContextWGL.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  *
  * Definition of GHOST_ContextWGL class.
  */

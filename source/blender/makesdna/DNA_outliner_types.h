@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_outliner_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_OUTLINER_TYPES_H__

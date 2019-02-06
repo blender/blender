@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/tracking_solver.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * This file contains blender-side implementation of camera solver.
  */

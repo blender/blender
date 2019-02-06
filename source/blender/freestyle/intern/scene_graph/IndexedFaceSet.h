@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_INDEXED_FACE_SET_H__
 #define __FREESTYLE_INDEXED_FACE_SET_H__
 
-/** \file blender/freestyle/intern/scene_graph/IndexedFaceSet.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief A Set of indexed faces to represent a surfacic object
  */
 

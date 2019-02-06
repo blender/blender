@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/object/object_warp.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 #include "DNA_object_types.h"

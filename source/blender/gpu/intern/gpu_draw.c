@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_draw.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Utility functions for dealing with OpenGL texture & material context,
  * mipmap generation and light objects.

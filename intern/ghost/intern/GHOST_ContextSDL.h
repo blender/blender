@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_ContextSDL.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #ifndef __GHOST_CONTEXTSDL_H__

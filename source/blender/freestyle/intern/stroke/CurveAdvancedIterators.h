@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CURVE_ADVANCED_ITERATORS_H__
 #define __FREESTYLE_CURVE_ADVANCED_ITERATORS_H__
 
-/** \file blender/freestyle/intern/stroke/CurveAdvancedIterators.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Iterators used to iterate over the elements of the Curve. Can't be used in python
  */
 

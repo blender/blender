@@ -1,5 +1,4 @@
-/** \file elbeem/intern/mcubes_tables.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 
 /* which edges are needed ? */

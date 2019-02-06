@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_image/image_edit.c
- *  \ingroup spimage
+/** \file \ingroup spimage
  */
 
 #include "DNA_brush_types.h"

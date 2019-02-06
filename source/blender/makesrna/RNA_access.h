@@ -17,8 +17,7 @@
 #ifndef __RNA_ACCESS_H__
 #define __RNA_ACCESS_H__
 
-/** \file RNA_access.h
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include <stdarg.h>

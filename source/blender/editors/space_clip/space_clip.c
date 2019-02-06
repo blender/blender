@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_clip/space_clip.c
- *  \ingroup spclip
+/** \file \ingroup spclip
  */
 
 #include <string.h>

@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation
  */
 
-/** \file blender/editors/space_graph/graph_select.c
- *  \ingroup spgraph
+/** \file \ingroup spgraph
  */
 
 

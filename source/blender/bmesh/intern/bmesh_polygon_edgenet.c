@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/intern/bmesh_polygon_edgenet.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * This file contains functions for splitting faces into isolated regions,
  * defined by connected edges.

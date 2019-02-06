@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_wave.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/node.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "CLG_log.h"

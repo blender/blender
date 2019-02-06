@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_app_handlers.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file defines a 'PyStructSequence' accessed via 'bpy.app.handlers',
  * which exposes various lists that the script author can add callback

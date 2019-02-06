@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_buffers.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_BUFFERS_H__

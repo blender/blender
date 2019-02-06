@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_render.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  */
 
 /**

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/radiance_hdr.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 /* ----------------------------------------------------------------------

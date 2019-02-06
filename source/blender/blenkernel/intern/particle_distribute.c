@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/particle_distribute.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <string.h>

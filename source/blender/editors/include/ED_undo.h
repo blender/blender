@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file ED_undo.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_UNDO_H__

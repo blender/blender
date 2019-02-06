@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_MATERIAL_H__
 #define __FREESTYLE_MATERIAL_H__
 
-/** \file blender/freestyle/intern/scene_graph/FrsMaterial.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class used to handle materials.
  */
 

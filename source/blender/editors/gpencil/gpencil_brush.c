@@ -18,8 +18,7 @@
  * Brush based operators for editing Grease Pencil strokes
  */
 
-/** \file blender/editors/gpencil/gpencil_brush.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

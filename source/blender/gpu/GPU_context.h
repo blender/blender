@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/GPU_context.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * This interface allow GPU to manage VAOs for multiple context and threads.
  */

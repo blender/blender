@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_smoke_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_SMOKE_TYPES_H__

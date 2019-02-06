@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/generic/py_capi_utils.h
- *  \ingroup pygen
+/** \file \ingroup pygen
  */
 
 #ifndef __PY_CAPI_UTILS_H__

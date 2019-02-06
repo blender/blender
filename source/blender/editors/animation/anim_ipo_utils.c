@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/animation/anim_ipo_utils.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 

@@ -18,8 +18,7 @@
  * API's and Operators for selecting armature bones in EditMode
  */
 
-/** \file blender/editors/armature/armature_select.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

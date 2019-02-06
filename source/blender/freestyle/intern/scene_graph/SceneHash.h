@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_SCENE_HASH_H__
 #define __FREESTYLE_SCENE_HASH_H__
 
-/** \file blender/freestyle/intern/scene_graph/SceneHash.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "IndexedFaceSet.h"

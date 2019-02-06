@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file workbench_effect_aa.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  */
 
 #include "ED_screen.h"

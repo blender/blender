@@ -17,8 +17,7 @@
 #ifndef __BLI_ASSERT_H__
 #define __BLI_ASSERT_H__
 
-/** \file BLI_assert.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Defines:
  * - #BLI_assert

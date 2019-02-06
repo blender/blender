@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_PSEUDO_NOISE_H__
 #define __FREESTYLE_PSEUDO_NOISE_H__
 
-/** \file blender/freestyle/intern/system/PseudoNoise.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a pseudo Perlin noise
  */
 

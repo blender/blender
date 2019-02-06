@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_cache_impl_curve.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * \brief Curve API for render engines
  */

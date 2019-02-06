@@ -17,8 +17,7 @@
 #ifndef __BKE_EDITMESH_CACHE_H__
 #define __BKE_EDITMESH_CACHE_H__
 
-/** \file BKE_editmesh_cache.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct BMEditMesh;

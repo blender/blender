@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_buttons/buttons_intern.h
- *  \ingroup spbuttons
+/** \file \ingroup spbuttons
  */
 
 #ifndef __BUTTONS_INTERN_H__

@@ -1,5 +1,4 @@
-/** \file elbeem/extern/elbeem.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

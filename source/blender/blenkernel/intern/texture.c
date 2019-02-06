@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/texture.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

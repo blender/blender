@@ -17,9 +17,7 @@
  * All rights reserved.
  */
 
-/**
- * \file IMB_filter.h
- * \ingroup imbuf
+/** \file \ingroup imbuf
  * \brief Function declarations for filter.c
  */
 

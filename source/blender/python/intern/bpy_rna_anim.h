@@ -17,8 +17,7 @@
 #ifndef __BPY_RNA_ANIM_H__
 #define __BPY_RNA_ANIM_H__
 
-/** \file blender/python/intern/bpy_rna_anim.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 extern char pyrna_struct_keyframe_insert_doc[];

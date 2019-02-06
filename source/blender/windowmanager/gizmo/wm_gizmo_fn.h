@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/windowmanager/gizmo/wm_gizmo_fn.h
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Callback function definitions, needed for both Types & API headers.
  */

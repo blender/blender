@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_keyframes_edit.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_KEYFRAMES_EDIT_H__

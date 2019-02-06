@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/time.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 

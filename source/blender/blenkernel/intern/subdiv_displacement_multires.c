@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/subdiv_displacement_multires.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BKE_subdiv.h"

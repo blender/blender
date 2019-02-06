@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/node_intern.h
- *  \ingroup spnode
+/** \file \ingroup spnode
  */
 
 #ifndef __NODE_INTERN_H__

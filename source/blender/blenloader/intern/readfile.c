@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenloader/intern/readfile.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 

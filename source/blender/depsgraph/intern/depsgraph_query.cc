@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/depsgraph_query.cc
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Implementation of Querying API
  */

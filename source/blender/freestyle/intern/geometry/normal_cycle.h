@@ -28,8 +28,7 @@
 #ifndef __MESH_TOOLS_MATH_NORMAL_CYCLE__
 #define __MESH_TOOLS_MATH_NORMAL_CYCLE__
 
-/** \file blender/freestyle/intern/geometry/normal_cycle.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "Geom.h"

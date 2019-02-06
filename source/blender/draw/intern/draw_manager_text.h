@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_manager_text.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_MANAGER_TEXT_H__

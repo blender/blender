@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_split_edges.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Just a wrapper around #BM_mesh_edgesplit
  */

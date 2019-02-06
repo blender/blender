@@ -1,5 +1,4 @@
-/** \file smoke/intern/tnt/tnt_sparse_matrix_csr.h
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 /*
 *

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_sequencer/space_sequencer.c
- *  \ingroup spseq
+/** \file \ingroup spseq
  */
 
 

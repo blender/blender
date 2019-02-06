@@ -23,8 +23,7 @@
 #ifndef __BLI_MATH_MATRIX_H__
 #define __BLI_MATH_MATRIX_H__
 
-/** \file BLI_math_matrix.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

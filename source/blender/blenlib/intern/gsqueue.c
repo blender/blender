@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/gsqueue.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * \brief A generic structure queue
  * (a queue for fixed length generally small) structures.

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/winged_edge/WFillGrid.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to fill in a grid from a SceneGraph (uses only the WingedEdge structures)
  */
 

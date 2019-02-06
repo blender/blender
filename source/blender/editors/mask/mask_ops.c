@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mask/mask_ops.c
- *  \ingroup edmask
+/** \file \ingroup edmask
  */
 
 #include "MEM_guardedalloc.h"

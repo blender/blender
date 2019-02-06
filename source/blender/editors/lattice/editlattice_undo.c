@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/lattice/editlattice_undo.c
- *  \ingroup edlattice
+/** \file \ingroup edlattice
  */
 
 #include <stdlib.h>

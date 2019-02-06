@@ -17,12 +17,8 @@
  * All rights reserved.
  */
 
-/** \file memutil/MEM_RefCounted.h
- *  \ingroup memutil
- */
-
-/**
- * @file	MEM_RefCounted.h
+/** \file \ingroup memutil
+ *
  * Declaration of MEM_RefCounted class.
  */
 

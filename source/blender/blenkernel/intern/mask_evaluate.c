@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/mask_evaluate.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Functions for evaluating the mask beziers into points for the outline and feather.
  */

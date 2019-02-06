@@ -20,8 +20,7 @@
 #ifndef __BLI_EXPR_PYLIKE_EVAL_H__
 #define __BLI_EXPR_PYLIKE_EVAL_H__
 
-/** \file BLI_expr_pylike_eval.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

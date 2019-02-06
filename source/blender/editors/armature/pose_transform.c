@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/armature/pose_transform.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "DNA_anim_types.h"

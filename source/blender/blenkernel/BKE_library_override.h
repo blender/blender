@@ -20,8 +20,7 @@
 #ifndef __BKE_LIBRARY_OVERRIDE_H__
 #define __BKE_LIBRARY_OVERRIDE_H__
 
-/** \file BKE_library_override.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct ID;

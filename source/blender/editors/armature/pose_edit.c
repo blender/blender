@@ -18,8 +18,7 @@
  * Pose Mode API's and Operators for Pose Mode armatures
  */
 
-/** \file blender/editors/armature/pose_edit.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

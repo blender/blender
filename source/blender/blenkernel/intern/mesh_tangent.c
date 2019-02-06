@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/mesh_tangent.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Functions to evaluate mesh tangents.
  */

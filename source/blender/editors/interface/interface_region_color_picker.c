@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_region_color_picker.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Color Picker Region & Color Utils
  */

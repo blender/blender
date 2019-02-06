@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/colormanagement_inline.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #ifndef __IMB_COLORMANAGEMENT_INLINE_C__

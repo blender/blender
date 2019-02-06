@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/gizmo/WM_gizmo_types.h
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * \name Gizmo Types
  * \brief Gizmo defines for external use.

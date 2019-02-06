@@ -20,8 +20,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/math_color_inline.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 

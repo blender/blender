@@ -17,8 +17,7 @@
 #ifndef __APP_CONFIG_H__
 #define __APP_CONFIG_H__
 
-/** \file blender/freestyle/intern/application/AppConfig.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Configuration file
  */
 

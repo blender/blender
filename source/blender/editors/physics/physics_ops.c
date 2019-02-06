@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/physics/physics_ops.c
- *  \ingroup edphys
+/** \file \ingroup edphys
  */
 
 #include <stdlib.h>

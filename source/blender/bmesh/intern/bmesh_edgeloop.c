@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/bmesh/intern/bmesh_edgeloop.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Generic utility functions for getting edge loops from a mesh.
  */

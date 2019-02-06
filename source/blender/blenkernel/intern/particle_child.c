@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/particle_child.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BLI_math.h"

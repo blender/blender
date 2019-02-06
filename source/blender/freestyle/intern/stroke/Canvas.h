@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CANVAS_H__
 #define __FREESTYLE_CANVAS_H__
 
-/** \file blender/freestyle/intern/stroke/Canvas.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a canvas designed to draw style modules
  */
 

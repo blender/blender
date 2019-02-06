@@ -19,8 +19,7 @@
 #ifndef __BKE_SCENE_H__
 #define __BKE_SCENE_H__
 
-/** \file BKE_scene.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

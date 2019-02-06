@@ -1,5 +1,4 @@
-/** \file elbeem/intern/ntl_geometrymodel.h
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

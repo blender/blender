@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/util/numinput.c
- *  \ingroup edutil
+/** \file \ingroup edutil
  */
 
 #include "MEM_guardedalloc.h"

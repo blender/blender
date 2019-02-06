@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/tracking_stabilize.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * This file contains implementation of 2D image stabilization.
  */

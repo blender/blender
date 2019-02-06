@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file smoke/extern/smoke_API.h
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 
 

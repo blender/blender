@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/space_console/console_draw.c
- *  \ingroup spconsole
+/** \file \ingroup spconsole
  */
 
 #include <math.h>

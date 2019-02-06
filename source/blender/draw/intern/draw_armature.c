@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_armature.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include <stdlib.h>

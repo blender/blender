@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/dynlib.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdio.h>

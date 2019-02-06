@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file gizmo_library_utils.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  *
  * \name Gizmo Library Utilities
  *

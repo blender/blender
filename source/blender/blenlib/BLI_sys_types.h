@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file BLI_sys_types.h
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * A platform-independent definition of [u]intXX_t
  * Plus the accompanying header include for htonl/ntohl

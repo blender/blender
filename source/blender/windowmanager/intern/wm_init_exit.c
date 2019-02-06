@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_init_exit.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Manage initializing resources and correctly shutting down.
  */

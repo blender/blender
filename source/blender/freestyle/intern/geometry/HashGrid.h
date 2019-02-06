@@ -17,8 +17,7 @@
 #ifndef __HASHGRID_H__
 #define __HASHGRID_H__
 
-/** \file blender/freestyle/intern/geometry/HashGrid.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the bounding box of the scene
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/sculpt_paint/sculpt_intern.h
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 

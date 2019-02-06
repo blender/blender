@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_view3d/view3d_intern.h
- *  \ingroup spview3d
+/** \file \ingroup spview3d
  */
 
 #ifndef __VIEW3D_INTERN_H__

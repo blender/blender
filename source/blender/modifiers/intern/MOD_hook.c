@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_hook.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

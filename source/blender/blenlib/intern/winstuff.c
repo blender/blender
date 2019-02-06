@@ -18,8 +18,7 @@
  * Windows-posix compatibility layer, windows-specific functions.
  */
 
-/** \file blender/blenlib/intern/winstuff.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 

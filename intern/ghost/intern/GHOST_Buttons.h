@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_Buttons.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_Buttons struct.
  */
 

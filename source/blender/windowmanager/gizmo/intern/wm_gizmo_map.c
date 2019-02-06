@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/gizmo/intern/wm_gizmo_map.c
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #include <string.h>

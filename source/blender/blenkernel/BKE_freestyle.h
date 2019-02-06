@@ -20,8 +20,7 @@
 #ifndef __BKE_FREESTYLE_H__
 #define __BKE_FREESTYLE_H__
 
-/** \file BKE_freestyle.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "DNA_scene_types.h"

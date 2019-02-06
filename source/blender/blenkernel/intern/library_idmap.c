@@ -29,8 +29,7 @@
 #include "BKE_library_idmap.h"  /* own include */
 #include "BKE_main.h"
 
-/** \file blender/blenkernel/intern/library_idmap.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Utility functions for faster ID lookups.
  */

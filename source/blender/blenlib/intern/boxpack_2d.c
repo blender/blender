@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/boxpack_2d.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdlib.h> /* for qsort */

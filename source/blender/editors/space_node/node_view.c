@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/node_view.c
- *  \ingroup spnode
+/** \file \ingroup spnode
  */
 
 #include "DNA_node_types.h"

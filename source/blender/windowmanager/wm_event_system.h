@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/wm_event_system.h
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #ifndef __WM_EVENT_SYSTEM_H__

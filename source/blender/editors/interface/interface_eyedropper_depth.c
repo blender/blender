@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_eyedropper_depth.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * This file defines an eyedropper for picking 3D depth value (primary use is depth-of-field).
  *

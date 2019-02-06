@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_hair.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  *  \brief Contains procedural GPU hair drawing methods.
  */

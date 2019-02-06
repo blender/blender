@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/mathutils/mathutils_noise.c
- *  \ingroup mathutils
+/** \file \ingroup mathutils
  *
  * This file defines the 'noise' module, a general purpose module to access
  * blenders noise functions.

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_SystemPathsCocoa.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 

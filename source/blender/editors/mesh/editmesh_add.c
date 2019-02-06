@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/editmesh_add.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  */
 
 #include "DNA_meshdata_types.h"

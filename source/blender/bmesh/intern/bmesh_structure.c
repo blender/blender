@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/bmesh/intern/bmesh_structure.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Low level routines for manipulating the BM structure.
  */

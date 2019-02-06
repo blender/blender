@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/stroke/ContextFunctions.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Functions related to context queries
  *  \brief Interface to access the context related information.
  */

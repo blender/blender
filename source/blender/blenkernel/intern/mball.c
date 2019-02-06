@@ -22,8 +22,7 @@
  * texture coordinates are patched within the displist
  */
 
-/** \file blender/blenkernel/intern/mball.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdio.h>

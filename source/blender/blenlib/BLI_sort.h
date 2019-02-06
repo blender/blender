@@ -20,8 +20,7 @@
 #ifndef __BLI_SORT_H__
 #define __BLI_SORT_H__
 
-/** \file BLI_sort.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdlib.h>

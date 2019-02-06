@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_mesh.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_MESH_H__

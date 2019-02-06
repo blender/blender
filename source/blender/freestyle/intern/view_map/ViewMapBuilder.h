@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_VIEW_MAP_BUILDER_H__
 #define __FREESTYLE_VIEW_MAP_BUILDER_H__
 
-/** \file blender/freestyle/intern/view_map/ViewMapBuilder.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build silhouette edges from a Winged-Edge structure
  */
 

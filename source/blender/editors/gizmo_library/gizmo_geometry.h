@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file gizmo_geometry.h
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  *
  * \name Gizmo Geometry
  *

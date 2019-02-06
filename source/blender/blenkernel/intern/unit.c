@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/unit.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdlib.h>

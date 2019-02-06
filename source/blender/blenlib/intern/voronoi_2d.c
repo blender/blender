@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/voronoi_2d.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Fortune's algorithm implemented using explanation and some code snippets from
  * http://blog.ivank.net/fortunes-algorithm-and-implementation.html

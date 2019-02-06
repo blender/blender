@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_image/space_image.c
- *  \ingroup spimage
+/** \file \ingroup spimage
  */
 
 #include "DNA_gpencil_types.h"

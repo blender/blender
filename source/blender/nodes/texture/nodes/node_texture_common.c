@@ -18,8 +18,7 @@
  * Juho Vepsäläinen
  */
 
-/** \file blender/nodes/texture/nodes/node_texture_common.c
- *  \ingroup texnodes
+/** \file \ingroup texnodes
  */
 
 

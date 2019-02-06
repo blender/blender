@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/intern/depsgraph_type.h
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Datatypes for internal use in the Depsgraph
  *

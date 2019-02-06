@@ -1,5 +1,4 @@
-/** \file elbeem/intern/attributes.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

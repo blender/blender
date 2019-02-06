@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna_id_collection.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file adds some helpers related to ID/Main handling, that cannot fit well in RNA itself.
  */

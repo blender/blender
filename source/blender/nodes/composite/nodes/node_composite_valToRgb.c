@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_valToRgb.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 

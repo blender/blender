@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_BASIC_STROKE_SHADERS_H__
 #define __FREESTYLE_BASIC_STROKE_SHADERS_H__
 
-/** \file blender/freestyle/intern/stroke/BasicStrokeShaders.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class gathering basic stroke shaders
  */
 

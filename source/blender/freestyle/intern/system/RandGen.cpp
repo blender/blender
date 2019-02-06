@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/freestyle/intern/system/RandGen.cpp
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Pseudo-random number generator
  */
 

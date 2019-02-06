@@ -16,8 +16,7 @@
  * Copyright 2018, Blender Foundation.
  */
 
-/** \file draw_debug.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_DEBUG_H__

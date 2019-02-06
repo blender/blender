@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/tracking_private.h
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * This file contains declarations of function which are used
  * by multiple tracking files but which should not be public.

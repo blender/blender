@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_utils_units.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 #ifndef __BPY_UTILS_UNITS_H__

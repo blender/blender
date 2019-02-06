@@ -20,8 +20,7 @@
 #ifndef __BKE_CONSTRAINT_H__
 #define __BKE_CONSTRAINT_H__
 
-/** \file BKE_constraint.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct Depsgraph;

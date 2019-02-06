@@ -17,8 +17,7 @@
 #ifndef __BKE_PBVH_H__
 #define __BKE_PBVH_H__
 
-/** \file BKE_pbvh.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief A BVH for high poly meshes.
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/object/object_facemap_ops.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 #include <string.h>

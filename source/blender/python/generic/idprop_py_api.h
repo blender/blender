@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/generic/idprop_py_api.h
- *  \ingroup pygen
+/** \file \ingroup pygen
  */
 
 

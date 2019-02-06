@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/intern/gpu_context.cpp
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Manage GL vertex array IDs in a thread-safe way
  * Use these instead of glGenBuffers & its friends

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/source/render_result.c
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #include <stdio.h>

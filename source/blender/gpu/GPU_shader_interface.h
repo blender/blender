@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/GPU_shader_interface.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * GPU shader interface (C --> GLSL)
  */

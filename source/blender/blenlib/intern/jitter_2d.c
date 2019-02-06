@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/jitter_2d.c
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Jitter offset table
  */
 

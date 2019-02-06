@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_hair_private.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_HAIR_PRIVATE_H__

@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2015, Blender Foundation
  */
 
-/** \file ED_outliner.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_OUTLINER_H__

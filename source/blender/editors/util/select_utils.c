@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file select_utils.c
- *  \ingroup edutil
+/** \file \ingroup edutil
  */
 
 #include "BLI_utildefines.h"

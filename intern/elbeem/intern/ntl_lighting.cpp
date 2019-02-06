@@ -1,5 +1,4 @@
-/** \file elbeem/intern/ntl_lighting.cpp
- *  \ingroup elbeem
+/** \file \ingroup elbeem
  */
 /******************************************************************************
  *

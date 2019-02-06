@@ -15,8 +15,7 @@
  */
 
 
-/** \file blender/python/mathutils/mathutils_bvhtree.h
- *  \ingroup mathutils
+/** \file \ingroup mathutils
  */
 
 #ifndef __MATHUTILS_BVHTREE_H__

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/GHOST_Path-api.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 

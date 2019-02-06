@@ -19,8 +19,7 @@
 #ifndef __BKE_MESH_H__
 #define __BKE_MESH_H__
 
-/** \file BKE_mesh.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 /* defines BLI_INLINE */

@@ -17,8 +17,7 @@
 #ifndef __BLI_HASH_MM3_H__
 #define __BLI_HASH_MM3_H__
 
-/** \file BLI_hash_mm3.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_sys_types.h"

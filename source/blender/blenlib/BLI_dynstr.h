@@ -20,8 +20,7 @@
 #ifndef __BLI_DYNSTR_H__
 #define __BLI_DYNSTR_H__
 
-/** \file BLI_dynstr.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief A dynamically sized string ADT.
  *  \section aboutdynstr Dynamic String
  * This ADT is designed purely for dynamic string creation

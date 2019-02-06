@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_INTERFACE_0D_H__
 #define __FREESTYLE_INTERFACE_0D_H__
 
-/** \file blender/freestyle/intern/view_map/Interface0D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Interface to 0D elts
  */
 

@@ -17,8 +17,7 @@
 #ifndef __BPY_RNA_CALLBACK_H__
 #define __BPY_RNA_CALLBACK_H__
 
-/** \file blender/python/intern/bpy_rna_callback.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 struct BPy_StructRNA;

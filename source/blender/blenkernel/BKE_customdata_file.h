@@ -17,8 +17,7 @@
 #ifndef __BKE_CUSTOMDATA_FILE_H__
 #define __BKE_CUSTOMDATA_FILE_H__
 
-/** \file BKE_customdata_file.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #define CDF_TYPE_IMAGE  0

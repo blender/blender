@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/font.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

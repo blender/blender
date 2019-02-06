@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/endian_switch.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_sys_types.h"

@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/shader_fx/intern/FX_shader_swirl.c
- *  \ingroup shader_fx
+/** \file \ingroup shader_fx
  */
 
 #include <stdio.h>

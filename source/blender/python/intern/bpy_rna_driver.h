@@ -17,8 +17,7 @@
 #ifndef __BPY_RNA_DRIVER_H__
 #define __BPY_RNA_DRIVER_H__
 
-/** \file blender/python/intern/bpy_rna_driver.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 struct ChannelDriver;

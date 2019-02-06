@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_logic.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_LOGIC_H__

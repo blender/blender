@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/BLI_ghash_utils.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Helper functions and implementations of standard data types for #GHash
  * (not it's implementation).

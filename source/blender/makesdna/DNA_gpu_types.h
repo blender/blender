@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_gpu_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_GPU_TYPES_H__

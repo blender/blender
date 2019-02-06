@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_action/action_intern.h
- *  \ingroup spaction
+/** \file \ingroup spaction
  */
 
 #ifndef __ACTION_INTERN_H__

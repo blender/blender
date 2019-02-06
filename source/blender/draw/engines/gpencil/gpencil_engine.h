@@ -16,8 +16,7 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file blender/draw/engines/gpencil/gpencil_engine.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __GPENCIL_ENGINE_H__

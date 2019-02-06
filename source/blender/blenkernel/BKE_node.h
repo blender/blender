@@ -20,8 +20,7 @@
 #ifndef __BKE_NODE_H__
 #define __BKE_NODE_H__
 
-/** \file BKE_node.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BLI_compiler_compat.h"

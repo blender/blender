@@ -28,8 +28,7 @@
 #ifndef __MATRIX_UTIL__
 #define __MATRIX_UTIL__
 
-/** \file blender/freestyle/intern/geometry/matrix_util.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "../system/FreestyleConfig.h"

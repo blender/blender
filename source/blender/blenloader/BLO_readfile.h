@@ -19,8 +19,7 @@
 #ifndef __BLO_READFILE_H__
 #define __BLO_READFILE_H__
 
-/** \file BLO_readfile.h
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  *  \brief external readfile function prototypes.
  */
 

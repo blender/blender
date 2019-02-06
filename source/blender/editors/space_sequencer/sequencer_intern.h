@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_sequencer/sequencer_intern.h
- *  \ingroup spseq
+/** \file \ingroup spseq
  */
 
 #ifndef __SEQUENCER_INTERN_H__

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file RE_pipeline.h
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #ifndef __RE_PIPELINE_H__

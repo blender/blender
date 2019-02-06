@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file ghost/intern/GHOST_SystemSDL.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #include <assert.h>

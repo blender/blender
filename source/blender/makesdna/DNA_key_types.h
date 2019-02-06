@@ -19,8 +19,7 @@
 #ifndef __DNA_KEY_TYPES_H__
 #define __DNA_KEY_TYPES_H__
 
-/** \file DNA_key_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * This file defines structures for Shape-Keys (not animation keyframes),
  * attached to Mesh, Curve and Lattice Data. Even though Key's are ID blocks they

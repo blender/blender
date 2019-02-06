@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_nla/space_nla.c
- *  \ingroup spnla
+/** \file \ingroup spnla
  */
 
 

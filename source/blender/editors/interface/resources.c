@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/resources.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  */
 
 #include <math.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file gizmo_draw_utils.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  */
 
 #include "BLI_listbase.h"

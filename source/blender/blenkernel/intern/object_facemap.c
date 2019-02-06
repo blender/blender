@@ -18,8 +18,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/object_facemap.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <string.h>

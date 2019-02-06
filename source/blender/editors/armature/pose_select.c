@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/armature/pose_select.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include <string.h>

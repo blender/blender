@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_info/info_draw.c
- *  \ingroup spinfo
+/** \file \ingroup spinfo
  */
 
 #include <math.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/quadric.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * \note This isn't fully complete,
  * possible there are other useful functions to add here.

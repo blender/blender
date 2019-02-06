@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file rigidbody.c
- *  \ingroup blenkernel
+/** \file \ingroup blenkernel
  *  \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 

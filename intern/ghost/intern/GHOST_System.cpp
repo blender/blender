@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_System.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #include "GHOST_System.h"

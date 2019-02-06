@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file workbench_private.h
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  */
 
 #ifndef __WORKBENCH_PRIVATE_H__

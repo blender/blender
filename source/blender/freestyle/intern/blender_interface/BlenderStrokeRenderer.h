@@ -17,8 +17,7 @@
 #ifndef __BLENDER_STROKE_RENDERER_H__
 #define __BLENDER_STROKE_RENDERER_H__
 
-/** \file blender/freestyle/intern/blender_interface/BlenderStrokeRenderer.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #include "../stroke/StrokeRenderer.h"

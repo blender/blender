@@ -17,8 +17,7 @@
 #ifndef __GEOM_H__
 #define __GEOM_H__
 
-/** \file blender/freestyle/intern/geometry/Geom.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Vectors and Matrices (useful type definitions)
  */
 

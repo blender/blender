@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/BLI_linklist_lockfree.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "MEM_guardedalloc.h"

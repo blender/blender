@@ -20,8 +20,7 @@
 #ifndef __BKE_DISPLIST_H__
 #define __BKE_DISPLIST_H__
 
-/** \file BKE_displist.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief display list (or rather multi purpose list) stuff.
  */
 #include "DNA_customdata_types.h"

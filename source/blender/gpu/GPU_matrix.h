@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file source/blender/gpu/GPU_matrix.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_MATRIX_H__

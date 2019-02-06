@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file NOD_static_types.h
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 /* intentionally no include guard */

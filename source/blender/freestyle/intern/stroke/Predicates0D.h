@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_PREDICATES_0D_H__
 #define __FREESTYLE_PREDICATES_0D_H__
 
-/** \file blender/freestyle/intern/stroke/Predicates0D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class gathering stroke creation algorithms
  */
 

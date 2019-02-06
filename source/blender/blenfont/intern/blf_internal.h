@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenfont/intern/blf_internal.h
- *  \ingroup blf
+/** \file \ingroup blf
  */
 
 

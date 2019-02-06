@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/metaball/editmball_undo.c
- *  \ingroup edmeta
+/** \file \ingroup edmeta
  */
 
 #include <math.h>

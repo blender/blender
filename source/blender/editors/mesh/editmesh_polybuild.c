@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/mesh/editmesh_polybuild.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  *
  * Tools to implement polygon building tool,
  * an experimental tool for quickly constructing/manipulating faces.

@@ -16,8 +16,7 @@
 #ifndef __BKE_KEYCONFIG_H__
 #define __BKE_KEYCONFIG_H__
 
-/** \file BKE_keyconfig.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 /** Based on #BKE_addon_pref_type_init and friends */

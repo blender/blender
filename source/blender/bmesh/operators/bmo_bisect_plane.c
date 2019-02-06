@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_bisect_plane.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Wrapper around #BM_mesh_bisect_plane
  */

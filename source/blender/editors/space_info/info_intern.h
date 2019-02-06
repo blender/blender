@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_info/info_intern.h
- *  \ingroup spinfo
+/** \file \ingroup spinfo
  */
 
 #ifndef __INFO_INTERN_H__

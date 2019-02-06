@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_material_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_MATERIAL_TYPES_H__

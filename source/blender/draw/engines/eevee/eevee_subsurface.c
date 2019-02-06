@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_subsurface.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Screen space subsurface scattering technique.
  */

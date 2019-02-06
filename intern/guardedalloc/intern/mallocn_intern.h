@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file guardedalloc/intern/mallocn_intern.h
- *  \ingroup MEM
+/** \file \ingroup MEM
  */
 
 #ifndef __MALLOCN_INTERN_H__

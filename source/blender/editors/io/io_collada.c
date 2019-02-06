@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/io/io_collada.c
- *  \ingroup collada
+/** \file \ingroup collada
  */
 #ifdef WITH_COLLADA
 #include "DNA_space_types.h"

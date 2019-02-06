@@ -17,8 +17,7 @@
 #ifndef __BPY_INTERN_STRING_H__
 #define __BPY_INTERN_STRING_H__
 
-/** \file blender/python/intern/bpy_intern_string.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 void bpy_intern_string_init(void);

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_stabilize2d.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 #include "node_composite_util.h"

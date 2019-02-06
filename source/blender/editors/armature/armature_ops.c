@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/armature/armature_ops.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "RNA_access.h"

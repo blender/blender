@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/editmesh_knife.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  *
  * Interactive editmesh knife tool.
  */

@@ -16,8 +16,7 @@
 #ifndef __BKE_MESH_TANGENT_H__
 #define __BKE_MESH_TANGENT_H__
 
-/** \file BKE_mesh_tangent.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 void BKE_mesh_calc_loop_tangent_single_ex(

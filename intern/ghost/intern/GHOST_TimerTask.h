@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_TimerTask.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_TimerTask class.
  */
 

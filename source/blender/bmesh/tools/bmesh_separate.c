@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/tools/bmesh_separate.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * BMesh separate, disconnects a set of faces from all others,
  * so they don't share any vertices/edges with other faces.

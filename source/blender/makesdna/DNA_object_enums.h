@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file DNA_object_enums.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Enums typedef's for use in public headers.
  */

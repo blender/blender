@@ -17,8 +17,7 @@
 #ifndef __BMESH_CORE_H__
 #define __BMESH_CORE_H__
 
-/** \file blender/bmesh/intern/bmesh_core.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 BMFace *BM_face_copy(

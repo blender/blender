@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/datatoc/datatoc.c
- *  \ingroup datatoc
+/** \file \ingroup datatoc
  */
 
 #include <stdio.h>

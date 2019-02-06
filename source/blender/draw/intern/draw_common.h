@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_common.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __DRAW_COMMON_H__

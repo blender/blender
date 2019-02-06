@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-/** \file DNA_space_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Structs for each of space type in the user interface.
  */

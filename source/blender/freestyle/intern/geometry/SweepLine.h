@@ -17,8 +17,7 @@
 #ifndef __SWEEPLINE_H__
 #define __SWEEPLINE_H__
 
-/** \file blender/freestyle/intern/geometry/SweepLine.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a Sweep Line
  */
 

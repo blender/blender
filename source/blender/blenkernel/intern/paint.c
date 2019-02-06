@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/paint.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdlib.h>

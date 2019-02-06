@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/object/object_data_transfer.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 #include "DNA_mesh_types.h"

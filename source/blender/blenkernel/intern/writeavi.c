@@ -19,8 +19,7 @@
  * Added interface for generic movie support (ton)
  */
 
-/** \file blender/blenkernel/intern/writeavi.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

@@ -16,8 +16,7 @@
  * Peter Schlaile <peter [at] schlaile [dot] de> 2010
  */
 
-/** \file blender/blenkernel/intern/seqcache.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stddef.h>

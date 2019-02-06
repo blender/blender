@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_ops.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  */
 
 #include <string.h>

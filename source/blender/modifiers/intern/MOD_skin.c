@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/modifiers/intern/MOD_skin.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 /* Implementation based in part off the paper "B-Mesh: A Fast Modeling

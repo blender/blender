@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_eyedropper_datablock.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Eyedropper (ID data-blocks)
  *

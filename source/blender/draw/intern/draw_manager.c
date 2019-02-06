@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file blender/draw/intern/draw_manager.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include <stdio.h>

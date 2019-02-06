@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/depsgraph/DEG_depsgraph.h
- *  \ingroup depsgraph
+/** \file \ingroup depsgraph
  *
  * Public API for Depsgraph
  *

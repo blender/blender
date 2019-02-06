@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/datatoc/datatoc_icon.c
- *  \ingroup datatoc
+/** \file \ingroup datatoc
  */
 
 #include <stdio.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/object/object_modifier.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  */
 
 

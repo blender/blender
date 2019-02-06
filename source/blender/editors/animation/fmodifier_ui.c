@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/animation/fmodifier_ui.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 

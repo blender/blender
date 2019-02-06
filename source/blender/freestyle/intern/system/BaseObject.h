@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_BASE_OBJECT_H__
 #define __FREESTYLE_BASE_OBJECT_H__
 
-/** \file blender/freestyle/intern/system/BaseObject.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Base Class for most shared objects (Node, Rep). Defines the addRef, release system.
  *  \brief Inspired by COM IUnknown system.
  */

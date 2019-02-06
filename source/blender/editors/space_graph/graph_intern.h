@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_graph/graph_intern.h
- *  \ingroup spgraph
+/** \file \ingroup spgraph
  */
 
 #ifndef __GRAPH_INTERN_H__

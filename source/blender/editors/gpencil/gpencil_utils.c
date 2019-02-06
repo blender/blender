@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2014, Blender Foundation
  */
 
-/** \file blender/editors/gpencil/gpencil_utils.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 #include <stdio.h>

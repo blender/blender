@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_node/node_ops.c
- *  \ingroup spnode
+/** \file \ingroup spnode
  */
 
 

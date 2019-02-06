@@ -17,8 +17,7 @@
 #ifndef __IMAGEPYRAMID_H__
 #define __IMAGEPYRAMID_H__
 
-/** \file blender/freestyle/intern/image/ImagePyramid.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to represent a pyramid of images
  */
 

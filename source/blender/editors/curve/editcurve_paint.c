@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/curve/editcurve_paint.c
- *  \ingroup edcurve
+/** \file \ingroup edcurve
  */
 
 #include "DNA_object_types.h"

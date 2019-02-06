@@ -17,8 +17,7 @@
 #ifndef __BKE_SPEAKER_H__
 #define __BKE_SPEAKER_H__
 
-/** \file BKE_speaker.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief General operations for speakers.
  */
 

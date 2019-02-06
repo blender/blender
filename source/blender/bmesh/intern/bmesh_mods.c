@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/intern/bmesh_mods.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * This file contains functions for locally modifying
  * the topology of existing mesh data. (split, join, flip etc).

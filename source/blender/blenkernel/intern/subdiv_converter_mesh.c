@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/subdiv_converter_mesh.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "subdiv_converter.h"

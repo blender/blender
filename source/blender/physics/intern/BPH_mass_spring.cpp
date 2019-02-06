@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/physics/intern/BPH_mass_spring.cpp
- *  \ingroup bph
+/** \file \ingroup bph
  */
 
 extern "C" {

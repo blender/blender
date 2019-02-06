@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/GHOST_ISystem.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * %Main interface file for C++ Api with declaration of GHOST_ISystem interface
  * class.
  * Contains the doxygen documentation main page.

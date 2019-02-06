@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_sound.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_SOUND_H__

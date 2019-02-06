@@ -18,8 +18,7 @@
  * UV Sculpt tools
  */
 
-/** \file blender/editors/sculpt_paint/sculpt_uv.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 

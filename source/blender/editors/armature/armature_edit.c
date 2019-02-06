@@ -18,8 +18,7 @@
  * Armature EditMode tools - transforms, chain based editing, and other settings
  */
 
-/** \file blender/editors/armature/armature_edit.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include <assert.h>

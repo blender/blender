@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file GPU_immediate_util.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * Utility drawing functions (rough equivalent to OpenGL's GLU)
  */

@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_depth_of_field.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Depth of field post process effect.
  */

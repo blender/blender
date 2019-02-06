@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/blendfile.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * High level `.blend` file read/write,
  * and functions for writing *partial* files (only selected data-blocks).

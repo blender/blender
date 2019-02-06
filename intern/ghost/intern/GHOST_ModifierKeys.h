@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_ModifierKeys.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  * Declaration of GHOST_ModifierKeys struct.
  */
 

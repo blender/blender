@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/io/io_alembic.c
- *  \ingroup editor/io
+/** \file \ingroup editor/io
  */
 
 #ifdef WITH_ALEMBIC

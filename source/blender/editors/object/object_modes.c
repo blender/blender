@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/object/object_modes.c
- *  \ingroup edobj
+/** \file \ingroup edobj
  *
  * General utils to handle mode switching,
  * actual mode switching logic is per-object type.

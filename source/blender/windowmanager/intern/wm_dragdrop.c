@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_dragdrop.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Our own drag-and-drop, drag state and drop boxes.
  */

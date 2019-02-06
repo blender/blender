@@ -17,8 +17,7 @@
 #ifndef __BLI_KDTREE_H__
 #define __BLI_KDTREE_H__
 
-/** \file BLI_kdtree.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief A kd-tree for nearest neighbor search.
  */
 

@@ -19,8 +19,7 @@
  * The Original Code is: some of this file.
  */
 
-/** \file blender/blenlib/intern/math_matrix.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 

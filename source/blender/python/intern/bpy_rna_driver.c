@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna_driver.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file defines utility functions that use the RNA API, from PyDrivers.
  */

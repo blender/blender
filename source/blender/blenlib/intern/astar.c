@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/astar.c
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief An implementation of the A* (AStar) algorithm to solve shortest path problem.
  *
  * This library implements the simple A* (AStar) algorithm, an optimized version of

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_space_api.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_SPACE_API_H__

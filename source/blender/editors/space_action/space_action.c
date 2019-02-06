@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_action/space_action.c
- *  \ingroup spaction
+/** \file \ingroup spaction
  */
 
 #include <string.h>

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/gpencil/gpencil_undo.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

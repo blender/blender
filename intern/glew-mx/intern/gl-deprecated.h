@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file intern/gl-deprecated.h
- *  \ingroup glew-mx
+/** \file \ingroup glew-mx
  *  Utility used to check for use of deprecated functions.
  */
 

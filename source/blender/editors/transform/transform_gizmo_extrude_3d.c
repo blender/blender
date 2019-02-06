@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/transform/transform_gizmo_extrude_3d.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  */
 
 #include "BLI_utildefines.h"

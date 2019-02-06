@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/bmesh/bmesh_py_geometry.c
- *  \ingroup pybmesh
+/** \file \ingroup pybmesh
  *
  * This file defines the 'bmesh.geometry' module.
  * Utility functions for operating on 'bmesh.types'

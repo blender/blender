@@ -18,8 +18,7 @@
  * Copyright (C) 2012 Alex Fraser
  */
 
-/** \file ghost/intern/GHOST_DisplayManagerSDL.cpp
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #include "GHOST_SystemSDL.h"

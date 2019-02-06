@@ -20,8 +20,7 @@
 #ifndef __BKE_DEFORM_H__
 #define __BKE_DEFORM_H__
 
-/** \file BKE_deform.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief support for deformation groups and hooks.
  */
 

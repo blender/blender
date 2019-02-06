@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/intern/node_exec.h
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 

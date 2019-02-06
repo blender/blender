@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/data_transfer_intern.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifndef __DATA_TRANSFER_INTERN_H__

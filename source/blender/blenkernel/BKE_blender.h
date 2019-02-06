@@ -19,8 +19,7 @@
 #ifndef __BKE_BLENDER_H__
 #define __BKE_BLENDER_H__
 
-/** \file BKE_blender.h
- *  \ingroup bke
+/** \file \ingroup bke
  *  \brief Blender util stuff
  */
 

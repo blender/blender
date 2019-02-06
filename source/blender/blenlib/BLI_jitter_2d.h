@@ -20,8 +20,7 @@
 #ifndef __BLI_JITTER_2D_H__
 #define __BLI_JITTER_2D_H__
 
-/** \file BLI_jitter_2d.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 void BLI_jitter_init(float (*jitarr)[2], int num);

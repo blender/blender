@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/sort.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdlib.h>

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna_callback.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file currently exposes callbacks for interface regions but may be
  * extended later.

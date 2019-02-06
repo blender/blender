@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenfont/intern/blf_util.c
- *  \ingroup blf
+/** \file \ingroup blf
  *
  * Internal utility API for BLF.
  */

@@ -18,8 +18,7 @@
  * .blend file reading entry point
  */
 
-/** \file blender/blenloader/intern/readblenentry.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 

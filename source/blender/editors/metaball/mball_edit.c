@@ -19,8 +19,7 @@
 
  */
 
-/** \file blender/editors/metaball/mball_edit.c
- *  \ingroup edmeta
+/** \file \ingroup edmeta
  */
 
 #include <math.h>

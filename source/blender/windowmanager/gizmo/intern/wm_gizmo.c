@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/gizmo/intern/wm_gizmo.c
- *  \ingroup wm
+/** \file \ingroup wm
  */
 
 #include "MEM_guardedalloc.h"

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_planar_faces.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * Iteratively flatten 4+ sided faces.
  */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/bmesh/bmesh_py_types_select.c
- *  \ingroup pybmesh
+/** \file \ingroup pybmesh
  *
  * This file defines the types for 'BMesh.select_history'
  * sequence and iterator.

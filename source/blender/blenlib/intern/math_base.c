@@ -20,8 +20,7 @@
  *
  * */
 
-/** \file blender/blenlib/intern/math_base.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_math.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/lattice.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdio.h>

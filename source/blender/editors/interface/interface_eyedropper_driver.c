@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_eyedropper_driver.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Eyedropper (Animation Driver Targets).
  *

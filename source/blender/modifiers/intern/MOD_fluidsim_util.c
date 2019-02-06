@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_fluidsim_util.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

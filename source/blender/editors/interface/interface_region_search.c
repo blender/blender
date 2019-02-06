@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_region_search.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Search Box Region & Interaction
  */

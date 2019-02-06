@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_keymap.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Configurable key-maps - add/remove/find/compare/patch...
  */

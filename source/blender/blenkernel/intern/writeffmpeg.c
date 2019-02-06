@@ -15,8 +15,7 @@
  * Partial Copyright (c) 2006 Peter Schlaile
  */
 
-/** \file blender/blenkernel/intern/writeffmpeg.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef WITH_FFMPEG

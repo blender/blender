@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/sound/sound_ops.c
- *  \ingroup edsnd
+/** \file \ingroup edsnd
  */
 
 

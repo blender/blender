@@ -18,8 +18,7 @@
  * Operators for dealing with GP datablocks and layers
  */
 
-/** \file blender/editors/gpencil/gpencil_data.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

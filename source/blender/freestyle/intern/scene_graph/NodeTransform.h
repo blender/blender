@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_NODE_TRANSFORM_H__
 #define __FREESTYLE_NODE_TRANSFORM_H__
 
-/** \file blender/freestyle/intern/scene_graph/NodeTransform.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to represent a transform node. A Transform node contains one or several children,
  *  \brief all affected by the transformation.
  */

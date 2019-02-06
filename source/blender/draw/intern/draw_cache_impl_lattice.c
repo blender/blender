@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_cache_impl_lattice.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * \brief Lattice API for render engines
  */

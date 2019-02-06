@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/intern/bmesh_operator_api_inline.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * BMesh inline operator functions.
  */

@@ -18,8 +18,7 @@
  * getting info on the layers themselves, accessing the data is
  * done through the (not yet written) mpoly interfaces.*/
 
-/** \file blender/makesrna/intern/rna_mesh.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include <stdlib.h>

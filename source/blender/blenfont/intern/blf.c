@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenfont/intern/blf.c
- *  \ingroup blf
+/** \file \ingroup blf
  *
  * Main BlenFont (BLF) API, public functions for font handling.
  *

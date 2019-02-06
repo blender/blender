@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file value2d_gizmo_group.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  *
  * \name 2D Value Gizmo
  *

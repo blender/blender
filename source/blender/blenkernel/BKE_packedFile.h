@@ -19,8 +19,7 @@
 #ifndef __BKE_PACKEDFILE_H__
 #define __BKE_PACKEDFILE_H__
 
-/** \file BKE_packedFile.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 #define RET_OK      0
 #define RET_ERROR   1

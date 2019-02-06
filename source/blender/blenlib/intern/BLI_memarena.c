@@ -18,8 +18,7 @@
  * Efficient memory allocation for lots of similar small chunks.
  */
 
-/** \file blender/blenlib/intern/BLI_memarena.c
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Memory arena ADT.
  *  \section aboutmemarena Memory Arena
  *

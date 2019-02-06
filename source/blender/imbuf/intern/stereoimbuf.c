@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/stereoimbuf.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include <stddef.h>

@@ -15,8 +15,7 @@
  * meshlaplacian.c: Algorithms using the mesh laplacian.
  */
 
-/** \file blender/editors/armature/meshlaplacian.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

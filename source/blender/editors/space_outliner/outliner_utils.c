@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_outliner/outliner_utils.c
- *  \ingroup spoutliner
+/** \file \ingroup spoutliner
  */
 
 #include "BLI_utildefines.h"

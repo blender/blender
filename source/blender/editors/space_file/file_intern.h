@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_file/file_intern.h
- *  \ingroup spfile
+/** \file \ingroup spfile
  */
 
 #ifndef __FILE_INTERN_H__

@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_NODE_SHAPE_H__
 #define __FREESTYLE_NODE_SHAPE_H__
 
-/** \file blender/freestyle/intern/scene_graph/NodeShape.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build a shape node. It contains a Rep, which is the shape geometry
  */
 

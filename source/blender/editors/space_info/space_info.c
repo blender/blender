@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_info/space_info.c
- *  \ingroup spinfo
+/** \file \ingroup spinfo
  */
 
 

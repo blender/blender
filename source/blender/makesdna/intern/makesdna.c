@@ -17,7 +17,7 @@
  * All rights reserved.
  */
 
-/**  \file makesdna.c
+/**  \file
  *   \brief Struct muncher for making SDNA.
  *   \ingroup DNA
  *

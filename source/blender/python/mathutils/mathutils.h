@@ -17,8 +17,7 @@
 #ifndef __MATHUTILS_H__
 #define __MATHUTILS_H__
 
-/** \file blender/python/mathutils/mathutils.h
- *  \ingroup pymathutils
+/** \file \ingroup pymathutils
  */
 
 /* Can cast different mathutils types to this, use for generic funcs */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/smallhash.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * A light stack-friendly hash library, it uses stack space for relatively small, fixed size hash tables
  * but falls back to heap memory once the stack limits reached (#SMSTACKSIZE).

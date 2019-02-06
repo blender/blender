@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file creator/creator.c
- *  \ingroup creator
+/** \file \ingroup creator
  */
 
 #include <stdlib.h>

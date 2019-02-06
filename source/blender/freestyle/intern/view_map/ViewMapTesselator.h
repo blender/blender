@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_VIEW_MAP_TESSELATOR_H__
 #define __FREESTYLE_VIEW_MAP_TESSELATOR_H__
 
-/** \file blender/freestyle/intern/view_map/ViewMapTesselator.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to build a Node Tree designed to be displayed from a Silhouette View Map structure.
  */
 

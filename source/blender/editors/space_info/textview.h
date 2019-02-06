@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/space_info/textview.h
- *  \ingroup spinfo
+/** \file \ingroup spinfo
  */
 
 #ifndef __TEXTVIEW_H__

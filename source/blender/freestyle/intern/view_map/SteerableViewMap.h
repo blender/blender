@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_STEERABLE_VIEW_MAP_H__
 #define __FREESTYLE_STEERABLE_VIEW_MAP_H__
 
-/** \file blender/freestyle/intern/view_map/SteerableViewMap.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Convenient access to the steerable ViewMap to which any element of the ViewMap belongs to.
  */
 

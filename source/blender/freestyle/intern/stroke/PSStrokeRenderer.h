@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_PS_STROKE_RENDERER_H__
 #define __FREESTYLE_PS_STROKE_RENDERER_H__
 
-/** \file blender/freestyle/intern/stroke/PSStrokeRenderer.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define the Postscript rendering of a stroke
  */
 

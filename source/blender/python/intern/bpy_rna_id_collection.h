@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna_id_collection.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 #ifndef __BPY_RNA_ID_COLLECTION_H__

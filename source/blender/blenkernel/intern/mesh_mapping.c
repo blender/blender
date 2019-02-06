@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenkernel/intern/mesh_mapping.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Functions for accessing mesh connectivity data.
  * eg: polys connected to verts, UV's connected to verts.

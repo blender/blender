@@ -18,8 +18,7 @@
  * Operators for relations between bones and for transferring bones between armature objects
  */
 
-/** \file blender/editors/armature/armature_relations.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "MEM_guardedalloc.h"

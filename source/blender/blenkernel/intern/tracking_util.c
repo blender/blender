@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/tracking_util.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * This file contains implementation of function which are used
  * by multiple tracking files but which should not be public.

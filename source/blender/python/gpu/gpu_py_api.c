@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/gpu/gpu_py_api.c
- *  \ingroup bpygpu
+/** \file \ingroup bpygpu
  *
  * Experimental Python API, not considered public yet (called '_gpu'),
  * we may re-expose as public later.

@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CONFIG_H__
 #define __FREESTYLE_CONFIG_H__
 
-/** \file blender/freestyle/intern/system/FreestyleConfig.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Configuration definitions
  */
 

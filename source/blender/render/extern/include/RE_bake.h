@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file RE_bake.h
- *  \ingroup render
+/** \file \ingroup render
  */
 
 #ifndef __RE_BAKE_H__

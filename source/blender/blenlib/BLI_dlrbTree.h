@@ -20,8 +20,7 @@
 #ifndef __BLI_DLRBTREE_H__
 #define __BLI_DLRBTREE_H__
 
-/** \file BLI_dlrbTree.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 /* Double-Linked Red-Black Tree Implementation:

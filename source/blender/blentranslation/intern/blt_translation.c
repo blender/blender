@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blentranslation/intern/blt_translation.c
- *  \ingroup blt
+/** \file \ingroup blt
  *
  * Manages translation files and provides translation functions.
  * (which are optional and can be disabled as a preference).

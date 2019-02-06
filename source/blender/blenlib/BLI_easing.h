@@ -31,8 +31,7 @@
 #ifndef __BLI_EASING_H__
 #define __BLI_EASING_H__
 
-/** \file BLI_easing.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

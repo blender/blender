@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/curve/editcurve.c
- *  \ingroup edcurve
+/** \file \ingroup edcurve
  */
 
 #include "DNA_key_types.h"

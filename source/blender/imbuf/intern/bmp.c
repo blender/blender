@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/bmp.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include "BLI_utildefines.h"

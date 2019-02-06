@@ -17,8 +17,7 @@
 #ifndef __BMESH_INTERP_H__
 #define __BMESH_INTERP_H__
 
-/** \file blender/bmesh/intern/bmesh_interp.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 struct LinkNode;

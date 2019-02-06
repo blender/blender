@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_gizmo_wrap.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file is so Python can define widget-group's that C can call into.
  * The generic callback functions for Python widget-group are defines in

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/draw/modes/edit_mesh_mode_intern.h
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #ifndef __EDIT_MESH_MODE_INTERN_H__

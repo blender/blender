@@ -18,8 +18,7 @@
  * Juho Vepsäläinen
  */
 
-/** \file blender/nodes/composite/nodes/node_composite_blur.c
- *  \ingroup cmpnodes
+/** \file \ingroup cmpnodes
  */
 
 

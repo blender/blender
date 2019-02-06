@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file UI_icons.h
- *  \ingroup editorui
+/** \file \ingroup editorui
  */
 
 /* Note: this is included multiple times with different #defines for DEF_ICON. */

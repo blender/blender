@@ -17,8 +17,7 @@
 #ifndef __NOISE_H__
 #define __NOISE_H__
 
-/** \file blender/freestyle/intern/geometry/Noise.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define Perlin noise
  */
 

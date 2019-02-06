@@ -18,8 +18,7 @@
  * allocimbuf.c
  */
 
-/** \file blender/imbuf/intern/readimage.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/nodes/composite/node_composite_util.c
- *  \ingroup nodes
+/** \file \ingroup nodes
  */
 
 #include "node_composite_util.h"

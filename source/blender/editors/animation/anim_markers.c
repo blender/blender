@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/animation/anim_markers.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 #include <math.h>

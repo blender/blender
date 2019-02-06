@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_object_fluidsim_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_OBJECT_FLUIDSIM_TYPES_H__

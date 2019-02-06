@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_texture.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_TEXTURE_H__

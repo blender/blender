@@ -17,8 +17,7 @@
 #ifndef __BMESH_ITERATORS_H__
 #define __BMESH_ITERATORS_H__
 
-/** \file blender/bmesh/intern/bmesh_iterators.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 /**

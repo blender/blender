@@ -19,8 +19,7 @@
 #ifndef __BLI_PATH_UTIL_H__
 #define __BLI_PATH_UTIL_H__
 
-/** \file BLI_path_util.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #ifdef __cplusplus

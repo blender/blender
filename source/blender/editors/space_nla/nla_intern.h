@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_nla/nla_intern.h
- *  \ingroup spnla
+/** \file \ingroup spnla
  */
 
 #ifndef __NLA_INTERN_H__

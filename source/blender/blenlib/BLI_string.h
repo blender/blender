@@ -20,8 +20,7 @@
 #ifndef __BLI_STRING_H__
 #define __BLI_STRING_H__
 
-/** \file BLI_string.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdarg.h>

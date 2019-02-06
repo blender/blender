@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_NATURE_H__
 #define __FREESTYLE_NATURE_H__
 
-/** \file blender/freestyle/intern/winged_edge/Nature.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Different natures for both vertices and edges
  */
 

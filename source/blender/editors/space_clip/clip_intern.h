@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_clip/clip_intern.h
- *  \ingroup spclip
+/** \file \ingroup spclip
  */
 
 #ifndef __CLIP_INTERN_H__

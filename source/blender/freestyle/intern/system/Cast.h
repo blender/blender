@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_CAST_H__
 #define __FREESTYLE_CAST_H__
 
-/** \file blender/freestyle/intern/system/Cast.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Cast function
  */
 

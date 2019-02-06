@@ -17,8 +17,7 @@
 #ifndef __FRS_FREESTYLE_H__
 #define __FRS_FREESTYLE_H__
 
-/** \file blender/freestyle/FRS_freestyle.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  */
 
 #ifdef __cplusplus

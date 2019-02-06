@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ghost/intern/GHOST_ContextGLX.h
- *  \ingroup GHOST
+/** \file \ingroup GHOST
  */
 
 #ifndef __GHOST_CONTEXTGLX_H__

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/mesh/mesh_mirror.c
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  *
  * Mirror calculation for edit-mode and object mode.
  */

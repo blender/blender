@@ -18,8 +18,7 @@
  * various string, file, list operations.
  */
 
-/** \file blender/blenlib/intern/path_util.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <ctype.h>

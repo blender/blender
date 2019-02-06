@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/bmesh/intern/bmesh_mesh_validate.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * BM mesh validation function.
  */

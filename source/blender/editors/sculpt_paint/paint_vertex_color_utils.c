@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/editors/sculpt_paint/paint_vertex_color_utils.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  *
  * Intended for use by `paint_vertex.c` & `paint_vertex_color_ops.c`.
  */

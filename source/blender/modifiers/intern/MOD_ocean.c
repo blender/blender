@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_ocean.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #include "DNA_customdata_types.h"

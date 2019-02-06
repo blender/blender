@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/gpu/GPU_vertex_format.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  *
  * GPU vertex format
  */

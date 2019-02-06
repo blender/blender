@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/operators/bmo_subdivide_edgering.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * This operator is a special edge-ring subdivision tool
  * which gives special options for interpolation.

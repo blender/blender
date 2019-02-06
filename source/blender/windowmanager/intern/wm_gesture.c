@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_gesture.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Gestures (cursor motions) creating, evaluating and drawing, shared between operators.
  */

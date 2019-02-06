@@ -19,8 +19,7 @@
  * - Interfaces with heat weighting in meshlaplacian
  */
 
-/** \file blender/editors/armature/armature_skinning.c
- *  \ingroup edarmature
+/** \file \ingroup edarmature
  */
 
 #include "DNA_mesh_types.h"

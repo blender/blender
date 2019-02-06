@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/imbuf/intern/cache.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 #include "MEM_guardedalloc.h"

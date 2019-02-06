@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/anim_movie.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 

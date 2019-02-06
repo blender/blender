@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_object_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *  \brief Object is a sort of wrapper for general info.
  */
 

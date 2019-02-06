@@ -20,8 +20,7 @@
 #ifndef __BKE_LATTICE_H__
 #define __BKE_LATTICE_H__
 
-/** \file BKE_lattice.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BLI_compiler_attrs.h"

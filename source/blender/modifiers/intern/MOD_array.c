@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_array.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  *
  * Array modifier: duplicates the object multiple times along an axis.
  */

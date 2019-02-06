@@ -20,8 +20,7 @@
 #ifndef __BKE_PAINT_H__
 #define __BKE_PAINT_H__
 
-/** \file BKE_paint.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct BMFace;

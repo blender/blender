@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file gizmo_library_intern.h
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  */
 
 #ifndef __GIZMO_LIBRARY_INTERN_H__

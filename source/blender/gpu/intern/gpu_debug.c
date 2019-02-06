@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file source/blender/gpu/intern/gpu_debug.c
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #include "BLI_compiler_attrs.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/io/io_cache.c
- *  \ingroup editor/io
+/** \file \ingroup editor/io
  */
 
 #include "MEM_guardedalloc.h"

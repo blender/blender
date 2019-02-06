@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenfont/intern/blf_font.c
- *  \ingroup blf
+/** \file \ingroup blf
  *
  * Deals with drawing text to OpenGL or bitmap buffers.
  *

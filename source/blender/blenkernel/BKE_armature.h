@@ -19,8 +19,7 @@
 #ifndef __BKE_ARMATURE_H__
 #define __BKE_ARMATURE_H__
 
-/** \file BKE_armature.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 struct Bone;

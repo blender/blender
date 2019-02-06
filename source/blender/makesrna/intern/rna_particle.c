@@ -16,8 +16,7 @@
  * Copyright 2011 AutoCRC
  */
 
-/** \file blender/makesrna/intern/rna_particle.c
- *  \ingroup RNA
+/** \file \ingroup RNA
  */
 
 #include <stdio.h>

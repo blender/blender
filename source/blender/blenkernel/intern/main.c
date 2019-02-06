@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/main.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Contains management of Main database itself.
  */

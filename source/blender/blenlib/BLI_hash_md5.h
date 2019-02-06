@@ -17,8 +17,7 @@
 #ifndef __BLI_HASH_MD5_H__
 #define __BLI_HASH_MD5_H__
 
-/** \file BLI_hash_md5.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 /* Compute MD5 message digest for LEN bytes beginning at BUFFER.  The

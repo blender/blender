@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file draw_cache_impl_mesh.c
- *  \ingroup draw
+/** \file \ingroup draw
  *
  * \brief Mesh API for render engines
  */

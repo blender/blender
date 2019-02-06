@@ -18,8 +18,7 @@
  * Implements the Sculpt Mode tools
  */
 
-/** \file blender/editors/sculpt_paint/sculpt_undo.c
- *  \ingroup edsculpt
+/** \file \ingroup edsculpt
  */
 
 #include <stddef.h>

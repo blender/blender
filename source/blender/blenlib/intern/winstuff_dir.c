@@ -15,8 +15,7 @@
  * Windows-posix compatibility layer for opendir/readdir/closedir
  */
 
-/** \file blender/blenlib/intern/winstuff_dir.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * Posix compatibility functions for windows dealing with DIR
  * (opendir, readdir, closedir)

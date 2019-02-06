@@ -17,8 +17,7 @@
 #ifndef __BMESH_PATH_H__
 #define __BMESH_PATH_H__
 
-/** \file blender/bmesh/tools/bmesh_path.h
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  */
 
 struct BMCalcPathParams {

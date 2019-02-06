@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/python/intern/bpy_rna.c
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  *
  * This file is the main interface between python and blenders data api (RNA),
  * exposing RNA to python so blender data can be accessed in a python like way.

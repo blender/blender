@@ -18,8 +18,7 @@
  * blenloader readfile private function prototypes
  */
 
-/** \file blender/blenloader/intern/readfile.h
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 #ifndef __READFILE_H__

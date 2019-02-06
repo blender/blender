@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mask/mask_shapekey.c
- *  \ingroup edmask
+/** \file \ingroup edmask
  */
 
 #include <stdlib.h>

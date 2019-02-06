@@ -16,8 +16,7 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file external_engine.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Base engine for external render engines.
  * We use it for depth and non-mesh objects.

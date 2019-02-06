@@ -17,8 +17,7 @@
 #ifndef __BLI_STACK_H__
 #define __BLI_STACK_H__
 
-/** \file BLI_stack.h
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_compiler_attrs.h"

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/lasso_2d.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "DNA_vec_types.h"

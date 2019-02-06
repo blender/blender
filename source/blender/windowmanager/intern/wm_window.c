@@ -18,8 +18,7 @@
  * All rights reserved.
  */
 
-/** \file blender/windowmanager/intern/wm_window.c
- *  \ingroup wm
+/** \file \ingroup wm
  *
  * Window management, wrap GHOST.
  */

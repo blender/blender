@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation, 2008
  */
 
-/** \file blender/editors/space_api/spacetypes.c
- *  \ingroup spapi
+/** \file \ingroup spapi
  */
 
 

@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_FUNCTIONS_1D_H__
 #define __FREESTYLE_FUNCTIONS_1D_H__
 
-/** \file blender/freestyle/intern/view_map/Functions1D.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Functions taking 1D input
  */
 

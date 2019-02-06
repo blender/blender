@@ -20,8 +20,7 @@
  * Copyright 2011-2012 AutoCRC
  */
 
-/** \file blender/blenkernel/intern/particle_system.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 

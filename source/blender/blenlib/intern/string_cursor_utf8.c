@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/string_cursor_utf8.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include <stdio.h>

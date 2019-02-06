@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_screen_types.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_SCREEN_TYPES_H__

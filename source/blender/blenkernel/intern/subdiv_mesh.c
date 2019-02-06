@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/subdiv_mesh.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "BKE_subdiv_mesh.h"

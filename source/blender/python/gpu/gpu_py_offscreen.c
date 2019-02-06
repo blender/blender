@@ -16,8 +16,7 @@
  * Copyright 2015, Blender Foundation.
  */
 
-/** \file blender/python/gpu/gpu_py_offscreen.c
- *  \ingroup bpygpu
+/** \file \ingroup bpygpu
  *
  * This file defines the offscreen functionalities of the 'gpu' module
  * used for off-screen OpenGL rendering.

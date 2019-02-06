@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file MOD_modifiertypes.h
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #ifndef __MOD_MODIFIERTYPES_H__

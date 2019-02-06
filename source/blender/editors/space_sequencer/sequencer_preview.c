@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_sequencer/sequencer_preview.c
- *  \ingroup spseq
+/** \file \ingroup spseq
  */
 
 #include "DNA_sequence_types.h"

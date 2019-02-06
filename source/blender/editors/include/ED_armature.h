@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_armature.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_ARMATURE_H__

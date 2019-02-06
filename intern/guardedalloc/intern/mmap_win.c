@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file guardedalloc/intern/mmap_win.c
- *  \ingroup MEM
+/** \file \ingroup MEM
  */
 
 #ifdef WIN32

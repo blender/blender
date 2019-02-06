@@ -16,8 +16,7 @@
  * Author: Peter Schlaile < peter [at] schlaile [dot] de >
  */
 
-/** \file blender/editors/space_sequencer/sequencer_scopes.c
- *  \ingroup spseq
+/** \file \ingroup spseq
  */
 
 

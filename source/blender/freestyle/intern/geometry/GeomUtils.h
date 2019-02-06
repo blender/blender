@@ -17,8 +17,7 @@
 #ifndef __GEOMUTILS_H__
 #define __GEOMUTILS_H__
 
-/** \file blender/freestyle/intern/geometry/GeomUtils.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Various tools for geometry
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_transform.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_TRANSFORM_H__

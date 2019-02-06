@@ -1,5 +1,4 @@
-/** \file smoke/intern/FLUID_3D.cpp
- *  \ingroup smoke
+/** \file \ingroup smoke
  */
 //////////////////////////////////////////////////////////////////////
 // This file is part of Wavelet Turbulence.

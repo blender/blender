@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_extensions.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_EXTENSIONS_H__

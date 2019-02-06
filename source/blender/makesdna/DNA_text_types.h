@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-/** \file DNA_text_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  *
  * Text blocks used for Python-Scripts, OpenShadingLanguage
  * and arbitrary text data to store in blend files.

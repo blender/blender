@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_vec_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_VEC_TYPES_H__

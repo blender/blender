@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/imbuf/intern/metadata.c
- *  \ingroup imbuf
+/** \file \ingroup imbuf
  */
 
 

@@ -17,8 +17,7 @@
 #ifndef __BKE_OBJECT_DEFORM_H__
 #define __BKE_OBJECT_DEFORM_H__
 
-/** \file BKE_object_deform.h
- * \ingroup bke
+/** \file \ingroup bke
  * \brief Functions for dealing with objects and deform verts,
  *        used by painting and tools.
  */

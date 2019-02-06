@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/interface/interface_region_menu_pie.c
- *  \ingroup edinterface
+/** \file \ingroup edinterface
  *
  * Pie Menu Region
  */

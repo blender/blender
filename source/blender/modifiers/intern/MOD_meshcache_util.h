@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/modifiers/intern/MOD_meshcache_util.h
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 #ifndef __MOD_MESHCACHE_UTIL_H__

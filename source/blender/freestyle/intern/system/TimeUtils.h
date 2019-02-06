@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_TIME_UTILS_H__
 #define __FREESTYLE_TIME_UTILS_H__
 
-/** \file blender/freestyle/intern/system/TimeUtils.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to measure elapsed time
  */
 

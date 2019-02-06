@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_armature_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_ARMATURE_TYPES_H__

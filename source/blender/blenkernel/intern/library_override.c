@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/library_override.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include <stdlib.h>

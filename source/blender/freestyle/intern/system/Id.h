@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_ID_H__
 #define __FREESTYLE_ID_H__
 
-/** \file blender/freestyle/intern/system/Id.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Identification system
  */
 

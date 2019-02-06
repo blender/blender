@@ -18,8 +18,7 @@
  * .blend file reading entry point
  */
 
-/** \file blender/blenloader/intern/undofile.c
- *  \ingroup blenloader
+/** \file \ingroup blenloader
  */
 
 #include <stdlib.h>

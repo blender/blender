@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/mesh_evaluate.c
- *  \ingroup bke
+/** \file \ingroup bke
  *
  * Functions to evaluate mesh data.
  */

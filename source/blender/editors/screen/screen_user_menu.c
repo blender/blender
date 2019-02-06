@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/screen/screen_user_menu.c
- *  \ingroup spview3d
+/** \file \ingroup spview3d
  */
 
 #include <string.h>

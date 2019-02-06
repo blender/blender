@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/intern/BLI_timer.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_timer.h"

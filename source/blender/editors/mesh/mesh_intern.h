@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/mesh/mesh_intern.h
- *  \ingroup edmesh
+/** \file \ingroup edmesh
  */
 
 /* Internal for editmesh_xxxx.c functions */

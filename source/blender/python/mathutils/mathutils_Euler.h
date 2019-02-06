@@ -17,8 +17,7 @@
 #ifndef __MATHUTILS_EULER_H__
 #define __MATHUTILS_EULER_H__
 
-/** \file blender/python/mathutils/mathutils_Euler.h
- *  \ingroup pymathutils
+/** \file \ingroup pymathutils
  */
 
 extern PyTypeObject euler_Type;

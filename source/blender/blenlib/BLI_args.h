@@ -20,8 +20,7 @@
 #ifndef __BLI_ARGS_H__
 #define __BLI_ARGS_H__
 
-/** \file BLI_args.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief A general argument parsing module.
  */
 

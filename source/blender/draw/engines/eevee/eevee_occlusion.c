@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file eevee_occlusion.c
- *  \ingroup draw_engine
+/** \file \ingroup draw_engine
  *
  * Implementation of the screen space Ground Truth Ambient Occlusion.
  */

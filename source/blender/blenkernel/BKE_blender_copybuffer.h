@@ -16,8 +16,7 @@
 #ifndef __BKE_BLENDER_COPYBUFFER_H__
 #define __BKE_BLENDER_COPYBUFFER_H__
 
-/** \file BKE_blender_copybuffer.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

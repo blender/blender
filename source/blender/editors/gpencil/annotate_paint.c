@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-/** \file blender/editors/gpencil/annotate_paint.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

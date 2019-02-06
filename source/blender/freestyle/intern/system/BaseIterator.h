@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_BASE_ITERATOR_H__
 #define __FREESTYLE_BASE_ITERATOR_H__
 
-/** \file blender/freestyle/intern/system/BaseIterator.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Classes defining the basic "Iterator" design pattern
  */
 

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file geom_arrow_gizmo.c
- *  \ingroup edgizmolib
+/** \file \ingroup edgizmolib
  */
 
 #include "../gizmo_geometry.h"

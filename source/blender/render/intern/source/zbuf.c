@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/render/intern/source/zbuf.c
- *  \ingroup render
+/** \file \ingroup render
  */
 
 

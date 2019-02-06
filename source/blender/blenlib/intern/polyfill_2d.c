@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/polyfill_2d.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * An ear clipping algorithm to triangulate single boundary polygons.
  *

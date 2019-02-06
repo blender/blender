@@ -17,8 +17,7 @@
 #ifndef __VECMAT_H__
 #define __VECMAT_H__
 
-/** \file blender/freestyle/intern/geometry/VecMat.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Vectors and Matrices definition and manipulation
  */
 

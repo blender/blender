@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/space_topbar/space_topbar.c
- *  \ingroup sptopbar
+/** \file \ingroup sptopbar
  */
 
 

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/bmesh/tools/bmesh_decimate_unsubdivide.c
- *  \ingroup bmesh
+/** \file \ingroup bmesh
  *
  * BMesh decimator that uses a grid un-subdivide method.
  */

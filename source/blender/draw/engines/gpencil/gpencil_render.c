@@ -16,8 +16,7 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file blender/draw/engines/gpencil/gpencil_render.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 #include "BLI_rect.h"
 

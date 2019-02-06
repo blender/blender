@@ -16,8 +16,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/render/render_update.c
- *  \ingroup edrend
+/** \file \ingroup edrend
  */
 
 #include <stdlib.h>

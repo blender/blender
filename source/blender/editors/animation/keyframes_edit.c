@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation
  */
 
-/** \file blender/editors/animation/keyframes_edit.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 

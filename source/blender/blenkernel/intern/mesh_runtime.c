@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenkernel/intern/mesh_runtime.c
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #include "atomic_ops.h"

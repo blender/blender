@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/blenlib/PIL_time_utildefines.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Utility defines for timing/benchmarks.
  */
 

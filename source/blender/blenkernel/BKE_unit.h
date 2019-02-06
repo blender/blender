@@ -17,8 +17,7 @@
 #ifndef __BKE_UNIT_H__
 #define __BKE_UNIT_H__
 
-/** \file BKE_unit.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 #ifdef __cplusplus

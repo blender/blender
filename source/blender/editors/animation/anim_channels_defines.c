@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/editors/animation/anim_channels_defines.c
- *  \ingroup edanimation
+/** \file \ingroup edanimation
  */
 
 

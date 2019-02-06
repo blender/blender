@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file DNA_meta_types.h
- *  \ingroup DNA
+/** \file \ingroup DNA
  */
 
 #ifndef __DNA_META_TYPES_H__

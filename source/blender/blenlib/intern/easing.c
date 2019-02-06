@@ -28,8 +28,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file blender/blenlib/intern/easing.c
- *  \ingroup bli
+/** \file \ingroup bli
  */
 
 #include "BLI_math_base.h"

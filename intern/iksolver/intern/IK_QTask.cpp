@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file iksolver/intern/IK_QTask.cpp
- *  \ingroup iksolver
+/** \file \ingroup iksolver
  */
 
 

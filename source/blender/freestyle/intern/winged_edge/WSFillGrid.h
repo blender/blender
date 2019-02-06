@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_WS_FILL_GRID_H__
 #define __FREESTYLE_WS_FILL_GRID_H__
 
-/** \file blender/freestyle/intern/winged_edge/WSFillGrid.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to fill in a grid from a SceneGraph (uses only the WingedEdge structures)
  */
 

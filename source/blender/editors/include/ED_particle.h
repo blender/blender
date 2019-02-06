@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_particle.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_PARTICLE_H__

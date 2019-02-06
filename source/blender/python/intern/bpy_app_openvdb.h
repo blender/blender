@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/python/intern/bpy_app_openvdb.h
- *  \ingroup pythonintern
+/** \file \ingroup pythonintern
  */
 
 #ifndef __BPY_APP_OPENVDB_H__

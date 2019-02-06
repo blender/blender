@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/modifiers/intern/MOD_mask.c
- *  \ingroup modifiers
+/** \file \ingroup modifiers
  */
 
 

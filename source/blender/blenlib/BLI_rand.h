@@ -20,8 +20,7 @@
 #ifndef __BLI_RAND_H__
 #define __BLI_RAND_H__
 
-/** \file BLI_rand.h
- *  \ingroup bli
+/** \file \ingroup bli
  *  \brief Random number functions.
  */
 

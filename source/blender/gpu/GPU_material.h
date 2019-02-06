@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file GPU_material.h
- *  \ingroup gpu
+/** \file \ingroup gpu
  */
 
 #ifndef __GPU_MATERIAL_H__

@@ -16,8 +16,7 @@
  * Copyright 2016, Blender Foundation.
  */
 
-/** \file draw_manager_profiling.c
- *  \ingroup draw
+/** \file \ingroup draw
  */
 
 #include "BLI_rect.h"

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/collada/ErrorHandler.cpp
- *  \ingroup collada
+/** \file \ingroup collada
  */
 #include "ErrorHandler.h"
 #include <iostream>

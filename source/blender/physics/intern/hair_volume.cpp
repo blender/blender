@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file blender/physics/intern/hair_volume.cpp
- *  \ingroup bph
+/** \file \ingroup bph
  */
 
 #include "MEM_guardedalloc.h"

@@ -17,8 +17,7 @@
 #ifndef __GEOMCLEANER_H__
 #define __GEOMCLEANER_H__
 
-/** \file blender/freestyle/intern/geometry/GeomCleaner.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define a cleaner of geometry providing a set of useful tools
  */
 

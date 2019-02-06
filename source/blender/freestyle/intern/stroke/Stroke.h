@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_STROKE_H__
 #define __FREESTYLE_STROKE_H__
 
-/** \file blender/freestyle/intern/stroke/Stroke.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Classes to define a stroke
  */
 

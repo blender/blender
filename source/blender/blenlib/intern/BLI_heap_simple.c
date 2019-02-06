@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file blender/blenlib/intern/BLI_heap_simple.c
- *  \ingroup bli
+/** \file \ingroup bli
  *
  * A min-heap / priority queue ADT.
  *

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-/** \file ED_render.h
- *  \ingroup editors
+/** \file \ingroup editors
  */
 
 #ifndef __ED_RENDER_H__

@@ -18,8 +18,7 @@
  * Making screendumps.
  */
 
-/** \file blender/editors/screen/screendump.c
- *  \ingroup edscr
+/** \file \ingroup edscr
  */
 
 

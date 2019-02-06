@@ -18,8 +18,7 @@
  * Operators for dealing with armatures and GP datablocks
  */
 
-/** \file blender/editors/gpencil/gpencil_armature.c
- *  \ingroup edgpencil
+/** \file \ingroup edgpencil
  */
 
 

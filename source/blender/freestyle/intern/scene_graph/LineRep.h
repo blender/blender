@@ -17,8 +17,7 @@
 #ifndef __FREESTYLE_LINE_REP_H__
 #define __FREESTYLE_LINE_REP_H__
 
-/** \file blender/freestyle/intern/scene_graph/LineRep.h
- *  \ingroup freestyle
+/** \file \ingroup freestyle
  *  \brief Class to define the representation of 3D Line.
  */
 

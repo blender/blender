@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation
  */
 
-/** \file blender/editors/space_action/action_select.c
- *  \ingroup spaction
+/** \file \ingroup spaction
  */
 
 

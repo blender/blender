@@ -17,8 +17,7 @@
 #ifndef __CCGSUBSURF_H__
 #define __CCGSUBSURF_H__
 
-/** \file blender/blenkernel/intern/CCGSubSurf.h
- *  \ingroup bke
+/** \file \ingroup bke
  */
 
 typedef void* CCGMeshHDL;
