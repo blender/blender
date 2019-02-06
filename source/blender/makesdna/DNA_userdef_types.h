@@ -65,7 +65,7 @@ typedef struct uiFont {
 	short uifont_id;
 	/** Fonts that read from left to right. */
 	short r_to_l;
-	short pad;
+	char _pad0[2];
 } uiFont;
 
 /* this state defines appearance of text */
@@ -116,7 +116,7 @@ typedef struct uiStyle {
 	short panelspace;
 	short panelouter;
 
-	short pad;
+	char _pad0[2];
 } uiStyle;
 
 typedef struct uiWidgetColors {
@@ -143,14 +143,15 @@ typedef struct uiWidgetStateColors {
 	char inner_overridden_sel[4];
 	char inner_changed[4];
 	char inner_changed_sel[4];
-	float blend, pad;
+	float blend;
+	char _pad0[4];
 } uiWidgetStateColors;
 
 typedef struct uiPanelColors {
 	char header[4];
 	char back[4];
 	char sub_back[4];
-	char pad2[4];
+	char _pad0[4];
 } uiPanelColors;
 
 typedef struct ThemeUI {
@@ -170,7 +171,7 @@ typedef struct ThemeUI {
 	short menu_shadow_width;
 
 	char editor_outline[4];
-	short pad[1];
+	char _pad0[2];
 
 	float icon_alpha;
 	float icon_saturation;
@@ -301,7 +302,7 @@ typedef struct ThemeSpace {
 	/** Keytypes. */
 	char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4], keytype_jitter_select[4], keytype_movehold_select[4];
 	char keyborder[4], keyborder_select[4];
-	char pad[4];
+	char _pad4[4];
 
 	char console_output[4], console_input[4], console_info[4], console_error[4];
 	char console_cursor[4], console_select[4];
@@ -340,7 +341,7 @@ typedef struct ThemeSpace {
 	char bundle_solid[4];
 	char path_before[4], path_after[4];
 	char camera_path[4];
-	char hpad[2];
+	char _pad1[2];
 
 	char gp_vertex_size;
 	char gp_vertex[4], gp_vertex_select[4];
@@ -373,7 +374,7 @@ typedef struct ThemeSpace {
 	char anim_non_active[4];
 	/** Preview range overlay. */
 	char anim_preview_range[4];
-	char anim_pad[4];
+	char _pad2[4];
 
 	/** NLA 'Tweaking' action/strip. */
 	char nla_tweaking[4];
@@ -410,7 +411,7 @@ typedef struct ThemeWireColor {
 
 	/** #eWireColor_Flags. */
 	short 	flag;
-	short 	pad;
+	char _pad0[2];
 } ThemeWireColor;
 
 /** #ThemeWireColor.flag */
@@ -451,7 +452,8 @@ typedef struct bTheme {
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
 
-	int active_theme_area, pad;
+	int active_theme_area;
+	char _pad0[4];
 } bTheme;
 
 #define UI_THEMESPACE_START(btheme)  (CHECK_TYPE_INLINE(btheme, bTheme *),  &((btheme)->tbuts))
@@ -468,7 +470,8 @@ typedef struct bPathCompare {
 	struct bPathCompare *next, *prev;
 	/** FILE_MAXDIR. */
 	char path[768];
-	char flag, pad[7];
+	char flag;
+	char _pad0[7];
 } bPathCompare;
 
 typedef struct bUserMenu {
@@ -519,7 +522,7 @@ enum {
 typedef struct SolidLight {
 	int flag;
 	float smooth;
-	float pad[2];
+	char _pad0[8];
 	float col[4], spec[4], vec[4];
 } SolidLight;
 
@@ -533,7 +536,7 @@ typedef struct WalkNavigation {
 	/** Duration to use for teleporting. */
 	float teleport_time;
 	short flag;
-	short pad[3];
+	char _pad0[6];
 } WalkNavigation;
 
 typedef struct UserDef {
@@ -571,7 +574,7 @@ typedef struct UserDef {
 	short versions;
 	short dbl_click_time;
 
-	short pad;
+	char _pad0[2];
 	short wheellinescroll;
 	/** #eUserpref_UI_Flag. */
 	int uiflag;
@@ -608,7 +611,7 @@ typedef struct UserDef {
 	int scrollback;
 	/** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
 	char node_margin;
-	char pad2[5];
+	char _pad2[5];
 	/** #eUserpref_Translation_Flags. */
 	short transopts;
 	short menuthreshold1, menuthreshold2;
@@ -630,7 +633,7 @@ typedef struct UserDef {
 	char keyconfigstr[64];
 
 	short undosteps;
-	short pad1;
+	char _pad1[2];
 	int undomemory;
 	float gpu_viewport_quality;
 	short gp_manhattendist, gp_euclideandist, gp_eraser;
@@ -638,17 +641,18 @@ typedef struct UserDef {
 	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light_param[4];
-	float light_ambient[3], pad7;
+	float light_ambient[3];
+	char _pad3[4];
 	short gizmo_flag, gizmo_size;
 	short edit_studio_light;
-	short pad6[2];
+	char _pad6[4];
 	short textimeout, texcollectrate;
 	short dragthreshold;
 	int memcachelimit;
 	int prefetchframes;
 	/** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */
 	float pad_rot_angle;
-	short _pad0;
+	char _pad12[2];
 	short obcenter_dia;
 	/** Rotating view icon size. */
 	short rvisize;
@@ -667,7 +671,7 @@ typedef struct UserDef {
 	/** Handle types for newly added keyframes. */
 	char  keyhandles_new;
 	char  gpu_select_pick_deph;
-	char  pad0[2];
+	char  _pad11[2];
 	/** #eZoomFrame_Mode. */
 	char  view_frame_type;
 
@@ -676,7 +680,7 @@ typedef struct UserDef {
 	/** Seconds to zoom around current frame. */
 	float view_frame_seconds;
 
-	char _pad1[6];
+	char _pad7[6];
 
 	/** Private, defaults to 20 for 72 DPI setting. */
 	short widget_unit;
@@ -713,7 +717,8 @@ typedef struct UserDef {
 	short autokey_flag;
 
 	/** Options for text rendering. */
-	short text_render, pad9;
+	short text_render;
+	char _pad9[2];
 
 	/** From texture.h. */
 	struct ColorBand coba_weight;
@@ -723,7 +728,8 @@ typedef struct UserDef {
 	float gpencil_new_layer_col[4];
 
 	short tweak_threshold;
-	char navigation_mode, pad10;
+	char navigation_mode;
+	char _pad10;
 
 	char font_path_ui[1024];
 	char font_path_ui_mono[1024];
@@ -757,7 +763,7 @@ typedef struct UserDef {
 	/** #eMultiSample_Type, amount of samples for Grease Pencil. */
 	short gpencil_multisamples;
 
-	char pad5[4];
+	char _pad5[4];
 } UserDef;
 
 /* from blenkernel blender.c */
