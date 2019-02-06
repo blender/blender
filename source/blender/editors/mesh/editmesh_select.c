@@ -1153,16 +1153,13 @@ bool EDBM_unified_findnearest_from_raycast(
 					if ((BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) &&
 					    (BM_edge_is_boundary(e)))
 					{
-						float depth;
-
 						if (use_vert) {
 							for (uint j = 0; j < 2; j++) {
 								BMVert *v = *((&e->v1) + j);
 								float point[3];
 								mul_v3_m4v3(point, obedit->obmat, coords ? coords[BM_elem_index_get(v)] : v->co);
-								const float dist_sq_test = dist_squared_to_ray_v3(
-								        ray_origin, ray_direction,
-								        point, &depth);
+								const float dist_sq_test = dist_squared_to_ray_v3_normalized(
+								        ray_origin, ray_direction, point);
 								if (dist_sq_test < dist_sq_best) {
 									dist_sq_best = dist_sq_test;
 									best.base_index = base_index;
@@ -1186,9 +1183,8 @@ bool EDBM_unified_findnearest_from_raycast(
 								mid_v3_v3v3(point, e->v1->co, e->v2->co);
 							}
 							mul_m4_v3(obedit->obmat, point);
-							const float dist_sq_test = dist_squared_to_ray_v3(
-							        ray_origin, ray_direction,
-							        point, &depth);
+							const float dist_sq_test = dist_squared_to_ray_v3_normalized(
+							        ray_origin, ray_direction, point);
 							if (dist_sq_test < dist_sq_best) {
 								dist_sq_best = dist_sq_test;
 								best.base_index = base_index;
@@ -1208,10 +1204,8 @@ bool EDBM_unified_findnearest_from_raycast(
 						if (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == false) {
 							float point[3];
 							mul_v3_m4v3(point, obedit->obmat, v->co);
-							float depth;
-							const float dist_sq_test = dist_squared_to_ray_v3(
-							        ray_origin, ray_direction,
-							        v->co, &depth);
+							const float dist_sq_test = dist_squared_to_ray_v3_normalized(
+							        ray_origin, ray_direction, v->co);
 							if (dist_sq_test < dist_sq_best) {
 								dist_sq_best = dist_sq_test;
 								best.base_index = base_index;
@@ -1233,10 +1227,8 @@ bool EDBM_unified_findnearest_from_raycast(
 								mid_v3_v3v3(point, e->v1->co, e->v2->co);
 							}
 							mul_m4_v3(obedit->obmat, point);
-							float depth;
-							const float dist_sq_test = dist_squared_to_ray_v3(
-							        ray_origin, ray_direction,
-							        point, &depth);
+							const float dist_sq_test = dist_squared_to_ray_v3_normalized(
+							        ray_origin, ray_direction, point);
 							if (dist_sq_test < dist_sq_best) {
 								dist_sq_best = dist_sq_test;
 								best.base_index = base_index;
@@ -1260,10 +1252,8 @@ bool EDBM_unified_findnearest_from_raycast(
 							BM_face_calc_center_median(f, point);
 						}
 						mul_m4_v3(obedit->obmat, point);
-						float depth;
-						const float dist_sq_test = dist_squared_to_ray_v3(
-						        ray_origin, ray_direction,
-						        point, &depth);
+						const float dist_sq_test = dist_squared_to_ray_v3_normalized(
+						        ray_origin, ray_direction, point);
 						if (dist_sq_test < dist_sq_best) {
 							dist_sq_best = dist_sq_test;
 							best.base_index = base_index;

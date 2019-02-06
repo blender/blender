@@ -109,9 +109,9 @@ float dist_signed_squared_to_corner_v3v3v3(
         const float p[3],
         const float v1[3], const float v2[3], const float v3[3],
         const float axis_ref[3]);
-float dist_squared_to_ray_v3(
+float dist_squared_to_ray_v3_normalized(
         const float ray_origin[3], const float ray_direction[3],
-        const float co[3], float *r_depth);
+        const float co[3]);
 float dist_squared_ray_to_seg_v3(
         const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3],

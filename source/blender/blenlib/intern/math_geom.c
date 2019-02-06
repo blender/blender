@@ -553,16 +553,25 @@ float dist_signed_squared_to_corner_v3v3v3(
 }
 
 /**
- * return the distance squared of a point to a ray.
+ * Compute the squared distance of a point to a line (defined as ray).
+ * \param ray_origin: A point on the line.
+ * \param ray_direction: Normalized direction of the line.
+ * \param co: Point to which the distance is to be calculated.
  */
-float dist_squared_to_ray_v3(
+float dist_squared_to_ray_v3_normalized(
         const float ray_origin[3], const float ray_direction[3],
-        const float co[3], float *r_depth)
+        const float co[3])
 {
-	float dvec[3];
-	sub_v3_v3v3(dvec, co, ray_origin);
-	*r_depth = dot_v3v3(dvec, ray_direction);
-	return len_squared_v3(dvec) - SQUARE(*r_depth);
+	float origin_to_co[3];
+	sub_v3_v3v3(origin_to_co, co, ray_origin);
+
+	float origin_to_proj[3];
+	project_v3_v3v3_normalized(origin_to_proj, origin_to_co, ray_direction);
+
+	float co_projected_on_ray[3];
+	add_v3_v3v3(co_projected_on_ray, ray_origin, origin_to_proj);
+
+	return len_squared_v3v3(co, co_projected_on_ray);
 }
 
 
