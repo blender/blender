@@ -357,4 +357,6 @@ void BKE_screen_remove_double_scredges(struct bScreen *sc);
 void BKE_screen_remove_unused_scredges(struct bScreen *sc);
 void BKE_screen_remove_unused_scrverts(struct bScreen *sc);
 
+void BKE_screen_header_alignment_reset(struct bScreen *screen);
+
 #endif

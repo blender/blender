@@ -455,7 +455,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		        USER_FLAG_DEPRECATED_4);
 
 		userdef->uiflag &= ~(
-		        USER_UIFLAG_DEPRECATED_8 |
+		        USER_HEADER_FROM_PREF |
 		        USER_UIFLAG_DEPRECATED_12 |
 		        USER_UIFLAG_DEPRECATED_22);
 	}

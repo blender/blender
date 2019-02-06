@@ -477,6 +477,12 @@ void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 			ED_screen_set_active_region(NULL, win, &win->eventstate->x);
 		}
 	}
+
+	if (U.uiflag & USER_HEADER_FROM_PREF) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			BKE_screen_header_alignment_reset(screen);
+		}
+	}
 }
 
 void ED_screen_ensure_updated(wmWindowManager *wm, wmWindow *win, bScreen *screen)

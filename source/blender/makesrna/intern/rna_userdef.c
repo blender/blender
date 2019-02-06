@@ -101,6 +101,7 @@ static const EnumPropertyItem rna_enum_studio_light_type_items[] = {
 #include "BKE_mesh_runtime.h"
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
+#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
@@ -150,6 +151,16 @@ static void rna_userdef_update_ui(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);    /* refresh region sizes */
+}
+
+static void rna_userdef_update_ui_header_default(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	if (U.uiflag & USER_HEADER_FROM_PREF) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			BKE_screen_header_alignment_reset(screen);
+		}
+		rna_userdef_update_ui(bmain, scene, ptr);
+	}
 }
 
 static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -3839,16 +3850,17 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	                         "Otherwise menus, etc will always be top to bottom, left to right, "
 	                         "no matter opening direction");
 
-	static const EnumPropertyItem header_align_default_items[] = {
-		{0, "TOP", 0, "Top", ""},
-		{USER_HEADER_BOTTOM, "BOTTOM", 0, "Bottom", ""},
+	static const EnumPropertyItem header_align_items[] = {
+		{0, "NONE", 0, "Default", "Keep existing header alignment"},
+		{USER_HEADER_FROM_PREF, "TOP", 0, "Top", "Top aligned on load"},
+		{USER_HEADER_FROM_PREF | USER_HEADER_BOTTOM, "BOTTOM", 0, "Bottom", "Bottom align on load (except for property editors)"},
 		{0, NULL, 0, NULL, NULL},
 	};
-	prop = RNA_def_property(srna, "header_align_default", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, header_align_default_items);
+	prop = RNA_def_property(srna, "header_align", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, header_align_items);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
 	RNA_def_property_ui_text(prop, "Header Position", "Default header position for new space-types");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_update_ui_header_default");
 
 	static const EnumPropertyItem text_hinting_items[] = {
 		{0, "AUTO", 0, "Auto", ""},
