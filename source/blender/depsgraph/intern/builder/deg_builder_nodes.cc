@@ -743,13 +743,16 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 {
 	OperationNode *op_node;
 	Object *ob_cow = get_cow_datablock(object);
-	/* Local transforms (from transform channels - loc/rot/scale + deltas). */
-	op_node = add_operation_node(&object->id, NodeType::TRANSFORM,
-	                             OperationCode::TRANSFORM_LOCAL,
-	                             function_bind(BKE_object_eval_local_transform,
-	                                           _1,
-	                                           ob_cow));
+	/* Transform entry operation. */
+	op_node = add_operation_node(
+	        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_INIT);
 	op_node->set_as_entry();
+	/* Local transforms (from transform channels - loc/rot/scale + deltas). */
+	add_operation_node(&object->id, NodeType::TRANSFORM,
+	                   OperationCode::TRANSFORM_LOCAL,
+	                   function_bind(BKE_object_eval_local_transform,
+	                                 _1,
+	                                 ob_cow));
 	/* Object parent. */
 	if (object->parent != NULL) {
 		add_operation_node(&object->id, NodeType::TRANSFORM,
@@ -762,7 +765,7 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 	}
 	/* Rest of transformation update. */
 	add_operation_node(&object->id, NodeType::TRANSFORM,
-	                   OperationCode::TRANSFORM_OBJECT_UBEREVAL,
+	                   OperationCode::TRANSFORM_EVAL,
 	                   function_bind(BKE_object_eval_uber_transform,
 	                                 _1,
 	                                 ob_cow));

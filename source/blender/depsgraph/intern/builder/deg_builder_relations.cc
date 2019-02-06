@@ -570,20 +570,19 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	}
 	/* Object Transforms */
 	OperationCode base_op = (object->parent) ? OperationCode::TRANSFORM_PARENT
-	                                               : OperationCode::TRANSFORM_LOCAL;
+	                                         : OperationCode::TRANSFORM_LOCAL;
 	OperationKey base_op_key(&object->id, NodeType::TRANSFORM, base_op);
-	OperationKey local_transform_key(&object->id,
-	                                 NodeType::TRANSFORM,
-	                                 OperationCode::TRANSFORM_LOCAL);
-	OperationKey parent_transform_key(&object->id,
-	                                  NodeType::TRANSFORM,
-	                                  OperationCode::TRANSFORM_PARENT);
-	OperationKey final_transform_key(&object->id,
-	                                 NodeType::TRANSFORM,
-	                                 OperationCode::TRANSFORM_FINAL);
-	OperationKey ob_ubereval_key(&object->id,
-	                             NodeType::TRANSFORM,
-	                             OperationCode::TRANSFORM_OBJECT_UBEREVAL);
+	OperationKey init_transform_key(
+	        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_INIT);
+	OperationKey local_transform_key(
+	        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_LOCAL);
+	OperationKey parent_transform_key(
+	        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_PARENT);
+	OperationKey final_transform_key(
+	        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+	OperationKey ob_eval_key(
+	        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
+	add_relation(init_transform_key, local_transform_key, "Transform Init");
 	/* Various flags, flushing from bases/collections. */
 	build_object_flags(base, object);
 	/* Parenting. */
@@ -635,20 +634,19 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		/* operation order */
 		add_relation(base_op_key, constraint_key, "ObBase-> Constraint Stack");
 		add_relation(constraint_key, final_transform_key, "ObConstraints -> Done");
-		// XXX
-		add_relation(constraint_key, ob_ubereval_key, "Temp Ubereval");
-		add_relation(ob_ubereval_key, final_transform_key, "Temp Ubereval");
+		add_relation(constraint_key, ob_eval_key, "Eval");
+		add_relation(ob_eval_key, final_transform_key, "Eval");
 	}
 	else {
 		/* NOTE: Keep an eye here, we skip some relations here to "streamline"
 		 * dependencies and avoid transitive relations which causes overhead.
 		 * But once we get rid of uber eval node this will need reconsideration. */
 		if (object->rigidbody_object == NULL) {
-			/* Rigid body will hook up another node inbetween, so skip
+			/* Rigid body will hook up another node in between, so skip
 			 * relation here to avoid transitive relation. */
-			add_relation(base_op_key, ob_ubereval_key, "Temp Ubereval");
+			add_relation(base_op_key, ob_eval_key, "Eval");
 		}
-		add_relation(ob_ubereval_key, final_transform_key, "Temp Ubereval");
+		add_relation(ob_eval_key, final_transform_key, "Eval");
 	}
 	/* Animation data */
 	build_animdata(&object->id);
@@ -661,16 +659,19 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	/* Proxy object to copy from. */
 	if (object->proxy_from != NULL) {
 		build_object(NULL, object->proxy_from);
-		ComponentKey ob_transform_key(&object->proxy_from->id, NodeType::TRANSFORM);
+		ComponentKey ob_transform_key(
+		        &object->proxy_from->id, NodeType::TRANSFORM);
 		ComponentKey proxy_transform_key(&object->id, NodeType::TRANSFORM);
 		add_relation(ob_transform_key, proxy_transform_key, "Proxy Transform");
 	}
 	if (object->proxy_group != NULL) {
 		build_object(NULL, object->proxy_group);
-		OperationKey proxy_group_ubereval_key(&object->proxy_group->id,
-		                                      NodeType::TRANSFORM,
-		                                      OperationCode::TRANSFORM_OBJECT_UBEREVAL);
-		add_relation(proxy_group_ubereval_key, final_transform_key, "Proxy Group Transform");
+		OperationKey proxy_group_eval_key(&object->proxy_group->id,
+		                                  NodeType::TRANSFORM,
+		                                  OperationCode::TRANSFORM_EVAL);
+		add_relation(proxy_group_eval_key,
+		             final_transform_key,
+		             "Proxy Group Transform");
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
@@ -912,7 +913,9 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 		int flag = -1;
 		if (ptcache_id->type == PTCACHE_TYPE_RIGIDBODY) {
 			flag = FLAG_TRANSFORM;
-			ComponentKey transform_key(&object->id, NodeType::TRANSFORM);
+			OperationKey transform_key(&object->id,
+			                           NodeType::TRANSFORM,
+			                           OperationCode::TRANSFORM_LOCAL);
 			add_relation(point_cache_key,
 			             transform_key,
 			             "Point Cache -> Rigid Body");
@@ -934,13 +937,13 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
 	}
 	/* Manual edits to any dependency (or self) should reset the point cache. */
 	if (!BLI_listbase_is_empty(&ptcache_id_list)) {
-		OperationKey transform_local_key(&object->id,
-		                                 NodeType::TRANSFORM,
-		                                 OperationCode::TRANSFORM_LOCAL);
+		OperationKey transform_init_key(&object->id,
+		                                NodeType::TRANSFORM,
+		                                OperationCode::TRANSFORM_INIT);
 		OperationKey geometry_init_key(&object->id,
 		                               NodeType::GEOMETRY,
 		                               OperationCode::GEOMETRY_EVAL_INIT);
-		add_relation(transform_local_key,
+		add_relation(transform_init_key,
 		             point_cache_key,
 		             "Transform Local -> Point Cache",
 		             RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
@@ -1637,7 +1640,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			 *         - passive don't change, so may need to know full transform... */
 			OperationKey rbo_key(&object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
 
-			OperationCode trans_opcode = object->parent ? OperationCode::TRANSFORM_PARENT : OperationCode::TRANSFORM_LOCAL;
+			OperationCode trans_opcode = object->parent ? OperationCode::TRANSFORM_PARENT
+			                                            : OperationCode::TRANSFORM_LOCAL;
 			OperationKey trans_op(&object->id, NodeType::TRANSFORM, trans_opcode);
 
 			add_relation(sim_key, rbo_key, "Rigidbody Sim Eval -> RBO Sync");
@@ -1663,14 +1667,13 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 				add_relation(rbo_key, constraint_key, "RBO Sync -> Ob Constraints");
 			}
 			else {
-				/* Final object transform depends on rigidbody.
-				 *
-				 * NOTE: Currently we consider final here an ubereval node.
-				 * If it is gone we'll need to reconsider relation here. */
-				OperationKey uber_key(&object->id,
-				                      NodeType::TRANSFORM,
-				                      OperationCode::TRANSFORM_OBJECT_UBEREVAL);
-				add_relation(rbo_key, uber_key, "RBO Sync -> Uber (Temp)");
+				/* Transform evaluation depends on rigidbody. */
+				OperationKey transform_eval_key(&object->id,
+				                                NodeType::TRANSFORM,
+				                                OperationCode::TRANSFORM_EVAL);
+				add_relation(rbo_key,
+				             transform_eval_key,
+				             "RBO Sync -> Transform Eval");
 			}
 
 			/* Needed to get correct base values. */

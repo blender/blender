@@ -61,16 +61,18 @@ enum class OperationCode {
 	OBJECT_BASE_FLAGS,
 
 	/* Transform. ----------------------------------------------------------- */
-	/* Transform entry point - local transforms only */
+	/* Transform entry point. */
+	TRANSFORM_INIT,
+	/* Local transforms only */
 	TRANSFORM_LOCAL,
 	/* Parenting */
 	TRANSFORM_PARENT,
 	/* Constraints */
 	TRANSFORM_CONSTRAINTS,
+	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
+	TRANSFORM_EVAL,
 	/* Transform exit point */
 	TRANSFORM_FINAL,
-	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
-	TRANSFORM_OBJECT_UBEREVAL,
 
 	/* Rigid body. ---------------------------------------------------------- */
 	/* Perform Simulation */
