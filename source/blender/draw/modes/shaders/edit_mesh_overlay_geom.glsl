@@ -41,6 +41,7 @@ void main()
 	ss_pos[1] = gl_in[1].gl_Position.xy / gl_in[1].gl_Position.w;
 
 	vec2 line = ss_pos[0] - ss_pos[1];
+	line *= viewportSize;
 
 	vec3 edge_ofs = sizeEdge * 2.0 * viewportSizeInv.xyy * vec3(1.0, 1.0, 0.0);
 
