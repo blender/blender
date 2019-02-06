@@ -1298,7 +1298,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_state_disable(sgl->points_dupli_select, DRW_STATE_BLEND);
 
 		/* Metaballs Handles */
-		sgl->mball_handle = shgroup_instance_mball_handles(sgl->non_meshes);
+		sgl->mball_handle = shgroup_instance_mball_handles(sgl->non_meshes, draw_ctx->shader_cfg);
 
 		/* Lamps */
 		/* TODO

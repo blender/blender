@@ -696,13 +696,18 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, bool transp
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, eGPUShaderConfig shader_cfg)
 {
-	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
+	COMMON_Shaders *sh_data = &g_shaders[shader_cfg];
 	if (sh_data->mball_handles == NULL) {
-		sh_data->mball_handles = DRW_shader_create(
-		        datatoc_object_mball_handles_vert_glsl, NULL,
-		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+		bool is_clip = (shader_cfg == GPU_SHADER_CFG_CLIPPED);
+		const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
+		const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		sh_data->mball_handles = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_mball_handles_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_mball_handles, {
@@ -716,7 +721,9 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass)
 	        DRW_cache_screenspace_circle_get(),
 	        g_formats.instance_mball_handles);
 	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
-
+	if (shader_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

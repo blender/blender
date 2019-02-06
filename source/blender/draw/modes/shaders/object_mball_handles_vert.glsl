@@ -5,6 +5,7 @@
 
 
 uniform mat4 ViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 uniform vec3 screen_vecs[2];
 
 /* ---- Instantiated Attrs ---- */
@@ -31,4 +32,8 @@ void main()
 
 	gl_Position = ViewProjectionMatrix * world_pos;
 	finalColor = vec4(color, 1.0);
+
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_calc_clip_distance((ModelMatrix * world_pos).xyz);
+#endif
 }

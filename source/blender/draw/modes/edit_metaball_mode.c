@@ -90,12 +90,23 @@ typedef struct EDIT_METABALL_PrivateData {
 
 /* *********** FUNCTIONS *********** */
 
+static void EDIT_METABALL_engine_init(void *UNUSED(vedata))
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
+	if (is_clip) {
+		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
+	}
+}
+
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
 static void EDIT_METABALL_cache_init(void *vedata)
 {
 	EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
 	EDIT_METABALL_StorageList *stl = ((EDIT_METABALL_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -110,7 +121,7 @@ static void EDIT_METABALL_cache_init(void *vedata)
 		psl->pass = DRW_pass_create("My Pass", state);
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		stl->g_data->group = shgroup_instance_mball_handles(psl->pass);
+		stl->g_data->group = shgroup_instance_mball_handles(psl->pass, draw_ctx->shader_cfg);
 	}
 }
 
@@ -192,6 +203,8 @@ static void EDIT_METABALL_draw_scene(void *vedata)
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */
+
+	DRW_state_clip_planes_reset();
 }
 
 /* Cleanup when destroying the engine.
@@ -208,7 +221,7 @@ DrawEngineType draw_engine_edit_metaball_type = {
 	NULL, NULL,
 	N_("EditMetaballMode"),
 	&EDIT_METABALL_data_size,
-	NULL,
+	&EDIT_METABALL_engine_init,
 	&EDIT_METABALL_engine_free,
 	&EDIT_METABALL_cache_init,
 	&EDIT_METABALL_cache_populate,
