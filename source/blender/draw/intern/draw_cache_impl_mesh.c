@@ -3842,8 +3842,10 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 					BMLoop *l = BM_vert_find_first_loop(eve);
-					int v = BM_elem_index_get(l);
-					GPU_indexbuf_add_generic_vert(&elb_vert, v);
+					if (l != NULL) {
+						int v = BM_elem_index_get(l);
+						GPU_indexbuf_add_generic_vert(&elb_vert, v);
+					}
 				}
 			}
 		}
