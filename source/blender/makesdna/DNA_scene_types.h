@@ -663,8 +663,8 @@ typedef struct RenderData {
 	int mode;
 
 	/**
-	 * What to do with the sky/background. Picks sky/premul/key
-	 * blending for the background
+	 * What to do with the sky/background.
+	 * Picks sky/premul blending for the background.
 	 */
 	short alphamode;
 
@@ -1828,8 +1828,9 @@ typedef struct Scene {
 
 /* RenderData.seq_flag */
 enum {
-	// R_SEQ_GL_PREV = (1 << 1),  // UNUSED, we just use setting from seq_prev_type now.
-	// R_SEQ_GL_REND = (1 << 2),  // UNUSED, opengl render has its own operator now.
+	R_SEQ_DEPRECATED_0 = (1 << 0),  /* cleared */
+	R_SEQ_DEPRECATED_1 = (1 << 1),  /* cleared */
+	R_SEQ_DEPRECATED_3 = (1 << 2),  /* cleared */
 	R_SEQ_SOLID_TEX  = (1 << 3),
 	R_SEQ_CAMERA_DOF = (1 << 4),
 };
@@ -1899,16 +1900,15 @@ enum {
                      R_STAMP_RENDERTIME|R_STAMP_CAMERALENS|R_STAMP_MEMORY|                 \
                      R_STAMP_HIDE_LABELS|R_STAMP_FRAME_RANGE|R_STAMP_HOSTNAME)
 
-/* RenderData.alphamode */
+/** #RenderData.alphamode */
 #define R_ADDSKY		0
 #define R_ALPHAPREMUL	1
-/*#define R_ALPHAKEY		2*/ /* deprecated, shouldn't be used */
 
 /* RenderData.color_mgt_flag */
 enum {
 	/** deprecated, should only be used in versioning code only */
 	R_COLOR_MANAGEMENT              = (1 << 0),
-	/*R_COLOR_MANAGEMENT_PREDIVIDE    = (1 << 1)*/  /* deprecated, shouldn't be used */
+	R_COLOR_MANAGEMENT_DEPRECATED_1 = (1 << 1),
 };
 
 #ifdef DNA_DEPRECATED
@@ -2192,8 +2192,7 @@ typedef enum eSculptFlags {
 	SCULPT_LOCK_Y = (1 << 4),
 	SCULPT_LOCK_Z = (1 << 5),
 
-	/* deprecated, part of paint struct symmetry_flags now */
-	SCULPT_SYMMETRY_FEATHER = (1 << 6),
+	SCULPT_FLAG_DEPRECATED_6 = (1 << 6),  /* cleared */
 
 	SCULPT_USE_OPENMP = (1 << 7),
 	SCULPT_ONLY_DEFORM = (1 << 8),
@@ -2359,7 +2358,7 @@ typedef enum eGPencil_Guide_Reference {
 #define PE_DEFLECT_EMITTER      (1 << 2)
 #define PE_INTERPOLATE_ADDED    (1 << 3)
 #define PE_DRAW_PART            (1 << 4)
-/* #define PE_X_MIRROR          (1 << 6) */ /* deprecated */
+#define PE_DEPRECATED_6         (1 << 6)  /* cleared */
 #define PE_FADE_TIME            (1 << 7)
 #define PE_AUTO_VELOCITY        (1 << 8)
 

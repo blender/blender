@@ -4094,7 +4094,7 @@ void sculpt_cache_calc_brushdata_symm(
 	/* XXX This reduces the length of the grab delta if it approaches the line of symmetry
 	 * XXX However, a different approach appears to be needed */
 #if 0
-	if (sd->paint.symmetry_flags & SCULPT_SYMMETRY_FEATHER) {
+	if (sd->paint.symmetry_flags & PAINT_SYMMETRY_FEATHER) {
 		float frac = 1.0f / max_overlap_count(sd);
 		float reduce = (feather - frac) / (1 - frac);
 

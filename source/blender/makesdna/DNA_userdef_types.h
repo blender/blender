@@ -252,12 +252,6 @@ typedef struct ThemeSpace {
 	/** Region background. */
 	char execution_buts[4];
 
-	/* float panel */
-/*	char panel[4];			unused */
-/*	char panel_title[4];	unused */
-/*	char panel_text[4];		unused */
-/*	char panel_text_hi[4];	unused */
-
 	/* note, cannot use name 'panel' because of DNA mapping old files */
 	uiPanelColors panelcolors;
 
@@ -865,7 +859,8 @@ typedef enum eWalkNavigation_Flag {
 
 /** #UserDef.uiflag */
 typedef enum eUserpref_UI_Flag {
-	/* flags 0 and 1 were old flags (for autokeying) that aren't used anymore */
+	USER_UIFLAG_DEPRECATED_0    = (1 << 0),  /* cleared */
+	USER_UIFLAG_DEPRECATED_1    = (1 << 1),  /* cleared */
 	USER_WHEELZOOMDIR           = (1 << 2),
 	USER_FILTERFILEEXTS         = (1 << 3),
 	USER_DRAWVIEWINFO           = (1 << 4),
@@ -901,7 +896,7 @@ typedef enum eUserpref_UI_Flag {
 
 /** #UserDef.uiflag2 */
 typedef enum eUserpref_UI_Flag2 {
-	// USER_FLAG2_DEPRECATED = (1 << 0),  /* TODO: clear */
+	USER_UIFLAG2_DEPRECATED_0   = (1 << 0),
 	USER_REGION_OVERLAP			= (1 << 1),
 	USER_TRACKPAD_NATURAL		= (1 << 2),
 } eUserpref_UI_Flag2;
@@ -1005,7 +1000,7 @@ typedef enum eText_Draw_Options {
 /** Grease Pencil Settings.
  * #UserDef.gp_settings */
 typedef enum eGP_UserdefSettings {
-	// GP_PAINT_DOSMOOTH		    = (1 << 0),  /* UNUSED */
+	GP_PAINT_DEPRECATED_0       = (1 << 0),
 	GP_PAINT_DOSIMPLIFY		    = (1 << 1),
 } eGP_UserdefSettings;
 

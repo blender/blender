@@ -2787,13 +2787,33 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		BKE_main_id_repair_duplicate_names_listbase(lb);
 	}
 
-	{
-		/* Versioning code until next subversion bump goes here. */
-
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 44)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Material", "float", "a")) {
 			for (Material *mat = bmain->mat.first; mat; mat = mat->id.next) {
 				mat->a = 1.0f;
 			}
 		}
+
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			enum {
+				R_ALPHAKEY = 2,
+			};
+			scene->rd.seq_flag &= ~(
+			        R_SEQ_DEPRECATED_0 |
+			        R_SEQ_DEPRECATED_1 |
+			        R_SEQ_DEPRECATED_2);
+			scene->rd.color_mgt_flag &= ~R_COLOR_MANAGEMENT_DEPRECATED_1;
+			if (scene->rd.alphamode == R_ALPHAKEY) {
+				scene->rd.alphamode = R_ADDSKY;
+			}
+			ToolSettings *ts = scene->toolsettings;
+			ts->particle &= ~PE_DEPRECATED_6;
+			ts->sculpt->flags &= ~SCULPT_FLAG_DEPRECATED_6;
+		}
+	}
+
+	{
+		/* Versioning code until next subversion bump goes here. */
+
 	}
 }
