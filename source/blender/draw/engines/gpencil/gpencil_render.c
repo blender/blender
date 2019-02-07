@@ -337,7 +337,7 @@ void GPENCIL_render_to_image(void *vedata, RenderEngine *engine, struct RenderLa
 
 							blend_pixel(gp_pixel_rgba, src_pixel_rgba, gp_pixel_rgba);
 
-							gp_pixel_rgba[3] = src_pixel_rgba[3];
+							gp_pixel_rgba[3] = gp_pixel_rgba[3] > src_pixel_rgba[3] ? gp_pixel_rgba[3] : src_pixel_rgba[3];
 						}
 					}
 				}
