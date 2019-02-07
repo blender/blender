@@ -26,8 +26,8 @@
 
 #include "intern/depsgraph_type.h"
 
-struct ID;
 struct Depsgraph;
+struct ID;
 
 namespace DEG {
 

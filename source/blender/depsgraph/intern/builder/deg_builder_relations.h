@@ -80,12 +80,12 @@ struct PropertyRNA;
 namespace DEG {
 
 struct ComponentNode;
-struct Node;
 struct DepsNodeHandle;
-struct Relation;
 struct Depsgraph;
 struct IDNode;
+struct Node;
 struct OperationNode;
+struct Relation;
 struct RootPChanMap;
 struct TimeSourceNode;
 

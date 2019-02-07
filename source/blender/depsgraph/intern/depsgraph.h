@@ -53,8 +53,8 @@ struct ViewLayer;
 namespace DEG {
 
 struct ComponentNode;
-struct Node;
 struct IDNode;
+struct Node;
 struct OperationNode;
 struct TimeSourceNode;
 

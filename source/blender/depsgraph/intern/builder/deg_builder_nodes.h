@@ -67,9 +67,9 @@ struct PropertyRNA;
 namespace DEG {
 
 struct ComponentNode;
-struct Node;
 struct Depsgraph;
 struct IDNode;
+struct Node;
 struct OperationNode;
 struct TimeSourceNode;
 
