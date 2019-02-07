@@ -1981,9 +1981,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		if (!DNA_struct_elem_find(fd->filesdna, "ClothSimSettings", "short", "bending_model")) {
 			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					ClothModifierData *clmd = NULL;
 					if (md->type == eModifierType_Cloth) {
-						ClothModifierData *clmd = (ClothModifierData *)md;
-
+						clmd = (ClothModifierData *)md;
+					}
+					else if (md->type == eModifierType_ParticleSystem) {
+						ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+						ParticleSystem *psys = psmd->psys;
+						clmd = psys->clmd;
+					}
+					if (clmd != NULL) {
 						clmd->sim_parms->bending_model = CLOTH_BENDING_LINEAR;
 						clmd->sim_parms->tension = clmd->sim_parms->structural;
 						clmd->sim_parms->compression = clmd->sim_parms->structural;
