@@ -3801,11 +3801,10 @@ static void mesh_create_loops_tris(
  * It writes to MEdge->flag with ME_EDGE_TMP_TAG. */
 static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexBuf *ibo_verts, GPUIndexBuf *ibo_edges)
 {
-	BMIter iter_efa, iter_loop;
-	BMFace *efa;
-	BMLoop *loop;
+	BMIter iter;
 	int i;
 
+	const int vert_len = mesh_render_data_verts_len_get_maybe_mapped(rdata);
 	const int edge_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
 	const int loop_len = mesh_render_data_loops_len_get_maybe_mapped(rdata);
 	const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
@@ -3824,28 +3823,31 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 	int loop_idx = 0;
 	if (rdata->edit_bmesh && (rdata->mapped.use == false)) {
 		BMesh *bm = rdata->edit_bmesh->bm;
-		BMEdge *eed;
 		/* Edges not loose. */
-		BM_ITER_MESH (eed, &iter_efa, bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-				if (ibo_edges && eed->l != NULL) {
-					int v1 = BM_elem_index_get(eed->l);
-					int v2 = BM_elem_index_get(eed->l->next);
-					GPU_indexbuf_add_line_verts(&elb_edge, v1, v2);
+		if (ibo_edges) {
+			BMEdge *eed;
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					if (eed->l != NULL) {
+						int v1 = BM_elem_index_get(eed->l);
+						int v2 = BM_elem_index_get(eed->l->next);
+						GPU_indexbuf_add_line_verts(&elb_edge, v1, v2);
+					}
 				}
 			}
 		}
 		/* Face Loops */
-		BM_ITER_MESH (efa, &iter_efa, bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-				BM_ITER_ELEM_INDEX (loop, &iter_loop, efa, BM_LOOPS_OF_FACE, i) {
-					if (ibo_verts) {
-						GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + i);
-					}
+		if (ibo_verts) {
+			BMVert *eve;
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+					BMLoop *l = BM_vert_find_first_loop(eve);
+					int v = BM_elem_index_get(l);
+					GPU_indexbuf_add_generic_vert(&elb_vert, v);
 				}
 			}
-			loop_idx += efa->len;
 		}
+		loop_idx = loop_len;
 		/* Loose edges */
 		for (i = 0; i < ledge_len; ++i) {
 			if (ibo_verts) {
@@ -3867,6 +3869,7 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 	}
 	else if (rdata->mapped.use) {
 		const MPoly *mpoly = rdata->mapped.me_cage->mpoly;
+		MVert *mvert = rdata->mapped.me_cage->mvert;
 		MEdge *medge = rdata->mapped.me_cage->medge;
 		BMesh *bm = rdata->edit_bmesh->bm;
 
@@ -3879,16 +3882,23 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 			/* NOTE: not thread safe. */
 			medge[edge].flag &= ~ME_EDGE_TMP_TAG;
 		}
+		for (int vert = 0; vert < vert_len; ++vert) {
+			/* NOTE: not thread safe. */
+			mvert[vert].flag &= ~ME_VERT_TMP_TAG;
+		}
 
 		/* Face Loops */
 		for (int poly = 0; poly < poly_len; poly++, mpoly++) {
 			int fidx = p_origindex[poly];
 			if (fidx != ORIGINDEX_NONE) {
-				efa = BM_face_at_index(bm, fidx);
+				BMFace *efa = BM_face_at_index(bm, fidx);
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 					const MLoop *mloop = &rdata->mapped.me_cage->mloop[mpoly->loopstart];
 					for (i = 0; i < mpoly->totloop; ++i, ++mloop) {
-						if (ibo_verts && (v_origindex[mloop->v] != ORIGINDEX_NONE)) {
+						if (ibo_verts && (v_origindex[mloop->v] != ORIGINDEX_NONE) &&
+						    (mvert[mloop->v].flag & ME_VERT_TMP_TAG) == 0)
+						{
+							mvert[mloop->v].flag |= ME_VERT_TMP_TAG;
 							GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + i);
 						}
 						if (ibo_edges && (e_origindex[mloop->e] != ORIGINDEX_NONE) &&
