@@ -1119,7 +1119,7 @@ static void sculpt_undosys_step_decode(struct bContext *C, struct Main *bmain, U
 				/* Don't add sculpt topology undo steps when reading back undo state.
 				 * The undo steps must enter/exit for us. */
 				me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
-				ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, NULL);
+				ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, true, NULL);
 			}
 			BLI_assert(sculpt_undosys_poll(C));
 		}
