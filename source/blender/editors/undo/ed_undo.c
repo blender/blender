@@ -323,6 +323,15 @@ static int ed_undo_exec(bContext *C, wmOperator *op)
 
 static int ed_undo_push_exec(bContext *C, wmOperator *op)
 {
+	if (G.background) {
+		/* Exception for background mode, see: T60934.
+		 * Note: since the undo stack isn't initialized on startup, background mode behavior
+		 * won't match regular usage, this is just for scripts to do explicit undo pushes. */
+		wmWindowManager *wm = CTX_wm_manager(C);
+		if (wm->undo_stack == NULL) {
+			wm->undo_stack = BKE_undosys_stack_create();
+		}
+	}
 	char str[BKE_UNDO_STR_MAX];
 	RNA_string_get(op->ptr, "message", str);
 	ED_undo_push(C, str);
@@ -357,7 +366,7 @@ static bool ed_undo_is_init_poll(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	if (wm->undo_stack == NULL) {
-		CTX_wm_operator_poll_msg_set(C, "Undo disabled in background mode or at startup");
+		CTX_wm_operator_poll_msg_set(C, "Undo disabled at startup");
 		return false;
 	}
 	return true;
@@ -399,7 +408,8 @@ void ED_OT_undo_push(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = ed_undo_push_exec;
-	ot->poll = ed_undo_is_init_poll;
+	/* Unlike others undo operators this initializes undo stack. */
+	ot->poll = ED_operator_screenactive;
 
 	ot->flag = OPTYPE_INTERNAL;
 
