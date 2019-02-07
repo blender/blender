@@ -212,6 +212,55 @@ void BKE_main_relations_free(Main *bmain)
 }
 
 /**
+ * Call given callback over every IDs of given \a lb listbase (assumed to be part of given \a bmain).
+ *
+ * \return false if the iteration was iterrupted by the callback.
+ *
+ * \warning \a callback may affect the ID, but DO NOT change the listbase or Main database (add/remove/reorder its IDs).
+ */
+bool BKE_main_listbase_foreach_id(
+        Main *bmain, ListBase *lb,
+        MainForeachIDCallback callback, void *user_data)
+{
+	bool keep_looping = true;
+	for (ID *id = lb->first; id; id = id->next) {
+		if (!(keep_looping = callback(bmain, id, user_data))) {
+			return keep_looping;
+		}
+	}
+	return keep_looping;
+}
+
+/**
+ * Call given callback over every IDs of given \a bmain Main database.
+ *
+ * \param reverse_type_order Allow to reverse order in which ID *types* are handled
+ *                           (i.e. does not reverse the order in which IDs themselves are handled
+ *                           whithin a give listbase).
+ * \return false if the iteration was iterrupted by the callback.
+ *
+ * \warning \a callback may affect the ID, but DO NOT change the Main database (add/remove/reorder its IDs).
+ */
+bool BKE_main_foreach_id(
+        Main *bmain, const bool reverse_type_order,
+        MainForeachIDCallback callback, void *user_data)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	const int nbr_types = set_listbasepointers(bmain, lbarray);
+
+	bool keep_looping = true;
+	for (int i = reverse_type_order ? nbr_types - 1 : 0;
+	     reverse_type_order ? i >= 0 : i < nbr_types;
+	     reverse_type_order ? i-- : i++)
+	{
+		if (!(keep_looping = BKE_main_listbase_foreach_id(bmain, lbarray[i], callback, user_data))) {
+			return keep_looping;
+		}
+	}
+	return keep_looping;
+}
+
+/**
  * Generates a raw .blend file thumbnail data from given image.
  *
  * \param bmain: If not NULL, also store generated data in this Main.
