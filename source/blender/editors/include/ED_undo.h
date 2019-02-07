@@ -23,7 +23,9 @@
 #include "BLI_compiler_attrs.h"
 
 struct CLG_LogRef;
+struct Object;
 struct UndoStack;
+struct ViewLayer;
 struct bContext;
 struct wmOperator;
 struct wmOperatorType;
@@ -50,6 +52,10 @@ void    ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg
 bool    ED_undo_is_valid(const struct bContext *C, const char *undoname);
 
 bool    ED_undo_is_memfile_compatible(const struct bContext *C);
+
+void    ED_undo_object_editmode_restore_helper(
+        struct bContext *C,
+        struct Object **object_array, uint object_array_len, uint object_array_stride);
 
 struct UndoStack *ED_undo_stack_get(void);
 

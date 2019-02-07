@@ -698,9 +698,11 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bma
 {
 	MeshUndoStep *us = (MeshUndoStep *)us_p;
 
+	/* Important not to use the 3D view when getting objects because all objects
+	 * outside of this list will be moved out of edit-mode when reading back undo steps. */
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, CTX_wm_view3d(C), &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, NULL, &objects_len);
 
 	us->elems = MEM_callocN(sizeof(*us->elems) * objects_len, __func__);
 	us->elems_len = objects_len;
@@ -718,16 +720,12 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *UNUSED(bma
 	return true;
 }
 
-static void mesh_undosys_step_decode(struct bContext *C, struct Main *bmain, UndoStep *us_p, int UNUSED(dir))
+static void mesh_undosys_step_decode(struct bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p, int UNUSED(dir))
 {
 	MeshUndoStep *us = (MeshUndoStep *)us_p;
 
-	Scene *scene = CTX_data_scene(C);
-	for (uint i = 0; i < us->elems_len; i++) {
-		MeshUndoStep_Elem *elem = &us->elems[i];
-		Object *obedit = elem->obedit_ref.ptr;
-		ED_object_editmode_enter_ex(bmain, scene, obedit, EM_NO_CONTEXT);
-	}
+	/* Load all our objects  into edit-mode, clear everything else. */
+	ED_undo_object_editmode_restore_helper(C, &us->elems[0].obedit_ref.ptr, us->elems_len, sizeof(*us->elems));
 
 	BLI_assert(mesh_undosys_poll(C));
 
