@@ -11,7 +11,7 @@ vec4 EDIT_MESH_edge_color_outer(int edge_flag, int face_flag, float crease, floa
 	color = ((edge_flag & EDGE_SEAM) != 0) ? colorEdgeSeam : color;
 
 	if ((face_flag & FACE_ACTIVE) != 0) {
-		color = colorEditMeshActive;
+		color = vec4(colorEditMeshActive.rgb, 1.0);
 	}
 	return color;
 }
