@@ -16,8 +16,8 @@
  * Copyright 2017, Blender Foundation.
  */
 
-/** \file \ingroup draw
- */
+ /** \file \ingroup draw
+  */
 #include "BLI_rect.h"
 
 #include "DRW_render.h"
@@ -34,10 +34,10 @@
 
 #include "gpencil_engine.h"
 
-/* Get pixel size for render
- * This function uses the same calculation used for viewport, because if use
- * camera pixelsize, the result is not correct.
- */
+  /* Get pixel size for render
+   * This function uses the same calculation used for viewport, because if use
+   * camera pixelsize, the result is not correct.
+   */
 static float get_render_pixelsize(float persmat[4][4], int winx, int winy)
 {
 	float v1[3], v2[3];
@@ -72,7 +72,7 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 	 * because there is no viewport. So we need to manually create one
 	 * NOTE : use 32 bit format for precision in render mode.
 	 */
-	/* create multiframe framebuffer for AA */
+	 /* create multiframe framebuffer for AA */
 	if (U.gpencil_multisamples > 0) {
 		int rect_w = (int)viewport_size[0];
 		int rect_h = (int)viewport_size[1];
@@ -80,16 +80,16 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 	}
 
 	vedata->render_depth_tx = DRW_texture_pool_query_2D(
-	        size[0], size[1], GPU_DEPTH_COMPONENT24,
-	        &draw_engine_gpencil_type);
+		size[0], size[1], GPU_DEPTH_COMPONENT24,
+		&draw_engine_gpencil_type);
 	vedata->render_color_tx = DRW_texture_pool_query_2D(
-	        size[0], size[1], GPU_RGBA32F,
-	        &draw_engine_gpencil_type);
+		size[0], size[1], GPU_RGBA32F,
+		&draw_engine_gpencil_type);
 	GPU_framebuffer_ensure_config(
-	        &fbl->main, {
-	            GPU_ATTACHMENT_TEXTURE(vedata->render_depth_tx),
-	            GPU_ATTACHMENT_TEXTURE(vedata->render_color_tx)
-	        });
+		&fbl->main, {
+			GPU_ATTACHMENT_TEXTURE(vedata->render_depth_tx),
+			GPU_ATTACHMENT_TEXTURE(vedata->render_color_tx)
+		});
 
 	/* Alloc transient data. */
 	if (!stl->g_data) {
@@ -141,7 +141,7 @@ static void GPENCIL_render_update_viewvecs(float invproj[4][4], float winmat[4][
 		{-1.0f, -1.0f, -1.0f, 1.0f},
 		{1.0f, -1.0f, -1.0f, 1.0f},
 		{-1.0f,  1.0f, -1.0f, 1.0f},
-		{-1.0f, -1.0f,  1.0f, 1.0f},
+		{-1.0f, -1.0f,  1.0f, 1.0f}
 	};
 
 	/* convert the view vectors to view space */
@@ -231,14 +231,14 @@ static void GPENCIL_render_result_combined(struct RenderLayer *rl, const char *v
 }
 
 /* helper to blend pixels */
-static void blend_pixel(float src[4], float dst[4])
+static void blend_pixel(float top_color[4], float bottom_color[4], float dst_color[4])
 {
-	float alpha = src[3];
+	float alpha = top_color[3];
 
 	/* use blend: GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA */
-	dst[0] = (src[0] * alpha) + (dst[0] * (1.0f - alpha));
-	dst[1] = (src[1] * alpha) + (dst[1] * (1.0f - alpha));
-	dst[2] = (src[2] * alpha) + (dst[2] * (1.0f - alpha));
+	dst_color[0] = (top_color[0] * alpha) + (bottom_color[0] * (1.0f - alpha));
+	dst_color[1] = (top_color[1] * alpha) + (bottom_color[1] * (1.0f - alpha));
+	dst_color[2] = (top_color[2] * alpha) + (bottom_color[2] * (1.0f - alpha));
 }
 
 /* render grease pencil to image */
@@ -291,10 +291,10 @@ void GPENCIL_render_to_image(void *vedata, RenderEngine *engine, struct RenderLa
 	GPENCIL_render_result_z(render_layer, viewname, vedata, rect);
 
 	/* detach textures */
-	 if (fbl->main) {
-	 	GPU_framebuffer_texture_detach(fbl->main, ((GPENCIL_Data *)vedata)->render_depth_tx);
-	 	GPU_framebuffer_texture_detach(fbl->main, ((GPENCIL_Data *)vedata)->render_color_tx);
-	 }
+	if (fbl->main) {
+		GPU_framebuffer_texture_detach(fbl->main, ((GPENCIL_Data *)vedata)->render_depth_tx);
+		GPU_framebuffer_texture_detach(fbl->main, ((GPENCIL_Data *)vedata)->render_color_tx);
+	}
 
 	/* merge previous render image with new GP image */
 	if (src_rect_color_data) {
@@ -306,7 +306,6 @@ void GPENCIL_render_to_image(void *vedata, RenderEngine *engine, struct RenderLa
 		float *gp_pixel_depth;
 		float *src_pixel_rgba;
 		float *src_pixel_depth;
-		float tmp[4];
 
 		for (int i = 0; i < imgsize; i++) {
 			gp_pixel_rgba = &gp_rect_color_data[i * 4];
@@ -317,26 +316,28 @@ void GPENCIL_render_to_image(void *vedata, RenderEngine *engine, struct RenderLa
 
 			/* check grease pencil render transparency */
 			if (gp_pixel_rgba[3] > 0.0f) {
-				copy_v4_v4(tmp, gp_pixel_rgba);
 				if (src_pixel_rgba[3] > 0.0f) {
-					/* copy source color on back */
-					copy_v4_v4(gp_pixel_rgba, src_pixel_rgba);
 					/* check z-depth */
 					if (gp_pixel_depth[0] > src_pixel_depth[0]) {
 						/* copy source z-depth */
 						gp_pixel_depth[0] = src_pixel_depth[0];
-						/* blend gp render */
-						blend_pixel(tmp, gp_pixel_rgba);
 						/* blend object on top */
-						blend_pixel(src_pixel_rgba, gp_pixel_rgba);
+						if (src_pixel_rgba[3] < 1.0f) {
+							blend_pixel(src_pixel_rgba, gp_pixel_rgba, gp_pixel_rgba);
+						}
+						else {
+							copy_v4_v4(gp_pixel_rgba, src_pixel_rgba);
+						}
 					}
 					else {
 						/* blend gp render */
-						if (tmp[3] < 1.0f) {
-							blend_pixel(tmp, gp_pixel_rgba);
-						}
-						else {
-							copy_v4_v4(gp_pixel_rgba, tmp);
+						if (gp_pixel_rgba[3] < 1.0f) {
+							/* premult alpha factor to remove double blend effects */
+							mul_v3_fl(gp_pixel_rgba, 1.0f / gp_pixel_rgba[3]);
+
+							blend_pixel(gp_pixel_rgba, src_pixel_rgba, gp_pixel_rgba);
+
+							gp_pixel_rgba[3] = src_pixel_rgba[3];
 						}
 					}
 				}
