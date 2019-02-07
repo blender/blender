@@ -927,8 +927,11 @@ void Session::update_status_time(bool show_pause, bool show_done)
 			 */
 			substatus += string_printf(", Sample %d/%d", progress.get_current_sample(), num_samples);
 		}
-		if(params.run_denoising) {
+		if(params.full_denoising) {
 			substatus += string_printf(", Denoised %d tiles", progress.get_denoised_tiles());
+		}
+		else if(params.run_denoising) {
+			substatus += string_printf(", Prefiltered %d tiles", progress.get_denoised_tiles());
 		}
 	}
 	else if(tile_manager.num_samples == INT_MAX)
