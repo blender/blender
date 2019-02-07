@@ -1328,6 +1328,27 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(
 	return IDWALK_RET_NOP;
 }
 
+static bool unused_linked_data_tag_init_cb(Main *UNUSED(bmain), ID *id, void *UNUSED(user_data))
+{
+	if (id->lib && (id->tag & LIB_TAG_INDIRECT) != 0) {
+		id->tag |= LIB_TAG_DOIT;
+	}
+	else {
+		id->tag &= ~LIB_TAG_DOIT;
+	}
+	return true;
+}
+
+static bool unused_linked_data_check_cb(Main *bmain, ID *id, void *user_data)
+{
+	if ((id->tag & LIB_TAG_DOIT) == 0) {
+		BKE_library_foreach_ID_link(
+		            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, user_data, IDWALK_READONLY);
+	}
+	/* Else it is an unused ID (so far), no need to check it further. */
+	return true;
+}
+
 /**
  * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly) in any way by any local data),
  * including complex cases like 'linked archipelagoes', i.e. linked datablocks that use each other in loops,
@@ -1338,38 +1359,13 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(
  */
 void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 {
-	ListBase *lb_array[MAX_LIBARRAY];
-
 	if (do_init_tag) {
-		int i = set_listbasepointers(bmain, lb_array);
-
-		while (i--) {
-			for (ID *id = lb_array[i]->first; id; id = id->next) {
-				if (id->lib && (id->tag & LIB_TAG_INDIRECT) != 0) {
-					id->tag |= LIB_TAG_DOIT;
-				}
-				else {
-					id->tag &= ~LIB_TAG_DOIT;
-				}
-			}
-		}
+		BKE_main_foreach_id(bmain, true, unused_linked_data_tag_init_cb, NULL);
 	}
 
-	bool do_loop = true;
-	while (do_loop) {
-		int i = set_listbasepointers(bmain, lb_array);
+	for (bool do_loop = true; do_loop; ) {
 		do_loop = false;
-
-		while (i--) {
-			for (ID *id = lb_array[i]->first; id; id = id->next) {
-				if (id->tag & LIB_TAG_DOIT) {
-					/* Unused ID (so far), no need to check it further. */
-					continue;
-				}
-				BKE_library_foreach_ID_link(
-				            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_READONLY);
-			}
-		}
+		BKE_main_foreach_id(bmain, true, unused_linked_data_check_cb, &do_loop);
 	}
 }
 
