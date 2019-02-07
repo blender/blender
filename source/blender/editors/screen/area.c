@@ -35,6 +35,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -2678,6 +2679,45 @@ BLI_INLINE bool metadata_is_valid(ImBuf *ibuf, char *r_str, short index, int off
 	return (IMB_metadata_get_field(ibuf->metadata, meta_data_list[index], r_str + offset, MAX_METADATA_STR - offset) && r_str[0]);
 }
 
+BLI_INLINE bool metadata_is_custom_drawable(const char *field)
+{
+	/* Metadata field stored by Blender for multilayer EXR images. Is rather
+	 * useless to be viewed all the time. Can still be seen in the Metadata
+	 * panel. */
+	if (STREQ(field, "BlenderMultiChannel")) {
+		return false;
+	}
+	/* Is almost always has value "scanlineimage", also useless to be seen
+	 * all the time. */
+	if (STREQ(field, "type")) {
+		return false;
+	}
+	return !BKE_stamp_is_known_field(field);
+}
+
+typedef struct MetadataCustomDrawContext {
+	int fontid;
+	int xmin, ymin;
+	int vertical_offset;
+	int current_y;
+} MetadataCustomDrawContext;
+
+static void metadata_custom_draw_fields(
+        const char *field,
+        const char *value,
+        void *ctx_v)
+{
+	if (!metadata_is_custom_drawable(field)) {
+		return;
+	}
+	MetadataCustomDrawContext *ctx = (MetadataCustomDrawContext *)ctx_v;
+	char temp_str[MAX_METADATA_STR];
+	BLI_snprintf(temp_str, MAX_METADATA_STR, "%s: %s", field, value);
+	BLF_position(ctx->fontid, ctx->xmin, ctx->ymin + ctx->current_y, 0.0f);
+	BLF_draw(ctx->fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+	ctx->current_y += ctx->vertical_offset;
+}
+
 static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const bool is_top)
 {
 	char temp_str[MAX_METADATA_STR];
@@ -2752,7 +2792,16 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
 		}
 	}
 	else {
+		MetadataCustomDrawContext ctx;
+		ctx.fontid = fontid;
+		ctx.xmin = xmin;
+		ctx.ymin = ymin;
+		ctx.vertical_offset = vertical_offset;
+		ctx.current_y = ofs_y;
+		ctx.vertical_offset = vertical_offset;
+		IMB_metadata_foreach(ibuf, metadata_custom_draw_fields, &ctx);
 		int ofs_x = 0;
+		ofs_y = ctx.current_y;
 		for (i = 5; i < 10; i++) {
 			len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i]);
 			if (metadata_is_valid(ibuf, temp_str, i, len)) {
@@ -2764,6 +2813,23 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
 		}
 	}
 }
+
+typedef struct MetadataCustomCountContext {
+	int count;
+} MetadataCustomCountContext;
+
+static void metadata_custom_count_fields(
+        const char *field,
+        const char *UNUSED(value),
+        void *ctx_v)
+{
+	if (!metadata_is_custom_drawable(field)) {
+		return;
+	}
+	MetadataCustomCountContext *ctx = (MetadataCustomCountContext *)ctx_v;
+	ctx->count++;
+}
+
 
 static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 {
@@ -2805,6 +2871,10 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 				break;
 			}
 		}
+		MetadataCustomCountContext ctx;
+		ctx.count = 0;
+		IMB_metadata_foreach(ibuf, metadata_custom_count_fields, &ctx);
+		count += ctx.count;
 	}
 
 	if (count) {

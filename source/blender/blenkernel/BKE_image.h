@@ -61,6 +61,7 @@ void    BKE_render_result_stamp_info(struct Scene *scene, struct Object *camera,
  * The caller is responsible for freeing the allocated memory.
  */
 struct StampData *BKE_stamp_info_from_scene_static(struct Scene *scene);
+bool    BKE_stamp_is_known_field(const char *field_name);
 void    BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
 void    BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);
 void    BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip);

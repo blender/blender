@@ -2112,6 +2112,20 @@ static const char *stamp_metadata_fields[] = {
 	NULL
 };
 
+/* Check whether the given metadata field name translates to a known field of
+ * a stamp. */
+bool BKE_stamp_is_known_field(const char *field_name)
+{
+	int i = 0;
+	while (stamp_metadata_fields[i] != NULL) {
+		if (STREQ(field_name, stamp_metadata_fields[i])) {
+			return true;
+		}
+		i++;
+	}
+	return false;
+}
+
 void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip)
 {
 	if ((callback == NULL) || (stamp_data == NULL)) {
@@ -2197,24 +2211,12 @@ void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
 	BKE_stamp_info_callback(ibuf, stamp_data, metadata_set_field, false);
 }
 
-BLI_INLINE bool metadata_is_copyable(const char *field_name)
-{
-	int i = 0;
-	while (stamp_metadata_fields[i] != NULL) {
-		if (STREQ(field_name, stamp_metadata_fields[i])) {
-			return false;
-		}
-		i++;
-	}
-	return true;
-}
-
 static void metadata_copy_custom_fields(
         const char *field,
         const char *value,
         void *rr_v)
 {
-	if (!metadata_is_copyable(field)) {
+	if (BKE_stamp_is_known_field(field)) {
 		return;
 	}
 	RenderResult *rr = (RenderResult *)rr_v;
