@@ -17,7 +17,7 @@
 #ifndef __BMESH_BEVEL_H__
 #define __BMESH_BEVEL_H__
 
-/** \file \ingroup bmesh
+/** \file bmesh_bevel.h
  */
 
 struct MDeformVert;
