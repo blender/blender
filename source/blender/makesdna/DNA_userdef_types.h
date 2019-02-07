@@ -901,7 +901,7 @@ typedef enum eUserpref_UI_Flag {
 
 /** #UserDef.uiflag2 */
 typedef enum eUserpref_UI_Flag2 {
-	USER_KEEP_SESSION			= (1 << 0),
+	// USER_FLAG2_DEPRECATED = (1 << 0),  /* TODO: clear */
 	USER_REGION_OVERLAP			= (1 << 1),
 	USER_TRACKPAD_NATURAL		= (1 << 2),
 } eUserpref_UI_Flag2;

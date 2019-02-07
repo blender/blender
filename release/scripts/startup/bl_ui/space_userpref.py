@@ -1282,7 +1282,6 @@ class USERPREF_PT_saveload_blend_autosave(PreferencePanel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(paths, "use_keep_session")
         flow.prop(paths, "use_auto_save_temporary_files")
         sub = flow.column()
         sub.active = paths.use_auto_save_temporary_files
