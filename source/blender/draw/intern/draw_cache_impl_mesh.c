@@ -3797,6 +3797,8 @@ static void mesh_create_loops_tris(
 	}
 }
 
+/* Warning! this function is not thread safe!
+ * It writes to MEdge->flag with ME_EDGE_TMP_TAG. */
 static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexBuf *ibo_verts, GPUIndexBuf *ibo_edges)
 {
 	BMIter iter_efa, iter_loop;
@@ -3804,6 +3806,7 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 	BMLoop *loop;
 	int i;
 
+	const int edge_len = mesh_render_data_edges_len_get_maybe_mapped(rdata);
 	const int loop_len = mesh_render_data_loops_len_get_maybe_mapped(rdata);
 	const int poly_len = mesh_render_data_polys_len_get_maybe_mapped(rdata);
 	const int lvert_len = mesh_render_data_loose_verts_len_get_maybe_mapped(rdata);
@@ -3812,7 +3815,7 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 
 	GPUIndexBufBuilder elb_vert, elb_edge;
 	if (DRW_TEST_ASSIGN_IBO(ibo_edges)) {
-		GPU_indexbuf_init(&elb_edge, GPU_PRIM_LINES, loop_len + ledge_len, tot_loop_len);
+		GPU_indexbuf_init(&elb_edge, GPU_PRIM_LINES, edge_len, tot_loop_len);
 	}
 	if (DRW_TEST_ASSIGN_IBO(ibo_verts)) {
 		GPU_indexbuf_init(&elb_vert, GPU_PRIM_POINTS, tot_loop_len, tot_loop_len);
@@ -3821,17 +3824,23 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 	int loop_idx = 0;
 	if (rdata->edit_bmesh && (rdata->mapped.use == false)) {
 		BMesh *bm = rdata->edit_bmesh->bm;
+		BMEdge *eed;
+		/* Edges not loose. */
+		BM_ITER_MESH (eed, &iter_efa, bm, BM_EDGES_OF_MESH) {
+			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+				if (ibo_edges && eed->l != NULL) {
+					int v1 = BM_elem_index_get(eed->l);
+					int v2 = BM_elem_index_get(eed->l->next);
+					GPU_indexbuf_add_line_verts(&elb_edge, v1, v2);
+				}
+			}
+		}
 		/* Face Loops */
 		BM_ITER_MESH (efa, &iter_efa, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 				BM_ITER_ELEM_INDEX (loop, &iter_loop, efa, BM_LOOPS_OF_FACE, i) {
 					if (ibo_verts) {
 						GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + i);
-					}
-					if (ibo_edges) {
-						int v1 = loop_idx + i;
-						int v2 = loop_idx + ((i + 1) % efa->len);
-						GPU_indexbuf_add_line_verts(&elb_edge, v1, v2);
 					}
 				}
 			}
@@ -3858,12 +3867,18 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 	}
 	else if (rdata->mapped.use) {
 		const MPoly *mpoly = rdata->mapped.me_cage->mpoly;
-		const MEdge *medge = rdata->mapped.me_cage->medge;
+		MEdge *medge = rdata->mapped.me_cage->medge;
 		BMesh *bm = rdata->edit_bmesh->bm;
 
 		const int *v_origindex = rdata->mapped.v_origindex;
 		const int *e_origindex = rdata->mapped.e_origindex;
 		const int *p_origindex = rdata->mapped.p_origindex;
+
+		/* Reset flag */
+		for (int edge = 0; edge < edge_len; ++edge) {
+			/* NOTE: not thread safe. */
+			medge[edge].flag &= ~ME_EDGE_TMP_TAG;
+		}
 
 		/* Face Loops */
 		for (int poly = 0; poly < poly_len; poly++, mpoly++) {
@@ -3876,7 +3891,10 @@ static void mesh_create_edit_loops_points_lines(MeshRenderData *rdata, GPUIndexB
 						if (ibo_verts && (v_origindex[mloop->v] != ORIGINDEX_NONE)) {
 							GPU_indexbuf_add_generic_vert(&elb_vert, loop_idx + i);
 						}
-						if (ibo_edges && (e_origindex[mloop->e] != ORIGINDEX_NONE)) {
+						if (ibo_edges && (e_origindex[mloop->e] != ORIGINDEX_NONE) &&
+						    ((medge[mloop->e].flag & ME_EDGE_TMP_TAG) == 0))
+						{
+							medge[mloop->e].flag |= ME_EDGE_TMP_TAG;
 							int v1 = loop_idx + i;
 							int v2 = loop_idx + ((i + 1) % mpoly->totloop);
 							GPU_indexbuf_add_line_verts(&elb_edge, v1, v2);
@@ -4781,7 +4799,7 @@ void DRW_mesh_batch_cache_create_requested(
 		DRW_vbo_request(cache->batch.edit_edges, &cache->edit.loop_data);
 	}
 	if (DRW_batch_requested(cache->batch.edit_lnor, GPU_PRIM_POINTS)) {
-		DRW_ibo_request(cache->batch.edit_lnor, &cache->ibo.edit_loops_lines);
+		DRW_ibo_request(cache->batch.edit_lnor, &cache->ibo.edit_loops_tris);
 		DRW_vbo_request(cache->batch.edit_lnor, &cache->edit.loop_pos_nor);
 		DRW_vbo_request(cache->batch.edit_lnor, &cache->edit.loop_lnor);
 	}

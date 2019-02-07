@@ -344,10 +344,6 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs);
 	DRW_shgroup_uniform_float_copy(grp, "edgeScale", select_edge ? 1.75f : 1.0f);
 	DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE);
-	/* TODO remove this when we draw only one line per edge. */
-	DRW_shgroup_state_enable(grp, DRW_STATE_WRITE_DEPTH);
-	DRW_shgroup_state_disable(grp, DRW_STATE_DEPTH_LESS_EQUAL);
-	DRW_shgroup_state_enable(grp, DRW_STATE_DEPTH_LESS);
 	/* To match blender loop structure. */
 	DRW_shgroup_state_enable(grp, DRW_STATE_FIRST_VERTEX_CONVENTION);
 	if (rv3d->rflag & RV3D_CLIPPING) {
