@@ -2798,16 +2798,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			enum {
 				R_ALPHAKEY = 2,
 			};
-			scene->rd.seq_flag &= ~(
+			scene->r.seq_flag &= ~(
 			        R_SEQ_DEPRECATED_0 |
 			        R_SEQ_DEPRECATED_1 |
 			        R_SEQ_DEPRECATED_2);
-			scene->rd.color_mgt_flag &= ~R_COLOR_MANAGEMENT_DEPRECATED_1;
-			if (scene->rd.alphamode == R_ALPHAKEY) {
-				scene->rd.alphamode = R_ADDSKY;
+			scene->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT_DEPRECATED_1;
+			if (scene->r.alphamode == R_ALPHAKEY) {
+				scene->r.alphamode = R_ADDSKY;
 			}
 			ToolSettings *ts = scene->toolsettings;
-			ts->particle &= ~PE_DEPRECATED_6;
+			ts->particle.flag &= ~PE_DEPRECATED_6;
 			ts->sculpt->flags &= ~SCULPT_FLAG_DEPRECATED_6;
 		}
 	}

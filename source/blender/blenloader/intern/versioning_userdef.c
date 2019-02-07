@@ -469,8 +469,8 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	}
 
 	if (!USER_VERSION_ATLEAST(280, 44)) {
-		userdef->flag &= ~(
-		        USER_FLAG_DEPRECATED_0 | USER_FLAG_DEPRECATED_1);
+		userdef->uiflag &= ~(
+		        USER_UIFLAG_DEPRECATED_0 | USER_UIFLAG_DEPRECATED_1);
 		userdef->uiflag2 &= ~(
 		        USER_UIFLAG2_DEPRECATED_0);
 		userdef->gp_settings &= ~(

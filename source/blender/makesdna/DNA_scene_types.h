@@ -1830,7 +1830,7 @@ typedef struct Scene {
 enum {
 	R_SEQ_DEPRECATED_0 = (1 << 0),  /* cleared */
 	R_SEQ_DEPRECATED_1 = (1 << 1),  /* cleared */
-	R_SEQ_DEPRECATED_3 = (1 << 2),  /* cleared */
+	R_SEQ_DEPRECATED_2 = (1 << 2),  /* cleared */
 	R_SEQ_SOLID_TEX  = (1 << 3),
 	R_SEQ_CAMERA_DOF = (1 << 4),
 };
