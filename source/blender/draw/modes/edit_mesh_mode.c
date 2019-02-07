@@ -321,19 +321,6 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	grp = *r_face_cage_shgrp = DRW_shgroup_create_sub(*r_face_shgrp);
 	DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE);
 
-	/* Verts */
-	if (select_vert) {
-		grp = *r_vert_shgrp = DRW_shgroup_create(vert_sh, pass);
-		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs * 1.5f);
-		DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE | DRW_STATE_WRITE_DEPTH);
-		DRW_shgroup_state_disable(grp, DRW_STATE_BLEND);
-		if (rv3d->rflag & RV3D_CLIPPING) {
-			DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
-		}
-	}
-
 	/* Edges */
 	grp = *r_edge_shgrp = DRW_shgroup_create(edge_sh, pass);
 	DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -348,6 +335,19 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	DRW_shgroup_state_enable(grp, DRW_STATE_FIRST_VERTEX_CONVENTION);
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+	}
+
+	/* Verts */
+	if (select_vert) {
+		grp = *r_vert_shgrp = DRW_shgroup_create(vert_sh, pass);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_float_copy(grp, "ofs", depth_ofs * 1.5f);
+		DRW_shgroup_state_enable(grp, DRW_STATE_OFFSET_NEGATIVE | DRW_STATE_WRITE_DEPTH);
+		DRW_shgroup_state_disable(grp, DRW_STATE_BLEND);
+		if (rv3d->rflag & RV3D_CLIPPING) {
+			DRW_shgroup_world_clip_planes_from_rv3d(grp, rv3d);
+		}
 	}
 
 	return pass;
