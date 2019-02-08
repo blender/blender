@@ -1211,23 +1211,6 @@ static void gizmo_xform_message_subscribe(
 		.notify = WM_gizmo_do_msg_notify_tag_refresh,
 	};
 
-	PointerRNA scene_ptr;
-	RNA_id_pointer_create(&scene->id, &scene_ptr);
-
-	{
-		extern PropertyRNA rna_Scene_transform_orientation_slots;
-		extern PropertyRNA rna_Scene_cursor_location;
-		const PropertyRNA *props[] = {
-			&rna_Scene_transform_orientation_slots,
-			(scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) ? &rna_Scene_cursor_location : NULL,
-		};
-		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			if (props[i]) {
-				WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
-			}
-		}
-	}
-
 	int orient_flag = 0;
 	if (type_fn == TRANSFORM_GGT_gizmo) {
 		GizmoGroup *ggd = gzgroup->customdata;
@@ -1240,10 +1223,28 @@ static void gizmo_xform_message_subscribe(
 	else if (type_fn == VIEW3D_GGT_xform_shear) {
 		orient_flag = SCE_GIZMO_SHOW_ROTATE;
 	}
-
 	TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, orient_flag);
 	PointerRNA orient_ref_ptr;
 	RNA_pointer_create(&scene->id, &RNA_TransformOrientationSlot, orient_slot, &orient_ref_ptr);
+
+	PointerRNA scene_ptr;
+	RNA_id_pointer_create(&scene->id, &scene_ptr);
+	{
+		const ToolSettings *ts = scene->toolsettings;
+		extern PropertyRNA rna_Scene_transform_orientation_slots;
+		extern PropertyRNA rna_Scene_cursor_location;
+		const PropertyRNA *props[] = {
+			&rna_Scene_transform_orientation_slots,
+			((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_MANIP_CURSOR)) ?
+			&rna_Scene_cursor_location : NULL,
+		};
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			if (props[i]) {
+				WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
+			}
+		}
+	}
+
 	{
 		extern PropertyRNA rna_TransformOrientationSlot_type;
 		extern PropertyRNA rna_TransformOrientationSlot_use;
