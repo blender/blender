@@ -2843,11 +2843,15 @@ static void adjust_offsets(BevelParams *bp)
 			v = vchainstart = vanchor;
 			iscycle = false;
 			while (v->eon && !v->visited && !iscycle) {
+				v->visited = true;
+				if (!v->efirst)
+					break;
 				enext = find_other_end_edge_half(bp, v->efirst, &bvcur);
+				if (!enext)
+					break;
 				BLI_assert(enext != NULL);
 				vnext = enext->leftv;
 				v->adjchain = vnext;
-				v->visited = true;
 				if (vnext->visited) {
 					if (vnext != vchainstart) {
 						break;
@@ -2862,12 +2866,15 @@ static void adjust_offsets(BevelParams *bp)
 				v = vchainstart;
 				bvcur = bv;
 				do {
+					v->visited = true;
+					if (!v->elast)
+						break;
 					enext = find_other_end_edge_half(bp, v->elast, &bvcur);
-					BLI_assert(enext != NULL);
+					if (!enext)
+						break;
 					vnext = enext->rightv;
 					vnext->adjchain = v;
 					vchainstart = vnext;
-					v->visited = true;
 					v = vnext;
 				} while (!v->visited && v->eon);
 				adjust_the_cycle_or_chain(vchainstart, false);
