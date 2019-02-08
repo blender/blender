@@ -266,7 +266,7 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
-	BKE_main_collection_sync(bmain);
+	BKE_main_collection_sync_remap(bmain);
 	DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);

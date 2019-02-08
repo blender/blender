@@ -288,7 +288,7 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 	}
 
 	if (changed_restrict_view) {
-		BKE_main_collection_sync(bmain);
+		BKE_main_collection_sync_remap(bmain);
 		DEG_id_tag_update(&ob->id, LIB_TAG_COPIED_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
