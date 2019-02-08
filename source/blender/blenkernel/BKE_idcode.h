@@ -36,12 +36,6 @@ short       BKE_idcode_from_idfilter(const int idfilter);
 int BKE_idcode_to_index(const short idcode);
 short BKE_idcode_from_index(const int index);
 
-/**
- * Return an ID code and steps the index forward 1.
- *
- * \param index: start as 0.
- * \return the code, 0 when all codes have been returned.
- */
 short BKE_idcode_iter_step(int *index);
 
 #endif
