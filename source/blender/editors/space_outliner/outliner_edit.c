@@ -32,6 +32,7 @@
 #include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
@@ -1848,18 +1849,14 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
 
 /* Purge Orphans Operator --------------------------------------- */
 
-static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
+static bool outliner_orphans_purge_tag_cb(Main *UNUSED(bmain), ID *id, void *user_data)
 {
-	/* present a prompt to informing users that this change is irreversible */
-	return WM_operator_confirm_message(C, op,
-	                                   "Purging unused data-blocks cannot be undone and saves to current .blend file. "
-	                                   "Click here to proceed...");
-}
+	int *num_tagged = (int *)user_data;
 
-static bool outliner_orphans_purge_tag_cb(Main *UNUSED(bmain), ID *id, void *UNUSED(user_data))
-{
 	if (id->us == 0) {
 		id->tag |= LIB_TAG_DOIT;
+		num_tagged[INDEX_ID_NULL]++;
+		num_tagged[BKE_idcode_to_index(GS(id->name))]++;
 	}
 	else {
 		id->tag &= ~LIB_TAG_DOIT;
@@ -1867,15 +1864,65 @@ static bool outliner_orphans_purge_tag_cb(Main *UNUSED(bmain), ID *id, void *UNU
 	return true;
 }
 
-static int outliner_orphans_purge_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
+{
+	Main *bmain = CTX_data_main(C);
+	int num_tagged[INDEX_ID_MAX] = {0};
+
+	/* Tag all IDs having zero users. */
+	BKE_main_foreach_id(bmain, false, outliner_orphans_purge_tag_cb, num_tagged);
+	RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
+
+	if (num_tagged[INDEX_ID_NULL] == 0) {
+		BKE_report(op->reports, RPT_INFO, "No orphanned data-blocks to purge");
+		return OPERATOR_CANCELLED;
+	}
+
+	DynStr *dyn_str = BLI_dynstr_new();
+	BLI_dynstr_append(dyn_str, "Purging unused data-blocks (");
+	bool is_first = true;
+	for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
+		if (num_tagged[i] != 0) {
+			if (!is_first) {
+				BLI_dynstr_append(dyn_str, ", ");
+			}
+			else {
+				is_first = false;
+			}
+			BLI_dynstr_appendf(
+			            dyn_str, "%d %s",
+			            num_tagged[i], TIP_(BKE_idcode_to_name_plural(BKE_idcode_from_index(i))));
+		}
+	}
+	BLI_dynstr_append(dyn_str, TIP_("). Click here to proceed..."));
+
+	char *message = BLI_dynstr_get_cstring(dyn_str);
+	int ret = WM_operator_confirm_message(C, op, message);
+
+	MEM_freeN(message);
+	BLI_dynstr_free(dyn_str);
+	return ret;
+}
+
+static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
+	int num_tagged[INDEX_ID_MAX] = {0};
 
-	/* Tag all IDs having zero users. */
-	BKE_main_foreach_id(bmain, false, outliner_orphans_purge_tag_cb, NULL);
+	if ((num_tagged[INDEX_ID_NULL] = RNA_int_get(op->ptr, "num_deleted")) == 0) {
+		/* Tag all IDs having zero users. */
+		BKE_main_foreach_id(bmain, false, outliner_orphans_purge_tag_cb, num_tagged);
+
+		if (num_tagged[INDEX_ID_NULL] == 0) {
+			BKE_report(op->reports, RPT_INFO, "No orphanned data-blocks to purge");
+			return OPERATOR_CANCELLED;
+		}
+	}
 
 	BKE_id_multi_tagged_delete(bmain);
+
+	BKE_reportf(op->reports, RPT_INFO, "Deleted %d data-blocks", num_tagged[INDEX_ID_NULL]);
 
 	/* XXX: tree management normally happens from draw_outliner(), but when
 	 *      you're clicking to fast on Delete object from context menu in
@@ -1904,4 +1951,8 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	PropertyRNA *prop = RNA_def_int(ot->srna, "num_deleted", 0, 0, INT_MAX, "", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
