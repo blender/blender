@@ -299,13 +299,25 @@ static struct bUnitDef buCameraLenDef[] = {
 };
 static struct bUnitCollection buCameraLenCollection = {buCameraLenDef, 3, 0, UNIT_COLLECTION_LENGTH(buCameraLenDef)};
 
+/* (Light) Power */
+static struct bUnitDef buPowerDef[] = {
+	{"gigawatt",  "gigawatts",  "GW", NULL, "Gigawatts",  NULL, 1e9f,  0.0, B_UNIT_DEF_NONE},
+	{"megawatt",  "megawatts",  "MW", NULL, "Megawatts",  NULL, 1e6f,  0.0, B_UNIT_DEF_NONE},
+	{"kilowatt",  "kilowatts",  "kW", NULL, "Kilowatts",  NULL, 1e3f,  0.0, B_UNIT_DEF_SUPPRESS},
+	{"watt",      "watts",      "W",  NULL, "Watts",      NULL, 1.0f,  0.0, B_UNIT_DEF_NONE},
+	{"milliwatt", "milliwatts", "mW", NULL, "Milliwatts", NULL, 1e-3f, 0.0, B_UNIT_DEF_NONE},
+	{"microwatt", "microwatts", "µW", "uW", "Microwatts", NULL, 1e-6f, 0.0, B_UNIT_DEF_NONE},
+	{"nanowatt",  "nanowatts",  "nW", NULL, "Nannowatts", NULL, 1e-9f, 0.0, B_UNIT_DEF_NONE},
+};
+static struct bUnitCollection buPowerCollection = {buPowerDef, 3, 0, UNIT_COLLECTION_LENGTH(buPowerDef)};
+
 
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / B_UNIT_TYPE_TOT) / sizeof(void *)) - 1)
 static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
-	{NULL, NULL, NULL, NULL, NULL, &buNaturalRotCollection, &buNaturalTimeCollection, NULL, NULL, NULL},
-	{NULL, &buMetricLenCollection, &buMetricAreaCollection, &buMetricVolCollection, &buMetricMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buMetricVelCollection, &buMetricAclCollection, &buCameraLenCollection}, /* metric */
-	{NULL, &buImperialLenCollection, &buImperialAreaCollection, &buImperialVolCollection, &buImperialMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buImperialVelCollection, &buImperialAclCollection, &buCameraLenCollection}, /* imperial */
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+	{NULL, NULL, NULL, NULL, NULL, &buNaturalRotCollection, &buNaturalTimeCollection, NULL, NULL, NULL, NULL},
+	{NULL, &buMetricLenCollection, &buMetricAreaCollection, &buMetricVolCollection, &buMetricMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buMetricVelCollection, &buMetricAclCollection, &buCameraLenCollection, &buPowerCollection}, /* metric */
+	{NULL, &buImperialLenCollection, &buImperialAreaCollection, &buImperialVolCollection, &buImperialMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buImperialVelCollection, &buImperialAclCollection, &buCameraLenCollection, &buPowerCollection}, /* imperial */
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 
@@ -570,7 +582,8 @@ static const char *unit_find_str(const char *str, const char *substr)
 {
 	if (substr && substr[0] != '\0') {
 		while (true) {
-			const char *str_found = strstr(str, substr);
+			/* Unit detection is case insensitive. */
+			const char *str_found = BLI_strcasestr(str, substr);
 
 			if (str_found) {
 				/* Previous char cannot be a letter. */
@@ -774,7 +787,7 @@ bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sc
 	char str_tmp[TEMP_STR_SIZE];
 	bool changed = false;
 
-	/* make lowercase */
+	/* Convert to lowercase, to make unit detection case insensitive. */
 	BLI_str_tolower_ascii(str, len_max);
 
 	/* Try to find a default unit from current or previous string. */

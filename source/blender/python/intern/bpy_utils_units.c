@@ -59,6 +59,7 @@ static const char *bpyunits_ucategorie_items[] = {
 	"VELOCITY",
 	"ACCELERATION",
 	"CAMERA",
+	"POWER",
 	NULL,
 };
 

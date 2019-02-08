@@ -2579,6 +2579,7 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		case PROP_PASSWORD: return "PROP_PASSWORD";
+		case PROP_POWER: return "PROP_POWER";
 		default:
 		{
 			/* in case we don't have a type preset that includes the subtype */
@@ -2605,6 +2606,7 @@ static const char *rna_property_subtype_unit(PropertySubType type)
 		case PROP_UNIT_VELOCITY:     return "PROP_UNIT_VELOCITY";
 		case PROP_UNIT_ACCELERATION: return "PROP_UNIT_ACCELERATION";
 		case PROP_UNIT_CAMERA:       return "PROP_UNIT_CAMERA";
+		case PROP_UNIT_POWER:        return "PROP_UNIT_POWER";
 		default:                     return "PROP_UNIT_UNKNOWN";
 	}
 }

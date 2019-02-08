@@ -137,12 +137,6 @@ static void rna_def_light(BlenderRNA *brna)
 	                         "Falloff distance - the light is at half the original intensity at this point");
 	RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
-	prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_default(prop, 10.0f);
-	RNA_def_property_ui_range(prop, 0, 1000000.0f, 1, 3);
-	RNA_def_property_ui_text(prop, "Energy", "Amount of light emitted");
-	RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
@@ -185,6 +179,30 @@ static void rna_def_light(BlenderRNA *brna)
 
 	/* common */
 	rna_def_animdata_common(srna);
+}
+
+static void rna_def_light_energy(StructRNA *srna, bool distant)
+{
+	PropertyRNA *prop;
+
+	if(distant) {
+		/* Distant light strength has no unit defined, it's proportional to
+		 * Watt/m^2 and is not sensitive to scene unit scale. */
+		prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
+		RNA_def_property_float_default(prop, 10.0f);
+		RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
+		RNA_def_property_ui_text(prop, "Strength", "Amount of light emitted");
+		RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+	}
+	else {
+		/* Lights with a location have power in Watt, which is sensitive to
+		 * scene unit scale. */
+		prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
+		RNA_def_property_float_default(prop, 10.0f);
+		RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 1, 5);
+		RNA_def_property_ui_text(prop, "Power", "Amount of light emitted");
+		RNA_def_property_update(prop, 0, "rna_Light_draw_update");
+	}
 }
 
 static void rna_def_light_falloff(StructRNA *srna)
@@ -245,7 +263,7 @@ static void rna_def_light_falloff(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 }
 
-static void rna_def_light_shadow(StructRNA *srna, int sun)
+static void rna_def_light_shadow(StructRNA *srna, bool sun)
 {
 	PropertyRNA *prop;
 
@@ -405,8 +423,9 @@ static void rna_def_point_light(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Point Light", "Omnidirectional point Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_POINT);
 
+	rna_def_light_energy(srna, false);
 	rna_def_light_falloff(srna);
-	rna_def_light_shadow(srna, 0);
+	rna_def_light_shadow(srna, false);
 }
 
 static void rna_def_area_light(BlenderRNA *brna)
@@ -427,7 +446,8 @@ static void rna_def_area_light(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Area Light", "Directional area Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_AREA);
 
-	rna_def_light_shadow(srna, 0);
+	rna_def_light_energy(srna, false);
+	rna_def_light_shadow(srna, false);
 	rna_def_light_falloff(srna);
 
 	prop = RNA_def_property(srna, "shape", PROP_ENUM, PROP_NONE);
@@ -464,8 +484,9 @@ static void rna_def_spot_light(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Spot Light", "Directional cone Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_SPOT);
 
+	rna_def_light_energy(srna, false);
 	rna_def_light_falloff(srna);
-	rna_def_light_shadow(srna, 0);
+	rna_def_light_shadow(srna, false);
 
 	prop = RNA_def_property(srna, "use_square", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SQUARE);
@@ -502,7 +523,8 @@ static void rna_def_sun_light(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Sun Light", "Constant direction parallel ray Light");
 	RNA_def_struct_ui_icon(srna, ICON_LIGHT_SUN);
 
-	rna_def_light_shadow(srna, 1);
+	rna_def_light_energy(srna, true);
+	rna_def_light_shadow(srna, true);
 }
 
 void RNA_def_light(BlenderRNA *brna)
