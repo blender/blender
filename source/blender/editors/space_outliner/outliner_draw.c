@@ -276,13 +276,16 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 	bool do_isolate = (win->eventstate->ctrl != 0) && !do_disable;
 	bool extend = (win->eventstate->shift != 0);
 	bool depsgraph_changed = false;
+	const bool is_editable = BASE_EDITABLE((View3D *)NULL, base);
 
 	if (do_disable) {
-		ob->restrictflag |= OB_RESTRICT_VIEW;
-		depsgraph_changed = true;
+		if (is_editable) {
+			ob->restrictflag |= OB_RESTRICT_VIEW;
+			depsgraph_changed = true;
+		}
 	}
 	else if (do_isolate) {
-		depsgraph_changed = (ob->restrictflag & OB_RESTRICT_VIEW) != 0;
+		depsgraph_changed = is_editable && ((ob->restrictflag & OB_RESTRICT_VIEW) != 0);
 
 		if (!extend) {
 			/* Make only one base visible. */
@@ -296,11 +299,16 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 			/* Toggle visibility of one base. */
 			base->flag ^= BASE_HIDDEN;
 		}
-		ob->restrictflag &= ~OB_RESTRICT_VIEW;
+
+		if (is_editable) {
+			ob->restrictflag &= ~OB_RESTRICT_VIEW;
+		}
 	}
 	else if (ob->restrictflag & OB_RESTRICT_VIEW) {
-		ob->restrictflag &= ~OB_RESTRICT_VIEW;
-		base->flag &= ~BASE_HIDDEN;
+		if (is_editable) {
+			ob->restrictflag &= ~OB_RESTRICT_VIEW;
+			base->flag &= ~BASE_HIDDEN;
+		}
 		depsgraph_changed = true;
 	}
 	else {
@@ -334,8 +342,10 @@ static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *p
 	bool depsgraph_changed = false;
 
 	if (do_disable) {
-		collection->flag |= COLLECTION_RESTRICT_VIEW;
-		depsgraph_changed = true;
+		if (collection->id.lib == NULL) {
+			collection->flag |= COLLECTION_RESTRICT_VIEW;
+			depsgraph_changed = true;
+		}
 	}
 	else if (do_isolate) {
 		depsgraph_changed |= BKE_layer_collection_isolate(scene, view_layer, lc, extend);
