@@ -1385,7 +1385,7 @@ static const EnumPropertyItem outliner_lib_op_type_items[] = {
 	{OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
 	{OL_LIB_DELETE, "DELETE", ICON_X, "Delete", "Delete this library and all its item from Blender - WARNING: no undo"},
 	{OL_LIB_RELOCATE, "RELOCATE", 0, "Relocate", "Select a new path for this library, and reload all its data"},
-	{OL_LIB_RELOAD, "RELOAD", ICON_REFRESH, "Reload", "Reload all data from this library"},
+	{OL_LIB_RELOAD, "RELOAD", ICON_FILE_REFRESH, "Reload", "Reload all data from this library"},
 	{0, NULL, 0, NULL, NULL},
 };
 
