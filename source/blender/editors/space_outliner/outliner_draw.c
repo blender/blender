@@ -266,34 +266,55 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
 
 static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 {
+	wmWindow *win = CTX_wm_window(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = poin;
 	Base *base = poin2;
 	Object *ob = base->object;
-	bool freeze = (CTX_wm_window(C)->eventstate->alt != 0);
-	bool changed_restrict_view = false;
+	bool do_disable = (CTX_wm_window(C)->eventstate->alt != 0);
+	bool do_isolate = (win->eventstate->ctrl != 0) && !do_disable;
+	bool extend = (win->eventstate->shift != 0);
+	bool depsgraph_changed = false;
 
-	if (freeze) {
+	if (do_disable) {
 		ob->restrictflag |= OB_RESTRICT_VIEW;
-		changed_restrict_view = true;
+		depsgraph_changed = true;
+	}
+	else if (do_isolate) {
+		depsgraph_changed = (ob->restrictflag & OB_RESTRICT_VIEW) != 0;
+
+		if (!extend) {
+			/* Make only one base visible. */
+			for (Base *other = view_layer->object_bases.first; other; other = other->next) {
+				other->flag |= BASE_HIDDEN;
+			}
+
+			base->flag &= ~BASE_HIDDEN;
+		}
+		else {
+			/* Toggle visibility of one base. */
+			base->flag ^= BASE_HIDDEN;
+		}
+		ob->restrictflag &= ~OB_RESTRICT_VIEW;
 	}
 	else if (ob->restrictflag & OB_RESTRICT_VIEW) {
 		ob->restrictflag &= ~OB_RESTRICT_VIEW;
 		base->flag &= ~BASE_HIDDEN;
-		changed_restrict_view = true;
+		depsgraph_changed = true;
 	}
 	else {
 		base->flag ^= BASE_HIDDEN;
 	}
 
-	if (changed_restrict_view) {
+	if (depsgraph_changed) {
 		BKE_main_collection_sync_remap(bmain);
 		DEG_id_tag_update(&ob->id, LIB_TAG_COPIED_ON_WRITE);
 		DEG_relations_tag_update(bmain);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 	}
-	if (!freeze) {
+
+	if (!do_disable) {
 		BKE_layer_collection_sync(scene, view_layer);
 		DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -563,7 +584,9 @@ static void outliner_draw_restrictbuts(
 					        block, UI_BTYPE_ICON_TOGGLE, 0, icon,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
 					        NULL, 0, 0, 0, 0,
-					        TIP_("Hide object in viewport (Alt to disable for all viewports)"));
+					        TIP_("Hide object in viewport\n"
+					             "* Alt to disable for all viewports\n"
+					             "* Ctrl to isolate visibility"));
 					UI_but_func_set(bt, hidebutton_base_flag_cb, view_layer, base);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 				}
