@@ -985,7 +985,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 				stopConstraint(t);
 			}
 			else {
-				setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_axis, msg1);
+				setUserConstraint(t, V3D_ORIENT_GLOBAL, constraint_axis, msg1);
 			}
 		}
 		else if (!edit_2d) {
@@ -993,7 +993,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 				/* First press, constraint to an axis. */
 				t->orientation.index = 0;
 				const short *orientation_ptr = t->orientation.types[t->orientation.index];
-				const short  orientation = orientation_ptr ? *orientation_ptr : V3D_MANIP_GLOBAL;
+				const short  orientation = orientation_ptr ? *orientation_ptr : V3D_ORIENT_GLOBAL;
 				if (is_plane == false) {
 					setUserConstraint(t, orientation, constraint_axis, msg2);
 				}
@@ -1010,7 +1010,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 				}
 				else {
 					const short *orientation_ptr = t->orientation.types[t->orientation.index];
-					const short  orientation = orientation_ptr ? *orientation_ptr : V3D_MANIP_GLOBAL;
+					const short  orientation = orientation_ptr ? *orientation_ptr : V3D_ORIENT_GLOBAL;
 					if (is_plane == false) {
 						setUserConstraint(t, orientation, constraint_axis, msg2);
 					}
@@ -1153,7 +1153,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				if (ELEM(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
 
 					/* Scale isn't normally very useful after extrude along normals, see T39756 */
-					if ((t->con.mode & CON_APPLY) && (t->con.orientation == V3D_MANIP_NORMAL)) {
+					if ((t->con.mode & CON_APPLY) && (t->con.orientation == V3D_ORIENT_NORMAL)) {
 						stopConstraint(t);
 					}
 
@@ -2138,7 +2138,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		if (t->spacetype == SPACE_VIEW3D) {
 			if ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
 			    !RNA_property_is_set(op->ptr, prop) &&
-			    (t->orientation.user != V3D_MANIP_CUSTOM_MATRIX))
+			    (t->orientation.user != V3D_ORIENT_CUSTOM_MATRIX))
 			{
 				TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
 				orient_slot->type = t->orientation.user;
@@ -2172,20 +2172,20 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		 * so use the orientation in the constraint if set */
 		short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->orientation.user;
 
-		if (orientation == V3D_MANIP_CUSTOM) {
+		if (orientation == V3D_ORIENT_CUSTOM) {
 			const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
 			        t->scene, t->orientation.custom);
 
 			/* Maybe we need a t->con.custom_orientation?
 			 * Seems like it would always match t->orientation.custom. */
-			orientation = V3D_MANIP_CUSTOM + orientation_index_custom;
-			BLI_assert(orientation >= V3D_MANIP_CUSTOM);
+			orientation = V3D_ORIENT_CUSTOM + orientation_index_custom;
+			BLI_assert(orientation >= V3D_ORIENT_CUSTOM);
 		}
 
 		RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
 
 		/* Use 'constraint_matrix' instead. */
-		if (orientation != V3D_MANIP_CUSTOM_MATRIX) {
+		if (orientation != V3D_ORIENT_CUSTOM_MATRIX) {
 			RNA_enum_set(op->ptr, "constraint_orientation", orientation);
 		}
 

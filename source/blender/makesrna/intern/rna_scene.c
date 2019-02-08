@@ -463,15 +463,15 @@ const EnumPropertyItem rna_enum_transform_pivot_items_full[] = {
 
 /* Icons could be made a consistent set of images. */
 const EnumPropertyItem rna_enum_transform_orientation_items[] = {
-	{V3D_MANIP_GLOBAL, "GLOBAL", ICON_ORIENTATION_GLOBAL, "Global", "Align the transformation axes to world space"},
-	{V3D_MANIP_LOCAL, "LOCAL", ICON_ORIENTATION_LOCAL, "Local", "Align the transformation axes to the selected objects' local space"},
-	{V3D_MANIP_NORMAL, "NORMAL", ICON_ORIENTATION_NORMAL, "Normal",
+	{V3D_ORIENT_GLOBAL, "GLOBAL", ICON_ORIENTATION_GLOBAL, "Global", "Align the transformation axes to world space"},
+	{V3D_ORIENT_LOCAL, "LOCAL", ICON_ORIENTATION_LOCAL, "Local", "Align the transformation axes to the selected objects' local space"},
+	{V3D_ORIENT_NORMAL, "NORMAL", ICON_ORIENTATION_NORMAL, "Normal",
 	                   "Align the transformation axes to average normal of selected elements "
 	                   "(bone Y axis for pose mode)"},
-	{V3D_MANIP_GIMBAL, "GIMBAL", ICON_ORIENTATION_GIMBAL, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
-	{V3D_MANIP_VIEW, "VIEW", ICON_ORIENTATION_VIEW, "View", "Align the transformation axes to the window"},
-	{V3D_MANIP_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "Cursor", "Align the transformation axes to the 3D cursor"},
-	// {V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
+	{V3D_ORIENT_GIMBAL, "GIMBAL", ICON_ORIENTATION_GIMBAL, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
+	{V3D_ORIENT_VIEW, "VIEW", ICON_ORIENTATION_VIEW, "View", "Align the transformation axes to the window"},
+	{V3D_ORIENT_CURSOR, "CURSOR", ICON_PIVOT_CURSOR, "Cursor", "Align the transformation axes to the 3D cursor"},
+	// {V3D_ORIENT_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL},
 };
 
@@ -1984,7 +1984,7 @@ static void rna_ViewLayer_remove(
 }
 
 /* Fake value, used internally (not saved to DNA). */
-#define V3D_MANIP_DEFAULT -1
+#define V3D_ORIENT_DEFAULT -1
 
 static int rna_TransformOrientationSlot_type_get(PointerRNA *ptr)
 {
@@ -1992,7 +1992,7 @@ static int rna_TransformOrientationSlot_type_get(PointerRNA *ptr)
 	TransformOrientationSlot *orient_slot = ptr->data;
 	if (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
 		if ((orient_slot->flag & SELECT) == 0) {
-			return V3D_MANIP_DEFAULT;
+			return V3D_ORIENT_DEFAULT;
 		}
 	}
 	return BKE_scene_orientation_slot_get_index(orient_slot);
@@ -2004,7 +2004,7 @@ void rna_TransformOrientationSlot_type_set(PointerRNA *ptr, int value)
 	TransformOrientationSlot *orient_slot = ptr->data;
 
 	if (orient_slot != &scene->orientation_slots[SCE_ORIENT_DEFAULT]) {
-		if (value == V3D_MANIP_DEFAULT) {
+		if (value == V3D_ORIENT_DEFAULT) {
 			orient_slot->flag &= ~SELECT;
 			return;
 		}
@@ -2021,7 +2021,7 @@ static PointerRNA rna_TransformOrientationSlot_get(PointerRNA *ptr)
 	Scene *scene = ptr->id.data;
 	TransformOrientationSlot *orient_slot = ptr->data;
 	TransformOrientation *orientation;
-	if (orient_slot->type < V3D_MANIP_CUSTOM) {
+	if (orient_slot->type < V3D_ORIENT_CUSTOM) {
 		orientation = NULL;
 	}
 	else {
@@ -2036,13 +2036,13 @@ static const EnumPropertyItem *rna_TransformOrientation_impl_itemf(
 {
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item = NULL;
-	int i = V3D_MANIP_CUSTOM, totitem = 0;
+	int i = V3D_ORIENT_CUSTOM, totitem = 0;
 
 	if (include_default) {
 		tmp.identifier = "DEFAULT";
 		tmp.name = "Default";
 		tmp.description = "Use the scene orientation";
-		tmp.value = V3D_MANIP_DEFAULT;
+		tmp.value = V3D_ORIENT_DEFAULT;
 		tmp.icon = ICON_OBJECT_ORIGIN;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 		tmp.icon = 0;
@@ -2092,7 +2092,7 @@ const EnumPropertyItem *rna_TransformOrientation_with_scene_itemf(
 	return rna_TransformOrientation_impl_itemf(scene, include_default, r_free);
 }
 
-#undef V3D_MANIP_DEFAULT
+#undef V3D_ORIENT_DEFAULT
 
 void rna_TransformOrientationSlot_ui_info(
         ID *scene_id, TransformOrientationSlot *orient_slot,
@@ -2100,7 +2100,7 @@ void rna_TransformOrientationSlot_ui_info(
 {
 	Scene *scene = (Scene *)scene_id;
 
-	if (orient_slot->type < V3D_MANIP_CUSTOM) {
+	if (orient_slot->type < V3D_ORIENT_CUSTOM) {
 		const EnumPropertyItem *items = rna_enum_transform_orientation_items;
 		const int i = RNA_enum_from_value(items, orient_slot->type);
 		strcpy(r_name, items[i].name);

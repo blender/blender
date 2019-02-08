@@ -611,7 +611,7 @@ typedef struct TransInfo {
 		short		user_alt;
 		short		index;
 		short		*types[2];
-		/* this gets used when custom_orientation is V3D_MANIP_CUSTOM */
+		/* this gets used when custom_orientation is V3D_ORIENT_CUSTOM */
 		TransformOrientation *custom;
 	} orientation;
 	/** backup from view3d, to restore on end. */

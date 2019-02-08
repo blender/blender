@@ -650,11 +650,11 @@ void ED_transform_calc_orientation_from_type_ex(
 	bool ok = false;
 
 	switch (orientation_type) {
-		case V3D_MANIP_GLOBAL:
+		case V3D_ORIENT_GLOBAL:
 		{
 			break; /* nothing to do */
 		}
-		case V3D_MANIP_GIMBAL:
+		case V3D_ORIENT_GIMBAL:
 		{
 			if (gimbal_axis(ob, r_mat)) {
 				ok = true;
@@ -663,7 +663,7 @@ void ED_transform_calc_orientation_from_type_ex(
 			/* if not gimbal, fall through to normal */
 			ATTR_FALLTHROUGH;
 		}
-		case V3D_MANIP_NORMAL:
+		case V3D_ORIENT_NORMAL:
 		{
 			if (obedit || ob->mode & OB_MODE_POSE) {
 				ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
@@ -673,7 +673,7 @@ void ED_transform_calc_orientation_from_type_ex(
 			/* no break we define 'normal' as 'local' in Object mode */
 			ATTR_FALLTHROUGH;
 		}
-		case V3D_MANIP_LOCAL:
+		case V3D_ORIENT_LOCAL:
 		{
 			if (ob->mode & OB_MODE_POSE) {
 				/* each bone moves on its own local axis, but  to avoid confusion,
@@ -689,7 +689,7 @@ void ED_transform_calc_orientation_from_type_ex(
 			ok = true;
 			break;
 		}
-		case V3D_MANIP_VIEW:
+		case V3D_ORIENT_VIEW:
 		{
 			if (rv3d != NULL) {
 				copy_m3_m4(r_mat, rv3d->viewinv);
@@ -698,13 +698,13 @@ void ED_transform_calc_orientation_from_type_ex(
 			}
 			break;
 		}
-		case V3D_MANIP_CURSOR:
+		case V3D_ORIENT_CURSOR:
 		{
 			ED_view3d_cursor3d_calc_mat3(scene, r_mat);
 			ok = true;
 			break;
 		}
-		case V3D_MANIP_CUSTOM:
+		case V3D_ORIENT_CUSTOM:
 		{
 			TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
 			        scene, orientation_index_custom);
@@ -1235,7 +1235,7 @@ static void gizmo_xform_message_subscribe(
 		extern PropertyRNA rna_Scene_cursor_location;
 		const PropertyRNA *props[] = {
 			&rna_Scene_transform_orientation_slots,
-			((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_MANIP_CURSOR)) ?
+			((ts->transform_pivot_point == V3D_AROUND_CURSOR) || (orient_slot->type == V3D_ORIENT_CURSOR)) ?
 			&rna_Scene_cursor_location : NULL,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
@@ -1793,7 +1793,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 			Scene *scene = CTX_data_scene(C);
 			const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, ggd->twtype_init);
 			switch (orient_slot->type) {
-				case V3D_MANIP_VIEW:
+				case V3D_ORIENT_VIEW:
 				{
 					WIDGETGROUP_gizmo_refresh(C, gzgroup);
 					break;
@@ -2076,7 +2076,7 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup 
 		Scene *scene = CTX_data_scene(C);
 		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_SCALE);
 		switch (orient_slot->type) {
-			case V3D_MANIP_VIEW:
+			case V3D_ORIENT_VIEW:
 			{
 				float viewinv_m3[3][3];
 				copy_m3_m4(viewinv_m3, rv3d->viewinv);
@@ -2240,7 +2240,7 @@ static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup
 		/* Shear is like rotate, use the rotate setting. */
 		const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, SCE_GIZMO_SHOW_ROTATE);
 		switch (orient_slot->type) {
-			case V3D_MANIP_VIEW:
+			case V3D_ORIENT_VIEW:
 			{
 				float viewinv_m3[3][3];
 				copy_m3_m4(viewinv_m3, rv3d->viewinv);

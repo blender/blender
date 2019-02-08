@@ -228,7 +228,7 @@ static bool delete_orientation_poll(bContext *C)
 	if (ED_operator_areaactive(C) == 0)
 		return 0;
 
-	return ((scene->orientation_slots[SCE_ORIENT_DEFAULT].type >= V3D_MANIP_CUSTOM) &&
+	return ((scene->orientation_slots[SCE_ORIENT_DEFAULT].type >= V3D_ORIENT_CUSTOM) &&
 	        (scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom != -1));
 }
 

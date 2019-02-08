@@ -230,7 +230,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 	ggd->data.orientation_type = scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
 	const bool use_normal = (
-	        (ggd->data.orientation_type != V3D_MANIP_NORMAL) ||
+	        (ggd->data.orientation_type != V3D_ORIENT_NORMAL) ||
 	        (axis_type == EXTRUDE_AXIS_NORMAL));
 	const int axis_len_used = use_normal ? 4 : 3;
 
@@ -240,7 +240,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		struct TransformBounds tbounds_normal;
 		if (!ED_transform_calc_gizmo_stats(
 		            C, &(struct TransformCalcParams){
-		                .orientation_type = V3D_MANIP_NORMAL + 1,
+		                .orientation_type = V3D_ORIENT_NORMAL + 1,
 		            }, &tbounds_normal))
 		{
 			unit_m3(tbounds_normal.axis);
@@ -353,7 +353,7 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzg
 {
 	GizmoExtrudeGroup *ggd = gzgroup->customdata;
 	switch (ggd->data.orientation_type) {
-		case V3D_MANIP_VIEW:
+		case V3D_ORIENT_VIEW:
 		{
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			float mat[3][3];
@@ -401,7 +401,7 @@ static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C), wmGizmo
 		if (i == 3) {
 			use_normal_matrix = true;
 		}
-		else if (ggd->data.orientation_type == V3D_MANIP_NORMAL) {
+		else if (ggd->data.orientation_type == V3D_ORIENT_NORMAL) {
 			use_normal_matrix = true;
 		}
 		if (use_normal_matrix) {

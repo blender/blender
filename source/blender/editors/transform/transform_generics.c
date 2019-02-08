@@ -1418,8 +1418,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		        NULL);
 
 		/* Make second orientation local if both are global. */
-		if (t->orientation.user == V3D_MANIP_GLOBAL) {
-			t->orientation.user_alt = V3D_MANIP_LOCAL;
+		if (t->orientation.user == V3D_ORIENT_GLOBAL) {
+			t->orientation.user_alt = V3D_ORIENT_LOCAL;
 			t->orientation.types[0] = &t->orientation.user_alt;
 			SWAP(short *, t->orientation.types[0], t->orientation.types[1]);
 		}
@@ -1514,7 +1514,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	           RNA_property_is_set(op->ptr, prop)))
 	{
 		RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);
-		t->orientation.user = V3D_MANIP_CUSTOM_MATRIX;
+		t->orientation.user = V3D_ORIENT_CUSTOM_MATRIX;
 		t->orientation.custom = 0;
 	}
 	else if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
@@ -1523,14 +1523,14 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		short orientation = RNA_property_enum_get(op->ptr, prop);
 		TransformOrientation *custom_orientation = NULL;
 
-		if (orientation >= V3D_MANIP_CUSTOM) {
-			if (orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
-				orientation = V3D_MANIP_GLOBAL;
+		if (orientation >= V3D_ORIENT_CUSTOM) {
+			if (orientation >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
+				orientation = V3D_ORIENT_GLOBAL;
 			}
 			else {
 				custom_orientation = BKE_scene_transform_orientation_find(
-				        t->scene, orientation - V3D_MANIP_CUSTOM);
-				orientation = V3D_MANIP_CUSTOM;
+				        t->scene, orientation - V3D_ORIENT_CUSTOM);
+				orientation = V3D_ORIENT_CUSTOM;
 			}
 		}
 

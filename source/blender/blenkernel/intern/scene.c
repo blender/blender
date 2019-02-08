@@ -1359,19 +1359,19 @@ TransformOrientationSlot *BKE_scene_orientation_slot_get(Scene *scene, int flag)
 /**
  * Activate a transform orientation in a 3D view based on an enum value.
  *
- * \param orientation: If this is #V3D_MANIP_CUSTOM or greater, the custom transform orientation
- * with index \a orientation - #V3D_MANIP_CUSTOM gets activated.
+ * \param orientation: If this is #V3D_ORIENT_CUSTOM or greater, the custom transform orientation
+ * with index \a orientation - #V3D_ORIENT_CUSTOM gets activated.
  */
 void BKE_scene_orientation_slot_set_index(TransformOrientationSlot *orient_slot, int orientation)
 {
-	const bool is_custom = orientation >= V3D_MANIP_CUSTOM;
-	orient_slot->type = is_custom ? V3D_MANIP_CUSTOM : orientation;
-	orient_slot->index_custom = is_custom ? (orientation - V3D_MANIP_CUSTOM) : -1;
+	const bool is_custom = orientation >= V3D_ORIENT_CUSTOM;
+	orient_slot->type = is_custom ? V3D_ORIENT_CUSTOM : orientation;
+	orient_slot->index_custom = is_custom ? (orientation - V3D_ORIENT_CUSTOM) : -1;
 }
 
 int BKE_scene_orientation_slot_get_index(const TransformOrientationSlot *orient_slot)
 {
-	return (orient_slot->type == V3D_MANIP_CUSTOM) ? (orient_slot->type + orient_slot->index_custom) : orient_slot->type;
+	return (orient_slot->type == V3D_ORIENT_CUSTOM) ? (orient_slot->type + orient_slot->index_custom) : orient_slot->type;
 }
 
 /** \} */
@@ -2216,7 +2216,7 @@ void BKE_scene_transform_orientation_remove(
 		TransformOrientationSlot *orient_slot = &scene->orientation_slots[i];
 		if (orient_slot->index_custom == orientation_index) {
 			/* could also use orientation_index-- */
-			orient_slot->type = V3D_MANIP_GLOBAL;
+			orient_slot->type = V3D_ORIENT_GLOBAL;
 			orient_slot->index_custom = -1;
 		}
 	}

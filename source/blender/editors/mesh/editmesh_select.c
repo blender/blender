@@ -4446,7 +4446,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "orientation", rna_enum_transform_orientation_items, V3D_MANIP_LOCAL, "Axis Mode", "Axis orientation");
+	RNA_def_enum(ot->srna, "orientation", rna_enum_transform_orientation_items, V3D_ORIENT_LOCAL, "Axis Mode", "Axis orientation");
 	RNA_def_enum(ot->srna, "sign", axis_sign_items, SELECT_AXIS_POS, "Axis Sign", "Side to select");
 	RNA_def_enum(ot->srna, "axis", rna_enum_axis_xyz_items, 0, "Axis", "Select the axis to compare each vertex on");
 	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Threshold", "", 0.00001f, 10.0f);
