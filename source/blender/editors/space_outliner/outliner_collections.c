@@ -137,6 +137,11 @@ bool ED_outliner_collections_editor_poll(bContext *C)
 	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
 }
 
+static bool outliner_view_layer_collections_editor_poll(bContext *C)
+{
+	SpaceOops *so = CTX_wm_space_outliner(C);
+	return (so != NULL) && (so->outlinevis == SO_VIEW_LAYER);
+}
 
 /********************************* New Collection ****************************/
 
@@ -1157,6 +1162,92 @@ void OUTLINER_OT_collection_disable_render(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = collection_flag_exec;
 	ot->poll = collection_disable_render_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+struct OutlinerHideEditData {
+	Scene *scene;
+	ViewLayer *view_layer;
+	SpaceOops *soops;
+	GSet *collections_to_edit;
+	GSet *bases_to_edit;
+};
+
+static TreeTraversalAction outliner_hide_find_data_to_edit(TreeElement *te, void *customdata)
+{
+	struct OutlinerHideEditData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	if (tselem == NULL) {
+		return TRAVERSE_CONTINUE;
+	}
+
+	if (tselem->type == TSE_LAYER_COLLECTION) {
+		LayerCollection *lc = te->directdata;
+
+		if (lc->collection->flag & COLLECTION_IS_MASTER) {
+			/* skip - showing warning/error message might be misleading
+			* when deleting multiple collections, so just do nothing */
+		}
+		else {
+			/* Delete, duplicate and link don't edit children, those will come along
+			* with the parents. */
+			BLI_gset_add(data->collections_to_edit, lc);
+		}
+	}
+	else if (tselem->type == 0 && te->idcode == ID_OB) {
+		Object *ob = (Object *)tselem->id;
+		Base *base = BKE_view_layer_base_find(data->view_layer, ob);
+		BLI_gset_add(data->bases_to_edit, base);
+	}
+
+	return TRAVERSE_CONTINUE;
+}
+
+static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	struct OutlinerHideEditData data = {.scene = scene, .view_layer = view_layer, .soops = soops,};
+	data.collections_to_edit = BLI_gset_ptr_new("outliner_hide_exec__collections_to_edit");
+	data.bases_to_edit = BLI_gset_ptr_new("outliner_hide_exec__bases_to_edit");
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_hide_find_data_to_edit, &data);
+
+	GSetIterator collections_to_edit_iter;
+	GSET_ITER(collections_to_edit_iter, data.collections_to_edit) {
+		LayerCollection *layer_collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
+		BKE_layer_collection_set_visible(view_layer, layer_collection, false, false);
+	}
+	BLI_gset_free(data.collections_to_edit, NULL);
+
+	GSetIterator bases_to_edit_iter;
+	GSET_ITER(bases_to_edit_iter, data.bases_to_edit) {
+		Base *base = BLI_gsetIterator_getKey(&bases_to_edit_iter);
+		base->flag |= BASE_HIDDEN;
+	}
+	BLI_gset_free(data.bases_to_edit, NULL);
+
+	BKE_layer_collection_sync(scene, view_layer);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+
+	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_hide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Hide";
+	ot->idname = "OUTLINER_OT_hide";
+	ot->description = "Hide selected objects and collections";
+
+	/* api callbacks */
+	ot->exec = outliner_hide_exec;
+	ot->poll = outliner_view_layer_collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

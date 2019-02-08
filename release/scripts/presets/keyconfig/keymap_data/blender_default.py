@@ -685,6 +685,7 @@ def km_outliner(params):
         ("object.link_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("outliner.collection_exclude_set", {"type": 'E', "value": 'PRESS'}, None),
         ("outliner.collection_exclude_clear", {"type": 'E', "value": 'PRESS', "alt": True}, None),
+        ("outliner.hide", {"type": 'H', "value": 'PRESS'}, None),
         ("object.hide_view_clear", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("select", False)]}),
         ("object.hide_view_set", {"type": 'H', "value": 'PRESS'},
