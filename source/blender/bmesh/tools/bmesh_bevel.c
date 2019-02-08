@@ -6102,7 +6102,7 @@ void BM_mesh_bevel(
 	bp.use_weights = use_weights;
 	bp.loop_slide = loop_slide;
 	bp.limit_offset = limit_offset;
-	bp.offset_adjust = false;
+	bp.offset_adjust = true;
 	bp.dvert = dvert;
 	bp.vertex_group = vertex_group;
 	bp.mat_nr = mat;
