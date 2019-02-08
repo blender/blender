@@ -115,6 +115,7 @@ static void deformVerts(
 	}
 
 	/* clear old dm */
+	bool had_mesh_final = (psmd->mesh_final != NULL);
 	if (psmd->mesh_final) {
 		BKE_id_free(NULL, psmd->mesh_final);
 		psmd->mesh_final = NULL;
@@ -126,13 +127,9 @@ static void deformVerts(
 	else if (psmd->flag & eParticleSystemFlag_file_loaded) {
 		/* in file read mesh just wasn't saved in file so no need to reset everything */
 		psmd->flag &= ~eParticleSystemFlag_file_loaded;
-		/* TODO(sergey): With copy-on-write this is more like duplicating an
-		 * object which does need to reset particles. */
-		psys->recalc |= ID_RECALC_PSYS_RESET;
-	}
-	else {
-		/* no dm before, so recalc particles fully */
-		psys->recalc |= ID_RECALC_PSYS_RESET;
+		if (psys->particles == NULL) {
+			psys->recalc |= ID_RECALC_PSYS_RESET;
+		}
 	}
 
 	/* make new mesh */
@@ -178,11 +175,34 @@ static void deformVerts(
 		BKE_id_free(NULL, mesh_src);
 	}
 
+	/* Report change in mesh structure.
+	 * This is an unreliable check for the topology check, but allows some
+	 * handy configuration like emitting particles from inside particle
+	 * instance. */
+	if (had_mesh_final &&
+	    (psmd->mesh_final->totvert != psmd->totdmvert ||
+	     psmd->mesh_final->totedge != psmd->totdmedge ||
+	     psmd->mesh_final->totface != psmd->totdmface))
+	{
+		psys->recalc |= ID_RECALC_PSYS_RESET;
+		psmd->totdmvert = psmd->mesh_final->totvert;
+		psmd->totdmedge = psmd->mesh_final->totedge;
+		psmd->totdmface = psmd->mesh_final->totface;
+	}
+
 	if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
 		struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		particle_system_update(ctx->depsgraph, scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
+	}
+
+	if (DEG_is_active(ctx->depsgraph)) {
+		Object *object_orig = DEG_get_original_object(ctx->object);
+		ModifierData *md_orig = modifiers_findByName(object_orig, psmd->modifier.name);
+		BLI_assert(md_orig != NULL);
+		ParticleSystemModifierData *psmd_orig = (ParticleSystemModifierData *) md_orig;
+		psmd_orig->flag = psmd->flag;
 	}
 }
 
