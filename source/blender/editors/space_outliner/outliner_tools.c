@@ -985,10 +985,10 @@ enum {
 };
 
 static const EnumPropertyItem prop_object_op_types[] = {
-	{OL_OP_SELECT, "SELECT", 0, "Select", ""},
+	{OL_OP_SELECT, "SELECT", ICON_RESTRICT_SELECT_OFF, "Select", ""},
 	{OL_OP_DESELECT, "DESELECT", 0, "Deselect", ""},
 	{OL_OP_SELECT_HIERARCHY, "SELECT_HIERARCHY", 0, "Select Hierarchy", ""},
-	{OL_OP_DELETE, "DELETE", 0, "Delete", ""},
+	{OL_OP_DELETE, "DELETE", ICON_X, "Delete", ""},
 	{OL_OP_DELETE_HIERARCHY, "DELETE_HIERARCHY", 0, "Delete Hierarchy", ""},
 	{OL_OP_REMAP, "REMAP",   0, "Remap Users",
 	 "Make all users of selected data-blocks to use instead a new chosen one"},
@@ -1152,7 +1152,7 @@ static const EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_STATIC_OVERRIDE, "STATIC_OVERRIDE", 0, "Add Static Override",
 	 "Add a local static override of this data-block"},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
-	{OUTLINER_IDOP_DELETE, "DELETE", 0, "Delete", "WARNING: no undo"},
+	{OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", "WARNING: no undo"},
 	{OUTLINER_IDOP_REMAP, "REMAP", 0, "Remap Users",
 	 "Make all users of selected data-blocks to use instead current (clicked) one"},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
@@ -1383,9 +1383,9 @@ typedef enum eOutlinerLibOpTypes {
 
 static const EnumPropertyItem outliner_lib_op_type_items[] = {
 	{OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
-	{OL_LIB_DELETE, "DELETE", 0, "Delete", "Delete this library and all its item from Blender - WARNING: no undo"},
+	{OL_LIB_DELETE, "DELETE", ICON_X, "Delete", "Delete this library and all its item from Blender - WARNING: no undo"},
 	{OL_LIB_RELOCATE, "RELOCATE", 0, "Relocate", "Select a new path for this library, and reload all its data"},
-	{OL_LIB_RELOAD, "RELOAD", 0, "Reload", "Reload all data from this library"},
+	{OL_LIB_RELOAD, "RELOAD", ICON_REFRESH, "Reload", "Reload all data from this library"},
 	{0, NULL, 0, NULL, NULL},
 };
 
