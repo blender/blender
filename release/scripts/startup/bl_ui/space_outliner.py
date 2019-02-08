@@ -103,17 +103,26 @@ class OUTLINER_MT_context(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("outliner.show_one_level", text="Show One Level")
-        layout.operator("outliner.show_one_level", text="Hide One Level").open = False
-        layout.operator("outliner.show_hierarchy")
+        layout.menu("OUTLINER_MT_context_view")
 
         layout.separator()
+
+        layout.menu("INFO_MT_area")
+
+
+class OUTLINER_MT_context_view(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
 
         layout.operator("outliner.show_active")
 
         layout.separator()
 
-        layout.menu("INFO_MT_area")
+        layout.operator("outliner.show_hierarchy")
+        layout.operator("outliner.show_one_level", text="Show One Level")
+        layout.operator("outliner.show_one_level", text="Hide One Level").open = False
 
 
 class OUTLINER_MT_edit_datablocks(Menu):
@@ -341,6 +350,7 @@ classes = (
     OUTLINER_MT_collection_view_layer,
     OUTLINER_MT_object,
     OUTLINER_MT_context,
+    OUTLINER_MT_context_view,
     OUTLINER_PT_filter,
 )
 
