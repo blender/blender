@@ -2808,7 +2808,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 			ToolSettings *ts = scene->toolsettings;
 			ts->particle.flag &= ~PE_DEPRECATED_6;
-			ts->sculpt->flags &= ~SCULPT_FLAG_DEPRECATED_6;
+			if (ts->sculpt != NULL) {
+				ts->sculpt->flags &= ~SCULPT_FLAG_DEPRECATED_6;
+			}
 		}
 	}
 
