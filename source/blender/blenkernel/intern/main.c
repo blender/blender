@@ -209,6 +209,27 @@ void BKE_main_relations_free(Main *bmain)
 	}
 }
 
+static bool main_gset_create(Main *UNUSED(bmain), ID *id, void *user_data)
+{
+	GSet *gset = user_data;
+	BLI_gset_add(gset, id);
+	return true;
+}
+
+/**
+ * Create a GSet storing all IDs present in given \a bmain, by their pointers.
+ *
+ * \param gset If not NULL, given GSet will be extended with IDs from given \a bmain, instead of creating a new one.
+ */
+GSet *BKE_main_gset_create(Main *bmain, GSet *gset)
+{
+	if (gset == NULL) {
+		gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+	}
+	BKE_main_foreach_id(bmain, false, main_gset_create, gset);
+	return gset;
+}
+
 /**
  * Call given callback over every IDs of given \a lb listbase (assumed to be part of given \a bmain).
  *
