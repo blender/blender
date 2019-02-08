@@ -2534,10 +2534,22 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 		 *   CoW update when it's changed) but yet guarantee evaluation order
 		 *   with objects which are using that action. */
 		if (comp_node->type == NodeType::PARAMETERS ||
-		    comp_node->type == NodeType::LAYER_COLLECTIONS ||
-		    (comp_node->type == NodeType::ANIMATION && id_type == ID_AC))
+		    comp_node->type == NodeType::LAYER_COLLECTIONS)
 		{
 			rel_flag &= ~RELATION_FLAG_NO_FLUSH;
+		}
+		if (comp_node->type == NodeType::ANIMATION && id_type == ID_AC) {
+			rel_flag &= ~RELATION_FLAG_NO_FLUSH;
+			/* NOTE: We only allow flush on user edits. If the action block is
+			 * just brought into the dependency graph it is either due to
+			 * initial graph construction or due to some property got animated.
+			 * In first case all the related datablocks will be tagged for an
+			 * update as well. In the second case it is up to the editing
+			 * function to tag changed datablock.
+			 *
+			 * This logic allows to preserve unkeyed changes on file load and on
+			 * undo. */
+			rel_flag |= RELATION_FLAG_FLUSH_USER_EDIT_ONLY;
 		}
 		/* All entry operations of each component should wait for a proper
 		 * copy of ID. */

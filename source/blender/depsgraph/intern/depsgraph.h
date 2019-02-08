@@ -73,9 +73,9 @@ enum RelationFlag {
 	 * affected by user input. */
 	RELATION_FLAG_FLUSH_USER_EDIT_ONLY = (1 << 2),
 	/* The relation can not be killed by the cyclic dependencies solver. */
-	RELATION_FLAG_GODMODE              = (1 << 3),
+	RELATION_FLAG_GODMODE              = (1 << 4),
 	/* Relation will check existance before being added. */
-	RELATION_CHECK_BEFORE_ADD          = (1 << 4),
+	RELATION_CHECK_BEFORE_ADD          = (1 << 5),
 };
 
 /* B depends on A (A -> B) */
