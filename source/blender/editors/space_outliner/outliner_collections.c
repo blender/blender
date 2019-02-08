@@ -1253,6 +1253,45 @@ void OUTLINER_OT_hide(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int outliner_unhide_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	/* Unhide all the collections. */
+	LayerCollection *lc_master = view_layer->layer_collections.first;
+	for (LayerCollection *lc_iter = lc_master->layer_collections.first; lc_iter; lc_iter = lc_iter->next) {
+		lc_iter->flag &= ~LAYER_COLLECTION_RESTRICT_VIEW;
+		layer_collection_flag_recursive_set(lc_iter, LAYER_COLLECTION_RESTRICT_VIEW);
+	}
+
+	/* Unhide all objects. */
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		base->flag &= ~BASE_HIDDEN;
+	}
+
+	BKE_layer_collection_sync(scene, view_layer);
+	DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
+
+	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_unhide_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unhide All";
+	ot->idname = "OUTLINER_OT_unhide_all";
+	ot->description = "Unhide all objects and collections";
+
+	/* api callbacks */
+	ot->exec = outliner_unhide_all_exec;
+	ot->poll = outliner_view_layer_collections_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /**
  * Populates the \param objects: ListBase with all the outliner selected objects
  * We store it as (Object *)LinkData->data
