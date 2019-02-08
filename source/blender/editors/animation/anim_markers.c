@@ -435,7 +435,7 @@ static void draw_marker(
 		          ICON_MARKER;
 	}
 
-	UI_icon_draw(xpos - 0.45f * UI_DPI_ICON_SIZE, yoffs + UI_DPI_ICON_SIZE, icon_id);
+	UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, yoffs + UI_DPI_ICON_SIZE, icon_id);
 
 	GPU_blend(false);
 
