@@ -294,7 +294,8 @@ void draw_object_backbufsel(
 
 	const float (*world_clip_planes)[4] = NULL;
 	if (rv3d->rflag & RV3D_CLIPPING) {
-		world_clip_planes = rv3d->clip;
+		ED_view3d_clipping_local(rv3d, ob->obmat);
+		world_clip_planes = rv3d->clip_local;
 	}
 
 	switch (ob->type) {
