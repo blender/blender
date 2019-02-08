@@ -305,9 +305,9 @@ void DRW_shgroup_world_clip_planes_from_rv3d(DRWShadingGroup *shgrp, const Regio
 	DRW_shgroup_state_enable(shgrp, DRW_STATE_CLIP_PLANES);
 }
 
-DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass)
+DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass, eGPUShaderConfig shader_cfg)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
+	GPUShader *sh = GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_FLAT_COLOR, shader_cfg);
 
 	DRW_shgroup_instance_format(g_formats.dynlines_color, {
 		{"pos",       DRW_ATTR_FLOAT, 3},
@@ -315,7 +315,9 @@ DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_line_batch_create_with_format(sh, pass, g_formats.dynlines_color);
-
+	if (shader_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 
@@ -835,13 +837,17 @@ DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass, eGPUShaderConfig shader_cfg)
 {
-	COMMON_Shaders *sh_data = &g_shaders[GPU_SHADER_CFG_DEFAULT];
+	COMMON_Shaders *sh_data = &g_shaders[shader_cfg];
 	if (sh_data->bone_stick == NULL) {
-		sh_data->bone_stick = DRW_shader_create(
-		        datatoc_armature_stick_vert_glsl, NULL,
-		        datatoc_armature_stick_frag_glsl, NULL);
+		const char *world_clip_lib_or_empty = (shader_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
+		const char *world_clip_def_or_empty = (shader_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		sh_data->bone_stick = GPU_shader_create_from_arrays({
+		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_armature_stick_vert_glsl, NULL},
+		        .frag = (const char *[]){datatoc_armature_stick_frag_glsl, NULL},
+		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		});
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_stick, {
@@ -859,7 +865,9 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 	        g_formats.instance_bone_stick);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float_copy(grp, "stickSize", 5.0f * U.pixelsize);
-
+	if (shader_cfg == GPU_SHADER_CFG_CLIPPED) {
+		DRW_shgroup_world_clip_planes_from_rv3d(grp, DRW_context_state_get()->rv3d);
+	}
 	return grp;
 }
 

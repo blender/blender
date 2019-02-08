@@ -1220,7 +1220,9 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(
 			                GPU_SHADER_DISTANCE_LINES,
 			                GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR,
 			                GPU_SHADER_3D_FLAT_SELECT_ID,
-			                GPU_SHADER_3D_UNIFORM_SELECT_ID));
+			                GPU_SHADER_3D_UNIFORM_SELECT_ID) ||
+			           ELEM(shader,
+			                GPU_SHADER_3D_FLAT_COLOR));
 			const char *world_clip_lib = datatoc_gpu_shader_cfg_world_clip_lib_glsl;
 			const char *world_clip_def = "#define USE_WORLD_CLIP_PLANES\n";
 			/* In rare cases geometry shaders calculate clipping themselves. */

@@ -1,6 +1,7 @@
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewProjectionMatrix;
+uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform vec2 viewportSize;
 
@@ -49,8 +50,10 @@ void main()
 	/* Make the color */
 	colorFac = ((flag & COL_WIRE) == 0u) ? ((flag & COL_BONE) != 0u) ? 1.0 : 2.0 : 0.0;
 
-	vec4 v0 = ViewMatrix * vec4(boneStart, 1.0);
-	vec4 v1 = ViewMatrix * vec4(boneEnd, 1.0);
+	vec4 boneStart_4d = vec4(boneStart, 1.0);
+	vec4 boneEnd_4d = vec4(boneEnd, 1.0);
+	vec4 v0 = ViewMatrix * boneStart_4d;
+	vec4 v1 = ViewMatrix * boneEnd_4d;
 
 	/* Clip the bone to the camera origin plane (not the clip plane)
 	 * to avoid glitches if one end is behind the camera origin (in persp). */
@@ -81,6 +84,10 @@ void main()
 		gl_Position = (is_head) ? p0 : p1;
 		gl_Position.xy += stickSize * (vpos / viewportSize);
 		gl_Position.z += (is_bone) ? 0.0 : 1e-6; /* Avoid Z fighting of head/tails. */
+
+#ifdef USE_WORLD_CLIP_PLANES
+		world_clip_planes_calc_clip_distance((ModelMatrix * (is_head ? boneStart_4d : boneEnd_4d)).xyz);
+#endif
 	}
 	else {
 		gl_Position = vec4(0.0);

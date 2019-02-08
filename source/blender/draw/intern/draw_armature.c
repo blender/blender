@@ -163,10 +163,12 @@ static void drw_shgroup_bone_box(
 }
 
 /* Wire */
-static void drw_shgroup_bone_wire(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_wire(
+        const float (*bone_mat)[4], const float color[4],
+        const eGPUShaderConfig shader_cfg)
 {
 	if (g_data.bone_wire == NULL) {
-		g_data.bone_wire = shgroup_dynlines_flat_color(g_data.passes.bone_wire);
+		g_data.bone_wire = shgroup_dynlines_flat_color(g_data.passes.bone_wire, shader_cfg);
 	}
 	float head[3], tail[3];
 	mul_v3_m4v3(head, g_data.ob->obmat, bone_mat[3]);
@@ -180,10 +182,11 @@ static void drw_shgroup_bone_wire(const float (*bone_mat)[4], const float color[
 /* Stick */
 static void drw_shgroup_bone_stick(
         const float (*bone_mat)[4],
-        const float col_wire[4], const float col_bone[4], const float col_head[4], const float col_tail[4])
+        const float col_wire[4], const float col_bone[4], const float col_head[4], const float col_tail[4],
+        const eGPUShaderConfig shader_cfg)
 {
 	if (g_data.bone_stick == NULL) {
-		g_data.bone_stick = shgroup_instance_bone_stick(g_data.passes.bone_wire);
+		g_data.bone_stick = shgroup_instance_bone_stick(g_data.passes.bone_wire, shader_cfg);
 	}
 	float final_bonemat[4][4], tail[4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -1322,7 +1325,8 @@ static void draw_bone_envelope(
 
 static void draw_bone_line(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
-        const int boneflag, const short constflag, const int select_id)
+        const int boneflag, const short constflag,
+        const eGPUShaderConfig shader_cfg, const int select_id)
 {
 	const float *col_bone = get_bone_solid_with_consts_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
@@ -1360,20 +1364,20 @@ static void draw_bone_line(
 
 	if (select_id == -1) {
 		/* Not in selection mode, draw everything at once. */
-		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail);
+		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail, shader_cfg);
 	}
 	else {
 		/* In selection mode, draw bone, root and tip separately. */
 		DRW_select_load_id(select_id | BONESEL_BONE);
-		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display);
+		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display, shader_cfg);
 
 		if (col_head[3] > 0.0f) {
 			DRW_select_load_id(select_id | BONESEL_ROOT);
-			drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, col_head, no_display);
+			drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, col_head, no_display, shader_cfg);
 		}
 
 		DRW_select_load_id(select_id | BONESEL_TIP);
-		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, no_display, col_tail);
+		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, no_display, col_tail, shader_cfg);
 
 		DRW_select_load_id(-1);
 	}
@@ -1382,7 +1386,7 @@ static void draw_bone_line(
 static void draw_bone_wire(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const int select_id)
+        const eGPUShaderConfig shader_cfg, const int select_id)
 {
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 
@@ -1395,12 +1399,12 @@ static void draw_bone_wire(
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
-			drw_shgroup_bone_wire(bbones_mat->mat, col_wire);
+			drw_shgroup_bone_wire(bbones_mat->mat, col_wire, shader_cfg);
 		}
 	}
 	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
-			drw_shgroup_bone_wire(eBone->disp_bbone_mat[i], col_wire);
+			drw_shgroup_bone_wire(eBone->disp_bbone_mat[i], col_wire, shader_cfg);
 		}
 	}
 
@@ -1716,11 +1720,11 @@ static void draw_armature_edit(Object *ob)
 				}
 				else if (arm->drawtype == ARM_LINE) {
 					draw_bone_update_disp_matrix_default(eBone, NULL);
-					draw_bone_line(eBone, NULL, arm, boneflag, constflag, select_id);
+					draw_bone_line(eBone, NULL, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_WIRE) {
 					draw_bone_update_disp_matrix_bbone(eBone, NULL);
-					draw_bone_wire(eBone, NULL, arm, boneflag, constflag, select_id);
+					draw_bone_wire(eBone, NULL, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_B_BONE) {
 					draw_bone_update_disp_matrix_bbone(eBone, NULL);
@@ -1831,11 +1835,11 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				}
 				else if (arm->drawtype == ARM_LINE) {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
-					draw_bone_line(NULL, pchan, arm, boneflag, constflag, select_id);
+					draw_bone_line(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_WIRE) {
 					draw_bone_update_disp_matrix_bbone(NULL, pchan);
-					draw_bone_wire(NULL, pchan, arm, boneflag, constflag, select_id);
+					draw_bone_wire(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_B_BONE) {
 					draw_bone_update_disp_matrix_bbone(NULL, pchan);

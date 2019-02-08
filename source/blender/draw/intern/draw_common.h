@@ -123,7 +123,7 @@ void DRW_globals_free(void);
 
 void DRW_shgroup_world_clip_planes_from_rv3d(struct DRWShadingGroup *shgrp, const RegionView3D *rv3d);
 
-struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass, const float color[4]);
 struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, const float color[4], const float *size, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass, const float color[4], eGPUShaderConfig shader_cfg);
@@ -149,7 +149,7 @@ struct DRWShadingGroup *shgroup_instance_bone_shape_outline(struct DRWPass *pass
 struct DRWShadingGroup *shgroup_instance_bone_shape_solid(struct DRWPass *pass, struct GPUBatch *geom, bool transp, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_sphere_solid(struct DRWPass *pass, bool transp);
-struct DRWShadingGroup *shgroup_instance_bone_stick(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_stick(struct DRWPass *pass, eGPUShaderConfig shader_cfg);
 struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct GPUBatch *geom);
 
 struct GPUShader *mpath_line_shader_get(void);
