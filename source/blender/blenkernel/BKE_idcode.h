@@ -34,6 +34,7 @@ int         BKE_idcode_to_idfilter(const short idcode);
 short       BKE_idcode_from_idfilter(const int idfilter);
 
 int BKE_idcode_to_index(const short idcode);
+short BKE_idcode_from_index(const int index);
 
 /**
  * Return an ID code and steps the index forward 1.

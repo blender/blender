@@ -310,6 +310,58 @@ int BKE_idcode_to_index(const short idcode)
 }
 
 /**
+ * Get an idcode from an index (e.g. INDEX_ID_OB -> ID_OB).
+ */
+short BKE_idcode_from_index(const int index)
+{
+#define CASE_IDCODE(_id) case INDEX_ID_##_id: return ID_##_id
+
+	switch (index) {
+		CASE_IDCODE(AC);
+		CASE_IDCODE(AR);
+		CASE_IDCODE(BR);
+		CASE_IDCODE(CA);
+		CASE_IDCODE(CF);
+		CASE_IDCODE(CU);
+		CASE_IDCODE(GD);
+		CASE_IDCODE(GR);
+		CASE_IDCODE(IM);
+		CASE_IDCODE(KE);
+		CASE_IDCODE(IP);
+		CASE_IDCODE(LA);
+		CASE_IDCODE(LI);
+		CASE_IDCODE(LS);
+		CASE_IDCODE(LT);
+		CASE_IDCODE(MA);
+		CASE_IDCODE(MB);
+		CASE_IDCODE(MC);
+		CASE_IDCODE(ME);
+		CASE_IDCODE(MSK);
+		CASE_IDCODE(NT);
+		CASE_IDCODE(OB);
+		CASE_IDCODE(PA);
+		CASE_IDCODE(PAL);
+		CASE_IDCODE(PC);
+		CASE_IDCODE(LP);
+		CASE_IDCODE(SCE);
+		CASE_IDCODE(SCR);
+		CASE_IDCODE(SPK);
+		CASE_IDCODE(SO);
+		CASE_IDCODE(TE);
+		CASE_IDCODE(TXT);
+		CASE_IDCODE(VF);
+		CASE_IDCODE(WM);
+		CASE_IDCODE(WO);
+		CASE_IDCODE(WS);
+	}
+
+	BLI_assert(0);
+	return -1;
+
+#undef CASE_IDCODE
+}
+
+/**
  * Convert an idcode into a name (plural).
  *
  * \param idcode: The code to convert.
