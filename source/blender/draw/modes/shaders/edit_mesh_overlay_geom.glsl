@@ -21,6 +21,9 @@ void do_vertex(const int i, float coord, vec2 offset)
 	gl_Position = gl_in[i].gl_Position;
 	/* Multiply offset by 2 because gl_Position range is [-1..1]. */
 	gl_Position.xy += offset * 2.0 * gl_Position.w;
+#ifdef USE_WORLD_CLIP_PLANES
+	world_clip_planes_set_clip_distance(gl_in[i].gl_ClipDistance);
+#endif
 	EmitVertex();
 }
 
