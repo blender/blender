@@ -301,6 +301,8 @@ bool BKE_object_is_animated(struct Scene *scene, struct Object *ob);
 int BKE_object_is_modified(struct Scene *scene, struct Object *ob);
 int BKE_object_is_deform_modified(struct Scene *scene, struct Object *ob);
 
+int BKE_object_scenes_users_get(struct Main *bmain, struct Object *ob);
+
 struct MovieClip *BKE_object_movieclip_get(struct Scene *scene, struct Object *ob, bool use_default);
 
 void BKE_object_runtime_reset(struct Object *object);

@@ -3514,6 +3514,18 @@ bool BKE_object_is_animated(Scene *scene, Object *ob)
 	return false;
 }
 
+/** Return the number of scenes using (instantiating) that object in their collections. */
+int BKE_object_scenes_users_get(Main *bmain, Object *ob)
+{
+	int num_scenes = 0;
+	for (Scene *scene = bmain->scene.first; scene != NULL; scene = scene->id.next) {
+		if (BKE_collection_has_object_recursive(BKE_collection_master(scene), ob)) {
+			num_scenes++;
+		}
+	}
+	return num_scenes;
+}
+
 MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default)
 {
 	MovieClip *clip = use_default ? scene->clip : NULL;
