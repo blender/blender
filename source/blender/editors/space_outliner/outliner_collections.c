@@ -1065,7 +1065,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
 		GSET_ITER(collections_to_edit_iter, data.collections_to_edit) {
 			LayerCollection *layer_collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
 			Collection *collection = layer_collection->collection;
-			if (collection->id.lib != NULL) {
+			if (ID_IS_LINKED(collection)) {
 				continue;
 			}
 			if (clear) {

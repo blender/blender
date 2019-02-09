@@ -1005,7 +1005,7 @@ bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerColl
 	bool depsgraph_need_update = false;
 	LayerCollection *lc_master = view_layer->layer_collections.first;
 
-	if (lc->collection->id.lib == NULL) {
+	if (!ID_IS_LINKED(lc->collection)) {
 		if (lc->collection->flag & COLLECTION_RESTRICT_VIEW) {
 			lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
 			depsgraph_need_update = true;
@@ -1029,7 +1029,7 @@ bool BKE_layer_collection_isolate(Scene *scene, ViewLayer *view_layer, LayerColl
 	}
 
 	while (lc_parent != lc) {
-		if (lc_parent->collection->id.lib == NULL) {
+		if (!ID_IS_LINKED(lc_parent->collection)) {
 			if (lc_parent->collection->flag & COLLECTION_RESTRICT_VIEW) {
 				lc_parent->collection->flag &= ~COLLECTION_RESTRICT_VIEW;
 				depsgraph_need_update = true;
@@ -1089,7 +1089,7 @@ bool BKE_layer_collection_set_visible(ViewLayer *view_layer, LayerCollection *lc
 	bool depsgraph_changed = false;
 
 	if (visible &&
-	    (lc->collection->id.lib == NULL) &&
+	    (!ID_IS_LINKED(lc->collection)) &&
 	    ((lc->collection->flag & COLLECTION_RESTRICT_VIEW) != 0))
 	{
 		lc->collection->flag &= ~COLLECTION_RESTRICT_VIEW;

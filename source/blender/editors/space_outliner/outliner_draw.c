@@ -276,16 +276,16 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 	bool do_isolate = (win->eventstate->ctrl != 0) && !do_disable;
 	bool extend = (win->eventstate->shift != 0);
 	bool depsgraph_changed = false;
-	const bool is_library = (ob->id.lib != NULL);
+	const bool is_linked = ID_IS_LINKED(ob);
 
 	if (do_disable) {
-		if (!is_library) {
+		if (!is_linked) {
 			ob->restrictflag |= OB_RESTRICT_VIEW;
 			depsgraph_changed = true;
 		}
 	}
 	else if (do_isolate) {
-		depsgraph_changed = (!is_library) && ((ob->restrictflag & OB_RESTRICT_VIEW) != 0);
+		depsgraph_changed = (!is_linked) && ((ob->restrictflag & OB_RESTRICT_VIEW) != 0);
 
 		if (!extend) {
 			/* Make only one base visible. */
@@ -300,12 +300,12 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 			base->flag ^= BASE_HIDDEN;
 		}
 
-		if (!is_library) {
+		if (!is_linked) {
 			ob->restrictflag &= ~OB_RESTRICT_VIEW;
 		}
 	}
 	else if (ob->restrictflag & OB_RESTRICT_VIEW) {
-		if (!is_library) {
+		if (!is_linked) {
 			ob->restrictflag &= ~OB_RESTRICT_VIEW;
 			base->flag &= ~BASE_HIDDEN;
 		}
@@ -342,7 +342,7 @@ static void hidebutton_layer_collection_flag_cb(bContext *C, void *poin, void *p
 	bool depsgraph_changed = false;
 
 	if (do_disable) {
-		if (collection->id.lib == NULL) {
+		if (!ID_IS_LINKED(collection)) {
 			collection->flag |= COLLECTION_RESTRICT_VIEW;
 			depsgraph_changed = true;
 		}
