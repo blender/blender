@@ -1596,7 +1596,7 @@ static void single_object_users_collection(
 		Object *ob = cob->ob;
 		/* an object may be in more than one collection */
 		if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
-			if (!ID_IS_LINKED(ob) && ob->id.us > 1) {
+			if (!ID_IS_LINKED(ob) && BKE_object_scenes_users_get(bmain, ob) > 1) {
 				ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 			}
 		}
