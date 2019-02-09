@@ -6573,6 +6573,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 	gpd->adt = newdataadr(fd, gpd->adt);
 	direct_link_animdata(fd, gpd->adt);
 
+	/* init stroke buffer */
+	gpd->runtime.sbuffer = NULL;
+	gpd->runtime.sbuffer_size = 0;
+
 	/* relink palettes (old palettes deprecated, only to convert old files) */
 	link_list(fd, &gpd->palettes);
 	if (gpd->palettes.first != NULL) {
