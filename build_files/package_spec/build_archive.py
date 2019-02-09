@@ -29,7 +29,7 @@ try:
         os.remove(package_archive)
     if os.path.exists(package_dir):
         shutil.rmtree(package_dir)
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to clean up old package files: ' + str(ex) + '\n')
     sys.exit(1)
 
@@ -40,7 +40,7 @@ try:
     for f in os.listdir(package_dir):
         if f.startswith('makes'):
             os.remove(os.path.join(package_dir, f))
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to copy install directory: ' + str(ex) + '\n')
     sys.exit(1)
 
@@ -58,13 +58,13 @@ try:
         sys.exit(-1)
 
     subprocess.call(archive_cmd)
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to create package archive: ' + str(ex) + '\n')
     sys.exit(1)
 
 # empty temporary package dir
 try:
     shutil.rmtree(package_dir)
-except Exception, ex:
+except Exception as ex:
     sys.stderr.write('Failed to clean up package directory: ' + str(ex) + '\n')
     sys.exit(1)
