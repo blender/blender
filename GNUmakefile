@@ -28,7 +28,7 @@
 # System Vars
 OS:=$(shell uname -s)
 OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
-# CPU:=$(shell uname -m)  # UNUSED
+CPU:=$(shell uname -m)
 
 
 # Source and Build DIR's
@@ -55,7 +55,7 @@ ifndef DEPS_INSTALL_DIR
 
 	ifneq ($(OS_NCASE),darwin)
 		# Add processor type to directory name
-		DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(shell uname -p)
+		DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
 	endif
 endif
 
