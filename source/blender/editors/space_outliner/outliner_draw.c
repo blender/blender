@@ -276,16 +276,16 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 	bool do_isolate = (win->eventstate->ctrl != 0) && !do_disable;
 	bool extend = (win->eventstate->shift != 0);
 	bool depsgraph_changed = false;
-	const bool is_editable = BASE_EDITABLE((View3D *)NULL, base);
+	const bool is_library = (ob->id.lib != NULL);
 
 	if (do_disable) {
-		if (is_editable) {
+		if (!is_library) {
 			ob->restrictflag |= OB_RESTRICT_VIEW;
 			depsgraph_changed = true;
 		}
 	}
 	else if (do_isolate) {
-		depsgraph_changed = is_editable && ((ob->restrictflag & OB_RESTRICT_VIEW) != 0);
+		depsgraph_changed = (!is_library) && ((ob->restrictflag & OB_RESTRICT_VIEW) != 0);
 
 		if (!extend) {
 			/* Make only one base visible. */
@@ -300,12 +300,12 @@ static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
 			base->flag ^= BASE_HIDDEN;
 		}
 
-		if (is_editable) {
+		if (!is_library) {
 			ob->restrictflag &= ~OB_RESTRICT_VIEW;
 		}
 	}
 	else if (ob->restrictflag & OB_RESTRICT_VIEW) {
-		if (is_editable) {
+		if (!is_library) {
 			ob->restrictflag &= ~OB_RESTRICT_VIEW;
 			base->flag &= ~BASE_HIDDEN;
 		}
