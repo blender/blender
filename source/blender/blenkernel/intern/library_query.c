@@ -812,7 +812,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_PA:
 			{
 				ParticleSettings *psett = (ParticleSettings *) id;
-				CALLBACK_INVOKE(psett->dup_group, IDWALK_CB_NOP);
+				CALLBACK_INVOKE(psett->dup_group, IDWALK_CB_USER);
 				CALLBACK_INVOKE(psett->dup_ob, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(psett->bb_ob, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(psett->collision_group, IDWALK_CB_NOP);
