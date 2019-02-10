@@ -4754,6 +4754,40 @@ def km_custom_normals_modal_map(_params):
     return keymap
 
 
+def km_bevel_modal_map(_params):
+    items = []
+    keymap = (
+        "Bevel Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'RET', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'NUMPAD_ENTER', "value": 'PRESS', "any": True}, None),
+        ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("VALUE_OFFSET", {"type": 'A', "value": 'PRESS', "any": True}, None),
+        ("VALUE_PROFILE", {"type": 'P', "value": 'PRESS', "any": True}, None),
+        ("VALUE_SEGMENTS", {"type": 'S', "value": 'PRESS', "any": True}, None),
+        ("SEGMENTS_UP", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "any": True}, None),
+        ("SEGMENTS_UP", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "any": True}, None),
+        ("SEGMENTS_DOWN", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "any": True}, None),
+        ("SEGMENTS_DOWN", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "any": True}, None),
+        ("OFFSET_MODE_CHANGE", {"type": 'M', "value": 'PRESS', "any": True}, None),
+        ("CLAMP_OVERLAP_TOGGLE", {"type": 'C', "value": 'PRESS', "any": True}, None),
+        ("VERTEX_ONLY_TOGGLE", {"type": 'V', "value": 'PRESS', "any": True}, None),
+        ("HARDEN_NORMALS_TOGGLE", {"type": 'H', "value": 'PRESS', "any": True}, None),
+        ("MARK_SEAM_TOGGLE", {"type": 'U', "value": 'PRESS', "any": True}, None),
+        ("MARK_SHARP_TOGGLE", {"type": 'K', "value": 'PRESS', "any": True}, None),
+        ("OUTER_MITER_CHANGE", {"type": 'O', "value": 'PRESS', "any": True}, None),
+        ("INNER_MITER_CHANGE", {"type": 'I', "value": 'PRESS', "any": True}, None),
+    ])
+
+    return keymap
+
+
 def km_view3d_fly_modal(_params):
     items = []
     keymap = (
@@ -5973,6 +6007,7 @@ def generate_keymaps(params=None):
         km_standard_modal_map(params),
         km_knife_tool_modal_map(params),
         km_custom_normals_modal_map(params),
+        km_bevel_modal_map(params),
         km_view3d_fly_modal(params),
         km_view3d_walk_modal(params),
         km_view3d_rotate_modal(params),
