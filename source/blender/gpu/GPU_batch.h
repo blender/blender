@@ -125,7 +125,7 @@ void GPU_batch_program_set_shader(GPUBatch *, GPUShader *shader);
 void GPU_batch_program_set_builtin(
         GPUBatch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(
-        GPUBatch *batch, eGPUBuiltinShader shader_id, eGPUShaderConfig shader_cfg);
+        GPUBatch *batch, eGPUBuiltinShader shader_id, eGPUShaderConfig sh_cfg);
 /* Entire batch draws with one shader program, but can be redrawn later with another program. */
 /* Vertex shader's inputs must be compatible with the batch's vertex format. */
 

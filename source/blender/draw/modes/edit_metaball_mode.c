@@ -121,7 +121,7 @@ static void EDIT_METABALL_cache_init(void *vedata)
 		psl->pass = DRW_pass_create("My Pass", state);
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		stl->g_data->group = shgroup_instance_mball_handles(psl->pass, draw_ctx->shader_cfg);
+		stl->g_data->group = shgroup_instance_mball_handles(psl->pass, draw_ctx->sh_cfg);
 	}
 }
 

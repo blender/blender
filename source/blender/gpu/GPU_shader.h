@@ -376,7 +376,7 @@ typedef enum eGPUInterlaceShader {
 } eGPUInterlaceShader;
 
 GPUShader *GPU_shader_get_builtin_shader_with_config(
-        eGPUBuiltinShader shader, eGPUShaderConfig shader_cfg);
+        eGPUBuiltinShader shader, eGPUShaderConfig sh_cfg);
 GPUShader *GPU_shader_get_builtin_shader(
         eGPUBuiltinShader shader);
 

@@ -193,8 +193,8 @@ static void bbs_mesh_verts(GPUBatch *batch, int offset, const float world_clip_p
 {
 	GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-	const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
-	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
+	const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, sh_cfg);
 	GPU_batch_uniform_1ui(batch, "offset", offset);
 	if (world_clip_planes != NULL) {
 		bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
@@ -207,8 +207,8 @@ static void bbs_mesh_wire(GPUBatch *batch, int offset, const float world_clip_pl
 	GPU_line_width(1.0f);
 	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
-	const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
-	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
+	const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, sh_cfg);
 	GPU_batch_uniform_1ui(batch, "offset", offset);
 	if (world_clip_planes != NULL) {
 		bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
@@ -222,8 +222,8 @@ static void bbs_mesh_wire(GPUBatch *batch, int offset, const float world_clip_pl
 static void bbs_mesh_face(GPUBatch *batch, const bool use_select, const float world_clip_planes[6][4])
 {
 	if (use_select) {
-		const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
-		GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
+		const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+		GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, sh_cfg);
 		GPU_batch_uniform_1ui(batch, "offset", 1);
 		if (world_clip_planes != NULL) {
 			bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
@@ -231,8 +231,8 @@ static void bbs_mesh_face(GPUBatch *batch, const bool use_select, const float wo
 		GPU_batch_draw(batch);
 	}
 	else {
-		const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
-		GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_UNIFORM_SELECT_ID, shader_cfg);
+		const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+		GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_UNIFORM_SELECT_ID, sh_cfg);
 		GPU_batch_uniform_1ui(batch, "id", 0);
 		if (world_clip_planes != NULL) {
 			bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);
@@ -243,8 +243,8 @@ static void bbs_mesh_face(GPUBatch *batch, const bool use_select, const float wo
 
 static void bbs_mesh_face_dot(GPUBatch *batch, const float world_clip_planes[6][4])
 {
-	const eGPUShaderConfig shader_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
-	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, shader_cfg);
+	const eGPUShaderConfig sh_cfg = world_clip_planes ? GPU_SHADER_CFG_CLIPPED : GPU_SHADER_CFG_DEFAULT;
+	GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_FLAT_SELECT_ID, sh_cfg);
 	GPU_batch_uniform_1ui(batch, "offset", 1);
 	if (world_clip_planes != NULL) {
 		bbs_world_clip_planes_from_rv3d(batch, world_clip_planes);

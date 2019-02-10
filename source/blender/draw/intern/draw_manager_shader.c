@@ -311,9 +311,9 @@ GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
 	return GPU_shader_create(datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
-GPUShader *DRW_shader_create_3D_depth_only(eGPUShaderConfig shader_cfg)
+GPUShader *DRW_shader_create_3D_depth_only(eGPUShaderConfig sh_cfg)
 {
-	return GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_DEPTH_ONLY, shader_cfg);
+	return GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_DEPTH_ONLY, sh_cfg);
 }
 
 GPUMaterial *DRW_shader_find_from_world(World *wo, const void *engine_type, int options, bool deferred)

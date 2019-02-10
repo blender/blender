@@ -669,9 +669,9 @@ void GPU_batch_program_set_shader(GPUBatch *batch, GPUShader *shader)
 }
 
 void GPU_batch_program_set_builtin_with_config(
-        GPUBatch *batch, eGPUBuiltinShader shader_id, eGPUShaderConfig shader_cfg)
+        GPUBatch *batch, eGPUBuiltinShader shader_id, eGPUShaderConfig sh_cfg)
 {
-	GPUShader *shader = GPU_shader_get_builtin_shader_with_config(shader_id, shader_cfg);
+	GPUShader *shader = GPU_shader_get_builtin_shader_with_config(shader_id, sh_cfg);
 	GPU_batch_program_set(batch, shader->program, shader->interface);
 }
 

@@ -158,7 +158,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	const float *viewport_size = DRW_viewport_size_get();
@@ -257,7 +257,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
 		});
 
-		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->shader_cfg);
+		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->sh_cfg);
 
 		sh_data->ghost_clear_depth = DRW_shader_create_fullscreen(datatoc_gpu_shader_depth_only_frag_glsl, NULL);
 	}
@@ -273,7 +273,7 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
-	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	const bool select_vert = (tsettings->selectmode & SCE_SELECT_VERTEX) != 0;
 	const bool select_face = (tsettings->selectmode & SCE_SELECT_FACE) != 0;
 	const bool select_edge = (tsettings->selectmode & SCE_SELECT_EDGE) != 0;
@@ -368,7 +368,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *tsettings = scene->toolsettings;
-	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	static float zero = 0.0f;
 
 	if (!stl->g_data) {

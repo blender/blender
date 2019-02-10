@@ -536,9 +536,9 @@ static void drw_context_state_init(void)
 		DST.draw_ctx.object_pose = NULL;
 	}
 
-	DST.draw_ctx.shader_cfg = GPU_SHADER_CFG_DEFAULT;
+	DST.draw_ctx.sh_cfg = GPU_SHADER_CFG_DEFAULT;
 	if (DST.draw_ctx.rv3d && DST.draw_ctx.rv3d->rflag & RV3D_CLIPPING) {
-		DST.draw_ctx.shader_cfg = GPU_SHADER_CFG_CLIPPED;
+		DST.draw_ctx.sh_cfg = GPU_SHADER_CFG_CLIPPED;
 	}
 }
 

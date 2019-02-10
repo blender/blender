@@ -578,7 +578,7 @@ typedef struct DRWContextState {
 
 	eObjectMode object_mode;
 
-	eGPUShaderConfig shader_cfg;
+	eGPUShaderConfig sh_cfg;
 
 	/** Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */

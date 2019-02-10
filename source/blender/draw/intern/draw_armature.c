@@ -118,17 +118,17 @@ static struct {
 static void drw_shgroup_bone_octahedral(
         const float (*bone_mat)[4],
         const float bone_color[4], const float hint_color[4], const float outline_color[4],
-        const eGPUShaderConfig shader_cfg)
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_octahedral_outline == NULL) {
 		struct GPUBatch *geom = DRW_cache_bone_octahedral_wire_get();
 		g_data.bone_octahedral_outline = shgroup_instance_bone_shape_outline(
-		        g_data.passes.bone_outline, geom, shader_cfg);
+		        g_data.passes.bone_outline, geom, sh_cfg);
 	}
 	if (g_data.bone_octahedral_solid == NULL) {
 		struct GPUBatch *geom = DRW_cache_bone_octahedral_get();
 		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(
-		        g_data.passes.bone_solid, geom, g_data.transparent, shader_cfg);
+		        g_data.passes.bone_solid, geom, g_data.transparent, sh_cfg);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -142,17 +142,17 @@ static void drw_shgroup_bone_octahedral(
 static void drw_shgroup_bone_box(
         const float (*bone_mat)[4],
         const float bone_color[4], const float hint_color[4], const float outline_color[4],
-        const eGPUShaderConfig shader_cfg)
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_box_wire == NULL) {
 		struct GPUBatch *geom = DRW_cache_bone_box_wire_get();
 		g_data.bone_box_outline = shgroup_instance_bone_shape_outline(
-		        g_data.passes.bone_outline, geom, shader_cfg);
+		        g_data.passes.bone_outline, geom, sh_cfg);
 	}
 	if (g_data.bone_box_solid == NULL) {
 		struct GPUBatch *geom = DRW_cache_bone_box_get();
 		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(
-		        g_data.passes.bone_solid, geom, g_data.transparent, shader_cfg);
+		        g_data.passes.bone_solid, geom, g_data.transparent, sh_cfg);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -165,10 +165,10 @@ static void drw_shgroup_bone_box(
 /* Wire */
 static void drw_shgroup_bone_wire(
         const float (*bone_mat)[4], const float color[4],
-        const eGPUShaderConfig shader_cfg)
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_wire == NULL) {
-		g_data.bone_wire = shgroup_dynlines_flat_color(g_data.passes.bone_wire, shader_cfg);
+		g_data.bone_wire = shgroup_dynlines_flat_color(g_data.passes.bone_wire, sh_cfg);
 	}
 	float head[3], tail[3];
 	mul_v3_m4v3(head, g_data.ob->obmat, bone_mat[3]);
@@ -183,10 +183,10 @@ static void drw_shgroup_bone_wire(
 static void drw_shgroup_bone_stick(
         const float (*bone_mat)[4],
         const float col_wire[4], const float col_bone[4], const float col_head[4], const float col_tail[4],
-        const eGPUShaderConfig shader_cfg)
+        const eGPUShaderConfig sh_cfg)
 {
 	if (g_data.bone_stick == NULL) {
-		g_data.bone_stick = shgroup_instance_bone_stick(g_data.passes.bone_wire, shader_cfg);
+		g_data.bone_stick = shgroup_instance_bone_stick(g_data.passes.bone_wire, sh_cfg);
 	}
 	float final_bonemat[4][4], tail[4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -313,7 +313,7 @@ extern void drw_batch_cache_generate_requested(Object *custom);
 static void drw_shgroup_bone_custom_solid(
         const float (*bone_mat)[4],
         const float bone_color[4], const float hint_color[4], const float outline_color[4],
-        const eGPUShaderConfig shader_cfg, Object *custom)
+        const eGPUShaderConfig sh_cfg, Object *custom)
 {
 	/* grr, not re-using instances! */
 	struct GPUBatch *surf = DRW_cache_object_surface_get(custom);
@@ -330,13 +330,13 @@ static void drw_shgroup_bone_custom_solid(
 
 	if (surf) {
 		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(
-		        g_data.passes.bone_solid, surf, g_data.transparent, shader_cfg);
+		        g_data.passes.bone_solid, surf, g_data.transparent, sh_cfg);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, bone_color, hint_color);
 	}
 
 	if (edges && outline_color[3] > 0.0f) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_bone_shape_outline(
-		        g_data.passes.bone_outline, edges, shader_cfg);
+		        g_data.passes.bone_outline, edges, sh_cfg);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, outline_color);
 	}
 
@@ -1257,7 +1257,7 @@ static void draw_points(
 static void draw_bone_custom_shape(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const eGPUShaderConfig shader_cfg, const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
@@ -1269,7 +1269,7 @@ static void draw_bone_custom_shape(
 	}
 
 	if ((boneflag & BONE_DRAWWIRE) == 0) {
-		drw_shgroup_bone_custom_solid(disp_mat, col_solid, col_hint, col_wire, shader_cfg, pchan->custom);
+		drw_shgroup_bone_custom_solid(disp_mat, col_solid, col_hint, col_wire, sh_cfg, pchan->custom);
 	}
 	else {
 		drw_shgroup_bone_custom_wire(disp_mat, col_wire, pchan->custom);
@@ -1326,7 +1326,7 @@ static void draw_bone_envelope(
 static void draw_bone_line(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const eGPUShaderConfig shader_cfg, const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	const float *col_bone = get_bone_solid_with_consts_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
@@ -1364,20 +1364,20 @@ static void draw_bone_line(
 
 	if (select_id == -1) {
 		/* Not in selection mode, draw everything at once. */
-		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail, shader_cfg);
+		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail, sh_cfg);
 	}
 	else {
 		/* In selection mode, draw bone, root and tip separately. */
 		DRW_select_load_id(select_id | BONESEL_BONE);
-		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display, shader_cfg);
+		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display, sh_cfg);
 
 		if (col_head[3] > 0.0f) {
 			DRW_select_load_id(select_id | BONESEL_ROOT);
-			drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, col_head, no_display, shader_cfg);
+			drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, col_head, no_display, sh_cfg);
 		}
 
 		DRW_select_load_id(select_id | BONESEL_TIP);
-		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, no_display, col_tail, shader_cfg);
+		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, no_display, col_tail, sh_cfg);
 
 		DRW_select_load_id(-1);
 	}
@@ -1386,7 +1386,7 @@ static void draw_bone_line(
 static void draw_bone_wire(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const eGPUShaderConfig shader_cfg, const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
 
@@ -1399,12 +1399,12 @@ static void draw_bone_wire(
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
-			drw_shgroup_bone_wire(bbones_mat->mat, col_wire, shader_cfg);
+			drw_shgroup_bone_wire(bbones_mat->mat, col_wire, sh_cfg);
 		}
 	}
 	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
-			drw_shgroup_bone_wire(eBone->disp_bbone_mat[i], col_wire, shader_cfg);
+			drw_shgroup_bone_wire(eBone->disp_bbone_mat[i], col_wire, sh_cfg);
 		}
 	}
 
@@ -1420,7 +1420,7 @@ static void draw_bone_wire(
 static void draw_bone_box(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const eGPUShaderConfig shader_cfg, const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	const float *col_solid = get_bone_solid_with_consts_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
@@ -1435,12 +1435,12 @@ static void draw_bone_box(
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
-			drw_shgroup_bone_box(bbones_mat->mat, col_solid, col_hint, col_wire, shader_cfg);
+			drw_shgroup_bone_box(bbones_mat->mat, col_solid, col_hint, col_wire, sh_cfg);
 		}
 	}
 	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
-			drw_shgroup_bone_box(eBone->disp_bbone_mat[i], col_solid, col_hint, col_wire, shader_cfg);
+			drw_shgroup_bone_box(eBone->disp_bbone_mat[i], col_solid, col_hint, col_wire, sh_cfg);
 		}
 	}
 
@@ -1456,7 +1456,7 @@ static void draw_bone_box(
 static void draw_bone_octahedral(
         EditBone *eBone, bPoseChannel *pchan, bArmature *arm,
         const int boneflag, const short constflag,
-        const eGPUShaderConfig shader_cfg, const int select_id)
+        const eGPUShaderConfig sh_cfg, const int select_id)
 {
 	const float *col_solid = get_bone_solid_with_consts_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
@@ -1466,7 +1466,7 @@ static void draw_bone_octahedral(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	drw_shgroup_bone_octahedral(BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire, shader_cfg);
+	drw_shgroup_bone_octahedral(BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire, sh_cfg);
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
@@ -1720,19 +1720,19 @@ static void draw_armature_edit(Object *ob)
 				}
 				else if (arm->drawtype == ARM_LINE) {
 					draw_bone_update_disp_matrix_default(eBone, NULL);
-					draw_bone_line(eBone, NULL, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_line(eBone, NULL, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_WIRE) {
 					draw_bone_update_disp_matrix_bbone(eBone, NULL);
-					draw_bone_wire(eBone, NULL, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_wire(eBone, NULL, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_B_BONE) {
 					draw_bone_update_disp_matrix_bbone(eBone, NULL);
-					draw_bone_box(eBone, NULL, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_box(eBone, NULL, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else {
 					draw_bone_update_disp_matrix_default(eBone, NULL);
-					draw_bone_octahedral(eBone, NULL, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_octahedral(eBone, NULL, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 
 				/* Draw names of bone */
@@ -1827,7 +1827,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 				if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
 					draw_bone_update_disp_matrix_custom(pchan);
-					draw_bone_custom_shape(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_custom_shape(NULL, pchan, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_ENVELOPE) {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
@@ -1835,19 +1835,19 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				}
 				else if (arm->drawtype == ARM_LINE) {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
-					draw_bone_line(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_line(NULL, pchan, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_WIRE) {
 					draw_bone_update_disp_matrix_bbone(NULL, pchan);
-					draw_bone_wire(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_wire(NULL, pchan, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else if (arm->drawtype == ARM_B_BONE) {
 					draw_bone_update_disp_matrix_bbone(NULL, pchan);
-					draw_bone_box(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_box(NULL, pchan, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 				else {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
-					draw_bone_octahedral(NULL, pchan, arm, boneflag, constflag, draw_ctx->shader_cfg, select_id);
+					draw_bone_octahedral(NULL, pchan, arm, boneflag, constflag, draw_ctx->sh_cfg, select_id);
 				}
 
 				if (!is_pose_select && show_relations &&

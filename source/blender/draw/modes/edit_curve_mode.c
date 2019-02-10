@@ -107,7 +107,7 @@ typedef struct EDIT_CURVE_PrivateData {
 static void EDIT_CURVE_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	EDIT_CURVE_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_CURVE_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
@@ -119,7 +119,7 @@ static void EDIT_CURVE_engine_init(void *UNUSED(vedata))
 
 	if (!sh_data->wire_sh) {
 		sh_data->wire_sh = GPU_shader_get_builtin_shader_with_config(
-		        GPU_SHADER_3D_UNIFORM_COLOR, draw_ctx->shader_cfg);
+		        GPU_SHADER_3D_UNIFORM_COLOR, draw_ctx->sh_cfg);
 	}
 
 	if (!sh_data->wire_normals_sh) {
@@ -158,7 +158,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	const RegionView3D *rv3d = draw_ctx->rv3d;
-	EDIT_CURVE_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_CURVE_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */

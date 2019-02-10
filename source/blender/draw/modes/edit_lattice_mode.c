@@ -136,7 +136,7 @@ static void EDIT_LATTICE_engine_init(void *vedata)
 	 */
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 	if (is_clip) {
 		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
@@ -145,7 +145,7 @@ static void EDIT_LATTICE_engine_init(void *vedata)
 	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
 
 	if (!sh_data->wire) {
-		sh_data->wire = GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_SMOOTH_COLOR, draw_ctx->shader_cfg);
+		sh_data->wire = GPU_shader_get_builtin_shader_with_config(GPU_SHADER_3D_SMOOTH_COLOR, draw_ctx->sh_cfg);
 	}
 
 	if (!sh_data->overlay_vert) {
@@ -174,7 +174,7 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	EDIT_LATTICE_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */

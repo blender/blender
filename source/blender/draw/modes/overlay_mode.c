@@ -91,7 +91,7 @@ static void overlay_engine_init(void *vedata)
 	OVERLAY_StorageList *stl = data->stl;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	if (is_clip) {
@@ -146,7 +146,7 @@ static void overlay_cache_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
-	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->shader_cfg];
+	OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
 	const DRWContextState *DCS = DRW_context_state_get();
 
