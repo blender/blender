@@ -987,7 +987,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 			}
 		}
 
-		if (SHADOW_ENABLED(wpd) && (ob->display.flag & OB_SHOW_SHADOW)) {
+		if (SHADOW_ENABLED(wpd) && !(ob->dtx & OB_DRAW_NO_SHADOW_CAST)) {
 			bool is_manifold;
 			struct GPUBatch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
 			if (geom_shadow) {

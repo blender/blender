@@ -114,10 +114,6 @@ typedef struct LodLevel {
 	int obhysteresis;
 } LodLevel;
 
-typedef struct ObjectDisplay {
-	int flag;
-} ObjectDisplay;
-
 /* Forward declaration for cache bbone deformation information.
  *
  * TODO(sergey): Consider moving it to more appropriate place. */
@@ -380,12 +376,8 @@ typedef struct Object {
 	int pad6;
 	int select_color;
 
-	/* Runtime evaluation data. */
+	/* Runtime evaluation data (keep last). */
 	Object_Runtime runtime;
-
-	/* Object Display */
-	struct ObjectDisplay display;
-	int pad9;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -442,11 +434,6 @@ enum {
 	OB_GPENCIL  = 26,
 
 	OB_TYPE_MAX,
-};
-
-/* ObjectDisplay.flag */
-enum {
-	OB_SHOW_SHADOW = (1 << 0),
 };
 
 /* check if the object type supports materials */
@@ -545,6 +532,7 @@ enum {
 	/* enable transparent draw */
 	OB_DRAWTRANSP     = 1 << 7,
 	OB_DRAW_ALL_EDGES = 1 << 8,  /* only for meshes currently */
+	OB_DRAW_NO_SHADOW_CAST = 1 << 9,
 };
 
 /* empty_drawtype: no flags */

@@ -1360,13 +1360,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Object", "ObjectDisplay", "display")) {
-			/* Initialize new object.ObjectDisplay */
-			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-				ob->display.flag = OB_SHOW_SHADOW;
-			}
-		}
-
 		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEDIAN;
