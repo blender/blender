@@ -4548,7 +4548,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 /* Transform (Normal Rotation) */
 
 /** \name Transform Normal Rotation
-* \{ */
+ * \{ */
 
 static void storeCustomLNorValue(TransDataContainer *tc, BMesh *bm)
 {

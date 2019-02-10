@@ -720,8 +720,8 @@ void gp_point_to_xy_fl(
 
 
 /**
-* generic based on gp_point_to_xy_fl
-*/
+ * generic based on gp_point_to_xy_fl
+ */
 void gp_point_3d_to_xy(const GP_SpaceConversion *gsc, const short flag, const float pt[3], float xy[2])
 {
 	const ARegion *ar = gsc->ar;

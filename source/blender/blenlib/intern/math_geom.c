@@ -774,7 +774,7 @@ float dist_squared_ray_to_aabb_v3_simple(
 
 /* -------------------------------------------------------------------- */
 /** \name dist_squared_to_projected_aabb and helpers
-* \{ */
+ * \{ */
 
 /**
  * \param projmat: Projection Matrix (usually perspective

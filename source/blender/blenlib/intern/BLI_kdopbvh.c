@@ -1793,7 +1793,7 @@ int BLI_bvhtree_range_query(
 
 /* -------------------------------------------------------------------- */
 /** \name BLI_bvhtree_nearest_projected
-* \{ */
+ * \{ */
 
 static void bvhtree_nearest_projected_dfs_recursive(
         BVHNearestProjectedData *__restrict data, const BVHNode *node)

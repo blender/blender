@@ -240,9 +240,8 @@ static bool parent_drop_allowed(SpaceOops *soops, TreeElement *te, Object *poten
 	Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
 	/* currently outliner organized in a way that if there's no parent scene
-		* element for object it means that all displayed objects belong to
-		* active scene and parenting them is allowed (sergey)
-		*/
+	 * element for object it means that all displayed objects belong to
+	 * active scene and parenting them is allowed (sergey) */
 	if (scene) {
 		for (ViewLayer *view_layer = scene->view_layers.first;
 		     view_layer;

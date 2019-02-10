@@ -1371,7 +1371,8 @@ bool BKE_gpencil_smooth_stroke_thickness(bGPDstroke *gps, int point_index, float
 }
 
 /**
-* Apply smooth for UV rotation to stroke point (use pressure) */
+ * Apply smooth for UV rotation to stroke point (use pressure).
+ */
 bool BKE_gpencil_smooth_stroke_uv(bGPDstroke *gps, int point_index, float influence)
 {
 	bGPDspoint *ptb = &gps->points[point_index];

@@ -658,7 +658,7 @@ GPUBatch *DRW_cache_gpencil_axes_get(void)
 
 /* -------------------------------------------------------------------- */
 /** \name Common Object API
-* \{ */
+ * \{ */
 
 GPUBatch *DRW_cache_object_all_edges_get(Object *ob)
 {

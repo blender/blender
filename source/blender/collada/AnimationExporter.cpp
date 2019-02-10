@@ -258,14 +258,14 @@ void AnimationExporter::export_bone_animations_recursive(Object *ob, Bone *bone,
 		export_bone_animations_recursive(ob, child, sampler);
 }
 
-/*
-* In some special cases the exported Curve needs to be replaced
-* by a modified curve (for collada purposes)
-* This method checks if a conversion is necessary and if applicable
-* returns a pointer to the modified BCAnimationCurve.
-* IMPORTANT: the modified curve must be deleted by the caller when no longer needed
-* if no conversion is needed this method returns a NULL;
-*/
+/**
+ * In some special cases the exported Curve needs to be replaced
+ * by a modified curve (for collada purposes)
+ * This method checks if a conversion is necessary and if applicable
+ * returns a pointer to the modified BCAnimationCurve.
+ * IMPORTANT: the modified curve must be deleted by the caller when no longer needed
+ * if no conversion is needed this method returns a NULL;
+ */
 BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob, BCAnimationCurve &curve, BCAnimationCurveMap &curves)
 {
 	std::string channel_target = curve.get_channel_target();

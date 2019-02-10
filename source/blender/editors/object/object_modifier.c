@@ -260,8 +260,8 @@ static bool object_has_modifier_cb(Object *ob, void *data)
 }
 
 /* Use with ED_object_iter_other(). Sets the total number of levels
-* for any multires modifiers on the object to the int pointed to by
-* callback_data. */
+ * for any multires modifiers on the object to the int pointed to by
+ * callback_data. */
 bool ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;

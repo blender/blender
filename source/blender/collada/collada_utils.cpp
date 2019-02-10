@@ -310,12 +310,12 @@ Object *bc_get_assigned_armature(Object *ob)
 	return ob_arm;
 }
 
-/*
-* Returns the highest selected ancestor
-* returns NULL if no ancestor is selected
-* IMPORTANT: This function expects that all exported objects have set:
-* ob->id.tag & LIB_TAG_DOIT
-*/
+/**
+ * Returns the highest selected ancestor
+ * returns NULL if no ancestor is selected
+ * IMPORTANT: This function expects that all exported objects have set:
+ * ob->id.tag & LIB_TAG_DOIT
+ */
 Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob)
 
 {
@@ -969,9 +969,8 @@ bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_open
 		copy_m4_m4(mat, pchan->pose_mat);
 
 	/* OPEN_SIM_COMPATIBILITY
-	* AFAIK animation to second life is via BVH, but no
-	* reason to not have the collada-animation be correct
-	*/
+	 * AFAIK animation to second life is via BVH, but no
+	 * reason to not have the collada-animation be correct */
 	if (for_opensim) {
 		float temp[4][4];
 		copy_m4_m4(temp, bone->arm_mat);

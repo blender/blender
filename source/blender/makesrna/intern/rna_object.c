@@ -1097,12 +1097,6 @@ static char *rna_MaterialSlot_path(PointerRNA *ptr)
 	return BLI_sprintfN("material_slots[%d]", index);
 }
 
-/* why does this have to be so complicated?, can't all this crap be
- * moved to in BGE conversion function? - Campbell *
- *
- * logic from check_body_type()
- *  */
-
 static char *rna_ObjectDisplay_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("display");

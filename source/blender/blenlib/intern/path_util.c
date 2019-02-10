@@ -1259,8 +1259,8 @@ void BLI_setenv_if_new(const char *env, const char *val)
 }
 
 /**
-* get an env var, result has to be used immediately
-*/
+ * Get an env var, result has to be used immediately.
+ */
 const char *BLI_getenv(const char *env)
 {
 #ifdef _MSC_VER

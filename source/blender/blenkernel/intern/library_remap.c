@@ -416,7 +416,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 	else {
 		i = set_listbasepointers(bmain, lb_array);
 
-		/* Note that this is a very 'bruteforce' approach, maybe we could use some depsgraph to only process
+		/* Note that this is a very 'brute force' approach, maybe we could use some depsgraph to only process
 		 * objects actually using given old_id... sounds rather unlikely currently, though, so this will do for now. */
 
 		while (i--) {
@@ -966,7 +966,7 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
 		 * This means that we won't have to loop over all deleted IDs to remove usages
 		 * of other deleted IDs.
 		 * This gives tremendous speed-up when deleting a large amount of IDs from a Main
-		 * countaining thousands of those.
+		 * containing thousands of those.
 		 * This also means that we have to be very careful here, as we by-pass many 'common'
 		 * processing, hence risking to 'corrupt' at least user counts, if not IDs themselves. */
 		bool keep_looping = true;
@@ -1081,7 +1081,7 @@ void BKE_id_delete(Main *bmain, void *idv)
 /**
  * Properly delete all IDs tagged with \a LIB_TAG_DOIT, in given \a bmain database.
  *
- * This is more efficient than calling #BKE_id_delete repitively on a large set of IDs
+ * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs
  * (several times faster when deleting most of the IDs at once)...
  *
  * \warning Considered experimental for now, seems to be working OK but this is

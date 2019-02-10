@@ -857,13 +857,13 @@ static bool check_is_threadripper2_alike_topology(void)
 	}
 	if (strstr(cpu_brand, "Threadripper")) {
 		/* NOTE: We consinder all Threadrippers having similar topology to
-		* the second one. This is because we are trying to utilize NUMA node
-		* 0 as much as possible. This node does exist on earlier versions of
-		* threadripper and setting affinity to it should not have negative
-		* effect.
-		* This allows us to avoid per-model check, making the code more
-		* reliable for the CPUs which are not yet released.
-		*/
+		 * the second one. This is because we are trying to utilize NUMA node
+		 * 0 as much as possible. This node does exist on earlier versions of
+		 * threadripper and setting affinity to it should not have negative
+		 * effect.
+		 * This allows us to avoid per-model check, making the code more
+		 * reliable for the CPUs which are not yet released.
+		 */
 		if (strstr(cpu_brand, "2990WX") || strstr(cpu_brand, "2950X")) {
 			is_threadripper2 = true;
 		}

@@ -4341,8 +4341,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 							nu1 = nu;
 
 							/* Just in case both of first/last CV are selected check
-							* whether we really need to switch the direction.
-							*/
+							 * whether we really need to switch the direction.
+							 */
 							if (!BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt)) {
 								BKE_nurb_direction_switch(nu1);
 								keyData_switchDirectionNurb(cu, nu1);
@@ -4358,8 +4358,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 							nu2 = nu;
 
 							/* Just in case both of first/last CV are selected check
-							* whether we really need to switch the direction.
-							*/
+							 * whether we really need to switch the direction.
+							 */
 							if (!BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &(nu->bezt[nu2->pntsu - 1]))) {
 								BKE_nurb_direction_switch(nu2);
 								keyData_switchDirectionNurb(cu, nu2);
@@ -4369,9 +4369,9 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				}
 				else if (nu->pntsv == 1) {
 					/* Same logic as above: if first point is selected spline is
-					* preferred for nu1, if last point is selected spline is
-					* preferred for u2u.
-					*/
+					 * preferred for nu1, if last point is selected spline is
+					 * preferred for u2u.
+					 */
 
 					bp = nu->bp;
 					if (bp[nu->pntsu - 1].f1 & SELECT) {

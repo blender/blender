@@ -357,7 +357,7 @@ PyTypeObject BPyGPUBatch_Type = {
 
 /* -------------------------------------------------------------------- */
 /** \name Public API
-* \{ */
+ * \{ */
 
 PyObject *BPyGPUBatch_CreatePyObject(GPUBatch *batch)
 {

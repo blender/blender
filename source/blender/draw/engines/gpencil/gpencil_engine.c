@@ -584,8 +584,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 		}
 
 		/* draw current painting strokes
-		* (only if region is equal to originated paint region)
-		*/
+		 * (only if region is equal to originated paint region) */
 		if ((draw_ctx->obact == ob) &&
 		    ((gpd->runtime.ar == NULL) || (gpd->runtime.ar == draw_ctx->ar)))
 		{

@@ -369,7 +369,7 @@ typedef struct GPUShaderConfigData {
 	const char *lib;
 	const char *def;
 } GPUShaderConfigData;
-/* shader.c */
+/* gpu_shader.c */
 extern const GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN];
 
 /** Keep these in sync with:

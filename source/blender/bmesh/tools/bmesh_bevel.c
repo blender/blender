@@ -1348,8 +1348,8 @@ static bool make_unit_square_map(
 	add_v3_v3v3(vd, vo, vddir);
 
 	/* The cols of m are: {vmid - va, vmid - vb, vmid + vd - va -vb, va + vb - vmid;
-		* blender transform matrices are stored such that m[i][*] is ith column;
-		* the last elements of each col remain as they are in unity matrix */
+	 * blender transform matrices are stored such that m[i][*] is ith column;
+	 * the last elements of each col remain as they are in unity matrix. */
 	sub_v3_v3v3(&r_mat[0][0], vmid, va);
 	r_mat[0][3] = 0.0f;
 	sub_v3_v3v3(&r_mat[1][0], vmid, vb);
