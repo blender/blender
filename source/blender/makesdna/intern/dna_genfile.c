@@ -597,7 +597,7 @@ static bool init_structDNA(
 
 	/* Calculate 'sdna->pointerlen' */
 	{
-		intptr_t nr = DNA_struct_find_nr(sdna, "ListBase");
+		const int nr = DNA_struct_find_nr(sdna, "ListBase");
 
 		/* should never happen, only with corrupt file for example */
 		if (UNLIKELY(nr == -1)) {

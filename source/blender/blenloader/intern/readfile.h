@@ -94,10 +94,6 @@ typedef struct FileData {
 	ListBase *mainlist;
 	ListBase *old_mainlist;  /* Used for undo. */
 
-	/* ick ick, used to return
-	 * data through streamglue.
-	 */
-	BlendFileData **bfd_r;
 	struct ReportList *reports;
 } FileData;
 
