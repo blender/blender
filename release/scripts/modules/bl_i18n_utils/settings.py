@@ -91,6 +91,7 @@ LANGUAGES = (
     (41, "Vietnamese (tiếng Việt)", "vi_VN"),
     (42, "Basque (Euskara)", "eu_EU"),
     (43, "Hausa (Hausa)", "ha"),
+    (44, "Kazakh (қазақша)", "kk_KZ"),
 )
 
 # Default context, in py!
@@ -104,7 +105,7 @@ IMPORT_MIN_LEVEL = 0.0
 
 # Languages in /branches we do not want to import in /trunk currently...
 IMPORT_LANGUAGES_SKIP = {
-    'am_ET', 'bg_BG', 'fi_FI', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic',
+    'am_ET', 'bg_BG', 'fi_FI', 'el_GR', 'et_EE', 'ne_NP', 'ro_RO', 'uz_UZ', 'uz_UZ@cyrillic', 'kk_KZ',
 }
 
 # Languages that need RTL pre-processing.
