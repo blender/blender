@@ -10355,43 +10355,62 @@ static void add_loose_objects_to_scene(
 
 static void add_collections_to_scene(
         Main *mainvar, Main *bmain,
-        Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *UNUSED(lib), const short flag)
+        Scene *scene, ViewLayer *view_layer, const View3D *v3d, Library *lib, const short flag)
 {
 	Collection *active_collection = get_collection_active(bmain, scene, view_layer, FILE_ACTIVE_COLLECTION);
 
 	/* Give all objects which are tagged a base. */
 	for (Collection *collection = mainvar->collection.first; collection; collection = collection->id.next) {
-		if (collection->id.tag & LIB_TAG_DOIT) {
-			if (flag & FILE_GROUP_INSTANCE) {
-				/* Any indirect collection should not have been tagged. */
-				BLI_assert((collection->id.tag & LIB_TAG_INDIRECT) == 0);
+		if ((flag & FILE_GROUP_INSTANCE) && (collection->id.tag & LIB_TAG_DOIT)) {
+			/* Any indirect collection should not have been tagged. */
+			BLI_assert((collection->id.tag & LIB_TAG_INDIRECT) == 0);
 
-				/* BKE_object_add(...) messes with the selection. */
-				Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
-				ob->type = OB_EMPTY;
+			/* BKE_object_add(...) messes with the selection. */
+			Object *ob = BKE_object_add_only_object(bmain, OB_EMPTY, collection->id.name + 2);
+			ob->type = OB_EMPTY;
 
-				BKE_collection_object_add(bmain, active_collection, ob);
-				Base *base = BKE_view_layer_base_find(view_layer, ob);
+			BKE_collection_object_add(bmain, active_collection, ob);
+			Base *base = BKE_view_layer_base_find(view_layer, ob);
 
-				if (v3d != NULL) {
-					base->local_view_bits |= v3d->local_view_uuid;
-				}
-
-				if (base->flag & BASE_SELECTABLE) {
-					base->flag |= BASE_SELECTED;
-				}
-
-				BKE_scene_object_base_flag_sync_from_base(base);
-				DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-				view_layer->basact = base;
-
-				/* Assign the collection. */
-				ob->dup_group = collection;
-				id_us_plus(&collection->id);
-				ob->transflag |= OB_DUPLICOLLECTION;
-				copy_v3_v3(ob->loc, scene->cursor.location);
+			if (v3d != NULL) {
+				base->local_view_bits |= v3d->local_view_uuid;
 			}
-			else {
+
+			if (base->flag & BASE_SELECTABLE) {
+				base->flag |= BASE_SELECTED;
+			}
+
+			BKE_scene_object_base_flag_sync_from_base(base);
+			DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+			view_layer->basact = base;
+
+			/* Assign the collection. */
+			ob->dup_group = collection;
+			id_us_plus(&collection->id);
+			ob->transflag |= OB_DUPLICOLLECTION;
+			copy_v3_v3(ob->loc, scene->cursor.location);
+		}
+		else {
+			bool do_add_collection = (collection->id.tag & LIB_TAG_DOIT) != 0;
+			if (!do_add_collection) {
+				/* We need to check that objects in that collections are already instantiated in a scene.
+				 * Otherwise, it's better to add the collection to the scene's active collection, than to
+				 * instantiate its objects in active scene's collection directly. See T61141.
+				 * Note that we only check object directly into that collection, not recursively into its children.
+				 */
+				for (CollectionObject *coll_ob = collection->gobject.first; coll_ob != NULL; coll_ob = coll_ob->next)
+				{
+					Object *ob = coll_ob->ob;
+					if ((ob->id.tag & LIB_TAG_PRE_EXISTING) == 0 &&
+					    (ob->id.lib == lib) &&
+					    (object_in_any_scene(bmain, ob) == 0))
+					{
+						do_add_collection = true;
+						break;
+					}
+				}
+			}
+			if (do_add_collection) {
 				/* Add collection as child of active collection. */
 				BKE_collection_child_add(bmain, active_collection, collection);
 
