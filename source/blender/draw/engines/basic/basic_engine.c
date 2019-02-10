@@ -94,9 +94,8 @@ static void basic_cache_init(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	BASIC_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 	const RegionView3D *rv3d = draw_ctx->rv3d;
-	const bool is_clip = (rv3d->rflag & RV3D_CLIPPING) != 0;
 
-	if (is_clip) {
+	if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
 		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
 	}
 
@@ -109,7 +108,7 @@ static void basic_cache_init(void *vedata)
 		psl->depth_pass = DRW_pass_create(
 		        "Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(sh_data->depth, psl->depth_pass);
-		if (rv3d->rflag & RV3D_CLIPPING) {
+		if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->depth_shgrp, rv3d);
 		}
 
@@ -117,7 +116,7 @@ static void basic_cache_init(void *vedata)
 		        "Depth Pass Cull",
 		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(sh_data->depth, psl->depth_pass_cull);
-		if (rv3d->rflag & RV3D_CLIPPING) {
+		if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
 			DRW_shgroup_world_clip_planes_from_rv3d(stl->g_data->depth_shgrp_cull, rv3d);
 		}
 	}

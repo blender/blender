@@ -38,7 +38,6 @@
  * Not needed for constant color. */
 
 extern char datatoc_common_globals_lib_glsl[];
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 extern char datatoc_edit_curve_overlay_loosevert_vert_glsl[];
 extern char datatoc_edit_curve_overlay_normals_vert_glsl[];
 extern char datatoc_edit_curve_overlay_handle_vert_glsl[];
@@ -108,14 +107,12 @@ static void EDIT_CURVE_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	EDIT_CURVE_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
-	if (is_clip) {
+	if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
 		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
 	}
 
-	const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+	const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
 	if (!sh_data->wire_sh) {
 		sh_data->wire_sh = GPU_shader_get_builtin_shader_with_config(
@@ -124,26 +121,26 @@ static void EDIT_CURVE_engine_init(void *UNUSED(vedata))
 
 	if (!sh_data->wire_normals_sh) {
 		sh_data->wire_normals_sh = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_edit_curve_overlay_normals_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_curve_overlay_normals_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 
 	if (!sh_data->overlay_edge_sh) {
 		sh_data->overlay_edge_sh = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_edit_curve_overlay_handle_vert_glsl, NULL},
-		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_edit_curve_overlay_handle_geom_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_curve_overlay_handle_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_edit_curve_overlay_handle_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 
 	if (!sh_data->overlay_vert_sh) {
 		sh_data->overlay_vert_sh = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_edit_curve_overlay_loosevert_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_edit_curve_overlay_loosevert_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 
 	}

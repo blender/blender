@@ -171,6 +171,17 @@ extern char datatoc_gpu_shader_gpencil_fill_vert_glsl[];
 extern char datatoc_gpu_shader_gpencil_fill_frag_glsl[];
 extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
+const struct GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN] = {
+	[GPU_SHADER_CFG_DEFAULT] = {
+		.lib = "",
+		.def = "",
+	},
+	[GPU_SHADER_CFG_CLIPPED] = {
+		.lib = datatoc_gpu_shader_cfg_world_clip_lib_glsl,
+		.def = "#define USE_WORLD_CLIP_PLANES\n",
+	},
+};
+
 /* cache of built-in shaders (each is created on first use) */
 static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {NULL};
 

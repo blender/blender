@@ -228,7 +228,6 @@ extern char datatoc_armature_stick_frag_glsl[];
 extern char datatoc_armature_dof_vert_glsl[];
 
 extern char datatoc_common_globals_lib_glsl[];
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
@@ -501,13 +500,12 @@ DRWShadingGroup *shgroup_instance_alpha(DRWPass *pass, struct GPUBatch *geom, eG
 DRWShadingGroup *shgroup_instance_empty_axes(DRWPass *pass, struct GPUBatch *geom, eGPUShaderConfig sh_cfg)
 {
 	COMMON_Shaders *sh_data = &g_shaders[sh_cfg];
-	const char *world_clip_lib_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-	const char *world_clip_def_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
 	if (sh_data->empty_axes_sh == NULL) {
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		sh_data->empty_axes_sh = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_empty_axes_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_empty_axes_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 
@@ -702,13 +700,11 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, eGPUShaderConfig 
 {
 	COMMON_Shaders *sh_data = &g_shaders[sh_cfg];
 	if (sh_data->mball_handles == NULL) {
-		bool is_clip = (sh_cfg == GPU_SHADER_CFG_CLIPPED);
-		const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-		const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		sh_data->mball_handles = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_mball_handles_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_mball_handles_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 
@@ -735,13 +731,12 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(
 {
 	COMMON_Shaders *sh_data = &g_shaders[sh_cfg];
 	if (sh_data->shape_outline == NULL) {
-		const char *world_clip_lib_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-		const char *world_clip_def_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		sh_data->shape_outline = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_armature_shape_outline_vert_glsl, NULL},
-		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_armature_shape_outline_geom_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_shape_outline_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_armature_shape_outline_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 
@@ -765,12 +760,11 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(
 {
 	COMMON_Shaders *sh_data = &g_shaders[sh_cfg];
 	if (sh_data->shape_solid == NULL) {
-		const char *world_clip_lib_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-		const char *world_clip_def_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		sh_data->shape_solid = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_armature_shape_solid_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_shape_solid_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_armature_shape_solid_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 
@@ -841,12 +835,11 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass, eGPUShaderConfig sh_
 {
 	COMMON_Shaders *sh_data = &g_shaders[sh_cfg];
 	if (sh_data->bone_stick == NULL) {
-		const char *world_clip_lib_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-		const char *world_clip_def_or_empty = (sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+		const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
 		sh_data->bone_stick = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_armature_stick_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_armature_stick_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_armature_stick_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 

@@ -68,7 +68,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
 extern char datatoc_object_outline_prepass_vert_glsl[];
 extern char datatoc_object_outline_prepass_geom_glsl[];
 extern char datatoc_object_outline_prepass_frag_glsl[];
@@ -397,22 +396,20 @@ static void OBJECT_engine_init(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	OBJECT_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
 
-	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
-	const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+	const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
 	if (!sh_data->outline_resolve) {
 		/* Outline */
 		sh_data->outline_prepass = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_gpu_shader_3D_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_gpu_shader_3D_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 		sh_data->outline_prepass_wire = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_outline_prepass_vert_glsl, NULL},
-		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_object_outline_prepass_geom_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_outline_prepass_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_object_outline_prepass_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_object_outline_prepass_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 
 		sh_data->outline_resolve = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
@@ -448,14 +445,14 @@ static void OBJECT_engine_init(void *vedata)
 			        "#define DEPTH_BACK " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_BACK) "\n");
 
 			sh_data->object_empty_image = GPU_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_empty_image_vert_glsl, NULL},
+			        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_empty_image_vert_glsl, NULL},
 			        .frag = (const char *[]){datatoc_object_empty_image_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def_or_empty, empty_image_defs, NULL},
+			        .defs = (const char *[]){sh_cfg_data->def, empty_image_defs, NULL},
 			});
 			sh_data->object_empty_image_wire = GPU_shader_create_from_arrays({
-			        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_object_empty_image_vert_glsl, NULL},
+			        .vert = (const char *[]){sh_cfg_data->lib, datatoc_object_empty_image_vert_glsl, NULL},
 			        .frag = (const char *[]){datatoc_object_empty_image_frag_glsl, NULL},
-			        .defs = (const char *[]){world_clip_def_or_empty, "#define USE_WIRE\n", empty_image_defs, NULL},
+			        .defs = (const char *[]){sh_cfg_data->def, "#define USE_WIRE\n", empty_image_defs, NULL},
 			});
 		}
 
@@ -482,9 +479,9 @@ static void OBJECT_engine_init(void *vedata)
 
 		/* Loose Points */
 		sh_data->loose_points = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_gpu_shader_3D_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_gpu_shader_3D_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_object_loose_points_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 

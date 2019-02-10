@@ -32,8 +32,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
-
 extern char datatoc_paint_vertex_vert_glsl[];
 extern char datatoc_paint_vertex_frag_glsl[];
 extern char datatoc_paint_wire_vert_glsl[];
@@ -91,35 +89,33 @@ static void PAINT_VERTEX_engine_init(void *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	PAINT_VERTEX_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
-	if (is_clip) {
+	if (draw_ctx->sh_cfg) {
 		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
 	}
+	const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
 	if (!sh_data->vcolor_face) {
-		const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-		const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
 
 		sh_data->vcolor_face = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_paint_vertex_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_paint_vertex_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_paint_vertex_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 		sh_data->wire_overlay = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_paint_wire_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define VERTEX_MODE\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define VERTEX_MODE\n", NULL},
 		});
 		sh_data->face_overlay = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_paint_face_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_paint_face_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 		sh_data->vert_overlay = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_paint_wire_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_paint_vert_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 	}
 }

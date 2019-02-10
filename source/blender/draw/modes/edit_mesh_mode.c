@@ -42,8 +42,6 @@
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.h"
 
-extern char datatoc_gpu_shader_cfg_world_clip_lib_glsl[];
-
 extern char datatoc_paint_weight_vert_glsl[];
 extern char datatoc_paint_weight_frag_glsl[];
 
@@ -159,7 +157,6 @@ static void EDIT_MESH_engine_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	EDIT_MESH_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-	const bool is_clip = (draw_ctx->rv3d->rflag & RV3D_CLIPPING) != 0;
 
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
@@ -174,21 +171,20 @@ static void EDIT_MESH_engine_init(void *vedata)
 		GPU_ATTACHMENT_TEXTURE(e_data.occlude_wire_color_tx)
 	});
 
-	if (is_clip) {
+	if (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) {
 		DRW_state_clip_planes_set_from_rv3d(draw_ctx->rv3d);
 	}
 
-	const char *world_clip_lib_or_empty = is_clip ? datatoc_gpu_shader_cfg_world_clip_lib_glsl : "";
-	const char *world_clip_def_or_empty = is_clip ? "#define USE_WORLD_CLIP_PLANES\n" : "";
+	const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
 
 	if (!sh_data->weight_face) {
 		sh_data->weight_face = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_paint_weight_vert_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_paint_weight_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_paint_weight_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 
-		char *lib = BLI_string_joinN(world_clip_lib_or_empty, datatoc_common_globals_lib_glsl, datatoc_edit_mesh_overlay_common_lib_glsl);
+		char *lib = BLI_string_joinN(sh_cfg_data->lib, datatoc_common_globals_lib_glsl, datatoc_edit_mesh_overlay_common_lib_glsl);
 		/* Use geometry shader to draw edge wireframe. This ensure us
 		 * the same result accross platforms and more flexibility. But
 		 * we pay the cost of running a geometry shader.
@@ -203,58 +199,58 @@ static void EDIT_MESH_engine_init(void *vedata)
 		sh_data->overlay_face = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define FACE\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define FACE\n", NULL},
 		});
 		sh_data->overlay_edge = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, use_geom_def, "#define EDGE\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, use_geom_def, "#define EDGE\n", NULL},
 		        .geom = (use_geom_shader) ? geom_sh_code : NULL,
 		});
 		sh_data->overlay_edge_flat = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, use_geom_def, "#define EDGE\n", "#define FLAT\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, use_geom_def, "#define EDGE\n", "#define FLAT\n", NULL},
 		        .geom = (use_geom_shader) ? geom_sh_code : NULL,
 		});
 		sh_data->overlay_vert = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define VERT\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define VERT\n", NULL},
 		});
 		sh_data->overlay_facedot = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_vert_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define FACEDOT\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define FACEDOT\n", NULL},
 		});
 		sh_data->overlay_facefill = GPU_shader_create_from_arrays({
 		        .vert = (const char *[]){lib, datatoc_edit_mesh_overlay_facefill_vert_glsl, NULL},
 		        .frag = (const char *[]){lib, datatoc_edit_mesh_overlay_facefill_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 		MEM_freeN(lib);
 
 		sh_data->overlay_mix = DRW_shader_create_fullscreen(datatoc_edit_mesh_overlay_mix_frag_glsl, NULL);
 
 		sh_data->normals_face = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_vert_glsl, NULL},
-		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_geom_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define FACE_NORMALS\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define FACE_NORMALS\n", NULL},
 		});
 
 		sh_data->normals_loop = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_vert_glsl, NULL},
-		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_geom_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, "#define LOOP_NORMALS\n", NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, "#define LOOP_NORMALS\n", NULL},
 		});
 
 		sh_data->normals = GPU_shader_create_from_arrays({
-		        .vert = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_vert_glsl, NULL},
-		        .geom = (const char *[]){world_clip_lib_or_empty, datatoc_edit_normals_geom_glsl, NULL},
+		        .vert = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_vert_glsl, NULL},
+		        .geom = (const char *[]){sh_cfg_data->lib, datatoc_edit_normals_geom_glsl, NULL},
 		        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-		        .defs = (const char *[]){world_clip_def_or_empty, NULL},
+		        .defs = (const char *[]){sh_cfg_data->def, NULL},
 		});
 
 		sh_data->depth = DRW_shader_create_3D_depth_only(draw_ctx->sh_cfg);
