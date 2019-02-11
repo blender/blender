@@ -1670,7 +1670,7 @@ static void camera_stereo3d(
         const float vec[4][3], float drawsize, const float scale[3])
 {
 	const bool is_select = DRW_state_is_select();
-	static float drwtria_dummy[2][2][2] = {{{0}}};
+	static float drw_tria_dummy[2][2][2] = {{{0}}};
 	const float fac = (cam->stereo.pivot == CAM_S3D_PIVOT_CENTER) ? 2.0f : 1.0f;
 	float origin[2][3] = {{0}};
 	const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
@@ -1688,12 +1688,12 @@ static void camera_stereo3d(
 
 		BKE_camera_multiview_model_matrix_scaled(&scene->r, ob, viewnames[eye], obmat);
 
-		copy_v2_v2(cam->drwcorners[eye][0], vec[0]);
-		copy_v2_v2(cam->drwcorners[eye][1], vec[1]);
-		copy_v2_v2(cam->drwcorners[eye][2], vec[2]);
-		copy_v2_v2(cam->drwcorners[eye][3], vec[3]);
+		copy_v2_v2(cam->runtime.drw_corners[eye][0], vec[0]);
+		copy_v2_v2(cam->runtime.drw_corners[eye][1], vec[1]);
+		copy_v2_v2(cam->runtime.drw_corners[eye][2], vec[2]);
+		copy_v2_v2(cam->runtime.drw_corners[eye][3], vec[3]);
 
-		cam->drwdepth[eye] = vec[0][2];
+		cam->runtime.drw_depth[eye] = vec[0][2];
 
 		if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
 			const float shift_x =
@@ -1701,22 +1701,22 @@ static void camera_stereo3d(
 			        (drawsize * scale[0] * fac));
 
 			for (int i = 0; i < 4; i++) {
-				cam->drwcorners[eye][i][0] += shift_x;
+				cam->runtime.drw_corners[eye][i][0] += shift_x;
 			}
 		}
 
 		/* Dummy triangle, draw on top of existent lines so it is invisible. */
-		copy_v2_v2(drwtria_dummy[eye][0], cam->drwcorners[eye][0]);
-		copy_v2_v2(drwtria_dummy[eye][1], cam->drwcorners[eye][0]);
+		copy_v2_v2(drw_tria_dummy[eye][0], cam->runtime.drw_corners[eye][0]);
+		copy_v2_v2(drw_tria_dummy[eye][1], cam->runtime.drw_corners[eye][0]);
 
 		if (is_stereo3d_cameras) {
 			DRW_shgroup_call_dynamic_add(
-			        sgl->camera_frame, color, cam->drwcorners[eye],
-			        &cam->drwdepth[eye], cam->drwtria, obmat);
+			        sgl->camera_frame, color, cam->runtime.drw_corners[eye],
+			        &cam->runtime.drw_depth[eye], cam->runtime.drw_tria, obmat);
 
 			DRW_shgroup_call_dynamic_add(
-			        sgl->camera, color, cam->drwcorners[eye],
-			        &cam->drwdepth[eye], drwtria_dummy[eye], obmat);
+			        sgl->camera, color, cam->runtime.drw_corners[eye],
+			        &cam->runtime.drw_depth[eye], drw_tria_dummy[eye], obmat);
 		}
 
 		/* Connecting line. */
@@ -1739,10 +1739,10 @@ static void camera_stereo3d(
 		mid_v3_v3v3(axis_center, origin[0], origin[1]);
 
 		for (int i = 0; i < 4; i++) {
-			mid_v2_v2v2(convergence_plane[i], cam->drwcorners[0][i], cam->drwcorners[1][i]);
+			mid_v2_v2v2(convergence_plane[i], cam->runtime.drw_corners[0][i], cam->runtime.drw_corners[1][i]);
 		}
 
-		offset = cam->stereo.convergence_distance / cam->drwdepth[0];
+		offset = cam->stereo.convergence_distance / cam->runtime.drw_depth[0];
 
 		for (int i = 0; i < 4; i++) {
 			convergence_plane[i][0] -= 2.0f * cam->shiftx;
@@ -1753,7 +1753,7 @@ static void camera_stereo3d(
 		convergence_distance_neg = -cam->stereo.convergence_distance;
 		DRW_shgroup_call_dynamic_add(
 		        sgl->camera_frame, color, convergence_plane,
-		        &convergence_distance_neg, cam->drwtria, cam->drwnormalmat);
+		        &convergence_distance_neg, cam->runtime.drw_tria, cam->runtime.drw_normalmat);
 
 		if (v3d->stereo3d_convergence_alpha > 0.0f) {
 			/* We are using a -1,1 quad for this shading group, so we need to
@@ -1769,7 +1769,7 @@ static void camera_stereo3d(
 			scale_factor[0] = width * 0.5f;
 			scale_factor[1] = height * 0.5f;
 
-			copy_m4_m4(plane_mat, cam->drwnormalmat);
+			copy_m4_m4(plane_mat, cam->runtime.drw_normalmat);
 			translate_m4(plane_mat, 0.0f, 0.0f, -cam->stereo.convergence_distance);
 			size_to_mat4(scale_mat, scale_factor);
 			mul_m4_m4_post(plane_mat, scale_mat);
@@ -1846,19 +1846,19 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 	                         asp, shift, &drawsize, vec);
 
 	/* Frame coords */
-	copy_v2_v2(cam->drwcorners[0][0], vec[0]);
-	copy_v2_v2(cam->drwcorners[0][1], vec[1]);
-	copy_v2_v2(cam->drwcorners[0][2], vec[2]);
-	copy_v2_v2(cam->drwcorners[0][3], vec[3]);
+	copy_v2_v2(cam->runtime.drw_corners[0][0], vec[0]);
+	copy_v2_v2(cam->runtime.drw_corners[0][1], vec[1]);
+	copy_v2_v2(cam->runtime.drw_corners[0][2], vec[2]);
+	copy_v2_v2(cam->runtime.drw_corners[0][3], vec[3]);
 
 	/* depth */
-	cam->drwdepth[0] = vec[0][2];
+	cam->runtime.drw_depth[0] = vec[0][2];
 
 	/* tria */
-	cam->drwtria[0][0] = shift[0] + ((0.7f * drawsize) * scale[0]);
-	cam->drwtria[0][1] = shift[1] + ((drawsize * (asp[1] + 0.1f)) * scale[1]);
-	cam->drwtria[1][0] = shift[0];
-	cam->drwtria[1][1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
+	cam->runtime.drw_tria[0][0] = shift[0] + ((0.7f * drawsize) * scale[0]);
+	cam->runtime.drw_tria[0][1] = shift[1] + ((drawsize * (asp[1] + 0.1f)) * scale[1]);
+	cam->runtime.drw_tria[1][0] = shift[0];
+	cam->runtime.drw_tria[1][1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
 
 	if (look_through && !is_stereo3d_cameras) {
 		/* Only draw the frame. */
@@ -1868,57 +1868,57 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 			const char *view_name = is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME;
 			BKE_camera_multiview_model_matrix(&scene->r, ob, view_name, mat);
 			const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, view_name);
-			cam->drwcorners[0][0][0] += shiftx;
-			cam->drwcorners[0][1][0] += shiftx;
-			cam->drwcorners[0][2][0] += shiftx;
-			cam->drwcorners[0][3][0] += shiftx;
+			cam->runtime.drw_corners[0][0][0] += shiftx;
+			cam->runtime.drw_corners[0][1][0] += shiftx;
+			cam->runtime.drw_corners[0][2][0] += shiftx;
+			cam->runtime.drw_corners[0][3][0] += shiftx;
 		}
 		else {
 			copy_m4_m4(mat, ob->obmat);
 		}
 
 		DRW_shgroup_call_dynamic_add(
-		        sgl->camera_frame, color, cam->drwcorners[0],
-		        &cam->drwdepth[0], cam->drwtria, mat);
+		        sgl->camera_frame, color, cam->runtime.drw_corners[0],
+		        &cam->runtime.drw_depth[0], cam->runtime.drw_tria, mat);
 	}
 	else if (!look_through) {
 		if (!is_stereo3d_cameras) {
 			DRW_shgroup_call_dynamic_add(
-			        sgl->camera, color, cam->drwcorners[0],
-			        &cam->drwdepth[0], cam->drwtria, ob->obmat);
+			        sgl->camera, color, cam->runtime.drw_corners[0],
+			        &cam->runtime.drw_depth[0], cam->runtime.drw_tria, ob->obmat);
 		}
 
 		/* Active cam */
 		if (is_active) {
 			DRW_shgroup_call_dynamic_add(
 			        sgl->camera_tria, color,
-			        cam->drwcorners[0], &cam->drwdepth[0], cam->drwtria, ob->obmat);
+			        cam->runtime.drw_corners[0], &cam->runtime.drw_depth[0], cam->runtime.drw_tria, ob->obmat);
 		}
 	}
 
 	/* draw the rest in normalize object space */
-	normalize_m4_m4(cam->drwnormalmat, ob->obmat);
+	normalize_m4_m4(cam->runtime.drw_normalmat, ob->obmat);
 
 	if (cam->flag & CAM_SHOWLIMITS) {
 		static float col[4] = {0.5f, 0.5f, 0.25f, 1.0f}, col_hi[4] = {1.0f, 1.0f, 0.5f, 1.0f};
 		float sizemat[4][4], size[3] = {1.0f, 1.0f, 0.0f};
 		float focusdist = BKE_camera_object_dof_distance(ob);
 
-		copy_m4_m4(cam->drwfocusmat, cam->drwnormalmat);
-		translate_m4(cam->drwfocusmat, 0.0f, 0.0f, -focusdist);
+		copy_m4_m4(cam->runtime.drw_focusmat, cam->runtime.drw_normalmat);
+		translate_m4(cam->runtime.drw_focusmat, 0.0f, 0.0f, -focusdist);
 		size_to_mat4(sizemat, size);
-		mul_m4_m4m4(cam->drwfocusmat, cam->drwfocusmat, sizemat);
+		mul_m4_m4m4(cam->runtime.drw_focusmat, cam->runtime.drw_focusmat, sizemat);
 
 		DRW_shgroup_call_dynamic_add(
 		        sgl->camera_focus, (is_active ? col_hi : col),
-		        &cam->drawsize, cam->drwfocusmat);
+		        &cam->drawsize, cam->runtime.drw_focusmat);
 
 		DRW_shgroup_call_dynamic_add(
 		        sgl->camera_clip, color,
-		        &cam->clipsta, &cam->clipend, cam->drwnormalmat);
+		        &cam->clipsta, &cam->clipend, cam->runtime.drw_normalmat);
 		DRW_shgroup_call_dynamic_add(
 		        sgl->camera_clip_points, (is_active ? col_hi : col),
-		        &cam->clipsta, &cam->clipend, cam->drwnormalmat);
+		        &cam->clipsta, &cam->clipend, cam->runtime.drw_normalmat);
 	}
 
 	if (cam->flag & CAM_SHOWMIST) {
@@ -1929,10 +1929,10 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 			world->mistend = world->miststa + world->mistdist;
 			DRW_shgroup_call_dynamic_add(
 			        sgl->camera_mist, color,
-			        &world->miststa, &world->mistend, cam->drwnormalmat);
+			        &world->miststa, &world->mistend, cam->runtime.drw_normalmat);
 			DRW_shgroup_call_dynamic_add(
 			        sgl->camera_mist_points, (is_active ? col_hi : col),
-			        &world->miststa, &world->mistend, cam->drwnormalmat);
+			        &world->miststa, &world->mistend, cam->runtime.drw_normalmat);
 		}
 	}
 
@@ -1984,7 +1984,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 				BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, object_mat);
 
 				invert_m4(object_mat);
-				mul_m4_m4m4(tracking_object_mat, cam->drwnormalmat, object_mat);
+				mul_m4_m4m4(tracking_object_mat, cam->runtime.drw_normalmat, object_mat);
 			}
 
 			ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
