@@ -125,17 +125,17 @@ FileData *blo_openblenderfile(const char *filepath, struct ReportList *reports);
 FileData *blo_openblendermemory(const void *buffer, int buffersize, struct ReportList *reports);
 FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
-void blo_clear_proxy_pointers_from_lib(Main *oldmain);
-void blo_make_image_pointer_map(FileData *fd, Main *oldmain);
-void blo_end_image_pointer_map(FileData *fd, Main *oldmain);
-void blo_make_scene_pointer_map(FileData *fd, Main *oldmain);
-void blo_end_scene_pointer_map(FileData *fd, Main *oldmain);
-void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain);
-void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain);
-void blo_make_sound_pointer_map(FileData *fd, Main *oldmain);
-void blo_end_sound_pointer_map(FileData *fd, Main *oldmain);
-void blo_make_packed_pointer_map(FileData *fd, Main *oldmain);
-void blo_end_packed_pointer_map(FileData *fd, Main *oldmain);
+void blo_clear_proxy_pointers_from_lib(struct Main *oldmain);
+void blo_make_image_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_image_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_make_scene_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_scene_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_make_movieclip_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_movieclip_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_make_sound_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_sound_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
 void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);
 
 void blo_freefiledata(FileData *fd);
