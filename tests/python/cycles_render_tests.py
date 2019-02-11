@@ -14,61 +14,40 @@ def render_file(filepath, output_filepath):
     basedir = os.path.dirname(dirname)
     subject = os.path.basename(dirname)
 
-    custom_args = os.getenv('CYCLESTEST_ARGS')
-    custom_args = shlex.split(custom_args) if custom_args else []
+    frame_filepath = output_filepath + '0001.png'
+
+    common_args = [
+        "-noaudio",
+        "--factory-startup",
+        "--enable-autoexec",
+        filepath,
+        "-E", "CYCLES",
+        "-o", output_filepath,
+        "-F", "PNG"]
 
     # OSL and GPU examples
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"]
     # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.device = 'GPU'"]
-
-    frame_filepath = output_filepath + '0001.png'
+    custom_args = os.getenv('CYCLESTEST_ARGS')
+    custom_args = shlex.split(custom_args) if custom_args else []
+    common_args += custom_args
 
     if subject == 'opengl':
-        command = [
-            BLENDER,
-            "--window-geometry", "0", "0", "1", "1",
-            "-noaudio",
-            "--factory-startup",
-            "--enable-autoexec",
-            filepath,
-            "-E", "CYCLES"]
-        command += custom_args
-        command += [
-            "-o", output_filepath,
-            "-F", "PNG",
-            '--python', os.path.join(basedir,
-                                     "util",
-                                     "render_opengl.py")]
+        command = [BLENDER, "--window-geometry", "0", "0", "1", "1"]
+        command += common_args
+        command += ['--python', os.path.join(basedir, "util", "render_opengl.py")]
     elif subject == 'bake':
-        command = [
-            BLENDER,
-            "-b",
-            "-noaudio",
-            "--factory-startup",
-            "--enable-autoexec",
-            filepath,
-            "-E", "CYCLES"]
-        command += custom_args
-        command += [
-            "-o", output_filepath,
-            "-F", "PNG",
-            '--python', os.path.join(basedir,
-                                     "util",
-                                     "render_bake.py")]
+        command = [BLENDER, "--background"]
+        command += common_args
+        command += ['--python', os.path.join(basedir, "util", "render_bake.py")]
+    elif subject == 'denoise_animation':
+        command = [BLENDER, "--background"]
+        command += common_args
+        command += ['--python', os.path.join(basedir, "util", "render_denoise.py")]
     else:
-        command = [
-            BLENDER,
-            "--background",
-            "-noaudio",
-            "--factory-startup",
-            "--enable-autoexec",
-            filepath,
-            "-E", "CYCLES"]
-        command += custom_args
-        command += [
-            "-o", output_filepath,
-            "-F", "PNG",
-            "-f", "1"]
+        command = [BLENDER, "--background"]
+        command += common_args
+        command += ["-f", "1"]
 
     try:
         # Success
