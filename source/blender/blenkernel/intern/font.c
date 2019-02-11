@@ -1261,7 +1261,6 @@ makebreak:
 					sb = &selboxes[i - selstart];
 					sb->rot = -ct->rot;
 				}
-				
 			}
 		}
 	}

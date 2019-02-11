@@ -1777,11 +1777,11 @@ static void bevel_edges_sharp_boundary(BMesh *bm, BevelParams *bp)
 	}
 }
 
-/*
+/**
  * Harden normals for bevel.
- * The desired effect is that the newly created F_EDGE and F_VERT faces appear smoothly shaded
- * with the the normals at the boundaries with F_RECON faces matching those recon faces.
- * And at boundaries between F_EDGE and F_VERT faces, the normals should match the F_EDGE ones.
+ * The desired effect is that the newly created #F_EDGE and F_VERT faces appear smoothly shaded
+ * with the normals at the boundaries with #F_RECON faces matching those recon faces.
+ * And at boundaries between #F_EDGE and #F_VERT faces, the normals should match the #F_EDGE ones.
  * Assumes custom loop normals are in use.
  */
 static void bevel_harden_normals(BMesh *bm, BevelParams *bp)

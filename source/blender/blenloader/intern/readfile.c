@@ -10953,7 +10953,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							change_idid_adr(mainlist, basefd, id, *realid);
 
 							/* We cannot free old lib-ref placeholder ID here anymore, since we use its name
-							 * as key in loaded_ids hass. */
+							 * as key in loaded_ids has. */
 							BLI_addtail(&pending_free_ids, id);
 						}
 						id = idn;

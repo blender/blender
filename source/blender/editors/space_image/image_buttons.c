@@ -144,7 +144,6 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
  * otherwise refresh preview
  *
  * XXX if you put this back, also check XXX in image_main_region_draw() */
- * /
 void image_preview_event(int event)
 {
 	int exec = 0;

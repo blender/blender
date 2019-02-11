@@ -42,7 +42,7 @@ const CLASS_OBJECT_INIT c_rgClassObjectInit[] =
 
 long g_cRefModule = 0;
 
-// Handle the the DLL's module
+// Handle the DLL's module
 HINSTANCE g_hInst = NULL;
 
 // Standard DLL functions

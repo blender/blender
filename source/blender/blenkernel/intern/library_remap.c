@@ -815,12 +815,12 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
  * However, they might still be using (referencing) other IDs, this code takes care of it if
  * \a LIB_TAG_NO_USER_REFCOUNT is not defined.
  *
- * \param bmain Main database containing the freed ID, can be NULL in case it's a temp ID outside of any Main.
- * \param idv Pointer to ID to be freed.
- * \param flag Set of \a LIB_ID_FREE_... flags controlling/overriding usual freeing process,
- *             0 to get default safe behavior.
- * \param use_flag_from_idtag Still use freeing info flags from given ID datablock,
- *                            even if some overriding ones are passed in \a falg parameter.
+ * \param bmain: Main database containing the freed ID, can be NULL in case it's a temp ID outside of any Main.
+ * \param idv: Pointer to ID to be freed.
+ * \param flag: Set of \a LIB_ID_FREE_... flags controlling/overriding usual freeing process,
+ * 0 to get default safe behavior.
+ * \param use_flag_from_idtag: Still use freeing info flags from given ID datablock,
+ * even if some overriding ones are passed in \a falg parameter.
  */
 void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_idtag)
 {
@@ -910,8 +910,8 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
  *
  * See #BKE_id_free_ex description for full details.
  *
- * \param bmain Main database containing the freed ID, can be NULL in case it's a temp ID outside of any Main.
- * \param idv Pointer to ID to be freed.
+ * \param bmain: Main database containing the freed ID, can be NULL in case it's a temp ID outside of any Main.
+ * \param idv: Pointer to ID to be freed.
  */
 void BKE_id_free(Main *bmain, void *idv)
 {

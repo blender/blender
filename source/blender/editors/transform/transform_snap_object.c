@@ -204,7 +204,7 @@ typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Obj
  * Walks through all objects in the scene to create the list of objects to snap.
  *
  * \param sctx: Snap context to store data.
- * \param snap_select : from enum eSnapSelect.
+ * \param snap_select: from enum #eSnapSelect.
  */
 static void iter_snap_objects(
         SnapObjectContext *sctx,
@@ -761,8 +761,8 @@ static void raycast_obj_cb(SnapObjectContext *sctx, bool use_obedit, Object *ob,
  * Walks through all objects in the scene to find the `hit` on object surface.
  *
  * \param sctx: Snap context to store data.
- * \param snap_select : from enum eSnapSelect.
- * \param use_object_edit_cage : Uses the coordinates of BMesh(if any) to do the snapping.
+ * \param snap_select: from enum eSnapSelect.
+ * \param use_object_edit_cage: Uses the coordinates of BMesh(if any) to do the snapping.
  * \param obj_list: List with objects to snap (created in `create_object_list`).
  *
  * Read/Write Args

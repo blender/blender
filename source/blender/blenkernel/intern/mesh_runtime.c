@@ -76,7 +76,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 /**
  * Ensure the array is large enough
  *
- * /note This function must always be thread-protected by caller. It should only be used by internal code.
+ * \note This function must always be thread-protected by caller. It should only be used by internal code.
  */
 static void mesh_ensure_looptri_data(Mesh *mesh)
 {

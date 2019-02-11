@@ -3445,7 +3445,7 @@ static float bm_edge_seg_isect(
 
 		/* Perp. Distance from point to line */
 		if (m2 != MAXSLOPE) {
-			/* /sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
+			/* sqrt(m2 * m2 + 1); Only looking for change in sign.  Skip extra math .*/
 			dist = (y12 - m2 * x12 - b2);
 		}
 		else dist = x22 - x12;

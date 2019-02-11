@@ -276,7 +276,7 @@ typedef struct bPoseChannel {
 	short rotmode;
 	short pad;
 
-	/** Matrix result of l.oc/quat/size, and where we put deform in, see next line */
+	/** Matrix result of loc/quat/size, and where we put deform in, see next line */
 	float chan_mat[4][4];
 	/**
 	 * Constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat

@@ -460,7 +460,7 @@ void DM_ensure_normals(DerivedMesh *dm)
 /**
  * Ensure the array is large enough
  *
- * /note This function must always be thread-protected by caller. It should only be used by internal code.
+ * \note This function must always be thread-protected by caller. It should only be used by internal code.
  */
 void DM_ensure_looptri_data(DerivedMesh *dm)
 {

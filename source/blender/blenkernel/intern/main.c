@@ -19,7 +19,7 @@
 
 /** \file \ingroup bke
  *
- * Contains management of Main database itself.
+ * Contains management of #Main database itself.
  */
 
 #include <string.h>
@@ -219,7 +219,7 @@ static bool main_gset_create(Main *UNUSED(bmain), ID *id, void *user_data)
 /**
  * Create a GSet storing all IDs present in given \a bmain, by their pointers.
  *
- * \param gset If not NULL, given GSet will be extended with IDs from given \a bmain, instead of creating a new one.
+ * \param gset: If not NULL, given GSet will be extended with IDs from given \a bmain, instead of creating a new one.
  */
 GSet *BKE_main_gset_create(Main *bmain, GSet *gset)
 {
@@ -253,10 +253,9 @@ bool BKE_main_listbase_foreach_id(
 /**
  * Call given callback over every IDs of given \a bmain Main database.
  *
- * \param reverse_type_order Allow to reverse order in which ID *types* are handled
- *                           (i.e. does not reverse the order in which IDs themselves are handled
- *                           whithin a give listbase).
- *                           Note that in most cases, you want to set that parameter to true.
+ * \param reverse_type_order: Allow to reverse order in which ID *types* are handled
+ * (i.e. does not reverse the order in which IDs themselves are handled whithin a give listbase).
+ * Note that in most cases, you want to set that parameter to true.
  * \return false if the iteration was iterrupted by the callback.
  *
  * \warning \a callback may affect the ID, but DO NOT change the Main database (add/remove/reorder its IDs).
@@ -357,7 +356,7 @@ const char *BKE_main_blendfile_path(const Main *bmain)
 }
 
 /**
- * Return filepath of global main (G_MAIN).
+ * Return filepath of global main #G_MAIN.
  *
  * \warning Usage is not recommended, you should always try to get a valid Main pointer from context...
  */
@@ -449,12 +448,12 @@ ListBase *which_libbase(Main *bmain, short type)
 }
 
 /**
- * puts into array *lb pointers to all the ListBase structs in main,
+ * puts into array *lb pointers to all the #ListBase structs in main,
  * and returns the number of them as the function result. This is useful for
  * generic traversal of all the blocks in a Main (by traversing all the
  * lists in turn), without worrying about block types.
  *
- * \note MAX_LIBARRAY define should match this code */
+ * \note #MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *bmain, ListBase **lb)
 {
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
