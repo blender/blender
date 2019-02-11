@@ -76,11 +76,6 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		effects->sss_separate_albedo = (scene_eval->eevee.flag & SCE_EEVEE_SSS_SEPARATE_ALBEDO) != 0;
 		common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
 
-		/* Force separate albedo for final render */
-		if (DRW_state_is_image_render()) {
-			effects->sss_separate_albedo = true;
-		}
-
 		/* Shaders */
 		if (!e_data.sss_sh[0]) {
 			eevee_create_shader_subsurface();
