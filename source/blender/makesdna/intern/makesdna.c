@@ -160,6 +160,9 @@ static short **structs, *structdata;
 static int debugSDNA = 0;
 static int additional_slen_offset;
 
+#define DEBUG_PRINTF(debug_level, ...) \
+	{ if (debugSDNA > debug_level) { printf(__VA_ARGS__); } } ((void)0)
+
 /* ************************************************************************** */
 /* Functions                                                                  */
 /* ************************************************************************** */
@@ -298,7 +301,7 @@ static int add_name(const char *str)
 		 * way in old dna too, and works correct with elementsize() */
 		int isfuncptr = (strchr(str + 1, '(')) != NULL;
 
-		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
+		DEBUG_PRINTF(3, "\t\t\t\t*** Function pointer or multidim array pointer found\n");
 		/* functionpointer: transform the type (sometimes) */
 		i = 0;
 
@@ -312,38 +315,36 @@ static int add_name(const char *str)
 		 * space, no overshoot should be calculated. */
 		j = i; /* j at first closing brace */
 
-		if (debugSDNA > 3) printf("first brace after offset %d\n", i);
+		DEBUG_PRINTF(3, "first brace after offset %d\n", i);
 
 		j++; /* j beyond closing brace ? */
 		while ((str[j] != 0) && (str[j] != ')')) {
-			if (debugSDNA > 3) printf("seen %c ( %d)\n", str[j], str[j]);
+			DEBUG_PRINTF(3, "seen %c (%d)\n", str[j], str[j]);
 			j++;
 		}
-		if (debugSDNA > 3) printf("seen %c ( %d)\n"
-			                      "special after offset%d\n",
-			                      str[j], str[j], j);
+		DEBUG_PRINTF(3, "seen %c (%d)\n" "special after offset%d\n", str[j], str[j], j);
 
 		if (!isfuncptr) {
 			/* multidimensional array pointer case */
 			if (str[j] == 0) {
-				if (debugSDNA > 3) printf("offsetting for multidim array pointer\n");
+				DEBUG_PRINTF(3, "offsetting for multidim array pointer\n");
 			}
 			else
 				printf("Error during tokening multidim array pointer\n");
 		}
 		else if (str[j] == 0) {
-			if (debugSDNA > 3) printf("offsetting for space\n");
+			DEBUG_PRINTF(3, "offsetting for space\n");
 			/* get additional offset */
 			k = 0;
 			while (str[j] != ')') {
 				j++;
 				k++;
 			}
-			if (debugSDNA > 3) printf("extra offset %d\n", k);
+			DEBUG_PRINTF(3, "extra offset %d\n", k);
 			additional_slen_offset = k;
 		}
 		else if (str[j] == ')') {
-			if (debugSDNA > 3) printf("offsetting for brace\n");
+			DEBUG_PRINTF(3, "offsetting for brace\n");
 			; /* don't get extra offset */
 		}
 		else {
@@ -363,7 +364,7 @@ static int add_name(const char *str)
 		 *
 		 * */
 		buf[i] = 0;
-		if (debugSDNA > 3) printf("Name before chomping: %s\n", buf);
+		DEBUG_PRINTF(3, "Name before chomping: %s\n", buf);
 		if ((strncmp(buf, "(*headdraw", 10) == 0) ||
 		    (strncmp(buf, "(*windraw", 9) == 0) )
 		{
@@ -383,7 +384,7 @@ static int add_name(const char *str)
 			buf[i + 3] = 0;
 		}
 		/* now precede with buf*/
-		if (debugSDNA > 3) printf("\t\t\t\t\tProposing fp name %s\n", buf);
+		DEBUG_PRINTF(3, "\t\t\t\t\tProposing fp name %s\n", buf);
 		name = buf;
 	}
 	else {
@@ -620,7 +621,7 @@ static int convert_include(const char *filename)
 					structpoin = add_struct(strct);
 					sp = structpoin + 2;
 
-					if (debugSDNA > 1) printf("\t|\t|-- detected struct %s\n", types[strct]);
+					DEBUG_PRINTF(1, "\t|\t|-- detected struct %s\n", types[strct]);
 
 					/* first lets make it all nice strings */
 					md1 = md + 1;
@@ -649,7 +650,7 @@ static int convert_include(const char *filename)
 								return 1;
 							}
 
-							if (debugSDNA > 1) printf("\t|\t|\tfound type %s (", md1);
+							DEBUG_PRINTF(1, "\t|\t|\tfound type %s (", md1);
 
 							md1 += strlen(md1);
 
@@ -672,7 +673,9 @@ static int convert_include(const char *filename)
 										sp[0] = type;
 										sp[1] = name;
 
-										if ((debugSDNA > 1) && (names[name] != NULL)) printf("%s |", names[name]);
+										if (names[name] != NULL) {
+											DEBUG_PRINTF(1, "%s |", names[name]);
+										}
 
 										structpoin[1]++;
 										sp += 2;
@@ -687,7 +690,9 @@ static int convert_include(const char *filename)
 
 									sp[0] = type;
 									sp[1] = name;
-									if ((debugSDNA > 1) && (names[name] != NULL)) printf("%s ||", names[name]);
+									if (names[name] != NULL) {
+										DEBUG_PRINTF(1, "%s ||", names[name]);
+									}
 
 									structpoin[1]++;
 									sp += 2;
@@ -697,7 +702,7 @@ static int convert_include(const char *filename)
 								md1++;
 							}
 
-							if (debugSDNA > 1) printf(")\n");
+							DEBUG_PRINTF(1, ")\n");
 
 						}
 						md1++;
@@ -1040,15 +1045,15 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	/* Since the internal file+path name buffer has limited length, I do a   */
 	/* little test first...                                                  */
 	/* Mind the breaking condition here!                                     */
-	if (debugSDNA) printf("\tStart of header scan:\n");
+	DEBUG_PRINTF(0, "\tStart of header scan:\n");
 	for (i = 0; *(includefiles[i]) != '\0'; i++) {
 		sprintf(str, "%s%s", baseDirectory, includefiles[i]);
-		if (debugSDNA) printf("\t|-- Converting %s\n", str);
+		DEBUG_PRINTF(0, "\t|-- Converting %s\n", str);
 		if (convert_include(str)) {
 			return (1);
 		}
 	}
-	if (debugSDNA) printf("\tFinished scanning %d headers.\n", i);
+	DEBUG_PRINTF(0, "\tFinished scanning %d headers.\n", i);
 
 	if (calculate_structlens(firststruct)) {
 		/* error */
@@ -1087,7 +1092,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 
 	/* file writing */
 
-	if (debugSDNA > 0) printf("Writing file ... ");
+	DEBUG_PRINTF(0, "Writing file ... ");
 
 	if (nr_names == 0 || nr_structs == 0) {
 		/* pass */
@@ -1197,7 +1202,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	MEM_freeN(typelens_64);
 	MEM_freeN(structs);
 
-	if (debugSDNA > 0) printf("done.\n");
+	DEBUG_PRINTF(0, "done.\n");
 
 	return(0);
 }
