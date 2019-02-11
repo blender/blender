@@ -1124,7 +1124,6 @@ static void surfacedeformModifier_do(
         float (*vertexCos)[3], unsigned int numverts, Object *ob)
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-	bool free_target;
 	Mesh *target;
 	unsigned int tnumverts, tnumpoly;
 
@@ -1145,7 +1144,7 @@ static void surfacedeformModifier_do(
 	}
 
 	Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, smd->target);
-	target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, &free_target);
+	target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
 #if 0  /* Should not be needed anymore since we always get that mesh from eval object ? */
 	if (target == NULL && smd->verts == NULL && ob == DEG_get_original_object(ob)) {
 		/* Special case, binding happens outside of depsgraph evaluation, so we can build our own
@@ -1169,7 +1168,7 @@ static void surfacedeformModifier_do(
 		if (ob != DEG_get_original_object(ob)) {
 			BLI_assert(!"Trying to bind inside of depsgraph evaluation");
 			modifier_setError(md, "Trying to bind inside of depsgraph evaluation");
-			goto finally;
+			return;
 		}
 		float tmp_mat[4][4];
 
@@ -1180,17 +1179,17 @@ static void surfacedeformModifier_do(
 			smd->flags &= ~MOD_SDEF_BIND;
 		}
 		/* Early abort, this is binding 'call', no need to perform whole evaluation. */
-		goto finally;
+		return;
 	}
 
 	/* Poly count checks */
 	if (smd->numverts != numverts) {
 		modifier_setError(md, "Verts changed from %u to %u", smd->numverts, numverts);
-		goto finally;
+		return;
 	}
 	else if (smd->numpoly != tnumpoly) {
 		modifier_setError(md, "Target polygons changed from %u to %u", smd->numpoly, tnumpoly);
-		goto finally;
+		return;
 	}
 
 	/* Actual vertex location update starts here */
@@ -1216,11 +1215,6 @@ static void surfacedeformModifier_do(
 		                        &settings);
 
 		MEM_freeN(data.targetCos);
-	}
-
-finally:
-	if (target != NULL && free_target) {
-		BKE_id_free(NULL, target);
 	}
 }
 

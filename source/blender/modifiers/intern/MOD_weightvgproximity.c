@@ -484,8 +484,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		const bool use_trgt_faces = (wmd->proximity_flags & MOD_WVG_PROXIMITY_GEOM_FACES) != 0;
 
 		if (use_trgt_verts || use_trgt_edges || use_trgt_faces) {
-			bool target_mesh_free;
-			Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(obr, &target_mesh_free);
+			Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(obr, false);
 
 			/* We must check that we do have a valid target_mesh! */
 			if (target_mesh != NULL) {
@@ -508,10 +507,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 				MEM_SAFE_FREE(dists_v);
 				MEM_SAFE_FREE(dists_e);
 				MEM_SAFE_FREE(dists_f);
-
-				if (target_mesh_free) {
-					BKE_id_free(NULL, target_mesh);
-				}
 			}
 			/* Else, fall back to default obj2vert behavior. */
 			else {

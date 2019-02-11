@@ -157,14 +157,13 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	Mesh *result = mesh;
 
 	Mesh *mesh_other;
-	bool mesh_other_free;
 
 	if (bmd->object == NULL) {
 		return result;
 	}
 
 	Object *other = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(other, &mesh_other_free);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(other, false);
 	if (mesh_other) {
 		Object *object = ctx->object;
 
@@ -316,10 +315,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		 * an error, so delete the modifier object */
 		if (result == NULL)
 			modifier_setError(md, "Cannot execute boolean operation");
-	}
-
-	if (mesh_other != NULL && mesh_other_free) {
-		BKE_id_free(NULL, mesh_other);
 	}
 
 	return result;

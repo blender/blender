@@ -899,23 +899,24 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(
  * Get evaluated mesh for other evaluated object, which is used as an operand for the modifier,
  * e.g. second operand for boolean modifier.
  * Note that modifiers in stack always get fully evaluated COW ID pointers, never original ones. Makes things simpler.
+ *
+ * \param get_cage_mesh Return evaluated mesh with only deforming modifiers applied
+ *                      (i.e. mesh topology remains the same as original one, a.k.a. 'cage' mesh).
  */
-Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval, bool *r_free_mesh)
+Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval, const bool get_cage_mesh)
 {
 	Mesh *me = NULL;
 
 	if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
-		/* Note: currently we have no equivalent to derived cagemesh or even final dm in BMEditMesh...
-		 * This is TODO in core depsgraph/modifier stack code still. */
+		/* In EditMode, evaluated mesh is stored in BMEditMesh, not the object... */
 		BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
 		if (em != NULL) {  /* em might not exist yet in some cases, just after loading a .blend file, see T57878. */
-			me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, 0);
-			*r_free_mesh = true;
+			me = (get_cage_mesh && em->mesh_eval_cage != NULL) ? em->mesh_eval_cage : em->mesh_eval_final;
 		}
 	}
 	if (me == NULL) {
-		me = ob_eval->runtime.mesh_eval;
-		*r_free_mesh = false;
+		me = (get_cage_mesh && ob_eval->runtime.mesh_deform_eval != NULL) ? ob_eval->runtime.mesh_deform_eval :
+		                                                                    ob_eval->runtime.mesh_eval;
 	}
 
 	return me;
