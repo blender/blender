@@ -314,8 +314,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		if (userdef->v2d_min_gridsize == 0) {
 			userdef->v2d_min_gridsize = 35;
 		}
-		if (userdef->dragthreshold == 0)
-			userdef->dragthreshold = 5;
 		if (userdef->widget_unit == 0)
 			userdef->widget_unit = 20;
 		if (userdef->anisotropic_filter <= 0)

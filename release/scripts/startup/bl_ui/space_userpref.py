@@ -1390,7 +1390,6 @@ class USERPREF_PT_input_mouse(PreferencePanel):
         flow.prop(inputs, "use_mouse_continuous")
         flow.prop(inputs, "use_drag_immediately")
         flow.prop(inputs, "drag_threshold")
-        flow.prop(inputs, "tweak_threshold")
         flow.prop(inputs, "mouse_double_click_time", text="Double Click Speed")
 
 

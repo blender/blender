@@ -4671,16 +4671,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
 	/* tweak tablet & mouse preset */
 	prop = RNA_def_property(srna, "drag_threshold", PROP_INT, PROP_PIXEL);
-	RNA_def_property_int_sdna(prop, NULL, "dragthreshold");
-	RNA_def_property_range(prop, 3, 40);
-	RNA_def_property_ui_text(prop, "Drag Threshold",
-	                         "Amount of pixels you have to drag before dragging UI items happens");
-
-	prop = RNA_def_property(srna, "tweak_threshold", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "tweak_threshold");
 	RNA_def_property_range(prop, 3, 1024);
-	RNA_def_property_ui_text(prop, "Tweak Threshold",
-	                         "Number of pixels you have to drag before tweak event is triggered");
+	RNA_def_property_ui_text(prop, "Drag Threshold",
+	                         "Number of pixels you have to drag before a tweak/drag event is triggered "
+	                         "(otherwise click events are detected)");
 
 	/* tablet pressure curve */
 	prop = RNA_def_property(srna, "pressure_threshold_max", PROP_FLOAT, PROP_FACTOR);
