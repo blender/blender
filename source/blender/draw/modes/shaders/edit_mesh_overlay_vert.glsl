@@ -77,7 +77,7 @@ void main()
 #if !defined(FACE) && !defined(EDGE_DECORATION)
 	/* Facing based color blend */
 	vec4 vpos = ModelViewMatrix * vec4(pos, 1.0);
-	vec3 view_normal = normalize(NormalMatrix * vnor);
+	vec3 view_normal = normalize(NormalMatrix * vnor + 1e-4);
 	vec3 view_vec = (ProjectionMatrix[3][3] == 0.0)
 		? normalize(vpos.xyz)
 		: vec3(0.0, 0.0, 1.0);
