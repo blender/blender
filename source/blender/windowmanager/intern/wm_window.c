@@ -1972,6 +1972,12 @@ void WM_init_state_normal_set(void)
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
+void WM_init_state_maximized_set(void)
+{
+	wm_init_state.windowstate = GHOST_kWindowStateMaximized;
+	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
+}
+
 void WM_init_window_focus_set(bool do_it)
 {
 	wm_init_state.window_focus = do_it;

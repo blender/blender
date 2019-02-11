@@ -496,6 +496,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--window-border");
 	BLI_argsPrintArgDoc(ba, "--window-fullscreen");
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
+	BLI_argsPrintArgDoc(ba, "--window-maximized");
 	BLI_argsPrintArgDoc(ba, "--start-console");
 	BLI_argsPrintArgDoc(ba, "--no-native-pixels");
 	BLI_argsPrintArgDoc(ba, "--no-window-focus");
@@ -1137,6 +1138,15 @@ static const char arg_handle_without_borders_doc[] =
 static int arg_handle_without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	WM_init_state_fullscreen_set();
+	return 0;
+}
+
+static const char arg_handle_window_maximized_doc[] =
+"\n\tForce opening maximized."
+;
+static int arg_handle_window_maximized(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	WM_init_state_maximized_set();
 	return 0;
 }
 
@@ -1970,6 +1980,7 @@ void main_args_setup(bContext *C, bArgs *ba)
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", CB(arg_handle_window_geometry), NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", CB(arg_handle_with_borders), NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-fullscreen", CB(arg_handle_without_borders), NULL);
+	BLI_argsAdd(ba, 2, "-M", "--window-maximized", CB(arg_handle_window_maximized), NULL);
 	BLI_argsAdd(ba, 2, NULL, "--no-window-focus", CB(arg_handle_no_window_focus), NULL);
 	BLI_argsAdd(ba, 2, "-con", "--start-console", CB(arg_handle_start_with_console), NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, CB(arg_handle_register_extension), NULL);
