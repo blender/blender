@@ -169,8 +169,12 @@ int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
 
 #define BLEN_THUMB_SIZE 128
 
-#define BLEN_THUMB_MEMSIZE(_x, _y) (sizeof(BlendThumbnail) + ((size_t)(_x) * (size_t)(_y)) * sizeof(int))
-#define BLEN_THUMB_SAFE_MEMSIZE(_x, _y) ((uint64_t)_x * (uint64_t)_y < (SIZE_MAX / (sizeof(int) * 4)))
+#define BLEN_THUMB_MEMSIZE(_x, _y) \
+	(sizeof(BlendThumbnail) + ((size_t)(_x) * (size_t)(_y)) * sizeof(int))
+/** Protect against buffer overflow vulnerability & negative sizes. */
+#define BLEN_THUMB_MEMSIZE_IS_VALID(_x, _y) \
+	(((_x) > 0 && (_y) > 0) && \
+	 ((uint64_t)(_x) * (uint64_t)(_y) < (SIZE_MAX / (sizeof(int) * 4))))
 
 #ifdef __cplusplus
 }

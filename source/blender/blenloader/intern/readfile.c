@@ -977,10 +977,9 @@ static int *read_file_thumbnail(FileData *fd)
 				BLI_endian_switch_int32(&data[1]);
 			}
 
-			int width = data[0];
-			int height = data[1];
-
-			if (!BLEN_THUMB_SAFE_MEMSIZE(width, height)) {
+			const int width = data[0];
+			const int height = data[1];
+			if (!BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
 				break;
 			}
 			if (bhead->len < BLEN_THUMB_MEMSIZE_FILE(width, height)) {
@@ -1422,14 +1421,11 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 	fd_data = fd ? read_file_thumbnail(fd) : NULL;
 
 	if (fd_data) {
-		int width = fd_data[0];
-		int height = fd_data[1];
-
-		/* Protect against buffer overflow vulnerability. */
-		if (BLEN_THUMB_SAFE_MEMSIZE(width, height)) {
+		const int width = fd_data[0];
+		const int height = fd_data[1];
+		if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
 			const size_t sz = BLEN_THUMB_MEMSIZE(width, height);
 			data = MEM_mallocN(sz, __func__);
-
 			if (data) {
 				BLI_assert((sz - sizeof(*data)) == (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*fd_data) * 2)));
 				data->width = width;
@@ -8997,11 +8993,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 		const int *data = read_file_thumbnail(fd);
 
 		if (data) {
-			int width = data[0];
-			int height = data[1];
-
-			/* Protect against buffer overflow vulnerability. */
-			if (BLEN_THUMB_SAFE_MEMSIZE(width, height)) {
+			const int width = data[0];
+			const int height = data[1];
+			if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
 				const size_t sz = BLEN_THUMB_MEMSIZE(width, height);
 				bfd->main->blen_thumb = MEM_mallocN(sz, __func__);
 
