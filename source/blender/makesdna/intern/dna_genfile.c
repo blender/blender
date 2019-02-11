@@ -124,6 +124,15 @@
  *  - the sdna functions have several error prints builtin, always check blender running from a console.
  */
 
+
+#ifdef __BIG_ENDIAN__
+/* Big Endian */
+#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
+#else
+/* Little Endian */
+#  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+#endif
+
 /* ************************* MAKE DNA ********************** */
 
 /* allowed duplicate code from makesdna.c */
@@ -367,11 +376,9 @@ static bool init_structDNA(
         bool data_alloc,
         const char **r_error_message)
 {
-	int *data, *verg, gravity_fix = -1;
+	int *data, gravity_fix = -1;
 	short *sp;
-	char str[8];
 
-	verg = (int *)str;
 	data = (int *)sdna->data;
 
 	/* clear pointers incase of error */
@@ -382,8 +389,8 @@ static bool init_structDNA(
 	sdna->structs_map = NULL;
 #endif
 
-	strcpy(str, "SDNA");
-	if (*data != *verg) {
+	/* Struct DNA ('SDNA') */
+	if (*data != MAKE_ID('S', 'D', 'N', 'A')) {
 		*r_error_message = "SDNA error in SDNA file";
 		return false;
 	}
@@ -391,10 +398,8 @@ static bool init_structDNA(
 		const char *cp;
 
 		data++;
-
-		/* load names array */
-		strcpy(str, "NAME");
-		if (*data == *verg) {
+		/* Names array ('NAME') */
+		if (*data == MAKE_ID('N', 'A', 'M', 'E')) {
 			data++;
 
 			sdna->nr_names = *data;
@@ -456,10 +461,9 @@ static bool init_structDNA(
 
 		cp = pad_up_4(cp);
 
-		/* load type names array */
+		/* Type names array ('TYPE') */
 		data = (int *)cp;
-		strcpy(str, "TYPE");
-		if (*data == *verg) {
+		if (*data == MAKE_ID('T', 'Y', 'P', 'E')) {
 			data++;
 
 			sdna->nr_types = *data;
@@ -509,10 +513,9 @@ static bool init_structDNA(
 
 		cp = pad_up_4(cp);
 
-		/* load typelen array */
+		/* Type lengths array ('TLEN') */
 		data = (int *)cp;
-		strcpy(str, "TLEN");
-		if (*data == *verg) {
+		if (*data == MAKE_ID('T', 'L', 'E', 'N')) {
 			data++;
 			sp = (short *)data;
 			sdna->typelens = sp;
@@ -529,10 +532,9 @@ static bool init_structDNA(
 		}
 		if (sdna->nr_types & 1) sp++;   /* prevent BUS error */
 
-		/* load struct array */
+		/* Struct array ('STRC') */
 		data = (int *)sp;
-		strcpy(str, "STRC");
-		if (*data == *verg) {
+		if (*data == MAKE_ID('S', 'T', 'R', 'C')) {
 			data++;
 
 			sdna->nr_structs = *data;
