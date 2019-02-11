@@ -58,6 +58,7 @@ extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
@@ -579,6 +580,18 @@ void update_particle_system_orig_pointers(const Object *object_orig,
 	}
 }
 
+void set_particle_system_modifiers_loaded(Object *object_cow)
+{
+	LISTBASE_FOREACH(ModifierData *, md, &object_cow->modifiers) {
+		if (md->type != eModifierType_ParticleSystem) {
+			continue;
+		}
+		ParticleSystemModifierData *psmd =
+		        reinterpret_cast<ParticleSystemModifierData*>(md);
+		psmd->flag |= eParticleSystemFlag_file_loaded;
+	}
+}
+
 void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
 {
 	bPoseChannel *pchan_cow = (bPoseChannel *) pose_cow->chanbase.first;
@@ -621,6 +634,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 				}
 			}
 			update_particle_system_orig_pointers(object_orig, object_cow);
+			set_particle_system_modifiers_loaded(object_cow);
 			break;
 		}
 		case ID_SCE:
