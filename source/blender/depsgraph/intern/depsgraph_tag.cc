@@ -460,7 +460,7 @@ void deg_graph_node_tag_zero(Main *bmain,
 		if (comp_node->type == NodeType::ANIMATION) {
 			continue;
 		}
-		comp_node->tag_update(graph, DEG_UPDATE_SOURCE_USER_EDIT);
+		comp_node->tag_update(graph, update_source);
 	}
 	GHASH_FOREACH_END();
 	deg_graph_id_tag_legacy_compat(
