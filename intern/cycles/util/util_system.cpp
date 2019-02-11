@@ -28,6 +28,7 @@
 #  endif
 #  include "util_windows.h"
 #elif defined(__APPLE__)
+#  include <sys/ioctl.h>
 #  include <sys/sysctl.h>
 #  include <sys/types.h>
 #else
