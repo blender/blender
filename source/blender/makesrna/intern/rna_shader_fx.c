@@ -568,7 +568,7 @@ static void rna_def_shader_fx_swirl(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Angle", "Angle of rotation");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
-	prop = RNA_def_property(srna, "transparent", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_transparent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_SWIRL_MAKE_TRANSPARENT);
 	RNA_def_property_ui_text(prop, "Transparent", "Make image transparent outside of radius");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");

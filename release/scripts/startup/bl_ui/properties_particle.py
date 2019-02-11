@@ -225,7 +225,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                 else:
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)
-                    row.prop(part, "regrow_hair")
+                    row.prop(part, "use_regrow_hair")
                     row.prop(part, "use_advanced_hair")
 
                 if psys is not None and psys.is_edited:
@@ -709,15 +709,15 @@ class PARTICLE_PT_physics_fluid_advanced(ParticleButtonsPanel, Panel):
 
         if fluid.solver == 'DDR':
             sub = col.column()
-            sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
-            sub.prop(fluid, "factor_repulsion")
+            sub.prop(fluid, "repulsion", slider=fluid.use_factor_repulsion)
+            sub.prop(fluid, "use_factor_repulsion")
 
-            sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
-            sub.prop(fluid, "factor_stiff_viscosity")
+            sub.prop(fluid, "stiff_viscosity", slider=fluid.use_factor_stiff_viscosity)
+            sub.prop(fluid, "use_factor_stiff_viscosity")
 
         sub = col.column()
-        sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
-        sub.prop(fluid, "factor_radius")
+        sub.prop(fluid, "fluid_radius", slider=fluid.use_factor_radius)
+        sub.prop(fluid, "use_factor_radius")
 
         sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
         sub.prop(fluid, "use_factor_density")
@@ -821,8 +821,8 @@ class PARTICLE_PT_physics_fluid_springs_advanced(ParticleButtonsPanel, Panel):
         fluid = part.fluid
 
         sub = layout.column()
-        sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
-        sub.prop(fluid, "factor_rest_length")
+        sub.prop(fluid, "rest_length", slider=fluid.use_factor_rest_length)
+        sub.prop(fluid, "use_factor_rest_length")
 
 
 class PARTICLE_PT_physics_boids_movement(ParticleButtonsPanel, Panel):

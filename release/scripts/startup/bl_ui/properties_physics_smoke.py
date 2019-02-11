@@ -649,7 +649,7 @@ class PHYSICS_PT_smoke_viewport_display_debug(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         md = context.smoke.domain_settings
 
-        self.layout.prop(md, "display_velocity", text="")
+        self.layout.prop(md, "show_velocity", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -659,7 +659,7 @@ class PHYSICS_PT_smoke_viewport_display_debug(PhysicButtonsPanel, Panel):
         domain = context.smoke.domain_settings
 
         col = flow.column()
-        col.enabled = domain.display_velocity
+        col.enabled = domain.show_velocity
         col.prop(domain, "vector_display_type", text="Display As")
         col.prop(domain, "vector_scale")
 

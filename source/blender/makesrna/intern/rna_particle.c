@@ -1701,7 +1701,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 
 	/* Factor flags */
 
-	prop = RNA_def_property(srna, "factor_repulsion", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_factor_repulsion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_FAC_REPULSION);
 	RNA_def_property_ui_text(prop, "Factor Repulsion", "Repulsion is a factor of stiffness");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1712,17 +1712,17 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	                         "Density is calculated as a factor of default density (depends on particle size)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop = RNA_def_property(srna, "factor_radius", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_factor_radius", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_FAC_RADIUS);
 	RNA_def_property_ui_text(prop, "Factor Radius", "Interaction radius is a factor of 4 * particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop = RNA_def_property(srna, "factor_stiff_viscosity", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_factor_stiff_viscosity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_FAC_VISCOSITY);
 	RNA_def_property_ui_text(prop, "Factor Stiff Viscosity", "Stiff viscosity is a factor of normal viscosity");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop = RNA_def_property(srna, "factor_rest_length", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_factor_rest_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPH_FAC_REST_LENGTH);
 	RNA_def_property_ui_text(prop, "Factor Rest Length", "Spring rest length is a factor of 2 * particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2125,7 +2125,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop = RNA_def_property(srna, "regrow_hair", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_regrow_hair", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_HAIR_REGROW);
 	RNA_def_property_ui_text(prop, "Regrow", "Regrow hair for each frame");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");

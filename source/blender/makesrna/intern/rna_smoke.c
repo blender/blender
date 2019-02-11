@@ -861,7 +861,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method to use for smoke/fire volumes in solid mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-	prop = RNA_def_property(srna, "display_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw_velocity", 0);
 	RNA_def_property_ui_text(prop, "Display Velocity", "Toggle visualization of the velocity field as needles");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);

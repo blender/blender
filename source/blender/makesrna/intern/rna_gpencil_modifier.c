@@ -1391,7 +1391,7 @@ static void rna_def_modifier_gpencilmirror(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
-	prop = RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MIRROR_CLIPPING);
 	RNA_def_property_ui_text(prop, "Clip", "Clip points");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");

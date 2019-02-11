@@ -742,7 +742,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                     layout.prop(strip, "speed_factor")
                 else:
                     layout.prop(strip, "speed_factor", text="Frame Number")
-                    layout.prop(strip, "scale_to_length")
+                    layout.prop(strip, "use_scale_to_length")
 
         elif strip.type == 'TRANSFORM':
             layout = self.layout

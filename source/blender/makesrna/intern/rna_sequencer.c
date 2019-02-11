@@ -2372,7 +2372,7 @@ static void rna_def_speed_control(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Use as speed", "Interpret the value as speed instead of a frame number");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
-	prop = RNA_def_property(srna, "scale_to_length", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_scale_to_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
 	RNA_def_property_ui_text(prop, "Scale to length", "Scale values from 0.0 to 1.0 to target sequence length");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
