@@ -95,23 +95,32 @@
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 
-typedef enum WinOverrideFlag {
+typedef enum eWinOverrideFlag {
 	WIN_OVERRIDE_GEOM     = (1 << 0),
 	WIN_OVERRIDE_WINSTATE = (1 << 1),
-} WinOverrideFlag;
+} eWinOverrideFlag;
 
-/* set by commandline */
+#define GHOST_WINDOW_STATE_DEFAULT GHOST_kWindowStateMaximized
+
+/**
+ * Override defaults or startup file when #eWinOverrideFlag is set.
+ * These values are typically set by command line arguments.
+ */
 static struct WMInitStruct {
 	/* window geometry */
 	int size_x, size_y;
 	int start_x, start_y;
 
 	int windowstate;
-	WinOverrideFlag override_flag;
+	eWinOverrideFlag override_flag;
 
 	bool window_focus;
 	bool native_pixels;
-} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0, true, true};
+} wm_init_state = {
+	.windowstate = GHOST_WINDOW_STATE_DEFAULT,
+	.window_focus = true,
+	.native_pixels = true,
+};
 
 /* ******** win open & close ************ */
 
@@ -748,8 +757,13 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
 
-				win->windowstate = GHOST_kWindowStateNormal;
-				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
+				if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
+					win->windowstate = GHOST_kWindowStateNormal;
+					wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
+				}
+				else {
+					win->windowstate = GHOST_WINDOW_STATE_DEFAULT;
+				}
 			}
 
 			if (wm_init_state.override_flag & WIN_OVERRIDE_WINSTATE) {
