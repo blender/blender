@@ -794,7 +794,7 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
 /** Deallocates runtime cache of a pose channel's B-Bone shape. */
 void BKE_pose_channel_free_bbone_cache(bPoseChannel *pchan)
 {
-	bPoseChannelRuntime *runtime = &pchan->runtime;
+	bPoseChannel_Runtime *runtime = &pchan->runtime;
 
 	runtime->bbone_segments = 0;
 	MEM_SAFE_FREE(runtime->bbone_rest_mats);
